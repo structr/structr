@@ -1,0 +1,426 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+    <head>
+        <title>$title</title>
+        $headElements
+        <link href="$contextPath/css/smoothness/jquery-ui-1.8.4.custom.css" rel="stylesheet"  type="text/css"/>
+        <link href="$contextPath/css/structr.css" rel="stylesheet" type="text/css">
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+        <meta name="viewport" content="width=1024px, minimum-scale=1.0, maximum-scale=1.0" />
+    </head>
+
+    <body>
+        #if ($renderMode != "inline")
+        <div id="header">
+
+            <!--            <div class="structr"><span class="structrCap">s</span>tructr</div>-->
+
+        </div>
+        #end
+
+        #if ($actionsPanel)
+        <div class="actionsPanel">
+            <!--            #if ($viewLink)
+                        <span class="spacer">&nbsp;</span>
+                        <div class="fakeBtn $viewClass">$viewLink</div>
+                        #end
+
+                        #if ($editLink)
+                        <div class="fakeBtn $editClass">$editLink</div>
+                        <div class="panelSeparator"></div>
+                        #end-->
+            $actionsPanel
+
+<!--            <div class="info">STRUCTR v0.1</div>-->
+        </div>
+        #end
+
+        <div style="clear: both"></div>
+
+        #if ($errorMsg && $errorMsg != "")
+        <div id="msg" class="errorMsg">$errorMsg</div>
+        #end
+        #if ($okMsg && $okMsg != "")
+        <div id="msg" class="okMsg">$okMsg</div>
+        #end
+        #if ($warnMsg && $warnMsg != "")
+        <div id="msg" class="warnMsg">$warnMsg</div>
+        #end
+
+        <table id="main">
+            #if ($renderMode != "inline")
+            #if ($nodeTreePanel)
+            $nodeTreePanel
+            #end
+            #end
+
+
+            #if ($renderMode != "inline")
+            <td id="tabArea" class="tabArea">
+                #else
+            <td id="tabArea" class="tabAreaInline">
+                #end
+
+                <div id="tabs" class="ui-tabs">
+
+                    <ul>
+                        #if ($renditionPanel)
+                        <li><a href="#rendition-tab"><span>Rendition</span></a></li>
+
+                        ##if ($node.type != "File")
+                        <li><a href="#source-tab"><span>Source</span></a></li>
+                        ##end
+                        #end
+
+                        #if ($searchResultsPanel)
+                        <li><a href="#search-tab"><span>Search Results</span></a></li>
+                        #end
+
+                        #if ($reportPanel)
+                        <li><a href="#report-tab"><span>Reports</span></a></li>
+                        #end
+
+                        #if ($editContentForm)
+                        <li><a href="#content-tab"><span>Content</span></a></li>
+                        #end
+
+                        #if ($editChildNodesPanel)
+                        <li><a href="#childnodes-tab"><span>Child Nodes</span></a></li>
+                        #end
+
+                        #if ($editPropertiesPanel)
+                        <li><a href="#properties-tab"><span>Properties</span></a></li>
+                        #end
+
+                        #if ($editRelationshipsPanel)
+                        <li><a href="#relationships-tab"><span>Relationships</span></a></li>
+                        #end
+
+                        #if ($editSecurityPanel)
+                        <li><a href="#security-tab"><span>Security</span></a></li>
+                        #end
+
+                        #if ($maintenancePanel)
+                        <li><a href="#maintenance-tab"><span>Maintenance</span></a></li>
+                        #end
+
+                    </ul>
+
+                    #if ($renditionPanel)
+                    $renditionPanel
+                    #end
+
+                    #if ($editContentForm)
+                    <div id="content-tab" class="ui-tabs-hide">
+                        <h2><img src="$context/$node.iconSrc"> $node.name</h2>
+                        #parse($path)
+                    </div>
+                    #end
+
+                    #if ($searchResultsPanel)
+                    <div id="search-tab" class="ui-tabs-hide">
+                        #parse($path)
+                    </div>
+                    #end
+
+                    #if ($reportPanel)
+                    <div id="report-tab" class="ui-tabs-hide">
+                        #parse($path)
+                    </div>
+                    #end
+
+                    #if ($editChildNodesPanel)
+                    $editChildNodesPanel
+                    #end
+
+                    #if ($editPropertiesPanel)
+                    $editPropertiesPanel
+                    #end
+
+                    #if ($editRelationshipsPanel)
+                    $editRelationshipsPanel
+                    #end
+
+                    #if ($editSecurityPanel)
+                    $editSecurityPanel
+                    #end
+
+                    #if ($maintenancePanel)
+                    $maintenancePanel
+                    #end
+                </div><!-- #tabs -->
+            </td><!-- #tab_area -->
+        </table><!-- #main -->
+
+        $jsElements
+
+        <script src="$context/js/jquery-1.4.2.min.js" type="text/javascript"></script>
+        <script src="$context/js/jquery.cookies.2.2.0.min.js" type="text/javascript"></script>
+        <script src="$context/js/jquery.blockUI.js" type="text/javascript" ></script>
+        <script src="$context/js/jquery-ui-1.8.4.custom.min.js" type="text/javascript" ></script>
+
+        <script type="text/javascript">
+            jQuery.noConflict();
+
+            jQuery(document).ready(function() {
+
+                jQuery("#tabs").tabs();
+
+                jQuery('.unblock').click(function() {
+                    jQuery.unblockUI({
+                        fadeOut: 0
+                    });
+                });
+
+                jQuery('#toggleNewNodeForm').click(function() {
+                    showNewNodePanel()
+                });
+                
+                #if ($newNodeFormIsInvalid)
+                    showNewNodePanel();
+                #end
+
+                function showNewNodePanel() {
+                    jQuery.blockUI.defaults.css = {};
+                    jQuery.blockUI({
+                        centerX: 0,
+                        centerY: 0,
+                        css: {
+                            width: '',
+                            top: jQuery('#toggleNewNodeForm').offset().top-4,
+                            //    + jQuery('#toggleNewNodeForm').height(),
+                            left: jQuery('#toggleNewNodeForm').offset().left-4
+                        },
+                        message: jQuery('#newNodeForm'),
+                        baseZ: 9,
+                        fadeIn: 0,
+                        fadeOut: 0,
+                        overlayCSS:  {
+                            backgroundColor: '#000',
+                            opacity:         0.5
+                        }
+                    });
+
+                }
+
+                jQuery('#toggleUploadForm').click(function() {
+                    showUploadPanel();
+
+                });
+
+                #if ($uploadFormIsInvalid)
+                    showUploadPanel();
+                #end
+
+                function showUploadPanel() {
+                    jQuery.blockUI.defaults.css = {};
+                    jQuery.blockUI({
+                        centerX: 0,
+                        centerY: 0,
+                        css: {
+                            width: '',
+                            top: jQuery('#toggleUploadForm').offset().top-4,
+                            //    + jQuery('#toggleNewNodeForm').height(),
+                            left: jQuery('#toggleUploadForm').offset().left-4
+                        },
+                        message: jQuery('#uploadForm'),
+                        baseZ: 9,
+                        fadeIn: 0,
+                        fadeOut: 0,
+                        overlayCSS:  {
+                            backgroundColor: '#000',
+                            opacity:         0.5
+                        }
+                    });
+                }
+
+                jQuery('#toggleExtractNodeForm').click(function() {
+                    showExtractNodePanel();
+                    
+                });
+
+                #if ($extractNodeFormIsInvalid)
+                    showExtractNodePanel();
+                #end
+
+                function showExtractNodePanel() {
+                    jQuery.blockUI.defaults.css = {};
+                    jQuery.blockUI({
+                        centerX: 0,
+                        centerY: 0,
+                        css: {
+                            width: '',
+                            top: jQuery('#toggleExtractNodeForm').offset().top-4,
+                            //    + jQuery('#toggleNewNodeForm').height(),
+                            left: jQuery('#toggleExtractNodeForm').offset().left-4
+                        },
+                        message: jQuery('#extractNodeForm'),
+                        baseZ: 9,
+                        fadeIn: 0,
+                        fadeOut: 0,
+                        overlayCSS:  {
+                            backgroundColor: '#000',
+                            opacity:         0.5
+                        }
+                    });
+                }
+
+                function showCopyNodePanel() {
+                    jQuery.blockUI.defaults.css = {};
+                    jQuery.blockUI({
+                        centerX: 0,
+                        centerY: 0,
+                        css: {
+                            width: '',
+                            top: jQuery('#toggleCopyNodeForm').offset().top-4,
+                            //    + jQuery('#toggleNewNodeForm').height(),
+                            left: jQuery('#toggleCopyNodeForm').offset().left-4
+                        },
+                        message: jQuery('#copyNodeForm'),
+                        baseZ: 9,
+                        fadeIn: 0,
+                        fadeOut: 0,
+                        overlayCSS:  {
+                            backgroundColor: '#000',
+                            opacity:         0.5
+                        }
+                    });
+                }
+
+                #if ($copyNodeFormIsInvalid)
+                    showCopyNodePanel()
+                #end
+
+                jQuery('#toggleCopyNodeForm').click(function() {
+                    showCopyNodePanel()
+
+                });
+
+                function showMoveNodePanel() {
+                    jQuery.blockUI.defaults.css = {};
+                    jQuery.blockUI({
+                        centerX: 0,
+                        centerY: 0,
+                        css: {
+                            width: '',
+                            top: jQuery('#toggleMoveNodeForm').offset().top-4,
+                            //    + jQuery('#toggleNewNodeForm').height(),
+                            left: jQuery('#toggleMoveNodeForm').offset().left-4
+                        },
+                        message: jQuery('#moveNodeForm'),
+                        baseZ: 9,
+                        fadeIn: 0,
+                        fadeOut: 0,
+                        overlayCSS:  {
+                            backgroundColor: '#000',
+                            opacity:         0.5
+                        }
+                    });
+                }
+
+                #if ($moveNodeFormIsInvalid)
+                    showMoveNodePanel()
+                #end
+
+                jQuery('#toggleMoveNodeForm').click(function() {
+                    showMoveNodePanel()
+                   
+                });
+
+                function showNewRelationshipPanel() {
+                    jQuery.blockUI.defaults.css = {};
+                    jQuery.blockUI({
+                        centerX: 0,
+                        centerY: 0,
+                        css: {
+                            width: '',
+                            top: jQuery('#toggleNewRelationshipForm').offset().top-4,
+                            //    + jQuery('#toggleNewRelationshipForm').height(),
+                            left: jQuery('#toggleNewRelationshipForm').offset().left-4
+                        },
+                        message: jQuery('#newRelationshipForm'),
+                        baseZ: 9,
+                        fadeIn: 0,
+                        fadeOut: 0,
+                        overlayCSS:  {
+                            backgroundColor: '#000',
+                            opacity:         0.5
+                        }
+                    });
+                }
+
+                #if ($newRelationshipFormIsInvalid)
+                    showNewRelationshipPanel();
+                #end
+
+                jQuery('#toggleNewRelationshipForm').click(function() {
+                    showNewRelationshipPanel();
+                });
+
+                function showEditPropertiesPanel() {
+                    jQuery.blockUI.defaults.css = {};
+                    jQuery.blockUI({
+                        centerX: 0,
+                        centerY: 0,
+                        css: {
+                            width: '',
+                            top: jQuery('#toggleEditPropertiesForm').offset().top-4,
+                            //    + jQuery('#toggleNewRelationshipForm').height(),
+                            left: jQuery('#toggleEditPropertiesForm').offset().left-4
+                        },
+                        message: jQuery('#editPropertiesForm'),
+                        baseZ: 9,
+                        fadeIn: 0,
+                        fadeOut: 0,
+                        overlayCSS:  {
+                            backgroundColor: '#000',
+                            opacity:         0.5
+                        }
+                    });
+
+                }
+                #if ($editPropertiesFormIsInvalid)
+                    showNewRelationshipPanel();
+                #end
+
+                jQuery('#toggleEditPropertiesForm').click(function() {
+                    showEditPropertiesPanel()
+                });
+
+                function showDeleteNodePanel() {
+                    jQuery.blockUI.defaults.css = {};
+                    jQuery.blockUI({
+                        centerX: 0,
+                        centerY: 0,
+                        css: {
+                            width: '',
+                            top: jQuery('#toggleDeleteNodeForm').offset().top-4,
+                            //    + jQuery('#toggleNewNodeForm').height(),
+                            left: jQuery('#toggleDeleteNodeForm').offset().left-4
+                        },
+                        message: jQuery('#deleteNodeForm'),
+                        baseZ: 9,
+                        fadeIn: 0,
+                        fadeOut: 0,
+                        overlayCSS:  {
+                            backgroundColor: '#000',
+                            opacity:         0.5
+                        }
+                    });
+                }
+
+                #if ($deleteNodeFormIsInvalid)
+                    showDeleteNodePanel()
+                #end
+
+                jQuery('#toggleDeleteNodeForm').click(function() {
+                    showDeleteNodePanel()
+
+                });
+
+            });
+        </script>
+    </div><!-- #main -->
+
+</body>
+</html>

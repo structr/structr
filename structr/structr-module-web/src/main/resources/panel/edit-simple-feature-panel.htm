@@ -1,0 +1,16 @@
+$editContentForm
+<script src="$context/js/codemirror/codemirror.js" type="text/javascript"></script>
+<script type="text/javascript">
+    var editor = CodeMirror.fromTextArea('code', {
+        height: "350px",
+        width: "600px",
+        parserfile: ["tokenizejavascript.js", "parsejavascript.js"],
+        stylesheet: ["$context/css/codemirror/jscolors.css"],
+        path: "$context/js/codemirror/",
+        lineNumbers: true,
+        textWrapping: true,
+        autoMatchParens: true,
+        reindentOnLoad: true,
+        saveFunction: "editContentForm.submit()"
+    });
+</script>

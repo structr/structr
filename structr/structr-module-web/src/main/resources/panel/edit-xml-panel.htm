@@ -1,0 +1,21 @@
+<div id="content-tab" class="ui-tabs-hide">
+    <h2><img src="$context/images/page_white_code_red.png"> $messages.editXmlHeading</h2>
+
+    <p>$messages.editXmlNote</p>
+    $editContentForm
+    <script src="$context/js/codemirror/codemirror.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        var editor = CodeMirror.fromTextArea('code', {
+            height: "350px",
+            width: "600px",
+            parserfile: "parsexml.js",
+            stylesheet: "$context/css/codemirror/xmlcolors.css",
+            path: "$context/js/codemirror/",
+            //lineNumbers: true,
+            saveFunction: "editContentForm.submit()"
+        });
+    </script>
+</div>
+
+
+

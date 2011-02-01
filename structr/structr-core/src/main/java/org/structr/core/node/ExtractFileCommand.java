@@ -1,0 +1,293 @@
+/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package org.structr.core.node;
+
+import java.io.BufferedInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.activation.MimetypesFileTypeMap;
+import org.apache.commons.compress.archivers.ArchiveEntry;
+import org.apache.commons.compress.archivers.ArchiveException;
+import org.apache.commons.compress.archivers.ArchiveInputStream;
+import org.apache.commons.compress.archivers.ArchiveStreamFactory;
+import org.apache.commons.compress.utils.IOUtils;
+import org.structr.core.Command;
+import org.structr.core.Services;
+import org.structr.core.entity.StructrNode;
+import org.structr.common.RelType;
+import org.structr.core.entity.File;
+import org.structr.core.entity.Image;
+import org.structr.core.entity.User;
+
+/**
+ * Extract a file and create subnodes
+ *
+ *
+ * @author amorgner
+ */
+public class ExtractFileCommand extends NodeServiceCommand {
+
+    private static final Logger logger = Logger.getLogger(ExtractFileCommand.class.getName());
+    private static final String PATH_SEPARATOR = "/";
+
+    /**
+     *
+     * @param parameters
+     * @return
+     */
+    @Override
+    public Object execute(Object... parameters) {
+        StructrNode node = null;
+        StructrNode targetNode = null;
+        User user = null;
+
+        Command findNode = Services.createCommand(FindNodeCommand.class);
+
+        switch (parameters.length) {
+
+            case 3:
+
+                if (parameters[0] instanceof Long) {
+                    long id = ((Long) parameters[0]).longValue();
+                    node = (StructrNode) findNode.execute(user, id);
+
+                } else if (parameters[0] instanceof StructrNode) {
+                    node = (StructrNode) parameters[0];
+
+                } else if (parameters[0] instanceof String) {
+                    long id = Long.parseLong((String) parameters[0]);
+                    node = (StructrNode) findNode.execute(user, id);
+                }
+
+                if (parameters[1] instanceof Long) {
+                    long id = ((Long) parameters[1]).longValue();
+                    targetNode = (StructrNode) findNode.execute(user, id);
+
+                } else if (parameters[1] instanceof StructrNode) {
+                    targetNode = (StructrNode) parameters[1];
+
+                } else if (parameters[1] instanceof String) {
+                    long id = Long.parseLong((String) parameters[1]);
+                    targetNode = (StructrNode) findNode.execute(user, id);
+                }
+
+                if (parameters[2] instanceof User) {
+                    user = (User) parameters[2];
+                }
+
+                break;
+
+            default:
+                break;
+
+        }
+
+        doExtractFileNode(node, targetNode, user);
+
+        return null;
+    }
+
+    private void doExtractFileNode(StructrNode node, StructrNode targetNode, User user) {
+
+        if (node != null) {
+
+            if (!(node instanceof File)) {
+                setExitCode(Command.exitCode.FAILURE);
+                setErrorMessage("Could not extract content of node" + node.getId());
+                logger.log(Level.WARNING, getErrorMessage());
+                return;
+            }
+
+            File archiveNode = (File) node;
+
+            BufferedInputStream in = new BufferedInputStream(archiveNode.getInputStream());
+            ArchiveInputStream input = null;
+            try {
+
+                input = new ArchiveStreamFactory().createArchiveInputStream(in);
+
+                if (input != null) {
+
+                    Command createNode = Services.createCommand(CreateNodeCommand.class);
+                    Command createRel = Services.createCommand(CreateRelationshipCommand.class);
+
+                    Map<String, StructrNode> createdPaths = new HashMap<String, StructrNode>();
+
+                    try {
+
+                        ArchiveEntry ae = input.getNextEntry();
+
+                        do {
+
+                            String name = ae.getName();
+                            long size = ae.getSize();
+                            boolean isDirectory = ae.isDirectory();
+                            //Date lastModDate = ae.getLastModifiedDate();
+
+
+                            if (!isDirectory) {
+
+                                // check path for subfolders, f.e. like "abc/xyc/123"
+                                if (name.indexOf("/") > 0) {
+
+                                    StructrNode parentNode = targetNode;
+
+                                    String[] pathElements = name.split(PATH_SEPARATOR);
+                                    int count = 0;
+                                    for (String p : pathElements) {
+
+                                        NodeAttribute typeAttr;
+                                        if (count < pathElements.length - 1) {
+                                            typeAttr = new NodeAttribute(StructrNode.TYPE_KEY, "Folder");
+                                        } else {
+                                            // last path element is the file
+
+                                            // Detect content type from filename (extension)
+                                            String contentType = getContentTypeFromFilename(ae.getName());
+
+                                            if (contentType != null && contentType.startsWith("image")) {
+                                                // If it seems to be an image, use Image type
+                                                typeAttr = new NodeAttribute(StructrNode.TYPE_KEY, Image.class.getSimpleName());
+                                            } else {
+                                                // Default is File type
+                                                typeAttr = new NodeAttribute(StructrNode.TYPE_KEY, File.class.getSimpleName());
+                                            }
+                                        }
+
+                                        // check if node with this path was already created
+                                        // and if yes, skip this one
+                                        StringBuilder path = new StringBuilder();
+                                        for (int i = 0; i <= count; i++) {
+                                            path.append(pathElements[i]).append(PATH_SEPARATOR);
+                                        }
+
+                                        if (!(createdPaths.containsKey(path.toString()))) {
+
+                                            // create the node
+                                            StructrNode childNode = (StructrNode) createNode.execute(
+                                                    new NodeAttribute(StructrNode.NAME_KEY, p),
+                                                    typeAttr, user);
+
+                                            // write the file
+                                            if (childNode.getType().equals("File")) {
+                                                writeFile(childNode, input);
+                                            }
+
+                                            // link file node to parent node
+                                            createRel.execute(parentNode, childNode, RelType.HAS_CHILD);
+
+
+                                            parentNode = childNode;
+
+                                            // save this path and the corresponding node
+                                            createdPaths.put(path.toString(), parentNode);
+
+                                        } else {
+                                            // set existing folder node as new parent node, so
+                                            // the relationship will set correctly in next loop
+                                            parentNode = (StructrNode) createdPaths.get(path.toString());
+
+                                        }
+                                        count++;
+
+                                    }
+
+
+                                } else {
+
+                                    // create plain file (no sub directory)
+                                    NodeAttribute typeAttr = new NodeAttribute(StructrNode.TYPE_KEY, "File");
+                                    NodeAttribute sizeAttr = new NodeAttribute(File.SIZE_KEY, size);
+                                    NodeAttribute nameAttr = new NodeAttribute(StructrNode.NAME_KEY, name);
+
+                                    StructrNode fileNode = (StructrNode) createNode.execute(nameAttr, typeAttr, sizeAttr, user);
+                                    createRel.execute(RelType.HAS_CHILD, targetNode, fileNode);
+
+                                    writeFile(fileNode, input);
+
+                                }
+
+                            }
+                            // don't create plain folders (?)
+//                            } else {
+//                                // create folder
+//                                NodeAttribute typeAttr = new NodeAttribute(StructrNode.TYPE_KEY, "Folder");
+//                                NodeAttribute sizeAttr = new NodeAttribute(File.SIZE_KEY, size);
+//                                NodeAttribute nameAttr = new NodeAttribute(StructrNode.NAME_KEY, name);
+//
+//                                StructrNode folderNode = (StructrNode) createNode.execute(nameAttr, typeAttr, sizeAttr);
+//
+//                                createRel.execute(RelType.HAS_CHILD, targetNode, folderNode);
+//                            }
+
+                            ae = input.getNextEntry();
+
+                        } while (ae != null);
+
+                    } catch (IOException e) {
+                        setErrorMessage("Could not read from archive stream");
+                        setExitCode(Command.exitCode.FAILURE);
+                        logger.log(Level.WARNING, getErrorMessage().concat(": {0}"), e.getMessage());
+                        return;
+                    }
+                }
+
+            } catch (ArchiveException e) {
+                setErrorMessage("Unknown Archive format");
+                setExitCode(Command.exitCode.FAILURE);
+                logger.log(Level.WARNING, getErrorMessage().concat(": {0}"), e.getMessage());
+                return;
+            } finally {
+                try {
+                    if (input != null) {
+                        input.close();
+                    }
+                } catch (IOException e) {
+                    logger.log(Level.WARNING, "Exception while closing input stream: " + e.getMessage());
+                }
+
+            }
+
+        } else {
+            setErrorMessage("Node to extract was null");
+            setExitCode(Command.exitCode.FAILURE);
+            logger.log(Level.WARNING, getErrorMessage());
+            return;
+        }
+
+        // everything is fine
+        setExitCode(Command.exitCode.SUCCESS);
+
+    }
+
+    private void writeFile(final StructrNode fileNode, InputStream input) {
+
+        // write file
+        String path = fileNode.getId() + "_" + System.currentTimeMillis();
+
+        OutputStream out;
+        try {
+            out = new FileOutputStream(new java.io.File(Services.getFilesPath(), path));
+            IOUtils.copy(input, out);
+            out.close();
+        } catch (Exception e) {
+            logger.log(Level.WARNING, "Exception while writing file: {0}", e.getMessage());
+        }
+
+        fileNode.setProperty(File.RELATIVE_FILE_PATH_KEY, path);
+
+    }
+
+    private String getContentTypeFromFilename(final String filename) {
+          return new MimetypesFileTypeMap().getContentType(filename);
+    }
+
+}

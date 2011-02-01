@@ -1,0 +1,106 @@
+UX/GUI
+
+- implement tree operations
+   move node (drag & drop node within tree, select operation in context menu)
+   copy node (drag & dtop node within tree, select operation in context menu)
+   create node (drag & drop a template node icon into the tree)
+   delete node (drag & drop node over a trash)
+   edit node (double click)
+   view node (single click) -> done
+- implement inline editing in view mode
+   in view mode, when an editMode parameter is set, show edit handles on mouseover
+   when edit handle is clicked, replace node's view content by node's edit form
+   when edit operation is done, either start an approval workflow or display changed content
+
+Search
+
+- implement content indexing and search
+    use Lucene (already integrated with neo4j)
+
+
+Workflow
+
+- implement a simple approval workflow, e.g. like that:
+    user A wants to change node X (which is owned by user B)
+    user A has no appropriate right to change X directly
+    system asks user A if he wants to change X using a workflow
+    if yes, user may edit X and system creates X' (a working copy of X) and informs B
+    user B will be informed (messaging!) about the change request and can explore the changes (tree diff)
+    user B now can communicate with A and approve or reject the changes
+    user B may even make additional changes, too (system creates X'' from X')
+    when approved, X'' will overwrite X (but X will be saved in node history)
+
+Nodes
+- Video node: render HTML container for web videos
+    support WebM/HTML5, eventually with Flash fallback
+    see video4everybody for a nice browser-tolerant implementation
+    video files should be served directly by Apache
+    implement static content serving through Apache Rewrite rules
+
+Messaging
+
+- implement messaging
+    users can send themselves messages
+...
+
+Versioning
+
+- implement versioning
+...
+
+
+Security
+
+- create RelTypes.SECURITY relationships between a user and nodes
+- set permission properties at security relationships, e.g.
+    explore: user sees node in tree
+    read: user can see properties
+    readFile: user is allowed to read/download file content
+    add/change/deleteProperties: user is allowed to add/change/delete
+properties
+    add/change/deleteRelationships: user is allowed to add/change/delete
+relationships
+    addNodes: user is allowed to add sub nodes
+- evaluate security relationships on node access
+
+Remote nodes
+
+- show remote nodes in tree
+    implement a RemoteNode interface and RemoteNodeImpl entity bean class
+    remote node stores a unique key (URL?) of a node in another repository
+    renderView/renderDirect/evaluate methods should access remote node's
+methods (via WebService?)
+    when adding a remote node to the tree, the sub-structure of the
+remote node is displayed as well
+
+Applications
+
+- implement simple interactive apps, e.g.
+    blog with comments
+    image gallery
+    contact form
+    user self registration
+    ....
+    evaluate BeanShell approach (performance?)
+
+- implement complex interactive apps
+    discussion forum
+    wiki
+    ...
+
+Interfaces/Scripting
+- BeanShell
+    implement BeanShell scripting node (ongoing)
+    provide access to some variables and methods (use injection)
+    use StringBuilder instead of StringBuffer
+- PHP
+    implement PHP node which holds PHP code
+    provide access to some variables and methods (use PHP/Java bridge)
+    evaluate PHP code at runtime
+- ...
+
+Testing
+- Performance with many, many nodes
+
+
+

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+    <!DOCTYPE urlrewrite
+        PUBLIC "-//tuckey.org//DTD UrlRewrite 3.0//EN"
+        "http://tuckey.org/res/dtds/urlrewrite3.0.dtd">
+
+<urlrewrite>
+
+    <rule>
+        <from>^/view/(.*)?(.*)$</from>
+        <to type="forward">/view.htm?nodeId=/$1/&amp;$2</to>
+    </rule>
+    <rule>
+        <from>^/edit/(.*)?(.*)$</from>
+        <to type="forward">/edit.htm?nodeId=/$1/&amp;$2</to>
+    </rule>
+<!--
+    <outbound-rule>
+        <from>/view.htm\?nodeId=/(.*)&amp;(.*)</from>
+        <to>/view/$1?$2</to>
+    </outbound-rule>
+-->
+
+
+</urlrewrite>

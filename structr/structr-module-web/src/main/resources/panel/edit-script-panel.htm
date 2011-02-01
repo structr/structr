@@ -1,0 +1,14 @@
+<p>$messages.editScriptNote</p>
+$editContentForm
+<script src="$context/js/codemirror/codemirror.js" type="text/javascript"></script>
+<script type="text/javascript">
+    var editor = CodeMirror.fromTextArea('code', {
+        height: "350px",
+        width: "600px",
+        parserfile: "parsedummy.js",
+        stylesheet: "$context/css/codemirror/plaincolors.css",
+        path: "$context/js/codemirror/",
+        lineNumbers: true,
+        saveFunction: "editContentForm.submit()"
+    });
+</script>
