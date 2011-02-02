@@ -428,7 +428,9 @@ public class ModuleService implements SingletonService {
                 logger.log(Level.WARNING, "Unable to read module index from {0}: {1}", new Object[]{indexPath, t});
             }
 
-        } else {
+        }
+
+	if (ret == null) {
             ret = createModuleIndex(moduleName);
         }
 
