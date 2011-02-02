@@ -9,6 +9,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -28,6 +30,9 @@ import org.apache.click.control.Table;
 import org.apache.click.control.TextField;
 import org.apache.click.dataprovider.DataProvider;
 import org.apache.click.util.ClickUtils;
+import org.apache.click.util.PropertyUtils;
+import org.apache.commons.io.FileUtils;
+import org.structr.common.RelType;
 import org.structr.common.SearchOperator;
 import org.structr.core.Command;
 import org.structr.core.Services;
@@ -35,8 +40,13 @@ import org.structr.core.entity.EmptyNode;
 import org.structr.core.entity.StructrNode;
 import org.structr.core.module.GetEntitiesCommand;
 import org.structr.core.module.GetEntityClassCommand;
+import org.structr.core.node.CreateNodeCommand;
+import org.structr.core.node.CreateRelationshipCommand;
+import org.structr.core.node.NodeAttribute;
 import org.structr.core.node.SearchAttribute;
 import org.structr.core.node.SearchNodeCommand;
+import org.structr.core.node.StructrTransaction;
+import org.structr.core.node.TransactionCommand;
 
 /**
  *
@@ -59,6 +69,8 @@ public class Report extends Nodes {
     protected Select csvEscapeChar = new Select(CSV_ESCAPE_CHAR, "CSV Escape Character");
     protected Submit submit = new Submit("createReport", "Create Report", this, "onCreateReport");
     protected Submit reset = new Submit("reset", "Reset Form");
+    protected TextField reportName = new TextField("reportName", "Save Report as (filename): ", true);
+    //protected Submit saveReport = new Submit("saveReport", "Save Report", this, "onSaveReport");
     protected List<StructrNode> reportResults = new ArrayList<StructrNode>();
     protected List<SearchAttribute> searchAttributes = new ArrayList<SearchAttribute>();
     protected List<Column> columns = new ArrayList<Column>();
@@ -89,6 +101,7 @@ public class Report extends Nodes {
         // Get request data for selected type
         ClickUtils.bind(resultTypeSelect);
         reportForm.add(resultTypeSelect);
+        reportForm.add(reportName);
 
         String resultTypeFromRequest = resultTypeSelect.getValue();
 
@@ -255,6 +268,8 @@ public class Report extends Nodes {
      */
     public boolean onCreateReport() {
 
+        final String reportFileName = reportName.getValue() + ".csv";
+
         if (reportForm.isValid()) {
 
             Command search = Services.createCommand(SearchNodeCommand.class);
@@ -265,6 +280,7 @@ public class Report extends Nodes {
 
         }
 
+        Map methodCache = new HashMap<Object, Object>();
         List<String[]> resultList = new ArrayList<String[]>();
 
         List<String> keys = new ArrayList<String>();
@@ -275,7 +291,6 @@ public class Report extends Nodes {
         // add column headings
         resultList.add((keys.toArray(new String[keys.size()])));
 
-
         if (reportResults == null) {
             return false;
         }
@@ -285,9 +300,12 @@ public class Report extends Nodes {
 //            List<String> cols = new ArrayList<String>();
             List<String> values = new ArrayList<String>();
             for (Column c : columns) {
-                Object value = s.getProperty(c.getName());
+
+                Object value = PropertyUtils.getValue(s, c.getName(), methodCache);
                 if (value != null) {
                     values.add(value.toString());
+                } else {
+                    values.add("");
                 }
             }
 
@@ -295,7 +313,7 @@ public class Report extends Nodes {
             resultList.add(sa);
         }
 
-        File reportFile = new File("/tmp/report.csv");
+        final File reportFile = new File("/tmp/" + reportFileName);
         CSVWriter csvw = null;
 
         try {
@@ -334,6 +352,46 @@ public class Report extends Nodes {
             csvw.writeAll(resultList);
             csvw.flush();
             csvw.close();
+
+            StructrNode s = null;
+            Command transaction = Services.createCommand(TransactionCommand.class);
+
+            s = (StructrNode) transaction.execute(new StructrTransaction() {
+
+                @Override
+                public Object execute() throws Throwable {
+                    // Save report in database
+                    Command createNode = Services.createCommand(CreateNodeCommand.class);
+                    Command createRel = Services.createCommand(CreateRelationshipCommand.class);
+
+                    // create node with appropriate type
+                    StructrNode newNode = (StructrNode) createNode.execute(new NodeAttribute(StructrNode.TYPE_KEY, File.class.getSimpleName()), user);
+
+
+                    String relativeFilePath = newNode.getId() + "_" + System.currentTimeMillis();
+                    String targetPath = FILES_PATH + "/" + relativeFilePath;
+
+                    String fileUrl = "file:///" + reportFile.getPath();
+                    FileUtils.moveFile(reportFile, new File(targetPath));
+
+                    Date now = new Date();
+                    newNode.setProperty(StructrNode.NAME_KEY, reportFileName);
+                    newNode.setProperty(StructrNode.CREATED_DATE_KEY, now);
+                    newNode.setProperty(StructrNode.LAST_MODIFIED_DATE_KEY, now);
+
+                    newNode.setProperty(org.structr.core.entity.File.CONTENT_TYPE_KEY, "text/csv");
+                    newNode.setProperty(org.structr.core.entity.File.SIZE_KEY, String.valueOf(reportFile.length()));
+                    newNode.setProperty(org.structr.core.entity.File.URL_KEY, fileUrl);
+                    newNode.setProperty(org.structr.core.entity.File.RELATIVE_FILE_PATH_KEY, relativeFilePath);
+
+                    // connect report to user node
+                    StructrNode parentNode = user;
+                    createRel.execute(parentNode, newNode, RelType.HAS_CHILD);
+
+                    return newNode;
+                }
+            });
+
 
         } catch (IOException ex) {
             Logger.getLogger(Report.class.getName()).log(Level.SEVERE, null, ex);
