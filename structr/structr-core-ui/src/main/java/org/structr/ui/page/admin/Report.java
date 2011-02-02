@@ -285,7 +285,10 @@ public class Report extends Nodes {
 //            List<String> cols = new ArrayList<String>();
             List<String> values = new ArrayList<String>();
             for (Column c : columns) {
-                values.add((s.getProperty(c.getName())).toString());
+                Object value = s.getProperty(c.getName());
+                if (value != null) {
+                    values.add(value.toString());
+                }
             }
 
             String[] sa = values.toArray(new String[values.size()]);
