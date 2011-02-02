@@ -68,6 +68,7 @@ public class LoginPage extends Admin {
     public boolean onSecurityCheck() {
         userName = (String) getContext().getRequest().getSession().getAttribute(USERNAME_KEY);
         if (userName != null) {
+            initFirstPage();
             return false;
         } else {
             return true;
@@ -139,51 +140,10 @@ public class LoginPage extends Admin {
 
                 // username and password are both valid
                 userName = userValue;
-
                 getContext().getRequest().getSession().setAttribute(USERNAME_KEY, userValue);
 
+                initFirstPage();
 
-                String startNodeId = getNodeId();
-                if (startNodeId == null) {
-                    startNodeId = restoreLastVisitedNodeFromUserProfile();
-                    nodeId = startNodeId;
-                }
-
-                StructrNode startNode = getNodeByIdOrPath(startNodeId);
-
-                Class<? extends Page> targetPage = getRedirectPage((startNode), this);
-
-                if (targetPage == null) {
-                    targetPage = DefaultView.class;
-                }
-
-                Map<String, String> parameters = new HashMap<String, String>();
-                parameters.put(NODE_ID_KEY, String.valueOf(getNodeId()));
-                //parameters.put(RENDER_MODE_KEY, renderMode);
-                //parameters.put(OK_MSG_KEY, okMsg);
-
-                // default after login is edit mode
-                Class<? extends Page> editPage = getEditPageClass(getNodeByIdOrPath(nodeId));
-                setRedirect(editPage, parameters);
-
-                long[] expandedNodesArray = getExpandedNodesFromUserProfile();
-                if (expandedNodesArray != null && expandedNodesArray.length > 0) {
-
-                    openNodes = new ArrayList<TreeNode>();
-
-                    Command findNode = Services.createCommand(FindNodeCommand.class);
-                    for (Long s : expandedNodesArray) {
-
-                        StructrNode n = (StructrNode) findNode.execute(user, s);
-                        if (n != null) {
-                            //openNodes.add(new TreeNode(String.valueOf(n.getId())));
-                            openNodes.add(new TreeNode(n, String.valueOf(n.getId())));
-                        }
-
-                    }
-                    // fill session
-                    getContext().getSession().setAttribute(EXPANDED_NODES_KEY, openNodes);
-                }
             }
 
             return false;
@@ -191,5 +151,50 @@ public class LoginPage extends Admin {
         }
 
         return true;
+    }
+
+    private void initFirstPage() {
+
+        String startNodeId = getNodeId();
+        if (startNodeId == null) {
+            startNodeId = restoreLastVisitedNodeFromUserProfile();
+            nodeId = startNodeId;
+        }
+
+//                StructrNode startNode = getNodeByIdOrPath(startNodeId);
+
+//                Class<? extends Page> targetPage = getRedirectPage((startNode), this);
+//
+//                if (targetPage == null) {
+//                    targetPage = DefaultView.class;
+//                }
+
+        Map<String, String> parameters = new HashMap<String, String>();
+        parameters.put(NODE_ID_KEY, String.valueOf(getNodeId()));
+        //parameters.put(RENDER_MODE_KEY, renderMode);
+        //parameters.put(OK_MSG_KEY, okMsg);
+
+        // default after login is edit mode
+        Class<? extends Page> editPage = getEditPageClass(getNodeByIdOrPath(nodeId));
+        setRedirect(editPage, parameters);
+
+        long[] expandedNodesArray = getExpandedNodesFromUserProfile();
+        if (expandedNodesArray != null && expandedNodesArray.length > 0) {
+
+            openNodes = new ArrayList<TreeNode>();
+
+            Command findNode = Services.createCommand(FindNodeCommand.class);
+            for (Long s : expandedNodesArray) {
+
+                StructrNode n = (StructrNode) findNode.execute(user, s);
+                if (n != null) {
+                    //openNodes.add(new TreeNode(String.valueOf(n.getId())));
+                    openNodes.add(new TreeNode(n, String.valueOf(n.getId())));
+                }
+
+            }
+            // fill session
+            getContext().getSession().setAttribute(EXPANDED_NODES_KEY, openNodes);
+        }
     }
 }
