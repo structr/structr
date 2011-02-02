@@ -95,6 +95,8 @@ public class DefaultEdit extends Nodes {
     protected Panel editChildNodesPanel;
     @Bindable
     protected Panel editSecurityPanel;
+    @Bindable
+    protected Panel editVisibilityPanel;
 
     // use template for backend pages
     @Override
@@ -143,7 +145,6 @@ public class DefaultEdit extends Nodes {
 
         editPropertiesForm.add(nodeInfo);
 
-
         FieldSet visibilityFields = new FieldSet("Visibility");
         visibilityFields.setColumns(2);
 
@@ -166,13 +167,14 @@ public class DefaultEdit extends Nodes {
         editVisibilityForm.add(visibilityFields);
         editVisibilityForm.add(new HiddenField(NODE_ID_KEY, nodeId != null ? nodeId : ""));
         editVisibilityForm.add(new HiddenField(RENDER_MODE_KEY, renderMode != null ? renderMode : ""));
-        editVisibilityForm.setActionURL(editVisibilityForm.getActionURL().concat("#properties-tab"));
+        editVisibilityForm.setActionURL(editVisibilityForm.getActionURL().concat("#visibility-tab"));
         if (editVisibilityAllowed) {
             editVisibilityForm.add(new Submit("saveVisibility", " Save Visibility ", this, "onSaveVisibility"));
             editVisibilityForm.add(new Submit("saveVisibilityRecursively", " Save Visibility (including direct children) ", this, "onSaveVisibilityWithSubnodes"));
             editVisibilityForm.add(new Submit("cancel", " Cancel ", this, "onCancel"));
         }
 
+        editVisibilityPanel = new Panel("editVisibilityPanel", "/panel/edit-visibility-panel.htm");
 
         editPropertiesForm.add(new HiddenField(NODE_ID_KEY, nodeId != null ? nodeId : ""));
         editPropertiesForm.add(new HiddenField(RENDER_MODE_KEY, renderMode != null ? renderMode : ""));
@@ -186,7 +188,7 @@ public class DefaultEdit extends Nodes {
         editPropertiesPanel = new Panel("editPropertiesPanel", "/panel/edit-properties-panel.htm");
 
         Column nameColumn, typeColumn;
-        PageLink viewRelLink = new PageLink("viewRel", DefaultView.class);
+        PageLink viewRelLink = new PageLink("viewRel", DefaultEdit.class);
         LinkDecorator nameDec, iconDec;
 
         // ------------------ child nodes start --------------------------------

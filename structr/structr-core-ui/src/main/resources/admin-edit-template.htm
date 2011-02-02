@@ -92,6 +92,10 @@
                         <li><a href="#properties-tab"><span>Properties</span></a></li>
                         #end
 
+                        #if ($editVisibilityPanel)
+                        <li><a href="#visibility-tab"><span>Visibility</span></a></li>
+                        #end
+
                         #if ($editRelationshipsPanel)
                         <li><a href="#relationships-tab"><span>Relationships</span></a></li>
                         #end
@@ -135,6 +139,10 @@
 
                     #if ($editPropertiesPanel)
                     $editPropertiesPanel
+                    #end
+
+                    #if ($editVisibilityPanel)
+                    $editVisibilityPanel
                     #end
 
                     #if ($editRelationshipsPanel)
