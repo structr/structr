@@ -5,11 +5,10 @@
 package org.structr.ui.page.admin;
 
 import org.apache.click.control.FieldSet;
-import org.apache.click.control.Panel;
+import org.apache.click.control.PageLink;
 import org.apache.click.control.TextField;
 import org.apache.click.extras.control.LongField;
 import org.apache.click.util.Bindable;
-import org.apache.click.util.ClickUtils;
 import org.structr.core.entity.File;
 
 /**
@@ -32,6 +31,12 @@ public class EditFile extends DefaultEdit {
         super();
 
         FieldSet infoFields = new FieldSet("File Information");
+        infoFields.add(new PageLink("download") {
+            @Override
+            public String getHref() {
+                return localViewUrl;
+            }
+        });
         infoFields.add(contentTypeField);
         infoFields.add(urlField);
         infoFields.add(relativeFilePathField);
@@ -42,10 +47,11 @@ public class EditFile extends DefaultEdit {
 
     @Override
     public void onInit() {
-        // only pages and files may be rendered
+
+        super.onInit();
 
         externalViewUrl = node.getNodeURL(user, contextPath);
-        //localViewUrl = getContext().getResponse().encodeURL(viewLink.getHref());
+//        //localViewUrl = getContext().getResponse().encodeURL(viewLink.getHref());
         localViewUrl = getContext().getRequest().getContextPath().concat(
                 "/view".concat(
                 node.getNodePath(user).replace("&", "%26")));
@@ -56,8 +62,8 @@ public class EditFile extends DefaultEdit {
 //                node.renderDirect(out, rootNode, redirect, editNodeId, user);
 //                rendition = out.toString();
         // provide rendition's source
-        source = ClickUtils.escapeHtml(rendition);
+        //source = ClickUtils.escapeHtml(rendition);
 
-        renditionPanel = new Panel("renditionPanel", "/panel/rendition-panel.htm");
+        //renditionPanel = new Panel("renditionPanel", "/panel/rendition-panel.htm");
     }
 }
