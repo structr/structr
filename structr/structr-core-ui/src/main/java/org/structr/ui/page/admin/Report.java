@@ -67,9 +67,10 @@ public class Report extends Nodes {
     protected Select csvSeparatorChar = new Select(CSV_SEPARATOR_CHAR, "CSV Separator Character");
     protected Select csvQuoteChar = new Select(CSV_QUOTE_CHAR, "CSV Quote Character");
     protected Select csvEscapeChar = new Select(CSV_ESCAPE_CHAR, "CSV Escape Character");
-    protected Submit submit = new Submit("createReport", "Create Report", this, "onCreateReport");
+    protected Submit previewReport = new Submit("previewReport", "Preview", this, "onPreviewReport");
+    protected Submit createReport = new Submit("createAndSaveReport", "Create Report", this, "onCreateReport");
     protected Submit reset = new Submit("reset", "Reset Form");
-    protected TextField reportName = new TextField("reportName", "Save Report as (filename): ", true);
+    protected TextField reportName = new TextField("reportName", "Save Report as (filename): ");
     //protected Submit saveReport = new Submit("saveReport", "Save Report", this, "onSaveReport");
     protected List<StructrNode> reportResults = new ArrayList<StructrNode>();
     protected List<SearchAttribute> searchAttributes = new ArrayList<SearchAttribute>();
@@ -142,7 +143,8 @@ public class Report extends Nodes {
         reportForm.add(propertyFields);
 
         //ClickUtils.bind(reportForm);
-        reportForm.add(submit);
+        reportForm.add(previewReport);
+        reportForm.add(createReport);
         reportForm.add(reset);
 
         addControl(reportForm);
@@ -266,9 +268,7 @@ public class Report extends Nodes {
     /**
      * Create report
      */
-    public boolean onCreateReport() {
-
-        final String reportFileName = reportName.getValue() + ".csv";
+    public boolean onPreviewReport() {
 
         if (reportForm.isValid()) {
 
@@ -279,6 +279,20 @@ public class Report extends Nodes {
             saveState();
 
         }
+
+        return false;
+
+    }
+
+
+    /**
+     * Create report
+     */
+    public boolean onCreateReport() {
+
+        onPreviewReport();
+
+        final String reportFileName = reportName.getValue() + ".csv";
 
         Map methodCache = new HashMap<Object, Object>();
         List<String[]> resultList = new ArrayList<String[]>();
