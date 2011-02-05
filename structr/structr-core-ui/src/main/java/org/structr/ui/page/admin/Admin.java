@@ -6,8 +6,10 @@ package org.structr.ui.page.admin;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.logging.Level;
 import org.apache.click.control.ActionLink;
 import org.apache.click.control.PageLink;
@@ -19,6 +21,7 @@ import org.apache.click.extras.tree.TreeNode;
 import org.apache.commons.lang.ArrayUtils;
 import org.structr.core.entity.StructrNode;
 import org.structr.core.entity.SuperUser;
+import org.structr.ui.page.LoginPage;
 import org.structr.ui.page.StructrPage;
 
 /**
@@ -33,7 +36,6 @@ public class Admin extends StructrPage {
     public static final Integer THUMBNAIL_HEIGHT = 100;
     public static final Integer PREVIEW_WIDTH = 600;
     public static final Integer PREVIEW_HEIGHT = 400;
-
     public static final Integer DEFAULT_PAGESIZE = 25;
     public static final Integer DEFAULT_PAGER_MIN = 5;
     public static final Integer DEFAULT_PAGER_MAX = 1000;
@@ -61,19 +63,16 @@ public class Admin extends StructrPage {
 //    protected final SimpleDateFormat dateFormat =
 //            (SimpleDateFormat) DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, locale);
     public Admin() {
-
         super();
-
         title = "STRUCTR Admin Console";
-
     }
 
     @Override
     public void onInit() {
-
         super.onInit();
-
-        logoutLink.setParameter(NODE_ID_KEY, getNodeId());
+        PageLink returnLink = new PageLink("Return Link", getClass());
+        returnLink.setParameter(NODE_ID_KEY, getNodeId());
+        logoutLink.setParameter(RETURN_URL_KEY, returnLink.getHref());
     }
 
     /**
@@ -86,7 +85,17 @@ public class Admin extends StructrPage {
         getContext().getRequest().getSession().invalidate();
         userName = null;
 
-        setRedirect(getRedirectPage(getNodeByIdOrPath(getNodeId()), this));
+//        if (returnUrl != null) {
+//            setRedirect(returnUrl);
+//        } else {
+//            setRedirect(getRedirectPage(getNodeByIdOrPath(getNodeId()), this));
+//        }
+        Map<String, String> parameters = new HashMap<String, String>();
+        if (returnUrl != null) {
+            parameters.put(RETURN_URL_KEY, returnUrl);
+        }
+
+        setRedirect(LoginPage.class, parameters);
 
         return false;
     }

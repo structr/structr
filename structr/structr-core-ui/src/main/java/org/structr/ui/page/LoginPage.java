@@ -11,12 +11,14 @@ import java.util.logging.Level;
 import org.apache.click.Page;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.click.control.Form;
+import org.apache.click.control.HiddenField;
 import org.apache.click.control.Panel;
 import org.apache.click.control.PasswordField;
 import org.apache.click.control.Submit;
 import org.apache.click.control.TextField;
 import org.apache.click.extras.tree.TreeNode;
 import org.apache.click.util.Bindable;
+import org.apache.commons.lang.StringUtils;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.StructrNode;
@@ -25,7 +27,6 @@ import org.structr.core.entity.User;
 import org.structr.core.node.FindNodeCommand;
 import org.structr.core.node.FindUserCommand;
 import org.structr.ui.page.admin.Admin;
-import org.structr.ui.page.admin.DefaultView;
 
 /**
  *
@@ -56,8 +57,14 @@ public class LoginPage extends Admin {
         //loginForm.add(new TextField(DOMAIN_KEY, true));
         loginForm.add(new TextField(USERNAME_KEY, "Username", 20, true));
         loginForm.add(new PasswordField(PASSWORD_KEY, "Password", 20, true));
-
         loginForm.add(new Submit("login", " Click to login ", this, "onLogin"));
+
+    }
+
+    @Override
+    public void onInit() {
+        super.onInit();
+        loginForm.add(new HiddenField(RETURN_URL_KEY, returnUrl != null ? returnUrl : ""));
 
     }
 
@@ -81,6 +88,7 @@ public class LoginPage extends Admin {
 
             //String domainValue = loginForm.getFieldValue(DOMAIN_KEY);
             String userValue = loginForm.getFieldValue(USERNAME_KEY);
+            returnUrl = loginForm.getFieldValue(RETURN_URL_KEY);
             String passwordValue = loginForm.getFieldValue(PASSWORD_KEY);
 
             // TODO: remove superadmin login!!
@@ -155,29 +163,27 @@ public class LoginPage extends Admin {
 
     private void initFirstPage() {
 
-        String startNodeId = getNodeId();
-        if (startNodeId == null) {
-            startNodeId = restoreLastVisitedNodeFromUserProfile();
-            nodeId = startNodeId;
+        // if a return URL is present, use it
+        if (returnUrl != null && StringUtils.isNotBlank(returnUrl)) {
+
+            setRedirect(returnUrl);
+
+        } else {
+
+            String startNodeId = getNodeId();
+            if (startNodeId == null) {
+                startNodeId = restoreLastVisitedNodeFromUserProfile();
+                nodeId = startNodeId;
+            }
+
+            Map<String, String> parameters = new HashMap<String, String>();
+            parameters.put(NODE_ID_KEY, String.valueOf(getNodeId()));
+
+            // default after login is edit mode
+            Class<? extends Page> editPage = getEditPageClass(getNodeByIdOrPath(nodeId));
+            setRedirect(editPage, parameters);
         }
-
-//                StructrNode startNode = getNodeByIdOrPath(startNodeId);
-
-//                Class<? extends Page> targetPage = getRedirectPage((startNode), this);
-//
-//                if (targetPage == null) {
-//                    targetPage = DefaultView.class;
-//                }
-
-        Map<String, String> parameters = new HashMap<String, String>();
-        parameters.put(NODE_ID_KEY, String.valueOf(getNodeId()));
-        //parameters.put(RENDER_MODE_KEY, renderMode);
-        //parameters.put(OK_MSG_KEY, okMsg);
-
-        // default after login is edit mode
-        Class<? extends Page> editPage = getEditPageClass(getNodeByIdOrPath(nodeId));
-        setRedirect(editPage, parameters);
-
+        
         long[] expandedNodesArray = getExpandedNodesFromUserProfile();
         if (expandedNodesArray != null && expandedNodesArray.length > 0) {
 

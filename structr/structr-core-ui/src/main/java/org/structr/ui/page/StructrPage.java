@@ -23,7 +23,6 @@ import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
 import org.structr.core.node.FindNodeCommand;
 import org.structr.core.node.FindUserCommand;
-import org.structr.core.node.XPath;
 import org.structr.ui.page.admin.DefaultEdit;
 
 /**
@@ -135,6 +134,7 @@ public class StructrPage extends Page {
 
 
 
+
 //        pageListTable.addColumn(new Column("canonicalName"));
 //        pageListTable.setDataProvider(new DataProvider() {
 //
@@ -196,7 +196,10 @@ public class StructrPage extends Page {
             return true;
 
         } else {
-            setRedirect(LoginPage.class);
+            Map<String, String> parameters = new HashMap<String, String>();
+            parameters.put(RETURN_URL_KEY, getContext().getRequest().getContextPath().concat(getPath()));
+
+            setRedirect(LoginPage.class, parameters);
             return false;
         }
     }
@@ -296,7 +299,6 @@ public class StructrPage extends Page {
 //
 //        return (ret);
 //    }
-
     /**
      * Return (cached) list with the configured page classes
      * 
@@ -452,7 +454,7 @@ public class StructrPage extends Page {
             returnLink.setParameter(StructrNode.NODE_ID_KEY, node.getId());
             return returnLink;
         } else {
-            return null;
+            return new PageLink();
         }
     }
 

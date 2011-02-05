@@ -111,7 +111,7 @@
     </context-param>
     <!--  custom context parameter end -->
     <welcome-file-list>
-        <welcome-file>/login.htm</welcome-file>
+        <welcome-file>admin/dashboard.htm</welcome-file>
     </welcome-file-list>
     <error-page>
         <error-code>403</error-code>

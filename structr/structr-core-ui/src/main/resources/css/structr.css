@@ -634,12 +634,13 @@ fieldset legend {
     padding: .5em;
 }
 
-fieldset input {
+fieldset input, fieldset select {
+    font-size: 1em;
 }
 
 fieldset td {
     vertical-align: middle ! important;
-    padding-right: 4em;
+    padding-right: 2em;
 }
 
 fieldset td.fields {
