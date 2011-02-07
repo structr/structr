@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.click.control.ActionLink;
 import org.apache.click.control.PageLink;
 import org.apache.click.control.Panel;
@@ -31,6 +32,8 @@ import org.structr.ui.page.StructrPage;
  */
 public class Admin extends StructrPage {
 
+    private static final Logger logger = Logger.getLogger(Admin.class.getName());
+    
     // TODO: move to global configuration
     public static final Integer THUMBNAIL_WIDTH = 100;
     public static final Integer THUMBNAIL_HEIGHT = 100;

@@ -18,6 +18,7 @@ import java.util.GregorianCalendar;
 import java.util.Locale;
 import java.util.TimeZone;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.click.util.Bindable;
 import org.apache.click.Page;
 import org.structr.ui.page.admin.Admin;
@@ -27,6 +28,8 @@ import org.structr.ui.page.admin.Admin;
  * @author amorgner
  */
 public class Edit extends Admin {
+
+    private static final Logger logger = Logger.getLogger(Admin.class.getName());
 
     @Bindable
     protected StringBuilder output = new StringBuilder();

@@ -17,6 +17,7 @@ public class SearchAttribute extends NodeAttribute {
 
     public static final String WILDCARD = "*";
     public static final String NOT_NULL = "[0 TO Z]";
+    public static final String NULL = "NOT([* TO *])";
     
     private SearchOperator searchOp = null;
 

@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.click.Page;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.click.control.Form;
@@ -33,6 +34,8 @@ import org.structr.ui.page.admin.Admin;
  * @author amorgner
  */
 public class LoginPage extends Admin {
+
+    private static final Logger logger = Logger.getLogger(LoginPage.class.getName());
 
     //private final static String DOMAIN_KEY = "domain";
     private final static String PASSWORD_KEY = "password";

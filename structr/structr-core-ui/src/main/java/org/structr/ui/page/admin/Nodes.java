@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.click.dataprovider.DataProvider;
 import org.apache.click.extras.tree.Tree;
 import org.apache.click.extras.tree.TreeNode;
@@ -71,6 +72,7 @@ import org.structr.core.node.SearchNodeCommand;
 public class Nodes extends Admin {
 
     private static final long serialVersionUID = 1L;
+    private static final Logger logger = Logger.getLogger(Nodes.class.getName());
     /** some id to identify the tree control */
     private final static String TREE_ID = "nodeTree";
     protected final static String SEARCH_RESULTS_KEY = "searchResults";

@@ -34,7 +34,7 @@ import org.structr.ui.page.admin.DefaultEdit;
  */
 public class StructrPage extends Page {
 
-    protected static final Logger logger = Logger.getLogger(StructrPage.class.getName());
+    private static final Logger logger = Logger.getLogger(StructrPage.class.getName());
     @Bindable
     protected String title;
     @Bindable

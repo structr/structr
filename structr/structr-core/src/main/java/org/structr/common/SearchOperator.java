@@ -10,5 +10,5 @@ package org.structr.common;
  * @author amorgner
  */
 public enum SearchOperator {
-    AND, OR, NOT;
+    AND, OR, NOT, AND_NOT, OR_NOT;
 }

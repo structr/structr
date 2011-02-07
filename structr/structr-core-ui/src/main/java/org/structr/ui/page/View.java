@@ -18,6 +18,7 @@ import java.util.GregorianCalendar;
 import java.util.Locale;
 import java.util.TimeZone;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.click.util.Bindable;
 import org.apache.click.Page;
 
@@ -26,6 +27,8 @@ import org.apache.click.Page;
  * @author amorgner
  */
 public class View extends StructrPage {
+
+    private static final Logger logger = Logger.getLogger(View.class.getName());
 
     @Bindable
     protected StringBuilder output = new StringBuilder();

@@ -2,7 +2,6 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package org.structr.common;
 
 import java.text.Normalizer;
@@ -42,6 +41,7 @@ public abstract class Search {
         SearchAttribute attr = new SearchAttribute(StructrNode.TITLE_KEY, searchString, SearchOperator.AND);
         return attr;
     }
+
     public static SearchAttribute orTitle(final String searchString) {
         SearchAttribute attr = new SearchAttribute(StructrNode.TITLE_KEY, searchString, SearchOperator.OR);
         return attr;
@@ -51,11 +51,11 @@ public abstract class Search {
         SearchAttribute attr = new SearchAttribute(PlainText.CONTENT_KEY, searchString, SearchOperator.AND);
         return attr;
     }
+
     public static SearchAttribute orContent(final String searchString) {
         SearchAttribute attr = new SearchAttribute(PlainText.CONTENT_KEY, searchString, SearchOperator.OR);
         return attr;
     }
-
 
     public static SearchAttribute orExactType(final String searchString) {
         SearchAttribute attr = new SearchAttribute(StructrNode.TYPE_KEY, exactMatch(searchString), SearchOperator.OR);
@@ -100,7 +100,18 @@ public abstract class Search {
     private static String exactMatch(final String searchString) {
         return ("\"" + searchString + "\"");
     }
-    
+
+    public static String unquoteExactMatch(final String searchString) {
+        String result = searchString;
+        if (searchString.startsWith("\"")) {
+            result = result.substring(1);
+        }
+        if (searchString.endsWith("\"")) {
+            result = result.substring(0, result.length() - 1);
+        }
+        return result;
+    }
+
     private static String normalize(final String input) {
         String output = Normalizer.normalize(input, Form.NFD);
         output = StringUtils.trim(output);
@@ -118,5 +129,4 @@ public abstract class Search {
         output = StringUtils.replace(output, ")", "");
         return output;
     }
-
 }

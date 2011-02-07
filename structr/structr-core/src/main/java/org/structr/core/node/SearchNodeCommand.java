@@ -15,6 +15,7 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.index.IndexService;
 import org.neo4j.index.lucene.LuceneFulltextIndexService;
+import org.structr.common.Search;
 import org.structr.common.SearchOperator;
 import org.structr.core.entity.StructrNode;
 import org.structr.core.entity.User;
@@ -53,13 +54,13 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
         //List<StructrNode> childNodes = new ArrayList<StructrNode>();
 
-        List<StructrNode> result = null;
+        List<StructrNode> result = Collections.emptyList();
 
         if (graphDb != null) {
 
             if (parameters == null || parameters.length != 5) {
                 logger.log(Level.WARNING, "Exactly 5 parameters are required for advanced search.");
-                return null;
+                return Collections.emptyList();
             }
 
             // TODO: implement top node filtering
@@ -98,9 +99,6 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
             }
 
-            // TODO: implement search operators
-            // At the moment, only "OR" is supported, and the
-            // search operator value is ignored
 
             if (searchAttrs.isEmpty()) {
 
@@ -125,6 +123,10 @@ public class SearchNodeCommand extends NodeServiceCommand {
                         if (value instanceof String) {
                             isString = true;
                             stringValue = (String) value;
+
+                            if (SearchAttribute.WILDCARD.equals(Search.unquoteExactMatch(stringValue))) {
+                                value = Search.unquoteExactMatch(stringValue);
+                            }
                         }
 
                         // if more than one character with leading wildcard, remove wildcard
@@ -155,7 +157,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
                         // if search operator is AND, stop search on first empty single result
                         if (op.equals(SearchOperator.AND) && !indexHits && !wildcardHits) {
-                            return null;
+                            return Collections.emptyList();
                         }
 
                     } catch (Throwable t) {
@@ -169,7 +171,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
                         // OR operator: add single result to intermediate result list
                         intermediateResult = ListUtils.sum(intermediateResult, singleResult);
 
-                    } else {
+                    } else if (op.equals(SearchOperator.AND)) {
 
                         // If no intermediate result is given, start with the first single result
                         // Note: We can safely assume an empty intermediate result because
@@ -182,9 +184,19 @@ public class SearchNodeCommand extends NodeServiceCommand {
                         List<StructrNode> intersectionResult = ListUtils.intersection(intermediateResult, singleResult);
                         intermediateResult = intersectionResult;
 
+                    } else if (op.equals(SearchOperator.AND_NOT)) {
+
+                        // If no intermediate result is given, start with the first single result
+                        // Note: We can safely assume an empty intermediate result because
+                        // in AND mode, search stops after the first empty single result set
+                        if (intermediateResult.isEmpty()) {
+                            intermediateResult = singleResult;
+                        }
+                        // AND_NOT operator: intersect single result with intermediate result
+                        List<StructrNode> intersectionResult = ListUtils.subtract(intermediateResult, singleResult);
+                        intermediateResult = intersectionResult;
+
                     }
-
-
 
 
                 }
@@ -197,6 +209,6 @@ public class SearchNodeCommand extends NodeServiceCommand {
             return result;
 
         }
-        return null;
+        return Collections.emptyList();
     }
 }

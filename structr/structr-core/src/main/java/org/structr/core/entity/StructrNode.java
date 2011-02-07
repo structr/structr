@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.StringReader;
 import java.io.Writer;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -34,6 +35,7 @@ import org.apache.commons.lang.StringUtils;
 //import org.neo4j.index.IndexService;
 //import org.neo4j.index.lucene.LuceneFulltextIndexService;
 //import org.neo4j.kernel.Traversal;
+import org.apache.commons.lang.time.DateUtils;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.structr.common.SearchOperator;
@@ -55,7 +57,6 @@ public abstract class StructrNode implements Comparable<StructrNode> {
     // request parameters
     private HttpServletRequest request = null;
     private HttpSession session = null;
-
     private StructrRelationship securityRelationship = null;
     private List<StructrRelationship> incomingLinkRelationships = null;
     private List<StructrRelationship> outgoingLinkRelationships = null;
@@ -95,7 +96,6 @@ public abstract class StructrNode implements Comparable<StructrNode> {
 //    private final static String REQUEST_KEY_PREFIX = "$[";
 //    private final static String REQUEST_KEY_SUFFIX = "]";
     private final static String CALLING_NODE_KEY = "#";
-
     protected Template template;
 
 
@@ -472,7 +472,6 @@ public abstract class StructrNode implements Comparable<StructrNode> {
         }
     }
 
-
     /**
      * Get this node's template
      *
@@ -600,20 +599,30 @@ public abstract class StructrNode implements Comparable<StructrNode> {
 //    public Long getId() {
 //        return getId();
 //    }
-    private Date getDateProperty(final String key) {
-        Object time = getProperty(key);
-        if (time != null) {
-            if (time instanceof Long) {
-                return new Date((Long) time);
-            } else if (time instanceof String) {
+    protected Date getDateProperty(final String key) {
+        Object propertyValue = getProperty(key);
+        if (propertyValue != null) {
+            if (propertyValue instanceof Long) {
+                return new Date((Long) propertyValue);
+            } else if (propertyValue instanceof String) {
                 try {
-                    return new Date(Long.parseLong((String) time));
+
+                    // try to parse as a number
+                    return new Date(Long.parseLong((String) propertyValue));
                 } catch (NumberFormatException nfe) {
-                    logger.log(Level.FINE, "Can''t parse String {0} to a Date.", time);
+
+                    try {
+                        Date date = DateUtils.parseDate(((String) propertyValue), new String[]{"yyyymmdd", "yyyymm", "yyyy"});
+                        return date;
+                    } catch (ParseException ex2) {
+                        logger.log(Level.WARNING, "Could not parse " + propertyValue + " to date", ex2);
+                    }
+
+                    logger.log(Level.WARNING, "Can''t parse String {0} to a Date.", propertyValue);
                     return null;
                 }
             } else {
-                logger.log(Level.FINE, "Date property is not null, but type is neither Long nor String, returning null");
+                logger.log(Level.WARNING, "Date property is not null, but type is neither Long nor String, returning null");
                 return null;
             }
         }
@@ -872,11 +881,10 @@ public abstract class StructrNode implements Comparable<StructrNode> {
                     dbNode.removeProperty(key);
                 } else {
 
+                    // Setting last modified date explicetely is not allowed
                     if (!key.equals(StructrNode.LAST_MODIFIED_DATE_KEY)) {
 
-                        if (key.equals(StructrNode.CREATED_DATE_KEY)
-                                || key.equals(StructrNode.VISIBILITY_START_DATE_KEY)
-                                || key.equals(StructrNode.VISIBILITY_END_DATE_KEY)) {
+                        if (value instanceof Date) {
                             dbNode.setProperty(key, ((Date) value).getTime());
                         } else {
                             dbNode.setProperty(key, value);
@@ -1788,6 +1796,7 @@ public abstract class StructrNode implements Comparable<StructrNode> {
         }
         return principalList;
     }
+
     /**
      * Replace $(key) by the content rendered by the subnode with name "key"
      *

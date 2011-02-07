@@ -54,6 +54,8 @@ import org.structr.core.node.TransactionCommand;
  */
 public class Report extends Nodes {
 
+    private static final Logger logger = Logger.getLogger(Report.class.getName());
+
     private final static String TYPE_SELECT_KEY = "typeSelect";
     private final static String REPORT_COLUMNS_KEY = "reportColumns";
     private final static String CSV_SEPARATOR_CHAR = "csvSeparatorCharacter";
