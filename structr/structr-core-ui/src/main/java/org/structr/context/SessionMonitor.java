@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import org.structr.core.entity.User;
 
 /**
@@ -19,7 +21,6 @@ public class SessionMonitor {
 
     private static final String USER_LIST_KEY = "userList";
     private static List<Session> sessions = null;
-
     public static final String SESSION_ID = "sessionId";
 
     /**
@@ -32,19 +33,24 @@ public class SessionMonitor {
     public static class Session {
 
         private long id;
+        private String uid;
+        private State state;
         private User user;
-        private Date loginTime;
-        private Date logoutTime;
+        private Date loginTimestamp;
+        private Date logoutTimestamp;
         private List<Activity> activityList;
+        private String remoteAddr;
+        private String remoteHost;
+        private String remoteUser;
 
-        public Session(final long id, final User user, Date loginTime) {
+        public Session(final long id, String uid, final User user, Date loginTime) {
             this.id = id;
+            this.uid = uid;
+            this.state = State.ACTIVE;
             this.user = user;
-            this.loginTime = loginTime;
+            this.loginTimestamp = loginTime;
             activityList = new ArrayList<Activity>();
         }
-
-
 
         /**
          * @return last activity
@@ -52,9 +58,37 @@ public class SessionMonitor {
         public String getLastActivity() {
             // Assuming minium activity list size of 1 is safe because first activity is always a login
             Activity lastActivity = getActivityList().get(getActivityList().size() - 1);
-            
-            String lastActivityString = lastActivity.getAction() + " (" + lastActivity.getTime() + ")";
-            return lastActivityString;
+
+            return lastActivity.getAction();
+        }
+
+        /**
+         * @return last activity timestamp
+         */
+        public Date getLastActivityTimestamp() {
+            // Assuming minium activity list size of 1 is safe because first activity is always a login
+            Activity lastActivity = getActivityList().get(getActivityList().size() - 1);
+
+            return lastActivity.getTimestamp();
+        }
+
+        /**
+         * @return last activity URI
+         */
+        public String getLastActivityUri() {
+            // Assuming minium activity list size of 1 is safe because first activity is always a login
+            Activity lastActivity = getActivityList().get(getActivityList().size() - 1);
+
+            return lastActivity.getUri();
+        }
+
+        /**
+         * Return number of seconds since last activity
+         * @return seconds since last activity
+         */
+        public long getInactiveSince() {
+            long ms = (new Date()).getTime() - getLastActivityTimestamp().getTime();
+            return ms / 1000;
         }
 
         /**
@@ -71,22 +105,22 @@ public class SessionMonitor {
         /**
          * @param user the user to set
          */
-        public void setUser(User user) {
+        public void setUser(final User user) {
             this.user = user;
         }
 
         /**
          * @return the loginTime
          */
-        public Date getLoginTime() {
-            return loginTime;
+        public Date getLoginTimestamp() {
+            return loginTimestamp;
         }
 
         /**
-         * @param loginTime the loginTime to set
+         * @param loginTimestamp the loginTime to set
          */
-        public void setLoginTime(Date loginTime) {
-            this.loginTime = loginTime;
+        public void setLoginTimestamp(final Date loginTimestamp) {
+            this.loginTimestamp = loginTimestamp;
         }
 
         /**
@@ -99,22 +133,22 @@ public class SessionMonitor {
         /**
          * @param activityList the activityList to set
          */
-        public void setActivityList(List<Activity> activityList) {
+        public void setActivityList(final List<Activity> activityList) {
             this.setActivityList(activityList);
         }
 
         /**
-         * @return the logoutTime
+         * @return the logoutTimestamp
          */
-        public Date getLogoutTime() {
-            return logoutTime;
+        public Date getLogoutTimestamp() {
+            return logoutTimestamp;
         }
 
         /**
-         * @param logoutTime the logoutTime to set
+         * @param logoutTimestamp the logoutTimestamp to set
          */
-        public void setLogoutTime(Date logoutTime) {
-            this.logoutTime = logoutTime;
+        public void setLogoutTime(final Date logoutTime) {
+            this.logoutTimestamp = logoutTime;
         }
 
         /**
@@ -127,12 +161,76 @@ public class SessionMonitor {
         /**
          * @param id the id to set
          */
-        public void setId(long id) {
+        public void setId(final long id) {
             this.id = id;
+        }
+
+        /**
+         * @return the uid
+         */
+        public String getUid() {
+            return uid;
+        }
+
+        /**
+         * @param uid the uid to set
+         */
+        public void setUid(final String uid) {
+            this.uid = uid;
         }
 
         public void addActivity(final Activity activity) {
             activityList.add(activity);
+        }
+
+        public State getState() {
+            return state;
+        }
+
+        public void setState(final State state) {
+            this.state = state;
+        }
+
+        /**
+         * @return the remoteAddr
+         */
+        public String getRemoteAddr() {
+            return remoteAddr;
+        }
+
+        /**
+         * @param remoteAddr the remoteAddr to set
+         */
+        public void setRemoteAddr(final String remoteAddr) {
+            this.remoteAddr = remoteAddr;
+        }
+
+        /**
+         * @return the remoteHost
+         */
+        public String getRemoteHost() {
+            return remoteHost;
+        }
+
+        /**
+         * @param remoteHost the remoteHost to set
+         */
+        public void setRemoteHost(final String remoteHost) {
+            this.remoteHost = remoteHost;
+        }
+
+        /**
+         * @return the remoteUser
+         */
+        public String getRemoteUser() {
+            return remoteUser;
+        }
+
+        /**
+         * @param remoteUser the remoteUser to set
+         */
+        public void setRemoteUser(String remoteUser) {
+            this.remoteUser = remoteUser;
         }
     }// </editor-fold>
 
@@ -141,13 +239,29 @@ public class SessionMonitor {
 
         private String action;
         private State state;
-        private Date time;
+        private Date timestamp;
+        private String uri;
 //        private Date endTime;
 
-        public Activity(final String action, final Date time) {
+        public Activity(final String action, final Date timestamp, final String uri) {
             this.action = action;
-            this.time = time;
+            this.timestamp = timestamp;
             this.state = State.UNDEFINED;
+            this.uri = uri;
+        }
+
+        /**
+         * @return the URI
+         */
+        public String getUri() {
+            return uri;
+        }
+
+        /**
+         * @param URI the URI to set
+         */
+        public void setUri(String uri) {
+            this.uri = uri;
         }
 
         /**
@@ -181,23 +295,22 @@ public class SessionMonitor {
         /**
          * @return the time
          */
-        public Date getTime() {
-            return time;
+        public Date getTimestamp() {
+            return timestamp;
         }
 
         /**
-         * @param time the time to set
+         * @param timestamp the time to set
          */
-        public void setTime(Date time) {
-            this.time = time;
+        public void setTimestamp(Date timestamp) {
+            this.timestamp = timestamp;
         }
-
     }// </editor-fold>
 
     // <editor-fold defaultstate="collapsed" desc="State">
     public enum State {
 
-        UNDEFINED, RUNNING, WAITING, FINISHED;
+        UNDEFINED, ACTIVE, INACTIVE, WAITING, CLOSED, STARTED, FINISHED;
     }// </editor-fold>
 
     /**
@@ -212,12 +325,12 @@ public class SessionMonitor {
     /**
      * Register user in servlet context
      */
-    public static long registerUser(final User user, final ServletContext context) {
+    public static long registerUser(final User user, final HttpSession session) {
 
-        init(context);
-        long id = nextId(context);
-        sessions.add(new Session(id, user, new Date()));
-        context.setAttribute(USER_LIST_KEY, sessions);
+        init(session.getServletContext());
+        long id = nextId(session.getServletContext());
+        sessions.add(new Session(id, session.getId(), user, new Date()));
+        session.getServletContext().setAttribute(USER_LIST_KEY, sessions);
         return id;
 
     }
@@ -228,7 +341,9 @@ public class SessionMonitor {
     public static void unregisterUser(final long id, final ServletContext context) {
 
         init(context);
-        getSession(id).setLogoutTime(new Date());
+        Session session = getSession(id);
+        session.setLogoutTime(new Date());
+        session.setState(State.INACTIVE);
         context.setAttribute(USER_LIST_KEY, sessions);
 
     }
@@ -239,8 +354,13 @@ public class SessionMonitor {
      * @param sessionId
      * @param action
      */
-    public static void logActivity(final long sessionId, final String action) {
-        getSession(sessionId).addActivity(new Activity(action, new Date()));
+    public static void logActivity(final long sessionId, final String action, final HttpServletRequest request) {
+        if (request != null) {
+            getSession(sessionId).addActivity(new Activity(action, new Date(), request.getRequestURI()));
+            getSession(sessionId).setRemoteAddr(request.getRemoteAddr());
+            getSession(sessionId).setRemoteHost(request.getRemoteHost());
+            getSession(sessionId).setRemoteUser(request.getRemoteUser());
+        }
     }
 
     // ---------------- private methods ---------------------    

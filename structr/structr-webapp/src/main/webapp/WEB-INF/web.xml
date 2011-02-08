@@ -150,6 +150,11 @@
     </login-config>
     -->
     <session-config>
-        <session-timeout>1</session-timeout>
+        <!--
+        Set a relatively short timeout is ok now with the new
+        automatic re-login feature which forwards users to the place
+        they were before logout
+        -->
+        <session-timeout>15</session-timeout>
     </session-config>
 </web-app>

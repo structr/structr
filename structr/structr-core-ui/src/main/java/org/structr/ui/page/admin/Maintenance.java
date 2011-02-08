@@ -100,31 +100,41 @@ public class Maintenance extends Admin {
         maintenancePanel = new Panel("maintenancePanel", "/panel/maintenance-panel.htm");
 
         sessionsTable.addColumn(new Column("id"));
+        sessionsTable.addColumn(new Column("state"));
         sessionsTable.addColumn(new Column("userName"));
-        sessionsTable.addColumn(new Column("loginTime"));
-        sessionsTable.addColumn(new Column("logoutTime"));
+        sessionsTable.addColumn(new Column("remoteHost"));
+        sessionsTable.addColumn(new Column("remoteAddr"));
+        sessionsTable.addColumn(new Column("remoteUser"));
+        Column loginTimestampColumn = new Column("loginTimestamp", "Login");
+        loginTimestampColumn.setFormat("{0,date,medium} {0,time,medium}");
+        sessionsTable.addColumn(loginTimestampColumn);
+        sessionsTable.addColumn(new Column("logoutTimestamp", "Logout"));
         sessionsTable.addColumn(new Column("lastActivity"));
+        sessionsTable.addColumn(new Column("lastActivityUri"));
+        sessionsTable.addColumn(new Column("inactiveSince", "Inactive (s)"));
         sessionsTable.setSortable(true);
-        sessionsTable.setClass(Table.CLASS_SIMPLE);
+        sessionsTable.setSortedColumn("inactiveSince");
+        sessionsTable.setSortedAscending(true);
+        sessionsTable.setClass(Table.CLASS_COMPLEX);
 
         servicesTable.addColumn(new Column("Name"));
         servicesTable.addColumn(new Column("isRunning", "Running"));
         servicesTable.setSortable(true);
-        servicesTable.setClass(Table.CLASS_SIMPLE);
+        servicesTable.setClass(Table.CLASS_COMPLEX);
 
         initValuesTable.addColumn(new Column("key", "Parameter"));
         initValuesTable.addColumn(new Column("value", "Value"));
         initValuesTable.setSortable(true);
-        initValuesTable.setClass(Table.CLASS_SIMPLE);
+        initValuesTable.setClass(Table.CLASS_COMPLEX);
 
         runtimeValuesTable.addColumn(new Column("key", "Parameter"));
         runtimeValuesTable.addColumn(new Column("value", "Value"));
         runtimeValuesTable.setSortable(true);
-        runtimeValuesTable.setClass(Table.CLASS_SIMPLE);
+        runtimeValuesTable.setClass(Table.CLASS_COMPLEX);
 
         modulesTable.addColumn(new Column("toString", "Name"));
         modulesTable.setSortable(true);
-        modulesTable.setClass(Table.CLASS_SIMPLE);
+        modulesTable.setClass(Table.CLASS_COMPLEX);
 
         Column iconCol = new Column("iconSrc", "Icon");
         iconCol.setDecorator(new Decorator() {
@@ -142,7 +152,7 @@ public class Maintenance extends Admin {
         registeredClassesTable.addColumn(new Column("count", "Count"));
         registeredClassesTable.setSortable(true);
         registeredClassesTable.setSortedColumn("name");
-        registeredClassesTable.setClass(Table.CLASS_SIMPLE);
+        registeredClassesTable.setClass(Table.CLASS_COMPLEX);
 
         allNodesTable.addColumn(new Column(StructrNode.NODE_ID_KEY));
         allNodesTable.addColumn(new Column(StructrNode.NAME_KEY));
@@ -155,12 +165,13 @@ public class Maintenance extends Admin {
         allNodesTable.addColumn(new Column("allProperties"));
         allNodesTable.setSortable(true);
         allNodesTable.setPageSize(25);
-        allNodesTable.setClass(Table.CLASS_SIMPLE);
+        allNodesTable.setClass(Table.CLASS_COMPLEX);
 
     }
 
     @Override
     public void onInit() {
+        super.onInit();
         initHistogram();
     }
 

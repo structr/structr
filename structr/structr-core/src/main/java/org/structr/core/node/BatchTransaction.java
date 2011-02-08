@@ -11,7 +11,7 @@ import org.neo4j.graphdb.Transaction;
  * Batch transaction carries the database transaction.
  *
  * A batch transaction should be commited after several write operations to
- * flush to disk and avoud OutOfMemory errors.
+ * flush to disk and avoid OutOfMemory errors.
  *
  * See: http://wiki.neo4j.org/content/FAQ#Why_do_I_get_an_OutOfMemoryError_injecting_data.3F
  *
