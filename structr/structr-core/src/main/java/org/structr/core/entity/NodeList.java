@@ -57,6 +57,17 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 
 	private Set<Decorator<StructrNode>> decorators = new LinkedHashSet<Decorator<StructrNode>>();
 	private Set<Evaluator> evaluators = new LinkedHashSet<Evaluator>();
+	private int maxLength = -1;
+
+	public NodeList()
+	{
+		this(-1);
+	}
+
+	public NodeList(int maxLength)
+	{
+		this.maxLength = maxLength;
+	}
 
 	@Override
 	public String getIconSrc()
@@ -104,6 +115,26 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 	{
 		Node rootNode = getNode();
 		return(getRelatedNode(rootNode, RelType.LAST_LIST_ENTRY, Direction.OUTGOING));
+	}
+
+	/**
+	 * Returns the maximum traversal depth of this list.
+	 *
+	 * @return
+	 */
+	public int getMaxLength()
+	{
+		return(maxLength);
+	}
+
+	/**
+	 * Sets the maximum travesal depth of this list to the given value.
+	 * 
+	 * @param maxLength
+	 */
+	public void setMaxLength(int maxLength)
+	{
+		this.maxLength = maxLength;
 	}
 
 	// ----- interface List<StructrNode> -----
@@ -218,31 +249,32 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 	 * after this call returns.
 	 * </p>
 	 *
-	 * @param node the node to add
+	 * @param toRemove the node to add
 	 * @return true if this collection changed as a result of this call
 	 */
 	@Override
-	public boolean add(StructrNode node)
+	public boolean add(StructrNode toAdd)
 	{
-		throw new UnsupportedOperationException("Not supported yet.");
+		boolean ret = false;
+
+		if(toAdd != null)
+		{
+			ret = appendNodeToList(toAdd.getNode());
+		}
+
+		return(ret);
 	}
 
 	/**
 	 * Removes the given node from this list.
 	 *
-	 * @param node
+	 * @param toRemove
 	 * @return true if this list contained the given element
 	 */
 	@Override
 	public boolean remove(Object node)
 	{
-		int index = indexOf(node);
-		if(index >= 0)
-		{
-			return(deleteAt(index) != null);
-		}
-
-		return(false);
+		return(removeNodeFromList((Node)node));
 	}
 
 	/**
@@ -268,7 +300,14 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 	@Override
 	public boolean addAll(Collection<? extends StructrNode> c)
 	{
-		throw new UnsupportedOperationException("Not supported yet.");
+		boolean ret = false;
+
+		for(StructrNode node : c)
+		{
+			ret |= add(node);
+		}
+
+		return(ret);
 	}
 
 	/**
@@ -283,7 +322,16 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 	@Override
 	public boolean addAll(int index, Collection<? extends StructrNode> c)
 	{
-		throw new UnsupportedOperationException("Not supported yet.");
+		int internalIndex = index;
+		boolean ret = true;	// how can we know if the collection changed??
+
+		for(StructrNode node : c)
+		{
+			add(internalIndex, node);
+			internalIndex++;
+		}
+
+		return(ret);
 	}
 
 	/**
@@ -295,7 +343,14 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 	@Override
 	public boolean removeAll(Collection<?> c)
 	{
-		throw new UnsupportedOperationException("Not supported yet.");
+		boolean ret = false;
+
+		for(Object node : c)
+		{
+			ret |= remove((StructrNode)node);
+		}
+
+		return(ret);
 	}
 
 	/**
@@ -308,16 +363,33 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 	@Override
 	public boolean retainAll(Collection<?> c)
 	{
-		throw new UnsupportedOperationException("Not supported yet.");
+		boolean ret = false;
+
+		for(StructrNode node : getNodes())
+		{
+			if(!c.contains(node))
+			{
+				remove(node);
+				ret = true;
+			}
+		}
+
+		return(ret);
 	}
 
 	/**
-	 * Clears this list.
+	 * Clears this list. Due to the fact that this method has to remove all
+	 * elements from the linked list, this method will take time proportional
+	 * to the size of the list, with a relativley large constant factor.
 	 */
 	@Override
 	public void clear()
 	{
-		throw new UnsupportedOperationException("Not supported yet.");
+		for(StructrNode node : getNodes())
+		{
+			remove(node);
+		}
+
 	}
 
 	/**
@@ -355,10 +427,7 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 	@Override
 	public StructrNode set(int index, StructrNode element)
 	{
-		Node node = getNodeAt(index);
-		replaceNode(node, element.getNode());
-
-		return((StructrNode)Services.createCommand(NodeFactoryCommand.class).execute(node));
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	/**
@@ -371,10 +440,15 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 	@Override
 	public void add(int index, StructrNode element)
 	{
-		Node node = getNodeAt(index);
-		if(node != null)
+		int size = this.size();
+
+		if(index >= size)
 		{
-			insertAt(index, element.getNode());
+			appendNodeToList(element.getNode());
+
+		} else
+		{
+			insertNodeIntoList(index, element.getNode());
 		}
 	}
 
@@ -388,13 +462,14 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 	@Override
 	public StructrNode remove(int index)
 	{
-		Node node = deleteAt(index);
+		Node node = getNodeAt(index);
+
 		if(node != null)
 		{
-			return((StructrNode)Services.createCommand(NodeFactoryCommand.class).execute(node));
+			removeNodeFromList(node);
 		}
-		
-		return(null);
+
+		return((StructrNode)Services.createCommand(NodeFactoryCommand.class).execute(node));
 	}
 
 	/**
@@ -461,9 +536,13 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 	@Override
 	public List<StructrNode> subList(int fromIndex, int toIndex)
 	{
-		// TODO: return a new NodeList instance with the given bounds
+		//return a new NodeList instance with the given bounds
+		Node startNode = getNodeAt(fromIndex);
+		NodeList ret = new NodeList(toIndex - fromIndex);
 
-		throw new UnsupportedOperationException("Not supported yet.");
+		ret.init(startNode);
+
+		return(ret);
 	}
 
 	// ----- interface Decorable<StructrNode>
@@ -535,68 +614,128 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 			ret = ret.evaluator(evaluator);
 		}
 
+		if(maxLength >= 0)
+		{
+			ret = ret.evaluator(new MaxLengthEvaluator());
+		}
+
 		return(ret);
 	}
 
-	private Node deleteAt(int index)
+
+	/**
+	 * Removes the given node from this list.
+	 *
+	 * @param toRemove
+	 * @return true if the list was modified as a result of this operation
+	 */
+	private boolean removeNodeFromList(Node toRemove)
+	{
+		boolean listWasModified = false;
+
+		if(toRemove != null && isMember(toRemove))
+		{
+			// node is not null and part of this list
+			Node rootNode = getNode();
+			Node previousNode = getRelatedNode(toRemove, RelType.NEXT_LIST_ENTRY, Direction.INCOMING);
+			Node nextNode = getRelatedNode(toRemove, RelType.NEXT_LIST_ENTRY, Direction.OUTGOING);
+
+			// delete relationship from previousNode to toRemove
+			deleteRelationship(previousNode, RelType.NEXT_LIST_ENTRY, Direction.OUTGOING);
+
+			// delete relationship from toRemove to nextNode (if exists)
+			deleteRelationship(toRemove, RelType.NEXT_LIST_ENTRY, Direction.OUTGOING);
+
+			// if nextNode exists
+			if(nextNode != null)
+			{
+				// create relationship to next node
+				createRelationship(previousNode, nextNode, RelType.NEXT_LIST_ENTRY);
+
+			} else
+			{
+				// delete LAST relationship from rootNode
+				deleteRelationship(rootNode, RelType.LAST_LIST_ENTRY, Direction.OUTGOING);
+
+				// create LAST relationship from rootNode to previousNode
+				createRelationship(rootNode, previousNode, RelType.LAST_LIST_ENTRY);
+			}
+
+			listWasModified = true;
+		}
+
+
+		return(listWasModified);
+	}
+
+	private boolean appendNodeToList(Node toAdd)
+	{
+		boolean listWasModified = false;
+
+		if(toAdd != null && !isMember(toAdd))
+		{
+			// node is not null and not already a member of this list
+			Node rootNode = getNode();
+			Node lastNode = getRelatedNode(rootNode, RelType.LAST_LIST_ENTRY, Direction.OUTGOING);
+
+			if(lastNode != null)
+			{
+				// create NEXT relationship from lastNode to toAdd
+				createRelationship(lastNode, toAdd, RelType.NEXT_LIST_ENTRY);
+
+				// delete LAST relationship from rootNode
+				deleteRelationship(rootNode, RelType.LAST_LIST_ENTRY, Direction.OUTGOING);
+
+				// create LAST relationship from rootNode to previousNode
+				createRelationship(rootNode, toAdd, RelType.LAST_LIST_ENTRY);
+
+				listWasModified = true;
+			}
+		}
+
+		return(listWasModified);
+	}
+
+	private void insertNodeIntoList(int index, Node toInsert)
 	{
 		Node node = getNodeAt(index);
-		Node rootNode = getNode();
-		Node previous = getRelatedNode(node, RelType.NEXT_LIST_ENTRY, Direction.INCOMING);
-		Node next = getRelatedNode(node, RelType.NEXT_LIST_ENTRY, Direction.OUTGOING);
 
-		if(previous != null && next != null)		// some node in the middle (may be the first node)
+		if(node != null)
 		{
-			// delete relationship from previous node to current node
-			deleteRelationship(previous, RelType.NEXT_LIST_ENTRY, Direction.OUTGOING);
-
-			// delete relationship from current node to next node
-			deleteRelationship(node, RelType.NEXT_LIST_ENTRY, Direction.OUTGOING);
-
-			// create relationship between previous and next node
-			createRelationship(previous, next, RelType.NEXT_LIST_ENTRY);
-
-		} else
-		if(previous != null && next == null)		// last node
-		{
-			// delete relationship from previous node to current node
-			deleteRelationship(previous, RelType.NEXT_LIST_ENTRY, Direction.OUTGOING);
-
-			// delete relationship from root node to last node (LAST_LIST_ENTRY
-			deleteRelationship(rootNode, RelType.LAST_LIST_ENTRY, Direction.OUTGOING);
-
-			// create relationship from root node to new last node (previous)
-			createRelationship(rootNode, previous, RelType.LAST_LIST_ENTRY);
-		}
-
-		return(node);
-	}
-
-	private void insertAt(int index, Node toInsert)
-	{
-		Node node = getNodeAt(index - 1);
-		Node next = getRelatedNode(node, RelType.NEXT_LIST_ENTRY, Direction.OUTGOING);
-
-		// delete relationship from current node to next node
-		deleteRelationship(node, RelType.NEXT_LIST_ENTRY, Direction.OUTGOING);
-
-		// create relationship from current node to inserted node
-		createRelationship(node, toInsert, RelType.NEXT_LIST_ENTRY);
-
-		// create relationship from inserted node to old next node
-		createRelationship(toInsert, next, RelType.NEXT_LIST_ENTRY);
-	}
-
-	private void replaceNode(Node node, Node replacement)
-	{
-		int pos = indexOf(node);
-		if(pos >= 0)
-		{
-			deleteAt(pos);
-			insertAt(pos, replacement);
+			insertNodeBefore(node, toInsert);
 		}
 	}
 
+	private void insertNodeBefore(Node node, Node toInsert)
+	{
+		if(node != null && toInsert != null && !isMember(toInsert))
+		{
+			Node previousNode = getRelatedNode(node, RelType.NEXT_LIST_ENTRY, Direction.INCOMING);
+
+			// delete relationship from previousNode to node
+			deleteRelationship(previousNode, RelType.NEXT_LIST_ENTRY, Direction.OUTGOING);
+
+			// create relationship from previousNode to toInsert
+			createRelationship(previousNode, toInsert, RelType.NEXT_LIST_ENTRY);
+
+			// create relationship from toInsert to node
+			createRelationship(toInsert, node, RelType.NEXT_LIST_ENTRY);
+		}
+	}
+
+	private boolean isMember(Node node)
+	{
+		return(getRelatedNode(node, RelType.NEXT_LIST_ENTRY, Direction.INCOMING) != null);
+	}
+
+	/**
+	 * Returns a node, following the given relationship and direction from startNode.
+	 *
+	 * @param startNode
+	 * @param relationshipType
+	 * @param direction
+	 * @return true if the given node is part of the list this node contains
+	 */
 	private Node getRelatedNode(Node startNode, RelType relationshipType, Direction direction)
 	{
 		if(startNode != null)
@@ -658,6 +797,7 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 
 	}
 
+
 	private void deleteRelationship(Node startNode, RelType relationshipType, Direction direction)
 	{
 		if(startNode != null)
@@ -710,5 +850,18 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 			return(Evaluation.EXCLUDE_AND_CONTINUE);
 		}
 	}
-	
+
+	private class MaxLengthEvaluator implements Evaluator
+	{
+		@Override
+		public Evaluation evaluate(Path path)
+		{
+			if(path.length() > maxLength)
+			{
+				return(Evaluation.EXCLUDE_AND_PRUNE);
+			}
+
+			return(Evaluation.INCLUDE_AND_CONTINUE);
+		}
+	}
 }
