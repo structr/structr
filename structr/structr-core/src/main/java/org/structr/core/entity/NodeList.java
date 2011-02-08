@@ -1,0 +1,393 @@
+/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package org.structr.core.entity;
+
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Set;
+import java.util.logging.Logger;
+import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.traversal.Evaluator;
+import org.structr.common.RelType;
+import org.structr.core.Decorable;
+import org.structr.core.Decorator;
+import org.structr.core.node.Evaluable;
+
+/**
+ * A linked list implementation on StructrNodes. In contrast to the default List
+ * implementations, this list does not permit null elements.
+ *
+ * <p>
+ * This list can be decorated with instances of {@see org.structr.core.Decorator}
+ * in order to set additional properties on the nodes that are added to this list.
+ * </p>
+ * <p>
+ * This list can be filtered through the Neo4j Evaluator interface in order to
+ * control the results of operations on this list. Note that this implementation
+ * can return different results depending on the set of evaluators that are present.
+ * Even the size of the list may vary, and this will alter the results of insert
+ * and remove methods.
+ * </p>
+ *
+ * @author Christian Morgner
+ */
+public class NodeList extends StructrNode implements List<StructrNode>, Decorable<StructrNode>, Evaluable
+{
+	private final static Logger logger = Logger.getLogger(NodeList.class.getName());
+	private final static String ICON_SRC = "/images/application_view_list.png";
+
+	private Set<Decorator<StructrNode>> decorators = new LinkedHashSet<Decorator<StructrNode>>();
+	private Set<Evaluator> evaluators = new LinkedHashSet<Evaluator>();
+
+	@Override
+	public String getIconSrc()
+	{
+		return ICON_SRC;
+	}
+
+	// ----- interface List<StructrNode> -----
+	/**
+	 * Returns the size of this node list. Note that setting or removing evaluators can change
+	 * the value returned by this method. This method will take time proportional to the number
+	 * of elements in the list.
+	 *
+	 * @return the size of this list with the current set of evaluators
+	 */
+	@Override
+	public int size()
+	{
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	/**
+	 * Indicates whether this list is empty. Note that in contrast to the size() methods,
+	 * this is an O(1) operation and should be seen as the preferred way to check whether a list
+	 * is empty or not.
+	 *
+	 * @return true if this list is empty
+	 */
+	@Override
+	public boolean isEmpty()
+	{
+		Node startNode = this.getNode();
+		boolean hasElements = (startNode != null && startNode.hasRelationship(RelType.NEXT_LIST_ENTRY, Direction.OUTGOING));
+
+		return(!hasElements);
+	}
+
+	/**
+	 * Indicates whether this list contains the given element. This method can take time
+	 * proportional to the number of elements in the list.
+	 *
+	 * @param o
+	 * @return
+	 */
+	@Override
+	public boolean contains(Object o)
+	{
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	/**
+	 * Returns an iterator over the elements of this list (according to the current set
+	 * of evaluators).
+	 *
+	 * @return the iterator
+	 */
+	@Override
+	public Iterator<StructrNode> iterator()
+	{
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	/**
+	 * Returns an array containing all the elements in this list according to the
+	 * current set of evaluators.
+	 *
+	 * @return the array
+	 */
+	@Override
+	public Object[] toArray()
+	{
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	/**
+	 * Returns an array containing all the elements in this list according to the
+	 * current set of evaluators.
+	 *
+	  * @param <T>
+	  * @param a
+	  * @return
+	  */
+	@Override
+	public <T> T[] toArray(T[] a)
+	{
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	/**
+	 * Applies all decorators that are set on this list and adds the node
+	 * to the end of this list. This method runs in constant time.
+	 * (Implementation note: keep LAST pointer!)
+	 *
+	 * <p>
+	 * If a collection refuses to add a particular element for any reason
+	 * other than that it already contains the element, it must throw an
+	 * exception (rather than returning false). This preserves the
+	 * invariant that a collection always contains the specified element
+	 * after this call returns.
+	 * </p>
+	 *
+	 * @param node the node to add
+	 * @return true if this collection changed as a result of this call
+	 */
+	@Override
+	public boolean add(StructrNode node)
+	{
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	/**
+	 * Removes the given node from this list.
+	 *
+	 * @param node
+	 * @return true if this list contained the given element
+	 */
+	@Override
+	public boolean remove(Object node)
+	{
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	/**
+	 * Indicates whether this list contains all of the elements in the
+	 * given collection.
+	 *
+	 * @param c
+	 * @return true or false
+	 */
+	@Override
+	public boolean containsAll(Collection<?> c)
+	{
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	/**
+	 * Adds all the elements in the given collection to this list, applying
+	 * any decorator that is set on this list before addition.
+	 *
+	 * @param c
+	 * @return
+	 */
+	@Override
+	public boolean addAll(Collection<? extends StructrNode> c)
+	{
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	/**
+	 * Inserts all the elements in the given collection at the given index, applying
+	 * any decorator that is set on this list before addition, respecting any evaluator
+	 * that is currently set on this list.
+	 *
+	 * @param index
+	 * @param c
+	 * @return
+	 */
+	@Override
+	public boolean addAll(int index, Collection<? extends StructrNode> c)
+	{
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	/**
+	 * Removes all elements in the given collection from this list.
+	 *
+	 * @param c
+	 * @return
+	 */
+	@Override
+	public boolean removeAll(Collection<?> c)
+	{
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	/**
+	 * Retains only the elements in this list that are contained in the given
+	 * collection.
+	 *
+	 * @param c
+	 * @return
+	 */
+	@Override
+	public boolean retainAll(Collection<?> c)
+	{
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	/**
+	 * Clears this list.
+	 */
+	@Override
+	public void clear()
+	{
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	/**
+	 * Returns the element at the given index, or null if no element exists,
+	 * with respect to the evaluators that are currently set on this list.
+	 * Note that this behaviour differs from the default List behaviour, as
+	 * no ArrayIndexOutOfBoundsException is thrown.
+	 *
+	 * @param index
+	 * @return
+	 */
+	@Override
+	public StructrNode get(int index)
+	{
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	/**
+	 * Replaces the element at the given position with the given element, with
+	 * respect to the evaluators that are currently set on this list. This
+	 * method will only work when there already is an element at the given index.
+	 *
+	 *
+	 * @param index
+	 * @param element
+	 * @return
+	 */
+	@Override
+	public StructrNode set(int index, StructrNode element)
+	{
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	/**
+	 * Inserts the given element at the given position (with respect to the
+	 * evaluators that are currently set on this list).
+	 *
+	 * @param index
+	 * @param element
+	 */
+	@Override
+	public void add(int index, StructrNode element)
+	{
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	/**
+	 * Removes the element at the given position (with respect to the evaluators
+	 * that are currently set on this list.)
+	 *
+	 * @param index
+	 * @return
+	 */
+	@Override
+	public StructrNode remove(int index)
+	{
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	/**
+	 * Returns the position of the given element in this list
+	 * @param o
+	 * @return
+	 */
+	@Override
+	public int indexOf(Object o)
+	{
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	/**
+	 * Returns the last position of the given element in this list, with
+	 * respect to the evaluators that are currently set on this list.
+	 *
+	 * (implementation note: keep LAST pointer!)
+	 *
+	 * @param o
+	 * @return
+	 */
+	@Override
+	public int lastIndexOf(Object o)
+	{
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	/**
+	 * Returns a ListIterator containing all elements in this list, with
+	 * respect to the evaluators that are currently set.
+	 *
+	 * @return
+	 */
+	@Override
+	public ListIterator<StructrNode> listIterator()
+	{
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	/**
+	 * Returns a ListIterator containing all elements in this list, starting
+	 * from the given index, with respect to the evaluators that are currently
+	 * set on this list.
+	 *
+	 * @param index
+	 * @return
+	 */
+	@Override
+	public ListIterator<StructrNode> listIterator(int index)
+	{
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	/**
+	 * Returns a sublist of this list, starting at (including) fromIndex,
+	 * ending at (not including) toIndex, with respect to the evaluators that are
+	 * currently set on this list.
+	 *
+	 * @param fromIndex
+	 * @param toIndex
+	 * @return
+	 */
+	@Override
+	public List<StructrNode> subList(int fromIndex, int toIndex)
+	{
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	// ----- interface Decorable<StructrNode>
+	@Override
+	public void addDecorator(Decorator<StructrNode> d)
+	{
+		decorators.add(d);
+	}
+
+	@Override
+	public void removeDecorator(Decorator<StructrNode> d)
+	{
+		decorators.remove(d);
+	}
+
+	// ----- interface Evaluable -----
+	@Override
+	public void addEvaluator(Evaluator e)
+	{
+		evaluators.add(e);
+	}
+
+	@Override
+	public void removeEvaluator(Evaluator e)
+	{
+		evaluators.remove(e);
+	}
+}
