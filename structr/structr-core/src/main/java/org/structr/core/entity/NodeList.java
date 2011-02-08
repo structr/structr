@@ -7,17 +7,28 @@ package org.structr.core.entity;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Set;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Path;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.traversal.Evaluation;
 import org.neo4j.graphdb.traversal.Evaluator;
+import org.neo4j.graphdb.traversal.TraversalDescription;
+import org.neo4j.graphdb.traversal.Traverser;
+import org.neo4j.kernel.Traversal;
 import org.structr.common.RelType;
 import org.structr.core.Decorable;
 import org.structr.core.Decorator;
+import org.structr.core.Services;
 import org.structr.core.node.Evaluable;
+import org.structr.core.node.IterableAdapter;
+import org.structr.core.node.NodeFactoryCommand;
+import org.structr.core.node.StructrNodeFactory;
 
 /**
  * A linked list implementation on StructrNodes. In contrast to the default List
@@ -39,8 +50,10 @@ import org.structr.core.node.Evaluable;
  */
 public class NodeList extends StructrNode implements List<StructrNode>, Decorable<StructrNode>, Evaluable
 {
-	private final static Logger logger = Logger.getLogger(NodeList.class.getName());
-	private final static String ICON_SRC = "/images/application_view_list.png";
+	private static final Logger logger = Logger.getLogger(NodeList.class.getName());
+
+	private static final String PARENT_KEY = "parent";
+	private static final String ICON_SRC = "/images/application_view_list.png";
 
 	private Set<Decorator<StructrNode>> decorators = new LinkedHashSet<Decorator<StructrNode>>();
 	private Set<Evaluator> evaluators = new LinkedHashSet<Evaluator>();
@@ -49,6 +62,48 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 	public String getIconSrc()
 	{
 		return ICON_SRC;
+	}
+
+	/**
+	 * Returns the first node of this list, or null if this list is empty.
+	 *
+	 * @return the first node of this list, or null
+	 */
+	public StructrNode getFirstNode()
+	{
+		return((StructrNode)Services.createCommand(NodeFactoryCommand.class).execute(getFirstRawNode()));
+	}
+
+	/**
+	 * Returns the first raw node of this list, or null if this list is empty
+	 *
+	 * @return the first raw node of this list, or null
+	 */
+	public Node getFirstRawNode()
+	{
+		Node rootNode = getNode();
+		return(getRelatedNode(rootNode, RelType.NEXT_LIST_ENTRY, Direction.OUTGOING));
+	}
+
+	/**
+	 * Returns the last node of this list, or null if this list is empty.
+	 *
+	 * @return the last node of this list, or null
+	 */
+	public StructrNode getLastNode()
+	{
+		return((StructrNode)Services.createCommand(NodeFactoryCommand.class).execute(getLastRawNode()));
+	}
+
+	/**
+	 * Returns the last raw node of this list, or null if this list is empty
+	 *
+	 * @return the last raw node of this list, or null
+	 */
+	public Node getLastRawNode()
+	{
+		Node rootNode = getNode();
+		return(getRelatedNode(rootNode, RelType.LAST_LIST_ENTRY, Direction.OUTGOING));
 	}
 
 	// ----- interface List<StructrNode> -----
@@ -62,7 +117,14 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 	@Override
 	public int size()
 	{
-		throw new UnsupportedOperationException("Not supported yet.");
+		int ret = 0;
+
+		for(Node node : getRawNodes())
+		{
+			ret++;
+		}
+
+		return(ret);
 	}
 
 	/**
@@ -78,7 +140,7 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 		Node startNode = this.getNode();
 		boolean hasElements = (startNode != null && startNode.hasRelationship(RelType.NEXT_LIST_ENTRY, Direction.OUTGOING));
 
-		return(!hasElements);
+		return (!hasElements);
 	}
 
 	/**
@@ -91,7 +153,18 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 	@Override
 	public boolean contains(Object o)
 	{
-		throw new UnsupportedOperationException("Not supported yet.");
+		StructrNode n = (StructrNode)o;
+
+		for(StructrNode node : getNodes())
+		{
+			if(node.equals(n))
+			{
+				return(true);
+			}
+		}
+
+		return(false);
+
 	}
 
 	/**
@@ -103,7 +176,7 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 	@Override
 	public Iterator<StructrNode> iterator()
 	{
-		throw new UnsupportedOperationException("Not supported yet.");
+		return(getNodes().iterator());
 	}
 
 	/**
@@ -115,21 +188,21 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 	@Override
 	public Object[] toArray()
 	{
-		throw new UnsupportedOperationException("Not supported yet.");
+		return(getNodeList().toArray());
 	}
 
 	/**
 	 * Returns an array containing all the elements in this list according to the
 	 * current set of evaluators.
 	 *
-	  * @param <T>
-	  * @param a
-	  * @return
-	  */
+	 * @param <T>
+	 * @param a
+	 * @return
+	 */
 	@Override
 	public <T> T[] toArray(T[] a)
 	{
-		throw new UnsupportedOperationException("Not supported yet.");
+		return(getNodeList().toArray(a));
 	}
 
 	/**
@@ -163,7 +236,13 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 	@Override
 	public boolean remove(Object node)
 	{
-		throw new UnsupportedOperationException("Not supported yet.");
+		int index = indexOf(node);
+		if(index >= 0)
+		{
+			return(deleteAt(index) != null);
+		}
+
+		return(false);
 	}
 
 	/**
@@ -176,7 +255,7 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 	@Override
 	public boolean containsAll(Collection<?> c)
 	{
-		throw new UnsupportedOperationException("Not supported yet.");
+		return(getNodeList().containsAll(c));
 	}
 
 	/**
@@ -253,7 +332,14 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 	@Override
 	public StructrNode get(int index)
 	{
-		throw new UnsupportedOperationException("Not supported yet.");
+		Node node = getNodeAt(index);
+
+		if(node != null)
+		{
+			return((StructrNode)Services.createCommand(NodeFactoryCommand.class).execute(node));
+		}
+
+		return(null);
 	}
 
 	/**
@@ -269,7 +355,10 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 	@Override
 	public StructrNode set(int index, StructrNode element)
 	{
-		throw new UnsupportedOperationException("Not supported yet.");
+		Node node = getNodeAt(index);
+		replaceNode(node, element.getNode());
+
+		return((StructrNode)Services.createCommand(NodeFactoryCommand.class).execute(node));
 	}
 
 	/**
@@ -282,7 +371,11 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 	@Override
 	public void add(int index, StructrNode element)
 	{
-		throw new UnsupportedOperationException("Not supported yet.");
+		Node node = getNodeAt(index);
+		if(node != null)
+		{
+			insertAt(index, element.getNode());
+		}
 	}
 
 	/**
@@ -295,7 +388,13 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 	@Override
 	public StructrNode remove(int index)
 	{
-		throw new UnsupportedOperationException("Not supported yet.");
+		Node node = deleteAt(index);
+		if(node != null)
+		{
+			return((StructrNode)Services.createCommand(NodeFactoryCommand.class).execute(node));
+		}
+		
+		return(null);
 	}
 
 	/**
@@ -306,7 +405,7 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 	@Override
 	public int indexOf(Object o)
 	{
-		throw new UnsupportedOperationException("Not supported yet.");
+		return(indexOf((Node)o));
 	}
 
 	/**
@@ -333,7 +432,7 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 	@Override
 	public ListIterator<StructrNode> listIterator()
 	{
-		throw new UnsupportedOperationException("Not supported yet.");
+		throw new UnsupportedOperationException("Bi-directional iteration is not yet supported by this class.");
 	}
 
 	/**
@@ -347,7 +446,7 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 	@Override
 	public ListIterator<StructrNode> listIterator(int index)
 	{
-		throw new UnsupportedOperationException("Not supported yet.");
+		throw new UnsupportedOperationException("Bi-directional iteration is not yet supported by this class.");
 	}
 
 	/**
@@ -362,6 +461,8 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 	@Override
 	public List<StructrNode> subList(int fromIndex, int toIndex)
 	{
+		// TODO: return a new NodeList instance with the given bounds
+
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
@@ -390,4 +491,224 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 	{
 		evaluators.remove(e);
 	}
+
+	// ----- private methods -----
+	private List<StructrNode> getNodeList()
+	{
+		List<StructrNode> ret = new LinkedList<StructrNode>();
+		for(StructrNode node : getNodes())
+		{
+			ret.add(node);
+		}
+
+		return(ret);
+	}
+
+	private Iterable<StructrNode> getNodes()
+	{
+		return(
+			new IterableAdapter<Node, StructrNode>(
+				getRawNodes(),
+				new StructrNodeFactory()
+			)
+		);
+	}
+
+	private Iterable<Node> getRawNodes()
+	{
+		// create traversal description
+		TraversalDescription td = createTraversalDescription();
+		Traverser traverser = td.traverse(getNode());
+
+		return(traverser.nodes());
+	}
+
+	private TraversalDescription createTraversalDescription()
+	{
+		TraversalDescription ret = Traversal.description().depthFirst();
+		ret = ret.relationships(RelType.NEXT_LIST_ENTRY, Direction.OUTGOING);
+		ret = ret.evaluator(new ParentIdEvaluator());
+
+		// add list evaluators
+		for(Evaluator evaluator : evaluators)
+		{
+			ret = ret.evaluator(evaluator);
+		}
+
+		return(ret);
+	}
+
+	private Node deleteAt(int index)
+	{
+		Node node = getNodeAt(index);
+		Node rootNode = getNode();
+		Node previous = getRelatedNode(node, RelType.NEXT_LIST_ENTRY, Direction.INCOMING);
+		Node next = getRelatedNode(node, RelType.NEXT_LIST_ENTRY, Direction.OUTGOING);
+
+		if(previous != null && next != null)		// some node in the middle (may be the first node)
+		{
+			// delete relationship from previous node to current node
+			deleteRelationship(previous, RelType.NEXT_LIST_ENTRY, Direction.OUTGOING);
+
+			// delete relationship from current node to next node
+			deleteRelationship(node, RelType.NEXT_LIST_ENTRY, Direction.OUTGOING);
+
+			// create relationship between previous and next node
+			createRelationship(previous, next, RelType.NEXT_LIST_ENTRY);
+
+		} else
+		if(previous != null && next == null)		// last node
+		{
+			// delete relationship from previous node to current node
+			deleteRelationship(previous, RelType.NEXT_LIST_ENTRY, Direction.OUTGOING);
+
+			// delete relationship from root node to last node (LAST_LIST_ENTRY
+			deleteRelationship(rootNode, RelType.LAST_LIST_ENTRY, Direction.OUTGOING);
+
+			// create relationship from root node to new last node (previous)
+			createRelationship(rootNode, previous, RelType.LAST_LIST_ENTRY);
+		}
+
+		return(node);
+	}
+
+	private void insertAt(int index, Node toInsert)
+	{
+		Node node = getNodeAt(index - 1);
+		Node next = getRelatedNode(node, RelType.NEXT_LIST_ENTRY, Direction.OUTGOING);
+
+		// delete relationship from current node to next node
+		deleteRelationship(node, RelType.NEXT_LIST_ENTRY, Direction.OUTGOING);
+
+		// create relationship from current node to inserted node
+		createRelationship(node, toInsert, RelType.NEXT_LIST_ENTRY);
+
+		// create relationship from inserted node to old next node
+		createRelationship(toInsert, next, RelType.NEXT_LIST_ENTRY);
+	}
+
+	private void replaceNode(Node node, Node replacement)
+	{
+		int pos = indexOf(node);
+		if(pos >= 0)
+		{
+			deleteAt(pos);
+			insertAt(pos, replacement);
+		}
+	}
+
+	private Node getRelatedNode(Node startNode, RelType relationshipType, Direction direction)
+	{
+		if(startNode != null)
+		{
+			Iterable<Relationship> rels = startNode.getRelationships(relationshipType, direction);
+			for(Relationship rel : rels)
+			{
+				if(rel.hasProperty(PARENT_KEY))
+				{
+					Object parent = rel.getProperty(PARENT_KEY);
+
+					if(parent instanceof Long && ((Long)parent).equals(getNodeId()))
+					{
+						return(rel.getEndNode());
+					}
+				}
+			}
+		}
+
+		return(null);
+	}
+
+	/**
+	 * Returns the node at the given position, or null if no node is found.
+	 *
+	 * @param index
+	 * @return the node at index or null
+	 */
+	private Node getNodeAt(int index)
+	{
+		int pos = 0;
+
+		for(Node node : getRawNodes())
+		{
+			if(pos++ == index)
+			{
+				return(node);
+			}
+		}
+
+		return(null);
+	}
+
+	private int indexOf(Node node)
+	{
+		int ret = 0;
+
+		for(Node n : getRawNodes())
+		{
+			if(node.equals(n))
+			{
+				return(ret);
+			}
+
+			ret++;
+		}
+
+		return(-1);
+
+	}
+
+	private void deleteRelationship(Node startNode, RelType relationshipType, Direction direction)
+	{
+		if(startNode != null)
+		{
+			Iterable<Relationship> rels = startNode.getRelationships(relationshipType, direction);
+			for(Relationship rel : rels)
+			{
+				if(rel.hasProperty(PARENT_KEY))
+				{
+					Object parent = rel.getProperty(PARENT_KEY);
+
+					if(parent instanceof Long && ((Long)parent).equals(getNodeId()))
+					{
+						rel.delete();
+					}
+				}
+			}
+		}
+	}
+
+	private void createRelationship(Node startNode, Node endNode, RelType relationshipType)
+	{
+		if(startNode != null && endNode != null)
+		{
+			Relationship rel = startNode.createRelationshipTo(endNode, relationshipType);
+			rel.setProperty(PARENT_KEY, new Long(getNodeId()));
+		}
+	}
+
+	// ----- nested classes -----
+	private class ParentIdEvaluator implements Evaluator
+	{
+		@Override
+		public Evaluation evaluate(Path path)
+		{
+			Relationship rel = path.lastRelationship();
+			if(rel.hasProperty(PARENT_KEY))
+			{
+				Object parent = rel.getProperty(PARENT_KEY);
+
+				if(parent instanceof Long && ((Long)parent).equals(getNodeId()))
+				{
+					return(Evaluation.INCLUDE_AND_CONTINUE);
+				}
+
+			}
+
+			// TODO: find out if EXCLUDE_AND_CONTINUE is the right choice here!
+
+			return(Evaluation.EXCLUDE_AND_CONTINUE);
+		}
+	}
+	
 }

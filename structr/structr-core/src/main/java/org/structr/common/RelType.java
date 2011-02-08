@@ -16,5 +16,7 @@ public enum RelType implements RelationshipType {
         USE_TEMPLATE,
         OWNS,
         ROOT_NODE,
-        THUMBNAIL
+        THUMBNAIL,
+	NEXT_LIST_ENTRY,
+	LAST_LIST_ENTRY
 }

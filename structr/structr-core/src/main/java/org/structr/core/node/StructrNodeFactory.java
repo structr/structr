@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.Node;
 //import org.structr.core.ClasspathEntityLocator;
+import org.structr.core.Adapter;
 import org.structr.core.Services;
 import org.structr.core.entity.EmptyNode;
 import org.structr.core.entity.StructrNode;
@@ -23,7 +24,8 @@ import org.structr.core.module.GetEntityClassCommand;
  *
  * @author cmorgner
  */
-public class StructrNodeFactory {
+public class StructrNodeFactory implements Adapter<Node, StructrNode>
+{
 
     private static final Logger logger = Logger.getLogger(StructrNodeFactory.class.getName());
     private Map<String, Class> nodeTypeCache = new ConcurrentHashMap<String, Class>();
@@ -94,4 +96,10 @@ public class StructrNodeFactory {
     protected void finalize() throws Throwable {
         nodeTypeCache.clear();
     }
+
+	@Override
+	public StructrNode adapt(Node s)
+	{
+		return(createNode(s));
+	}
 }
