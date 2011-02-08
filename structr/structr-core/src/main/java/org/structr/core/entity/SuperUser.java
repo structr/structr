@@ -1,18 +1,5 @@
 package org.structr.core.entity;
 
-import java.util.List;
-import org.structr.common.RelType;
-import org.structr.core.Command;
-import org.structr.core.Services;
-import org.structr.core.node.CreateNodeCommand;
-import org.structr.core.node.CreateRelationshipCommand;
-import org.structr.core.node.FindNodeCommand;
-import org.structr.core.node.NodeAttribute;
-import org.structr.core.node.NodeFactoryCommand;
-import org.structr.core.node.StructrTransaction;
-import org.structr.core.node.TransactionCommand;
-import org.structr.core.node.XPath;
-
 /**
  * 
  * @author amorgner

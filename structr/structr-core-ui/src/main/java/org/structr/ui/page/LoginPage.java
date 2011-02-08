@@ -5,6 +5,7 @@
 package org.structr.ui.page;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -20,6 +21,7 @@ import org.apache.click.control.TextField;
 import org.apache.click.extras.tree.TreeNode;
 import org.apache.click.util.Bindable;
 import org.apache.commons.lang.StringUtils;
+import org.structr.context.SessionMonitor;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.StructrNode;
@@ -36,7 +38,6 @@ import org.structr.ui.page.admin.Admin;
 public class LoginPage extends Admin {
 
     private static final Logger logger = Logger.getLogger(LoginPage.class.getName());
-
     //private final static String DOMAIN_KEY = "domain";
     private final static String PASSWORD_KEY = "password";
     private final static String SUPERADMIN_PASSWORD_KEY = "sehrgeheim";
@@ -156,6 +157,13 @@ public class LoginPage extends Admin {
                 initFirstPage();
 
             }
+            
+            // Register user with internal session management
+            sessionId = SessionMonitor.registerUser(user, getContext().getServletContext());
+            SessionMonitor.logActivity(sessionId, "User logged in");
+
+            // Mark this session with the internal session id
+            getContext().getRequest().getSession().setAttribute(SessionMonitor.SESSION_ID, sessionId);
 
             return false;
 
@@ -186,7 +194,7 @@ public class LoginPage extends Admin {
             Class<? extends Page> editPage = getEditPageClass(getNodeByIdOrPath(nodeId));
             setRedirect(editPage, parameters);
         }
-        
+
         long[] expandedNodesArray = getExpandedNodesFromUserProfile();
         if (expandedNodesArray != null && expandedNodesArray.length > 0) {
 

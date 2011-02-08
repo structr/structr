@@ -30,6 +30,8 @@ import org.neo4j.graphdb.Direction;
 import org.structr.common.RelType;
 import org.structr.common.SearchOperator;
 //import org.structr.core.ClasspathEntityLocator;
+import org.structr.context.SessionMonitor;
+import org.structr.context.SessionMonitor.Session;
 import org.structr.core.Command;
 import org.structr.core.Service;
 import org.structr.core.Services;
@@ -67,6 +69,8 @@ public class Maintenance extends Admin {
     @Bindable
     protected PageLink reportLink = new PageLink("reportLink", "Reports", Report.class);
     @Bindable
+    protected Table sessionsTable = new Table("sessionsTable");
+    @Bindable
     protected Table servicesTable = new Table("servicesTable");
     @Bindable
     protected Table initValuesTable = new Table("initValuesTable");
@@ -94,6 +98,14 @@ public class Maintenance extends Admin {
     public Maintenance() {
 
         maintenancePanel = new Panel("maintenancePanel", "/panel/maintenance-panel.htm");
+
+        sessionsTable.addColumn(new Column("id"));
+        sessionsTable.addColumn(new Column("userName"));
+        sessionsTable.addColumn(new Column("loginTime"));
+        sessionsTable.addColumn(new Column("logoutTime"));
+        sessionsTable.addColumn(new Column("lastActivity"));
+        sessionsTable.setSortable(true);
+        sessionsTable.setClass(Table.CLASS_SIMPLE);
 
         servicesTable.addColumn(new Column("Name"));
         servicesTable.addColumn(new Column("isRunning", "Running"));
@@ -160,6 +172,15 @@ public class Maintenance extends Admin {
         if (allNodes == null) {
             return;
         }
+
+        // fill table with all known services
+        sessionsTable.setDataProvider(new DataProvider() {
+
+            @Override
+            public List<Session> getData() {
+                return (List<Session>) SessionMonitor.getSessions();
+            }
+        });
 
         // fill table with all known services
         servicesTable.setDataProvider(new DataProvider() {
