@@ -20,6 +20,7 @@ import org.apache.click.util.Bindable;
 import org.apache.click.extras.tree.Tree;
 import org.apache.click.extras.tree.TreeNode;
 import org.apache.commons.lang.ArrayUtils;
+import org.structr.context.SessionMonitor;
 import org.structr.core.entity.StructrNode;
 import org.structr.core.entity.SuperUser;
 import org.structr.ui.page.LoginPage;

@@ -17,6 +17,7 @@ public class User extends Person {
     public final static String REAL_NAME_KEY = "realName";
     public final static String PASSWORD_KEY = "password";
     public final static String BLOCKED_KEY = "blocked";
+    public final static String SESSION_ID_KEY = "sessionId";
 
     @Override
     public String getIconSrc() {
@@ -42,7 +43,6 @@ public class User extends Person {
             setProperty(PASSWORD_KEY,
                     DigestUtils.sha512Hex(passwordValue));
     }
-
     
     public String getPassword() {
         // intentionally, return nothing

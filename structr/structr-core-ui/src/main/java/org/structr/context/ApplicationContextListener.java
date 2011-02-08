@@ -15,6 +15,7 @@ import java.util.logging.Logger;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
+import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionListener;
 import org.structr.ui.page.StructrPage;
 
@@ -36,7 +37,7 @@ public class ApplicationContextListener implements ServletContextListener, HttpS
 
         String configFile = servletContext.getInitParameter(Services.CONFIG_FILE_PATH);
         context.put(Services.CONFIG_FILE_PATH, configFile);
-	context.put(Services.SERVLET_CONTEXT, servletContext);
+        context.put(Services.SERVLET_CONTEXT, servletContext);
 
         try {
             // load config file
@@ -74,15 +75,14 @@ public class ApplicationContextListener implements ServletContextListener, HttpS
             context.put(Services.ENTITY_PACKAGES_IDENTIFIER, servletContext.getInitParameter(Services.ENTITY_PACKAGES_IDENTIFIER));
         }
 
-	// register predicate that can decide whether a given Class object is a subclass of StructrPage
-	context.put(Services.STRUCTR_PAGE_PREDICATE, new Predicate<Class>()
-	{
-		@Override
-		public boolean evaluate(Class obj)
-		{
-			return(StructrPage.class.isAssignableFrom(obj));
-		}
-	});
+        // register predicate that can decide whether a given Class object is a subclass of StructrPage
+        context.put(Services.STRUCTR_PAGE_PREDICATE, new Predicate<Class>() {
+
+            @Override
+            public boolean evaluate(Class obj) {
+                return (StructrPage.class.isAssignableFrom(obj));
+            }
+        });
 
 
         // initialize services layzily, just set context parameter
@@ -109,7 +109,14 @@ public class ApplicationContextListener implements ServletContextListener, HttpS
         logger.log(Level.FINE, "HTTP session destroyed, cleaning", se.getSession().getId());
 
         // clean session..
-//        HttpSession session = se.getSession();
+        HttpSession session = se.getSession();
+        long sessionId = (Long) session.getAttribute(SessionMonitor.SESSION_ID);
+        
+        SessionMonitor.logActivity(sessionId, "Logout");
+
+        // Remove session from internal session management
+        SessionMonitor.unregisterUser(sessionId, session.getServletContext());
+
 //
 //        // TODO: when running embedded under Winstone,
 //        // there's a ConcurrentModificationException thrown at logout

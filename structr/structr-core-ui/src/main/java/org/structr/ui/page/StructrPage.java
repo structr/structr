@@ -16,6 +16,7 @@ import org.apache.click.service.ConfigService;
 import org.apache.click.util.Bindable;
 import org.apache.click.util.ClickUtils;
 import org.structr.common.TreeHelper;
+import org.structr.context.SessionMonitor;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.Link;
@@ -45,6 +46,7 @@ public class StructrPage extends Page {
     protected String renderMode;
     @Bindable
     protected String userName;
+    protected long sessionId;
     @Bindable
     protected User user;
     protected boolean isSuperUser;
@@ -97,6 +99,8 @@ public class StructrPage extends Page {
     protected static final String WARN_MSG_KEY = "warnMsg";
     /** key for last visited node stored in session */
     protected final static String LAST_VISITED_NODE_KEY = "lastVisitedNode";
+    /** key for currently logged in users */
+    protected final static String USER_LIST_KEY = "userList";
     // TODO: move to global configuration
     protected final String FILES_PATH;
     @Bindable
@@ -151,6 +155,10 @@ public class StructrPage extends Page {
     public void onInit() {
 
         super.onInit();
+
+        if (user != null) {
+            sessionId = (Long) getContext().getRequest().getSession().getAttribute(SessionMonitor.SESSION_ID);
+        }
 
         //nodeId = getNodeId();
         node = getNodeByIdOrPath(nodeId);
