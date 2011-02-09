@@ -11,6 +11,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
@@ -462,11 +463,17 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 	@Override
 	public StructrNode remove(int index)
 	{
+		logger.log(Level.INFO, "removing node #{0}", index);
+
 		Node node = getNodeAt(index);
 
 		if(node != null)
 		{
 			removeNodeFromList(node);
+
+		} else
+		{
+			logger.log(Level.INFO, "node was null!");
 		}
 
 		return((StructrNode)Services.createCommand(NodeFactoryCommand.class).execute(node));
@@ -606,7 +613,7 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 	{
 		TraversalDescription ret = Traversal.description().depthFirst();
 		ret = ret.relationships(RelType.NEXT_LIST_ENTRY, Direction.OUTGOING);
-		ret = ret.evaluator(new ParentIdEvaluator());
+		// ret = ret.evaluator(new ParentIdEvaluator());
 
 		// add list evaluators
 		for(Evaluator evaluator : evaluators)
@@ -687,6 +694,14 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 				deleteRelationship(rootNode, RelType.LAST_LIST_ENTRY, Direction.OUTGOING);
 
 				// create LAST relationship from rootNode to previousNode
+				createRelationship(rootNode, toAdd, RelType.LAST_LIST_ENTRY);
+
+				listWasModified = true;
+
+			} else
+			{
+				// list is empty, add node as last node
+				createRelationship(rootNode, toAdd, RelType.NEXT_LIST_ENTRY);
 				createRelationship(rootNode, toAdd, RelType.LAST_LIST_ENTRY);
 
 				listWasModified = true;
@@ -776,6 +791,8 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 			}
 		}
 
+		logger.log(Level.INFO, "returning null (checked {0} nodes", pos);
+
 		return(null);
 	}
 
@@ -796,7 +813,6 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 		return(-1);
 
 	}
-
 
 	private void deleteRelationship(Node startNode, RelType relationshipType, Direction direction)
 	{
@@ -833,8 +849,10 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 		@Override
 		public Evaluation evaluate(Path path)
 		{
+			/*
 			Relationship rel = path.lastRelationship();
-			if(rel.hasProperty(PARENT_KEY))
+
+			if(rel != null && rel.hasProperty(PARENT_KEY))
 			{
 				Object parent = rel.getProperty(PARENT_KEY);
 
@@ -848,6 +866,10 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 			// TODO: find out if EXCLUDE_AND_CONTINUE is the right choice here!
 
 			return(Evaluation.EXCLUDE_AND_CONTINUE);
+			 *
+			 */
+
+			return(Evaluation.INCLUDE_AND_CONTINUE);
 		}
 	}
 
