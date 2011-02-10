@@ -15,6 +15,7 @@ import org.structr.core.Services;
 import org.structr.core.entity.StructrNode;
 import org.structr.core.entity.User;
 import org.structr.core.entity.log.Activity;
+import org.structr.core.entity.log.LogNodeList;
 import org.structr.core.entity.log.PageRequest;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.NodeAttribute;
@@ -47,7 +48,7 @@ public class SessionMonitor {
         private User user;
         private Date loginTimestamp;
         private Date logoutTimestamp;
-        private List<Activity> activityList;
+        private LogNodeList<Activity> activityList;
 
         public Session(final long id, String uid, final User user, Date loginTime) {
             this.id = id;
@@ -55,7 +56,7 @@ public class SessionMonitor {
             this.state = State.ACTIVE;
             this.user = user;
             this.loginTimestamp = loginTime;
-            activityList = new ArrayList<Activity>();
+            activityList = new LogNodeList<Activity>();
         }
 
         private boolean hasActivity() {
@@ -132,13 +133,13 @@ public class SessionMonitor {
         /**
          * @return the activityList
          */
-        public List<Activity> getActivityList() {
+        public LogNodeList<Activity> getActivityList() {
             return activityList;
         }
 
         private Activity getLastActivity() {
             if (activityList != null && !(activityList.isEmpty())) {
-                return getActivityList().get(getActivityList().size() - 1);
+                return activityList.getLastNode();
             }
             return null;
         }
@@ -277,7 +278,7 @@ public class SessionMonitor {
                     Activity activity = new Activity();
                     activity.init(s);
 
-                    getSession(sessionId).addActivity(activity);
+                    getSession(sessionId).getActivityList().add(activity);
 
                     // TODO: add logging?
                     return null;

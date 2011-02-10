@@ -85,9 +85,9 @@ public class NodeList<T extends StructrNode> extends StructrNode implements List
 	 *
 	 * @return the first node of this list, or null
 	 */
-	public StructrNode getFirstNode()
+	public T getFirstNode()
 	{
-		return((StructrNode)factory.execute(getFirstRawNode()));
+		return((T)factory.execute(getFirstRawNode()));
 	}
 
 	/**
@@ -106,9 +106,9 @@ public class NodeList<T extends StructrNode> extends StructrNode implements List
 	 *
 	 * @return the last node of this list, or null
 	 */
-	public StructrNode getLastNode()
+	public T getLastNode()
 	{
-		return((StructrNode)factory.execute(getLastRawNode()));
+		return((T)factory.execute(getLastRawNode()));
 	}
 
 	/**
@@ -142,7 +142,7 @@ public class NodeList<T extends StructrNode> extends StructrNode implements List
 		this.maxLength = maxLength;
 	}
 
-	// ----- interface List<StructrNode> -----
+	// ----- interface List<T> -----
 	/**
 	 * Returns the size of this node list. Note that setting or removing evaluators can change
 	 * the value returned by this method. This method will take time proportional to the number
@@ -189,9 +189,9 @@ public class NodeList<T extends StructrNode> extends StructrNode implements List
 	@Override
 	public boolean contains(Object o)
 	{
-		StructrNode n = (StructrNode)o;
+		T n = (T)o;
 
-		for(StructrNode node : getNodes())
+		for(T node : getNodes())
 		{
 			if(node.equals(n))
 			{
@@ -330,7 +330,7 @@ public class NodeList<T extends StructrNode> extends StructrNode implements List
 			{
 				boolean ret = false;
 
-				for(StructrNode node : nodes)
+				for(T node : nodes)
 				{
 					ret |= appendNodeToList(node.getNode());
 				}
@@ -363,7 +363,7 @@ public class NodeList<T extends StructrNode> extends StructrNode implements List
 				Node nextNode = null;
 				boolean ret = false;
 
-				for(StructrNode toInsert : nodes)
+				for(T toInsert : nodes)
 				{
 					nextNode = getRelatedNode(startNode, RelType.NEXT_LIST_ENTRY, Direction.OUTGOING);
 
@@ -396,7 +396,7 @@ public class NodeList<T extends StructrNode> extends StructrNode implements List
 				for(Object obj : nodes)
 				{
 					// provoke ClassCastException according to List interface specification
-					StructrNode structrNode = (StructrNode)obj;
+					T structrNode = (T)obj;
 					Node node = structrNode.getNode();
 
 					ret |= removeNodeFromList(node);
@@ -426,7 +426,7 @@ public class NodeList<T extends StructrNode> extends StructrNode implements List
 			{
 				boolean ret = false;
 
-				for(StructrNode node : getNodes())
+				for(T node : getNodes())
 				{
 					if(!nodes.contains(node))
 					{
@@ -498,7 +498,7 @@ public class NodeList<T extends StructrNode> extends StructrNode implements List
 	 * @return
 	 */
 	@Override
-	public StructrNode set(final int index, final StructrNode toSet)
+	public T set(final int index, final T toSet)
 	{
 		transaction.execute(new StructrTransaction()
 		{
@@ -597,7 +597,7 @@ public class NodeList<T extends StructrNode> extends StructrNode implements List
 	@Override
 	public int indexOf(Object o)
 	{
-		StructrNode node = (StructrNode)o;
+		T node = (T)o;
 
 		return(indexOf(node.getNode()));
 	}
@@ -664,7 +664,7 @@ public class NodeList<T extends StructrNode> extends StructrNode implements List
 		return(ret);
 	}
 
-	// ----- interface Decorable<StructrNode>
+	// ----- interface Decorable<T>
 	@Override
 	public void addDecorator(Decorator<T> d)
 	{
@@ -691,10 +691,10 @@ public class NodeList<T extends StructrNode> extends StructrNode implements List
 	}
 
 	// ----- private methods -----
-	private List<StructrNode> getNodeList()
+	private List<T> getNodeList()
 	{
-		List<StructrNode> ret = new LinkedList<StructrNode>();
-		for(StructrNode node : getNodes())
+		List<T> ret = new LinkedList<T>();
+		for(T node : getNodes())
 		{
 			ret.add(node);
 		}

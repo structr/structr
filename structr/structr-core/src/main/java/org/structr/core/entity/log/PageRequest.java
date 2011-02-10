@@ -27,7 +27,7 @@ public class PageRequest extends Activity {
     }
 
     public void setUri(final String uri) {
-        setActivityText(uri);
+        setProperty(URI_KEY, uri);
     }
 
     public String getRemoteHost() {

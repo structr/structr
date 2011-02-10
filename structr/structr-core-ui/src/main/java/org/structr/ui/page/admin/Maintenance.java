@@ -119,9 +119,11 @@ public class Maintenance extends Admin {
         sessionsTable.setSortable(true);
         sessionsTable.setSortedColumn("inactiveSince");
         sessionsTable.setSortedAscending(true);
+        sessionsTable.setPageSize(5);
         sessionsTable.setClass(Table.CLASS_COMPLEX);
 
         activitiesTable.addColumn(new Column(Activity.NODE_ID_KEY));
+        activitiesTable.addColumn(new Column(Activity.TYPE_KEY));
         activitiesTable.addColumn(new Column(Activity.START_TIMESTAMP_KEY));
         activitiesTable.addColumn(new Column(Activity.END_TIMESTAMP_KEY));
         activitiesTable.addColumn(new Column(Activity.ACTIVITY_TEXT_KEY));
@@ -129,6 +131,7 @@ public class Maintenance extends Admin {
         activitiesTable.setSortedColumn(Activity.NODE_ID_KEY);
         activitiesTable.setSortable(true);
         activitiesTable.setSortedAscending(true);
+        activitiesTable.setPageSize(15);
         activitiesTable.setClass(Table.CLASS_COMPLEX);
 
 
@@ -179,7 +182,7 @@ public class Maintenance extends Admin {
         allNodesTable.addColumn(new Column(StructrNode.CREATED_DATE_KEY));
         allNodesTable.addColumn(new Column("allProperties"));
         allNodesTable.setSortable(true);
-        allNodesTable.setPageSize(25);
+        allNodesTable.setPageSize(15);
         allNodesTable.setClass(Table.CLASS_COMPLEX);
 
     }
@@ -200,7 +203,7 @@ public class Maintenance extends Admin {
         }
 
         // fill table with all known services
-        sessionsTable.setDataProvider(new DataProvider() {
+        activitiesTable.setDataProvider(new DataProvider() {
 
             @Override
             public List<Activity> getData() {
@@ -214,7 +217,8 @@ public class Maintenance extends Admin {
 
                 if (searchResult != null) {
                     for (StructrNode s : searchResult) {
-                        Activity a = new Activity();
+
+                        PageRequest a = new PageRequest();
                         a.init(s);
                         result.add(a);
                     }
