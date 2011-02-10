@@ -18,14 +18,13 @@ import org.structr.core.entity.StructrNode;
  */
 public class Activity extends StructrNode {
 
-    private final static String ICON_SRC = "/images/application_link.png";
+    private final static String ICON_SRC = "/images/sport_soccer.png";
 
     @Override
     public String getIconSrc() {
         return ICON_SRC;
     }
 
-    public static final String TIMESTAMP_KEY = "timestamp";
     public static final String START_TIMESTAMP_KEY = "startTimestamp";
     public static final String END_TIMESTAMP_KEY = "endTimestamp";
     public static final String ACTIVITY_TEXT_KEY = "activityText";

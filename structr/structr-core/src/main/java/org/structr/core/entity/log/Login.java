@@ -11,7 +11,7 @@ package org.structr.core.entity.log;
  */
 public class Login extends Activity {
 
-    private final static String ICON_SRC = "/images/sport_soccer.png";
+    private final static String ICON_SRC = "/images/door_in.png";
 
     @Override
     public String getIconSrc() {

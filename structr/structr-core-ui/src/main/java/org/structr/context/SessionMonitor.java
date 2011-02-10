@@ -48,9 +48,6 @@ public class SessionMonitor {
         private Date loginTimestamp;
         private Date logoutTimestamp;
         private List<Activity> activityList;
-        private String remoteAddr;
-        private String remoteHost;
-        private String remoteUser;
 
         public Session(final long id, String uid, final User user, Date loginTime) {
             this.id = id;
@@ -61,44 +58,38 @@ public class SessionMonitor {
             activityList = new ArrayList<Activity>();
         }
 
-        /**
-         * @return last activity
-         */
-        public String getLastActivity() {
-            // Assuming minium activity list size of 1 is safe because first activity is always a login
-            Activity lastActivity = getActivityList().get(getActivityList().size() - 1);
+        private boolean hasActivity() {
+            Activity lastActivity = getLastActivity();
+            return (lastActivity != null);
+        }
 
-            return lastActivity.getType();
+        /**
+         * @return last activity type
+         */
+        public String getLastActivityType() {
+            Activity lastActivity = getLastActivity();
+            return lastActivity != null ? getLastActivity().getType() : null;
         }
 
         /**
          * @return last activity start timestamp
          */
         public Date getLastActivityStartTimestamp() {
-            // Assuming minium activity list size of 1 is safe because first activity is always a login
-            Activity lastActivity = getActivityList().get(getActivityList().size() - 1);
-
-            return lastActivity.getStartTimestamp();
+            return hasActivity() ? getLastActivity().getStartTimestamp() : null;
         }
 
         /**
          * @return last activity end timestamp
          */
         public Date getLastActivityEndTimestamp() {
-            // Assuming minium activity list size of 1 is safe because first activity is always a login
-            Activity lastActivity = getActivityList().get(getActivityList().size() - 1);
-
-            return lastActivity.getStartTimestamp();
+            return hasActivity() ? getLastActivity().getEndTimestamp() : null;
         }
 
         /**
          * @return last activity URI
          */
         public String getLastActivityText() {
-            // Assuming minium activity list size of 1 is safe because first activity is always a login
-            Activity lastActivity = getActivityList().get(getActivityList().size() - 1);
-
-            return lastActivity.getActivityText();
+            return hasActivity() ? getLastActivity().getActivityText() : null;
         }
 
         /**
@@ -106,24 +97,11 @@ public class SessionMonitor {
          * @return seconds since last activity
          */
         public long getInactiveSince() {
-            long ms = (new Date()).getTime() - getLastActivityEndTimestamp().getTime();
-            return ms / 1000;
-        }
-
-        /**
-         * Return number of seconds between start and end timestamp
-         * @return seconds since last activity
-         */
-        public double getDuration() {
-            long ms = getLastActivityEndTimestamp().getTime() - getLastActivityStartTimestamp().getTime();
-            return ms / 1000;
-        }
-
-        /**
-         * @return the user
-         */
-        private User getUser() {
-            return user;
+            if (hasActivity()) {
+                long ms = (new Date()).getTime() - getLastActivityEndTimestamp().getTime();
+                return ms / 1000;
+            }
+            return Long.MIN_VALUE;
         }
 
         public String getUserName() {
@@ -156,6 +134,13 @@ public class SessionMonitor {
          */
         public List<Activity> getActivityList() {
             return activityList;
+        }
+
+        private Activity getLastActivity() {
+            if (activityList != null && !(activityList.isEmpty())) {
+                return getActivityList().get(getActivityList().size() - 1);
+            }
+            return null;
         }
 
         /**
@@ -219,47 +204,6 @@ public class SessionMonitor {
             this.state = state;
         }
 
-        /**
-         * @return the remoteAddr
-         */
-        public String getRemoteAddr() {
-            return remoteAddr;
-        }
-
-        /**
-         * @param remoteAddr the remoteAddr to set
-         */
-        public void setRemoteAddr(final String remoteAddr) {
-            this.remoteAddr = remoteAddr;
-        }
-
-        /**
-         * @return the remoteHost
-         */
-        public String getRemoteHost() {
-            return remoteHost;
-        }
-
-        /**
-         * @param remoteHost the remoteHost to set
-         */
-        public void setRemoteHost(final String remoteHost) {
-            this.remoteHost = remoteHost;
-        }
-
-        /**
-         * @return the remoteUser
-         */
-        public String getRemoteUser() {
-            return remoteUser;
-        }
-
-        /**
-         * @param remoteUser the remoteUser to set
-         */
-        public void setRemoteUser(String remoteUser) {
-            this.remoteUser = remoteUser;
-        }
     }// </editor-fold>
 
     // <editor-fold defaultstate="collapsed" desc="State">
@@ -323,12 +267,15 @@ public class SessionMonitor {
 
                     Date now = new Date();
 
-                    Activity activity = (Activity) createNode.execute(user,
+                    StructrNode s = (StructrNode) createNode.execute(user,
                             new NodeAttribute(StructrNode.TYPE_KEY, PageRequest.class.getSimpleName()),
                             new NodeAttribute(PageRequest.REMOTE_ADDRESS_KEY, request.getRemoteAddr()),
                             new NodeAttribute(PageRequest.REMOTE_HOST_KEY, request.getRemoteHost()),
                             new NodeAttribute(PageRequest.START_TIMESTAMP_KEY, now),
                             new NodeAttribute(PageRequest.END_TIMESTAMP_KEY, now));
+
+                    Activity activity = new Activity();
+                    activity.init(s);
 
                     getSession(sessionId).addActivity(activity);
 
