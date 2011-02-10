@@ -4,29 +4,15 @@
  */
 package org.structr.core.entity;
 
-import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.Collection;
-import java.util.Enumeration;
-import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.Map;
 import java.util.Set;
-import java.util.Vector;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.servlet.RequestDispatcher;
-import javax.servlet.Servlet;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import javax.swing.JOptionPane;
 import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.Relationship;
@@ -39,10 +25,8 @@ import org.structr.common.RelType;
 import org.structr.core.Command;
 import org.structr.core.Decorable;
 import org.structr.core.Decorator;
-import org.structr.core.Predicate;
 import org.structr.core.Services;
 import org.structr.core.node.Evaluable;
-import org.structr.core.node.GraphDatabaseCommand;
 import org.structr.core.node.IterableAdapter;
 import org.structr.core.node.NodeFactoryCommand;
 import org.structr.core.node.StructrNodeFactory;
@@ -75,6 +59,8 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 	private static final String ICON_SRC = "/images/application_view_list.png";
 
 	private Set<Decorator<StructrNode>> decorators = new LinkedHashSet<Decorator<StructrNode>>();
+	private Command transaction = Services.createCommand(TransactionCommand.class);
+	private Command factory = Services.createCommand(NodeFactoryCommand.class);
 	private Set<Evaluator> evaluators = new LinkedHashSet<Evaluator>();
 	private int maxLength = -1;
 
@@ -101,7 +87,7 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 	 */
 	public StructrNode getFirstNode()
 	{
-		return((StructrNode)Services.createCommand(NodeFactoryCommand.class).execute(getFirstRawNode()));
+		return((StructrNode)factory.execute(getFirstRawNode()));
 	}
 
 	/**
@@ -122,7 +108,7 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 	 */
 	public StructrNode getLastNode()
 	{
-		return((StructrNode)Services.createCommand(NodeFactoryCommand.class).execute(getLastRawNode()));
+		return((StructrNode)factory.execute(getLastRawNode()));
 	}
 
 	/**
@@ -257,8 +243,9 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 
 	/**
 	 * Applies all decorators that are set on this list and adds the node
-	 * to the end of this list. This method runs in constant time.
-	 * (Implementation note: keep LAST pointer!)
+	 * to the end of this list. This method runs in constant time. Note that
+	 * this method runs in a transaction. This transaction includes any
+	 * decorator that is present on this list.
 	 *
 	 * <p>
 	 * If a collection refuses to add a particular element for any reason
@@ -272,16 +259,24 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 	 * @return true if this collection changed as a result of this call
 	 */
 	@Override
-	public boolean add(StructrNode toAdd)
+	public boolean add(final StructrNode toAdd)
 	{
-		boolean ret = false;
-
-		if(toAdd != null)
+		Boolean returnValue = (Boolean)transaction.execute(new StructrTransaction()
 		{
-			ret = appendNodeToList(toAdd.getNode());
-		}
+			@Override
+			public Object execute() throws Throwable
+			{
+				// apply decorators (if any)
+				for(Decorator<StructrNode> decorator : decorators)
+				{
+					decorator.decorate(toAdd);
+				}
 
-		return(ret);
+				return(appendNodeToList(toAdd.getNode()));
+			}
+		});
+
+		return(returnValue.booleanValue());
 	}
 
 	/**
@@ -291,16 +286,25 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 	 * @return true if this list contained the given element
 	 */
 	@Override
-	public boolean remove(Object node)
+	public boolean remove(final Object node)
 	{
-		return(removeNodeFromList((Node)node));
+		Boolean returnValue = (Boolean)transaction.execute(new StructrTransaction()
+		{
+			@Override
+			public Object execute() throws Throwable
+			{
+				return(removeNodeFromList((Node)node));
+			}
+		});
+
+		return(returnValue.booleanValue());
 	}
 
 	/**
 	 * Indicates whether this list contains all of the elements in the
 	 * given collection.
 	 *
-	 * @param c
+	 * @param nodes
 	 * @return true or false
 	 */
 	@Override
@@ -313,20 +317,29 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 	 * Adds all the elements in the given collection to this list, applying
 	 * any decorator that is set on this list before addition.
 	 *
-	 * @param c
+	 * @param nodes
 	 * @return
 	 */
 	@Override
-	public boolean addAll(Collection<? extends StructrNode> c)
+	public boolean addAll(final Collection<? extends StructrNode> nodes)
 	{
-		boolean ret = false;
-
-		for(StructrNode node : c)
+		Boolean returnValue = (Boolean)transaction.execute(new StructrTransaction()
 		{
-			ret |= add(node);
-		}
+			@Override
+			public Object execute() throws Throwable
+			{
+				boolean ret = false;
 
-		return(ret);
+				for(StructrNode node : nodes)
+				{
+					ret |= appendNodeToList(node.getNode());
+				}
+
+				return(ret);
+			}
+		});
+
+		return(returnValue.booleanValue());
 	}
 
 	/**
@@ -335,65 +348,97 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 	 * that is currently set on this list.
 	 *
 	 * @param index
-	 * @param c
+	 * @param nodes
 	 * @return
 	 */
 	@Override
-	public boolean addAll(int index, Collection<? extends StructrNode> c)
+	public boolean addAll(final int index, final Collection<? extends StructrNode> nodes)
 	{
-		int internalIndex = index;
-		boolean ret = true;	// how can we know if the collection changed??
-
-		for(StructrNode node : c)
+		Boolean returnValue = (Boolean)transaction.execute(new StructrTransaction()
 		{
-			add(internalIndex, node);
-			internalIndex++;
-		}
+			@Override
+			public Object execute() throws Throwable
+			{
+				Node startNode = getNodeAt(index);
+				Node nextNode = null;
+				boolean ret = false;
 
-		return(ret);
+				for(StructrNode toInsert : nodes)
+				{
+					nextNode = getRelatedNode(startNode, RelType.NEXT_LIST_ENTRY, Direction.OUTGOING);
+
+					ret |= insertNodeBefore(nextNode, toInsert.getNode());
+				}
+
+				return(ret);
+			}
+		});
+
+		return(returnValue.booleanValue());
 	}
 
 	/**
 	 * Removes all elements in the given collection from this list.
 	 *
-	 * @param c
+	 * @param nodes
 	 * @return
 	 */
 	@Override
-	public boolean removeAll(Collection<?> c)
+	public boolean removeAll(final Collection<?> nodes)
 	{
-		boolean ret = false;
-
-		for(Object node : c)
+		Boolean returnValue = (Boolean)transaction.execute(new StructrTransaction()
 		{
-			ret |= remove((StructrNode)node);
-		}
+			@Override
+			public Object execute() throws Throwable
+			{
+				boolean ret = false;
 
-		return(ret);
+				for(Object obj : nodes)
+				{
+					// provoke ClassCastException according to List interface specification
+					StructrNode structrNode = (StructrNode)obj;
+					Node node = structrNode.getNode();
+
+					ret |= removeNodeFromList(node);
+				}
+
+				return(ret);
+			}
+		});
+
+		return(returnValue.booleanValue());
 	}
 
 	/**
 	 * Retains only the elements in this list that are contained in the given
 	 * collection.
 	 *
-	 * @param c
+	 * @param nodes
 	 * @return
 	 */
 	@Override
-	public boolean retainAll(Collection<?> c)
+	public boolean retainAll(final Collection<?> nodes)
 	{
-		boolean ret = false;
-
-		for(StructrNode node : getNodes())
+		Boolean returnValue = (Boolean)transaction.execute(new StructrTransaction()
 		{
-			if(!c.contains(node))
+			@Override
+			public Object execute() throws Throwable
 			{
-				remove(node);
-				ret = true;
-			}
-		}
+				boolean ret = false;
 
-		return(ret);
+				for(StructrNode node : getNodes())
+				{
+					if(!nodes.contains(node))
+					{
+						ret |= removeNodeFromList(node.getNode());
+					}
+				}
+
+				return(ret);
+			}
+		});
+
+		return(returnValue.booleanValue());
 	}
 
 	/**
@@ -404,18 +449,24 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 	@Override
 	public void clear()
 	{
-		for(StructrNode node : getNodes())
+		transaction.execute(new StructrTransaction()
 		{
-			remove(node);
-		}
+			@Override
+			public Object execute() throws Throwable
+			{
+				for(Node node : getRawNodes())
+				{
+					removeNodeFromList(node);
+				}
 
+				return(null);
+			}
+		});
 	}
 
 	/**
 	 * Returns the element at the given index, or null if no element exists,
 	 * with respect to the evaluators that are currently set on this list.
-	 * Note that this behaviour differs from the default List behaviour, as
-	 * no ArrayIndexOutOfBoundsException is thrown.
 	 *
 	 * @param index
 	 * @return
@@ -423,11 +474,16 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 	@Override
 	public StructrNode get(int index)
 	{
+		if(index < 0 || index >= size())
+		{
+			throw new ArrayIndexOutOfBoundsException();
+		}
+
 		Node node = getNodeAt(index);
 
 		if(node != null)
 		{
-			return((StructrNode)Services.createCommand(NodeFactoryCommand.class).execute(node));
+			return((StructrNode)factory.execute(node));
 		}
 
 		return(null);
@@ -435,18 +491,33 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 
 	/**
 	 * Replaces the element at the given position with the given element, with
-	 * respect to the evaluators that are currently set on this list. This
-	 * method will only work when there already is an element at the given index.
-	 *
+	 * respect to the evaluators that are currently set on this list.
 	 *
 	 * @param index
-	 * @param element
+	 * @param toAdd
 	 * @return
 	 */
 	@Override
-	public StructrNode set(int index, StructrNode element)
+	public StructrNode set(final int index, final StructrNode toSet)
 	{
-		throw new UnsupportedOperationException("Not supported yet.");
+		transaction.execute(new StructrTransaction()
+		{
+			@Override
+			public Object execute() throws Throwable
+			{
+				Node node = getNodeAt(index);
+				if(node != null)
+				{
+					insertNodeBefore(node, toSet.getNode());
+					removeNodeFromList(node);
+				}
+
+				return(null);
+			}
+
+		});
+
+		return(toSet);
 	}
 
 	/**
@@ -454,21 +525,41 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 	 * evaluators that are currently set on this list).
 	 *
 	 * @param index
-	 * @param element
+	 * @param toAdd
 	 */
 	@Override
-	public void add(int index, StructrNode element)
+	public void add(final int index, final StructrNode toAdd)
 	{
-		int size = this.size();
+		final int size = this.size();
 
-		if(index >= size)
+		if(index < 0 || index > size)
 		{
-			appendNodeToList(element.getNode());
-
-		} else
-		{
-			insertNodeIntoList(index, element.getNode());
+			throw new ArrayIndexOutOfBoundsException();
 		}
+
+		transaction.execute(new StructrTransaction()
+		{
+			@Override
+			public Object execute() throws Throwable
+			{
+				// apply decorators (if any)
+				for(Decorator<StructrNode> decorator : decorators)
+				{
+					decorator.decorate(toAdd);
+				}
+
+				if(index == size)
+				{
+					appendNodeToList(toAdd.getNode());
+
+				} else
+				{
+					insertNodeIntoList(index, toAdd.getNode());
+				}
+
+				return(null);
+			}
+		});
 	}
 
 	/**
@@ -481,20 +572,21 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 	@Override
 	public StructrNode remove(int index)
 	{
-		System.out.println("removing node #" + index);
-
-		Node node = getNodeAt(index);
+		final Node node = getNodeAt(index);
 
 		if(node != null)
 		{
-			removeNodeFromList(node);
-
-		} else
-		{
-			System.out.println("node was null!");
+			transaction.execute(new StructrTransaction()
+			{
+				@Override
+				public Object execute() throws Throwable
+				{
+					return(removeNodeFromList(node));
+				}
+			});
 		}
 
-		return((StructrNode)Services.createCommand(NodeFactoryCommand.class).execute(node));
+		return((StructrNode)factory.execute(node));
 	}
 
 	/**
@@ -505,7 +597,9 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 	@Override
 	public int indexOf(Object o)
 	{
-		return(indexOf((Node)o));
+		StructrNode node = (StructrNode)o;
+
+		return(indexOf(node.getNode()));
 	}
 
 	/**
@@ -631,7 +725,7 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 	{
 		TraversalDescription ret = Traversal.description().depthFirst();
 		ret = ret.relationships(RelType.NEXT_LIST_ENTRY, Direction.OUTGOING);
-		// ret = ret.evaluator(new ParentIdEvaluator());
+		ret = ret.evaluator(new ParentIdEvaluator());
 
 		// add list evaluators
 		for(Evaluator evaluator : evaluators)
@@ -666,11 +760,9 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 			Node nextNode = getRelatedNode(toRemove, RelType.NEXT_LIST_ENTRY, Direction.OUTGOING);
 
 			// delete relationship from previousNode to toRemove
-			System.out.print("deleting relationship from previousNode: ");
 			deleteRelationship(previousNode, RelType.NEXT_LIST_ENTRY, Direction.OUTGOING);
 
 			// delete relationship from toRemove to nextNode (if exists)
-			System.out.print("deleting relationship from toRemove: ");
 			deleteRelationship(toRemove, RelType.NEXT_LIST_ENTRY, Direction.OUTGOING);
 
 			// if nextNode exists
@@ -689,21 +781,23 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 			}
 
 			listWasModified = true;
-
-		} else
-		{
-			System.out.println("toRemove was null or toRemove not member!");
 		}
-
 
 		return(listWasModified);
 	}
 
+	/**
+	 * Appends the given node to this list. Note that this method does not run
+	 * in a transaction to enable bulk add methods to share a single transaction.
+	 *
+	 * @param toAdd
+	 * @return true if this list was modified as a result of this call
+	 */
 	private boolean appendNodeToList(Node toAdd)
 	{
 		boolean listWasModified = false;
 
-		if(toAdd != null && !isMember(toAdd))
+		if(!isMember(toAdd))
 		{
 			// node is not null and not already a member of this list
 			Node rootNode = getNode();
@@ -735,31 +829,38 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 		return(listWasModified);
 	}
 
-	private void insertNodeIntoList(int index, Node toInsert)
+	private boolean insertNodeIntoList(int index, Node toInsert)
 	{
 		Node node = getNodeAt(index);
+		boolean ret = false;
 
 		if(node != null)
 		{
-			insertNodeBefore(node, toInsert);
+			ret = insertNodeBefore(node, toInsert);
 		}
+
+		return(ret);
 	}
 
-	private void insertNodeBefore(Node node, Node toInsert)
+	private boolean insertNodeBefore(Node node, Node toInsert)
 	{
+		boolean ret = false;
+
 		if(node != null && toInsert != null && !isMember(toInsert))
 		{
 			Node previousNode = getRelatedNode(node, RelType.NEXT_LIST_ENTRY, Direction.INCOMING);
 
 			// delete relationship from previousNode to node
-			deleteRelationship(previousNode, RelType.NEXT_LIST_ENTRY, Direction.OUTGOING);
+			ret |= deleteRelationship(previousNode, RelType.NEXT_LIST_ENTRY, Direction.OUTGOING);
 
 			// create relationship from previousNode to toInsert
-			createRelationship(previousNode, toInsert, RelType.NEXT_LIST_ENTRY);
+			ret |= createRelationship(previousNode, toInsert, RelType.NEXT_LIST_ENTRY);
 
 			// create relationship from toInsert to node
-			createRelationship(toInsert, node, RelType.NEXT_LIST_ENTRY);
+			ret |= createRelationship(toInsert, node, RelType.NEXT_LIST_ENTRY);
 		}
+
+		return(ret);
 	}
 
 	private boolean isMember(Node node)
@@ -843,51 +944,40 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 
 	}
 
-	private void deleteRelationship(Node startNode, RelType relationshipType, Direction direction)
+	private boolean deleteRelationship(Node startNode, RelType relationshipType, Direction direction)
 	{
-		if(startNode != null)
+		Iterable<Relationship> rels = startNode.getRelationships(relationshipType, direction);
+		boolean ret = false;
+
+		for(Relationship rel : rels)
 		{
-			System.out.println("trying to delete relationship " + startNode.getId() + " -> " + relationshipType);
-
-			Iterable<Relationship> rels = startNode.getRelationships(relationshipType, direction);
-			for(Relationship rel : rels)
+			if(rel.hasProperty(PARENT_KEY))
 			{
-				if(rel.hasProperty(PARENT_KEY))
+				Object parent = rel.getProperty(PARENT_KEY);
+
+				if(parent instanceof Long && ((Long)parent).equals(getNodeId()))
 				{
-					Object parent = rel.getProperty(PARENT_KEY);
+					rel.delete();
 
-					if(parent instanceof Long && ((Long)parent).equals(getNodeId()))
-					{
-						System.out.println("deleting relationship!");
-
-						rel.delete();
-					} else
-					{
-						System.out.println("NOT deleting relationship, parent id mismatch!");
-					}
-				} else
-				{
-					System.out.println("NOT deleting relationship, no parent id found!");
-
+					ret = true;
 				}
 			}
-		} else
-		{
-			System.out.println("startNode was null!");
 		}
+
+		return(ret);
 	}
 
-	private void createRelationship(Node startNode, Node endNode, RelType relationshipType)
+	private boolean createRelationship(Node startNode, Node endNode, RelType relationshipType)
 	{
-		if(startNode != null && endNode != null)
+		if(!startNode.equals(endNode))
 		{
-			System.out.println("creating relationship..");
-
 			Relationship rel = startNode.createRelationshipTo(endNode, relationshipType);
 			rel.setProperty(PARENT_KEY, new Long(getNodeId()));
 
-			System.out.println("NEW relationship: " + startNode.getId() + " -> " + relationshipType + " -> " + endNode.getId());
+			return(true);
 		}
+
+		return(false);
 	}
 
 	// ----- nested classes -----
@@ -896,27 +986,19 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 		@Override
 		public Evaluation evaluate(Path path)
 		{
-			/*
-			Relationship rel = path.lastRelationship();
-
+			// we're following NEXT_LIST_ENTRY rels, so we can trace our way back..
+			Relationship rel = path.endNode().getSingleRelationship(RelType.NEXT_LIST_ENTRY, Direction.INCOMING);
 			if(rel != null && rel.hasProperty(PARENT_KEY))
 			{
 				Object parent = rel.getProperty(PARENT_KEY);
-
 				if(parent instanceof Long && ((Long)parent).equals(getNodeId()))
 				{
 					return(Evaluation.INCLUDE_AND_CONTINUE);
 				}
-
 			}
 
 			// TODO: find out if EXCLUDE_AND_CONTINUE is the right choice here!
-
 			return(Evaluation.EXCLUDE_AND_CONTINUE);
-			 *
-			 */
-
-			return(Evaluation.INCLUDE_AND_CONTINUE);
 		}
 	}
 
@@ -932,311 +1014,5 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 
 			return(Evaluation.INCLUDE_AND_CONTINUE);
 		}
-	}
-
-	public static void main(String[] args)
-	{
-		Services.initialize(prepareStandaloneContext());
-
-		Services.createCommand(TransactionCommand.class).execute(new StructrTransaction()
-		{
-			@Override
-			public Object execute() throws Throwable
-			{
-				GraphDatabaseService graphDb = (GraphDatabaseService)Services.createCommand(GraphDatabaseCommand.class).execute();
-				Command factory = Services.createCommand(NodeFactoryCommand.class);
-				NodeList nodeList = null;
-
-				for(Node node : graphDb.getAllNodes())
-				{
-					StructrNode n = (StructrNode)factory.execute(node);
-
-					System.out.println("node: " + node);
-
-					if(n instanceof NodeList)
-					{
-						nodeList = (NodeList)n;
-						break;
-					}
-				}
-
-				if(nodeList == null)
-				{
-					Node node = graphDb.createNode();
-					node.setProperty(TYPE_KEY, "NodeList");
-					graphDb.getReferenceNode().createRelationshipTo(node, RelType.HAS_CHILD);
-
-					nodeList = (NodeList)factory.execute(node);
-				}
-
-				if(nodeList != null)
-				{
-					boolean exit = false;
-					
-					while(!exit)
-					{
-						try
-						{
-							System.out.println("#######################");
-							System.out.println("list size: " + nodeList.size());
-							for(StructrNode node : nodeList)
-							{
-								System.out.println(node.getId() + ": " + node);
-								
-								for(Relationship rel : node.getNode().getRelationships(Direction.OUTGOING))
-								{
-									System.out.println("          " + rel.getId() + ": " + rel.getType() + " -> " + rel.getEndNode());
-								}
-								System.out.println();
-
-							}
-
-							String line = JOptionPane.showInputDialog(null, "Kommando:");
-
-							if("exit".equals(line))
-							{
-								exit = true;
-							} else
-							if(line.startsWith("add"))
-							{
-								Node nn = graphDb.createNode();
-								nn.setProperty(TYPE_KEY, "PlainText");
-								StructrNode newNode = (StructrNode)factory.execute(nn);
-
-								int index = -1;
-								try
-								{
-									index = Integer.parseInt(line.substring(line.indexOf(" ") + 1));
-
-								} catch(Throwable t) {}
-
-								if(index != -1)
-								{
-									System.out.println("adding node at " + index);
-									nodeList.add(index, newNode);
-								} else
-								{
-									System.out.println("appending node");
-									nodeList.add(newNode);
-								}
-
-							} else
-							if(line.startsWith("del"))
-							{
-
-								int index = -1;
-								try
-								{
-									index = Integer.parseInt(line.substring(line.indexOf(" ") + 1));
-
-								} catch(Throwable t) {}
-
-								if(index != -1)
-								{
-									System.out.println("removing node #" + index);
-									nodeList.remove(index);
-
-								} else
-								{
-									System.out.println("removing last node");
-									nodeList.remove(nodeList.size() - 1);
-								}
-							}
-
-						} catch(Throwable t)
-						{
-							System.out.println(t.getMessage());
-						}
-					}
-				}
-
-				return(null);
-			}
-		});
-
-		Services.shutdown();
-	}
-
-	private static Map<String, Object> prepareStandaloneContext()
-	{
-		Map<String, Object> context = new Hashtable<String, Object>();
-
-		context.put(Services.DATABASE_PATH_IDENTIFIER, "/opt/structr/structr-tfs");
-		context.put(Services.ENTITY_PACKAGES_IDENTIFIER, "org.structr.core.entity");
-
-		// add predicate
-		context.put(Services.STRUCTR_PAGE_PREDICATE, new Predicate()
-		{
-			@Override
-			public boolean evaluate(Object obj)
-			{
-				return(false);
-			}
-		});
-
-		try
-		{
-			Class.forName("javax.servlet.ServletContext");
-
-		} catch(Throwable t)
-		{
-			t.printStackTrace();
-		}
-
-		// add synthetic ServletContext
-		context.put(Services.SERVLET_CONTEXT, new ServletContext()
-		{
-			private Vector emptyList = new Vector();
-			private Set emptySet = new LinkedHashSet();
-
-
-			@Override
-			public String getContextPath()
-			{
-				return("/dummy");
-			}
-
-			@Override
-			public ServletContext getContext(String uripath)
-			{
-				return(this);
-			}
-
-			@Override
-			public int getMajorVersion()
-			{
-				return(0);
-			}
-
-			@Override
-			public int getMinorVersion()
-			{
-				return(0);
-			}
-
-			@Override
-			public String getMimeType(String file)
-			{
-				return("application/octet-stream");
-			}
-
-			@Override
-			public Set getResourcePaths(String path)
-			{
-				return(emptySet);
-			}
-
-			@Override
-			public URL getResource(String path) throws MalformedURLException
-			{
-				return(null);
-			}
-
-			@Override
-			public InputStream getResourceAsStream(String path)
-			{
-				return(null);
-			}
-
-			@Override
-			public RequestDispatcher getRequestDispatcher(String path)
-			{
-				return(null);
-			}
-
-			@Override
-			public RequestDispatcher getNamedDispatcher(String name)
-			{
-				return(null);
-			}
-
-			@Override
-			public Servlet getServlet(String name) throws ServletException
-			{
-				return(null);
-			}
-
-			@Override
-			public Enumeration getServlets()
-			{
-				return(emptyList.elements());
-			}
-
-			@Override
-			public Enumeration getServletNames()
-			{
-				return(emptyList.elements());
-			}
-
-			@Override
-			public void log(String msg)
-			{
-			}
-
-			@Override
-			public void log(Exception exception, String msg)
-			{
-			}
-
-			@Override
-			public void log(String message, Throwable throwable)
-			{
-			}
-
-			@Override
-			public String getRealPath(String path)
-			{
-				return("/temp/" + path);
-			}
-
-			@Override
-			public String getServerInfo()
-			{
-				return("DummyServer");
-			}
-
-			@Override
-			public String getInitParameter(String name)
-			{
-				return(null);
-			}
-
-			@Override
-			public Enumeration getInitParameterNames()
-			{
-				return(emptyList.elements());
-			}
-
-			@Override
-			public Object getAttribute(String name)
-			{
-				return(null);
-			}
-
-			@Override
-			public Enumeration getAttributeNames()
-			{
-				return(emptyList.elements());
-			}
-
-			@Override
-			public void setAttribute(String name, Object object)
-			{
-			}
-
-			@Override
-			public void removeAttribute(String name)
-			{
-			}
-
-			@Override
-			public String getServletContextName()
-			{
-				return("DummyContext");
-			}
-
-		});
-
-		return(context);
 	}
 }
