@@ -4,16 +4,29 @@
  */
 package org.structr.core.entity;
 
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Collection;
+import java.util.Enumeration;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
 import java.util.Set;
+import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.servlet.RequestDispatcher;
+import javax.servlet.Servlet;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import javax.swing.JOptionPane;
 import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.Relationship;
@@ -23,13 +36,18 @@ import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.graphdb.traversal.Traverser;
 import org.neo4j.kernel.Traversal;
 import org.structr.common.RelType;
+import org.structr.core.Command;
 import org.structr.core.Decorable;
 import org.structr.core.Decorator;
+import org.structr.core.Predicate;
 import org.structr.core.Services;
 import org.structr.core.node.Evaluable;
+import org.structr.core.node.GraphDatabaseCommand;
 import org.structr.core.node.IterableAdapter;
 import org.structr.core.node.NodeFactoryCommand;
 import org.structr.core.node.StructrNodeFactory;
+import org.structr.core.node.StructrTransaction;
+import org.structr.core.node.TransactionCommand;
 
 /**
  * A linked list implementation on StructrNodes. In contrast to the default List
@@ -463,7 +481,7 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 	@Override
 	public StructrNode remove(int index)
 	{
-		logger.log(Level.INFO, "removing node #{0}", index);
+		System.out.println("removing node #" + index);
 
 		Node node = getNodeAt(index);
 
@@ -473,7 +491,7 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 
 		} else
 		{
-			logger.log(Level.INFO, "node was null!");
+			System.out.println("node was null!");
 		}
 
 		return((StructrNode)Services.createCommand(NodeFactoryCommand.class).execute(node));
@@ -648,9 +666,11 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 			Node nextNode = getRelatedNode(toRemove, RelType.NEXT_LIST_ENTRY, Direction.OUTGOING);
 
 			// delete relationship from previousNode to toRemove
+			System.out.print("deleting relationship from previousNode: ");
 			deleteRelationship(previousNode, RelType.NEXT_LIST_ENTRY, Direction.OUTGOING);
 
 			// delete relationship from toRemove to nextNode (if exists)
+			System.out.print("deleting relationship from toRemove: ");
 			deleteRelationship(toRemove, RelType.NEXT_LIST_ENTRY, Direction.OUTGOING);
 
 			// if nextNode exists
@@ -669,6 +689,10 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 			}
 
 			listWasModified = true;
+
+		} else
+		{
+			System.out.println("toRemove was null or toRemove not member!");
 		}
 
 
@@ -764,7 +788,14 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 
 					if(parent instanceof Long && ((Long)parent).equals(getNodeId()))
 					{
-						return(rel.getEndNode());
+						if(direction.equals(Direction.INCOMING))
+						{
+							return(rel.getStartNode());
+
+						} else
+						{
+							return(rel.getEndNode());
+						}
 					}
 				}
 			}
@@ -791,8 +822,6 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 			}
 		}
 
-		logger.log(Level.INFO, "returning null (checked {0} nodes", pos);
-
 		return(null);
 	}
 
@@ -818,6 +847,8 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 	{
 		if(startNode != null)
 		{
+			System.out.println("trying to delete relationship " + startNode.getId() + " -> " + relationshipType);
+
 			Iterable<Relationship> rels = startNode.getRelationships(relationshipType, direction);
 			for(Relationship rel : rels)
 			{
@@ -827,10 +858,22 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 
 					if(parent instanceof Long && ((Long)parent).equals(getNodeId()))
 					{
+						System.out.println("deleting relationship!");
+
 						rel.delete();
+					} else
+					{
+						System.out.println("NOT deleting relationship, parent id mismatch!");
 					}
+				} else
+				{
+					System.out.println("NOT deleting relationship, no parent id found!");
+
 				}
 			}
+		} else
+		{
+			System.out.println("startNode was null!");
 		}
 	}
 
@@ -838,8 +881,12 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 	{
 		if(startNode != null && endNode != null)
 		{
+			System.out.println("creating relationship..");
+
 			Relationship rel = startNode.createRelationshipTo(endNode, relationshipType);
 			rel.setProperty(PARENT_KEY, new Long(getNodeId()));
+
+			System.out.println("NEW relationship: " + startNode.getId() + " -> " + relationshipType + " -> " + endNode.getId());
 		}
 	}
 
@@ -885,5 +932,311 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 
 			return(Evaluation.INCLUDE_AND_CONTINUE);
 		}
+	}
+
+	public static void main(String[] args)
+	{
+		Services.initialize(prepareStandaloneContext());
+
+		Services.createCommand(TransactionCommand.class).execute(new StructrTransaction()
+		{
+			@Override
+			public Object execute() throws Throwable
+			{
+				GraphDatabaseService graphDb = (GraphDatabaseService)Services.createCommand(GraphDatabaseCommand.class).execute();
+				Command factory = Services.createCommand(NodeFactoryCommand.class);
+				NodeList nodeList = null;
+
+				for(Node node : graphDb.getAllNodes())
+				{
+					StructrNode n = (StructrNode)factory.execute(node);
+
+					System.out.println("node: " + node);
+
+					if(n instanceof NodeList)
+					{
+						nodeList = (NodeList)n;
+						break;
+					}
+				}
+
+				if(nodeList == null)
+				{
+					Node node = graphDb.createNode();
+					node.setProperty(TYPE_KEY, "NodeList");
+					graphDb.getReferenceNode().createRelationshipTo(node, RelType.HAS_CHILD);
+
+					nodeList = (NodeList)factory.execute(node);
+				}
+
+				if(nodeList != null)
+				{
+					boolean exit = false;
+					
+					while(!exit)
+					{
+						try
+						{
+							System.out.println("#######################");
+							System.out.println("list size: " + nodeList.size());
+							for(StructrNode node : nodeList)
+							{
+								System.out.println(node.getId() + ": " + node);
+								
+								for(Relationship rel : node.getNode().getRelationships(Direction.OUTGOING))
+								{
+									System.out.println("          " + rel.getId() + ": " + rel.getType() + " -> " + rel.getEndNode());
+								}
+								System.out.println();
+
+							}
+
+							String line = JOptionPane.showInputDialog(null, "Kommando:");
+
+							if("exit".equals(line))
+							{
+								exit = true;
+							} else
+							if(line.startsWith("add"))
+							{
+								Node nn = graphDb.createNode();
+								nn.setProperty(TYPE_KEY, "PlainText");
+								StructrNode newNode = (StructrNode)factory.execute(nn);
+
+								int index = -1;
+								try
+								{
+									index = Integer.parseInt(line.substring(line.indexOf(" ") + 1));
+
+								} catch(Throwable t) {}
+
+								if(index != -1)
+								{
+									System.out.println("adding node at " + index);
+									nodeList.add(index, newNode);
+								} else
+								{
+									System.out.println("appending node");
+									nodeList.add(newNode);
+								}
+
+							} else
+							if(line.startsWith("del"))
+							{
+
+								int index = -1;
+								try
+								{
+									index = Integer.parseInt(line.substring(line.indexOf(" ") + 1));
+
+								} catch(Throwable t) {}
+
+								if(index != -1)
+								{
+									System.out.println("removing node #" + index);
+									nodeList.remove(index);
+
+								} else
+								{
+									System.out.println("removing last node");
+									nodeList.remove(nodeList.size() - 1);
+								}
+							}
+
+						} catch(Throwable t)
+						{
+							System.out.println(t.getMessage());
+						}
+					}
+				}
+
+				return(null);
+			}
+		});
+
+		Services.shutdown();
+	}
+
+	private static Map<String, Object> prepareStandaloneContext()
+	{
+		Map<String, Object> context = new Hashtable<String, Object>();
+
+		context.put(Services.DATABASE_PATH_IDENTIFIER, "/opt/structr/structr-tfs");
+		context.put(Services.ENTITY_PACKAGES_IDENTIFIER, "org.structr.core.entity");
+
+		// add predicate
+		context.put(Services.STRUCTR_PAGE_PREDICATE, new Predicate()
+		{
+			@Override
+			public boolean evaluate(Object obj)
+			{
+				return(false);
+			}
+		});
+
+		try
+		{
+			Class.forName("javax.servlet.ServletContext");
+
+		} catch(Throwable t)
+		{
+			t.printStackTrace();
+		}
+
+		// add synthetic ServletContext
+		context.put(Services.SERVLET_CONTEXT, new ServletContext()
+		{
+			private Vector emptyList = new Vector();
+			private Set emptySet = new LinkedHashSet();
+
+
+			@Override
+			public String getContextPath()
+			{
+				return("/dummy");
+			}
+
+			@Override
+			public ServletContext getContext(String uripath)
+			{
+				return(this);
+			}
+
+			@Override
+			public int getMajorVersion()
+			{
+				return(0);
+			}
+
+			@Override
+			public int getMinorVersion()
+			{
+				return(0);
+			}
+
+			@Override
+			public String getMimeType(String file)
+			{
+				return("application/octet-stream");
+			}
+
+			@Override
+			public Set getResourcePaths(String path)
+			{
+				return(emptySet);
+			}
+
+			@Override
+			public URL getResource(String path) throws MalformedURLException
+			{
+				return(null);
+			}
+
+			@Override
+			public InputStream getResourceAsStream(String path)
+			{
+				return(null);
+			}
+
+			@Override
+			public RequestDispatcher getRequestDispatcher(String path)
+			{
+				return(null);
+			}
+
+			@Override
+			public RequestDispatcher getNamedDispatcher(String name)
+			{
+				return(null);
+			}
+
+			@Override
+			public Servlet getServlet(String name) throws ServletException
+			{
+				return(null);
+			}
+
+			@Override
+			public Enumeration getServlets()
+			{
+				return(emptyList.elements());
+			}
+
+			@Override
+			public Enumeration getServletNames()
+			{
+				return(emptyList.elements());
+			}
+
+			@Override
+			public void log(String msg)
+			{
+			}
+
+			@Override
+			public void log(Exception exception, String msg)
+			{
+			}
+
+			@Override
+			public void log(String message, Throwable throwable)
+			{
+			}
+
+			@Override
+			public String getRealPath(String path)
+			{
+				return("/temp/" + path);
+			}
+
+			@Override
+			public String getServerInfo()
+			{
+				return("DummyServer");
+			}
+
+			@Override
+			public String getInitParameter(String name)
+			{
+				return(null);
+			}
+
+			@Override
+			public Enumeration getInitParameterNames()
+			{
+				return(emptyList.elements());
+			}
+
+			@Override
+			public Object getAttribute(String name)
+			{
+				return(null);
+			}
+
+			@Override
+			public Enumeration getAttributeNames()
+			{
+				return(emptyList.elements());
+			}
+
+			@Override
+			public void setAttribute(String name, Object object)
+			{
+			}
+
+			@Override
+			public void removeAttribute(String name)
+			{
+			}
+
+			@Override
+			public String getServletContextName()
+			{
+				return("DummyContext");
+			}
+
+		});
+
+		return(context);
 	}
 }

@@ -4,6 +4,8 @@
  */
 package org.structr.ui.page.admin;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.click.control.ActionLink;
 import org.apache.click.control.FieldSet;
 import org.apache.click.control.Label;
@@ -18,6 +20,7 @@ import org.structr.core.node.TestNodeCommand;
  */
 public class EditNodeList extends DefaultEdit
 {
+	Logger logger = Logger.getLogger(EditNodeList.class.getName());
 	protected FieldSet fields = new FieldSet("NodeList test");
 
 	public EditNodeList()
@@ -45,11 +48,13 @@ public class EditNodeList extends DefaultEdit
 
 	public void onAddClick()
 	{
+		logger.log(Level.INFO, "Adding node..");
 		Services.createCommand(TestNodeCommand.class).execute("add");
 	}
 
 	public void onDelClick()
 	{
+		logger.log(Level.INFO, "Removing node");
 		Services.createCommand(TestNodeCommand.class).execute("del");
 	}
 }

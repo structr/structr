@@ -45,6 +45,8 @@ public class TestNodeCommand extends NodeServiceCommand
 							{
 								String cmd = parameters[0].toString();
 
+								logger.log(Level.INFO, "command: {0}", cmd);
+
 								if("add".equals(cmd))
 								{
 									Node newNode = graphDb.createNode();
@@ -63,16 +65,16 @@ public class TestNodeCommand extends NodeServiceCommand
 
 						} else
 						{
-							logger.log(Level.INFO, "nodeList was null!");
+							logger.log(Level.WARNING, "nodeList was null!");
 						}
 
 					} else
 					{
-						logger.log(Level.INFO, "listNode was null!");
+						logger.log(Level.WARNING, "listNode was null!");
 					}
 				} else
 				{
-					logger.log(Level.INFO, "graphDb was null!");
+					logger.log(Level.WARNING, "graphDb was null!");
 				}
 				
 				return null;
