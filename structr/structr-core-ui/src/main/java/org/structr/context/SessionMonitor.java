@@ -10,7 +10,16 @@ import java.util.List;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import org.structr.core.Command;
+import org.structr.core.Services;
+import org.structr.core.entity.StructrNode;
 import org.structr.core.entity.User;
+import org.structr.core.entity.log.Activity;
+import org.structr.core.entity.log.PageRequest;
+import org.structr.core.node.CreateNodeCommand;
+import org.structr.core.node.NodeAttribute;
+import org.structr.core.node.StructrTransaction;
+import org.structr.core.node.TransactionCommand;
 
 /**
  * Helper class for handling session management
@@ -59,27 +68,37 @@ public class SessionMonitor {
             // Assuming minium activity list size of 1 is safe because first activity is always a login
             Activity lastActivity = getActivityList().get(getActivityList().size() - 1);
 
-            return lastActivity.getAction();
+            return lastActivity.getType();
         }
 
         /**
-         * @return last activity timestamp
+         * @return last activity start timestamp
          */
-        public Date getLastActivityTimestamp() {
+        public Date getLastActivityStartTimestamp() {
             // Assuming minium activity list size of 1 is safe because first activity is always a login
             Activity lastActivity = getActivityList().get(getActivityList().size() - 1);
 
-            return lastActivity.getTimestamp();
+            return lastActivity.getStartTimestamp();
+        }
+
+        /**
+         * @return last activity end timestamp
+         */
+        public Date getLastActivityEndTimestamp() {
+            // Assuming minium activity list size of 1 is safe because first activity is always a login
+            Activity lastActivity = getActivityList().get(getActivityList().size() - 1);
+
+            return lastActivity.getStartTimestamp();
         }
 
         /**
          * @return last activity URI
          */
-        public String getLastActivityUri() {
+        public String getLastActivityText() {
             // Assuming minium activity list size of 1 is safe because first activity is always a login
             Activity lastActivity = getActivityList().get(getActivityList().size() - 1);
 
-            return lastActivity.getUri();
+            return lastActivity.getActivityText();
         }
 
         /**
@@ -87,7 +106,16 @@ public class SessionMonitor {
          * @return seconds since last activity
          */
         public long getInactiveSince() {
-            long ms = (new Date()).getTime() - getLastActivityTimestamp().getTime();
+            long ms = (new Date()).getTime() - getLastActivityEndTimestamp().getTime();
+            return ms / 1000;
+        }
+
+        /**
+         * Return number of seconds between start and end timestamp
+         * @return seconds since last activity
+         */
+        public double getDuration() {
+            long ms = getLastActivityEndTimestamp().getTime() - getLastActivityStartTimestamp().getTime();
             return ms / 1000;
         }
 
@@ -234,79 +262,6 @@ public class SessionMonitor {
         }
     }// </editor-fold>
 
-    // <editor-fold defaultstate="collapsed" desc="Activity">
-    public static class Activity {
-
-        private String action;
-        private State state;
-        private Date timestamp;
-        private String uri;
-//        private Date endTime;
-
-        public Activity(final String action, final Date timestamp, final String uri) {
-            this.action = action;
-            this.timestamp = timestamp;
-            this.state = State.UNDEFINED;
-            this.uri = uri;
-        }
-
-        /**
-         * @return the URI
-         */
-        public String getUri() {
-            return uri;
-        }
-
-        /**
-         * @param URI the URI to set
-         */
-        public void setUri(String uri) {
-            this.uri = uri;
-        }
-
-        /**
-         * @return the action
-         */
-        public String getAction() {
-            return action;
-        }
-
-        /**
-         * @param action the action to set
-         */
-        public void setAction(String action) {
-            this.action = action;
-        }
-
-        /**
-         * @return the state
-         */
-        public State getState() {
-            return state;
-        }
-
-        /**
-         * @param state the state to set
-         */
-        public void setState(State state) {
-            this.state = state;
-        }
-
-        /**
-         * @return the time
-         */
-        public Date getTimestamp() {
-            return timestamp;
-        }
-
-        /**
-         * @param timestamp the time to set
-         */
-        public void setTimestamp(Date timestamp) {
-            this.timestamp = timestamp;
-        }
-    }// </editor-fold>
-
     // <editor-fold defaultstate="collapsed" desc="State">
     public enum State {
 
@@ -354,12 +309,33 @@ public class SessionMonitor {
      * @param sessionId
      * @param action
      */
-    public static void logActivity(final long sessionId, final String action, final HttpServletRequest request) {
+    public static void logPageRequest(final User user, final long sessionId, final String action, final HttpServletRequest request) {
         if (request != null) {
-            getSession(sessionId).addActivity(new Activity(action, new Date(), request.getRequestURI()));
-            getSession(sessionId).setRemoteAddr(request.getRemoteAddr());
-            getSession(sessionId).setRemoteHost(request.getRemoteHost());
-            getSession(sessionId).setRemoteUser(request.getRemoteUser());
+
+            final Command transactionCommand = Services.createCommand(TransactionCommand.class);
+            transactionCommand.execute(new StructrTransaction() {
+
+                @Override
+                public Object execute() throws Throwable {
+
+
+                    Command createNode = Services.createCommand(CreateNodeCommand.class);
+
+                    Date now = new Date();
+
+                    Activity activity = (Activity) createNode.execute(user,
+                            new NodeAttribute(StructrNode.TYPE_KEY, PageRequest.class.getSimpleName()),
+                            new NodeAttribute(PageRequest.REMOTE_ADDRESS_KEY, request.getRemoteAddr()),
+                            new NodeAttribute(PageRequest.REMOTE_HOST_KEY, request.getRemoteHost()),
+                            new NodeAttribute(PageRequest.START_TIMESTAMP_KEY, now),
+                            new NodeAttribute(PageRequest.END_TIMESTAMP_KEY, now));
+
+                    getSession(sessionId).addActivity(activity);
+
+                    // TODO: add logging?
+                    return null;
+                }
+            });
         }
     }
 

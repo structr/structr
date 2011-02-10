@@ -109,8 +109,8 @@ public class Maintenance extends Admin {
         loginTimestampColumn.setFormat("{0,date,medium} {0,time,medium}");
         sessionsTable.addColumn(loginTimestampColumn);
         sessionsTable.addColumn(new Column("logoutTimestamp", "Logout"));
-        sessionsTable.addColumn(new Column("lastActivity"));
-        sessionsTable.addColumn(new Column("lastActivityUri"));
+        sessionsTable.addColumn(new Column("lastActivityText"));
+//        sessionsTable.addColumn(new Column("lastActivityUri"));
         sessionsTable.addColumn(new Column("inactiveSince", "Inactive (s)"));
         sessionsTable.setSortable(true);
         sessionsTable.setSortedColumn("inactiveSince");

@@ -158,7 +158,7 @@ public class StructrPage extends Page {
 
         if (user != null) {
             sessionId = (Long) getContext().getRequest().getSession().getAttribute(SessionMonitor.SESSION_ID);
-            SessionMonitor.logActivity(sessionId, "Page Request", getContext().getRequest());
+            SessionMonitor.logPageRequest(user, sessionId, "Page Request", getContext().getRequest());
         }
 
         //nodeId = getNodeId();
