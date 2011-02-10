@@ -204,7 +204,6 @@ public class SessionMonitor {
         public void setState(final State state) {
             this.state = state;
         }
-
     }// </editor-fold>
 
     // <editor-fold defaultstate="collapsed" desc="State">

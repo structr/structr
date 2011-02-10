@@ -12,7 +12,7 @@ import org.structr.core.entity.NodeList;
 import org.structr.core.entity.StructrNode;
 import org.structr.core.node.GraphDatabaseCommand;
 
-public class LogNodeList<T extends StructrNode> extends NodeList {
+public class LogNodeList<T extends StructrNode> extends NodeList<T> {
 
     private final GraphDatabaseService graphDb = (GraphDatabaseService) Services.createCommand(GraphDatabaseCommand.class).execute();
 
