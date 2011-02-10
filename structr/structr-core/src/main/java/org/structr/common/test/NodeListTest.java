@@ -19,7 +19,6 @@ import org.structr.core.Services;
 import org.structr.core.entity.NodeList;
 import org.structr.core.entity.PlainText;
 import org.structr.core.entity.StructrNode;
-import org.structr.core.entity.log.Activity;
 import org.structr.core.node.GraphDatabaseCommand;
 import org.structr.core.node.NodeFactoryCommand;
 import org.structr.core.node.StructrTransaction;
@@ -38,7 +37,7 @@ public class NodeListTest
 
 		final GraphDatabaseService graphDb = (GraphDatabaseService)Services.createCommand(GraphDatabaseCommand.class).execute();
 		final Command factory = Services.createCommand(NodeFactoryCommand.class);
-		NodeList nodeList = null;
+		NodeList<StructrNode> nodeList = null;
 
 		for(Node node : graphDb.getAllNodes())
 		{

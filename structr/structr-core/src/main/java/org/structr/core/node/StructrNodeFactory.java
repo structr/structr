@@ -24,7 +24,7 @@ import org.structr.core.module.GetEntityClassCommand;
  *
  * @author cmorgner
  */
-public class StructrNodeFactory implements Adapter<Node, StructrNode>
+public class StructrNodeFactory<T extends StructrNode> implements Adapter<Node, T>
 {
 
     private static final Logger logger = Logger.getLogger(StructrNodeFactory.class.getName());
@@ -98,8 +98,8 @@ public class StructrNodeFactory implements Adapter<Node, StructrNode>
     }
 
 	@Override
-	public StructrNode adapt(Node s)
+	public T adapt(Node s)
 	{
-		return(createNode(s));
+		return((T)createNode(s));
 	}
 }

@@ -51,14 +51,14 @@ import org.structr.core.node.TransactionCommand;
  *
  * @author Christian Morgner
  */
-public class NodeList extends StructrNode implements List<StructrNode>, Decorable<StructrNode>, Evaluable
+public class NodeList<T extends StructrNode> extends StructrNode implements List<T>, Decorable<T>, Evaluable
 {
 	private static final Logger logger = Logger.getLogger(NodeList.class.getName());
 
 	private static final String PARENT_KEY = "parent";
 	private static final String ICON_SRC = "/images/application_view_list.png";
 
-	private Set<Decorator<StructrNode>> decorators = new LinkedHashSet<Decorator<StructrNode>>();
+	private Set<Decorator<T>> decorators = new LinkedHashSet<Decorator<T>>();
 	private Command transaction = Services.createCommand(TransactionCommand.class);
 	private Command factory = Services.createCommand(NodeFactoryCommand.class);
 	private Set<Evaluator> evaluators = new LinkedHashSet<Evaluator>();
@@ -210,7 +210,7 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 	 * @return the iterator
 	 */
 	@Override
-	public Iterator<StructrNode> iterator()
+	public Iterator<T> iterator()
 	{
 		return(getNodes().iterator());
 	}
@@ -259,7 +259,7 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 	 * @return true if this collection changed as a result of this call
 	 */
 	@Override
-	public boolean add(final StructrNode toAdd)
+	public boolean add(final T toAdd)
 	{
 		Boolean returnValue = (Boolean)transaction.execute(new StructrTransaction()
 		{
@@ -267,7 +267,7 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 			public Object execute() throws Throwable
 			{
 				// apply decorators (if any)
-				for(Decorator<StructrNode> decorator : decorators)
+				for(Decorator<T> decorator : decorators)
 				{
 					decorator.decorate(toAdd);
 				}
@@ -321,7 +321,7 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 	 * @return
 	 */
 	@Override
-	public boolean addAll(final Collection<? extends StructrNode> nodes)
+	public boolean addAll(final Collection<? extends T> nodes)
 	{
 		Boolean returnValue = (Boolean)transaction.execute(new StructrTransaction()
 		{
@@ -352,7 +352,7 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 	 * @return
 	 */
 	@Override
-	public boolean addAll(final int index, final Collection<? extends StructrNode> nodes)
+	public boolean addAll(final int index, final Collection<? extends T> nodes)
 	{
 		Boolean returnValue = (Boolean)transaction.execute(new StructrTransaction()
 		{
@@ -472,7 +472,7 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 	 * @return
 	 */
 	@Override
-	public StructrNode get(int index)
+	public T get(int index)
 	{
 		if(index < 0 || index >= size())
 		{
@@ -483,7 +483,7 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 
 		if(node != null)
 		{
-			return((StructrNode)factory.execute(node));
+			return((T)factory.execute(node));
 		}
 
 		return(null);
@@ -528,7 +528,7 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 	 * @param toAdd
 	 */
 	@Override
-	public void add(final int index, final StructrNode toAdd)
+	public void add(final int index, final T toAdd)
 	{
 		final int size = this.size();
 
@@ -543,7 +543,7 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 			public Object execute() throws Throwable
 			{
 				// apply decorators (if any)
-				for(Decorator<StructrNode> decorator : decorators)
+				for(Decorator<T> decorator : decorators)
 				{
 					decorator.decorate(toAdd);
 				}
@@ -570,7 +570,7 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 	 * @return
 	 */
 	@Override
-	public StructrNode remove(int index)
+	public T remove(int index)
 	{
 		final Node node = getNodeAt(index);
 
@@ -586,7 +586,7 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 			});
 		}
 
-		return((StructrNode)factory.execute(node));
+		return((T)factory.execute(node));
 	}
 
 	/**
@@ -624,7 +624,7 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 	 * @return
 	 */
 	@Override
-	public ListIterator<StructrNode> listIterator()
+	public ListIterator<T> listIterator()
 	{
 		throw new UnsupportedOperationException("Bi-directional iteration is not yet supported by this class.");
 	}
@@ -638,7 +638,7 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 	 * @return
 	 */
 	@Override
-	public ListIterator<StructrNode> listIterator(int index)
+	public ListIterator<T> listIterator(int index)
 	{
 		throw new UnsupportedOperationException("Bi-directional iteration is not yet supported by this class.");
 	}
@@ -653,7 +653,7 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 	 * @return
 	 */
 	@Override
-	public List<StructrNode> subList(int fromIndex, int toIndex)
+	public List<T> subList(int fromIndex, int toIndex)
 	{
 		//return a new NodeList instance with the given bounds
 		Node startNode = getNodeAt(fromIndex);
@@ -666,13 +666,13 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 
 	// ----- interface Decorable<StructrNode>
 	@Override
-	public void addDecorator(Decorator<StructrNode> d)
+	public void addDecorator(Decorator<T> d)
 	{
 		decorators.add(d);
 	}
 
 	@Override
-	public void removeDecorator(Decorator<StructrNode> d)
+	public void removeDecorator(Decorator<T> d)
 	{
 		decorators.remove(d);
 	}
@@ -702,10 +702,10 @@ public class NodeList extends StructrNode implements List<StructrNode>, Decorabl
 		return(ret);
 	}
 
-	private Iterable<StructrNode> getNodes()
+	private Iterable<T> getNodes()
 	{
 		return(
-			new IterableAdapter<Node, StructrNode>(
+			new IterableAdapter<Node, T>(
 				getRawNodes(),
 				new StructrNodeFactory()
 			)
