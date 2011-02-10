@@ -11,7 +11,7 @@ package org.structr.core.entity.log;
  */
 public class PageRequest extends Activity {
 
-    private final static String ICON_SRC = "/images/folder.png";
+    private final static String ICON_SRC = "/images/page.png";
 
     @Override
     public String getIconSrc() {
@@ -48,7 +48,11 @@ public class PageRequest extends Activity {
 
     @Override
     public String getActivityText() {
-        return getUri();
+        String text =
+                "URI: " + getUri() + "\n" +
+                "Remote Host: " + getRemoteHost() + "\n" +
+                "Remote Addr: " + getRemoteAddress();
+        return text;
     }
 
 }

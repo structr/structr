@@ -28,6 +28,7 @@ import org.apache.click.util.Bindable;
 import org.apache.commons.lang.RandomStringUtils;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.RelType;
+import org.structr.common.Search;
 import org.structr.common.SearchOperator;
 //import org.structr.core.ClasspathEntityLocator;
 import org.structr.context.SessionMonitor;
@@ -40,6 +41,8 @@ import org.structr.core.entity.StructrNode;
 import org.structr.core.entity.StructrRelationship;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
+import org.structr.core.entity.log.Activity;
+import org.structr.core.entity.log.PageRequest;
 import org.structr.core.module.GetEntitiesCommand;
 import org.structr.core.module.GetEntityPackagesCommand;
 import org.structr.core.module.ListModulesCommand;
@@ -70,6 +73,8 @@ public class Maintenance extends Admin {
     protected PageLink reportLink = new PageLink("reportLink", "Reports", Report.class);
     @Bindable
     protected Table sessionsTable = new Table("sessionsTable");
+    @Bindable
+    protected Table activitiesTable = new Table("activitiesTable");
     @Bindable
     protected Table servicesTable = new Table("servicesTable");
     @Bindable
@@ -102,13 +107,12 @@ public class Maintenance extends Admin {
         sessionsTable.addColumn(new Column("id"));
         sessionsTable.addColumn(new Column("state"));
         sessionsTable.addColumn(new Column("userName"));
-        sessionsTable.addColumn(new Column("remoteHost"));
-        sessionsTable.addColumn(new Column("remoteAddr"));
-        sessionsTable.addColumn(new Column("remoteUser"));
         Column loginTimestampColumn = new Column("loginTimestamp", "Login");
         loginTimestampColumn.setFormat("{0,date,medium} {0,time,medium}");
         sessionsTable.addColumn(loginTimestampColumn);
-        sessionsTable.addColumn(new Column("logoutTimestamp", "Logout"));
+        Column logoutTimestampColumn = new Column("logoutTimestamp", "Logout");
+        logoutTimestampColumn.setFormat("{0,date,medium} {0,time,medium}");
+        sessionsTable.addColumn(logoutTimestampColumn);
         sessionsTable.addColumn(new Column("lastActivityText"));
 //        sessionsTable.addColumn(new Column("lastActivityUri"));
         sessionsTable.addColumn(new Column("inactiveSince", "Inactive (s)"));
@@ -116,6 +120,17 @@ public class Maintenance extends Admin {
         sessionsTable.setSortedColumn("inactiveSince");
         sessionsTable.setSortedAscending(true);
         sessionsTable.setClass(Table.CLASS_COMPLEX);
+
+        activitiesTable.addColumn(new Column(Activity.NODE_ID_KEY));
+        activitiesTable.addColumn(new Column(Activity.START_TIMESTAMP_KEY));
+        activitiesTable.addColumn(new Column(Activity.END_TIMESTAMP_KEY));
+        activitiesTable.addColumn(new Column(Activity.ACTIVITY_TEXT_KEY));
+//        sessionsTable.addColumn(new Column("lastActivityUri"));
+        activitiesTable.setSortedColumn(Activity.NODE_ID_KEY);
+        activitiesTable.setSortable(true);
+        activitiesTable.setSortedAscending(true);
+        activitiesTable.setClass(Table.CLASS_COMPLEX);
+
 
         servicesTable.addColumn(new Column("Name"));
         servicesTable.addColumn(new Column("isRunning", "Running"));
@@ -183,6 +198,31 @@ public class Maintenance extends Admin {
         if (allNodes == null) {
             return;
         }
+
+        // fill table with all known services
+        sessionsTable.setDataProvider(new DataProvider() {
+
+            @Override
+            public List<Activity> getData() {
+
+                List<Activity> result = new ArrayList<Activity>();
+
+                Command searchNode = Services.createCommand(SearchNodeCommand.class);
+
+                List<StructrNode> searchResult = (List<StructrNode>) searchNode.execute(null, null, true, false,
+                        Search.andExactType(PageRequest.class.getSimpleName()));
+
+                if (searchResult != null) {
+                    for (StructrNode s : searchResult) {
+                        Activity a = new Activity();
+                        a.init(s);
+                        result.add(a);
+                    }
+                }
+                return result;
+
+            }
+        });
 
         // fill table with all known services
         sessionsTable.setDataProvider(new DataProvider() {
