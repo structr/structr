@@ -18,6 +18,7 @@ import org.structr.core.entity.User;
 import org.structr.core.entity.log.Activity;
 import org.structr.core.entity.log.LogNodeList;
 import org.structr.core.entity.log.PageRequest;
+import org.structr.core.log.LogCommand;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.NodeAttribute;
@@ -320,6 +321,8 @@ public class SessionMonitor {
                     getSession(sessionId).getActivityList().add(activity);
 
                     // TODO: add logging?
+		    Services.createCommand(LogCommand.class).execute(activity);
+
                     return null;
                 }
             });

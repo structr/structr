@@ -37,6 +37,24 @@ public class StandaloneTestHelper
 		Services.shutdown();
 	}
 
+	/**
+	 * Encapsulates Thread.sleep() in a try-catch-block.
+	 * 
+	 * @param millis
+	 */
+	public static void sleep(long millis)
+	{
+		try
+		{
+			Thread.sleep(millis);
+
+		} catch(Throwable t)
+		{
+			// ignore
+		}
+	}
+
+	// ----- private methods -----
 	private static Map<String, Object> prepareStandaloneContext(String databasePath)
 	{
 		Map<String, Object> context = new Hashtable<String, Object>();

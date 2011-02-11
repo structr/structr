@@ -26,11 +26,10 @@ import org.structr.core.node.TransactionCommand;
 
 /**
  *
- * @author chrisi
+ * @author Christian Morgner
  */
 public class NodeListTest
 {
-
 	public static void main(String[] args)
 	{
 		StandaloneTestHelper.prepareStandaloneTest("/tmp/structr-test/");
@@ -199,5 +198,4 @@ public class NodeListTest
 
 		StandaloneTestHelper.finishStandaloneTest();
 	}
-
 }

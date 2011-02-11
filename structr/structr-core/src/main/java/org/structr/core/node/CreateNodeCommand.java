@@ -64,7 +64,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
                 }
             }
 
-            if (!(user instanceof SuperUser)) {
+            if (user != null && !(user instanceof SuperUser)) {
                 node.setProperty(StructrNode.CREATED_BY_KEY, user.getRealName() + " (" + user.getName() + ")");
             }
             node.setProperty(StructrNode.CREATED_DATE_KEY, now);

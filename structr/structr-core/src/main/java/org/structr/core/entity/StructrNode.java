@@ -1755,7 +1755,7 @@ public abstract class StructrNode implements Comparable<StructrNode> {
      *
      * @return
      */
-    private User getOwnerNode() {
+    public User getOwnerNode() {
 
         // check any security relationships
         for (StructrRelationship s : getRelationships(RelType.OWNS, Direction.INCOMING)) {

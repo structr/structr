@@ -27,13 +27,22 @@ public class Services {
 
     private static final Logger logger = Logger.getLogger(Services.class.getName());
 
-    public static final String ENTITY_PACKAGES_IDENTIFIER = "entity.packages";
+    // application constants
     public static final String APPLICATION_TITLE = "application.title";
-    public static final String DATABASE_PATH_IDENTIFIER = "database.path";
-    public static final String FILES_PATH_IDENTIFIER = "files.path";
-    public static final String MODULES_PATH_IDENTIFIER = "modules.path";
     public static final String CONFIG_FILE_PATH = "configfile.path";
     public static final String SERVLET_CONTEXT = "servlet.context";
+
+    // database-related constants
+    public static final String DATABASE_PATH_IDENTIFIER = "database.path";
+    public static final String FILES_PATH_IDENTIFIER = "files.path";
+
+    // LogService-related constants
+    public static final String LOG_SERVICE_INTERVAL = "structr.logging.interval";
+    public static final String LOG_SERVICE_THRESHOLD = "structr.logging.threshold";
+
+    // ModuleService-related constants
+    public static final String MODULES_PATH_IDENTIFIER = "modules.path";
+    public static final String ENTITY_PACKAGES_IDENTIFIER = "entity.packages";
     public static final String STRUCTR_PAGE_PREDICATE = "structr.page.predicate";
 
     private static final Map<Class, Class> serviceClassCache = new ConcurrentHashMap<Class, Class>(5, 0.75f, 100);
