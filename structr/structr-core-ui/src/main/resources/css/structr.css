@@ -130,6 +130,7 @@ input[readonly] {
 /*    padding-right: 8px;*/
 /*    width: 200px;*/
 /*    height: 600px;*/
+    padding-right: 8px;
 }
 
 #msg {
