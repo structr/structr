@@ -115,14 +115,15 @@ public class Maintenance extends Admin {
         sessionsTable.addColumn(logoutTimestampColumn);
         sessionsTable.addColumn(new Column("lastActivityText"));
 //        sessionsTable.addColumn(new Column("lastActivityUri"));
-        sessionsTable.addColumn(new Column("inactiveSince", "Inactive (s)"));
+//        sessionsTable.addColumn(new Column("inactiveSince", "Inactive"));
         sessionsTable.setSortable(true);
-        sessionsTable.setSortedColumn("inactiveSince");
+//        sessionsTable.setSortedColumn("inactiveSince");
         sessionsTable.setSortedAscending(true);
         sessionsTable.setPageSize(5);
         sessionsTable.setClass(Table.CLASS_COMPLEX);
 
-        activitiesTable.addColumn(new Column(Activity.NODE_ID_KEY));
+//        activitiesTable.addColumn(new Column(Activity.NODE_ID_KEY));
+        activitiesTable.addColumn(new Column(Activity.NAME_KEY));
         activitiesTable.addColumn(new Column(Activity.TYPE_KEY));
         activitiesTable.addColumn(new Column(Activity.START_TIMESTAMP_KEY));
         activitiesTable.addColumn(new Column(Activity.END_TIMESTAMP_KEY));

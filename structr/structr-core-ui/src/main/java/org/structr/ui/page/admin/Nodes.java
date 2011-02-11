@@ -78,6 +78,8 @@ public class Nodes extends Admin {
     protected final static String SEARCH_RESULTS_KEY = "searchResults";
     protected final static String REPORT_RESULTS_KEY = "reportResults";
     protected final static String SEARCH_TEXT_KEY = "searchFor";
+
+    private final static String NULL_NAME = "--- null ---";
     /** root node of tree */
     private TreeNode root;
     @Bindable
@@ -1327,6 +1329,9 @@ public class Nodes extends Admin {
 
                         String displayName = n.getName();
 
+                        if (displayName == null) {
+                            displayName = NULL_NAME;
+                        }
                         // limit length tree entries label to 30 characters
                         String label = ClickUtils.limitLength(displayName, 30);
 

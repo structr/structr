@@ -10,6 +10,7 @@ import java.util.List;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import org.structr.common.RelType;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.StructrNode;
@@ -18,6 +19,7 @@ import org.structr.core.entity.log.Activity;
 import org.structr.core.entity.log.LogNodeList;
 import org.structr.core.entity.log.PageRequest;
 import org.structr.core.node.CreateNodeCommand;
+import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.NodeAttribute;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
@@ -56,7 +58,6 @@ public class SessionMonitor {
             this.state = State.ACTIVE;
             this.user = user;
             this.loginTimestamp = loginTime;
-            activityList = new LogNodeList<Activity>();
         }
 
         private boolean hasActivity() {
@@ -97,12 +98,23 @@ public class SessionMonitor {
          * Return number of seconds since last activity
          * @return seconds since last activity
          */
-        public long getInactiveSince() {
+        public String getInactiveSince() {
             if (hasActivity()) {
                 long ms = (new Date()).getTime() - getLastActivityEndTimestamp().getTime();
-                return ms / 1000;
+
+                if (ms < 1000) {
+                    return ms + " ms";
+                } else if (ms < 60*1000) {
+                    return ms/1000 + " s";
+                } else if (ms < 60*60*1000) {
+                    return ms/60*1000 + " m";
+                } else if (ms < 24*60*60*1000) {
+                    return ms/60*60*1000 + " h";
+                } else {
+                    return "more than a day";
+                }
             }
-            return Long.MIN_VALUE;
+            return "";
         }
 
         public String getUserName() {
@@ -134,6 +146,32 @@ public class SessionMonitor {
          * @return the activityList
          */
         public LogNodeList<Activity> getActivityList() {
+            
+            if (activityList == null) {
+
+                // First, try to find user's activity list
+                for (StructrNode s : user.getDirectChildNodes(user)) {
+                    if (s instanceof LogNodeList) {
+
+                        // Take the first LogNodeList
+                        activityList = (LogNodeList) s;
+                        return activityList;
+                    }
+                }
+
+                // Create a new activity list as child node of the respective user
+                Command createNode = Services.createCommand(CreateNodeCommand.class);
+                Command createRel = Services.createCommand(CreateRelationshipCommand.class);
+
+                StructrNode s = (StructrNode) createNode.execute(user,
+                        new NodeAttribute(StructrNode.TYPE_KEY, LogNodeList.class.getSimpleName()),
+                        new NodeAttribute(StructrNode.NAME_KEY, user.getName() + "'s Activity Log"));
+                activityList = new LogNodeList<Activity>();
+                activityList.init(s);
+
+                createRel.execute(user, activityList, RelType.HAS_CHILD);
+
+            }
             return activityList;
         }
 
@@ -269,6 +307,8 @@ public class SessionMonitor {
 
                     StructrNode s = (StructrNode) createNode.execute(user,
                             new NodeAttribute(StructrNode.TYPE_KEY, PageRequest.class.getSimpleName()),
+                            new NodeAttribute(StructrNode.NAME_KEY, user.getName() + ":" + action + ":" + now),
+                            new NodeAttribute(Activity.ACTIVITY_TEXT_KEY, user.getName() + ":" + action + ":" + now),
                             new NodeAttribute(PageRequest.REMOTE_ADDRESS_KEY, request.getRemoteAddr()),
                             new NodeAttribute(PageRequest.REMOTE_HOST_KEY, request.getRemoteHost()),
                             new NodeAttribute(PageRequest.START_TIMESTAMP_KEY, now),

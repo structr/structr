@@ -28,7 +28,7 @@ public class EditNodeList extends DefaultEdit
 		fields.add(new ActionLink("add", "Add node to list", this, "onAddClick"));
 		fields.add(new ActionLink("del", "Delete last node from list", this, "onDelClick"));
 
-		NodeList list = (NodeList)Services.createCommand(TestNodeCommand.class).execute();
+		NodeList<StructrNode> list = (NodeList<StructrNode>)Services.createCommand(TestNodeCommand.class).execute();
 		if(list != null)
 		{
 			fields.add(new Label("label", "Size: " + list.size()));
