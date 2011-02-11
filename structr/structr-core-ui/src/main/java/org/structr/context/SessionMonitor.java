@@ -332,13 +332,8 @@ public class SessionMonitor {
                     Activity activity = new Activity();
                     activity.init(s);
 
-<<<<<<< HEAD
-                    // getSession(sessionId).getActivityList().add(activity);
-		    Services.createCommand(LogCommand.class).execute(activity);
-=======
                     getSession(sessionId).setLastActivity(activity);
                     Services.createCommand(LogCommand.class).execute(activity);
->>>>>>> cbb789ff875de0792a22c4ba526b052c8f2c32c9
 
                     return null;
                 }
