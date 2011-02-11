@@ -293,7 +293,7 @@ public class SessionMonitor {
                     Activity activity = new Activity();
                     activity.init(s);
 
-                    getSession(sessionId).getActivityList().add(activity);
+                    // getSession(sessionId).getActivityList().add(activity);
 
                     // TODO: add logging?
 		    Services.createCommand(LogCommand.class).execute(activity);

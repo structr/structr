@@ -8,23 +8,32 @@ package org.structr.core.log;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.structr.common.RelType;
 import org.structr.core.Command;
 import org.structr.core.RunnableService;
 import org.structr.core.Services;
 import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.StructrRelationship;
 import org.structr.core.entity.User;
 import org.structr.core.entity.log.Activity;
 import org.structr.core.entity.log.LogNodeList;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;
+import org.structr.core.node.GraphDatabaseCommand;
 import org.structr.core.node.NodeAttribute;
+import org.structr.core.node.NodeFactoryCommand;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 
 /**
+ * A logging service that will asynchronously persist log messages of type
+ * {@see org.structr.core.entity.log.Activity}.
+ * 
+ * FIXME: javadoc..
  *
  * @author Christian Morgner
  */
@@ -33,10 +42,8 @@ public class LogService extends Thread implements RunnableService
 	private static final Hashtable<User, LogNodeList<Activity>> loggerCache = new Hashtable<User, LogNodeList<Activity>>();
 	private static final Logger logger = Logger.getLogger(LogService.class.getName());
 	private static final ConcurrentLinkedQueue queue = new ConcurrentLinkedQueue();
-//	private static final long DefaultInterval = TimeUnit.SECONDS.toMillis(30);
-//	private static final int DefaultThreshold = 1000;
-	private static final long DefaultInterval = 2000;
-	private static final int DefaultThreshold = 10;
+	private static final long DefaultInterval = TimeUnit.SECONDS.toMillis(30);
+	private static final int DefaultThreshold = 100;
 
 	private long interval = DefaultInterval;
 	private int threshold = DefaultThreshold;
@@ -58,6 +65,9 @@ public class LogService extends Thread implements RunnableService
 	{
 		logger.log(Level.INFO, "Starting LogService");
 
+		// initialize global log..
+		getGlobalLog();
+
 		while(run || !queue.isEmpty())
 		{
 			logger.log(Level.FINER, "Checking queue..");
@@ -73,13 +83,13 @@ public class LogService extends Thread implements RunnableService
 						Activity activity = (Activity)o;
 						User owner = activity.getOwnerNode();
 
-						// append to user-specific log
-						LogNodeList userLog = getUserLog(owner);
-						userLog.add(activity);
-
 						// append to global log
 						LogNodeList globalLog = getGlobalLog();
 						globalLog.add(activity);
+
+						// append to user-specific log
+						LogNodeList userLog = getUserLog(owner);
+						userLog.add(activity);
 					}
 
 					// cooperative multitasking :)
@@ -98,8 +108,7 @@ public class LogService extends Thread implements RunnableService
 		}
 	}
 
-	// <editor-fold defaultstate="collapsed" desc="private methods">
-	private LogNodeList getUserLog(final User user)
+	public LogNodeList getUserLog(final User user)
 	{
 		LogNodeList ret = loggerCache.get(user);
 
@@ -152,7 +161,7 @@ public class LogService extends Thread implements RunnableService
 		return (ret);
 	}
 
-	private LogNodeList getGlobalLog()
+	public LogNodeList getGlobalLog()
 	{
 		if(globalLogNodeList == null)
 		{
@@ -161,19 +170,38 @@ public class LogService extends Thread implements RunnableService
 				@Override
 				public Object execute() throws Throwable
 				{
+					GraphDatabaseService graphDb = (GraphDatabaseService)Services.createCommand(GraphDatabaseCommand.class).execute();
+					Command factory = Services.createCommand(NodeFactoryCommand.class);
 					LogNodeList ret = null;
 
-					Command createNode = Services.createCommand(CreateNodeCommand.class);
-					Command createRel = Services.createCommand(CreateRelationshipCommand.class);
+					if(graphDb != null)
+					{
+						StructrNode rootNode = (StructrNode)factory.execute(graphDb.getReferenceNode());
+						if(rootNode != null)
+						{
+							for(StructrRelationship rel : rootNode.getOutgoingChildRelationships())
+							{
+								if(rel.getEndNode() instanceof LogNodeList)
+								{
+									return((LogNodeList)rel.getEndNode());
+								}
+							}
+						}
 
-					StructrNode s = (StructrNode) createNode.execute(
-						new NodeAttribute(StructrNode.TYPE_KEY, LogNodeList.class.getSimpleName()),
-						new NodeAttribute(StructrNode.NAME_KEY, "Global Activity Log"));
+						// if we arrive here, no global log node exists yet
+						Command createNode = Services.createCommand(CreateNodeCommand.class);
+						Command createRel = Services.createCommand(CreateRelationshipCommand.class);
 
-					ret = new LogNodeList<Activity>();
-					ret.init(s);
+						StructrNode s = (StructrNode) createNode.execute(
+							new NodeAttribute(StructrNode.TYPE_KEY, LogNodeList.class.getSimpleName()),
+							new NodeAttribute(StructrNode.NAME_KEY, "Global Activity Log"));
 
-					createRel.execute(ret, RelType.HAS_CHILD);
+						ret = new LogNodeList<Activity>();
+						ret.init(s);
+
+						// load reference node and link new node to it..
+						createRel.execute(rootNode, ret, RelType.HAS_CHILD);
+					}
 
 					return(ret);
 				}
@@ -182,7 +210,6 @@ public class LogService extends Thread implements RunnableService
 
 		return(globalLogNodeList);
 	}
-	// </editor-fold>
 
 	// <editor-fold defaultstate="collapsed" desc="interface RunnableService">
 	@Override
@@ -209,6 +236,7 @@ public class LogService extends Thread implements RunnableService
 	public void injectArguments(Command command)
 	{
 	        command.setArgument("queue", queue);
+	        command.setArgument("service", this);
 	}
 
 	@Override
