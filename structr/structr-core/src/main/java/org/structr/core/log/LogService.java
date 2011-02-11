@@ -21,6 +21,8 @@ import org.structr.core.entity.log.LogNodeList;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.NodeAttribute;
+import org.structr.core.node.StructrTransaction;
+import org.structr.core.node.TransactionCommand;
 
 /**
  *
@@ -97,7 +99,7 @@ public class LogService extends Thread implements RunnableService
 	}
 
 	// <editor-fold defaultstate="collapsed" desc="private methods">
-	private LogNodeList getUserLog(User user)
+	private LogNodeList getUserLog(final User user)
 	{
 		LogNodeList ret = loggerCache.get(user);
 
@@ -119,18 +121,29 @@ public class LogService extends Thread implements RunnableService
 				}
 			}
 
-			// Create a new activity list as child node of the respective user
-			Command createNode = Services.createCommand(CreateNodeCommand.class);
-			Command createRel = Services.createCommand(CreateRelationshipCommand.class);
+			ret = (LogNodeList)Services.createCommand(TransactionCommand.class).execute(new StructrTransaction()
+			{
+				@Override
+				public Object execute() throws Throwable
+				{
+					LogNodeList newLogNodeList = null;
 
-			StructrNode s = (StructrNode) createNode.execute(user,
-				new NodeAttribute(StructrNode.TYPE_KEY, LogNodeList.class.getSimpleName()),
-				new NodeAttribute(StructrNode.NAME_KEY, user.getName() + "'s Activity Log"));
+					// Create a new activity list as child node of the respective user
+					Command createNode = Services.createCommand(CreateNodeCommand.class);
+					Command createRel = Services.createCommand(CreateRelationshipCommand.class);
 
-			ret = new LogNodeList<Activity>();
-			ret.init(s);
+					StructrNode s = (StructrNode) createNode.execute(user,
+						new NodeAttribute(StructrNode.TYPE_KEY, LogNodeList.class.getSimpleName()),
+						new NodeAttribute(StructrNode.NAME_KEY, user.getName() + "'s Activity Log"));
 
-			createRel.execute(user, ret, RelType.HAS_CHILD);
+					newLogNodeList = new LogNodeList<Activity>();
+					newLogNodeList.init(s);
+
+					createRel.execute(user, newLogNodeList, RelType.HAS_CHILD);
+
+					return(newLogNodeList);
+				}
+			});
 
 			// store in cache
 			loggerCache.put(user, ret);
@@ -143,17 +156,28 @@ public class LogService extends Thread implements RunnableService
 	{
 		if(globalLogNodeList == null)
 		{
-			Command createNode = Services.createCommand(CreateNodeCommand.class);
-			Command createRel = Services.createCommand(CreateRelationshipCommand.class);
+			globalLogNodeList = (LogNodeList)Services.createCommand(TransactionCommand.class).execute(new StructrTransaction()
+			{
+				@Override
+				public Object execute() throws Throwable
+				{
+					LogNodeList ret = null;
 
-			StructrNode s = (StructrNode) createNode.execute(
-				new NodeAttribute(StructrNode.TYPE_KEY, LogNodeList.class.getSimpleName()),
-				new NodeAttribute(StructrNode.NAME_KEY, "Global Activity Log"));
+					Command createNode = Services.createCommand(CreateNodeCommand.class);
+					Command createRel = Services.createCommand(CreateRelationshipCommand.class);
 
-			globalLogNodeList = new LogNodeList<Activity>();
-			globalLogNodeList.init(s);
+					StructrNode s = (StructrNode) createNode.execute(
+						new NodeAttribute(StructrNode.TYPE_KEY, LogNodeList.class.getSimpleName()),
+						new NodeAttribute(StructrNode.NAME_KEY, "Global Activity Log"));
 
-			createRel.execute(globalLogNodeList, RelType.HAS_CHILD);
+					ret = new LogNodeList<Activity>();
+					ret.init(s);
+
+					createRel.execute(ret, RelType.HAS_CHILD);
+
+					return(ret);
+				}
+			});
 		}
 
 		return(globalLogNodeList);
