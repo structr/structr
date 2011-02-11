@@ -25,6 +25,7 @@ public class Activity extends StructrNode {
         return ICON_SRC;
     }
 
+    public static final String SESSION_ID_KEY = "sessionId";
     public static final String START_TIMESTAMP_KEY = "startTimestamp";
     public static final String END_TIMESTAMP_KEY = "endTimestamp";
     public static final String ACTIVITY_TEXT_KEY = "activityText";
@@ -51,5 +52,13 @@ public class Activity extends StructrNode {
 
     public void setActivityText(final String text) {
         setProperty(ACTIVITY_TEXT_KEY, text);
+    }
+
+    public long getSessionId() {
+        return getLongProperty(SESSION_ID_KEY);
+    }
+
+    public void setSessionId(final long id) {
+        setProperty(SESSION_ID_KEY, id);
     }
 }

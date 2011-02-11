@@ -86,8 +86,11 @@ public class Admin extends StructrPage {
      */
     public boolean onLogout() {
 
+        SessionMonitor.logActivity(user, sessionId, "Logout");
+
         getContext().getRequest().getSession().invalidate();
         userName = null;
+        
 
 //        if (returnUrl != null) {
 //            setRedirect(returnUrl);
