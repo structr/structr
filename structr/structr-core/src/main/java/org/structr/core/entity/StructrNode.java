@@ -1216,6 +1216,20 @@ public abstract class StructrNode implements Comparable<StructrNode> {
     }
 
     /**
+     * Return true if this node has child nodes visible for current user
+     *
+     * @return
+     */
+    public boolean hasChildren(final User user) {
+        List<StructrRelationship> childRels = getOutgoingChildRelationships();
+        List<StructrRelationship> linkRels = getOutgoingLinkRelationships();
+        return (linkRels != null && !(linkRels.isEmpty())
+                && childRels != null && !(childRels.isEmpty()));
+//        return (hasRelationship(RelType.HAS_CHILD, Direction.OUTGOING)
+//                || hasRelationship(RelType.LINK, Direction.OUTGOING));
+    }
+
+    /**
      * Return unordered list of all direct child nodes (no recursion)
      *
      * @return list with structr nodes

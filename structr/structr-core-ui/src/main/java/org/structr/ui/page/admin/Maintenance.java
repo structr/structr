@@ -124,12 +124,16 @@ public class Maintenance extends Admin {
         activitiesTable.addColumn(new Column(Activity.NODE_ID_KEY));
         activitiesTable.addColumn(new Column(Activity.NAME_KEY));
         activitiesTable.addColumn(new Column(Activity.TYPE_KEY));
-        activitiesTable.addColumn(new Column(Activity.START_TIMESTAMP_KEY));
-        activitiesTable.addColumn(new Column(Activity.END_TIMESTAMP_KEY));
+        Column startTimestampColumn = new Column(Activity.START_TIMESTAMP_KEY, "Start");
+        startTimestampColumn.setFormat("{0,date,medium} {0,time,medium}");
+        activitiesTable.addColumn(startTimestampColumn);
+        Column endTimestampColumn = new Column(Activity.END_TIMESTAMP_KEY, "End");
+        endTimestampColumn.setFormat("{0,date,medium} {0,time,medium}");
+        activitiesTable.addColumn(endTimestampColumn);
         activitiesTable.addColumn(new Column(Activity.ACTIVITY_TEXT_KEY));
-        activitiesTable.setSortedColumn(Activity.NODE_ID_KEY);
+        activitiesTable.setSortedColumn(Activity.START_TIMESTAMP_KEY);
         activitiesTable.setSortable(true);
-        activitiesTable.setSortedAscending(true);
+        activitiesTable.setSortedAscending(false);
         activitiesTable.setPageSize(15);
         activitiesTable.setClass(Table.CLASS_COMPLEX);
 
