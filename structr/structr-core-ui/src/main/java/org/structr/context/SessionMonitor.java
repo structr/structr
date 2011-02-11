@@ -107,9 +107,9 @@ public class SessionMonitor {
                 } else if (ms < 60*1000) {
                     return ms/1000 + " s";
                 } else if (ms < 60*60*1000) {
-                    return ms/60*1000 + " m";
+                    return ms/(60*1000) + " m";
                 } else if (ms < 24*60*60*1000) {
-                    return ms/60*60*1000 + " h";
+                    return ms/(60*60*1000) + " h";
                 } else {
                     return "more than a day";
                 }
@@ -121,30 +121,22 @@ public class SessionMonitor {
             return user.getName();
         }
 
-        /**
-         * @param user the user to set
-         */
+        public User getUser() {
+            return user;
+        }
+
         public void setUser(final User user) {
             this.user = user;
         }
 
-        /**
-         * @return the loginTime
-         */
         public Date getLoginTimestamp() {
             return loginTimestamp;
         }
 
-        /**
-         * @param loginTimestamp the loginTime to set
-         */
         public void setLoginTimestamp(final Date loginTimestamp) {
             this.loginTimestamp = loginTimestamp;
         }
 
-        /**
-         * @return the activityList
-         */
         public LogNodeList<Activity> getActivityList() {
             
             if (activityList == null) {
@@ -182,44 +174,26 @@ public class SessionMonitor {
             return null;
         }
 
-        /**
-         * @param activityList the activityList to set
-         */
         public void setActivityList(final List<Activity> activityList) {
             this.setActivityList(activityList);
         }
 
-        /**
-         * @return the logoutTimestamp
-         */
         public Date getLogoutTimestamp() {
             return logoutTimestamp;
         }
 
-        /**
-         * @param logoutTimestamp the logoutTimestamp to set
-         */
         public void setLogoutTime(final Date logoutTime) {
             this.logoutTimestamp = logoutTime;
         }
 
-        /**
-         * @return the id
-         */
         public long getId() {
             return id;
         }
 
-        /**
-         * @param id the id to set
-         */
         public void setId(final long id) {
             this.id = id;
         }
 
-        /**
-         * @return the uid
-         */
         public String getUid() {
             return uid;
         }
@@ -308,6 +282,7 @@ public class SessionMonitor {
                     StructrNode s = (StructrNode) createNode.execute(user,
                             new NodeAttribute(StructrNode.TYPE_KEY, PageRequest.class.getSimpleName()),
                             new NodeAttribute(StructrNode.NAME_KEY, user.getName() + ":" + action + ":" + now),
+                            new NodeAttribute(PageRequest.URI_KEY, request.getRequestURI()),
                             new NodeAttribute(Activity.ACTIVITY_TEXT_KEY, user.getName() + ":" + action + ":" + now),
                             new NodeAttribute(PageRequest.REMOTE_ADDRESS_KEY, request.getRemoteAddr()),
                             new NodeAttribute(PageRequest.REMOTE_HOST_KEY, request.getRemoteHost()),

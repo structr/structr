@@ -78,8 +78,6 @@ public class Nodes extends Admin {
     protected final static String SEARCH_RESULTS_KEY = "searchResults";
     protected final static String REPORT_RESULTS_KEY = "reportResults";
     protected final static String SEARCH_TEXT_KEY = "searchFor";
-
-    private final static String NULL_NAME = "--- null ---";
     /** root node of tree */
     private TreeNode root;
     @Bindable
@@ -185,8 +183,6 @@ public class Nodes extends Admin {
             return getNodeNamesLike(criteria);
 
         }
-
-
     };
     @Bindable
     protected List<StructrNode> searchResults;
@@ -228,7 +224,7 @@ public class Nodes extends Admin {
             nodeTypeField.add(new Option("", "--- Select Node Type ---"));
 
 //            Set<Class> entities = ClasspathEntityLocator.locateEntitiesByType(StructrNode.class);
-            Set<String> nodeTypes = ((Map<String, Class>)Services.createCommand(GetEntitiesCommand.class).execute()).keySet();
+            Set<String> nodeTypes = ((Map<String, Class>) Services.createCommand(GetEntitiesCommand.class).execute()).keySet();
 //            Set<String> nodeTypes = Services.getCachedEntityTypes();
             for (String className : nodeTypes) {
                 Option o = new Option(className);
@@ -459,7 +455,7 @@ public class Nodes extends Admin {
 
                 n = (StructrNode) treeNode.getValue();
                 intId = n.getId();
-      
+
                 editPropertiesLink.setParameter(NODE_ID_KEY, intId);
                 editPropertiesLink.setImageSrc("/images/table-edit.png");
                 //editPropertiesLink.setAttribute("class", "nodeActionLink");
@@ -1259,7 +1255,6 @@ public class Nodes extends Admin {
 //
 //        return false;
 //    }
-
     /**
      * Back button
      */
@@ -1270,7 +1265,6 @@ public class Nodes extends Admin {
         setRedirect(getRedirectPage(node, this), parameters);
         return false;
     }
-
 
     /**
      * Logout: invalidate session and clear user name
@@ -1329,17 +1323,14 @@ public class Nodes extends Admin {
 
                         String displayName = n.getName();
 
+                        // if no name was set, use (internal) id to be fault tolerant
+                        Long intId = n.getId();
                         if (displayName == null) {
-                            displayName = NULL_NAME;
+                            displayName = intId.toString();
                         }
+
                         // limit length tree entries label to 30 characters
                         String label = ClickUtils.limitLength(displayName, 30);
-
-                        Long intId = n.getId();
-                        // if no name was set, use (internal) id to be fault tolerant
-                        if (label == null) {
-                            label = intId.toString();
-                        }
 
                         //Class<? extends Page> c = getRedirectPage(n, getPage());
 
@@ -1449,7 +1440,6 @@ public class Nodes extends Admin {
         getContext().getSession().setAttribute(EXPANDED_NODES_KEY, nodeTree.getExpandedNodes(true));
     }
 
-    
     /**
      * Return a list with all nodes matching the given string
      *
