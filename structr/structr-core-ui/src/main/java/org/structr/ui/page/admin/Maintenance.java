@@ -105,8 +105,9 @@ public class Maintenance extends Admin {
         maintenancePanel = new Panel("maintenancePanel", "/panel/maintenance-panel.htm");
 
         sessionsTable.addColumn(new Column("id"));
+        sessionsTable.addColumn(new Column("uid"));
         sessionsTable.addColumn(new Column("state"));
-//        sessionsTable.addColumn(new Column("userName"));
+        sessionsTable.addColumn(new Column("userName"));
         Column loginTimestampColumn = new Column("loginTimestamp", "Login");
         loginTimestampColumn.setFormat("{0,date,medium} {0,time,medium}");
         sessionsTable.addColumn(loginTimestampColumn);
@@ -123,6 +124,7 @@ public class Maintenance extends Admin {
 
         activitiesTable.addColumn(new Column(Activity.NODE_ID_KEY));
         activitiesTable.addColumn(new Column(Activity.NAME_KEY));
+        activitiesTable.addColumn(new Column(Activity.SESSION_ID_KEY));
         activitiesTable.addColumn(new Column(Activity.TYPE_KEY));
         Column startTimestampColumn = new Column(Activity.START_TIMESTAMP_KEY, "Start");
         startTimestampColumn.setFormat("{0,date,medium} {0,time,medium}");
@@ -205,7 +207,7 @@ public class Maintenance extends Admin {
             return;
         }
 
-        // fill table with all known services
+        // fill table with logged activities
         activitiesTable.setDataProvider(new DataProvider() {
 
             @Override
@@ -231,7 +233,7 @@ public class Maintenance extends Admin {
             }
         });
 
-        // fill table with all known services
+        // fill table with sessions
         sessionsTable.setDataProvider(new DataProvider() {
 
             @Override

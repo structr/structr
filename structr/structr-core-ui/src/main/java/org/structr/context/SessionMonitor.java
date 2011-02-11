@@ -14,6 +14,7 @@ import org.structr.common.RelType;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
 import org.structr.core.entity.log.Activity;
 import org.structr.core.entity.log.LogNodeList;
@@ -21,6 +22,7 @@ import org.structr.core.entity.log.PageRequest;
 import org.structr.core.log.LogCommand;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;
+import org.structr.core.node.FindNodeCommand;
 import org.structr.core.node.NodeAttribute;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
@@ -51,7 +53,8 @@ public class SessionMonitor {
         private User user;
         private Date loginTimestamp;
         private Date logoutTimestamp;
-        private LogNodeList<Activity> activityList;
+//        private LogNodeList<Activity> activityList;
+        private long lastActivityId;
 
         public Session(final long id, String uid, final User user, Date loginTime) {
             this.id = id;
@@ -59,6 +62,7 @@ public class SessionMonitor {
             this.state = State.ACTIVE;
             this.user = user;
             this.loginTimestamp = loginTime;
+//            this.activityList = getActivityList();
         }
 
         private boolean hasActivity() {
@@ -96,8 +100,8 @@ public class SessionMonitor {
         }
 
         /**
-         * Return number of seconds since last activity
-         * @return seconds since last activity
+         * Return time since last activity
+         * @return time since last activity
          */
         public String getInactiveSince() {
             if (hasActivity()) {
@@ -105,12 +109,12 @@ public class SessionMonitor {
 
                 if (ms < 1000) {
                     return ms + " ms";
-                } else if (ms < 60*1000) {
-                    return ms/1000 + " s";
-                } else if (ms < 60*60*1000) {
-                    return ms/(60*1000) + " m";
-                } else if (ms < 24*60*60*1000) {
-                    return ms/(60*60*1000) + " h";
+                } else if (ms < 60 * 1000) {
+                    return ms / 1000 + " s";
+                } else if (ms < 60 * 60 * 1000) {
+                    return ms / (60 * 1000) + " m";
+                } else if (ms < 24 * 60 * 60 * 1000) {
+                    return ms / (60 * 60 * 1000) + " h";
                 } else {
                     return "more than a day";
                 }
@@ -139,46 +143,47 @@ public class SessionMonitor {
         }
 
         public LogNodeList<Activity> getActivityList() {
-            
-            if (activityList == null) {
 
-                // First, try to find user's activity list
-                for (StructrNode s : user.getDirectChildNodes(user)) {
-                    if (s instanceof LogNodeList) {
+            LogNodeList<Activity> activityList;
+            // First, try to find user's activity list
+            for (StructrNode s : user.getDirectChildNodes(user)) {
+                if (s instanceof LogNodeList) {
 
-                        // Take the first LogNodeList
-                        activityList = (LogNodeList) s;
-                        return activityList;
-                    }
+                    // Take the first LogNodeList
+                    activityList = (LogNodeList) s;
+                    return activityList;
                 }
-
-                // Create a new activity list as child node of the respective user
-                Command createNode = Services.createCommand(CreateNodeCommand.class);
-                Command createRel = Services.createCommand(CreateRelationshipCommand.class);
-
-                StructrNode s = (StructrNode) createNode.execute(user,
-                        new NodeAttribute(StructrNode.TYPE_KEY, LogNodeList.class.getSimpleName()),
-                        new NodeAttribute(StructrNode.NAME_KEY, user.getName() + "'s Activity Log"));
-                activityList = new LogNodeList<Activity>();
-                activityList.init(s);
-
-                createRel.execute(user, activityList, RelType.HAS_CHILD);
-
             }
+
+            // Create a new activity list as child node of the respective user
+            Command createNode = Services.createCommand(CreateNodeCommand.class);
+            Command createRel = Services.createCommand(CreateRelationshipCommand.class);
+
+            StructrNode s = (StructrNode) createNode.execute(user,
+                    new NodeAttribute(StructrNode.TYPE_KEY, LogNodeList.class.getSimpleName()),
+                    new NodeAttribute(StructrNode.NAME_KEY, user.getName() + "'s Activity Log"));
+            activityList = new LogNodeList<Activity>();
+            activityList.init(s);
+
+            createRel.execute(user, activityList, RelType.HAS_CHILD);
+
             return activityList;
         }
 
+        private void setLastActivity(final Activity activity) {
+            lastActivityId = activity.getId();
+        }
+
         private Activity getLastActivity() {
-            if (activityList != null && !(activityList.isEmpty())) {
-                return activityList.getLastNode();
-            }
-            return null;
+            Activity a = new Activity();
+            StructrNode node = (StructrNode) Services.createCommand(FindNodeCommand.class).execute(new SuperUser(), lastActivityId);
+            a.init(node);
+            return a;
         }
 
-        public void setActivityList(final List<Activity> activityList) {
-            this.setActivityList(activityList);
-        }
-
+//        public void setActivityList(final List<Activity> activityList) {
+//            this.setActivityList(activityList);
+//        }
         public Date getLogoutTimestamp() {
             return logoutTimestamp;
         }
@@ -206,10 +211,9 @@ public class SessionMonitor {
             this.uid = uid;
         }
 
-        public void addActivity(final Activity activity) {
-            activityList.add(activity);
-        }
-
+//        public void addActivity(final Activity activity) {
+//            activityList.add(activity);
+//        }
         public State getState() {
             return state;
         }
@@ -266,6 +270,42 @@ public class SessionMonitor {
      * @param sessionId
      * @param action
      */
+    public static void logActivity(final User user, final long sessionId, final String action) {
+
+        final Command transactionCommand = Services.createCommand(TransactionCommand.class);
+        transactionCommand.execute(new StructrTransaction() {
+
+            @Override
+            public Object execute() throws Throwable {
+
+                Command createNode = Services.createCommand(CreateNodeCommand.class);
+                Date now = new Date();
+
+                StructrNode s = (StructrNode) createNode.execute(user,
+                        new NodeAttribute(StructrNode.TYPE_KEY, Activity.class.getSimpleName()),
+                        new NodeAttribute(StructrNode.NAME_KEY, action + " (" + now + ")"),
+                        //new NodeAttribute(Activity.ACTIVITY_TEXT_KEY, user.getName() + ":" + action + ":" + now),
+                        new NodeAttribute(Activity.SESSION_ID_KEY, sessionId),
+                        new NodeAttribute(Activity.START_TIMESTAMP_KEY, now),
+                        new NodeAttribute(Activity.END_TIMESTAMP_KEY, now));
+
+                Activity activity = new Activity();
+                activity.init(s);
+
+                getSession(sessionId).setLastActivity(activity);
+                Services.createCommand(LogCommand.class).execute(activity);
+
+                return null;
+            }
+        });
+    }
+
+    /**
+     * Append a page request to the activity list
+     *
+     * @param sessionId
+     * @param action
+     */
     public static void logPageRequest(final User user, final long sessionId, final String action, final HttpServletRequest request) {
         if (request != null) {
 
@@ -275,35 +315,39 @@ public class SessionMonitor {
                 @Override
                 public Object execute() throws Throwable {
 
-
                     Command createNode = Services.createCommand(CreateNodeCommand.class);
-
                     Date now = new Date();
 
                     StructrNode s = (StructrNode) createNode.execute(user,
                             new NodeAttribute(StructrNode.TYPE_KEY, PageRequest.class.getSimpleName()),
                             new NodeAttribute(StructrNode.NAME_KEY, user.getName() + ":" + action + ":" + now),
                             new NodeAttribute(PageRequest.URI_KEY, request.getRequestURI()),
-                            new NodeAttribute(Activity.ACTIVITY_TEXT_KEY, user.getName() + ":" + action + ":" + now),
+                            //new NodeAttribute(Activity.ACTIVITY_TEXT_KEY, user.getName() + ":" + action + ":" + now),
                             new NodeAttribute(PageRequest.REMOTE_ADDRESS_KEY, request.getRemoteAddr()),
                             new NodeAttribute(PageRequest.REMOTE_HOST_KEY, request.getRemoteHost()),
-                            new NodeAttribute(PageRequest.START_TIMESTAMP_KEY, now),
-                            new NodeAttribute(PageRequest.END_TIMESTAMP_KEY, now));
+                            new NodeAttribute(Activity.SESSION_ID_KEY, sessionId),
+                            new NodeAttribute(Activity.START_TIMESTAMP_KEY, now),
+                            new NodeAttribute(Activity.END_TIMESTAMP_KEY, now));
 
                     Activity activity = new Activity();
                     activity.init(s);
 
+<<<<<<< HEAD
                     // getSession(sessionId).getActivityList().add(activity);
 		    Services.createCommand(LogCommand.class).execute(activity);
+=======
+                    getSession(sessionId).setLastActivity(activity);
+                    Services.createCommand(LogCommand.class).execute(activity);
+>>>>>>> cbb789ff875de0792a22c4ba526b052c8f2c32c9
 
                     return null;
                 }
             });
         }
     }
-
     // ---------------- private methods ---------------------    
     // <editor-fold defaultstate="collapsed" desc="private methods">
+
     private static Session getSession(final long sessionId) {
         for (Session s : sessions) {
             if (s.getId() == sessionId) {
