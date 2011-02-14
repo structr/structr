@@ -217,7 +217,7 @@ public class Maintenance extends Admin {
 
                 List<Activity> result = new ArrayList<Activity>();
 
-                LogNodeList globalLog = (LogNodeList) Services.createCommand(GetGlobalLogCommand.class).execute();
+                LogNodeList<StructrNode> globalLog = (LogNodeList<StructrNode>) Services.createCommand(GetGlobalLogCommand.class).execute();
 
 //                Command searchNode = Services.createCommand(SearchNodeCommand.class);
 //                List<StructrNode> searchResult = (List<StructrNode>) searchNode.execute(null, null, true, false,
@@ -225,13 +225,12 @@ public class Maintenance extends Admin {
 
                 if (globalLog != null) {
 
-                    return globalLog;
-//                    for (StructrNode s : searchResult) {
-//
-//                        PageRequest a = new PageRequest();
-//                        a.init(s);
-//                        result.add(a);
-//                    }
+                    for (StructrNode s : globalLog) {
+
+                        Activity a = new Activity();
+                        a.init(s);
+                        result.add(a);
+                    }
                 }
                 return result;
 
