@@ -672,7 +672,7 @@ public class DefaultEdit extends Nodes {
 //
 //        parameters.put(NODE_ID_KEY, Long.toString(targetNode.getId()));
 //
-//        Class<? extends Page> c = DefaultEdit.class;
+//        Class<? extends Page> c = Edit.class;
 //        try {
 //            c = (Class<? extends Page>) Class.forName(targetNode.getEditPageName());
 //        } catch (ClassNotFoundException e) {
@@ -753,7 +753,7 @@ public class DefaultEdit extends Nodes {
         }
         parameters.put(NODE_ID_KEY, localNodeId);
         parameters.put(RENDER_MODE_KEY, renderMode);
-        setRedirect(getRedirectPage(getNodeByIdOrPath(getNodeId()), this), parameters);
+        setRedirect(getRedirectPage(getNodeByIdOrPath(getNodeId())), parameters);
 
         return false;
     }
@@ -843,7 +843,7 @@ public class DefaultEdit extends Nodes {
         }
 
         parameters.put(NODE_ID_KEY, nodeId.toString());
-        setRedirect(getRedirectPage(getNodeByIdOrPath(getNodeId()), this), parameters);
+        setRedirect(getRedirectPage(getNodeByIdOrPath(getNodeId())), parameters);
 
         return false;
     }

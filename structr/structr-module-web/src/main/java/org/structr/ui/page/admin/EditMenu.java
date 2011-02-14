@@ -7,8 +7,6 @@ package org.structr.ui.page.admin;
 
 import org.apache.click.extras.control.IntegerField;
 import org.structr.core.entity.web.Menu;
-import org.structr.ui.page.admin.DefaultEdit;
-import org.structr.ui.page.admin.DefaultEdit;
 
 /**
  *

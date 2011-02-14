@@ -8,7 +8,6 @@ import org.apache.click.util.Bindable;
 import org.apache.click.util.ClickUtils;
 import org.structr.core.entity.web.Page;
 import org.structr.core.entity.web.Xml;
-import org.structr.ui.page.admin.DefaultView;
 
 /**
  * View xml node.

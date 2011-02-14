@@ -10,7 +10,6 @@ import java.util.List;
 import org.apache.click.control.FieldSet;
 import org.structr.core.entity.StructrNode;
 
-import org.apache.click.control.HiddenField;
 import org.apache.click.control.Option;
 import org.apache.click.control.Select;
 import org.apache.click.dataprovider.DataProvider;
@@ -19,13 +18,8 @@ import org.structr.core.entity.web.Page;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.web.MenuItem;
-import org.structr.core.entity.Template;
 import org.structr.core.node.SearchAttribute;
 import org.structr.core.node.SearchNodeCommand;
-import org.structr.core.node.StructrTransaction;
-import org.structr.core.node.TransactionCommand;
-import org.structr.ui.page.admin.DefaultEdit;
-import org.structr.ui.page.admin.DefaultEdit;
 
 /**
  * Edit text.

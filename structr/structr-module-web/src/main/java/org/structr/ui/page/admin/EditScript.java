@@ -19,8 +19,6 @@ import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
-import org.structr.ui.page.admin.DefaultEdit;
-import org.structr.ui.page.admin.DefaultEdit;
 
 /**
  * Edit text.

@@ -15,6 +15,7 @@ import org.apache.click.control.PageLink;
 import org.apache.click.service.ConfigService;
 import org.apache.click.util.Bindable;
 import org.apache.click.util.ClickUtils;
+import org.apache.commons.lang.StringUtils;
 import org.structr.common.TreeHelper;
 import org.structr.context.SessionMonitor;
 import org.structr.core.Command;
@@ -25,6 +26,7 @@ import org.structr.core.entity.User;
 import org.structr.core.node.FindNodeCommand;
 import org.structr.core.node.FindUserCommand;
 import org.structr.ui.page.admin.DefaultEdit;
+import org.structr.ui.page.admin.Edit;
 
 /**
  * Basic page template for structr framework without security restrictions.
@@ -158,7 +160,11 @@ public class StructrPage extends Page {
 
         if (user != null) {
             sessionId = (Long) getContext().getRequest().getSession().getAttribute(SessionMonitor.SESSION_ID);
+
+            long t0 = System.currentTimeMillis();
             SessionMonitor.logPageRequest(user, sessionId, "Page Request", getContext().getRequest());
+            long t1 = System.currentTimeMillis();
+            System.out.println("SessionMonitor.logPageRequest: " + (t1-t0) + " ms");
         }
 
         //nodeId = getNodeId();
@@ -206,7 +212,10 @@ public class StructrPage extends Page {
 
         } else {
             Map<String, String> parameters = new HashMap<String, String>();
-            parameters.put(RETURN_URL_KEY, getContext().getRequest().getContextPath().concat(getPath()));
+            PageLink returnLink = new PageLink("Return Link", getClass());
+            returnLink.setParameter(NODE_ID_KEY, getNodeId());
+
+            parameters.put(RETURN_URL_KEY, returnLink.getHref());
 
             setRedirect(LoginPage.class, parameters);
             return false;
@@ -332,7 +341,7 @@ public class StructrPage extends Page {
     public Class<? extends Page> getEditPageClass(final StructrNode n) {
         Class<? extends Page> ret = getPageClass(n, "Edit");
         if (ret == null) {
-            ret = DefaultEdit.class;
+            ret = Edit.class;
         }
         return ret;
     }
@@ -380,17 +389,16 @@ public class StructrPage extends Page {
             }
             System.out.println("No " + prefix + " page found for " + n.getType());
         }
-        return null;
+        return DefaultEdit.class;
     }
 
     /**
      * Return the matching redirect page for the given node
      *
      * @param node  node to get redirect page for
-     * @param page  current page
      * @return
      */
-    protected Class<? extends Page> getRedirectPage(StructrNode node, Page page) {
+    protected Class<? extends Page> getRedirectPage(StructrNode node) {
         // decide whether to use a view or an edit page
 //        Class<? extends Page> c = DefaultView.class;
 //
@@ -399,7 +407,7 @@ public class StructrPage extends Page {
 //            // we are currently in view mode, so get the corresponding view page
 //            c = getViewPageClass(node);
 //
-//        } else if (page instanceof DefaultEdit) {
+//        } else if (page instanceof Edit) {
 //
 //            // we are currently in edit mode, so get the corresponding edit page
 //            c = getEditPageClass(node);
@@ -407,7 +415,7 @@ public class StructrPage extends Page {
 //        } else {
 //            logger.log(Level.FINE, "No view or edit page found, falling back to default page");
 //        }
-        Class<? extends Page> c = DefaultEdit.class;
+        Class<? extends Page> c = Edit.class;
         c = getEditPageClass(node);
         return c;
     }
@@ -485,8 +493,13 @@ public class StructrPage extends Page {
     protected boolean redirect() {
 
         Map<String, String> parameters = new HashMap<String, String>();
-        parameters.put(OK_MSG_KEY, okMsg);
-        parameters.put(ERROR_MSG_KEY, errorMsg);
+        
+        if (StringUtils.isNotEmpty(okMsg)) {
+            parameters.put(OK_MSG_KEY, okMsg);
+        }
+        if (StringUtils.isNotEmpty(errorMsg)) {
+            parameters.put(ERROR_MSG_KEY, errorMsg);
+        }
 
         if (returnUrl != null) {
             setRedirect(returnUrl, parameters);

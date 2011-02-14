@@ -5,8 +5,6 @@
 
 package org.structr.ui.page.admin;
 
-import org.structr.ui.page.admin.DefaultEdit;
-
 /**
  *
  * @author amorgner

@@ -18,6 +18,7 @@ import org.structr.core.RunnableService;
 import org.structr.core.Services;
 import org.structr.core.entity.StructrNode;
 import org.structr.core.entity.StructrRelationship;
+import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
 import org.structr.core.entity.log.Activity;
 import org.structr.core.entity.log.LogNodeList;
@@ -42,8 +43,8 @@ public class LogService extends Thread implements RunnableService
 	private static final Hashtable<User, LogNodeList<Activity>> loggerCache = new Hashtable<User, LogNodeList<Activity>>();
 	private static final Logger logger = Logger.getLogger(LogService.class.getName());
 	private static final ConcurrentLinkedQueue queue = new ConcurrentLinkedQueue();
-	private static final long DefaultInterval = TimeUnit.SECONDS.toMillis(30);
-	private static final int DefaultThreshold = 100;
+	private static final long DefaultInterval = TimeUnit.SECONDS.toMillis(10);
+	private static final int DefaultThreshold = 10;
 
 	private long interval = DefaultInterval;
 	private int threshold = DefaultThreshold;
@@ -81,14 +82,17 @@ public class LogService extends Thread implements RunnableService
 					if(o != null && o instanceof Activity)
 					{
 						Activity activity = (Activity)o;
-						User owner = activity.getOwnerNode();
+						User user = activity.getUser();
+                                                
+                                                // Commit to database so node will have id and owner
+                                                activity.commit(new SuperUser());
 
 						// append to global log
 						LogNodeList globalLog = getGlobalLog();
 						globalLog.add(activity);
 
 						// append to user-specific log
-						LogNodeList userLog = getUserLog(owner);
+						LogNodeList userLog = getUserLog(user);
 						userLog.add(activity);
 					}
 

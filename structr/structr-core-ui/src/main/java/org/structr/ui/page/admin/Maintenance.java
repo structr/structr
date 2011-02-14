@@ -42,7 +42,9 @@ import org.structr.core.entity.StructrRelationship;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
 import org.structr.core.entity.log.Activity;
+import org.structr.core.entity.log.LogNodeList;
 import org.structr.core.entity.log.PageRequest;
+import org.structr.core.log.GetGlobalLogCommand;
 import org.structr.core.module.GetEntitiesCommand;
 import org.structr.core.module.GetEntityPackagesCommand;
 import org.structr.core.module.ListModulesCommand;
@@ -68,7 +70,7 @@ public class Maintenance extends Admin {
     protected final static String DATABASE_OPEN_KEY = "databaseOpen";
     protected final static String SERVICES_KEY = "services";
     @Bindable
-    protected PageLink rootNodeLink = new PageLink("rootNodeLink", "Root Node", DefaultEdit.class);
+    protected PageLink rootNodeLink = new PageLink("rootNodeLink", "Root Node", Edit.class);
     @Bindable
     protected PageLink reportLink = new PageLink("reportLink", "Reports", Report.class);
     @Bindable
@@ -215,18 +217,21 @@ public class Maintenance extends Admin {
 
                 List<Activity> result = new ArrayList<Activity>();
 
-                Command searchNode = Services.createCommand(SearchNodeCommand.class);
+                LogNodeList globalLog = (LogNodeList) Services.createCommand(GetGlobalLogCommand.class).execute();
 
-                List<StructrNode> searchResult = (List<StructrNode>) searchNode.execute(null, null, true, false,
-                        Search.andExactType(PageRequest.class.getSimpleName()));
+//                Command searchNode = Services.createCommand(SearchNodeCommand.class);
+//                List<StructrNode> searchResult = (List<StructrNode>) searchNode.execute(null, null, true, false,
+//                        Search.andExactType(PageRequest.class.getSimpleName()));
 
-                if (searchResult != null) {
-                    for (StructrNode s : searchResult) {
+                if (globalLog != null) {
 
-                        PageRequest a = new PageRequest();
-                        a.init(s);
-                        result.add(a);
-                    }
+                    return globalLog;
+//                    for (StructrNode s : searchResult) {
+//
+//                        PageRequest a = new PageRequest();
+//                        a.init(s);
+//                        result.add(a);
+//                    }
                 }
                 return result;
 

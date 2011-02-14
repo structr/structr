@@ -6,7 +6,6 @@ package org.structr.ui.page.admin;
 
 import org.apache.click.control.Panel;
 import org.apache.click.util.*;
-import org.structr.ui.page.admin.EditPlainText;
 
 /**
  * Edit xml.

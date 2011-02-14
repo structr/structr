@@ -20,7 +20,6 @@ import org.structr.core.Services;
 import org.structr.core.entity.Template;
 import org.structr.core.node.SearchAttribute;
 import org.structr.core.node.SearchNodeCommand;
-import org.structr.ui.page.admin.DefaultEdit;
 
 /**
  * Edit text.

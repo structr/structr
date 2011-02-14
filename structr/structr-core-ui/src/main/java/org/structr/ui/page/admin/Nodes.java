@@ -724,7 +724,7 @@ public class Nodes extends Admin {
             parameters.put(NODE_ID_KEY, String.valueOf(n.getId()));
             parameters.put(RENDER_MODE_KEY, renderMode);
             parameters.put(OK_MSG_KEY, okMsg);
-            setRedirect(getRedirectPage(n, this), parameters);
+            setRedirect(getRedirectPage(n), parameters);
             setRedirect(getRedirect().concat("#properties-tab"));
 
         }
@@ -770,7 +770,7 @@ public class Nodes extends Admin {
             Map<String, String> parameters = new HashMap<String, String>();
             parameters.put(NODE_ID_KEY, String.valueOf(getNodeId()));
             parameters.put(RENDER_MODE_KEY, renderMode);
-            setRedirect(getRedirectPage(node, this), parameters);
+            setRedirect(getRedirectPage(node), parameters);
 
         }
 
@@ -804,7 +804,7 @@ public class Nodes extends Admin {
             parameters.put(NODE_ID_KEY, String.valueOf(getNodeId()));
             parameters.put(RENDER_MODE_KEY, renderMode);
             parameters.put(OK_MSG_KEY, okMsg);
-            setRedirect(getRedirectPage(node, this), parameters);
+            setRedirect(getRedirectPage(node), parameters);
 
         }
 
@@ -837,7 +837,7 @@ public class Nodes extends Admin {
             parameters.put(NODE_ID_KEY, String.valueOf(getNodeId()));
             parameters.put(RENDER_MODE_KEY, renderMode);
             parameters.put(OK_MSG_KEY, okMsg);
-            setRedirect(getRedirectPage(node, this), parameters);
+            setRedirect(getRedirectPage(node), parameters);
 
         }
 
@@ -889,7 +889,7 @@ public class Nodes extends Admin {
                 parameters.put(OK_MSG_KEY, okMsg);
             }
 
-            setRedirect(getRedirectPage(node, this), parameters);
+            setRedirect(getRedirectPage(node), parameters);
 
         }
 
@@ -1001,7 +1001,7 @@ public class Nodes extends Admin {
             parameters.put(NODE_ID_KEY, String.valueOf(getNodeId()));
             parameters.put(RENDER_MODE_KEY, renderMode);
             parameters.put(OK_MSG_KEY, okMsg);
-            setRedirect(getRedirectPage(node, this), parameters);
+            setRedirect(getRedirectPage(node), parameters);
 
         }
 
@@ -1060,7 +1060,7 @@ public class Nodes extends Admin {
 
                 if (parentNode != null) {
                     parameters.put(NODE_ID_KEY, String.valueOf(parentNode.getId()));
-                    setRedirect(getRedirectPage(parentNode, this), parameters);
+                    setRedirect(getRedirectPage(parentNode), parameters);
                 }
 
 
@@ -1092,8 +1092,14 @@ public class Nodes extends Admin {
      * @return newly created tree node
      */
     private TreeNode addTreeNode(StructrNode s, TreeNode parentNode) {
-        TreeNode n = new TreeNode(s, String.valueOf(s.getId()), parentNode);
+
+        // deprecated // TreeNode n = new TreeNode(s, String.valueOf(s.getId()), parentNode);
+
+        TreeNode n = new TreeNode(s, String.valueOf(s.getId()));
         n.setIcon(contextPath + getIconSrc(s));
+
+        parentNode.add(n);
+
         return n;
     }
 
@@ -1172,16 +1178,17 @@ public class Nodes extends Admin {
      * @return List<Property>
      */
     public List<Property> getProperties() {
-        Command transactionCommand = Services.createCommand(TransactionCommand.class);
-
-        return ((List<Property>) transactionCommand.execute(new StructrTransaction() {
-
-            @Override
-            public Object execute() throws Throwable {
-                Command propertiesCommand = Services.createCommand(NodePropertiesCommand.class);
-                return (propertiesCommand.execute(node));
-            }
-        }));
+//        Command transactionCommand = Services.createCommand(TransactionCommand.class);
+//
+//        return ((List<Property>) transactionCommand.execute(new StructrTransaction() {
+//
+//            @Override
+//            public Object execute() throws Throwable {
+//                Command propertiesCommand = Services.createCommand(NodePropertiesCommand.class);
+//                return (propertiesCommand.execute(node));
+//            }
+//        }));
+        return ((List<Property>) Services.createCommand(NodePropertiesCommand.class).execute(node));
     }
 
     /**
@@ -1204,7 +1211,7 @@ public class Nodes extends Admin {
         Map<String, String> parameters = new HashMap<String, String>();
         parameters.put(NODE_ID_KEY, String.valueOf(getNodeId()));
         parameters.put(RENDER_MODE_KEY, renderMode);
-        setRedirect(getRedirectPage(node, this), parameters);
+        setRedirect(getRedirectPage(node), parameters);
 
         return false;
     }
@@ -1219,7 +1226,7 @@ public class Nodes extends Admin {
         Map<String, String> parameters = new HashMap<String, String>();
         parameters.put(NODE_ID_KEY, String.valueOf(getNodeId()));
         parameters.put(RENDER_MODE_KEY, renderMode);
-        setRedirect(getRedirectPage(node, this), parameters);
+        setRedirect(getRedirectPage(node), parameters);
 
         return false;
     }
@@ -1262,7 +1269,7 @@ public class Nodes extends Admin {
         Map<String, String> parameters = new HashMap<String, String>();
         parameters.put(NODE_ID_KEY, nodeId.toString());
         parameters.put(RENDER_MODE_KEY, renderMode);
-        setRedirect(getRedirectPage(node, this), parameters);
+        setRedirect(getRedirectPage(node), parameters);
         return false;
     }
 
@@ -1289,7 +1296,7 @@ public class Nodes extends Admin {
         Map<String, String> parameters = new HashMap<String, String>();
         parameters.put(NODE_ID_KEY, getNodeId());
         parameters.put(RENDER_MODE_KEY, renderMode);
-        setRedirect(getRedirectPage(node, this), parameters);
+        setRedirect(getRedirectPage(node), parameters);
 
         return super.onLogout();
     }
@@ -1334,7 +1341,8 @@ public class Nodes extends Admin {
 
                         //Class<? extends Page> c = getRedirectPage(n, getPage());
 
-                        PageLink link = new PageLink(label, getRedirectPage(n, getPage()));
+                        //PageLink link = new PageLink(label, getRedirectPage(n, getPage()));
+                        PageLink link = new PageLink(label, Edit.class);
                         link.setParameter(NODE_ID_KEY, intId);
 
                         // mouseover hint

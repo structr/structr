@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
@@ -39,6 +40,7 @@ import org.apache.commons.lang.time.DateUtils;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.structr.common.SearchOperator;
+import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.IndexNodeCommand;
 import org.structr.core.node.SearchAttribute;
@@ -71,6 +73,9 @@ public abstract class StructrNode implements Comparable<StructrNode> {
     }
     // reference to database node
     protected Node dbNode;
+    // dirty flag, true means that some changes are not yet written to the database
+    protected boolean isDirty;
+    protected Map<String, Object> properties;
     // keys for basic properties (any node should have at least all of the following properties)
     public final static String TYPE_KEY = "type";
     public final static String NAME_KEY = "name";
@@ -131,6 +136,13 @@ public abstract class StructrNode implements Comparable<StructrNode> {
     }
 
     public StructrNode() {
+        this.properties = new HashMap<String, Object>();
+        isDirty = true;
+    }
+
+    public StructrNode(final Map<String, Object> properties) {
+        this.properties = properties;
+        isDirty = true;
     }
 
     public StructrNode(final Node dbNode) {
@@ -139,10 +151,13 @@ public abstract class StructrNode implements Comparable<StructrNode> {
 
     public void init(final Node dbNode) {
         this.dbNode = dbNode;
+        isDirty = false;
+
     }
 
     public void init(final StructrNode node) {
         this.dbNode = node.dbNode;
+        isDirty = false;
     }
 
     @Override
@@ -197,50 +212,6 @@ public abstract class StructrNode implements Comparable<StructrNode> {
         // create a relationship to the given template node
         Command createRel = Services.createCommand(CreateRelationshipCommand.class);
         createRel.execute(this, template, RelType.USE_TEMPLATE);
-
-    }
-
-    /**
-     * Return name of the edit page.
-     *
-     * The returned value is processed by reflection.
-     *
-     * @return
-     */
-    public String getEditPageName() {
-        // TODO: move to config
-        return getPageName("org.structr.ui.page.admin.Edit");
-    }
-
-    /**
-     * Return name of the view page.
-     *
-     * The returned value is processed by reflection.
-     *
-     * @return
-     */
-//    public String getViewPageName() {
-//        // TODO: move to config
-//        return getPageName("org.structr.ui.page.admin.View");
-//    }
-    private String getPageName(final String prefix) {
-
-        String className = this.getClass().getName();
-
-        // strip "Impl" (just for aesthetic reasons)
-        int i = className.indexOf("Impl");
-        if (i > 1) {
-            className = className.substring(0, i);
-        }
-
-        // strip package name
-        i = className.lastIndexOf(".");
-        className = className.substring(i + 1);
-
-        // prepend pages package name
-        className = prefix + className;
-
-        return className;
 
     }
 
@@ -589,6 +560,9 @@ public abstract class StructrNode implements Comparable<StructrNode> {
      * Get id from underlying db
      */
     public long getId() {
+        if (isDirty) {
+            return -1;
+        }
         return dbNode.getId();
     }
 
@@ -602,7 +576,9 @@ public abstract class StructrNode implements Comparable<StructrNode> {
     protected Date getDateProperty(final String key) {
         Object propertyValue = getProperty(key);
         if (propertyValue != null) {
-            if (propertyValue instanceof Long) {
+            if (propertyValue instanceof Date) {
+                return (Date) propertyValue;
+            } else if(propertyValue instanceof Long) {
                 return new Date((Long) propertyValue);
             } else if (propertyValue instanceof String) {
                 try {
@@ -770,11 +746,20 @@ public abstract class StructrNode implements Comparable<StructrNode> {
         // not allowed
     }
 
+    public Map<String, Object> getPropertyMap() {
+        return properties;
+    }
+
     public Iterable<String> getPropertyKeys() {
         return dbNode.getPropertyKeys();
     }
 
     public Object getProperty(final String key) {
+
+        if (isDirty) {
+            return properties.get(key);
+        }
+
         if (key != null && dbNode.hasProperty(key)) {
             return dbNode.getProperty(key);
         } else {
@@ -860,47 +845,98 @@ public abstract class StructrNode implements Comparable<StructrNode> {
      */
     public void setProperty(final String key, final Object value) {
 
-        Object oldValue = getProperty(key);
+        if (isDirty) {
 
-        // don't make any changes if
-        // - old and new value both are null
-        // - old and new value are not null but equal
-        if ((value == null && oldValue == null)
-                || (value != null && oldValue != null && value.equals(oldValue))) {
-            return;
+            // Don't write directly to database, but store property values
+            // in a map for later use
+            properties.put(key, value);
+
+        } else {
+
+            // Commit value directly to database
+
+            Object oldValue = getProperty(key);
+
+            // don't make any changes if
+            // - old and new value both are null
+            // - old and new value are not null but equal
+            if ((value == null && oldValue == null)
+                    || (value != null && oldValue != null && value.equals(oldValue))) {
+                return;
+            }
+
+            Command transactionCommand = Services.createCommand(TransactionCommand.class);
+            transactionCommand.execute(new StructrTransaction() {
+
+                @Override
+                public Object execute() throws Throwable {
+
+                    // save space
+                    if (value == null) {
+                        dbNode.removeProperty(key);
+                    } else {
+
+                        // Setting last modified date explicetely is not allowed
+                        if (!key.equals(StructrNode.LAST_MODIFIED_DATE_KEY)) {
+
+                            if (value instanceof Date) {
+                                dbNode.setProperty(key, ((Date) value).getTime());
+                            } else {
+                                dbNode.setProperty(key, value);
+
+                                // set last modified date if not already happened
+                                dbNode.setProperty(StructrNode.LAST_MODIFIED_DATE_KEY, (new Date()).getTime());
+                            }
+                        } else {
+                            logger.log(Level.FINE, "Tried to set lastModifiedDate explicitely (action was denied)");
+                        }
+                    }
+
+                    Command indexProperty = Services.createCommand(IndexNodeCommand.class);
+                    return indexProperty.execute(getId(), key, value);
+                }
+            });
+
         }
+    }
 
+
+    /**
+     * Discard changes and overwrite the properties map with the values
+     * from database
+     */
+    public void discard() {
+        // TODO: Implement the full pattern with commit(), discard(), init() etc.
+    }
+
+    /**
+     * Commit unsaved property values to the database node.
+     */
+    public void commit(final User user) {
+
+        isDirty = false;
+
+        // Create an outer transaction to combine any inner neo4j transactions
+        // to one single transaction
         Command transactionCommand = Services.createCommand(TransactionCommand.class);
         transactionCommand.execute(new StructrTransaction() {
 
             @Override
             public Object execute() throws Throwable {
 
-                // save space
-                if (value == null) {
-                    dbNode.removeProperty(key);
-                } else {
+                Command createNode = Services.createCommand(CreateNodeCommand.class);
+                StructrNode s = (StructrNode) createNode.execute(user);
 
-                    // Setting last modified date explicetely is not allowed
-                    if (!key.equals(StructrNode.LAST_MODIFIED_DATE_KEY)) {
+                init(s);
 
-                        if (value instanceof Date) {
-                            dbNode.setProperty(key, ((Date) value).getTime());
-                        } else {
-                            dbNode.setProperty(key, value);
-
-                            // set last modified date if not already happened
-                            dbNode.setProperty(StructrNode.LAST_MODIFIED_DATE_KEY, (new Date()).getTime());
-                        }
-                    } else {
-                        logger.log(Level.FINE, "Tried to set lastModifiedDate explicitely (action was denied)");
-                    }
+                Set<String> keys = properties.keySet();
+                for (String key : keys) {
+                    setProperty(key, properties.get(key));
                 }
-
-                Command indexProperty = Services.createCommand(IndexNodeCommand.class);
-                return indexProperty.execute(getId(), key, value);
+                return null;
             }
         });
+
     }
 
     /**
