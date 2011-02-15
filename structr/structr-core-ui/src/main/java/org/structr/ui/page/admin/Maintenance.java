@@ -28,7 +28,6 @@ import org.apache.click.util.Bindable;
 import org.apache.commons.lang.RandomStringUtils;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.RelType;
-import org.structr.common.Search;
 import org.structr.common.SearchOperator;
 //import org.structr.core.ClasspathEntityLocator;
 import org.structr.context.SessionMonitor;
@@ -117,13 +116,40 @@ public class Maintenance extends Admin {
         logoutTimestampColumn.setFormat("{0,date,medium} {0,time,medium}");
         sessionsTable.addColumn(logoutTimestampColumn);
         sessionsTable.addColumn(new Column("lastActivityText"));
-        sessionsTable.addColumn(new Column("inactiveSince", "Inactive"));
+
+        Column inactiveSinceColumn = new Column("inactiveSince", "Inactive");
+        inactiveSinceColumn.setDecorator(new Decorator() {
+
+            @Override
+            public String render(Object row, Context context) {
+                long ms = ((Session) row).getInactiveSince();
+                if (ms < 1000) {
+                    return ms + " ms";
+                } else if (ms < 60 * 1000) {
+                    return ms / 1000 + " s";
+                } else if (ms < 60 * 60 * 1000) {
+                    long min = ms / (60 * 1000);
+                    long sec = (ms - (min * 60 * 1000)) / 1000;
+                    return min + " m " + sec + " s";
+                } else if (ms < 24 * 60 * 60 * 1000) {
+                    long hrs = ms / (60 * 60 * 1000);
+                    long min = (ms - (hrs * 60 * 60 * 1000)) / (60 * 1000);
+                    long sec = (ms - (hrs * 60 * 60 * 1000) - (min * 60 * 1000)) / 1000;
+                    return hrs + " h" + min + " m " + sec + " s";
+                } else {
+                    return "more than a day";
+                }
+            }
+        });
+        sessionsTable.addColumn(inactiveSinceColumn);
+
         sessionsTable.setSortable(true);
         sessionsTable.setSortedColumn("inactiveSince");
         sessionsTable.setSortedAscending(true);
         sessionsTable.setPageSize(5);
         sessionsTable.setClass(Table.CLASS_COMPLEX);
 
+        activitiesTable.addColumn(new Column(Activity.OWNER_KEY));
         activitiesTable.addColumn(new Column(Activity.NODE_ID_KEY));
         activitiesTable.addColumn(new Column(Activity.NAME_KEY));
         activitiesTable.addColumn(new Column(Activity.SESSION_ID_KEY));
@@ -219,17 +245,19 @@ public class Maintenance extends Admin {
 
                 LogNodeList<StructrNode> globalLog = (LogNodeList<StructrNode>) Services.createCommand(GetGlobalLogCommand.class).execute();
 
-//                Command searchNode = Services.createCommand(SearchNodeCommand.class);
-//                List<StructrNode> searchResult = (List<StructrNode>) searchNode.execute(null, null, true, false,
-//                        Search.andExactType(PageRequest.class.getSimpleName()));
-
                 if (globalLog != null) {
 
                     for (StructrNode s : globalLog) {
 
-                        Activity a = new Activity();
-                        a.init(s);
-                        result.add(a);
+                        if (s instanceof PageRequest) {
+                            PageRequest p = new PageRequest();
+                            p.init(s);
+                            result.add(p);
+                        } else {
+                            Activity a = new Activity();
+                            a.init(s);
+                            result.add(a);
+                        }
                     }
                 }
                 return result;

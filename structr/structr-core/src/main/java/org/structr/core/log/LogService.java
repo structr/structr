@@ -81,7 +81,7 @@ public class LogService extends Thread implements RunnableService {
                             User user = activity.getUser();
 
                             // Commit to database so node will have id and owner
-                            activity.commit(new SuperUser());
+                            activity.commit(user);
 
                             // append to global log
                             LogNodeList globalLog = getGlobalLog();

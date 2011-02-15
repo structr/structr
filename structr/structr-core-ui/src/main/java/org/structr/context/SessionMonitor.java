@@ -102,23 +102,11 @@ public class SessionMonitor {
          * Return time since last activity
          * @return time since last activity
          */
-        public String getInactiveSince() {
+        public Long getInactiveSince() {
             if (hasActivity()) {
-                long ms = (new Date()).getTime() - getLastActivityEndTimestamp().getTime();
-
-                if (ms < 1000) {
-                    return ms + " ms";
-                } else if (ms < 60 * 1000) {
-                    return ms / 1000 + " s";
-                } else if (ms < 60 * 60 * 1000) {
-                    return ms / (60 * 1000) + " m";
-                } else if (ms < 24 * 60 * 60 * 1000) {
-                    return ms / (60 * 60 * 1000) + " h";
-                } else {
-                    return "more than a day";
-                }
+                return (new Date()).getTime() - getLastActivityEndTimestamp().getTime();
             }
-            return "";
+            return null;
         }
 
         public String getUserName() {
