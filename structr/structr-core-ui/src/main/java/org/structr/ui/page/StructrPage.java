@@ -160,11 +160,7 @@ public class StructrPage extends Page {
 
         if (user != null) {
             sessionId = (Long) getContext().getRequest().getSession().getAttribute(SessionMonitor.SESSION_ID);
-
-            long t0 = System.currentTimeMillis();
             SessionMonitor.logPageRequest(user, sessionId, "Page Request", getContext().getRequest());
-            long t1 = System.currentTimeMillis();
-            System.out.println("SessionMonitor.logPageRequest: " + (t1-t0) + " ms");
         }
 
         //nodeId = getNodeId();

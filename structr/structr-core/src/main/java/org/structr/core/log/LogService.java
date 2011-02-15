@@ -72,7 +72,7 @@ public class LogService extends Thread implements RunnableService {
                 // queue is not empty AND ((queue size is a above threshold) OR (service is to be stopped))
                 if (!queue.isEmpty() && ((queue.size() > threshold) || !run)) {
 
-                    System.out.println("+++ LogService active ... +++");
+                    logger.log(Level.FINEST, "+++ LogService active ... +++");
 
                     while (!queue.isEmpty()) {
                         Object o = queue.poll();
@@ -87,13 +87,13 @@ public class LogService extends Thread implements RunnableService {
                             LogNodeList globalLog = getGlobalLog();
                             globalLog.add(activity);
 
-                            System.out.println("Added activity " + activity.getId() + " to global log.");
+                            logger.log(Level.FINEST, "Added activity {0} to global log.", activity.getId());
 
                             // append to user-specific log
                             LogNodeList userLog = getUserLog(user);
                             userLog.add(activity);
 
-                            System.out.println("Added activity " + activity.getId() + " to " + user.getName() + "'s log.");
+                            logger.log(Level.FINEST, "Added activity {0} to {1}''s log.", new Object[]{activity.getId(), user.getName()});
 
                         }
 
@@ -101,7 +101,7 @@ public class LogService extends Thread implements RunnableService {
                         Thread.yield();
                     }
 
-                    System.out.println("+++ LogService inactive. +++");
+                    logger.log(Level.FINEST, "+++ LogService inactive. +++");
                 }
 
                 try {

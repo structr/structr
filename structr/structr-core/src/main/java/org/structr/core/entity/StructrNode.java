@@ -59,7 +59,7 @@ public abstract class StructrNode implements Comparable<StructrNode> {
     // request parameters
     private HttpServletRequest request = null;
     private HttpSession session = null;
-    private StructrRelationship securityRelationship = null;
+    private Map<Long, StructrRelationship> securityRelationships = null;
     private List<StructrRelationship> incomingLinkRelationships = null;
     private List<StructrRelationship> outgoingLinkRelationships = null;
     private List<StructrRelationship> incomingChildRelationships = null;
@@ -578,7 +578,7 @@ public abstract class StructrNode implements Comparable<StructrNode> {
         if (propertyValue != null) {
             if (propertyValue instanceof Date) {
                 return (Date) propertyValue;
-            } else if(propertyValue instanceof Long) {
+            } else if (propertyValue instanceof Long) {
                 return new Date((Long) propertyValue);
             } else if (propertyValue instanceof String) {
                 try {
@@ -900,7 +900,6 @@ public abstract class StructrNode implements Comparable<StructrNode> {
         }
     }
 
-
     /**
      * Discard changes and overwrite the properties map with the values
      * from database
@@ -1210,15 +1209,32 @@ public abstract class StructrNode implements Comparable<StructrNode> {
      */
     public StructrRelationship getSecurityRelationship(final User user) {
 
-        if (securityRelationship == null) {
-            // the first of the incoming relationships of type SECURITY will be returned
-            for (StructrRelationship r : getRelationships(RelType.SECURITY, Direction.INCOMING)) {
-                if (user.equals(r.getStartNode())) {
-                    securityRelationship = r;
-                }
-            }
+        long userId = user.getId();
+
+        if (securityRelationships == null) {
+            securityRelationships = new HashMap<Long, StructrRelationship>();
         }
-        return securityRelationship;
+
+        if (!(securityRelationships.containsKey(userId))) {
+            populateSecurityRelationshipCacheMap();
+        }
+
+        return securityRelationships.get(userId);
+
+    }
+
+    /**
+     * Populate the security relationship cache map
+     */
+    private void populateSecurityRelationshipCacheMap() {
+
+        if (securityRelationships == null) {
+            securityRelationships = new HashMap<Long, StructrRelationship>();
+        }
+        // Fill cache map
+        for (StructrRelationship r : getRelationships(RelType.SECURITY, Direction.INCOMING)) {
+            securityRelationships.put(r.getStartNode().getId(), r);
+        }
 
     }
 

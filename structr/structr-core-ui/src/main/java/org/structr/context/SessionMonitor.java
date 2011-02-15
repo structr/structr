@@ -342,7 +342,7 @@ public class SessionMonitor {
 //            });
 
             long t6 = System.currentTimeMillis();
-            System.out.println("logPageRequest without transaction: " + (t6 - t0) + " ms");
+//            System.out.println("logPageRequest without transaction: " + (t6 - t0) + " ms");
         }
     }
     // ---------------- private methods ---------------------    

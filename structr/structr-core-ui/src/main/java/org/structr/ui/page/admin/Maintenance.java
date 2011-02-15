@@ -149,7 +149,7 @@ public class Maintenance extends Admin {
         sessionsTable.setPageSize(5);
         sessionsTable.setClass(Table.CLASS_COMPLEX);
 
-        activitiesTable.addColumn(new Column(Activity.OWNER_KEY));
+        activitiesTable.addColumn(new Column(Activity.OWNER_KEY, "User"));
         activitiesTable.addColumn(new Column(Activity.NODE_ID_KEY));
         activitiesTable.addColumn(new Column(Activity.NAME_KEY));
         activitiesTable.addColumn(new Column(Activity.SESSION_ID_KEY));

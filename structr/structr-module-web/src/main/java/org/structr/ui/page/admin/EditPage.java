@@ -48,6 +48,10 @@ public class EditPage extends DefaultEdit {
 
         page = (Page) node;
 
+        if (page == null) {
+            return;
+        }
+
         final Template templateNode = page.getTemplate(user);
 
         templateSelect.setDataProvider(new DataProvider() {
