@@ -32,7 +32,7 @@ public class EditNodeList extends DefaultEdit {
         childNodesTable.setSortable(true);
         childNodesTable.setShowBanner(true);
         childNodesTable.setPageSize(DEFAULT_PAGESIZE);
-        childNodesTable.setClass(Table.CLASS_COMPLEX);
+        childNodesTable.setClass(Table.CLASS_SIMPLE);
         childNodesTable.setSortedColumn(StructrNode.NODE_ID_KEY);
         childNodesTable.setHoverRows(true);
         
@@ -74,12 +74,14 @@ public class EditNodeList extends DefaultEdit {
         childNodesTable.setDataProvider(new DataProvider() {
             @Override
             public List<StructrNode> getData() {
-//                List<StructrNode> result = new LinkedList<StructrNode>();
-//                for (StructrNode n : nodeList) {
-//                    result.add(n);
-//                }
-//                return result;
-                return nodeList;
+
+                // Make a copy of the node list to make sort work
+                List<StructrNode> result = new LinkedList<StructrNode>();
+                for (StructrNode n : nodeList) {
+                    result.add(n);
+                }
+                return result;
+//                return nodeList;
             }
         });
 

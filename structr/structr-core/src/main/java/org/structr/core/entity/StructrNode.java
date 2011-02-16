@@ -1476,7 +1476,6 @@ public abstract class StructrNode implements Comparable<StructrNode> {
 
     /**
      * Return unordered list of all child nodes (recursively)
-     * with given relationship type
      *
      * @return list with structr nodes
      */

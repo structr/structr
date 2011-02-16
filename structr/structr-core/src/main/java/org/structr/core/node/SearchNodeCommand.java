@@ -50,10 +50,6 @@ public class SearchNodeCommand extends NodeServiceCommand {
         IndexService index = (LuceneFulltextIndexService) arguments.get("index");
         StructrNodeFactory nodeFactory = (StructrNodeFactory) arguments.get("nodeFactory");
 
-        //Command findNode = Services.createCommand(FindNodeCommand.class);
-
-        //List<StructrNode> childNodes = new ArrayList<StructrNode>();
-
         List<StructrNode> result = Collections.emptyList();
 
         if (graphDb != null) {
@@ -63,12 +59,11 @@ public class SearchNodeCommand extends NodeServiceCommand {
                 return Collections.emptyList();
             }
 
-            // TODO: implement top node filtering
-//            StructrNode topNode = null;
-//            if (parameters[0] instanceof StructrNode) {
-//                topNode = (StructrNode) parameters[0];
-//                childNodes = getChildNodes(graphDb, nodeFactory, topNode);
-//            }
+            // FIXME: filtering by top node is experimental
+            StructrNode topNode = null;
+            if (parameters[0] instanceof StructrNode) {
+                topNode = (StructrNode) parameters[0];
+            }
 
             User user = null;
             if (parameters[1] instanceof User) {
@@ -102,12 +97,20 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
             if (searchAttrs.isEmpty()) {
 
-//                result = getChildNodes(graphDb, nodeFactory, topNode);
-                result = new ArrayList<StructrNode>();
+                if (topNode != null) {
+                    result = topNode.getAllChildren(user);
+                } else {
+                    result = new ArrayList<StructrNode>();
+                }
 
             } else {
 
-                List<StructrNode> intermediateResult = new ArrayList<StructrNode>();
+                List<StructrNode> intermediateResult;
+                if (topNode != null) {
+                    intermediateResult = topNode.getAllChildren(user);
+                } else {
+                    intermediateResult = new ArrayList<StructrNode>();
+                }
 
                 for (SearchAttribute attr : searchAttrs) {
 
