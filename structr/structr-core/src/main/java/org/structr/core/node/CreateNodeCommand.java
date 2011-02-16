@@ -6,7 +6,7 @@ package org.structr.core.node;
 
 import java.util.Arrays;
 import java.util.Date;
-import java.util.logging.Level;
+import java.util.List;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.structr.common.RelType;
@@ -46,10 +46,22 @@ public class CreateNodeCommand extends NodeServiceCommand {
 
             // initialize node from parameters...
             for (Object o : parameters) {
-                if (o instanceof NodeAttribute) {
+
+                if (o instanceof List) {
+
+                    List<NodeAttribute> attrs = (List<NodeAttribute>) o;
+                    for (NodeAttribute attr : attrs) {
+                        node.setProperty(attr.getKey(), attr.getValue());
+
+                    }
+
+                } else if (o instanceof NodeAttribute) {
+
                     NodeAttribute attr = (NodeAttribute) o;
                     node.setProperty(attr.getKey(), attr.getValue());
+
                 } else if (o instanceof User) {
+
                     user = (User) o;
 
                     if (!(user instanceof SuperUser)) {
