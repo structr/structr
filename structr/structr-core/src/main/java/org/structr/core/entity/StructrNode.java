@@ -528,7 +528,7 @@ public abstract class StructrNode implements Comparable<StructrNode> {
      * Default, should not be used
      */
     public String getTitle() {
-        logger.log(Level.WARNING, "Title without locale requested.");
+        logger.log(Level.FINE, "Title without locale requested.");
         return getTitle(new Locale("en"));
     }
 
