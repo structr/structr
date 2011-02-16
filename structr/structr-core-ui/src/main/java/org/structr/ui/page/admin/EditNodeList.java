@@ -4,57 +4,84 @@
  */
 package org.structr.ui.page.admin;
 
+import java.lang.reflect.Field;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.click.control.ActionLink;
-import org.apache.click.control.FieldSet;
-import org.apache.click.control.Label;
-import org.structr.core.Services;
+import org.apache.click.control.Column;
+import org.apache.click.control.Panel;
+import org.apache.click.control.Table;
+import org.apache.click.dataprovider.DataProvider;
 import org.structr.core.entity.NodeList;
 import org.structr.core.entity.StructrNode;
-import org.structr.core.node.TestNodeCommand;
 
 /**
  *
  * @author chrisi
  */
-public class EditNodeList extends DefaultEdit
-{
-	Logger logger = Logger.getLogger(EditNodeList.class.getName());
-	protected FieldSet fields = new FieldSet("NodeList test");
+public class EditNodeList extends DefaultEdit {
 
-	public EditNodeList()
-	{
-		fields.add(new ActionLink("add", "Add node to list", this, "onAddClick"));
-		fields.add(new ActionLink("del", "Delete last node from list", this, "onDelClick"));
+    private static final Logger logger = Logger.getLogger(EditNodeList.class.getName());
+    //@Bindable
+    //protected Table childNodesTable = new Table("nodeListTable");
+    private NodeList<StructrNode> nodeList;
 
-		NodeList<StructrNode> list = (NodeList<StructrNode>)Services.createCommand(TestNodeCommand.class).execute();
-		if(list != null)
-		{
-			fields.add(new Label("label", "Size: " + list.size()));
+    public EditNodeList() {
 
-			for(StructrNode n : list)
-			{
-				if(n != null)
-				{
-					fields.add(new Label("label" + n.getId(), n.toString()));
-				}
+        childNodesTable.setSortable(true);
+        childNodesTable.setShowBanner(true);
+        childNodesTable.setPageSize(DEFAULT_PAGESIZE);
+        childNodesTable.setClass(Table.CLASS_COMPLEX);
+        childNodesTable.setSortedColumn(StructrNode.NODE_ID_KEY);
+        childNodesTable.setHoverRows(true);
+        
+        editChildNodesPanel = new Panel("editChildNodesPanel", "/panel/edit-child-nodes-panel.htm");
+    }
 
-			}
-		}
+    @Override
+    public void onInit() {
 
-		editPropertiesForm.add(fields);
-	}
+        super.onInit();
 
-	public void onAddClick()
-	{
-		logger.log(Level.INFO, "Adding node..");
-		Services.createCommand(TestNodeCommand.class).execute("add");
-	}
 
-	public void onDelClick()
-	{
-		logger.log(Level.INFO, "Removing node");
-		Services.createCommand(TestNodeCommand.class).execute("del");
-	}
+        if (node != null) {
+
+            childNodesTable.getControlLink().setParameter(StructrNode.NODE_ID_KEY, getNodeId());
+            
+            nodeList = (NodeList<StructrNode>) node;
+
+            StructrNode firstNode = nodeList.getFirstNode();
+            Field[] fields = firstNode.getClass().getFields();
+            for (Field f : fields) {
+                String fieldName;
+                try {
+                    fieldName = (String) f.get(firstNode);
+                    Column col;
+                    col = new Column(fieldName);
+                    childNodesTable.addColumn(col);
+                } catch (IllegalAccessException ex) {
+                    logger.log(Level.SEVERE, null, ex);
+                }
+            }
+        }
+
+    }
+
+    @Override
+    public void onRender() {
+
+        childNodesTable.setDataProvider(new DataProvider() {
+            @Override
+            public List<StructrNode> getData() {
+//                List<StructrNode> result = new LinkedList<StructrNode>();
+//                for (StructrNode n : nodeList) {
+//                    result.add(n);
+//                }
+//                return result;
+                return nodeList;
+            }
+        });
+
+    }
 }
