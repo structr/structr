@@ -41,7 +41,7 @@ import org.w3c.dom.Element;
  * Modules need to be installed and uninstalled manually
  * This service keeps an index of installed / activated modules for efficient access
  * files:
- *  - $BASEDIR/modules.conf			-> properties file
+ *  - $BASEDIR/modules/modules.conf		-> properties file
  *  - $BASEDIR/modules/*.jar			-> module JAR
  *  - $BASEDIR/modules/index/$NAME.index	-> serialized instance of Module.java
  *
@@ -340,7 +340,7 @@ public class ModuleService implements SingletonService {
 
     // <editor-fold defaultstate="collapsed" desc="private methods">
     private Properties getModulesConf() {
-        String modulesConfPath = Services.getFilePath(Path.Base, MODULES_CONF);
+        String modulesConfPath = Services.getFilePath(Path.Modules, MODULES_CONF);
         Properties ret = new Properties();
 
         if (modulesConfPath != null) {
@@ -373,7 +373,7 @@ public class ModuleService implements SingletonService {
     }
 
     private void saveModulesConf(Properties modulesConf) {
-        String modulesConfPath = Services.getFilePath(Path.Base, MODULES_CONF);
+        String modulesConfPath = Services.getFilePath(Path.Modules, MODULES_CONF);
 
         if (modulesConfPath != null) {
             File modulesConfFile = new File(modulesConfPath);

@@ -10,7 +10,7 @@ package org.structr.core.module;
  * - remove commands
  * - remove entities
  * - remove module index from $BASEDIR/modules/index/$NAME.index
- * - remove module from global module index ($BASEDIR/modules.conf)
+ * - remove module from global module index ($BASEDIR/modules/modules.conf)
  *
  * @author Christian Morgner
  */

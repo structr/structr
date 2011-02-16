@@ -12,7 +12,7 @@ package org.structr.core.module;
  *  - add module to ModuleService
  *  - add entities to Services.entityClassCache
  *  - service commands need to be accessible by class loader etc..
- *  - on success: add to global module index ($BASEDIR/modules.conf) => module is active
+ *  - on success: add to global module index ($BASEDIR/modules/modules.conf) => module is active
  *
  * @author Christian Morgner
  */
