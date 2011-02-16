@@ -257,38 +257,23 @@ public class SessionMonitor {
      */
     public static void logActivity(final User user, final long sessionId, final String action) {
 
-        final Command transactionCommand = Services.createCommand(TransactionCommand.class);
-        transactionCommand.execute(new StructrTransaction() {
+        Date now = new Date();
 
-            @Override
-            public Object execute() throws Throwable {
+        // Create a "dirty" activity node
+        Activity activity = new Activity();
+        activity.setProperty(StructrNode.TYPE_KEY, Activity.class.getSimpleName());
 
-                Command createNode = Services.createCommand(CreateNodeCommand.class);
-                Date now = new Date();
+        if (user != null) {
+            activity.setProperty(StructrNode.NAME_KEY, "User: " + user.getName() + ", Action: " + action + ", Date: " + now);
+        }
+        
+        activity.setProperty(Activity.SESSION_ID_KEY, sessionId);
+        activity.setProperty(Activity.START_TIMESTAMP_KEY, now);
+        activity.setProperty(Activity.END_TIMESTAMP_KEY, now);
+        activity.setUser(user);
 
-//                StructrNode s = (StructrNode) createNode.execute(user,
-//                        new NodeAttribute(StructrNode.TYPE_KEY, Activity.class.getSimpleName()),
-//                        new NodeAttribute(StructrNode.NAME_KEY, action + " (" + now + ")"),
-//                        //new NodeAttribute(Activity.ACTIVITY_TEXT_KEY, user.getName() + ":" + action + ":" + now),
-//                        new NodeAttribute(Activity.SESSION_ID_KEY, sessionId),
-//                        new NodeAttribute(Activity.START_TIMESTAMP_KEY, now),
-//                        new NodeAttribute(Activity.END_TIMESTAMP_KEY, now));
-
-                // Create a "dirty" activity node
-                Activity activity = new Activity();
-                activity.setProperty(StructrNode.TYPE_KEY, Activity.class.getSimpleName());
-                activity.setProperty(StructrNode.NAME_KEY, "User: " + user.getName() + ", Action: " + action + ", Date: " + now);
-                activity.setProperty(Activity.SESSION_ID_KEY, sessionId);
-                activity.setProperty(Activity.START_TIMESTAMP_KEY, now);
-                activity.setProperty(Activity.END_TIMESTAMP_KEY, now);
-                activity.setUser(user);
-
-                getSession(sessionId).setLastActivity(activity);
-                Services.createCommand(LogCommand.class).execute(activity);
-
-                return null;
-            }
-        });
+        getSession(sessionId).setLastActivity(activity);
+        Services.createCommand(LogCommand.class).execute(activity);
     }
 
     /**
@@ -298,52 +283,28 @@ public class SessionMonitor {
      * @param action
      */
     public static void logPageRequest(final User user, final long sessionId, final String action, final HttpServletRequest request) {
+
+
+        Date now = new Date();
+
+        // Create a "dirty" page request node
+        PageRequest pageRequest = new PageRequest();
+        pageRequest.setProperty(StructrNode.TYPE_KEY, PageRequest.class.getSimpleName());
+        pageRequest.setProperty(StructrNode.NAME_KEY, "Action: " + action + ", Date: " + now);
+
         if (request != null) {
-
-            long t0 = System.currentTimeMillis();
-
-//            final Command transactionCommand = Services.createCommand(TransactionCommand.class);
-//            transactionCommand.execute(new StructrTransaction() {
-//
-//                @Override
-//                public Object execute() throws Throwable {
-
-//            Command createNode = Services.createCommand(CreateNodeCommand.class);
-            Date now = new Date();
-
-//                    StructrNode s = (StructrNode) createNode.execute(user,
-//                            new NodeAttribute(StructrNode.TYPE_KEY, PageRequest.class.getSimpleName()),
-//                            new NodeAttribute(StructrNode.NAME_KEY, user.getName() + ":" + action + ":" + now),
-//                            new NodeAttribute(PageRequest.URI_KEY, request.getRequestURI()),
-//                            //new NodeAttribute(Activity.ACTIVITY_TEXT_KEY, user.getName() + ":" + action + ":" + now),
-//                            new NodeAttribute(PageRequest.REMOTE_ADDRESS_KEY, request.getRemoteAddr()),
-//                            new NodeAttribute(PageRequest.REMOTE_HOST_KEY, request.getRemoteHost()),
-//                            new NodeAttribute(Activity.SESSION_ID_KEY, sessionId),
-//                            new NodeAttribute(Activity.START_TIMESTAMP_KEY, now),
-//                            new NodeAttribute(Activity.END_TIMESTAMP_KEY, now));
-
-            // Create a "dirty" page request node
-            PageRequest pageRequest = new PageRequest();
-            pageRequest.setProperty(StructrNode.TYPE_KEY, PageRequest.class.getSimpleName());
-            pageRequest.setProperty(StructrNode.NAME_KEY, "Action: " + action + ", Date: " + now);
             pageRequest.setProperty(PageRequest.URI_KEY, request.getRequestURI());
             pageRequest.setProperty(PageRequest.REMOTE_ADDRESS_KEY, request.getRemoteAddr());
             pageRequest.setProperty(PageRequest.REMOTE_HOST_KEY, request.getRemoteHost());
-            pageRequest.setProperty(Activity.SESSION_ID_KEY, sessionId);
-            pageRequest.setProperty(Activity.START_TIMESTAMP_KEY, now);
-            pageRequest.setProperty(Activity.END_TIMESTAMP_KEY, now);
-            pageRequest.setUser(user);
-
-            getSession(sessionId).setLastActivity(pageRequest);
-            Services.createCommand(LogCommand.class).execute(pageRequest);
-
-//                    return null;
-//                }
-//            });
-
-            long t6 = System.currentTimeMillis();
-//            System.out.println("logPageRequest without transaction: " + (t6 - t0) + " ms");
         }
+
+        pageRequest.setProperty(Activity.SESSION_ID_KEY, sessionId);
+        pageRequest.setProperty(Activity.START_TIMESTAMP_KEY, now);
+        pageRequest.setProperty(Activity.END_TIMESTAMP_KEY, now);
+        pageRequest.setUser(user);
+
+        getSession(sessionId).setLastActivity(pageRequest);
+        Services.createCommand(LogCommand.class).execute(pageRequest);
     }
     // ---------------- private methods ---------------------    
     // <editor-fold defaultstate="collapsed" desc="private methods">
