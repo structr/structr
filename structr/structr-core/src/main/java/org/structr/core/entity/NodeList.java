@@ -565,7 +565,8 @@ public class NodeList<T extends StructrNode> extends StructrNode implements List
      */
     @Override
     public ListIterator<T> listIterator() {
-        throw new UnsupportedOperationException("Bi-directional iteration is not yet supported by this class.");
+        return getNodeList().listIterator();
+        //throw new UnsupportedOperationException("Bi-directional iteration is not yet supported by this class.");
     }
 
     /**
@@ -578,7 +579,8 @@ public class NodeList<T extends StructrNode> extends StructrNode implements List
      */
     @Override
     public ListIterator<T> listIterator(int index) {
-        throw new UnsupportedOperationException("Bi-directional iteration is not yet supported by this class.");
+        return getNodeList().listIterator(index);
+        //throw new UnsupportedOperationException("Bi-directional iteration is not yet supported by this class.");
     }
 
     /**
