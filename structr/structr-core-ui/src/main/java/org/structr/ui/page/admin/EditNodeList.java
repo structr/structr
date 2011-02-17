@@ -23,9 +23,8 @@ import org.structr.core.entity.StructrNode;
 public class EditNodeList extends DefaultEdit {
 
     private static final Logger logger = Logger.getLogger(EditNodeList.class.getName());
-    //@Bindable
-    //protected Table childNodesTable = new Table("nodeListTable");
-    private NodeList<StructrNode> nodeList;
+
+    protected NodeList<StructrNode> nodeList;
 
     public EditNodeList() {
 
@@ -35,15 +34,16 @@ public class EditNodeList extends DefaultEdit {
         childNodesTable.setClass(Table.CLASS_SIMPLE);
         childNodesTable.setSortedColumn(StructrNode.NODE_ID_KEY);
         childNodesTable.setHoverRows(true);
+        addControl(childNodesTable);
         
         editChildNodesPanel = new Panel("editChildNodesPanel", "/panel/edit-child-nodes-panel.htm");
+        addControl(editChildNodesPanel);
     }
 
     @Override
     public void onInit() {
 
         super.onInit();
-
 
         if (node != null) {
 

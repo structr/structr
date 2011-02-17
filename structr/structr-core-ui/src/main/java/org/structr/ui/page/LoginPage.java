@@ -5,7 +5,6 @@
 package org.structr.ui.page;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -19,7 +18,6 @@ import org.apache.click.control.PasswordField;
 import org.apache.click.control.Submit;
 import org.apache.click.control.TextField;
 import org.apache.click.extras.tree.TreeNode;
-import org.apache.click.util.Bindable;
 import org.apache.commons.lang.StringUtils;
 import org.structr.context.SessionMonitor;
 import org.structr.core.Command;
@@ -41,10 +39,8 @@ public class LoginPage extends Admin {
     //private final static String DOMAIN_KEY = "domain";
     private final static String PASSWORD_KEY = "password";
     private final static String SUPERADMIN_PASSWORD_KEY = "sehrgeheim";
-    @Bindable
     protected Panel loginPanel = new Panel("loginPanel", "/panel/login-panel.htm");
-    @Bindable
-    protected Form loginForm = new Form();
+    protected Form loginForm = new Form("loginForm");
 
     // use template for backend pages
     @Override
@@ -62,6 +58,8 @@ public class LoginPage extends Admin {
         loginForm.add(new TextField(USERNAME_KEY, "Username", 20, true));
         loginForm.add(new PasswordField(PASSWORD_KEY, "Password", 20, true));
         loginForm.add(new Submit("login", " Click to login ", this, "onLogin"));
+        addControl(loginForm);
+        addControl(loginPanel);
 
     }
 

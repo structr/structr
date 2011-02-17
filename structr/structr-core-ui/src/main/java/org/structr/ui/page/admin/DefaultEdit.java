@@ -60,42 +60,25 @@ public class DefaultEdit extends Nodes {
      * The main form for editing node parameter.
      * Child pages should just append fields to this form.
      */
-    @Bindable
     protected Form editPropertiesForm = new Form("editPropertiesForm");
-    @Bindable
     protected Form editVisibilityForm = new Form("editVisibilityForm");
-    @Bindable
-    protected Table incomingRelationshipsTable = new Table();
+    protected Table incomingRelationshipsTable = new Table("incomingRelationshipsTable");
     protected ActionLink incomingRelsControl = incomingRelationshipsTable.getControlLink();
-    @Bindable
-    protected Table outgoingRelationshipsTable = new Table();
+    protected Table outgoingRelationshipsTable = new Table("outgoingRelationshipsTable");
     protected ActionLink outgoingRelsControl = outgoingRelationshipsTable.getControlLink();
-    @Bindable
-    protected FormTable childNodesTable = new FormTable();
-    @Bindable
+    protected FormTable childNodesTable = new FormTable("childNodesTable");
     protected ActionLink deleteRelationshipLink = new ActionLink("Delete Relationship", this, "onDeleteRelationship");
-//    @Bindable
-//    protected ActionLink editNodeLink = new ActionLink("Edit", this, "onEditNode");
-    @Bindable
     protected ActionLink deleteNodeLink = new ActionLink("Delete", this, "onDeleteNode");
-//    @Bindable
-//    protected ActionLink viewNodeLink = new ActionLink("View", this, "onViewNode");
     protected Table titlesTable = new Table(StructrNode.TITLES_KEY);
     protected FormTable securityTable = new FormTable("Security");
-    @Bindable
     protected Form securityForm = new Form("securityForm");
     protected Select userSelect = new Select("selectUser", "User");
     protected PickList allowed = new PickList(StructrRelationship.ALLOWED_KEY, "Allowed");
     protected Checkbox recursive = new Checkbox("recursive");
-    @Bindable
     protected Panel editPropertiesPanel;
-    @Bindable
     protected Panel editRelationshipsPanel;
-    @Bindable
     protected Panel editChildNodesPanel;
-    @Bindable
     protected Panel editSecurityPanel;
-    @Bindable
     protected Panel editVisibilityPanel;
 
     // use template for backend pages
@@ -113,37 +96,38 @@ public class DefaultEdit extends Nodes {
 
         super.onInit();
 
-        FieldSet nodeInfo = new FieldSet("Node Information");
-        nodeInfo.setColumns(3);
+        FieldSet nodePropertiesFields = new FieldSet("Node Properties");
+        nodePropertiesFields.setColumns(3);
 
         // add common fields
-        nodeInfo.add(new TextField(StructrNode.TYPE_KEY, true));
-        nodeInfo.add(new TextField(StructrNode.NAME_KEY, true));
-        nodeInfo.add(new IntegerField(StructrNode.POSITION_KEY));
+        nodePropertiesFields.add(new TextField(StructrNode.TYPE_KEY, true));
+        nodePropertiesFields.add(new TextField(StructrNode.NAME_KEY, true));
+        nodePropertiesFields.add(new IntegerField(StructrNode.POSITION_KEY));
 //        nodeInfo.add(new TextField(StructrNode.NODE_ID_KEY));
 
         TextField createdBy = new TextField(StructrNode.CREATED_BY_KEY);
         createdBy.setReadonly(true);
-        nodeInfo.add(createdBy);
+        nodePropertiesFields.add(createdBy);
 
         DateField createdDate = new DateField(StructrNode.CREATED_DATE_KEY);
         createdDate.setFormatPattern(dateFormat.toPattern());
         createdDate.setShowTime(true);
         createdDate.setReadonly(true);
-        nodeInfo.add(createdDate);
+        nodePropertiesFields.add(createdDate);
 
         DateField lastModifiedDate = new DateField(StructrNode.LAST_MODIFIED_DATE_KEY);
         lastModifiedDate.setFormatPattern(dateFormat.toPattern());
         lastModifiedDate.setShowTime(true);
         lastModifiedDate.setReadonly(true);
-        nodeInfo.add(lastModifiedDate);
+        nodePropertiesFields.add(lastModifiedDate);
 
         titlesTable.addColumn(new Column(StructrNode.TITLE_KEY, "Title"));
         titlesTable.addColumn(new Column(Title.LOCALE_KEY, "Locale"));
         titlesTable.setClass(Table.CLASS_SIMPLE);
-        nodeInfo.add(titlesTable);
+        nodePropertiesFields.add(titlesTable);
 
-        editPropertiesForm.add(nodeInfo);
+        editPropertiesForm.add(nodePropertiesFields);
+        addControl(editPropertiesForm);
 
         FieldSet visibilityFields = new FieldSet("Visibility");
         visibilityFields.setColumns(2);
@@ -169,23 +153,27 @@ public class DefaultEdit extends Nodes {
         editVisibilityForm.add(new HiddenField(RENDER_MODE_KEY, renderMode != null ? renderMode : ""));
         editVisibilityForm.setActionURL(editVisibilityForm.getActionURL().concat("#visibility-tab"));
         if (editVisibilityAllowed) {
-            editVisibilityForm.add(new Submit("saveVisibility", " Save Visibility ", this, "onSaveVisibility"));
-            editVisibilityForm.add(new Submit("saveVisibilityRecursively", " Save Visibility (including direct children) ", this, "onSaveVisibilityWithSubnodes"));
-            editVisibilityForm.add(new Submit("cancel", " Cancel ", this, "onCancel"));
+            visibilityFields.add(new Submit("saveVisibility", " Save Visibility ", this, "onSaveVisibility"));
+            visibilityFields.add(new Submit("saveVisibilityRecursively", " Save Visibility (including direct children) ", this, "onSaveVisibilityWithSubnodes"));
+            visibilityFields.add(new Submit("cancel", " Cancel ", this, "onCancel"));
         }
 
+        addControl(editVisibilityForm);
+
         editVisibilityPanel = new Panel("editVisibilityPanel", "/panel/edit-visibility-panel.htm");
+        addControl(editVisibilityPanel);
 
         editPropertiesForm.add(new HiddenField(NODE_ID_KEY, nodeId != null ? nodeId : ""));
         editPropertiesForm.add(new HiddenField(RENDER_MODE_KEY, renderMode != null ? renderMode : ""));
         editPropertiesForm.setActionURL(editPropertiesForm.getActionURL().concat("#properties-tab"));
         if (editPropertiesAllowed) {
-            editPropertiesForm.add(new Submit("saveProperties", " Save Properties ", this, "onSaveProperties"));
+            nodePropertiesFields.add(new Submit("saveProperties", " Save Properties ", this, "onSaveProperties"));
 //            editPropertiesForm.add(new Submit("savePropertiesAndReturn", " Save and Return ", this, "onSaveAndReturn"));
-            editPropertiesForm.add(new Submit("cancel", " Cancel ", this, "onCancel"));
+            nodePropertiesFields.add(new Submit("cancel", " Cancel ", this, "onCancel"));
         }
         //editPropertiesForm.add(new Submit("saveAndView", " Save And View ", this, "onSaveAndView"));
         editPropertiesPanel = new Panel("editPropertiesPanel", "/panel/edit-properties-panel.htm");
+        addControl(editPropertiesPanel);
 
         Column nameColumn, typeColumn;
         PageLink viewRelLink = new PageLink("viewRel", DefaultEdit.class);
@@ -291,8 +279,11 @@ public class DefaultEdit extends Nodes {
             childNodesTable.setPageSize(DEFAULT_PAGESIZE);
             childNodesTable.getControlLink().setParameter(StructrNode.NODE_ID_KEY, getNodeId());
             childNodesTable.setClass(Table.CLASS_SIMPLE);
+            addControl(childNodesTable);
+
 
             editChildNodesPanel = new Panel("editChildNodesPanel", "/panel/edit-child-nodes-panel.htm");
+            addControl(editChildNodesPanel);
         }
         // ------------------ child nodes end --------------------------------
 
@@ -367,6 +358,7 @@ public class DefaultEdit extends Nodes {
             incomingRelationshipsTable.setPageSize(DEFAULT_PAGESIZE);
             incomingRelationshipsTable.getControlLink().setParameter(StructrNode.NODE_ID_KEY, getNodeId());
             incomingRelationshipsTable.setClass(Table.CLASS_SIMPLE);
+            addControl(incomingRelationshipsTable);
             // ------------------ incoming relationships end ---------------------
 
 
@@ -432,8 +424,10 @@ public class DefaultEdit extends Nodes {
             outgoingRelationshipsTable.setPageSize(DEFAULT_PAGESIZE);
             outgoingRelationshipsTable.getControlLink().setParameter(StructrNode.NODE_ID_KEY, getNodeId());
             outgoingRelationshipsTable.setClass(Table.CLASS_SIMPLE);
+            addControl(outgoingRelationshipsTable);
 
             editRelationshipsPanel = new Panel("editRelationshipsPanel", "/panel/edit-relationships-panel.htm");
+            addControl(editRelationshipsPanel);
         }
 
         // ------------------ outgoing relationships end ---------------------
@@ -504,7 +498,10 @@ public class DefaultEdit extends Nodes {
             securityForm.add(new HiddenField(NODE_ID_KEY, nodeId != null ? nodeId : ""));
             securityForm.add(new HiddenField(RENDER_MODE_KEY, renderMode != null ? renderMode : ""));
             securityForm.setActionURL(securityForm.getActionURL().concat("#security-tab"));
+            addControl(securityForm);
+
             editSecurityPanel = new Panel("editSecurityPanel", "/panel/edit-security-panel.htm");
+            addControl(editSecurityPanel);
 
         }
         // ------------------ security end ---------------------

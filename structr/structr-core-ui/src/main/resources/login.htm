@@ -5,10 +5,11 @@
         $headElements
         <link href="$contextPath/css/structr.css" rel="stylesheet" type="text/css">
         <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-        <meta name="viewport" content="width=1024px, minimum-scale=1.0, maximum-scale=1.0" />
+        <!--meta name="viewport" content="width=1024px, minimum-scale=1.0, maximum-scale=1.0" /-->
     </head>
 
-    <body>
+    <body onload="document.getElementById('loginForm_username').focus()">
+
         #if ($renderMode != "inline")
         <div id="header">
 

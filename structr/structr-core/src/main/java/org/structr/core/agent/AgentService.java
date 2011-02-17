@@ -13,9 +13,10 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import org.structr.core.ClasspathEntityLocator;
 import org.structr.core.Command;
 import org.structr.core.RunnableService;
+import org.structr.core.Services;
+import org.structr.core.module.GetAgentsCommand;
 
 /**
  *
@@ -31,8 +32,9 @@ public class AgentService extends Thread implements RunnableService {
     private int maxAgents = 4;
 
     public AgentService() {
-        supportedCommands = new LinkedHashSet<Class>();
+        super("AgentService");
 
+        supportedCommands = new LinkedHashSet<Class>();
         supportedCommands.add(ProcessTaskCommand.class);
     }
 
@@ -206,10 +208,12 @@ public class AgentService extends Thread implements RunnableService {
         // cache miss
         if (agentClass == null) {
 
-            Set<Class> agentClasses = ClasspathEntityLocator.locateEntitiesByType(Agent.class);
+//            Set<Class> agentClasses = ClasspathEntityLocator.locateEntitiesByType(Agent.class);
+            Map<String, Class> agentClassesMap = (Map<String, Class>) Services.createCommand(GetAgentsCommand.class).execute();
 
-            for (Class supportedAgentClass : agentClasses) {
+            for (String className : agentClassesMap.keySet()) {
 
+                Class supportedAgentClass = agentClassesMap.get(className);
                 try {
                     Agent supportedAgent = (Agent) supportedAgentClass.newInstance();
                     Class supportedTaskClass = supportedAgent.getSupportedTaskType();

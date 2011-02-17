@@ -24,7 +24,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import javax.servlet.ServletContext;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.Path;
 import org.structr.core.Command;
@@ -32,6 +31,7 @@ import org.structr.core.Module;
 import org.structr.core.Predicate;
 import org.structr.core.Services;
 import org.structr.core.SingletonService;
+import org.structr.core.agent.Agent;
 import org.structr.core.entity.StructrNode;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
@@ -56,8 +56,10 @@ public class ModuleService implements SingletonService {
     private static final Logger logger = Logger.getLogger(ModuleService.class.getName());
     private static final String MODULES_CONF = "modules.conf";
     private static final Map<String, Class> entityClassCache = new ConcurrentHashMap<String, Class>(100, 0.75f, 100);
+    private static final Map<String, Class> agentClassCache = new ConcurrentHashMap<String, Class>(100, 0.75f, 100);
     private static final Set<String> entityPackages = new LinkedHashSet<String>();
     private static final Set<String> pagePackages = new LinkedHashSet<String>();
+    private static final Set<String> agentPackages = new LinkedHashSet<String>();
     private Predicate structrPagePredicate = null;
     private ServletContext servletContext = null;
     private boolean initialized = false;
@@ -84,15 +86,27 @@ public class ModuleService implements SingletonService {
     }
 
     public Set<String> getEntityPackages() {
-        return (entityPackages);
+        return entityPackages;
+    }
+
+    public Set<String> getAgentPackages() {
+        return agentPackages;
     }
 
     public Set<String> getCachedEntityTypes() {
         return entityClassCache.keySet();
     }
 
+    public Set<String> getCachedAgentTypes() {
+        return agentClassCache.keySet();
+    }
+
     public Map<String, Class> getCachedEntities() {
-        return (entityClassCache);
+        return entityClassCache;
+    }
+
+    public Map<String, Class> getCachedAgents() {
+        return agentClassCache;
     }
 
     public Class getEntityClass(final String name) {
@@ -121,12 +135,39 @@ public class ModuleService implements SingletonService {
         return (ret);
     }
 
+    public Class getAgentClass(final String name) {
+        Class ret = null;
+
+        if (name != null && name.length() > 0) {
+            ret = agentClassCache.get(name);
+            if (ret == null) {
+                for (String possiblePath : agentPackages) {
+                    if (possiblePath != null) {
+                        try {
+                            Class nodeClass = Class.forName(possiblePath + "." + name);
+                            agentClassCache.put(name, nodeClass);
+
+                            // first match wins
+                            break;
+
+                        } catch (ClassNotFoundException ex) {
+                            // ignore
+                        }
+                    }
+                }
+            }
+        }
+
+        return (ret);
+    }
+
     public void reload() {
         logger.log(Level.INFO, "Reloading modules..");
 
         // reload everything..
         initialized = false;
         entityClassCache.clear();
+        agentClassCache.clear();
 
         initializeModules();
     }
@@ -323,6 +364,7 @@ public class ModuleService implements SingletonService {
     @Override
     public void shutdown() {
         entityClassCache.clear();
+        agentClassCache.clear();
     }
 
     @Override
@@ -430,7 +472,7 @@ public class ModuleService implements SingletonService {
 
         }
 
-	if (ret == null) {
+        if (ret == null) {
             ret = createModuleIndex(moduleName);
         }
 
@@ -526,12 +568,22 @@ public class ModuleService implements SingletonService {
             try {
                 // instantiate class..
                 Class clazz = Class.forName(className);
+
                 if (StructrNode.class.isAssignableFrom(clazz)) {
                     String simpleName = clazz.getSimpleName();
                     String fullName = clazz.getName();
 
                     entityClassCache.put(simpleName, clazz);
                     entityPackages.add(fullName.substring(0, fullName.lastIndexOf(".")));
+
+                }
+
+                if (Agent.class.isAssignableFrom(clazz)) {
+                    String simpleName = clazz.getSimpleName();
+                    String fullName = clazz.getName();
+
+                    agentClassCache.put(simpleName, clazz);
+                    agentPackages.add(fullName.substring(0, fullName.lastIndexOf(".")));
 
                 }
 
@@ -605,15 +657,20 @@ public class ModuleService implements SingletonService {
         for (String className : classes) {
             try {
                 Class clazz = Class.forName(className);
+                String simpleName = clazz.getSimpleName();
+                String fullName = clazz.getName();
+                
                 if (StructrNode.class.isAssignableFrom(clazz)) {
-                    String simpleName = clazz.getSimpleName();
-                    String fullName = clazz.getName();
 
                     entityClassCache.remove(simpleName);
                     entityPackages.remove(fullName.substring(0, fullName.lastIndexOf(".")));
 
+                } else if (Agent.class.isAssignableFrom(clazz)) {
+
+                    agentClassCache.remove(simpleName);
+                    agentPackages.remove(fullName.substring(0, fullName.lastIndexOf(".")));
+
                 } else if (structrPagePredicate != null && structrPagePredicate.evaluate(clazz)) {
-                    String fullName = clazz.getName();
 
                     pagePackages.remove(fullName.substring(0, fullName.lastIndexOf(".")));
                 }

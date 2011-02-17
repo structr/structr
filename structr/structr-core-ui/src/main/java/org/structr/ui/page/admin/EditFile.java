@@ -17,13 +17,9 @@ import org.structr.core.entity.File;
  */
 public class EditFile extends DefaultEdit {
 
-    @Bindable
     protected TextField contentTypeField = new TextField(File.CONTENT_TYPE_KEY, "Internet Media Type (Content-Type)", 30);
-    @Bindable
     protected TextField urlField = new TextField(File.URL_KEY, "URL", 100);
-    @Bindable
     protected TextField relativeFilePathField = new TextField(File.RELATIVE_FILE_PATH_KEY, "Local File Path", 100);
-    @Bindable
     protected LongField sizeField = new LongField(File.SIZE_KEY, "Size (Bytes)", 10);
 
     public EditFile() {
@@ -43,6 +39,7 @@ public class EditFile extends DefaultEdit {
         infoFields.add(sizeField);
 
         editPropertiesForm.add(infoFields);
+        addControl(editPropertiesForm);
     }
 
     @Override

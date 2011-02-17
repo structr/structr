@@ -12,6 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.Path;
+import org.structr.core.agent.AgentService;
 //import org.structr.common.xpath.NeoNodePointerFactory;
 
 /**
@@ -26,25 +27,20 @@ import org.structr.common.Path;
 public class Services {
 
     private static final Logger logger = Logger.getLogger(Services.class.getName());
-
     // application constants
     public static final String APPLICATION_TITLE = "application.title";
     public static final String CONFIG_FILE_PATH = "configfile.path";
     public static final String SERVLET_CONTEXT = "servlet.context";
-
     // database-related constants
     public static final String DATABASE_PATH_IDENTIFIER = "database.path";
     public static final String FILES_PATH_IDENTIFIER = "files.path";
-
     // LogService-related constants
     public static final String LOG_SERVICE_INTERVAL = "structr.logging.interval";
     public static final String LOG_SERVICE_THRESHOLD = "structr.logging.threshold";
-
     // ModuleService-related constants
     public static final String MODULES_PATH_IDENTIFIER = "modules.path";
     public static final String ENTITY_PACKAGES_IDENTIFIER = "entity.packages";
     public static final String STRUCTR_PAGE_PREDICATE = "structr.page.predicate";
-
     private static final Map<Class, Class> serviceClassCache = new ConcurrentHashMap<Class, Class>(5, 0.75f, 100);
     private static final Map<Class, Service> serviceCache = new ConcurrentHashMap<Class, Service>(5, 0.75f, 100);
     private static Map<String, Object> context = null;
@@ -105,18 +101,17 @@ public class Services {
 
     /* replaced by ModuleService
     public static String getEntityLocations() {
-        return entityLocations;
+    return entityLocations;
     }
 
     public static String getEntityPackages() {
-        return entityPackages;
+    return entityPackages;
     }
 
     public static Set<String> getCachedEntityTypes() {
-        return entityClassCache.keySet();
+    return entityClassCache.keySet();
     }
-    */
-
+     */
     /**
      * Creates and returns a command of the given <code>type</code>. If a command is
      * found, the corresponding service will be discovered and activated.
@@ -232,6 +227,24 @@ public class Services {
         return services;
     }
 
+    /**
+     * Return all agents
+     *
+     * @return
+     */
+    public static List<Service> getAgents() {
+
+        List<Service> services = new ArrayList<Service>();
+
+        for (Iterator<Service> it = serviceCache.values().iterator(); it.hasNext();) {
+            Service service = it.next();
+            if (service instanceof AgentService) {
+                services.add(service);
+            }
+        }
+        return services;
+    }
+
     public static void setContext(final Map<String, Object> envContext) {
         context = envContext;
     }
@@ -239,29 +252,28 @@ public class Services {
     /* replaced by ModuleService
     public static Class getEntityClass(final String name) {
 
-        logger.log(Level.FINE, "name: {0}", name);
+    logger.log(Level.FINE, "name: {0}", name);
 
-        Class nodeClass = entityClassCache.get(name);
+    Class nodeClass = entityClassCache.get(name);
 
-        if (nodeClass == null && packages != null && name != null && !(name.isEmpty())) {
+    if (nodeClass == null && packages != null && name != null && !(name.isEmpty())) {
 
-            for (String packagePath : packages) {
+    for (String packagePath : packages) {
 
-                try {
-                    nodeClass = Class.forName(packagePath + "." + name);
-                    // cache entry
-                    entityClassCache.put(name, nodeClass);
-                    break; // first match wins
-                } catch (ClassNotFoundException ex) {
-                    logger.log(Level.FINE, "Class not found: {0}.{1}", new Object[]{packagePath, name});
-                }
-            }
-        }
-
-        return nodeClass;
+    try {
+    nodeClass = Class.forName(packagePath + "." + name);
+    // cache entry
+    entityClassCache.put(name, nodeClass);
+    break; // first match wins
+    } catch (ClassNotFoundException ex) {
+    logger.log(Level.FINE, "Class not found: {0}.{1}", new Object[]{packagePath, name});
     }
-    */
+    }
+    }
 
+    return nodeClass;
+    }
+     */
     public static String getConfigValue(Map<String, Object> context, String key, String defaultValue) {
         Object value = context.get(key);
         String ret = defaultValue;

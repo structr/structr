@@ -79,6 +79,8 @@ public class Maintenance extends Admin {
     @Bindable
     protected Table servicesTable = new Table("servicesTable");
     @Bindable
+    protected Table agentsTable = new Table("agentsTable");
+    @Bindable
     protected Table initValuesTable = new Table("initValuesTable");
     @Bindable
     protected Table runtimeValuesTable = new Table("runtimeValuesTable");
@@ -135,7 +137,7 @@ public class Maintenance extends Admin {
                     long hrs = ms / (60 * 60 * 1000);
                     long min = (ms - (hrs * 60 * 60 * 1000)) / (60 * 1000);
                     long sec = (ms - (hrs * 60 * 60 * 1000) - (min * 60 * 1000)) / 1000;
-                    return hrs + " h" + min + " m " + sec + " s";
+                    return hrs + " h " + min + " m " + sec + " s";
                 } else {
                     return "more than a day";
                 }
@@ -167,11 +169,16 @@ public class Maintenance extends Admin {
         activitiesTable.setPageSize(15);
         activitiesTable.setClass(Table.CLASS_COMPLEX);
 
-
         servicesTable.addColumn(new Column("Name"));
         servicesTable.addColumn(new Column("isRunning", "Running"));
         servicesTable.setSortable(true);
         servicesTable.setClass(Table.CLASS_COMPLEX);
+
+
+        agentsTable.addColumn(new Column("Name"));
+        agentsTable.addColumn(new Column("isRunning", "Running"));
+        agentsTable.setSortable(true);
+        agentsTable.setClass(Table.CLASS_COMPLEX);
 
         initValuesTable.addColumn(new Column("key", "Parameter"));
         initValuesTable.addColumn(new Column("value", "Value"));
@@ -275,6 +282,15 @@ public class Maintenance extends Admin {
         });
 
         // fill table with all known services
+        agentsTable.setDataProvider(new DataProvider() {
+
+            @Override
+            public List<Service> getData() {
+                return Services.getAgents();
+            }
+        });
+
+                // fill table with all known agents
         servicesTable.setDataProvider(new DataProvider() {
 
             @Override

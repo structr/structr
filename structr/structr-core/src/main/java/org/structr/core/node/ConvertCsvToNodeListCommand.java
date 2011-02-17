@@ -17,6 +17,7 @@ import org.structr.common.RelType;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.UnsupportedArgumentError;
+import org.structr.core.entity.CsvFile;
 import org.structr.core.entity.File;
 import org.structr.core.entity.NodeList;
 import org.structr.core.entity.StructrNode;
@@ -36,8 +37,8 @@ public class ConvertCsvToNodeListCommand extends NodeServiceCommand {
     @Override
     public Object execute(Object... parameters) {
 
-        if (parameters == null || parameters.length == 0) {
-            throw new UnsupportedArgumentError("Emtpy arguments.");
+        if (parameters == null || parameters.length < 2) {
+            throw new UnsupportedArgumentError("Wrong number of arguments");
         }
 
         Long csvNodeId = null;
@@ -49,12 +50,24 @@ public class ConvertCsvToNodeListCommand extends NodeServiceCommand {
 
         for (Object o : parameters) {
 
+            if (o instanceof StructrNode) {
+                sourceNode = (StructrNode) o;
+
+                if (sourceNode.getType().equals(CsvFile.class.getSimpleName())) {
+                    csvFileNode = new CsvFile();
+                    csvFileNode.init(sourceNode);
+
+                    filePath = Services.getFilesPath() + "/" + csvFileNode.getRelativeFilePath();
+                }
+
+            }
+
             if (o instanceof Long) {
                 csvNodeId = (Long) o;
                 sourceNode = (StructrNode) Services.createCommand(FindNodeCommand.class).execute(new SuperUser(), csvNodeId);
 
-                if (sourceNode.getType().equals(File.class.getSimpleName())) {
-                    csvFileNode = new File();
+                if (sourceNode.getType().equals(CsvFile.class.getSimpleName())) {
+                    csvFileNode = new CsvFile();
                     csvFileNode.init(sourceNode);
 
                     filePath = Services.getFilesPath() + "/" + csvFileNode.getRelativeFilePath();
@@ -72,6 +85,8 @@ public class ConvertCsvToNodeListCommand extends NodeServiceCommand {
         }
 
         try {
+
+            // TODO: Implement auto-detection for field separator and quote characters
             CSVReader reader = new CSVReader(new FileReader(filePath), '|', '\"');
 
             // Read first line, these should be the column keys
@@ -136,7 +151,7 @@ public class ConvertCsvToNodeListCommand extends NodeServiceCommand {
                     String csvValue = line[i];
                     NodeAttribute attr = new NodeAttribute(fieldIndex.get(i), csvValue);
                     attrList.add(attr);
-                    logger.log(Level.INFO, "Created node attribute {0}={1}", new Object[]{attr.getKey(), attr.getValue()});
+                    logger.log(Level.FINEST, "Created node attribute {0}={1}", new Object[]{attr.getKey(), attr.getValue()});
                 }
 
                 StructrNode newNode = (StructrNode) transactionCommand.execute(new StructrTransaction() {
