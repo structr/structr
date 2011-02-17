@@ -31,7 +31,7 @@ import org.structr.core.entity.StructrNode;
  *
  * @author cmorgner
  */
-public interface Task extends Delayed
+public interface Task extends Delayed, StatusInfo
 {
 	/**
 	 * Returns the nodes this task should operate on.

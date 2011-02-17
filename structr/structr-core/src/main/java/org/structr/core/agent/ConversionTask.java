@@ -91,4 +91,11 @@ public class ConversionTask implements Task {
         return (d1.compareTo(d2));
     }
 
+	// ----- interface StatusInfo -----
+	@Override
+	public Object getStatusProperty(String key)
+	{
+		// TODO..
+		return(null);
+	}
 }

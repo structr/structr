@@ -5,6 +5,8 @@
 
 package org.structr.core.agent;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -15,11 +17,17 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  * @author cmorgner
  */
-public abstract class Agent extends Thread
+public abstract class Agent extends Thread implements StatusInfo
 {
+	public static final String MAX_QUEUE_SIZE =		"max_queue_size";
+	public static final String AVERAGE_EXECUTION_TIME =	"average_execution_time";
+	public static final String EXECUTION_STATUS =		"execution_status";
+
 	private final AtomicBoolean acceptingTasks = new AtomicBoolean(true);
+	private final AtomicBoolean suspended = new AtomicBoolean(false);
 	private final Queue<Task> taskQueue = new ConcurrentLinkedQueue<Task>();
 	private AgentService agentService = null;
+	private Task currentTask = null;
 
 	private long averageExecutionTime = 0;
 	private long lastStartTime = 0;
@@ -45,30 +53,44 @@ public abstract class Agent extends Thread
 
 		do
 		{
-			Task task = null;
+			while(suspended.get())
+			{
+				Thread.yield();
+			}
 
 			synchronized(taskQueue)
 			{
-				task = taskQueue.poll();
+				currentTask = taskQueue.poll();
 			}
 
-			if(task != null)
+			if(currentTask != null)
 			{
 				lastStartTime = System.nanoTime();
+				ReturnValue ret = null;
 
-				ReturnValue ret = processTask(task);
-
-				// handle return value
-				switch(ret)
+				try
 				{
-					case Success:
-					case Abort:
-						// task finished, nothing to do in these cases
-						break;
+					ret = processTask(currentTask);
 
-					case Retry:
-						// TODO: schedule task for re-execution
-						break;
+				} catch(Throwable t)
+				{
+					// someone killed us or the task processing failed..
+				}
+
+				if(ret != null)
+				{
+					// handle return value
+					switch(ret)
+					{
+						case Success:
+						case Abort:
+							// task finished, nothing to do in these cases
+							break;
+
+						case Retry:
+							// TODO: schedule task for re-execution
+							break;
+					}
 				}
 
 				long endTime = System.nanoTime();
@@ -79,14 +101,13 @@ public abstract class Agent extends Thread
 
 			} else
 			{
-				// queue is empty, unregister and
-				// quit.
-				agentService.notifyAgentStop(this);
+				// queue is empty, quit.
 				acceptingTasks.set(false);
 			}
 
 		} while(acceptingTasks.get());
 
+		agentService.notifyAgentStop(this);
 	}
 
 	public final boolean assignTask(Task task)
@@ -104,6 +125,88 @@ public abstract class Agent extends Thread
 		}
 
 		return(false);
+	}
+
+	public final Task getCurrentTask()
+	{
+		return(currentTask);
+	}
+
+	public final List<Task> getTaskQueue()
+	{
+		List<Task> ret = new LinkedList<Task>();
+		ret.addAll(taskQueue);
+
+		return(ret);
+	}
+
+	public final void killAgent()
+	{
+		// stop accepting tasks
+		acceptingTasks.set(false);
+
+		// clear queue
+		taskQueue.clear();
+
+		// interrupt running process..
+		// not sure if this works... see Thread.interrupt()'s description!
+		// may not work if the processTask method itself catches the interrupt..
+		this.interrupt();
+	}
+
+	public final void suspendAgent()
+	{
+		acceptingTasks.set(false);
+		suspended.set(true);
+
+	}
+
+	public final void resumeAgent()
+	{
+		acceptingTasks.set(true);
+		suspended.set(false);
+	}
+
+	public final boolean isSuspended()
+	{
+		return(suspended.get());
+	}
+
+	public final boolean isAcceptingTasks()
+	{
+		return(acceptingTasks.get());
+	}
+
+	public final int getMaxQueueSize()
+	{
+		return(maxQueueSize);
+	}
+
+	public final long getAverageExecutionTime()
+	{
+		return(averageExecutionTime);
+	}
+
+	// ----- interface StatusInfo -----
+	@Override
+	public Object getStatusProperty(String key)
+	{
+		if(key.equals(AVERAGE_EXECUTION_TIME))
+		{
+			return(getAverageExecutionTime());
+
+		} else
+		if(key.equals(MAX_QUEUE_SIZE))
+		{
+			return(getMaxQueueSize());
+
+		} else
+		if(key.equals(EXECUTION_STATUS))
+		{
+			// TODO.
+		}
+
+		return(null);
 	}
 	// </editor-fold>
 
@@ -169,6 +272,6 @@ public abstract class Agent extends Thread
 	 * This method will be called by the AgentService
 	 * @param task
 	 */
-	public abstract ReturnValue processTask(Task task);
+	public abstract ReturnValue processTask(Task task) throws Throwable;
 	// </editor-fold>
 }
