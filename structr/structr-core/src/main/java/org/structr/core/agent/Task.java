@@ -2,13 +2,13 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package org.structr.core.agent;
 
 import java.util.Date;
 import java.util.Set;
 import java.util.concurrent.Delayed;
 import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.User;
 
 /**
  * An experimental interface description for a structr task.
@@ -31,39 +31,46 @@ import org.structr.core.entity.StructrNode;
  *
  * @author cmorgner
  */
-public interface Task extends Delayed
-{
-	/**
-	 * Returns the nodes this task should operate on.
-	 *
-	 * TODO: Set or List?
-	 * TODO: StructrNode or StructrNode?
-	 *
-	 * @return a set of nodes relevant to this task.
-	 */
-	public Set<StructrNode> getNodes();
+public interface Task extends Delayed {
 
-	/**
-	 * Returns the priority of this task.
-	 *
-	 * @return the priority of this task
-	 */
-	public int priority();
+    /**
+     * User to process the task as
+     * 
+     * @return
+     */
+    public User getUser();
 
-	/**
-	 * Returns the time this task is scheduled for.
-	 *
-	 * TODO: return Date, long, or Calendar, or something else?
-	 * TODO: relative / absolute time? (relative only with timestamped tasks)
-	 *
-	 * @return
-	 */
-	public Date getScheduledTime();
+    /**
+     * Returns the nodes this task should operate on.
+     *
+     * TODO: Set or List?
+     * TODO: StructrNode or StructrNode?
+     *
+     * @return a set of nodes relevant to this task.
+     */
+    public Set<StructrNode> getNodes();
 
-	/**
-	 * Returns the time this task was created.
-	 *
-	 * @return the time this task was created
-	 */
-	public Date getCreationTime();
+    /**
+     * Returns the priority of this task.
+     *
+     * @return the priority of this task
+     */
+    public int priority();
+
+    /**
+     * Returns the time this task is scheduled for.
+     *
+     * TODO: return Date, long, or Calendar, or something else?
+     * TODO: relative / absolute time? (relative only with timestamped tasks)
+     *
+     * @return
+     */
+    public Date getScheduledTime();
+
+    /**
+     * Returns the time this task was created.
+     *
+     * @return the time this task was created
+     */
+    public Date getCreationTime();
 }
