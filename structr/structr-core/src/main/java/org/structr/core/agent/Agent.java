@@ -32,6 +32,7 @@ public abstract class Agent extends Thread implements StatusInfo
 	private long averageExecutionTime = 0;
 	private long lastStartTime = 0;
 	private int maxQueueSize = 10;
+        private int maxAgents = 4;
 
 	// <editor-fold defaultstate="expanded" desc="public methods">
 	public final void setAgentService(AgentService service)
@@ -186,6 +187,12 @@ public abstract class Agent extends Thread implements StatusInfo
 	{
 		return(averageExecutionTime);
 	}
+
+        public int getMaxAgents()
+	{
+		return(maxAgents);
+	}
+
 
 	// ----- interface StatusInfo -----
 	@Override

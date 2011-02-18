@@ -14,6 +14,8 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.structr.core.Command;
 import org.structr.core.RunnableService;
 import org.structr.core.Services;
@@ -23,289 +25,260 @@ import org.structr.core.module.GetAgentsCommand;
  *
  * @author cmorgner
  */
-public class AgentService extends Thread implements RunnableService
-{
-	private final Map<Class, List<Agent>> runningAgents = new ConcurrentHashMap<Class, List<Agent>>();
-	private final Map<Class, Class> agentClassCache = new ConcurrentHashMap<Class, Class>();
-	private final Queue<Task> taskQueue = new ConcurrentLinkedQueue<Task>();
-	private Set<Class> supportedCommands = null;
-	private boolean run = false;
+public class AgentService extends Thread implements RunnableService {
 
-	public AgentService()
-	{
-		super("AgentService");
+    private static final Logger logger = Logger.getLogger(AgentService.class.getName());
+    private final Map<Class, List<Agent>> runningAgents = new ConcurrentHashMap<Class, List<Agent>>();
+    private final Map<Class, Class> agentClassCache = new ConcurrentHashMap<Class, Class>();
+    private final Queue<Task> taskQueue = new ConcurrentLinkedQueue<Task>();
+    private Set<Class> supportedCommands = null;
+    private boolean run = false;
+    private int maxAgents = 4;  // TODO: make configurable
 
-		supportedCommands = new LinkedHashSet<Class>();
-		supportedCommands.add(ProcessTaskCommand.class);
-	}
+    public AgentService() {
+        super("AgentService");
 
-	public void processTask(Task task)
-	{
-		synchronized(taskQueue)
-		{
-			taskQueue.add(task);
-		}
-	}
+        supportedCommands = new LinkedHashSet<Class>();
+        supportedCommands.add(ProcessTaskCommand.class);
+    }
 
-	public Agent findAgentForTask(Task task)
-	{
-		List<Agent> agents = getRunningAgentsForTask(task.getClass());
-		synchronized(agents)
-		{
-			for(Agent agent : agents)
-			{
-				if(agent.getTaskQueue().contains(task))
-				{
-					return(agent);
-				}
-			}
-		}
+    public void processTask(Task task) {
+        synchronized (taskQueue) {
+            logger.log(Level.INFO, "Task {0} added to task queue", task);
+            taskQueue.add(task);
+        }
+    }
 
-		return(null);
-	}
+    public Agent findAgentForTask(Task task) {
+        List<Agent> agents = getRunningAgentsForTask(task.getClass());
+        synchronized (agents) {
+            for (Agent agent : agents) {
+                if (agent.getTaskQueue().contains(task)) {
+                    return (agent);
+                }
+            }
+        }
 
-	/**
-	 * Returns the current queue of remaining tasks.
-	 * @return
-	 */
-	public Collection<Task> getTaskQueue()
-	{
-		return(taskQueue);
-	}
+        return (null);
+    }
 
-	/**
-	 * Returns the current collection of running agents.
-	 * @return
-	 */
-	public Map<Class, List<Agent>> getRunningAgents()
-	{
-		return(runningAgents);
-	}
+    /**
+     * Returns the current queue of remaining tasks.
+     * @return
+     */
+    public Collection<Task> getTaskQueue() {
+        return (taskQueue);
+    }
 
-	@Override
-	public void run()
-	{
-		// FIXME: use logger here..
-		// System.out.println("AgentService.run(): started");
+    /**
+     * Returns the current collection of running agents.
+     * @return
+     */
+    public Map<Class, List<Agent>> getRunningAgents() {
+        return (runningAgents);
+    }
 
-		while(run)
-		{
-			Task nextTask = null;
+    @Override
+    public void run() {
+        // FIXME: use logger here..
+        // System.out.println("AgentService.run(): started");
+        logger.log(Level.INFO, "AgentService.run(): started");
 
-			synchronized(taskQueue)
-			{
-				nextTask = taskQueue.poll();
+        while (run) {
+            Task nextTask = null;
 
-				if(nextTask != null)
-				{
-					assignNextAgentForTask(nextTask);
-				}
+            synchronized (taskQueue) {
+                nextTask = taskQueue.poll();
 
-				// sleep a bit waiting for tasks..
-				try
-				{
-					Thread.sleep(10);
+                if (nextTask != null) {
+                    assignNextAgentForTask(nextTask);
+                }
 
-				} catch(Exception ex)
-				{
-				}
-			}
-		}
-	}
+                // sleep a bit waiting for tasks..
+                try {
+                    Thread.sleep(1);
 
-	public void notifyAgentStart(Agent agent)
-	{
-		List<Agent> agents = getRunningAgentsForTask(agent.getSupportedTaskType());
-		synchronized(agents)
-		{
-			agents.add(agent);
-		}
-	}
+                } catch (Exception ex) {
+                }
+            }
+        }
+    }
 
-	public void notifyAgentStop(Agent agent)
-	{
-		List<Agent> agents = getRunningAgentsForTask(agent.getSupportedTaskType());
+    public void notifyAgentStart(Agent agent) {
+        List<Agent> agents = getRunningAgentsForTask(agent.getSupportedTaskType());
+        synchronized (agents) {
+            agents.add(agent);
+        }
+    }
 
-		synchronized(agents)
-		{
-			agents.remove(agent);
-		}
-	}
+    public void notifyAgentStop(Agent agent) {
+        List<Agent> agents = getRunningAgentsForTask(agent.getSupportedTaskType());
 
-	// <editor-fold defaultstate="collapsed" desc="interface RunnableService">
-	@Override
-	public void injectArguments(Command command)
-	{
-		command.setArgument("agentService", this);
-	}
+        synchronized (agents) {
+            agents.remove(agent);
+        }
+    }
 
-	@Override
-	public boolean isRunning()
-	{
-		return (this.run);
-	}
+    // <editor-fold defaultstate="collapsed" desc="interface RunnableService">
+    @Override
+    public void injectArguments(Command command) {
+        command.setArgument("agentService", this);
+    }
 
-	@Override
-	public void initialize(Map<String, Object> context)
-	{
-	}
+    @Override
+    public boolean isRunning() {
+        return (this.run);
+    }
 
-	@Override
-	public void shutdown()
-	{
-	}
+    @Override
+    public void initialize(Map<String, Object> context) {
+    }
 
-	@Override
-	public void startService()
-	{
-		run = true;
-		this.start();
-	}
+    @Override
+    public void shutdown() {
+    }
 
-	@Override
-	public void stopService()
-	{
-		run = false;
-	}
-	// </editor-fold>
+    @Override
+    public void startService() {
+        run = true;
+        this.start();
+    }
 
-	// <editor-fold defaultstate="collapsed" desc="private methods">
-	private void assignNextAgentForTask(Task nextTask)
-	{
-		Class taskClass = nextTask.getClass();
-		List<Agent> agents = getRunningAgentsForTask(taskClass);
+    @Override
+    public void stopService() {
+        run = false;
+    }
+    // </editor-fold>
 
-		// need to synchronize on agents
-		synchronized(agents)
-		{
-			// find next free agent (agents should be sorted by load, so one
-			// of the first should do..
+    // <editor-fold defaultstate="collapsed" desc="private methods">
+    private void assignNextAgentForTask(Task nextTask) {
+        Class taskClass = nextTask.getClass();
+        List<Agent> agents = getRunningAgentsForTask(taskClass);
 
-			for(Agent agent : agents)
-			{
+        // need to synchronize on agents
+        synchronized (agents) {
+            // find next free agent (agents should be sorted by load, so one
+            // of the first should do..
 
-				if(agent.assignTask(nextTask))
-				{
-					// ok, task is assigned
-					return;
-				}
-			}
-		}
+            for (Agent agent : agents) {
 
-		// if we get here, task was not assigned to any agent, need to
-		// create a new one.
-		Agent agent = createAgent(nextTask);
+                if (agent.assignTask(nextTask)) {
+                    // ok, task is assigned
+                    logger.log(Level.INFO, "Task assigned to agent {0}", agent.getName());
 
-		if(agent != null && agent.assignTask(nextTask))
-		{
-			agent.start();
+                    return;
+                }
+            }
+        }
 
-		} else
-		{
-			// re-add task..
-			synchronized(taskQueue)
-			{
-				taskQueue.add(nextTask);
-			}
-		}
-	}
+        // FIXME: find better solution for hard limit here!
+        if (agents.size() < maxAgents) {
 
-	private List<Agent> getRunningAgentsForTask(Class taskClass)
-	{
-		List<Agent> agents = runningAgents.get(taskClass);
+            // if we get here, task was not assigned to any agent, need to
+            // create a new one.
+            Agent agent = createAgent(nextTask);
 
-		if(agents == null)
-		{
-			agents = Collections.synchronizedList(new LinkedList<Agent>());
+            if (agent != null && agent.assignTask(nextTask)) {
 
-			// Hashtable is synchronized
-			runningAgents.put(taskClass, agents);
-		}
+                agent.start();
+            } else {
 
-		return (agents);
-	}
+                // re-add task..
+                synchronized (taskQueue) {
+                    taskQueue.add(nextTask);
+                }
 
-	/**
-	 * Creates a new agent for the given Task. Note that the agent must be
-	 * started manually after creation.
-	 *
-	 * @param forTask
-	 * @return a new agent for the given task
-	 */
-	private Agent createAgent(Task forTask)
-	{
-		Agent agent = null;
+            }
 
-		try
-		{
-			agent = lookupAgent(forTask);
+        } else {
 
-			if(agent != null)
-			{
-				// register us in agent..
-				agent.setAgentService(this);
-			}
+            logger.log(Level.FINE, "Overall agents limit readed, re-queueing task");
+            // re-add task..
+            synchronized (taskQueue) {
+                taskQueue.add(nextTask);
+            }
+        }
+    }
 
-		} catch(Exception ex)
-		{
-			// TODO: handle exception etc..
-		}
+    private List<Agent> getRunningAgentsForTask(Class taskClass) {
+        List<Agent> agents = runningAgents.get(taskClass);
 
-		return (agent);
-	}
+        if (agents == null) {
+            agents = Collections.synchronizedList(new LinkedList<Agent>());
 
-	private Agent lookupAgent(Task task)
-	{
-		Class taskClass = task.getClass();
-		Agent agent = null;
+            // Hashtable is synchronized
+            runningAgents.put(taskClass, agents);
+        }
 
-		Class agentClass = agentClassCache.get(taskClass);
+        return (agents);
+    }
 
-		// cache miss
-		if(agentClass == null)
-		{
+    /**
+     * Creates a new agent for the given Task. Note that the agent must be
+     * started manually after creation.
+     *
+     * @param forTask
+     * @return a new agent for the given task
+     */
+    private Agent createAgent(Task forTask) {
+        Agent agent = null;
+
+        try {
+            agent = lookupAgent(forTask);
+
+            if (agent != null) {
+                // register us in agent..
+                agent.setAgentService(this);
+            }
+
+        } catch (Exception ex) {
+            // TODO: handle exception etc..
+        }
+
+        return (agent);
+    }
+
+    private Agent lookupAgent(Task task) {
+        Class taskClass = task.getClass();
+        Agent agent = null;
+
+        Class agentClass = agentClassCache.get(taskClass);
+
+        // cache miss
+        if (agentClass == null) {
 
 //            Set<Class> agentClasses = ClasspathEntityLocator.locateEntitiesByType(Agent.class);
-			Map<String, Class> agentClassesMap = (Map<String, Class>)Services.createCommand(GetAgentsCommand.class).execute();
+            Map<String, Class> agentClassesMap = (Map<String, Class>) Services.createCommand(GetAgentsCommand.class).execute();
 
-			for(String className : agentClassesMap.keySet())
-			{
+            for (String className : agentClassesMap.keySet()) {
 
-				Class supportedAgentClass = agentClassesMap.get(className);
-				try
-				{
-					Agent supportedAgent = (Agent)supportedAgentClass.newInstance();
-					Class supportedTaskClass = supportedAgent.getSupportedTaskType();
+                Class supportedAgentClass = agentClassesMap.get(className);
+                try {
+                    Agent supportedAgent = (Agent) supportedAgentClass.newInstance();
+                    Class supportedTaskClass = supportedAgent.getSupportedTaskType();
 
-					if(supportedTaskClass.equals(taskClass))
-					{
-						agentClass = supportedAgentClass;
-					}
+                    if (supportedTaskClass.equals(taskClass)) {
+                        agentClass = supportedAgentClass;
+                    }
 
-					agentClassCache.put(supportedTaskClass, supportedAgentClass);
+                    agentClassCache.put(supportedTaskClass, supportedAgentClass);
 
-				} catch(IllegalAccessException iaex)
-				{
-				} catch(InstantiationException itex)
-				{
-				}
-			}
-		}
+                } catch (IllegalAccessException iaex) {
+                } catch (InstantiationException itex) {
+                }
+            }
+        }
 
-		if(agentClass != null)
-		{
-			try
-			{
-				agent = (Agent)agentClass.newInstance();
+        if (agentClass != null) {
+            try {
+                agent = (Agent) agentClass.newInstance();
 
-			} catch(IllegalAccessException iaex)
-			{
-			} catch(InstantiationException itex)
-			{
-			}
-		}
+            } catch (IllegalAccessException iaex) {
+            } catch (InstantiationException itex) {
+            }
+        }
 
-		return (agent);
-	}
-	// </editor-fold>
+        return (agent);
+    }
+    // </editor-fold>
 }
