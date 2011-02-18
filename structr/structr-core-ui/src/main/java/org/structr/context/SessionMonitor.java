@@ -146,11 +146,11 @@ public class SessionMonitor {
             Command createNode = Services.createCommand(CreateNodeCommand.class);
             Command createRel = Services.createCommand(CreateRelationshipCommand.class);
 
-            StructrNode s = (StructrNode) createNode.execute(user,
+            activityList = (LogNodeList<Activity>) createNode.execute(user,
                     new NodeAttribute(StructrNode.TYPE_KEY, LogNodeList.class.getSimpleName()),
                     new NodeAttribute(StructrNode.NAME_KEY, user.getName() + "'s Activity Log"));
-            activityList = new LogNodeList<Activity>();
-            activityList.init(s);
+//            activityList = new LogNodeList<Activity>();
+//            activityList.init(s);
 
             createRel.execute(user, activityList, RelType.HAS_CHILD);
 

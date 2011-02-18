@@ -31,7 +31,6 @@ import org.apache.click.extras.control.FormTable;
 import org.apache.click.extras.control.IntegerField;
 import org.apache.click.extras.control.LinkDecorator;
 import org.apache.click.extras.control.PickList;
-import org.apache.click.util.Bindable;
 import org.apache.click.util.HtmlStringBuffer;
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.RelType;
@@ -68,7 +67,7 @@ public class DefaultEdit extends Nodes {
     protected ActionLink outgoingRelsControl = outgoingRelationshipsTable.getControlLink();
     protected FormTable childNodesTable = new FormTable("childNodesTable");
     protected ActionLink deleteRelationshipLink = new ActionLink("Delete Relationship", this, "onDeleteRelationship");
-    protected ActionLink deleteNodeLink = new ActionLink("Delete", this, "onDeleteNode");
+//    protected ActionLink deleteNodeLink = new ActionLink("Delete", this, "onDeleteNode");
     protected Table titlesTable = new Table(StructrNode.TITLES_KEY);
     protected FormTable securityTable = new FormTable("Security");
     protected Form securityForm = new Form("securityForm");
@@ -293,6 +292,7 @@ public class DefaultEdit extends Nodes {
             deleteRelationshipLink.setImageSrc("/images/delete.png");
             deleteRelationshipLink.setTitle("Delete relationship");
             deleteRelationshipLink.setAttribute("onclick", "return window.confirm('Please confirm delete', value);");
+            addControl(deleteRelationshipLink);
 
             Column actionColumnIn = new Column("Action");
             actionColumnIn.setTextAlign("center");

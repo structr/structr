@@ -138,18 +138,18 @@ public class LogService extends Thread implements RunnableService {
 
                 @Override
                 public Object execute() throws Throwable {
-                    LogNodeList newLogNodeList = null;
+//                    LogNodeList newLogNodeList = null;
 
                     // Create a new activity list as child node of the respective user
                     Command createNode = Services.createCommand(CreateNodeCommand.class);
                     Command createRel = Services.createCommand(CreateRelationshipCommand.class);
 
-                    StructrNode s = (StructrNode) createNode.execute(user,
+                    LogNodeList<Activity> newLogNodeList = (LogNodeList<Activity>) createNode.execute(user,
                             new NodeAttribute(StructrNode.TYPE_KEY, LogNodeList.class.getSimpleName()),
                             new NodeAttribute(StructrNode.NAME_KEY, user.getName() + "'s Activity Log"));
 
-                    newLogNodeList = new LogNodeList<Activity>();
-                    newLogNodeList.init(s);
+//                    newLogNodeList = new LogNodeList<Activity>();
+//                    newLogNodeList.init(s);
 
                     createRel.execute(user, newLogNodeList, RelType.HAS_CHILD);
 
@@ -188,12 +188,12 @@ public class LogService extends Thread implements RunnableService {
                         Command createNode = Services.createCommand(CreateNodeCommand.class);
                         Command createRel = Services.createCommand(CreateRelationshipCommand.class);
 
-                        StructrNode s = (StructrNode) createNode.execute(
+                        ret = (LogNodeList<Activity>) createNode.execute(
                                 new NodeAttribute(StructrNode.TYPE_KEY, LogNodeList.class.getSimpleName()),
                                 new NodeAttribute(StructrNode.NAME_KEY, "Global Activity Log"));
 
-                        ret = new LogNodeList<Activity>();
-                        ret.init(s);
+//                        ret = new LogNodeList<Activity>();
+//                        ret.init(s);
 
                         // load reference node and link new node to it..
                         createRel.execute(rootNode, ret, RelType.HAS_CHILD);

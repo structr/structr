@@ -257,13 +257,13 @@ public class Maintenance extends Admin {
                     for (StructrNode s : globalLog) {
 
                         if (s instanceof PageRequest) {
-                            PageRequest p = new PageRequest();
-                            p.init(s);
-                            result.add(p);
+//                            PageRequest p = new PageRequest();
+//                            p.init(s);
+                            result.add((PageRequest) s);
                         } else {
-                            Activity a = new Activity();
-                            a.init(s);
-                            result.add(a);
+//                            Activity a = new Activity();
+//                            a.init(s);
+                            result.add((Activity) s);
                         }
                     }
                 }
@@ -526,8 +526,7 @@ public class Maintenance extends Admin {
     public boolean onCreateAdminUser() {
 
         Command transactionCommand = Services.createCommand(TransactionCommand.class);
-        User admin = null;
-        admin = (User) transactionCommand.execute(new StructrTransaction() {
+        transactionCommand.execute(new StructrTransaction() {
 
             @Override
             public Object execute() throws Throwable {
@@ -535,8 +534,8 @@ public class Maintenance extends Admin {
                 Command createNode = Services.createCommand(CreateNodeCommand.class);
                 Command createRel = Services.createCommand(CreateRelationshipCommand.class);
 
-                // create a new contact person node
-                StructrNode node = (StructrNode) createNode.execute(
+                // create a new user node
+                User adminUser = (User) createNode.execute(
                         new NodeAttribute(StructrNode.TYPE_KEY, User.class.getSimpleName()),
                         new NodeAttribute(StructrNode.NAME_KEY, "admin"),
                         new SuperUser());
@@ -544,20 +543,20 @@ public class Maintenance extends Admin {
                 StructrNode rootNode = getRootNode();
 
                 // link new admin node to contact root node
-                createRel.execute(rootNode, node, RelType.HAS_CHILD);
+                createRel.execute(rootNode, adminUser, RelType.HAS_CHILD);
 
-                User user = new User();
-                user.init(node);
+//                User user = new User();
+//                user.init(node);
 
                 String password = RandomStringUtils.randomAlphanumeric(8);
                 user.setPassword(password);
 
-                okMsg = "New " + user.getType() + " node " + user.getName() + " has been created with password " + password + ".";
+                okMsg = "New " + adminUser.getType() + " node " + adminUser.getName() + " has been created with password " + password + ".";
 
-                StructrRelationship securityRel = (StructrRelationship) createRel.execute(user, rootNode, RelType.SECURITY);
+                StructrRelationship securityRel = (StructrRelationship) createRel.execute(adminUser, rootNode, RelType.SECURITY);
                 securityRel.setAllowed(Arrays.asList(StructrRelationship.ALL_PERMISSIONS));
 
-                return user;
+                return adminUser;
             }
         });
 

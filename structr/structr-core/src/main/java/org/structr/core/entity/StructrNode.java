@@ -152,10 +152,9 @@ public abstract class StructrNode implements Comparable<StructrNode> {
     public void init(final Node dbNode) {
         this.dbNode = dbNode;
         isDirty = false;
-
     }
 
-    public void init(final StructrNode node) {
+    private void init(final StructrNode node) {
         this.dbNode = node.dbNode;
         isDirty = false;
     }

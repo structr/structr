@@ -6,11 +6,8 @@ package org.structr.core.node;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.Map;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.Node;
-//import org.structr.core.ClasspathEntityLocator;
 import org.structr.core.Adapter;
 import org.structr.core.Services;
 import org.structr.core.entity.EmptyNode;
@@ -24,36 +21,24 @@ import org.structr.core.module.GetEntityClassCommand;
  *
  * @author cmorgner
  */
-public class StructrNodeFactory<T extends StructrNode> implements Adapter<Node, T>
-{
+public class StructrNodeFactory<T extends StructrNode> implements Adapter<Node, T> {
 
     private static final Logger logger = Logger.getLogger(StructrNodeFactory.class.getName());
-    private Map<String, Class> nodeTypeCache = new ConcurrentHashMap<String, Class>();
+    //private Map<String, Class> nodeTypeCache = new ConcurrentHashMap<String, Class>();
 
     public StructrNodeFactory() {
-//        Set<Class> nodeTypes = ClasspathEntityLocator.locateEntitiesByType(StructrNode.class);
-//
-//        for (Class nodeClass : nodeTypes) {
-//
-//            // FIXME: determining node type by using the simple class name (without "Impl")!
-//            String nodeType = nodeClass.getSimpleName();
-//            if (nodeType.endsWith("Impl")) {
-//                nodeType = nodeType.substring(0, nodeType.length() - 4);
-//            }
-//
-//            nodeTypeCache.put(nodeType, nodeClass);
-//            logger.log(Level.FINEST, "Class for nodeType {0} added: {1}", new Object[]{nodeType, nodeClass.getCanonicalName()});
-//        }
     }
 
-    public StructrNode createNode(Node node)
-    {
+    public StructrNode createNode(final Node node) {
+
         String nodeType = node.hasProperty(StructrNode.TYPE_KEY) ? (String) node.getProperty(StructrNode.TYPE_KEY) : "";
+        return createNode(node, nodeType);
 
-	//Class nodeClass = nodeTypeCache.get(nodeType);
-        //Class nodeClass = Services.getEntityClass(nodeType);
+    }
 
-	Class nodeClass = (Class)Services.createCommand(GetEntityClassCommand.class).execute(nodeType);
+    public StructrNode createNode(final Node node, final String nodeType) {
+
+        Class nodeClass = (Class) Services.createCommand(GetEntityClassCommand.class).execute(nodeType);
         StructrNode ret = null;
 
         if (nodeClass != null) {
@@ -72,7 +57,7 @@ public class StructrNodeFactory<T extends StructrNode> implements Adapter<Node, 
 
         ret.init(node);
 
-        return (ret);
+        return ret;
     }
 
     public List<StructrNode> createNodes(Iterable<Node> input) {
@@ -80,11 +65,10 @@ public class StructrNodeFactory<T extends StructrNode> implements Adapter<Node, 
         List<StructrNode> nodes = new ArrayList<StructrNode>();
         if (input != null && input.iterator().hasNext()) {
 
-
             for (Node node : input) {
 
                 StructrNode structrNode = createNode(node);
-                structrNode.init(node);
+                //structrNode.init(node);
 
                 nodes.add(structrNode);
             }
@@ -92,14 +76,13 @@ public class StructrNodeFactory<T extends StructrNode> implements Adapter<Node, 
         return nodes;
     }
 
-    @Override
-    protected void finalize() throws Throwable {
-        nodeTypeCache.clear();
-    }
+//    @Override
+//    protected void finalize() throws Throwable {
+//        nodeTypeCache.clear();
+//    }
 
-	@Override
-	public T adapt(Node s)
-	{
-		return((T)createNode(s));
-	}
+    @Override
+    public T adapt(Node s) {
+        return ((T) createNode(s));
+    }
 }

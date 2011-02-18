@@ -6,6 +6,7 @@ package org.structr.core.node;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -100,7 +101,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
                 if (topNode != null) {
                     result = topNode.getAllChildren(user);
                 } else {
-                    result = new ArrayList<StructrNode>();
+                    result = new LinkedList<StructrNode>();
                 }
 
             } else {
@@ -109,7 +110,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
                 if (topNode != null) {
                     intermediateResult = topNode.getAllChildren(user);
                 } else {
-                    intermediateResult = new ArrayList<StructrNode>();
+                    intermediateResult = new LinkedList<StructrNode>();
                 }
 
                 for (SearchAttribute attr : searchAttrs) {

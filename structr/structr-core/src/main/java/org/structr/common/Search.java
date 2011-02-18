@@ -97,6 +97,11 @@ public abstract class Search {
         return attr;
     }
 
+    public static SearchAttribute andNotHidden() {
+        SearchAttribute attr = new SearchAttribute(StructrNode.HIDDEN_KEY, true, SearchOperator.AND_NOT);
+        return attr;
+    }
+
     private static String exactMatch(final String searchString) {
         return ("\"" + searchString + "\"");
     }

@@ -31,262 +31,236 @@ import org.structr.core.entity.User;
  *
  * @author axel
  */
-public class ConvertCsvToNodeListCommand extends NodeServiceCommand
-{
-	private static final Logger logger = Logger.getLogger(ConvertCsvToNodeListCommand.class.getName());
+public class ConvertCsvToNodeListCommand extends NodeServiceCommand {
 
-	@Override
-	public Object execute(Object... parameters)
-	{
+    private static final Logger logger = Logger.getLogger(ConvertCsvToNodeListCommand.class.getName());
 
-		if(parameters == null || parameters.length < 2)
-		{
-			throw new UnsupportedArgumentError("Wrong number of arguments");
-		}
+    @Override
+    public Object execute(Object... parameters) {
 
-		Long csvNodeId = null;
-		StructrNode sourceNode = null;
-		Class targetClass = null;
-		File csvFileNode = null;
-		String filePath = null;
-		User user = null;
+        if (parameters == null || parameters.length < 2) {
+            throw new UnsupportedArgumentError("Wrong number of arguments");
+        }
 
-		for(Object o : parameters)
-		{
+        Long csvNodeId = null;
+        StructrNode sourceNode = null;
+        Class targetClass = null;
+        CsvFile csvFileNode = null;
+        String filePath = null;
+        User user = null;
 
-			if(o instanceof StructrNode)
-			{
-				sourceNode = (StructrNode)o;
+        for (Object o : parameters) {
 
-				if(sourceNode.getType().equals(CsvFile.class.getSimpleName()))
-				{
-					csvFileNode = new CsvFile();
-					csvFileNode.init(sourceNode);
+            if (o instanceof CsvFile) {
 
-					filePath = Services.getFilesPath() + "/" + csvFileNode.getRelativeFilePath();
-				}
+                csvFileNode = (CsvFile) o;
+                filePath = Services.getFilesPath() + "/" + csvFileNode.getRelativeFilePath();
 
-			}
+            }
 
-			if(o instanceof Long)
-			{
-				csvNodeId = (Long)o;
-				sourceNode = (StructrNode)Services.createCommand(FindNodeCommand.class).execute(new SuperUser(), csvNodeId);
+            if (o instanceof Long) {
+                csvNodeId = (Long) o;
+                sourceNode = (StructrNode) Services.createCommand(FindNodeCommand.class).execute(new SuperUser(), csvNodeId);
 
-				if(sourceNode.getType().equals(CsvFile.class.getSimpleName()))
-				{
-					csvFileNode = new CsvFile();
-					csvFileNode.init(sourceNode);
+                if (sourceNode instanceof CsvFile) {
+                    csvFileNode = (CsvFile) sourceNode;
 
-					filePath = Services.getFilesPath() + "/" + csvFileNode.getRelativeFilePath();
-				}
-			}
+                    filePath = Services.getFilesPath() + "/" + csvFileNode.getRelativeFilePath();
+                }
+            }
 
-			if(o instanceof Class)
-			{
-				targetClass = (Class)o;
-			}
+            if (o instanceof Class) {
+                targetClass = (Class) o;
+            }
 
-			if(o instanceof User)
-			{
-				user = (User)o;
-			}
+            if (o instanceof User) {
+                user = (User) o;
+            }
 
-		}
+        }
 
-		try
-		{
+        try {
 
-			// TODO: Implement auto-detection for field separator and quote characters
-			CSVReader reader = new CSVReader(new FileReader(filePath), '|', '\"');
+            // TODO: Implement auto-detection for field separator and quote characters
+            CSVReader reader = new CSVReader(new FileReader(filePath), '|', '\"');
 
-			// Read first line, these should be the column keys
-			String[] keys = reader.readNext();
+            // Read first line, these should be the column keys
+            String[] keys = reader.readNext();
 
-			// Get the fields of the target node
-			Field[] fields = targetClass.getFields();
+            // Get the fields of the target node
+            Field[] fields = targetClass.getFields();
 
-			// The field index stores the field name of a column
-			Map<Integer, String> fieldIndex = new HashMap<Integer, String>();
+            // The field index stores the field name of a column
+            Map<Integer, String> fieldIndex = new HashMap<Integer, String>();
 
-			// Instanciate object
-			StructrNode o = (StructrNode)targetClass.newInstance();
+            // Instanciate object
+            StructrNode o = (StructrNode) targetClass.newInstance();
 
-			int col = 0;
-			// Match with fields
-			for(String key : keys)
-			{
+            int col = 0;
+            // Match with fields
+            for (String key : keys) {
 
-				for(Field f : fields)
-				{
+                for (Field f : fields) {
 
-					String fieldName = (String)f.get(o);
+                    String fieldName = (String) f.get(o);
 
-					if(fieldName.toUpperCase().equals(key.toUpperCase()))
-					{
-						fieldIndex.put(col, fieldName);
-					}
+                    if (fieldName.toUpperCase().equals(key.toUpperCase())) {
+                        fieldIndex.put(col, fieldName);
+                    }
 
-				}
-				col++;
-			}
+                }
+                col++;
+            }
 
-			for(Entry<Integer, String> entry : fieldIndex.entrySet())
-			{
-				Integer i = entry.getKey();
-				String v = entry.getValue();
+            for (Entry<Integer, String> entry : fieldIndex.entrySet()) {
+                Integer i = entry.getKey();
+                String v = entry.getValue();
 
-				System.out.println("v: " + v + ", i: " + i);
-			}
+                System.out.println("v: " + v + ", i: " + i);
+            }
 
 //			List<String[]> lines = reader.readAll();
 
-			final User userCopy = user;
-			final StructrNode sourceNodeCopy = sourceNode;
+            final User userCopy = user;
+            final StructrNode sourceNodeCopy = sourceNode;
 
-			final Command transactionCommand = Services.createCommand(TransactionCommand.class);
-			final Command createNode = Services.createCommand(CreateNodeCommand.class);
-			final Command createRel = Services.createCommand(CreateRelationshipCommand.class);
+            final Command transactionCommand = Services.createCommand(TransactionCommand.class);
+            final Command createNode = Services.createCommand(CreateNodeCommand.class);
+            final Command createRel = Services.createCommand(CreateRelationshipCommand.class);
 
-			final NodeList<StructrNode> nodeListNode = (NodeList<StructrNode>)transactionCommand.execute(new StructrTransaction()
-			{
-				@Override
-				public Object execute() throws Throwable
-				{
+            final NodeList<StructrNode> nodeListNode = (NodeList<StructrNode>) transactionCommand.execute(new StructrTransaction() {
 
-					NodeList<StructrNode> result = new NodeList<StructrNode>();
-					// If the node list node doesn't exist, create one
-					StructrNode s = (StructrNode)createNode.execute(userCopy,
-						new NodeAttribute(StructrNode.TYPE_KEY, NodeList.class.getSimpleName()),
-						new NodeAttribute(StructrNode.NAME_KEY, sourceNodeCopy.getName() + " List"));
-					result.init(s);
+                @Override
+                public Object execute() throws Throwable {
 
-					createRel.execute(sourceNodeCopy, result, RelType.HAS_CHILD);
-					return result;
-				}
-			});
+                    // If the node list node doesn't exist, create one
+                    NodeList<StructrNode> result = (NodeList) createNode.execute(userCopy,
+                            new NodeAttribute(StructrNode.TYPE_KEY, NodeList.class.getSimpleName()),
+                            new NodeAttribute(StructrNode.NAME_KEY, sourceNodeCopy.getName() + " List"));
+
+                    createRel.execute(sourceNodeCopy, result, RelType.HAS_CHILD);
+                    return result;
+                }
+            });
 
 
-			final List<List<NodeAttribute>> creationList = new LinkedList<List<NodeAttribute>>();
-			String targetClassName = targetClass.getSimpleName();
-			String[] line = null;
-			do
-			{
-				// read line, one at a time
-				try { line = reader.readNext(); } catch(Throwable t) { }
+            final List<List<NodeAttribute>> creationList = new LinkedList<List<NodeAttribute>>();
+            String targetClassName = targetClass.getSimpleName();
+            String[] line = null;
+            do {
+                // read line, one at a time
+                try {
+                    line = reader.readNext();
+                } catch (Throwable t) {
+                }
 
-				if(line != null)
-				{
-					// create a new list for each item
-					List<NodeAttribute> nodeAttributes = new LinkedList<NodeAttribute>();
-					nodeAttributes.add(new NodeAttribute(StructrNode.TYPE_KEY, targetClassName));
+                if (line != null) {
+                    // create a new list for each item
+                    List<NodeAttribute> nodeAttributes = new LinkedList<NodeAttribute>();
+                    nodeAttributes.add(new NodeAttribute(StructrNode.TYPE_KEY, targetClassName));
 
-					for(int i = 0; i < col; i++)
-					{
-						String csvValue = line[i];
-						String key = fieldIndex.get(i);
+                    for (int i = 0; i < col; i++) {
+                        String csvValue = line[i];
+                        String key = fieldIndex.get(i);
 
-						nodeAttributes.add(new NodeAttribute(key, csvValue));
-					}
+                        nodeAttributes.add(new NodeAttribute(key, csvValue));
+                    }
 
-					// add node attributes to creation list
-					creationList.add(nodeAttributes);
-				}
-
-
-			} while(line != null);
-
-			reader.close();
-
-			// everything in one transaction
-			transactionCommand.execute(new StructrTransaction()
-			{
-				@Override
-				public Object execute() throws Throwable
-				{
-					List<StructrNode> nodesToAdd = new LinkedList<StructrNode>();
-					for(List<NodeAttribute> attrList : creationList)
-					{
-						nodesToAdd.add((StructrNode)createNode.execute(attrList));
-					}
-
-					// use bulk add
-					nodeListNode.addAll(nodesToAdd);
-
-					return(null);
-				}
-			});
+                    // add node attributes to creation list
+                    creationList.add(nodeAttributes);
+                }
 
 
-			/*
-			final List<NodeAttribute> attrList = new ArrayList<NodeAttribute>();
+            } while (line != null);
 
-			 NodeAttribute typeAttr = new NodeAttribute(StructrNode.TYPE_KEY, targetClass.getSimpleName());
-			attrList.add(typeAttr);
+            reader.close();
 
-			String[] line = null;
+            // everything in one transaction
+            transactionCommand.execute(new StructrTransaction() {
 
-			do
-			{
-				try
-				{
-					line = reader.readNext();
+                @Override
+                public Object execute() throws Throwable {
+                    List<StructrNode> nodesToAdd = new LinkedList<StructrNode>();
+                    for (List<NodeAttribute> attrList : creationList) {
+                        nodesToAdd.add((StructrNode) createNode.execute(attrList));
+                    }
 
-				} catch(Throwable t)
-				{
-					line = null;
-				}
+                    // use bulk add
+                    nodeListNode.addAll(nodesToAdd);
 
-				if(line != null)
-				{
-					for(int i = 0; i < col; i++)
-					{
+                    return (null);
+                }
+            });
 
-						String csvValue = line[i];
-						String key = fieldIndex.get(i);
-						
-						System.out.println("Creating attribute " + key + " = '" + csvValue + "'..");
-						
-						NodeAttribute attr = new NodeAttribute(key, csvValue);
-						attrList.add(attr);
 
-						logger.log(Level.FINEST, "Created node attribute {0}={1}", new Object[]
-							{
-								attr.getKey(), attr.getValue()
-							});
-					}
+            /*
+            final List<NodeAttribute> attrList = new ArrayList<NodeAttribute>();
 
-					StructrNode newNode = (StructrNode)transactionCommand.execute(new StructrTransaction()
-					{
-						@Override
-						public Object execute() throws Throwable
-						{
-							Command createNode = Services.createCommand(CreateNodeCommand.class);
+            NodeAttribute typeAttr = new NodeAttribute(StructrNode.TYPE_KEY, targetClass.getSimpleName());
+            attrList.add(typeAttr);
 
-							// Create new node
-							StructrNode newNode = (StructrNode)createNode.execute(userCopy, attrList);
-							transactionCommand.setExitCode(createNode.getExitCode());
-							transactionCommand.setErrorMessage(createNode.getErrorMessage());
-							return newNode;
-						}
-					});
+            String[] line = null;
 
-					nodeListNode.add(newNode);
-					logger.log(Level.INFO, "Node {0} added to node list", newNode.getId());
-				}
+            do
+            {
+            try
+            {
+            line = reader.readNext();
 
-			} while(line != null);
-			*/
+            } catch(Throwable t)
+            {
+            line = null;
+            }
 
-			return nodeListNode;
+            if(line != null)
+            {
+            for(int i = 0; i < col; i++)
+            {
 
-		} catch(Throwable t)
-		{
-			// TODO: use logger
-			t.printStackTrace(System.out);
-		}
+            String csvValue = line[i];
+            String key = fieldIndex.get(i);
 
-		return null;
+            System.out.println("Creating attribute " + key + " = '" + csvValue + "'..");
 
-	}
+            NodeAttribute attr = new NodeAttribute(key, csvValue);
+            attrList.add(attr);
+
+            logger.log(Level.FINEST, "Created node attribute {0}={1}", new Object[]
+            {
+            attr.getKey(), attr.getValue()
+            });
+            }
+
+            StructrNode newNode = (StructrNode)transactionCommand.execute(new StructrTransaction()
+            {
+            @Override
+            public Object execute() throws Throwable
+            {
+            Command createNode = Services.createCommand(CreateNodeCommand.class);
+
+            // Create new node
+            StructrNode newNode = (StructrNode)createNode.execute(userCopy, attrList);
+            transactionCommand.setExitCode(createNode.getExitCode());
+            transactionCommand.setErrorMessage(createNode.getErrorMessage());
+            return newNode;
+            }
+            });
+
+            nodeListNode.add(newNode);
+            logger.log(Level.INFO, "Node {0} added to node list", newNode.getId());
+            }
+
+            } while(line != null);
+             */
+
+            return nodeListNode;
+
+        } catch (Throwable t) {
+            // TODO: use logger
+            t.printStackTrace(System.out);
+        }
+
+        return null;
+
+    }
 }

@@ -6,7 +6,9 @@ package org.structr.core.node;
 
 import java.util.Arrays;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.structr.common.RelType;
@@ -40,51 +42,67 @@ public class CreateNodeCommand extends NodeServiceCommand {
 
         if (graphDb != null) {
 
-            // create empty node (has no type yet)
-            node = nodeFactory.createNode(graphDb.createNode());
             Date now = new Date();
+
+            Command createRel = Services.createCommand(CreateRelationshipCommand.class);
+            Command indexNode = Services.createCommand(IndexNodeCommand.class);
+
+            List<NodeAttribute> attrs = new LinkedList<NodeAttribute>();
 
             // initialize node from parameters...
             for (Object o : parameters) {
 
                 if (o instanceof List) {
 
-                    List<NodeAttribute> attrs = (List<NodeAttribute>) o;
-                    for (NodeAttribute attr : attrs) {
-                        node.setProperty(attr.getKey(), attr.getValue());
-
-                    }
+                    attrs = (List<NodeAttribute>) o;
 
                 } else if (o instanceof NodeAttribute) {
 
                     NodeAttribute attr = (NodeAttribute) o;
-                    node.setProperty(attr.getKey(), attr.getValue());
+                    attrs.add(attr);
 
                 } else if (o instanceof User) {
 
                     user = (User) o;
-
-                    if (!(user instanceof SuperUser)) {
-
-                        Command createRel = Services.createCommand(CreateRelationshipCommand.class);
-                        createRel.execute(user, node, RelType.OWNS);
-
-                        StructrRelationship securityRel = (StructrRelationship) createRel.execute(user, node, RelType.SECURITY);
-                        securityRel.setAllowed(Arrays.asList(StructrRelationship.ALL_PERMISSIONS));
-                    }
-
+                    
                 }
             }
 
+            // Determine node type
+            String nodeType = null;
+            for (NodeAttribute attr : attrs) {
+                if (StructrNode.TYPE_KEY.equals(attr.getKey())) {
+                    nodeType = (String) attr.getValue();
+                }
+            }
+
+            // Create node with type
+            node = nodeFactory.createNode(graphDb.createNode(), nodeType);
+            logger.log(Level.FINE, "Node {0} created", node.getId());
+
+
+            for (NodeAttribute attr : attrs) {
+                node.setProperty(attr.getKey(), attr.getValue());
+                logger.log(Level.FINEST, "Set node attribute {0} to {1}", new Object[]{attr.getKey(), attr.getValue()});
+            }
+            attrs.clear();
+
             if (user != null && !(user instanceof SuperUser)) {
+                createRel.execute(user, node, RelType.OWNS);
+                logger.log(Level.FINEST, "Relationship to owner {0} added", user.getName());
+
+                StructrRelationship securityRel = (StructrRelationship) createRel.execute(user, node, RelType.SECURITY);
+                securityRel.setAllowed(Arrays.asList(StructrRelationship.ALL_PERMISSIONS));
+                logger.log(Level.FINEST, "All permissions given to user {0}", user.getName());
+
                 node.setProperty(StructrNode.CREATED_BY_KEY, user.getRealName() + " (" + user.getName() + ")");
             }
             node.setProperty(StructrNode.CREATED_DATE_KEY, now);
             node.setProperty(StructrNode.LAST_MODIFIED_DATE_KEY, now);
 
             // index the database node we just created
-            Command indexNode = Services.createCommand(IndexNodeCommand.class);
             indexNode.execute(node.getId());
+            logger.log(Level.FINE, "Node {0} indexed.", node.getId());
 
         }
 
