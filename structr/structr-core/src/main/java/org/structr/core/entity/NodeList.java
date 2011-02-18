@@ -80,8 +80,15 @@ public class NodeList<T extends StructrNode> extends StructrNode implements List
      *
      * @return the first node of this list, or null
      */
-    public T getFirstNode() {
-        return ((T) factory.execute(getFirstRawNode()));
+    public T getFirstNode()
+    {
+	    Node node = getFirstRawNode();
+	    if(node != null)
+	    {
+		return ((T) factory.execute(node));
+	    }
+
+	    return(null);
     }
 
     /**

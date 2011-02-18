@@ -82,7 +82,7 @@ public class AgentService extends Thread implements RunnableService {
     public void run() {
         // FIXME: use logger here..
         // System.out.println("AgentService.run(): started");
-        logger.log(Level.INFO, "AgentService.run(): started");
+        logger.log(Level.INFO, "AgentService started");
 
         while (run) {
             Task nextTask = null;
