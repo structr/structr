@@ -290,7 +290,7 @@ public class Maintenance extends Admin {
             }
         });
 
-                // fill table with all known agents
+        // fill table with all known agents
         servicesTable.setDataProvider(new DataProvider() {
 
             @Override
@@ -571,15 +571,16 @@ public class Maintenance extends Admin {
      */
     public boolean onRemoveThumbnails() {
 
-        // Find all image nodes
-        Command searchNode = Services.createCommand(SearchNodeCommand.class);
-        final List<StructrNode> images = (List<StructrNode>) searchNode.execute(null, null, true, false, new SearchAttribute(StructrNode.TYPE_KEY, Image.class.getSimpleName(), SearchOperator.OR));
 
         final Command transactionCommand = Services.createCommand(TransactionCommand.class);
         transactionCommand.execute(new StructrTransaction() {
 
             @Override
             public Object execute() throws Throwable {
+
+                // Find all image nodes
+                Command searchNode = Services.createCommand(SearchNodeCommand.class);
+                List<StructrNode> images = (List<StructrNode>) searchNode.execute(null, null, true, false, new SearchAttribute(StructrNode.TYPE_KEY, Image.class.getSimpleName(), SearchOperator.AND));
 
                 Command deleteNode = Services.createCommand(DeleteNodeCommand.class);
                 Command deleteRel = Services.createCommand(DeleteRelationshipCommand.class);
@@ -588,10 +589,10 @@ public class Maintenance extends Admin {
                 for (StructrNode s : images) {
 
                     // Does it have thumbnails?
-                    if (s.hasRelationship(RelType.THUMBNAIL, Direction.OUTGOING)) {
+                    if (s.hasRelationship(RelType.THUMBNAIL, Direction.INCOMING)) {
 
                         // Remove any thumbnail and incoming thumbnail relationship
-                        List<StructrRelationship> rels = (List<StructrRelationship>) s.getRelationships(RelType.THUMBNAIL, Direction.OUTGOING);
+                        List<StructrRelationship> rels = (List<StructrRelationship>) s.getRelationships(RelType.THUMBNAIL, Direction.INCOMING);
                         for (StructrRelationship r : rels) {
 
                             StructrNode t = r.getEndNode();

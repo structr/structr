@@ -36,19 +36,19 @@ public class Image extends File {
     public final static String WIDTH_KEY = "width";
     public final static String HEIGHT_KEY = "height";
 
-    public String getWidth() {
-        return (String) getProperty(WIDTH_KEY);
+    public int getWidth() {
+        return getIntProperty(WIDTH_KEY);
     }
 
-    public String getHeight() {
-        return (String) getProperty(HEIGHT_KEY);
+    public int getHeight() {
+        return getIntProperty(HEIGHT_KEY);
     }
 
-    public void setWidth(String width) {
+    public void setWidth(int width) {
         setProperty(WIDTH_KEY, width);
     }
 
-    public void setHeight(String height) {
+    public void setHeight(int height) {
         setProperty(HEIGHT_KEY, height);
     }
 
@@ -191,6 +191,9 @@ public class Image extends File {
         Image thumbnail = null;
         final Image originalImage = this;
 
+        int origWidth = originalImage.getWidth();
+        int origHeight = originalImage.getHeight();
+
         if (thumbnailRelationships != null && !(thumbnailRelationships.isEmpty())) {
 
             for (StructrRelationship r : thumbnailRelationships) {
@@ -199,8 +202,10 @@ public class Image extends File {
                 Integer h = (Integer) r.getProperty(Image.HEIGHT_KEY);
 
                 if (w != null && h != null) {
+
                     if ((w == maxWidth && h <= maxHeight)
-                        || (w <= maxWidth && h == maxHeight))
+                        || (w <= maxWidth && h == maxHeight)
+                        || (origWidth <= w && origHeight <= h)) // orginal image is equal or smaller than requested size
                     {
                         thumbnail = (Image) r.getEndNode();
 
@@ -226,24 +231,21 @@ public class Image extends File {
 
                 Command createNode = Services.createCommand(CreateNodeCommand.class);
                 Command createRel = Services.createCommand(CreateRelationshipCommand.class);
-                Command findNode = Services.createCommand(FindNodeCommand.class);
+//                Command findNode = Services.createCommand(FindNodeCommand.class);
 
                 NodeAttribute typeAttr = new NodeAttribute(StructrNode.TYPE_KEY, Image.class.getSimpleName());
                 NodeAttribute nameAttr = new NodeAttribute(Image.NAME_KEY, originalImage.getName() + "_thumb");
 
-                // create new node
-                StructrNode newNode = (StructrNode) createNode.execute(user, typeAttr, nameAttr);
+                // create thumbnail node
+                Image thumbnail = (Image) createNode.execute(user, typeAttr, nameAttr);
 
-                if (newNode != null) {
-
-                    // re-find node as image node
-                    Image tn = (Image) findNode.execute(user, newNode.getId());
+                if (thumbnail != null) {
 
                     // create a thumbnail relationship
-                    StructrRelationship thumbnailRelationship = (StructrRelationship) createRel.execute(originalImage, tn, RelType.THUMBNAIL);
+                    StructrRelationship thumbnailRelationship = (StructrRelationship) createRel.execute(originalImage, thumbnail, RelType.THUMBNAIL);
 
                     // determine properties
-                    String relativeFilePath = tn.getId() + "_" + System.currentTimeMillis();
+                    String relativeFilePath = thumbnail.getId() + "_" + System.currentTimeMillis();
                     String path = Services.getFilesPath() + "/" + relativeFilePath;
                     java.io.File imageFile = new java.io.File(path);
 
@@ -258,15 +260,21 @@ public class Image extends File {
 
                     // set size
                     long size = imageFile.length();
-                    tn.setSize(size);
+                    thumbnail.setSize(size);
 
-                    thumbnailRelationship.setProperty(Image.WIDTH_KEY, thumbnailData.getWidth());
-                    thumbnailRelationship.setProperty(Image.HEIGHT_KEY, thumbnailData.getHeight());
+                    int tnWidth = thumbnailData.getWidth();
+                    int tnHeight = thumbnailData.getHeight();
+
+                    thumbnailRelationship.setProperty(Image.WIDTH_KEY, tnWidth);
+                    thumbnailRelationship.setProperty(Image.HEIGHT_KEY, tnHeight);
 
                     // set local file url
-                    tn.setRelativeFilePath(relativeFilePath);
+                    thumbnail.setRelativeFilePath(relativeFilePath);
 
-                    return tn;
+                    // Set name to reflect thumbnail size
+                    thumbnail.setName(thumbnail.getName() + "_" + tnWidth + "x" + tnHeight);
+
+                    return thumbnail;
 
                 } else {
                     return null;

@@ -8,7 +8,6 @@ import org.apache.click.control.FieldSet;
 import org.apache.click.control.PageLink;
 import org.apache.click.control.TextField;
 import org.apache.click.extras.control.LongField;
-import org.apache.click.util.Bindable;
 import org.structr.core.entity.File;
 
 /**

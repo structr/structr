@@ -158,6 +158,7 @@ public class StructrPage extends Page {
 
         super.onInit();
 
+
         if (user != null) {
             sessionId = (Long) getContext().getRequest().getSession().getAttribute(SessionMonitor.SESSION_ID);
             SessionMonitor.logPageRequest(user, sessionId, "Page Request", getContext().getRequest());
@@ -165,6 +166,10 @@ public class StructrPage extends Page {
 
         //nodeId = getNodeId();
         node = getNodeByIdOrPath(nodeId);
+
+        if (node == null) {
+            return;
+        }
 
         if (isSuperUser) {
 
@@ -489,7 +494,7 @@ public class StructrPage extends Page {
     protected boolean redirect() {
 
         Map<String, String> parameters = new HashMap<String, String>();
-        
+
         if (StringUtils.isNotEmpty(okMsg)) {
             parameters.put(OK_MSG_KEY, okMsg);
         }
