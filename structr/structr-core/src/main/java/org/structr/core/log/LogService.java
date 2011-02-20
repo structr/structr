@@ -4,8 +4,8 @@
  */
 package org.structr.core.log;
 
-import java.util.Hashtable;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -17,7 +17,6 @@ import org.structr.core.RunnableService;
 import org.structr.core.Services;
 import org.structr.core.entity.StructrNode;
 import org.structr.core.entity.StructrRelationship;
-import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
 import org.structr.core.entity.log.Activity;
 import org.structr.core.entity.log.LogNodeList;
@@ -39,7 +38,7 @@ import org.structr.core.node.TransactionCommand;
  */
 public class LogService extends Thread implements RunnableService {
 
-    private static final Hashtable<User, LogNodeList<Activity>> loggerCache = new Hashtable<User, LogNodeList<Activity>>();
+    private static final ConcurrentHashMap<User, LogNodeList<Activity>> loggerCache = new ConcurrentHashMap<User, LogNodeList<Activity>>();
     private static final Logger logger = Logger.getLogger(LogService.class.getName());
     private static final ConcurrentLinkedQueue queue = new ConcurrentLinkedQueue();
     private static final long DefaultInterval = TimeUnit.SECONDS.toMillis(10);

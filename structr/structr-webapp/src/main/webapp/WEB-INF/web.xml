@@ -80,7 +80,7 @@
     </servlet-mapping>
     <!--  custom context parameter start -->
     <context-param>
-        <description>Config file, overrides values from web.xml</description>
+        <description>Config file, relative to base path</description>
         <param-name>configfile.path</param-name>
         <param-value>/opt/structr/structr.conf</param-value>
     </context-param>
@@ -88,6 +88,11 @@
         <description>Application Title</description>
         <param-name>application.title</param-name>
         <param-value>structr app</param-value>
+    </context-param>
+    <context-param>
+        <description>Local filesystem path for temporary files</description>
+        <param-name>tmp.path</param-name>
+        <param-value>/tmp</param-value>
     </context-param>
     <context-param>
         <description>Local filesystem path for embedded Neo4j database files</description>

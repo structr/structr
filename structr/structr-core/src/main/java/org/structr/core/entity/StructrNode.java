@@ -835,14 +835,29 @@ public abstract class StructrNode implements Comparable<StructrNode> {
     }
 
     /**
-     * Set a property in database backend
+     * Set a property in database backend without updating index
      *
      * Set property only if value has changed
-     *
+     * 
      * @param key
      * @param value
      */
     public void setProperty(final String key, final Object value) {
+        setProperty(key, value, false);
+    }
+
+    /**
+     * Set a property in database backend
+     *
+     * Set property only if value has changed
+     *
+     * Update index only if updateIndex is true
+     *
+     * @param key
+     * @param value
+     * @param updateIndex
+     */
+    public void setProperty(final String key, final Object value, final boolean updateIndex) {
 
         if (isDirty) {
 
@@ -891,8 +906,13 @@ public abstract class StructrNode implements Comparable<StructrNode> {
                         }
                     }
 
-                    Command indexProperty = Services.createCommand(IndexNodeCommand.class);
-                    return indexProperty.execute(getId(), key, value);
+                    // Don't automaticall update index
+                    // TODO: Implement something fast to keep the index automatically in sync
+                    if (updateIndex) {
+                        Services.createCommand(IndexNodeCommand.class).execute(getId(), key, value);
+                    }
+
+                    return null;
                 }
             });
 

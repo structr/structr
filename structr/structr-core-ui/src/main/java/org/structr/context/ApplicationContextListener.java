@@ -48,32 +48,60 @@ public class ApplicationContextListener implements ServletContextListener, HttpS
             String appTitle = properties.getProperty(Services.APPLICATION_TITLE);
             logger.log(Level.INFO, "Config file: Application title: {0}", appTitle);
 
+            String tmpPath = properties.getProperty(Services.TMP_PATH_IDENTIFIER);
+            logger.log(Level.INFO, "Config file: Temp path: {0}", tmpPath);
+
             String databasePath = properties.getProperty(Services.DATABASE_PATH_IDENTIFIER);
             logger.log(Level.INFO, "Config file: Database path: {0}", databasePath);
 
             String filesPath = properties.getProperty(Services.FILES_PATH_IDENTIFIER);
             logger.log(Level.INFO, "Config file: Files path: {0}", filesPath);
 
-            String pluginsPath = properties.getProperty(Services.MODULES_PATH_IDENTIFIER);
-            logger.log(Level.INFO, "Config file: Plugins path: {0}", pluginsPath);
+            String modulesPath = properties.getProperty(Services.MODULES_PATH_IDENTIFIER);
+            logger.log(Level.INFO, "Config file: Plugins path: {0}", modulesPath);
 
             String entityPackages = properties.getProperty(Services.ENTITY_PACKAGES_IDENTIFIER);
             logger.log(Level.INFO, "Config file: Entity Packages: {0}", entityPackages);
 
-            context.put(Services.APPLICATION_TITLE, appTitle);
-            context.put(Services.DATABASE_PATH_IDENTIFIER, databasePath);
-            context.put(Services.FILES_PATH_IDENTIFIER, filesPath);
-            context.put(Services.MODULES_PATH_IDENTIFIER, pluginsPath);
-            context.put(Services.ENTITY_PACKAGES_IDENTIFIER, entityPackages);
+            if (appTitle != null) {
+                context.put(Services.APPLICATION_TITLE, appTitle);
+            } else {
+                context.put(Services.APPLICATION_TITLE, servletContext.getInitParameter(Services.APPLICATION_TITLE));
+            }
+
+            if (tmpPath != null) {
+                context.put(Services.TMP_PATH_IDENTIFIER, tmpPath);
+            } else {
+                context.put(Services.TMP_PATH_IDENTIFIER, servletContext.getInitParameter(Services.TMP_PATH_IDENTIFIER));
+            }
+
+            if (databasePath != null) {
+                context.put(Services.DATABASE_PATH_IDENTIFIER, databasePath);
+            } else {
+                context.put(Services.DATABASE_PATH_IDENTIFIER, servletContext.getInitParameter(Services.DATABASE_PATH_IDENTIFIER));
+            }
+
+            if (filesPath != null) {
+                context.put(Services.FILES_PATH_IDENTIFIER, filesPath);
+            } else {
+                context.put(Services.FILES_PATH_IDENTIFIER, servletContext.getInitParameter(Services.FILES_PATH_IDENTIFIER));
+            }
+
+            if (modulesPath != null) {
+                context.put(Services.MODULES_PATH_IDENTIFIER, modulesPath);
+            } else {
+                context.put(Services.MODULES_PATH_IDENTIFIER, servletContext.getInitParameter(Services.MODULES_PATH_IDENTIFIER));
+            }
+
+            if (entityPackages != null) {
+                context.put(Services.ENTITY_PACKAGES_IDENTIFIER, entityPackages);
+            } else {
+                context.put(Services.ENTITY_PACKAGES_IDENTIFIER, servletContext.getInitParameter(Services.ENTITY_PACKAGES_IDENTIFIER));
+            }
 
         } catch (Throwable t) {
             // handle error
-            // logger.log(Level.WARNING, "Problems reading config file, initializing with default values from servlet context", t);
-            context.put(Services.APPLICATION_TITLE, servletContext.getInitParameter(Services.APPLICATION_TITLE));
-            context.put(Services.DATABASE_PATH_IDENTIFIER, servletContext.getInitParameter(Services.DATABASE_PATH_IDENTIFIER));
-            context.put(Services.FILES_PATH_IDENTIFIER, servletContext.getInitParameter(Services.FILES_PATH_IDENTIFIER));
-            context.put(Services.MODULES_PATH_IDENTIFIER, servletContext.getInitParameter(Services.MODULES_PATH_IDENTIFIER));
-            context.put(Services.ENTITY_PACKAGES_IDENTIFIER, servletContext.getInitParameter(Services.ENTITY_PACKAGES_IDENTIFIER));
+            logger.log(Level.WARNING, "Could not inititialize all values");
         }
 
         // register predicate that can decide whether a given Class object is a subclass of StructrPage
@@ -112,7 +140,7 @@ public class ApplicationContextListener implements ServletContextListener, HttpS
         // clean session..
         HttpSession session = se.getSession();
         long sessionId = (Long) session.getAttribute(SessionMonitor.SESSION_ID);
-        
+
         SessionMonitor.logActivity(new SuperUser(), sessionId, "Logout");
 
         // Remove session from internal session management

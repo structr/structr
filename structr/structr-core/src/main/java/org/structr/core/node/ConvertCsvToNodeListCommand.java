@@ -182,7 +182,7 @@ public class ConvertCsvToNodeListCommand extends NodeServiceCommand {
                 public Object execute() throws Throwable {
                     List<StructrNode> nodesToAdd = new LinkedList<StructrNode>();
                     for (List<NodeAttribute> attrList : creationList) {
-                        nodesToAdd.add((StructrNode) createNode.execute(attrList));
+                        nodesToAdd.add((StructrNode) createNode.execute(attrList, false));  // don't index
                     }
 
                     // use bulk add

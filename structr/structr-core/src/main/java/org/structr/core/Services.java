@@ -31,6 +31,7 @@ public class Services {
     public static final String APPLICATION_TITLE = "application.title";
     public static final String CONFIG_FILE_PATH = "configfile.path";
     public static final String SERVLET_CONTEXT = "servlet.context";
+    public static final String TMP_PATH_IDENTIFIER = "tmp.path";
     // database-related constants
     public static final String DATABASE_PATH_IDENTIFIER = "database.path";
     public static final String FILES_PATH_IDENTIFIER = "files.path";
@@ -50,9 +51,10 @@ public class Services {
     private static String appTitle = "structr";
     private static String modulesPath = "/opt/structr/modules";
     private static String configFilePath = "/opt/structr/structr.conf";
+    private static String tmpPath = "/tmp";
 
     public static String getBasePath() {
-        return (basePath);
+        return basePath;
     }
 
     /**
@@ -63,11 +65,13 @@ public class Services {
     }
 
     /**
-     * Return the static spatial layer name
+     * Return the static tmp path. This is the directory where the
+     * temporary files are stored
      */
-//    public static String getLayerName() {
-//        return layerName;
-//    }
+    public static String getTmpPath() {
+        return tmpPath;
+    }
+
     /**
      * Return the configuration file path.
      */
@@ -80,7 +84,7 @@ public class Services {
      * database files are stored.
      */
     public static String getDatabasePath() {
-        return (getPath(Path.Database));
+        return getPath(Path.Database);
     }
 
     /**
@@ -88,7 +92,7 @@ public class Services {
      * binary files of file and image nodes are stored.
      */
     public static String getFilesPath() {
-        return (getPath(Path.Files));
+        return getPath(Path.Files);
     }
 
     /**
@@ -96,22 +100,9 @@ public class Services {
      * modules are stored.
      */
     public static String getModulesPath() {
-        return (getPath(Path.Modules));
+        return getPath(Path.Modules);
     }
 
-    /* replaced by ModuleService
-    public static String getEntityLocations() {
-    return entityLocations;
-    }
-
-    public static String getEntityPackages() {
-    return entityPackages;
-    }
-
-    public static Set<String> getCachedEntityTypes() {
-    return entityClassCache.keySet();
-    }
-     */
     /**
      * Creates and returns a command of the given <code>type</code>. If a command is
      * found, the corresponding service will be discovered and activated.
@@ -182,6 +173,7 @@ public class Services {
         }
 
         appTitle = getConfigValue(context, Services.APPLICATION_TITLE, "structr");
+        tmpPath = getConfigValue(context, Services.TMP_PATH_IDENTIFIER, "/tmp");
         databasePath = getConfigValue(context, Services.DATABASE_PATH_IDENTIFIER, "/opt/structr/structr-tfs2");
         filesPath = getConfigValue(context, Services.FILES_PATH_IDENTIFIER, "/opt/structr/structr-tfs2/files");
         modulesPath = getConfigValue(context, Services.MODULES_PATH_IDENTIFIER, "/opt/structr/modules");
@@ -204,7 +196,6 @@ public class Services {
             service.shutdown();
         }
 
-//        entityClassCache.clear();
         serviceCache.clear();
         serviceClassCache.clear();
 
@@ -249,31 +240,6 @@ public class Services {
         context = envContext;
     }
 
-    /* replaced by ModuleService
-    public static Class getEntityClass(final String name) {
-
-    logger.log(Level.FINE, "name: {0}", name);
-
-    Class nodeClass = entityClassCache.get(name);
-
-    if (nodeClass == null && packages != null && name != null && !(name.isEmpty())) {
-
-    for (String packagePath : packages) {
-
-    try {
-    nodeClass = Class.forName(packagePath + "." + name);
-    // cache entry
-    entityClassCache.put(name, nodeClass);
-    break; // first match wins
-    } catch (ClassNotFoundException ex) {
-    logger.log(Level.FINE, "Class not found: {0}.{1}", new Object[]{packagePath, name});
-    }
-    }
-    }
-
-    return nodeClass;
-    }
-     */
     public static String getConfigValue(Map<String, Object> context, String key, String defaultValue) {
         Object value = context.get(key);
         String ret = defaultValue;

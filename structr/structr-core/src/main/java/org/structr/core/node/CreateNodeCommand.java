@@ -36,6 +36,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 
         StructrNode node = null;
         User user = null;
+        boolean updateIndex = true; // default is update index
 
         // TODO: let the StructrNode create itself, including all necessary db properties
         // example: a HtmlSource has to be created with mimeType=text/html
@@ -45,7 +46,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
             Date now = new Date();
 
             Command createRel = Services.createCommand(CreateRelationshipCommand.class);
-            Command indexNode = Services.createCommand(IndexNodeCommand.class);
+            
 
             List<NodeAttribute> attrs = new LinkedList<NodeAttribute>();
 
@@ -64,7 +65,11 @@ public class CreateNodeCommand extends NodeServiceCommand {
                 } else if (o instanceof User) {
 
                     user = (User) o;
-                    
+
+                } else if (o instanceof Boolean) {
+
+                    updateIndex = (Boolean) o;
+
                 }
             }
 
@@ -100,9 +105,11 @@ public class CreateNodeCommand extends NodeServiceCommand {
             node.setProperty(StructrNode.CREATED_DATE_KEY, now);
             node.setProperty(StructrNode.LAST_MODIFIED_DATE_KEY, now);
 
-            // index the database node we just created
-            indexNode.execute(node.getId());
-            logger.log(Level.FINE, "Node {0} indexed.", node.getId());
+            if (updateIndex) {
+                // index the database node we just created
+                Services.createCommand(IndexNodeCommand.class).execute(node.getId());
+                logger.log(Level.FINE, "Node {0} indexed.", node.getId());
+            }
 
         }
 
