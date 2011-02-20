@@ -27,6 +27,7 @@ public class EditFile extends DefaultEdit {
 
         FieldSet infoFields = new FieldSet("File Information");
         infoFields.add(new PageLink("download") {
+
             @Override
             public String getHref() {
                 return localViewUrl;
@@ -46,20 +47,12 @@ public class EditFile extends DefaultEdit {
 
         super.onInit();
 
-        externalViewUrl = node.getNodeURL(user, contextPath);
-//        //localViewUrl = getContext().getResponse().encodeURL(viewLink.getHref());
-        localViewUrl = getContext().getRequest().getContextPath().concat(
-                "/view".concat(
-                node.getNodePath(user).replace("&", "%26")));
+        if (node != null) {
 
-
-        // FIXME: find a good solution for file download
-//                ByteArrayOutputStream out = new ByteArrayOutputStream();
-//                node.renderDirect(out, rootNode, redirect, editNodeId, user);
-//                rendition = out.toString();
-        // provide rendition's source
-        //source = ClickUtils.escapeHtml(rendition);
-
-        //renditionPanel = new Panel("renditionPanel", "/panel/rendition-panel.htm");
+            externalViewUrl = node.getNodeURL(user, contextPath);
+            localViewUrl = getContext().getRequest().getContextPath().concat(
+                    "/view".concat(
+                    node.getNodePath(user).replace("&", "%26")));
+        }
     }
 }

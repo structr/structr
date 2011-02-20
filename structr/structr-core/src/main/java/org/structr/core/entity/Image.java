@@ -14,7 +14,6 @@ import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;
-import org.structr.core.node.FindNodeCommand;
 import org.structr.core.node.NodeAttribute;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
@@ -35,6 +34,8 @@ public class Image extends File {
     }
     public final static String WIDTH_KEY = "width";
     public final static String HEIGHT_KEY = "height";
+    // Cached list with relationships to thumbnails
+    private List<StructrRelationship> thumbnailRelationships = null;
 
     public int getWidth() {
         return getIntProperty(WIDTH_KEY);
@@ -178,6 +179,22 @@ public class Image extends File {
 //    }
 
     /**
+     * Get (cached) thumbnail relationships
+     * 
+     * @return
+     */
+    private List<StructrRelationship> getThumbnailRelationships() {
+        if (thumbnailRelationships == null) {
+            thumbnailRelationships = getRelationships(RelType.THUMBNAIL, Direction.OUTGOING);
+        }
+        return thumbnailRelationships;
+    }
+
+    public boolean isThumbnail() {
+        return !(getRelationships(RelType.THUMBNAIL, Direction.INCOMING).isEmpty());
+    }
+
+    /**
      * Get (down-)scaled image of this image
      *
      * If no scaled image of the requested size exists or the image is newer than the scaled image, create a new one
@@ -186,7 +203,7 @@ public class Image extends File {
      */
     public Image getScaledImage(final User user, final int maxWidth, final int maxHeight) {
 
-        List<StructrRelationship> thumbnailRelationships = getRelationships(RelType.THUMBNAIL, Direction.OUTGOING);
+        thumbnailRelationships = getThumbnailRelationships();
 
         Image thumbnail = null;
         final Image originalImage = this;
@@ -204,8 +221,8 @@ public class Image extends File {
                 if (w != null && h != null) {
 
                     if ((w == maxWidth && h <= maxHeight)
-                        || (w <= maxWidth && h == maxHeight)
-                        || (origWidth <= w && origHeight <= h)) // orginal image is equal or smaller than requested size
+                            || (w <= maxWidth && h == maxHeight)
+                            || (origWidth <= w && origHeight <= h)) // orginal image is equal or smaller than requested size
                     {
                         thumbnail = (Image) r.getEndNode();
 
@@ -234,10 +251,13 @@ public class Image extends File {
 //                Command findNode = Services.createCommand(FindNodeCommand.class);
 
                 NodeAttribute typeAttr = new NodeAttribute(StructrNode.TYPE_KEY, Image.class.getSimpleName());
-                NodeAttribute nameAttr = new NodeAttribute(Image.NAME_KEY, originalImage.getName() + "_thumb");
+                NodeAttribute contentTypeAttr = new NodeAttribute(Image.CONTENT_TYPE_KEY, originalImage.getContentType());
 
                 // create thumbnail node
-                Image thumbnail = (Image) createNode.execute(user, typeAttr, nameAttr);
+                Image thumbnail = (Image) createNode.execute(user,
+                        typeAttr,
+                        contentTypeAttr, // Copy content type from original image
+                        false);         // Don't index
 
                 if (thumbnail != null) {
 

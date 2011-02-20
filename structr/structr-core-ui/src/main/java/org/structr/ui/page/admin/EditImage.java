@@ -60,7 +60,7 @@ public class EditImage extends EditFile {
 
         // If original image is smaller than requested size,
         // display original image as preview
-        if (image.getWidth() <= PREVIEW_WIDTH && image.getHeight() <= PREVIEW_HEIGHT) {
+        if (image.isThumbnail() || (image.getWidth() <= PREVIEW_WIDTH && image.getHeight() <= PREVIEW_HEIGHT)) {
             previewImage = image;
         } else {
             previewImage = image.getScaledImage(user, PREVIEW_WIDTH, PREVIEW_HEIGHT);

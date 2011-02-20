@@ -135,16 +135,26 @@ public class ApplicationContextListener implements ServletContextListener, HttpS
 
     @Override
     public void sessionDestroyed(HttpSessionEvent se) {
-        logger.log(Level.FINE, "HTTP session destroyed, cleaning", se.getSession().getId());
 
         // clean session..
         HttpSession session = se.getSession();
-        long sessionId = (Long) session.getAttribute(SessionMonitor.SESSION_ID);
 
-        SessionMonitor.logActivity(new SuperUser(), sessionId, "Logout");
+        if (session != null) {
+            String servletSessionId = se.getSession().getId();
 
-        // Remove session from internal session management
-        SessionMonitor.unregisterUser(sessionId, session.getServletContext());
+            logger.log(Level.FINE, "HTTP session destroyed, cleaning ", servletSessionId);
+
+            Long sessionId = (Long) session.getAttribute(SessionMonitor.SESSION_ID);
+
+            if (sessionId != null) {
+
+                SessionMonitor.logActivity(new SuperUser(), sessionId, "Logout");
+
+                // Remove session from internal session management
+                SessionMonitor.unregisterUser(sessionId, session.getServletContext());
+            }
+
+        }
 
 //
 //        // TODO: when running embedded under Winstone,
