@@ -376,7 +376,7 @@ public class ModuleService implements SingletonService {
 
     @Override
     public String getName() {
-        return (ModuleService.class.getName());
+        return (ModuleService.class.getSimpleName());
     }
     // </editor-fold>
 

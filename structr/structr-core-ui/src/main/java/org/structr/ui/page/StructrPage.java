@@ -127,7 +127,7 @@ public class StructrPage extends Page {
         contextPath = getContext().getRequest().getContextPath();
         FILES_PATH = Services.getFilesPath();
 
-        //Command graphDbCommand = Services.createCommand(GraphDatabaseCommand.class);
+        //Command graphDbCommand = Services.command(GraphDatabaseCommand.class);
         //graphDb = (GraphDatabaseService)graphDbCommand.execute();
 
         //userName = getContext().getRequest().getRemoteUser();
@@ -279,7 +279,7 @@ public class StructrPage extends Page {
      * @return
      */
     protected StructrNode getNodeById(final Long requestedId) {
-        Command findNode = Services.createCommand(FindNodeCommand.class);
+        Command findNode = Services.command(FindNodeCommand.class);
         StructrNode ret = null;
 
         ret = (StructrNode) findNode.execute(user, requestedId);
@@ -295,7 +295,7 @@ public class StructrPage extends Page {
      * @return
      */
 //    protected StructrNode getNodeByPath(final String requestedPath) {
-//        Command findNode = Services.createCommand(FindNodeCommand.class);
+//        Command findNode = Services.command(FindNodeCommand.class);
 //        StructrNode ret = null;
 //        long id = 0;
 //
@@ -422,7 +422,7 @@ public class StructrPage extends Page {
     }
 
     protected StructrNode getRootNode() {
-        Command findNode = Services.createCommand(FindNodeCommand.class);
+        Command findNode = Services.command(FindNodeCommand.class);
 
         if (user != null && !(user instanceof SuperUser)) {
             rootNode = user.getRootNode();
@@ -450,7 +450,7 @@ public class StructrPage extends Page {
             return new SuperUser();
         }
 
-        Command findUser = Services.createCommand(FindUserCommand.class);
+        Command findUser = Services.command(FindUserCommand.class);
         return ((User) findUser.execute(userName));
     }
 
@@ -482,7 +482,7 @@ public class StructrPage extends Page {
      * @return
      */
     protected List<User> getAllUsers() {
-        Command findUser = Services.createCommand(FindUserCommand.class);
+        Command findUser = Services.command(FindUserCommand.class);
         return ((List<User>) findUser.execute());
     }
 

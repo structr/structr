@@ -38,7 +38,7 @@ public class StructrNodeFactory<T extends StructrNode> implements Adapter<Node, 
 
     public StructrNode createNode(final Node node, final String nodeType) {
 
-        Class nodeClass = (Class) Services.createCommand(GetEntityClassCommand.class).execute(nodeType);
+        Class nodeClass = (Class) Services.command(GetEntityClassCommand.class).execute(nodeType);
         StructrNode ret = null;
 
         if (nodeClass != null) {

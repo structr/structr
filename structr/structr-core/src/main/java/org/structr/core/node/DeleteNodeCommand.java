@@ -41,7 +41,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
         Boolean recursive = false;
         User user = null;
 
-        Command findNode = Services.createCommand(FindNodeCommand.class);
+        Command findNode = Services.command(FindNodeCommand.class);
 
         switch (parameters.length) {
             case 2:
@@ -152,7 +152,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
         if (node != null) {
 
-            Command findNode = Services.createCommand(FindNodeCommand.class);
+            Command findNode = Services.command(FindNodeCommand.class);
             if (parentNode == null) {
 
                 if (recursive) {

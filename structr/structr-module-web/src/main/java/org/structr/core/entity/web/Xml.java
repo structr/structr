@@ -70,8 +70,8 @@ public class Xml extends PlainText {
 
                 } else {
 
-                    Command nodeFactory = Services.createCommand(NodeFactoryCommand.class);
-                    Command relsCommand = Services.createCommand(NodeRelationshipsCommand.class);
+                    Command nodeFactory = Services.command(NodeFactoryCommand.class);
+                    Command relsCommand = Services.command(NodeRelationshipsCommand.class);
 
                     List<StructrRelationship> rels = (List<StructrRelationship>) relsCommand.execute(this, RelType.HAS_CHILD, Direction.OUTGOING);
                     for (StructrRelationship r : rels) {

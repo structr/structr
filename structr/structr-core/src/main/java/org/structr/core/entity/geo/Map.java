@@ -100,7 +100,7 @@ public class Map extends StructrNode {
 
     private void renderSVGMap(StringBuilder out) {
 
-        Command graphDbCommand = Services.createCommand(GraphDatabaseCommand.class);
+        Command graphDbCommand = Services.command(GraphDatabaseCommand.class);
         GraphDatabaseService graphDb = (GraphDatabaseService) graphDbCommand.execute();
 
         MapContext mapContext = null;

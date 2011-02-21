@@ -45,7 +45,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 
             Date now = new Date();
 
-            Command createRel = Services.createCommand(CreateRelationshipCommand.class);
+            Command createRel = Services.command(CreateRelationshipCommand.class);
             
 
             List<NodeAttribute> attrs = new LinkedList<NodeAttribute>();
@@ -107,7 +107,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 
             if (updateIndex) {
                 // index the database node we just created
-                Services.createCommand(IndexNodeCommand.class).execute(node.getId());
+                Services.command(IndexNodeCommand.class).execute(node.getId());
                 logger.log(Level.FINE, "Node {0} indexed.", node.getId());
             }
 

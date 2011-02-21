@@ -65,7 +65,7 @@ public class GeoObject extends StructrNode {
 
         Envelope result = null;
 
-        Command graphDbCommand = Services.createCommand(GraphDatabaseCommand.class);
+        Command graphDbCommand = Services.command(GraphDatabaseCommand.class);
         GraphDatabaseService graphDb = (GraphDatabaseService) graphDbCommand.execute();
 
 

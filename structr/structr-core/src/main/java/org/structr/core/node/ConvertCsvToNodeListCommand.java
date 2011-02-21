@@ -60,7 +60,7 @@ public class ConvertCsvToNodeListCommand extends NodeServiceCommand {
 
             if (o instanceof Long) {
                 csvNodeId = (Long) o;
-                sourceNode = (StructrNode) Services.createCommand(FindNodeCommand.class).execute(new SuperUser(), csvNodeId);
+                sourceNode = (StructrNode) Services.command(FindNodeCommand.class).execute(new SuperUser(), csvNodeId);
 
                 if (sourceNode instanceof CsvFile) {
                     csvFileNode = (CsvFile) sourceNode;
@@ -124,9 +124,9 @@ public class ConvertCsvToNodeListCommand extends NodeServiceCommand {
             final User userCopy = user;
             final StructrNode sourceNodeCopy = sourceNode;
 
-            final Command transactionCommand = Services.createCommand(TransactionCommand.class);
-            final Command createNode = Services.createCommand(CreateNodeCommand.class);
-            final Command createRel = Services.createCommand(CreateRelationshipCommand.class);
+            final Command transactionCommand = Services.command(TransactionCommand.class);
+            final Command createNode = Services.command(CreateNodeCommand.class);
+            final Command createRel = Services.command(CreateRelationshipCommand.class);
 
             final NodeList<StructrNode> nodeListNode = (NodeList<StructrNode>) transactionCommand.execute(new StructrTransaction() {
 
@@ -236,7 +236,7 @@ public class ConvertCsvToNodeListCommand extends NodeServiceCommand {
             @Override
             public Object execute() throws Throwable
             {
-            Command createNode = Services.createCommand(CreateNodeCommand.class);
+            Command createNode = Services.command(CreateNodeCommand.class);
 
             // Create new node
             StructrNode newNode = (StructrNode)createNode.execute(userCopy, attrList);

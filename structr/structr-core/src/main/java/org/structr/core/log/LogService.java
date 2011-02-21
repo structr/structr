@@ -17,6 +17,7 @@ import org.structr.core.RunnableService;
 import org.structr.core.Services;
 import org.structr.core.entity.StructrNode;
 import org.structr.core.entity.StructrRelationship;
+import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
 import org.structr.core.entity.log.Activity;
 import org.structr.core.entity.log.LogNodeList;
@@ -76,6 +77,7 @@ public class LogService extends Thread implements RunnableService {
                     while (!queue.isEmpty()) {
                         Object o = queue.poll();
                         if (o != null && o instanceof Activity) {
+
                             Activity activity = (Activity) o;
                             User user = activity.getUser();
 
@@ -89,7 +91,7 @@ public class LogService extends Thread implements RunnableService {
                             logger.log(Level.FINEST, "Added activity {0} to global log.", activity.getId());
 
                             // append to user-specific log
-                            LogNodeList userLog = getUserLog(user);
+                            LogNodeList userLog = getUserLog(activity.getOwnerNode());
                             userLog.add(activity);
 
                             logger.log(Level.FINEST, "Added activity {0} to {1}''s log.", new Object[]{activity.getId(), user.getName()});
@@ -116,6 +118,11 @@ public class LogService extends Thread implements RunnableService {
     }
 
     public LogNodeList getUserLog(final User user) {
+
+        if (user instanceof SuperUser) {
+            return null;
+        }
+
         LogNodeList ret = loggerCache.get(user);
 
         if (ret == null) {
@@ -133,15 +140,15 @@ public class LogService extends Thread implements RunnableService {
                 }
             }
 
-            ret = (LogNodeList) Services.createCommand(TransactionCommand.class).execute(new StructrTransaction() {
+            ret = (LogNodeList) Services.command(TransactionCommand.class).execute(new StructrTransaction() {
 
                 @Override
                 public Object execute() throws Throwable {
 //                    LogNodeList newLogNodeList = null;
 
                     // Create a new activity list as child node of the respective user
-                    Command createNode = Services.createCommand(CreateNodeCommand.class);
-                    Command createRel = Services.createCommand(CreateRelationshipCommand.class);
+                    Command createNode = Services.command(CreateNodeCommand.class);
+                    Command createRel = Services.command(CreateRelationshipCommand.class);
 
                     LogNodeList<Activity> newLogNodeList = (LogNodeList<Activity>) createNode.execute(user,
                             new NodeAttribute(StructrNode.TYPE_KEY, LogNodeList.class.getSimpleName()),
@@ -165,12 +172,12 @@ public class LogService extends Thread implements RunnableService {
 
     public LogNodeList getGlobalLog() {
         if (globalLogNodeList == null) {
-            globalLogNodeList = (LogNodeList) Services.createCommand(TransactionCommand.class).execute(new StructrTransaction() {
+            globalLogNodeList = (LogNodeList) Services.command(TransactionCommand.class).execute(new StructrTransaction() {
 
                 @Override
                 public Object execute() throws Throwable {
-                    GraphDatabaseService graphDb = (GraphDatabaseService) Services.createCommand(GraphDatabaseCommand.class).execute();
-                    Command factory = Services.createCommand(NodeFactoryCommand.class);
+                    GraphDatabaseService graphDb = (GraphDatabaseService) Services.command(GraphDatabaseCommand.class).execute();
+                    Command factory = Services.command(NodeFactoryCommand.class);
                     LogNodeList ret = null;
 
                     if (graphDb != null) {
@@ -184,8 +191,8 @@ public class LogService extends Thread implements RunnableService {
                         }
 
                         // if we arrive here, no global log node exists yet
-                        Command createNode = Services.createCommand(CreateNodeCommand.class);
-                        Command createRel = Services.createCommand(CreateRelationshipCommand.class);
+                        Command createNode = Services.command(CreateNodeCommand.class);
+                        Command createRel = Services.command(CreateRelationshipCommand.class);
 
                         ret = (LogNodeList<Activity>) createNode.execute(
                                 new NodeAttribute(StructrNode.TYPE_KEY, LogNodeList.class.getSimpleName()),

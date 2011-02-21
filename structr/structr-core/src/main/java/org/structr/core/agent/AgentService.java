@@ -248,7 +248,7 @@ public class AgentService extends Thread implements RunnableService {
         if (agentClass == null) {
 
 //            Set<Class> agentClasses = ClasspathEntityLocator.locateEntitiesByType(Agent.class);
-            Map<String, Class> agentClassesMap = (Map<String, Class>) Services.createCommand(GetAgentsCommand.class).execute();
+            Map<String, Class> agentClassesMap = (Map<String, Class>) Services.command(GetAgentsCommand.class).execute();
 
             for (String className : agentClassesMap.keySet()) {
 

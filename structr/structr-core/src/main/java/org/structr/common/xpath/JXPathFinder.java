@@ -43,7 +43,7 @@ public class JXPathFinder {
         this.currentNode = currentNode;
         //this.db = currentNode.getNode().getGraphDatabase();
 
-        Command graphDbCommand = Services.createCommand(GraphDatabaseCommand.class);
+        Command graphDbCommand = Services.command(GraphDatabaseCommand.class);
         this.db = (GraphDatabaseService) graphDbCommand.execute();
 
         if (context == null) {
@@ -194,7 +194,7 @@ public class JXPathFinder {
      * @return the StructrNode
      */
     private Node createStructrNode(Node node) {
-        Command nodeFactory = Services.createCommand(NodeFactoryCommand.class);
+        Command nodeFactory = Services.command(NodeFactoryCommand.class);
         return (Node) nodeFactory.execute(node);
     }
 //

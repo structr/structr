@@ -57,8 +57,8 @@ public class NodeList<T extends StructrNode> extends StructrNode implements List
     private static final String PARENT_KEY = "parent";
     private static final String ICON_SRC = "/images/application_view_list.png";
     private Set<Decorator<T>> decorators = new LinkedHashSet<Decorator<T>>();
-    private Command transaction = Services.createCommand(TransactionCommand.class);
-    private Command factory = Services.createCommand(NodeFactoryCommand.class);
+    private Command transaction = Services.command(TransactionCommand.class);
+    private Command factory = Services.command(NodeFactoryCommand.class);
     private Set<Evaluator> evaluators = new LinkedHashSet<Evaluator>();
     private int maxLength = -1;
 

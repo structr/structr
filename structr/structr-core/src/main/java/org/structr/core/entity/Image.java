@@ -120,15 +120,15 @@ public class Image extends File {
 //        // No thumbnail exists, or thumbnail is too old, so let's create a new one
 //        logger.log(Level.INFO, "Creating thumbnail for {0}", getName());
 //
-//        Command transactionCommand = Services.createCommand(TransactionCommand.class);
+//        Command transactionCommand = Services.command(TransactionCommand.class);
 //        thumbnail = (Image) transactionCommand.execute(new StructrTransaction() {
 //
 //            @Override
 //            public Object execute() throws Throwable {
 //
-//                Command createNode = Services.createCommand(CreateNodeCommand.class);
-//                Command createRel = Services.createCommand(CreateRelationshipCommand.class);
-//                Command findNode = Services.createCommand(FindNodeCommand.class);
+//                Command createNode = Services.command(CreateNodeCommand.class);
+//                Command createRel = Services.command(CreateRelationshipCommand.class);
+//                Command findNode = Services.command(FindNodeCommand.class);
 //
 //                NodeAttribute typeAttr = new NodeAttribute(StructrNode.TYPE_KEY, Image.class.getSimpleName());
 //                NodeAttribute nameAttr = new NodeAttribute(Image.NAME_KEY, originalImage.getName() + "_thumb");
@@ -183,15 +183,22 @@ public class Image extends File {
      * 
      * @return
      */
-    private List<StructrRelationship> getThumbnailRelationships() {
+    public List<StructrRelationship> getThumbnailRelationships() {
         if (thumbnailRelationships == null) {
             thumbnailRelationships = getRelationships(RelType.THUMBNAIL, Direction.OUTGOING);
         }
         return thumbnailRelationships;
     }
 
+    /**
+     * Return true if this image is a thumbnail image.
+     *
+     * This is determined by having at least one incoming THUMBNAIL relationship
+     * 
+     * @return
+     */
     public boolean isThumbnail() {
-        return !(getRelationships(RelType.THUMBNAIL, Direction.INCOMING).isEmpty());
+        return hasRelationship(RelType.THUMBNAIL, Direction.INCOMING);
     }
 
     /**
@@ -240,15 +247,15 @@ public class Image extends File {
         // No thumbnail exists, or thumbnail is too old, so let's create a new one
         logger.log(Level.INFO, "Creating thumbnail for {0}", getName());
 
-        Command transactionCommand = Services.createCommand(TransactionCommand.class);
+        Command transactionCommand = Services.command(TransactionCommand.class);
         thumbnail = (Image) transactionCommand.execute(new StructrTransaction() {
 
             @Override
             public Object execute() throws Throwable {
 
-                Command createNode = Services.createCommand(CreateNodeCommand.class);
-                Command createRel = Services.createCommand(CreateRelationshipCommand.class);
-//                Command findNode = Services.createCommand(FindNodeCommand.class);
+                Command createNode = Services.command(CreateNodeCommand.class);
+                Command createRel = Services.command(CreateRelationshipCommand.class);
+//                Command findNode = Services.command(FindNodeCommand.class);
 
                 NodeAttribute typeAttr = new NodeAttribute(StructrNode.TYPE_KEY, Image.class.getSimpleName());
                 NodeAttribute contentTypeAttr = new NodeAttribute(Image.CONTENT_TYPE_KEY, originalImage.getContentType());
@@ -292,7 +299,7 @@ public class Image extends File {
                     thumbnail.setRelativeFilePath(relativeFilePath);
 
                     // Set name to reflect thumbnail size
-                    thumbnail.setName(thumbnail.getName() + "_" + tnWidth + "x" + tnHeight);
+                    thumbnail.setName(originalImage.getName() + "_thumb_" + tnWidth + "x" + tnHeight);
 
                     return thumbnail;
 

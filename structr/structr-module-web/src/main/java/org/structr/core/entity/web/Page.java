@@ -81,12 +81,12 @@ public class Page extends WebNode {
     public void setTemplate(final Long value) {
 
         // find template node
-        Command findNode = Services.createCommand(FindNodeCommand.class);
+        Command findNode = Services.command(FindNodeCommand.class);
         Template templateNode = (Template) findNode.execute(new SuperUser(), value);
 
         // delete existing template relationships
         List<StructrRelationship> templateRels = getRelationships(RelType.USE_TEMPLATE, Direction.OUTGOING);
-        Command delRel = Services.createCommand(DeleteRelationshipCommand.class);
+        Command delRel = Services.command(DeleteRelationshipCommand.class);
         if (templateRels != null) {
             for (StructrRelationship r : templateRels) {
                 delRel.execute(r);
@@ -94,7 +94,7 @@ public class Page extends WebNode {
         }
 
         // create new link target relationship
-        Command createRel = Services.createCommand(CreateRelationshipCommand.class);
+        Command createRel = Services.command(CreateRelationshipCommand.class);
         createRel.execute(this, templateNode, RelType.USE_TEMPLATE);
     }
 //

@@ -247,7 +247,7 @@ public class StructrConfigService implements ConfigService, EntityResolver {
             Document document = ClickUtils.buildDocument(inputStream, this);
 
 	    // extend configuration
-	    Services.createCommand(ExtendConfigCommand.class).execute(document);
+	    Services.command(ExtendConfigCommand.class).execute(document);
 
             Element rootElm = document.getDocumentElement();
 

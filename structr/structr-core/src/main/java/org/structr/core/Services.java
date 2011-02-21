@@ -19,7 +19,7 @@ import org.structr.core.agent.AgentService;
  * Main entry point for access to services in structr.
  *
  * <p>
- * Use the {@see #createCommand} method to obtain an instance of the desired command.
+ * Use the {@see #command} method to obtain an instance of the desired command.
  * </p>
  *
  * @author cmorgner
@@ -111,7 +111,7 @@ public class Services {
      * @return the command
      * @throws NoSuchCommandException
      */
-    public static Command createCommand(Class commandType) {
+    public static Command command(Class commandType) {
 
         logger.log(Level.FINER, "Creating command ", commandType.getName());
 

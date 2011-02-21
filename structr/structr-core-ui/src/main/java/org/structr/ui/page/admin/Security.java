@@ -116,7 +116,7 @@ public class Security extends Nodes {
      */
     private void save() {
 
-        Command transactionCommand = Services.createCommand(TransactionCommand.class);
+        Command transactionCommand = Services.command(TransactionCommand.class);
         transactionCommand.execute(new StructrTransaction() {
 
             @Override

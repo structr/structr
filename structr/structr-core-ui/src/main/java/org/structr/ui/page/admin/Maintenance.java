@@ -8,12 +8,20 @@ import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Queue;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
 import javax.servlet.ServletContext;
 import org.apache.click.Context;
 import org.apache.click.control.ActionLink;
@@ -26,15 +34,18 @@ import org.apache.click.dataprovider.DataProvider;
 import org.apache.click.service.ConfigService;
 import org.apache.click.util.Bindable;
 import org.apache.commons.lang.RandomStringUtils;
-import org.neo4j.graphdb.Direction;
+import org.structr.common.Path;
 import org.structr.common.RelType;
-import org.structr.common.SearchOperator;
 //import org.structr.core.ClasspathEntityLocator;
 import org.structr.context.SessionMonitor;
 import org.structr.context.SessionMonitor.Session;
 import org.structr.core.Command;
 import org.structr.core.Service;
 import org.structr.core.Services;
+import org.structr.core.agent.ListTasksCommand;
+import org.structr.core.agent.ProcessTaskCommand;
+import org.structr.core.agent.RebuildIndexTask;
+import org.structr.core.agent.Task;
 import org.structr.core.entity.Image;
 import org.structr.core.entity.StructrNode;
 import org.structr.core.entity.StructrRelationship;
@@ -52,9 +63,8 @@ import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.DeleteNodeCommand;
 import org.structr.core.node.DeleteRelationshipCommand;
+import org.structr.core.node.GetAllNodes;
 import org.structr.core.node.NodeAttribute;
-import org.structr.core.node.SearchAttribute;
-import org.structr.core.node.SearchNodeCommand;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 import org.structr.ui.config.StructrConfigService;
@@ -66,6 +76,7 @@ import org.structr.ui.page.admin.CreateNode.NodeType;
  */
 public class Maintenance extends Admin {
 
+    private static final Logger logger = Logger.getLogger(Maintenance.class.getName());
     protected final static String DATABASE_OPEN_KEY = "databaseOpen";
     protected final static String SERVICES_KEY = "services";
     @Bindable
@@ -79,7 +90,7 @@ public class Maintenance extends Admin {
     @Bindable
     protected Table servicesTable = new Table("servicesTable");
     @Bindable
-    protected Table agentsTable = new Table("agentsTable");
+    protected Table taskQueueTable = new Table("taskQueueTable");
     @Bindable
     protected Table initValuesTable = new Table("initValuesTable");
     @Bindable
@@ -91,7 +102,11 @@ public class Maintenance extends Admin {
     @Bindable
     protected Table allNodesTable = new Table("allNodesTable");
     @Bindable
-    protected ActionLink removeThumbnailsLink = new ActionLink("removeThumbnailsLink", "Remove Thumbnails", this, "onRemoveThumbnails");
+    protected ActionLink rebuildIndexLink = new ActionLink("rebuildIndexLink", "Rebuild Index (Background)", this, "onRebuildIndex");
+    @Bindable
+    protected ActionLink removeThumbnailsLink = new ActionLink("removeThumbnailsLink", "Remove Thumbnails (Ad-hoc)", this, "onRemoveThumbnails");
+    @Bindable
+    protected ActionLink setImageDimensionsLink = new ActionLink("setImageDimensionsLink", "Set image dimensions on all Image nodes (Ad-hoc)", this, "onSetImageDimensions");
     @Bindable
     protected ActionLink createAdminLink = new ActionLink("createAdminLink", "Create admin user", this, "onCreateAdminUser");
     @Bindable
@@ -174,11 +189,13 @@ public class Maintenance extends Admin {
         servicesTable.setSortable(true);
         servicesTable.setClass(Table.CLASS_COMPLEX);
 
-
-        agentsTable.addColumn(new Column("Name"));
-        agentsTable.addColumn(new Column("isRunning", "Running"));
-        agentsTable.setSortable(true);
-        agentsTable.setClass(Table.CLASS_COMPLEX);
+        taskQueueTable.addColumn(new Column("type"));
+        taskQueueTable.addColumn(new Column("user"));
+        taskQueueTable.addColumn(new Column("priority"));
+        taskQueueTable.addColumn(new Column("creationTime"));
+        taskQueueTable.addColumn(new Column("scheduledTime"));
+        taskQueueTable.setSortable(true);
+        taskQueueTable.setClass(Table.CLASS_COMPLEX);
 
         initValuesTable.addColumn(new Column("key", "Parameter"));
         initValuesTable.addColumn(new Column("value", "Value"));
@@ -250,7 +267,7 @@ public class Maintenance extends Admin {
 
                 List<Activity> result = new ArrayList<Activity>();
 
-                LogNodeList<StructrNode> globalLog = (LogNodeList<StructrNode>) Services.createCommand(GetGlobalLogCommand.class).execute();
+                LogNodeList<StructrNode> globalLog = (LogNodeList<StructrNode>) Services.command(GetGlobalLogCommand.class).execute();
 
                 if (globalLog != null) {
 
@@ -281,12 +298,18 @@ public class Maintenance extends Admin {
             }
         });
 
-        // fill table with all known services
-        agentsTable.setDataProvider(new DataProvider() {
+        taskQueueTable.setDataProvider(new DataProvider() {
 
             @Override
-            public List<Service> getData() {
-                return Services.getAgents();
+            public List<Task> getData() {
+
+                List<Task> taskList = new LinkedList<Task>();
+                Queue<Task> queue = (Queue<Task>) Services.command(ListTasksCommand.class).execute();
+
+                for (Task t : queue) {
+                    taskList.add(t);
+                }
+                return taskList;
             }
         });
 
@@ -306,7 +329,7 @@ public class Maintenance extends Admin {
             public List<Map.Entry<String, Object>> getData() {
 
                 List<Map.Entry<String, Object>> params = new ArrayList<Map.Entry<String, Object>>();
-                Set<String> entityPackages = ((Set<String>) Services.createCommand(GetEntityPackagesCommand.class).execute());
+                Set<String> entityPackages = ((Set<String>) Services.command(GetEntityPackagesCommand.class).execute());
 
                 params.add(new AbstractMap.SimpleEntry<String, Object>("Configuration File Path", Services.getConfigFilePath()));
                 params.add(new AbstractMap.SimpleEntry<String, Object>("Application Title", Services.getApplicationTitle()));
@@ -328,7 +351,7 @@ public class Maintenance extends Admin {
                 List<Map.Entry<String, Object>> params = new ArrayList<Map.Entry<String, Object>>();
 
                 //params.add(new HashMap.Entry<String, Object>("Number of Nodes", numberOfNodes));
-//                Command findNode = Services.createCommand(FindNodeCommand.class);
+//                Command findNode = Services.command(FindNodeCommand.class);
 
                 for (StructrNode s : allNodes) {
 
@@ -356,7 +379,7 @@ public class Maintenance extends Admin {
             @Override
             public Set<String> getData() {
 
-                Command listModules = Services.createCommand(ListModulesCommand.class);
+                Command listModules = Services.command(ListModulesCommand.class);
                 return (Set<String>) listModules.execute();
 
             }
@@ -369,7 +392,7 @@ public class Maintenance extends Admin {
 
                 SortedSet<NodeClassEntry> nodeClassList = new TreeSet<NodeClassEntry>();
 
-                Map<String, Class> entities = (Map<String, Class>) Services.createCommand(GetEntitiesCommand.class).execute();
+                Map<String, Class> entities = (Map<String, Class>) Services.command(GetEntitiesCommand.class).execute();
 
                 for (Entry<String, Class> entry : entities.entrySet()) {
                     String n = entry.getKey();
@@ -410,7 +433,7 @@ public class Maintenance extends Admin {
             @Override
             public List<StructrNode> getData() {
 
-                return allNodes;
+                return getAllNodes();
 
             }
         });
@@ -479,14 +502,7 @@ public class Maintenance extends Admin {
 
     private void initHistogram() {
 
-        Command search = Services.createCommand(SearchNodeCommand.class);
-        allNodes = (List<StructrNode>) search.execute(null, null, true, false, new SearchAttribute("name", "*", SearchOperator.OR));
-
-        if (allNodes == null) {
-            return;
-        }
-
-        for (StructrNode s : allNodes) {
+        for (StructrNode s : getAllNodes()) {
 
             String type = s.getType();
             long value = 0L;
@@ -506,7 +522,7 @@ public class Maintenance extends Admin {
 
         try {
             // reload modules
-            Services.createCommand(ReloadModulesCommand.class).execute();
+            Services.command(ReloadModulesCommand.class).execute();
 
             // create new config service
             StructrConfigService newConfigService = new StructrConfigService();
@@ -525,14 +541,14 @@ public class Maintenance extends Admin {
 
     public boolean onCreateAdminUser() {
 
-        Command transactionCommand = Services.createCommand(TransactionCommand.class);
+        Command transactionCommand = Services.command(TransactionCommand.class);
         transactionCommand.execute(new StructrTransaction() {
 
             @Override
             public Object execute() throws Throwable {
 
-                Command createNode = Services.createCommand(CreateNodeCommand.class);
-                Command createRel = Services.createCommand(CreateRelationshipCommand.class);
+                Command createNode = Services.command(CreateNodeCommand.class);
+                Command createRel = Services.command(CreateRelationshipCommand.class);
 
                 // create a new user node
                 User adminUser = (User) createNode.execute(
@@ -564,6 +580,13 @@ public class Maintenance extends Admin {
 
     }
 
+    private List<StructrNode> getAllNodes() {
+        if (allNodes == null) {
+            allNodes = (List<StructrNode>) Services.command(GetAllNodes.class).execute();
+        }
+        return allNodes;
+    }
+
     /**
      * Remove all thumbnails in the system
      *
@@ -571,49 +594,155 @@ public class Maintenance extends Admin {
      */
     public boolean onRemoveThumbnails() {
 
-
-        final Command transactionCommand = Services.createCommand(TransactionCommand.class);
-        transactionCommand.execute(new StructrTransaction() {
+        Long numberOfRemovedThumbnails = (Long) Services.command(TransactionCommand.class).execute(new StructrTransaction() {
 
             @Override
             public Object execute() throws Throwable {
 
+                Long numberOfThumbnails = 0L;
+
                 // Find all image nodes
-                Command searchNode = Services.createCommand(SearchNodeCommand.class);
-                List<StructrNode> images = (List<StructrNode>) searchNode.execute(null, null, true, false, new SearchAttribute(StructrNode.TYPE_KEY, Image.class.getSimpleName(), SearchOperator.AND));
+                //List<Image> images = (List<Image>) Services.command(SearchNodeCommand.class).execute(null, null, true, false, Search.andExactType(Image.class.getSimpleName()));
+                List<Image> images = new LinkedList<Image>();
 
-                Command deleteNode = Services.createCommand(DeleteNodeCommand.class);
-                Command deleteRel = Services.createCommand(DeleteRelationshipCommand.class);
-
-                // Loop through all images
-                for (StructrNode s : images) {
-
-                    // Does it have thumbnails?
-                    if (s.hasRelationship(RelType.THUMBNAIL, Direction.INCOMING)) {
-
-                        // Remove any thumbnail and incoming thumbnail relationship
-                        List<StructrRelationship> rels = (List<StructrRelationship>) s.getRelationships(RelType.THUMBNAIL, Direction.INCOMING);
-                        for (StructrRelationship r : rels) {
-
-                            StructrNode t = r.getEndNode();
-
-                            // delete relationship
-                            deleteRel.execute(r, new SuperUser());
-
-                            // remove node with super user rights
-                            deleteNode.execute(t, new SuperUser());
-
-                        }
+                for (StructrNode s : getAllNodes()) {
+                    if (s instanceof Image) {
+                        images.add((Image) s);
                     }
                 }
-                return null;
+
+                Command deleteNode = Services.command(DeleteNodeCommand.class);
+                Command deleteRel = Services.command(DeleteRelationshipCommand.class);
+
+                // Loop through all images
+                for (Image image : images) {
+
+                    // Remove any thumbnail and incoming thumbnail relationship
+                    List<StructrRelationship> rels = (List<StructrRelationship>) image.getThumbnailRelationships();
+                    for (StructrRelationship r : rels) {
+
+                        StructrNode t = r.getEndNode();
+
+                        // delete relationship
+                        deleteRel.execute(r);
+
+                        // remove node with super user rights
+                        deleteNode.execute(t, new SuperUser());
+
+                        numberOfThumbnails++;
+
+                    }
+                }
+                return numberOfThumbnails;
 
             }
         });
 
 
-        okMsg = "Thumbnails successfully removed.";
+        okMsg = numberOfRemovedThumbnails + " thumbnails successfully removed.";
         return false;
 
+    }
+
+    /**
+     * Set correct image dimensions and content-type
+     *
+     * @return
+     */
+    public boolean onSetImageDimensions() {
+
+        final Command transactionCommand = Services.command(TransactionCommand.class);
+        Long numberOfImages = (Long) transactionCommand.execute(new StructrTransaction() {
+
+            @Override
+            public Object execute() throws Throwable {
+
+                Long numberOfImages = 0L;
+
+                // Find all image nodes
+//                Command searchNode = Services.command(SearchNodeCommand.class);
+//                List<Image> images = (List<Image>) searchNode.execute(null, null, true, false, Search.andExactType(Image.class.getSimpleName()));
+                List<Image> images = new LinkedList<Image>();
+
+                List<StructrNode> allNodes = getAllNodes();
+                for (StructrNode s : allNodes) {
+                    if (s instanceof Image) {
+                        images.add((Image) s);
+                    }
+                }
+
+                int width = 0;
+                int height = 0;
+                String format = null;
+
+                // Loop through all File nodes
+                for (Image imageNode : images) {
+
+                    String relativeFilePath = imageNode.getRelativeFilePath();
+
+                    if (relativeFilePath != null) {
+
+                        String filePath = Services.getFilePath(Path.Files, relativeFilePath);
+
+                        java.io.File fileOnDisk = new java.io.File(filePath);
+
+                        ImageInputStream iis = ImageIO.createImageInputStream(fileOnDisk);
+                        Iterator<ImageReader> readers = ImageIO.getImageReaders(iis);
+
+                        if (readers.hasNext()) {
+
+                            try {
+                                // pick the first available ImageReader
+                                ImageReader reader = readers.next();
+
+                                // attach source to the reader
+                                reader.setInput(iis, true);
+
+                                width = reader.getWidth(0);
+                                height = reader.getHeight(0);
+                                format = reader.getFormatName();
+
+                                imageNode.setWidth(width);
+                                imageNode.setHeight(height);
+
+                                if (format != null) {
+                                    format = "image/" + format.toLowerCase();
+                                    imageNode.setContentType(format);
+                                }
+                                numberOfImages++;
+
+                            } catch (Throwable ignore) {
+                            } finally {
+
+                                if (iis != null) {
+                                    iis.close();
+                                }
+                            }
+                        }
+
+                        logger.log(Level.INFO, "Image node {0} (x,y, format): {1}, {2}, {3}", new Object[]{imageNode.getId(), width, height, format});
+
+                    }
+                }
+                return numberOfImages;
+
+            }
+        });
+
+
+        okMsg = "Image dimensions successfully set on " + numberOfImages + " image nodes";
+        return false;
+
+    }
+
+    /**
+     * Rebuild index, running in background
+     * 
+     * @return
+     */
+    public boolean onRebuildIndex() {
+        Command processTask = Services.command(ProcessTaskCommand.class);
+        processTask.execute(new RebuildIndexTask());
+        return false;
     }
 }

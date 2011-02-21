@@ -209,7 +209,7 @@ public abstract class StructrNode implements Comparable<StructrNode> {
     public void createTemplateRelationship(final Template template) {
 
         // create a relationship to the given template node
-        Command createRel = Services.createCommand(CreateRelationshipCommand.class);
+        Command createRel = Services.command(CreateRelationshipCommand.class);
         createRel.execute(this, template, RelType.USE_TEMPLATE);
 
     }
@@ -879,7 +879,7 @@ public abstract class StructrNode implements Comparable<StructrNode> {
                 return;
             }
 
-            Command transactionCommand = Services.createCommand(TransactionCommand.class);
+            Command transactionCommand = Services.command(TransactionCommand.class);
             transactionCommand.execute(new StructrTransaction() {
 
                 @Override
@@ -909,7 +909,7 @@ public abstract class StructrNode implements Comparable<StructrNode> {
                     // Don't automaticall update index
                     // TODO: Implement something fast to keep the index automatically in sync
                     if (updateIndex) {
-                        Services.createCommand(IndexNodeCommand.class).execute(getId(), key, value);
+                        Services.command(IndexNodeCommand.class).execute(getId(), key, value);
                     }
 
                     return null;
@@ -936,13 +936,13 @@ public abstract class StructrNode implements Comparable<StructrNode> {
 
         // Create an outer transaction to combine any inner neo4j transactions
         // to one single transaction
-        Command transactionCommand = Services.createCommand(TransactionCommand.class);
+        Command transactionCommand = Services.command(TransactionCommand.class);
         transactionCommand.execute(new StructrTransaction() {
 
             @Override
             public Object execute() throws Throwable {
 
-                Command createNode = Services.createCommand(CreateNodeCommand.class);
+                Command createNode = Services.command(CreateNodeCommand.class);
                 StructrNode s = (StructrNode) createNode.execute(user);
 
                 init(s);
@@ -1042,7 +1042,7 @@ public abstract class StructrNode implements Comparable<StructrNode> {
      *//*
     public String getNodePath(final StructrNode node, final Enum renderMode) {
 
-    Command nodeFactory = Services.createCommand(NodeFactoryCommand.class);
+    Command nodeFactory = Services.command(NodeFactoryCommand.class);
     StructrNode n = (StructrNode) nodeFactory.execute(node);
     return n.getNodePath();
     }*/
@@ -1060,7 +1060,7 @@ public abstract class StructrNode implements Comparable<StructrNode> {
         StructrNode node = this;
 
         // create bean node
-//        Command nodeFactory = Services.createCommand(NodeFactoryCommand.class);
+//        Command nodeFactory = Services.command(NodeFactoryCommand.class);
 //        StructrNode n = (StructrNode) nodeFactory.execute(node);
 
         // stop at root node
@@ -1095,7 +1095,7 @@ public abstract class StructrNode implements Comparable<StructrNode> {
         StructrNode node = this;
 
         // create bean node
-//        Command nodeFactory = Services.createCommand(NodeFactoryCommand.class);
+//        Command nodeFactory = Services.command(NodeFactoryCommand.class);
 //        StructrNode n = (StructrNode) nodeFactory.execute(node);
 
         // stop at root node
@@ -1134,7 +1134,7 @@ public abstract class StructrNode implements Comparable<StructrNode> {
         if (RenderMode.PUBLIC.equals(renderMode)) {
 
             // create bean node
-            Command nodeFactory = Services.createCommand(NodeFactoryCommand.class);
+            Command nodeFactory = Services.command(NodeFactoryCommand.class);
             StructrNode node = (StructrNode) nodeFactory.execute(this);
 
             // TODO: remove references to db nodes
@@ -1263,8 +1263,7 @@ public abstract class StructrNode implements Comparable<StructrNode> {
      * @return list with relationships
      */
     public List<StructrRelationship> getRelationships(RelType type, Direction dir) {
-        Command relsCommand = Services.createCommand(NodeRelationshipsCommand.class);
-        return (List<StructrRelationship>) relsCommand.execute(this, type, dir);
+        return (List<StructrRelationship>) Services.command(NodeRelationshipsCommand.class).execute(this, type, dir);
     }
 
     /**
@@ -1339,9 +1338,9 @@ public abstract class StructrNode implements Comparable<StructrNode> {
         if (parentNode != null) {
 
 
-            Command nodeFactory = Services.createCommand(NodeFactoryCommand.class);
+            Command nodeFactory = Services.command(NodeFactoryCommand.class);
 
-            Command relsCommand = Services.createCommand(NodeRelationshipsCommand.class);
+            Command relsCommand = Services.command(NodeRelationshipsCommand.class);
             List<StructrRelationship> rels = (List<StructrRelationship>) relsCommand.execute(parentNode, RelType.HAS_CHILD, Direction.OUTGOING);
 
             for (StructrRelationship r : rels) {
@@ -1366,7 +1365,7 @@ public abstract class StructrNode implements Comparable<StructrNode> {
 
         List<StructrNode> nodes = new ArrayList<StructrNode>();
 
-        Command nodeFactory = Services.createCommand(NodeFactoryCommand.class);
+        Command nodeFactory = Services.command(NodeFactoryCommand.class);
         List<StructrRelationship> rels = getIncomingChildRelationships();
 
         for (StructrRelationship r : rels) {
@@ -1526,12 +1525,12 @@ public abstract class StructrNode implements Comparable<StructrNode> {
 
         Command nodeFactory = null;
         if (relType.equals(RelType.LINK)) {
-            nodeFactory = Services.createCommand(LinkNodeFactoryCommand.class);
+            nodeFactory = Services.command(LinkNodeFactoryCommand.class);
         } else {
-            nodeFactory = Services.createCommand(NodeFactoryCommand.class);
+            nodeFactory = Services.command(NodeFactoryCommand.class);
         }
 
-        Command relsCommand = Services.createCommand(NodeRelationshipsCommand.class);
+        Command relsCommand = Services.command(NodeRelationshipsCommand.class);
         List<StructrRelationship> rels = (List<StructrRelationship>) relsCommand.execute(this, relType, Direction.OUTGOING);
 
         for (StructrRelationship r : rels) {
@@ -1631,7 +1630,7 @@ public abstract class StructrNode implements Comparable<StructrNode> {
 
         List<StructrNode> nodes = new ArrayList<StructrNode>();
 
-        Command findNode = Services.createCommand(FindNodeCommand.class);
+        Command findNode = Services.command(FindNodeCommand.class);
         List<StructrNode> result = (List<StructrNode>) findNode.execute(user, this);
 
         for (StructrNode s : result) {
@@ -1904,7 +1903,7 @@ public abstract class StructrNode implements Comparable<StructrNode> {
             }
         }
 
-        Command findNode = Services.createCommand(FindNodeCommand.class);
+        Command findNode = Services.command(FindNodeCommand.class);
 
         int start = content.indexOf(NODE_KEY_PREFIX);
         while (start > -1) {
@@ -2059,7 +2058,7 @@ public abstract class StructrNode implements Comparable<StructrNode> {
 ////            } else {
 ////
 ////                // use XPath notation
-////                Command findNode = Services.createCommand(FindNodeCommand.class);
+////                Command findNode = Services.command(FindNodeCommand.class);
 ////
 ////                // search relative to calling node
 ////                //List<StructrNode> nodes = (List<StructrNode>) findNode.execute(user, callingNode, new XPath(key));
@@ -2112,7 +2111,7 @@ public abstract class StructrNode implements Comparable<StructrNode> {
                     // if search string is given, put search results into freemarker model
                     String searchString = request.getParameter("search");
                     if (searchString != null && !(searchString.isEmpty())) {
-                        Command search = Services.createCommand(SearchNodeCommand.class);
+                        Command search = Services.command(SearchNodeCommand.class);
                         List<StructrNode> result = (List<StructrNode>) search.execute(
                                 null, // top node => search all
                                 null, // user

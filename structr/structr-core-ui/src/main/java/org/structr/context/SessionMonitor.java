@@ -143,8 +143,8 @@ public class SessionMonitor {
             }
 
             // Create a new activity list as child node of the respective user
-            Command createNode = Services.createCommand(CreateNodeCommand.class);
-            Command createRel = Services.createCommand(CreateRelationshipCommand.class);
+            Command createNode = Services.command(CreateNodeCommand.class);
+            Command createRel = Services.command(CreateRelationshipCommand.class);
 
             activityList = (LogNodeList<Activity>) createNode.execute(user,
                     new NodeAttribute(StructrNode.TYPE_KEY, LogNodeList.class.getSimpleName()),
@@ -273,7 +273,7 @@ public class SessionMonitor {
         activity.setUser(user);
 
         getSession(sessionId).setLastActivity(activity);
-        Services.createCommand(LogCommand.class).execute(activity);
+        Services.command(LogCommand.class).execute(activity);
     }
 
     /**
@@ -304,7 +304,7 @@ public class SessionMonitor {
         pageRequest.setUser(user);
 
         getSession(sessionId).setLastActivity(pageRequest);
-        Services.createCommand(LogCommand.class).execute(pageRequest);
+        Services.command(LogCommand.class).execute(pageRequest);
     }
     // ---------------- private methods ---------------------    
     // <editor-fold defaultstate="collapsed" desc="private methods">

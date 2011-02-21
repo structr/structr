@@ -87,7 +87,7 @@ public class NodeService implements SingletonService {
 
     @Override
     public String getName() {
-        return NodeService.class.getName();
+        return NodeService.class.getSimpleName();
     }
     // </editor-fold>
 }

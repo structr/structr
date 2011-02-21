@@ -4,7 +4,7 @@
  */
 package org.structr.core.node;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -24,8 +24,6 @@ import org.structr.core.entity.StructrNode;
  */
 public class NodeRelationshipsCommand extends NodeServiceCommand {
 
-    
-    
     /**
      * First argument is the StructrNode to get relationships for.
      * Second argument is relationship type {@see RelationshipType} (can be null)
@@ -38,8 +36,9 @@ public class NodeRelationshipsCommand extends NodeServiceCommand {
     public Object execute(Object... parameters) {
 
         GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
-        
-        List<StructrRelationship> result = null;
+
+        // Avoid to return null
+        List<StructrRelationship> result = new LinkedList<StructrRelationship>();
 
         if (parameters.length == 3) {
 
@@ -48,16 +47,13 @@ public class NodeRelationshipsCommand extends NodeServiceCommand {
             Object arg2 = parameters[2];
 
             StructrNode sNode = (StructrNode) arg0;
-
+            RelationshipType relType = (RelationshipType) arg1;
             Direction dir = (Direction) arg2;
-
-            result = new ArrayList<StructrRelationship>();
 
             Node node = graphDb.getNodeById(sNode.getId());
 
             Iterable<Relationship> rels;
             if (arg1 != null) {
-                RelationshipType relType = (RelationshipType) arg1;
                 rels = node.getRelationships(relType, dir);
             } else {
                 rels = node.getRelationships(dir);

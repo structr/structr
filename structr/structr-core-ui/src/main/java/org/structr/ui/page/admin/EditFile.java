@@ -19,11 +19,13 @@ public class EditFile extends DefaultEdit {
     protected TextField contentTypeField = new TextField(File.CONTENT_TYPE_KEY, "Internet Media Type (Content-Type)", 30);
     protected TextField urlField = new TextField(File.URL_KEY, "URL", 100);
     protected TextField relativeFilePathField = new TextField(File.RELATIVE_FILE_PATH_KEY, "Local File Path", 100);
-    protected LongField sizeField = new LongField(File.SIZE_KEY, "Size (Bytes)", 10);
+    protected LongField sizeField = new LongField(File.FORMATTED_SIZE_KEY, "Size", 20);
 
     public EditFile() {
 
         super();
+
+        sizeField.setReadonly(true);
 
         FieldSet infoFields = new FieldSet("File Information");
         infoFields.add(new PageLink("download") {

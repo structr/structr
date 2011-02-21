@@ -63,7 +63,7 @@ public class EditPage extends DefaultEdit {
                 if (templateNode != null) {
                     nodes = templateNode.getSiblingNodes(user);
                 } else {
-                    Command searchNode = Services.createCommand(SearchNodeCommand.class);
+                    Command searchNode = Services.command(SearchNodeCommand.class);
 
                     List<SearchAttribute> searchAttrs = new ArrayList<SearchAttribute>();
                     searchAttrs.add(new SearchAttribute(StructrNode.TYPE_KEY, Template.class.getSimpleName(), SearchOperator.OR));

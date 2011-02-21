@@ -49,7 +49,7 @@ public class ExtractFileCommand extends NodeServiceCommand {
         StructrNode targetNode = null;
         User user = null;
 
-        Command findNode = Services.createCommand(FindNodeCommand.class);
+        Command findNode = Services.command(FindNodeCommand.class);
 
         switch (parameters.length) {
 
@@ -116,8 +116,8 @@ public class ExtractFileCommand extends NodeServiceCommand {
 
                 if (input != null) {
 
-                    Command createNode = Services.createCommand(CreateNodeCommand.class);
-                    Command createRel = Services.createCommand(CreateRelationshipCommand.class);
+                    Command createNode = Services.command(CreateNodeCommand.class);
+                    Command createRel = Services.command(CreateRelationshipCommand.class);
 
                     Map<String, StructrNode> createdPaths = new HashMap<String, StructrNode>();
 

@@ -52,7 +52,7 @@ public class ConversionAgent extends Agent {
         }
 
         if (sourceNode instanceof CsvFile) {
-            Services.createCommand(ConvertCsvToNodeListCommand.class).execute(user, sourceNode, targetClass);
+            Services.command(ConvertCsvToNodeListCommand.class).execute(user, sourceNode, targetClass);
         } else {
             throw new UnsupportedArgumentError("Source node type " + sourceNode.getType() + " not supported. This agent can convert only CSV files.");
         }

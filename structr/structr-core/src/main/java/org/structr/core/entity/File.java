@@ -7,8 +7,10 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.io.FileUtils;
 
 import org.apache.commons.io.IOUtils;
+import org.structr.common.Path;
 import org.structr.core.Services;
 
 /**
@@ -23,6 +25,7 @@ public class File extends StructrNode {
     public final static String URL_KEY = "url";
     public final static String CONTENT_TYPE_KEY = "contentType";
     public final static String SIZE_KEY = "size";
+    public final static String FORMATTED_SIZE_KEY = "formattedSize";
     public final static String RELATIVE_FILE_PATH_KEY = "relativeFilePath";
 
     @Override
@@ -40,18 +43,25 @@ public class File extends StructrNode {
     }
 
     public long getSize() {
-        long size = 0L;
-        Object obj = getProperty(SIZE_KEY);
-        if (obj instanceof String) {
-            try {
-                size = Long.parseLong((String) obj);
-                // set new type on the fly
-                setProperty(SIZE_KEY, size);
-            } catch (NumberFormatException nfe) {
-                logger.log(Level.SEVERE, "Could not parse {0} to long", obj);
-            }
+
+        String relativeFilePath = getRelativeFilePath();
+
+        if (relativeFilePath != null) {
+
+            String filePath = Services.getFilePath(Path.Files, relativeFilePath);
+
+            java.io.File fileOnDisk = new java.io.File(filePath);
+            long fileSize = fileOnDisk.length();
+
+            logger.log(Level.INFO, "File size of node {0} ({1}): {2}", new Object[]{getId(), filePath, fileSize});
+
+            return fileSize;
         }
-        return size;
+        return 0;
+    }
+
+    public String getFormattedSize() {
+        return FileUtils.byteCountToDisplaySize(getSize());
     }
 
     public String getRelativeFilePath() {
@@ -61,7 +71,7 @@ public class File extends StructrNode {
     public void setRelativeFilePath(final String filePath) {
         setProperty(RELATIVE_FILE_PATH_KEY, filePath);
     }
-    
+
     public void setUrl(final String url) {
         setProperty(URL_KEY, url);
     }
@@ -112,8 +122,7 @@ public class File extends StructrNode {
 
                 InputStream in = getInputStream();
 
-                if (in != null) 
-                {
+                if (in != null) {
                     // just copy to output stream
                     IOUtils.copy(in, out);
                 }

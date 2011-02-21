@@ -28,7 +28,7 @@ public class SearchUserCommand extends NodeServiceCommand {
         GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
         LuceneFulltextIndexService index = (LuceneFulltextIndexService) arguments.get("index");
 
-        Command findNode = Services.createCommand(FindNodeCommand.class);
+        Command findNode = Services.command(FindNodeCommand.class);
 
         if (graphDb != null) {
 

@@ -18,49 +18,9 @@ import org.structr.core.entity.User;
  *
  * @author amorgner
  */
-public class ConversionTask implements Task {
+public class RebuildIndexTask implements Task {
 
-    private User user;
-    private StructrNode sourceNode;
-    private Class targetNodeClass;
-
-    public ConversionTask(final User user, final StructrNode sourceNode, final Class targetNodeClass) {
-        this.user = user;
-        this.sourceNode = sourceNode;
-        this.targetNodeClass = targetNodeClass;
-    }
-
-    @Override
-    public String getType() {
-        return getClass().getSimpleName();
-    }
-
-    /**
-     * User to process this task as
-     *
-     * @return
-     */
-    @Override
-    public User getUser() {
-        return user;
-    }
-
-    /**
-     * Node to be converted
-     *
-     * @return
-     */
-    public StructrNode getSourceNode() {
-        return sourceNode;
-    }
-
-    /**
-     * Class of target node
-     *
-     * @return
-     */
-    public Class getTargetNodeClass() {
-        return targetNodeClass;
+    public RebuildIndexTask() {
     }
 
     @Override
@@ -96,10 +56,22 @@ public class ConversionTask implements Task {
         return (d1.compareTo(d2));
     }
 
-    // ----- interface StatusInfo -----
+	// ----- interface StatusInfo -----
+	@Override
+	public Object getStatusProperty(String key)
+	{
+		// TODO..
+		return(null);
+	}
+
     @Override
-    public Object getStatusProperty(String key) {
-        // TODO..
-        return (null);
+    public User getUser() {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
+
+    @Override
+    public String getType() {
+        return getClass().getSimpleName();
+    }
+
 }

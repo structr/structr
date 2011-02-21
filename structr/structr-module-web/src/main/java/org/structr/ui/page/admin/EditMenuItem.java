@@ -59,7 +59,7 @@ public class EditMenuItem extends DefaultEdit {
                 if (linkTargetNode != null) {
                     nodes = linkTargetNode.getSiblingNodes(user);
                 } else {
-                    Command searchNode = Services.createCommand(SearchNodeCommand.class);
+                    Command searchNode = Services.command(SearchNodeCommand.class);
 
                     List<SearchAttribute> searchAttrs = new ArrayList<SearchAttribute>();
                     searchAttrs.add(new SearchAttribute(StructrNode.TYPE_KEY, Page.class.getSimpleName(), SearchOperator.OR));
@@ -89,7 +89,7 @@ public class EditMenuItem extends DefaultEdit {
 //
 //        super.onRender();
 //
-//        Command transactionCommand = Services.createCommand(TransactionCommand.class);
+//        Command transactionCommand = Services.command(TransactionCommand.class);
 //        transactionCommand.execute(new StructrTransaction() {
 //
 //            @Override
@@ -118,15 +118,15 @@ public class EditMenuItem extends DefaultEdit {
 //     */
 //    public boolean onAddTemplate() {
 //
-//        Command transactionCommand = Services.createCommand(TransactionCommand.class);
+//        Command transactionCommand = Services.command(TransactionCommand.class);
 //        StructrNode s = null;
 //        s = (StructrNode) transactionCommand.execute(new StructrTransaction() {
 //
 //            @Override
 //            public Object execute() throws Throwable {
 //
-//                Command createNode = Services.createCommand(CreateNodeCommand.class);
-//                Command linkNode = Services.createCommand(CreateRelationshipCommand.class);
+//                Command createNode = Services.command(CreateNodeCommand.class);
+//                Command linkNode = Services.command(CreateRelationshipCommand.class);
 //
 //                // create a new template node
 //                StructrNode newTemplate = (StructrNode) createNode.execute(

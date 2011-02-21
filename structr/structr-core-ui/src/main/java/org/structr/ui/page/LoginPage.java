@@ -112,7 +112,7 @@ public class LoginPage extends Admin {
 
                 Services.initialize();
 
-                Command findUser = Services.createCommand(FindUserCommand.class);
+                Command findUser = Services.command(FindUserCommand.class);
 
                 user = (User) findUser.execute(userValue);//, domainValue);
 
@@ -198,7 +198,7 @@ public class LoginPage extends Admin {
 
             openNodes = new ArrayList<TreeNode>();
 
-            Command findNode = Services.createCommand(FindNodeCommand.class);
+            Command findNode = Services.command(FindNodeCommand.class);
             for (Long s : expandedNodesArray) {
 
                 StructrNode n = (StructrNode) findNode.execute(user, s);

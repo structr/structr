@@ -163,7 +163,7 @@ public class Report extends Nodes {
         //restoreState();
         //populateReportResultsTable();
         if (reportForm.isValid()) {
-            Command search = Services.createCommand(SearchNodeCommand.class);
+            Command search = Services.command(SearchNodeCommand.class);
 
             searchResults = (List<StructrNode>) search.execute(null, user, true, false, searchAttributes);
             populateReportResultsTable();
@@ -274,7 +274,7 @@ public class Report extends Nodes {
 
         if (reportForm.isValid()) {
 
-            Command search = Services.createCommand(SearchNodeCommand.class);
+            Command search = Services.command(SearchNodeCommand.class);
 
             reportResults = (List<StructrNode>) search.execute(null, user, true, false, searchAttributes);
             populateReportResultsTable();
@@ -370,15 +370,15 @@ public class Report extends Nodes {
             csvw.close();
 
             StructrNode s = null;
-            Command transaction = Services.createCommand(TransactionCommand.class);
+            Command transaction = Services.command(TransactionCommand.class);
 
             s = (StructrNode) transaction.execute(new StructrTransaction() {
 
                 @Override
                 public Object execute() throws Throwable {
                     // Save report in database
-                    Command createNode = Services.createCommand(CreateNodeCommand.class);
-                    Command createRel = Services.createCommand(CreateRelationshipCommand.class);
+                    Command createNode = Services.command(CreateNodeCommand.class);
+                    Command createRel = Services.command(CreateRelationshipCommand.class);
 
                     // create node with appropriate type
                     StructrNode newNode = (StructrNode) createNode.execute(new NodeAttribute(StructrNode.TYPE_KEY, File.class.getSimpleName()), user);
@@ -431,7 +431,7 @@ public class Report extends Nodes {
 
         // Get the corresponding entity class
         //Class<StructrNode> c = Services.getEntityClass(resultType);
-        Class<StructrNode> c = (Class<StructrNode>) Services.createCommand(GetEntityClassCommand.class).execute(resultType);
+        Class<StructrNode> c = (Class<StructrNode>) Services.command(GetEntityClassCommand.class).execute(resultType);
 
         if (c != null) {
 
@@ -510,7 +510,7 @@ public class Report extends Nodes {
         resultTypeSelect.setAttribute("onchange", "form.submit();");
 
 
-        Set<String> nodeTypes = ((Map<String, Class>) Services.createCommand(GetEntitiesCommand.class).execute()).keySet();
+        Set<String> nodeTypes = ((Map<String, Class>) Services.command(GetEntitiesCommand.class).execute()).keySet();
         for (String className : nodeTypes) {
             Option o = new Option(className);
             resultTypeSelect.add(o);

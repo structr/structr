@@ -109,7 +109,7 @@ public class EditPlainText extends DefaultEdit {
 
         super.onRender();
 
-//        Command transactionCommand = Services.createCommand(TransactionCommand.class);
+//        Command transactionCommand = Services.command(TransactionCommand.class);
 //        transactionCommand.execute(new StructrTransaction() {
 //
 //            @Override
@@ -169,7 +169,7 @@ public class EditPlainText extends DefaultEdit {
      * Save content
      */
     private void saveContent() {
-        Command transactionCommand = Services.createCommand(TransactionCommand.class);
+        Command transactionCommand = Services.command(TransactionCommand.class);
         transactionCommand.execute(new StructrTransaction() {
 
             @Override
@@ -188,7 +188,7 @@ public class EditPlainText extends DefaultEdit {
 //
 //    @Override
 //    public boolean onSaveAndView() {
-//        Command transactionCommand = Services.createCommand(TransactionCommand.class);
+//        Command transactionCommand = Services.command(TransactionCommand.class);
 //        transactionCommand.execute(new StructrTransaction() {
 //
 //            @Override

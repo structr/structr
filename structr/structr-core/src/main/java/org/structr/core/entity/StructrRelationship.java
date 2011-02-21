@@ -83,12 +83,12 @@ public class StructrRelationship {
     }
 
     public StructrNode getEndNode() {
-        Command nodeFactory = Services.createCommand(NodeFactoryCommand.class);
+        Command nodeFactory = Services.command(NodeFactoryCommand.class);
         return (StructrNode) nodeFactory.execute(dbRelationship.getEndNode());
     }
 
     public StructrNode getStartNode() {
-        Command nodeFactory = Services.createCommand(NodeFactoryCommand.class);
+        Command nodeFactory = Services.command(NodeFactoryCommand.class);
         return (StructrNode) nodeFactory.execute(dbRelationship.getStartNode());
     }
 
@@ -109,16 +109,16 @@ public class StructrRelationship {
      *
      */
     public void setEndNodeId(final User user, final long endNodeId) {
-        Command transaction = Services.createCommand(TransactionCommand.class);
+        Command transaction = Services.command(TransactionCommand.class);
 
         transaction.execute(new StructrTransaction() {
 
             @Override
             public Object execute() throws Throwable {
-                Command findNode = Services.createCommand(FindNodeCommand.class);
-                Command deleteRel = Services.createCommand(DeleteRelationshipCommand.class);
-                Command createRel = Services.createCommand(CreateRelationshipCommand.class);
-                Command nodeFactory = Services.createCommand(NodeFactoryCommand.class);
+                Command findNode = Services.command(FindNodeCommand.class);
+                Command deleteRel = Services.command(DeleteRelationshipCommand.class);
+                Command createRel = Services.command(CreateRelationshipCommand.class);
+                Command nodeFactory = Services.command(NodeFactoryCommand.class);
 
                 StructrNode startNode = (StructrNode) nodeFactory.execute(getStartNode());
                 StructrNode newEndNode = (StructrNode) findNode.execute(user, endNodeId);
@@ -145,15 +145,15 @@ public class StructrRelationship {
      */
     public void setType(final String type) {
         if (type != null) {
-            Command transacted = Services.createCommand(TransactionCommand.class);
+            Command transacted = Services.command(TransactionCommand.class);
 
             transacted.execute(new StructrTransaction() {
 
                 @Override
                 public Object execute() throws Throwable {
-                    Command deleteRel = Services.createCommand(DeleteRelationshipCommand.class);
-                    Command createRel = Services.createCommand(CreateRelationshipCommand.class);
-                    Command nodeFactory = Services.createCommand(NodeFactoryCommand.class);
+                    Command deleteRel = Services.command(DeleteRelationshipCommand.class);
+                    Command createRel = Services.command(CreateRelationshipCommand.class);
+                    Command nodeFactory = Services.command(NodeFactoryCommand.class);
 
                     StructrNode startNode = (StructrNode) nodeFactory.execute(getStartNode());
                     StructrNode endNode = (StructrNode) nodeFactory.execute(getEndNode());

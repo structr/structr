@@ -31,23 +31,24 @@ import org.structr.core.entity.User;
  *
  * @author cmorgner
  */
-public interface Task extends Delayed, StatusInfo
-{
+public interface Task extends Delayed, StatusInfo {
+
     /**
      * User to process the task as
      *
      * @return
      */
     public User getUser();
-	/**
-	 * Returns the nodes this task should operate on.
-	 *
-	 * TODO: Set or List?
-	 * TODO: StructrNode or StructrNode?
-	 *
-	 * @return a set of nodes relevant to this task.
-	 */
-	public Set<StructrNode> getNodes();
+
+    /**
+     * Returns the nodes this task should operate on.
+     *
+     * TODO: Set or List?
+     * TODO: StructrNode or StructrNode?
+     *
+     * @return a set of nodes relevant to this task.
+     */
+    public Set<StructrNode> getNodes();
 
     /**
      * Returns the priority of this task.
@@ -72,4 +73,11 @@ public interface Task extends Delayed, StatusInfo
      * @return the time this task was created
      */
     public Date getCreationTime();
+
+    /**
+     * Returns the task type
+     *
+     * @return the task type
+     */
+    public String getType();
 }

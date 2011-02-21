@@ -22,7 +22,7 @@ public class LogServiceTest
 
 		try
 		{
-			Command logCommand = Services.createCommand(LogCommand.class);
+			Command logCommand = Services.command(LogCommand.class);
 
 			for(int i=0; i<1000; i++)
 			{
@@ -36,8 +36,8 @@ public class LogServiceTest
 		}
 
 		/*
-		final GraphDatabaseService graphDb = (GraphDatabaseService)Services.createCommand(GraphDatabaseCommand.class).execute();
-		final Command factory = Services.createCommand(NodeFactoryCommand.class);
+		final GraphDatabaseService graphDb = (GraphDatabaseService)Services.command(GraphDatabaseCommand.class).execute();
+		final Command factory = Services.command(NodeFactoryCommand.class);
 		NodeList<StructrNode> nodeList = null;
 		*/
 

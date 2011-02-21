@@ -90,7 +90,7 @@ public class Property {
     }
 
     private void setPropertyInBackend() {
-        Command transaction = Services.createCommand(TransactionCommand.class);
+        Command transaction = Services.command(TransactionCommand.class);
 
         transaction.execute(new StructrTransaction() {
 

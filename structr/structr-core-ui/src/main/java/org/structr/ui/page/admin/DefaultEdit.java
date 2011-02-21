@@ -685,7 +685,7 @@ public class DefaultEdit extends Nodes {
      * Save form data
      */
     private void save() {
-        final Command transactionCommand = Services.createCommand(TransactionCommand.class);
+        final Command transactionCommand = Services.command(TransactionCommand.class);
         transactionCommand.execute(new StructrTransaction() {
 
             @Override
@@ -711,7 +711,7 @@ public class DefaultEdit extends Nodes {
      */
     public boolean onDeleteRelationship() {
 
-        final Command transaction = Services.createCommand(TransactionCommand.class);
+        final Command transaction = Services.command(TransactionCommand.class);
 
         String localNodeId = deleteRelationshipLink.getParameter(NODE_ID_KEY);
         final String relationshipId = deleteRelationshipLink.getValue();
@@ -727,7 +727,7 @@ public class DefaultEdit extends Nodes {
                 @Override
                 public Object execute() throws Throwable {
 
-                    Command deleteRelationship = Services.createCommand(DeleteRelationshipCommand.class);
+                    Command deleteRelationship = Services.command(DeleteRelationshipCommand.class);
                     deleteRelationship.execute(id);
                     transaction.setErrorMessage(deleteRelationship.getErrorMessage());
                     transaction.setExitCode(deleteRelationship.getExitCode());
@@ -769,14 +769,14 @@ public class DefaultEdit extends Nodes {
             final boolean rec = recursive.isChecked();
 
             node = getNodeByIdOrPath(nodeId);
-            Command transaction = Services.createCommand(TransactionCommand.class);
+            Command transaction = Services.command(TransactionCommand.class);
 
             transaction.execute(new StructrTransaction() {
 
                 @Override
                 public Object execute() throws Throwable {
 
-                    Command findUser = Services.createCommand(FindUserCommand.class);
+                    Command findUser = Services.command(FindUserCommand.class);
                     User selectedUser = (User) findUser.execute(selectedUserName);
 
                     if (selectedUser != null) {
@@ -786,7 +786,7 @@ public class DefaultEdit extends Nodes {
 
                         if (rec) {
 
-                            Command findNode = Services.createCommand(FindNodeCommand.class);
+                            Command findNode = Services.command(FindNodeCommand.class);
                             List<StructrNode> result = (List<StructrNode>) findNode.execute(user, node);
 
                             for (StructrNode s : result) {
@@ -812,7 +812,7 @@ public class DefaultEdit extends Nodes {
                             StructrRelationship r = n.getSecurityRelationship(selectedUser);
 
                             if (r == null) {
-                                Command createRel = Services.createCommand(CreateRelationshipCommand.class);
+                                Command createRel = Services.command(CreateRelationshipCommand.class);
 
                                 r = (StructrRelationship) createRel.execute(selectedUser, n, RelType.SECURITY);
 
@@ -824,7 +824,7 @@ public class DefaultEdit extends Nodes {
 
                             } else {
 
-                                Command deleteRel = Services.createCommand(DeleteRelationshipCommand.class);
+                                Command deleteRel = Services.command(DeleteRelationshipCommand.class);
                                 deleteRel.execute(r);
 
                             }
@@ -852,7 +852,7 @@ public class DefaultEdit extends Nodes {
 
         if (editVisibilityForm.isValid()) {
 
-            final Command transactionCommand = Services.createCommand(TransactionCommand.class);
+            final Command transactionCommand = Services.command(TransactionCommand.class);
             transactionCommand.execute(new StructrTransaction() {
 
                 @Override
@@ -891,7 +891,7 @@ public class DefaultEdit extends Nodes {
 
         if (editVisibilityForm.isValid()) {
 
-            final Command transactionCommand = Services.createCommand(TransactionCommand.class);
+            final Command transactionCommand = Services.command(TransactionCommand.class);
             transactionCommand.execute(new StructrTransaction() {
 
                 @Override

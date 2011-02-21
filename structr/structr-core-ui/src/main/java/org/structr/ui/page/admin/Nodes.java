@@ -224,7 +224,7 @@ public class Nodes extends Admin {
             nodeTypeField.add(new Option("", "--- Select Node Type ---"));
 
 //            Set<Class> entities = ClasspathEntityLocator.locateEntitiesByType(StructrNode.class);
-            Set<String> nodeTypes = ((Map<String, Class>) Services.createCommand(GetEntitiesCommand.class).execute()).keySet();
+            Set<String> nodeTypes = ((Map<String, Class>) Services.command(GetEntitiesCommand.class).execute()).keySet();
 //            Set<String> nodeTypes = Services.getCachedEntityTypes();
             for (String className : nodeTypes) {
                 Option o = new Option(className);
@@ -576,8 +576,8 @@ public class Nodes extends Admin {
             // set of nodes to be ordered by a certain key
             List<StructrNode> nodes = new ArrayList<StructrNode>();
 
-            Command nodeFactory = Services.createCommand(NodeFactoryCommand.class);
-            Command relCommand = Services.createCommand(NodeRelationshipsCommand.class);
+            Command nodeFactory = Services.command(NodeFactoryCommand.class);
+            Command relCommand = Services.command(NodeRelationshipsCommand.class);
 
             List<StructrRelationship> rels = (List<StructrRelationship>) relCommand.execute(nodeToAdd, RelType.HAS_CHILD, Direction.OUTGOING);
 
@@ -612,7 +612,7 @@ public class Nodes extends Admin {
 
             }
 
-            nodeFactory = Services.createCommand(LinkNodeFactoryCommand.class);
+            nodeFactory = Services.command(LinkNodeFactoryCommand.class);
 
             rels = (List<StructrRelationship>) relCommand.execute(nodeToAdd, RelType.LINK, Direction.OUTGOING);
 
@@ -688,14 +688,14 @@ public class Nodes extends Admin {
         StructrNode s = null;
 
         if (newNodeForm.isValid()) {
-            Command transactionCommand = Services.createCommand(TransactionCommand.class);
+            Command transactionCommand = Services.command(TransactionCommand.class);
 
             s = (StructrNode) transactionCommand.execute(new StructrTransaction() {
 
                 @Override
                 public Object execute() throws Throwable {
-                    Command createNode = Services.createCommand(CreateNodeCommand.class);
-                    Command createRel = Services.createCommand(CreateRelationshipCommand.class);
+                    Command createNode = Services.command(CreateNodeCommand.class);
+                    Command createRel = Services.command(CreateRelationshipCommand.class);
 
                     StructrNode parentNode = node;
                     StructrNode newNode = (StructrNode) createNode.execute(user);
@@ -717,7 +717,7 @@ public class Nodes extends Admin {
                 okMsg = "New " + s.getType() + " node " + s.getName() + " has been created.";
             }
 
-            Command findNode = Services.createCommand(FindNodeCommand.class);
+            Command findNode = Services.command(FindNodeCommand.class);
             StructrNode n = (StructrNode) findNode.execute(user, s.getId());
 
             Map<String, String> parameters = new HashMap<String, String>();
@@ -748,13 +748,13 @@ public class Nodes extends Admin {
             final String endNodeId = newRelationshipForm.getFieldValue(END_NODE_ID_KEY);
             final String relType = newRelationshipForm.getFieldValue(REL_TYPE_KEY);
 
-            Command transactionCommand = Services.createCommand(TransactionCommand.class);
+            Command transactionCommand = Services.command(TransactionCommand.class);
             transactionCommand.execute(new StructrTransaction() {
 
                 @Override
                 public Object execute() throws Throwable {
-                    Command findNode = Services.createCommand(FindNodeCommand.class);
-                    Command createRel = Services.createCommand(CreateRelationshipCommand.class);
+                    Command findNode = Services.command(FindNodeCommand.class);
+                    Command createRel = Services.command(CreateRelationshipCommand.class);
 
                     StructrNode startNode = node;
                     StructrNode endNode = (StructrNode) findNode.execute(user, Long.parseLong(endNodeId));
@@ -787,12 +787,12 @@ public class Nodes extends Admin {
         if (moveNodeForm.isValid()) {
             final String newParentNodeId = moveNodeForm.getFieldValue(NEW_PARENT_NODE_ID_KEY);
 
-            Command transactionCommand = Services.createCommand(TransactionCommand.class);
+            Command transactionCommand = Services.command(TransactionCommand.class);
             transactionCommand.execute(new StructrTransaction() {
 
                 @Override
                 public Object execute() throws Throwable {
-                    Command moveNode = Services.createCommand(MoveNodeCommand.class);
+                    Command moveNode = Services.command(MoveNodeCommand.class);
                     moveNode.execute(getNodeId(), newParentNodeId);
                     return (null);
                 }
@@ -820,12 +820,12 @@ public class Nodes extends Admin {
         if (copyNodeForm.isValid()) {
             final String targetNodeId = copyNodeForm.getFieldValue(TARGET_NODE_ID_KEY);
 
-            Command transactionCommand = Services.createCommand(TransactionCommand.class);
+            Command transactionCommand = Services.command(TransactionCommand.class);
             transactionCommand.execute(new StructrTransaction() {
 
                 @Override
                 public Object execute() throws Throwable {
-                    Command copyNode = Services.createCommand(CopyNodeCommand.class);
+                    Command copyNode = Services.command(CopyNodeCommand.class);
                     copyNode.execute(getNodeId(), targetNodeId, user);
                     return (null);
                 }
@@ -861,15 +861,15 @@ public class Nodes extends Admin {
                 targetNodeId = getNodeId();
             }
 
-            Command findNode = Services.createCommand(FindNodeCommand.class);
+            Command findNode = Services.command(FindNodeCommand.class);
             final StructrNode targetNode = (StructrNode) findNode.execute(user, targetNodeId);
 
-            final Command transactionCommand = Services.createCommand(TransactionCommand.class);
+            final Command transactionCommand = Services.command(TransactionCommand.class);
             transactionCommand.execute(new StructrTransaction() {
 
                 @Override
                 public Object execute() throws Throwable {
-                    Command extractFile = Services.createCommand(ExtractFileCommand.class);
+                    Command extractFile = Services.command(ExtractFileCommand.class);
                     extractFile.execute(getNodeId(), targetNode, user);
                     transactionCommand.setExitCode(extractFile.getExitCode());
                     transactionCommand.setErrorMessage(extractFile.getErrorMessage());
@@ -930,14 +930,14 @@ public class Nodes extends Admin {
                     // and write to the configured location
                     // TODO: move to helper class, support multiple files
 
-                    Command transaction = Services.createCommand(TransactionCommand.class);
+                    Command transaction = Services.command(TransactionCommand.class);
 
                     s = (StructrNode) transaction.execute(new StructrTransaction() {
 
                         @Override
                         public Object execute() throws Throwable {
-                            Command createNode = Services.createCommand(CreateNodeCommand.class);
-                            Command createRel = Services.createCommand(CreateRelationshipCommand.class);
+                            Command createNode = Services.command(CreateNodeCommand.class);
+                            Command createRel = Services.command(CreateRelationshipCommand.class);
 
                             String mimeProperty = null;
 
@@ -1030,12 +1030,12 @@ public class Nodes extends Admin {
 
             try {
 
-                final Command transactionCommand = Services.createCommand(TransactionCommand.class);
+                final Command transactionCommand = Services.command(TransactionCommand.class);
                 parentNode = (StructrNode) transactionCommand.execute(new StructrTransaction() {
 
                     @Override
                     public Object execute() throws Throwable {
-                        Command deleteNode = Services.createCommand(DeleteNodeCommand.class);
+                        Command deleteNode = Services.command(DeleteNodeCommand.class);
                         Object result = deleteNode.execute(getNodeId(), parent, recursive, user);
                         transactionCommand.setExitCode(deleteNode.getExitCode());
                         transactionCommand.setErrorMessage(deleteNode.getErrorMessage());
@@ -1178,24 +1178,24 @@ public class Nodes extends Admin {
      * @return List<Property>
      */
     public List<Property> getProperties() {
-//        Command transactionCommand = Services.createCommand(TransactionCommand.class);
+//        Command transactionCommand = Services.command(TransactionCommand.class);
 //
 //        return ((List<Property>) transactionCommand.execute(new StructrTransaction() {
 //
 //            @Override
 //            public Object execute() throws Throwable {
-//                Command propertiesCommand = Services.createCommand(NodePropertiesCommand.class);
+//                Command propertiesCommand = Services.command(NodePropertiesCommand.class);
 //                return (propertiesCommand.execute(node));
 //            }
 //        }));
-        return ((List<Property>) Services.createCommand(NodePropertiesCommand.class).execute(node));
+        return ((List<Property>) Services.command(NodePropertiesCommand.class).execute(node));
     }
 
     /**
      * Set a property
      */
     public boolean onSetProperty() {
-        Command transactionCommand = Services.createCommand(TransactionCommand.class);
+        Command transactionCommand = Services.command(TransactionCommand.class);
 
         transactionCommand.execute(new StructrTransaction() {
 
@@ -1235,7 +1235,7 @@ public class Nodes extends Admin {
      * Delete a property
      */
 //    public boolean onDeleteProperty() {
-//        Command transaction = Services.createCommand(TransactionCommand.class);
+//        Command transaction = Services.command(TransactionCommand.class);
 //        final String localNodeId = deleteLink.getParameter(NODE_ID_KEY);
 //        final String key = deleteLink.getValue();
 //
@@ -1459,7 +1459,7 @@ public class Nodes extends Admin {
     public List<String> getNodeNamesLike(final String string) {
         List<String> names = new ArrayList<String>();
 
-        Command search = Services.createCommand(SearchNodeCommand.class);
+        Command search = Services.command(SearchNodeCommand.class);
         List<SearchAttribute> searchAttrs = new ArrayList<SearchAttribute>();
 
         // always add wildcard character '*' for auto completion

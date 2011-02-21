@@ -41,7 +41,7 @@ public class MenuItem extends WebNode {
 
     public Page getLinkedPage() {
         if (hasRelationship(RelType.PAGE_LINK, Direction.OUTGOING)) {
-            Command nodeFactory = Services.createCommand(NodeFactoryCommand.class);
+            Command nodeFactory = Services.command(NodeFactoryCommand.class);
             return ((Page) nodeFactory.execute(getRelationships(RelType.PAGE_LINK, Direction.OUTGOING).get(0).getEndNode()));
         } else {
             return null;
@@ -56,12 +56,12 @@ public class MenuItem extends WebNode {
     public void setLinkTarget(final Long value) {
 
         // find link target node
-        Command findNode = Services.createCommand(FindNodeCommand.class);
+        Command findNode = Services.command(FindNodeCommand.class);
         StructrNode linkTargetNode = (StructrNode) findNode.execute(new SuperUser(), value);
 
         // delete existing link target relationships
         List<StructrRelationship> pageLinkRels = getRelationships(RelType.PAGE_LINK, Direction.OUTGOING);
-        Command delRel = Services.createCommand(DeleteRelationshipCommand.class);
+        Command delRel = Services.command(DeleteRelationshipCommand.class);
         if (pageLinkRels != null) {
             for (StructrRelationship r : pageLinkRels) {
                 delRel.execute(r);
@@ -69,7 +69,7 @@ public class MenuItem extends WebNode {
         }
 
         // create new link target relationship
-        Command createRel = Services.createCommand(CreateRelationshipCommand.class);
+        Command createRel = Services.command(CreateRelationshipCommand.class);
         createRel.execute(this, linkTargetNode, RelType.PAGE_LINK);
     }
 
