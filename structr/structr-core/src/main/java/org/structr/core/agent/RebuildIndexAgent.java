@@ -12,6 +12,8 @@ import org.structr.core.Services;
 import org.structr.core.entity.StructrNode;
 import org.structr.core.node.GetAllNodes;
 import org.structr.core.node.IndexNodeCommand;
+import org.structr.core.node.StructrTransaction;
+import org.structr.core.node.TransactionCommand;
 
 /**
  *
@@ -35,10 +37,13 @@ public class RebuildIndexAgent extends Agent {
 
         if (task instanceof RebuildIndexTask) {
 
-//            RebuildIndexTask rebuildIndexTask = (RebuildIndexTask) task;
+            long t0 = System.currentTimeMillis();
             logger.log(Level.INFO, "Starting rebuilding index ...");
+            
             long nodes = rebuildIndex();
-            logger.log(Level.INFO, "Rebuilding index finished, {0} nodes processed", nodes);
+
+            long t1 = System.currentTimeMillis();
+            logger.log(Level.INFO, "Rebuilding index finished, {0} nodes processed in {1} s", new Object[]{nodes, (t1 - t0) / 1000});
 
         }
 
@@ -47,16 +52,25 @@ public class RebuildIndexAgent extends Agent {
 
     private long rebuildIndex() {
 
-        long nodes = 0;
+        Command transactionCommand = Services.command(TransactionCommand.class);
+        Long nodes = (Long) transactionCommand.execute(new StructrTransaction() {
 
-        Command indexer = Services.command(IndexNodeCommand.class);
+            @Override
+            public Object execute() throws Throwable {
 
-        List<StructrNode> allNodes = (List<StructrNode>) Services.command(GetAllNodes.class).execute();
-        for (StructrNode s : allNodes) {
-            indexer.execute(s);
-            nodes++;
+                long nodes = 0;
 
-        }
+                Command indexer = Services.command(IndexNodeCommand.class);
+                List<StructrNode> allNodes = (List<StructrNode>) Services.command(GetAllNodes.class).execute();
+                for (StructrNode s : allNodes) {
+                    indexer.execute(s);
+                    nodes++;
+
+                }
+                return nodes;
+            }
+        });
+
         return nodes;
     }
 }

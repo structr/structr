@@ -270,6 +270,10 @@ public class Services {
             case Modules:
                 ret = getAbsolutePath(modulesPath);
                 break;
+
+            case Temp:
+                ret = getAbsolutePath(tmpPath);
+                break;
         }
 
         return (ret);

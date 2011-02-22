@@ -169,6 +169,22 @@
             <artifactId>opencsv</artifactId>
             <version>2.0</version>
         </dependency>
+        <dependency>
+            <groupId>com.flagstone</groupId>
+            <artifactId>transform</artifactId>
+            <version>3.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.htmlparser</groupId>
+            <artifactId>htmlparser</artifactId>
+            <version>1.6</version>
+        </dependency>
+        <dependency>
+            <groupId>jmimemagic</groupId>
+            <artifactId>jmimemagic</artifactId>
+            <version>0.1.2</version>
+        </dependency>
+
     </dependencies>
 
     <build>

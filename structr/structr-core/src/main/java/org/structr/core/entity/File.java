@@ -25,7 +25,7 @@ public class File extends StructrNode {
     public final static String URL_KEY = "url";
     public final static String CONTENT_TYPE_KEY = "contentType";
     public final static String SIZE_KEY = "size";
-    public final static String FORMATTED_SIZE_KEY = "formattedSize";
+//    public final static String FORMATTED_SIZE_KEY = "formattedSize";
     public final static String RELATIVE_FILE_PATH_KEY = "relativeFilePath";
 
     @Override

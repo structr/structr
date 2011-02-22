@@ -65,9 +65,11 @@ public class EditImage extends EditFile {
         } else {
             previewImage = image.getScaledImage(user, PREVIEW_WIDTH, PREVIEW_HEIGHT);
         }
-
-        externalPreviewViewUrl = previewImage.getNodeURL(user, contextPath);
-        localPreviewViewUrl = contextPath + "/view.htm?nodeId=" + previewImage.getId();
+        
+        if (previewImage != null) {
+            externalPreviewViewUrl = previewImage.getNodeURL(user, contextPath);
+            localPreviewViewUrl = contextPath + "/view.htm?nodeId=" + previewImage.getId();
+        }
 
     }
 }

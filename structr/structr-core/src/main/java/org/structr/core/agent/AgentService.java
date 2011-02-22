@@ -96,7 +96,7 @@ public class AgentService extends Thread implements RunnableService {
 
                 // sleep a bit waiting for tasks..
                 try {
-                    Thread.sleep(1);
+                    Thread.sleep(10);
 
                 } catch (Exception ex) {
                 }

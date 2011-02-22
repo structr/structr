@@ -119,7 +119,7 @@ public class LogService extends Thread implements RunnableService {
 
     public LogNodeList getUserLog(final User user) {
 
-        if (user instanceof SuperUser) {
+        if (user == null || user instanceof SuperUser) {
             return null;
         }
 

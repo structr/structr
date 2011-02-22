@@ -501,9 +501,16 @@ public abstract class StructrNode implements Comparable<StructrNode> {
 
     /**
      * Get name from underlying db node
+     *
+     * If name is null, return node id as fallback
      */
     public String getName() {
-        return (String) getProperty(NAME_KEY);
+        Object nameProperty = getProperty(NAME_KEY);
+        if (nameProperty != null) {
+            return (String) nameProperty;
+        } else {
+            return getNodeId().toString();
+        }
     }
 
     /**
@@ -1144,14 +1151,15 @@ public abstract class StructrNode implements Comparable<StructrNode> {
             while (node != null && node.getId() > 0) {
 
                 String urlPart = node.getUrlPart();
-                if (urlPart.startsWith("http://")) {
-                    site = urlPart;
-                } else if (urlPart.endsWith("/")) {
-                    domain = urlPart;
-                } else {
-                    path = node.getUrlPart() + (!("".equals(path)) ? "/" + path : "");
+                if (urlPart != null) {
+                    if (urlPart.startsWith("http://")) {
+                        site = urlPart;
+                    } else if (urlPart.endsWith("/")) {
+                        domain = urlPart;
+                    } else {
+                        path = node.getUrlPart() + (!("".equals(path)) ? "/" + path : "");
+                    }
                 }
-
 
                 // check parent nodes
                 node = node.getParentNode(user);

@@ -10,6 +10,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import org.apache.commons.io.output.ByteArrayOutputStream;
+import org.apache.commons.lang.StringUtils;
 import org.structr.core.entity.Image;
 
 /**
@@ -22,6 +23,8 @@ public abstract class ImageHelper {
     private static Thumbnail tn = new Thumbnail();
 
     public static class Thumbnail {
+
+        public static final String FORMAT = "png";
 
         private byte[] bytes;
         private int width;
@@ -70,7 +73,7 @@ public abstract class ImageHelper {
         }
     }
 
-    public static Thumbnail getThumbnailByteArray(final Image originalImage, final int maxWidth, final int maxHeight) {
+    public static Thumbnail createThumbnail(final Image originalImage, final int maxWidth, final int maxHeight) {
 
         //String contentType = (String) originalImage.getProperty(Image.CONTENT_TYPE_KEY);
 
@@ -86,6 +89,10 @@ public abstract class ImageHelper {
 
                 int sourceWidth = source.getWidth();
                 int sourceHeight = source.getHeight();
+
+                // Update image dimensions
+                originalImage.setWidth(sourceWidth);
+                originalImage.setHeight(sourceHeight);
 
                 //float aspectRatio = sourceWidth/sourceHeight;
 
@@ -111,25 +118,9 @@ public abstract class ImageHelper {
                     //resampleOp.setUnsharpenMask(AdvancedResizeOp.UnsharpenMask.Soft);
                     BufferedImage dest = resampleOp.filter(source, null);
 
-//            BufferedImage dest = new BufferedImage(destWidth, destHeight, BufferedImage.TYPE_INT_RGB);
-//
-//            Graphics2D g = dest.createGraphics();
-//
-//            // set rendering hints..
-//            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-//            g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-//            g.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
-//            g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-//
-//            AffineTransform transform = AffineTransform.getScaleInstance(1.0/scale, 1.0/scale);
-//            g.drawRenderedImage(source, transform);
-//
-                    //BufferedImage thumbnail = Thumbnails.of(originalImage).size(destHeight, destWidth).asBufferedImage();
-//            Thumbnails.of(source).alphaInterpolation(AlphaInterpolation.QUALITY).size(destHeight, destWidth).outputFormat("png").toOutputStream(baos);
-
-                    ImageIO.write(dest, "png", baos);
+                    ImageIO.write(dest, Thumbnail.FORMAT, baos);
                 } else {
-                    ImageIO.write(source, "png", baos);
+                    ImageIO.write(source, Thumbnail.FORMAT, baos);
                 }
             } else {
                 logger.log(Level.SEVERE, "Thumbnail could not be created");
@@ -148,5 +139,51 @@ public abstract class ImageHelper {
         }
 
         return null;
+    }
+
+
+    /**
+     * Check if url points to an image by extension
+     *
+     * TODO: Improve method to check file type by peeping at the
+     * content
+     *
+     * @param urlString
+     * @return
+     */
+    public static boolean isImageType(final String urlString) {
+
+        if (urlString == null || StringUtils.isBlank(urlString)) return false;
+        String extension = urlString.toLowerCase().substring(urlString.lastIndexOf(".")+1);
+        String[] imageExtensions = {"png", "gif", "jpg", "jpeg", "bmp", "tif", "tiff"};
+        for (String ext : imageExtensions) {
+            if (ext.equals(extension)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    /**
+     * Check if url points to an Flash object by extension
+     *
+     * TODO: Improve method to check file type by peeping at the
+     * content
+     *
+     * @param urlString
+     * @return
+     */
+    public static boolean isSwfType(final String urlString) {
+
+        if (urlString == null || StringUtils.isBlank(urlString)) return false;
+        String extension = urlString.toLowerCase().substring(urlString.lastIndexOf(".")+1);
+        String[] imageExtensions = {"swf"};
+        for (String ext : imageExtensions) {
+            if (ext.equals(extension)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

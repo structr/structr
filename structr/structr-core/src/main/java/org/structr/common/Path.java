@@ -14,5 +14,6 @@ public enum Path
 	Base,
 	Database,
 	Files,
-	Modules
+	Modules,
+        Temp
 }

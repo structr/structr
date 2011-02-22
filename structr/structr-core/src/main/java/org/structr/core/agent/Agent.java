@@ -191,49 +191,49 @@ public abstract class Agent extends Thread implements StatusInfo {
 
     // <editor-fold defaultstate="collapsed" desc="private methods">
     private boolean canHandleMore() {
-        return (taskQueue.isEmpty());
-//		int size = 0;
-//
-//		synchronized(taskQueue)
-//		{
-//			// FIXME: size may not be a constant time operation! slow?
-//			size = taskQueue.size();
-//		}
-//
-//		// queue is empty, assume new agent
-//		if(size == 0)
-//		{
-//			return(true);
-//		}
-//
-//		long actualExecutionTime = System.nanoTime() - lastStartTime;
-//
-//		// calculate thresholds for queue size adaption
-//		long upperThreshold = averageExecutionTime + (averageExecutionTime / 2);
-//		long lowerThreshold = averageExecutionTime - (averageExecutionTime / 2);
-//
-//		if(actualExecutionTime > upperThreshold && maxQueueSize > 2)
-//		{
-//			// FIXME
-//
-//			maxQueueSize -= 2;
-//
-//			// do not take the next task
-//			return(false);
-//
-//		} else
-//		if(actualExecutionTime < lowerThreshold && maxQueueSize < 200)
-//		{
-//			// FIXME
-//
-//			maxQueueSize += 2;
-//
-//			// can take the next task
-//			return(true);
-//		}
-//
-//
-//		return(size < maxQueueSize);
+//        return (taskQueue.isEmpty());
+		int size = 0;
+
+		synchronized(taskQueue)
+		{
+			// FIXME: size may not be a constant time operation! slow?
+			size = taskQueue.size();
+		}
+
+		// queue is empty, assume new agent
+		if(size == 0)
+		{
+			return(true);
+		}
+
+		long actualExecutionTime = System.nanoTime() - lastStartTime;
+
+		// calculate thresholds for queue size adaption
+		long upperThreshold = averageExecutionTime + (averageExecutionTime / 2);
+		long lowerThreshold = averageExecutionTime - (averageExecutionTime / 2);
+
+		if(actualExecutionTime > upperThreshold && maxQueueSize > 2)
+		{
+			// FIXME
+
+			maxQueueSize -= 2;
+
+			// do not take the next task
+			return(false);
+
+		} else
+		if(actualExecutionTime < lowerThreshold && maxQueueSize < 200)
+		{
+			// FIXME
+
+			maxQueueSize += 2;
+
+			// can take the next task
+			return(true);
+		}
+
+
+		return(size < maxQueueSize);
     }
     // </editor-fold>
 

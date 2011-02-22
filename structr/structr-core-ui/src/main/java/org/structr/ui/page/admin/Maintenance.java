@@ -8,7 +8,6 @@ import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -17,11 +16,7 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.imageio.ImageIO;
-import javax.imageio.ImageReader;
-import javax.imageio.stream.ImageInputStream;
 import javax.servlet.ServletContext;
 import org.apache.click.Context;
 import org.apache.click.control.ActionLink;
@@ -34,7 +29,6 @@ import org.apache.click.dataprovider.DataProvider;
 import org.apache.click.service.ConfigService;
 import org.apache.click.util.Bindable;
 import org.apache.commons.lang.RandomStringUtils;
-import org.structr.common.Path;
 import org.structr.common.RelType;
 //import org.structr.core.ClasspathEntityLocator;
 import org.structr.context.SessionMonitor;
@@ -46,6 +40,7 @@ import org.structr.core.agent.ListTasksCommand;
 import org.structr.core.agent.ProcessTaskCommand;
 import org.structr.core.agent.RebuildIndexTask;
 import org.structr.core.agent.Task;
+import org.structr.core.agent.UpdateImageMetadataTask;
 import org.structr.core.entity.Image;
 import org.structr.core.entity.StructrNode;
 import org.structr.core.entity.StructrRelationship;
@@ -89,8 +84,8 @@ public class Maintenance extends Admin {
     protected Table activitiesTable = new Table("activitiesTable");
     @Bindable
     protected Table servicesTable = new Table("servicesTable");
-    @Bindable
-    protected Table taskQueueTable = new Table("taskQueueTable");
+//    @Bindable
+//    protected Table taskQueueTable = new Table("taskQueueTable");
     @Bindable
     protected Table initValuesTable = new Table("initValuesTable");
     @Bindable
@@ -106,7 +101,7 @@ public class Maintenance extends Admin {
     @Bindable
     protected ActionLink removeThumbnailsLink = new ActionLink("removeThumbnailsLink", "Remove Thumbnails (Ad-hoc)", this, "onRemoveThumbnails");
     @Bindable
-    protected ActionLink setImageDimensionsLink = new ActionLink("setImageDimensionsLink", "Set image dimensions on all Image nodes (Ad-hoc)", this, "onSetImageDimensions");
+    protected ActionLink setImageDimensionsLink = new ActionLink("setImageDimensionsLink", "Set image dimensions on all Image nodes (Background)", this, "onSetImageDimensions");
     @Bindable
     protected ActionLink createAdminLink = new ActionLink("createAdminLink", "Create admin user", this, "onCreateAdminUser");
     @Bindable
@@ -133,6 +128,7 @@ public class Maintenance extends Admin {
         logoutTimestampColumn.setFormat("{0,date,medium} {0,time,medium}");
         sessionsTable.addColumn(logoutTimestampColumn);
         sessionsTable.addColumn(new Column("lastActivityText"));
+
 
         Column inactiveSinceColumn = new Column("inactiveSince", "Inactive");
         inactiveSinceColumn.setDecorator(new Decorator() {
@@ -164,6 +160,8 @@ public class Maintenance extends Admin {
         sessionsTable.setSortedColumn("inactiveSince");
         sessionsTable.setSortedAscending(true);
         sessionsTable.setPageSize(5);
+        sessionsTable.setHoverRows(true);
+        sessionsTable.setShowBanner(true);
         sessionsTable.setClass(Table.CLASS_COMPLEX);
 
         activitiesTable.addColumn(new Column(Activity.OWNER_KEY, "User"));
@@ -182,6 +180,8 @@ public class Maintenance extends Admin {
         activitiesTable.setSortable(true);
         activitiesTable.setSortedAscending(false);
         activitiesTable.setPageSize(15);
+        activitiesTable.setHoverRows(true);
+        activitiesTable.setShowBanner(true);
         activitiesTable.setClass(Table.CLASS_COMPLEX);
 
         servicesTable.addColumn(new Column("Name"));
@@ -189,13 +189,16 @@ public class Maintenance extends Admin {
         servicesTable.setSortable(true);
         servicesTable.setClass(Table.CLASS_COMPLEX);
 
-        taskQueueTable.addColumn(new Column("type"));
-        taskQueueTable.addColumn(new Column("user"));
-        taskQueueTable.addColumn(new Column("priority"));
-        taskQueueTable.addColumn(new Column("creationTime"));
-        taskQueueTable.addColumn(new Column("scheduledTime"));
-        taskQueueTable.setSortable(true);
-        taskQueueTable.setClass(Table.CLASS_COMPLEX);
+//        taskQueueTable.addColumn(new Column("type"));
+//        taskQueueTable.addColumn(new Column("user"));
+//        taskQueueTable.addColumn(new Column("priority"));
+//        taskQueueTable.addColumn(new Column("creationTime"));
+//        taskQueueTable.addColumn(new Column("scheduledTime"));
+//        taskQueueTable.setSortable(true);
+//        taskQueueTable.setPageSize(15);
+//        taskQueueTable.setHoverRows(true);
+//        taskQueueTable.setShowBanner(true);
+//        taskQueueTable.setClass(Table.CLASS_COMPLEX);
 
         initValuesTable.addColumn(new Column("key", "Parameter"));
         initValuesTable.addColumn(new Column("value", "Value"));
@@ -227,6 +230,8 @@ public class Maintenance extends Admin {
         registeredClassesTable.addColumn(new Column("count", "Count"));
         registeredClassesTable.setSortable(true);
         registeredClassesTable.setSortedColumn("name");
+        registeredClassesTable.setHoverRows(true);
+        registeredClassesTable.setShowBanner(true);
         registeredClassesTable.setClass(Table.CLASS_COMPLEX);
 
         allNodesTable.addColumn(new Column(StructrNode.NODE_ID_KEY));
@@ -240,6 +245,8 @@ public class Maintenance extends Admin {
         allNodesTable.addColumn(new Column("allProperties"));
         allNodesTable.setSortable(true);
         allNodesTable.setPageSize(15);
+        allNodesTable.setHoverRows(true);
+        allNodesTable.setShowBanner(true);
         allNodesTable.setClass(Table.CLASS_COMPLEX);
 
     }
@@ -298,20 +305,20 @@ public class Maintenance extends Admin {
             }
         });
 
-        taskQueueTable.setDataProvider(new DataProvider() {
-
-            @Override
-            public List<Task> getData() {
-
-                List<Task> taskList = new LinkedList<Task>();
-                Queue<Task> queue = (Queue<Task>) Services.command(ListTasksCommand.class).execute();
-
-                for (Task t : queue) {
-                    taskList.add(t);
-                }
-                return taskList;
-            }
-        });
+//        taskQueueTable.setDataProvider(new DataProvider() {
+//
+//            @Override
+//            public List<Task> getData() {
+//
+//                List<Task> taskList = new LinkedList<Task>();
+//                Queue<Task> queue = (Queue<Task>) Services.command(ListTasksCommand.class).execute();
+//
+//                for (Task t : queue) {
+//                    taskList.add(t);
+//                }
+//                return taskList;
+//            }
+//        });
 
         // fill table with all known agents
         servicesTable.setDataProvider(new DataProvider() {
@@ -645,94 +652,14 @@ public class Maintenance extends Admin {
     }
 
     /**
-     * Set correct image dimensions and content-type
+     * Set image dimensions and content-type
      *
      * @return
      */
     public boolean onSetImageDimensions() {
-
-        final Command transactionCommand = Services.command(TransactionCommand.class);
-        Long numberOfImages = (Long) transactionCommand.execute(new StructrTransaction() {
-
-            @Override
-            public Object execute() throws Throwable {
-
-                Long numberOfImages = 0L;
-
-                // Find all image nodes
-//                Command searchNode = Services.command(SearchNodeCommand.class);
-//                List<Image> images = (List<Image>) searchNode.execute(null, null, true, false, Search.andExactType(Image.class.getSimpleName()));
-                List<Image> images = new LinkedList<Image>();
-
-                List<StructrNode> allNodes = getAllNodes();
-                for (StructrNode s : allNodes) {
-                    if (s instanceof Image) {
-                        images.add((Image) s);
-                    }
-                }
-
-                int width = 0;
-                int height = 0;
-                String format = null;
-
-                // Loop through all File nodes
-                for (Image imageNode : images) {
-
-                    String relativeFilePath = imageNode.getRelativeFilePath();
-
-                    if (relativeFilePath != null) {
-
-                        String filePath = Services.getFilePath(Path.Files, relativeFilePath);
-
-                        java.io.File fileOnDisk = new java.io.File(filePath);
-
-                        ImageInputStream iis = ImageIO.createImageInputStream(fileOnDisk);
-                        Iterator<ImageReader> readers = ImageIO.getImageReaders(iis);
-
-                        if (readers.hasNext()) {
-
-                            try {
-                                // pick the first available ImageReader
-                                ImageReader reader = readers.next();
-
-                                // attach source to the reader
-                                reader.setInput(iis, true);
-
-                                width = reader.getWidth(0);
-                                height = reader.getHeight(0);
-                                format = reader.getFormatName();
-
-                                imageNode.setWidth(width);
-                                imageNode.setHeight(height);
-
-                                if (format != null) {
-                                    format = "image/" + format.toLowerCase();
-                                    imageNode.setContentType(format);
-                                }
-                                numberOfImages++;
-
-                            } catch (Throwable ignore) {
-                            } finally {
-
-                                if (iis != null) {
-                                    iis.close();
-                                }
-                            }
-                        }
-
-                        logger.log(Level.INFO, "Image node {0} (x,y, format): {1}, {2}, {3}", new Object[]{imageNode.getId(), width, height, format});
-
-                    }
-                }
-                return numberOfImages;
-
-            }
-        });
-
-
-        okMsg = "Image dimensions successfully set on " + numberOfImages + " image nodes";
-        return false;
-
+        Command processTask = Services.command(ProcessTaskCommand.class);
+        processTask.execute(new UpdateImageMetadataTask());
+        return redirect();
     }
 
     /**
@@ -743,6 +670,6 @@ public class Maintenance extends Admin {
     public boolean onRebuildIndex() {
         Command processTask = Services.command(ProcessTaskCommand.class);
         processTask.execute(new RebuildIndexTask());
-        return false;
+        return redirect();
     }
 }
