@@ -8,8 +8,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
-import org.neo4j.index.IndexService;
-import org.neo4j.index.lucene.LuceneFulltextIndexService;
+import org.neo4j.graphdb.index.Index;
 
 /**
  * Command for indexing a node's property
@@ -97,13 +96,17 @@ public class IndexNodeCommand extends NodeServiceCommand {
 
     private void index(final Node node, final String key, final Object value) {
 
-        IndexService index = (LuceneFulltextIndexService) arguments.get("index");
-
-        // Remove key/value pair from index
-        index.removeIndex(node, key);
-        if (value != null && node.hasProperty(key)) {
-            index.index(node, key, node.getProperty(key));
+        if (value == null) {
+            return;
         }
+
+        Index<Node> index = (Index<Node>) arguments.get("index");
+
+        if (node.hasProperty(key)) {
+            index.remove(node, key, node.getProperty(key));
+        }
+
+        index.add(node, key, value);
 
     }
 }

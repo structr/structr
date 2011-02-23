@@ -45,7 +45,7 @@ public class FindUserCommand extends NodeServiceCommand {
                     //userXPath = "//User";
 //                    break;
 
-                    return (List<StructrNode>) searchNode.execute(null, null, true, false, new SearchAttribute(StructrNode.TYPE_KEY, User.class.getSimpleName(), SearchOperator.OR));
+                    return (List<User>) searchNode.execute(null, null, true, false, new SearchAttribute(StructrNode.TYPE_KEY, User.class.getSimpleName(), SearchOperator.OR));
 
 
                 case 1:

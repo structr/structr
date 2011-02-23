@@ -14,8 +14,7 @@ import org.apache.commons.collections.ListUtils;
 import org.apache.commons.lang.StringUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
-import org.neo4j.index.IndexService;
-import org.neo4j.index.lucene.LuceneFulltextIndexService;
+import org.neo4j.graphdb.index.Index;
 import org.structr.common.Search;
 import org.structr.common.SearchOperator;
 import org.structr.core.entity.StructrNode;
@@ -48,7 +47,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
     @Override
     public Object execute(Object... parameters) {
         GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
-        IndexService index = (LuceneFulltextIndexService) arguments.get("index");
+        Index<Node> index = (Index<Node>) arguments.get("index");
         StructrNodeFactory nodeFactory = (StructrNodeFactory) arguments.get("nodeFactory");
 
         List<StructrNode> result = Collections.emptyList();
@@ -150,9 +149,9 @@ public class SearchNodeCommand extends NodeServiceCommand {
                             } else {
 
                                 if (isString) {
-                                    nodes = index.getNodes(attr.getKey(), stringValue);
+                                    nodes = index.query(attr.getKey(), stringValue);
                                 } else {
-                                    nodes = index.getNodes(attr.getKey(), attr.getValue());
+                                    nodes = index.query(attr.getKey(), attr.getValue());
                                 }
                                 indexHits = (nodes != null && nodes.iterator().hasNext());
                             }

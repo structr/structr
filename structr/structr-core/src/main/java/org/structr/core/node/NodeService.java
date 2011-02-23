@@ -8,7 +8,9 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.index.lucene.LuceneFulltextQueryIndexService;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.index.Index;
+import org.neo4j.helpers.collection.MapUtil;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
 import org.structr.core.Command;
 import org.structr.core.Services;
@@ -23,7 +25,8 @@ public class NodeService implements SingletonService {
     private static final Logger logger = Logger.getLogger(NodeService.class.getName());
     private StructrNodeFactory nodeFactory = null;
     private GraphDatabaseService graphDb = null;
-    private LuceneFulltextQueryIndexService index = null;
+//    private LuceneFulltextQueryIndexService index = null;
+    private Index<Node> index = null;
 
     // <editor-fold defaultstate="collapsed" desc="interface SingletonService">
     @Override
@@ -60,7 +63,8 @@ public class NodeService implements SingletonService {
             logger.log(Level.INFO, "Database ready.");
 
             logger.log(Level.FINE, "Initializing index...");
-            index = new LuceneFulltextQueryIndexService(graphDb);
+            //index = new LuceneFulltextQueryIndexService(graphDb);
+            index = graphDb.index().forNodes("fulltextAllNodes", MapUtil.stringMap("provider", "lucene", "type", "fulltext"));
             logger.log(Level.FINE, "Index ready.");
 
             logger.log(Level.FINE, "Initializing node factory...");

@@ -17,5 +17,6 @@ public interface RunnableService extends Service {
 
     public void stopService();
 
+    @Override
     public boolean isRunning();
 }
