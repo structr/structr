@@ -199,7 +199,6 @@ public class SearchNodeCommand extends NodeServiceCommand {
                         // AND_NOT operator: intersect single result with intermediate result
                         List<StructrNode> intersectionResult = ListUtils.subtract(intermediateResult, singleResult);
                         intermediateResult = intersectionResult;
-
                     }
 
 

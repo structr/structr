@@ -26,6 +26,7 @@ import java.util.logging.Logger;
 import java.util.zip.DataFormatException;
 import javax.imageio.ImageIO;
 import org.apache.commons.io.FileUtils;
+import org.structr.common.ImageHelper;
 import org.structr.common.Path;
 import org.structr.common.RelType;
 import org.structr.core.Services;
@@ -227,7 +228,7 @@ public class SaveImagesFromFlashUrl extends NodeServiceCommand {
 
                             if (imageAsByteArray != null) {
 
-                                writeBufferToFile(imageFile, imageAsByteArray);
+                                writeBufferToFile(imageFile, ImageHelper.normalizeJpegImage(imageAsByteArray));
 
                             } else if (bufferedImage != null) {
 

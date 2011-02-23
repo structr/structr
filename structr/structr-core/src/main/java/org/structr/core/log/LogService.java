@@ -86,15 +86,17 @@ public class LogService extends Thread implements RunnableService {
 
                             // append to global log
                             LogNodeList globalLog = getGlobalLog();
-                            globalLog.add(activity);
-
-                            logger.log(Level.FINEST, "Added activity {0} to global log.", activity.getId());
+                            if (globalLog != null) {
+                                globalLog.add(activity);
+                                logger.log(Level.FINEST, "Added activity {0} to global log.", activity.getId());
+                            }
 
                             // append to user-specific log
                             LogNodeList userLog = getUserLog(activity.getOwnerNode());
-                            userLog.add(activity);
-
-                            logger.log(Level.FINEST, "Added activity {0} to {1}''s log.", new Object[]{activity.getId(), user.getName()});
+                            if (userLog != null) {
+                                userLog.add(activity);
+                                logger.log(Level.FINEST, "Added activity {0} to {1}''s log.", new Object[]{activity.getId(), user.getName()});
+                            }
 
                         }
 

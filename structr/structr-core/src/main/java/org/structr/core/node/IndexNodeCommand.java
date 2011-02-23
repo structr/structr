@@ -100,7 +100,7 @@ public class IndexNodeCommand extends NodeServiceCommand {
         IndexService index = (LuceneFulltextIndexService) arguments.get("index");
 
         // Remove key/value pair from index
-        index.removeIndex(node, key, value);
+        index.removeIndex(node, key);
         if (value != null && node.hasProperty(key)) {
             index.index(node, key, node.getProperty(key));
         }

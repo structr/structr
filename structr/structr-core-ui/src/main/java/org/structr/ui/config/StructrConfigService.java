@@ -229,6 +229,7 @@ public class StructrConfigService implements ConfigService, EntityResolver {
      * @param servletContext the application servlet context
      * @throws Exception if an error occurs initializing the application
      */
+    @Override
     public void onInit(ServletContext servletContext) throws Exception {
 
         Validate.notNull(servletContext, "Null servletContext parameter");
@@ -309,6 +310,7 @@ public class StructrConfigService implements ConfigService, EntityResolver {
     /**
      * @see ConfigService#onDestroy()
      */
+    @Override
     public void onDestroy() {
         if (getFileUploadService() != null) {
             getFileUploadService().onDestroy();
@@ -335,6 +337,7 @@ public class StructrConfigService implements ConfigService, EntityResolver {
      *
      * @return the application mode String value
      */
+    @Override
     public String getApplicationMode() {
         return MODE_VALUES[mode];
     }
@@ -344,6 +347,7 @@ public class StructrConfigService implements ConfigService, EntityResolver {
      *
      * @return the application character encoding
      */
+    @Override
     public String getCharset() {
         return charset;
     }
@@ -353,6 +357,7 @@ public class StructrConfigService implements ConfigService, EntityResolver {
      *
      * @return the FileUpload service
      */
+    @Override
     public FileUploadService getFileUploadService() {
         return fileUploadService;
     }
@@ -362,6 +367,7 @@ public class StructrConfigService implements ConfigService, EntityResolver {
      *
      * @return the application log service.
      */
+    @Override
     public LogService getLogService() {
         return logService;
     }
@@ -371,6 +377,7 @@ public class StructrConfigService implements ConfigService, EntityResolver {
      *
      * @return the resource service
      */
+    @Override
     public ResourceService getResourceService() {
         return resourceService;
     }
@@ -380,6 +387,7 @@ public class StructrConfigService implements ConfigService, EntityResolver {
      *
      * @return the template service
      */
+    @Override
     public TemplateService getTemplateService() {
         return templateService;
     }
@@ -389,6 +397,7 @@ public class StructrConfigService implements ConfigService, EntityResolver {
      *
      * @return the messages map service
      */
+    @Override
     public MessagesMapService getMessagesMapService() {
         return messagesMapService;
     }
@@ -398,6 +407,7 @@ public class StructrConfigService implements ConfigService, EntityResolver {
      *
      * @return a new format object
      */
+    @Override
     public Format createFormat() {
         try {
             return formatClass.newInstance();
@@ -412,6 +422,7 @@ public class StructrConfigService implements ConfigService, EntityResolver {
      *
      * @return the application locale
      */
+    @Override
     public Locale getLocale() {
         return locale;
     }
@@ -421,6 +432,7 @@ public class StructrConfigService implements ConfigService, EntityResolver {
      *
      * @return the Page field auto binding mode { PUBLIC, ANNOTATION, NONE }
      */
+    @Override
     public AutoBinding getAutoBindingMode() {
         return autobinding;
     }
@@ -430,6 +442,7 @@ public class StructrConfigService implements ConfigService, EntityResolver {
      *
      * @return true if the application is in "production" mode
      */
+    @Override
     public boolean isProductionMode() {
         return (mode == PRODUCTION);
     }
@@ -439,6 +452,7 @@ public class StructrConfigService implements ConfigService, EntityResolver {
      *
      * @return true if the application is in "profile" mode
      */
+    @Override
     public boolean isProfileMode() {
         return (mode == PROFILE);
     }
@@ -449,6 +463,7 @@ public class StructrConfigService implements ConfigService, EntityResolver {
      * @param path the Page ".htm" path
      * @return true if JSP exists for the given ".htm" path
      */
+    @Override
     public boolean isJspPage(String path) {
         HtmlStringBuffer buffer = new HtmlStringBuffer();
         int index = StringUtils.lastIndexOf(path, ".");
@@ -542,6 +557,7 @@ public class StructrConfigService implements ConfigService, EntityResolver {
      * @param path the path to check if it is a Page class template or not
      * @return true if the path is a Page class template, false otherwise
      */
+    @Override
     public boolean isTemplate(String path) {
         if (path.endsWith(".htm") || path.endsWith(".jsp")) {
             return true;
@@ -555,6 +571,7 @@ public class StructrConfigService implements ConfigService, EntityResolver {
      * @param path the page path
      * @return the page class for the given path or null if no class is found
      */
+    @Override
     public Class<? extends Page> getPageClass(String path) {
 
         // If in production or profile mode.
@@ -629,6 +646,7 @@ public class StructrConfigService implements ConfigService, EntityResolver {
      * @throws IllegalArgumentException if the Page Class is not configured
      * with a unique path
      */
+    @Override
     public String getPagePath(Class<? extends Page> pageClass) {
         Object object = pageByClassMap.get(pageClass);
 
@@ -661,6 +679,7 @@ public class StructrConfigService implements ConfigService, EntityResolver {
      *
      * @return the list of configured page classes
      */
+    @Override
     public List getPageClassList() {
         List classList = new ArrayList(pageByClassMap.size());
 
@@ -679,6 +698,7 @@ public class StructrConfigService implements ConfigService, EntityResolver {
      * @param path the path of the page
      * @return a Map of headers for the given page path
      */
+    @Override
     public Map<String, Object> getPageHeaders(String path) {
         PageElm page = (PageElm) pageByPathMap.get(path);
         if (page == null) {
@@ -698,6 +718,7 @@ public class StructrConfigService implements ConfigService, EntityResolver {
      *
      * @return the page not found <tt>Page</tt> <tt>Class</tt>
      */
+    @Override
     public Class<? extends Page> getNotFoundPageClass() {
         PageElm page = (PageElm) pageByPathMap.get(NOT_FOUND_PATH);
 
@@ -714,6 +735,7 @@ public class StructrConfigService implements ConfigService, EntityResolver {
      *
      * @return the error handling page <tt>Page</tt> <tt>Class</tt>
      */
+    @Override
     public Class<? extends Page> getErrorPageClass() {
         PageElm page = (PageElm) pageByPathMap.get(ERROR_PATH);
 
@@ -732,6 +754,7 @@ public class StructrConfigService implements ConfigService, EntityResolver {
      * @param fieldName the name of the field
      * @return the public field of the pageClass with the given name or null
      */
+    @Override
     public Field getPageField(Class<? extends Page> pageClass, String fieldName) {
         return getPageFields(pageClass).get(fieldName);
     }
@@ -742,6 +765,7 @@ public class StructrConfigService implements ConfigService, EntityResolver {
      * @param pageClass the page class
      * @return an array public fields for the given page class
      */
+    @Override
     public Field[] getPageFieldArray(Class<? extends Page> pageClass) {
         Object object = pageByClassMap.get(pageClass);
 
@@ -765,6 +789,7 @@ public class StructrConfigService implements ConfigService, EntityResolver {
      * @param pageClass the page class
      * @return a Map of public fields for the given page class
      */
+    @Override
     public Map<String, Field> getPageFields(Class<? extends Page> pageClass) {
         Object object = pageByClassMap.get(pageClass);
 
@@ -787,6 +812,7 @@ public class StructrConfigService implements ConfigService, EntityResolver {
      *
      * @return the list of configured PageInterceptor instances
      */
+    @Override
     public List<PageInterceptor> getPageInterceptors() {
 
         if (pageInterceptorConfigList.isEmpty()) {
@@ -808,6 +834,7 @@ public class StructrConfigService implements ConfigService, EntityResolver {
      *
      * @return the application servlet context
      */
+    @Override
     public ServletContext getServletContext() {
         return servletContext;
     }
@@ -824,6 +851,7 @@ public class StructrConfigService implements ConfigService, EntityResolver {
      * @throws SAXException if an error occurs parsing the document
      * @throws IOException if an error occurs reading the document
      */
+    @Override
     public InputSource resolveEntity(String publicId, String systemId)
             throws SAXException, IOException {
 

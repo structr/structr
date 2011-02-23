@@ -12,7 +12,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Queue;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -36,10 +35,8 @@ import org.structr.context.SessionMonitor.Session;
 import org.structr.core.Command;
 import org.structr.core.Service;
 import org.structr.core.Services;
-import org.structr.core.agent.ListTasksCommand;
 import org.structr.core.agent.ProcessTaskCommand;
 import org.structr.core.agent.RebuildIndexTask;
-import org.structr.core.agent.Task;
 import org.structr.core.agent.UpdateImageMetadataTask;
 import org.structr.core.entity.Image;
 import org.structr.core.entity.StructrNode;
@@ -96,6 +93,10 @@ public class Maintenance extends Admin {
     protected Table registeredClassesTable = new Table("registeredClassesTable");
     @Bindable
     protected Table allNodesTable = new Table("allNodesTable");
+    @Bindable
+    protected ActionLink startServicesLink = new ActionLink("startServicesLink", "Start Services", this, "onStartServices");
+    @Bindable
+    protected ActionLink stopServicesLink = new ActionLink("stopServicesLink", "Stop Services", this, "onStopServices");
     @Bindable
     protected ActionLink rebuildIndexLink = new ActionLink("rebuildIndexLink", "Rebuild Index (Background)", this, "onRebuildIndex");
     @Bindable
@@ -671,5 +672,15 @@ public class Maintenance extends Admin {
         Command processTask = Services.command(ProcessTaskCommand.class);
         processTask.execute(new RebuildIndexTask());
         return redirect();
+    }
+
+    public boolean onStartServices() {
+        Services.initialize();
+        return false;
+    }
+
+    public boolean onStopServices() {
+        Services.shutdown();
+        return false;
     }
 }

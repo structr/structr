@@ -388,7 +388,7 @@ public class StructrPage extends Page {
                     return c;
                 }
             }
-            System.out.println("No " + prefix + " page found for " + n.getType());
+            logger.log(Level.FINE, "No admin GUI page found for {0}", n.getType());
         }
         return DefaultEdit.class;
     }
