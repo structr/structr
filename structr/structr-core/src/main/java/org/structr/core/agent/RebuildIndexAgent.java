@@ -7,10 +7,12 @@ package org.structr.core.agent;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.StructrNode;
 import org.structr.core.node.GetAllNodes;
+import org.structr.core.node.GraphDatabaseCommand;
 import org.structr.core.node.IndexNodeCommand;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
@@ -39,7 +41,7 @@ public class RebuildIndexAgent extends Agent {
 
             long t0 = System.currentTimeMillis();
             logger.log(Level.INFO, "Starting rebuilding index ...");
-            
+
             long nodes = rebuildIndex();
 
             long t1 = System.currentTimeMillis();
@@ -52,11 +54,14 @@ public class RebuildIndexAgent extends Agent {
 
     private long rebuildIndex() {
 
+
         Command transactionCommand = Services.command(TransactionCommand.class);
         Long nodes = (Long) transactionCommand.execute(new StructrTransaction() {
 
             @Override
             public Object execute() throws Throwable {
+
+//                GraphDatabaseService graphDb = (GraphDatabaseService) Services.command(GraphDatabaseCommand.class).execute();
 
                 long nodes = 0;
 

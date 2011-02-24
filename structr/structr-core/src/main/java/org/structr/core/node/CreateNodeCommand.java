@@ -107,7 +107,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 
             if (updateIndex) {
                 // index the database node we just created
-                Services.command(IndexNodeCommand.class).execute(node.getId());
+                Services.command(IndexNodeCommand.class).execute(node);
                 logger.log(Level.FINE, "Node {0} indexed.", node.getId());
             }
 
