@@ -37,7 +37,7 @@ import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.File;
 import org.structr.core.entity.Link;
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.StructrRelationship;
 import org.structr.core.node.CopyNodeCommand;
 import org.structr.core.node.CreateNodeCommand;
@@ -75,9 +75,7 @@ public class Nodes extends Admin {
     private static final Logger logger = Logger.getLogger(Nodes.class.getName());
     /** some id to identify the tree control */
     private final static String TREE_ID = "nodeTree";
-    protected final static String SEARCH_RESULTS_KEY = "searchResults";
     protected final static String REPORT_RESULTS_KEY = "reportResults";
-    protected final static String SEARCH_TEXT_KEY = "searchFor";
     /** root node of tree */
     private TreeNode root;
     @Bindable
@@ -170,22 +168,7 @@ public class Nodes extends Admin {
     protected Form setPropertyForm = new Form();
     @Bindable
     protected Form form = new Form("form");
-    @Bindable
-    protected Form simpleSearchForm = new Form();
-    @Bindable
-    protected Panel simpleSearchPanel = new Panel("simpleSearchPanel", "/panel/simple-search-panel.htm");
-    @Bindable
-    protected TextField searchTextField = new AutoCompleteTextField(SEARCH_TEXT_KEY, "Search for") {
 
-        @Override
-        public List<String> getAutoCompleteList(final String criteria) {
-
-            return getNodeNamesLike(criteria);
-
-        }
-    };
-    @Bindable
-    protected List<StructrNode> searchResults;
     @Bindable
     protected Panel renditionPanel;
     @Bindable
@@ -220,10 +203,10 @@ public class Nodes extends Admin {
 
         if (createNodeAllowed) {
 
-            Select nodeTypeField = new Select(StructrNode.TYPE_KEY, "Select Node Type", true);
+            Select nodeTypeField = new Select(AbstractNode.TYPE_KEY, "Select Node Type", true);
             nodeTypeField.add(new Option("", "--- Select Node Type ---"));
 
-//            Set<Class> entities = ClasspathEntityLocator.locateEntitiesByType(StructrNode.class);
+//            Set<Class> entities = ClasspathEntityLocator.locateEntitiesByType(AbstractNode.class);
             Set<String> nodeTypes = ((Map<String, Class>) Services.command(GetEntitiesCommand.class).execute()).keySet();
 //            Set<String> nodeTypes = Services.getCachedEntityTypes();
             for (String className : nodeTypes) {
@@ -234,7 +217,7 @@ public class Nodes extends Admin {
             newNodeForm.add(nodeTypeField);
             newNodeForm.add(new TextField("name", true));
 
-            newNodeForm.add(new LongField(StructrNode.POSITION_KEY, false));
+            newNodeForm.add(new LongField(AbstractNode.POSITION_KEY, false));
             newNodeForm.add(new HiddenField(NODE_ID_KEY, nodeId != null ? nodeId : ""));
             newNodeForm.add(new HiddenField(RENDER_MODE_KEY, renderMode != null ? renderMode : ""));
             newNodeForm.add(new Submit("createNewNode", " Create new node ", this, "onCreateNode"));
@@ -352,7 +335,7 @@ public class Nodes extends Admin {
         deleteLink.setImageSrc("/images/table-delete.png");
         deleteLink.setTitle("Delete property");
         deleteLink.setParameter(NODE_ID_KEY, nodeId);
-        deleteLink.setAttribute("onclick", "return window.confirm('Please confirm delete', value);");
+        deleteLink.setAttribute("onclick", "return window.confirm('Do you really want to delete this property?');");
 
         Column actionColumn = new Column("Action");
         actionColumn.setTextAlign("center");
@@ -447,13 +430,13 @@ public class Nodes extends Admin {
         }
 
         Long intId = 0L;
-        StructrNode n = null;
+        AbstractNode n = null;
 
         if (treeNode != null) {
 
             if (!(treeNode.isRoot())) {
 
-                n = (StructrNode) treeNode.getValue();
+                n = (AbstractNode) treeNode.getValue();
                 intId = n.getId();
 
                 editPropertiesLink.setParameter(NODE_ID_KEY, intId);
@@ -513,7 +496,7 @@ public class Nodes extends Admin {
             }
 
             // load subnodes
-            addItems(nodeToExpandOrCollapse, (StructrNode) nodeToExpandOrCollapse.getValue());
+            addItems(nodeToExpandOrCollapse, (AbstractNode) nodeToExpandOrCollapse.getValue());
 
         } else {
             // unload subnodes
@@ -564,9 +547,9 @@ public class Nodes extends Admin {
      * @param nodeToAdd
      *            node bean
      */
-    private void addItems(TreeNode parentNode, StructrNode nodeToAdd) {
+    private void addItems(TreeNode parentNode, AbstractNode nodeToAdd) {
 
-        StructrNode p = (StructrNode) parentNode.getValue();
+        AbstractNode p = (AbstractNode) parentNode.getValue();
 
         // don't add children of link nodes to the tree
         // to avoid circular relationships (cannot be mapped to a tree)
@@ -574,7 +557,7 @@ public class Nodes extends Admin {
 //        if (!(parentNode.getValue() instanceof Link) && (nodeToAdd.equals(node)) || openNodes.contains(parentNode)) {
 
             // set of nodes to be ordered by a certain key
-            List<StructrNode> nodes = new ArrayList<StructrNode>();
+            List<AbstractNode> nodes = new ArrayList<AbstractNode>();
 
             Command nodeFactory = Services.command(NodeFactoryCommand.class);
             Command relCommand = Services.command(NodeRelationshipsCommand.class);
@@ -591,14 +574,14 @@ public class Nodes extends Admin {
             // follow the HAS_CHILD relationships
             for (StructrRelationship r : rels) {
 
-                StructrNode subNode = r.getEndNode();
+                AbstractNode subNode = r.getEndNode();
 
                 // if the node is visible and the current user has access
                 if (isSuperUser || (subNode.isVisible() && subNode.readAllowed(user))) {
 
                     // instantiate new tree node with given repository path,
                     // object's repository id as unique id (in tree context)
-                    StructrNode s = (StructrNode) nodeFactory.execute(subNode);
+                    AbstractNode s = (AbstractNode) nodeFactory.execute(subNode);
                     nodes.add(s);
                 }
 
@@ -619,14 +602,14 @@ public class Nodes extends Admin {
             // now LINK relationships
             for (StructrRelationship r : rels) {
 
-                StructrNode subNode = r.getEndNode();
+                AbstractNode subNode = r.getEndNode();
 
                 // if the node is visible and the current user has access
                 if (isSuperUser || (subNode.isVisible() && subNode.readAllowed(user))) {
 
                     // instantiate new tree node with given repository path,
                     // object's repository id as unique id (in tree context)
-                    StructrNode s = (StructrNode) nodeFactory.execute(subNode);
+                    AbstractNode s = (AbstractNode) nodeFactory.execute(subNode);
                     nodes.add(s);
                 }
 
@@ -637,18 +620,18 @@ public class Nodes extends Admin {
 //                parentNode.setChildrenSupported(true);
 
                 // sort by position
-                Collections.sort(nodes, new Comparator<StructrNode>() {
+                Collections.sort(nodes, new Comparator<AbstractNode>() {
 
                     @Override
-                    public int compare(StructrNode nodeOne, StructrNode nodeTwo) {
+                    public int compare(AbstractNode nodeOne, AbstractNode nodeTwo) {
                         return nodeOne.getPosition().compareTo(nodeTwo.getPosition());
                     }
                 });
 
                 // render nodes in correct order
-                for (StructrNode s : nodes) {
+                for (AbstractNode s : nodes) {
 
-                    // add StructrNode object to tree
+                    // add AbstractNode object to tree
                     TreeNode newNode = addTreeNode(s, parentNode);
 
                     List<TreeNode> expandedNodes = nodeTree.getExpandedNodes(true);
@@ -674,7 +657,7 @@ public class Nodes extends Admin {
                 }
 //                } else {
 //                    // add dummy node
-//                    new TreeNode(new StructrNode(), "dummyId", parentNode);
+//                    new TreeNode(new AbstractNode(), "dummyId", parentNode);
             }
         }
     }
@@ -685,20 +668,20 @@ public class Nodes extends Admin {
      * @return
      */
     public boolean onCreateNode() {
-        StructrNode s = null;
+        AbstractNode s = null;
 
         if (newNodeForm.isValid()) {
             Command transactionCommand = Services.command(TransactionCommand.class);
 
-            s = (StructrNode) transactionCommand.execute(new StructrTransaction() {
+            s = (AbstractNode) transactionCommand.execute(new StructrTransaction() {
 
                 @Override
                 public Object execute() throws Throwable {
                     Command createNode = Services.command(CreateNodeCommand.class);
                     Command createRel = Services.command(CreateRelationshipCommand.class);
 
-                    StructrNode parentNode = node;
-                    StructrNode newNode = (StructrNode) createNode.execute(user);
+                    AbstractNode parentNode = node;
+                    AbstractNode newNode = (AbstractNode) createNode.execute(user);
 
                     newNodeForm.copyTo(newNode);
 
@@ -718,7 +701,7 @@ public class Nodes extends Admin {
             }
 
             Command findNode = Services.command(FindNodeCommand.class);
-            StructrNode n = (StructrNode) findNode.execute(user, s.getId());
+            AbstractNode n = (AbstractNode) findNode.execute(user, s.getId());
 
             Map<String, String> parameters = new HashMap<String, String>();
             parameters.put(NODE_ID_KEY, String.valueOf(n.getId()));
@@ -756,8 +739,8 @@ public class Nodes extends Admin {
                     Command findNode = Services.command(FindNodeCommand.class);
                     Command createRel = Services.command(CreateRelationshipCommand.class);
 
-                    StructrNode startNode = node;
-                    StructrNode endNode = (StructrNode) findNode.execute(user, Long.parseLong(endNodeId));
+                    AbstractNode startNode = node;
+                    AbstractNode endNode = (AbstractNode) findNode.execute(user, Long.parseLong(endNodeId));
 
                     createRel.execute(startNode, endNode, relType);
 
@@ -862,7 +845,7 @@ public class Nodes extends Admin {
             }
 
             Command findNode = Services.command(FindNodeCommand.class);
-            final StructrNode targetNode = (StructrNode) findNode.execute(user, targetNodeId);
+            final AbstractNode targetNode = (AbstractNode) findNode.execute(user, targetNodeId);
 
             final Command transactionCommand = Services.command(TransactionCommand.class);
             transactionCommand.execute(new StructrTransaction() {
@@ -907,7 +890,7 @@ public class Nodes extends Admin {
      * @return true
      */
     public boolean onUpload() {
-        StructrNode s = null;
+        AbstractNode s = null;
 
         if (uploadForm.isValid()) {
 
@@ -932,7 +915,7 @@ public class Nodes extends Admin {
 
                     Command transaction = Services.command(TransactionCommand.class);
 
-                    s = (StructrNode) transaction.execute(new StructrTransaction() {
+                    s = (AbstractNode) transaction.execute(new StructrTransaction() {
 
                         @Override
                         public Object execute() throws Throwable {
@@ -949,7 +932,7 @@ public class Nodes extends Admin {
                             }
 
                             // create node with appropriate type
-                            StructrNode newNode = (StructrNode) createNode.execute(new NodeAttribute(StructrNode.TYPE_KEY, mimeProperty), user);
+                            AbstractNode newNode = (AbstractNode) createNode.execute(new NodeAttribute(AbstractNode.TYPE_KEY, mimeProperty), user);
 
                             // determine properties
                             String relativeFilePath = newNode.getId() + "_" + System.currentTimeMillis();
@@ -967,16 +950,16 @@ public class Nodes extends Admin {
                             }
 
                             Date now = new Date();
-                            newNode.setProperty(StructrNode.NAME_KEY, name);
-                            newNode.setProperty(StructrNode.CREATED_DATE_KEY, now);
-                            newNode.setProperty(StructrNode.LAST_MODIFIED_DATE_KEY, now);
+                            newNode.setProperty(AbstractNode.NAME_KEY, name);
+                            newNode.setProperty(AbstractNode.CREATED_DATE_KEY, now);
+                            newNode.setProperty(AbstractNode.LAST_MODIFIED_DATE_KEY, now);
 
                             newNode.setProperty(File.CONTENT_TYPE_KEY, mimeType);
                             newNode.setProperty(File.SIZE_KEY, String.valueOf(size));
                             newNode.setProperty(File.URL_KEY, fileUrl);
                             newNode.setProperty(File.RELATIVE_FILE_PATH_KEY, relativeFilePath);
 
-                            StructrNode parentNode = node;
+                            AbstractNode parentNode = node;
                             createRel.execute(parentNode, newNode, RelType.HAS_CHILD);
 
                             // clear form
@@ -1026,12 +1009,12 @@ public class Nodes extends Admin {
             final String parent = deleteNodeForm.getFieldValue(PARENT_NODE_ID_KEY);
             final String recursive = deleteNodeForm.getFieldValue(RECURSIVE_KEY);
 
-            StructrNode parentNode = null;
+            AbstractNode parentNode = null;
 
             try {
 
                 final Command transactionCommand = Services.command(TransactionCommand.class);
-                parentNode = (StructrNode) transactionCommand.execute(new StructrTransaction() {
+                parentNode = (AbstractNode) transactionCommand.execute(new StructrTransaction() {
 
                     @Override
                     public Object execute() throws Throwable {
@@ -1091,7 +1074,7 @@ public class Nodes extends Admin {
      * @param parentNode
      * @return newly created tree node
      */
-    private TreeNode addTreeNode(StructrNode s, TreeNode parentNode) {
+    private TreeNode addTreeNode(AbstractNode s, TreeNode parentNode) {
 
         // deprecated // TreeNode n = new TreeNode(s, String.valueOf(s.getId()), parentNode);
 
@@ -1101,37 +1084,6 @@ public class Nodes extends Admin {
         parentNode.add(n);
 
         return n;
-    }
-
-    /**
-     * Return icon src
-     * 
-     * If node is a link, assemble combined icon src
-     * @param n
-     * @return
-     */
-    protected String getIconSrc(StructrNode n) {
-        String iconSrc;
-        if (n instanceof Link) {
-            iconSrc = getLinkedIconSrc(((Link) n).getStructrNode().getIconSrc());
-        } else {
-            iconSrc = n.getIconSrc();
-        }
-        return iconSrc;
-    }
-
-    /**
-     * Return icon variant
-     *
-     * @param iconSrc
-     * @return
-     */
-    protected static String getLinkedIconSrc(String iconSrc) {
-        int i = iconSrc.lastIndexOf('.');
-        String ext = iconSrc.substring(i + 1);
-        // TODO move suffix "_linked" to configuration
-        iconSrc = iconSrc.substring(0, i) + "_linked." + ext;
-        return iconSrc;
     }
 
     /**
@@ -1168,7 +1120,7 @@ public class Nodes extends Admin {
     /**
      * Default getter method for actual node
      */
-    public StructrNode getNode() {
+    public AbstractNode getNode() {
         return node;
     }
 
@@ -1243,7 +1195,7 @@ public class Nodes extends Admin {
 //
 //            @Override
 //            public Object execute() throws Throwable {
-//                StructrNode structrNode = getNodeById(Long.parseLong(localNodeId));
+//                AbstractNode structrNode = getNodeById(Long.parseLong(localNodeId));
 //
 //                if (structrNode != null && structrNode.hasProperty(key)) {
 //                    structrNode.removeProperty(key);
@@ -1324,7 +1276,7 @@ public class Nodes extends Admin {
 
                 if (node != null) {
 
-                    StructrNode n = (StructrNode) node.getValue();
+                    AbstractNode n = (AbstractNode) node.getValue();
 
                     if (n != null) {
 
@@ -1448,30 +1400,4 @@ public class Nodes extends Admin {
         getContext().getSession().setAttribute(EXPANDED_NODES_KEY, nodeTree.getExpandedNodes(true));
     }
 
-    /**
-     * Return a list with all nodes matching the given string
-     *
-     * Internally, the wildcard character '*' will be appended to the string.
-     *
-     * @param string
-     * @return
-     */
-    public List<String> getNodeNamesLike(final String string) {
-        List<String> names = new ArrayList<String>();
-
-        Command search = Services.command(SearchNodeCommand.class);
-        List<SearchAttribute> searchAttrs = new ArrayList<SearchAttribute>();
-
-        // always add wildcard character '*' for auto completion
-        searchAttrs.add(Search.andName(string + SearchAttribute.WILDCARD));
-        List<StructrNode> result = (List<StructrNode>) search.execute(null, null, true, false, searchAttrs);
-
-        if (result != null) {
-            for (StructrNode n : result) {
-                names.add(n.getName());
-            }
-        }
-
-        return names;
-    }
 }

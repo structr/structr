@@ -10,7 +10,7 @@ import org.apache.commons.lang.StringUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.index.Index;
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 
 /**
  * Command for indexing a node's property
@@ -31,10 +31,9 @@ public class IndexNodeCommand extends NodeServiceCommand {
         if (graphDb != null) {
             long id = 0;
             Node node = null;
-            StructrNode structrNode = null;
+            AbstractNode structrNode = null;
 
             String key = null;
-            Object value = null;
 
             switch (parameters.length) {
 
@@ -45,8 +44,8 @@ public class IndexNodeCommand extends NodeServiceCommand {
                         id = ((Long) parameters[0]).longValue();
                     } else if (parameters[0] instanceof String) {
                         id = Long.parseLong((String) parameters[0]);
-                    } else if (parameters[0] instanceof StructrNode) {
-                        structrNode = (StructrNode) parameters[0];
+                    } else if (parameters[0] instanceof AbstractNode) {
+                        structrNode = (AbstractNode) parameters[0];
                         id = structrNode.getId();
                     }
 
@@ -64,8 +63,8 @@ public class IndexNodeCommand extends NodeServiceCommand {
                         id = ((Long) parameters[0]).longValue();
                     } else if (parameters[0] instanceof String) {
                         id = Long.parseLong((String) parameters[0]);
-                    } else if (parameters[0] instanceof StructrNode) {
-                        structrNode = (StructrNode) parameters[0];
+                    } else if (parameters[0] instanceof AbstractNode) {
+                        structrNode = (AbstractNode) parameters[0];
                         id = structrNode.getId();
                     }
 
@@ -75,14 +74,14 @@ public class IndexNodeCommand extends NodeServiceCommand {
                         key = (String) parameters[1];
                     }
 
-                    index(node, key);
+                    indexProperty(node, key);
 
                     break;
 
 
                 default:
 
-                    logger.log(Level.SEVERE, "Wrong number of parameters for the index property command");
+                    logger.log(Level.SEVERE, "Wrong number of parameters for the index property command: {0}", parameters);
                     return null;
 
             }
@@ -95,12 +94,12 @@ public class IndexNodeCommand extends NodeServiceCommand {
     private void indexNode(final Node node) {
 
         for (String key : node.getPropertyKeys()) {
-            index(node, key);
+            indexProperty(node, key);
         }
 
     }
 
-    private void index(final Node node, final String key) {
+    private void indexProperty(final Node node, final String key) {
 
 
         if (key == null) {

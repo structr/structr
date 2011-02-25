@@ -11,7 +11,7 @@ import org.neo4j.graphdb.Node;
 import org.structr.core.Adapter;
 import org.structr.core.Services;
 import org.structr.core.entity.EmptyNode;
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.module.GetEntityClassCommand;
 
 /**
@@ -21,7 +21,7 @@ import org.structr.core.module.GetEntityClassCommand;
  *
  * @author cmorgner
  */
-public class StructrNodeFactory<T extends StructrNode> implements Adapter<Node, T> {
+public class StructrNodeFactory<T extends AbstractNode> implements Adapter<Node, T> {
 
     private static final Logger logger = Logger.getLogger(StructrNodeFactory.class.getName());
     //private Map<String, Class> nodeTypeCache = new ConcurrentHashMap<String, Class>();
@@ -29,21 +29,21 @@ public class StructrNodeFactory<T extends StructrNode> implements Adapter<Node, 
     public StructrNodeFactory() {
     }
 
-    public StructrNode createNode(final Node node) {
+    public AbstractNode createNode(final Node node) {
 
-        String nodeType = node.hasProperty(StructrNode.TYPE_KEY) ? (String) node.getProperty(StructrNode.TYPE_KEY) : "";
+        String nodeType = node.hasProperty(AbstractNode.TYPE_KEY) ? (String) node.getProperty(AbstractNode.TYPE_KEY) : "";
         return createNode(node, nodeType);
 
     }
 
-    public StructrNode createNode(final Node node, final String nodeType) {
+    public AbstractNode createNode(final Node node, final String nodeType) {
 
         Class nodeClass = (Class) Services.command(GetEntityClassCommand.class).execute(nodeType);
-        StructrNode ret = null;
+        AbstractNode ret = null;
 
         if (nodeClass != null) {
             try {
-                ret = (StructrNode) nodeClass.newInstance();
+                ret = (AbstractNode) nodeClass.newInstance();
 
             } catch (Throwable t) {
                 ret = null;
@@ -60,14 +60,14 @@ public class StructrNodeFactory<T extends StructrNode> implements Adapter<Node, 
         return ret;
     }
 
-    public List<StructrNode> createNodes(Iterable<Node> input) {
+    public List<AbstractNode> createNodes(Iterable<Node> input) {
 
-        List<StructrNode> nodes = new ArrayList<StructrNode>();
+        List<AbstractNode> nodes = new ArrayList<AbstractNode>();
         if (input != null && input.iterator().hasNext()) {
 
             for (Node node : input) {
 
-                StructrNode structrNode = createNode(node);
+                AbstractNode structrNode = createNode(node);
                 //structrNode.init(node);
 
                 nodes.add(structrNode);

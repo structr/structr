@@ -9,7 +9,7 @@ import java.util.Date;
 import java.util.Set;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.User;
 
 /**
@@ -21,10 +21,10 @@ import org.structr.core.entity.User;
 public class ConversionTask implements Task {
 
     private User user;
-    private StructrNode sourceNode;
+    private AbstractNode sourceNode;
     private Class targetNodeClass;
 
-    public ConversionTask(final User user, final StructrNode sourceNode, final Class targetNodeClass) {
+    public ConversionTask(final User user, final AbstractNode sourceNode, final Class targetNodeClass) {
         this.user = user;
         this.sourceNode = sourceNode;
         this.targetNodeClass = targetNodeClass;
@@ -50,7 +50,7 @@ public class ConversionTask implements Task {
      *
      * @return
      */
-    public StructrNode getSourceNode() {
+    public AbstractNode getSourceNode() {
         return sourceNode;
     }
 
@@ -64,7 +64,7 @@ public class ConversionTask implements Task {
     }
 
     @Override
-    public Set<StructrNode> getNodes() {
+    public Set<AbstractNode> getNodes() {
         return Collections.emptySet();
     }
 

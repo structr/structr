@@ -12,7 +12,7 @@ import org.apache.commons.io.IOUtils;
 import org.neo4j.graphdb.Direction;
 import org.structr.core.node.NodeRelationshipsCommand;
 import org.structr.common.RelType;
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.StructrRelationship;
 import org.structr.core.entity.User;
 
@@ -45,7 +45,7 @@ public class Xml extends PlainText {
      * Render XML content as HTML, replace keys by values
      */
     @Override
-    public void renderView(StringBuilder out, final StructrNode startNode,
+    public void renderView(StringBuilder out, final AbstractNode startNode,
             final String editUrl, final Long editNodeId, final User user) {
 
         if (isVisible()) {
@@ -76,7 +76,7 @@ public class Xml extends PlainText {
                     List<StructrRelationship> rels = (List<StructrRelationship>) relsCommand.execute(this, RelType.HAS_CHILD, Direction.OUTGOING);
                     for (StructrRelationship r : rels) {
 
-                        StructrNode s = (StructrNode) nodeFactory.execute(r.getEndNode());
+                        AbstractNode s = (AbstractNode) nodeFactory.execute(r.getEndNode());
 
                         if (key.equals(s.getName())) {
                             s.renderView(replacement, startNode, editUrl, editNodeId, user);
@@ -88,7 +88,7 @@ public class Xml extends PlainText {
                     rels = (List<StructrRelationship>) relsCommand.execute(this, RelType.LINK, Direction.OUTGOING);
                     for (StructrRelationship r : rels) {
 
-                        StructrNode s = (StructrNode) nodeFactory.execute(r.getEndNode());
+                        AbstractNode s = (AbstractNode) nodeFactory.execute(r.getEndNode());
 
                         if (key.equals(s.getName())) {
                             s.renderView(replacement, startNode, editUrl, editNodeId, user);
@@ -116,7 +116,7 @@ public class Xml extends PlainText {
      * @param out
      */
     @Override
-    public void renderDirect(OutputStream out, final StructrNode startNode,
+    public void renderDirect(OutputStream out, final AbstractNode startNode,
             final String editUrl, final Long editNodeId, final User user) {
 
 

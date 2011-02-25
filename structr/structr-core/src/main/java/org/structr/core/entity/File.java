@@ -18,7 +18,7 @@ import org.structr.core.Services;
  * @author amorgner
  * 
  */
-public class File extends StructrNode {
+public class File extends AbstractNode {
 
     private final static String ICON_SRC = "/images/page_white.png";
     private static final Logger logger = Logger.getLogger(File.class.getName());
@@ -114,7 +114,7 @@ public class File extends StructrNode {
      * @param out
      */
     @Override
-    public void renderDirect(OutputStream out, final StructrNode startNode,
+    public void renderDirect(OutputStream out, final AbstractNode startNode,
             final String editUrl, final Long editNodeId, final User user) {
 
         if (isVisible()) {

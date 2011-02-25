@@ -29,7 +29,7 @@ import org.structr.common.Search;
 import org.structr.common.SearchOperator;
 import org.structr.core.Command;
 import org.structr.core.Services;
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.SearchAttribute;
 import org.structr.core.node.SearchNodeCommand;
 
@@ -59,7 +59,7 @@ public class SearchResults extends Nodes {
     @Bindable
     protected Select searchOpSelect = new Select(SEARCH_OPERATOR_KEY, "Boolean Search Operator");
     @Bindable
-    protected Select typeSearch = new Select(StructrNode.TYPE_KEY, "Name");
+    protected Select typeSearch = new Select(AbstractNode.TYPE_KEY, "Name");
     @Bindable
     protected Checkbox inNameCheckbox = new Checkbox(SEARCH_IN_NAME_KEY, "Name");
     @Bindable
@@ -67,7 +67,7 @@ public class SearchResults extends Nodes {
     @Bindable
     protected Checkbox inContentCheckbox = new Checkbox(SEARCH_IN_CONTENT_KEY, "Content");
     @Bindable
-    protected TextField creatorSearch = new TextField(StructrNode.CREATED_BY_KEY, "Created By");
+    protected TextField creatorSearch = new TextField(AbstractNode.CREATED_BY_KEY, "Created By");
     //@Bindable
     //protected TextField contentSearch = new TextField(PlainText.CONTENT_KEY, "Content");
     protected FieldSet searchFields = new FieldSet("Textual Search");
@@ -96,13 +96,13 @@ public class SearchResults extends Nodes {
 
         Column actionColumnNodes = new Column("Actions");
         actionColumnNodes.setTextAlign("center");
-        actionColumnNodes.setDecorator(new LinkDecorator(searchResultsTable, new PageLink(), StructrNode.NODE_ID_KEY) {
+        actionColumnNodes.setDecorator(new LinkDecorator(searchResultsTable, new PageLink(), AbstractNode.NODE_ID_KEY) {
 
             @Override
             protected void renderActionLink(HtmlStringBuffer buffer, AbstractLink link, Context context, Object row, Object value) {
 
-                StructrNode n = (StructrNode) row;
-                link = new PageLink(StructrNode.NODE_ID_KEY, getEditPageClass(n)) {
+                AbstractNode n = (AbstractNode) row;
+                link = new PageLink(AbstractNode.NODE_ID_KEY, getEditPageClass(n)) {
 
                     @Override
                     public String getHref() {
@@ -143,15 +143,15 @@ public class SearchResults extends Nodes {
             }
         });
 
-        Column typeColumn = new Column(StructrNode.TYPE_KEY);
+        Column typeColumn = new Column(AbstractNode.TYPE_KEY);
 
-        LinkDecorator iconDec = new LinkDecorator(searchResultsTable, new PageLink(), StructrNode.NODE_ID_KEY) {
+        LinkDecorator iconDec = new LinkDecorator(searchResultsTable, new PageLink(), AbstractNode.NODE_ID_KEY) {
 
             @Override
             protected void renderActionLink(HtmlStringBuffer buffer, AbstractLink link, Context context, Object row, Object value) {
 
-                StructrNode n = (StructrNode) row;
-                link = new PageLink(StructrNode.NODE_ID_KEY, getEditPageClass(n));
+                AbstractNode n = (AbstractNode) row;
+                link = new PageLink(AbstractNode.NODE_ID_KEY, getEditPageClass(n));
                 link.setParameter(NODE_ID_KEY, n.getId());
                 link.setImageSrc(n.getIconSrc());
 
@@ -162,14 +162,14 @@ public class SearchResults extends Nodes {
         typeColumn.setDecorator(iconDec);
         searchResultsTable.addColumn(typeColumn);
 
-        Column nameColumn = new Column(StructrNode.NAME_KEY);
+        Column nameColumn = new Column(AbstractNode.NAME_KEY);
         LinkDecorator nameDec = new LinkDecorator(searchResultsTable, new PageLink(), "id") {
 
             @Override
             protected void renderActionLink(HtmlStringBuffer buffer, AbstractLink link, Context context, Object row, Object value) {
 
 
-                StructrNode n = (StructrNode) row;
+                AbstractNode n = (AbstractNode) row;
 
                 PageLink pageLink = new PageLink("id", getEditPageClass(n)) {
 
@@ -213,17 +213,17 @@ public class SearchResults extends Nodes {
         };
         nameColumn.setDecorator(nameDec);
         searchResultsTable.addColumn(nameColumn);
-        searchResultsTable.addColumn(new Column(StructrNode.LAST_MODIFIED_DATE_KEY));
-        searchResultsTable.addColumn(new Column(StructrNode.OWNER_KEY));
-        searchResultsTable.addColumn(new Column(StructrNode.CREATED_BY_KEY));
-        searchResultsTable.addColumn(new Column(StructrNode.CREATED_DATE_KEY));
-        searchResultsTable.addColumn(new Column(StructrNode.POSITION_KEY));
-        searchResultsTable.addColumn(new Column(StructrNode.PUBLIC_KEY));
+        searchResultsTable.addColumn(new Column(AbstractNode.LAST_MODIFIED_DATE_KEY));
+        searchResultsTable.addColumn(new Column(AbstractNode.OWNER_KEY));
+        searchResultsTable.addColumn(new Column(AbstractNode.CREATED_BY_KEY));
+        searchResultsTable.addColumn(new Column(AbstractNode.CREATED_DATE_KEY));
+        searchResultsTable.addColumn(new Column(AbstractNode.POSITION_KEY));
+        searchResultsTable.addColumn(new Column(AbstractNode.PUBLIC_KEY));
         searchResultsTable.addColumn(actionColumnNodes);
         searchResultsTable.setSortable(true);
         searchResultsTable.setShowBanner(true);
         searchResultsTable.setPageSize(DEFAULT_PAGESIZE);
-        searchResultsTable.getControlLink().setParameter(StructrNode.NODE_ID_KEY, getNodeId());
+        searchResultsTable.getControlLink().setParameter(AbstractNode.NODE_ID_KEY, getNodeId());
         searchResultsTable.setClass(Table.CLASS_SIMPLE);
 
     }
@@ -287,7 +287,7 @@ public class SearchResults extends Nodes {
         Context context = getContext();
 
         // restore state from session
-        searchResults = (List<StructrNode>) context.getSessionAttribute(SEARCH_RESULTS_KEY);
+        searchResults = (List<AbstractNode>) context.getSessionAttribute(SEARCH_RESULTS_KEY);
         searchResultsTable.restoreState(context);
         searchOpSelect.restoreState(context);
         searchTextField.restoreState(context);
@@ -299,12 +299,12 @@ public class SearchResults extends Nodes {
 
     public void populateSearchResultsTable() {
         if (searchResults != null && !(searchResults.isEmpty())) {
-            searchResultsTable.getControlLink().setParameter(StructrNode.NODE_ID_KEY, getNodeId());
+            searchResultsTable.getControlLink().setParameter(AbstractNode.NODE_ID_KEY, getNodeId());
             searchResultsTable.setDataProvider(new DataProvider() {
 
                 @Override
-                public List<StructrNode> getData() {
-                    return (List<StructrNode>) searchResults;
+                public List<AbstractNode> getData() {
+                    return (List<AbstractNode>) searchResults;
                 }
             });
         }
@@ -324,7 +324,7 @@ public class SearchResults extends Nodes {
 
             searchAttrs.add(Search.andExactName(searchText));
 
-            searchResults = (List<StructrNode>) search.execute(
+            searchResults = (List<AbstractNode>) search.execute(
                     null, // top node
                     user, // filter by user
                     true, // include hidden
@@ -363,7 +363,7 @@ public class SearchResults extends Nodes {
                 searchAttrs.add(Search.orContent(searchText));
             }
 
-            searchResults = (List<StructrNode>) search.execute(null, user, true, false, searchAttrs);
+            searchResults = (List<AbstractNode>) search.execute(null, user, true, false, searchAttrs);
             populateSearchResultsTable();
             saveState();
 

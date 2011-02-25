@@ -51,7 +51,7 @@ import org.structr.core.node.TransactionCommand;
  *
  * @author Christian Morgner
  */
-public class NodeList<T extends StructrNode> extends StructrNode implements List<T>, Decorable<T>, Evaluable {
+public class NodeList<T extends AbstractNode> extends AbstractNode implements List<T>, Decorable<T>, Evaluable {
 
     private static final Logger logger = Logger.getLogger(NodeList.class.getName());
     private static final String PARENT_KEY = "parent";

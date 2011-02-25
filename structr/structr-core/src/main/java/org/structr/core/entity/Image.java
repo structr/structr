@@ -54,7 +54,7 @@ public class Image extends File {
     }
 
     @Override
-    public void renderView(StringBuilder out, final StructrNode startNode,
+    public void renderView(StringBuilder out, final AbstractNode startNode,
             final String editUrl, final Long editNodeId, final User user) {
 
         if (editNodeId != null && getId() == editNodeId.longValue()) {
@@ -86,7 +86,7 @@ public class Image extends File {
      * @param out
      */
     @Override
-    public void renderDirect(OutputStream out, final StructrNode startNode,
+    public void renderDirect(OutputStream out, final AbstractNode startNode,
             final String editUrl, final Long editNodeId, final User user) {
 
         if (isVisible()) {
@@ -130,11 +130,11 @@ public class Image extends File {
 //                Command createRel = Services.command(CreateRelationshipCommand.class);
 //                Command findNode = Services.command(FindNodeCommand.class);
 //
-//                NodeAttribute typeAttr = new NodeAttribute(StructrNode.TYPE_KEY, Image.class.getSimpleName());
+//                NodeAttribute typeAttr = new NodeAttribute(AbstractNode.TYPE_KEY, Image.class.getSimpleName());
 //                NodeAttribute nameAttr = new NodeAttribute(Image.NAME_KEY, originalImage.getName() + "_thumb");
 //
 //                // create new node
-//                StructrNode newNode = (StructrNode) createNode.execute(user, typeAttr, nameAttr);
+//                AbstractNode newNode = (AbstractNode) createNode.execute(user, typeAttr, nameAttr);
 //
 //                if (newNode != null) {
 //
@@ -257,7 +257,7 @@ public class Image extends File {
                 Command createRel = Services.command(CreateRelationshipCommand.class);
 //                Command findNode = Services.command(FindNodeCommand.class);
 
-                NodeAttribute typeAttr = new NodeAttribute(StructrNode.TYPE_KEY, Image.class.getSimpleName());
+                NodeAttribute typeAttr = new NodeAttribute(AbstractNode.TYPE_KEY, Image.class.getSimpleName());
                 NodeAttribute contentTypeAttr = new NodeAttribute(Image.CONTENT_TYPE_KEY, "image/" + Thumbnail.FORMAT);
 
                 Thumbnail thumbnailData = ImageHelper.createThumbnail(originalImage, maxWidth, maxHeight);

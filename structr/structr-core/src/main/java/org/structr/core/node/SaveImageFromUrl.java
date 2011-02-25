@@ -15,7 +15,7 @@ import org.structr.common.RelType;
 import org.structr.core.Services;
 import org.structr.core.UnsupportedArgumentError;
 import org.structr.core.entity.Image;
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.User;
 
 /**
@@ -51,7 +51,7 @@ public class SaveImageFromUrl extends NodeServiceCommand {
 
         User user = null;
         String urlString = null;
-        StructrNode parentNode = null;
+        AbstractNode parentNode = null;
 
         Image imageNode = null;
 
@@ -72,8 +72,8 @@ public class SaveImageFromUrl extends NodeServiceCommand {
                 if (parameters[1] instanceof String) {
                     urlString = (String) parameters[1];
                 }
-                if (parameters[2] instanceof StructrNode) {
-                    parentNode = (StructrNode) parameters[2];
+                if (parameters[2] instanceof AbstractNode) {
+                    parentNode = (AbstractNode) parameters[2];
                 }
                 break;
 
@@ -89,7 +89,7 @@ public class SaveImageFromUrl extends NodeServiceCommand {
 
             // Create new image node first
             Image newImageNode = (Image) Services.command(CreateNodeCommand.class).execute(user,
-                    new NodeAttribute(StructrNode.TYPE_KEY, Image.class.getSimpleName()),
+                    new NodeAttribute(AbstractNode.TYPE_KEY, Image.class.getSimpleName()),
                     new NodeAttribute(Image.URL_KEY, urlString),
                     true);  // Update index
 

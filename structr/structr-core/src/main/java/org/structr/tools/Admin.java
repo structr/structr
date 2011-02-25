@@ -17,7 +17,7 @@ import org.neo4j.kernel.EmbeddedGraphDatabase;
 import org.neo4j.kernel.Traversal;
 import org.structr.common.RelType;
 import org.structr.core.entity.File;
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 
 public class Admin {
 
@@ -334,7 +334,7 @@ public class Admin {
 
         for (Node n : allNodes) {
 
-            if (n.hasProperty(StructrNode.TYPE_KEY) && n.getProperty(StructrNode.TYPE_KEY).equals(nodeType)) {
+            if (n.hasProperty(AbstractNode.TYPE_KEY) && n.getProperty(AbstractNode.TYPE_KEY).equals(nodeType)) {
 
                 System.out.println(nodeType + " node found: " + n.getId());
 
@@ -446,8 +446,8 @@ public class Admin {
                     }
 
                     // Handle file and image nodes
-                    if (targetNode.hasProperty(StructrNode.TYPE_KEY) && (targetNode.getProperty(StructrNode.TYPE_KEY).equals("File")
-                            || targetNode.getProperty(StructrNode.TYPE_KEY).equals("Image"))) {
+                    if (targetNode.hasProperty(AbstractNode.TYPE_KEY) && (targetNode.getProperty(AbstractNode.TYPE_KEY).equals("File")
+                            || targetNode.getProperty(AbstractNode.TYPE_KEY).equals("Image"))) {
 
                         if (sourceNode.hasProperty(File.RELATIVE_FILE_PATH_KEY)) {
 

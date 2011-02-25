@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 import org.apache.click.Page;
 import org.apache.click.control.PageLink;
 import org.apache.click.service.ConfigService;
@@ -64,10 +64,10 @@ public class StructrPage extends Page {
     protected boolean accessControlAllowed;
     /** root node */
     @Bindable
-    protected StructrNode rootNode;
+    protected AbstractNode rootNode;
     /** current node */
     @Bindable
-    protected StructrNode node;
+    protected AbstractNode node;
     /** id of parent node (needed for link deletion */
     @Bindable
     protected String parentNodeId;
@@ -238,7 +238,7 @@ public class StructrPage extends Page {
         return nodeId;
     }
 
-    protected final StructrNode getNodeByIdOrPath(Object nodeId) {
+    protected final AbstractNode getNodeByIdOrPath(Object nodeId) {
 
         if (nodeId != null) {
             if (nodeId instanceof String) {
@@ -278,11 +278,11 @@ public class StructrPage extends Page {
      * @param requestedId
      * @return
      */
-    protected StructrNode getNodeById(final Long requestedId) {
+    protected AbstractNode getNodeById(final Long requestedId) {
         Command findNode = Services.command(FindNodeCommand.class);
-        StructrNode ret = null;
+        AbstractNode ret = null;
 
-        ret = (StructrNode) findNode.execute(user, requestedId);
+        ret = (AbstractNode) findNode.execute(user, requestedId);
 
         return (ret);
     }
@@ -294,9 +294,9 @@ public class StructrPage extends Page {
      * @param requestedId
      * @return
      */
-//    protected StructrNode getNodeByPath(final String requestedPath) {
+//    protected AbstractNode getNodeByPath(final String requestedPath) {
 //        Command findNode = Services.command(FindNodeCommand.class);
-//        StructrNode ret = null;
+//        AbstractNode ret = null;
 //        long id = 0;
 //
 //        String rpath = requestedPath;
@@ -311,7 +311,7 @@ public class StructrPage extends Page {
 //        XPath xpath = new XPath();
 //        xpath.setPath(rpath);
 //
-//        List<StructrNode> nodeList = (List<StructrNode>) findNode.execute(user, xpath);
+//        List<AbstractNode> nodeList = (List<AbstractNode>) findNode.execute(user, xpath);
 //        if (nodeList != null && !nodeList.isEmpty()) {
 //            ret = nodeList.get(0);
 //        }
@@ -339,7 +339,7 @@ public class StructrPage extends Page {
      * @param n
      * @return
      */
-    public Class<? extends Page> getEditPageClass(final StructrNode n) {
+    public Class<? extends Page> getEditPageClass(final AbstractNode n) {
         Class<? extends Page> ret = getPageClass(n, "Edit");
         if (ret == null) {
             ret = Edit.class;
@@ -353,7 +353,7 @@ public class StructrPage extends Page {
      * @param n
      * @return
      */
-//    public Class<? extends Page> getViewPageClass(final StructrNode n) {
+//    public Class<? extends Page> getViewPageClass(final AbstractNode n) {
 //        Class<? extends Page> ret = getPageClass(n, "View");
 //        if (ret == null) {
 //            ret = DefaultView.class;
@@ -367,9 +367,9 @@ public class StructrPage extends Page {
      * @param prefix
      * @return
      */
-    private Class<? extends Page> getPageClass(final StructrNode n, String prefix) {
+    private Class<? extends Page> getPageClass(final AbstractNode n, String prefix) {
 
-        StructrNode nodeForPage;
+        AbstractNode nodeForPage;
 
         if (n != null) {
 
@@ -399,7 +399,7 @@ public class StructrPage extends Page {
      * @param node  node to get redirect page for
      * @return
      */
-    protected Class<? extends Page> getRedirectPage(StructrNode node) {
+    protected Class<? extends Page> getRedirectPage(AbstractNode node) {
         // decide whether to use a view or an edit page
 //        Class<? extends Page> c = DefaultView.class;
 //
@@ -421,7 +421,7 @@ public class StructrPage extends Page {
         return c;
     }
 
-    protected StructrNode getRootNode() {
+    protected AbstractNode getRootNode() {
         Command findNode = Services.command(FindNodeCommand.class);
 
         if (user != null && !(user instanceof SuperUser)) {
@@ -430,7 +430,7 @@ public class StructrPage extends Page {
 
         if (rootNode == null) {
             // get reference (root) node
-            rootNode = (StructrNode) findNode.execute(user, new Long(0));
+            rootNode = (AbstractNode) findNode.execute(user, new Long(0));
         }
         return rootNode;
     }
@@ -469,7 +469,7 @@ public class StructrPage extends Page {
     protected PageLink getReturnLink() {
         if (node != null) {
             PageLink returnLink = new PageLink("Return Link", getClass());
-            returnLink.setParameter(StructrNode.NODE_ID_KEY, node.getId());
+            returnLink.setParameter(AbstractNode.NODE_ID_KEY, node.getId());
             return returnLink;
         } else {
             return new PageLink();

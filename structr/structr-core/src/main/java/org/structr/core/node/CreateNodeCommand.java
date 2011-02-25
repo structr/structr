@@ -14,7 +14,7 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.structr.common.RelType;
 import org.structr.core.Command;
 import org.structr.core.Services;
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.StructrRelationship;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
@@ -34,11 +34,14 @@ public class CreateNodeCommand extends NodeServiceCommand {
         StructrNodeFactory nodeFactory = (StructrNodeFactory) arguments.get("nodeFactory");
 //        IndexService index = (LuceneFulltextIndexService) arguments.get("index");
 
-        StructrNode node = null;
+        AbstractNode node = null;
         User user = null;
-        boolean updateIndex = true; // default is update index
 
-        // TODO: let the StructrNode create itself, including all necessary db properties
+        // Default is update index when creating a new node,
+        // so the node is found immediately
+        boolean updateIndex = true;
+
+        // TODO: let the AbstractNode create itself, including all necessary db properties
         // example: a HtmlSource has to be created with mimeType=text/html
 
         if (graphDb != null) {
@@ -46,7 +49,6 @@ public class CreateNodeCommand extends NodeServiceCommand {
             Date now = new Date();
 
             Command createRel = Services.command(CreateRelationshipCommand.class);
-            
 
             List<NodeAttribute> attrs = new LinkedList<NodeAttribute>();
 
@@ -76,7 +78,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
             // Determine node type
             String nodeType = null;
             for (NodeAttribute attr : attrs) {
-                if (StructrNode.TYPE_KEY.equals(attr.getKey())) {
+                if (AbstractNode.TYPE_KEY.equals(attr.getKey())) {
                     nodeType = (String) attr.getValue();
                 }
             }
@@ -87,7 +89,8 @@ public class CreateNodeCommand extends NodeServiceCommand {
 
 
             for (NodeAttribute attr : attrs) {
-                node.setProperty(attr.getKey(), attr.getValue());
+                // Don't update index now
+                node.setProperty(attr.getKey(), attr.getValue(), false);
                 logger.log(Level.FINEST, "Set node attribute {0} to {1}", new Object[]{attr.getKey(), attr.getValue()});
             }
             attrs.clear();
@@ -100,10 +103,10 @@ public class CreateNodeCommand extends NodeServiceCommand {
                 securityRel.setAllowed(Arrays.asList(StructrRelationship.ALL_PERMISSIONS));
                 logger.log(Level.FINEST, "All permissions given to user {0}", user.getName());
 
-                node.setProperty(StructrNode.CREATED_BY_KEY, user.getRealName() + " (" + user.getName() + ")");
+                node.setProperty(AbstractNode.CREATED_BY_KEY, user.getRealName() + " (" + user.getName() + ")", false);
             }
-            node.setProperty(StructrNode.CREATED_DATE_KEY, now);
-            node.setProperty(StructrNode.LAST_MODIFIED_DATE_KEY, now);
+            node.setProperty(AbstractNode.CREATED_DATE_KEY, now, false);
+            node.setProperty(AbstractNode.LAST_MODIFIED_DATE_KEY, now, false);
 
             if (updateIndex) {
                 // index the database node we just created
@@ -116,7 +119,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
         return node;
     }
 //
-//    private void indexNode(IndexService index, final StructrNode node) {
+//    private void indexNode(IndexService index, final AbstractNode node) {
 //
 //        GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
 //

@@ -12,18 +12,18 @@ package org.structr.core.entity;
 public class Template extends PlainText {
 
     private final static String ICON_SRC = "/images/page_white_gear.png";
-    private StructrNode callingNode;
+    private AbstractNode callingNode;
 
     @Override
     public String getIconSrc() {
         return ICON_SRC;
     }
 
-    public void setCallingNode(final StructrNode callingNode) {
+    public void setCallingNode(final AbstractNode callingNode) {
         this.callingNode = callingNode;
     }
 
-    public StructrNode getCallingNode() {
+    public AbstractNode getCallingNode() {
         return callingNode;
     }
 

@@ -8,7 +8,7 @@ import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 import org.structr.common.RelType;
 
 /**
@@ -39,8 +39,8 @@ public class MoveNodeCommand extends NodeServiceCommand {
                 if (parameters[0] instanceof Long) {
                     id = ((Long) parameters[0]).longValue();
 
-                } else if (parameters[0] instanceof StructrNode) {
-                    id = ((StructrNode) parameters[0]).getId();
+                } else if (parameters[0] instanceof AbstractNode) {
+                    id = ((AbstractNode) parameters[0]).getId();
 
                 } else if (parameters[0] instanceof String) {
                     id = Long.parseLong((String) parameters[0]);
@@ -50,8 +50,8 @@ public class MoveNodeCommand extends NodeServiceCommand {
                 if (parameters[1] instanceof Long) {
                     newParentId = ((Long) parameters[1]).longValue();
 
-                } else if (parameters[1] instanceof StructrNode) {
-                    newParentId = ((StructrNode) parameters[1]).getId();
+                } else if (parameters[1] instanceof AbstractNode) {
+                    newParentId = ((AbstractNode) parameters[1]).getId();
 
                 } else if (parameters[1] instanceof String) {
                     newParentId = Long.parseLong((String) parameters[1]);

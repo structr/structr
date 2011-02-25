@@ -17,7 +17,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.index.Index;
 import org.structr.common.Search;
 import org.structr.common.SearchOperator;
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.User;
 
 /**
@@ -27,7 +27,7 @@ import org.structr.core.entity.User;
  * four parameters are
  * <p>
  * <ol>
- * <li>{@see StructrNode} top node: search only below this node
+ * <li>{@see AbstractNode} top node: search only below this node
  *     <p>if null, search everywhere (top node = root node)
  * <li>{@see User} user: return nodes only if readable for the user
  *     <p>if null, don't filter by user
@@ -50,7 +50,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
         Index<Node> index = (Index<Node>) arguments.get("index");
         StructrNodeFactory nodeFactory = (StructrNodeFactory) arguments.get("nodeFactory");
 
-        List<StructrNode> result = Collections.emptyList();
+        List<AbstractNode> result = Collections.emptyList();
 
         if (graphDb != null) {
 
@@ -60,9 +60,9 @@ public class SearchNodeCommand extends NodeServiceCommand {
             }
 
             // FIXME: filtering by top node is experimental
-            StructrNode topNode = null;
-            if (parameters[0] instanceof StructrNode) {
-                topNode = (StructrNode) parameters[0];
+            AbstractNode topNode = null;
+            if (parameters[0] instanceof AbstractNode) {
+                topNode = (AbstractNode) parameters[0];
             }
 
             User user = null;
@@ -100,16 +100,16 @@ public class SearchNodeCommand extends NodeServiceCommand {
                 if (topNode != null) {
                     result = topNode.getAllChildren(user);
                 } else {
-                    result = new LinkedList<StructrNode>();
+                    result = new LinkedList<AbstractNode>();
                 }
 
             } else {
 
-                List<StructrNode> intermediateResult;
+                List<AbstractNode> intermediateResult;
                 if (topNode != null) {
                     intermediateResult = topNode.getAllChildren(user);
                 } else {
-                    intermediateResult = new LinkedList<StructrNode>();
+                    intermediateResult = new LinkedList<AbstractNode>();
                 }
 
                 for (SearchAttribute attr : searchAttrs) {
@@ -167,7 +167,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
                         logger.log(Level.WARNING, "Search error", t);
                     }
 
-                    List<StructrNode> singleResult = nodeFactory.createNodes(nodes);
+                    List<AbstractNode> singleResult = nodeFactory.createNodes(nodes);
 
                     if (op.equals(SearchOperator.OR)) {
 
@@ -184,7 +184,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
                         }
 
                         // AND operator: intersect single result with intermediate result
-                        List<StructrNode> intersectionResult = ListUtils.intersection(intermediateResult, singleResult);
+                        List<AbstractNode> intersectionResult = ListUtils.intersection(intermediateResult, singleResult);
                         intermediateResult = intersectionResult;
 
                     } else if (op.equals(SearchOperator.AND_NOT)) {
@@ -196,7 +196,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
                             intermediateResult = singleResult;
                         }
                         // AND_NOT operator: intersect single result with intermediate result
-                        List<StructrNode> intersectionResult = ListUtils.subtract(intermediateResult, singleResult);
+                        List<AbstractNode> intersectionResult = ListUtils.subtract(intermediateResult, singleResult);
                         intermediateResult = intersectionResult;
                     }
 
@@ -205,7 +205,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
                 result = new ArrayList(intermediateResult);
             }
 
-            // sort search results; defaults to name, (@see StructrNode.compareTo())
+            // sort search results; defaults to name, (@see AbstractNode.compareTo())
             Collections.sort(result);
 
             return result;

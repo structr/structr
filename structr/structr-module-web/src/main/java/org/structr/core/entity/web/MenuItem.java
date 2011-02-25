@@ -7,7 +7,7 @@ import org.neo4j.graphdb.Direction;
 import org.structr.common.RelType;
 import org.structr.core.Command;
 import org.structr.core.Services;
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.StructrRelationship;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
@@ -57,7 +57,7 @@ public class MenuItem extends WebNode {
 
         // find link target node
         Command findNode = Services.command(FindNodeCommand.class);
-        StructrNode linkTargetNode = (StructrNode) findNode.execute(new SuperUser(), value);
+        AbstractNode linkTargetNode = (AbstractNode) findNode.execute(new SuperUser(), value);
 
         // delete existing link target relationships
         List<StructrRelationship> pageLinkRels = getRelationships(RelType.PAGE_LINK, Direction.OUTGOING);
@@ -79,9 +79,9 @@ public class MenuItem extends WebNode {
      * @param out
      * @param startNode
      */
-    protected void renderMenuItems(StringBuilder out, final StructrNode startNode, final StructrNode currentNode, int currentDepth, int currentPos, int numberOfSubnodes, int maxDepth, final User user) {
+    protected void renderMenuItems(StringBuilder out, final AbstractNode startNode, final AbstractNode currentNode, int currentDepth, int currentPos, int numberOfSubnodes, int maxDepth, final User user) {
 
-        StructrNode menuItemNode = currentNode;
+        AbstractNode menuItemNode = currentNode;
 
         if (currentDepth > maxDepth) {
             return;
@@ -89,13 +89,13 @@ public class MenuItem extends WebNode {
 
         currentDepth++;
 
-        List<StructrNode> menuItems = menuItemNode.getSortedMenuItems(user);
+        List<AbstractNode> menuItems = menuItemNode.getSortedMenuItems(user);
 
         // sort by position (not needed - they are already sorted)
-//        Collections.sort(menuItems, new Comparator<StructrNode>() {
+//        Collections.sort(menuItems, new Comparator<AbstractNode>() {
 //
 //            @Override
-//            public int compare(StructrNode nodeOne, StructrNode nodeTwo) {
+//            public int compare(AbstractNode nodeOne, AbstractNode nodeTwo) {
 //                return nodeOne.getPosition().compareTo(nodeTwo.getPosition());
 //            }
 //        });
@@ -149,7 +149,7 @@ public class MenuItem extends WebNode {
 
             int sub = menuItems.size();
             int pos = 0;
-            for (StructrNode s : menuItems) {
+            for (AbstractNode s : menuItems) {
                 renderMenuItems(out, startNode, s, currentDepth, pos, sub, maxDepth, user);
                 pos++;
             }

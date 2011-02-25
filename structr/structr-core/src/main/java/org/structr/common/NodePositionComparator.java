@@ -5,16 +5,16 @@
 package org.structr.common;
 
 import java.util.Comparator;
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 
 /**
  *
  * @author cmorgner
  */
-public class NodePositionComparator implements Comparator<StructrNode> {
+public class NodePositionComparator implements Comparator<AbstractNode> {
 
     @Override
-    public int compare(StructrNode o1, StructrNode o2) {
+    public int compare(AbstractNode o1, AbstractNode o2) {
         return (o1.getPosition().compareTo(o2.getPosition()));
     }
 }

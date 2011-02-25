@@ -8,7 +8,7 @@ import org.structr.common.RelType;
 import org.structr.common.StandaloneTestHelper;
 import org.structr.core.Services;
 import org.structr.core.entity.Folder;
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;
@@ -28,7 +28,7 @@ public class WebsiteImageExtractor {
 
         StandaloneTestHelper.prepareStandaloneTest("/opt/structr/structr-tfs2");
 
-        final StructrNode adminNode = (StructrNode) Services.command(FindUserCommand.class).execute("admin");
+        final AbstractNode adminNode = (AbstractNode) Services.command(FindUserCommand.class).execute("admin");
         final String urlString = "http://www.inxire.com/public/browse/Webseiten";
         final String websiteName = urlString.substring(urlString.lastIndexOf("http://") + 7);
 
@@ -37,8 +37,8 @@ public class WebsiteImageExtractor {
             public Object execute() throws Throwable {
 
                 Folder parentFolder = (Folder) Services.command(CreateNodeCommand.class).execute(new SuperUser(),
-                        new NodeAttribute(StructrNode.NAME_KEY, "_" + websiteName + "_" + System.currentTimeMillis()),
-                        new NodeAttribute(StructrNode.TYPE_KEY, Folder.class.getSimpleName()),
+                        new NodeAttribute(AbstractNode.NAME_KEY, "_" + websiteName + "_" + System.currentTimeMillis()),
+                        new NodeAttribute(AbstractNode.TYPE_KEY, Folder.class.getSimpleName()),
                         false);
 
                 Services.command(CreateRelationshipCommand.class).execute(adminNode, parentFolder, RelType.HAS_CHILD);

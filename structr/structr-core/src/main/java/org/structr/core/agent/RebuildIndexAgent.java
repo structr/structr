@@ -10,7 +10,7 @@ import java.util.logging.Logger;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.structr.core.Command;
 import org.structr.core.Services;
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.GetAllNodes;
 import org.structr.core.node.GraphDatabaseCommand;
 import org.structr.core.node.IndexNodeCommand;
@@ -66,8 +66,8 @@ public class RebuildIndexAgent extends Agent {
                 long nodes = 0;
 
                 Command indexer = Services.command(IndexNodeCommand.class);
-                List<StructrNode> allNodes = (List<StructrNode>) Services.command(GetAllNodes.class).execute();
-                for (StructrNode s : allNodes) {
+                List<AbstractNode> allNodes = (List<AbstractNode>) Services.command(GetAllNodes.class).execute();
+                for (AbstractNode s : allNodes) {
                     indexer.execute(s);
                     nodes++;
 

@@ -32,7 +32,7 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.filter.Filter;
 
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.User;
 import org.structr.common.MapHelper;
 import org.structr.core.Command;
@@ -43,7 +43,7 @@ import org.structr.core.node.GraphDatabaseCommand;
  *
  * @author axel
  */
-public class Map extends StructrNode {
+public class Map extends AbstractNode {
 
     private final static String ICON_SRC = "/images/map.png";
     private static final Logger logger = Logger.getLogger(Map.class.getName());
@@ -75,7 +75,7 @@ public class Map extends StructrNode {
     }
 
     @Override
-    public void renderView(StringBuilder out, final StructrNode startNode,
+    public void renderView(StringBuilder out, final AbstractNode startNode,
             final String editUrl, final Long editNodeId, final User user) {
 
         if (editNodeId != null && getId() == editNodeId.longValue()) {

@@ -14,7 +14,7 @@ import org.neo4j.kernel.Traversal;
 import org.structr.common.RelType;
 import org.structr.common.TreeHelper;
 import org.structr.core.UnsupportedArgumentError;
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.User;
 //import org.structr.common.xpath.JXPathFinder;
 
@@ -37,7 +37,7 @@ import org.structr.core.entity.User;
  *		<li>a single String that specifies the <b>absolute</b> path to the desired
  *			node(s) in the node tree</li>
  *		<li>a single String that specifies a valid XPath expression
- *		<li>a StructrNode and a String argument, where the StructrNode specifies the start
+ *		<li>a AbstractNode and a String argument, where the AbstractNode specifies the start
  *			node of a relative XPath expression, and the String is interpreted
  *			as the XPath to the desired node(s).
  *                      If the String argument is omitted, the result contains all
@@ -166,9 +166,9 @@ public class FindNodeCommand extends NodeServiceCommand {
             // single node attribute: find node by attribute..
             throw new UnsupportedOperationException("Not supported yet, use SearchNodeCommand instead!");
 
-        } else if (argument instanceof StructrNode) {
+        } else if (argument instanceof AbstractNode) {
 
-            StructrNode startNode = (StructrNode) argument;
+            AbstractNode startNode = (AbstractNode) argument;
             Node s = null;
             if (startNode == null) {
                 s = graphDb.getReferenceNode();
@@ -192,9 +192,9 @@ public class FindNodeCommand extends NodeServiceCommand {
         Object result = null;
 
         // omit first parameter (is user)
-        if (parameters[1] instanceof StructrNode && parameters[2] instanceof XPath) {
+        if (parameters[1] instanceof AbstractNode && parameters[2] instanceof XPath) {
             // relative xpath expression
-            StructrNode currentNode = (StructrNode) parameters[1];
+            AbstractNode currentNode = (AbstractNode) parameters[1];
             XPath xpath = (XPath) parameters[2];
 
             String path = xpath.getXPath();

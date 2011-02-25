@@ -9,7 +9,7 @@ import java.util.logging.Logger;
 import org.structr.core.Services;
 import org.structr.core.UnsupportedArgumentError;
 import org.structr.core.entity.CsvFile;
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.User;
 import org.structr.core.node.ConvertCsvToNodeListCommand;
 
@@ -45,7 +45,7 @@ public class ConversionAgent extends Agent {
         return (ReturnValue.Success);
     }
 
-    private void convert(final User user, final StructrNode sourceNode, final Class targetClass) {
+    private void convert(final User user, final AbstractNode sourceNode, final Class targetClass) {
 
         if (sourceNode == null) {
             throw new UnsupportedArgumentError("Source node is null!");

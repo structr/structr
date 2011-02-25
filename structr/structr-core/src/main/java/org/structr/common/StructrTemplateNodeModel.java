@@ -9,7 +9,7 @@ import freemarker.template.TemplateNodeModel;
 import freemarker.template.TemplateSequenceModel;
 import java.util.ArrayList;
 import java.util.List;
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.User;
 
 /**
@@ -18,8 +18,8 @@ import org.structr.core.entity.User;
  */
 public class StructrTemplateNodeModel implements TemplateNodeModel {
 
-    StructrNode templateNode;
-    StructrNode startNode;
+    AbstractNode templateNode;
+    AbstractNode startNode;
     String editUrl;
     Long editNodeId;
     User user;
@@ -27,11 +27,11 @@ public class StructrTemplateNodeModel implements TemplateNodeModel {
     public StructrTemplateNodeModel() {
     }
 
-    public StructrTemplateNodeModel(final StructrNode templateNode) {
+    public StructrTemplateNodeModel(final AbstractNode templateNode) {
         setTemplateNode(templateNode);
     }
 
-    public StructrTemplateNodeModel(final StructrNode templateNode, final StructrNode startNode, final String editUrl, final Long editNodeId, final User user) {
+    public StructrTemplateNodeModel(final AbstractNode templateNode, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user) {
         this.templateNode = templateNode;
         this.startNode = startNode;
         this.editUrl = editUrl;
@@ -45,7 +45,7 @@ public class StructrTemplateNodeModel implements TemplateNodeModel {
 
         List<StructrTemplateNodeModel> childNodeList = new ArrayList<StructrTemplateNodeModel>();
 
-        for (StructrNode s : templateNode.getDirectChildNodes(user)) {
+        for (AbstractNode s : templateNode.getDirectChildNodes(user)) {
 
             StructrTemplateNodeModel m = new StructrTemplateNodeModel(s);
             childNodeList.add(m);
@@ -87,11 +87,11 @@ public class StructrTemplateNodeModel implements TemplateNodeModel {
     }
 
     // private methods follow
-    private void setTemplateNode(final StructrNode node) {
+    private void setTemplateNode(final AbstractNode node) {
         this.templateNode = node;
     }
 
-    private void setStartNode(final StructrNode startNode) {
+    private void setStartNode(final AbstractNode startNode) {
         this.startNode = startNode;
     }
 

@@ -12,7 +12,7 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.structr.common.SearchOperator;
 import org.structr.core.Command;
 import org.structr.core.Services;
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
 
@@ -45,7 +45,7 @@ public class FindUserCommand extends NodeServiceCommand {
                     //userXPath = "//User";
 //                    break;
 
-                    return (List<User>) searchNode.execute(null, null, true, false, new SearchAttribute(StructrNode.TYPE_KEY, User.class.getSimpleName(), SearchOperator.OR));
+                    return (List<User>) searchNode.execute(null, null, true, false, new SearchAttribute(AbstractNode.TYPE_KEY, User.class.getSimpleName(), SearchOperator.OR));
 
 
                 case 1:
@@ -57,10 +57,10 @@ public class FindUserCommand extends NodeServiceCommand {
 //                        userXPath = "//User[@name='" + userName + "']";
 
                         List<SearchAttribute> searchAttrs = new ArrayList<SearchAttribute>();
-                        searchAttrs.add(new SearchAttribute(StructrNode.NAME_KEY, userName, SearchOperator.AND));
-                        searchAttrs.add(new SearchAttribute(StructrNode.TYPE_KEY, User.class.getSimpleName(), SearchOperator.AND));
+                        searchAttrs.add(new SearchAttribute(AbstractNode.NAME_KEY, userName, SearchOperator.AND));
+                        searchAttrs.add(new SearchAttribute(AbstractNode.TYPE_KEY, User.class.getSimpleName(), SearchOperator.AND));
 
-                        List<StructrNode> usersFound = (List<StructrNode>) searchNode.execute(null, null, true, false, searchAttrs);
+                        List<AbstractNode> usersFound = (List<AbstractNode>) searchNode.execute(null, null, true, false, searchAttrs);
 
                         if (usersFound != null && usersFound.size() > 0) {
                             return usersFound.get(0);
@@ -93,13 +93,13 @@ public class FindUserCommand extends NodeServiceCommand {
         }
 
         // search for user nodes with super user permissions
-        List<StructrNode> nodes = (List<StructrNode>) findNode.execute(new SuperUser(), new XPath(userXPath));
+        List<AbstractNode> nodes = (List<AbstractNode>) findNode.execute(new SuperUser(), new XPath(userXPath));
 
         if (nodes != null) {
 
             if (nodes.size() == 1) {
 
-                StructrNode r = nodes.get(0);
+                AbstractNode r = nodes.get(0);
 
                 if (r instanceof User) {
                     return (User) r;

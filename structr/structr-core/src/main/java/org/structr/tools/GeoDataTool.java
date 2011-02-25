@@ -22,7 +22,7 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.shell.util.json.JSONObject;
 import org.structr.common.RelType;
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.geo.GeoObject;
 
 public class GeoDataTool {
@@ -412,7 +412,7 @@ public class GeoDataTool {
 
         for (Node n : graphDb.getAllNodes()) {
 
-            if (n.hasProperty(StructrNode.TYPE_KEY) && n.getProperty(StructrNode.TYPE_KEY).equals(type)
+            if (n.hasProperty(AbstractNode.TYPE_KEY) && n.getProperty(AbstractNode.TYPE_KEY).equals(type)
                     && n.hasProperty(GeoObject.LATITUDE_KEY)
                     && (
                            ((Double) n.getProperty(GeoObject.LATITUDE_KEY)).equals(Double.NaN)
@@ -443,9 +443,9 @@ public class GeoDataTool {
 
                     Node s = r.getStartNode();
 
-                    if (s.hasProperty(StructrNode.TYPE_KEY) && s.hasProperty(StructrNode.NAME_KEY)) {
+                    if (s.hasProperty(AbstractNode.TYPE_KEY) && s.hasProperty(AbstractNode.NAME_KEY)) {
 
-                        String addType = (String) s.getProperty(StructrNode.TYPE_KEY);
+                        String addType = (String) s.getProperty(AbstractNode.TYPE_KEY);
 
                         if (!("Country".equals(addType))
                                 && !("Island".equals(addType))
@@ -454,7 +454,7 @@ public class GeoDataTool {
                         }
 
 
-                        additionalAddressAttributes.add((String) s.getProperty(StructrNode.NAME_KEY));
+                        additionalAddressAttributes.add((String) s.getProperty(AbstractNode.NAME_KEY));
                     }
                 }
 
@@ -593,8 +593,8 @@ public class GeoDataTool {
         // find countries node
         for (Node n : allNodes) {
 
-            if (n.hasProperty(StructrNode.TYPE_KEY) && n.getProperty(StructrNode.TYPE_KEY).equals("Folder")
-                    && n.hasProperty(StructrNode.NAME_KEY) && n.getProperty(StructrNode.NAME_KEY).equals("Countries")) {
+            if (n.hasProperty(AbstractNode.TYPE_KEY) && n.getProperty(AbstractNode.TYPE_KEY).equals("Folder")
+                    && n.hasProperty(AbstractNode.NAME_KEY) && n.getProperty(AbstractNode.NAME_KEY).equals("Countries")) {
                 countriesFolder = n;
             }
         }
@@ -603,11 +603,11 @@ public class GeoDataTool {
         int regionCounter = 0;
         // find nodes of the global regions
         for (Node n : allNodes) {
-            if (n.hasProperty(StructrNode.TYPE_KEY) && n.getProperty(StructrNode.TYPE_KEY).equals("Region")) {
+            if (n.hasProperty(AbstractNode.TYPE_KEY) && n.getProperty(AbstractNode.TYPE_KEY).equals("Region")) {
 
                 for (String region : regionMap.keySet()) {
 
-                    if (n.hasProperty(StructrNode.NAME_KEY) && n.getProperty(StructrNode.NAME_KEY).equals(region)) {
+                    if (n.hasProperty(AbstractNode.NAME_KEY) && n.getProperty(AbstractNode.NAME_KEY).equals(region)) {
                         nodeMap.put(region, n);
                         break;
                     }
@@ -629,7 +629,7 @@ public class GeoDataTool {
                 if (rels != null) {
                     for (Relationship r : rels) {
                         Node endNode = r.getEndNode();
-                        if (endNode.hasProperty(StructrNode.TYPE_KEY) && endNode.getProperty(StructrNode.TYPE_KEY).equals("Country")) {
+                        if (endNode.hasProperty(AbstractNode.TYPE_KEY) && endNode.getProperty(AbstractNode.TYPE_KEY).equals("Country")) {
                             r.delete();
                         }
                     }
@@ -645,8 +645,8 @@ public class GeoDataTool {
                     for (Node n : allNodes) {
 
                         // TODO: handle slightly different names as equal
-                        if (n.hasProperty(StructrNode.TYPE_KEY) && n.getProperty(StructrNode.TYPE_KEY).equals("Country")
-                                && n.hasProperty(StructrNode.NAME_KEY) && n.getProperty(StructrNode.NAME_KEY).equals(country)) {
+                        if (n.hasProperty(AbstractNode.TYPE_KEY) && n.getProperty(AbstractNode.TYPE_KEY).equals("Country")
+                                && n.hasProperty(AbstractNode.NAME_KEY) && n.getProperty(AbstractNode.NAME_KEY).equals(country)) {
 
                             if (!test) {
                                 regionNode.createRelationshipTo(n, RelType.LINK);
@@ -660,8 +660,8 @@ public class GeoDataTool {
 //
 //                                Node newCountryNode = graphDb.createNode();
 //
-//                                newCountryNode.setProperty(StructrNode.TYPE_KEY, "Country");
-//                                newCountryNode.setProperty(StructrNode.NAME_KEY, country);
+//                                newCountryNode.setProperty(AbstractNode.TYPE_KEY, "Country");
+//                                newCountryNode.setProperty(AbstractNode.NAME_KEY, country);
 //
 //                                if (countriesFolder != null) {
 //                                    countriesFolder.createRelationshipTo(newCountryNode, RelType.HAS_CHILD);

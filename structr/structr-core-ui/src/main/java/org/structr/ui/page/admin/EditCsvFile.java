@@ -17,7 +17,7 @@ import org.structr.core.Services;
 import org.structr.core.agent.ConversionTask;
 import org.structr.core.agent.ProcessTaskCommand;
 import org.structr.core.entity.CsvFile;
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.module.GetEntitiesCommand;
 import org.structr.core.module.GetEntityClassCommand;
 
@@ -30,7 +30,7 @@ public class EditCsvFile extends EditFile {
     protected Submit createNodeListSubmit = new Submit("Create Node List", this, "onCreateNodeList");
     protected Form editContentForm = new Form("editContentForm");
     protected FieldSet conversionFields = new FieldSet("File Conversion");
-    protected Select nodeTypeField = new Select(StructrNode.TYPE_KEY, "Select Node Type", true);
+    protected Select nodeTypeField = new Select(AbstractNode.TYPE_KEY, "Select Node Type", true);
 
     protected CsvFile csvNode;
 
@@ -59,7 +59,7 @@ public class EditCsvFile extends EditFile {
 
         if (node != null) {
 
-            editContentForm.add(new HiddenField(StructrNode.NODE_ID_KEY, getNodeId()));
+            editContentForm.add(new HiddenField(AbstractNode.NODE_ID_KEY, getNodeId()));
             csvNode = (CsvFile) node;
         }
 

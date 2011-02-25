@@ -13,15 +13,20 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.click.control.ActionLink;
+import org.apache.click.control.Form;
 import org.apache.click.control.PageLink;
 import org.apache.click.control.Panel;
+import org.apache.click.control.TextField;
+import org.apache.click.extras.control.AutoCompleteTextField;
 
 import org.apache.click.util.Bindable;
 import org.apache.click.extras.tree.Tree;
 import org.apache.click.extras.tree.TreeNode;
 import org.apache.commons.lang.ArrayUtils;
+import org.structr.common.Search;
 import org.structr.context.SessionMonitor;
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Link;
 import org.structr.core.entity.SuperUser;
 import org.structr.ui.page.LoginPage;
 import org.structr.ui.page.StructrPage;
@@ -45,11 +50,26 @@ public class Admin extends StructrPage {
     public static final Integer DEFAULT_PAGER_MAX = 1000;
     /** key for expanded nodes stored in session */
     public final static String EXPANDED_NODES_KEY = "expandedNodes";
+    protected final static String SEARCH_RESULTS_KEY = "searchResults";
+    protected final static String SEARCH_TEXT_KEY = "searchFor";
+
     /** list with ids of open nodes */
     protected List<TreeNode> openNodes;
     @Bindable
     protected Tree nodeTree;
-
+    @Bindable
+    protected Form simpleSearchForm = new Form();
+    @Bindable
+    protected Panel simpleSearchPanel = new Panel("simpleSearchPanel", "/panel/simple-search-panel.htm");
+    @Bindable
+    protected TextField searchTextField = new AutoCompleteTextField(SEARCH_TEXT_KEY, "Search for") {
+        @Override
+        public List<String> getAutoCompleteList(final String criteria) {
+            return Search.getNodeNamesLike(criteria);
+        }
+    };
+    @Bindable
+    protected List<AbstractNode> searchResults;
     // use template for backend pages
     @Override
     public String getTemplate() {
@@ -135,7 +155,7 @@ public class Admin extends StructrPage {
         //long[] expandedNodes = new long[];
         for (TreeNode n : nodeTree.getExpandedNodes(true)) {
 
-            StructrNode s = (StructrNode) n.getValue();
+            AbstractNode s = (AbstractNode) n.getValue();
             expandedNodes.add(s.getId());
 
         }
@@ -206,4 +226,36 @@ public class Admin extends StructrPage {
         }
         return expandedNodesArray;
     }
+
+    /**
+     * Return icon src
+     *
+     * If node is a link, assemble combined icon src
+     * @param n
+     * @return
+     */
+    protected String getIconSrc(AbstractNode n) {
+        String iconSrc;
+        if (n instanceof Link) {
+            iconSrc = getLinkedIconSrc(((Link) n).getStructrNode().getIconSrc());
+        } else {
+            iconSrc = n.getIconSrc();
+        }
+        return iconSrc;
+    }
+
+    /**
+     * Return icon variant
+     *
+     * @param iconSrc
+     * @return
+     */
+    protected static String getLinkedIconSrc(String iconSrc) {
+        int i = iconSrc.lastIndexOf('.');
+        String ext = iconSrc.substring(i + 1);
+        // TODO move suffix "_linked" to configuration
+        iconSrc = iconSrc.substring(0, i) + "_linked." + ext;
+        return iconSrc;
+    }
+
 }

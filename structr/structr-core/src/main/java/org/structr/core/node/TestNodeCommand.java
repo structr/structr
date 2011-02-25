@@ -11,7 +11,7 @@ import org.neo4j.graphdb.Node;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.NodeList;
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 
 /**
  *
@@ -52,7 +52,7 @@ public class TestNodeCommand extends NodeServiceCommand
 									Node newNode = graphDb.createNode();
 									newNode.setProperty("type", "PlainText");
 
-									StructrNode newStructrNode = nodeFactory.createNode(newNode);
+									AbstractNode newStructrNode = nodeFactory.createNode(newNode);
 									nodeList.add(newStructrNode);
 
 								} else if("del".equals(cmd))

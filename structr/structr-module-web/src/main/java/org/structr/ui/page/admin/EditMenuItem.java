@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import org.apache.click.control.FieldSet;
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 
 import org.apache.click.control.Option;
 import org.apache.click.control.Select;
@@ -55,20 +55,20 @@ public class EditMenuItem extends DefaultEdit {
             @Override
             public List<Option> getData() {
                 List<Option> options = new ArrayList<Option>();
-                List<StructrNode> nodes = null;
+                List<AbstractNode> nodes = null;
                 if (linkTargetNode != null) {
                     nodes = linkTargetNode.getSiblingNodes(user);
                 } else {
                     Command searchNode = Services.command(SearchNodeCommand.class);
 
                     List<SearchAttribute> searchAttrs = new ArrayList<SearchAttribute>();
-                    searchAttrs.add(new SearchAttribute(StructrNode.TYPE_KEY, Page.class.getSimpleName(), SearchOperator.OR));
-                    nodes = (List<StructrNode>) searchNode.execute(null, null, true, false, searchAttrs);
+                    searchAttrs.add(new SearchAttribute(AbstractNode.TYPE_KEY, Page.class.getSimpleName(), SearchOperator.OR));
+                    nodes = (List<AbstractNode>) searchNode.execute(null, null, true, false, searchAttrs);
                 }
                 if (nodes != null) {
                     Collections.sort(nodes);
                     options.add(Option.EMPTY_OPTION);
-                    for (StructrNode n : nodes) {
+                    for (AbstractNode n : nodes) {
                         if (n instanceof Page) {
                             Option opt = new Option(n.getId(), n.getName());
                             options.add(opt);
@@ -94,7 +94,7 @@ public class EditMenuItem extends DefaultEdit {
 //
 //            @Override
 //            public Object execute() throws Throwable {
-//                StructrNode s = getNodeByIdOrPath(getNodeId());
+//                AbstractNode s = getNodeByIdOrPath(getNodeId());
 //
 //                if (editPropertiesForm.isValid()) {
 //                    editPropertiesForm.copyFrom(s);
@@ -119,8 +119,8 @@ public class EditMenuItem extends DefaultEdit {
 //    public boolean onAddTemplate() {
 //
 //        Command transactionCommand = Services.command(TransactionCommand.class);
-//        StructrNode s = null;
-//        s = (StructrNode) transactionCommand.execute(new StructrTransaction() {
+//        AbstractNode s = null;
+//        s = (AbstractNode) transactionCommand.execute(new StructrTransaction() {
 //
 //            @Override
 //            public Object execute() throws Throwable {
@@ -129,8 +129,8 @@ public class EditMenuItem extends DefaultEdit {
 //                Command linkNode = Services.command(CreateRelationshipCommand.class);
 //
 //                // create a new template node
-//                StructrNode newTemplate = (StructrNode) createNode.execute(
-//                        new NodeAttribute(StructrNode.TYPE_KEY, Template.class.getSimpleName()),
+//                AbstractNode newTemplate = (AbstractNode) createNode.execute(
+//                        new NodeAttribute(AbstractNode.TYPE_KEY, Template.class.getSimpleName()),
 //                        new NodeAttribute(Template.NAME_KEY, "New Name"),
 //                        user);
 //

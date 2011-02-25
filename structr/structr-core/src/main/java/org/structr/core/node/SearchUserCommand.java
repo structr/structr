@@ -14,7 +14,7 @@ import org.neo4j.kernel.Traversal;
 import org.structr.common.RelType;
 import org.structr.core.Command;
 import org.structr.core.Services;
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 
 /**
  * Searches for a user node by her/his name in the database and returns the result.
@@ -41,9 +41,9 @@ public class SearchUserCommand extends NodeServiceCommand {
 
                         String userName = (String) parameters[0];
 
-                        for (Node n : index.getNodes(StructrNode.NAME_KEY, userName)) {
+                        for (Node n : index.getNodes(AbstractNode.NAME_KEY, userName)) {
 
-                            StructrNode s = (StructrNode) findNode.execute(n);
+                            AbstractNode s = (AbstractNode) findNode.execute(n);
 
                             // FIXME: remove hardcoded reference to User class name
                             if (s.getType().equals("User")) {
@@ -61,12 +61,12 @@ public class SearchUserCommand extends NodeServiceCommand {
                         String userName = (String) parameters[0];
                         String rootNodePath = (String) parameters[1];
 
-                        List<StructrNode> nodes = (List<StructrNode>) findNode.execute(new XPath(rootNodePath));
+                        List<AbstractNode> nodes = (List<AbstractNode>) findNode.execute(new XPath(rootNodePath));
 
                         // we take the first one
                         if (nodes != null && nodes.size() > 0) {
 
-                            StructrNode r = nodes.get(0);
+                            AbstractNode r = nodes.get(0);
 
                             Node startNode = null;
 
@@ -79,7 +79,7 @@ public class SearchUserCommand extends NodeServiceCommand {
 
                                 for (Node n : getSubnodes(startNode)) {
 
-                                    StructrNode s = (StructrNode) findNode.execute(n);
+                                    AbstractNode s = (AbstractNode) findNode.execute(n);
 
                                     // FIXME: remove hardcoded reference to User class name
                                     // TODO: implement better algorithm for user retrieval

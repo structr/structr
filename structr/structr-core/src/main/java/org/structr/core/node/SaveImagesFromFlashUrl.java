@@ -32,7 +32,7 @@ import org.structr.common.RelType;
 import org.structr.core.Services;
 import org.structr.core.UnsupportedArgumentError;
 import org.structr.core.entity.Image;
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.User;
 
 /**
@@ -62,7 +62,7 @@ public class SaveImagesFromFlashUrl extends NodeServiceCommand {
 
         User user = null;
         String urlString = null;
-        StructrNode parentNode = null;
+        AbstractNode parentNode = null;
 
         List<Image> result = new LinkedList<Image>();
 
@@ -76,8 +76,8 @@ public class SaveImagesFromFlashUrl extends NodeServiceCommand {
                 if (parameters[1] instanceof String) {
                     urlString = (String) parameters[1];
                 }
-                if (parameters[2] instanceof StructrNode) {
-                    parentNode = (StructrNode) parameters[2];
+                if (parameters[2] instanceof AbstractNode) {
+                    parentNode = (AbstractNode) parameters[2];
                 }
                 break;
 
@@ -103,7 +103,7 @@ public class SaveImagesFromFlashUrl extends NodeServiceCommand {
      * @param imageNode
      * @return image list
      */
-    private List<Image> saveFlashImagesFromUrl(final User user, final String urlString, final StructrNode parentNode) {
+    private List<Image> saveFlashImagesFromUrl(final User user, final String urlString, final AbstractNode parentNode) {
 
         String flashObjectName = urlString.substring(urlString.lastIndexOf("/") + 1);
         String tmpFilePath = Services.getFilePath(Path.Temp, "_ " + flashObjectName + "_" + System.nanoTime());
@@ -210,8 +210,8 @@ public class SaveImagesFromFlashUrl extends NodeServiceCommand {
 
                             // Create new image node
                             Image newImageNode = (Image) Services.command(CreateNodeCommand.class).execute(user,
-                                    new NodeAttribute(StructrNode.TYPE_KEY, Image.class.getSimpleName()),
-                                    new NodeAttribute(StructrNode.NAME_KEY, name),
+                                    new NodeAttribute(AbstractNode.TYPE_KEY, Image.class.getSimpleName()),
+                                    new NodeAttribute(AbstractNode.NAME_KEY, name),
                                     new NodeAttribute(Image.WIDTH_KEY, width),
                                     new NodeAttribute(Image.HEIGHT_KEY, height),
                                     new NodeAttribute(Image.CONTENT_TYPE_KEY, contentType),

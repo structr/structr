@@ -1,6 +1,6 @@
 package org.structr.core.entity.web;
 
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.User;
 
 /**
@@ -21,7 +21,7 @@ public class Domain extends WebNode {
      * Render view of domain node.
      */
     @Override
-    public void renderView(StringBuilder out, StructrNode startNode,
+    public void renderView(StringBuilder out, AbstractNode startNode,
             final String editUrl, final Long editNodeId, final User user) {
 
         if (editNodeId != null && getId() == editNodeId.longValue()) {

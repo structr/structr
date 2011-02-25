@@ -5,7 +5,7 @@ package org.structr.core.entity;
  * @author amorgner
  * 
  */
-public class Link extends StructrNode {
+public class Link extends AbstractNode {
 
     private final static String ICON_SRC = "/images/linked.png";
 
@@ -13,7 +13,7 @@ public class Link extends StructrNode {
     public String getIconSrc() {
         return iconSrc != null ? iconSrc : ICON_SRC;
     }
-    private StructrNode structrNode;
+    private AbstractNode structrNode;
     private String iconSrc;
 
     /**
@@ -21,7 +21,7 @@ public class Link extends StructrNode {
      *
      * @param node
      */
-    public void init(StructrNode node) {
+    public void init(AbstractNode node) {
         super.init(node.dbNode);
         setStructrNode(node);
     }
@@ -31,14 +31,14 @@ public class Link extends StructrNode {
      *
      * @return
      */
-    public StructrNode getStructrNode() {
+    public AbstractNode getStructrNode() {
         return structrNode;
     }
 
     /**
      * Set structr node
      */
-    public void setStructrNode(final StructrNode structrNode) {
+    public void setStructrNode(final AbstractNode structrNode) {
         this.structrNode = structrNode;
     }
 
@@ -51,10 +51,10 @@ public class Link extends StructrNode {
      * @param editNodeId
      */
     @Override
-    public void renderView(StringBuilder out, final StructrNode startNode,
+    public void renderView(StringBuilder out, final AbstractNode startNode,
             final String editUrl, final Long editNodeId, final User user) {
 
-        StructrNode node = getStructrNode();
+        AbstractNode node = getStructrNode();
 
         node.setTemplate(getTemplate(user));
         node.setRequest(getRequest());

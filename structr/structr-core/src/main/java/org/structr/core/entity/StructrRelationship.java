@@ -82,14 +82,14 @@ public class StructrRelationship {
         return dbRelationship;
     }
 
-    public StructrNode getEndNode() {
+    public AbstractNode getEndNode() {
         Command nodeFactory = Services.command(NodeFactoryCommand.class);
-        return (StructrNode) nodeFactory.execute(dbRelationship.getEndNode());
+        return (AbstractNode) nodeFactory.execute(dbRelationship.getEndNode());
     }
 
-    public StructrNode getStartNode() {
+    public AbstractNode getStartNode() {
         Command nodeFactory = Services.command(NodeFactoryCommand.class);
-        return (StructrNode) nodeFactory.execute(dbRelationship.getStartNode());
+        return (AbstractNode) nodeFactory.execute(dbRelationship.getStartNode());
     }
 
     public RelationshipType getRelType() {
@@ -120,8 +120,8 @@ public class StructrRelationship {
                 Command createRel = Services.command(CreateRelationshipCommand.class);
                 Command nodeFactory = Services.command(NodeFactoryCommand.class);
 
-                StructrNode startNode = (StructrNode) nodeFactory.execute(getStartNode());
-                StructrNode newEndNode = (StructrNode) findNode.execute(user, endNodeId);
+                AbstractNode startNode = (AbstractNode) nodeFactory.execute(getStartNode());
+                AbstractNode newEndNode = (AbstractNode) findNode.execute(user, endNodeId);
 
                 if (newEndNode != null) {
                     RelationshipType type = dbRelationship.getType();
@@ -155,8 +155,8 @@ public class StructrRelationship {
                     Command createRel = Services.command(CreateRelationshipCommand.class);
                     Command nodeFactory = Services.command(NodeFactoryCommand.class);
 
-                    StructrNode startNode = (StructrNode) nodeFactory.execute(getStartNode());
-                    StructrNode endNode = (StructrNode) nodeFactory.execute(getEndNode());
+                    AbstractNode startNode = (AbstractNode) nodeFactory.execute(getStartNode());
+                    AbstractNode endNode = (AbstractNode) nodeFactory.execute(getEndNode());
 
                     deleteRel.execute(dbRelationship);
                     dbRelationship = ((StructrRelationship) createRel.execute(type, startNode, endNode)).getRelationship();

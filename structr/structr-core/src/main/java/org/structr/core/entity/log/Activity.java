@@ -6,7 +6,7 @@ package org.structr.core.entity.log;
 
 import java.util.Date;
 import java.util.Map;
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.User;
 
 /**
@@ -18,7 +18,7 @@ import org.structr.core.entity.User;
  *
  * @author axel
  */
-public class Activity extends StructrNode {
+public class Activity extends AbstractNode {
 
     private final static String ICON_SRC = "/images/sport_soccer.png";
 

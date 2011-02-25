@@ -6,7 +6,7 @@ import org.neo4j.graphdb.Direction;
 import org.structr.common.RelType;
 import org.structr.core.Command;
 import org.structr.core.Services;
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.StructrRelationship;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
@@ -40,7 +40,7 @@ public class Page extends WebNode {
      * @param editNodeId
      */
     @Override
-    public void renderView(StringBuilder out, final StructrNode startNode,
+    public void renderView(StringBuilder out, final AbstractNode startNode,
             final String editUrl, final Long editNodeId, final User user) {
 
         // if this page is requested to be edited, render edit frame
@@ -60,10 +60,10 @@ public class Page extends WebNode {
                 template.renderView(out, startNode, editUrl, editNodeId, user);
             } else {
 
-                List<StructrNode> subnodes = getSortedDirectChildAndLinkNodes(user);
+                List<AbstractNode> subnodes = getSortedDirectChildAndLinkNodes(user);
 
                 // render subnodes in correct order
-                for (StructrNode s : subnodes) {
+                for (AbstractNode s : subnodes) {
 
                     // propagate request
                     s.setRequest(getRequest());
@@ -102,7 +102,7 @@ public class Page extends WebNode {
 //        List<Template> result = new ArrayList<Template>();
 //        List<StructrRelationship> rels = getRelationships(RelType.USE_TEMPLATE, Direction.OUTGOING);
 //        for (StructrRelationship r : rels) {
-//            StructrNode n = r.getEndNode();
+//            AbstractNode n = r.getEndNode();
 //            if (n instanceof Template) {
 //                result.add((Template) n);
 //            }

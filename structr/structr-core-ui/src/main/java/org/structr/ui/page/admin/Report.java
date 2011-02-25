@@ -37,7 +37,7 @@ import org.structr.common.SearchOperator;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.EmptyNode;
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.module.GetEntitiesCommand;
 import org.structr.core.module.GetEntityClassCommand;
 import org.structr.core.node.CreateNodeCommand;
@@ -74,7 +74,7 @@ public class Report extends Nodes {
     protected Submit reset = new Submit("reset", "Reset Form");
     protected TextField reportName = new TextField("reportName", "Save Report as (filename): ");
     //protected Submit saveReport = new Submit("saveReport", "Save Report", this, "onSaveReport");
-    protected List<StructrNode> reportResults = new ArrayList<StructrNode>();
+    protected List<AbstractNode> reportResults = new ArrayList<AbstractNode>();
     protected List<SearchAttribute> searchAttributes = new ArrayList<SearchAttribute>();
     protected List<Column> columns = new ArrayList<Column>();
 
@@ -124,7 +124,7 @@ public class Report extends Nodes {
         reportTable.setSortable(true);
         reportTable.setShowBanner(true);
         reportTable.setPageSize(DEFAULT_PAGESIZE);
-//        reportTable.getControlLink().setParameter(StructrNode.NODE_ID_KEY, getNodeId());
+//        reportTable.getControlLink().setParameter(AbstractNode.NODE_ID_KEY, getNodeId());
         reportTable.setClass(Table.CLASS_SIMPLE);
 
         populateTypeSelectField();
@@ -165,7 +165,7 @@ public class Report extends Nodes {
         if (reportForm.isValid()) {
             Command search = Services.command(SearchNodeCommand.class);
 
-            searchResults = (List<StructrNode>) search.execute(null, user, true, false, searchAttributes);
+            searchResults = (List<AbstractNode>) search.execute(null, user, true, false, searchAttributes);
             populateReportResultsTable();
             saveState();
         }
@@ -187,7 +187,7 @@ public class Report extends Nodes {
     }
 
     public void resetForm() {
-        reportResults = new ArrayList<StructrNode>();
+        reportResults = new ArrayList<AbstractNode>();
         columns = new ArrayList<Column>();
         resultTypeSelect = new Select(TYPE_SELECT_KEY, "Select Result Type", true);
         reportForm.clearValues();
@@ -222,7 +222,7 @@ public class Report extends Nodes {
 
             reportForm.add(resultTypeSelect);
             // restore state from session
-            reportResults = (List<StructrNode>) context.getSessionAttribute(REPORT_RESULTS_KEY);
+            reportResults = (List<AbstractNode>) context.getSessionAttribute(REPORT_RESULTS_KEY);
             resultTypeSelect.restoreState(context);
             columns = (List<Column>) context.getSessionAttribute(REPORT_COLUMNS_KEY);
             if (columns != null) {
@@ -256,12 +256,12 @@ public class Report extends Nodes {
 
     public void populateReportResultsTable() {
         if (reportResults != null && !(reportResults.isEmpty())) {
-            //reportTable.getControlLink().setParameter(StructrNode.NODE_ID_KEY, getNodeId());
+            //reportTable.getControlLink().setParameter(AbstractNode.NODE_ID_KEY, getNodeId());
             reportTable.setDataProvider(new DataProvider() {
 
                 @Override
-                public List<StructrNode> getData() {
-                    return (List<StructrNode>) reportResults;
+                public List<AbstractNode> getData() {
+                    return (List<AbstractNode>) reportResults;
                 }
             });
         }
@@ -276,7 +276,7 @@ public class Report extends Nodes {
 
             Command search = Services.command(SearchNodeCommand.class);
 
-            reportResults = (List<StructrNode>) search.execute(null, user, true, false, searchAttributes);
+            reportResults = (List<AbstractNode>) search.execute(null, user, true, false, searchAttributes);
             populateReportResultsTable();
             saveState();
 
@@ -311,7 +311,7 @@ public class Report extends Nodes {
             return false;
         }
 
-        for (StructrNode s : reportResults) {
+        for (AbstractNode s : reportResults) {
 
 //            List<String> cols = new ArrayList<String>();
             List<String> values = new ArrayList<String>();
@@ -369,10 +369,10 @@ public class Report extends Nodes {
             csvw.flush();
             csvw.close();
 
-            StructrNode s = null;
+            AbstractNode s = null;
             Command transaction = Services.command(TransactionCommand.class);
 
-            s = (StructrNode) transaction.execute(new StructrTransaction() {
+            s = (AbstractNode) transaction.execute(new StructrTransaction() {
 
                 @Override
                 public Object execute() throws Throwable {
@@ -381,7 +381,7 @@ public class Report extends Nodes {
                     Command createRel = Services.command(CreateRelationshipCommand.class);
 
                     // create node with appropriate type
-                    StructrNode newNode = (StructrNode) createNode.execute(new NodeAttribute(StructrNode.TYPE_KEY, File.class.getSimpleName()), user);
+                    AbstractNode newNode = (AbstractNode) createNode.execute(new NodeAttribute(AbstractNode.TYPE_KEY, File.class.getSimpleName()), user);
 
 
                     String relativeFilePath = newNode.getId() + "_" + System.currentTimeMillis();
@@ -391,9 +391,9 @@ public class Report extends Nodes {
                     FileUtils.moveFile(reportFile, new File(targetPath));
 
                     Date now = new Date();
-                    newNode.setProperty(StructrNode.NAME_KEY, reportFileName);
-                    newNode.setProperty(StructrNode.CREATED_DATE_KEY, now);
-                    newNode.setProperty(StructrNode.LAST_MODIFIED_DATE_KEY, now);
+                    newNode.setProperty(AbstractNode.NAME_KEY, reportFileName);
+                    newNode.setProperty(AbstractNode.CREATED_DATE_KEY, now);
+                    newNode.setProperty(AbstractNode.LAST_MODIFIED_DATE_KEY, now);
 
                     newNode.setProperty(org.structr.core.entity.File.CONTENT_TYPE_KEY, "text/csv");
                     newNode.setProperty(org.structr.core.entity.File.SIZE_KEY, String.valueOf(reportFile.length()));
@@ -401,7 +401,7 @@ public class Report extends Nodes {
                     newNode.setProperty(org.structr.core.entity.File.RELATIVE_FILE_PATH_KEY, relativeFilePath);
 
                     // connect report to user node
-                    StructrNode parentNode = user;
+                    AbstractNode parentNode = user;
                     createRel.execute(parentNode, newNode, RelType.HAS_CHILD);
 
                     return newNode;
@@ -427,11 +427,11 @@ public class Report extends Nodes {
     private void createDynamicFields(final String resultType) {
 
         // Always filter by type
-        searchAttributes.add(new SearchAttribute(StructrNode.TYPE_KEY, resultType, SearchOperator.AND));
+        searchAttributes.add(new SearchAttribute(AbstractNode.TYPE_KEY, resultType, SearchOperator.AND));
 
         // Get the corresponding entity class
-        //Class<StructrNode> c = Services.getEntityClass(resultType);
-        Class<StructrNode> c = (Class<StructrNode>) Services.command(GetEntityClassCommand.class).execute(resultType);
+        //Class<AbstractNode> c = Services.getEntityClass(resultType);
+        Class<AbstractNode> c = (Class<AbstractNode>) Services.command(GetEntityClassCommand.class).execute(resultType);
 
         if (c != null) {
 
@@ -439,11 +439,11 @@ public class Report extends Nodes {
             java.lang.reflect.Field[] fields = c.getFields();
             //reportFields.setColumns(fields.length);
 
-            StructrNode o = new EmptyNode();
+            AbstractNode o = new EmptyNode();
             try {
 
                 // Instantiate an object to get the value of the public static fields
-                o = (StructrNode) c.newInstance();
+                o = (AbstractNode) c.newInstance();
             } catch (Throwable t) {
                 logger.log(Level.SEVERE, null, t);
             }
@@ -456,7 +456,7 @@ public class Report extends Nodes {
                         fieldName = (String) f.get(o);
 
                         // Type is already there
-                        if (StructrNode.TYPE_KEY.equals(fieldName)) {
+                        if (AbstractNode.TYPE_KEY.equals(fieldName)) {
                             continue;
                         }
 

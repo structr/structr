@@ -14,7 +14,7 @@ import org.apache.click.util.*;
 //import org.structr.core.ClasspathEntityLocator;
 import org.structr.core.Services;
 import org.structr.core.entity.EmptyNode;
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.module.GetEntitiesCommand;
 
 /**
@@ -73,7 +73,7 @@ public class CreateNode extends Nodes {
             }
         };
 
-        //ActionLink createNodeLink = new ActionLink("createNodeLink", "Create StructrNode", this, "onCreateNodeClick");
+        //ActionLink createNodeLink = new ActionLink("createNodeLink", "Create AbstractNode", this, "onCreateNodeClick");
         //createNodeLink.setImageSrc(iconCol.getName());
         //AbstractLink[] links = new AbstractLink[] { createNodeLink };
         //iconCol.setDecorator(new LinkDecorator(nodeTable, links, iconCol.getName()));
@@ -156,7 +156,7 @@ public class CreateNode extends Nodes {
             this.implClass = implClass;
         }
         private String key;
-        private Class<StructrNode> implClass;
+        private Class<AbstractNode> implClass;
 
         public String getKey() {
             return key;

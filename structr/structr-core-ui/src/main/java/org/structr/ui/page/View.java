@@ -8,7 +8,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.structr.core.entity.Image;
 import org.structr.core.entity.File;
 import org.structr.core.entity.PlainText;
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -62,7 +62,7 @@ public class View extends StructrPage {
     @Override
     public void onRender() {
 
-        StructrNode s = getNodeByIdOrPath(getNodeId());
+        AbstractNode s = getNodeByIdOrPath(getNodeId());
 
         if (s == null) {
 
@@ -107,7 +107,7 @@ public class View extends StructrPage {
             String contentType = s.getContentType();
             String editUrl = null;
             if (editNodeId != null) {
-                StructrNode editNode = getNodeByIdOrPath(editNodeId);
+                AbstractNode editNode = getNodeByIdOrPath(editNodeId);
                 editUrl = getContext().getRequest().getContextPath().concat(getContext().getPagePath(getEditPageClass(editNode))).concat("?").concat(NODE_ID_KEY).concat("=").concat(editNodeId.toString()).concat("&").concat(RENDER_MODE_KEY).concat("=").concat(INLINE_MODE);
             }
 

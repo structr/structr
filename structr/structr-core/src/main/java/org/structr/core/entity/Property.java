@@ -73,8 +73,8 @@ public class Property {
         Object ret = null;
 
         if (dbNode.hasProperty(key)) {
-            if (key.equals(StructrNode.CREATED_DATE_KEY) ||
-                    key.equals(StructrNode.LAST_MODIFIED_DATE_KEY)) {
+            if (key.equals(AbstractNode.CREATED_DATE_KEY) ||
+                    key.equals(AbstractNode.LAST_MODIFIED_DATE_KEY)) {
 
                 ret = new Date((Long) dbNode.getProperty(key));
 
@@ -97,8 +97,8 @@ public class Property {
             @Override
             public Object execute() throws Throwable {
 
-                if (key.equals(StructrNode.CREATED_DATE_KEY) ||
-                    key.equals(StructrNode.LAST_MODIFIED_DATE_KEY)) {
+                if (key.equals(AbstractNode.CREATED_DATE_KEY) ||
+                    key.equals(AbstractNode.LAST_MODIFIED_DATE_KEY)) {
 
                     Date d = (Date) value;
 

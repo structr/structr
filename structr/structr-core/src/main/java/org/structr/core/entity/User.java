@@ -29,7 +29,7 @@ public class User extends Person {
      * 
      * @return
      */
-    public StructrNode getRootNode() {
+    public AbstractNode getRootNode() {
         List<StructrRelationship> outRels = getRelationships(RelType.ROOT_NODE, Direction.OUTGOING);
         if (outRels != null) for (StructrRelationship r : outRels) {
             return r.getEndNode();

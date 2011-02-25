@@ -12,12 +12,12 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.core.entity.StructrRelationship;
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 
 /**
  * Returns a List of Relationships for the given node.
  * 
- * @param one or more StructrNode instances to collect the properties from.
+ * @param one or more AbstractNode instances to collect the properties from.
  * @return a list of relationships for the given nodes
  *
  * @author amorgner
@@ -25,7 +25,7 @@ import org.structr.core.entity.StructrNode;
 public class NodeRelationshipsCommand extends NodeServiceCommand {
 
     /**
-     * First argument is the StructrNode to get relationships for.
+     * First argument is the AbstractNode to get relationships for.
      * Second argument is relationship type {@see RelationshipType} (can be null)
      * Third argument is direction {@see Direction}
      *
@@ -46,7 +46,7 @@ public class NodeRelationshipsCommand extends NodeServiceCommand {
             Object arg1 = parameters[1];
             Object arg2 = parameters[2];
 
-            StructrNode sNode = (StructrNode) arg0;
+            AbstractNode sNode = (AbstractNode) arg0;
             RelationshipType relType = (RelationshipType) arg1;
             Direction dir = (Direction) arg2;
 

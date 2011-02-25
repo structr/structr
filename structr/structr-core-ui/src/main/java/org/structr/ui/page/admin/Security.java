@@ -19,7 +19,7 @@ import org.apache.click.extras.control.PickList;
 import org.apache.click.util.Bindable;
 import org.structr.core.Command;
 import org.structr.core.Services;
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.StructrRelationship;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
@@ -74,8 +74,8 @@ public class Security extends Nodes {
 
                 List<Option> optionList = new ArrayList<Option>();
 
-                List<StructrNode> principals =  node.getSecurityPrincipals();
-                for (StructrNode p : principals) {
+                List<AbstractNode> principals =  node.getSecurityPrincipals();
+                for (AbstractNode p : principals) {
                     Option o = new Option(p.getName());
                     optionList.add(o);
                 }
@@ -121,7 +121,7 @@ public class Security extends Nodes {
 
             @Override
             public Object execute() throws Throwable {
-                StructrNode s = getNodeByIdOrPath(getNodeId());
+                AbstractNode s = getNodeByIdOrPath(getNodeId());
 
                 if (securityForm.isValid()) {
                     securityForm.copyTo(s);

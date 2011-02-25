@@ -32,7 +32,7 @@ import org.structr.core.Predicate;
 import org.structr.core.Services;
 import org.structr.core.SingletonService;
 import org.structr.core.agent.Agent;
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -569,7 +569,7 @@ public class ModuleService implements SingletonService {
                 // instantiate class..
                 Class clazz = Class.forName(className);
 
-                if (StructrNode.class.isAssignableFrom(clazz)) {
+                if (AbstractNode.class.isAssignableFrom(clazz)) {
                     String simpleName = clazz.getSimpleName();
                     String fullName = clazz.getName();
 
@@ -660,7 +660,7 @@ public class ModuleService implements SingletonService {
                 String simpleName = clazz.getSimpleName();
                 String fullName = clazz.getName();
                 
-                if (StructrNode.class.isAssignableFrom(clazz)) {
+                if (AbstractNode.class.isAssignableFrom(clazz)) {
 
                     entityClassCache.remove(simpleName);
                     entityPackages.remove(fullName.substring(0, fullName.lastIndexOf(".")));

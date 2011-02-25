@@ -10,7 +10,7 @@ import org.apache.click.control.TextField;
 import org.apache.click.extras.control.EmailField;
 import org.apache.click.extras.control.TelephoneField;
 import org.structr.core.entity.Person;
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 
 /**
  *
@@ -56,7 +56,7 @@ public class EditPerson extends DefaultEdit {
 
         // make the name field read only,
         // value is settable via getFirstName/getLastName methods only
-        Field nameField = editPropertiesForm.getField(StructrNode.NAME_KEY);
+        Field nameField = editPropertiesForm.getField(AbstractNode.NAME_KEY);
         nameField.setReadonly(true);
     }
 }

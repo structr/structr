@@ -10,7 +10,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 
 /**
  *
@@ -33,12 +33,12 @@ public class NodeFactoryCommand extends NodeServiceCommand {
                 if (parameters.length > 1) {
 
                     // create multiple nodes and return a Collection of it
-                    Collection<StructrNode> collection = new LinkedList<StructrNode>();
+                    Collection<AbstractNode> collection = new LinkedList<AbstractNode>();
 
                     for (Object o : parameters) {
                         Node node = null;
-                        if (o instanceof StructrNode) {
-                            node = graphDb.getNodeById(((StructrNode) o).getId());
+                        if (o instanceof AbstractNode) {
+                            node = graphDb.getNodeById(((AbstractNode) o).getId());
                         } else if (o instanceof Node) {
                             node = (Node) o;
                         } else {
@@ -54,8 +54,8 @@ public class NodeFactoryCommand extends NodeServiceCommand {
 
                     // create a single node and return it
                     Node node = null;
-                    if (parameters[0] instanceof StructrNode) {
-                        node = graphDb.getNodeById(((StructrNode) parameters[0]).getId());
+                    if (parameters[0] instanceof AbstractNode) {
+                        node = graphDb.getNodeById(((AbstractNode) parameters[0]).getId());
                     } else if (parameters[0] instanceof Node) {
                         node = (Node) parameters[0];
                     } else {

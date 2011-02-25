@@ -7,26 +7,26 @@ package org.structr.core.entity.web;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.User;
 
 /**
  *
  * @author axel
  */
-public class WebNode extends StructrNode {
+public class WebNode extends AbstractNode {
 
     private final static String ICON_SRC = "/images/folder.png";
-    private static final Logger logger = Logger.getLogger(StructrNode.class.getName());
+    private static final Logger logger = Logger.getLogger(AbstractNode.class.getName());
 
     /**
      * Traverse over all child nodes to find a home page
      */
     public HomePage getHomePage(final User user) {
 
-        List<StructrNode> childNodes = getAllChildren(HomePage.class.getSimpleName(), user);
+        List<AbstractNode> childNodes = getAllChildren(HomePage.class.getSimpleName(), user);
 
-        for (StructrNode node : childNodes) {
+        for (AbstractNode node : childNodes) {
 
             if (node instanceof HomePage) {
                 return ((HomePage) node);
@@ -42,7 +42,7 @@ public class WebNode extends StructrNode {
      * Render a node-specific view as html
      */
     @Override
-    public void renderView(StringBuilder out, final StructrNode startNode,
+    public void renderView(StringBuilder out, final AbstractNode startNode,
             final String editUrl, final Long editNodeId, final User user) {
 
         if (editNodeId != null && getId() == editNodeId.longValue()) {

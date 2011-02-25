@@ -14,7 +14,7 @@ import javax.servlet.http.HttpSession;
 import org.structr.common.RelType;
 import org.structr.core.Command;
 import org.structr.core.Services;
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.User;
 import org.structr.core.entity.log.Activity;
 import org.structr.core.entity.log.LogNodeList;
@@ -133,7 +133,7 @@ public class SessionMonitor {
 
             LogNodeList<Activity> activityList;
             // First, try to find user's activity list
-            for (StructrNode s : user.getDirectChildNodes(user)) {
+            for (AbstractNode s : user.getDirectChildNodes(user)) {
                 if (s instanceof LogNodeList) {
 
                     // Take the first LogNodeList
@@ -147,8 +147,8 @@ public class SessionMonitor {
             Command createRel = Services.command(CreateRelationshipCommand.class);
 
             activityList = (LogNodeList<Activity>) createNode.execute(user,
-                    new NodeAttribute(StructrNode.TYPE_KEY, LogNodeList.class.getSimpleName()),
-                    new NodeAttribute(StructrNode.NAME_KEY, user.getName() + "'s Activity Log"));
+                    new NodeAttribute(AbstractNode.TYPE_KEY, LogNodeList.class.getSimpleName()),
+                    new NodeAttribute(AbstractNode.NAME_KEY, user.getName() + "'s Activity Log"));
 //            activityList = new LogNodeList<Activity>();
 //            activityList.init(s);
 
@@ -261,10 +261,10 @@ public class SessionMonitor {
 
         // Create a "dirty" activity node
         Activity activity = new Activity();
-        activity.setProperty(StructrNode.TYPE_KEY, Activity.class.getSimpleName());
+        activity.setProperty(AbstractNode.TYPE_KEY, Activity.class.getSimpleName());
 
         if (user != null) {
-            activity.setProperty(StructrNode.NAME_KEY, "User: " + user.getName() + ", Action: " + action + ", Date: " + now);
+            activity.setProperty(AbstractNode.NAME_KEY, "User: " + user.getName() + ", Action: " + action + ", Date: " + now);
         }
         
         activity.setProperty(Activity.SESSION_ID_KEY, sessionId);
@@ -289,8 +289,8 @@ public class SessionMonitor {
 
         // Create a "dirty" page request node
         PageRequest pageRequest = new PageRequest();
-        pageRequest.setProperty(StructrNode.TYPE_KEY, PageRequest.class.getSimpleName());
-        pageRequest.setProperty(StructrNode.NAME_KEY, "Action: " + action + ", Date: " + now);
+        pageRequest.setProperty(AbstractNode.TYPE_KEY, PageRequest.class.getSimpleName());
+        pageRequest.setProperty(AbstractNode.NAME_KEY, "Action: " + action + ", Date: " + now);
 
         if (request != null) {
             pageRequest.setProperty(PageRequest.URI_KEY, request.getRequestURI());

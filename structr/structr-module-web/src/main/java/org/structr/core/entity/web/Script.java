@@ -7,7 +7,7 @@ import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
 import org.apache.commons.io.IOUtils;
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.User;
 //import org.structr.common.xpath.JXPathFinder;
 
@@ -16,7 +16,7 @@ import org.structr.core.entity.User;
  * @author cmorgner
  * 
  */
-public class Script extends StructrNode {
+public class Script extends AbstractNode {
 
     private final static String ICON_SRC = "/images/script.png";
 
@@ -54,7 +54,7 @@ public class Script extends StructrNode {
     }
 
     @Override
-    public void renderView(StringBuilder out, final StructrNode startNode,
+    public void renderView(StringBuilder out, final AbstractNode startNode,
             final String editUrl, final Long editNodeId, final User user) {
 
         if (editNodeId != null && getId() == editNodeId.longValue()) {
@@ -72,7 +72,7 @@ public class Script extends StructrNode {
      * @param out
      */
     @Override
-    public void renderDirect(OutputStream out, final StructrNode startNode,
+    public void renderDirect(OutputStream out, final AbstractNode startNode,
             final String editUrl, final Long editNodeId, final User user) {
 
         if (isVisible()) {

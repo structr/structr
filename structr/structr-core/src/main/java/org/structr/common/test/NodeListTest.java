@@ -18,7 +18,7 @@ import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.NodeList;
 import org.structr.core.entity.PlainText;
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.GraphDatabaseCommand;
 import org.structr.core.node.NodeFactoryCommand;
 import org.structr.core.node.StructrTransaction;
@@ -36,11 +36,11 @@ public class NodeListTest
 
 		final GraphDatabaseService graphDb = (GraphDatabaseService)Services.command(GraphDatabaseCommand.class).execute();
 		final Command factory = Services.command(NodeFactoryCommand.class);
-		NodeList<StructrNode> nodeList = null;
+		NodeList<AbstractNode> nodeList = null;
 
 		for(Node node : graphDb.getAllNodes())
 		{
-			StructrNode n = (StructrNode)factory.execute(node);
+			AbstractNode n = (AbstractNode)factory.execute(node);
 
 			if(n instanceof NodeList)
 			{
@@ -57,7 +57,7 @@ public class NodeListTest
 				public Object execute() throws Throwable
 				{
 					Node node = graphDb.createNode();
-					node.setProperty(StructrNode.TYPE_KEY, "NodeList");
+					node.setProperty(AbstractNode.TYPE_KEY, "NodeList");
 					graphDb.getReferenceNode().createRelationshipTo(node, RelType.HAS_CHILD);
 
 					return(factory.execute(node));
@@ -75,7 +75,7 @@ public class NodeListTest
 				{
 					System.out.println("#######################");
 					System.out.println("list size: " + nodeList.size());
-					for(StructrNode node : nodeList)
+					for(AbstractNode node : nodeList)
 					{
 						System.out.println(node.getId() + ": " + node);
 
@@ -102,7 +102,7 @@ public class NodeListTest
 					} else
 					if(line.startsWith("addall"))
 					{
-						final List<StructrNode> nodes = new LinkedList<StructrNode>();
+						final List<AbstractNode> nodes = new LinkedList<AbstractNode>();
 
 						int count = -1;
 						try { count = Integer.parseInt(line.substring(line.indexOf(" ") + 1)); } catch(Throwable t) {}
@@ -117,9 +117,9 @@ public class NodeListTest
 							{
 								for(int i=0; i<finalCount; i++)
 								{
-									StructrNode node = new PlainText();
+									AbstractNode node = new PlainText();
 									node.init(graphDb.createNode());
-									node.setProperty(StructrNode.TYPE_KEY, "PlainText");
+									node.setProperty(AbstractNode.TYPE_KEY, "PlainText");
 									nodes.add(node);
 								}
 
@@ -134,7 +134,7 @@ public class NodeListTest
 					} else
 					if(line.startsWith("add"))
 					{
-						final StructrNode node = new PlainText();
+						final AbstractNode node = new PlainText();
 
 						Services.command(TransactionCommand.class).execute(new StructrTransaction()
 						{
@@ -142,7 +142,7 @@ public class NodeListTest
 							public Object execute() throws Throwable
 							{
 								node.init(graphDb.createNode());
-								node.setProperty(StructrNode.TYPE_KEY, "PlainText");
+								node.setProperty(AbstractNode.TYPE_KEY, "PlainText");
 
 								return(null);
 							}

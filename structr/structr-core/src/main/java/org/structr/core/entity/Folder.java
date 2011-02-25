@@ -5,7 +5,7 @@ package org.structr.core.entity;
  * @author amorgner
  * 
  */
-public class Folder extends StructrNode {
+public class Folder extends AbstractNode {
 
     private final static String ICON_SRC = "/images/folder.png";
 

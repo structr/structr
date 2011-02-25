@@ -11,7 +11,7 @@ import org.apache.commons.jxpath.ri.model.NodePointer;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.structr.common.RelType;
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 
 /**
  *
@@ -67,9 +67,9 @@ public class Neo4jNodePointer extends NodePointer {
 
     @Override
     public QName getName() {
-        if (node.hasProperty(StructrNode.TYPE_KEY)) {
+        if (node.hasProperty(AbstractNode.TYPE_KEY)) {
 
-            String name = (String) node.getProperty(StructrNode.TYPE_KEY);
+            String name = (String) node.getProperty(AbstractNode.TYPE_KEY);
 
             // do some encoding
 //            name = XPathEncoder.encode(name);

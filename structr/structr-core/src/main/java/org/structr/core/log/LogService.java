@@ -15,7 +15,7 @@ import org.structr.common.RelType;
 import org.structr.core.Command;
 import org.structr.core.RunnableService;
 import org.structr.core.Services;
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.StructrRelationship;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
@@ -129,7 +129,7 @@ public class LogService extends Thread implements RunnableService {
 
         if (ret == null) {
             // First, try to find user's activity list
-            for (StructrNode s : user.getDirectChildNodes(user)) {
+            for (AbstractNode s : user.getDirectChildNodes(user)) {
                 if (s instanceof LogNodeList) {
 
                     // Take the first LogNodeList
@@ -153,8 +153,8 @@ public class LogService extends Thread implements RunnableService {
                     Command createRel = Services.command(CreateRelationshipCommand.class);
 
                     LogNodeList<Activity> newLogNodeList = (LogNodeList<Activity>) createNode.execute(user,
-                            new NodeAttribute(StructrNode.TYPE_KEY, LogNodeList.class.getSimpleName()),
-                            new NodeAttribute(StructrNode.NAME_KEY, user.getName() + "'s Activity Log"));
+                            new NodeAttribute(AbstractNode.TYPE_KEY, LogNodeList.class.getSimpleName()),
+                            new NodeAttribute(AbstractNode.NAME_KEY, user.getName() + "'s Activity Log"));
 
 //                    newLogNodeList = new LogNodeList<Activity>();
 //                    newLogNodeList.init(s);
@@ -183,7 +183,7 @@ public class LogService extends Thread implements RunnableService {
                     LogNodeList ret = null;
 
                     if (graphDb != null) {
-                        StructrNode rootNode = (StructrNode) factory.execute(graphDb.getReferenceNode());
+                        AbstractNode rootNode = (AbstractNode) factory.execute(graphDb.getReferenceNode());
                         if (rootNode != null) {
                             for (StructrRelationship rel : rootNode.getOutgoingChildRelationships()) {
                                 if (rel.getEndNode() instanceof LogNodeList) {
@@ -197,8 +197,8 @@ public class LogService extends Thread implements RunnableService {
                         Command createRel = Services.command(CreateRelationshipCommand.class);
 
                         ret = (LogNodeList<Activity>) createNode.execute(
-                                new NodeAttribute(StructrNode.TYPE_KEY, LogNodeList.class.getSimpleName()),
-                                new NodeAttribute(StructrNode.NAME_KEY, "Global Activity Log"));
+                                new NodeAttribute(AbstractNode.TYPE_KEY, LogNodeList.class.getSimpleName()),
+                                new NodeAttribute(AbstractNode.NAME_KEY, "Global Activity Log"));
 
 //                        ret = new LogNodeList<Activity>();
 //                        ret.init(s);

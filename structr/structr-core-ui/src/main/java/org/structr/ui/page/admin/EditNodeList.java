@@ -14,7 +14,7 @@ import org.apache.click.control.Panel;
 import org.apache.click.control.Table;
 import org.apache.click.dataprovider.DataProvider;
 import org.structr.core.entity.NodeList;
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 
 /**
  *
@@ -24,7 +24,7 @@ public class EditNodeList extends DefaultEdit {
 
     private static final Logger logger = Logger.getLogger(EditNodeList.class.getName());
 
-    protected NodeList<StructrNode> nodeList;
+    protected NodeList<AbstractNode> nodeList;
 
     public EditNodeList() {
 
@@ -32,7 +32,7 @@ public class EditNodeList extends DefaultEdit {
         childNodesTable.setShowBanner(true);
         childNodesTable.setPageSize(DEFAULT_PAGESIZE);
         childNodesTable.setClass(Table.CLASS_SIMPLE);
-        childNodesTable.setSortedColumn(StructrNode.NODE_ID_KEY);
+        childNodesTable.setSortedColumn(AbstractNode.NODE_ID_KEY);
         childNodesTable.setHoverRows(true);
         addControl(childNodesTable);
         
@@ -47,11 +47,11 @@ public class EditNodeList extends DefaultEdit {
 
         if (node != null) {
 
-            childNodesTable.getControlLink().setParameter(StructrNode.NODE_ID_KEY, getNodeId());
+            childNodesTable.getControlLink().setParameter(AbstractNode.NODE_ID_KEY, getNodeId());
             
-            nodeList = (NodeList<StructrNode>) node;
+            nodeList = (NodeList<AbstractNode>) node;
 
-            StructrNode firstNode = nodeList.getFirstNode();
+            AbstractNode firstNode = nodeList.getFirstNode();
             Field[] fields = firstNode.getClass().getFields();
             for (Field f : fields) {
                 String fieldName;
@@ -73,11 +73,11 @@ public class EditNodeList extends DefaultEdit {
 
         childNodesTable.setDataProvider(new DataProvider() {
             @Override
-            public List<StructrNode> getData() {
+            public List<AbstractNode> getData() {
 
                 // Make a copy of the node list to make sort work
-                List<StructrNode> result = new LinkedList<StructrNode>();
-                for (StructrNode n : nodeList) {
+                List<AbstractNode> result = new LinkedList<AbstractNode>();
+                for (AbstractNode n : nodeList) {
                     result.add(n);
                 }
                 return result;

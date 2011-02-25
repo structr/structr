@@ -23,7 +23,7 @@ import org.neo4j.graphdb.traversal.Traverser;
 import org.neo4j.helpers.Predicate;
 import org.neo4j.kernel.Traversal;
 import org.structr.common.RelType;
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 
 /**
  * FIXME: this does not work right now, they are changing the API ever so often....
@@ -94,11 +94,11 @@ public class Neo4jNodeIterator implements NodeIterator {
 //            final String shortName = name.getName();
 //            final boolean isWildcard = nameTest.isWildcard();
 //
-//            if (node.hasProperty(StructrNode.TYPE_KEY)
+//            if (node.hasProperty(AbstractNode.TYPE_KEY)
 //                            && (isWildcard
 //                            || shortName.equals(
-//                            //                            XPathEncoder.encode((String) node.getProperty(StructrNode.TYPE_KEY)))));
-//                            (String) node.getProperty(StructrNode.TYPE_KEY)))) {
+//                            //                            XPathEncoder.encode((String) node.getProperty(AbstractNode.TYPE_KEY)))));
+//                            (String) node.getProperty(AbstractNode.TYPE_KEY)))) {
 //
 //                nodes = new Node[1];
 //                nodes[0] = node;
@@ -130,7 +130,7 @@ public class Neo4jNodeIterator implements NodeIterator {
 
             try {
             Traverser traverser = descr.traverse(node);
-//            List<StructrNode> nodeList = new LinkedList<StructrNode>();
+//            List<AbstractNode> nodeList = new LinkedList<AbstractNode>();
                 // use a set to avoid duplicate entries
                 Set<Node> nodeSet = new HashSet<Node>();
 
@@ -249,11 +249,11 @@ public class Neo4jNodeIterator implements NodeIterator {
                 public boolean accept(Path path) {
                     Node node = path.endNode();
 
-                    return (node.hasProperty(StructrNode.TYPE_KEY)
+                    return (node.hasProperty(AbstractNode.TYPE_KEY)
                             && (isWildcard
                             || shortName.equals(
-                            //                            XPathEncoder.encode((String) node.getProperty(StructrNode.TYPE_KEY)))));
-                            (String) node.getProperty(StructrNode.TYPE_KEY))));
+                            //                            XPathEncoder.encode((String) node.getProperty(AbstractNode.TYPE_KEY)))));
+                            (String) node.getProperty(AbstractNode.TYPE_KEY))));
                 }
             };
         }

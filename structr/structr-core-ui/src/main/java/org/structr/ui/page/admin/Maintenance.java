@@ -39,7 +39,7 @@ import org.structr.core.agent.ProcessTaskCommand;
 import org.structr.core.agent.RebuildIndexTask;
 import org.structr.core.agent.UpdateImageMetadataTask;
 import org.structr.core.entity.Image;
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.StructrRelationship;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
@@ -109,7 +109,7 @@ public class Maintenance extends Admin {
     protected ActionLink reloadModules = new ActionLink("reloadModules", "Reload modules", this, "onReloadModules");
     @Bindable
     protected Panel maintenancePanel;
-    private List<StructrNode> allNodes;
+    private List<AbstractNode> allNodes;
     protected Map<String, Long> nodesHistogram = new HashMap<String, Long>();
 //    @Bindable
 //    protected FieldSet statsFields = new FieldSet("statsFields", "Statistics");
@@ -235,14 +235,14 @@ public class Maintenance extends Admin {
         registeredClassesTable.setShowBanner(true);
         registeredClassesTable.setClass(Table.CLASS_COMPLEX);
 
-        allNodesTable.addColumn(new Column(StructrNode.NODE_ID_KEY));
-        allNodesTable.addColumn(new Column(StructrNode.NAME_KEY));
-        allNodesTable.addColumn(new Column(StructrNode.TYPE_KEY));
-        allNodesTable.addColumn(new Column(StructrNode.POSITION_KEY));
-        allNodesTable.addColumn(new Column(StructrNode.PUBLIC_KEY));
-        allNodesTable.addColumn(new Column(StructrNode.OWNER_KEY));
-        allNodesTable.addColumn(new Column(StructrNode.CREATED_BY_KEY));
-        allNodesTable.addColumn(new Column(StructrNode.CREATED_DATE_KEY));
+        allNodesTable.addColumn(new Column(AbstractNode.NODE_ID_KEY));
+        allNodesTable.addColumn(new Column(AbstractNode.NAME_KEY));
+        allNodesTable.addColumn(new Column(AbstractNode.TYPE_KEY));
+        allNodesTable.addColumn(new Column(AbstractNode.POSITION_KEY));
+        allNodesTable.addColumn(new Column(AbstractNode.PUBLIC_KEY));
+        allNodesTable.addColumn(new Column(AbstractNode.OWNER_KEY));
+        allNodesTable.addColumn(new Column(AbstractNode.CREATED_BY_KEY));
+        allNodesTable.addColumn(new Column(AbstractNode.CREATED_DATE_KEY));
         allNodesTable.addColumn(new Column("allProperties"));
         allNodesTable.setSortable(true);
         allNodesTable.setPageSize(15);
@@ -261,7 +261,7 @@ public class Maintenance extends Admin {
     @Override
     public void onRender() {
 
-        rootNodeLink.setParameter(StructrNode.NODE_ID_KEY, "0");
+        rootNodeLink.setParameter(AbstractNode.NODE_ID_KEY, "0");
 
         if (allNodes == null) {
             return;
@@ -275,11 +275,11 @@ public class Maintenance extends Admin {
 
                 List<Activity> result = new ArrayList<Activity>();
 
-                LogNodeList<StructrNode> globalLog = (LogNodeList<StructrNode>) Services.command(GetGlobalLogCommand.class).execute();
+                LogNodeList<AbstractNode> globalLog = (LogNodeList<AbstractNode>) Services.command(GetGlobalLogCommand.class).execute();
 
                 if (globalLog != null) {
 
-                    for (StructrNode s : globalLog) {
+                    for (AbstractNode s : globalLog) {
 
                         if (s instanceof PageRequest) {
 //                            PageRequest p = new PageRequest();
@@ -361,7 +361,7 @@ public class Maintenance extends Admin {
                 //params.add(new HashMap.Entry<String, Object>("Number of Nodes", numberOfNodes));
 //                Command findNode = Services.command(FindNodeCommand.class);
 
-                for (StructrNode s : allNodes) {
+                for (AbstractNode s : allNodes) {
 
                     String type = s.getType();
                     long value = 0L;
@@ -418,9 +418,9 @@ public class Maintenance extends Admin {
 //                for (String type : types) {
 //                    Class c = Services.getEntityClass(type);
 //                    String name = c.getName();
-//                    StructrNode s;
+//                    AbstractNode s;
 //                    try {
-//                        s = (StructrNode) c.newInstance();
+//                        s = (AbstractNode) c.newInstance();
 //                        String iconSrc = s.getIconSrc();
 //                        String shortName = c.getSimpleName();
 //                        nodeClassList.add(new NodeClassEntry(name, iconSrc, nodesHistogram.get(shortName)));
@@ -439,7 +439,7 @@ public class Maintenance extends Admin {
         allNodesTable.setDataProvider(new DataProvider() {
 
             @Override
-            public List<StructrNode> getData() {
+            public List<AbstractNode> getData() {
 
                 return getAllNodes();
 
@@ -510,7 +510,7 @@ public class Maintenance extends Admin {
 
     private void initHistogram() {
 
-        for (StructrNode s : getAllNodes()) {
+        for (AbstractNode s : getAllNodes()) {
 
             String type = s.getType();
             long value = 0L;
@@ -560,11 +560,11 @@ public class Maintenance extends Admin {
 
                 // create a new user node
                 User adminUser = (User) createNode.execute(
-                        new NodeAttribute(StructrNode.TYPE_KEY, User.class.getSimpleName()),
-                        new NodeAttribute(StructrNode.NAME_KEY, "admin"),
+                        new NodeAttribute(AbstractNode.TYPE_KEY, User.class.getSimpleName()),
+                        new NodeAttribute(AbstractNode.NAME_KEY, "admin"),
                         new SuperUser());
 
-                StructrNode rootNode = getRootNode();
+                AbstractNode rootNode = getRootNode();
 
                 // link new admin node to contact root node
                 createRel.execute(rootNode, adminUser, RelType.HAS_CHILD);
@@ -588,9 +588,9 @@ public class Maintenance extends Admin {
 
     }
 
-    private List<StructrNode> getAllNodes() {
+    private List<AbstractNode> getAllNodes() {
         if (allNodes == null) {
-            allNodes = (List<StructrNode>) Services.command(GetAllNodes.class).execute();
+            allNodes = (List<AbstractNode>) Services.command(GetAllNodes.class).execute();
         }
         return allNodes;
     }
@@ -613,7 +613,7 @@ public class Maintenance extends Admin {
                 //List<Image> images = (List<Image>) Services.command(SearchNodeCommand.class).execute(null, null, true, false, Search.andExactType(Image.class.getSimpleName()));
                 List<Image> images = new LinkedList<Image>();
 
-                for (StructrNode s : getAllNodes()) {
+                for (AbstractNode s : getAllNodes()) {
                     if (s instanceof Image) {
                         images.add((Image) s);
                     }
@@ -629,7 +629,7 @@ public class Maintenance extends Admin {
                     List<StructrRelationship> rels = (List<StructrRelationship>) image.getThumbnailRelationships();
                     for (StructrRelationship r : rels) {
 
-                        StructrNode t = r.getEndNode();
+                        AbstractNode t = r.getEndNode();
 
                         // delete relationship
                         deleteRel.execute(r);

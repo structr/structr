@@ -22,7 +22,7 @@ import org.apache.commons.jxpath.ri.JXPathContextReferenceImpl;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.structr.common.NodePositionComparator;
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.User;
 import org.structr.core.node.GraphDatabaseCommand;
 import org.structr.core.node.StructrNodeFactory;
@@ -35,11 +35,11 @@ import org.structr.core.node.XPath;
 public class JXPathFinder {
 
     private GraphDatabaseService db = null;
-    private StructrNode currentNode = null;
+    private AbstractNode currentNode = null;
     private static final Logger logger = Logger.getLogger(JXPathFinder.class.getName());
     private JXPathContext context = null;
 
-    public JXPathFinder(final StructrNode currentNode, final User user) {
+    public JXPathFinder(final AbstractNode currentNode, final User user) {
         this.currentNode = currentNode;
         //this.db = currentNode.getNode().getGraphDatabase();
 
@@ -98,7 +98,7 @@ public class JXPathFinder {
      * @return a list of nodes resulting from xpath, sorted by their position attribute
      * @throws JXPathException
      */
-    public List<StructrNode> findNodes(XPath xpath, StructrNodeFactory nodeFactory) throws JXPathException {
+    public List<AbstractNode> findNodes(XPath xpath, StructrNodeFactory nodeFactory) throws JXPathException {
         return findNodes(xpath, new NodePositionComparator(), nodeFactory);
     }
 
@@ -110,7 +110,7 @@ public class JXPathFinder {
      * @return a list of nodes resulting from xpath, sorted by their position attribute
      * @throws JXPathException
      */
-    public List<StructrNode> findNodes(String path, StructrNodeFactory nodeFactory) throws JXPathException {
+    public List<AbstractNode> findNodes(String path, StructrNodeFactory nodeFactory) throws JXPathException {
         XPath xpath = new XPath();
         // converts a path into an XPath expression
         xpath.setPath(path);
@@ -126,8 +126,8 @@ public class JXPathFinder {
      * @return a list of nodes resulting from xpath, sorted by comparator
      * @throws JXPathException
      */
-    public List<StructrNode> findNodes(XPath xpath, Comparator<StructrNode> comparator, StructrNodeFactory nodeFactory) throws JXPathException {
-        List<StructrNode> ret = null;
+    public List<AbstractNode> findNodes(XPath xpath, Comparator<AbstractNode> comparator, StructrNodeFactory nodeFactory) throws JXPathException {
+        List<AbstractNode> ret = null;
 
         long t0 = System.currentTimeMillis();
         logger.log(Level.FINE, "XPath: {0}, current node: {1}", new Object[]{xpath.getXPath(), currentNode.getName()});
@@ -188,10 +188,10 @@ public class JXPathFinder {
     }
 
     /**
-     * Creates a StructrNode from a Neo4j node.
+     * Creates a AbstractNode from a Neo4j node.
      *
      * @param node the node
-     * @return the StructrNode
+     * @return the AbstractNode
      */
     private Node createStructrNode(Node node) {
         Command nodeFactory = Services.command(NodeFactoryCommand.class);

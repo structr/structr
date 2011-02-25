@@ -6,10 +6,15 @@ package org.structr.common;
 
 import java.text.Normalizer;
 import java.text.Normalizer.Form;
+import java.util.ArrayList;
+import java.util.List;
 import org.apache.commons.lang.StringUtils;
+import org.structr.core.Command;
+import org.structr.core.Services;
 import org.structr.core.entity.PlainText;
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.SearchAttribute;
+import org.structr.core.node.SearchNodeCommand;
 
 /**
  *
@@ -18,32 +23,32 @@ import org.structr.core.node.SearchAttribute;
 public abstract class Search {
 
     public static SearchAttribute orType(final String searchString) {
-        SearchAttribute attr = new SearchAttribute(StructrNode.TYPE_KEY, searchString, SearchOperator.OR);
+        SearchAttribute attr = new SearchAttribute(AbstractNode.TYPE_KEY, searchString, SearchOperator.OR);
         return attr;
     }
 
     public static SearchAttribute andType(final String searchString) {
-        SearchAttribute attr = new SearchAttribute(StructrNode.TYPE_KEY, searchString, SearchOperator.AND);
+        SearchAttribute attr = new SearchAttribute(AbstractNode.TYPE_KEY, searchString, SearchOperator.AND);
         return attr;
     }
 
     public static SearchAttribute orName(final String searchString) {
-        SearchAttribute attr = new SearchAttribute(StructrNode.NAME_KEY, searchString, SearchOperator.OR);
+        SearchAttribute attr = new SearchAttribute(AbstractNode.NAME_KEY, searchString, SearchOperator.OR);
         return attr;
     }
 
     public static SearchAttribute andName(final String searchString) {
-        SearchAttribute attr = new SearchAttribute(StructrNode.NAME_KEY, searchString, SearchOperator.AND);
+        SearchAttribute attr = new SearchAttribute(AbstractNode.NAME_KEY, searchString, SearchOperator.AND);
         return attr;
     }
 
     public static SearchAttribute andTitle(final String searchString) {
-        SearchAttribute attr = new SearchAttribute(StructrNode.TITLE_KEY, searchString, SearchOperator.AND);
+        SearchAttribute attr = new SearchAttribute(AbstractNode.TITLE_KEY, searchString, SearchOperator.AND);
         return attr;
     }
 
     public static SearchAttribute orTitle(final String searchString) {
-        SearchAttribute attr = new SearchAttribute(StructrNode.TITLE_KEY, searchString, SearchOperator.OR);
+        SearchAttribute attr = new SearchAttribute(AbstractNode.TITLE_KEY, searchString, SearchOperator.OR);
         return attr;
     }
 
@@ -58,32 +63,32 @@ public abstract class Search {
     }
 
     public static SearchAttribute orExactType(final String searchString) {
-        SearchAttribute attr = new SearchAttribute(StructrNode.TYPE_KEY, exactMatch(searchString), SearchOperator.OR);
+        SearchAttribute attr = new SearchAttribute(AbstractNode.TYPE_KEY, exactMatch(searchString), SearchOperator.OR);
         return attr;
     }
 
     public static SearchAttribute andExactType(final String searchString) {
-        SearchAttribute attr = new SearchAttribute(StructrNode.TYPE_KEY, exactMatch(searchString), SearchOperator.AND);
+        SearchAttribute attr = new SearchAttribute(AbstractNode.TYPE_KEY, exactMatch(searchString), SearchOperator.AND);
         return attr;
     }
 
     public static SearchAttribute orExactName(final String searchString) {
-        SearchAttribute attr = new SearchAttribute(StructrNode.NAME_KEY, exactMatch(searchString), SearchOperator.OR);
+        SearchAttribute attr = new SearchAttribute(AbstractNode.NAME_KEY, exactMatch(searchString), SearchOperator.OR);
         return attr;
     }
 
     public static SearchAttribute andExactName(final String searchString) {
-        SearchAttribute attr = new SearchAttribute(StructrNode.NAME_KEY, exactMatch(searchString), SearchOperator.AND);
+        SearchAttribute attr = new SearchAttribute(AbstractNode.NAME_KEY, exactMatch(searchString), SearchOperator.AND);
         return attr;
     }
 
     public static SearchAttribute orExactTitle(final String searchString) {
-        SearchAttribute attr = new SearchAttribute(StructrNode.TITLE_KEY, exactMatch(searchString), SearchOperator.OR);
+        SearchAttribute attr = new SearchAttribute(AbstractNode.TITLE_KEY, exactMatch(searchString), SearchOperator.OR);
         return attr;
     }
 
     public static SearchAttribute andExactTitle(final String searchString) {
-        SearchAttribute attr = new SearchAttribute(StructrNode.TITLE_KEY, exactMatch(searchString), SearchOperator.AND);
+        SearchAttribute attr = new SearchAttribute(AbstractNode.TITLE_KEY, exactMatch(searchString), SearchOperator.AND);
         return attr;
     }
 
@@ -98,7 +103,7 @@ public abstract class Search {
     }
 
     public static SearchAttribute andNotHidden() {
-        SearchAttribute attr = new SearchAttribute(StructrNode.HIDDEN_KEY, true, SearchOperator.AND_NOT);
+        SearchAttribute attr = new SearchAttribute(AbstractNode.HIDDEN_KEY, true, SearchOperator.AND_NOT);
         return attr;
     }
 
@@ -133,5 +138,33 @@ public abstract class Search {
         output = StringUtils.replace(output, "(", "");
         output = StringUtils.replace(output, ")", "");
         return output;
+    }
+
+
+    /**
+     * Return a list with all nodes matching the given string
+     *
+     * Internally, the wildcard character '*' will be appended to the string.
+     *
+     * @param string
+     * @return
+     */
+    public static List<String> getNodeNamesLike(final String string) {
+        List<String> names = new ArrayList<String>();
+
+        Command search = Services.command(SearchNodeCommand.class);
+        List<SearchAttribute> searchAttrs = new ArrayList<SearchAttribute>();
+
+        // always add wildcard character '*' for auto completion
+        searchAttrs.add(Search.andName(string + SearchAttribute.WILDCARD));
+        List<AbstractNode> result = (List<AbstractNode>) search.execute(null, null, true, false, searchAttrs);
+
+        if (result != null) {
+            for (AbstractNode n : result) {
+                names.add(n.getName());
+            }
+        }
+
+        return names;
     }
 }

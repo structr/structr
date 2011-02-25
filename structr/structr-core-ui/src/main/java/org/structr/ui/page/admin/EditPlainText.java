@@ -4,7 +4,7 @@
  */
 package org.structr.ui.page.admin;
 
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -114,7 +114,7 @@ public class EditPlainText extends DefaultEdit {
 //
 //            @Override
 //            public Object execute() throws Throwable {
-                StructrNode s = getNodeByIdOrPath(getNodeId());
+                AbstractNode s = getNodeByIdOrPath(getNodeId());
 
                 if (editPropertiesForm.isValid()) {
                     editPropertiesForm.copyFrom(s);
@@ -174,7 +174,7 @@ public class EditPlainText extends DefaultEdit {
 
             @Override
             public Object execute() throws Throwable {
-                StructrNode s = getNodeByIdOrPath(getNodeId());
+                AbstractNode s = getNodeByIdOrPath(getNodeId());
 
                 if (editContentForm.isValid()) {
                     editContentForm.copyTo(s);
@@ -193,7 +193,7 @@ public class EditPlainText extends DefaultEdit {
 //
 //            @Override
 //            public Object execute() throws Throwable {
-//                StructrNode s = getNodeByIdOrPath(getNodeId());
+//                AbstractNode s = getNodeByIdOrPath(getNodeId());
 //
 //                if (editContentForm.isValid()) {
 //                    editContentForm.copyTo(s);

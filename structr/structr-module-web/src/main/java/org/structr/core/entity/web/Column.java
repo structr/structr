@@ -1,7 +1,7 @@
 package org.structr.core.entity.web;
 
 import java.util.*;
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.User;
 
 /**
@@ -27,7 +27,7 @@ public class Column extends HtmlText {
      * @param editNodeId
      */
     @Override
-    public void renderView(StringBuilder out, final StructrNode startNode,
+    public void renderView(StringBuilder out, final AbstractNode startNode,
             final String editUrl, final Long editNodeId, final User user) {
 
         // if this page is requested to be edited, render edit frame
@@ -38,11 +38,11 @@ public class Column extends HtmlText {
             // otherwise, render subnodes in edit mode
         } else {
 
-            List<StructrNode> subnodes = getSortedDirectChildAndLinkNodes(user);
+            List<AbstractNode> subnodes = getSortedDirectChildAndLinkNodes(user);
 
             out.append("<div class=\"column\">");
             // render nodes in correct order
-            for (StructrNode s : subnodes) {
+            for (AbstractNode s : subnodes) {
 
                 out.append("<div class=\"columnItem\">");
 

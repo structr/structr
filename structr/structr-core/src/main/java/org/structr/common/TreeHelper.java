@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang.StringUtils;
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.User;
 
 /**
@@ -19,9 +19,9 @@ public abstract class TreeHelper {
 
     private static final Logger logger = Logger.getLogger(TreeHelper.class.getName());
 
-    public static StructrNode getNodeByPath(final StructrNode startNode,
+    public static AbstractNode getNodeByPath(final AbstractNode startNode,
             final String path, final boolean includeLinks, final User user) {
-        StructrNode currentNode = startNode;
+        AbstractNode currentNode = startNode;
         String[] names = StringUtils.split(path, "/");
         for (String name : names) {
 
@@ -40,15 +40,15 @@ public abstract class TreeHelper {
                 return null;
             }
 
-            List<StructrNode> children = currentNode.getDirectChildNodes(user);
+            List<AbstractNode> children = currentNode.getDirectChildNodes(user);
             if (includeLinks) {
-                List<StructrNode> links = currentNode.getLinkedNodes(user);
+                List<AbstractNode> links = currentNode.getLinkedNodes(user);
                 if (links != null) {
                     children.addAll(links);
                 }
             }
 
-            for (StructrNode child : children) {
+            for (AbstractNode child : children) {
                 if (name.equals(child.getName())) {
                     currentNode = child;
                     foundName = true;
@@ -63,13 +63,13 @@ public abstract class TreeHelper {
         return currentNode;
     }
 
-    public static Iterable<StructrNode> getNodesByPath(final StructrNode startNode,
+    public static Iterable<AbstractNode> getNodesByPath(final AbstractNode startNode,
             final String path, final boolean includeLinks, final User user) {
 
-        StructrNode currentNode = startNode;
+        AbstractNode currentNode = startNode;
         String[] names = StringUtils.split(path, "/");
 
-        List<StructrNode> children = null;
+        List<AbstractNode> children = null;
 
         for (String name : names) {
 
@@ -82,7 +82,7 @@ public abstract class TreeHelper {
             boolean foundName = false;
             children = currentNode.getDirectChildNodes(user);
             if (includeLinks) {
-                List<StructrNode> links = currentNode.getLinkedNodes(user);
+                List<AbstractNode> links = currentNode.getLinkedNodes(user);
                 if (links != null) {
                     children.addAll(links);
                 }
@@ -92,7 +92,7 @@ public abstract class TreeHelper {
                 return children;
             }
 
-            for (StructrNode child : children) {
+            for (AbstractNode child : children) {
                 if (name.equals(child.getName())) {
                     currentNode = child;
                     foundName = true;

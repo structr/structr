@@ -9,7 +9,7 @@ import java.util.Date;
 import java.util.Set;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.User;
 
 /**
@@ -24,7 +24,7 @@ public class UpdateImageMetadataTask implements Task {
     }
 
     @Override
-    public Set<StructrNode> getNodes() {
+    public Set<AbstractNode> getNodes() {
         return Collections.emptySet();
     }
 

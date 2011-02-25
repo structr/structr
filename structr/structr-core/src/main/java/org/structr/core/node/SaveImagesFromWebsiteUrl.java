@@ -18,7 +18,7 @@ import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.UnsupportedArgumentError;
 import org.structr.core.entity.Image;
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.User;
 
 /**
@@ -47,7 +47,7 @@ public class SaveImagesFromWebsiteUrl extends NodeServiceCommand {
 
         User user = null;
         String urlString = null;
-        StructrNode parentNode = null;
+        AbstractNode parentNode = null;
 
         List<Image> result = new LinkedList<Image>();
 
@@ -61,8 +61,8 @@ public class SaveImagesFromWebsiteUrl extends NodeServiceCommand {
                 if (parameters[1] instanceof String) {
                     urlString = (String) parameters[1];
                 }
-                if (parameters[2] instanceof StructrNode) {
-                    parentNode = (StructrNode) parameters[2];
+                if (parameters[2] instanceof AbstractNode) {
+                    parentNode = (AbstractNode) parameters[2];
                 }
                 break;
 
@@ -87,7 +87,7 @@ public class SaveImagesFromWebsiteUrl extends NodeServiceCommand {
      * 
      * @param imageNode
      */
-    private List<Image> saveImagesFromWebsiteUrl(final User user, final String urlString, final StructrNode parentNode) {
+    private List<Image> saveImagesFromWebsiteUrl(final User user, final String urlString, final AbstractNode parentNode) {
 
         Command saveImage = Services.command(SaveImageFromUrl.class);
         List<Image> result = new LinkedList<Image>();

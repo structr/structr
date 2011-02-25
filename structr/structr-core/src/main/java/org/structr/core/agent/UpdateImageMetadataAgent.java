@@ -11,7 +11,7 @@ import java.util.logging.Logger;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.Image;
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.ExtractAndSetImageDimensionsAndFormat;
 import org.structr.core.node.GetAllNodes;
 import org.structr.core.node.StructrTransaction;
@@ -62,8 +62,8 @@ public class UpdateImageMetadataAgent extends Agent {
 
                 List<Image> images = new LinkedList<Image>();
 
-                List<StructrNode> allNodes = (List<StructrNode>) Services.command(GetAllNodes.class).execute();
-                for (StructrNode s : allNodes) {
+                List<AbstractNode> allNodes = (List<AbstractNode>) Services.command(GetAllNodes.class).execute();
+                for (AbstractNode s : allNodes) {
                     if (s instanceof Image) {
                         images.add((Image) s);
                     }

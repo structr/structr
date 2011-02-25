@@ -7,7 +7,7 @@ import java.io.StringWriter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.io.IOUtils;
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.User;
 
 /**
@@ -15,7 +15,7 @@ import org.structr.core.entity.User;
  * @author amorgner
  * 
  */
-public class PlainText extends StructrNode {
+public class PlainText extends AbstractNode {
 
     private final static Logger logger = Logger.getLogger(PlainText.class.getName());
     private final static String ICON_SRC = "/images/page_white_text.png";
@@ -54,7 +54,7 @@ public class PlainText extends StructrNode {
     }
 
     @Override
-    public void renderView(StringBuilder out, final StructrNode startNode,
+    public void renderView(StringBuilder out, final AbstractNode startNode,
             final String editUrl, final Long editNodeId, final User user) {
 
         if (editNodeId != null && getId() == editNodeId.longValue()) {
@@ -127,7 +127,7 @@ public class PlainText extends StructrNode {
      * @param out
      */
     @Override
-    public void renderDirect(OutputStream out, final StructrNode startNode,
+    public void renderDirect(OutputStream out, final AbstractNode startNode,
             final String editUrl, final Long editNodeId, final User user) {
 
         if (isVisible()) {

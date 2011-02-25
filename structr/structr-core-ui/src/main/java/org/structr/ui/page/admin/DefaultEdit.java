@@ -37,8 +37,8 @@ import org.structr.common.RelType;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.Image;
-import org.structr.core.entity.StructrNode;
-import org.structr.core.entity.StructrNode.Title;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractNode.Title;
 import org.structr.core.entity.StructrRelationship;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
@@ -68,7 +68,7 @@ public class DefaultEdit extends Nodes {
     protected FormTable childNodesTable = new FormTable("childNodesTable");
     protected ActionLink deleteRelationshipLink = new ActionLink("Delete Relationship", this, "onDeleteRelationship");
 //    protected ActionLink deleteNodeLink = new ActionLink("Delete", this, "onDeleteNode");
-    protected Table titlesTable = new Table(StructrNode.TITLES_KEY);
+    protected Table titlesTable = new Table(AbstractNode.TITLES_KEY);
     protected FormTable securityTable = new FormTable("Security");
     protected Form securityForm = new Form("securityForm");
     protected Select userSelect = new Select("selectUser", "User");
@@ -99,28 +99,28 @@ public class DefaultEdit extends Nodes {
         nodePropertiesFields.setColumns(3);
 
         // add common fields
-        nodePropertiesFields.add(new TextField(StructrNode.TYPE_KEY, true));
-        nodePropertiesFields.add(new TextField(StructrNode.NAME_KEY, true));
-        nodePropertiesFields.add(new IntegerField(StructrNode.POSITION_KEY));
-//        nodeInfo.add(new TextField(StructrNode.NODE_ID_KEY));
+        nodePropertiesFields.add(new TextField(AbstractNode.TYPE_KEY, true));
+        nodePropertiesFields.add(new TextField(AbstractNode.NAME_KEY, true));
+        nodePropertiesFields.add(new IntegerField(AbstractNode.POSITION_KEY));
+//        nodeInfo.add(new TextField(AbstractNode.NODE_ID_KEY));
 
-        TextField createdBy = new TextField(StructrNode.CREATED_BY_KEY);
+        TextField createdBy = new TextField(AbstractNode.CREATED_BY_KEY);
         createdBy.setReadonly(true);
         nodePropertiesFields.add(createdBy);
 
-        DateField createdDate = new DateField(StructrNode.CREATED_DATE_KEY);
+        DateField createdDate = new DateField(AbstractNode.CREATED_DATE_KEY);
         createdDate.setFormatPattern(dateFormat.toPattern());
         createdDate.setShowTime(true);
         createdDate.setReadonly(true);
         nodePropertiesFields.add(createdDate);
 
-        DateField lastModifiedDate = new DateField(StructrNode.LAST_MODIFIED_DATE_KEY);
+        DateField lastModifiedDate = new DateField(AbstractNode.LAST_MODIFIED_DATE_KEY);
         lastModifiedDate.setFormatPattern(dateFormat.toPattern());
         lastModifiedDate.setShowTime(true);
         lastModifiedDate.setReadonly(true);
         nodePropertiesFields.add(lastModifiedDate);
 
-        titlesTable.addColumn(new Column(StructrNode.TITLE_KEY, "Title"));
+        titlesTable.addColumn(new Column(AbstractNode.TITLE_KEY, "Title"));
         titlesTable.addColumn(new Column(Title.LOCALE_KEY, "Locale"));
         titlesTable.setClass(Table.CLASS_SIMPLE);
         nodePropertiesFields.add(titlesTable);
@@ -131,20 +131,20 @@ public class DefaultEdit extends Nodes {
         FieldSet visibilityFields = new FieldSet("Visibility");
         visibilityFields.setColumns(2);
 
-        DateField visibilityStartDate = new DateField(StructrNode.VISIBILITY_START_DATE_KEY);
+        DateField visibilityStartDate = new DateField(AbstractNode.VISIBILITY_START_DATE_KEY);
         visibilityStartDate.setFormatPattern(dateFormat.toPattern());
         visibilityStartDate.setShowTime(true);
         visibilityFields.add(visibilityStartDate);
 
-        DateField visibilityEndDate = new DateField(StructrNode.VISIBILITY_END_DATE_KEY);
+        DateField visibilityEndDate = new DateField(AbstractNode.VISIBILITY_END_DATE_KEY);
         visibilityEndDate.setFormatPattern(dateFormat.toPattern());
         visibilityEndDate.setShowTime(true);
         visibilityFields.add(visibilityEndDate);
 
-        Checkbox hidden = new Checkbox(StructrNode.HIDDEN_KEY);
+        Checkbox hidden = new Checkbox(AbstractNode.HIDDEN_KEY);
         visibilityFields.add(hidden);
 
-        Checkbox publicCheckbox = new Checkbox(StructrNode.PUBLIC_KEY);
+        Checkbox publicCheckbox = new Checkbox(AbstractNode.PUBLIC_KEY);
         visibilityFields.add(publicCheckbox);
 
         editVisibilityForm.add(visibilityFields);
@@ -184,13 +184,13 @@ public class DefaultEdit extends Nodes {
 
             Column actionColumnNodes = new Column("Actions");
             actionColumnNodes.setTextAlign("center");
-            actionColumnNodes.setDecorator(new LinkDecorator(childNodesTable, new PageLink(), StructrNode.NODE_ID_KEY) {
+            actionColumnNodes.setDecorator(new LinkDecorator(childNodesTable, new PageLink(), AbstractNode.NODE_ID_KEY) {
 
                 @Override
                 protected void renderActionLink(HtmlStringBuffer buffer, AbstractLink link, Context context, Object row, Object value) {
 
-                    StructrNode n = (StructrNode) row;
-                    link = new PageLink(StructrNode.NODE_ID_KEY, getEditPageClass(n)) {
+                    AbstractNode n = (AbstractNode) row;
+                    link = new PageLink(AbstractNode.NODE_ID_KEY, getEditPageClass(n)) {
 
                         @Override
                         public String getHref() {
@@ -206,15 +206,15 @@ public class DefaultEdit extends Nodes {
                 }
             });
 
-            typeColumn = new Column(StructrNode.TYPE_KEY);
+            typeColumn = new Column(AbstractNode.TYPE_KEY);
 
-            iconDec = new LinkDecorator(childNodesTable, new PageLink(), StructrNode.NODE_ID_KEY) {
+            iconDec = new LinkDecorator(childNodesTable, new PageLink(), AbstractNode.NODE_ID_KEY) {
 
                 @Override
                 protected void renderActionLink(HtmlStringBuffer buffer, AbstractLink link, Context context, Object row, Object value) {
 
-                    StructrNode n = (StructrNode) row;
-                    link = new PageLink(StructrNode.NODE_ID_KEY, getEditPageClass(n));
+                    AbstractNode n = (AbstractNode) row;
+                    link = new PageLink(AbstractNode.NODE_ID_KEY, getEditPageClass(n));
                     link.setParameter(NODE_ID_KEY, n.getId());
 
                     boolean hasThumbnail = false;
@@ -243,13 +243,13 @@ public class DefaultEdit extends Nodes {
             typeColumn.setDecorator(iconDec);
             childNodesTable.addColumn(typeColumn);
 
-            nameColumn = new Column(StructrNode.NAME_KEY);
+            nameColumn = new Column(AbstractNode.NAME_KEY);
             nameDec = new LinkDecorator(childNodesTable, viewRelLink, "id") {
 
                 @Override
                 protected void renderActionLink(HtmlStringBuffer buffer, AbstractLink link, Context context, Object row, Object value) {
 
-                    StructrNode n = (StructrNode) row;
+                    AbstractNode n = (AbstractNode) row;
 
                     PageLink pageLink = new PageLink("id", getEditPageClass(n)) {
 
@@ -266,17 +266,17 @@ public class DefaultEdit extends Nodes {
             };
             nameColumn.setDecorator(nameDec);
             childNodesTable.addColumn(nameColumn);
-            childNodesTable.addColumn(new Column(StructrNode.LAST_MODIFIED_DATE_KEY));
-            childNodesTable.addColumn(new Column(StructrNode.OWNER_KEY));
-            childNodesTable.addColumn(new Column(StructrNode.CREATED_BY_KEY));
-            childNodesTable.addColumn(new Column(StructrNode.CREATED_DATE_KEY));
-            childNodesTable.addColumn(new Column(StructrNode.POSITION_KEY));
-            childNodesTable.addColumn(new Column(StructrNode.PUBLIC_KEY));
+            childNodesTable.addColumn(new Column(AbstractNode.LAST_MODIFIED_DATE_KEY));
+            childNodesTable.addColumn(new Column(AbstractNode.OWNER_KEY));
+            childNodesTable.addColumn(new Column(AbstractNode.CREATED_BY_KEY));
+            childNodesTable.addColumn(new Column(AbstractNode.CREATED_DATE_KEY));
+            childNodesTable.addColumn(new Column(AbstractNode.POSITION_KEY));
+            childNodesTable.addColumn(new Column(AbstractNode.PUBLIC_KEY));
             childNodesTable.addColumn(actionColumnNodes);
             childNodesTable.setSortable(true);
             childNodesTable.setShowBanner(true);
             childNodesTable.setPageSize(DEFAULT_PAGESIZE);
-            childNodesTable.getControlLink().setParameter(StructrNode.NODE_ID_KEY, getNodeId());
+            childNodesTable.getControlLink().setParameter(AbstractNode.NODE_ID_KEY, getNodeId());
             childNodesTable.setClass(Table.CLASS_SIMPLE);
             addControl(childNodesTable);
 
@@ -291,7 +291,7 @@ public class DefaultEdit extends Nodes {
 
             deleteRelationshipLink.setImageSrc("/images/delete.png");
             deleteRelationshipLink.setTitle("Delete relationship");
-            deleteRelationshipLink.setAttribute("onclick", "return window.confirm('Please confirm delete', value);");
+            deleteRelationshipLink.setAttribute("onclick", "return window.confirm('Do you really want to delete this relationship?');");
             addControl(deleteRelationshipLink);
 
             Column actionColumnIn = new Column("Action");
@@ -300,7 +300,7 @@ public class DefaultEdit extends Nodes {
             actionColumnIn.setDecorator(new LinkDecorator(incomingRelationshipsTable, linksIn, RELATIONSHIP_ID_KEY));
             actionColumnIn.setSortable(false);
 
-            typeColumn = new Column(StructrNode.TYPE_KEY);
+            typeColumn = new Column(AbstractNode.TYPE_KEY);
             viewRelLink = new PageLink("view", DefaultEdit.class);
 //            viewRelLink = new PageLink("view", DefaultView.class);
             iconDec = new LinkDecorator(incomingRelationshipsTable, viewRelLink, "id") {
@@ -310,7 +310,7 @@ public class DefaultEdit extends Nodes {
 
                     StructrRelationship r = (StructrRelationship) row;
 
-                    StructrNode startNode = r.getStartNode();
+                    AbstractNode startNode = r.getStartNode();
 
 //                    link = new PageLink("id", getViewPageClass(startNode));
                     link = new PageLink("id", getEditPageClass(startNode));
@@ -323,7 +323,7 @@ public class DefaultEdit extends Nodes {
             };
             typeColumn.setDecorator(iconDec);
             incomingRelationshipsTable.addColumn(typeColumn);
-            nameColumn = new Column(StructrNode.NAME_KEY);
+            nameColumn = new Column(AbstractNode.NAME_KEY);
             nameDec = new LinkDecorator(incomingRelationshipsTable, viewRelLink, "id") {
 
                 @Override
@@ -331,7 +331,7 @@ public class DefaultEdit extends Nodes {
 
                     StructrRelationship r = (StructrRelationship) row;
 
-                    StructrNode startNode = r.getStartNode();
+                    AbstractNode startNode = r.getStartNode();
                     PageLink pageLink = new PageLink("id", getEditPageClass(startNode)) {
 
                         @Override
@@ -356,7 +356,7 @@ public class DefaultEdit extends Nodes {
             incomingRelationshipsTable.addColumn(new Column(REL_TYPE_KEY));
             incomingRelationshipsTable.addColumn(actionColumnIn);
             incomingRelationshipsTable.setPageSize(DEFAULT_PAGESIZE);
-            incomingRelationshipsTable.getControlLink().setParameter(StructrNode.NODE_ID_KEY, getNodeId());
+            incomingRelationshipsTable.getControlLink().setParameter(AbstractNode.NODE_ID_KEY, getNodeId());
             incomingRelationshipsTable.setClass(Table.CLASS_SIMPLE);
             addControl(incomingRelationshipsTable);
             // ------------------ incoming relationships end ---------------------
@@ -370,7 +370,7 @@ public class DefaultEdit extends Nodes {
             actionColumnOut.setDecorator(new LinkDecorator(outgoingRelationshipsTable, linksOut, RELATIONSHIP_ID_KEY));
             actionColumnOut.setSortable(false);
 
-            typeColumn = new Column(StructrNode.TYPE_KEY);
+            typeColumn = new Column(AbstractNode.TYPE_KEY);
 
             iconDec = new LinkDecorator(outgoingRelationshipsTable, viewRelLink, "id") {
 
@@ -378,7 +378,7 @@ public class DefaultEdit extends Nodes {
                 protected void renderActionLink(HtmlStringBuffer buffer, AbstractLink link, Context context, Object row, Object value) {
 
                     StructrRelationship r = (StructrRelationship) row;
-                    StructrNode endNode = r.getEndNode();
+                    AbstractNode endNode = r.getEndNode();
                     link = new PageLink("id", getEditPageClass(endNode));
                     link.setParameter(NODE_ID_KEY, endNode.getId());
                     link.setImageSrc(endNode.getIconSrc());
@@ -390,7 +390,7 @@ public class DefaultEdit extends Nodes {
             typeColumn.setDecorator(iconDec);
             outgoingRelationshipsTable.addColumn(typeColumn);
 
-            nameColumn = new Column(StructrNode.NAME_KEY);
+            nameColumn = new Column(AbstractNode.NAME_KEY);
             nameDec = new LinkDecorator(outgoingRelationshipsTable, viewRelLink, "id") {
 
                 @Override
@@ -398,7 +398,7 @@ public class DefaultEdit extends Nodes {
 
                     StructrRelationship r = (StructrRelationship) row;
 
-                    StructrNode endNode = r.getEndNode();
+                    AbstractNode endNode = r.getEndNode();
                     PageLink pageLink = new PageLink("id", getEditPageClass(endNode)) {
 
                         @Override
@@ -422,7 +422,7 @@ public class DefaultEdit extends Nodes {
             outgoingRelationshipsTable.addColumn(new Column(REL_TYPE_KEY));
             outgoingRelationshipsTable.addColumn(actionColumnOut);
             outgoingRelationshipsTable.setPageSize(DEFAULT_PAGESIZE);
-            outgoingRelationshipsTable.getControlLink().setParameter(StructrNode.NODE_ID_KEY, getNodeId());
+            outgoingRelationshipsTable.getControlLink().setParameter(AbstractNode.NODE_ID_KEY, getNodeId());
             outgoingRelationshipsTable.setClass(Table.CLASS_SIMPLE);
             addControl(outgoingRelationshipsTable);
 
@@ -436,7 +436,7 @@ public class DefaultEdit extends Nodes {
 
         if (accessControlAllowed) {
 
-            nameColumn = new Column(StructrNode.NAME_KEY);
+            nameColumn = new Column(AbstractNode.NAME_KEY);
             nameDec = new LinkDecorator(securityTable, viewRelLink, "id") {
 
                 @Override
@@ -444,7 +444,7 @@ public class DefaultEdit extends Nodes {
 
                     StructrRelationship r = (StructrRelationship) row;
 
-                    StructrNode startNode = r.getStartNode();
+                    AbstractNode startNode = r.getStartNode();
                     PageLink pageLink = new PageLink("id", getEditPageClass(startNode)) {
 
                         @Override
@@ -550,9 +550,9 @@ public class DefaultEdit extends Nodes {
             childNodesTable.setDataProvider(new DataProvider() {
 
                 @Override
-                public List<StructrNode> getData() {
+                public List<AbstractNode> getData() {
 
-                    List<StructrNode> result = new ArrayList<StructrNode>();
+                    List<AbstractNode> result = new ArrayList<AbstractNode>();
                     result.addAll(node.getSortedDirectChildAndLinkNodes(user));
                     return result;
                 }
@@ -594,7 +594,7 @@ public class DefaultEdit extends Nodes {
 
                     List<Option> optionList = new ArrayList<Option>();
 
-//                List<StructrNode> principals =  node.getSecurityPrincipals();
+//                List<AbstractNode> principals =  node.getSecurityPrincipals();
                     List<User> users = getAllUsers();
                     if (users != null) {
                         for (User u : users) {
@@ -661,7 +661,7 @@ public class DefaultEdit extends Nodes {
 //        Map<String, String> parameters = new HashMap<String, String>();
 //        parameters.put(OK_MSG_KEY, okMsg);
 //
-//        StructrNode targetNode = node.getParentNode(user);
+//        AbstractNode targetNode = node.getParentNode(user);
 //        if (targetNode == null) {
 //            // if no parent available, keep node
 //            targetNode = node;
@@ -690,7 +690,7 @@ public class DefaultEdit extends Nodes {
 
             @Override
             public Object execute() throws Throwable {
-                StructrNode s = getNodeByIdOrPath(getNodeId());
+                AbstractNode s = getNodeByIdOrPath(getNodeId());
 
                 if (editPropertiesForm.isValid()) {
                     editPropertiesForm.copyTo(s, true);
@@ -781,15 +781,15 @@ public class DefaultEdit extends Nodes {
 
                     if (selectedUser != null) {
 
-                        List<StructrNode> nodes = new ArrayList<StructrNode>();
+                        List<AbstractNode> nodes = new ArrayList<AbstractNode>();
 
 
                         if (rec) {
 
                             Command findNode = Services.command(FindNodeCommand.class);
-                            List<StructrNode> result = (List<StructrNode>) findNode.execute(user, node);
+                            List<AbstractNode> result = (List<AbstractNode>) findNode.execute(user, node);
 
-                            for (StructrNode s : result) {
+                            for (AbstractNode s : result) {
 
                                 // superuser can always change access control
                                 if (user instanceof SuperUser || s.accessControlAllowed(user)) {
@@ -802,7 +802,7 @@ public class DefaultEdit extends Nodes {
                             nodes.add(node);
                         }
 
-                        for (StructrNode n : nodes) {
+                        for (AbstractNode n : nodes) {
 
                             if (n.equals(selectedUser)) {
                                 // don't try to set a relationship with user node itself
@@ -857,7 +857,7 @@ public class DefaultEdit extends Nodes {
 
                 @Override
                 public Object execute() throws Throwable {
-                    StructrNode s = getNodeByIdOrPath(getNodeId());
+                    AbstractNode s = getNodeByIdOrPath(getNodeId());
 
                     if (editVisibilityForm.isValid()) {
                         editVisibilityForm.copyTo(s, true);
@@ -897,14 +897,14 @@ public class DefaultEdit extends Nodes {
                 @Override
                 public Object execute() throws Throwable {
 
-                    StructrNode root = getNodeByIdOrPath(getNodeId());
+                    AbstractNode root = getNodeByIdOrPath(getNodeId());
 
-                    List<StructrNode> childNodes = root.getDirectChildren(RelType.HAS_CHILD, user);
+                    List<AbstractNode> childNodes = root.getDirectChildren(RelType.HAS_CHILD, user);
 
                     // include node itself
                     childNodes.add(root);
 
-                    for (StructrNode s : childNodes) {
+                    for (AbstractNode s : childNodes) {
 
                         if (editVisibilityForm.isValid()) {
                             editVisibilityForm.copyTo(s, true);

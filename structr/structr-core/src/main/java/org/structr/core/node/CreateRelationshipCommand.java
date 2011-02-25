@@ -9,11 +9,11 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.core.UnsupportedArgumentError;
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.StructrRelationship;
 
 /**
- * Creates a relationship between two StructrNode instances. The execute
+ * Creates a relationship between two AbstractNode instances. The execute
  * method of this command takes the following parameters. Note that this command
  * does not run in a transaction.
  * 
@@ -48,10 +48,10 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
             }
 
 
-            if (arg0 instanceof StructrNode && arg1 instanceof StructrNode) {
+            if (arg0 instanceof AbstractNode && arg1 instanceof AbstractNode) {
 
-                StructrNode startNode = (StructrNode) arg0;
-                StructrNode endNode = (StructrNode) arg1;
+                AbstractNode startNode = (AbstractNode) arg0;
+                AbstractNode endNode = (AbstractNode) arg1;
 
                 Node node1 = graphDb.getNodeById(startNode.getId());
                 Node node2 = graphDb.getNodeById(endNode.getId());

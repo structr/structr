@@ -22,7 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.structr.context.SessionMonitor;
 import org.structr.core.Command;
 import org.structr.core.Services;
-import org.structr.core.entity.StructrNode;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
 import org.structr.core.node.FindNodeCommand;
@@ -201,7 +201,7 @@ public class LoginPage extends Admin {
             Command findNode = Services.command(FindNodeCommand.class);
             for (Long s : expandedNodesArray) {
 
-                StructrNode n = (StructrNode) findNode.execute(user, s);
+                AbstractNode n = (AbstractNode) findNode.execute(user, s);
                 if (n != null) {
                     //openNodes.add(new TreeNode(String.valueOf(n.getId())));
                     openNodes.add(new TreeNode(n, String.valueOf(n.getId())));
