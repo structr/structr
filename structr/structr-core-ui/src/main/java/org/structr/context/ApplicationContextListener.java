@@ -58,10 +58,10 @@ public class ApplicationContextListener implements ServletContextListener, HttpS
             logger.log(Level.INFO, "Config file: Files path: {0}", filesPath);
 
             String modulesPath = properties.getProperty(Services.MODULES_PATH_IDENTIFIER);
-            logger.log(Level.INFO, "Config file: Plugins path: {0}", modulesPath);
+            logger.log(Level.INFO, "Config file: Modules path: {0}", modulesPath);
 
             String entityPackages = properties.getProperty(Services.ENTITY_PACKAGES_IDENTIFIER);
-            logger.log(Level.INFO, "Config file: Entity Packages: {0}", entityPackages);
+            logger.log(Level.INFO, "Config file: Entity packages: {0}", entityPackages);
 
             if (appTitle != null) {
                 context.put(Services.APPLICATION_TITLE, appTitle);
@@ -113,10 +113,8 @@ public class ApplicationContextListener implements ServletContextListener, HttpS
             }
         });
 
-
-        // initialize services layzily, just set context parameter
-        //Services.initialize(context);
-        Services.setContext(context);
+        Services.initialize(context);
+        //Services.setContext(context);
     }
 
     @Override
