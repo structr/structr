@@ -43,8 +43,8 @@ import org.structr.core.module.GetEntityClassCommand;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.NodeAttribute;
-import org.structr.core.node.SearchAttribute;
-import org.structr.core.node.SearchNodeCommand;
+import org.structr.core.search.SingleSearchAttribute;
+import org.structr.core.search.SearchNodeCommand;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 
@@ -75,7 +75,7 @@ public class Report extends Nodes {
     protected TextField reportName = new TextField("reportName", "Save Report as (filename): ");
     //protected Submit saveReport = new Submit("saveReport", "Save Report", this, "onSaveReport");
     protected List<AbstractNode> reportResults = new ArrayList<AbstractNode>();
-    protected List<SearchAttribute> searchAttributes = new ArrayList<SearchAttribute>();
+    protected List<SingleSearchAttribute> searchAttributes = new ArrayList<SingleSearchAttribute>();
     protected List<Column> columns = new ArrayList<Column>();
 
     public Report() {
@@ -244,7 +244,7 @@ public class Report extends Nodes {
                 for (Column c : columns) {
                     String fieldName = c.getName();
                     String fieldValue = reportForm.getFieldValue(fieldName);
-                    searchAttributes.add(new SearchAttribute(fieldName, fieldValue, SearchOperator.AND));
+                    searchAttributes.add(new SingleSearchAttribute(fieldName, fieldValue, SearchOperator.AND));
                 }
             } else {
                 columns = new ArrayList<Column>();
@@ -427,7 +427,7 @@ public class Report extends Nodes {
     private void createDynamicFields(final String resultType) {
 
         // Always filter by type
-        searchAttributes.add(new SearchAttribute(AbstractNode.TYPE_KEY, resultType, SearchOperator.AND));
+        searchAttributes.add(new SingleSearchAttribute(AbstractNode.TYPE_KEY, resultType, SearchOperator.AND));
 
         // Get the corresponding entity class
         //Class<AbstractNode> c = Services.getEntityClass(resultType);
@@ -473,7 +473,7 @@ public class Report extends Nodes {
                         String fieldValue = reportForm.getFieldValue(fieldName);
 
                         if (fieldValue != null && !(fieldValue.isEmpty())) {
-                            searchAttributes.add(new SearchAttribute(fieldName, fieldValue, SearchOperator.AND));
+                            searchAttributes.add(new SingleSearchAttribute(fieldName, fieldValue, SearchOperator.AND));
                             //field.setValue(fieldValue);
                         }
 

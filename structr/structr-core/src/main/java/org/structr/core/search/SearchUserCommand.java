@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.structr.core.node;
+package org.structr.core.search;
 
 import java.util.List;
 import org.neo4j.graphdb.Direction;
@@ -15,6 +15,9 @@ import org.structr.common.RelType;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.node.FindNodeCommand;
+import org.structr.core.node.NodeServiceCommand;
+import org.structr.core.node.XPath;
 
 /**
  * Searches for a user node by her/his name in the database and returns the result.

@@ -13,8 +13,9 @@ import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.PlainText;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.node.SearchAttribute;
-import org.structr.core.node.SearchNodeCommand;
+import org.structr.core.search.SearchAttribute;
+import org.structr.core.search.SingleSearchAttribute;
+import org.structr.core.search.SearchNodeCommand;
 
 /**
  *
@@ -23,87 +24,87 @@ import org.structr.core.node.SearchNodeCommand;
 public abstract class Search {
 
     public static SearchAttribute orType(final String searchString) {
-        SearchAttribute attr = new SearchAttribute(AbstractNode.TYPE_KEY, searchString, SearchOperator.OR);
+        SearchAttribute attr = new SingleSearchAttribute(AbstractNode.TYPE_KEY, searchString, SearchOperator.OR);
         return attr;
     }
 
     public static SearchAttribute andType(final String searchString) {
-        SearchAttribute attr = new SearchAttribute(AbstractNode.TYPE_KEY, searchString, SearchOperator.AND);
+        SearchAttribute attr = new SingleSearchAttribute(AbstractNode.TYPE_KEY, searchString, SearchOperator.AND);
         return attr;
     }
 
     public static SearchAttribute orName(final String searchString) {
-        SearchAttribute attr = new SearchAttribute(AbstractNode.NAME_KEY, searchString, SearchOperator.OR);
+        SearchAttribute attr = new SingleSearchAttribute(AbstractNode.NAME_KEY, searchString, SearchOperator.OR);
         return attr;
     }
 
     public static SearchAttribute andName(final String searchString) {
-        SearchAttribute attr = new SearchAttribute(AbstractNode.NAME_KEY, searchString, SearchOperator.AND);
+        SearchAttribute attr = new SingleSearchAttribute(AbstractNode.NAME_KEY, searchString, SearchOperator.AND);
         return attr;
     }
 
     public static SearchAttribute andTitle(final String searchString) {
-        SearchAttribute attr = new SearchAttribute(AbstractNode.TITLE_KEY, searchString, SearchOperator.AND);
+        SearchAttribute attr = new SingleSearchAttribute(AbstractNode.TITLE_KEY, searchString, SearchOperator.AND);
         return attr;
     }
 
     public static SearchAttribute orTitle(final String searchString) {
-        SearchAttribute attr = new SearchAttribute(AbstractNode.TITLE_KEY, searchString, SearchOperator.OR);
+        SearchAttribute attr = new SingleSearchAttribute(AbstractNode.TITLE_KEY, searchString, SearchOperator.OR);
         return attr;
     }
 
     public static SearchAttribute andContent(final String searchString) {
-        SearchAttribute attr = new SearchAttribute(PlainText.CONTENT_KEY, searchString, SearchOperator.AND);
+        SearchAttribute attr = new SingleSearchAttribute(PlainText.CONTENT_KEY, searchString, SearchOperator.AND);
         return attr;
     }
 
     public static SearchAttribute orContent(final String searchString) {
-        SearchAttribute attr = new SearchAttribute(PlainText.CONTENT_KEY, searchString, SearchOperator.OR);
+        SearchAttribute attr = new SingleSearchAttribute(PlainText.CONTENT_KEY, searchString, SearchOperator.OR);
         return attr;
     }
 
     public static SearchAttribute orExactType(final String searchString) {
-        SearchAttribute attr = new SearchAttribute(AbstractNode.TYPE_KEY, exactMatch(searchString), SearchOperator.OR);
+        SearchAttribute attr = new SingleSearchAttribute(AbstractNode.TYPE_KEY, exactMatch(searchString), SearchOperator.OR);
         return attr;
     }
 
     public static SearchAttribute andExactType(final String searchString) {
-        SearchAttribute attr = new SearchAttribute(AbstractNode.TYPE_KEY, exactMatch(searchString), SearchOperator.AND);
+        SearchAttribute attr = new SingleSearchAttribute(AbstractNode.TYPE_KEY, exactMatch(searchString), SearchOperator.AND);
         return attr;
     }
 
     public static SearchAttribute orExactName(final String searchString) {
-        SearchAttribute attr = new SearchAttribute(AbstractNode.NAME_KEY, exactMatch(searchString), SearchOperator.OR);
+        SearchAttribute attr = new SingleSearchAttribute(AbstractNode.NAME_KEY, exactMatch(searchString), SearchOperator.OR);
         return attr;
     }
 
     public static SearchAttribute andExactName(final String searchString) {
-        SearchAttribute attr = new SearchAttribute(AbstractNode.NAME_KEY, exactMatch(searchString), SearchOperator.AND);
+        SearchAttribute attr = new SingleSearchAttribute(AbstractNode.NAME_KEY, exactMatch(searchString), SearchOperator.AND);
         return attr;
     }
 
     public static SearchAttribute orExactTitle(final String searchString) {
-        SearchAttribute attr = new SearchAttribute(AbstractNode.TITLE_KEY, exactMatch(searchString), SearchOperator.OR);
+        SearchAttribute attr = new SingleSearchAttribute(AbstractNode.TITLE_KEY, exactMatch(searchString), SearchOperator.OR);
         return attr;
     }
 
     public static SearchAttribute andExactTitle(final String searchString) {
-        SearchAttribute attr = new SearchAttribute(AbstractNode.TITLE_KEY, exactMatch(searchString), SearchOperator.AND);
+        SearchAttribute attr = new SingleSearchAttribute(AbstractNode.TITLE_KEY, exactMatch(searchString), SearchOperator.AND);
         return attr;
     }
 
     public static SearchAttribute orExactContent(final String searchString) {
-        SearchAttribute attr = new SearchAttribute(PlainText.CONTENT_KEY, exactMatch(searchString), SearchOperator.OR);
+        SearchAttribute attr = new SingleSearchAttribute(PlainText.CONTENT_KEY, exactMatch(searchString), SearchOperator.OR);
         return attr;
     }
 
     public static SearchAttribute andExactContent(final String searchString) {
-        SearchAttribute attr = new SearchAttribute(PlainText.CONTENT_KEY, exactMatch(searchString), SearchOperator.AND);
+        SearchAttribute attr = new SingleSearchAttribute(PlainText.CONTENT_KEY, exactMatch(searchString), SearchOperator.AND);
         return attr;
     }
 
     public static SearchAttribute andNotHidden() {
-        SearchAttribute attr = new SearchAttribute(AbstractNode.HIDDEN_KEY, true, SearchOperator.AND_NOT);
+        SearchAttribute attr = new SingleSearchAttribute(AbstractNode.HIDDEN_KEY, true, SearchOperator.NOT);
         return attr;
     }
 
@@ -156,7 +157,7 @@ public abstract class Search {
         List<SearchAttribute> searchAttrs = new ArrayList<SearchAttribute>();
 
         // always add wildcard character '*' for auto completion
-        searchAttrs.add(Search.andName(string + SearchAttribute.WILDCARD));
+        searchAttrs.add(Search.andExactName(string + SearchAttribute.WILDCARD));
         List<AbstractNode> result = (List<AbstractNode>) search.execute(null, null, true, false, searchAttrs);
 
         if (result != null) {

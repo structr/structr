@@ -2,27 +2,28 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.structr.core.node;
+package org.structr.core.search;
 
 import org.structr.common.SearchOperator;
 
 /**
- * A parameterized node attribute extended by a boolean search operator.
- * <p>
- * Used in {@see SearchNodeCommand}.
+ * Wrapper representing a part of a search query.
  *
- * @author amorgner
+ * All parts of a search query must have a search operator and a payload.
+ *
+ * The payload can be either a node attribute oder a group of serach attributes.
+ *
+ * @author axel
  */
-public class SearchAttribute extends NodeAttribute {
+public abstract class SearchAttribute {
 
     public static final String WILDCARD = "*";
     public static final String NOT_NULL = "[0 TO Z]";
     public static final String NULL = "NOT([* TO *])";
-    
+
     private SearchOperator searchOp = null;
 
-    public SearchAttribute(final String key, final Object value, final SearchOperator searchOp) {
-        super(key, value);
+    public void setSearchOperator(final SearchOperator searchOp) {
         this.searchOp = searchOp;
     }
 
@@ -30,7 +31,8 @@ public class SearchAttribute extends NodeAttribute {
         return searchOp;
     }
 
-    public void setSearchOperator(final SearchOperator searchOp) {
-        this.searchOp = searchOp;
-    }
+    public abstract Object getAttribute();
+
+    public abstract void setAttribute(Object attribute);
+    
 }

@@ -43,8 +43,8 @@ import org.structr.common.SearchOperator;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.IndexNodeCommand;
-import org.structr.core.node.SearchAttribute;
-import org.structr.core.node.SearchNodeCommand;
+import org.structr.core.search.SingleSearchAttribute;
+import org.structr.core.search.SearchNodeCommand;
 import org.structr.core.node.XPath;
 
 /**
@@ -2135,9 +2135,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
                                 false, // include hidden
                                 true, // public only
                                 // search in name or title or content
-                                new SearchAttribute(AbstractNode.NAME_KEY, searchString, SearchOperator.OR),
-                                new SearchAttribute(AbstractNode.TITLE_KEY, searchString, SearchOperator.OR),
-                                new SearchAttribute(PlainText.CONTENT_KEY, searchString, SearchOperator.OR));
+                                new SingleSearchAttribute(AbstractNode.NAME_KEY, searchString, SearchOperator.OR),
+                                new SingleSearchAttribute(AbstractNode.TITLE_KEY, searchString, SearchOperator.OR),
+                                new SingleSearchAttribute(PlainText.CONTENT_KEY, searchString, SearchOperator.OR));
                         root.put("SearchResults", result);
                     }
                 }

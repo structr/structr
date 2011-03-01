@@ -15,7 +15,9 @@ public class NodeAttribute {
     private String key = null;
     private Object value = null;
 
-    public NodeAttribute(String key, Object value) {
+    public NodeAttribute() {}
+
+    public NodeAttribute(final String key, final Object value) {
         this.key = key;
         this.value = value;
     }

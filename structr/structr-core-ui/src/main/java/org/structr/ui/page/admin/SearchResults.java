@@ -30,8 +30,9 @@ import org.structr.common.SearchOperator;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.node.SearchAttribute;
-import org.structr.core.node.SearchNodeCommand;
+import org.structr.core.search.SearchAttribute;
+import org.structr.core.search.SingleSearchAttribute;
+import org.structr.core.search.SearchNodeCommand;
 
 /**
  *

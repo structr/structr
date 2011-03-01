@@ -18,8 +18,8 @@ import org.structr.core.entity.web.Page;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.web.MenuItem;
-import org.structr.core.node.SearchAttribute;
-import org.structr.core.node.SearchNodeCommand;
+import org.structr.core.search.SingleSearchAttribute;
+import org.structr.core.search.SearchNodeCommand;
 
 /**
  * Edit text.
@@ -61,8 +61,8 @@ public class EditMenuItem extends DefaultEdit {
                 } else {
                     Command searchNode = Services.command(SearchNodeCommand.class);
 
-                    List<SearchAttribute> searchAttrs = new ArrayList<SearchAttribute>();
-                    searchAttrs.add(new SearchAttribute(AbstractNode.TYPE_KEY, Page.class.getSimpleName(), SearchOperator.OR));
+                    List<SingleSearchAttribute> searchAttrs = new ArrayList<SingleSearchAttribute>();
+                    searchAttrs.add(new SingleSearchAttribute(AbstractNode.TYPE_KEY, Page.class.getSimpleName(), SearchOperator.OR));
                     nodes = (List<AbstractNode>) searchNode.execute(null, null, true, false, searchAttrs);
                 }
                 if (nodes != null) {

@@ -4,6 +4,8 @@
  */
 package org.structr.core.node;
 
+import org.structr.core.search.SearchNodeCommand;
+import org.structr.core.search.SingleSearchAttribute;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -45,7 +47,7 @@ public class FindUserCommand extends NodeServiceCommand {
                     //userXPath = "//User";
 //                    break;
 
-                    return (List<User>) searchNode.execute(null, null, true, false, new SearchAttribute(AbstractNode.TYPE_KEY, User.class.getSimpleName(), SearchOperator.OR));
+                    return (List<User>) searchNode.execute(null, null, true, false, new SingleSearchAttribute(AbstractNode.TYPE_KEY, User.class.getSimpleName(), SearchOperator.OR));
 
 
                 case 1:
@@ -56,9 +58,9 @@ public class FindUserCommand extends NodeServiceCommand {
                         String userName = (String) parameters[0];
 //                        userXPath = "//User[@name='" + userName + "']";
 
-                        List<SearchAttribute> searchAttrs = new ArrayList<SearchAttribute>();
-                        searchAttrs.add(new SearchAttribute(AbstractNode.NAME_KEY, userName, SearchOperator.AND));
-                        searchAttrs.add(new SearchAttribute(AbstractNode.TYPE_KEY, User.class.getSimpleName(), SearchOperator.AND));
+                        List<SingleSearchAttribute> searchAttrs = new ArrayList<SingleSearchAttribute>();
+                        searchAttrs.add(new SingleSearchAttribute(AbstractNode.NAME_KEY, userName, SearchOperator.AND));
+                        searchAttrs.add(new SingleSearchAttribute(AbstractNode.TYPE_KEY, User.class.getSimpleName(), SearchOperator.AND));
 
                         List<AbstractNode> usersFound = (List<AbstractNode>) searchNode.execute(null, null, true, false, searchAttrs);
 
