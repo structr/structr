@@ -160,6 +160,6 @@
         automatic re-login feature which forwards users to the place
         they were before logout
         -->
-        <session-timeout>15</session-timeout>
+        <session-timeout>60</session-timeout>
     </session-config>
 </web-app>

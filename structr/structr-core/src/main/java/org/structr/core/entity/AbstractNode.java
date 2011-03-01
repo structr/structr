@@ -924,7 +924,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 
                     // Don't automatically update index
                     // TODO: Implement something really fast to keep the index automatically in sync
-                    if (updateIndex) {
+                    if (updateIndex && dbNode.hasProperty(key)) {
                         Services.command(IndexNodeCommand.class).execute(getId(), key);
                     }
 

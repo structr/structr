@@ -91,8 +91,9 @@ public class SearchResults extends Nodes {
         advancedSearchForm.setActionURL(advancedSearchForm.getActionURL().concat("#search-tab"));
         advancedSearchForm.add(searchFields);
 
-        advancedSearchForm.add(new Submit("search", "Search", this, "onAdvancedSearch"));
-        advancedSearchForm.add(new Submit("reset", "Reset Form", this, "onReset"));
+        advancedSearchForm.add(new Submit("Search"));
+        advancedSearchForm.setListener(this, "onAdvancedSearch");
+        advancedSearchForm.add(new Submit("Reset", this, "onReset"));
 
         Column actionColumnNodes = new Column("Actions");
         actionColumnNodes.setTextAlign("center");

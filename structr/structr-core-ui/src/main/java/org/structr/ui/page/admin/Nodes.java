@@ -20,7 +20,6 @@ import org.apache.click.extras.tree.TreeNode;
 import org.apache.click.util.Bindable;
 import org.apache.click.control.*;
 import org.apache.click.control.Column;
-import org.apache.click.extras.control.AutoCompleteTextField;
 import org.apache.click.extras.control.FieldColumn;
 import org.apache.click.extras.control.FormTable;
 import org.apache.click.extras.control.IntegerField;
@@ -54,13 +53,10 @@ import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 import org.structr.common.RelType;
 //import org.structr.core.ClasspathEntityLocator;
-import org.structr.common.Search;
 import org.structr.core.entity.DummyNode;
 import org.structr.core.entity.Property;
 import org.structr.core.module.GetEntitiesCommand;
 import org.structr.core.node.ExtractFileCommand;
-import org.structr.core.node.SearchAttribute;
-import org.structr.core.node.SearchNodeCommand;
 
 /**
  * Display the node tree.

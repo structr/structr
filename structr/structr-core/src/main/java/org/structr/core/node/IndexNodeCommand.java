@@ -114,7 +114,12 @@ public class IndexNodeCommand extends NodeServiceCommand {
             node.removeProperty(key);
             return;
         }
-        
+
+        if (!(node.hasProperty(key))) {
+            logger.log(Level.FINE, "Node {0} has no key {1}, ignoring", new Object[]{node.getId(), key});
+            return;
+        }
+
         Object value = node.getProperty(key);
 
         boolean emptyValue = (value instanceof String && StringUtils.isEmpty((String) value));
