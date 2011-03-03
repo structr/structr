@@ -96,6 +96,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
     public final static String VISIBILITY_END_DATE_KEY = "visibilityEndDate";
     public final static String PUBLIC_KEY = "public";
     public final static String HIDDEN_KEY = "hidden";
+    public final static String DELETED_KEY = "deleted";
 //    public final static String ACL_KEY = "acl";
     //private final static String keyPrefix = "${";
     //private final static String keySuffix = "}";
@@ -718,6 +719,18 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 
     public void setHidden(final boolean hidden) {
         setProperty(HIDDEN_KEY, hidden);
+    }
+
+    public boolean isDeleted() {
+        return getDeleted();
+    }
+
+    public boolean getDeleted() {
+        return getBooleanProperty(DELETED_KEY);
+    }
+
+    public void setDeleted(final boolean deleted) {
+        setProperty(DELETED_KEY, deleted);
     }
 
     public void setType(final String type) {
@@ -2130,8 +2143,8 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
                     if (searchString != null && !(searchString.isEmpty())) {
                         Command search = Services.command(SearchNodeCommand.class);
                         List<AbstractNode> result = (List<AbstractNode>) search.execute(
-                                null, // top node => search all
-                                null, // user
+                                null, // user => null means super user
+                                null, // top node => null means search all
                                 false, // include hidden
                                 true, // public only
                                 // search in name or title or content

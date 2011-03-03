@@ -6,10 +6,15 @@ package org.structr.core.search;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.lang.StringUtils;
+import org.apache.lucene.index.Term;
+import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.TermQuery;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.index.Index;
@@ -32,7 +37,7 @@ import org.structr.core.node.StructrNodeFactory;
  *     <p>if null, search everywhere (top node = root node)
  * <li>{@see User} user: return nodes only if readable for the user
  *     <p>if null, don't filter by user
- * <li>boolean include hidden: if true, return hidden nodes as well
+ * <li>boolean include deleted: if true, return deleted nodes as well
  * <li>boolean public only: if true, return only public nodes
  * <li>List<{@see SingleSearchAttribute}> search attributes: key/value pairs with search operator
  *    <p>if no SingleSearchAttribute is given, return any node matching the other
@@ -60,20 +65,20 @@ public class SearchNodeCommand extends NodeServiceCommand {
                 return Collections.emptyList();
             }
 
+            User user = null;
+            if (parameters[0] instanceof User) {
+                user = (User) parameters[0];
+            }
+
             // FIXME: filtering by top node is experimental
             AbstractNode topNode = null;
-            if (parameters[0] instanceof AbstractNode) {
-                topNode = (AbstractNode) parameters[0];
+            if (parameters[1] instanceof AbstractNode) {
+                topNode = (AbstractNode) parameters[1];
             }
 
-            User user = null;
-            if (parameters[1] instanceof User) {
-                user = (User) parameters[1];
-            }
-
-            boolean includeHidden = false;
+            boolean includeDeleted = false;
             if (parameters[2] instanceof Boolean) {
-                includeHidden = (Boolean) parameters[2];
+                includeDeleted = (Boolean) parameters[2];
             }
 
             boolean publicOnly = false;
@@ -97,52 +102,86 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
             // At this point, all search attributes are ready
 
+            BooleanQuery query = new BooleanQuery();
 
 
 
+            String queryString = "";
 
-            if (searchAttrs.isEmpty()) {
+            int a = 0;
+            for (SearchAttribute attr : searchAttrs) {
 
-                if (topNode != null) {
-                    result = topNode.getAllChildren(user);
-                } else {
-                    result = new LinkedList<AbstractNode>();
-                }
+                if (attr instanceof SearchAttributeGroup) {
 
-            } else {
+                    SearchAttributeGroup attributeGroup = (SearchAttributeGroup) attr;
+                    List<SearchAttribute> groupedAttributes = attributeGroup.getSearchAttributes();
 
-                String query = "";
+                    String subQueryString = "";
 
-                int a = 0;
-                for (SearchAttribute attr : searchAttrs) {
+                    if (!(groupedAttributes.isEmpty())) {
 
-                    if (attr instanceof SearchAttributeGroup) {
+                        BooleanQuery subQuery = new BooleanQuery();
 
-                        SearchAttributeGroup attributeGroup = (SearchAttributeGroup) attr;
-                        query += " " + attributeGroup.getSearchOperator() + " ( ";
+                        String subQueryPrefix = (a > 0 ? " " + attributeGroup.getSearchOperator() : "") + " ( ";
 
-                        List<SearchAttribute> groupedAttributes = attributeGroup.getSearchAttributes();
                         int b = 0;
                         for (SearchAttribute groupedAttr : groupedAttributes) {
 
-                            query += toQueryString((SingleSearchAttribute) groupedAttr, b > 0);
+                            subQuery.add(toQuery((SingleSearchAttribute) groupedAttr), translateToBooleanClauseOccur(groupedAttr.getSearchOperator()));
+                            subQueryString += toQueryString((SingleSearchAttribute) groupedAttr, b > 0);
                             b++;
                         }
+                        query.add(subQuery, translateToBooleanClauseOccur(attributeGroup.getSearchOperator()));
+                        String subQuerySuffix = " ) ";
 
-                        query += " ) ";
-
-
-                    } else if (attr instanceof SingleSearchAttribute) {
-
-                        query += toQueryString((SingleSearchAttribute) attr, a > 0);
-                        a++;
+                        // Add sub query only if not blank
+                        if (StringUtils.isNotBlank(subQueryString)) {
+                            queryString += subQueryPrefix + subQueryString + subQuerySuffix;
+                        }
 
                     }
+                    a++;
+
+                } else if (attr instanceof SingleSearchAttribute) {
+
+                    query.add(toQuery((SingleSearchAttribute) attr), translateToBooleanClauseOccur(attr.getSearchOperator()));
+                    queryString += toQueryString((SingleSearchAttribute) attr, a > 0);
+                    a++;
 
                 }
 
-                IndexHits hits = index.query(new QueryContext(query));//.sort("name"));
-                result = nodeFactory.createNodes(hits);
+            }
+
+            if (searchAttrs.isEmpty() || StringUtils.isBlank(queryString)) {
+
+                if (topNode != null) {
+                    result = topNode.getAllChildren(user);
+                    Collections.sort(result);
+                    return result;
+
+                } else {
+
+                    return Collections.emptyList();
+
+                }
+            }
+
+            long t0 = System.currentTimeMillis();
+            logger.log(Level.INFO, "{0}", queryString);
+
+            IndexHits hits = index.query(new QueryContext(queryString));//.sort("name"));
+
+            long t1 = System.currentTimeMillis();
+            logger.log(Level.INFO, "Querying index took {0} ms, {1} results retrieved.", new Object[]{t1 - t0, hits.size()});
+
+
+//            IndexHits hits = index.query(new QueryContext(query.toString()));//.sort("name"));
+            result = nodeFactory.createNodes(hits, includeDeleted);
+
+            long t2 = System.currentTimeMillis();
+            logger.log(Level.INFO, "Creating structr nodes took {0} ms, {1} nodes made.", new Object[]{t2 - t1, result.size()});
+
+
 
 //
 //                List<AbstractNode> intermediateResult;
@@ -243,15 +282,12 @@ public class SearchNodeCommand extends NodeServiceCommand {
 //
 //                }
 //                result = new ArrayList(intermediateResult);
-            }
-
-            // sort search results; defaults to name, (@see AbstractNode.compareTo())
-            Collections.sort(result);
-
-            return result;
-
         }
-        return Collections.emptyList();
+
+        // sort search results; defaults to name, (@see AbstractNode.compareTo())
+        Collections.sort(result);
+        return result;
+
     }
 
     private String toQueryString(final SingleSearchAttribute singleAttribute, final boolean isFirst) {
@@ -260,6 +296,79 @@ public class SearchNodeCommand extends NodeServiceCommand {
         Object value = singleAttribute.getValue();
         SearchOperator op = singleAttribute.getSearchOperator();
 
-        return (isFirst ? " " + op + " " : "") + key + ":" + value;
+        boolean valueIsNoStringAndNotNull = (value != null && !(value instanceof String));
+        boolean valueIsNoBlankString = (value != null && value instanceof String && StringUtils.isNotBlank((String) value));
+
+        if (StringUtils.isNotBlank(key) && (valueIsNoStringAndNotNull || valueIsNoBlankString)) {
+
+            return (isFirst ? " " + op + " " : "") + expand(key, value.toString());
+
+        }
+
+        return "";
+    }
+
+    private Query toQuery(final SingleSearchAttribute singleAttribute) {
+
+        String key = singleAttribute.getKey();
+        Object value = singleAttribute.getValue();
+        SearchOperator op = singleAttribute.getSearchOperator();
+
+        boolean valueIsNoStringAndNotNull = (value != null && !(value instanceof String));
+        boolean valueIsNoBlankString = (value != null && value instanceof String && StringUtils.isNotBlank((String) value));
+
+        if (StringUtils.isNotBlank(key) && (valueIsNoStringAndNotNull || valueIsNoBlankString)) {
+
+            return new TermQuery(new Term(key, value.toString()));
+
+        }
+
+        return null;
+
+    }
+
+    private BooleanClause.Occur translateToBooleanClauseOccur(final SearchOperator searchOp) {
+
+        if (searchOp.equals(SearchOperator.AND)) {
+            return BooleanClause.Occur.MUST;
+        } else if (searchOp.equals(SearchOperator.OR)) {
+            return BooleanClause.Occur.SHOULD;
+        } else if (searchOp.equals(SearchOperator.NOT)) {
+            return BooleanClause.Occur.MUST_NOT;
+        }
+
+        // Default
+        return BooleanClause.Occur.MUST;
+
+    }
+
+    private String expand(final String key, final String value) {
+
+        if (StringUtils.isBlank(key) || StringUtils.isBlank(value)) {
+            return "";
+        }
+
+        // If value starts with operator (exact match, range query, or search operator word),
+        // don't expand
+        if (value.startsWith("\"") || value.startsWith("[") || value.startsWith("NOT") || value.startsWith("AND") || value.startsWith("OR")) {
+            return " " + key + ":" + value + " ";
+        }
+
+        String result = "( ";
+
+        // Split string into words
+        String[] words = StringUtils.split(value, " ");
+
+        // Expand key,word to ' (key:word* OR key:"word") '
+
+        for (String word : words) {
+
+            result += " (" + key + ":" + word + "* OR " + key + ":\"" + word + "\") OR ";
+
+        }
+
+        result += key + ":\"" + value + "\" ) ";
+
+        return result;
     }
 }

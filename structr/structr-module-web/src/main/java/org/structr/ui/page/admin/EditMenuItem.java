@@ -59,11 +59,9 @@ public class EditMenuItem extends DefaultEdit {
                 if (linkTargetNode != null) {
                     nodes = linkTargetNode.getSiblingNodes(user);
                 } else {
-                    Command searchNode = Services.command(SearchNodeCommand.class);
-
                     List<SingleSearchAttribute> searchAttrs = new ArrayList<SingleSearchAttribute>();
                     searchAttrs.add(new SingleSearchAttribute(AbstractNode.TYPE_KEY, Page.class.getSimpleName(), SearchOperator.OR));
-                    nodes = (List<AbstractNode>) searchNode.execute(null, null, true, false, searchAttrs);
+                    nodes = (List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(user, null, false, false, searchAttrs);
                 }
                 if (nodes != null) {
                     Collections.sort(nodes);

@@ -321,14 +321,13 @@ public class SearchResults extends Nodes {
 
             // retrieve search results
             String searchText = searchTextField.getValue();
-            Command search = Services.command(SearchNodeCommand.class);
             List<SearchAttribute> searchAttrs = new ArrayList<SearchAttribute>();
 
-            searchAttrs.add(Search.andExactName(searchText));
+            searchAttrs.add(Search.andName(searchText));
 
-            searchResults = (List<AbstractNode>) search.execute(
-                    null, // top node
+            searchResults = (List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(
                     user, // filter by user
+                    null, // top node
                     true, // include hidden
                     false, // only public
                     searchAttrs);
@@ -349,8 +348,6 @@ public class SearchResults extends Nodes {
 
         if (advancedSearchForm.isValid()) {
 
-            final Command search = Services.command(SearchNodeCommand.class);
-
             // assemble search attributes
             List<SearchAttribute> searchAttrs = new ArrayList<SearchAttribute>();
 
@@ -365,7 +362,7 @@ public class SearchResults extends Nodes {
                 searchAttrs.add(Search.orContent(searchText));
             }
 
-            searchResults = (List<AbstractNode>) search.execute(null, user, true, false, searchAttrs);
+            searchResults = (List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(user, null, false, false, searchAttrs);
             populateSearchResultsTable();
             saveState();
 

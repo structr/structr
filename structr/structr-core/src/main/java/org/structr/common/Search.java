@@ -9,7 +9,6 @@ import java.text.Normalizer.Form;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.lang.StringUtils;
-import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.PlainText;
 import org.structr.core.entity.AbstractNode;
@@ -108,7 +107,7 @@ public abstract class Search {
         return attr;
     }
 
-    private static String exactMatch(final String searchString) {
+    public static String exactMatch(final String searchString) {
         return ("\"" + searchString + "\"");
     }
 
@@ -153,12 +152,11 @@ public abstract class Search {
     public static List<String> getNodeNamesLike(final String string) {
         List<String> names = new ArrayList<String>();
 
-        Command search = Services.command(SearchNodeCommand.class);
         List<SearchAttribute> searchAttrs = new ArrayList<SearchAttribute>();
 
         // always add wildcard character '*' for auto completion
         searchAttrs.add(Search.andExactName(string + SearchAttribute.WILDCARD));
-        List<AbstractNode> result = (List<AbstractNode>) search.execute(null, null, true, false, searchAttrs);
+        List<AbstractNode> result = (List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(null, null, false, false, searchAttrs);
 
         if (result != null) {
             for (AbstractNode n : result) {

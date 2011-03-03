@@ -163,9 +163,7 @@ public class Report extends Nodes {
         //restoreState();
         //populateReportResultsTable();
         if (reportForm.isValid()) {
-            Command search = Services.command(SearchNodeCommand.class);
-
-            searchResults = (List<AbstractNode>) search.execute(null, user, true, false, searchAttributes);
+            searchResults = (List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(user, null, false, false, searchAttributes);
             populateReportResultsTable();
             saveState();
         }
@@ -273,10 +271,7 @@ public class Report extends Nodes {
     public boolean onPreviewReport() {
 
         if (reportForm.isValid()) {
-
-            Command search = Services.command(SearchNodeCommand.class);
-
-            reportResults = (List<AbstractNode>) search.execute(null, user, true, false, searchAttributes);
+            reportResults = (List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(user, null, false, false, searchAttributes);
             populateReportResultsTable();
             saveState();
 

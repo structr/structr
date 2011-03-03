@@ -30,7 +30,7 @@ public class SearchAttributeGroup extends SearchAttribute {
         return searchItems;
     }
 
-    public void add(final SingleSearchAttribute searchAttribute) {
+    public void add(final SearchAttribute searchAttribute) {
         searchItems.add(searchAttribute);
     }
 

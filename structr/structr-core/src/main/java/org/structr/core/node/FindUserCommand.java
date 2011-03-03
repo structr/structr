@@ -11,12 +11,14 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.structr.common.Search;
 import org.structr.common.SearchOperator;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
+import org.structr.core.search.SearchAttribute;
 
 /**
  * Searches for a user node by her/his name in the database and returns the result.
@@ -47,7 +49,7 @@ public class FindUserCommand extends NodeServiceCommand {
                     //userXPath = "//User";
 //                    break;
 
-                    return (List<User>) searchNode.execute(null, null, true, false, new SingleSearchAttribute(AbstractNode.TYPE_KEY, User.class.getSimpleName(), SearchOperator.OR));
+                    return (List<User>) searchNode.execute(null, null, false, false, Search.andExactType(User.class.getSimpleName()));
 
 
                 case 1:
@@ -58,11 +60,11 @@ public class FindUserCommand extends NodeServiceCommand {
                         String userName = (String) parameters[0];
 //                        userXPath = "//User[@name='" + userName + "']";
 
-                        List<SingleSearchAttribute> searchAttrs = new ArrayList<SingleSearchAttribute>();
-                        searchAttrs.add(new SingleSearchAttribute(AbstractNode.NAME_KEY, userName, SearchOperator.AND));
-                        searchAttrs.add(new SingleSearchAttribute(AbstractNode.TYPE_KEY, User.class.getSimpleName(), SearchOperator.AND));
+                        List<SearchAttribute> searchAttrs = new ArrayList<SearchAttribute>();
+                        searchAttrs.add(Search.andExactName(userName));
+                        searchAttrs.add(Search.andExactType(User.class.getSimpleName()));
 
-                        List<AbstractNode> usersFound = (List<AbstractNode>) searchNode.execute(null, null, true, false, searchAttrs);
+                        List<AbstractNode> usersFound = (List<AbstractNode>) searchNode.execute(null, null, false, false, searchAttrs);
 
                         if (usersFound != null && usersFound.size() > 0) {
                             return usersFound.get(0);

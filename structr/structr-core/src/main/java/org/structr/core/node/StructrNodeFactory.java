@@ -12,6 +12,7 @@ import org.structr.core.Adapter;
 import org.structr.core.Services;
 import org.structr.core.entity.EmptyNode;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.User;
 import org.structr.core.module.GetEntityClassCommand;
 
 /**
@@ -60,27 +61,62 @@ public class StructrNodeFactory<T extends AbstractNode> implements Adapter<Node,
         return ret;
     }
 
-    public List<AbstractNode> createNodes(Iterable<Node> input) {
+    /**
+     * Create structr nodes from the underlying database nodes
+     *
+     * If user is given, include only nodes which are readable by given user
+     * If includeDeleted is true, include nodes with 'deleted' flag
+     *
+     * @param input
+     * @param user
+     * @param includeDeleted
+     * @return
+     */
+    public List<AbstractNode> createNodes(final Iterable<Node> input, final User user, final boolean includeDeleted) {
 
         List<AbstractNode> nodes = new ArrayList<AbstractNode>();
         if (input != null && input.iterator().hasNext()) {
 
             for (Node node : input) {
 
-                AbstractNode structrNode = createNode(node);
-                //structrNode.init(node);
+                AbstractNode n = createNode(node);
 
-                nodes.add(structrNode);
+                if ((user == null || n.readAllowed(user)) && (includeDeleted || !(n.isDeleted()))) {
+                    nodes.add(n);
+                }
             }
         }
         return nodes;
+    }
+
+    /**
+     * Create structr nodes from the underlying database nodes
+     *
+     * If includeDeleted is true, include nodes with 'deleted' flag
+     * 
+     * @param input
+     * @param includeDeleted
+     * @return
+     */
+    public List<AbstractNode> createNodes(final Iterable<Node> input, final boolean includeDeleted) {
+        return createNodes(input, null, includeDeleted);
+    }
+
+    /**
+     * Create structr nodes from all given underlying database nodes
+     * including nodes with 'deleted' flag
+     * 
+     * @param input
+     * @return
+     */
+    public List<AbstractNode> createNodes(final Iterable<Node> input) {
+        return createNodes(input, true);
     }
 
 //    @Override
 //    protected void finalize() throws Throwable {
 //        nodeTypeCache.clear();
 //    }
-
     @Override
     public T adapt(Node s) {
         return ((T) createNode(s));
