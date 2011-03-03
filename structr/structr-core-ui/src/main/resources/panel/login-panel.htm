@@ -1,29 +1,10 @@
 <div class="panel">
     <h2>$messages.loginHeading</h2>
-       <div class="content">
-    
-    <p>$messages.loginNote</p>
-   
-
+    <hr>
+    <p class="loginNode">$messages.loginNote</p>
 
 $loginForm
-<!--
-	<form method="POST" action="j_security_check" name="form">
-		<table border="0" style="margin-left: 0.25em;">
-			<tr>
-				<td><label>User Name</label><font color="red">*</font></td>
-				<td><input type="text" name="j_username" maxlength="20" style="width: 150px;" /></td>
-			</tr>
-			<tr>
-				<td><label>User Password</label><font color="red">*</font></td>
-				<td><input type="password" name="j_password" maxlength="20" style="width: 150px;" /></td>
-			</tr>
-			<tr>
-                <td colspan="2"><input type="submit" value="Click to Login" /></td>
-			</tr>
-		</table>
-	</form>
--->
+
         #if ($errorMsg != "")
         <div id="loginMsg" class="errorMsg">$errorMsg</div>
         #end
@@ -33,11 +14,12 @@ $loginForm
         #if ($warnMsg != "")
         <div id="loginMsg" class="warnMsg">$warnMsg</div>
         #end
-    </div><!-- .content -->
     <!--script type="text/javascript">
     document.form.j_username.focus();
     </script-->
 
+    <p class="loginFooter">$messages.loginFooter</p>
+    
 </div><!-- .panel -->
 
 
