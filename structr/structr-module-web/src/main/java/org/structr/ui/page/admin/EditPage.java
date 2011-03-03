@@ -13,12 +13,12 @@ import org.structr.core.entity.AbstractNode;
 import org.apache.click.control.Option;
 import org.apache.click.control.Select;
 import org.apache.click.dataprovider.DataProvider;
-import org.structr.common.SearchOperator;
+import org.structr.core.search.SearchOperator;
 import org.structr.core.entity.web.Page;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.Template;
-import org.structr.core.search.SingleSearchAttribute;
+import org.structr.core.search.TextualSearchAttribute;
 import org.structr.core.search.SearchNodeCommand;
 
 /**
@@ -63,8 +63,8 @@ public class EditPage extends DefaultEdit {
                 if (templateNode != null) {
                     nodes = templateNode.getSiblingNodes(user);
                 } else {
-                    List<SingleSearchAttribute> searchAttrs = new ArrayList<SingleSearchAttribute>();
-                    searchAttrs.add(new SingleSearchAttribute(AbstractNode.TYPE_KEY, Template.class.getSimpleName(), SearchOperator.OR));
+                    List<TextualSearchAttribute> searchAttrs = new ArrayList<TextualSearchAttribute>();
+                    searchAttrs.add(new TextualSearchAttribute(AbstractNode.TYPE_KEY, Template.class.getSimpleName(), SearchOperator.OR));
                     nodes = (List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(user, null, false, false, searchAttrs);
                 }
                 if (nodes != null) {

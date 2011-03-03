@@ -5,14 +5,14 @@
 package org.structr.core.node;
 
 import org.structr.core.search.SearchNodeCommand;
-import org.structr.core.search.SingleSearchAttribute;
+import org.structr.core.search.TextualSearchAttribute;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.structr.common.Search;
-import org.structr.common.SearchOperator;
+import org.structr.core.search.SearchOperator;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;

@@ -6,7 +6,6 @@ package org.structr.core.search;
 
 import java.util.LinkedList;
 import java.util.List;
-import org.structr.common.SearchOperator;
 
 /**
  * Represents a group of search operators, to be used for queries

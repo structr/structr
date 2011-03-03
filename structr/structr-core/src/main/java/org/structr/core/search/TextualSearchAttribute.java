@@ -4,21 +4,21 @@
  */
 package org.structr.core.search;
 
-import org.structr.common.SearchOperator;
 import org.structr.core.node.NodeAttribute;
 
 /**
- * A parameterized node attribute extended by a boolean search operator.
+ * Represents an attribute for textual search.
+ *
  * <p>
  * Used in {@see SearchNodeCommand}.
  *
  * @author amorgner
  */
-public class SingleSearchAttribute extends SearchAttribute {
+public class TextualSearchAttribute extends SearchAttribute {
 
     private NodeAttribute nodeAttribute;
 
-    public SingleSearchAttribute(final String key, final Object value, final SearchOperator searchOp) {
+    public TextualSearchAttribute(final String key, final String value, final SearchOperator searchOp) {
         nodeAttribute = new NodeAttribute(key, value);
         setSearchOperator(searchOp);
     }
@@ -37,8 +37,8 @@ public class SingleSearchAttribute extends SearchAttribute {
         return nodeAttribute.getKey();
     }
 
-    public Object getValue() {
-        return nodeAttribute.getValue();
+    public String getValue() {
+        return (String) nodeAttribute.getValue();
     }
 
 }

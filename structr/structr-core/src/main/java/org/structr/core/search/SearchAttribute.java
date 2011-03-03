@@ -4,8 +4,6 @@
  */
 package org.structr.core.search;
 
-import org.structr.common.SearchOperator;
-
 /**
  * Wrapper representing a part of a search query.
  *
@@ -18,8 +16,6 @@ import org.structr.common.SearchOperator;
 public abstract class SearchAttribute {
 
     public static final String WILDCARD = "*";
-    public static final String NOT_NULL = "[0 TO Z]";
-    public static final String NULL = "NOT([* TO *])";
 
     private SearchOperator searchOp = null;
 

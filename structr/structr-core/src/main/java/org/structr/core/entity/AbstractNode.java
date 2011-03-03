@@ -39,11 +39,11 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DateUtils;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
-import org.structr.common.SearchOperator;
+import org.structr.core.search.SearchOperator;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.IndexNodeCommand;
-import org.structr.core.search.SingleSearchAttribute;
+import org.structr.core.search.TextualSearchAttribute;
 import org.structr.core.search.SearchNodeCommand;
 import org.structr.core.node.XPath;
 
@@ -2148,9 +2148,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
                                 false, // include hidden
                                 true, // public only
                                 // search in name or title or content
-                                new SingleSearchAttribute(AbstractNode.NAME_KEY, searchString, SearchOperator.OR),
-                                new SingleSearchAttribute(AbstractNode.TITLE_KEY, searchString, SearchOperator.OR),
-                                new SingleSearchAttribute(PlainText.CONTENT_KEY, searchString, SearchOperator.OR));
+                                new TextualSearchAttribute(AbstractNode.NAME_KEY, searchString, SearchOperator.OR),
+                                new TextualSearchAttribute(AbstractNode.TITLE_KEY, searchString, SearchOperator.OR),
+                                new TextualSearchAttribute(PlainText.CONTENT_KEY, searchString, SearchOperator.OR));
                         root.put("SearchResults", result);
                     }
                 }

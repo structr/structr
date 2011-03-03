@@ -26,12 +26,12 @@ import org.apache.click.util.Bindable;
 import org.apache.click.util.HtmlStringBuffer;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.Search;
-import org.structr.common.SearchOperator;
+import org.structr.core.search.SearchOperator;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.search.SearchAttribute;
-import org.structr.core.search.SingleSearchAttribute;
+import org.structr.core.search.TextualSearchAttribute;
 import org.structr.core.search.SearchNodeCommand;
 
 /**

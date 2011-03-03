@@ -33,7 +33,7 @@ import org.apache.click.util.ClickUtils;
 import org.apache.click.util.PropertyUtils;
 import org.apache.commons.io.FileUtils;
 import org.structr.common.RelType;
-import org.structr.common.SearchOperator;
+import org.structr.core.search.SearchOperator;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.EmptyNode;
@@ -43,7 +43,7 @@ import org.structr.core.module.GetEntityClassCommand;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.NodeAttribute;
-import org.structr.core.search.SingleSearchAttribute;
+import org.structr.core.search.TextualSearchAttribute;
 import org.structr.core.search.SearchNodeCommand;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
@@ -75,7 +75,7 @@ public class Report extends Nodes {
     protected TextField reportName = new TextField("reportName", "Save Report as (filename): ");
     //protected Submit saveReport = new Submit("saveReport", "Save Report", this, "onSaveReport");
     protected List<AbstractNode> reportResults = new ArrayList<AbstractNode>();
-    protected List<SingleSearchAttribute> searchAttributes = new ArrayList<SingleSearchAttribute>();
+    protected List<TextualSearchAttribute> searchAttributes = new ArrayList<TextualSearchAttribute>();
     protected List<Column> columns = new ArrayList<Column>();
 
     public Report() {
@@ -242,7 +242,7 @@ public class Report extends Nodes {
                 for (Column c : columns) {
                     String fieldName = c.getName();
                     String fieldValue = reportForm.getFieldValue(fieldName);
-                    searchAttributes.add(new SingleSearchAttribute(fieldName, fieldValue, SearchOperator.AND));
+                    searchAttributes.add(new TextualSearchAttribute(fieldName, fieldValue, SearchOperator.AND));
                 }
             } else {
                 columns = new ArrayList<Column>();
@@ -422,7 +422,7 @@ public class Report extends Nodes {
     private void createDynamicFields(final String resultType) {
 
         // Always filter by type
-        searchAttributes.add(new SingleSearchAttribute(AbstractNode.TYPE_KEY, resultType, SearchOperator.AND));
+        searchAttributes.add(new TextualSearchAttribute(AbstractNode.TYPE_KEY, resultType, SearchOperator.AND));
 
         // Get the corresponding entity class
         //Class<AbstractNode> c = Services.getEntityClass(resultType);
@@ -468,7 +468,7 @@ public class Report extends Nodes {
                         String fieldValue = reportForm.getFieldValue(fieldName);
 
                         if (fieldValue != null && !(fieldValue.isEmpty())) {
-                            searchAttributes.add(new SingleSearchAttribute(fieldName, fieldValue, SearchOperator.AND));
+                            searchAttributes.add(new TextualSearchAttribute(fieldName, fieldValue, SearchOperator.AND));
                             //field.setValue(fieldValue);
                         }
 
