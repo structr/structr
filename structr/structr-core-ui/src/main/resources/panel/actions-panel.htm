@@ -1,125 +1,107 @@
-<table><tr><td>
             
-    #if ($newNodePanel)
-    <div class="fakeBtn" id="toggleNewNodeForm"><a href="#"><img alt="Create" src="$context/images/add.png"><span>Create</span><img alt="Expand" class="expand" src="$context/images/bullet_arrow_down.png"></a></div>
-    <div class="nodeActionMenu" id="newNodeForm">
-        <div class="unblock">
-            <a href="#">
-<!--                <img class="link" border="0" alt="Cancel" src="$context/images/cancel.png">-->
-                <span>Cancel</span>
-            </a>
-        </div>
+#if ($newNodePanel)
+<div class="fakeBtn" id="toggleNewNodeForm"><a href="#"><img alt="Create" src="$context/images/add.png"><span>Create</span><img alt="Expand" class="expand" src="$context/images/bullet_arrow_down.png"></a></div>
+<div class="nodeActionMenu" id="newNodeForm">
+    <div class="unblock">
+        <a href="#">
+            <!--                <img class="link" border="0" alt="Cancel" src="$context/images/cancel.png">-->
+            <span>Cancel</span>
+        </a>
+    </div>
     $newNodePanel
-    </div>
-    #end
+</div>
+#end
 
-    #if ($copyNodePanel)
-    <div class="fakeBtn" id="toggleCopyNodeForm"><a href="#"><img alt="Copy" src="$context/images/page_copy.png"><span>Copy</span><img alt="Expand" class="expand" src="$context/images/bullet_arrow_down.png"></a></div>
-    <div class="nodeActionMenu" id="copyNodeForm">
-        <div class="unblock">
-            <a href="#">
-<!--                <img class="link" border="0" alt="Cancel" src="$context/images/cancel.png">-->
-                <span>Cancel</span>
-            </a>
-        </div>
+#if ($copyNodePanel)
+<div class="fakeBtn" id="toggleCopyNodeForm"><a href="#"><img alt="Copy" src="$context/images/page_copy.png"><span>Copy</span><img alt="Expand" class="expand" src="$context/images/bullet_arrow_down.png"></a></div>
+<div class="nodeActionMenu" id="copyNodeForm">
+    <div class="unblock">
+        <a href="#">
+            <!--                <img class="link" border="0" alt="Cancel" src="$context/images/cancel.png">-->
+            <span>Cancel</span>
+        </a>
+    </div>
     $copyNodePanel
-    </div>
-    #end
+</div>
+#end
 
-    #if ($moveNodePanel)
-    <div class="fakeBtn" id="toggleMoveNodeForm"><a href="#"><img alt="Move" src="$context/images/folder_go.png"><span>Move</span><img alt="Expand" class="expand" src="$context/images/bullet_arrow_down.png"></a></div>
-    <div class="nodeActionMenu" id="moveNodeForm">
-        <div class="unblock">
-            <a href="#">
-<!--                <img class="link" border="0" alt="Cancel" src="$context/images/cancel.png">-->
-                <span>Cancel</span>
-            </a>
-        </div>
+#if ($moveNodePanel)
+<div class="fakeBtn" id="toggleMoveNodeForm"><a href="#"><img alt="Move" src="$context/images/folder_go.png"><span>Move</span><img alt="Expand" class="expand" src="$context/images/bullet_arrow_down.png"></a></div>
+<div class="nodeActionMenu" id="moveNodeForm">
+    <div class="unblock">
+        <a href="#">
+            <!--                <img class="link" border="0" alt="Cancel" src="$context/images/cancel.png">-->
+            <span>Cancel</span>
+        </a>
+    </div>
     $moveNodePanel
-    </div>
-    #end
+</div>
+#end
 
-    #if ($uploadPanel)
-    <div class="fakeBtn" id="toggleUploadForm"><a href="#"><img alt="Upload" src="$context/images/folder_add.png"><span>Upload</span><img alt="Expand" class="expand" src="$context/images/bullet_arrow_down.png"></a></div>
-    <div class="nodeActionMenu" id="uploadForm">
-        <div class="unblock">
-            <a href="#">
-<!--                <img class="link" border="0" alt="Cancel" src="$context/images/cancel.png">-->
-                <span>Cancel</span>
-            </a>
-        </div>
+#if ($uploadPanel)
+<div class="fakeBtn" id="toggleUploadForm"><a href="#"><img alt="Upload" src="$context/images/folder_add.png"><span>Upload</span><img alt="Expand" class="expand" src="$context/images/bullet_arrow_down.png"></a></div>
+<div class="nodeActionMenu" id="uploadForm">
+    <div class="unblock">
+        <a href="#">
+            <!--                <img class="link" border="0" alt="Cancel" src="$context/images/cancel.png">-->
+            <span>Cancel</span>
+        </a>
+    </div>
     $uploadPanel
-    </div>
-    #end
+</div>
+#end
 
-    #if ($extractNodePanel)
-    <div class="fakeBtn" id="toggleExtractNodeForm"><a href="#"><img alt="Upload" src="$context/images/compress.png"><span>Extract</span><img alt="Expand" class="expand" src="$context/images/bullet_arrow_down.png"></a></div>
-    <div class="nodeActionMenu" id="extractNodeForm">
-        <div class="unblock">
-            <a href="#">
-<!--                <img class="link" border="0" alt="Cancel" src="$context/images/cancel.png">-->
-                <span>Cancel</span>
-            </a>
-        </div>
+#if ($extractNodePanel)
+<div class="fakeBtn" id="toggleExtractNodeForm"><a href="#"><img alt="Upload" src="$context/images/compress.png"><span>Extract</span><img alt="Expand" class="expand" src="$context/images/bullet_arrow_down.png"></a></div>
+<div class="nodeActionMenu" id="extractNodeForm">
+    <div class="unblock">
+        <a href="#">
+            <!--                <img class="link" border="0" alt="Cancel" src="$context/images/cancel.png">-->
+            <span>Cancel</span>
+        </a>
+    </div>
     $extractNodePanel
-    </div>
-    #end
+</div>
+#end
 
-    #if ($newRelationshipPanel)
-    <div class="fakeBtn" id="toggleNewRelationshipForm"><a href="#"><img alt="Link" src="$context/images/add_linked.png"><span>Link</span><img alt="Expand" class="expand" src="$context/images/bullet_arrow_down.png"></a></div>
-    <div class="nodeActionMenu" id="newRelationshipForm">
-        <div class="unblock">
-            <a href="#">
-<!--                <img class="link" border="0" alt="Create Node" src="$context/images/cancel.png">-->
-                <span>Cancel</span>
-            </a>
-        </div>
+#if ($newRelationshipPanel)
+<div class="fakeBtn" id="toggleNewRelationshipForm"><a href="#"><img alt="Link" src="$context/images/add_linked.png"><span>Link</span><img alt="Expand" class="expand" src="$context/images/bullet_arrow_down.png"></a></div>
+<div class="nodeActionMenu" id="newRelationshipForm">
+    <div class="unblock">
+        <a href="#">
+            <!--                <img class="link" border="0" alt="Create Node" src="$context/images/cancel.png">-->
+            <span>Cancel</span>
+        </a>
+    </div>
     $newRelationshipPanel
-    </div>
-    #end
+</div>
+#end
 
-    #* commented out
-    #if ($editPropertiesPanel)
-    <div class="fakeBtn" id="toggleEditPropertiesForm"><a href="#"><img alt="Properties" src="$context/images/table_edit.png"><span>Properties</span><img alt="Expand" class="expand" src="$context/images/bullet_arrow_down.png"></a></div>
-    <div class="nodeActionMenu" id="editPropertiesForm">
-        <div class="unblock">
-            <a href="#">
-<!--                <img class="link" border="0" alt="Create Node" src="$context/images/cancel.png">-->
-                <span>Cancel</span>
-            </a>
-        </div>
+#* commented out
+#if ($editPropertiesPanel)
+<div class="fakeBtn" id="toggleEditPropertiesForm"><a href="#"><img alt="Properties" src="$context/images/table_edit.png"><span>Properties</span><img alt="Expand" class="expand" src="$context/images/bullet_arrow_down.png"></a></div>
+<div class="nodeActionMenu" id="editPropertiesForm">
+    <div class="unblock">
+        <a href="#">
+            <!--                <img class="link" border="0" alt="Create Node" src="$context/images/cancel.png">-->
+            <span>Cancel</span>
+        </a>
+    </div>
     $editPropertiesPanel
+</div>
+#end
+*#
+
+
+#if ($deleteNodePanel)
+<div class="fakeBtn" id="toggleDeleteNodeForm"><a href="#"><img alt="Delete" src="$context/images/delete.png"><span>Delete</span><img alt="Expand" class="expand" src="$context/images/bullet_arrow_down.png"></a></div>
+<div class="nodeActionMenu" id="deleteNodeForm">
+    <div class="unblock">
+        <a href="#">
+            <!--                <img class="link" border="0" alt="Cancel" src="$context/images/cancel.png">-->
+            <span>Cancel</span>
+        </a>
     </div>
-    #end
-    *#
-
-
-    #if ($deleteNodePanel)
-    <div class="fakeBtn" id="toggleDeleteNodeForm"><a href="#"><img alt="Delete" src="$context/images/delete.png"><span>Delete</span><img alt="Expand" class="expand" src="$context/images/bullet_arrow_down.png"></a></div>
-    <div class="nodeActionMenu" id="deleteNodeForm">
-        <div class="unblock">
-            <a href="#">
-<!--                <img class="link" border="0" alt="Cancel" src="$context/images/cancel.png">-->
-                <span>Cancel</span>
-            </a>
-        </div>
     $deleteNodePanel
-    </div>
-    #end
-
-</td><td>
-
-    #if ($renderMode != "inline" && $simpleSearchPanel)
-    <div class="search">$simpleSearchPanel</div>
-    #end
-
-</td><td>
-
-    #if ($userName)
-    <div class="util">
-        <img alt="$userName" title="$userName" src="$contextPath/images/user.png"> $userName
-        <span class="spacer">&nbsp;</span>
-        <img alt="Logout" title="Logout" src="$contextPath/images/door_out.png"> $logoutLink
-    </div>
-    #end
-</td></tr></table>
+</div>
+#end

@@ -125,7 +125,7 @@ public class Report extends Nodes {
         reportTable.setShowBanner(true);
         reportTable.setPageSize(DEFAULT_PAGESIZE);
 //        reportTable.getControlLink().setParameter(AbstractNode.NODE_ID_KEY, getNodeId());
-        reportTable.setClass(Table.CLASS_SIMPLE);
+        reportTable.setClass(TABLE_CLASS);
 
         populateTypeSelectField();
 

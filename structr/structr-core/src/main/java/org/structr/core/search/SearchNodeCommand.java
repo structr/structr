@@ -409,13 +409,15 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
         // Expand key,word to ' (key:word* OR key:"word") '
 
+        int i=1;
         for (String word : words) {
 
-            result += " (" + key + ":" + word + "* OR " + key + ":\"" + word + "\") OR ";
+            String cleanWord = Search.normalize(word);
+
+            result += " (" + key + ":" + cleanWord + "* OR " + key + ":\"" + cleanWord + "\")" + (i<words.length ? " AND " : " ) ");
+            i++;
 
         }
-
-        result += key + ":\"" + value + "\" ) ";
 
         return result;
     }

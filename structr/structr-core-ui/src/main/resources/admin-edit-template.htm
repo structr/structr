@@ -15,23 +15,17 @@
 
             <!--            <div class="structr"><span class="structrCap">s</span>tructr</div>-->
 
-        </div>
-        #end
+    #if ($renderMode != "inline" && $simpleSearchPanel)
+    <div class="search">$simpleSearchPanel</div>
+    #end
 
-        #if ($actionsPanel)
-        <div class="actionsPanel">
-            <!--            #if ($viewLink)
-                        <span class="spacer">&nbsp;</span>
-                        <div class="fakeBtn $viewClass">$viewLink</div>
-                        #end
-
-                        #if ($editLink)
-                        <div class="fakeBtn $editClass">$editLink</div>
-                        <div class="panelSeparator"></div>
-                        #end-->
-            $actionsPanel
-
-<!--            <div class="info">STRUCTR v0.1</div>-->
+    #if ($userName)
+    <div class="util">
+        <img alt="$userName" title="$userName" src="$contextPath/images/user.png"> $userName
+        <span class="spacer">&nbsp;</span>
+        <img alt="Logout" title="Logout" src="$contextPath/images/door_out.png"> $logoutLink
+    </div>
+    #end
         </div>
         #end
 
@@ -109,6 +103,23 @@
                         #end
 
                     </ul>
+
+        #if ($actionsPanel)
+        <div class="actionsPanel">
+            <!--            #if ($viewLink)
+                        <span class="spacer">&nbsp;</span>
+                        <div class="fakeBtn $viewClass">$viewLink</div>
+                        #end
+
+                        #if ($editLink)
+                        <div class="fakeBtn $editClass">$editLink</div>
+                        <div class="panelSeparator"></div>
+                        #end-->
+            $actionsPanel
+
+<!--            <div class="info">STRUCTR v0.1</div>-->
+        </div>
+        #end
 
                     #if ($renditionPanel)
                     $renditionPanel

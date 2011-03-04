@@ -25,7 +25,7 @@ import org.apache.click.extras.control.LinkDecorator;
 import org.apache.click.util.Bindable;
 import org.apache.click.util.HtmlStringBuffer;
 import org.apache.commons.lang.StringUtils;
-import org.structr.common.Search;
+import org.structr.core.search.Search;
 import org.structr.core.search.SearchOperator;
 import org.structr.core.Command;
 import org.structr.core.Services;
@@ -226,7 +226,7 @@ public class SearchResults extends Nodes {
         searchResultsTable.setShowBanner(true);
         searchResultsTable.setPageSize(DEFAULT_PAGESIZE);
         searchResultsTable.getControlLink().setParameter(AbstractNode.NODE_ID_KEY, getNodeId());
-        searchResultsTable.setClass(Table.CLASS_SIMPLE);
+        searchResultsTable.setClass(TABLE_CLASS);
 
     }
 

@@ -122,7 +122,7 @@ public class DefaultEdit extends Nodes {
 
         titlesTable.addColumn(new Column(AbstractNode.TITLE_KEY, "Title"));
         titlesTable.addColumn(new Column(Title.LOCALE_KEY, "Locale"));
-        titlesTable.setClass(Table.CLASS_SIMPLE);
+        titlesTable.setClass(TABLE_CLASS);
         nodePropertiesFields.add(titlesTable);
 
         editPropertiesForm.add(nodePropertiesFields);
@@ -277,7 +277,7 @@ public class DefaultEdit extends Nodes {
             childNodesTable.setShowBanner(true);
             childNodesTable.setPageSize(DEFAULT_PAGESIZE);
             childNodesTable.getControlLink().setParameter(AbstractNode.NODE_ID_KEY, getNodeId());
-            childNodesTable.setClass(Table.CLASS_SIMPLE);
+            childNodesTable.setClass(TABLE_CLASS);
             addControl(childNodesTable);
 
 
@@ -357,7 +357,7 @@ public class DefaultEdit extends Nodes {
             incomingRelationshipsTable.addColumn(actionColumnIn);
             incomingRelationshipsTable.setPageSize(DEFAULT_PAGESIZE);
             incomingRelationshipsTable.getControlLink().setParameter(AbstractNode.NODE_ID_KEY, getNodeId());
-            incomingRelationshipsTable.setClass(Table.CLASS_SIMPLE);
+            incomingRelationshipsTable.setClass(TABLE_CLASS);
             addControl(incomingRelationshipsTable);
             // ------------------ incoming relationships end ---------------------
 
@@ -423,7 +423,7 @@ public class DefaultEdit extends Nodes {
             outgoingRelationshipsTable.addColumn(actionColumnOut);
             outgoingRelationshipsTable.setPageSize(DEFAULT_PAGESIZE);
             outgoingRelationshipsTable.getControlLink().setParameter(AbstractNode.NODE_ID_KEY, getNodeId());
-            outgoingRelationshipsTable.setClass(Table.CLASS_SIMPLE);
+            outgoingRelationshipsTable.setClass(TABLE_CLASS);
             addControl(outgoingRelationshipsTable);
 
             editRelationshipsPanel = new Panel("editRelationshipsPanel", "/panel/edit-relationships-panel.htm");
@@ -463,7 +463,7 @@ public class DefaultEdit extends Nodes {
             nameColumn.setDecorator(nameDec);
             securityTable.addColumn(nameColumn);
             securityTable.addColumn(new Column(StructrRelationship.ALLOWED_KEY));
-            securityTable.setClass(Table.CLASS_SIMPLE);
+            securityTable.setClass(TABLE_CLASS);
 
             securityForm.add(securityTable);
 

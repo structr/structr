@@ -23,7 +23,7 @@ import org.apache.click.util.Bindable;
 import org.apache.click.extras.tree.Tree;
 import org.apache.click.extras.tree.TreeNode;
 import org.apache.commons.lang.ArrayUtils;
-import org.structr.common.Search;
+import org.structr.core.search.Search;
 import org.structr.context.SessionMonitor;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Link;
@@ -39,7 +39,9 @@ import org.structr.ui.page.StructrPage;
 public class Admin extends StructrPage {
 
     private static final Logger logger = Logger.getLogger(Admin.class.getName());
-    
+
+    protected static final String TABLE_CLASS = "structr";
+
     // TODO: move to global configuration
     public static final Integer THUMBNAIL_WIDTH = 100;
     public static final Integer THUMBNAIL_HEIGHT = 100;

@@ -57,7 +57,7 @@ public class LoginPage extends Admin {
         //loginForm.add(new TextField(DOMAIN_KEY, true));
         loginForm.add(new TextField(USERNAME_KEY, "Username", 20, true));
         loginForm.add(new PasswordField(PASSWORD_KEY, "Password", 20, true));
-        loginForm.add(new Submit("login", "Login", this, "onLogin"));
+        loginForm.add(new Submit("login", "Login Now!", this, "onLogin"));
         addControl(loginForm);
         addControl(loginPanel);
 

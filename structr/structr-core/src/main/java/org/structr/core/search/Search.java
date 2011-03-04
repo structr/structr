@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.structr.common;
+package org.structr.core.search;
 
 import org.structr.core.search.SearchOperator;
 import java.text.Normalizer;
@@ -124,21 +124,24 @@ public abstract class Search {
         return result;
     }
 
-    private static String normalize(final String input) {
+    public static String normalize(final String input) {
         String output = Normalizer.normalize(input, Form.NFD);
         output = StringUtils.trim(output);
-        output = StringUtils.lowerCase(output);
+//        output = StringUtils.lowerCase(output);
+        output = StringUtils.replace(output, "\"", "");
         output = StringUtils.replace(output, "´", "");
         output = StringUtils.replace(output, "`", "");
         output = StringUtils.replace(output, "^", "");
         output = StringUtils.replace(output, "'", "");
         output = StringUtils.replace(output, ".", "");
         output = StringUtils.replace(output, ",", "");
-        output = StringUtils.replace(output, " ", "");
         output = StringUtils.replace(output, "-", "");
         output = StringUtils.replace(output, "+", "");
         output = StringUtils.replace(output, "(", "");
         output = StringUtils.replace(output, ")", "");
+        output = StringUtils.replace(output, "=", "");
+        output = StringUtils.replace(output, ":", "");
+        output = StringUtils.replace(output, "~", "");
         return output;
     }
 

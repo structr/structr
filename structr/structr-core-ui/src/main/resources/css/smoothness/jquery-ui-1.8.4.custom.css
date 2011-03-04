@@ -58,19 +58,21 @@
 /* Interaction states
 ----------------------------------*/
 .ui-state-default, .ui-widget-content .ui-state-default, .ui-widget-header .ui-state-default {
-    border: 1px solid #bcbcbc;
-    background: -webkit-gradient(linear, left top, left bottom, from(#e5e5e5), to(#bcbcbc)) no-repeat;
-    background-image: -moz-linear-gradient(top, #e5e5e5, #bcbcbc);
+/*    border: 1px solid #bcbcbc;*/
+    background-color: #c9c9c9;
+    background: -webkit-gradient(linear, left bottom, left top, from(#747474), to(#ededed));
+    background: -moz-linear-gradient(90deg, #747474, #ededed);
     filter: progid:DXImageTransform.Microsoft.Gradient(
-        StartColorStr='#e5e5e5', EndColorStr='#bcbcbc', GradientType=0);
-    background-color: #ccc;
+        StartColorStr='#747474', EndColorStr='#ededed', GradientType=0);
+/*    background-color: #c9c9c9;*/
+
 /*    box-shadow: 1px 1px 3px #ccc;
     -webkit-box-shadow: 1px 1px 3px #ccc;
     -moz-box-shadow: 1px 1px 3px #ccc;*/
 }
-/*.ui-state-default a, .ui-state-default a:link, .ui-state-default a:visited { color: #555555; text-decoration: none; }*/
+/*.ui-state-default a, .ui-state-default a:link, .ui-state-default a:visited { color: #000; text-decoration: none; }*/
 .ui-state-hover, .ui-widget-content .ui-state-hover, .ui-widget-header .ui-state-hover, .ui-state-focus, .ui-widget-content .ui-state-focus, .ui-widget-header .ui-state-focus {
-    border: 1px solid #bcbcbc;
+/*    border: 1px solid #bcbcbc;*/
     background: -webkit-gradient(linear, left top, left bottom, from(#fff), to(#bcbcbc)) no-repeat;
     background-image: -moz-linear-gradient(top, #fff, #bcbcbc);
     filter: progid:DXImageTransform.Microsoft.Gradient(
@@ -80,37 +82,45 @@
     -webkit-box-shadow: 1px 1px 1px #ccc;
     -moz-box-shadow: 1px 1px 1px #ccc;*/
 }
-/*.ui-state-hover a, .ui-state-hover a:hover { color: #212121; text-decoration: none; }*/
+.ui-state-hover a, .ui-state-hover a:hover { color: #444; text-decoration: none; }
+
 .ui-state-active, .ui-widget-content .ui-state-active, .ui-widget-header .ui-state-active {
-    border: 1px solid #bcbcbc;
+    background-color: #616161;
+    background: -webkit-gradient(linear, left bottom, left top, from(rgba(96,96,96,.95)), to(rgba(128,128,128,.95))) no-repeat;
+    background: -moz-linear-gradient(-90deg, rgba(112,112,112,.95), rgba(96,96,96,.95)) no-repeat;
+    filter: progid:DXImageTransform.Microsoft.Gradient(
+        StartColorStr='#333333', EndColorStr='#616161', GradientType=0);
+    box-shadow: 0px 0px 6px #616161;
+    -webkit-box-shadow: 0px 0px 6px #717171;
+    -moz-box-shadow: 0px 0px 6px #616161;
+/*    border: 1px solid #bcbcbc;
     background: -webkit-gradient(linear, left top, left bottom, from(#fff), to(#f5f5f5)) no-repeat;
     background-image: -moz-linear-gradient(top, #fff, #f5f5f5);
     filter: progid:DXImageTransform.Microsoft.Gradient(
         StartColorStr='#ffffff', EndColorStr='#f5f5f5', GradientType=0);
-    background-color: #f9f9f9;
+    background-color: #f9f9f9;*/
 /*    box-shadow: 1px 1px 4px #ccc;
     -webkit-box-shadow: 1px 1px 4px #ccc;
     -moz-box-shadow: 1px 1px 4px #ccc;*/
+
 }
-.ui-state-active a, .ui-state-active a:link, .ui-state-active a:visited { color: #212121; text-decoration: none; }
+.ui-state-active a, .ui-state-active a:link, .ui-state-active a:visited { color: #ededed; text-decoration: none; }
 .ui-widget :active { outline: none; }
-
-
 
 
 /* Misc visuals
 ----------------------------------*/
 
 /* Corner radius */
-.ui-corner-tl { -moz-border-radius-topleft: 4px; -webkit-border-top-left-radius: 4px; border-top-left-radius: 4px; }
-.ui-corner-tr { -moz-border-radius-topright: 4px; -webkit-border-top-right-radius: 4px; border-top-right-radius: 4px; }
-.ui-corner-bl { -moz-border-radius-bottomleft: 4px; -webkit-border-bottom-left-radius: 4px; border-bottom-left-radius: 4px; }
-.ui-corner-br { -moz-border-radius-bottomright: 4px; -webkit-border-bottom-right-radius: 4px; border-bottom-right-radius: 4px; }
-.ui-corner-top { -moz-border-radius-topleft: 4px; -webkit-border-top-left-radius: 4px; border-top-left-radius: 4px; -moz-border-radius-topright: 4px; -webkit-border-top-right-radius: 4px; border-top-right-radius: 4px; }
-.ui-corner-bottom { -moz-border-radius-bottomleft: 4px; -webkit-border-bottom-left-radius: 4px; border-bottom-left-radius: 4px; -moz-border-radius-bottomright: 4px; -webkit-border-bottom-right-radius: 4px; border-bottom-right-radius: 4px; }
-.ui-corner-right {  -moz-border-radius-topright: 4px; -webkit-border-top-right-radius: 4px; border-top-right-radius: 4px; -moz-border-radius-bottomright: 4px; -webkit-border-bottom-right-radius: 4px; border-bottom-right-radius: 4px; }
-.ui-corner-left { -moz-border-radius-topleft: 4px; -webkit-border-top-left-radius: 4px; border-top-left-radius: 4px; -moz-border-radius-bottomleft: 4px; -webkit-border-bottom-left-radius: 4px; border-bottom-left-radius: 4px; }
-.ui-corner-all { -moz-border-radius: 4px; -webkit-border-radius: 4px; border-radius: 4px; }
+.ui-corner-tl { -moz-border-radius-topleft: 3px; -webkit-border-top-left-radius: 3px; border-top-left-radius: 3px; }
+.ui-corner-tr { -moz-border-radius-topright: 3px; -webkit-border-top-right-radius: 3px; border-top-right-radius: 3px; }
+.ui-corner-bl { -moz-border-radius-bottomleft: 3px; -webkit-border-bottom-left-radius: 3px; border-bottom-left-radius: 3px; }
+.ui-corner-br { -moz-border-radius-bottomright: 3px; -webkit-border-bottom-right-radius: 3px; border-bottom-right-radius: 3px; }
+.ui-corner-top { -moz-border-radius-topleft: 3px; -webkit-border-top-left-radius: 3px; border-top-left-radius: 3px; -moz-border-radius-topright: 3px; -webkit-border-top-right-radius: 3px; border-top-right-radius: 3px; }
+.ui-corner-bottom { -moz-border-radius-bottomleft: 3px; -webkit-border-bottom-left-radius: 3px; border-bottom-left-radius: 3px; -moz-border-radius-bottomright: 3px; -webkit-border-bottom-right-radius: 3px; border-bottom-right-radius: 3px; }
+.ui-corner-right {  -moz-border-radius-topright: 3px; -webkit-border-top-right-radius: 3px; border-top-right-radius: 3px; -moz-border-radius-bottomright: 3px; -webkit-border-bottom-right-radius: 3px; border-bottom-right-radius: 3px; }
+.ui-corner-left { -moz-border-radius-topleft: 3px; -webkit-border-top-left-radius: 3px; border-top-left-radius: 3px; -moz-border-radius-bottomleft: 3px; -webkit-border-bottom-left-radius: 3px; border-bottom-left-radius: 3px; }
+.ui-corner-all { -moz-border-radius: 3px; -webkit-border-radius: 3px; border-radius: 3px; }
 /*
  * jQuery UI Tabs @VERSION
  *
@@ -121,29 +131,34 @@
  * http://docs.jquery.com/UI/Tabs#theming
  */
 /*.ui-tabs { position: relative; padding: .2em; zoom: 1; }  position: relative prevents IE scroll bug (element with position: relative inside container with overflow: auto appear as "fixed") */
-.ui-tabs .ui-tabs-nav { margin: 0; 
+.ui-tabs .ui-tabs-nav { margin: 0;
 /*              padding: .2em .2em 0;*/
 
 }
-.ui-tabs .ui-tabs-nav li { list-style: none; float: left; position: relative; top: 1px; margin: 0 .2em 1px 0; border-bottom: 0 !important; padding: 0; white-space: nowrap; }
-.ui-tabs .ui-tabs-nav li a { float: left; padding: .25em 1em; text-decoration: none; }
-.ui-tabs .ui-tabs-nav li a:hover { color: #000; }
-.ui-tabs .ui-tabs-nav li.ui-tabs-selected { margin-bottom: 0; padding-bottom: 1px; }
+.ui-tabs .ui-tabs-nav li { list-style: none; float: left; position: relative; top: 0px; margin: 0 .2em 0px 0; border-bottom: 0 !important; padding: 0; white-space: nowrap; }
+.ui-tabs .ui-tabs-nav li a { float: left; padding: .5em 1.25em; text-decoration: none; }
+/*.ui-tabs .ui-tabs-nav li a:hover { color: #333; }*/
+/*.ui-tabs .ui-tabs-nav li.ui-tabs-selected { margin-bottom: 0; padding-bottom: 1px; }*/
 .ui-tabs .ui-tabs-nav li.ui-tabs-selected a, .ui-tabs .ui-tabs-nav li.ui-state-disabled a, .ui-tabs .ui-tabs-nav li.ui-state-processing a { cursor: text; }
 .ui-tabs .ui-tabs-nav li a, .ui-tabs.ui-tabs-collapsible .ui-tabs-nav li.ui-tabs-selected a { cursor: pointer; } /* first selector in group seems obsolete, but required to overcome bug in Opera applying cursor: text overall if defined elsewhere... */
 .ui-tabs .ui-tabs-panel {
     display: block; border-width: 0; padding: 1em 1.4em;
-    background: #f5f5f5;
-    border: 1px solid #bcbcbc;
-    border-radius: 4px;
-    -moz-border-radius: 4px;
-    -webkit-border-radius: 4px;
-    box-shadow: 1px 1px 4px #ccc;
-    -webkit-box-shadow: 1px 1px 4px #ccc;
-    -moz-box-shadow: 1px 1px 4px #ccc;
-    border: 1px solid #bcbcbc;
+/*    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;*/
+    box-shadow: 0px 0px 6px #616161;
+    -webkit-box-shadow: 0px 0px 5px #717171;
+    -moz-box-shadow: 0px 0px 6px #616161;
+    /*    border: 1px solid #aaa;*/
+    background-color: #616161;
+    background: -webkit-gradient(linear, left bottom, left top, from(rgba(48,48,48,.95)), to(rgba(96,96,96,.95))) no-repeat;
+    background: -moz-linear-gradient(-90deg, rgba(96,96,96,.95), rgba(48,48,48,.95)) no-repeat;
+    filter: progid:DXImageTransform.Microsoft.Gradient(
+        StartColorStr='#333333', EndColorStr='#616161', GradientType=0);
+    /*    background-color: #555555;*/
+/*
     border-top-left-radius: 0;
     -moz-border-radius-topleft: 0;
-    -webkit-border-top-left-radius: 0;
+    -webkit-border-top-left-radius: 0;*/
 }
 .ui-tabs .ui-tabs-hide { display: none !important; }

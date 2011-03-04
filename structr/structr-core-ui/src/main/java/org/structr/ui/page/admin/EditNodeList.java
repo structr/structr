@@ -31,7 +31,7 @@ public class EditNodeList extends DefaultEdit {
         childNodesTable.setSortable(true);
         childNodesTable.setShowBanner(true);
         childNodesTable.setPageSize(DEFAULT_PAGESIZE);
-        childNodesTable.setClass(Table.CLASS_SIMPLE);
+        childNodesTable.setClass(TABLE_CLASS);
         childNodesTable.setSortedColumn(AbstractNode.NODE_ID_KEY);
         childNodesTable.setHoverRows(true);
         addControl(childNodesTable);

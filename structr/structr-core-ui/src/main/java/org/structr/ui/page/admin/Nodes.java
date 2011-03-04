@@ -318,7 +318,7 @@ public class Nodes extends Admin {
 
         // create and assemble table
         propertiesTable = new FormTable("propertiesTable", form);
-        propertiesTable.setClass(Table.CLASS_SIMPLE);
+        propertiesTable.setClass(TABLE_CLASS);
 
         FieldColumn column = new FieldColumn(KEY_KEY, new TextField());
         column.getField().setRequired(true);
