@@ -4,7 +4,10 @@
  */
 package org.structr.core.node;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.graphdb.Relationship;
 import org.structr.core.UnsupportedArgumentError;
 import org.structr.core.entity.StructrRelationship;
@@ -14,6 +17,8 @@ import org.structr.core.entity.StructrRelationship;
  * @author cmorgner
  */
 public class DeleteRelationshipCommand extends NodeServiceCommand {
+
+    private static final Logger logger = Logger.getLogger(DeleteRelationshipCommand.class.getName());
 
     @Override
     public Object execute(Object... parameters) {
@@ -35,34 +40,41 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
         }
         setExitCode(exitCode.FAILURE);
         setErrorMessage("Too many arguments, or database was null");
-        
+
         return ret;
     }
 
     // <editor-fold defaultstate="collapsed" desc="private methods">
     private Object handleSingleArgument(GraphDatabaseService graphDb, Object argument) {
 
+        setExitCode(exitCode.FAILURE);
+
+        Relationship rel = null;
         if (argument instanceof Long) {
 
             // single long value: find node by id
             long id = ((Long) argument).longValue();
 
-            Relationship rel = graphDb.getRelationshipById(id);
-
-            if (rel != null) {
-                rel.delete();
+            try {
+                rel = graphDb.getRelationshipById(id);
+            } catch (NotFoundException nfe) {
+                logger.log(Level.SEVERE, "Relationship {0} not found, unable to delete.", id);
             }
+
         } else if (argument instanceof StructrRelationship) {
 
-            StructrRelationship rel = (StructrRelationship) argument;
-            rel.getRelationship().delete();
-            
+            StructrRelationship r = (StructrRelationship) argument;
+            rel = r.getRelationship();
+
         } else if (argument instanceof Relationship) {
 
-            Relationship rel = (Relationship) argument;
-            rel.delete();
+            rel = (Relationship) argument;
         }
-        setExitCode(exitCode.SUCCESS);
+
+        if (rel != null) {
+            rel.delete();
+            setExitCode(exitCode.SUCCESS);
+        }
 
         return null;
     }

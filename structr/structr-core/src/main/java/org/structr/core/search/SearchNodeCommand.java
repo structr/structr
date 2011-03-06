@@ -170,19 +170,19 @@ public class SearchNodeCommand extends NodeServiceCommand {
             } else {
 
                 long t0 = System.currentTimeMillis();
-                logger.log(Level.INFO, "Textual Query String: {0}", textualQueryString);
+                logger.log(Level.FINE, "Textual Query String: {0}", textualQueryString);
 
                 IndexHits hits = index.query(new QueryContext(textualQueryString));//.sort("name"));
 
                 long t1 = System.currentTimeMillis();
-                logger.log(Level.INFO, "Querying index took {0} ms, {1} results retrieved.", new Object[]{t1 - t0, hits.size()});
+                logger.log(Level.FINE, "Querying index took {0} ms, {1} results retrieved.", new Object[]{t1 - t0, hits.size()});
 
 
 //            IndexHits hits = index.query(new QueryContext(query.toString()));//.sort("name"));
                 intermediateResult = nodeFactory.createNodes(hits, includeDeleted);
 
                 long t2 = System.currentTimeMillis();
-                logger.log(Level.INFO, "Creating structr nodes took {0} ms, {1} nodes made.", new Object[]{t2 - t1, intermediateResult.size()});
+                logger.log(Level.FINE, "Creating structr nodes took {0} ms, {1} nodes made.", new Object[]{t2 - t1, intermediateResult.size()});
             }
 
             long t2 = System.currentTimeMillis();
@@ -311,7 +311,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
                 }
             }
             long t3 = System.currentTimeMillis();
-            logger.log(Level.INFO, "Filtering nodes took {0} ms. Result size now {1}.", new Object[]{t3 - t2, result.size()});
+            logger.log(Level.FINE, "Filtering nodes took {0} ms. Result size now {1}.", new Object[]{t3 - t2, result.size()});
 
             //result = new ArrayList(intermediateResult);
         }

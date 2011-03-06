@@ -113,6 +113,10 @@ public class Maintenance extends Admin {
     protected Map<String, Long> nodesHistogram = new HashMap<String, Long>();
 //    @Bindable
 //    protected FieldSet statsFields = new FieldSet("statsFields", "Statistics");
+    @Override
+    public String getTemplate() {
+        return "/admin/maintenance.htm";
+    }
 
     public Maintenance() {
 
@@ -163,7 +167,7 @@ public class Maintenance extends Admin {
         sessionsTable.setPageSize(5);
         sessionsTable.setHoverRows(true);
         sessionsTable.setShowBanner(true);
-        sessionsTable.setClass(Table.CLASS_COMPLEX);
+        sessionsTable.setClass(TABLE_CLASS);
 
         activitiesTable.addColumn(new Column(Activity.OWNER_KEY, "User"));
         activitiesTable.addColumn(new Column(Activity.NODE_ID_KEY));
@@ -183,12 +187,12 @@ public class Maintenance extends Admin {
         activitiesTable.setPageSize(15);
         activitiesTable.setHoverRows(true);
         activitiesTable.setShowBanner(true);
-        activitiesTable.setClass(Table.CLASS_COMPLEX);
+        activitiesTable.setClass(TABLE_CLASS);
 
         servicesTable.addColumn(new Column("Name"));
         servicesTable.addColumn(new Column("isRunning", "Running"));
         servicesTable.setSortable(true);
-        servicesTable.setClass(Table.CLASS_COMPLEX);
+        servicesTable.setClass(TABLE_CLASS);
 
 //        taskQueueTable.addColumn(new Column("type"));
 //        taskQueueTable.addColumn(new Column("user"));
@@ -199,21 +203,21 @@ public class Maintenance extends Admin {
 //        taskQueueTable.setPageSize(15);
 //        taskQueueTable.setHoverRows(true);
 //        taskQueueTable.setShowBanner(true);
-//        taskQueueTable.setClass(Table.CLASS_COMPLEX);
+//        taskQueueTable.setClass(TABLE_CLASS);
 
         initValuesTable.addColumn(new Column("key", "Parameter"));
         initValuesTable.addColumn(new Column("value", "Value"));
         initValuesTable.setSortable(true);
-        initValuesTable.setClass(Table.CLASS_COMPLEX);
+        initValuesTable.setClass(TABLE_CLASS);
 
         runtimeValuesTable.addColumn(new Column("key", "Parameter"));
         runtimeValuesTable.addColumn(new Column("value", "Value"));
         runtimeValuesTable.setSortable(true);
-        runtimeValuesTable.setClass(Table.CLASS_COMPLEX);
+        runtimeValuesTable.setClass(TABLE_CLASS);
 
         modulesTable.addColumn(new Column("toString", "Name"));
         modulesTable.setSortable(true);
-        modulesTable.setClass(Table.CLASS_COMPLEX);
+        modulesTable.setClass(TABLE_CLASS);
 
         Column iconCol = new Column("iconSrc", "Icon");
         iconCol.setDecorator(new Decorator() {
@@ -233,7 +237,7 @@ public class Maintenance extends Admin {
         registeredClassesTable.setSortedColumn("name");
         registeredClassesTable.setHoverRows(true);
         registeredClassesTable.setShowBanner(true);
-        registeredClassesTable.setClass(Table.CLASS_COMPLEX);
+        registeredClassesTable.setClass(TABLE_CLASS);
 
         allNodesTable.addColumn(new Column(AbstractNode.NODE_ID_KEY));
         allNodesTable.addColumn(new Column(AbstractNode.NAME_KEY));
@@ -248,7 +252,7 @@ public class Maintenance extends Admin {
         allNodesTable.setPageSize(15);
         allNodesTable.setHoverRows(true);
         allNodesTable.setShowBanner(true);
-        allNodesTable.setClass(Table.CLASS_COMPLEX);
+        allNodesTable.setClass(TABLE_CLASS);
 
     }
 

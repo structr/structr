@@ -31,6 +31,10 @@ body {
     background: url('../images/processing.png') top center no-repeat;
 }
 
+tt, tt *, pre, pre *, code, code * {
+    font-family: "Liberation Mono", "DejaVu Sans Mono", Consolas, Monaco, "Vera Sans Mono", "Lucida Console", "Courier New", monospace !important;
+}
+
 a, a:link, a:visited {
     color: #333;
     text-decoration: none;
@@ -165,31 +169,14 @@ span.required {
 }
 
 #main {
-    border: none;
-    border-collapse: collapse;
+    /*    border: none;
+        border-collapse: collapse;*/
     padding: 0;
-    margin: 0;
+    /*    margin: 0 auto;*/
     /*    height: 500px;*/
-    width: 100%;
-    /*    height: 100%;*/
-    /*    position: relative;*/
-    /*    background: #fff;*/
-    /*    border-radius: 0.25em;
-        -moz-border-radius: 0.25em;
-        -webkit-border-radius: 0.25em;
-        box-shadow: 1px 1px 8px #ccc;
-        -webkit-box-shadow: 1px 1px 8px #ccc;
-        -moz-box-shadow: 1px 1px 8px #ccc;
-        border: 1px solid #bcbcbc;*/
-    /*    overflow: auto;*/
-}
-
-#main td {
-    vertical-align: top;
-    padding: 0;
-    margin: 0;
-    height: 100%;
-    /*    overflow: auto;*/
+    /*    width: 100%;*/
+    min-height: 200px;
+    margin: 0 10%;
 }
 
 #header {
@@ -219,12 +206,17 @@ span.required {
 }
 
 #nodeTree {
-    /*    float: left;*/
-    /*    overflow: auto;*/
-    /*    padding-right: 8px;*/
-    /*    width: 200px;*/
-    /*    height: 600px;*/
+    float: left;
+    overflow: auto;
+    padding: 8px;
+    width: 200px;
+/*    min-height: 600px;*/
     padding-right: 8px;
+    margin: 10px;
+    background-color: #fff;
+    box-shadow: inset 0px 0px 5px #333;
+    -webkit-box-shadow: inset 0px 0px 4px #393939;
+    -moz-box-shadow: inset 0px 0px 5px #333;
 }
 
 #msg {
@@ -289,19 +281,19 @@ table.errors {
         background: -moz-linear-gradient(90deg, #ccb5b5, #ffe8e8);
         filter: progid:DXImageTransform.Microsoft.Gradient(
             StartColorStr='#ffe8e8', EndColorStr='#ccb5b5', GradientType=0);*/
-        border-collapse: separate ! important;
+    border-collapse: separate ! important;
     /*    border: none;*/
     /*    border-radius: 3px;
         -moz-border-radius: 3px;
         -webkit-border-radius: 3px;*/
     /*    margin: 4px;
         width: 202px;*/
-/*    box-shadow: 0px 0px 8px #111;
-    -webkit-box-shadow: 0px 0px 7px #202020;
-    -moz-box-shadow: 0px 0px 8px #111;
-    border-radius: 3px;
-    -moz-border-radius: 3px;
-    -webkit-border-radius: 3px;*/
+    /*    box-shadow: 0px 0px 8px #111;
+        -webkit-box-shadow: 0px 0px 7px #202020;
+        -moz-box-shadow: 0px 0px 8px #111;
+        border-radius: 3px;
+        -moz-border-radius: 3px;
+        -webkit-border-radius: 3px;*/
 }
 
 .errors a,
@@ -367,7 +359,7 @@ span.spacer {
     -webkit-border-radius: 1px;
 }
 
-.panel {
+.outerBox {
     /*width: 25em;*/
     /*    float: left;*/
     padding: 1em 1.5em;
@@ -387,7 +379,7 @@ span.spacer {
     color: #ededed;
 }
 
-.panel h2 {
+.outerBox h2 {
     font-size: 1.5em;
     color: #ededed;
     /*    background: -webkit-gradient(linear, left bottom, left top, from(#cccccc), to(#ededed));
@@ -401,35 +393,35 @@ span.spacer {
         border-radius: .25em .25em 0 0;*/
 }
 
-.panel h2 img {
+.outerBox h2 img {
     vertical-align: top;
     margin-top: 2px;
 }
 
-.panel h3 {
+.outerBox h3 {
     padding: 0 .5em;
     /*margin: 0;*/
 }
 
-.panel p {
+.outerBox p {
     padding: 1px 4px;
 }
 
-.panel hr {
+.outerBox hr {
     margin: 1px 4px 0 4px;
     border: none;
     border-bottom: 1px solid #666;
 }
 /*
-.panel a,
-.panel a:link,
-.panel a:visited {
+.outerBox a,
+.outerBox a:link,
+.outerBox a:visited {
     color: #ededed;
     text-decoration: none;
 }
 
-.panel a:active,
-.panel a:hover {
+.outerBox a:active,
+.outerBox a:hover {
     color: #efefef;
     text-decoration: underline;
 }*/
@@ -785,7 +777,7 @@ div.fakeBtn.enabled {
     /*    padding-right: 10px;*/
     /*    z-index: 3;*/
     /*    position: absolute;*/
-    /*    float: left;*/
+    float: left;
     /*    padding-top: 6px;*/
     /*    padding-right: 10px;*/
 }
