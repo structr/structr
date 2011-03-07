@@ -113,21 +113,21 @@ span.required {
 .structrCap { color: #fff; }
 
 #login {
-    width: 284px;
+    width: 280px;
     margin: 0px auto 0 auto;
     padding-top: 210px;
 }
 
 #login input[type=submit] {
     margin-left: 144px;
-    width: 100px;
+    width: 108px;
     line-height: 1.5em;
     padding-bottom: 2px;
 }
 
 #login input[type=text],
 #login input[type=password] {
-    width: 184px;
+    width: 192px;
     margin: 0;
     line-height: 1.0em;
 }
@@ -171,12 +171,12 @@ span.required {
 #main {
     /*    border: none;
         border-collapse: collapse;*/
-    padding: 0;
+/*    padding: 0;*/
     /*    margin: 0 auto;*/
     /*    height: 500px;*/
     /*    width: 100%;*/
-    min-height: 200px;
-    margin: 0 10%;
+/*    min-height: 200px;*/
+    margin: 0 10px;
 }
 
 #header {
@@ -208,15 +208,55 @@ span.required {
 #nodeTree {
     float: left;
     overflow: auto;
-    padding: 8px;
-    width: 200px;
-/*    min-height: 600px;*/
-    padding-right: 8px;
-    margin: 10px;
-    background-color: #fff;
-    box-shadow: inset 0px 0px 5px #333;
+    width: 20%;
+    height: 600px;
+    background: -webkit-gradient(linear, left top, left bottom, from(#f5f5f5), to(#bbb)) no-repeat;
+    background-image: -moz-linear-gradient(top, #fff, #bbb);
+    filter: progid:DXImageTransform.Microsoft.Gradient(
+        StartColorStr='#ffffff', EndColorStr='#bbbbbb', GradientType=0);
+    background-color: #ddd;
+/*    box-shadow: inset 0px 0px 5px #333;
     -webkit-box-shadow: inset 0px 0px 4px #393939;
-    -moz-box-shadow: inset 0px 0px 5px #333;
+    -moz-box-shadow: inset 0px 0px 5px #333;*/
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+}
+
+#tabArea {
+    float: left;
+    overflow: auto;
+    width: 80%;
+/*    width: 100%;*/
+    height: 600px;
+    border: none;
+    background: transparent;
+    /*    padding-right: 10px;*/
+    /*    z-index: 3;*/
+    /*    position: absolute;*/
+    /*    padding-top: 6px;*/
+    /*    padding-right: 10px;*/
+}
+
+#tabArea ul:first-child {
+    /*    margin-left: -1px;*/
+}
+
+/*.tabArea {
+    left: 281px;
+}*/
+
+#tabArea a,
+#tabArea a:link,
+#tabArea a:visited {
+    color: #ededed;
+    text-decoration: none;
+}
+
+#tabArea a:active,
+#tabArea a:hover {
+    color: #efefef;
+    text-decoration: underline;
 }
 
 #msg {
@@ -362,7 +402,7 @@ span.spacer {
 .outerBox {
     /*width: 25em;*/
     /*    float: left;*/
-    padding: 1em 1.5em;
+    padding: 10px;
     background-color: #616161;
     border-radius: 3px;
     -moz-border-radius: 3px;
@@ -502,20 +542,26 @@ table#properties td:first-child {
 /** Overwrite tree style **/
 
 #tree {
+/*    overflow: auto;*/
     /*    background: #fff;
         -moz-border-radius: 0 0 .25em .25em;
         -webkit-border-radius: 0 0 .25em .25em;
         border-radius: 0 0 .25em .25em;*/
-    /*    overflow: hidden;*/
+/*    width: 160px;*/
+/*    padding: 8px 24px 4px 0px;*/
+/*    overflow: hidden;*/
 }
 
 .treestyle {
     white-space: nowrap;
     border: none;
+/*    width: 100%;
+    height: 100%;*/
+/*    overflow: hidden;*/
+/*    line-height: 2em;
+    padding-top: 2px;*/
     width: 100%;
-    overflow: hidden;
-    line-height: 1.5em;
-    padding-top: 2px;
+    overflow: visible ! important;
 }
 .treestyle a.public {
     color: #070 ! important;
@@ -710,7 +756,7 @@ a.fakeBtn:active, a.fakeBtn.active {
 
 div.fakeBtn.enabled {
     border: 1px solid #999;
-    background: -webkit-gradient(linear, left top, left bottom, from(#ccc), to(#)) no-repeat;
+    background: -webkit-gradient(linear, left top, left bottom, from(#ccc), to(#ddd)) no-repeat;
     background-image: -moz-linear-gradient(top, #ccc, #ddd);
     filter: progid:DXImageTransform.Microsoft.Gradient(
         StartColorStr='#cccccc', EndColorStr='#dddddd', GradientType=0);
@@ -767,40 +813,6 @@ div.fakeBtn.enabled {
 
 .ui-tabs .ui-tabs-hide {
     display: none;
-}
-
-#tabArea {
-    width: 100%;
-    height: 100%;
-    border: none;
-    background: transparent;
-    /*    padding-right: 10px;*/
-    /*    z-index: 3;*/
-    /*    position: absolute;*/
-    float: left;
-    /*    padding-top: 6px;*/
-    /*    padding-right: 10px;*/
-}
-
-#tabArea ul:first-child {
-    /*    margin-left: -1px;*/
-}
-
-/*.tabArea {
-    left: 281px;
-}*/
-
-#tabArea a,
-#tabArea a:link,
-#tabArea a:visited {
-    color: #ededed;
-    text-decoration: none;
-}
-
-#tabArea a:active,
-#tabArea a:hover {
-    color: #efefef;
-    text-decoration: underline;
 }
 
 .tabAreaInline {

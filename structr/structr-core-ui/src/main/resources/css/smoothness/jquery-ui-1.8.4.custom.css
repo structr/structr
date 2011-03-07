@@ -150,11 +150,16 @@
     -webkit-box-shadow: 0px 0px 5px #717171;
     -moz-box-shadow: 0px 0px 6px #616161;
     /*    border: 1px solid #aaa;*/
-    background-color: #616161;
+    background: -webkit-gradient(linear, left top, left bottom, from(#cccccc), to(#747474)) no-repeat;
+    background-image: -moz-linear-gradient(top, #fff, #bbb);
+    filter: progid:DXImageTransform.Microsoft.Gradient(
+        StartColorStr='#ffffff', EndColorStr='#bbbbbb', GradientType=0);
+    background-color: #ddd;
+/*    background-color: #616161;
     background: -webkit-gradient(linear, left bottom, left top, from(rgba(48,48,48,.95)), to(rgba(96,96,96,.95))) no-repeat;
     background: -moz-linear-gradient(-90deg, rgba(96,96,96,.95), rgba(48,48,48,.95)) no-repeat;
     filter: progid:DXImageTransform.Microsoft.Gradient(
-        StartColorStr='#333333', EndColorStr='#616161', GradientType=0);
+        StartColorStr='#333333', EndColorStr='#616161', GradientType=0);*/
     /*    background-color: #555555;*/
 /*
     border-top-left-radius: 0;
