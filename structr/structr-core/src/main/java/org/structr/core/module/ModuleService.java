@@ -353,7 +353,7 @@ public class ModuleService implements SingletonService {
         }
 
         // initialize default structr entites
-        String entityPackagesFromContext = (String) context.get(Services.ENTITY_PACKAGES_IDENTIFIER);
+        String entityPackagesFromContext = (String) context.get(Services.ENTITY_PACKAGES);
         for (String entityPackageFromContext : entityPackagesFromContext.split("[, ]+")) {
             entityPackages.add(entityPackageFromContext);
         }

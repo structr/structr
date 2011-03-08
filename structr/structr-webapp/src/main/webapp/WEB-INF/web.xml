@@ -114,6 +114,16 @@
         <param-name>entity.packages</param-name>
         <param-value>org.structr.core.entity,org.structr.core.entity.geo,com.truefivestars.entity</param-value>
     </context-param>
+    <context-param>
+        <description>Local TCP port</description>
+        <param-name>tcp.port</param-name>
+        <param-value>54555</param-value>
+    </context-param>
+    <context-param>
+        <description>Local UDP port</description>
+        <param-name>udp.port</param-name>
+        <param-value>57555</param-value>
+    </context-param>
     <!--  custom context parameter end -->
     <welcome-file-list>
         <welcome-file>admin/dashboard.htm</welcome-file>

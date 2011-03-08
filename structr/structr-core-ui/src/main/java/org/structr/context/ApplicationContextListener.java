@@ -48,20 +48,26 @@ public class ApplicationContextListener implements ServletContextListener, HttpS
             String appTitle = properties.getProperty(Services.APPLICATION_TITLE);
             logger.log(Level.INFO, "Config file: Application title: {0}", appTitle);
 
-            String tmpPath = properties.getProperty(Services.TMP_PATH_IDENTIFIER);
+            String tmpPath = properties.getProperty(Services.TMP_PATH);
             logger.log(Level.INFO, "Config file: Temp path: {0}", tmpPath);
 
-            String databasePath = properties.getProperty(Services.DATABASE_PATH_IDENTIFIER);
+            String databasePath = properties.getProperty(Services.DATABASE_PATH);
             logger.log(Level.INFO, "Config file: Database path: {0}", databasePath);
 
-            String filesPath = properties.getProperty(Services.FILES_PATH_IDENTIFIER);
+            String filesPath = properties.getProperty(Services.FILES_PATH);
             logger.log(Level.INFO, "Config file: Files path: {0}", filesPath);
 
-            String modulesPath = properties.getProperty(Services.MODULES_PATH_IDENTIFIER);
+            String modulesPath = properties.getProperty(Services.MODULES_PATH);
             logger.log(Level.INFO, "Config file: Modules path: {0}", modulesPath);
 
-            String entityPackages = properties.getProperty(Services.ENTITY_PACKAGES_IDENTIFIER);
+            String entityPackages = properties.getProperty(Services.ENTITY_PACKAGES);
             logger.log(Level.INFO, "Config file: Entity packages: {0}", entityPackages);
+
+            String tcpPort = properties.getProperty(Services.TCP_PORT);
+            logger.log(Level.INFO, "Config file: TCP port {0}", tcpPort);
+
+            String udpPort = properties.getProperty(Services.UDP_PORT);
+            logger.log(Level.INFO, "Config file: UDP port {0}", udpPort);
 
             if (appTitle != null) {
                 context.put(Services.APPLICATION_TITLE, appTitle);
@@ -70,33 +76,45 @@ public class ApplicationContextListener implements ServletContextListener, HttpS
             }
 
             if (tmpPath != null) {
-                context.put(Services.TMP_PATH_IDENTIFIER, tmpPath);
+                context.put(Services.TMP_PATH, tmpPath);
             } else {
-                context.put(Services.TMP_PATH_IDENTIFIER, servletContext.getInitParameter(Services.TMP_PATH_IDENTIFIER));
+                context.put(Services.TMP_PATH, servletContext.getInitParameter(Services.TMP_PATH));
             }
 
             if (databasePath != null) {
-                context.put(Services.DATABASE_PATH_IDENTIFIER, databasePath);
+                context.put(Services.DATABASE_PATH, databasePath);
             } else {
-                context.put(Services.DATABASE_PATH_IDENTIFIER, servletContext.getInitParameter(Services.DATABASE_PATH_IDENTIFIER));
+                context.put(Services.DATABASE_PATH, servletContext.getInitParameter(Services.DATABASE_PATH));
             }
 
             if (filesPath != null) {
-                context.put(Services.FILES_PATH_IDENTIFIER, filesPath);
+                context.put(Services.FILES_PATH, filesPath);
             } else {
-                context.put(Services.FILES_PATH_IDENTIFIER, servletContext.getInitParameter(Services.FILES_PATH_IDENTIFIER));
+                context.put(Services.FILES_PATH, servletContext.getInitParameter(Services.FILES_PATH));
             }
 
             if (modulesPath != null) {
-                context.put(Services.MODULES_PATH_IDENTIFIER, modulesPath);
+                context.put(Services.MODULES_PATH, modulesPath);
             } else {
-                context.put(Services.MODULES_PATH_IDENTIFIER, servletContext.getInitParameter(Services.MODULES_PATH_IDENTIFIER));
+                context.put(Services.MODULES_PATH, servletContext.getInitParameter(Services.MODULES_PATH));
             }
 
             if (entityPackages != null) {
-                context.put(Services.ENTITY_PACKAGES_IDENTIFIER, entityPackages);
+                context.put(Services.ENTITY_PACKAGES, entityPackages);
             } else {
-                context.put(Services.ENTITY_PACKAGES_IDENTIFIER, servletContext.getInitParameter(Services.ENTITY_PACKAGES_IDENTIFIER));
+                context.put(Services.ENTITY_PACKAGES, servletContext.getInitParameter(Services.ENTITY_PACKAGES));
+            }
+
+            if (tcpPort != null) {
+                context.put(Services.TCP_PORT, tcpPort);
+            } else {
+                context.put(Services.TCP_PORT, servletContext.getInitParameter(Services.TCP_PORT));
+            }
+
+            if (udpPort != null) {
+                context.put(Services.UDP_PORT, udpPort);
+            } else {
+                context.put(Services.UDP_PORT, servletContext.getInitParameter(Services.UDP_PORT));
             }
 
         } catch (Throwable t) {

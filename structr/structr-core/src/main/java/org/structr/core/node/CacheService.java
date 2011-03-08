@@ -33,7 +33,7 @@ public class CacheService implements SingletonService {
     @Override
     public void initialize(Map<String, Object> context) {
 
-        String dbPath = (String) context.get(Services.DATABASE_PATH_IDENTIFIER);
+        String dbPath = (String) context.get(Services.DATABASE_PATH);
 
         try {
             logger.log(Level.INFO, "Initializing cache ...", dbPath);

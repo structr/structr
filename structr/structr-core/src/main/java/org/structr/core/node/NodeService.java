@@ -42,7 +42,8 @@ public class NodeService implements SingletonService {
     @Override
     public void initialize(Map<String, Object> context) {
 
-        String dbPath = (String) context.get(Services.DATABASE_PATH_IDENTIFIER);
+//        String dbPath = (String) context.get(Services.DATABASE_PATH);
+        String dbPath = Services.getDatabasePath();
 
         try {
             logger.log(Level.INFO, "Initializing database ({0}) ...", dbPath);

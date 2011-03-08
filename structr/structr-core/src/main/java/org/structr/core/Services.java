@@ -27,20 +27,23 @@ import org.structr.core.agent.AgentService;
 public class Services {
 
     private static final Logger logger = Logger.getLogger(Services.class.getName());
-    // application constants
+    // Application constants
     public static final String APPLICATION_TITLE = "application.title";
     public static final String CONFIG_FILE_PATH = "configfile.path";
     public static final String SERVLET_CONTEXT = "servlet.context";
-    public static final String TMP_PATH_IDENTIFIER = "tmp.path";
-    // database-related constants
-    public static final String DATABASE_PATH_IDENTIFIER = "database.path";
-    public static final String FILES_PATH_IDENTIFIER = "files.path";
+    public static final String TMP_PATH = "tmp.path";
+    // Database-related constants
+    public static final String DATABASE_PATH = "database.path";
+    public static final String FILES_PATH = "files.path";
+    // Network-related constants
+    public static final String TCP_PORT = "tcp.port";
+    public static final String UDP_PORT = "udp.port";
     // LogService-related constants
     public static final String LOG_SERVICE_INTERVAL = "structr.logging.interval";
     public static final String LOG_SERVICE_THRESHOLD = "structr.logging.threshold";
     // ModuleService-related constants
-    public static final String MODULES_PATH_IDENTIFIER = "modules.path";
-    public static final String ENTITY_PACKAGES_IDENTIFIER = "entity.packages";
+    public static final String MODULES_PATH = "modules.path";
+    public static final String ENTITY_PACKAGES = "entity.packages";
     public static final String STRUCTR_PAGE_PREDICATE = "structr.page.predicate";
     private static final Map<Class, Class> serviceClassCache = new ConcurrentHashMap<Class, Class>(5, 0.75f, 100);
     private static final Map<Class, Service> serviceCache = new ConcurrentHashMap<Class, Service>(5, 0.75f, 100);
@@ -52,10 +55,8 @@ public class Services {
     private static String modulesPath = "/opt/structr/modules";
     private static String configFilePath = "/opt/structr/structr.conf";
     private static String tmpPath = "/tmp";
-
-    public static String getBasePath() {
-        return basePath;
-    }
+    private static String tcpPort = "54555";
+    private static String udpPort = "54777";
 
     /**
      * Return the static application title
@@ -65,22 +66,31 @@ public class Services {
     }
 
     /**
+     * Return the static base path
+     * 
+     * @return
+     */
+    public static String getBasePath() {
+        return getPath(Path.Base);
+    }
+
+    /**
      * Return the static tmp path. This is the directory where the
      * temporary files are stored
      */
     public static String getTmpPath() {
-        return tmpPath;
+        return getPath(Path.Temp);
     }
 
     /**
      * Return the configuration file path.
      */
     public static String getConfigFilePath() {
-        return configFilePath;
+        return getPath(Path.ConfigFile);
     }
 
     /**
-     * Return the static database path. This is the directory where the
+     * Return the database path. This is the directory where the
      * database files are stored.
      */
     public static String getDatabasePath() {
@@ -88,7 +98,7 @@ public class Services {
     }
 
     /**
-     * Return the static file path. This is the directory where the
+     * Return the file path. This is the directory where the
      * binary files of file and image nodes are stored.
      */
     public static String getFilesPath() {
@@ -96,11 +106,25 @@ public class Services {
     }
 
     /**
-     * Return the static modules path. This is the directory where the
+     * Return the modules path. This is the directory where the
      * modules are stored.
      */
     public static String getModulesPath() {
         return getPath(Path.Modules);
+    }
+
+    /**
+     * Return the TCP port remote clients can connect to
+     */
+    public static String getTcpPort() {
+        return tcpPort;
+    }
+
+    /**
+     * Return the UDP port remote clients can connect to
+     */
+    public static String getUdpPort() {
+        return udpPort;
     }
 
     /**
@@ -173,10 +197,12 @@ public class Services {
         }
 
         appTitle = getConfigValue(context, Services.APPLICATION_TITLE, "structr");
-        tmpPath = getConfigValue(context, Services.TMP_PATH_IDENTIFIER, "/tmp");
-        databasePath = getConfigValue(context, Services.DATABASE_PATH_IDENTIFIER, "/opt/structr/structr-tfs2");
-        filesPath = getConfigValue(context, Services.FILES_PATH_IDENTIFIER, "/opt/structr/structr-tfs2/files");
-        modulesPath = getConfigValue(context, Services.MODULES_PATH_IDENTIFIER, "/opt/structr/modules");
+        tmpPath = getConfigValue(context, Services.TMP_PATH, "/tmp");
+        databasePath = getConfigValue(context, Services.DATABASE_PATH, "/opt/structr/structr-tfs2");
+        filesPath = getConfigValue(context, Services.FILES_PATH, "/opt/structr/structr-tfs2/files");
+        modulesPath = getConfigValue(context, Services.MODULES_PATH, "/opt/structr/modules");
+        tcpPort = getConfigValue(context, Services.TCP_PORT, "54555");
+        udpPort = getConfigValue(context, Services.UDP_PORT, "57555");
 
         logger.log(Level.INFO, "Finished initialization of service layer");
     }
@@ -255,6 +281,11 @@ public class Services {
         String ret = null;
 
         switch (path) {
+
+            case ConfigFile:
+                ret = configFilePath;
+                break;
+
             case Base:
                 ret = basePath;
                 break;
