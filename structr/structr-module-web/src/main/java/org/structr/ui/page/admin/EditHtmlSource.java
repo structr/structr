@@ -5,7 +5,6 @@
 package org.structr.ui.page.admin;
 
 import org.apache.click.control.Panel;
-import org.apache.click.util.*;
 
 /**
  * Edit html.
@@ -14,7 +13,11 @@ import org.apache.click.util.*;
  */
 public class EditHtmlSource extends EditPlainText {
 
-    @Bindable
     protected Panel editHtmlSourcePanel = new Panel("editHtmlSourcePanel", "/panel/edit-html-source-panel.htm");
 
+    public EditHtmlSource() {
+
+        addControl(editHtmlSourcePanel);
+        
+    }
 }

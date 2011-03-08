@@ -9,6 +9,6 @@ package org.structr.ui.page.admin;
  *
  * @author amorgner
  */
-public class EditTemplate extends EditPlainText {
+public class EditTemplate extends EditHtmlSource {
 
 }

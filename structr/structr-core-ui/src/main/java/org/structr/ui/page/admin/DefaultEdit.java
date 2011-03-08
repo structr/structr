@@ -181,6 +181,7 @@ public class DefaultEdit extends Nodes {
         // ------------------ child nodes start --------------------------------
 
         if (node != null && node.hasChildren()) {
+//        if (node != null) {
 
             Column actionColumnNodes = new Column("Actions");
             actionColumnNodes.setTextAlign("center");
@@ -529,6 +530,16 @@ public class DefaultEdit extends Nodes {
         super.onRender();
 
         if (node != null) {
+
+            editVisibilityForm.copyFrom(node);
+            editVisibilityForm.add(new HiddenField(NODE_ID_KEY, nodeId != null ? nodeId : ""));
+            editVisibilityForm.add(new HiddenField(RENDER_MODE_KEY, renderMode != null ? renderMode : ""));
+            editVisibilityForm.add(new HiddenField(RETURN_URL_KEY, returnUrl != null ? returnUrl : ""));
+
+            editPropertiesForm.copyFrom(node);
+            editPropertiesForm.add(new HiddenField(NODE_ID_KEY, nodeId != null ? nodeId : ""));
+            editPropertiesForm.add(new HiddenField(RENDER_MODE_KEY, renderMode != null ? renderMode : ""));
+            editPropertiesForm.add(new HiddenField(RETURN_URL_KEY, returnUrl != null ? returnUrl : ""));
 
             deleteRelationshipLink.setParameter(NODE_ID_KEY, nodeId);
 

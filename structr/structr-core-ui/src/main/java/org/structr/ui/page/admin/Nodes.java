@@ -382,34 +382,7 @@ public class Nodes extends Admin {
             //deleteNodeForm.getField(PARENT_NODE_ID_KEY).setValue(parentNodeId);
         }
 
-//        // only pages and files may be rendered
-//        if (node instanceof org.structr.core.entity.web.Page || node instanceof File) {
-//
-//            externalViewUrl = node.getNodeURL(user, contextPath);
-//            //localViewUrl = getContext().getResponse().encodeURL(viewLink.getHref());
-//            localViewUrl = getContext().getRequest().getContextPath().concat(
-//                    "/view".concat(
-//                    node.getNodePath(user).replace("&", "%26")));
-//
-//            if (node instanceof org.structr.core.entity.web.Page) {
-//
-//                // render node's default view
-//                StringBuilder out = new StringBuilder();
-//                node.renderView(out, node, null, null, user);
-//                rendition = out.toString();
-//
-//            } else {
-//
-//                // FIXME: find a good solution for file download
-////                ByteArrayOutputStream out = new ByteArrayOutputStream();
-////                node.renderDirect(out, rootNode, redirect, editNodeId, user);
-////                rendition = out.toString();
-//            }
-//            // provide rendition's source
-//            source = ClickUtils.escapeHtml(rendition);
-//
-//            renditionPanel = new Panel("renditionPanel", "/panel/rendition-panel.htm");
-//        }
+
     }
 
     @Override

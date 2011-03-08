@@ -13,6 +13,8 @@
         #if ($renderMode != "inline")
         <div id="header">
 
+            <!--            <div class="structr"><span class="structrCap">s</span>tructr</div>-->
+
             #if ($userName)
             <div class="util">
                 <img alt="$userName" title="$userName" src="$contextPath/images/user.png"> $userName
@@ -20,14 +22,6 @@
                 <img alt="Logout" title="Logout" src="$contextPath/images/door_out.png"> $logoutLink
             </div>
             #end
-
-
-        </div>
-
-        <div id="mainMenu">
-
-            <!--            <div class="structr"><span class="structrCap">s</span>tructr</div>-->
-
 
             #if ($renderMode != "inline" && $simpleSearchPanel)
             <div class="search">$simpleSearchPanel</div>
@@ -63,6 +57,12 @@
                     #end
 
                     <h2 class="header"><img alt="$node.name"  src="$context/$node.iconSrc"> $node.name</h2>
+
+                    #if ($actionsPanel)
+                    <div class="actionsPanel">
+                        $actionsPanel
+                    </div>
+                    #end
 
 
                     <div id="tabs" class="ui-tabs">
@@ -123,8 +123,7 @@
                         #if ($editContentForm)
                         <div id="content-tab" class="ui-tabs-hide">
 
-                            <div class="contentBox">
-                                <h2><img src="$context/$node.iconSrc"> $node.name</h2>
+                            <div class="body">
                                 #parse($path)
                             </div>
 
@@ -133,7 +132,7 @@
 
                         #if ($searchResultsPanel)
                         <div id="search-tab" class="ui-tabs-hide">
-                            <div class="contentBox">
+                            <div class="body">
                                 #parse($path)
                             </div>
                         </div>
@@ -190,12 +189,20 @@
                     var windowWidth = jQuery(window).width();
                     var headerHeight = jQuery("#header").height();
 
-                    var heightOffset = 144;
+                    var heightOffset = 70;
 
                     jQuery("#treeArea .body").height(windowHeight - headerHeight - heightOffset);
                     jQuery("#treeArea .body").width(200);
                     jQuery("#tabArea .body").height(windowHeight - headerHeight - heightOffset - 32);
                     jQuery("#tabArea .body").width(windowWidth - 288);
+
+                    var tabAreaBodyWidth = jQuery("#tabArea .body").width();
+                    var tabAreaBodyHeight = jQuery("#tabArea .body").height();
+
+                    jQuery("#tabArea .CodeMirror-wrapping").width(tabAreaBodyWidth - 34);
+                    jQuery("#tabArea .CodeMirror-wrapping").height(tabAreaBodyHeight - 70);
+                    jQuery("#rendition-tab iframe").width(tabAreaBodyWidth - 18);
+                    jQuery("#source-tab textarea").width(tabAreaBodyWidth - 18);
                 }
 
 

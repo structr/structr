@@ -1,28 +1,25 @@
 
 <div id="rendition-tab" class="ui-tabs-hide">
-    <h2><img src="$context$node.iconSrc"> $node.name</h2>
-    <p>
+    <div class="body">
         External URL: <a href="$externalViewUrl" target="_blank">$externalViewUrl</a><br>
         Local URL: <a href="$localViewUrl" target="_blank">$localViewUrl</a>
-    </p>
-
-    #if ($localViewUrl)
-    #if ($node.type == "Image")
-    <img class="preview" src="$localPreviewViewUrl" alt="$node.name">
-    #else
-    <iframe src="$localViewUrl"></iframe>
-    #end
-    #else
-    $rendition
-    #end
+        #if ($localViewUrl)
+        #if ($node.type == "Image")
+        <img class="preview" src="$localPreviewViewUrl" alt="$node.name">
+        #else
+        <iframe src="$localViewUrl"></iframe>
+        #end
+        #else
+        $rendition
+        #end
+    </div>
 </div><!-- #rendition -->
 ##if ($node.type != "File")
 <div id="source-tab" class="ui-tabs-hide">
-    <h2><img src="$context$node.iconSrc"> $node.name</h2>
-    <p>
+    <div class="body">
         External URL: <a href="$externalViewUrl" target="_blank">$externalViewUrl</a><br>
         Local URL: <a href="$localViewUrl" target="_blank">$localViewUrl</a>
-    </p>
-    <textarea readonly cols="30" rows="10">$source</textarea>
+        <textarea readonly cols="30" rows="10">$source</textarea>
+    </div>
 </div>
 ##end

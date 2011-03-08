@@ -4,7 +4,6 @@
  */
 package org.structr.ui.page.admin;
 
-import org.structr.core.entity.AbstractNode;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,7 +13,6 @@ import org.apache.click.control.Panel;
 import org.apache.click.control.Submit;
 import org.apache.click.control.TextArea;
 import org.apache.click.util.*;
-import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.PlainText;
 import org.structr.core.node.StructrTransaction;
@@ -31,16 +29,14 @@ public class EditPlainText extends DefaultEdit {
      * The main form for editing node content.
      * Child pages should just append fields to this form.
      */
-    @Bindable
     protected Form editContentForm = new Form("editContentForm");
-    @Bindable
     protected TextArea textArea;
-    @Bindable
     protected String textType;
-    @Bindable
     protected Panel editPlainTextPanel = new Panel("editPlainTextPanel", "/panel/edit-plain-text-panel.htm");
 
     public EditPlainText() {
+
+        addControl(editPlainTextPanel);
 
         textArea = new TextArea(PlainText.CONTENT_KEY, false) {
 
@@ -100,51 +96,34 @@ public class EditPlainText extends DefaultEdit {
         editContentForm.add(new Submit("save", " Save ", this, "onSaveContent"));
 //        editContentForm.add(new Submit("saveAndView", " Save and View ", this, "onSaveAndView"));
 
-
+        addControl(editContentForm);
 
     }
 
     @Override
-    public void onRender() {
+    public void onInit() {
 
-        super.onRender();
+        super.onInit();
 
-//        Command transactionCommand = Services.command(TransactionCommand.class);
-//        transactionCommand.execute(new StructrTransaction() {
-//
-//            @Override
-//            public Object execute() throws Throwable {
-                AbstractNode s = getNodeByIdOrPath(getNodeId());
-
-                if (editPropertiesForm.isValid()) {
-                    editPropertiesForm.copyFrom(s);
-                }
-
-                // set text type (e.g. css)
-                String contentType = s.getContentType();
-                if (contentType != null && contentType.indexOf('/') > 0) {
-                    textType = contentType.split("/")[1];
-                }
-
-                if (editContentForm.isValid()) {
-                    editContentForm.copyFrom(s);
-                }
-
-//                return (null);
-//            }
-//        });
-
-        // set node id
-        if (editPropertiesForm.isValid()) {
-            editPropertiesForm.add(new HiddenField(NODE_ID_KEY, nodeId != null ? nodeId : ""));
-            editPropertiesForm.add(new HiddenField(RENDER_MODE_KEY, renderMode != null ? renderMode : ""));
+        if (node == null) {
+            return;
         }
 
-        // set node id
+        // set text type (e.g. css)
+        String contentType = node.getContentType();
+        if (contentType != null && contentType.indexOf('/') > 0) {
+            textType = contentType.split("/")[1];
+            addModel("textType", textType);
+        }
+
         if (editContentForm.isValid()) {
-            editContentForm.add(new HiddenField(NODE_ID_KEY, nodeId != null ? nodeId : ""));
-            editContentForm.add(new HiddenField(RENDER_MODE_KEY, renderMode != null ? renderMode : ""));
+            editContentForm.copyFrom(node);
         }
+
+        // set node id
+        editContentForm.add(new HiddenField(NODE_ID_KEY, nodeId != null ? nodeId : ""));
+        editContentForm.add(new HiddenField(RENDER_MODE_KEY, renderMode != null ? renderMode : ""));
+        editContentForm.setActionURL(editPropertiesForm.getActionURL().concat("#content-tab"));
     }
 
     /**
@@ -162,25 +141,26 @@ public class EditPlainText extends DefaultEdit {
         parameters.put(NODE_ID_KEY, nodeId);
         setRedirect(getPath(), parameters);
 
-        return false;
+        return redirect();
     }
 
     /**
      * Save content
      */
     private void saveContent() {
-        Command transactionCommand = Services.command(TransactionCommand.class);
-        transactionCommand.execute(new StructrTransaction() {
+
+        Services.command(TransactionCommand.class).execute(new StructrTransaction() {
 
             @Override
             public Object execute() throws Throwable {
-                AbstractNode s = getNodeByIdOrPath(getNodeId());
 
-                if (editContentForm.isValid()) {
-                    editContentForm.copyTo(s);
+                if (node != null) {
+
+                    if (editContentForm.isValid()) {
+                        editContentForm.copyTo(node);
+                    }
                 }
-
-                return (null);
+                return null;
             }
         });
 
