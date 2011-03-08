@@ -1,8 +1,10 @@
 <div id="childnodes-tab" class="ui-tabs-hide">
-    <h2><img alt="$node.name"  src="$context/$node.iconSrc"> $node.name</h2>
-    
-    <p>
-    $childNodesTable
-    </p>
-
+    #if ($actionsPanel)
+    <div class="actionsPanel">
+        $actionsPanel
+    </div>
+    #end
+    <div class="body">
+        $childNodesTable
+    </div><!-- .body -->
 </div>
