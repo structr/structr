@@ -54,6 +54,7 @@ import org.structr.core.node.TransactionCommand;
 import org.structr.common.RelType;
 //import org.structr.core.ClasspathEntityLocator;
 import org.structr.core.entity.DummyNode;
+import org.structr.core.entity.PlainText;
 import org.structr.core.entity.Property;
 import org.structr.core.module.GetEntitiesCommand;
 import org.structr.core.node.ExtractFileCommand;
@@ -164,7 +165,6 @@ public class Nodes extends Admin {
     protected Form setPropertyForm = new Form();
     @Bindable
     protected Form form = new Form("form");
-
     @Bindable
     protected Panel renditionPanel;
     @Bindable
@@ -677,7 +677,12 @@ public class Nodes extends Admin {
             parameters.put(RENDER_MODE_KEY, renderMode);
             parameters.put(OK_MSG_KEY, okMsg);
             setRedirect(getRedirectPage(n), parameters);
-            setRedirect(getRedirect().concat("#properties-tab"));
+            
+            if (n instanceof PlainText) {
+                setRedirect(getRedirect().concat("#content-tab"));
+            } else {
+                setRedirect(getRedirect().concat("#properties-tab"));
+            }
 
         }
 
@@ -1368,5 +1373,4 @@ public class Nodes extends Admin {
 
         getContext().getSession().setAttribute(EXPANDED_NODES_KEY, nodeTree.getExpandedNodes(true));
     }
-
 }

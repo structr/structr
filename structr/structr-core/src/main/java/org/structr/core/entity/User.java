@@ -45,8 +45,7 @@ public class User extends Person {
     }
     
     public String getPassword() {
-        // intentionally, return nothing
-        return null;
+        return (String) getProperty(PASSWORD_KEY);
     }
 
     public String getRealName() {

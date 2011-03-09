@@ -4,21 +4,21 @@
  */
 package org.structr.core.node;
 
-import org.structr.core.search.SearchNodeCommand;
-import org.structr.core.search.TextualSearchAttribute;
+import org.structr.core.node.search.SearchNodeCommand;
+import org.structr.core.node.search.TextualSearchAttribute;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.structr.core.search.Search;
-import org.structr.core.search.SearchOperator;
+import org.structr.core.node.search.Search;
+import org.structr.core.node.search.SearchOperator;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
-import org.structr.core.search.SearchAttribute;
+import org.structr.core.node.search.SearchAttribute;
 
 /**
  * Searches for a user node by her/his name in the database and returns the result.

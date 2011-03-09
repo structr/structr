@@ -25,14 +25,14 @@ import org.apache.click.extras.control.LinkDecorator;
 import org.apache.click.util.Bindable;
 import org.apache.click.util.HtmlStringBuffer;
 import org.apache.commons.lang.StringUtils;
-import org.structr.core.search.Search;
-import org.structr.core.search.SearchOperator;
+import org.structr.core.node.search.Search;
+import org.structr.core.node.search.SearchOperator;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.search.SearchAttribute;
-import org.structr.core.search.TextualSearchAttribute;
-import org.structr.core.search.SearchNodeCommand;
+import org.structr.core.node.search.SearchAttribute;
+import org.structr.core.node.search.TextualSearchAttribute;
+import org.structr.core.node.search.SearchNodeCommand;
 
 /**
  *

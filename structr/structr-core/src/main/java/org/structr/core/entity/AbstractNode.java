@@ -39,13 +39,12 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DateUtils;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
-import org.structr.core.search.SearchOperator;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.IndexNodeCommand;
-import org.structr.core.search.TextualSearchAttribute;
-import org.structr.core.search.SearchNodeCommand;
+import org.structr.core.node.search.SearchNodeCommand;
 import org.structr.core.node.XPath;
+import org.structr.core.node.search.Search;
 
 /**
  * 
@@ -56,9 +55,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 
     private final static String ICON_SRC = "/images/folder.png";
     private static final Logger logger = Logger.getLogger(AbstractNode.class.getName());
-
     private static final boolean updateIndexDefault = true;
-
     // request parameters
     private HttpServletRequest request = null;
     private HttpSession session = null;
@@ -978,7 +975,10 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 
                 Set<String> keys = properties.keySet();
                 for (String key : keys) {
-                    setProperty(key, properties.get(key));
+                    Object value = properties.get(key);
+                    if (key != null && value != null) {
+                        setProperty(key, value, false); // Don't update index now!
+                    }
                 }
                 return null;
             }
@@ -1382,6 +1382,32 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 
             }
         }
+        return nodes;
+
+    }
+
+    /**
+     * Return all ancestor nodes. Follows the INCOMING HAS_CHILD relationship
+     * and stops at the root node.
+     *
+     * @return
+     */
+    public List<AbstractNode> getAncestorNodes(final User user) {
+
+        List<AbstractNode> nodes = new ArrayList<AbstractNode>();
+
+        Command nodeFactory = Services.command(NodeFactoryCommand.class);
+        List<StructrRelationship> rels = getIncomingChildRelationships();
+
+        for (StructrRelationship r : rels) {
+
+            AbstractNode s = (AbstractNode) nodeFactory.execute(r.getStartNode());
+            if (s.readAllowed(user)) {
+                nodes.add(s);
+            }
+
+        }
+
         return nodes;
 
     }
@@ -2147,10 +2173,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
                                 null, // top node => null means search all
                                 false, // include hidden
                                 true, // public only
-                                // search in name or title or content
-                                new TextualSearchAttribute(AbstractNode.NAME_KEY, searchString, SearchOperator.OR),
-                                new TextualSearchAttribute(AbstractNode.TITLE_KEY, searchString, SearchOperator.OR),
-                                new TextualSearchAttribute(PlainText.CONTENT_KEY, searchString, SearchOperator.OR));
+                                Search.orName(searchString)); // search in name
                         root.put("SearchResults", result);
                     }
                 }

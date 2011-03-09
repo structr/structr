@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.structr.core.search;
+package org.structr.core.node.search;
 
 /**
  * Wrapper representing a part of a search query.

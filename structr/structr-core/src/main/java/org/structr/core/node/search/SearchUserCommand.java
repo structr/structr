@@ -2,14 +2,13 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.structr.core.search;
+package org.structr.core.node.search;
 
 import java.util.List;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
-import org.neo4j.index.IndexService;
-import org.neo4j.index.lucene.LuceneFulltextIndexService;
+import org.neo4j.graphdb.index.Index;
 import org.neo4j.kernel.Traversal;
 import org.structr.common.RelType;
 import org.structr.core.Command;
@@ -29,7 +28,7 @@ public class SearchUserCommand extends NodeServiceCommand {
     @Override
     public Object execute(Object... parameters) {
         GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
-        LuceneFulltextIndexService index = (LuceneFulltextIndexService) arguments.get("index");
+        Index<Node> index = (Index<Node>) arguments.get("index");
 
         Command findNode = Services.command(FindNodeCommand.class);
 
@@ -44,7 +43,7 @@ public class SearchUserCommand extends NodeServiceCommand {
 
                         String userName = (String) parameters[0];
 
-                        for (Node n : index.getNodes(AbstractNode.NAME_KEY, userName)) {
+                        for (Node n : index.get(AbstractNode.NAME_KEY, userName)) {
 
                             AbstractNode s = (AbstractNode) findNode.execute(n);
 

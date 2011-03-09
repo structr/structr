@@ -13,7 +13,7 @@ import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
-import org.neo4j.index.IndexService;
+import org.neo4j.graphdb.index.Index;
 import org.neo4j.kernel.Traversal;
 import org.structr.common.RelType;
 
@@ -177,17 +177,17 @@ public class Imp {
         fromNode.createRelationshipTo(toNode, relType);
     }
 
-    public static void indexNode(IndexService index, final Node n) {
+    public static void indexNode(Index<Node> index, final Node n) {
         for (String propertyKey : n.getPropertyKeys()) {
-            index.index(n, propertyKey, n.getProperty(propertyKey));
+            index.add(n, propertyKey, n.getProperty(propertyKey));
         }
 
     }
 
-    public static void reIndexNode(IndexService index, final Node n) {
+    public static void reIndexNode(Index<Node> index, final Node n) {
         for (String propertyKey : n.getPropertyKeys()) {
-            index.removeIndex(n, propertyKey);
-            index.index(n, propertyKey, n.getProperty(propertyKey));
+            index.remove(n, propertyKey);
+            index.add(n, propertyKey, n.getProperty(propertyKey));
         }
 
     }

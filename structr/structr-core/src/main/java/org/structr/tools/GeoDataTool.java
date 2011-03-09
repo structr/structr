@@ -12,7 +12,6 @@ import java.util.Set;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
-import org.neo4j.index.lucene.LuceneFulltextIndexService;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
 import org.neo4j.gis.spatial.ShapefileImporter;
 import org.neo4j.graphdb.Direction;
@@ -20,6 +19,8 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.index.Index;
+import org.neo4j.helpers.collection.MapUtil;
 import org.neo4j.shell.util.json.JSONObject;
 import org.structr.common.RelType;
 import org.structr.core.entity.AbstractNode;
@@ -28,7 +29,7 @@ import org.structr.core.entity.geo.GeoObject;
 public class GeoDataTool {
 
     protected static GraphDatabaseService graphDb;
-    protected static LuceneFulltextIndexService index;
+    protected static Index<Node> index;
     public final static String[] northernAmerica = new String[]{
         "Canada",
         "Greenland",
@@ -351,7 +352,7 @@ public class GeoDataTool {
 
 
             if (graphDb != null) {
-                index = new LuceneFulltextIndexService(graphDb);
+                index = graphDb.index().forNodes("fulltextAllNodes", MapUtil.stringMap("provider", "lucene", "type", "fulltext"));
             }
 
         } catch (Exception e) {
@@ -535,12 +536,12 @@ public class GeoDataTool {
 
                             if (!test) {
                                 n.setProperty(latKey, lat);
-                                index.removeIndex(latKey);
-                                index.index(n, latKey, lat);
+                                index.remove(n, latKey, lat);
+                                index.add(n, latKey, lat);
 
                                 n.setProperty(lonKey, lon);
-                                index.removeIndex(lonKey);
-                                index.index(n, lonKey, lon);
+                                index.remove(n, lonKey, lon);
+                                index.add(n, lonKey, lon);
 
                                 System.out.println("Node updated with new coordinates");
                             }

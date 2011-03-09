@@ -11,8 +11,8 @@ import java.util.List;
 import java.util.Map;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.Traverser.*;
-import org.neo4j.index.IndexService;
-import org.neo4j.index.lucene.LuceneFulltextIndexService;
+import org.neo4j.graphdb.index.Index;
+import org.neo4j.helpers.collection.MapUtil;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
 import org.neo4j.kernel.Traversal;
 import org.structr.common.RelType;
@@ -22,7 +22,7 @@ import org.structr.core.entity.AbstractNode;
 public class Admin {
 
     protected static GraphDatabaseService graphDb;
-    protected static LuceneFulltextIndexService index;
+    protected static Index<Node> index;
 
     /**
      * Example usage:
@@ -279,7 +279,7 @@ public class Admin {
 
 
             if (graphDb != null) {
-                index = new LuceneFulltextIndexService(graphDb);
+                index = graphDb.index().forNodes("fulltextAllNodes", MapUtil.stringMap("provider", "lucene", "type", "fulltext"));
             }
 
         } catch (Exception e) {
@@ -388,7 +388,7 @@ public class Admin {
 
         System.out.print("Starting target database ...");
         EmbeddedGraphDatabase targetDb = new EmbeddedGraphDatabase(targetDbPath);
-        LuceneFulltextIndexService targetIndex = new LuceneFulltextIndexService(targetDb);
+        Index<Node> targetIndex = targetDb.index().forNodes("fulltextAllNodes", MapUtil.stringMap("provider", "lucene", "type", "fulltext"));
         System.out.println("done.");
 
         String targetFilesPath = targetDbPath + "/files";
@@ -837,7 +837,7 @@ public class Admin {
      * @param test
      * @param tx
      */
-    private void rebuildIndex(GraphDatabaseService db, IndexService ix, boolean test, Transaction tx) {
+    private void rebuildIndex(GraphDatabaseService db, Index<Node> ix, boolean test, Transaction tx) {
 
         int nodeCounter = 0;
         int propertyCounter = 0;
@@ -852,10 +852,10 @@ public class Admin {
                 propertyCounter++;
 
                 if (!test) {
-                    ix.removeIndex(n, propertyKey);
+                    ix.remove(n, propertyKey);
                     System.out.println(propertyCounter + ": Property " + propertyKey + " removed from index.");
 
-                    ix.index(n, propertyKey, n.getProperty(propertyKey));
+                    ix.add(n, propertyKey, n.getProperty(propertyKey));
                     System.out.println(propertyKey + " reindexed.");
 
                 } else {

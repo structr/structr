@@ -15,12 +15,12 @@ import org.apache.click.control.Panel;
 import org.apache.click.control.Select;
 import org.apache.click.dataprovider.DataProvider;
 import org.apache.click.util.ClickUtils;
-import org.structr.core.search.SearchOperator;
+import org.structr.core.node.search.SearchOperator;
 import org.structr.core.entity.web.Page;
 import org.structr.core.Services;
 import org.structr.core.entity.Template;
-import org.structr.core.search.TextualSearchAttribute;
-import org.structr.core.search.SearchNodeCommand;
+import org.structr.core.node.search.TextualSearchAttribute;
+import org.structr.core.node.search.SearchNodeCommand;
 
 /**
  * Edit a page

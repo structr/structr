@@ -8,7 +8,9 @@ import java.util.Collections;
 import org.neo4j.graphdb.GraphDatabaseService;
 
 /**
- * Get all nodes in the database
+ * Get all nodes in the database.
+ *
+ * This command takes no parameters.
  *
  * @author amorgner
  */

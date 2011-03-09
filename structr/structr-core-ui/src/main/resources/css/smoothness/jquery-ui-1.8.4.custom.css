@@ -138,6 +138,11 @@
     /*              padding: .2em .2em 0;*/
 
 }
+
+#maintenanceTabArea .ui-tabs .ui-tabs-nav {
+    margin: -24px 0 0 0;
+}
+
 .ui-tabs .ui-tabs-nav li { list-style: none; float: left; position: relative; top: 0px; margin: 0 3px 0 0; border-bottom: 0 !important; padding: 0; white-space: nowrap; }
 .ui-tabs .ui-tabs-nav li a { float: left; padding: .5em 1.25em; text-decoration: none; }
 /*.ui-tabs .ui-tabs-nav li a:hover { color: #333; }*/

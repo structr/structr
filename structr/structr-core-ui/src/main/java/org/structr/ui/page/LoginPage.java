@@ -142,7 +142,7 @@ public class LoginPage extends Admin {
 
                 String encryptedPasswordValue = DigestUtils.sha512Hex(passwordValue);
 
-                if (!encryptedPasswordValue.equals(user.getProperty(PASSWORD_KEY))) {
+                if (!encryptedPasswordValue.equals(user.getPassword())) {
                     logger.log(Level.INFO, "Wrong password for user {0}", user);
                     errorMsg = "Wrong username or password, or user is blocked. Check caps lock. Note: Username is case sensitive!";
                     return true;

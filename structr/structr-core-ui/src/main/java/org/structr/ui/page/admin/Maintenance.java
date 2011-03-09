@@ -349,6 +349,8 @@ public class Maintenance extends Admin {
                 params.add(new AbstractMap.SimpleEntry<String, Object>("Files Path", Services.getFilesPath()));
                 params.add(new AbstractMap.SimpleEntry<String, Object>("Modules Path", Services.getModulesPath()));
                 params.add(new AbstractMap.SimpleEntry<String, Object>("Entity Packages", entityPackages));
+                params.add(new AbstractMap.SimpleEntry<String, Object>("TCP Port", Services.getTcpPort()));
+                params.add(new AbstractMap.SimpleEntry<String, Object>("UDP Port", Services.getUdpPort()));
 
                 return params;
 

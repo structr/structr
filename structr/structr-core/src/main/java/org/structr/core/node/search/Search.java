@@ -2,9 +2,9 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.structr.core.search;
+package org.structr.core.node.search;
 
-import org.structr.core.search.SearchOperator;
+import org.structr.core.node.search.SearchOperator;
 import java.text.Normalizer;
 import java.text.Normalizer.Form;
 import java.util.ArrayList;
@@ -13,10 +13,10 @@ import org.apache.commons.lang.StringUtils;
 import org.structr.core.Services;
 import org.structr.core.entity.PlainText;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.search.BooleanSearchAttribute;
-import org.structr.core.search.SearchAttribute;
-import org.structr.core.search.TextualSearchAttribute;
-import org.structr.core.search.SearchNodeCommand;
+import org.structr.core.node.search.BooleanSearchAttribute;
+import org.structr.core.node.search.SearchAttribute;
+import org.structr.core.node.search.TextualSearchAttribute;
+import org.structr.core.node.search.SearchNodeCommand;
 
 /**
  *

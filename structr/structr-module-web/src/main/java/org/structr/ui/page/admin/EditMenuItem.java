@@ -13,13 +13,13 @@ import org.structr.core.entity.AbstractNode;
 import org.apache.click.control.Option;
 import org.apache.click.control.Select;
 import org.apache.click.dataprovider.DataProvider;
-import org.structr.core.search.SearchOperator;
+import org.structr.core.node.search.SearchOperator;
 import org.structr.core.entity.web.Page;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.web.MenuItem;
-import org.structr.core.search.TextualSearchAttribute;
-import org.structr.core.search.SearchNodeCommand;
+import org.structr.core.node.search.TextualSearchAttribute;
+import org.structr.core.node.search.SearchNodeCommand;
 
 /**
  * Edit text.

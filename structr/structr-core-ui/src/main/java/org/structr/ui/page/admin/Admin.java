@@ -23,11 +23,13 @@ import org.apache.click.util.Bindable;
 import org.apache.click.extras.tree.Tree;
 import org.apache.click.extras.tree.TreeNode;
 import org.apache.commons.lang.ArrayUtils;
-import org.structr.core.search.Search;
+import org.structr.core.node.search.Search;
 import org.structr.context.SessionMonitor;
+import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Link;
 import org.structr.core.entity.SuperUser;
+import org.structr.core.node.search.SearchNodeCommand;
 import org.structr.ui.page.LoginPage;
 import org.structr.ui.page.StructrPage;
 
@@ -39,9 +41,7 @@ import org.structr.ui.page.StructrPage;
 public class Admin extends StructrPage {
 
     private static final Logger logger = Logger.getLogger(Admin.class.getName());
-
     protected static final String TABLE_CLASS = "structr";
-
     // TODO: move to global configuration
     public static final Integer THUMBNAIL_WIDTH = 100;
     public static final Integer THUMBNAIL_HEIGHT = 100;
@@ -54,7 +54,6 @@ public class Admin extends StructrPage {
     public final static String EXPANDED_NODES_KEY = "expandedNodes";
     protected final static String SEARCH_RESULTS_KEY = "searchResults";
     protected final static String SEARCH_TEXT_KEY = "searchFor";
-
     /** list with ids of open nodes */
     protected List<TreeNode> openNodes;
     @Bindable
@@ -65,6 +64,7 @@ public class Admin extends StructrPage {
     protected Panel simpleSearchPanel = new Panel("simpleSearchPanel", "/panel/simple-search-panel.htm");
     @Bindable
     protected TextField searchTextField = new AutoCompleteTextField(SEARCH_TEXT_KEY, "Search for") {
+
         @Override
         public List<String> getAutoCompleteList(final String criteria) {
             return Search.getNodeNamesLike(criteria);
@@ -73,6 +73,7 @@ public class Admin extends StructrPage {
     @Bindable
     protected List<AbstractNode> searchResults;
     // use template for backend pages
+
     @Override
     public String getTemplate() {
         return "/admin-edit-template.htm";
@@ -81,6 +82,9 @@ public class Admin extends StructrPage {
     protected PageLink rootLink = new PageLink(Nodes.class);
     @Bindable
     protected ActionLink logoutLink = new ActionLink("logoutLink", "Logout", this, "onLogout");
+    protected PageLink homeLink = new PageLink("homeLink", "Home", DefaultEdit.class);
+    protected PageLink usersLink = new PageLink("usersLink", "Users", DefaultEdit.class);
+    protected PageLink maintenanceLink = new PageLink("maintenanceLink", "Maintenance", Maintenance.class);
     @Bindable
     protected Panel actionsPanel = new Panel("actionsPanel", "/panel/actions-panel.htm");
     protected final Locale locale = getContext().getLocale();
@@ -91,6 +95,13 @@ public class Admin extends StructrPage {
     public Admin() {
         super();
         title = "STRUCTR Admin Console";
+
+        homeLink.setParameter("nodeId", "0");
+        addControl(homeLink);
+
+        addControl(usersLink);
+
+        addControl(maintenanceLink);
     }
 
     @Override
@@ -99,6 +110,12 @@ public class Admin extends StructrPage {
         PageLink returnLink = new PageLink("Return Link", getClass());
         returnLink.setParameter(NODE_ID_KEY, getNodeId());
         logoutLink.setParameter(RETURN_URL_KEY, returnLink.getHref());
+
+        List<AbstractNode> usersNodes = (List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(user, null, false, false, Search.andExactName("Users"));
+        if (!(usersNodes.isEmpty())) {
+            usersLink.setParameter("nodeId", usersNodes.get(0).getId());
+        }
+
     }
 
     /**
@@ -112,7 +129,7 @@ public class Admin extends StructrPage {
 
         getContext().getRequest().getSession().invalidate();
         userName = null;
-        
+
 
 //        if (returnUrl != null) {
 //            setRedirect(returnUrl);
@@ -259,5 +276,4 @@ public class Admin extends StructrPage {
         iconSrc = iconSrc.substring(0, i) + "_linked." + ext;
         return iconSrc;
     }
-
 }

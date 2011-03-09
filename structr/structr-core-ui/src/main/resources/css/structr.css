@@ -252,7 +252,7 @@ span.required {
     margin: 0 10px;
 }
 
-#treeArea {
+#treeArea, #maintenanceTabArea {
     position: absolute;
     left: 14px;
     top: 70px;
@@ -265,7 +265,6 @@ span.required {
     top: 70px;
     /*    width: 1000px;*/
 }
-
 
 
 #tabArea ul:first-child {
@@ -602,7 +601,7 @@ a.nodeActionLink img {
     margin: 0;
     padding: 0;
     width: 95%;
-    height: 800px;
+    height: 600px;
 }
 
 .source pre {
@@ -901,6 +900,11 @@ div.fakeBtn.enabled {
         font-size: 1.1em;
         vertical-align: middle;
     background-color: #ededed;*/
+}
+
+.mainLink {
+    padding-left: 25px;
+    float: left ! important;
 }
 
 .util {

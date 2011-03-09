@@ -2,23 +2,22 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.structr.core.search;
+package org.structr.core.node.search;
 
 import org.structr.core.node.NodeAttribute;
 
 /**
- * Represents an attribute for textual search.
- *
+ * A parameterized node attribute extended by a boolean search operator.
  * <p>
  * Used in {@see SearchNodeCommand}.
  *
  * @author amorgner
  */
-public class TextualSearchAttribute extends SearchAttribute {
+public class BooleanSearchAttribute extends SearchAttribute {
 
     private NodeAttribute nodeAttribute;
 
-    public TextualSearchAttribute(final String key, final String value, final SearchOperator searchOp) {
+    public BooleanSearchAttribute(final String key, final Boolean value, final SearchOperator searchOp) {
         nodeAttribute = new NodeAttribute(key, value);
         setSearchOperator(searchOp);
     }
@@ -37,8 +36,8 @@ public class TextualSearchAttribute extends SearchAttribute {
         return nodeAttribute.getKey();
     }
 
-    public String getValue() {
-        return (String) nodeAttribute.getValue();
+    public Boolean getValue() {
+        return (Boolean) nodeAttribute.getValue();
     }
 
 }

@@ -14,6 +14,10 @@
         <div id="header">
 
             <!--            <div class="structr"><span class="structrCap">s</span>tructr</div>-->
+            <div class="mainLink">$homeLink</div>
+            <div class="mainLink">$usersLink</div>
+            <div class="mainLink">$maintenanceLink</div>
+
 
             #if ($userName)
             <div class="util">
@@ -201,8 +205,10 @@
 
                     jQuery("#tabArea .CodeMirror-wrapping").width(tabAreaBodyWidth - 34);
                     jQuery("#tabArea .CodeMirror-wrapping").height(tabAreaBodyHeight - 70);
-                    jQuery("#rendition-tab iframe").width(tabAreaBodyWidth - 18);
-                    jQuery("#source-tab textarea").width(tabAreaBodyWidth - 18);
+                    jQuery("#rendition-tab iframe").width(tabAreaBodyWidth - 4);
+                    jQuery("#rendition-tab iframe").height(tabAreaBodyHeight - 42);
+                    jQuery("#source-tab textarea").width(tabAreaBodyWidth - 4);
+                    jQuery("#source-tab textarea").height(tabAreaBodyHeight - 42);
                 }
 
 
