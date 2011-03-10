@@ -82,6 +82,7 @@ public class NodeService implements SingletonService {
     public void shutdown() {
         if (isRunning()) {
             graphDb.shutdown();
+            graphDb = null;
         }
     }
 

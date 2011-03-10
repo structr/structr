@@ -94,9 +94,9 @@ public class Maintenance extends Admin {
     @Bindable
     protected Table allNodesTable = new Table("allNodesTable");
     @Bindable
-    protected ActionLink startServicesLink = new ActionLink("startServicesLink", "Start Services", this, "onStartServices");
+    protected ActionLink startupLink = new ActionLink("startupLink", "Startup", this, "onStartup");
     @Bindable
-    protected ActionLink stopServicesLink = new ActionLink("stopServicesLink", "Stop Services", this, "onStopServices");
+    protected ActionLink shutdownLink = new ActionLink("shutdownLink", "Shutdown", this, "onShutdown");
     @Bindable
     protected ActionLink rebuildIndexLink = new ActionLink("rebuildIndexLink", "Rebuild Index (Background)", this, "onRebuildIndex");
     @Bindable
@@ -680,13 +680,14 @@ public class Maintenance extends Admin {
         return redirect();
     }
 
-    public boolean onStartServices() {
+    public boolean onStartup() {
         Services.initialize();
         return false;
     }
 
-    public boolean onStopServices() {
+    public boolean onShutdown() {
         Services.shutdown();
         return false;
     }
+
 }

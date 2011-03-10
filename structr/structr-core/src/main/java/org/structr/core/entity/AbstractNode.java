@@ -2178,6 +2178,10 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
                     }
                 }
 
+                if (user != null) {
+                    root.put("User", user);
+                }
+
                 // add geo info if available
                 // TODO: add geo node information
 

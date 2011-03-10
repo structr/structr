@@ -226,7 +226,8 @@ public class LogService extends Thread implements RunnableService {
     public void stopService() {
         this.run = false;
         try {
-            this.interrupt();
+            this.shutdown();
+            //this.interrupt();
         } catch (Throwable t) { /* ignore */ }
     }
 

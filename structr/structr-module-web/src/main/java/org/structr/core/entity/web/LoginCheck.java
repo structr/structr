@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
+import org.structr.context.SessionMonitor;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.User;
@@ -34,13 +35,13 @@ public class LoginCheck extends WebNode {
     }
     private final static String defaultUsernameFieldName = "username";
     private final static String defaultPasswordFieldName = "password";
-    private final static int defaultMaxRetries = 10;
-    private final static int defaultDelayThreshold = 3;
-    private final static int defaultDelayTime = 10;
+    private final static int defaultMaxRetries = 100;
+    private final static int defaultDelayThreshold = 10;
+    private final static int defaultDelayTime = 3;
     private final static String NUMBER_OF_LOGIN_ATTEMPTS = "numberOfLoginAttempts";
     private final static String SESSION_BLOCKED = "sessionBlocked";
     private final static String USERNAME_KEY = "username";
-    private final static String LOGIN_FAILURE_TEXT = "Wrong username or password!";
+    private final static String LOGIN_FAILURE_TEXT = "Wrong username or password, or user is blocked. Check caps lock. Note: Username is case sensitive!";
     /** Name of username field */
     public final static String USERNAME_FIELD_NAME_KEY = "usernameFieldName";
     /** Name of password field */
@@ -172,18 +173,26 @@ public class LoginCheck extends WebNode {
                 return;
             }
 
-            Boolean sessionBlocked = (Boolean) session.getAttribute(SESSION_BLOCKED);
+            Boolean alreadyLoggedIn = session.getAttribute(USERNAME_KEY) != null;
 
-            if (Boolean.TRUE.equals(sessionBlocked)) {
-                out.append("<div class=\"errorMsg\">").append("Too many login attempts, session is blocked!").append("</div>");
+            if (alreadyLoggedIn) {
                 return;
             }
 
+
+            Boolean sessionBlocked = (Boolean) session.getAttribute(SESSION_BLOCKED);
+
+            if (Boolean.TRUE.equals(sessionBlocked)) {
+                out.append("<div class=\"errorMsg\">").append("Too many login attempts, session is blocked for login").append("</div>");
+                return;
+            }
+
+            // Get values from config page, or defaults
             String usernameFieldName = getUsernameFieldName() != null ? getUsernameFieldName() : defaultUsernameFieldName;
             String passwordFieldName = getPasswordFieldName() != null ? getPasswordFieldName() : defaultPasswordFieldName;
-            int maxRetries = getMaxRetries() == 0 ? getMaxRetries() : defaultMaxRetries;
-            int delayThreshold = getDelayThreshold() == 0 ? getDelayThreshold() : defaultDelayThreshold;
-            int delayTime = getDelayTime() == 0 ? getDelayTime() : defaultDelayTime;
+            int maxRetries = getMaxRetries() > 0 ? getMaxRetries() : defaultMaxRetries;
+            int delayThreshold = getDelayThreshold() > 0 ? getDelayThreshold() : defaultDelayThreshold;
+            int delayTime = getDelayTime() > 0 ? getDelayTime() : defaultDelayTime;
 
 
             String username = request.getParameter(usernameFieldName);
@@ -191,76 +200,103 @@ public class LoginCheck extends WebNode {
 
             if (StringUtils.isEmpty(username)) {
                 out.append("<div class=\"errorMsg\">").append("You must enter a username").append("</div>");
+                countLoginFailure(out, session, maxRetries, delayThreshold, delayTime);
                 return;
             }
 
             if (StringUtils.isEmpty(password)) {
                 out.append("<div class=\"errorMsg\">").append("You must enter a password").append("</div>");
+                countLoginFailure(out, session, maxRetries, delayThreshold, delayTime);
                 return;
             }
 
-            Integer retries = (Integer) session.getAttribute(NUMBER_OF_LOGIN_ATTEMPTS);
-
-            if (retries != null && retries > maxRetries) {
-                session.setAttribute(SESSION_BLOCKED, true);
-                out.append("<div class=\"errorMsg\">").append("Too many unsuccessful login attempts, your session is blocked now!").append("</div>");
-                return;
-            } else if (retries > delayThreshold) {
-
-                try {
-                    Thread.sleep(delayTime * 1000);
-                } catch (InterruptedException ex) {
-                    logger.log(Level.SEVERE, null, ex);
-                }
-
-            } else if (retries != null) {
-                session.setAttribute(NUMBER_OF_LOGIN_ATTEMPTS, retries++);
-            } else {
-                session.setAttribute(NUMBER_OF_LOGIN_ATTEMPTS, 1);
-            }
-
-            // Here, the session is not blocked, and
-            // we have a username and a password
+            // Session is not blocked, and we have a username and a password
 
             // First, check if we have a user with this name
             User loginUser = (User) Services.command(FindUserCommand.class).execute(username);
 
+            // No matter what reason to deny login, always show the same error message to
+            // avoid giving hints
+            errorMsg = LOGIN_FAILURE_TEXT;
+
             if (loginUser == null) {
-                out.append("<div class=\"errorMsg\">").append(LOGIN_FAILURE_TEXT).append("</div>");
+                logger.log(Level.INFO, "No user found for name {0}", loginUser);
+                out.append("<div class=\"errorMsg\">").append(errorMsg).append("</div>");
+                countLoginFailure(out, session, maxRetries, delayThreshold, delayTime);
+                return;
             }
 
-            // Here, we have a valid user
+            // From here, we have a valid user
+
+            if (loginUser.isBlocked()) {
+                logger.log(Level.INFO, "User {0} is blocked", loginUser);
+                out.append("<div class=\"errorMsg\">").append(errorMsg).append("</div>");
+                countLoginFailure(out, session, maxRetries, delayThreshold, delayTime);
+                return;
+            }
 
             // Check password
 
-            if (user == null) {
-                logger.log(Level.INFO, "No user found for name {0}", user);
-                errorMsg = "Wrong username or password, or user is blocked. Check caps lock. Note: Username is case sensitive!";
-                out.append("<div class=\"errorMsg\">").append(errorMsg).append("</div>");
-                return;
-            }
-
-            if (user.isBlocked()) {
-                logger.log(Level.INFO, "User {0} is blocked", user);
-                errorMsg = "Wrong username or password, or user is blocked. Check caps lock. Note: Username is case sensitive!";
-                out.append("<div class=\"errorMsg\">").append(errorMsg).append("</div>");
-                return;
-            }
-
             String encryptedPasswordValue = DigestUtils.sha512Hex(password);
 
-            if (!encryptedPasswordValue.equals(user.getPassword())) {
-                logger.log(Level.INFO, "Wrong password for user {0}", user);
-                errorMsg = "Wrong username or password, or user is blocked. Check caps lock. Note: Username is case sensitive!";
+            if (!encryptedPasswordValue.equals(loginUser.getPassword())) {
+                logger.log(Level.INFO, "Wrong password for user {0}", loginUser);
                 out.append("<div class=\"errorMsg\">").append(errorMsg).append("</div>");
+                countLoginFailure(out, session, maxRetries, delayThreshold, delayTime);
                 return;
             }
 
-            // username and password are both valid
-            session.setAttribute(USERNAME_KEY, username);
-            out.append("<div class=\"okMsg\">").append("Successfully logged in").append("</div>");
+            // Username and password are both valid
+            session.setAttribute(USERNAME_KEY, loginUser.getName());
 
+            // Register user with internal session management
+            long sessionId = SessionMonitor.registerUser(user, session);
+            SessionMonitor.logActivity(user, sessionId, "Login");
+
+            // Mark this session with the internal session id
+            session.setAttribute(SessionMonitor.SESSION_ID, sessionId);
+
+            // Clear all blocking stuff
+            session.removeAttribute(SESSION_BLOCKED);
+            session.removeAttribute(NUMBER_OF_LOGIN_ATTEMPTS);
+
+            out.append("<div class=\"okMsg\">").append("Welcome ").append(loginUser.getRealName()).append("!").append("</div>");
 
         }
+    }
+
+    private void countLoginFailure(final StringBuilder out, final HttpSession session, final int maxRetries, final int delayThreshold, final int delayTime) {
+
+        Integer retries = (Integer) session.getAttribute(NUMBER_OF_LOGIN_ATTEMPTS);
+
+        if (retries != null && retries > maxRetries) {
+
+            logger.log(Level.SEVERE, "More than {0} login failures, session {1} is blocked", new Object[]{maxRetries, session.getId()});
+            session.setAttribute(SESSION_BLOCKED, true);
+            out.append("<div class=\"errorMsg\">").append("Too many unsuccessful login attempts, your session is blocked for login!").append("</div>");
+            return;
+
+        } else if (retries != null && retries > delayThreshold) {
+            
+            logger.log(Level.INFO, "More than {0} login failures, execution delayed by {1} seconds", new Object[]{delayThreshold, delayTime});
+
+            try {
+                Thread.sleep(delayTime * 1000);
+            } catch (InterruptedException ex) {
+                logger.log(Level.SEVERE, null, ex);
+            }
+
+            out.append("<div class=\"errorMsg\">").append("You had more than ").append(delayThreshold).append(" unsuccessful login attempts, execution was delayed by ").append(delayTime).append(" seconds.").append("</div>");
+
+        } else if (retries != null) {
+
+            session.setAttribute(NUMBER_OF_LOGIN_ATTEMPTS, retries + 1);
+
+        } else {
+
+            session.setAttribute(NUMBER_OF_LOGIN_ATTEMPTS, 1);
+            
+        }
+
     }
 }
