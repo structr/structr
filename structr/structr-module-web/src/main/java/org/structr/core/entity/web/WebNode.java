@@ -19,6 +19,9 @@ public class WebNode extends AbstractNode {
     private final static String ICON_SRC = "/images/folder.png";
     private static final Logger logger = Logger.getLogger(AbstractNode.class.getName());
 
+    protected final static String SESSION_BLOCKED = "sessionBlocked";
+    protected final static String USERNAME_KEY = "username";
+
     /**
      * Traverse over all child nodes to find a home page
      */
@@ -51,7 +54,7 @@ public class WebNode extends AbstractNode {
 
         } else {
 
-            if (isVisible()) {
+            if (isVisible(user)) {
 
                 if (hasTemplate(user)) {
                     template.setRequest(getRequest());

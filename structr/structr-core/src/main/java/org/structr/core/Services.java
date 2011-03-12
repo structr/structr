@@ -38,6 +38,8 @@ public class Services {
     // Network-related constants
     public static final String TCP_PORT = "tcp.port";
     public static final String UDP_PORT = "udp.port";
+    public static final String SMTP_HOST = "smtp.host";
+    public static final String SMTP_PORT = "smtp.port";
     // LogService-related constants
     public static final String LOG_SERVICE_INTERVAL = "structr.logging.interval";
     public static final String LOG_SERVICE_THRESHOLD = "structr.logging.threshold";
@@ -57,6 +59,8 @@ public class Services {
     private static String tmpPath = "/tmp";
     private static String tcpPort = "54555";
     private static String udpPort = "54777";
+    private static String smtpHost = "localhost";
+    private static String smtpPort = "25";
 
     /**
      * Return the static application title
@@ -125,6 +129,21 @@ public class Services {
      */
     public static String getUdpPort() {
         return udpPort;
+    }
+
+
+    /**
+     * Return the SMTP host for sending out e-mails
+     */
+    public static String getSmtpHost() {
+        return smtpHost;
+    }
+
+    /**
+     * Return the SMTP port for sending out e-mails
+     */
+    public static String getSmtpPort() {
+        return smtpPort;
     }
 
     /**
@@ -203,6 +222,8 @@ public class Services {
         modulesPath = getConfigValue(context, Services.MODULES_PATH, "/opt/structr/modules");
         tcpPort = getConfigValue(context, Services.TCP_PORT, "54555");
         udpPort = getConfigValue(context, Services.UDP_PORT, "57555");
+        smtpHost = getConfigValue(context, Services.SMTP_HOST, "localhost");
+        smtpPort = getConfigValue(context, Services.SMTP_PORT, "25");
 
         logger.log(Level.INFO, "Finished initialization of service layer");
     }

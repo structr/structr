@@ -63,13 +63,13 @@ h2 {
 
 input[readonly] {
     background-color: #ccc;
-/*    border: 1px solid #747474;*/
+    /*    border: 1px solid #747474;*/
 }
 
 input {
     font-size: 1.0em;
     font-family: inherit;
-/*    background-color: #ededed;*/
+    /*    background-color: #ededed;*/
     border: 1px solid #aaa;
     border-radius: 2px;
     -moz-border-radius: 2px;
@@ -236,7 +236,7 @@ span.required {
 
 #header div {
     float: right;
-/*    padding: 20px;*/
+    /*    padding: 20px;*/
     margin: 20px 12px 0 0;
 }
 
@@ -371,14 +371,14 @@ table.errors {
 
 
 .okMsg {
-/*    border: 1px solid #619140;*/
+    /*    border: 1px solid #619140;*/
     color: #619140;
     background: #f0feed url('../images/tick.png') .5em .5em no-repeat;
     padding: .5em 1em .5em 3em;
 }
 
 .warnMsg {
-/*    border: 1px solid #e7a822;*/
+    /*    border: 1px solid #e7a822;*/
     color: #e7a822;
     background: #fffae8 url('../images/error.png') .5em .5em no-repeat;
     padding: .5em 1em .5em 3em;
@@ -668,12 +668,9 @@ table#properties td:first-child {
         height: 100%;*/
     overflow: visible ! important;
 }
-.treestyle a.public {
-    color: #070 ! important;
-}
 
 .treestyle a.hidden {
-    color: #aaa;
+    color: #999;
     text-decoration: line-through ! important;
 }
 
@@ -701,6 +698,14 @@ table#properties td:first-child {
     /*    background-color: #555555;*/
     color: #ededed;
     padding: .25em .5em;
+}
+
+.treestyle .public {
+    color: #070;
+
+}
+.treestyle .public .active {
+    color: #bfb ! important;
 }
 
 .treestyle span {
@@ -880,8 +885,8 @@ div.fakeBtn.enabled {
 }
 
 .search form {
-/*    margin-top: -2px;*/
-/*    padding: 0;*/
+    /*    margin-top: -2px;*/
+    /*    padding: 0;*/
     /*    vertical-align: top;*/
 }
 
@@ -892,14 +897,14 @@ div.fakeBtn.enabled {
 
 .search input[type="text"] {
     /*    width: 120px;*/
-/*    margin-top: -3px;*/
-/*    border: 1px inset #fff;
-    border-radius: 2px;
-    -moz-border-radius: 2px;
-    -webkit-border-radius: 2px;
-        font-size: 1.1em;
-        vertical-align: middle;
-    background-color: #ededed;*/
+    /*    margin-top: -3px;*/
+    /*    border: 1px inset #fff;
+        border-radius: 2px;
+        -moz-border-radius: 2px;
+        -webkit-border-radius: 2px;
+            font-size: 1.1em;
+            vertical-align: middle;
+        background-color: #ededed;*/
 }
 
 .mainLink {
@@ -909,8 +914,8 @@ div.fakeBtn.enabled {
 
 .util {
     /*    width: 400px;*/
-/*    margin-top: 0px;*/
-/*    display: inline;*/
+    /*    margin-top: 0px;*/
+    /*    display: inline;*/
 }
 
 .util img {
@@ -968,7 +973,7 @@ fieldset legend {
 
 fieldset input, fieldset select {
     font-size: 1.0em;
-/*    background: #fff;*/
+    /*    background: #fff;*/
 }
 
 fieldset td {
@@ -1133,4 +1138,3 @@ span.pagelinks-nobanner {
     margin-top: 10px;
     margin-bottom: 10px;
 }
- 

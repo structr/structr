@@ -33,25 +33,63 @@ public class LoginCheck extends WebNode {
     public String getIconSrc() {
         return ICON_SRC;
     }
-    private final static String defaultUsernameFieldName = "username";
-    private final static String defaultPasswordFieldName = "password";
-    private final static int defaultMaxRetries = 100;
-    private final static int defaultDelayThreshold = 10;
-    private final static int defaultDelayTime = 3;
+    protected final static String defaultSubmitButtonName = LoginForm.defaultSubmitButtonName;
+    protected final static String defaultAntiRobotFieldName = LoginForm.defaultAntiRobotFieldName;
+    protected final static String defaultUsernameFieldName = LoginForm.defaultUsernameFieldName;
+    protected final static String defaultPasswordFieldName = LoginForm.defaultPasswordFieldName;
+    protected final static int defaultMaxErrors = 1000;
+    protected final static int defaultDelayThreshold = 100;
+    protected final static int defaultDelayTime = 3;
     private final static String NUMBER_OF_LOGIN_ATTEMPTS = "numberOfLoginAttempts";
-    private final static String SESSION_BLOCKED = "sessionBlocked";
-    private final static String USERNAME_KEY = "username";
+    public final static String SUBMIT_BUTTON_NAME_KEY = "submitButtonName";
+    public final static String ANTI_ROBOT_FIELD_NAME_KEY = "antiRobotFieldName";
     private final static String LOGIN_FAILURE_TEXT = "Wrong username or password, or user is blocked. Check caps lock. Note: Username is case sensitive!";
     /** Name of username field */
     public final static String USERNAME_FIELD_NAME_KEY = "usernameFieldName";
     /** Name of password field */
     public final static String PASSWORD_FIELD_NAME_KEY = "passwordFieldName";
-    /** Absolute number of unsuccessful login attempts for a session */
-    public final static String MAX_RETRIES_KEY = "maxRetries";
+    /** Absolute number of login errors (wrong inputs) for a session. Each wrong or missing input field is counted. */
+    public final static String MAX_ERRORS_KEY = "maxRetries";
     /** Number of unsuccessful login attempts before retry delay becomes active */
     public final static String DELAY_THRESHOLD_KEY = "delayThreshold";
     /** Time to wait for retry after an unsuccessful login attempt */
     public final static String DELAY_TIME_KEY = "delayTime";
+
+    /**
+     * Return name of anti robot field
+     *
+     * @return
+     */
+    public String getAntiRobotFieldName() {
+        return getStringProperty(ANTI_ROBOT_FIELD_NAME_KEY);
+    }
+
+    /**
+     * Set name of anti robot field
+     *
+     * @param value
+     */
+    public void setAntiRobotFieldName(final String value) {
+        setProperty(ANTI_ROBOT_FIELD_NAME_KEY, value);
+    }
+
+    /**
+     * Return name of submit button
+     *
+     * @return
+     */
+    public String getSubmitButtonName() {
+        return getStringProperty(SUBMIT_BUTTON_NAME_KEY);
+    }
+
+    /**
+     * Set name of submit button
+     *
+     * @param value
+     */
+    public void setSubmitButtonName(final String value) {
+        setProperty(SUBMIT_BUTTON_NAME_KEY, value);
+    }
 
     /**
      * Return name of username field
@@ -76,8 +114,8 @@ public class LoginCheck extends WebNode {
      * 
      * If number is exceeded, login is blocked for this session.
      */
-    public int getMaxRetries() {
-        return getIntProperty(MAX_RETRIES_KEY);
+    public int getMaxErrors() {
+        return getIntProperty(MAX_ERRORS_KEY);
     }
 
     /**
@@ -117,8 +155,8 @@ public class LoginCheck extends WebNode {
      *
      * @param value
      */
-    public void setMaxRetries(final int value) {
-        setProperty(MAX_RETRIES_KEY, value);
+    public void setMaxErrors(final int value) {
+        setProperty(MAX_ERRORS_KEY, value);
     }
 
     /**
@@ -158,7 +196,6 @@ public class LoginCheck extends WebNode {
 
             renderEditFrame(out, editUrl);
 
-            // otherwise, render subnodes in edit mode
         } else {
 
             HttpServletRequest request = getRequest();
@@ -173,12 +210,13 @@ public class LoginCheck extends WebNode {
                 return;
             }
 
-            Boolean alreadyLoggedIn = session.getAttribute(USERNAME_KEY) != null;
+            String usernameFromSession = (String) session.getAttribute(USERNAME_KEY);
+            Boolean alreadyLoggedIn = usernameFromSession != null;
 
             if (alreadyLoggedIn) {
+//                out.append("<div class=\"errorMsg\">").append("Your are logged in as ").append(usernameFromSession).append("</div>");
                 return;
             }
-
 
             Boolean sessionBlocked = (Boolean) session.getAttribute(SESSION_BLOCKED);
 
@@ -188,15 +226,28 @@ public class LoginCheck extends WebNode {
             }
 
             // Get values from config page, or defaults
+            String submitButtonName = getSubmitButtonName() != null ? getSubmitButtonName() : defaultSubmitButtonName;
+            String antiRobotFieldName = getAntiRobotFieldName() != null ? getAntiRobotFieldName() : defaultAntiRobotFieldName;
             String usernameFieldName = getUsernameFieldName() != null ? getUsernameFieldName() : defaultUsernameFieldName;
             String passwordFieldName = getPasswordFieldName() != null ? getPasswordFieldName() : defaultPasswordFieldName;
-            int maxRetries = getMaxRetries() > 0 ? getMaxRetries() : defaultMaxRetries;
+            int maxRetries = getMaxErrors() > 0 ? getMaxErrors() : defaultMaxErrors;
             int delayThreshold = getDelayThreshold() > 0 ? getDelayThreshold() : defaultDelayThreshold;
             int delayTime = getDelayTime() > 0 ? getDelayTime() : defaultDelayTime;
 
-
             String username = request.getParameter(usernameFieldName);
             String password = request.getParameter(passwordFieldName);
+            String submitButton = request.getParameter(submitButtonName);
+            String antiRobot = request.getParameter(antiRobotFieldName);
+
+            if (StringUtils.isEmpty(submitButton)) {
+                // Don't process form at all if submit button was not pressed
+                return;
+            }
+
+            if (StringUtils.isNotEmpty(antiRobot)) {
+                // Don't process form if someone has filled the anti-robot field
+                return;
+            }
 
             if (StringUtils.isEmpty(username)) {
                 out.append("<div class=\"errorMsg\">").append("You must enter a username").append("</div>");
@@ -277,7 +328,7 @@ public class LoginCheck extends WebNode {
             return;
 
         } else if (retries != null && retries > delayThreshold) {
-            
+
             logger.log(Level.INFO, "More than {0} login failures, execution delayed by {1} seconds", new Object[]{delayThreshold, delayTime});
 
             try {
@@ -295,7 +346,7 @@ public class LoginCheck extends WebNode {
         } else {
 
             session.setAttribute(NUMBER_OF_LOGIN_ATTEMPTS, 1);
-            
+
         }
 
     }

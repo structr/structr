@@ -6,11 +6,14 @@ package org.structr.core.node;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.kernel.impl.nioneo.store.InvalidRecordException;
 import org.structr.core.entity.StructrRelationship;
 import org.structr.core.entity.AbstractNode;
 
@@ -23,6 +26,8 @@ import org.structr.core.entity.AbstractNode;
  * @author amorgner
  */
 public class NodeRelationshipsCommand extends NodeServiceCommand {
+
+    private static final Logger logger = Logger.getLogger(NodeRelationshipsCommand.class.getName());
 
     /**
      * First argument is the AbstractNode to get relationships for.
@@ -59,8 +64,26 @@ public class NodeRelationshipsCommand extends NodeServiceCommand {
                 rels = node.getRelationships(dir);
             }
 
-            for (Relationship r : rels) {
-                result.add(new StructrRelationship(r));
+            try {
+                for (Relationship r : rels) {
+                    result.add(new StructrRelationship(r));
+                }
+            } catch (InvalidRecordException ignore) {
+    /*********** FIXME ************
+      
+     Here an exception occurs:
+
+    org.neo4j.kernel.impl.nioneo.store.InvalidRecordException: Node[5] is neither firstNode[37781] nor secondNode[37782] for Relationship[188125]
+    at org.neo4j.kernel.impl.nioneo.xa.ReadTransaction.getMoreRelationships(ReadTransaction.java:131)
+    at org.neo4j.kernel.impl.nioneo.xa.NioNeoDbPersistenceSource$ReadOnlyResourceConnection.getMoreRelationships(NioNeoDbPersistenceSource.java:280)
+    at org.neo4j.kernel.impl.persistence.PersistenceManager.getMoreRelationships(PersistenceManager.java:100)
+    at org.neo4j.kernel.impl.core.NodeManager.getMoreRelationships(NodeManager.java:585)
+    at org.neo4j.kernel.impl.core.NodeImpl.getMoreRelationships(NodeImpl.java:358)
+    at org.neo4j.kernel.impl.core.IntArrayIterator.hasNext(IntArrayIterator.java:115)
+
+     
+                 */
+
             }
         }
 

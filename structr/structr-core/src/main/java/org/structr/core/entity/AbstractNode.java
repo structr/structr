@@ -92,6 +92,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
     public final static String VISIBILITY_START_DATE_KEY = "visibilityStartDate";
     public final static String VISIBILITY_END_DATE_KEY = "visibilityEndDate";
     public final static String PUBLIC_KEY = "public";
+    public final static String VISIBLE_FOR_AUTHENTICATED_USERS_KEY = "visibleForAuthenticatedUsers";
     public final static String HIDDEN_KEY = "hidden";
     public final static String DELETED_KEY = "deleted";
 //    public final static String ACL_KEY = "acl";
@@ -254,7 +255,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 
         } else {
 
-            if (isVisible()) {
+            if (isVisible(user)) {
                 out.append(getName());
             }
 
@@ -435,7 +436,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
             final String editUrl, final Long editNodeId, final User user) {
 
         try {
-            if (isVisible()) {
+            if (isVisible(user)) {
                 out.write(getName().getBytes());
             }
         } catch (IOException e) {
@@ -704,6 +705,18 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 
     public void setPublic(final boolean publicFlag) {
         setProperty(PUBLIC_KEY, publicFlag);
+    }
+
+    public boolean isVisibleForAuthenticatedUsers() {
+        return getBooleanProperty(VISIBLE_FOR_AUTHENTICATED_USERS_KEY);
+    }
+
+    public boolean getVisibleForAuthenticatedUsers() {
+        return getBooleanProperty(VISIBLE_FOR_AUTHENTICATED_USERS_KEY);
+    }
+
+    public void setVisibleForAuthenticatedUsers(final boolean flag) {
+        setProperty(VISIBLE_FOR_AUTHENTICATED_USERS_KEY, flag);
     }
 
     public boolean isHidden() {
@@ -1704,36 +1717,42 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      *
      * @return
      */
-    public boolean isVisible() {
-
-        boolean isHidden = getHidden();
+    public boolean isVisible(final User user) {
 
         // check hidden flag (see STRUCTR-12)
-        if (!isHidden) {
-
-            // check visibility period of time (see STRUCTR-13)
-            Date visStartDate = getVisibilityStartDate();
-
-            long effectiveStartDate = 0L;
-            Date createdDate = getCreatedDate();
-            if (createdDate != null) {
-                effectiveStartDate = Math.max(createdDate.getTime(), 0L);
-            }
-
-            // if no start date for visibility is given,
-            // take the maximum of 0 and creation date.
-            visStartDate = (visStartDate == null ? new Date(effectiveStartDate) : visStartDate);
-
-            Date visEndDate = getVisibilityEndDate();
-            visEndDate = (visEndDate == null ? new Date(Long.MAX_VALUE) : visEndDate);
-
-            Date now = new Date();
-
-            return (now.after(visStartDate) && now.before(visEndDate));
-
-        } else {
+        if (isHidden()) {
             return false;
         }
+
+        if (user == null && !(isPublic())) {
+            // Hide from public users
+            return false;
+        }
+
+        if (!(isPublic()) && !(isVisibleForAuthenticatedUsers())) {
+            return false;
+        }
+
+        // check visibility period of time (see STRUCTR-13)
+        Date visStartDate = getVisibilityStartDate();
+
+        long effectiveStartDate = 0L;
+        Date createdDate = getCreatedDate();
+        if (createdDate != null) {
+            effectiveStartDate = Math.max(createdDate.getTime(), 0L);
+        }
+
+        // if no start date for visibility is given,
+        // take the maximum of 0 and creation date.
+        visStartDate = (visStartDate == null ? new Date(effectiveStartDate) : visStartDate);
+
+        Date visEndDate = getVisibilityEndDate();
+        visEndDate = (visEndDate == null ? new Date(Long.MAX_VALUE) : visEndDate);
+
+        Date now = new Date();
+
+        return (now.after(visStartDate) && now.before(visEndDate));
+
     }
 
     /**

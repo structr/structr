@@ -131,7 +131,7 @@ public class MenuItem extends WebNode {
             }
 
 
-            if (menuItemNode.isVisible()) {
+            if (menuItemNode.isVisible(user)) {
 
                 String relativeNodePath = menuItemNode.getNodePath(user, startNode).replace("&", "%26");
 
@@ -145,7 +145,7 @@ public class MenuItem extends WebNode {
             }
         }
 
-        if (currentNode.isVisible()) {
+        if (currentNode.isVisible(user)) {
 
             int sub = menuItems.size();
             int pos = 0;

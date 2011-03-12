@@ -40,7 +40,7 @@ public class Menu extends MenuItem {
 
         } else {
 
-            if (isVisible()) {
+            if (isVisible(user)) {
 
                 renderMenuItems(out, startNode, this, 0, 0, 0, getMaxDepth(), user);
 

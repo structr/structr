@@ -84,7 +84,7 @@ public class Map extends AbstractNode {
 
         } else {
 
-            if (isVisible()) {
+            if (isVisible(user)) {
                 renderSVGMap(out);
             }
         }

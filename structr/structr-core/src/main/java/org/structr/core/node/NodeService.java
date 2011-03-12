@@ -4,7 +4,9 @@
  */
 package org.structr.core.node;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -13,6 +15,7 @@ import org.neo4j.graphdb.index.Index;
 import org.neo4j.helpers.collection.MapUtil;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
 import org.structr.core.Command;
+import org.structr.core.RunnableService;
 import org.structr.core.Services;
 import org.structr.core.SingletonService;
 
@@ -27,6 +30,8 @@ public class NodeService implements SingletonService {
     private GraphDatabaseService graphDb = null;
 //    private LuceneFulltextQueryIndexService index = null;
     private Index<Node> index = null;
+    /** Dependent services */
+    private Set<RunnableService> registeredServices = new HashSet<RunnableService>();
 
     // <editor-fold defaultstate="collapsed" desc="interface SingletonService">
     @Override
@@ -81,6 +86,14 @@ public class NodeService implements SingletonService {
     @Override
     public void shutdown() {
         if (isRunning()) {
+
+            for (RunnableService s : registeredServices) {
+                s.stopService();
+            }
+
+            // Wait for all registered services to end
+            waitFor(registeredServices.isEmpty());
+
             graphDb.shutdown();
             graphDb = null;
         }
@@ -96,4 +109,24 @@ public class NodeService implements SingletonService {
         return NodeService.class.getSimpleName();
     }
     // </editor-fold>
+
+    public void registerService(final RunnableService service) {
+        registeredServices.add(service);
+    }
+
+    public void unregisterService(final RunnableService service) {
+        registeredServices.remove(service);
+    }
+
+    private void waitFor(final boolean condition) {
+
+        while (!condition) {
+            try {
+                Thread.sleep(10);
+            } catch (Throwable t) {
+            }
+
+        }
+
+    }
 }

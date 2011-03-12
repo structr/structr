@@ -63,7 +63,7 @@ public class PlainText extends AbstractNode {
 
         } else {
 
-            if (isVisible()) {
+            if (isVisible(user)) {
                 String html = getContent();
 
                 if (html != null && html.length() > 0) {
@@ -130,7 +130,7 @@ public class PlainText extends AbstractNode {
     public void renderDirect(OutputStream out, final AbstractNode startNode,
             final String editUrl, final Long editNodeId, final User user) {
 
-        if (isVisible()) {
+        if (isVisible(user)) {
 
             try {
 

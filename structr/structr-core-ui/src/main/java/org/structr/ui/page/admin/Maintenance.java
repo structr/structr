@@ -164,7 +164,7 @@ public class Maintenance extends Admin {
         sessionsTable.setSortable(true);
         sessionsTable.setSortedColumn("inactiveSince");
         sessionsTable.setSortedAscending(true);
-        sessionsTable.setPageSize(5);
+        sessionsTable.setPageSize(15);
         sessionsTable.setHoverRows(true);
         sessionsTable.setShowBanner(true);
         sessionsTable.setClass(TABLE_CLASS);
@@ -351,6 +351,8 @@ public class Maintenance extends Admin {
                 params.add(new AbstractMap.SimpleEntry<String, Object>("Entity Packages", entityPackages));
                 params.add(new AbstractMap.SimpleEntry<String, Object>("TCP Port", Services.getTcpPort()));
                 params.add(new AbstractMap.SimpleEntry<String, Object>("UDP Port", Services.getUdpPort()));
+                params.add(new AbstractMap.SimpleEntry<String, Object>("SMTP Host", Services.getSmtpHost()));
+                params.add(new AbstractMap.SimpleEntry<String, Object>("SMTP Port", Services.getSmtpPort()));
 
                 return params;
 

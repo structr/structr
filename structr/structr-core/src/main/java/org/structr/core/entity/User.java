@@ -13,11 +13,11 @@ import org.structr.common.RelType;
 public class User extends Person {
 
     private final static String ICON_SRC = "/images/user.png";
-
     public final static String REAL_NAME_KEY = "realName";
     public final static String PASSWORD_KEY = "password";
     public final static String BLOCKED_KEY = "blocked";
     public final static String SESSION_ID_KEY = "sessionId";
+    public final static String CONFIRMATION_KEY_KEY = "confirmationKey";
 
     @Override
     public String getIconSrc() {
@@ -31,46 +31,58 @@ public class User extends Person {
      */
     public AbstractNode getRootNode() {
         List<StructrRelationship> outRels = getRelationships(RelType.ROOT_NODE, Direction.OUTGOING);
-        if (outRels != null) for (StructrRelationship r : outRels) {
-            return r.getEndNode();
+        if (outRels != null) {
+            for (StructrRelationship r : outRels) {
+                return r.getEndNode();
+            }
         }
         return null;
     }
 
     public void setPassword(final String passwordValue) {
 
-            // store passwords always as SHA-512 hash
-            setProperty(PASSWORD_KEY,
-                    DigestUtils.sha512Hex(passwordValue));
+        // store passwords always as SHA-512 hash
+        setProperty(PASSWORD_KEY,
+                DigestUtils.sha512Hex(passwordValue));
     }
-    
+
     public String getPassword() {
-        return (String) getProperty(PASSWORD_KEY);
+        return getStringProperty(PASSWORD_KEY);
     }
 
     public String getRealName() {
-        return (String) getProperty(REAL_NAME_KEY);
+        return getStringProperty(REAL_NAME_KEY);
     }
 
-    public void setRealName(final String realName) {
-        setProperty(REAL_NAME_KEY, realName);
+    public String getConfirmationKey() {
+        return getStringProperty(CONFIRMATION_KEY_KEY);
     }
 
     public Boolean getBlocked() {
         return (Boolean) getProperty(BLOCKED_KEY);
     }
 
+    public Boolean isBlocked() {
+        return Boolean.TRUE.equals(getBlocked());
+    }
+
+    public String getSessionId() {
+        return getStringProperty(SESSION_ID_KEY);
+    }
+
+    public void setRealName(final String realName) {
+        setProperty(REAL_NAME_KEY, realName);
+    }
+
     public void setBlocked(final Boolean blocked) {
         setProperty(BLOCKED_KEY, blocked);
     }
 
-    public Boolean isBlocked() {
-        return Boolean.TRUE.equals(getBlocked());
+    public void setConfirmationKey(final String value) {
+        setProperty(CONFIRMATION_KEY_KEY, value);
     }
 
     public void block() {
         setBlocked(Boolean.TRUE);
     }
-
-
 }

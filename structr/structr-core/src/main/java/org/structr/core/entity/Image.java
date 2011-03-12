@@ -72,7 +72,7 @@ public class Image extends File {
             }
 
             // FIXME: title shoud be rendered dependent of locale
-            if (isVisible()) {
+            if (isVisible(user)) {
                 //out.append("<img src=\"").append(getNodeURL(renderMode, contextPath)).append("\" title=\"").append(getTitle()).append("\" alt=\"").append(getTitle()).append("\" width=\"").append(getWidth()).append("\" height=\"").append(getHeight()).append("\">");
                 out.append("<img src=\"").append(imageUrl).append("\" title=\"").append(getTitle()).append("\" alt=\"").append(getTitle()).append("\" width=\"").append(getWidth()).append("\" height=\"").append(getHeight()).append("\">");
             }
@@ -89,7 +89,7 @@ public class Image extends File {
     public void renderDirect(OutputStream out, final AbstractNode startNode,
             final String editUrl, final Long editNodeId, final User user) {
 
-        if (isVisible()) {
+        if (isVisible(user)) {
             super.renderDirect(out, startNode, editUrl, editNodeId, user);
         }
     }

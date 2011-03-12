@@ -32,7 +32,7 @@ public class Site extends WebNode {
 
         } else {
 
-            if (isVisible()) {
+            if (isVisible(user)) {
 
                 if (this instanceof WebNode) {
 

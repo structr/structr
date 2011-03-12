@@ -82,7 +82,7 @@ public class View extends StructrPage {
             // Check visibility before access rights to assure that the
             // existance of hidden objects is not exposed
 
-            if (!(s.isVisible())) {
+            if (!(s.isVisible(user))) {
                 logger.log(Level.FINE, "Hidden page requested ({0})", getNodeId());
 
                 // TODO: change to structr page (make independent from Click framework)

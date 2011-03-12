@@ -48,7 +48,7 @@ public class Xml extends PlainText {
     public void renderView(StringBuilder out, final AbstractNode startNode,
             final String editUrl, final Long editNodeId, final User user) {
 
-        if (isVisible()) {
+        if (isVisible(user)) {
             StringBuilder xml = new StringBuilder(getXml());
 
             // start with first occurrence of key prefix
@@ -120,7 +120,7 @@ public class Xml extends PlainText {
             final String editUrl, final Long editNodeId, final User user) {
 
 
-        if (isVisible()) {
+        if (isVisible(user)) {
             try {
 
                 StringReader in = new StringReader(getXml());

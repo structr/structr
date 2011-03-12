@@ -30,7 +30,7 @@ public class Domain extends WebNode {
 
         } else {
 
-            if (isVisible()) {
+            if (isVisible(user)) {
 
                 if (this instanceof WebNode) {
 

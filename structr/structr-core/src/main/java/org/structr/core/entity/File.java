@@ -117,7 +117,7 @@ public class File extends AbstractNode {
     public void renderDirect(OutputStream out, final AbstractNode startNode,
             final String editUrl, final Long editNodeId, final User user) {
 
-        if (isVisible()) {
+        if (isVisible(user)) {
             try {
 
                 InputStream in = getInputStream();

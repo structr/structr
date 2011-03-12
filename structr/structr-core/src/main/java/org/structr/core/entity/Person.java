@@ -24,14 +24,17 @@ public class Person extends Principal {
     public final static String FAX_NUMBER_1_KEY = "faxNumber1";
     public final static String FAX_NUMBER_2_KEY = "faxNumber2";
     public final static String FAX_NUMBER_3_KEY = "faxNumber3";
-
+    public final static String STREET_KEY = "street";
+    public final static String ZIP_CODE_KEY = "zipCode";
+    public final static String CITY_KEY = "city";
+    public final static String COUNTRY_KEY = "country";
+    public final static String NEWSLETTER_KEY = "newsletter";
     private final static String ICON_SRC = "/images/user.png";
 
     @Override
     public String getIconSrc() {
         return ICON_SRC;
     }
-
 
     public void setFirstName(final String firstName) {
         setProperty(FIRST_NAME_KEY, firstName);
@@ -178,4 +181,43 @@ public class Person extends Principal {
         return (String) getProperty(FAX_NUMBER_3_KEY);
     }
 
+    public void setStreet(final String value) {
+        setProperty(STREET_KEY, value);
+    }
+
+    public String getStreet() {
+        return (String) getProperty(STREET_KEY);
+    }
+
+    public void setZipCode(final String value) {
+        setProperty(ZIP_CODE_KEY, value);
+    }
+
+    public String getZipCode() {
+        return (String) getProperty(ZIP_CODE_KEY);
+    }
+
+    public void setCountry(final String value) {
+        setProperty(COUNTRY_KEY, value);
+    }
+
+    public String getCountry() {
+        return (String) getProperty(COUNTRY_KEY);
+    }
+
+    public void setCity(final String value) {
+        setProperty(CITY_KEY, value);
+    }
+
+    public String getCity() {
+        return (String) getProperty(CITY_KEY);
+    }
+
+    public void setNewsletter(final boolean value) {
+        setProperty(NEWSLETTER_KEY, value);
+    }
+
+    public boolean getNewsletter() {
+        return getBooleanProperty(NEWSLETTER_KEY);
+    }
 }

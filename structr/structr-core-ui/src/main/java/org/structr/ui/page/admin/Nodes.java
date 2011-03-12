@@ -545,8 +545,8 @@ public class Nodes extends Admin {
 
                 AbstractNode subNode = r.getEndNode();
 
-                // if the node is visible and the current user has access
-                if (isSuperUser || (subNode.isVisible() && subNode.readAllowed(user))) {
+                // if the node is readable for current user
+                if (isSuperUser || (subNode.readAllowed(user))) {
 
                     // instantiate new tree node with given repository path,
                     // object's repository id as unique id (in tree context)
@@ -573,8 +573,8 @@ public class Nodes extends Admin {
 
                 AbstractNode subNode = r.getEndNode();
 
-                // if the node is visible and the current user has access
-                if (isSuperUser || (subNode.isVisible() && subNode.readAllowed(user))) {
+                // if the node is readable for current user
+                if (isSuperUser || (subNode.readAllowed(user))) {
 
                     // instantiate new tree node with given repository path,
                     // object's repository id as unique id (in tree context)
@@ -1290,7 +1290,7 @@ public class Nodes extends Admin {
 
                         // mouseover title
                         link.setLabel(label);
-                        if (!n.isVisible()) {
+                        if (n.isHidden()) {
                             link.addStyleClass("hidden");
                         }
                         if (n.isPublic()) {

@@ -65,7 +65,7 @@ public class Link extends AbstractNode {
             node.renderView(out, startNode, editUrl, editNodeId, user);
 
         } else {
-            if (isVisible()) {
+            if (isVisible(user)) {
                 getStructrNode().renderView(out, startNode, editUrl, editNodeId, user);
             }
         }

@@ -102,7 +102,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
                     long id = ((Long) parameters[0]).longValue();
                     node = (AbstractNode) findNode.execute(user, id);
 
-                } else if (parameters[0] instanceof Node) {
+                } else if (parameters[0] instanceof AbstractNode) {
                     node = ((AbstractNode) parameters[0]);
 
                 } else if (parameters[0] instanceof String) {

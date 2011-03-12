@@ -13,7 +13,6 @@ import java.util.logging.Logger;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.structr.common.RelType;
 import org.structr.core.Command;
-import org.structr.core.RunnableService;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.StructrRelationship;
@@ -26,6 +25,7 @@ import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.GraphDatabaseCommand;
 import org.structr.core.node.NodeAttribute;
 import org.structr.core.node.NodeFactoryCommand;
+import org.structr.core.node.RunnableNodeService;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 
@@ -37,10 +37,10 @@ import org.structr.core.node.TransactionCommand;
  *
  * @author Christian Morgner
  */
-public class LogService extends Thread implements RunnableService {
+public class LogService extends RunnableNodeService {
 
-    private static final ConcurrentHashMap<User, LogNodeList<Activity>> loggerCache = new ConcurrentHashMap<User, LogNodeList<Activity>>();
     private static final Logger logger = Logger.getLogger(LogService.class.getName());
+    private static final ConcurrentHashMap<User, LogNodeList<Activity>> loggerCache = new ConcurrentHashMap<User, LogNodeList<Activity>>();
     private static final ConcurrentLinkedQueue queue = new ConcurrentLinkedQueue();
     private static final long DefaultInterval = TimeUnit.SECONDS.toMillis(10);
     private static final int DefaultThreshold = 10;
@@ -67,55 +67,60 @@ public class LogService extends Thread implements RunnableService {
             getGlobalLog();
 
             while (run || !queue.isEmpty()) {
+
                 logger.log(Level.FINER, "Checking queue..");
 
-                // queue is not empty AND ((queue size is a above threshold) OR (service is to be stopped))
-                if (!queue.isEmpty() && ((queue.size() > threshold) || !run)) {
-
-                    logger.log(Level.FINEST, "+++ LogService active ... +++");
-
-                    while (!queue.isEmpty()) {
-                        Object o = queue.poll();
-                        if (o != null && o instanceof Activity) {
-
-                            Activity activity = (Activity) o;
-                            User user = activity.getUser();
-
-                            // Commit to database so node will have id and owner
-                            activity.commit(user);
-
-                            // append to global log
-                            LogNodeList globalLog = getGlobalLog();
-                            if (globalLog != null) {
-                                globalLog.add(activity);
-                                logger.log(Level.FINEST, "Added activity {0} to global log.", activity.getId());
-                            }
-
-                            // append to user-specific log
-                            LogNodeList userLog = getUserLog(activity.getOwnerNode());
-                            if (userLog != null) {
-                                userLog.add(activity);
-                                logger.log(Level.FINEST, "Added activity {0} to {1}''s log.", new Object[]{activity.getId(), user.getName()});
-                            }
-
-                        }
-
-                        // cooperative multitasking :)
-                        Thread.yield();
-                    }
-
-                    logger.log(Level.FINEST, "+++ LogService inactive. +++");
-                }
+                flushQueue();
 
                 try {
                     Thread.sleep(interval);
 
                 } catch (Throwable t) {
-                    t.printStackTrace(System.out);
+                    logger.log(Level.INFO, "LogService interrupted while sleeping");
                 }
             }
         } catch (Throwable t) {
             t.printStackTrace(System.out);
+        }
+    }
+
+    private void flushQueue() {
+        // queue is not empty AND ((queue size is a above threshold) OR (service is to be stopped))
+        if (!queue.isEmpty() && ((queue.size() > threshold) || !run)) {
+
+            logger.log(Level.FINEST, "+++ LogService active ... +++");
+
+            while (!queue.isEmpty()) {
+                Object o = queue.poll();
+                if (o != null && o instanceof Activity) {
+
+                    Activity activity = (Activity) o;
+                    User user = activity.getUser();
+
+                    // Commit to database so node will have id and owner
+                    activity.commit(user);
+
+                    // append to global log
+                    LogNodeList globalLog = getGlobalLog();
+                    if (globalLog != null) {
+                        globalLog.add(activity);
+                        logger.log(Level.FINEST, "Added activity {0} to global log.", activity.getId());
+                    }
+
+                    // append to user-specific log
+                    LogNodeList userLog = getUserLog(activity.getOwnerNode());
+                    if (userLog != null) {
+                        userLog.add(activity);
+                        logger.log(Level.FINEST, "Added activity {0} to {1}''s log.", new Object[]{activity.getId(), user.getName()});
+                    }
+
+                }
+
+                // cooperative multitasking :)
+                Thread.yield();
+            }
+
+            logger.log(Level.FINEST, "+++ LogService inactive. +++");
         }
     }
 
@@ -125,24 +130,24 @@ public class LogService extends Thread implements RunnableService {
             return null;
         }
 
-        LogNodeList ret = loggerCache.get(user);
+        LogNodeList userLogNodeList = loggerCache.get(user);
 
-        if (ret == null) {
+        if (userLogNodeList == null) {
             // First, try to find user's activity list
             for (AbstractNode s : user.getDirectChildNodes(user)) {
                 if (s instanceof LogNodeList) {
 
                     // Take the first LogNodeList
-                    ret = (LogNodeList) s;
+                    userLogNodeList = (LogNodeList) s;
 
                     // store in cache
-                    loggerCache.put(user, ret);
+                    loggerCache.put(user, userLogNodeList);
 
-                    return ret;
+                    return userLogNodeList;
                 }
             }
 
-            ret = (LogNodeList) Services.command(TransactionCommand.class).execute(new StructrTransaction() {
+            userLogNodeList = (LogNodeList) Services.command(TransactionCommand.class).execute(new StructrTransaction() {
 
                 @Override
                 public Object execute() throws Throwable {
@@ -166,53 +171,67 @@ public class LogService extends Thread implements RunnableService {
             });
 
             // store in cache
-            loggerCache.put(user, ret);
+            loggerCache.put(user, userLogNodeList);
         }
 
-        return (ret);
+        return userLogNodeList;
     }
 
     public LogNodeList getGlobalLog() {
+
         if (globalLogNodeList == null) {
+
+            GraphDatabaseService graphDb = (GraphDatabaseService) Services.command(GraphDatabaseCommand.class).execute();
+
+            if (graphDb == null) {
+                logger.log(Level.SEVERE, "Graph database not running.");
+                return null;
+            }
+
+            Command factory = Services.command(NodeFactoryCommand.class);
+
+            final AbstractNode rootNode = (AbstractNode) factory.execute(graphDb.getReferenceNode());
+            if (rootNode != null) {
+                for (StructrRelationship rel : rootNode.getOutgoingChildRelationships()) {
+                    if (rel.getEndNode() instanceof LogNodeList) {
+
+                        // Take first LogNodeList below root node
+                        globalLogNodeList = (LogNodeList) rel.getEndNode();
+                        return globalLogNodeList;
+                    }
+                }
+            }
+
+            // Don't create a new global log when log service is not running
+            if (!this.run) {
+                logger.log(Level.FINEST, "LogService not running.");
+                return null;
+            }
+
             globalLogNodeList = (LogNodeList) Services.command(TransactionCommand.class).execute(new StructrTransaction() {
 
                 @Override
                 public Object execute() throws Throwable {
-                    GraphDatabaseService graphDb = (GraphDatabaseService) Services.command(GraphDatabaseCommand.class).execute();
-                    Command factory = Services.command(NodeFactoryCommand.class);
-                    LogNodeList ret = null;
 
-                    if (graphDb != null) {
-                        AbstractNode rootNode = (AbstractNode) factory.execute(graphDb.getReferenceNode());
-                        if (rootNode != null) {
-                            for (StructrRelationship rel : rootNode.getOutgoingChildRelationships()) {
-                                if (rel.getEndNode() instanceof LogNodeList) {
-                                    return ((LogNodeList) rel.getEndNode());
-                                }
-                            }
-                        }
+                    LogNodeList newGlobalLogNodeList = null;
 
-                        // if we arrive here, no global log node exists yet
-                        Command createNode = Services.command(CreateNodeCommand.class);
-                        Command createRel = Services.command(CreateRelationshipCommand.class);
+                    // if we arrive here, no global log node exists yet
+                    Command createNode = Services.command(CreateNodeCommand.class);
+                    Command createRel = Services.command(CreateRelationshipCommand.class);
 
-                        ret = (LogNodeList<Activity>) createNode.execute(
-                                new NodeAttribute(AbstractNode.TYPE_KEY, LogNodeList.class.getSimpleName()),
-                                new NodeAttribute(AbstractNode.NAME_KEY, "Global Activity Log"));
+                    newGlobalLogNodeList = (LogNodeList<Activity>) createNode.execute(
+                            new NodeAttribute(AbstractNode.TYPE_KEY, LogNodeList.class.getSimpleName()),
+                            new NodeAttribute(AbstractNode.NAME_KEY, "Global Activity Log"));
 
-//                        ret = new LogNodeList<Activity>();
-//                        ret.init(s);
+                    // load reference node and link new node to it..
+                    createRel.execute(rootNode, newGlobalLogNodeList, RelType.HAS_CHILD);
 
-                        // load reference node and link new node to it..
-                        createRel.execute(rootNode, ret, RelType.HAS_CHILD);
-                    }
-
-                    return (ret);
+                    return newGlobalLogNodeList;
                 }
             });
         }
 
-        return (globalLogNodeList);
+        return globalLogNodeList;
     }
 
     // <editor-fold defaultstate="collapsed" desc="interface RunnableService">
@@ -224,11 +243,7 @@ public class LogService extends Thread implements RunnableService {
 
     @Override
     public void stopService() {
-        this.run = false;
-        try {
-            this.shutdown();
-            //this.interrupt();
-        } catch (Throwable t) { /* ignore */ }
+        shutdown();
     }
 
     @Override
@@ -268,8 +283,19 @@ public class LogService extends Thread implements RunnableService {
     @Override
     public void shutdown() {
         this.run = false;
+
+        // set prio to max
+        this.setPriority(Thread.MAX_PRIORITY);
+
+        // flush queue
+        flushQueue();
+
         try {
+            // wait a little bit
+            sleep(1000);
+            
             this.interrupt();
+            
         } catch (Throwable t) { /* ignore */ }
     }
     // </editor-fold>

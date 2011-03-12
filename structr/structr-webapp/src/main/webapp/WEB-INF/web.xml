@@ -124,6 +124,16 @@
         <param-name>udp.port</param-name>
         <param-value>57555</param-value>
     </context-param>
+    <context-param>
+        <description>SMTP host</description>
+        <param-name>smtp.host</param-name>
+        <param-value>localhost</param-value>
+    </context-param>
+    <context-param>
+        <description>SMTP port</description>
+        <param-name>smtp.port</param-name>
+        <param-value>25</param-value>
+    </context-param>
     <!--  custom context parameter end -->
     <welcome-file-list>
         <welcome-file>admin/dashboard.htm</welcome-file>

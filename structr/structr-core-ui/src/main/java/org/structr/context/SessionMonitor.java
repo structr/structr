@@ -23,8 +23,6 @@ import org.structr.core.log.LogCommand;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.NodeAttribute;
-import org.structr.core.node.StructrTransaction;
-import org.structr.core.node.TransactionCommand;
 
 /**
  * Helper class for handling session management
@@ -109,7 +107,7 @@ public class SessionMonitor {
             return null;
         }
 
-        public String getUserName() {
+        public String getUserName()     {
             return user.getName();
         }
 

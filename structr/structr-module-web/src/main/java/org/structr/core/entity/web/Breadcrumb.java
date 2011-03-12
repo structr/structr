@@ -44,7 +44,7 @@ public class Breadcrumb extends WebNode {
 
         } else {
 
-            if (isVisible()) {
+            if (isVisible(user)) {
 
                 renderBreadcrumbItems(out, startNode, this, user);
 
@@ -82,7 +82,7 @@ public class Breadcrumb extends WebNode {
                 cssClass += " current";
             }
 
-            if (breadcrumbItem.isVisible()) {
+            if (breadcrumbItem.isVisible(user)) {
 
                 String relativeNodePath = breadcrumbItem.getNodePath(user, startNode).replace("&", "%26");
 

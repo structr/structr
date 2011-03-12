@@ -129,7 +129,7 @@ public class DefaultEdit extends Nodes {
         addControl(editPropertiesForm);
 
         FieldSet visibilityFields = new FieldSet("Visibility");
-        visibilityFields.setColumns(2);
+        visibilityFields.setColumns(1);
 
         DateField visibilityStartDate = new DateField(AbstractNode.VISIBILITY_START_DATE_KEY);
         visibilityStartDate.setFormatPattern(dateFormat.toPattern());
@@ -146,6 +146,9 @@ public class DefaultEdit extends Nodes {
 
         Checkbox publicCheckbox = new Checkbox(AbstractNode.PUBLIC_KEY);
         visibilityFields.add(publicCheckbox);
+
+        Checkbox forAuthenticatedUsersCheckbox = new Checkbox(AbstractNode.VISIBLE_FOR_AUTHENTICATED_USERS_KEY);
+        visibilityFields.add(forAuthenticatedUsersCheckbox);
 
         editVisibilityForm.add(visibilityFields);
         editVisibilityForm.add(new HiddenField(NODE_ID_KEY, nodeId != null ? nodeId : ""));
