@@ -578,6 +578,10 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
         return getId();
     }
 
+    public String getIdString() {
+        return Long.toString(getId());
+    }
+
 //    public Long getId() {
 //        return getId();
 //    }

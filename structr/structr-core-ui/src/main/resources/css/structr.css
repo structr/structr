@@ -670,11 +670,12 @@ table#properties td:first-child {
 }
 
 .treestyle a.hidden {
-    color: #999;
+    color: #444;
     text-decoration: line-through ! important;
 }
 
 .treestyle a.hidden:hover {
+    color: #777;
     text-decoration: line-through ! important;
 }
 

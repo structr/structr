@@ -7,13 +7,59 @@
         #if ($node.type == "Image")
         <img class="preview" src="$localPreviewViewUrl" alt="$node.name">
         #else
-        <iframe src="$localViewUrl"></iframe>
+        <iframe id="previewIframe" onload="addClickCapture()" src="$localViewUrl"></iframe>
         #end
         #else
         $rendition
         #end
     </div>
 </div><!-- #rendition -->
+<script src="$context/js/jquery-1.4.2.min.js" type="text/javascript"></script>
+<script src="$context/js/jquery.ba-urlinternal.min.js" type="text/javascript"></script>
+<script type="text/javascript">
+
+    function addClickCapture() {
+
+        var iframe = document.getElementById('previewIframe');
+        iframe.contentWindow.document.body.onclick = function(event) {
+
+            if (!event) event = window.event;
+
+
+            var clickedNode = event.target;
+            var aElement = jQuery(clickedNode).closest('a');
+            var href = aElement.attr('href');
+            var frag = jQuery.param.fragment( aElement.attr( 'href' ) );
+            alert(frag);
+
+            if (href.substr(0,11) == 'javascript:') return;
+            if (href.substr(0,5) == 'http:') return;
+            if (href.substr(0,5) == 'ftp:') return;
+
+            // Prevent href link
+            event.preventDefault();
+            event.stopPropagation();
+            event.cancelBubble = true;
+
+            if (href.substr(0,1) != '/') {
+
+                var iframePath = iframe.contentWindow.document.location.pathname;
+                var basePath = iframePath.substr(0, iframePath.lastIndexOf('/'));
+                var nodePath = basePath.substr(basePath.indexOf('/view')+5, basePath.length-1);
+                var editBasePath = window.location.pathname; // something like '/context/admin/edit.htm'
+                var newPath = editBasePath + '?nodeId=' + nodePath + '/' + href;
+                //alert(newPath);
+
+                window.location = newPath;
+            }
+
+        }
+
+
+    }
+
+
+</script>
 ##if ($node.type != "File")
 <div id="source-tab" class="ui-tabs-hide">
     <div class="body">

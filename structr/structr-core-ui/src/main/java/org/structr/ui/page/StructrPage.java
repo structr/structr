@@ -164,12 +164,15 @@ public class StructrPage extends Page {
             SessionMonitor.logPageRequest(user, sessionId, "Page Request", getContext().getRequest());
         }
 
-        //nodeId = getNodeId();
+        // Catch both, id and path
         node = getNodeByIdOrPath(nodeId);
 
         if (node == null) {
             return;
         }
+
+        // Internally, use node ids
+        nodeId = node.getIdString();
 
         if (isSuperUser) {
 
