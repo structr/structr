@@ -179,7 +179,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 
 //            IndexHits hits = index.query(new QueryContext(query.toString()));//.sort("name"));
-                intermediateResult = nodeFactory.createNodes(hits, includeDeleted);
+                intermediateResult = nodeFactory.createNodes(hits, user, includeDeleted, publicOnly);
 
                 long t2 = System.currentTimeMillis();
                 logger.log(Level.FINE, "Creating structr nodes took {0} ms, {1} nodes made.", new Object[]{t2 - t1, intermediateResult.size()});

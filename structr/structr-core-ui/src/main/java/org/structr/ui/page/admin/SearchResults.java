@@ -27,11 +27,9 @@ import org.apache.click.util.HtmlStringBuffer;
 import org.apache.commons.lang.StringUtils;
 import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchOperator;
-import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.search.SearchAttribute;
-import org.structr.core.node.search.TextualSearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
 
 /**
@@ -44,6 +42,9 @@ public class SearchResults extends Nodes {
     private final static String SEARCH_IN_TITLE_KEY = "inTitle";
     private final static String SEARCH_IN_CONTENT_KEY = "inContent";
     private static final String SEARCH_OPERATOR_KEY = "searchOp";
+    private static final String SEARCH_TOP_NODE_KEY = "topNode";
+    private static final String SEARCH_ONLY_PUBLIC_KEY = "onlyPublic";
+    private static final String SEARCH_INCLUDE_DELETED_KEY = "onlyPublic";
     // defaults
     private static boolean inNameChecked = true;
     private static boolean inTitleChecked = true;
@@ -328,7 +329,7 @@ public class SearchResults extends Nodes {
             searchResults = (List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(
                     user, // filter by user
                     null, // top node
-                    true, // include hidden
+                    true, // include deleted
                     false, // only public
                     searchAttrs);
 

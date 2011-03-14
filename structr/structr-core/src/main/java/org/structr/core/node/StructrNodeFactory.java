@@ -66,13 +66,15 @@ public class StructrNodeFactory<T extends AbstractNode> implements Adapter<Node,
      *
      * If user is given, include only nodes which are readable by given user
      * If includeDeleted is true, include nodes with 'deleted' flag
+     * If publicOnly is true, filter by 'public' flag
      *
      * @param input
      * @param user
      * @param includeDeleted
+     * @param publicOnly
      * @return
      */
-    public List<AbstractNode> createNodes(final Iterable<Node> input, final User user, final boolean includeDeleted) {
+    public List<AbstractNode> createNodes(final Iterable<Node> input, final User user, final boolean includeDeleted, final boolean publicOnly) {
 
         List<AbstractNode> nodes = new ArrayList<AbstractNode>();
         if (input != null && input.iterator().hasNext()) {
@@ -81,12 +83,27 @@ public class StructrNodeFactory<T extends AbstractNode> implements Adapter<Node,
 
                 AbstractNode n = createNode(node);
 
-                if ((user == null || n.readAllowed(user)) && (includeDeleted || !(n.isDeleted()))) {
+                if ((user == null || n.readAllowed(user)) && (includeDeleted || !(n.isDeleted())) && (!publicOnly || n.isPublic())) {
                     nodes.add(n);
                 }
             }
         }
         return nodes;
+    }
+
+    /**
+     * Create structr nodes from the underlying database nodes
+     *
+     * If user is given, include only nodes which are readable by given user
+     * If includeDeleted is true, include nodes with 'deleted' flag
+     *
+     * @param input
+     * @param user
+     * @param includeDeleted
+     * @return
+     */
+    public List<AbstractNode> createNodes(final Iterable<Node> input, final User user, final boolean includeDeleted) {
+        return createNodes(input, null, includeDeleted, false);
     }
 
     /**

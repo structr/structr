@@ -33,6 +33,7 @@ import org.apache.click.extras.control.LinkDecorator;
 import org.apache.click.extras.control.PickList;
 import org.apache.click.util.HtmlStringBuffer;
 import org.neo4j.graphdb.RelationshipType;
+import org.structr.common.ImageHelper.Thumbnail;
 import org.structr.common.RelType;
 import org.structr.core.Command;
 import org.structr.core.Services;
@@ -156,7 +157,8 @@ public class DefaultEdit extends Nodes {
         editVisibilityForm.setActionURL(editVisibilityForm.getActionURL().concat("#visibility-tab"));
         if (editVisibilityAllowed) {
             visibilityFields.add(new Submit("saveVisibility", " Save Visibility ", this, "onSaveVisibility"));
-            visibilityFields.add(new Submit("saveVisibilityRecursively", " Save Visibility (including direct children) ", this, "onSaveVisibilityWithSubnodes"));
+            visibilityFields.add(new Submit("saveVisibilityDirectChildren", " Save Visibility (including direct children) ", this, "onSaveVisibilityIncludingDirectChildren"));
+            visibilityFields.add(new Submit("saveVisibilityAllChildren", " Save Visibility (including all children) ", this, "onSaveVisibilityIncludingAllChildren"));
             visibilityFields.add(new Submit("cancel", " Cancel ", this, "onCancel"));
         }
 
@@ -891,7 +893,7 @@ public class DefaultEdit extends Nodes {
     /**
      * Save visibility data on given node and subnodes (all direct children)
      */
-    public boolean onSaveVisibilityWithSubnodes() {
+    public boolean onSaveVisibilityIncludingDirectChildren() {
 
         if (editVisibilityForm.isValid()) {
 
@@ -903,25 +905,83 @@ public class DefaultEdit extends Nodes {
 
                     AbstractNode root = getNodeByIdOrPath(getNodeId());
 
-                    List<AbstractNode> childNodes = root.getDirectChildren(RelType.HAS_CHILD, user);
+                    List<AbstractNode> childNodes = root.getDirectChildNodes(user);
 
                     // include node itself
                     childNodes.add(root);
 
                     for (AbstractNode s : childNodes) {
 
-                        if (editVisibilityForm.isValid()) {
-                            editVisibilityForm.copyTo(s, true);
-                            transactionCommand.setExitCode(Command.exitCode.SUCCESS);
-                        } else {
-                            transactionCommand.setExitCode(Command.exitCode.FAILURE);
-                            transactionCommand.setErrorMessage("Visibility form is invalid");
+                        editVisibilityForm.copyTo(s, true);
+
+                        // Thumbnails inherit visibility from original image
+                        if (s instanceof Image) {
+                            Image i = (Image) s;
+                            for (StructrRelationship r : i.getThumbnailRelationships()) {
+                                Image thumbnail = (Image) r.getEndNode();
+                                editVisibilityForm.copyTo(thumbnail, false);
+                            }
                         }
                     }
+
+                    transactionCommand.setExitCode(Command.exitCode.SUCCESS);
+                    okMsg = "Node visibility parameter successfully saved on " + childNodes.size() + " nodes.";
                     return (null);
                 }
             });
-            okMsg = "Node visibility parameter successfully saved.";
+
+            Map<String, String> parameters = new HashMap<String, String>();
+            parameters.put(NODE_ID_KEY, nodeId.toString());
+            setRedirect(getPath(), parameters);
+
+            return false;
+
+        } else {
+            return true;
+        }
+
+
+    }
+
+    /**
+     * Save visibility data on given node and all subnodes (recursively)
+     */
+    public boolean onSaveVisibilityIncludingAllChildren() {
+
+        if (editVisibilityForm.isValid()) {
+
+            final Command transactionCommand = Services.command(TransactionCommand.class);
+            transactionCommand.execute(new StructrTransaction() {
+
+                @Override
+                public Object execute() throws Throwable {
+
+                    AbstractNode root = getNodeByIdOrPath(getNodeId());
+
+                    List<AbstractNode> childNodes = root.getAllChildren(user);
+
+                    // include node itself
+                    childNodes.add(root);
+
+                    for (AbstractNode s : childNodes) {
+
+                        editVisibilityForm.copyTo(s, true);
+
+                        // Thumbnails inherit visibility from original image
+                        if (s instanceof Image) {
+                            Image i = (Image) s;
+                            for (StructrRelationship r : i.getThumbnailRelationships()) {
+                                Image thumbnail = (Image) r.getEndNode();
+                                editVisibilityForm.copyTo(thumbnail, false);
+                            }
+                        }
+                    }
+
+                    transactionCommand.setExitCode(Command.exitCode.SUCCESS);
+                    okMsg = "Node visibility parameter successfully saved on " + childNodes.size() + " nodes.";
+                    return (null);
+                }
+            });
 
             Map<String, String> parameters = new HashMap<String, String>();
             parameters.put(NODE_ID_KEY, nodeId.toString());
