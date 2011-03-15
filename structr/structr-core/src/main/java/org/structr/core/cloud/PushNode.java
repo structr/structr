@@ -74,8 +74,12 @@ public class PushNode extends CloudServiceCommand {
             client.connect(5000, remoteHost, 54555, 54777);
             logger.log(Level.INFO, "Connected to KryoNet server");
 
+            // TODO: Send node to remote server
+
             client.sendTCP(node);
             logger.log(Level.INFO, "Node {0} was sent", node.getId());
+
+            client.close();
             
         } catch (IOException ex) {
             logger.log(Level.SEVERE, "Error while sending node to remote instance", ex);

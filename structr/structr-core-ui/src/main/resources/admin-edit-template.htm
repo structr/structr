@@ -116,6 +116,9 @@
                             <li><a href="#maintenance-tab"><span>Maintenance</span></a></li>
                             #end
 
+                            #if ($cloudPanel)
+                            <li><a href="#cloud-tab"><span>Cloud</span></a></li>
+                            #end
                         </ul>
 
                         <div style="clear: both"></div>
@@ -170,6 +173,10 @@
 
                         #if ($maintenancePanel)
                         $maintenancePanel
+                        #end
+
+                        #if ($cloudPanel)
+                        $cloudPanel
                         #end
                     </div><!-- .body -->
 

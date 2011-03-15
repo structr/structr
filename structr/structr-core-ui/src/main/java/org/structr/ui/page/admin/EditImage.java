@@ -63,7 +63,7 @@ public class EditImage extends EditFile {
         if (image.isThumbnail() || (image.getWidth() <= PREVIEW_WIDTH && image.getHeight() <= PREVIEW_HEIGHT)) {
             previewImage = image;
         } else {
-            previewImage = image.getScaledImage(user, PREVIEW_WIDTH, PREVIEW_HEIGHT);
+            previewImage = image.getScaledImage(PREVIEW_WIDTH, PREVIEW_HEIGHT);
         }
         
         if (previewImage != null) {

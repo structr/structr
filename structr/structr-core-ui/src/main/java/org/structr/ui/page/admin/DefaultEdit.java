@@ -33,10 +33,10 @@ import org.apache.click.extras.control.LinkDecorator;
 import org.apache.click.extras.control.PickList;
 import org.apache.click.util.HtmlStringBuffer;
 import org.neo4j.graphdb.RelationshipType;
-import org.structr.common.ImageHelper.Thumbnail;
 import org.structr.common.RelType;
 import org.structr.core.Command;
 import org.structr.core.Services;
+import org.structr.core.cloud.PushNode;
 import org.structr.core.entity.Image;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractNode.Title;
@@ -72,6 +72,7 @@ public class DefaultEdit extends Nodes {
     protected Table titlesTable = new Table(AbstractNode.TITLES_KEY);
     protected FormTable securityTable = new FormTable("Security");
     protected Form securityForm = new Form("securityForm");
+    protected Form cloudForm = new Form("cloudForm");
     protected Select userSelect = new Select("selectUser", "User");
     protected PickList allowed = new PickList(StructrRelationship.ALLOWED_KEY, "Allowed");
     protected Checkbox recursive = new Checkbox("recursive");
@@ -80,6 +81,8 @@ public class DefaultEdit extends Nodes {
     protected Panel editChildNodesPanel;
     protected Panel editSecurityPanel;
     protected Panel editVisibilityPanel;
+    protected Panel cloudPanel;
+    protected TextField remoteHost;
 
     // use template for backend pages
     @Override
@@ -227,7 +230,7 @@ public class DefaultEdit extends Nodes {
 
                     if (n instanceof Image) {
                         Image image = (Image) n;
-                        Image thumbnail = image.getScaledImage(user, 100, 100);
+                        Image thumbnail = image.getScaledImage(100, 100);
 
                         if (thumbnail != null) {
                             String thumbnailSrc = "/view.htm?nodeId=" + thumbnail.getId();
@@ -511,6 +514,25 @@ public class DefaultEdit extends Nodes {
 
         }
         // ------------------ security end ---------------------
+
+        // ------------------ cloud begin ---------------------
+
+
+        FieldSet pushFields = new FieldSet("Push Nodes");
+        remoteHost = new TextField("remoteHost", "Remote Host");
+        pushFields.add(remoteHost);
+
+        pushFields.add(new Submit("pushNodes", "Push Nodes", this, "onPushNodes"));
+        cloudForm.add(pushFields);
+        cloudForm.add(new HiddenField(NODE_ID_KEY, nodeId != null ? nodeId : ""));
+        cloudForm.add(new HiddenField(RENDER_MODE_KEY, renderMode != null ? renderMode : ""));
+        cloudForm.setActionURL(cloudForm.getActionURL().concat("#cloud-tab"));
+        addControl(cloudForm);
+
+        cloudPanel = new Panel("cloudPanel", "/panel/cloud-panel.htm");
+        addControl(cloudPanel);
+
+        // ------------------ cloud end ---------------------
 
         if (!(editPropertiesAllowed)) {
 
@@ -914,14 +936,6 @@ public class DefaultEdit extends Nodes {
 
                         editVisibilityForm.copyTo(s, true);
 
-                        // Thumbnails inherit visibility from original image
-                        if (s instanceof Image) {
-                            Image i = (Image) s;
-                            for (StructrRelationship r : i.getThumbnailRelationships()) {
-                                Image thumbnail = (Image) r.getEndNode();
-                                editVisibilityForm.copyTo(thumbnail, false);
-                            }
-                        }
                     }
 
                     transactionCommand.setExitCode(Command.exitCode.SUCCESS);
@@ -967,14 +981,6 @@ public class DefaultEdit extends Nodes {
 
                         editVisibilityForm.copyTo(s, true);
 
-                        // Thumbnails inherit visibility from original image
-                        if (s instanceof Image) {
-                            Image i = (Image) s;
-                            for (StructrRelationship r : i.getThumbnailRelationships()) {
-                                Image thumbnail = (Image) r.getEndNode();
-                                editVisibilityForm.copyTo(thumbnail, false);
-                            }
-                        }
                     }
 
                     transactionCommand.setExitCode(Command.exitCode.SUCCESS);
@@ -993,6 +999,16 @@ public class DefaultEdit extends Nodes {
             return true;
         }
 
+
+    }
+
+    public boolean onPushNodes() {
+
+        Command pushNodes = Services.command(PushNode.class);
+
+        pushNodes.execute(node, remoteHost.getValue());
+
+        return false;
 
     }
 }

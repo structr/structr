@@ -2,6 +2,8 @@ package org.structr.core.entity;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -51,6 +53,60 @@ public class Image extends File {
 
     public void setHeight(int height) {
         setProperty(HEIGHT_KEY, height);
+    }
+
+    /** Copy public flag to all thumbnails */
+    @Override
+    public void setPublic(final boolean publicFlag) {
+        super.setPublic(publicFlag);
+        for (Image thumbnail : getThumbnails()) {
+            thumbnail.setProperty(PUBLIC_KEY, publicFlag);
+        }
+    }
+
+    /** Copy visible for authenticated users flag to all thumbnails */
+    @Override
+    public void setVisibleForAuthenticatedUsers(final boolean flag) {
+        super.setVisibleForAuthenticatedUsers(flag);
+        for (Image thumbnail : getThumbnails()) {
+            thumbnail.setProperty(VISIBLE_FOR_AUTHENTICATED_USERS_KEY, flag);
+        }
+    }
+
+    /** Copy hidden flag to all thumbnails */
+    @Override
+    public void setHidden(final boolean hidden) {
+        super.setHidden(hidden);
+        for (Image thumbnail : getThumbnails()) {
+            thumbnail.setProperty(HIDDEN_KEY, hidden);
+        }
+    }
+
+    /** Copy deleted flag to all thumbnails */
+    @Override
+    public void setDeleted(final boolean deleted) {
+        super.setDeleted(deleted);
+        for (Image thumbnail : getThumbnails()) {
+            thumbnail.setProperty(DELETED_KEY, deleted);
+        }
+    }
+
+    /** Copy visibility start date to all thumbnails */
+    @Override
+    public void setVisibilityStartDate(final Date date) {
+        super.setVisibilityStartDate(date);
+        for (Image thumbnail : getThumbnails()) {
+            thumbnail.setProperty(VISIBILITY_START_DATE_KEY, date);
+        }
+    }
+
+    /** Copy visibility end date to all thumbnails */
+    @Override
+    public void setVisibilityEndDate(final Date date) {
+        super.setVisibilityEndDate(date);
+        for (Image thumbnail : getThumbnails()) {
+            thumbnail.setProperty(VISIBILITY_END_DATE_KEY, date);
+        }
     }
 
     @Override
@@ -178,6 +234,15 @@ public class Image extends File {
 //
 //    }
 
+    public List<Image> getThumbnails() {
+        List<Image> thumbnails = new LinkedList<Image>();
+
+        for (StructrRelationship s : getThumbnailRelationships()) {
+            thumbnails.add((Image) s.getEndNode());
+        }
+        return thumbnails;
+    }
+
     /**
      * Get (cached) thumbnail relationships
      * 
@@ -206,9 +271,26 @@ public class Image extends File {
      *
      * If no scaled image of the requested size exists or the image is newer than the scaled image, create a new one
      *
+     * @maxWidthString
+     * @maxHeightString
+     *
      * @return
      */
-    public Image getScaledImage(final User user, final int maxWidth, final int maxHeight) {
+    public Image getScaledImage(final String maxWidthString, final String maxHeightString) {
+        return getScaledImage(Integer.parseInt(maxWidthString), Integer.parseInt(maxHeightString));
+    }
+
+    /**
+     * Get (down-)scaled image of this image
+     *
+     * If no scaled image of the requested size exists or the image is newer than the scaled image, create a new one
+     *
+     * @maxWidth
+     * @maxHeight
+     *
+     * @return
+     */
+    public Image getScaledImage(final int maxWidth, final int maxHeight) {
 
         thumbnailRelationships = getThumbnailRelationships();
 
@@ -259,15 +341,22 @@ public class Image extends File {
 
                 NodeAttribute typeAttr = new NodeAttribute(AbstractNode.TYPE_KEY, Image.class.getSimpleName());
                 NodeAttribute contentTypeAttr = new NodeAttribute(Image.CONTENT_TYPE_KEY, "image/" + Thumbnail.FORMAT);
+                NodeAttribute isHiddenAttr = new NodeAttribute(AbstractNode.HIDDEN_KEY, originalImage.getHidden());
+                NodeAttribute isPublicAttr = new NodeAttribute(AbstractNode.PUBLIC_KEY, originalImage.getPublic());
+                NodeAttribute isVisibleForAuthenticatedUsersAttr = new NodeAttribute(AbstractNode.VISIBLE_FOR_AUTHENTICATED_USERS_KEY, originalImage.getVisibleForAuthenticatedUsers());
 
                 Thumbnail thumbnailData = ImageHelper.createThumbnail(originalImage, maxWidth, maxHeight);
 
                 if (thumbnailData != null) {
 
                     // create thumbnail node
-                    Image thumbnail = (Image) createNode.execute(user,
+//                    Image thumbnail = (Image) createNode.execute(user,
+                    Image thumbnail = (Image) createNode.execute(originalImage.getOwnerNode(), // Same owner as original image
                             typeAttr,
-                            contentTypeAttr, // Copy content type from original image
+                            contentTypeAttr,
+                            isHiddenAttr,
+                            isPublicAttr,
+                            isVisibleForAuthenticatedUsersAttr,
                             false);         // Don't index
 
                     if (thumbnail != null) {

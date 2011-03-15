@@ -107,7 +107,10 @@ public class SessionMonitor {
             return null;
         }
 
-        public String getUserName()     {
+        public String getUserName() {
+            if (user == null) {
+                return null;
+            }
             return user.getName();
         }
 
@@ -264,7 +267,7 @@ public class SessionMonitor {
         if (user != null) {
             activity.setProperty(AbstractNode.NAME_KEY, "User: " + user.getName() + ", Action: " + action + ", Date: " + now);
         }
-        
+
         activity.setProperty(Activity.SESSION_ID_KEY, sessionId);
         activity.setProperty(Activity.START_TIMESTAMP_KEY, now);
         activity.setProperty(Activity.END_TIMESTAMP_KEY, now);
