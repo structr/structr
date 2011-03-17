@@ -10,6 +10,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
+import org.structr.core.cloud.NodeDataContainer;
 import org.structr.core.entity.AbstractNode;
 
 /**
@@ -55,10 +56,20 @@ public class NodeFactoryCommand extends NodeServiceCommand {
                     // create a single node and return it
                     Node node = null;
                     if (parameters[0] instanceof AbstractNode) {
+
                         node = graphDb.getNodeById(((AbstractNode) parameters[0]).getId());
+
                     } else if (parameters[0] instanceof Node) {
+
                         node = (Node) parameters[0];
+                        
+                    } else if (parameters[0] instanceof NodeDataContainer) {
+
+                        NodeDataContainer nodeData = (NodeDataContainer) parameters[0];
+                        return nodeFactory.createNode(nodeData);
+
                     } else {
+
                         logger.log(Level.WARNING, "Unknown parameter of type {0}", parameters[0].getClass().getName());
                         return null;
                     }

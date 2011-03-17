@@ -39,6 +39,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DateUtils;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
+import org.structr.core.cloud.NodeDataContainer;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.IndexNodeCommand;
@@ -147,6 +148,13 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
         isDirty = true;
     }
 
+    public AbstractNode(final NodeDataContainer data) {
+        if (data != null) {
+            this.properties = data.getProperties();
+            isDirty = true;
+        }
+    }
+
     public AbstractNode(final Node dbNode) {
         init(dbNode);
     }
@@ -159,6 +167,13 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
     private void init(final AbstractNode node) {
         this.dbNode = node.dbNode;
         isDirty = false;
+    }
+
+    public void init(final NodeDataContainer data) {
+        if (data != null) {
+            this.properties = data.getProperties();
+            isDirty = true;
+        }
     }
 
     @Override

@@ -22,6 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.structr.context.SessionMonitor;
 import org.structr.core.Command;
 import org.structr.core.Services;
+import org.structr.core.cloud.StartCloudService;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
@@ -111,6 +112,9 @@ public class LoginPage extends Admin {
             } else {
 
                 Services.initialize();
+
+                // Initialize cloud service
+                Services.command(StartCloudService.class);
 
                 Command findUser = Services.command(FindUserCommand.class);
 

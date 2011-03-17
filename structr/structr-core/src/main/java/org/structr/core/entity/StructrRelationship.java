@@ -1,6 +1,8 @@
 package org.structr.core.entity;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.neo4j.graphdb.*;
 import org.structr.common.RelType;
 import org.structr.core.Command;
@@ -63,6 +65,16 @@ public class StructrRelationship {
 
     public long getInternalId() {
         return dbRelationship.getId();
+    }
+
+    public Map<String, Object> getProperties() {
+        Map<String, Object> properties = new HashMap<String, Object>();
+
+        for (String key : dbRelationship.getPropertyKeys()) {
+            properties.put(key, dbRelationship.getProperty(key));
+        }
+
+        return properties;
     }
 
     public Object getProperty(final String key) {

@@ -36,7 +36,7 @@ import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.RelType;
 import org.structr.core.Command;
 import org.structr.core.Services;
-import org.structr.core.cloud.PushNode;
+import org.structr.core.cloud.PushNodes;
 import org.structr.core.entity.Image;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractNode.Title;
@@ -83,6 +83,9 @@ public class DefaultEdit extends Nodes {
     protected Panel editVisibilityPanel;
     protected Panel cloudPanel;
     protected TextField remoteHost;
+    protected IntegerField remoteTcpPort;
+    protected IntegerField remoteUdpPort;
+    protected Checkbox cloudRecursive = new Checkbox("cloudRecursive", "Recursive");
 
     // use template for backend pages
     @Override
@@ -520,7 +523,12 @@ public class DefaultEdit extends Nodes {
 
         FieldSet pushFields = new FieldSet("Push Nodes");
         remoteHost = new TextField("remoteHost", "Remote Host");
+        remoteTcpPort = new IntegerField("remoteTcpPort", "Remote TCP Port");
+        remoteUdpPort = new IntegerField("remoteUdp", "Remote UDP Port");
         pushFields.add(remoteHost);
+        pushFields.add(remoteTcpPort);
+        pushFields.add(remoteUdpPort);
+        pushFields.add(cloudRecursive);
 
         pushFields.add(new Submit("pushNodes", "Push Nodes", this, "onPushNodes"));
         cloudForm.add(pushFields);
@@ -1004,9 +1012,14 @@ public class DefaultEdit extends Nodes {
 
     public boolean onPushNodes() {
 
-        Command pushNodes = Services.command(PushNode.class);
+        Command pushNodes = Services.command(PushNodes.class);
 
-        pushNodes.execute(node, remoteHost.getValue());
+        String remoteHostValue = remoteHost.getValue();
+        Integer tcpPort = remoteTcpPort.getInteger();
+        Integer udpPort = remoteUdpPort.getInteger();
+        boolean rec = cloudRecursive.isChecked();
+
+        pushNodes.execute(user, node, remoteHostValue, tcpPort, udpPort, rec);
 
         return false;
 

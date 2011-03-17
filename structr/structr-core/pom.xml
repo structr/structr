@@ -185,26 +185,31 @@
             <artifactId>jmimemagic</artifactId>
             <version>0.1.2</version>
         </dependency>
-<dependency>
-  <groupId>com.esotericsoftware</groupId>
-  <artifactId>minilog</artifactId>
-  <version>1.2</version>
-</dependency>
-<dependency>
-  <groupId>com.esotericsoftware</groupId>
-  <artifactId>reflectasm</artifactId>
-  <version>1.01</version>
-</dependency>
-<dependency>
-  <groupId>com.esotericsoftware</groupId>
-  <artifactId>kryo</artifactId>
-  <version>1.04</version>
-</dependency>
-<dependency>
-   <groupId>com.esotericsoftware</groupId>
-   <artifactId>kryonet</artifactId>
-   <version>1.04</version>
-</dependency>
+        <dependency>
+            <groupId>com.esotericsoftware</groupId>
+            <artifactId>minilog</artifactId>
+            <version>1.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.esotericsoftware</groupId>
+            <artifactId>reflectasm</artifactId>
+            <version>1.01</version>
+        </dependency>
+        <dependency>
+            <groupId>com.esotericsoftware</groupId>
+            <artifactId>kryo</artifactId>
+            <version>1.04</version>
+        </dependency>
+        <dependency>
+            <groupId>com.esotericsoftware</groupId>
+            <artifactId>kryonet</artifactId>
+            <version>1.04</version>
+        </dependency>
+        <dependency>
+            <groupId>asm</groupId>
+            <artifactId>asm</artifactId>
+            <version>3.3.1</version>
+        </dependency>
     </dependencies>
 
     <build>

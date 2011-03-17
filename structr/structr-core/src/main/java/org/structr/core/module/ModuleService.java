@@ -33,6 +33,7 @@ import org.structr.core.Services;
 import org.structr.core.SingletonService;
 import org.structr.core.agent.Agent;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.EmptyNode;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -110,7 +111,7 @@ public class ModuleService implements SingletonService {
     }
 
     public Class getEntityClass(final String name) {
-        Class ret = null;
+        Class ret = EmptyNode.class;
 
         if (name != null && name.length() > 0) {
             ret = entityClassCache.get(name);

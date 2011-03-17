@@ -6,7 +6,7 @@ package org.structr.test;
 
 import org.structr.common.StandaloneTestHelper;
 import org.structr.core.Services;
-import org.structr.core.cloud.PushNode;
+import org.structr.core.cloud.PushNodes;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.FindUserCommand;
 
@@ -24,7 +24,7 @@ public class PushNodeToRemoteServer {
         final String remoteServer = "localhost";
 
 
-        Services.command(PushNode.class).execute(adminNode, remoteServer);
+        Services.command(PushNodes.class).execute(adminNode, remoteServer);
 
 
     }

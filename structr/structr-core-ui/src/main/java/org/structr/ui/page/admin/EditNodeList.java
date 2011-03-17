@@ -11,7 +11,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.click.control.Column;
 import org.apache.click.control.Panel;
-import org.apache.click.control.Table;
 import org.apache.click.dataprovider.DataProvider;
 import org.structr.core.entity.NodeList;
 import org.structr.core.entity.AbstractNode;
@@ -23,7 +22,6 @@ import org.structr.core.entity.AbstractNode;
 public class EditNodeList extends DefaultEdit {
 
     private static final Logger logger = Logger.getLogger(EditNodeList.class.getName());
-
     protected NodeList<AbstractNode> nodeList;
 
     public EditNodeList() {
@@ -35,7 +33,7 @@ public class EditNodeList extends DefaultEdit {
         childNodesTable.setSortedColumn(AbstractNode.NODE_ID_KEY);
         childNodesTable.setHoverRows(true);
         addControl(childNodesTable);
-        
+
         editChildNodesPanel = new Panel("editChildNodesPanel", "/panel/edit-child-nodes-panel.htm");
         addControl(editChildNodesPanel);
     }
@@ -48,22 +46,30 @@ public class EditNodeList extends DefaultEdit {
         if (node != null) {
 
             childNodesTable.getControlLink().setParameter(AbstractNode.NODE_ID_KEY, getNodeId());
-            
+
             nodeList = (NodeList<AbstractNode>) node;
 
             AbstractNode firstNode = nodeList.getFirstNode();
-            Field[] fields = firstNode.getClass().getFields();
-            for (Field f : fields) {
-                String fieldName;
-                try {
-                    fieldName = (String) f.get(firstNode);
-                    Column col;
-                    col = new Column(fieldName);
-                    childNodesTable.addColumn(col);
-                } catch (IllegalAccessException ex) {
-                    logger.log(Level.SEVERE, null, ex);
+
+            if (firstNode != null) {
+
+                Field[] fields = firstNode.getClass().getFields();
+                for (Field f : fields) {
+                    String fieldName;
+
+                    try {
+                        fieldName = (String) f.get(firstNode);
+                        Column col;
+                        col = new Column(fieldName);
+                        childNodesTable.addColumn(col);
+                        
+                    } catch (IllegalAccessException ex) {
+                        logger.log(Level.SEVERE, null, ex);
+                    }
                 }
+                
             }
+
         }
 
     }
@@ -72,6 +78,7 @@ public class EditNodeList extends DefaultEdit {
     public void onRender() {
 
         childNodesTable.setDataProvider(new DataProvider() {
+
             @Override
             public List<AbstractNode> getData() {
 

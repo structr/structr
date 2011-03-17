@@ -5,10 +5,6 @@
         <param-name>config-service-class</param-name>
         <param-value>org.structr.ui.config.StructrConfigService</param-value>
     </context-param>
-<!--    <context-param>
-        <param-name>entity.locations</param-name>
-        <param-value>/opt/structr/entities</param-value>
-    </context-param>-->
     <context-param>
         <description>The base path of this structr installation</description>
         <param-name>base.path</param-name>
@@ -38,7 +34,7 @@
         </init-param>
         <init-param>
             <param-name>application-version</param-name>
-            <param-value>0.1.1</param-value>
+            <param-value>0.2</param-value>
         </init-param>
         <init-param>
             <param-name>cacheable-paths</param-name>
@@ -71,7 +67,6 @@
     <servlet>
         <servlet-name>ClickServlet</servlet-name>
         <servlet-class>org.apache.click.ClickServlet</servlet-class>
-        <!--servlet-class>net.sf.clickclick.ClickClickServlet</servlet-class-->
         <load-on-startup>1</load-on-startup>
     </servlet>
     <servlet-mapping>
@@ -142,38 +137,7 @@
         <error-code>403</error-code>
         <location>/login.htm</location>
     </error-page>
-    <!--
-		<security-constraint> <web-resource-collection>
-		<web-resource-name>view</web-resource-name>
-		<url-pattern>/*</url-pattern> </web-resource-collection>
-		<auth-constraint> <role-name>user</role-name> </auth-constraint>
-		</security-constraint>
-	-->
-    <!--
-    <security-role>
-        <role-name>admin</role-name>
-    </security-role>
-    <security-role>
-        <role-name>user</role-name>
-    </security-role>
-    <security-constraint>
-        <web-resource-collection>
-            <web-resource-name>admin</web-resource-name>
-            <url-pattern>/admin/*</url-pattern>
-        </web-resource-collection>
-        <auth-constraint>
-            <role-name>admin</role-name>
-        </auth-constraint>
-    </security-constraint>
-    <login-config>
-        <auth-method>FORM</auth-method>
-        <realm-name>Secure Realm</realm-name>
-        <form-login-config>
-            <form-login-page>/login.htm</form-login-page>
-            <form-error-page>/login.htm?auth-error=true</form-error-page>
-        </form-login-config>
-    </login-config>
-    -->
+
     <session-config>
         <!--
         Set a relatively short timeout is ok now with the new
