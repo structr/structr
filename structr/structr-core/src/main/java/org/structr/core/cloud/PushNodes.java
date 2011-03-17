@@ -6,6 +6,7 @@ package org.structr.core.cloud;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.Client;
+import com.esotericsoftware.minlog.Log;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -91,17 +92,10 @@ public class PushNodes extends CloudServiceCommand {
 
     private void pushNodes(final User user, final AbstractNode node, final String remoteHost, final int remoteTcpPort, final int remoteUdpPort, final boolean recursive) {
 
-        Client client = new Client();
-        client.start();
-
-        logger.log(Level.INFO, "KryoNet client started");
-
-        Kryo kryo = client.getKryo();
-
-        CloudService.registerClasses(kryo);
-
         List<DataContainer> transportSet = new LinkedList<DataContainer>();
         Set<RelationshipDataContainer> transportRelationships = new HashSet<RelationshipDataContainer>();
+
+        int maxSize = 4096;
 
         if (recursive) {
 
@@ -111,11 +105,16 @@ public class PushNodes extends CloudServiceCommand {
 
             for (AbstractNode n : nodes) {
 
-                transportSet.add(new NodeDataContainer(n));
+                NodeDataContainer container = new NodeDataContainer(n);
+                maxSize = Math.max(maxSize, container.getEstimatedSize());
+
+                transportSet.add(container);
 
                 // Collect all relationships whose start and end nodes are contained in the above list
                 List<StructrRelationship> rels = n.getOutgoingRelationships();
+
                 for (StructrRelationship r : rels) {
+
                     AbstractNode startNode = r.getStartNode();
                     AbstractNode endNode = r.getEndNode();
 
@@ -135,23 +134,58 @@ public class PushNodes extends CloudServiceCommand {
 
         }
 
+
+
+        // Be quiet
+        Log.set(Log.LEVEL_DEBUG);
+
+        Client client = new Client(maxSize*8, maxSize*2);
+
+        client.start();
+
+        logger.log(Level.INFO, "KryoNet client started, buffer sizes {0}, {1}", new Object[]{maxSize*8, maxSize*2});
+
+        Kryo kryo = client.getKryo();
+
+        CloudService.registerClasses(kryo);
+
+
         try {
 
             client.connect(5000, remoteHost, remoteTcpPort, remoteUdpPort);
             logger.log(Level.INFO, "Connected to structr instance on {0} (tcp port: {1}, udp port: {2})", new Object[]{remoteHost, remoteTcpPort, remoteUdpPort});
 
+            int size = transportSet.size();
 
-            // Send nodes and relationships to remote server
-            client.sendTCP(transportSet);
+            if (size < 16) {
 
-            logger.log(Level.INFO, "{0} nodes/relationships were sent", transportSet.size()); // TODO: Reduce log level, when stable
+                // For small transfers, send all nodes and relationships of the transport set to remote server in one transaction
+                
+                client.sendTCP(transportSet);
+
+            } else {
+
+                // More than 16 nodes => send one by one
+
+                client.sendTCP(CloudService.BEGIN_TRANSACTION); // mark start of transaction
+
+                for (DataContainer container : transportSet) {
+
+                    client.sendTCP(container);
+
+                }
+                client.sendTCP(CloudService.END_TRANSACTION); // mark end of transaction
+
+            }
+
+            logger.log(Level.INFO, "Transport set with {0} nodes/relationships was sent", transportSet.size()); // TODO: Reduce log level, when stable
 
 
             // TODO: Has the client really to be closed after each transport?
-            client.close();
+            //client.close();
 
         } catch (IOException ex) {
-            logger.log(Level.SEVERE, "Error while sending node to remote instance", ex);
+            logger.log(Level.SEVERE, "Error while sending nodes to remote instance", ex);
         }
 
     }

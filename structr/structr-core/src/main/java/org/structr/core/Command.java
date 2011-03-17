@@ -33,7 +33,7 @@ public abstract class Command {
     protected Command.exitCode exitCode = null;
     private final static String ERROR_MESSAGE = "errorMessage";
     private final static String EXIT_CODE = "exitCode";
-    private Map<String, Object> exitStatus = null;
+    private Map<String, Object> exitStatus;
 
     public enum status {
 
@@ -48,6 +48,9 @@ public abstract class Command {
     public Command() {
         this.arguments = new ConcurrentHashMap<String, Object>();
         this.exitStatus = new ConcurrentHashMap<String, Object>();
+
+        // Set default
+        exitStatus.put(EXIT_CODE, exitCode.UNKNOWN);
     }
 
     /**

@@ -17,6 +17,7 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionListener;
+import org.structr.core.cloud.StartCloudService;
 import org.structr.core.entity.SuperUser;
 import org.structr.ui.page.StructrPage;
 
@@ -133,6 +134,10 @@ public class ApplicationContextListener implements ServletContextListener, HttpS
 
         Services.initialize(context);
         //Services.setContext(context);
+
+        // Initialize cloud service
+        Services.command(StartCloudService.class);
+
     }
 
     @Override

@@ -4,17 +4,22 @@
  */
 package org.structr.core.node;
 
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.io.FileUtils;
 import org.neo4j.graphdb.Node;
 import org.structr.core.Adapter;
 import org.structr.core.Services;
+import org.structr.core.cloud.FileNodeDataContainer;
 import org.structr.core.cloud.NodeDataContainer;
 import org.structr.core.entity.EmptyNode;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.File;
 import org.structr.core.entity.User;
 import org.structr.core.module.GetEntityClassCommand;
 
@@ -151,6 +156,7 @@ public class StructrNodeFactory<T extends AbstractNode> implements Adapter<Node,
 
         Map properties = data.getProperties();
 
+
         String nodeType = properties.containsKey(AbstractNode.TYPE_KEY) ? (String) properties.get(AbstractNode.TYPE_KEY) : null;
 
         Class nodeClass = (Class) Services.command(GetEntityClassCommand.class).execute(nodeType);
@@ -173,6 +179,28 @@ public class StructrNodeFactory<T extends AbstractNode> implements Adapter<Node,
         // ATTENTION: Initialisation with a NodeDataContainer leaves the node "dirty"!
         // Has to be commited later!
         newNode.init(data);
+
+        if (data instanceof FileNodeDataContainer) {
+            byte[] binaryContent = ((FileNodeDataContainer) data).getBinaryContent();
+            File fileNode = (File) newNode;
+
+            // determine properties
+            String relativeFilePath = newNode.getId() + "_" + System.currentTimeMillis();
+            String path = Services.getFilesPath() + "/" + relativeFilePath;
+            long size = binaryContent.length;
+            java.io.File fileOnDisk = new java.io.File(path);
+            //String fileUrl = "file:///" + fileOnDisk.getPath();
+
+            try {
+
+                FileUtils.writeByteArrayToFile(fileOnDisk, binaryContent);
+                fileNode.setSize(size);
+
+            } catch (Exception e) {
+                logger.log(Level.SEVERE, "Could not write file", e);
+            }
+
+        }
 
         return newNode;
 

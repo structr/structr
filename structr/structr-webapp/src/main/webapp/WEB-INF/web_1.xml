@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app id="WebApp_ID" version="2.5" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:javaee="http://java.sun.com/xml/ns/javaee" xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee                     http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
+    <context-param>
+        <description>Internal config service class</description>
+        <param-name>config-service-class</param-name>
+        <param-value>org.structr.ui.config.StructrConfigService</param-value>
+    </context-param>
+    <context-param>
+        <description>The base path of this structr installation</description>
+        <param-name>base.path</param-name>
+        <param-value>/opt/structr</param-value>
+    </context-param>
+    <filter>
+        <filter-name>UrlRewriteFilter</filter-name>
+        <filter-class>org.tuckey.web.filters.urlrewrite.UrlRewriteFilter</filter-class>
+        <!-- set the amount of seconds the conf file will be checked for reload
+        can be a valid integer (0 denotes check every time,
+        -1 denotes no reload check, default -1) -->
+        <init-param>
+            <param-name>confReloadCheckInterval</param-name>
+            <param-value>-1</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>UrlRewriteFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+    <filter>
+        <filter-name>PerformanceFilter</filter-name>
+        <filter-class>org.apache.click.extras.filter.PerformanceFilter</filter-class>
+        <init-param>
+            <param-name>compression-enabled</param-name>
+            <param-value>false</param-value>
+        </init-param>
+        <init-param>
+            <param-name>application-version</param-name>
+            <param-value>0.2</param-value>
+        </init-param>
+        <init-param>
+            <param-name>cacheable-paths</param-name>
+            <param-value>/images/*, /click/*, /click/tree/*, /click/css/*, /click/tree/images/*, /assets/*, css/*, js/*, *.css, *.js</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>PerformanceFilter</filter-name>
+        <url-pattern>*.css</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>PerformanceFilter</filter-name>
+        <url-pattern>*.js</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>PerformanceFilter</filter-name>
+        <url-pattern>*.gif</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>PerformanceFilter</filter-name>
+        <url-pattern>*.png</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>PerformanceFilter</filter-name>
+        <servlet-name>ClickServlet</servlet-name>
+    </filter-mapping>
+    <listener>
+        <listener-class>org.structr.context.ApplicationContextListener</listener-class>
+    </listener>
+    <servlet>
+        <servlet-name>ClickServlet</servlet-name>
+        <servlet-class>org.apache.click.ClickServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ClickServlet</servlet-name>
+        <url-pattern>*.htm</url-pattern>
+    </servlet-mapping>
+    <!--  custom context parameter start -->
+    <context-param>
+        <description>Config file, relative to base path</description>
+        <param-name>configfile.path</param-name>
+        <param-value>/opt/structr/structr.conf</param-value>
+    </context-param>
+    <context-param>
+        <description>Application Title</description>
+        <param-name>application.title</param-name>
+        <param-value>structr app</param-value>
+    </context-param>
+    <context-param>
+        <description>Local filesystem path for temporary files</description>
+        <param-name>tmp.path</param-name>
+        <param-value>/tmp</param-value>
+    </context-param>
+    <context-param>
+        <description>Local filesystem path for embedded Neo4j database files</description>
+        <param-name>database.path</param-name>
+        <param-value>/opt/structr/structr-tfs2</param-value>
+    </context-param>
+    <context-param>
+        <description>Local filesystem path for file storage</description>
+        <param-name>files.path</param-name>
+        <param-value>/opt/structr/structr-tfs2/files</param-value>
+    </context-param>
+    <context-param>
+        <description>Local filesystem path for modules</description>
+        <param-name>modules.path</param-name>
+        <param-value>/opt/structr/modules</param-value>
+    </context-param>
+    <context-param>
+        <description>package prefixing node entities</description>
+        <param-name>entity.packages</param-name>
+        <param-value>org.structr.core.entity,org.structr.core.entity.geo,com.truefivestars.entity</param-value>
+    </context-param>
+    <context-param>
+        <description>Local TCP port</description>
+        <param-name>tcp.port</param-name>
+        <param-value>54555</param-value>
+    </context-param>
+    <context-param>
+        <description>Local UDP port</description>
+        <param-name>udp.port</param-name>
+        <param-value>57555</param-value>
+    </context-param>
+    <context-param>
+        <description>SMTP host</description>
+        <param-name>smtp.host</param-name>
+        <param-value>localhost</param-value>
+    </context-param>
+    <context-param>
+        <description>SMTP port</description>
+        <param-name>smtp.port</param-name>
+        <param-value>25</param-value>
+    </context-param>
+    <!--  custom context parameter end -->
+    <welcome-file-list>
+        <welcome-file>admin/dashboard.htm</welcome-file>
+    </welcome-file-list>
+    <error-page>
+        <error-code>403</error-code>
+        <location>/login.htm</location>
+    </error-page>
+
+    <session-config>
+        <!--
+        Set a relatively short timeout is ok now with the new
+        automatic re-login feature which forwards users to the place
+        they were before logout
+        -->
+        <session-timeout>60</session-timeout>
+    </session-config>
+</web-app>

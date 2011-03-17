@@ -21,6 +21,13 @@ import org.apache.commons.lang.StringUtils;
 public abstract class DataContainer implements Serializable {
 
     protected Map<String, Object> properties = new HashMap<String, Object>();
+    
+    /**
+     * Estimated size, needed to calculate buffer size.
+     *
+     * Start with a reasonable size, say 1K
+     */
+    protected int estimatedSize = 1024;
 
     /**
      * Return the properties map
@@ -31,6 +38,9 @@ public abstract class DataContainer implements Serializable {
         return properties;
     }
 
+    public int getEstimatedSize() {
+        return estimatedSize;
+    }
 
     // <editor-fold defaultstate="collapsed" desc="toString() method">
     /**

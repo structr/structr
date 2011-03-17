@@ -4,9 +4,6 @@
  */
 package org.structr.core.cloud;
 
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
 import org.structr.core.entity.AbstractNode;
 
 /**
@@ -30,6 +27,12 @@ public class NodeDataContainer extends DataContainer {
         for (String key : node.getPropertyKeys()) {
             Object value = node.getProperty(key);
             properties.put(key, value);
+
+            if (value instanceof String) {
+                String stringObject = (String) value;
+                estimatedSize += stringObject.length();
+            }
+
         }
 
     }

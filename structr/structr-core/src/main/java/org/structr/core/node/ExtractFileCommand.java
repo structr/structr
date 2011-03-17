@@ -209,7 +209,7 @@ public class ExtractFileCommand extends NodeServiceCommand {
                                     NodeAttribute nameAttr = new NodeAttribute(AbstractNode.NAME_KEY, name);
 
                                     AbstractNode fileNode = (AbstractNode) createNode.execute(nameAttr, typeAttr, sizeAttr, user);
-                                    createRel.execute(RelType.HAS_CHILD, targetNode, fileNode);
+                                    createRel.execute(targetNode, fileNode, RelType.HAS_CHILD);
 
                                     writeFile(fileNode, input);
 
