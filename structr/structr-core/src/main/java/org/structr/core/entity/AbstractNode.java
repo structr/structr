@@ -2049,7 +2049,8 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
                 // search relative to calling node
                 //List<AbstractNode> nodes = (List<AbstractNode>) findNode.execute(user, callingNode, new XPath(key));
 
-                Object result = findNode.execute(user, this, new XPath(key));
+//                Object result = findNode.execute(user, this, new XPath(key));
+                Object result = findNode.execute(user, this, key);
 
                 if (result instanceof List) {
 

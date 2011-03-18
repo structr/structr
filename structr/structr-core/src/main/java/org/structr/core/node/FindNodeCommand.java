@@ -192,14 +192,31 @@ public class FindNodeCommand extends NodeServiceCommand {
         Object result = null;
 
         // omit first parameter (is user)
-        if (parameters[1] instanceof AbstractNode && parameters[2] instanceof XPath) {
+        if (parameters[1] instanceof AbstractNode && (parameters[2] instanceof XPath || parameters[2] instanceof String)) {
             // relative xpath expression
             AbstractNode currentNode = (AbstractNode) parameters[1];
-            XPath xpath = (XPath) parameters[2];
 
-            String path = xpath.getXPath();
+            String path;
+            if (parameters[2] instanceof XPath) {
+                path = ((XPath) parameters[2]).getXPath();
+            } else {
+                path = (String) parameters[2];
+            }
 
-            if (path.startsWith("/")) currentNode = nodeFactory.createNode(graphDb.getReferenceNode());
+            try {
+                long id = Long.parseLong(path);
+
+                Node node = graphDb.getNodeById(id);
+                return nodeFactory.createNode(node);
+
+            } catch (Exception ex) {
+                // string is not an ID
+                logger.log(Level.FINE, "Node with id {0} not found in database! Reason: {1}", new Object[]{path, ex.getMessage()});
+            }
+            
+            if (path.startsWith("/")) {
+                currentNode = nodeFactory.createNode(graphDb.getReferenceNode());
+            }
 
             if (path.endsWith("*")) {
                 result = TreeHelper.getNodesByPath(currentNode, path, true, user);
