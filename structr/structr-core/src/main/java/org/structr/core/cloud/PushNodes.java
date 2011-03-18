@@ -18,6 +18,7 @@ import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.UnsupportedArgumentError;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.File;
 import org.structr.core.entity.StructrRelationship;
 import org.structr.core.entity.User;
 import org.structr.core.node.FindNodeCommand;
@@ -105,7 +106,13 @@ public class PushNodes extends CloudServiceCommand {
 
             for (AbstractNode n : nodes) {
 
-                NodeDataContainer container = new NodeDataContainer(n);
+                DataContainer container;
+                if (n instanceof File) {
+                    container = new FileNodeDataContainer(n);
+                } else {
+                    container = new NodeDataContainer(n);
+                }
+                
                 maxSize = Math.max(maxSize, container.getEstimatedSize());
 
                 transportSet.add(container);

@@ -5,6 +5,7 @@
 package org.structr.core.cloud;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.io.IOUtils;
@@ -19,8 +20,10 @@ import org.structr.core.entity.File;
 public class FileNodeDataContainer extends NodeDataContainer {
 
     private static final Logger logger = Logger.getLogger(FileNodeDataContainer.class.getName());
-
     protected byte[] binaryContent;
+
+    public FileNodeDataContainer() {
+    }
 
     public FileNodeDataContainer(final AbstractNode node) {
 
@@ -33,8 +36,12 @@ public class FileNodeDataContainer extends NodeDataContainer {
             estimatedSize += fileNode.getSize();
 
             try {
-                
-                binaryContent = IOUtils.toByteArray(fileNode.getInputStream());
+
+                InputStream in = fileNode.getInputStream();
+
+                if (in != null) {
+                    binaryContent = IOUtils.toByteArray(in);
+                }
 
             } catch (IOException ex) {
                 logger.log(Level.SEVERE, "Could not read file", ex);

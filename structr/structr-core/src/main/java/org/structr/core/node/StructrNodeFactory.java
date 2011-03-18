@@ -176,30 +176,32 @@ public class StructrNodeFactory<T extends AbstractNode> implements Adapter<Node,
             newNode = new EmptyNode();
         }
 
-        // ATTENTION: Initialisation with a NodeDataContainer leaves the node "dirty"!
-        // Has to be commited later!
         newNode.init(data);
+        newNode.commit(null);
 
         if (data instanceof FileNodeDataContainer) {
+
             byte[] binaryContent = ((FileNodeDataContainer) data).getBinaryContent();
-            File fileNode = (File) newNode;
 
-            // determine properties
-            String relativeFilePath = newNode.getId() + "_" + System.currentTimeMillis();
-            String path = Services.getFilesPath() + "/" + relativeFilePath;
-            long size = binaryContent.length;
-            java.io.File fileOnDisk = new java.io.File(path);
-            //String fileUrl = "file:///" + fileOnDisk.getPath();
+            if (binaryContent != null) {
 
-            try {
+                File fileNode = (File) newNode;
 
-                FileUtils.writeByteArrayToFile(fileOnDisk, binaryContent);
-                fileNode.setSize(size);
+                String relativeFilePath = newNode.getId() + "_" + System.currentTimeMillis();
+                String path = Services.getFilesPath() + "/" + relativeFilePath;
+                long size = binaryContent.length;
+                java.io.File fileOnDisk = new java.io.File(path);
 
-            } catch (Exception e) {
-                logger.log(Level.SEVERE, "Could not write file", e);
+                try {
+
+                    FileUtils.writeByteArrayToFile(fileOnDisk, binaryContent);
+                    fileNode.setSize(size);
+                    fileNode.setRelativeFilePath(relativeFilePath);
+
+                } catch (Exception e) {
+                    logger.log(Level.SEVERE, "Could not write file", e);
+                }
             }
-
         }
 
         return newNode;

@@ -228,9 +228,6 @@ public class CloudService extends RunnableNodeService {
         // Create (dirty) node
         AbstractNode newNode = (AbstractNode) nodeFactory.execute(receivedNodeData);
 
-        // Commit to database
-        newNode.commit(null);
-
         // Connect first node with root node
         if (linkToRootNode) {
             // TODO: Implement a smart strategy how and where to link nodes in target instance
@@ -283,6 +280,7 @@ public class CloudService extends RunnableNodeService {
 
         // structr classes
         kryo.register(NodeDataContainer.class);
+        kryo.register(FileNodeDataContainer.class);
         kryo.register(RelationshipDataContainer.class);
 
         // Neo4j array types
