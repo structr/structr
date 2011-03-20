@@ -18,10 +18,12 @@ import java.io.StringReader;
 import java.io.Writer;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -830,6 +832,41 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
         return result;
     }
 
+    public List<String> getStringListProperty(final String key) {
+        Object propertyValue = getProperty(key);
+        List<String> result = new LinkedList<String>();
+        if (propertyValue == null) {
+            return null;
+        }
+        if (propertyValue instanceof String) {
+
+            // Split by carriage return / line feed
+            String[] values = StringUtils.split(((String) propertyValue), "\r\n");
+            result = Arrays.asList(values);
+        } else if (propertyValue instanceof String[]) {
+
+            String[] values = (String[]) propertyValue;
+            result = Arrays.asList(values);
+        }
+        return result;
+    }
+
+    public String getStringArrayPropertyAsString(final String key) {
+        Object propertyValue = getProperty(key);
+        StringBuilder result = new StringBuilder();
+        if (propertyValue instanceof String[]) {
+            int i = 0;
+            String[] values = (String[]) propertyValue;
+            for (String value : values) {
+                result.append(value);
+                if (i < values.length - 1) {
+                    result.append("\r\n");
+                }
+            }
+        }
+        return result.toString();
+    }
+
     public int getIntProperty(final String key) {
         Object propertyValue = getProperty(key);
         Integer result = null;
@@ -896,6 +933,18 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      */
     public void setProperty(final String key, final Object value) {
         setProperty(key, value, updateIndexDefault);
+    }
+
+    /**
+     * Split String value and set as String[] property in database backend
+     *
+     * @param key
+     * @param stringList
+     *
+     */
+    public void setPropertyAsStringArray(final String key, final String value) {
+        String[] values = StringUtils.split(((String) value), "\r\n");
+        setProperty(key, values, updateIndexDefault);
     }
 
     /**

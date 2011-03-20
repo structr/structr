@@ -210,6 +210,16 @@
             <artifactId>asm</artifactId>
             <version>3.3.1</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-email</artifactId>
+            <version>1.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jsoup</groupId>
+            <artifactId>jsoup</artifactId>
+            <version>1.4.1</version>
+        </dependency>
     </dependencies>
 
     <build>

@@ -5,8 +5,6 @@
 
 package org.structr.core.module;
 
-import java.util.Set;
-
 /**
  * Activates an EXISTING, deactivated module to the running system. Takes the
  * file name of the module file as a parameter.

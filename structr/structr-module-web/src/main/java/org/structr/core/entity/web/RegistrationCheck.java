@@ -12,8 +12,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.mail.HtmlEmail;
 import org.jsoup.Jsoup;
+import org.structr.common.MailHelper;
 import org.structr.common.RelType;
 import org.structr.core.Command;
 import org.structr.core.Services;
@@ -530,11 +530,11 @@ public class RegistrationCheck extends LoginCheck {
 //            } else {
 //                loginUser = (User) Services.command(FindUserCommand.class).execute(username);
 //            }
-            
+
             if (StringUtils.isNotEmpty(username)) {
                 loginUser = (User) Services.command(FindUserCommand.class).execute(username);
             }
-            
+
             if (loginUser != null) {
                 logger.log(Level.INFO, "User with name {0} already exists", loginUser);
                 String message = "<div class=\"errorMsg\">" + REGISTRATION_FAILURE_USER_EXISTS + "</div>";
@@ -637,8 +637,6 @@ public class RegistrationCheck extends LoginCheck {
 
             // Check e-mail by sending a confirmation key to the given e-mail address
 
-            HtmlEmail mail = new HtmlEmail();
-
 //            if (user.length() > 0 && password.length() > 0) {
 //                email.setAuthentication(user, password);
 //            }
@@ -708,23 +706,17 @@ public class RegistrationCheck extends LoginCheck {
 
             content.append(HTML_FOOTER);
 
-
-            mail.setCharset("utf-8");
-            mail.setHostName(Services.getSmtpHost());
-            mail.setSmtpPort(Integer.parseInt(Services.getSmtpPort()));
+            String to = email;
+            String toName = firstName + " " + lastName;
+            String from = senderAddress;
+            String fromName = senderName;
+            String subject = "[structr] Account requested, please confirm your e-mail address";
+            String htmlContent = content.toString();
+            String textContent = Jsoup.parse(htmlContent).text();
 
             try {
-                mail.addTo(email, firstName + " " + lastName);
-                mail.setFrom(senderAddress, senderName);
-                mail.setBounceAddress(senderAddress);
 
-                mail.setSubject("[structr] Account requested, please confirm your e-mail address");
-
-                String contentString = content.toString();
-                mail.setHtmlMsg(contentString);
-                mail.setTextMsg(Jsoup.parse(contentString).text());
-
-                mail.send();
+                MailHelper.sendHtmlMail(from, fromName, to, toName, null, null, senderAddress, subject, htmlContent, textContent);
 
             } catch (Exception e) {
                 logger.log(Level.SEVERE, "Error while sending registration e-mail", e);
