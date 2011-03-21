@@ -4,11 +4,14 @@
  */
 package org.structr.ui.page.admin;
 
+import org.apache.click.control.ActionLink;
 import org.apache.click.control.Checkbox;
 import org.apache.click.control.FieldSet;
 import org.apache.click.control.TextField;
 import org.apache.click.extras.control.DoubleField;
 import org.apache.click.extras.control.IntegerField;
+import org.apache.click.util.Bindable;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.geo.Map;
 
 /**
@@ -17,15 +20,22 @@ import org.structr.core.entity.geo.Map;
  */
 public class EditMap extends EditGeoObject {
 
+    protected Map map;
+    @Bindable
+    protected ActionLink clearCacheLink = new ActionLink("Clear Cache", this, "onClearCache");
+
     public EditMap() {
 
         super();
 
-        FieldSet generalFields = new FieldSet("Common");
-        generalFields.setColumns(2);
+        FieldSet generalFields = new FieldSet("General");
+//        generalFields.setColumns(2);
         //mapFields.add(new TextField(Map.SHAPEFILE_KEY));
         generalFields.add(new TextField(Map.LAYER_KEY));
-        generalFields.add(new Checkbox(Map.AUTO_ENVELOPE_KEY));
+        generalFields.add(new Checkbox(Map.STATIC_KEY));
+        generalFields.add(new TextField(Map.STATIC_FEATURE_NAME_KEY));
+        generalFields.add(new TextField(Map.FEATURE_NAME_PARAM_NAME_KEY));
+        generalFields.add(clearCacheLink);
         editPropertiesForm.add(generalFields);
 
         FieldSet canvasFields = new FieldSet("Canvas (Browser Display Area)");
@@ -40,6 +50,7 @@ public class EditMap extends EditGeoObject {
         manEnvFields.add(new DoubleField(Map.ENVELOPE_MAX_X_KEY));
         manEnvFields.add(new DoubleField(Map.ENVELOPE_MIN_Y_KEY));
         manEnvFields.add(new DoubleField(Map.ENVELOPE_MAX_Y_KEY));
+        manEnvFields.add(new Checkbox(Map.AUTO_ENVELOPE_KEY));
         editPropertiesForm.add(manEnvFields);
 
         FieldSet styleFields = new FieldSet("Polygon Style");
@@ -65,5 +76,49 @@ public class EditMap extends EditGeoObject {
         optFields.add(new Checkbox(Map.OPTIMIZE_FTS_RENDERING_KEY));
         editPropertiesForm.add(optFields);
 
+    }
+
+    @Override
+    public void onInit() {
+
+        super.onInit();
+
+        if (node != null) {
+            clearCacheLink.setParameter(AbstractNode.NODE_ID_KEY, getNodeId());
+            map = (Map) node;
+        }
+
+    }
+
+    /**
+     * Save form data and stay in edit mode
+     *
+     * @return
+     */
+    @Override
+    public boolean onSaveProperties() {
+
+        clearCache();
+        return super.onSaveProperties();
+
+    }
+
+    /**
+     * Clear map cache by setting the SVG content to null
+     * 
+     * @return
+     */
+    public boolean onClearCache() {
+
+        clearCache();
+        return redirect();
+
+    }
+
+    private void clearCache() {
+        if (node != null) {
+            map = (Map) node;
+            map.setSvgContent(null);
+        }
     }
 }

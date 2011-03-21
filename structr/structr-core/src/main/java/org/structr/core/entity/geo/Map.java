@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.awt.Color;
 import java.util.logging.Logger;
+import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
@@ -47,6 +48,7 @@ public class Map extends AbstractNode {
 
     private final static String ICON_SRC = "/images/map.png";
     private static final Logger logger = Logger.getLogger(Map.class.getName());
+    private final static String defaultFeatureParamName = "name";
     public static final String SVG_CONTENT_KEY = "svgContent";
     public static final String ENVELOPE_MIN_X_KEY = "envelopeMinX";
     public static final String ENVELOPE_MAX_X_KEY = "envelopeMaxX";
@@ -68,6 +70,9 @@ public class Map extends AbstractNode {
     public static final String OPTIMIZE_FTS_RENDERING_KEY = "optimizeFtsRendering";
     public static final String LINE_WIDTH_OPTIMIZATION_KEY = "lineWidthOptimization";
     public static final String AUTO_ENVELOPE_KEY = "autoEnvelope";
+    public static final String FEATURE_NAME_PARAM_NAME_KEY = "featureNameParamName";
+    public static final String STATIC_FEATURE_NAME_KEY = "staticFeatureName";
+    public static final String STATIC_KEY = "static";
 
     @Override
     public String getIconSrc() {
@@ -85,17 +90,23 @@ public class Map extends AbstractNode {
         } else {
 
             if (isVisible(user)) {
-                renderSVGMap(out);
+
+                String cachedSVGMap = getSvgContent();
+
+                if (StringUtils.isBlank(cachedSVGMap)) {
+
+                    StringBuilder cache = new StringBuilder();
+                    renderSVGMap(cache);
+                    setSvgContent(cache.toString());
+                    out.append(cache);
+
+                } else {
+                    out.append(cachedSVGMap);
+                }
+
+
             }
         }
-    }
-
-    public String getSvgContent() {
-        return (String) getProperty(SVG_CONTENT_KEY);
-    }
-
-    public void setSvgContent(final String svgContent) {
-        setProperty(SVG_CONTENT_KEY, svgContent);
     }
 
     private void renderSVGMap(StringBuilder out) {
@@ -108,8 +119,27 @@ public class Map extends AbstractNode {
 
             long t0 = System.currentTimeMillis();
 
-            // get the feature name from the request
-            String featureName = getRequest() != null ? getRequest().getParameter("name") : null;
+            String featureName = null;
+
+            String staticFeatureName = getStaticFeatureName();
+
+            if (StringUtils.isNotBlank(staticFeatureName)) {
+                featureName = staticFeatureName;
+            } else {
+
+                HttpServletRequest request = getRequest();
+
+                String featureNameParamName = getFeatureNameParamName();
+                if (featureNameParamName == null) {
+                    featureNameParamName = defaultFeatureParamName;
+                }
+
+                // get the feature name from the request
+                if (request != null) {
+                    featureName = request.getParameter(featureNameParamName);
+                }
+
+            }
 
             int cx = getCanvasX();
             int cy = getCanvasY();
@@ -298,6 +328,10 @@ public class Map extends AbstractNode {
         return getBooleanProperty(AUTO_ENVELOPE_KEY);
     }
 
+    public boolean getStatic() {
+        return getBooleanProperty(STATIC_KEY);
+    }
+
     public String getFontName() {
         return (String) getProperty(FONT_NAME_KEY);
     }
@@ -314,7 +348,6 @@ public class Map extends AbstractNode {
         return getDoubleProperty(FONT_OPACITY_KEY);
     }
 
-    // ##############
     public void setCanvasX(final int value) {
         setProperty(CANVAS_X_KEY, value);
     }
@@ -379,6 +412,10 @@ public class Map extends AbstractNode {
         setProperty(AUTO_ENVELOPE_KEY, value);
     }
 
+    public void setStatic(final boolean value) {
+        setProperty(STATIC_KEY, value);
+    }
+
     public void setFontName(final String value) {
         setProperty(FONT_NAME_KEY, value);
     }
@@ -393,6 +430,30 @@ public class Map extends AbstractNode {
 
     public void setFontOpacity(final double value) {
         setProperty(FONT_OPACITY_KEY, value);
+    }
+
+    public String getStaticFeatureName() {
+        return (String) getProperty(STATIC_FEATURE_NAME_KEY);
+    }
+
+    public void setStaticFeatureName(final String value) {
+        setProperty(STATIC_FEATURE_NAME_KEY, value);
+    }
+
+    public String getFeatureNameParamName() {
+        return (String) getProperty(FEATURE_NAME_PARAM_NAME_KEY);
+    }
+
+    public void setFeatureNameParamName(final String value) {
+        setProperty(FEATURE_NAME_PARAM_NAME_KEY, value);
+    }
+
+    public String getSvgContent() {
+        return (String) getProperty(SVG_CONTENT_KEY);
+    }
+
+    public void setSvgContent(final String svgContent) {
+        setProperty(SVG_CONTENT_KEY, svgContent);
     }
     // </editor-fold>
 }
