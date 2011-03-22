@@ -52,6 +52,8 @@ import org.geotools.filter.text.cql2.CQL;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.map.MapContext;
 import org.geotools.renderer.lite.StreamingRenderer;
+import org.geotools.styling.Graphic;
+import org.geotools.styling.PointSymbolizer;
 import org.geotools.styling.Symbolizer;
 import org.neo4j.gis.spatial.geotools.data.Neo4jSpatialDataStore;
 import org.opengis.filter.Filter;
@@ -95,6 +97,19 @@ public abstract class MapHelper {
         PolygonSymbolizer sym = styleFactory.createPolygonSymbolizer(stroke, fill, null);
 
         return sym;
+    }
+
+    public static Symbolizer createPointSymbolizer() {
+
+        // TODO: style this
+
+        Graphic graphic = Graphic.DEFAULT;
+        String name = "NAME";
+
+        PointSymbolizer sym = styleFactory.createPointSymbolizer(graphic, name);
+
+        return sym;
+
     }
 
     /**
@@ -262,7 +277,10 @@ public abstract class MapHelper {
                 public void draw(Shape s) {
 
                     // Extract metadata
-                    Map<String, Object> customMetadata = ((MetaDataShape) s).getCustomMetadata();
+                    Map<String, Object> customMetadata = null;
+                    if (s instanceof MetaDataShape) {
+                        customMetadata = ((MetaDataShape) s).getCustomMetadata();
+                    }
 
                     // Only BasicStroke can be converted to an SVG attribute equivalent.
                     // If the GraphicContext's Stroke is not an instance of BasicStroke,
@@ -272,7 +290,7 @@ public abstract class MapHelper {
                         Element svgShape = shapeConverter.toSVG(s);
 
                         // Add custom meta data to SVG elements
-                        if (customMetadata != null && !(customMetadata.isEmpty()))  {
+                        if (customMetadata != null && !(customMetadata.isEmpty())) {
                             for (Map.Entry<String, Object> entry : customMetadata.entrySet()) {
                                 svgShape.setAttribute(entry.getKey(), entry.getValue().toString());
                             }
@@ -287,7 +305,7 @@ public abstract class MapHelper {
                     }
                 }
             };
- 
+
             context.setEmbeddedFontsOn(false);
 
 //            context.setStyleHandler(new StyleHandler() {

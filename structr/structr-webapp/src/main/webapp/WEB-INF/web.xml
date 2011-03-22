@@ -43,6 +43,10 @@
     </filter>
     <filter-mapping>
         <filter-name>PerformanceFilter</filter-name>
+        <url-pattern>*.htm</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>PerformanceFilter</filter-name>
         <url-pattern>*.css</url-pattern>
     </filter-mapping>
     <filter-mapping>

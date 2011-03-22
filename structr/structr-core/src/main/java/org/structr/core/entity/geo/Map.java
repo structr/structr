@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.awt.Color;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 
@@ -72,8 +74,8 @@ public class Map extends AbstractNode {
     public static final String AUTO_ENVELOPE_KEY = "autoEnvelope";
     public static final String FEATURE_NAME_PARAM_NAME_KEY = "featureNameParamName";
     public static final String STATIC_FEATURE_NAME_KEY = "staticFeatureName";
-    public static final String STATIC_KEY = "static";
-    public static final String DONT_CACHE_KEY = "dontCache";
+    public static final String STATIC_KEY = "static"; // Don't take request parameters into account
+    public static final String DONT_CACHE_KEY = "dontCache"; // Never cache
 
     @Override
     public String getIconSrc() {
@@ -112,6 +114,24 @@ public class Map extends AbstractNode {
 
 
             }
+        }
+    }
+
+    /**
+     * Render SVG map directly to output stream
+     */
+    @Override
+    public void renderDirect(OutputStream out, final AbstractNode startNode,
+            final String editUrl, final Long editNodeId, final User user) {
+
+        try {
+            if (isVisible(user)) {
+                StringBuilder svgString = new StringBuilder();
+                renderSVGMap(svgString);
+                out.write(svgString.toString().getBytes());
+            }
+        } catch (IOException e) {
+            logger.log(Level.SEVERE, "Could not write SVG name to output stream: {0}", e.getStackTrace());
         }
     }
 
@@ -194,7 +214,8 @@ public class Map extends AbstractNode {
                     // first, find the feature which corresponds with the requested feature
                     // (or the name of the node, if the request value is empty)
                     List<Filter> filterList = new ArrayList<Filter>();
-                    filterList.add(CQL.toFilter("NAME like '" + StringEscapeUtils.escapeSql(featureName) + "'"));
+//                    filterList.add(CQL.toFilter("NAME like '" + StringEscapeUtils.escapeSql(featureName) + "'"));
+                    filterList.add(CQL.toFilter("NAME = '" + StringEscapeUtils.escapeSql(featureName) + "'"));
                     Filter filter = MapHelper.featureFactory.or(filterList);
                     Query query = new Query(layerName, filter);
 

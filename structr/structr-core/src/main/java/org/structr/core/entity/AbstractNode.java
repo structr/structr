@@ -1631,6 +1631,17 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
     }
 
     /**
+     * Return ordered list of all directly linked nodes (no recursion)
+     *
+     * @return list with structr nodes
+     */
+    public List<AbstractNode> getSortedLinkedNodes(final User user) {
+
+        return getSortedDirectChildren(RelType.LINK, user);
+
+    }
+
+    /**
      * Return unordered list of all child nodes (recursively)
      *
      * @return list with structr nodes
@@ -1647,6 +1658,18 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      */
     public List<AbstractNode> getDirectChildren(final Enum relType, final User user) {
         return getDirectChildren(relType, null, user);
+    }
+
+    /**
+     * Return ordered list of all direct child nodes (no recursion)
+     * with given relationship type
+     *
+     * @return list with structr nodes
+     */
+    public List<AbstractNode> getSortedDirectChildren(final Enum relType, final User user) {
+        List<AbstractNode> nodes = getDirectChildren(relType, null, user);
+        Collections.sort(nodes);
+        return nodes;
     }
 
     /**
