@@ -105,7 +105,8 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
     private final static String NODE_KEY_SUFFIX = "}";
 //    private final static String REQUEST_KEY_PREFIX = "$[";
 //    private final static String REQUEST_KEY_SUFFIX = "]";
-    private final static String CALLING_NODE_KEY = "#";
+    private final static String CALLING_NODE_SUBNODES_KEY = "*";
+    private final static String CALLING_NODE_SUBNODES_AND_LINKED_NODES_KEY = "#";
     protected Template template;
 
 
@@ -2035,6 +2036,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 
 //        List<AbstractNode> subnodes = getSortedDirectChildAndLinkNodes(user);
         List<AbstractNode> callingNodeSubnodes = null;
+        List<AbstractNode> callingNodeSubnodesAndLinkedNodes = null;
 
         template = startNode.getTemplate(user);
         AbstractNode callingNode = null;
@@ -2042,7 +2044,8 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 
             callingNode = template.getCallingNode();
             if (callingNode != null) {
-                callingNodeSubnodes = callingNode.getSortedDirectChildAndLinkNodes(user);
+                callingNodeSubnodesAndLinkedNodes = callingNode.getSortedDirectChildAndLinkNodes(user);
+                callingNodeSubnodes = callingNode.getSortedDirectChildNodes(user);
             }
         }
 
@@ -2081,10 +2084,20 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 
             StringBuilder replacement = new StringBuilder();
 
-            if (callingNode != null && key.equals(CALLING_NODE_KEY)) {
+            if (callingNode != null && key.equals(CALLING_NODE_SUBNODES_KEY)) {
 
                 // render subnodes in correct order
                 for (AbstractNode s : callingNodeSubnodes) {
+
+                    // propagate request and template
+                    s.setRequest(getRequest());
+                    s.renderView(replacement, startNode, editUrl, editNodeId, user);
+                }
+
+            } else if (callingNode != null && key.equals(CALLING_NODE_SUBNODES_AND_LINKED_NODES_KEY)) {
+
+                // render subnodes in correct order
+                for (AbstractNode s : callingNodeSubnodesAndLinkedNodes) {
 
                     // propagate request and template
                     s.setRequest(getRequest());

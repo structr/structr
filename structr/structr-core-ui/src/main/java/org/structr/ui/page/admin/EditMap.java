@@ -35,6 +35,7 @@ public class EditMap extends EditGeoObject {
         generalFields.add(new Checkbox(Map.STATIC_KEY));
         generalFields.add(new TextField(Map.STATIC_FEATURE_NAME_KEY));
         generalFields.add(new TextField(Map.FEATURE_NAME_PARAM_NAME_KEY));
+        generalFields.add(new Checkbox(Map.DONT_CACHE_KEY));
         generalFields.add(clearCacheLink);
         editPropertiesForm.add(generalFields);
 

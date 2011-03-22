@@ -73,6 +73,7 @@ public class Map extends AbstractNode {
     public static final String FEATURE_NAME_PARAM_NAME_KEY = "featureNameParamName";
     public static final String STATIC_FEATURE_NAME_KEY = "staticFeatureName";
     public static final String STATIC_KEY = "static";
+    public static final String DONT_CACHE_KEY = "dontCache";
 
     @Override
     public String getIconSrc() {
@@ -90,6 +91,11 @@ public class Map extends AbstractNode {
         } else {
 
             if (isVisible(user)) {
+
+                if (getDontCache() == Boolean.TRUE) {
+                    renderSVGMap(out);
+                    return;
+                }
 
                 String cachedSVGMap = getSvgContent();
 
@@ -332,6 +338,10 @@ public class Map extends AbstractNode {
         return getBooleanProperty(STATIC_KEY);
     }
 
+    public boolean getDontCache() {
+        return getBooleanProperty(DONT_CACHE_KEY);
+    }
+
     public String getFontName() {
         return (String) getProperty(FONT_NAME_KEY);
     }
@@ -414,6 +424,10 @@ public class Map extends AbstractNode {
 
     public void setStatic(final boolean value) {
         setProperty(STATIC_KEY, value);
+    }
+
+    public void setDontCache(final boolean value) {
+        setProperty(DONT_CACHE_KEY, value);
     }
 
     public void setFontName(final String value) {
