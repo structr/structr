@@ -52,6 +52,7 @@ import com.vividsolutions.jts.geom.GeometryCollection;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Polygon;
+import org.geotools.geometry.jts.TransformedShape;
 import org.structr.core.entity.geo.MetaDataShape;
 
 /**
@@ -148,11 +149,13 @@ public final class StyledShapePainter {
             float[] coords = new float[2];
             MarkStyle2D ms2d = (MarkStyle2D) style;
 
-            Shape transformedShape ;
+            Shape transformedShape;
+
             while (!(citer.isDone())) {
                 citer.currentSegment(coords);
                 transformedShape = ms2d.getTransformedShape(coords[0],
                         coords[1]);
+
                 if (transformedShape != null) {
                     if (ms2d.getFill() != null) {
                         graphics.setPaint(ms2d.getFill());
@@ -164,7 +167,8 @@ public final class StyledShapePainter {
                         graphics.setPaint(ms2d.getContour());
                         graphics.setStroke(ms2d.getStroke());
                         graphics.setComposite(ms2d.getContourComposite());
-                        graphics.draw(transformedShape);
+//                        graphics.draw(transformedShape);
+                        graphics.draw(shape);
                     }
                     citer.next();
                 }
@@ -272,7 +276,7 @@ public final class StyledShapePainter {
     }
 
     /**
-     * Extracts a ath iterator from the shape
+     * Extracts a path iterator from the shape
      * @param shape
      * @return
      */

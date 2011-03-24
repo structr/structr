@@ -414,11 +414,11 @@ public class GeoDataTool {
         for (Node n : graphDb.getAllNodes()) {
 
             if (n.hasProperty(AbstractNode.TYPE_KEY) && n.getProperty(AbstractNode.TYPE_KEY).equals(type)
-                    && n.hasProperty(GeoObject.LATITUDE_KEY)
-                    && (
-                           ((Double) n.getProperty(GeoObject.LATITUDE_KEY)).equals(Double.NaN)
-                        || ((Double) n.getProperty(GeoObject.LATITUDE_KEY)).equals(0.0))
-                    ) {
+
+                    && (!(n.hasProperty(GeoObject.LATITUDE_KEY))
+                    || (n.getProperty(GeoObject.LATITUDE_KEY) == null
+                    || ((Double) n.getProperty(GeoObject.LATITUDE_KEY)).equals(Double.NaN)
+                    || ((Double) n.getProperty(GeoObject.LATITUDE_KEY)).equals(0.0)))) {
 
                 StringBuilder address = new StringBuilder();
 

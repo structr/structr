@@ -11,11 +11,13 @@ import java.util.logging.Level;
 import java.awt.Color;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.LinkedList;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
+import org.geotools.data.DataUtilities;
 import org.geotools.data.Query;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
@@ -41,6 +43,8 @@ import org.structr.common.MapHelper;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.node.GraphDatabaseCommand;
+import org.structr.core.node.search.Search;
+import org.structr.core.node.search.SearchNodeCommand;
 
 /**
  *
@@ -48,54 +52,18 @@ import org.structr.core.node.GraphDatabaseCommand;
  */
 public class Map extends AbstractNode {
 
-    private final static String ICON_SRC = "/images/map.png";
-    private static final Logger logger = Logger.getLogger(Map.class.getName());
-    private final static String defaultFeatureParamName = "name";
-    public static final String SVG_CONTENT_KEY = "svgContent";
-    public static final String ENVELOPE_MIN_X_KEY = "envelopeMinX";
-    public static final String ENVELOPE_MAX_X_KEY = "envelopeMaxX";
-    public static final String ENVELOPE_MIN_Y_KEY = "envelopeMinY";
-    public static final String ENVELOPE_MAX_Y_KEY = "envelopeMaxY";
-    public static final String CANVAS_X_KEY = "canvasX";
-    public static final String CANVAS_Y_KEY = "canvasY";
-    public static final String LINE_COLOR_KEY = "lineColor";
-    public static final String LINE_WIDTH_KEY = "lineWidth";
-    public static final String LINE_OPACITY_KEY = "lineOpacity";
-    public static final String FILL_COLOR_KEY = "fillColor";
-    public static final String FILL_OPACITY_KEY = "fillOpacity";
-    public static final String FONT_NAME_KEY = "fontName";
-    public static final String FONT_SIZE_KEY = "fontSize";
-    public static final String FONT_COLOR_KEY = "fontColor";
-    public static final String FONT_OPACITY_KEY = "fontOpacity";
-    public static final String SHAPEFILE_KEY = "shapeFile";
-    public static final String LAYER_KEY = "layer";
-    public static final String OPTIMIZE_FTS_RENDERING_KEY = "optimizeFtsRendering";
-    public static final String LINE_WIDTH_OPTIMIZATION_KEY = "lineWidthOptimization";
-    public static final String AUTO_ENVELOPE_KEY = "autoEnvelope";
-    public static final String FEATURE_NAME_PARAM_NAME_KEY = "featureNameParamName";
-    public static final String STATIC_FEATURE_NAME_KEY = "staticFeatureName";
-    public static final String STATIC_KEY = "static"; // Don't take request parameters into account
-    public static final String DONT_CACHE_KEY = "dontCache"; // Never cache
-
-    @Override
-    public String getIconSrc() {
-        return ICON_SRC;
-    }
-
     @Override
     public void renderView(StringBuilder out, final AbstractNode startNode,
             final String editUrl, final Long editNodeId, final User user) {
 
         if (editNodeId != null && getId() == editNodeId.longValue()) {
-
             renderEditFrame(out, editUrl);
-
         } else {
 
             if (isVisible(user)) {
 
                 if (getDontCache() == Boolean.TRUE) {
-                    renderSVGMap(out);
+                    renderSVGMap(out, user);
                     return;
                 }
 
@@ -104,21 +72,19 @@ public class Map extends AbstractNode {
                 if (StringUtils.isBlank(cachedSVGMap)) {
 
                     StringBuilder cache = new StringBuilder();
-                    renderSVGMap(cache);
+                    renderSVGMap(cache, user);
                     setSvgContent(cache.toString());
                     out.append(cache);
 
                 } else {
                     out.append(cachedSVGMap);
                 }
-
-
             }
         }
     }
 
     /**
-     * Render SVG map directly to output stream
+     * Render SVG content directly to output stream
      */
     @Override
     public void renderDirect(OutputStream out, final AbstractNode startNode,
@@ -127,15 +93,15 @@ public class Map extends AbstractNode {
         try {
             if (isVisible(user)) {
                 StringBuilder svgString = new StringBuilder();
-                renderSVGMap(svgString);
+                renderSVGMap(svgString, user);
                 out.write(svgString.toString().getBytes());
             }
         } catch (IOException e) {
-            logger.log(Level.SEVERE, "Could not write SVG name to output stream: {0}", e.getStackTrace());
+            logger.log(Level.SEVERE, "Could not write SVG content to output stream: {0}", e.getStackTrace());
         }
     }
 
-    private void renderSVGMap(StringBuilder out) {
+    private void renderSVGMap(StringBuilder out, final User user) {
 
         Command graphDbCommand = Services.command(GraphDatabaseCommand.class);
         GraphDatabaseService graphDb = (GraphDatabaseService) graphDbCommand.execute();
@@ -203,7 +169,6 @@ public class Map extends AbstractNode {
 
             if (auto) {
 
-
                 if (featureName == null) {
 
                     // if no feature name is given, show all features of layer
@@ -253,7 +218,7 @@ public class Map extends AbstractNode {
 
             // create a style for displaying the polygons
             Symbolizer polygonSymbolizer = MapHelper.createPolygonSymbolizer(getLineColor(), getLineWidth(), getLineOpacity(), getFillColor(), getFillOpacity());
-            Symbolizer textSymbolizer = MapHelper.createTextSymbolizer(getFontName(), getFontSize(), getFontColor(), getFontOpacity());
+            Symbolizer textSymbolizer = MapHelper.createTextSymbolizer(getFontName(), getFontSize(), getFontColor(), getFontOpacity(), getAnchorX(), getAnchorY(), getDisplacementX(), getDisplacementY());
 
 
             Rule rule = MapHelper.styleFactory.createRule();
@@ -265,6 +230,46 @@ public class Map extends AbstractNode {
 
             // add features and style as a map layer to the list of map layers
             layers.add(new MapLayer(features, style));
+
+            boolean displayCities = (getDisplayCities() == Boolean.TRUE);
+
+            if (displayCities) {
+                List<GeoObject> cities = new LinkedList<GeoObject>();
+
+                List<AbstractNode> result = (List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(user, null, false, false, Search.andExactType("City"));
+
+                for (AbstractNode node : result) {
+
+                    if ("City".equals(node.getType())) {
+
+                        cities.add((GeoObject) node);
+                    }
+                }
+                SimpleFeatureCollection collection = MapHelper.createPointsFromGeoObjects(cities);
+
+                Symbolizer cityTextSym = MapHelper.createTextSymbolizer(getPointFontName(), getPointFontSize(), getPointFontColor(), getPointFontOpacity(), getLabelAnchorX(), getLabelAnchorY(), getLabelDisplacementX(), getLabelDisplacementY());
+                Symbolizer cityPointSym = MapHelper.createPointSymbolizer(getPointShape(), getPointDiameter(), getPointStrokeColor(), getPointStrokeLineWidth(), getPointFillColor(), this.getPointFillOpacity());
+//            Symbolizer cityPolygonSymbolizer = MapHelper.createPolygonSymbolizer("#000000", 1, 1, "#000000", 1);
+
+                Rule rule2 = MapHelper.styleFactory.createRule();
+                rule2.symbolizers().add(cityTextSym);
+//            rule2.symbolizers().add(cityPolygonSymbolizer);
+                rule2.symbolizers().add(cityPointSym);
+
+                FeatureTypeStyle fts2 = MapHelper.styleFactory.createFeatureTypeStyle(new Rule[]{rule2});
+                Style style2 = MapHelper.styleFactory.createStyle();
+                style2.featureTypeStyles().add(fts2);
+
+                SimpleFeatureSource source = DataUtilities.source(collection);
+                SimpleFeatureCollection cityFeatures = source.getFeatures();
+
+                //Style pointStyle = SLD.createPointStyle("Square", Color.yellow, Color.yellow, 1, 3);
+                //pointStyle.featureTypeStyles().add(fts2);
+
+                // add features and style as a map layer to the list of map layers
+                layers.add(new MapLayer(cityFeatures, style2));
+
+            }
 
             // create a map context
             mapContext = new DefaultMapContext(layers.toArray(new MapLayer[]{}));
@@ -287,6 +292,11 @@ public class Map extends AbstractNode {
                 mapContext.dispose();
             }
         }
+    }
+
+    @Override
+    public String getIconSrc() {
+        return ICON_SRC;
     }
 
 // <editor-fold defaultstate="collapsed" desc="getter and setter methods">
@@ -363,6 +373,10 @@ public class Map extends AbstractNode {
         return getBooleanProperty(DONT_CACHE_KEY);
     }
 
+    public boolean getDisplayCities() {
+        return getBooleanProperty(DISPLAY_CITIES_KEY);
+    }
+
     public String getFontName() {
         return (String) getProperty(FONT_NAME_KEY);
     }
@@ -378,6 +392,92 @@ public class Map extends AbstractNode {
     public double getFontOpacity() {
         return getDoubleProperty(FONT_OPACITY_KEY);
     }
+
+    public double getAnchorX() {
+        return getDoubleProperty(LABEL_ANCHOR_X_KEY);
+    }
+
+    public double getAnchorY() {
+        return getDoubleProperty(LABEL_ANCHOR_Y_KEY);
+    }
+
+    public double getDisplacementX() {
+        return getDoubleProperty(LABEL_DISPLACEMENT_X_KEY);
+    }
+
+    public double getDisplacementY() {
+        return getDoubleProperty(LABEL_DISPLACEMENT_X_KEY);
+    }
+
+    public String getStaticFeatureName() {
+        return (String) getProperty(STATIC_FEATURE_NAME_KEY);
+    }
+
+    public String getFeatureNameParamName() {
+        return (String) getProperty(FEATURE_NAME_PARAM_NAME_KEY);
+    }
+
+    public String getSvgContent() {
+        return (String) getProperty(SVG_CONTENT_KEY);
+    }
+
+    public double getLabelAnchorX() {
+        return getDoubleProperty(LABEL_ANCHOR_X_KEY);
+    }
+
+    public double getLabelAnchorY() {
+        return getDoubleProperty(LABEL_ANCHOR_Y_KEY);
+    }
+
+    public double getLabelDisplacementX() {
+        return getDoubleProperty(LABEL_DISPLACEMENT_X_KEY);
+    }
+
+    public double getLabelDisplacementY() {
+        return getDoubleProperty(LABEL_DISPLACEMENT_Y_KEY);
+    }
+
+    public String getPointShape() {
+        return getStringProperty(POINT_SHAPE_KEY);
+    }
+
+    public int getPointDiameter() {
+        return getIntProperty(POINT_DIAMETER_KEY);
+    }
+
+    public String getPointStrokeColor() {
+        return getStringProperty(POINT_STROKE_COLOR_KEY);
+    }
+
+    public int getPointStrokeLineWidth() {
+        return getIntProperty(POINT_STROKE_LINE_WIDTH_KEY);
+    }
+
+    public String getPointFillColor() {
+        return getStringProperty(POINT_FILL_COLOR_KEY);
+    }
+
+    public double getPointFillOpacity() {
+        return getDoubleProperty(POINT_FILL_OPACITY_KEY);
+    }
+
+    public String getPointFontName() {
+        return getStringProperty(POINT_FONT_NAME_KEY);
+    }
+
+    public double getPointFontSize() {
+        return getDoubleProperty(POINT_FONT_SIZE_KEY);
+    }
+
+    public String getPointFontColor() {
+        return getStringProperty(POINT_FONT_COLOR_KEY);
+    }
+
+    public double getPointFontOpacity() {
+        return getDoubleProperty(POINT_FONT_OPACITY_KEY);
+    }
+
+    //########################################
 
     public void setCanvasX(final int value) {
         setProperty(CANVAS_X_KEY, value);
@@ -451,6 +551,10 @@ public class Map extends AbstractNode {
         setProperty(DONT_CACHE_KEY, value);
     }
 
+    public void setDisplayCities(final boolean value) {
+        setProperty(DISPLAY_CITIES_KEY, value);
+    }
+
     public void setFontName(final String value) {
         setProperty(FONT_NAME_KEY, value);
     }
@@ -467,28 +571,119 @@ public class Map extends AbstractNode {
         setProperty(FONT_OPACITY_KEY, value);
     }
 
-    public String getStaticFeatureName() {
-        return (String) getProperty(STATIC_FEATURE_NAME_KEY);
-    }
-
     public void setStaticFeatureName(final String value) {
         setProperty(STATIC_FEATURE_NAME_KEY, value);
-    }
-
-    public String getFeatureNameParamName() {
-        return (String) getProperty(FEATURE_NAME_PARAM_NAME_KEY);
     }
 
     public void setFeatureNameParamName(final String value) {
         setProperty(FEATURE_NAME_PARAM_NAME_KEY, value);
     }
 
-    public String getSvgContent() {
-        return (String) getProperty(SVG_CONTENT_KEY);
-    }
-
     public void setSvgContent(final String svgContent) {
         setProperty(SVG_CONTENT_KEY, svgContent);
     }
+
+    public void setLabelAnchorX(final double value) {
+        setProperty(LABEL_ANCHOR_X_KEY, value);
+    }
+
+    public void setLabelAnchorY(final double value) {
+        setProperty(LABEL_ANCHOR_Y_KEY, value);
+    }
+
+    public void setLabelDisplacementX(final double value) {
+        setProperty(LABEL_DISPLACEMENT_X_KEY, value);
+    }
+
+    public void setLabelDisplacementY(final double value) {
+        setProperty(LABEL_DISPLACEMENT_Y_KEY, value);
+    }
+
+    public void setPointShape(final String value) {
+        setProperty(POINT_SHAPE_KEY, value);
+    }
+
+    public void setPointDiameter(final int value) {
+        setProperty(POINT_DIAMETER_KEY, value);
+    }
+
+    public void setPointStrokeColor(final String value) {
+        setProperty(POINT_STROKE_COLOR_KEY, value);
+    }
+
+    public void setPointStrokeLineWidth(final int value) {
+        setProperty(POINT_STROKE_LINE_WIDTH_KEY, value);
+    }
+
+    public void setPointFillColor(final String value) {
+        setProperty(POINT_FILL_COLOR_KEY, value);
+    }
+
+    public void setPointFillOpacity(final double value) {
+        setProperty(POINT_FILL_OPACITY_KEY, value);
+    }
+
+    public void setPointFontName(final String value) {
+        setProperty(POINT_FONT_NAME_KEY, value);
+    }
+
+    public void setPointFontSize(final double value) {
+        setProperty(POINT_FONT_SIZE_KEY, value);
+    }
+
+    public void setPointFontColor(final String value) {
+        setProperty(POINT_FONT_COLOR_KEY, value);
+    }
+
+    public void setPointFontOpacity(final double value) {
+        setProperty(POINT_FONT_OPACITY_KEY, value);
+    }
+
+    // </editor-fold>
+    // Attributes
+// <editor-fold defaultstate="collapsed" desc="Attributes">
+    private final static String ICON_SRC = "/images/map.png";
+    private static final Logger logger = Logger.getLogger(Map.class.getName());
+    private final static String defaultFeatureParamName = "name";
+    public static final String SVG_CONTENT_KEY = "svgContent";
+    public static final String ENVELOPE_MIN_X_KEY = "envelopeMinX";
+    public static final String ENVELOPE_MAX_X_KEY = "envelopeMaxX";
+    public static final String ENVELOPE_MIN_Y_KEY = "envelopeMinY";
+    public static final String ENVELOPE_MAX_Y_KEY = "envelopeMaxY";
+    public static final String CANVAS_X_KEY = "canvasX";
+    public static final String CANVAS_Y_KEY = "canvasY";
+    public static final String LINE_COLOR_KEY = "lineColor";
+    public static final String LINE_WIDTH_KEY = "lineWidth";
+    public static final String LINE_OPACITY_KEY = "lineOpacity";
+    public static final String FILL_COLOR_KEY = "fillColor";
+    public static final String FILL_OPACITY_KEY = "fillOpacity";
+    public static final String FONT_NAME_KEY = "fontName";
+    public static final String FONT_SIZE_KEY = "fontSize";
+    public static final String FONT_COLOR_KEY = "fontColor";
+    public static final String FONT_OPACITY_KEY = "fontOpacity";
+    public static final String LABEL_ANCHOR_X_KEY = "labelAnchorX";
+    public static final String LABEL_ANCHOR_Y_KEY = "labelAnchorY";
+    public static final String LABEL_DISPLACEMENT_X_KEY = "labelDisplacementX";
+    public static final String LABEL_DISPLACEMENT_Y_KEY = "labelDisplacementY";
+    public static final String SHAPEFILE_KEY = "shapeFile";
+    public static final String POINT_SHAPE_KEY = "pointShape";
+    public static final String POINT_DIAMETER_KEY = "pointDiameter";
+    public static final String POINT_STROKE_COLOR_KEY = "pointStrokeColor";
+    public static final String POINT_STROKE_LINE_WIDTH_KEY = "pointStrokeLineWidth";
+    public static final String POINT_FILL_COLOR_KEY = "pointFillColor";
+    public static final String POINT_FILL_OPACITY_KEY = "pointFillOpacity";
+    public static final String POINT_FONT_NAME_KEY = "pointFontName";
+    public static final String POINT_FONT_SIZE_KEY = "pointFontSize";
+    public static final String POINT_FONT_COLOR_KEY = "pointFontColor";
+    public static final String POINT_FONT_OPACITY_KEY = "pointFontOpacity";
+    public static final String LAYER_KEY = "layer";
+    public static final String OPTIMIZE_FTS_RENDERING_KEY = "optimizeFtsRendering";
+    public static final String LINE_WIDTH_OPTIMIZATION_KEY = "lineWidthOptimization";
+    public static final String AUTO_ENVELOPE_KEY = "autoEnvelope";
+    public static final String FEATURE_NAME_PARAM_NAME_KEY = "featureNameParamName";
+    public static final String STATIC_FEATURE_NAME_KEY = "staticFeatureName";
+    public static final String STATIC_KEY = "static"; // Don't take request parameters into account
+    public static final String DONT_CACHE_KEY = "dontCache";
+    public static final String DISPLAY_CITIES_KEY = "displayCities";
     // </editor-fold>
 }

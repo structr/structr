@@ -4,9 +4,13 @@
  */
 package org.structr.common;
 
+import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Envelope;
+import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.Point;
 import java.awt.BasicStroke;
 import java.util.Map;
+import org.geotools.feature.SchemaException;
 import org.geotools.styling.Fill;
 import org.geotools.styling.PolygonSymbolizer;
 import org.geotools.styling.StyleFactory;
@@ -44,20 +48,32 @@ import org.apache.batik.svggen.DOMGroupManager;
 import org.apache.batik.svggen.SVGGeneratorContext;
 import org.apache.batik.svggen.SVGGraphics2D;
 import org.apache.commons.lang.StringEscapeUtils;
+import org.geotools.data.DataUtilities;
 import org.geotools.data.Query;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureSource;
 import org.geotools.factory.CommonFactoryFinder;
+import org.geotools.feature.FeatureCollections;
+import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.filter.text.cql2.CQL;
+import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.map.MapContext;
 import org.geotools.renderer.lite.StreamingRenderer;
+import org.geotools.styling.FeatureTypeStyle;
 import org.geotools.styling.Graphic;
+import org.geotools.styling.Mark;
 import org.geotools.styling.PointSymbolizer;
+import org.geotools.styling.Rule;
+import org.geotools.styling.Style;
 import org.geotools.styling.Symbolizer;
 import org.neo4j.gis.spatial.geotools.data.Neo4jSpatialDataStore;
+import org.opengis.feature.simple.SimpleFeature;
+import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory;
+import org.opengis.filter.expression.Expression;
+import org.structr.core.entity.geo.GeoObject;
 import org.structr.core.entity.geo.MetaDataShape;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -72,6 +88,8 @@ public abstract class MapHelper {
     public static FilterFactory filterFactory = CommonFactoryFinder.getFilterFactory(null);
     public static StyleFactory styleFactory = CommonFactoryFinder.getStyleFactory(null);
     public static FilterFactory featureFactory = CommonFactoryFinder.getFilterFactory(null);
+
+
 
     /**
      * Create a Symbolizer to draw polygon features with given line and fill style
@@ -90,33 +108,105 @@ public abstract class MapHelper {
                 filterFactory.literal(Color.decode(fillColor)),
                 filterFactory.literal(fillOpacity));
 
-        /*
+              /*
          * Setting the geometryPropertyName arg to null signals that we want to
-         * draw the default geometry of features
+         * draw the default geomettry of features
          */
         PolygonSymbolizer sym = styleFactory.createPolygonSymbolizer(stroke, fill, null);
-
-        return sym;
-    }
-
-    public static Symbolizer createPointSymbolizer() {
-
-        // TODO: style this
-
-        Graphic graphic = Graphic.DEFAULT;
-        String name = "NAME";
-
-        PointSymbolizer sym = styleFactory.createPointSymbolizer(graphic, name);
 
         return sym;
 
     }
 
     /**
+     * Create a Style to draw polygon features with given line and fill style
+     */
+    public static Style createPolygonStyle(final String lineColor, final int lineWidth, final double lineOpacity,
+            final String fillColor, final double fillOpacity) {
+
+        Symbolizer sym = createPolygonSymbolizer(lineColor, lineWidth, lineOpacity, fillColor, fillOpacity);
+
+        Rule rule = styleFactory.createRule();
+        rule.symbolizers().add(sym);
+        FeatureTypeStyle fts = styleFactory.createFeatureTypeStyle(new Rule[]{rule});
+        Style style = styleFactory.createStyle();
+        style.featureTypeStyles().add(fts);
+
+        return style;
+    }
+
+
+    /**
+     * Create a point Symbolizer with the given paramters.
+     *
+     * This method is based on {@link http://docs.geotools.org/stable/userguide/examples/stylelab.html#creating-styles-programmatically}
+     *
+     * @param shape
+     * @param diam
+     * @param strokeColor
+     * @param lineWidth
+     * @param fillColor
+     * @param fillOpacity
+     * @return
+     */
+    public static Symbolizer createPointSymbolizer(final String shape, final int diam, final String strokeColor, final int lineWidth, final String fillColor, final double fillOpacity) {
+
+        Mark mark = styleFactory.createMark();
+
+        mark.setWellKnownName(filterFactory.literal(shape));
+
+        mark.setStroke(styleFactory.createStroke(
+                filterFactory.literal(strokeColor),
+                filterFactory.literal(lineWidth)));
+
+        mark.setFill(styleFactory.createFill(
+                filterFactory.literal(fillColor),
+                filterFactory.literal(fillOpacity)));
+
+        Graphic graphic = styleFactory.createDefaultGraphic();
+        graphic.graphicalSymbols().clear();
+        graphic.graphicalSymbols().add(mark);
+        graphic.setSize(filterFactory.literal(diam));
+
+        /*
+         * Setting the geometryPropertyName arg to null signals that we want to
+         * draw the default geomettry of features
+         */
+        PointSymbolizer sym = styleFactory.createPointSymbolizer(graphic, null);
+
+        return sym;
+    }
+
+    /**
+     * Create a point style with the given paramters.
+     *
+     * This method is based on {@link http://docs.geotools.org/stable/userguide/examples/stylelab.html#creating-styles-programmatically}
+     *
+     * @param diam
+     * @param strokeColor
+     * @param lineWidth
+     * @param fillColor
+     * @param fillOpacity
+     * @return
+     */
+    public static Style createPointStyle(final String shape, final int diam, final String strokeColor, final int lineWidth, final String fillColor, final double fillOpacity) {
+
+        Symbolizer sym = createPointSymbolizer(shape, diam, strokeColor, lineWidth, fillColor, fillOpacity);
+
+        Rule rule = styleFactory.createRule();
+        rule.symbolizers().add(sym);
+        FeatureTypeStyle fts = styleFactory.createFeatureTypeStyle(new Rule[]{rule});
+        Style style = styleFactory.createStyle();
+        style.featureTypeStyles().add(fts);
+
+        return style;
+    }
+
+    /**
      * Create a Symbolizer to draw label text
      */
-    public static Symbolizer createTextSymbolizer(final String fontName, final double fontSize,
-            final String fontColor, final double fontOpacity) {
+    public static Symbolizer createTextSymbolizer(final String fontName, final double fontSize, final String fontColor, final double fontOpacity,
+            final double anchorX, final double anchorY, final double displacementX, final double displacementY) {
 
         Font gtFont = styleFactory.createFont(
                 filterFactory.literal(fontName),
@@ -125,12 +215,12 @@ public abstract class MapHelper {
                 filterFactory.literal(fontSize));
 
         AnchorPoint ap = styleFactory.createAnchorPoint(
-                filterFactory.literal(0.5),
-                filterFactory.literal(0.0));
+                filterFactory.literal(anchorX),
+                filterFactory.literal(anchorY));
 
         Displacement dp = styleFactory.createDisplacement(
-                filterFactory.literal(0.0),
-                filterFactory.literal(0.0));
+                filterFactory.literal(displacementX),
+                filterFactory.literal(displacementY));
 
         LabelPlacement placement = styleFactory.createPointPlacement(
                 ap,
@@ -146,10 +236,25 @@ public abstract class MapHelper {
 
         TextSymbolizer sym = styleFactory.createTextSymbolizer(fill, new Font[]{gtFont}, null, pn, placement, null);
 
-
-
-
         return sym;
+    }
+
+
+    /**
+     * Create a Style to draw label text
+     */
+    public static Style createTextStyle(final String fontName, final double fontSize,
+            final String fontColor, final double fontOpacity, final double anchorX, final double anchorY, final double displacementX, final double displacementY) {
+
+        Symbolizer sym = createTextSymbolizer(fontName, fontSize, fontColor, fontOpacity, anchorX, anchorY, displacementX, displacementY);
+
+        Rule rule = styleFactory.createRule();
+        rule.symbolizers().add(sym);
+        FeatureTypeStyle fts = styleFactory.createFeatureTypeStyle(new Rule[]{rule});
+        Style style = styleFactory.createStyle();
+        style.featureTypeStyles().add(fts);
+
+        return style;
     }
 
     /**
@@ -191,6 +296,40 @@ public abstract class MapHelper {
             result.expandBy((canvasX * y / canvasY) - x, 0);
         }
         return result;
+    }
+
+    public static SimpleFeatureCollection createPointsFromGeoObjects(final List<GeoObject> geoObjects) {
+
+        SimpleFeatureCollection collection = FeatureCollections.newCollection();
+
+        final SimpleFeatureType TYPE;
+        try {
+            TYPE = DataUtilities.createType("Location", "location:Point," + "NAME:String," + "name:String," + "number:Integer");
+
+            SimpleFeatureBuilder featureBuilder = new SimpleFeatureBuilder(TYPE);
+
+            GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory(null);
+
+            for (GeoObject obj : geoObjects) {
+
+                Coordinate coord = new Coordinate(obj.getLongitude(), obj.getLatitude());
+                Point point = geometryFactory.createPoint(coord);
+
+                featureBuilder.add(point);
+                featureBuilder.add(obj.getName());
+                featureBuilder.add(obj.getName());
+                //featureBuilder.add(obj.getId());
+                SimpleFeature feature = featureBuilder.buildFeature(null);
+                collection.add(feature);
+
+            }
+
+        } catch (SchemaException ex) {
+            logger.log(Level.SEVERE, null, ex);
+        }
+
+        return collection;
+
     }
 
     /**

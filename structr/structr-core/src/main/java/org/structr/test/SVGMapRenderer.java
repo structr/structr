@@ -7,7 +7,6 @@ package org.structr.test;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
-import java.awt.Color;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +30,6 @@ import org.geotools.map.MapContext;
 import org.geotools.map.MapLayer;
 import org.geotools.styling.FeatureTypeStyle;
 import org.geotools.styling.Rule;
-import org.geotools.styling.SLD;
 import org.geotools.styling.Style;
 import org.geotools.styling.Symbolizer;
 import org.neo4j.gis.spatial.geotools.data.Neo4jSpatialDataStore;
@@ -95,7 +93,7 @@ public class SVGMapRenderer {
             int cx = 896; //getCanvasX();
             int cy = 450; //getCanvasY();
 
-            boolean auto = false; //getAutoEnvelope();
+            boolean auto = true; //getAutoEnvelope();
 
             List<MapLayer> layers = new ArrayList<MapLayer>();
             MapLayer layer = null;
@@ -189,7 +187,7 @@ public class SVGMapRenderer {
 
             // create a style for displaying the polygons
             Symbolizer polygonSymbolizer = MapHelper.createPolygonSymbolizer("#ffffff", 1, 1, "#d9d4ce", 1);
-            Symbolizer textSymbolizer = MapHelper.createTextSymbolizer("Arial", 16, "#ffffff", 1);
+            Symbolizer textSymbolizer = MapHelper.createTextSymbolizer("Arial", 16, "#ffffff", 1, 0.5, 0.0, 0.0, 0.0);
 
 
             Rule rule = MapHelper.styleFactory.createRule();
@@ -202,28 +200,37 @@ public class SVGMapRenderer {
             style.featureTypeStyles().add(fts);
 
             final SimpleFeatureType TYPE = DataUtilities.createType("Location",
-                    "location:Point," + // <- the geometry attribute: Point type
-                    "NAME:String," + // <- a String attribute
-                    "number:Integer" // a number attribute
+                    "geom:Point,NAME:String,name:String"
+                    //"location:Point," + // <- the geometry attribute: Point type
+                    //"NAME:String," + // <- a String attribute
+                    //"number:Integer" // a number attribute
                     );
+
             SimpleFeatureBuilder featureBuilder = new SimpleFeatureBuilder(TYPE);
             SimpleFeatureCollection collection = FeatureCollections.newCollection();
 
+            //WKTReader2 wkt = new WKTReader2();
+            //collection.add( SimpleFeatureBuilder.build( TYPE, new Object[]{ wkt.read("POINT(8.4 50.6)"), "Frankfurt2"}, null) );
+            
             GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory(null);
             Coordinate coord = new Coordinate(8.4, 50.6);
             Point point = geometryFactory.createPoint(coord);
 
             featureBuilder.add(point);
             featureBuilder.add("Frankfurt");
-            featureBuilder.add(123);
+            featureBuilder.add("Frankfurt");
+//            featureBuilder.add(123);
             SimpleFeature feature = featureBuilder.buildFeature(null);
             collection.add(feature);
 
-            Symbolizer cityTextSymbolizer = MapHelper.createTextSymbolizer("Arial", 12, "#000000", 1);
+            Symbolizer cityTextSym = MapHelper.createTextSymbolizer("Arial", 13, "#000000", 1.0, 0.5, 0.0, 0.5, 0.5);
+            Symbolizer cityPointSym = MapHelper.createPointSymbolizer("Circle", 5, "#000000", 1, "#000000", 1.0);
+//            Symbolizer cityPolygonSymbolizer = MapHelper.createPolygonSymbolizer("#000000", 1, 1, "#000000", 1);
+
             Rule rule2 = MapHelper.styleFactory.createRule();
-//            rule2.symbolizers().add(polygonSymbolizer);
-            rule2.symbolizers().add(cityTextSymbolizer);
-//            rule2.symbolizers().add(pointSymbolizer);
+            rule2.symbolizers().add(cityTextSym);
+//            rule2.symbolizers().add(cityPolygonSymbolizer);
+            rule2.symbolizers().add(cityPointSym);
 
             FeatureTypeStyle fts2 = MapHelper.styleFactory.createFeatureTypeStyle(new Rule[]{rule2});
             Style style2 = MapHelper.styleFactory.createStyle();
@@ -232,12 +239,12 @@ public class SVGMapRenderer {
             SimpleFeatureSource source = DataUtilities.source(collection);
             SimpleFeatureCollection cityFeatures = source.getFeatures();
 
-            Style pointStyle = SLD.createPointStyle("Circle", Color.yellow, Color.yellow, 1, 3);
-            pointStyle.featureTypeStyles().add(fts2);
+            //Style pointStyle = SLD.createPointStyle("Square", Color.yellow, Color.yellow, 1, 3);
+            //pointStyle.featureTypeStyles().add(fts2);
 
             // add features and style as a map layer to the list of map layers
             layers.add(new MapLayer(features, style));
-            layers.add(new MapLayer(cityFeatures, pointStyle));
+            layers.add(new MapLayer(cityFeatures, style2));
 
             // create a map context
             mapContext = new DefaultMapContext(layers.toArray(new MapLayer[]{}));

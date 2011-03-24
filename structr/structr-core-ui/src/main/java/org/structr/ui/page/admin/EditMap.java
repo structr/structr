@@ -7,6 +7,8 @@ package org.structr.ui.page.admin;
 import org.apache.click.control.ActionLink;
 import org.apache.click.control.Checkbox;
 import org.apache.click.control.FieldSet;
+import org.apache.click.control.Option;
+import org.apache.click.control.Select;
 import org.apache.click.control.TextField;
 import org.apache.click.extras.control.DoubleField;
 import org.apache.click.extras.control.IntegerField;
@@ -39,6 +41,10 @@ public class EditMap extends EditGeoObject {
         generalFields.add(clearCacheLink);
         editPropertiesForm.add(generalFields);
 
+        FieldSet displayFields = new FieldSet("Display");
+        displayFields.add(new Checkbox(Map.DISPLAY_CITIES_KEY));
+        editPropertiesForm.add(displayFields);
+
         FieldSet canvasFields = new FieldSet("Canvas (Browser Display Area)");
         canvasFields.setColumns(2);
         canvasFields.add(new IntegerField(Map.CANVAS_X_KEY));
@@ -63,12 +69,37 @@ public class EditMap extends EditGeoObject {
         styleFields.add(new DoubleField(Map.LINE_OPACITY_KEY));
         editPropertiesForm.add(styleFields);
 
+        FieldSet pointFields = new FieldSet("Point Style");
+        pointFields.setColumns(3);
+        Select shapeSelect = new Select(Map.POINT_SHAPE_KEY);
+        shapeSelect.add(new Option("Circle"));
+        shapeSelect.add(new Option("Square"));
+        shapeSelect.add(new Option("Cross"));
+        shapeSelect.add(new Option("X"));
+        shapeSelect.add(new Option("Triangle"));
+        shapeSelect.add(new Option("Star"));
+        pointFields.add(shapeSelect);
+        pointFields.add(new IntegerField(Map.POINT_DIAMETER_KEY));
+        pointFields.add(new TextField(Map.POINT_FILL_COLOR_KEY));
+        pointFields.add(new DoubleField(Map.POINT_FILL_OPACITY_KEY));
+        pointFields.add(new IntegerField(Map.POINT_STROKE_LINE_WIDTH_KEY));
+        pointFields.add(new TextField(Map.POINT_STROKE_COLOR_KEY));
+        pointFields.add(new TextField(Map.POINT_FONT_NAME_KEY));
+        pointFields.add(new DoubleField(Map.POINT_FONT_SIZE_KEY));
+        pointFields.add(new TextField(Map.POINT_FONT_COLOR_KEY));
+        pointFields.add(new DoubleField(Map.POINT_FONT_OPACITY_KEY));
+        editPropertiesForm.add(pointFields);
+
         FieldSet labelFields = new FieldSet("Label Style");
         labelFields.setColumns(2);
         labelFields.add(new TextField(Map.FONT_NAME_KEY));
         labelFields.add(new DoubleField(Map.FONT_SIZE_KEY));
         labelFields.add(new TextField(Map.FONT_COLOR_KEY));
         labelFields.add(new DoubleField(Map.FONT_OPACITY_KEY));
+        labelFields.add(new DoubleField(Map.LABEL_ANCHOR_X_KEY));
+        labelFields.add(new DoubleField(Map.LABEL_ANCHOR_Y_KEY));
+        labelFields.add(new DoubleField(Map.LABEL_DISPLACEMENT_X_KEY));
+        labelFields.add(new DoubleField(Map.LABEL_DISPLACEMENT_Y_KEY));
         editPropertiesForm.add(labelFields);
 
         FieldSet optFields = new FieldSet("Optimization Parameter");
