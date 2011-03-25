@@ -93,7 +93,7 @@ public class Map extends AbstractNode {
         try {
             if (isVisible(user)) {
                 StringBuilder svgString = new StringBuilder();
-                renderSVGMap(svgString, startNode, user);
+                renderSVGMap(svgString, user);
                 out.write(svgString.toString().getBytes());
             }
         } catch (IOException e) {
@@ -101,7 +101,7 @@ public class Map extends AbstractNode {
         }
     }
 
-    private void renderSVGMap(StringBuilder out, final AbstractNode startNode, final User user) {
+    private void renderSVGMap(StringBuilder out, final User user) {
 
         Command graphDbCommand = Services.command(GraphDatabaseCommand.class);
         GraphDatabaseService graphDb = (GraphDatabaseService) graphDbCommand.execute();
@@ -233,17 +233,14 @@ public class Map extends AbstractNode {
 
             boolean displayCities = (getDisplayCities() == Boolean.TRUE);
 
-            callingNode.
-
             if (displayCities) {
+
                 List<GeoObject> cities = new LinkedList<GeoObject>();
 
                 List<AbstractNode> result = (List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(user, null, false, false, Search.andExactType("City"));
 
                 for (AbstractNode node : result) {
-
                     if ("City".equals(node.getType())) {
-
                         cities.add((GeoObject) node);
                     }
                 }

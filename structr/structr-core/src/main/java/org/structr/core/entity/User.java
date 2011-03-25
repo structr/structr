@@ -1,9 +1,20 @@
 package org.structr.core.entity;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.RelType;
+import org.structr.core.Command;
+import org.structr.core.Services;
+import org.structr.core.node.CreateNodeCommand;
+import org.structr.core.node.CreateRelationshipCommand;
+import org.structr.core.node.FindNodeCommand;
+import org.structr.core.node.NodeAttribute;
+import org.structr.core.node.StructrTransaction;
+import org.structr.core.node.TransactionCommand;
 
 /**
  * 
@@ -12,6 +23,7 @@ import org.structr.common.RelType;
  */
 public class User extends Person {
 
+    private static final Logger logger = Logger.getLogger(User.class.getName());
     private final static String ICON_SRC = "/images/user.png";
     public final static String REAL_NAME_KEY = "realName";
     public final static String PASSWORD_KEY = "password";
@@ -84,5 +96,109 @@ public class User extends Person {
 
     public void block() {
         setBlocked(Boolean.TRUE);
+    }
+
+    /**
+     * Return all objects linked to the given category
+     *
+     * @param categoryName
+     * @return
+     */
+    public List<AbstractNode> getObjectsOfCategory(final String categoryName) {
+
+        if (categoryName == null) {
+            logger.log(Level.SEVERE, "Empty category name!");
+            return null;
+        }
+
+        List<AbstractNode> result = Collections.emptyList();
+
+        final User user = this;
+        Category cat = null;
+
+        List<AbstractNode> children = this.getDirectChildNodes(user);
+        for (AbstractNode child : children) {
+            if (child instanceof Category && categoryName.equals(child.getName())) {
+                cat = (Category) child;
+            }
+        }
+
+        if (cat != null) {
+            result = cat.getSortedLinkedNodes(user);
+        }
+
+        return result;
+
+    }
+
+    /**
+     * Add object with given id to a category with given name.
+     *
+     * If no category with the given name exists, create one.
+     *
+     * @param categoryName
+     * @param objectId
+     */
+    public AbstractNode addToCategory(final String categoryName, final String objectId) {
+
+        final User user = this;
+
+        if (categoryName == null) {
+            logger.log(Level.SEVERE, "Empty category name!");
+            return null;
+        }
+
+        final AbstractNode object = (AbstractNode) Services.command(FindNodeCommand.class).execute(user, objectId);
+        if (object == null) {
+            logger.log(Level.SEVERE, "Object not found!");
+            return null;
+        }
+
+        Category cat = null;
+
+        List<AbstractNode> children = this.getDirectChildNodes(user);
+        for (AbstractNode child : children) {
+            if (child instanceof Category && categoryName.equals(child.getName())) {
+                cat = (Category) child;
+            }
+        }
+
+        final Category category = cat;
+
+        final Command createRel = Services.command(CreateRelationshipCommand.class);
+
+        Services.command(TransactionCommand.class).execute(new StructrTransaction() {
+
+            Category cat = null;
+
+            @Override
+            public Object execute() {
+
+                if (category == null) {
+
+                    // Category with given name not found, create one!
+                    cat = (Category) Services.command(CreateNodeCommand.class).execute(user,
+                            new NodeAttribute(AbstractNode.NAME_KEY, categoryName),
+                            new NodeAttribute(AbstractNode.TYPE_KEY, Category.class.getSimpleName()),
+                            true);
+
+                    // Link category to user
+                    createRel.execute(user, cat, RelType.HAS_CHILD, true);
+
+
+                } else {
+                    cat = category;
+                }
+
+                // Create link between category and object
+                createRel.execute(cat, object, RelType.LINK, true);
+
+                return null;
+
+            }
+        });
+
+        return object;
+
     }
 }

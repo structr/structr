@@ -1,4 +1,4 @@
-/*
+            /*
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
@@ -710,7 +710,7 @@ public class RegistrationCheck extends LoginCheck {
             String toName = firstName + " " + lastName;
             String from = senderAddress;
             String fromName = senderName;
-            String subject = "[structr] Account requested, please confirm your e-mail address";
+            String subject = "Account requested, please confirm your e-mail address";
             String htmlContent = content.toString();
             String textContent = Jsoup.parse(htmlContent).text();
 

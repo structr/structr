@@ -17,10 +17,10 @@
     <url>http://structr.org</url>
 
     <repositories>
-        <repository>
+<!--        <repository>
             <id>neo4j-public-repository</id>
             <url>http://m2.neo4j.org</url>
-        </repository>
+        </repository>-->
 <!--        <repository>
             <id>maven.notnothing.de</id>
             <url>http://maven.notnothing.de</url>

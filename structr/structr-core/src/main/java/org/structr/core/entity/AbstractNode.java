@@ -1682,7 +1682,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      */
     private List<AbstractNode> getDirectChildren(final Enum relType, final String nodeType, final User user) {
 
-        List<AbstractNode> nodes = new ArrayList<AbstractNode>();
+        List<AbstractNode> nodes = new LinkedList<AbstractNode>();
 
         Command nodeFactory = null;
         if (relType.equals(RelType.LINK)) {
