@@ -11,6 +11,7 @@ import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;
+import org.structr.core.node.DeleteRelationshipCommand;
 import org.structr.core.node.FindNodeCommand;
 import org.structr.core.node.NodeAttribute;
 import org.structr.core.node.StructrTransaction;
@@ -129,6 +130,64 @@ public class User extends Person {
 
         return result;
 
+    }
+
+    /**
+     * Remove object with given id from a category with given name.
+     * 
+     * @param categoryName
+     * @param objectId
+     */
+    public void removeFromCategory(final String categoryName, final String objectId) {
+        final User user = this;
+
+        if (categoryName == null) {
+            logger.log(Level.SEVERE, "Empty category name!");
+            return;
+        }
+
+        final AbstractNode object = (AbstractNode) Services.command(FindNodeCommand.class).execute(user, objectId);
+        if (object == null) {
+            logger.log(Level.SEVERE, "Object not found!");
+            return;
+        }
+
+        Category cat = null;
+
+        List<AbstractNode> children = this.getDirectChildNodes(user);
+        for (AbstractNode child : children) {
+            if (child instanceof Category && categoryName.equals(child.getName())) {
+                cat = (Category) child;
+            }
+        }
+
+        if (cat == null) {
+            logger.log(Level.SEVERE, "Category not found!");
+            return;
+        }
+
+        StructrRelationship relationshipToRemove = null;
+
+        List<StructrRelationship> outgoingRelationships = cat.getOutgoingLinkRelationships();
+        for (StructrRelationship rel : outgoingRelationships) {
+
+            AbstractNode endNode = rel.getEndNode();
+            if (endNode.equals(object)) {
+                relationshipToRemove = rel;
+            }
+        }
+
+        if (relationshipToRemove != null) {
+            final StructrRelationship relToDel = relationshipToRemove;
+            Services.command(TransactionCommand.class).execute(new StructrTransaction() {
+                @Override
+                public Object execute() {
+                    // Delete relationship
+                    Services.command(DeleteRelationshipCommand.class).execute(relToDel);
+                    return null;
+                }
+            });
+        }
     }
 
     /**
