@@ -202,8 +202,9 @@ public class Nodes extends Admin {
             Select nodeTypeField = new Select(AbstractNode.TYPE_KEY, "Select Node Type", true);
             nodeTypeField.add(new Option("", "--- Select Node Type ---"));
 
-//            Set<Class> entities = ClasspathEntityLocator.locateEntitiesByType(AbstractNode.class);
-            Set<String> nodeTypes = ((Map<String, Class>) Services.command(GetEntitiesCommand.class).execute()).keySet();
+            List<String> nodeTypes = new ArrayList<String>(((Map<String, Class>) Services.command(GetEntitiesCommand.class).execute()).keySet());
+            Collections.sort(nodeTypes);
+
 //            Set<String> nodeTypes = Services.getCachedEntityTypes();
             for (String className : nodeTypes) {
                 Option o = new Option(className);
@@ -677,7 +678,7 @@ public class Nodes extends Admin {
             parameters.put(RENDER_MODE_KEY, renderMode);
             parameters.put(OK_MSG_KEY, okMsg);
             setRedirect(getRedirectPage(n), parameters);
-            
+
             if (n instanceof PlainText) {
                 setRedirect(getRedirect().concat("#content-tab"));
             } else {
