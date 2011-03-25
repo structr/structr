@@ -13,6 +13,10 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.User;
 
 /**
+ * Include a node of this type to add objects to categories of the
+ * currently logged in user.
+ *
+ * Nice for tagging objects, or build a store.
  *
  * @author axel
  */
@@ -29,8 +33,6 @@ public class AddToCategory extends WebNode {
     @Override
     public void renderView(StringBuilder out, final AbstractNode startNode,
             final String editUrl, final Long editNodeId, final User user) {
-
-        String errorMsg;
 
         // if this page is requested to be edited, render edit frame
         if (editNodeId != null && getId() == editNodeId.longValue()) {
@@ -89,7 +91,7 @@ public class AddToCategory extends WebNode {
             AbstractNode addedObject = user.addToCategory(categoryName, objectId);
 
             if (addedObject != null) {
-                out.append("<div class=\"okMsg\">").append(addedObject.getName()).append(" successfully added to category ").append(categoryName).append("</div>");
+                out.append("<div class=\"okMsg\">").append(addedObject.getName()).append(" successfully added to ").append(categoryName).append("</div>");
             } else {
                 out.append("<div class=\"errorMsg\">").append("Could not add to category ").append(categoryName).append("</div>");
             }
