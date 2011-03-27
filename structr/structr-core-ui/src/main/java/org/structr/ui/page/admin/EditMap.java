@@ -39,6 +39,7 @@ public class EditMap extends EditGeoObject {
         generalFields.add(new TextField(Map.FEATURE_NAME_PARAM_NAME_KEY));
         generalFields.add(new Checkbox(Map.DONT_CACHE_KEY));
         generalFields.add(clearCacheLink);
+        generalFields.add(new TextField(Map.CONTENT_TYPE_KEY, "Internet Media Type (Content-Type)", 30));
         editPropertiesForm.add(generalFields);
 
         FieldSet displayFields = new FieldSet("Display");

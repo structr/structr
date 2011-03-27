@@ -93,7 +93,7 @@ public class SVGMapRenderer {
             int cx = 896; //getCanvasX();
             int cy = 450; //getCanvasY();
 
-            boolean auto = true; //getAutoEnvelope();
+            boolean auto = false; //getAutoEnvelope();
 
             List<MapLayer> layers = new ArrayList<MapLayer>();
             MapLayer layer = null;
@@ -117,7 +117,7 @@ public class SVGMapRenderer {
             // open data store from neo4j database
             Neo4jSpatialDataStore n4jstore = new Neo4jSpatialDataStore(graphDb);
 
-            String layerName = "t5s_geodata"; //getLayer();
+            String layerName = "world_regions"; //getLayer();
             if (StringUtils.isEmpty(layerName)) {
                 logger.log(Level.SEVERE, "No layer name!");
             }
@@ -142,8 +142,7 @@ public class SVGMapRenderer {
                     // first, find the feature which corresponds with the requested feature
                     // (or the name of the node, if the request value is empty)
                     List<Filter> filterList = new ArrayList<Filter>();
-                    filterList.add(CQL.toFilter("NAME like '" + StringEscapeUtils.escapeSql(featureName) + "'"));
-//                    filterList.add(CQL.toFilter("NAME = '" + StringEscapeUtils.escapeSql(featureName) + "'"));
+                    filterList.add(CQL.toFilter("NAME = '" + StringEscapeUtils.escapeSql(featureName) + "'"));
                     Filter filter = MapHelper.featureFactory.or(filterList);
                     Query query = new Query(layerName, filter);
 
@@ -160,10 +159,10 @@ public class SVGMapRenderer {
 
             } else {
 
-                Double eminx = -15.0; //getEnvelopeMinX();
-                Double emaxx = 20.0; //getEnvelopeMaxX();
-                Double eminy = 35.0; //getEnvelopeMinY();
-                Double emaxy = 70.0; //getEnvelopeMaxY();
+                Double eminx = -180.0; //getEnvelopeMinX();
+                Double emaxx = 180.0; //getEnvelopeMaxX();
+                Double eminy = -90.0; //getEnvelopeMinY();
+                Double emaxy = 90.0; //getEnvelopeMaxY();
 
                 if (eminx != null && emaxx != null && eminy != null && emaxy != null) {
 
@@ -186,7 +185,8 @@ public class SVGMapRenderer {
             logger.log(Level.INFO, "{0} intersecting features found", features.size());
 
             // create a style for displaying the polygons
-            Symbolizer polygonSymbolizer = MapHelper.createPolygonSymbolizer("#ffffff", 1, 1, "#d9d4ce", 1);
+//            Symbolizer polygonSymbolizer = MapHelper.createPolygonSymbolizer("#ffffff", 1, 1, "#d9d4ce", 1);
+            Symbolizer polygonSymbolizer = MapHelper.createPolygonSymbolizer("#000000", 1, 1, "#d9d4ce", 1);
             Symbolizer textSymbolizer = MapHelper.createTextSymbolizer("Arial", 16, "#ffffff", 1, 0.5, 0.0, 0.0, 0.0);
 
 
@@ -218,7 +218,7 @@ public class SVGMapRenderer {
 
             featureBuilder.add(point);
             featureBuilder.add("Frankfurt");
-            featureBuilder.add("Frankfurt");
+//            featureBuilder.add("Frankfurt");
 //            featureBuilder.add(123);
             SimpleFeature feature = featureBuilder.buildFeature(null);
             collection.add(feature);

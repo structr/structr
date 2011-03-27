@@ -38,7 +38,7 @@
         </init-param>
         <init-param>
             <param-name>cacheable-paths</param-name>
-            <param-value>/images/*, /click/*, /click/tree/*, /click/css/*, /click/tree/images/*, /assets/*, css/*, js/*, *.css, *.js</param-value>
+            <param-value>/images/*, /click/*, /click/tree/*, /click/css/*, /click/tree/images/*, /assets/*, css/*, js/*, *.css, *.js, *.svg</param-value>
         </init-param>
     </filter>
     <filter-mapping>

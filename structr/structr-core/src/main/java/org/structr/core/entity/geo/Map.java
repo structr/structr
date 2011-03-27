@@ -300,6 +300,11 @@ public class Map extends AbstractNode {
 
 // <editor-fold defaultstate="collapsed" desc="getter and setter methods">
 // getter and setter methods
+
+    public String getContentType() {
+        return (String) getProperty(CONTENT_TYPE_KEY);
+    }
+
     public int getCanvasX() {
         return getIntProperty(CANVAS_X_KEY);
     }
@@ -478,6 +483,10 @@ public class Map extends AbstractNode {
 
     //########################################
 
+    public void setContentType(final String contentType) {
+        setProperty(CONTENT_TYPE_KEY, contentType);
+    }
+
     public void setCanvasX(final int value) {
         setProperty(CANVAS_X_KEY, value);
     }
@@ -645,6 +654,7 @@ public class Map extends AbstractNode {
     private static final Logger logger = Logger.getLogger(Map.class.getName());
     private final static String defaultFeatureParamName = "name";
     public static final String SVG_CONTENT_KEY = "svgContent";
+    public final static String CONTENT_TYPE_KEY = "contentType";
     public static final String ENVELOPE_MIN_X_KEY = "envelopeMinX";
     public static final String ENVELOPE_MAX_X_KEY = "envelopeMaxX";
     public static final String ENVELOPE_MIN_Y_KEY = "envelopeMinY";

@@ -21,6 +21,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.click.util.Bindable;
 import org.apache.click.Page;
+import org.structr.core.entity.geo.Map;
 
 /**
  * 
@@ -113,7 +114,7 @@ public class View extends StructrPage {
 
             // some nodes should be rendered directly to servlet response
             // note: HtmlSource is instanceof PlainText!
-            if (s instanceof File || s instanceof Image || (s instanceof PlainText && !("text/html".equals(contentType)))) {
+            if (s instanceof File || s instanceof Image || s instanceof Map || (s instanceof PlainText && !("text/html".equals(contentType)))) {
                 // use Apache Click direct rendering
                 HttpServletResponse response = getContext().getResponse();
 

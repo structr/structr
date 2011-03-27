@@ -1811,17 +1811,23 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      */
     public boolean isVisible(final User user) {
 
+        if (user instanceof SuperUser) {
+            // Super user may always see it
+            return true;
+        }
+
         // check hidden flag (see STRUCTR-12)
         if (isHidden()) {
             return false;
         }
 
-        if (user == null && !(isPublic())) {
-            // Hide from public users
+        if (!(isPublic()) && user == null) {
+            // If not public, hide from non-logged in users
             return false;
         }
 
         if (!(isPublic()) && !(isVisibleForAuthenticatedUsers())) {
+            // If not public and not visible for authenticated users, don't display node
             return false;
         }
 
@@ -1838,6 +1844,8 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
         // take the maximum of 0 and creation date.
         visStartDate = (visStartDate == null ? new Date(effectiveStartDate) : visStartDate);
 
+        // if no end date for visibility is given,
+        // take the Long.MAX_VALUE
         Date visEndDate = getVisibilityEndDate();
         visEndDate = (visEndDate == null ? new Date(Long.MAX_VALUE) : visEndDate);
 
@@ -1866,7 +1874,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
             return true;
         }
 
-        // user has full control over his user node
+        // user has full control over his/her own user node
         if (this.equals(user)) {
             return true;
         }
@@ -1890,7 +1898,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      */
     public boolean readAllowed(final User user) {
 
-        // public nodes are always readable
+        // public nodes are always readable for anyone
         if (isPublic()) {
             return true;
         }
