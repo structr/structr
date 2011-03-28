@@ -61,7 +61,7 @@ public class RelinkContactPersons {
 //                System.out.println("Connect this node to " + hotelGroupId);
 //                createRel.execute(node, findNode.execute(null, hotelGroupId), RelType.LINK);
 //                createRel.execute(findNode.execute(null, 712), node, RelType.HAS_CHILD);
-                Services.command(DeleteNodeCommand.class).execute(hotelGroupId, new SuperUser());
+                Services.command(DeleteNodeCommand.class).execute(hotelGroupId, findNode.execute(null, 0), true, new SuperUser());
                 System.out.println("Node " + hotelGroupId + " deleted");
 
             }
