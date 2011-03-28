@@ -414,7 +414,6 @@ public class GeoDataTool {
         for (Node n : graphDb.getAllNodes()) {
 
             if (n.hasProperty(AbstractNode.TYPE_KEY) && n.getProperty(AbstractNode.TYPE_KEY).equals(type)
-
                     && (!(n.hasProperty(GeoObject.LATITUDE_KEY))
                     || (n.getProperty(GeoObject.LATITUDE_KEY) == null
                     || ((Double) n.getProperty(GeoObject.LATITUDE_KEY)).equals(Double.NaN)
@@ -425,7 +424,15 @@ public class GeoDataTool {
                 // if available, try to add the properties
                 // name, street, zip, city and country
                 // to the address string
-                String[] addressKeys = new String[]{"name", "street", "zip", "city", "country"};
+                String[] addressKeys;
+
+                // Omit name if street is present (leads to better results)
+                if (n.hasProperty("street")) {
+                    addressKeys = new String[]{"street", "zip", "city", "country"};
+                } else {
+                    addressKeys = new String[]{"name", "zip", "city", "country"};
+                }
+
                 for (String key : addressKeys) {
 
                     if (n.hasProperty(key)) {
