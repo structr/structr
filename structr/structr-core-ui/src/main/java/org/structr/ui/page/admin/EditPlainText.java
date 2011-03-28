@@ -12,6 +12,7 @@ import org.apache.click.control.HiddenField;
 import org.apache.click.control.Panel;
 import org.apache.click.control.Submit;
 import org.apache.click.control.TextArea;
+import org.apache.click.control.TextField;
 import org.apache.click.util.*;
 import org.structr.core.Services;
 import org.structr.core.entity.PlainText;
@@ -35,6 +36,8 @@ public class EditPlainText extends DefaultEdit {
     protected Panel editPlainTextPanel = new Panel("editPlainTextPanel", "/panel/edit-plain-text-panel.htm");
 
     public EditPlainText() {
+
+        editPropertiesForm.add(new TextField(PlainText.CONTENT_TYPE_KEY, "Internet Media Type (Content-Type)", 30));
 
         addControl(editPlainTextPanel);
 
