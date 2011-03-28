@@ -251,7 +251,19 @@ public class StructrPage extends Page {
                 try {
 
                     if (nodeIdString.startsWith("/")) {
-                        return TreeHelper.getNodeByPath(getRootNode(), nodeIdString, true, user);
+
+                        AbstractNode byPathNode = TreeHelper.getNodeByPath(getRootNode(), nodeIdString, true, user);
+                        if (byPathNode != null) {
+                            return byPathNode;
+                        }
+
+                        // If node not found by path, try to parse the path string as numerical id
+                        String byNumber = StringUtils.remove(nodeIdString, "/");
+                        AbstractNode byNumberNode = getNodeById(Long.parseLong(byNumber));
+                        if (byNumberNode != null) {
+                            return byNumberNode;
+                        }
+
                     }
 
                     return getNodeById(Long.parseLong((String) nodeId));
