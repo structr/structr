@@ -699,44 +699,47 @@ public class Admin {
 
             } else {
 
-                // test if node has a path to the reference node
+                // Better not remove such nodes ..
 
-                Iterable<Node> nodes = Traversal.description().relationships(RelType.HAS_CHILD, Direction.INCOMING).traverse(n).nodes();
-
-                int c = 0;
-                boolean isConnectedToRootNode = false;
-                for (Node an : nodes) {
-                    c++;
-                    if (an.equals(graphDb.getReferenceNode())) {
-                        isConnectedToRootNode = true;
-                    }
-
-                }
-
-                //System.out.print("Node has " + c + " ancestor node(s)");
-                if (isConnectedToRootNode) {
-                    //System.out.println(" and is connected with the root node");
-                } else {
-                    System.out.println(" and is NOT connected with the root node!!");
-
-                    if (!test) {
-
-                        // delete all relationships of this node
-                        for (Relationship r : n.getRelationships()) {
-                            r.delete();
-                        }
-
-                        // then delete node
-                        n.delete();
-
-                        System.out.println("Node " + id + " was not connected with root node, deleted.");
-
-                    } else {
-
-                        System.out.println("Orphaned node " + id + " is not connected with root node. Remove -t flag to delete");
-                    }
-                }
-
+//
+//                // test if node has a path to the reference node
+//
+//                Iterable<Node> nodes = Traversal.description().relationships(RelType.HAS_CHILD, Direction.INCOMING).traverse(n).nodes();
+//
+//                int c = 0;
+//                boolean isConnectedToRootNode = false;
+//                for (Node an : nodes) {
+//                    c++;
+//                    if (an.equals(graphDb.getReferenceNode())) {
+//                        isConnectedToRootNode = true;
+//                    }
+//
+//                }
+//
+//                //System.out.print("Node has " + c + " ancestor node(s)");
+//                if (isConnectedToRootNode) {
+//                    //System.out.println(" and is connected with the root node");
+//                } else {
+//                    System.out.println(" and is NOT connected with the root node!!");
+//
+//                    if (!test) {
+//
+//                        // delete all relationships of this node
+//                        for (Relationship r : n.getRelationships()) {
+//                            r.delete();
+//                        }
+//
+//                        // then delete node
+//                        n.delete();
+//
+//                        System.out.println("Node " + id + " was not connected with root node, deleted.");
+//
+//                    } else {
+//
+//                        System.out.println("Orphaned node " + id + " is not connected with root node. Remove -t flag to delete");
+//                    }
+//                }
+//
 
 
             }

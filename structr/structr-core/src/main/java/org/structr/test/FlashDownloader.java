@@ -48,6 +48,7 @@ public class FlashDownloader {
             }
         });
 
+        StandaloneTestHelper.finishStandaloneTest();
 
     }
 }

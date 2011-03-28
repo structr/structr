@@ -96,12 +96,12 @@
     <context-param>
         <description>Local filesystem path for embedded Neo4j database files</description>
         <param-name>database.path</param-name>
-        <param-value>/opt/structr/structr-tfs2</param-value>
+        <param-value>/opt/structr/db</param-value>
     </context-param>
     <context-param>
         <description>Local filesystem path for file storage</description>
         <param-name>files.path</param-name>
-        <param-value>/opt/structr/structr-tfs2/files</param-value>
+        <param-value>/opt/structr/files</param-value>
     </context-param>
     <context-param>
         <description>Local filesystem path for modules</description>

@@ -1,6 +1,6 @@
 #!/bin/sh
 mvn -Dexec.classpathScope=runtime \
--Dexec.args="-server -Xms64m -Xmx128m -classpath %classpath \
+-Dexec.args="-server -Xms512m -Xmx1024m -classpath %classpath \
 org.structr.tools.GeoDataTool \
 -dbPath /opt/structr/structr-tfs2 \
 -type City \

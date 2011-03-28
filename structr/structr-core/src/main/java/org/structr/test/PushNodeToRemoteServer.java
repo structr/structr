@@ -26,6 +26,7 @@ public class PushNodeToRemoteServer {
 
         Services.command(PushNodes.class).execute(adminNode, remoteServer);
 
+        StandaloneTestHelper.finishStandaloneTest();
 
     }
 }

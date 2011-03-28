@@ -32,14 +32,14 @@ public abstract class RunnableNodeService extends Thread implements RunnableServ
     @Override
     public void start() {
 
+        super.start();
+
         List<Service> serviceList = Services.getServices();
         for (Service s : serviceList) {
             if (s instanceof NodeService) {
                 ((NodeService) s).registerService(this);
             }
         }
-
-        super.start();
 
     }
 
@@ -50,8 +50,6 @@ public abstract class RunnableNodeService extends Thread implements RunnableServ
     @Override
     public void interrupt() {
 
-        super.interrupt();
-
         List<Service> serviceList = Services.getServices();
         for (Service s : serviceList) {
             if (s instanceof NodeService) {
@@ -59,6 +57,7 @@ public abstract class RunnableNodeService extends Thread implements RunnableServ
             }
         }
 
+        super.interrupt();
 
     }
 

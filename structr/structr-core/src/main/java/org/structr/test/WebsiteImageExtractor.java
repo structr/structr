@@ -33,6 +33,7 @@ public class WebsiteImageExtractor {
         final String websiteName = urlString.substring(urlString.lastIndexOf("http://") + 7);
 
         Services.command(TransactionCommand.class).execute(new StructrTransaction() {
+
             @Override
             public Object execute() throws Throwable {
 
@@ -47,6 +48,7 @@ public class WebsiteImageExtractor {
             }
         });
 
+        StandaloneTestHelper.finishStandaloneTest();
 
     }
 }

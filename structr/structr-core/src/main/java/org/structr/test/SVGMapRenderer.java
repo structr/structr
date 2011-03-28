@@ -200,8 +200,7 @@ public class SVGMapRenderer {
             style.featureTypeStyles().add(fts);
 
             final SimpleFeatureType TYPE = DataUtilities.createType("Location",
-                    "geom:Point,NAME:String,name:String"
-                    //"location:Point," + // <- the geometry attribute: Point type
+                    "geom:Point,NAME:String,name:String" //"location:Point," + // <- the geometry attribute: Point type
                     //"NAME:String," + // <- a String attribute
                     //"number:Integer" // a number attribute
                     );
@@ -211,7 +210,7 @@ public class SVGMapRenderer {
 
             //WKTReader2 wkt = new WKTReader2();
             //collection.add( SimpleFeatureBuilder.build( TYPE, new Object[]{ wkt.read("POINT(8.4 50.6)"), "Frankfurt2"}, null) );
-            
+
             GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory(null);
             Coordinate coord = new Coordinate(8.4, 50.6);
             Point point = geometryFactory.createPoint(coord);
@@ -274,5 +273,7 @@ public class SVGMapRenderer {
                 mapContext.dispose();
             }
         }
+        StandaloneTestHelper.finishStandaloneTest();
+
     }
 }
