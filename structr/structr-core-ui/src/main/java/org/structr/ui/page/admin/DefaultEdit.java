@@ -284,6 +284,8 @@ public class DefaultEdit extends Nodes {
             childNodesTable.addColumn(new Column(AbstractNode.CREATED_DATE_KEY));
             childNodesTable.addColumn(new Column(AbstractNode.POSITION_KEY));
             childNodesTable.addColumn(new Column(AbstractNode.PUBLIC_KEY));
+            childNodesTable.addColumn(new Column(AbstractNode.DELETED_KEY));
+            childNodesTable.addColumn(new Column(AbstractNode.HIDDEN_KEY));
             childNodesTable.addColumn(actionColumnNodes);
             childNodesTable.setSortable(true);
             childNodesTable.setShowBanner(true);

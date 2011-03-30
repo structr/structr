@@ -11,14 +11,16 @@ import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
+import org.structr.common.RelType;
+import org.structr.core.Command;
+import org.structr.core.Services;
 import org.structr.core.UnsupportedArgumentError;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.StructrRelationship;
 
 /**
  * Creates a relationship between two AbstractNode instances. The execute
- * method of this command takes the following parameters. Note that this command
- * does not run in a transaction.
+ * method of this command takes the following parameters.
  * 
  * @param startNode the start node
  * @param endNode the end node
@@ -61,7 +63,7 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
                 Node node1 = graphDb.getNodeById(startNode.getId());
                 Node node2 = graphDb.getNodeById(endNode.getId());
 
-                return new StructrRelationship(node1.createRelationshipTo(node2, relType));
+                return createRelationship(node1, node2, relType);
 
             } else {
                 throw new UnsupportedArgumentError("Wrong argument type(s).");
@@ -109,14 +111,29 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
                 Node node1 = graphDb.getNodeById(startNode.getId());
                 Node node2 = graphDb.getNodeById(endNode.getId());
 
-                return new StructrRelationship(node1.createRelationshipTo(node2, relType));
+                return createRelationship(node1, node2, relType);
 
             } else {
                 throw new UnsupportedArgumentError("Wrong argument type(s).");
             }
         }
 
-
         return null;
     }
+
+    
+    private StructrRelationship createRelationship(final Node fromNode, final Node toNode, final RelationshipType relType) {
+
+        final Command transactionCommand = Services.command(TransactionCommand.class);
+        StructrRelationship newRelationship = (StructrRelationship) transactionCommand.execute(new StructrTransaction() {
+
+            @Override
+            public Object execute() throws Throwable {
+                return new StructrRelationship(fromNode.createRelationshipTo(toNode, relType));
+            }
+        });
+
+        return newRelationship;
+    }
+
 }

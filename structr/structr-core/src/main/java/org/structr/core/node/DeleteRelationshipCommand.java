@@ -9,6 +9,8 @@ import java.util.logging.Logger;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.graphdb.Relationship;
+import org.structr.core.Command;
+import org.structr.core.Services;
 import org.structr.core.UnsupportedArgumentError;
 import org.structr.core.entity.StructrRelationship;
 
@@ -72,7 +74,24 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
         }
 
         if (rel != null) {
-            rel.delete();
+
+
+            final Relationship relToDelete = rel;
+
+
+            final Command transactionCommand = Services.command(TransactionCommand.class);
+            transactionCommand.execute(new StructrTransaction() {
+
+                @Override
+                public Object execute() throws Throwable {
+                    relToDelete.delete();
+                    return null;
+                }
+            });
+
+
+
+
             setExitCode(exitCode.SUCCESS);
         }
 
