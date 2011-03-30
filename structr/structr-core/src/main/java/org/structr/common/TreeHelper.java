@@ -36,7 +36,7 @@ public abstract class TreeHelper {
             boolean foundName = false;
 
             if (currentNode == null) {
-                logger.log(Level.WARNING, "Node not found at {0}", path);
+                logger.log(Level.FINE, "Node not found at {0}", path);
                 return null;
             }
 
@@ -56,7 +56,7 @@ public abstract class TreeHelper {
                 }
             }
             if (!foundName) {
-                logger.log(Level.WARNING, "Node not found at {0}", path);
+                logger.log(Level.FINE, "Node not found at {0}", path);
                 return null;
             }
         }

@@ -37,7 +37,7 @@
     </build>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <click.version>2.3.0-RC1</click.version>
+        <click.version>2.3.0</click.version>
     </properties>
     <dependencies>
         <dependency>

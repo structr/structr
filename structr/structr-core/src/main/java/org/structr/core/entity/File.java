@@ -53,7 +53,7 @@ public class File extends AbstractNode {
             java.io.File fileOnDisk = new java.io.File(filePath);
             long fileSize = fileOnDisk.length();
 
-            logger.log(Level.INFO, "File size of node {0} ({1}): {2}", new Object[]{getId(), filePath, fileSize});
+            logger.log(Level.FINE, "File size of node {0} ({1}): {2}", new Object[]{getId(), filePath, fileSize});
 
             return fileSize;
         }
