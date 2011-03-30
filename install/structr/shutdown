@@ -1,0 +1,4 @@
+#!/bin/sh
+kill $(cat structr.pid) 1> /dev/null 2>&1
+rm structr.pid
+

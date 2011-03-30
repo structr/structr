@@ -1,0 +1,29 @@
+#!/bin/sh
+
+CONTEXT_ROOT=structr
+STRUCTR_VERSION=0.2
+HTTP_PORT=8888
+AJP13_PORT=8088
+JAVA_OPTIONS="-server -d64"
+JAVA_MEMORY_PARAMETER="-Xms512m -Xmx2048m -XX:MaxPermSize=512m"
+
+######## If unsure, do not change anything below this line! ########
+
+NOW=$(date +%Y%m%d-%H%M%S);
+#echo $NOW
+mkdir /tmp/structr-$NOW
+
+/usr/bin/java $JAVA_OPTIONS $JAVA_MEMORY_PARAMETER \
+-Djava.io.tmpdir=/tmp/structr-$NOW \
+-jar lib/structr-webapp-$STRUCTR_VERSION-standalone.jar \
+--httpPort=$HTTP_PORT \
+--ajp13Port=$AJP13_PORT \
+--controlPort=-1 \
+--directoryListings=false \
+--useInvoker=false \
+--prefix=/$CONTEXT_ROOT \
+--webroot=/$CONTEXT_ROOT \
+--hostsDir=. \
+--logfile=structr.log 1> structr.log 2>&1 &
+
+ps -ef|grep java|grep $NOW| awk '{ print $2 }' > structr.pid
