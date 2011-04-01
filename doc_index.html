@@ -41,6 +41,12 @@
 			font-size: 0.8em;
 			color: #999;
 		}
+		code a, code a:link, code a:visited {
+			text-decoration: none;
+		}
+		code a:hover, code a:active {
+			text-decoration: underline;
+		}
 	</style>
     </head>
 <body>
@@ -50,8 +56,8 @@
 </div>
 <div class="main">
 <p>Version: 0.2<br>
-Status: alpha (very unstable, use at your own risk!)<br>
-Date: 30-MAR-2011</p>
+Status: alpha (unstable, use at your own risk!)<br>
+Date: 31-MAR-2011</p>
 <a name="index"></a><h2>Index</h2>
 <ol>
 <li><a href="#intro">Introduction: What is structr?</a></li>
@@ -86,12 +92,12 @@ user@host:~$
 </code></p>
 </li>
 <li><a href="download#current">Download the current version</a> (one ZIP file) and save it anywhere on your disk.</li>
-<li>Extract the downloaded ZIP file. This will create a directory named 'structr'.
+<li>Extract the downloaded ZIP file. This will create a directory named 'structr' with the contents as listed below. Click on the folders and files to learn more about them.
 <p class="code"><code>
 user@host:~$ unzip structr.zip <br>
 Archive:&nbsp;&nbsp;structr.zip<br>
-&nbsp;&nbsp;&nbsp;creating: structr/<br>
-&nbsp;&nbsp;inflating: structr/structr.conf   <br> 
+&nbsp;&nbsp;&nbsp;creating: <a href="#basedir">structr/</a><br>
+&nbsp;&nbsp;inflating: structr/<a href="#structr.conf">structr.conf</a><br> 
 &nbsp;&nbsp;&nbsp;creating: structr/modules/<br>
 &nbsp;&nbsp;inflating: structr/modules/modules.conf  <br>
 &nbsp;&nbsp;inflating: structr/modules/structr-core-0.2.jar  <br>
@@ -106,13 +112,13 @@ Archive:&nbsp;&nbsp;structr.zip<br>
 user@host:~$
 </code></p>
 </li>
-<li>Enter the 'structr' directory and run the 'startup' script.
+<li>Enter the "structr" directory and run the "startup" script.
 <p class="code"><code>
 user@host:~$ cd structr <br>
 user@host:~/structr$ ./startup <br>
 user@host:~/structr$
 </code></p>
-This will create two files:
+Running the startup script will create two files:
 <ul>
 <li>structr.log: Application log file</li>
 <li>structr.pid: Containing the process id of the java process</li>
@@ -137,10 +143,10 @@ This will create two files:
 
 <a name="faq"></a><h2>FAQ</h2>
 <h3>Q: Why another <a href="#CMS">CMS</a>?</h3>
-<p>A: Because there was no CMS with all the following attributes:
+<p>A: Because there was no CMS with the following attributes:
 <ul>
+<li>Java</li>
 <li>Easy to install</li>
-<li>Java-based</li>
 <li>Embedded graph database</li>
 <li>Embedded application server</li>
 <li>Modular, easy to extend (no need to change database schema for new add-on modules)</li>
@@ -148,7 +154,7 @@ This will create two files:
 </ul>
 </p>
 
-<h3>Q: What does "modular" mean for structr?</h3>
+<h3>Q: What does "modular" mean here?</h3>
 <p>"Modular" means that structr is made of several software components, which are independent from each other. The following modules are part of a minimum installation:
 <ul>
 <li>structr-core: Core classes for entities, services, commands, and some helper classes</li>
@@ -175,6 +181,49 @@ Some basic CMS functionality is contained in an add-on module:
 <a class="backToIndex" href="#index">Back to Index</a>
 
 <a name="glossary"></a><h2>Glossary</h2>
+
+<a name="basedir"></a><h3>Basedir</h3>
+Base directory of a structr instance, usually named "structr". You can run multiple structr instances on one host. Just rename the folder after unpacking
+and change the configuration parameters accordingly.
+
+<a name="structr.conf"></a><h3>structr.conf</h3>
+Main configuration file for structr. Typically, it has the following content:
+<p class="code"><code>
+##############################<br>
+# structr global config file #<br>
+##############################<br>
+<br>
+# Local title of structr admin GUI<br>
+application.title = structr Admin GUI<br>
+<br>
+# Directory for temporary files<br>
+tmp.path = /tmp<br>
+<br>
+# Directory path for database files<br>
+database.path = /opt/structr/db<br>
+<br>
+# Directory path for binary files<br>
+files.path = /opt/structr/files<br>
+<br>
+# Directory path for modules<br>
+modules.path = /opt/structr/modules<br>
+<br>
+# Packages with entity node classes<br> 
+entity.packages = org.structr.core.entity, org.structr.core.entity.log, org.structr.core.entity.geo<br>
+<br>
+# TCP port for incoming remote connections<br>
+tcp.port = 54555<br>
+<br>
+# UDP port for incoming remote connections<br>
+udp.port = 57555<br>
+<br>
+# SMTP host for outgoing e-mails<br>
+smtp.host = localhost<br>
+<br>
+# SMTP port on SMTP host for outgoing e-mails<br>
+smtp.port = 25<br>
+</code></p>
+
 <a name="CMS"></a><h3>CMS</h3>
 <p>Content Management System, see the <a href="#[1]">[1]</a>.</p>
 <a class="backToIndex" href="#index">Back to Index</a>
