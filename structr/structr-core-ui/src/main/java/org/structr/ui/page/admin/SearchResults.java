@@ -4,7 +4,7 @@
  */
 package org.structr.ui.page.admin;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import org.apache.click.Context;
 import org.apache.click.control.AbstractLink;
@@ -322,7 +322,7 @@ public class SearchResults extends Nodes {
 
             // retrieve search results
             String searchText = searchTextField.getValue();
-            List<SearchAttribute> searchAttrs = new ArrayList<SearchAttribute>();
+            List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
 
             searchAttrs.add(Search.andName(searchText));
 
@@ -350,7 +350,7 @@ public class SearchResults extends Nodes {
         if (advancedSearchForm.isValid()) {
 
             // assemble search attributes
-            List<SearchAttribute> searchAttrs = new ArrayList<SearchAttribute>();
+            List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
 
             String searchText = searchTextField.getValue();
             if (inNameCheckbox.isChecked()) {

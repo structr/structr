@@ -6,7 +6,7 @@
 package org.structr.core.cloud;
 
 import java.io.Serializable;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,7 +50,7 @@ public abstract class DataContainer implements Serializable {
     public String toString() {
         StringBuilder out = new StringBuilder();
 
-        List<String> props = new ArrayList<String>();
+        List<String> props = new LinkedList<String>();
 
         for (String key : properties.keySet()) {
 

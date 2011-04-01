@@ -4,19 +4,14 @@
  */
 package org.structr.core.node.search;
 
-import org.structr.core.node.search.SearchOperator;
 import java.text.Normalizer;
 import java.text.Normalizer.Form;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import org.apache.commons.lang.StringUtils;
 import org.structr.core.Services;
 import org.structr.core.entity.PlainText;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.node.search.BooleanSearchAttribute;
-import org.structr.core.node.search.SearchAttribute;
-import org.structr.core.node.search.TextualSearchAttribute;
-import org.structr.core.node.search.SearchNodeCommand;
 
 /**
  *
@@ -155,9 +150,9 @@ public abstract class Search {
      * @return
      */
     public static List<String> getNodeNamesLike(final String string) {
-        List<String> names = new ArrayList<String>();
+        List<String> names = new LinkedList<String>();
 
-        List<SearchAttribute> searchAttrs = new ArrayList<SearchAttribute>();
+        List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
 
         // always add wildcard character '*' for auto completion
         searchAttrs.add(Search.andExactName(string + SearchAttribute.WILDCARD));

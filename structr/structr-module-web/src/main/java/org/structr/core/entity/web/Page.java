@@ -99,7 +99,7 @@ public class Page extends WebNode {
     }
 //
 //    public List<Template> getTemplateNodes() {
-//        List<Template> result = new ArrayList<Template>();
+//        List<Template> result = new LinkedList<Template>();
 //        List<StructrRelationship> rels = getRelationships(RelType.USE_TEMPLATE, Direction.OUTGOING);
 //        for (StructrRelationship r : rels) {
 //            AbstractNode n = r.getEndNode();
@@ -111,7 +111,7 @@ public class Page extends WebNode {
 //    }
 //
 //    public List<String> getTemplate() {
-//        List<String> ids = new ArrayList<String>();
+//        List<String> ids = new LinkedList<String>();
 //        List<Template> templateNodes = getTemplateNodes();
 //        if (templateNodes != null && !(templateNodes.isEmpty())) {
 //            for (Template p : templateNodes) {

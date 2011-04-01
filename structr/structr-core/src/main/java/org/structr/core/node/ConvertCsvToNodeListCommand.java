@@ -194,7 +194,7 @@ public class ConvertCsvToNodeListCommand extends NodeServiceCommand {
 
 
             /*
-            final List<NodeAttribute> attrList = new ArrayList<NodeAttribute>();
+            final List<NodeAttribute> attrList = new LinkedList<NodeAttribute>();
 
             NodeAttribute typeAttr = new NodeAttribute(AbstractNode.TYPE_KEY, targetClass.getSimpleName());
             attrList.add(typeAttr);

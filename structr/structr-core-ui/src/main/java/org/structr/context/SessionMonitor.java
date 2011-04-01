@@ -4,7 +4,7 @@
  */
 package org.structr.context;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -325,7 +325,7 @@ public class SessionMonitor {
         }
 
         if (sessions == null) {
-            sessions = new ArrayList<Session>();
+            sessions = new LinkedList<Session>();
         }
     }
 

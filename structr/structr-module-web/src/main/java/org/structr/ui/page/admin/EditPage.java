@@ -4,7 +4,7 @@
  */
 package org.structr.ui.page.admin;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Collections;
 import java.util.List;
 import org.apache.click.control.FieldSet;
@@ -59,12 +59,12 @@ public class EditPage extends DefaultEdit {
 
             @Override
             public List<Option> getData() {
-                List<Option> options = new ArrayList<Option>();
+                List<Option> options = new LinkedList<Option>();
                 List<AbstractNode> nodes = null;
                 if (templateNode != null) {
                     nodes = templateNode.getSiblingNodes(user);
                 } else {
-                    List<TextualSearchAttribute> searchAttrs = new ArrayList<TextualSearchAttribute>();
+                    List<TextualSearchAttribute> searchAttrs = new LinkedList<TextualSearchAttribute>();
                     searchAttrs.add(new TextualSearchAttribute(AbstractNode.TYPE_KEY, Template.class.getSimpleName(), SearchOperator.OR));
                     nodes = (List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(user, null, false, false, searchAttrs);
                 }

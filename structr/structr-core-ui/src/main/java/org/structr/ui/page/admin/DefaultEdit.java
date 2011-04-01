@@ -4,7 +4,7 @@
  */
 package org.structr.ui.page.admin;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -486,7 +486,7 @@ public class DefaultEdit extends Nodes {
 
             setPermissionFields.add(userSelect);
             setPermissionFields.add(recursive);
-            List<Option> optionList = new ArrayList<Option>();
+            List<Option> optionList = new LinkedList<Option>();
             Option readOption = new Option(StructrRelationship.READ_KEY, "Read");
             optionList.add(readOption);
             Option showTreeOption = new Option(StructrRelationship.SHOW_TREE_KEY, "Show Tree");
@@ -590,7 +590,7 @@ public class DefaultEdit extends Nodes {
                 @Override
                 public List<AbstractNode> getData() {
 
-                    List<AbstractNode> result = new ArrayList<AbstractNode>();
+                    List<AbstractNode> result = new LinkedList<AbstractNode>();
                     result.addAll(node.getSortedDirectChildAndLinkNodes(user));
                     return result;
                 }
@@ -630,7 +630,7 @@ public class DefaultEdit extends Nodes {
                 @Override
                 public List<Option> getData() {
 
-                    List<Option> optionList = new ArrayList<Option>();
+                    List<Option> optionList = new LinkedList<Option>();
 
 //                List<AbstractNode> principals =  node.getSecurityPrincipals();
                     List<User> users = getAllUsers();
@@ -652,7 +652,7 @@ public class DefaultEdit extends Nodes {
 
                     List<StructrRelationship> rels = node.getIncomingRelationships();
 
-                    List<StructrRelationship> result = new ArrayList<StructrRelationship>();
+                    List<StructrRelationship> result = new LinkedList<StructrRelationship>();
                     for (StructrRelationship r : rels) {
 
                         RelationshipType rt = r.getRelType();
@@ -819,7 +819,7 @@ public class DefaultEdit extends Nodes {
 
                     if (selectedUser != null) {
 
-                        List<AbstractNode> nodes = new ArrayList<AbstractNode>();
+                        List<AbstractNode> nodes = new LinkedList<AbstractNode>();
 
 
                         if (rec) {

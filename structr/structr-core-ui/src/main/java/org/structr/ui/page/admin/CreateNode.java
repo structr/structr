@@ -133,7 +133,7 @@ public class CreateNode extends Nodes {
             @Override
             public List<NodeType> getData() {
                 Map<String, Class> entities = (Map<String, Class>) Services.command(GetEntitiesCommand.class).execute();
-                List<NodeType> list = new ArrayList<NodeType>();
+                List<NodeType> list = new LinkedList<NodeType>();
 
                 for (Entry<String, Class> entry : entities.entrySet()) {
                     String n = entry.getKey();

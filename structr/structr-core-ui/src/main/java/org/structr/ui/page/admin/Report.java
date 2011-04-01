@@ -8,7 +8,7 @@ import au.com.bytecode.opencsv.CSVWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -74,9 +74,9 @@ public class Report extends Nodes {
     protected Submit reset = new Submit("reset", "Reset Form");
     protected TextField reportName = new TextField("reportName", "Save Report as (filename): ");
     //protected Submit saveReport = new Submit("saveReport", "Save Report", this, "onSaveReport");
-    protected List<AbstractNode> reportResults = new ArrayList<AbstractNode>();
-    protected List<TextualSearchAttribute> searchAttributes = new ArrayList<TextualSearchAttribute>();
-    protected List<Column> columns = new ArrayList<Column>();
+    protected List<AbstractNode> reportResults = new LinkedList<AbstractNode>();
+    protected List<TextualSearchAttribute> searchAttributes = new LinkedList<TextualSearchAttribute>();
+    protected List<Column> columns = new LinkedList<Column>();
 
     public Report() {
 
@@ -185,8 +185,8 @@ public class Report extends Nodes {
     }
 
     public void resetForm() {
-        reportResults = new ArrayList<AbstractNode>();
-        columns = new ArrayList<Column>();
+        reportResults = new LinkedList<AbstractNode>();
+        columns = new LinkedList<Column>();
         resultTypeSelect = new Select(TYPE_SELECT_KEY, "Select Result Type", true);
         reportForm.clearValues();
         reportTable = new Table("reportTable");
@@ -233,7 +233,7 @@ public class Report extends Nodes {
                     propertyFields.add(checkbox);
                 }
             } else {
-                columns = new ArrayList<Column>();
+                columns = new LinkedList<Column>();
             }
             reportForm.add(propertyFields);
             reportForm.restoreState(context);
@@ -245,7 +245,7 @@ public class Report extends Nodes {
                     searchAttributes.add(new TextualSearchAttribute(fieldName, fieldValue, SearchOperator.AND));
                 }
             } else {
-                columns = new ArrayList<Column>();
+                columns = new LinkedList<Column>();
             }
 
             reportTable.restoreState(context);
@@ -292,9 +292,9 @@ public class Report extends Nodes {
         final String reportFileName = reportName.getValue() + ".csv";
 
         Map methodCache = new HashMap<Object, Object>();
-        List<String[]> resultList = new ArrayList<String[]>();
+        List<String[]> resultList = new LinkedList<String[]>();
 
-        List<String> keys = new ArrayList<String>();
+        List<String> keys = new LinkedList<String>();
         for (Column c : columns) {
             keys.add(c.getName());
         }
@@ -308,8 +308,8 @@ public class Report extends Nodes {
 
         for (AbstractNode s : reportResults) {
 
-//            List<String> cols = new ArrayList<String>();
-            List<String> values = new ArrayList<String>();
+//            List<String> cols = new LinkedList<String>();
+            List<String> values = new LinkedList<String>();
             for (Column c : columns) {
 
                 Object value = PropertyUtils.getValue(s, c.getName(), methodCache);

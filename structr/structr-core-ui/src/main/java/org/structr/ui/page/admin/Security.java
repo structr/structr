@@ -4,10 +4,8 @@
  */
 package org.structr.ui.page.admin;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import org.apache.click.Page;
 import org.apache.click.control.Form;
 import org.apache.click.control.HiddenField;
@@ -46,7 +44,7 @@ public class Security extends Nodes {
         PickList allowed = new PickList(StructrRelationship.ALLOWED_KEY, "Actions");
         allowed.setHeaderLabel("Denied", "Allowed");
 
-        List<Option> optionList = new ArrayList<Option>();
+        List<Option> optionList = new LinkedList<Option>();
         Option readOption = new Option(StructrRelationship.READ_KEY, "Read");
         optionList.add(readOption);
 
@@ -72,7 +70,7 @@ public class Security extends Nodes {
             @Override
             public List<Option> getData() {
 
-                List<Option> optionList = new ArrayList<Option>();
+                List<Option> optionList = new LinkedList<Option>();
 
                 List<AbstractNode> principals =  node.getSecurityPrincipals();
                 for (AbstractNode p : principals) {

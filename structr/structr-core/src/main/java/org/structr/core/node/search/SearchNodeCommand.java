@@ -4,7 +4,6 @@
  */
 package org.structr.core.node.search;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -89,7 +88,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
                 publicOnly = (Boolean) parameters[3];
             }
 
-            List<SearchAttribute> searchAttrs = new ArrayList<SearchAttribute>();
+            List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
             if (parameters[4] instanceof List) {
                 searchAttrs = (List<SearchAttribute>) parameters[4];
             }
@@ -180,6 +179,8 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 //            IndexHits hits = index.query(new QueryContext(query.toString()));//.sort("name"));
                 intermediateResult = nodeFactory.createNodes(hits, user, includeDeleted, publicOnly);
+
+//                hits.close();
 
                 long t2 = System.currentTimeMillis();
                 logger.log(Level.FINE, "Creating structr nodes took {0} ms, {1} nodes made.", new Object[]{t2 - t1, intermediateResult.size()});
@@ -313,7 +314,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
             long t3 = System.currentTimeMillis();
             logger.log(Level.FINE, "Filtering nodes took {0} ms. Result size now {1}.", new Object[]{t3 - t2, result.size()});
 
-            //result = new ArrayList(intermediateResult);
+            //result = new LinkedList(intermediateResult);
         }
 
 //        long t4 = System.currentTimeMillis();

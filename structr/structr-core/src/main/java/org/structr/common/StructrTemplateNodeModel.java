@@ -7,7 +7,7 @@ package org.structr.common;
 import freemarker.template.TemplateModelListSequence;
 import freemarker.template.TemplateNodeModel;
 import freemarker.template.TemplateSequenceModel;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.User;
@@ -43,7 +43,7 @@ public class StructrTemplateNodeModel implements TemplateNodeModel {
     public TemplateSequenceModel getChildNodes() {
 
 
-        List<StructrTemplateNodeModel> childNodeList = new ArrayList<StructrTemplateNodeModel>();
+        List<StructrTemplateNodeModel> childNodeList = new LinkedList<StructrTemplateNodeModel>();
 
         for (AbstractNode s : templateNode.getDirectChildNodes(user)) {
 

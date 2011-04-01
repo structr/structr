@@ -83,8 +83,13 @@ public abstract class ImageHelper {
         try {
             // read image
             long start = System.nanoTime();
-
-            BufferedImage source = ImageIO.read(originalImage.getInputStream());
+            
+            BufferedImage source = null;
+            try {
+                source = ImageIO.read(originalImage.getInputStream());
+            } catch (Throwable t) {
+                logger.log(Level.WARNING, "Could not read original image {0} ({1})", new Object[]{originalImage.getName(), originalImage.getId()});
+            }
 
             if (source != null) {
 
@@ -124,7 +129,7 @@ public abstract class ImageHelper {
                     ImageIO.write(source, Thumbnail.FORMAT, baos);
                 }
             } else {
-                logger.log(Level.SEVERE, "Thumbnail could not be created");
+                logger.log(Level.WARNING, "Thumbnail could not be created");
                 return null;
             }
 
@@ -136,7 +141,7 @@ public abstract class ImageHelper {
             return tn;
 
         } catch (Throwable t) {
-            logger.log(Level.SEVERE, "Error creating thumbnail", t);
+            logger.log(Level.WARNING, "Error creating thumbnail");
         }
 
         return null;
@@ -167,8 +172,8 @@ public abstract class ImageHelper {
 
         // FF D9 = EOI (end of image)
         // FF D8 = SOI (start of image)
-        
-        if (original[0] == (byte)0xff && original[1] == (byte)0xd9 && original[2] == (byte)0xff && original[3] == (byte)0xd8) {
+
+        if (original[0] == (byte) 0xff && original[1] == (byte) 0xd9 && original[2] == (byte) 0xff && original[3] == (byte) 0xd8) {
             in.skip(4);
         }
 

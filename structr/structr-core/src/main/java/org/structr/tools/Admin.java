@@ -5,7 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -402,7 +402,7 @@ public class Admin {
         long counter = 0L;
 
         // list to store all relationships of source database
-        List<Relationship> allRels = new ArrayList<Relationship>();
+        List<Relationship> allRels = new LinkedList<Relationship>();
 
         // lookup map to store all pairs of source node id (key) and target node id (value)
         Map<Long, Long> idMap = new HashMap<Long, Long>();

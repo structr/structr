@@ -4,7 +4,7 @@
  */
 package org.structr.ui.page;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -196,7 +196,7 @@ public class LoginPage extends Admin {
         long[] expandedNodesArray = getExpandedNodesFromUserProfile();
         if (expandedNodesArray != null && expandedNodesArray.length > 0) {
 
-            openNodes = new ArrayList<TreeNode>();
+            openNodes = new LinkedList<TreeNode>();
 
             Command findNode = Services.command(FindNodeCommand.class);
             for (Long s : expandedNodesArray) {

@@ -5,14 +5,12 @@
 package org.structr.core.node;
 
 import org.structr.core.node.search.SearchNodeCommand;
-import org.structr.core.node.search.TextualSearchAttribute;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.structr.core.node.search.Search;
-import org.structr.core.node.search.SearchOperator;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -60,7 +58,7 @@ public class FindUserCommand extends NodeServiceCommand {
                         String userName = (String) parameters[0];
 //                        userXPath = "//User[@name='" + userName + "']";
 
-                        List<SearchAttribute> searchAttrs = new ArrayList<SearchAttribute>();
+                        List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
                         searchAttrs.add(Search.andExactName(userName));
                         searchAttrs.add(Search.andExactType(User.class.getSimpleName()));
 

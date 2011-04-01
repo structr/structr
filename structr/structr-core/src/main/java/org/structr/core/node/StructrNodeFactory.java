@@ -4,9 +4,7 @@
  */
 package org.structr.core.node;
 
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -84,7 +82,7 @@ public class StructrNodeFactory<T extends AbstractNode> implements Adapter<Node,
      */
     public List<AbstractNode> createNodes(final Iterable<Node> input, final User user, final boolean includeDeleted, final boolean publicOnly) {
 
-        List<AbstractNode> nodes = new ArrayList<AbstractNode>();
+        List<AbstractNode> nodes = new LinkedList<AbstractNode>();
         if (input != null && input.iterator().hasNext()) {
 
             for (Node node : input) {

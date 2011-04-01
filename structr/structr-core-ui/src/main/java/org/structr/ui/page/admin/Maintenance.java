@@ -5,7 +5,6 @@
 package org.structr.ui.page.admin;
 
 import java.util.AbstractMap;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -277,7 +276,7 @@ public class Maintenance extends Admin {
             @Override
             public List<Activity> getData() {
 
-                List<Activity> result = new ArrayList<Activity>();
+                List<Activity> result = new LinkedList<Activity>();
 
                 LogNodeList<AbstractNode> globalLog = (LogNodeList<AbstractNode>) Services.command(GetGlobalLogCommand.class).execute();
 
@@ -340,7 +339,7 @@ public class Maintenance extends Admin {
             @Override
             public List<Map.Entry<String, Object>> getData() {
 
-                List<Map.Entry<String, Object>> params = new ArrayList<Map.Entry<String, Object>>();
+                List<Map.Entry<String, Object>> params = new LinkedList<Map.Entry<String, Object>>();
                 Set<String> entityPackages = ((Set<String>) Services.command(GetEntityPackagesCommand.class).execute());
 
                 params.add(new AbstractMap.SimpleEntry<String, Object>("Configuration File Path", Services.getConfigFilePath()));
@@ -364,7 +363,7 @@ public class Maintenance extends Admin {
             @Override
             public List<Map.Entry<String, Object>> getData() {
 
-                List<Map.Entry<String, Object>> params = new ArrayList<Map.Entry<String, Object>>();
+                List<Map.Entry<String, Object>> params = new LinkedList<Map.Entry<String, Object>>();
 
                 //params.add(new HashMap.Entry<String, Object>("Number of Nodes", numberOfNodes));
 //                Command findNode = Services.command(FindNodeCommand.class);

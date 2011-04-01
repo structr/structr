@@ -5,7 +5,7 @@
 package org.structr.ui.page.admin;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -170,7 +170,7 @@ public class Admin extends StructrPage {
      */
     protected void storeExpandedNodesInUserProfile() {
 
-        List<Long> expandedNodes = new ArrayList<Long>();
+        List<Long> expandedNodes = new LinkedList<Long>();
         //long[] expandedNodes = new long[];
         for (TreeNode n : nodeTree.getExpandedNodes(true)) {
 

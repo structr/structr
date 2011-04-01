@@ -13,7 +13,6 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
-import org.neo4j.kernel.impl.nioneo.store.InvalidRecordException;
 import org.structr.core.entity.StructrRelationship;
 import org.structr.core.entity.AbstractNode;
 
@@ -55,7 +54,13 @@ public class NodeRelationshipsCommand extends NodeServiceCommand {
             RelationshipType relType = (RelationshipType) arg1;
             Direction dir = (Direction) arg2;
 
-            Node node = graphDb.getNodeById(sNode.getId());
+            Node node = null;
+            try {
+                node = graphDb.getNodeById(sNode.getId());
+            } catch (Exception e) {
+                logger.log(Level.WARNING, "Exception occured: ", e.getMessage());
+                return result;
+            }
 
             Iterable<Relationship> rels;
             if (arg1 != null) {
@@ -68,22 +73,23 @@ public class NodeRelationshipsCommand extends NodeServiceCommand {
                 for (Relationship r : rels) {
                     result.add(new StructrRelationship(r));
                 }
-            } catch (InvalidRecordException ignore) {
-    /*********** FIXME ************
-      
-     Here an exception occurs:
+            } catch (RuntimeException e) {
 
-    org.neo4j.kernel.impl.nioneo.store.InvalidRecordException: Node[5] is neither firstNode[37781] nor secondNode[37782] for Relationship[188125]
-    at org.neo4j.kernel.impl.nioneo.xa.ReadTransaction.getMoreRelationships(ReadTransaction.java:131)
-    at org.neo4j.kernel.impl.nioneo.xa.NioNeoDbPersistenceSource$ReadOnlyResourceConnection.getMoreRelationships(NioNeoDbPersistenceSource.java:280)
-    at org.neo4j.kernel.impl.persistence.PersistenceManager.getMoreRelationships(PersistenceManager.java:100)
-    at org.neo4j.kernel.impl.core.NodeManager.getMoreRelationships(NodeManager.java:585)
-    at org.neo4j.kernel.impl.core.NodeImpl.getMoreRelationships(NodeImpl.java:358)
-    at org.neo4j.kernel.impl.core.IntArrayIterator.hasNext(IntArrayIterator.java:115)
+                logger.log(Level.WARNING, "Exception occured: ", e.getMessage());
+                /*********** FIXME ************
 
-     
+                Here an exception occurs:
+
+                org.neo4j.kernel.impl.nioneo.store.InvalidRecordException: Node[5] is neither firstNode[37781] nor secondNode[37782] for Relationship[188125]
+                at org.neo4j.kernel.impl.nioneo.xa.ReadTransaction.getMoreRelationships(ReadTransaction.java:131)
+                at org.neo4j.kernel.impl.nioneo.xa.NioNeoDbPersistenceSource$ReadOnlyResourceConnection.getMoreRelationships(NioNeoDbPersistenceSource.java:280)
+                at org.neo4j.kernel.impl.persistence.PersistenceManager.getMoreRelationships(PersistenceManager.java:100)
+                at org.neo4j.kernel.impl.core.NodeManager.getMoreRelationships(NodeManager.java:585)
+                at org.neo4j.kernel.impl.core.NodeImpl.getMoreRelationships(NodeImpl.java:358)
+                at org.neo4j.kernel.impl.core.IntArrayIterator.hasNext(IntArrayIterator.java:115)
+
+
                  */
-
             }
         }
 

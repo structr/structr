@@ -4,7 +4,7 @@
  */
 package org.structr.core;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -50,17 +50,17 @@ public class Services {
     private static final Map<Class, Class> serviceClassCache = new ConcurrentHashMap<Class, Class>(5, 0.75f, 100);
     private static final Map<Class, Service> serviceCache = new ConcurrentHashMap<Class, Service>(5, 0.75f, 100);
     private static Map<String, Object> context = null;
-    private static String basePath = "/opt/structr";
-    private static String databasePath = "/opt/structr/structr-tfs2/files";
-    private static String filesPath = "/opt/structr/structr-tfs2/files";
-    private static String appTitle = "structr";
-    private static String modulesPath = "/opt/structr/modules";
-    private static String configFilePath = "/opt/structr/structr.conf";
-    private static String tmpPath = "/tmp";
-    private static String tcpPort = "54555";
-    private static String udpPort = "54777";
-    private static String smtpHost = "localhost";
-    private static String smtpPort = "25";
+    private static String basePath;// = "/opt/structr";
+    private static String databasePath;// = "/opt/structr/structr-tfs2/files";
+    private static String filesPath;// = "/opt/structr/structr-tfs2/files";
+    private static String appTitle;// = "structr";
+    private static String modulesPath;// = "/opt/structr/modules";
+    private static String configFilePath;// = "/opt/structr/structr.conf";
+    private static String tmpPath;// = "/tmp";
+    private static String tcpPort;// = "54555";
+    private static String udpPort;// = "54777";
+    private static String smtpHost;// = "localhost";
+    private static String smtpPort;// = "25";
 
     /**
      * Return the static application title
@@ -256,7 +256,7 @@ public class Services {
      */
     public static List<Service> getServices() {
 
-        List<Service> services = new ArrayList<Service>();
+        List<Service> services = new LinkedList<Service>();
 
         for (Iterator<Service> it = serviceCache.values().iterator(); it.hasNext();) {
             Service service = it.next();
@@ -272,7 +272,7 @@ public class Services {
      */
     public static List<Service> getAgents() {
 
-        List<Service> services = new ArrayList<Service>();
+        List<Service> services = new LinkedList<Service>();
 
         for (Iterator<Service> it = serviceCache.values().iterator(); it.hasNext();) {
             Service service = it.next();

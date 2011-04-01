@@ -4,14 +4,13 @@
  */
 package org.structr.ui.page.admin;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.click.dataprovider.DataProvider;
@@ -202,7 +201,7 @@ public class Nodes extends Admin {
             Select nodeTypeField = new Select(AbstractNode.TYPE_KEY, "Select Node Type", true);
             nodeTypeField.add(new Option("", "--- Select Node Type ---"));
 
-            List<String> nodeTypes = new ArrayList<String>(((Map<String, Class>) Services.command(GetEntitiesCommand.class).execute()).keySet());
+            List<String> nodeTypes = new LinkedList<String>(((Map<String, Class>) Services.command(GetEntitiesCommand.class).execute()).keySet());
             Collections.sort(nodeTypes);
 
 //            Set<String> nodeTypes = Services.getCachedEntityTypes();
@@ -527,7 +526,7 @@ public class Nodes extends Admin {
 //        if (!(parentNode.getValue() instanceof Link) && (nodeToAdd.equals(node)) || openNodes.contains(parentNode)) {
 
             // set of nodes to be ordered by a certain key
-            List<AbstractNode> nodes = new ArrayList<AbstractNode>();
+            List<AbstractNode> nodes = new LinkedList<AbstractNode>();
 
             Command nodeFactory = Services.command(NodeFactoryCommand.class);
             Command relCommand = Services.command(NodeRelationshipsCommand.class);
@@ -1362,7 +1361,7 @@ public class Nodes extends Admin {
 
             // return empty list if no open nodes exist in session
             if (openNodes == null) {
-                openNodes = new ArrayList<TreeNode>();
+                openNodes = new LinkedList<TreeNode>();
             }
         }
     }

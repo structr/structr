@@ -2,6 +2,7 @@ package org.structr.core.entity;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -16,6 +17,8 @@ import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;
+import org.structr.core.node.DeleteNodeCommand;
+import org.structr.core.node.DeleteRelationshipCommand;
 import org.structr.core.node.NodeAttribute;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
@@ -243,6 +246,29 @@ public class Image extends File {
         return thumbnails;
     }
 
+    synchronized public void removeThumbnails() {
+
+        Command deleteRelationship = Services.command(DeleteRelationshipCommand.class);
+        Command deleteNode = Services.command(DeleteNodeCommand.class);
+
+        for (StructrRelationship s : getThumbnailRelationships()) {
+
+            AbstractNode thumbnail = s.getEndNode();
+
+            if (((Image)thumbnail).equals(this)) {
+                logger.log(Level.SEVERE, "Attempted to remove me as thumbnail!!");
+                continue;
+            }
+
+            deleteRelationship.execute(s);
+            deleteNode.execute(thumbnail, new SuperUser());
+        }
+
+        // Clear cache
+        thumbnailRelationships = null;
+
+    }
+
     /**
      * Get (cached) thumbnail relationships
      * 
@@ -290,7 +316,7 @@ public class Image extends File {
      *
      * @return
      */
-    public Image getScaledImage(final int maxWidth, final int maxHeight) {
+    synchronized public Image getScaledImage(final int maxWidth, final int maxHeight) {
 
         thumbnailRelationships = getThumbnailRelationships();
 
@@ -357,12 +383,15 @@ public class Image extends File {
                             isHiddenAttr,
                             isPublicAttr,
                             isVisibleForAuthenticatedUsersAttr,
-                            false);         // Don't index
+                            false);         // Don't index thumbnails
 
                     if (thumbnail != null) {
 
-                        // create a thumbnail relationship
+                        // Create a thumbnail relationship
                         StructrRelationship thumbnailRelationship = (StructrRelationship) createRel.execute(originalImage, thumbnail, RelType.THUMBNAIL);
+
+                        // Add to cache list
+                        thumbnailRelationships.add(thumbnailRelationship);
 
                         // determine properties
                         String relativeFilePath = thumbnail.getId() + "_" + System.currentTimeMillis();

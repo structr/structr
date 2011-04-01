@@ -54,13 +54,13 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
         Relationship rel = null;
         if (argument instanceof Long) {
 
-            // single long value: find node by id
+            // single long value: find relationship by id
             long id = ((Long) argument).longValue();
 
             try {
                 rel = graphDb.getRelationshipById(id);
             } catch (NotFoundException nfe) {
-                logger.log(Level.SEVERE, "Relationship {0} not found, unable to delete.", id);
+                logger.log(Level.SEVERE, "Relationship {0} not found, cannot delete.", id);
             }
 
         } else if (argument instanceof StructrRelationship) {

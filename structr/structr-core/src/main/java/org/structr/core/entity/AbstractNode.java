@@ -17,7 +17,7 @@ import java.io.OutputStream;
 import java.io.StringReader;
 import java.io.Writer;
 import java.text.ParseException;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -295,7 +295,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
     public String toString() {
         StringBuilder out = new StringBuilder();
 
-        List<String> props = new ArrayList<String>();
+        List<String> props = new LinkedList<String>();
 
         for (String key : getPropertyKeys()) {
 
@@ -373,7 +373,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      */
     public String[] toStringArray() {
 
-        List<String> props = new ArrayList<String>();
+        List<String> props = new LinkedList<String>();
 
         for (String key : getPropertyKeys()) {
 
@@ -567,7 +567,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      */
     public List<Title> getTitles() {
 
-        List<Title> titleList = new ArrayList<Title>();
+        List<Title> titleList = new LinkedList<Title>();
 
         for (Locale locale : Locale.getAvailableLocales()) {
 
@@ -1443,7 +1443,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      */
     public List<AbstractNode> getSiblingNodes(final User user) {
 
-        List<AbstractNode> nodes = new ArrayList<AbstractNode>();
+        List<AbstractNode> nodes = new LinkedList<AbstractNode>();
 
         AbstractNode parentNode = getParentNode(user);
 
@@ -1476,7 +1476,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      */
     public List<AbstractNode> getAncestorNodes(final User user) {
 
-        List<AbstractNode> nodes = new ArrayList<AbstractNode>();
+        List<AbstractNode> nodes = new LinkedList<AbstractNode>();
 
         Command nodeFactory = Services.command(NodeFactoryCommand.class);
         List<StructrRelationship> rels = getIncomingChildRelationships();
@@ -1501,7 +1501,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      */
     public List<AbstractNode> getParentNodes(final User user) {
 
-        List<AbstractNode> nodes = new ArrayList<AbstractNode>();
+        List<AbstractNode> nodes = new LinkedList<AbstractNode>();
 
         Command nodeFactory = Services.command(NodeFactoryCommand.class);
         List<StructrRelationship> rels = getIncomingChildRelationships();
@@ -1713,7 +1713,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      */
     public List<AbstractNode> getSortedDirectChildNodes(final User user) {
 
-        List<AbstractNode> nodes = new ArrayList<AbstractNode>();
+        List<AbstractNode> nodes = new LinkedList<AbstractNode>();
         nodes.addAll(getDirectChildNodes(user));
 
         // sort by position
@@ -1734,7 +1734,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      */
     public List<AbstractNode> getSortedDirectChildAndLinkNodes(final User user) {
 
-        List<AbstractNode> nodes = new ArrayList<AbstractNode>();
+        List<AbstractNode> nodes = new LinkedList<AbstractNode>();
         nodes.addAll(getDirectChildNodes(user));
 
         // get linked child nodes
@@ -1758,7 +1758,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      */
     public List<AbstractNode> getSortedMenuItems(final User user) {
 
-        List<AbstractNode> menuItems = new ArrayList<AbstractNode>();
+        List<AbstractNode> menuItems = new LinkedList<AbstractNode>();
 
         // add direct children of type MenuItem
         menuItems.addAll(getDirectChildren(RelType.HAS_CHILD, "MenuItem", user));
@@ -1789,7 +1789,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      */
     protected List<AbstractNode> getAllChildren(final String nodeType, final User user) {
 
-        List<AbstractNode> nodes = new ArrayList<AbstractNode>();
+        List<AbstractNode> nodes = new LinkedList<AbstractNode>();
 
         Command findNode = Services.command(FindNodeCommand.class);
         List<AbstractNode> result = (List<AbstractNode>) findNode.execute(user, this);
@@ -2041,7 +2041,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      */
     public List<AbstractNode> getSecurityPrincipals() {
 
-        List<AbstractNode> principalList = new ArrayList<AbstractNode>();
+        List<AbstractNode> principalList = new LinkedList<AbstractNode>();
 
         // check any security relationships
         for (StructrRelationship r : getRelationships(RelType.SECURITY, Direction.INCOMING)) {

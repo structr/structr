@@ -7,7 +7,7 @@ package org.structr.core.entity.geo;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -179,7 +179,7 @@ public class GeoObject extends AbstractNode {
             spatialIndex.executeSearch(searchQuery);
             List<SpatialDatabaseRecord> results = searchQuery.getResults();
 
-            List<String> result = new ArrayList<String>();
+            List<String> result = new LinkedList<String>();
 
             for (SpatialDatabaseRecord r : results) {
                 String value = (String) r.getProperty(propertyKey);
@@ -218,7 +218,7 @@ public class GeoObject extends AbstractNode {
             spatialIndex.executeSearch(searchQuery);
             List<SpatialDatabaseRecord> results = searchQuery.getResults();
 
-            List<Geometry> result = new ArrayList<Geometry>();
+            List<Geometry> result = new LinkedList<Geometry>();
 
             for (SpatialDatabaseRecord r : results) {
                 result.add(r.getGeometry());

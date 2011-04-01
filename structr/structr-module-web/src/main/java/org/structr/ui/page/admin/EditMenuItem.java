@@ -4,7 +4,7 @@
  */
 package org.structr.ui.page.admin;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Collections;
 import java.util.List;
 import org.apache.click.control.FieldSet;
@@ -15,7 +15,6 @@ import org.apache.click.control.Select;
 import org.apache.click.dataprovider.DataProvider;
 import org.structr.core.node.search.SearchOperator;
 import org.structr.core.entity.web.Page;
-import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.web.MenuItem;
 import org.structr.core.node.search.TextualSearchAttribute;
@@ -54,12 +53,12 @@ public class EditMenuItem extends DefaultEdit {
 
             @Override
             public List<Option> getData() {
-                List<Option> options = new ArrayList<Option>();
+                List<Option> options = new LinkedList<Option>();
                 List<AbstractNode> nodes = null;
                 if (linkTargetNode != null) {
                     nodes = linkTargetNode.getSiblingNodes(user);
                 } else {
-                    List<TextualSearchAttribute> searchAttrs = new ArrayList<TextualSearchAttribute>();
+                    List<TextualSearchAttribute> searchAttrs = new LinkedList<TextualSearchAttribute>();
                     searchAttrs.add(new TextualSearchAttribute(AbstractNode.TYPE_KEY, Page.class.getSimpleName(), SearchOperator.OR));
                     nodes = (List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(user, null, false, false, searchAttrs);
                 }

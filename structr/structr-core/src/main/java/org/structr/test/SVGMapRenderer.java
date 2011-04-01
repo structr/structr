@@ -8,7 +8,7 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
 import java.io.File;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -95,7 +95,7 @@ public class SVGMapRenderer {
 
             boolean auto = false; //getAutoEnvelope();
 
-            List<MapLayer> layers = new ArrayList<MapLayer>();
+            List<MapLayer> layers = new LinkedList<MapLayer>();
             MapLayer layer = null;
             ReferencedEnvelope envelope = null;
 
@@ -141,7 +141,7 @@ public class SVGMapRenderer {
 
                     // first, find the feature which corresponds with the requested feature
                     // (or the name of the node, if the request value is empty)
-                    List<Filter> filterList = new ArrayList<Filter>();
+                    List<Filter> filterList = new LinkedList<Filter>();
                     filterList.add(CQL.toFilter("NAME = '" + StringEscapeUtils.escapeSql(featureName) + "'"));
                     Filter filter = MapHelper.featureFactory.or(filterList);
                     Query query = new Query(layerName, filter);

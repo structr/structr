@@ -38,7 +38,7 @@ import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.Stroke;
 import java.io.StringWriter;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
@@ -359,7 +359,7 @@ public abstract class MapHelper {
             Search searchQuery = new SearchIntersectWindow(envelope);
             spatialIndex.executeSearch(searchQuery);
             List<SpatialDatabaseRecord> results = searchQuery.getResults();
-            List<Filter> filterList = new ArrayList<Filter>();
+            List<Filter> filterList = new LinkedList<Filter>();
             for (SpatialDatabaseRecord r : results) {
                 filterList.add(CQL.toFilter("NAME like '" + StringEscapeUtils.escapeSql((String) r.getProperty("NAME")) + "'"));
             }
