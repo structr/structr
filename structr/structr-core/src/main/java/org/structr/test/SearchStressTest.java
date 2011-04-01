@@ -4,7 +4,9 @@
  */
 package org.structr.test;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.StandaloneTestHelper;
@@ -50,8 +52,9 @@ public class SearchStressTest {
                             System.out.println("Image " + image.getId() + " has " + thumbnails.size() + " thumbnail(s).");
 
                             image.removeThumbnails();
-                            System.out.println("Thumbnails removed from node " + image.getId());
 
+                            System.out.println("Thumbnails removed from node " + image.getId());
+                            
                             image.getScaledImage(100, 100);
                             image.getScaledImage(200, 200);
                             image.getScaledImage(300, 300);
