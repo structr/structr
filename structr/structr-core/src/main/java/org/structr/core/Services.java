@@ -217,9 +217,9 @@ public class Services {
 
         appTitle = getConfigValue(context, Services.APPLICATION_TITLE, "structr");
         tmpPath = getConfigValue(context, Services.TMP_PATH, "/tmp");
-        databasePath = getConfigValue(context, Services.DATABASE_PATH, "/opt/structr/structr-tfs2");
-        filesPath = getConfigValue(context, Services.FILES_PATH, "/opt/structr/structr-tfs2/files");
-        modulesPath = getConfigValue(context, Services.MODULES_PATH, "/opt/structr/modules");
+        databasePath = getConfigValue(context, Services.DATABASE_PATH, "/opt/structr/t5s/db");
+        filesPath = getConfigValue(context, Services.FILES_PATH, "/opt/structr/t5s/files");
+        modulesPath = getConfigValue(context, Services.MODULES_PATH, "/opt/structr/t5s/modules");
         tcpPort = getConfigValue(context, Services.TCP_PORT, "54555");
         udpPort = getConfigValue(context, Services.UDP_PORT, "57555");
         smtpHost = getConfigValue(context, Services.SMTP_HOST, "localhost");
@@ -285,6 +285,10 @@ public class Services {
 
     public static void setContext(final Map<String, Object> envContext) {
         context = envContext;
+    }
+
+    public static Map<String, Object> getContext() {
+        return context;
     }
 
     public static String getConfigValue(Map<String, Object> context, String key, String defaultValue) {
