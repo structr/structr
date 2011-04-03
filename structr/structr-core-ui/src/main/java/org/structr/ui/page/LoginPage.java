@@ -157,7 +157,7 @@ public class LoginPage extends Admin {
             }
             
             // Register user with internal session management
-            sessionId = SessionMonitor.registerUser(user, getContext().getSession());
+            sessionId = SessionMonitor.registerUserSession(user, getContext().getSession());
             SessionMonitor.logActivity(user, sessionId, "Login");
 
             // Mark this session with the internal session id

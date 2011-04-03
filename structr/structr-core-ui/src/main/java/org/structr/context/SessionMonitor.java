@@ -224,10 +224,17 @@ public class SessionMonitor {
         return sessions;
     }
 
+    public static long getSessionByUId(final String sessionUid) {
+        for (Session session : sessions) {
+            if (session.getUid().equals(sessionUid)) return session.getId();
+        }
+        return -1L;
+    }
+
     /**
      * Register user in servlet context
      */
-    public static long registerUser(final User user, final HttpSession session) {
+    public static long registerUserSession(final User user, final HttpSession session) {
 
         init(session.getServletContext());
         long id = nextId(session.getServletContext());
@@ -240,13 +247,13 @@ public class SessionMonitor {
     /**
      * Unregister user in servlet context
      */
-    public static void unregisterUser(final long id, final ServletContext context) {
+    public static void unregisterUserSession(final long id, final ServletContext context) {
 
         init(context);
         Session session = getSession(id);
         session.setLogoutTime(new Date());
         session.setState(State.INACTIVE);
-        context.setAttribute(USER_LIST_KEY, sessions);
+//        context.setAttribute(USER_LIST_KEY, sessions);
 
     }
 

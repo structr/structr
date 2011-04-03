@@ -69,10 +69,10 @@ public class Image extends File {
 
     /** Copy visible for authenticated users flag to all thumbnails */
     @Override
-    public void setVisibleForAuthenticatedUsers(final boolean flag) {
-        super.setVisibleForAuthenticatedUsers(flag);
+    public void setVisibleToAuthenticatedUsers(final boolean flag) {
+        super.setVisibleToAuthenticatedUsers(flag);
         for (Image thumbnail : getThumbnails()) {
-            thumbnail.setProperty(VISIBLE_FOR_AUTHENTICATED_USERS_KEY, flag);
+            thumbnail.setProperty(VISIBLE_TO_AUTHENTICATED_USERS_KEY, flag);
         }
     }
 
@@ -369,7 +369,7 @@ public class Image extends File {
                 NodeAttribute contentTypeAttr = new NodeAttribute(Image.CONTENT_TYPE_KEY, "image/" + Thumbnail.FORMAT);
                 NodeAttribute isHiddenAttr = new NodeAttribute(AbstractNode.HIDDEN_KEY, originalImage.getHidden());
                 NodeAttribute isPublicAttr = new NodeAttribute(AbstractNode.PUBLIC_KEY, originalImage.getPublic());
-                NodeAttribute isVisibleForAuthenticatedUsersAttr = new NodeAttribute(AbstractNode.VISIBLE_FOR_AUTHENTICATED_USERS_KEY, originalImage.getVisibleForAuthenticatedUsers());
+                NodeAttribute isVisibleForAuthenticatedUsersAttr = new NodeAttribute(AbstractNode.VISIBLE_TO_AUTHENTICATED_USERS_KEY, originalImage.getVisibleToAuthenticatedUsers());
 
                 Thumbnail thumbnailData = ImageHelper.createThumbnail(originalImage, maxWidth, maxHeight);
 

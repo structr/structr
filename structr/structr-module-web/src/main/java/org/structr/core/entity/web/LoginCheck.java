@@ -27,7 +27,7 @@ import org.structr.core.node.FindUserCommand;
 public class LoginCheck extends WebNode {
 
     private static final Logger logger = Logger.getLogger(LoginCheck.class.getName());
-    private final static String ICON_SRC = "/images/key.png";
+    private final static String ICON_SRC = "/images/door_in.png";
 
     @Override
     public String getIconSrc() {
@@ -301,7 +301,7 @@ public class LoginCheck extends WebNode {
             session.setAttribute(USERNAME_KEY, loginUser.getName());
 
             // Register user with internal session management
-            long sessionId = SessionMonitor.registerUser(user, session);
+            long sessionId = SessionMonitor.registerUserSession(user, session);
             SessionMonitor.logActivity(user, sessionId, "Login");
 
             // Mark this session with the internal session id

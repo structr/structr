@@ -95,7 +95,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
     public final static String VISIBILITY_START_DATE_KEY = "visibilityStartDate";
     public final static String VISIBILITY_END_DATE_KEY = "visibilityEndDate";
     public final static String PUBLIC_KEY = "public";
-    public final static String VISIBLE_FOR_AUTHENTICATED_USERS_KEY = "visibleForAuthenticatedUsers";
+    public final static String VISIBLE_TO_AUTHENTICATED_USERS_KEY = "visibleToAuthenticatedUsers";
     public final static String HIDDEN_KEY = "hidden";
     public final static String DELETED_KEY = "deleted";
 //    public final static String ACL_KEY = "acl";
@@ -294,6 +294,8 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
     @Override
     public String toString() {
         StringBuilder out = new StringBuilder();
+
+        out.append(getName()).append(" [").append(getId()).append("]: ");
 
         List<String> props = new LinkedList<String>();
 
@@ -729,16 +731,16 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
         setProperty(PUBLIC_KEY, publicFlag);
     }
 
-    public boolean isVisibleForAuthenticatedUsers() {
-        return getBooleanProperty(VISIBLE_FOR_AUTHENTICATED_USERS_KEY);
+    public boolean isVisibleToAuthenticatedUsers() {
+        return getBooleanProperty(VISIBLE_TO_AUTHENTICATED_USERS_KEY);
     }
 
-    public boolean getVisibleForAuthenticatedUsers() {
-        return getBooleanProperty(VISIBLE_FOR_AUTHENTICATED_USERS_KEY);
+    public boolean getVisibleToAuthenticatedUsers() {
+        return getBooleanProperty(VISIBLE_TO_AUTHENTICATED_USERS_KEY);
     }
 
-    public void setVisibleForAuthenticatedUsers(final boolean flag) {
-        setProperty(VISIBLE_FOR_AUTHENTICATED_USERS_KEY, flag);
+    public void setVisibleToAuthenticatedUsers(final boolean flag) {
+        setProperty(VISIBLE_TO_AUTHENTICATED_USERS_KEY, flag);
     }
 
     public boolean isHidden() {
@@ -1821,15 +1823,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
             return false;
         }
 
-        if (!(isPublic()) && user == null) {
-            // If not public, hide from non-logged in users
-            return false;
-        }
-
-        if (!(isPublic()) && !(isVisibleForAuthenticatedUsers())) {
-            // If not public and not visible for authenticated users, don't display node
-            return false;
-        }
+        boolean visibleByTime = false;
 
         // check visibility period of time (see STRUCTR-13)
         Date visStartDate = getVisibilityStartDate();
@@ -1851,7 +1845,30 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 
         Date now = new Date();
 
-        return (now.after(visStartDate) && now.before(visEndDate));
+        visibleByTime = (now.after(visStartDate) && now.before(visEndDate));
+
+
+        if (user == null) {
+
+            // No logged-in user
+
+            if (isPublic()) {
+                return visibleByTime;
+            } else {
+                return false;
+            }
+
+        } else {
+
+            // Logged-in users
+
+            if (isVisibleToAuthenticatedUsers()) {
+                return visibleByTime;
+            } else {
+                return false;
+            }
+            
+        }
 
     }
 
@@ -1898,11 +1915,12 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      */
     public boolean readAllowed(final User user) {
 
-        // public nodes are always readable for anyone
-        if (isPublic()) {
+        // Check global settings first
+        if (isVisible(user)) {
             return true;
         }
 
+        // Then check per-user permissions
         return hasPermission(StructrRelationship.READ_KEY, user);
     }
 

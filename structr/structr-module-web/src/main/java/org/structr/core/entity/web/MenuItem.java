@@ -2,6 +2,7 @@ package org.structr.core.entity.web;
 
 //import java.util.Collections;
 //import java.util.Comparator;
+import java.util.LinkedList;
 import java.util.List;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.RelType;
@@ -89,7 +90,14 @@ public class MenuItem extends WebNode {
 
         currentDepth++;
 
-        List<AbstractNode> menuItems = menuItemNode.getSortedMenuItems(user);
+        List<AbstractNode> menuItems = new LinkedList<AbstractNode>();
+        List<AbstractNode> allMenuItems = menuItemNode.getSortedMenuItems(user);
+
+        for (AbstractNode n : allMenuItems) {
+            if (n.isVisible(user)) {
+                menuItems.add(n);
+            }
+        }
 
         // sort by position (not needed - they are already sorted)
 //        Collections.sort(menuItems, new Comparator<AbstractNode>() {

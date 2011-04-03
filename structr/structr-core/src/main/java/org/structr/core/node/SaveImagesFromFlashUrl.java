@@ -215,7 +215,7 @@ public class SaveImagesFromFlashUrl extends NodeServiceCommand {
                                     new NodeAttribute(Image.WIDTH_KEY, width),
                                     new NodeAttribute(Image.HEIGHT_KEY, height),
                                     new NodeAttribute(Image.CONTENT_TYPE_KEY, contentType),
-                                    new NodeAttribute(AbstractNode.VISIBLE_FOR_AUTHENTICATED_USERS_KEY, true),
+                                    new NodeAttribute(AbstractNode.VISIBLE_TO_AUTHENTICATED_USERS_KEY, true),
                                     true);  // Update index
 
                             // Establish HAS_CHILD relationship from parent node

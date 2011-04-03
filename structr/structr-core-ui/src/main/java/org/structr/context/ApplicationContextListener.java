@@ -138,6 +138,8 @@ public class ApplicationContextListener implements ServletContextListener, HttpS
         // Initialize cloud service
         Services.command(StartCloudService.class);
 
+        logger.log(Level.INFO, "structr application context initialized (structr started successfully)");
+
     }
 
     @Override
@@ -172,7 +174,7 @@ public class ApplicationContextListener implements ServletContextListener, HttpS
                 SessionMonitor.logActivity(new SuperUser(), sessionId, "Logout");
 
                 // Remove session from internal session management
-                SessionMonitor.unregisterUser(sessionId, session.getServletContext());
+                SessionMonitor.unregisterUserSession(sessionId, session.getServletContext());
             }
 
         }

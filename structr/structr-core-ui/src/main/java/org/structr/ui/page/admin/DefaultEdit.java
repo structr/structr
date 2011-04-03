@@ -148,13 +148,13 @@ public class DefaultEdit extends Nodes {
         visibilityEndDate.setShowTime(true);
         visibilityFields.add(visibilityEndDate);
 
-        Checkbox hidden = new Checkbox(AbstractNode.HIDDEN_KEY);
+        Checkbox hidden = new Checkbox(AbstractNode.HIDDEN_KEY, "Completely hidden in frontend for anyone");
         visibilityFields.add(hidden);
 
-        Checkbox publicCheckbox = new Checkbox(AbstractNode.PUBLIC_KEY);
+        Checkbox publicCheckbox = new Checkbox(AbstractNode.PUBLIC_KEY, "Visible to public users");
         visibilityFields.add(publicCheckbox);
 
-        Checkbox forAuthenticatedUsersCheckbox = new Checkbox(AbstractNode.VISIBLE_FOR_AUTHENTICATED_USERS_KEY);
+        Checkbox forAuthenticatedUsersCheckbox = new Checkbox(AbstractNode.VISIBLE_TO_AUTHENTICATED_USERS_KEY, "Visible to authenticated users");
         visibilityFields.add(forAuthenticatedUsersCheckbox);
 
         editVisibilityForm.add(visibilityFields);
