@@ -1,4 +1,13 @@
 #!/bin/sh
-kill $(cat structr.pid) 1> /dev/null 2>&1
-rm structr.pid
+if [ -s structr.pid ]; then
+
+	kill $(cat structr.pid) 1> /dev/null 2>&1
+	rm structr.pid
+
+else
+
+	echo "structr doesn't seem to run. There's no pid file 'structr.pid'."
+
+fi
+
 
