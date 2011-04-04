@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+        <title>structr.org</title>
+        <style type="text/css">
+            html {
+                margin: 0;
+                padding: 0;
+                width: 100%;
+                height: 100%;
+                /*background: -webkit-gradient(linear, left bottom, left top, from(#747474), to(#cbcbcb)) no-repeat;
+                background: -moz-linear-gradient(-90deg, #cbcbcb, #747474) no-repeat;
+                filter: progid:DXImageTransform.Microsoft.Gradient(
+                    StartColorStr='#747474', EndColorStr='#cbcbcb', GradientType=0);
+                background-color: #e5e5e5;*/
+                background: #747474 url('background.gif') top left repeat-x;
+            }
+            body {
+                height: 100%;
+                width: 100%;
+                margin: 0;
+                padding: 0;
+                /*    padding: 0 1em;*/
+                font-family: Arial, sans-serif;
+                font-size: 8pt;
+                color: #222;
+                /*height: auto;*/
+                background: url('structr-background.png') top center no-repeat;
+            }
+            #header {
+                height: 54px;
+                background: -webkit-gradient(linear, left bottom, left top, from(rgba(48,48,48,.95)), to(rgba(96,96,96,.95))) no-repeat;
+                background: -moz-linear-gradient(-90deg, rgba(96,96,96,.95), rgba(48,48,48,.95)) no-repeat;
+                filter: progid:DXImageTransform.Microsoft.Gradient(
+                    StartColorStr='#333333', EndColorStr='#616161', GradientType=0);
+                font-size: 1.3em;
+                color: #ededed;
+                font-weight: bold;
+                padding: 0px 0 0 10%;
+            }
+            #header a, #header a:visited, #header a:link {
+                color: #ededed;
+            }
+            .main {
+                width: 80%;
+                margin: 1em auto;
+                padding: 0 0 30px 0;
+            }
+            h1 {
+                font-size: 2em;
+                line-height: 1.8em;
+                padding: 0;
+                margin: 0;
+            }
+            h2 {
+                padding-top: 1em;
+                font-size: 1.4em;
+            }
+            a, a:link {
+                color: #15c9ff;
+            }
+            a:visited {
+                color: #ffc300;
+            }
+            a:hover {
+                color: #ff0066;
+            }
+            .footer {
+                border-top: 1px solid #ccc;
+                font-size: 8pt;
+                width: 100%;
+                margin: 0;
+                padding: 0;
+                background-color: #e5e5e5;
+                position: fixed;
+                bottom: 0px;
+                left: 0px;
+                background: -webkit-gradient(linear, left bottom, left top, from(rgba(216,216,216,.95)), to(rgba(255,255,255,.95))) no-repeat;
+                background: -moz-linear-gradient(-90deg, rgba(255,255,255,.95), rgba(216,216,216,.95)) no-repeat;
+                filter: progid:DXImageTransform.Microsoft.Gradient(
+                    StartColorStr='#eeeeee', EndColorStr='#ffffff', GradientType=0);
+            }
+            .newsEntry em {
+                font-style: normal;
+                font-weight: bold;
+            }
+            .footer > p {
+                margin: 4px;
+                color: #666;
+            }
+            div#logo {
+                border: 1px solid #000;
+                margin: 6px 8px 0 0;
+                float: left;
+                width: 60px;
+                height: 40px;
+                background: #fff url('structr-small.png') center -34px no-repeat;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="header">
+            <div id="logo">&nbsp;</div><h1>structr</h1>
+        </div>
+        <div class="main">
+            <h2>About</h2>
+            <p>
+                <b>structr</b> is a free, open-source <a href="http://en.wikipedia.org/wiki/Content_Management_System">CMS</a>, written in Java, based on the fantastic NoSQL graph database <a href="http://neo4j.org">Neo4j</a>.
+            </p>
+            <p>Development of <b>structr</b> began in May 2010. While it is subject to constant further development, the current version is 0.2 (status of 11-MAR-2011).
+                The UI is made with <a href="http://click.apache.org">Apache Click</a>, a great JEE web application framework.</p>
+            <p>By design, structr is modular, distributed and easy to use.</p>
+            <h2>Status</h2>
+            <p><b>structr</b> is not yet released to the public. A first public beta release (0.3) of <b>structr</b> is scheduled for May 2011.</p>
+            <h2 class="news">News</h2>
+            <div class="newsEntries">
+                <p class="newsEntry"><em>04. April 2011:</em> Follow us on Twitter: <a href="http://twitter.com/structr">http://twitter.com/structr</a></p>
+                <p class="newsEntry"><em>04. April 2011:</em> We are proud to announce that today, Lars Zimmermann of <a href="http://artworx3d.de">artworx3d</a> has joined the structr team.
+                    He will play a responsible role in UI and usability design. Lars is a brilliant designer for 3D, web, print and UI. His impressive <a href="http://www.artworx3d.de/galerie.html">gallery</a> speaks for itself.
+                    He's also a CMS expert and member of the TYPO3 backend design team, responsible for the latest design improvements of TYPO3 4.4 and 4.5.</p>
+            </div>
+        </div>
+        <div class="footer">
+            <p>Contact: For additional information, please contact the team at <a href="mailto:structr@structr.org?subject=%5Bstructr%5D%20Request%20for%20Information">structr@structr.org</a>.
+                Title image and background image created with <a href="http://mariuswatz.com/works/abstract01js/">ABSTRACT01js</a> &copy; by Marius Watz. This site uses valid <a href="http://validator.w3.org/check?uri=structr.org">HTML5.</a></p>
+            <p>Legal Notice: All content on this site is &copy; 2011 Axel Morgner. Party responsible for website contents: Axel Morgner, Hanauer Landstraße 293a, 60314 Frankfurt, Germany</p>
+        </div>
+    </body>
+</html>
