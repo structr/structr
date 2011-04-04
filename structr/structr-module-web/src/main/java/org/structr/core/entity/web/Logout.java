@@ -8,13 +8,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.lang.StringUtils;
 import org.structr.context.SessionMonitor;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.User;
-import org.structr.core.node.FindUserCommand;
 
 /**
  * Logs current user out
@@ -25,6 +21,17 @@ public class Logout extends WebNode {
 
     private static final Logger logger = Logger.getLogger(Logout.class.getName());
     private final static String ICON_SRC = "/images/door_out.png";
+
+    /** Page to forward to after logout */
+    public static final String FORWARD_PAGE_KEY = "forwardPage";
+
+    public String getForwardPage() {
+        return getStringProperty(FORWARD_PAGE_KEY);
+    }
+
+    public void setForwardPage(final String value) {
+        setProperty(FORWARD_PAGE_KEY, value);
+    }
 
     @Override
     public String getIconSrc() {
@@ -70,6 +77,7 @@ public class Logout extends WebNode {
             if (alreadyLoggedIn) {
                 logout(user, session);
                 out.append("<div class=\"okMsg\">").append("User ").append(usernameFromSession).append(" logged out").append("</div>");
+                logger.log(Level.INFO, "User {0} logged out", usernameFromSession);
                 return;
             }
 

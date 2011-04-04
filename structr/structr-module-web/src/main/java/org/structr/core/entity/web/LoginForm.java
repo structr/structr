@@ -18,70 +18,20 @@ import org.structr.core.entity.User;
  *
  * @author axel
  */
-public class LoginForm extends WebNode {
+public class LoginForm extends Form {
 
-    private final static String ICON_SRC = "/images/form.png";
-    private final static String defaultAction = "";
-    private final static String defaultCssClass = "formTable";
-    protected final static String defaultLabel = "Login";
-    protected final static String defaultSubmitButtonName = "loginForm_submit";
-    protected final static String defaultAntiRobotFieldName = "loginForm_antiRobot";
     protected final static String defaultUsernameFieldName = "loginForm_username";
     protected final static String defaultPasswordFieldName = "loginForm_password";
-    /** Form action */
-    public final static String ACTION_KEY = "action";
-    /** Form label */
-    public final static String LABEL_KEY = "label";
-    /** CSS Class of form table */
-    public final static String CSS_CLASS_KEY = "cssClass";
-    /** Name of submit button (must not be empty to process form) */
-    public final static String SUBMIT_BUTTON_NAME_KEY = "submitButtonName";
-    /** Name of anti robot field (must be empty to process form) */
-    public final static String ANTI_ROBOT_FIELD_NAME_KEY = "antiRobotFieldName";
     /** Name of username field */
     public final static String USERNAME_FIELD_NAME_KEY = "usernameFieldName";
     /** Name of password field */
     public final static String PASSWORD_FIELD_NAME_KEY = "passwordFieldName";
 
+    private final static String ICON_SRC = "/images/form.png";
+
     @Override
     public String getIconSrc() {
         return ICON_SRC;
-    }
-
-    /**
-     * Return name of anti robot field
-     *
-     * @return
-     */
-    public String getAntiRobotFieldName() {
-        return getStringProperty(ANTI_ROBOT_FIELD_NAME_KEY);
-    }
-
-    /**
-     * Set name of anti robot field
-     *
-     * @param value
-     */
-    public void setAntiRobotFieldName(final String value) {
-        setProperty(ANTI_ROBOT_FIELD_NAME_KEY, value);
-    }
-
-    /**
-     * Return name of submit button
-     *
-     * @return
-     */
-    public String getSubmitButtonName() {
-        return getStringProperty(SUBMIT_BUTTON_NAME_KEY);
-    }
-
-    /**
-     * Set name of submit button
-     *
-     * @param value
-     */
-    public void setSubmitButtonName(final String value) {
-        setProperty(SUBMIT_BUTTON_NAME_KEY, value);
     }
 
     /**
@@ -102,32 +52,6 @@ public class LoginForm extends WebNode {
         return getStringProperty(PASSWORD_FIELD_NAME_KEY);
     }
 
-    /**
-     * Return name of username field
-     *
-     * @return
-     */
-    public String getCssClass() {
-        return getStringProperty(CSS_CLASS_KEY);
-    }
-
-    /**
-     * Return action
-     *
-     * @return
-     */
-    public String getAction() {
-        return getStringProperty(ACTION_KEY);
-    }
-
-    /**
-     * Set action
-     *
-     * @param value
-     */
-    public void setAction(final String value) {
-        setProperty(ACTION_KEY, value);
-    }
 
     /**
      * Set name of username field
@@ -145,33 +69,6 @@ public class LoginForm extends WebNode {
      */
     public void setPasswordFieldName(final String value) {
         setProperty(PASSWORD_FIELD_NAME_KEY, value);
-    }
-
-    /**
-     * Set name of password field
-     *
-     * @param value
-     */
-    public void setCssClass(final String value) {
-        setProperty(CSS_CLASS_KEY, value);
-    }
-
-    /**
-     * Return label
-     *
-     * @return
-     */
-    public String getLabel() {
-        return getStringProperty(LABEL_KEY);
-    }
-
-    /**
-     * Set label
-     *
-     * @param value
-     */
-    public void setLabel(final String value) {
-        setProperty(LABEL_KEY, value);
     }
 
     /**
@@ -229,8 +126,8 @@ public class LoginForm extends WebNode {
             String cssClass = getCssClass() != null ? getCssClass() : defaultCssClass;
             String label = getLabel() != null ? getLabel() : defaultLabel;
             
-            String username = StringUtils.trimToEmpty(request.getParameter(usernameFieldName));
-            String password = StringUtils.trimToEmpty(request.getParameter(passwordFieldName));
+            String username = StringUtils.trimToEmpty(param(usernameFieldName));
+            String password = StringUtils.trimToEmpty(param(passwordFieldName));
 
             out.append("<form name=\"").append(getName()).append("\" action=\"").append(action).append("\" method=\"post\">");
             out.append("<input type=\"hidden\" name=\"").append(antiRobotFieldName).append("\" value=\"\">");

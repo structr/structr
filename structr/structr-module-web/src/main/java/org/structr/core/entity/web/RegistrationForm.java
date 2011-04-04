@@ -18,14 +18,9 @@ import org.structr.core.entity.User;
  *
  * @author axel
  */
-public class RegistrationForm extends WebNode {
+public class RegistrationForm extends Form {
 
     private final static String ICON_SRC = "/images/form.png";
-    private final static String defaultAction = "";
-    protected final static String defaultLabel = "Register";
-    protected final static String defaultCssClass = "formTable";
-    protected final static String defaultSubmitButtonName = "regForm_submit";
-    protected final static String defaultAntiRobotFieldName = "regForm_antiRobot";
     protected final static String defaultUsernameFieldName = "regForm_username";
     protected final static String defaultPasswordFieldName = "regForm_password";
     protected final static String defaultAssignedUsername = "admin";
@@ -62,16 +57,6 @@ public class RegistrationForm extends WebNode {
     public final static String COUNTRY_FIELD_NAME_KEY = "countryFieldName";
     public final static String AGREED_TO_TERMS_OF_USE_FIELD_NAME_KEY = "agreedToTermsOfUseFieldName";
     public final static String NEWSLETTER_FIELD_NAME_KEY = "newsletterFieldName";
-    /** Form action */
-    public final static String ACTION_KEY = "action";
-    /** Form label */
-    public final static String LABEL_KEY = "label";
-    /** CSS Class of form table */
-    public final static String CSS_CLASS_KEY = "cssClass";
-    /** Name of submit button (must not be empty to process form) */
-    public final static String SUBMIT_BUTTON_NAME_KEY = "submitButtonName";
-    /** Name of anti robot field (must be empty to process form) */
-    public final static String ANTI_ROBOT_FIELD_NAME_KEY = "antiRobotFieldName";
     /** Name of username field */
     public final static String USERNAME_FIELD_NAME_KEY = "usernameFieldName";
     /** Name of password field */
@@ -110,24 +95,6 @@ public class RegistrationForm extends WebNode {
     }
 
     /**
-     * Return action
-     *
-     * @return
-     */
-    public String getAction() {
-        return getStringProperty(ACTION_KEY);
-    }
-
-    /**
-     * Set action
-     *
-     * @param value
-     */
-    public void setAction(final String value) {
-        setProperty(ACTION_KEY, value);
-    }
-
-    /**
      * Set name of username field
      *
      * @param value
@@ -152,78 +119,6 @@ public class RegistrationForm extends WebNode {
      */
     public void setConfirmPasswordFieldName(final String value) {
         setProperty(CONFIRM_PASSWORD_FIELD_NAME_KEY, value);
-    }
-
-    /**
-     * Return name of anti robot field
-     *
-     * @return
-     */
-    public String getAntiRobotFieldName() {
-        return getStringProperty(ANTI_ROBOT_FIELD_NAME_KEY);
-    }
-
-    /**
-     * Set name of anti robot field
-     *
-     * @param value
-     */
-    public void setAntiRobotFieldName(final String value) {
-        setProperty(ANTI_ROBOT_FIELD_NAME_KEY, value);
-    }
-
-    /**
-     * Return name of submit button
-     *
-     * @return
-     */
-    public String getSubmitButtonName() {
-        return getStringProperty(SUBMIT_BUTTON_NAME_KEY);
-    }
-
-    /**
-     * Set name of submit button
-     *
-     * @param value
-     */
-    public void setSubmitButtonName(final String value) {
-        setProperty(SUBMIT_BUTTON_NAME_KEY, value);
-    }
-
-    /**
-     * Return name of username field
-     *
-     * @return
-     */
-    public String getCssClass() {
-        return getStringProperty(CSS_CLASS_KEY);
-    }
-
-    /**
-     * Set name of password field
-     *
-     * @param value
-     */
-    public void setCssClass(final String value) {
-        setProperty(CSS_CLASS_KEY, value);
-    }
-
-    /**
-     * Return label
-     *
-     * @return
-     */
-    public String getLabel() {
-        return getStringProperty(LABEL_KEY);
-    }
-
-    /**
-     * Set label
-     *
-     * @param value
-     */
-    public void setLabel(final String value) {
-        setProperty(LABEL_KEY, value);
     }
 
     /**
