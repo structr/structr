@@ -1,7 +1,14 @@
 #!/bin/sh
 if [ -s structr.pid ]; then
 
-	kill $(cat structr.pid) 1> /dev/null 2>&1
+	kill $(cat structr.pid) & # 1> /dev/null 2>&1 &
+
+	while ! (tail structr.log | grep -qi "Server closed"); do
+		#echo "sleeping 1 sec"
+		sleep 1
+	done
+
+	echo "structr shutdown (pid was: $(cat structr.pid))"
 	rm structr.pid
 
 else
