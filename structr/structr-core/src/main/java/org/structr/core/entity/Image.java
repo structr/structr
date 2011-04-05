@@ -303,20 +303,31 @@ public class Image extends File {
      * @return
      */
     public Image getScaledImage(final String maxWidthString, final String maxHeightString) {
-        return getScaledImage(Integer.parseInt(maxWidthString), Integer.parseInt(maxHeightString));
+        return getScaledImage(Integer.parseInt(maxWidthString), Integer.parseInt(maxHeightString), false);
+    }
+
+    public Image getScaledImage(final String maxWidthString, final String maxHeightString, final boolean cropToFit) {
+        return getScaledImage(Integer.parseInt(maxWidthString), Integer.parseInt(maxHeightString), cropToFit);
+    }
+
+    public Image getScaledImage(final int maxWidth, final int maxHeight) {
+        return getScaledImage(maxWidth, maxHeight, false);
     }
 
     /**
      * Get (down-)scaled image of this image
      *
-     * If no scaled image of the requested size exists or the image is newer than the scaled image, create a new one
+     * If no scaled image of the requested size exists or the image is newer than the scaled image, create a new one.
+     *
+     * Default behaviour is to make the scaled image complete fit inside a rectangle of maxWidth x maxHeight.
      *
      * @maxWidth
      * @maxHeight
+     * @cropToFit if true, scale down until the shorter edge fits inside the rectangle, and then crop
      *
      * @return
      */
-    synchronized public Image getScaledImage(final int maxWidth, final int maxHeight) {
+    synchronized public Image getScaledImage(final int maxWidth, final int maxHeight, final boolean cropToFit) {
 
         thumbnailRelationships = getThumbnailRelationships();
 

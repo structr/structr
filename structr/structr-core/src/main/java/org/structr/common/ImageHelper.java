@@ -75,6 +75,10 @@ public abstract class ImageHelper {
     }
 
     public static Thumbnail createThumbnail(final Image originalImage, final int maxWidth, final int maxHeight) {
+        return createThumbnail(originalImage, maxWidth, maxHeight, false);
+    }
+
+    public static Thumbnail createThumbnail(final Image originalImage, final int maxWidth, final int maxHeight, final boolean crop) {
 
         //String contentType = (String) originalImage.getProperty(Image.CONTENT_TYPE_KEY);
 
@@ -83,7 +87,7 @@ public abstract class ImageHelper {
         try {
             // read image
             long start = System.nanoTime();
-            
+
             BufferedImage source = null;
             try {
                 source = ImageIO.read(originalImage.getInputStream());
@@ -105,7 +109,12 @@ public abstract class ImageHelper {
                 float scaleX = 1.0f * sourceWidth / maxWidth;
                 float scaleY = 1.0f * sourceHeight / maxHeight;
 
-                float scale = Math.max(scaleX, scaleY);
+                float scale;
+                if (crop) {
+                    scale = Math.min(scaleX, scaleY);
+                } else {
+                    scale = Math.max(scaleX, scaleY);
+                }
 
 //            System.out.println("Source (w,h): " + sourceWidth + ", " + sourceHeight + ", Scale (x,y,res): " + scaleX + ", " + scaleY + ", " + scale);
 
@@ -122,9 +131,20 @@ public abstract class ImageHelper {
 
                     ResampleOp resampleOp = new ResampleOp(destWidth, destHeight);
                     //resampleOp.setUnsharpenMask(AdvancedResizeOp.UnsharpenMask.Soft);
-                    BufferedImage dest = resampleOp.filter(source, null);
+                    BufferedImage resampled = resampleOp.filter(source, null);
 
-                    ImageIO.write(dest, Thumbnail.FORMAT, baos);
+                    BufferedImage result = null;
+                    if (crop) {
+
+                        int offsetX = Math.abs(maxWidth - destWidth) / 2;
+                        int offsetY = Math.abs(maxHeight - destHeight) / 2;
+                        logger.log(Level.INFO, "Offset and Size (x,y,w,h): {0},{1},{2},{3}", new Object[]{offsetX, offsetY, maxWidth, maxHeight});
+                        result = resampled.getSubimage(offsetX, offsetY, maxWidth, maxHeight);
+                    } else {
+                        result = resampled;
+                    }
+
+                    ImageIO.write(result, Thumbnail.FORMAT, baos);
                 } else {
                     ImageIO.write(source, Thumbnail.FORMAT, baos);
                 }
