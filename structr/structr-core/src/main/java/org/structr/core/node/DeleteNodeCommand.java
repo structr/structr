@@ -43,7 +43,8 @@ public class DeleteNodeCommand extends NodeServiceCommand {
         Command findNode = Services.command(FindNodeCommand.class);
 
         switch (parameters.length) {
-            case 2:
+
+            case 2:  // first parameter: node, second parameter: user
 
                 if (parameters[0] instanceof Long) {
                     long id = ((Long) parameters[0]).longValue();
@@ -63,7 +64,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
                 break;
 
-            case 3:
+            case 3: // first parameter: node, second parameter: new parent node, third parameter: user
 
                 if (parameters[0] instanceof Long) {
                     long id = ((Long) parameters[0]).longValue();
@@ -95,7 +96,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
                 break;
 
-            case 4:
+            case 4: // first parameter: node, second parameter: new parent node, third parameter: recursive, forth parameter: user
 
                 if (parameters[0] instanceof Long) {
                     long id = ((Long) parameters[0]).longValue();
@@ -167,7 +168,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
                             Relationship parentRel = node.getSingleRelationship(RelType.HAS_CHILD, Direction.INCOMING);
                             newParentNode = (AbstractNode) findNode.execute(user, parentRel.getStartNode().getId());
 
-                            newParentNode = structrNode.getParentNode(user);
+                            //newParentNode = structrNode.getParentNode(user);
 
                             // delete HAS_CHILD relationship to parent node
                             parentRel.delete();
@@ -252,10 +253,10 @@ public class DeleteNodeCommand extends NodeServiceCommand {
                 } else {
                     setExitCode(Command.exitCode.FAILURE);
                     setErrorMessage("Node was null");
-                    return null;
+                    return newParentNode;
                 }
 
-                return null;
+                return newParentNode;
             }
         });
 

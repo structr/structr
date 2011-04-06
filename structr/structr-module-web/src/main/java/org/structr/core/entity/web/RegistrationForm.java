@@ -444,7 +444,7 @@ public class RegistrationForm extends Form {
             Boolean alreadyLoggedIn = usernameFromSession != null;
 
             if (alreadyLoggedIn) {
-                out.append("<div class=\"okMsg\">").append("Your are logged in as ").append(usernameFromSession).append(".</div>");
+                //out.append("<div class=\"okMsg\">").append("Your are logged in as ").append(usernameFromSession).append(".</div>");
                 return;
             }
 

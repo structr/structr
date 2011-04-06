@@ -311,7 +311,7 @@ public class LoginCheck extends WebNode {
             session.removeAttribute(SESSION_BLOCKED);
             session.removeAttribute(NUMBER_OF_LOGIN_ATTEMPTS);
 
-            out.append("<div class=\"okMsg\">").append("Welcome ").append(loginUser.getRealName()).append("!").append("</div>");
+            out.append("<div class=\"okMsg\">").append("Login successful. Welcome ").append(loginUser.getRealName()).append("!").append("</div>");
 
         }
     }

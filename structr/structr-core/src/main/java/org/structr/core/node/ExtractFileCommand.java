@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -144,21 +146,22 @@ public class ExtractFileCommand extends NodeServiceCommand {
                                     int count = 0;
                                     for (String p : pathElements) {
 
-                                        NodeAttribute typeAttr;
+                                        List<NodeAttribute> attrs = new LinkedList<NodeAttribute>();
                                         if (count < pathElements.length - 1) {
-                                            typeAttr = new NodeAttribute(AbstractNode.TYPE_KEY, "Folder");
+                                            attrs.add(new NodeAttribute(AbstractNode.TYPE_KEY, "Folder"));
                                         } else {
                                             // last path element is the file
 
                                             // Detect content type from filename (extension)
                                             String contentType = getContentTypeFromFilename(ae.getName());
+                                            attrs.add(new NodeAttribute(File.CONTENT_TYPE_KEY, contentType));
 
                                             if (contentType != null && contentType.startsWith("image")) {
                                                 // If it seems to be an image, use Image type
-                                                typeAttr = new NodeAttribute(AbstractNode.TYPE_KEY, Image.class.getSimpleName());
+                                                attrs.add(new NodeAttribute(AbstractNode.TYPE_KEY, Image.class.getSimpleName()));
                                             } else {
                                                 // Default is File type
-                                                typeAttr = new NodeAttribute(AbstractNode.TYPE_KEY, File.class.getSimpleName());
+                                                attrs.add(new NodeAttribute(AbstractNode.TYPE_KEY, File.class.getSimpleName()));
                                             }
                                         }
 
@@ -171,13 +174,13 @@ public class ExtractFileCommand extends NodeServiceCommand {
 
                                         if (!(createdPaths.containsKey(path.toString()))) {
 
+                                            attrs.add(new NodeAttribute(AbstractNode.NAME_KEY, p));
+
                                             // create the node
-                                            AbstractNode childNode = (AbstractNode) createNode.execute(
-                                                    new NodeAttribute(AbstractNode.NAME_KEY, p),
-                                                    typeAttr, user);
+                                            AbstractNode childNode = (AbstractNode) createNode.execute(attrs, user, true);
 
                                             // write the file
-                                            if (childNode.getType().equals("File")) {
+                                            if (childNode instanceof org.structr.core.entity.File) {
                                                 writeFile(childNode, input);
                                             }
 
