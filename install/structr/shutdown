@@ -3,6 +3,8 @@ if [ -s structr.pid ]; then
 
 	kill $(cat structr.pid) & # 1> /dev/null 2>&1 &
 
+	sleep 1
+
 	while ! (tail structr.log | grep -qi "Server closed"); do
 		#echo "sleeping 1 sec"
 		sleep 1
