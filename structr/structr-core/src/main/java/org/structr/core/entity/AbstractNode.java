@@ -17,7 +17,6 @@ import java.io.OutputStream;
 import java.io.StringReader;
 import java.io.Writer;
 import java.text.ParseException;
-import java.util.LinkedList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -41,6 +40,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DateUtils;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
+import org.structr.common.TemplateHelper;
 import org.structr.core.cloud.NodeDataContainer;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;
@@ -2309,7 +2309,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
                     root.put(callingNode.getType(), callingNode);
                 }
 
-                HttpServletRequest request = getRequest();
+                //HttpServletRequest request = getRequest();
                 if (request != null) {
                     //root.put("Request", new freemarker.template.SimpleHash(request.getParameterMap().));
                     root.put("Request", new freemarker.ext.servlet.HttpRequestParametersHashModel(request));
@@ -2331,6 +2331,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
                 if (user != null) {
                     root.put("User", user);
                 }
+
+                // Add a generic helper
+                root.put("Helper", new TemplateHelper());
 
                 // add geo info if available
                 // TODO: add geo node information

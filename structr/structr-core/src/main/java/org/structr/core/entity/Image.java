@@ -348,6 +348,7 @@ public class Image extends File {
 
                     if ((w == maxWidth && h <= maxHeight)
                             || (w <= maxWidth && h == maxHeight)
+                            || (cropToFit && ((w == maxWidth && h >= maxHeight) || (w >= maxWidth && h == maxHeight)))
                             || (origWidth <= w && origHeight <= h)) // orginal image is equal or smaller than requested size
                     {
                         thumbnail = (Image) r.getEndNode();
@@ -382,7 +383,7 @@ public class Image extends File {
                 NodeAttribute isPublicAttr = new NodeAttribute(AbstractNode.PUBLIC_KEY, originalImage.getPublic());
                 NodeAttribute isVisibleForAuthenticatedUsersAttr = new NodeAttribute(AbstractNode.VISIBLE_TO_AUTHENTICATED_USERS_KEY, originalImage.getVisibleToAuthenticatedUsers());
 
-                Thumbnail thumbnailData = ImageHelper.createThumbnail(originalImage, maxWidth, maxHeight);
+                Thumbnail thumbnailData = ImageHelper.createThumbnail(originalImage, maxWidth, maxHeight, cropToFit);
 
                 if (thumbnailData != null) {
 

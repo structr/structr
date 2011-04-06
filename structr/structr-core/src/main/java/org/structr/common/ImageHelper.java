@@ -138,7 +138,8 @@ public abstract class ImageHelper {
 
                         int offsetX = Math.abs(maxWidth - destWidth) / 2;
                         int offsetY = Math.abs(maxHeight - destHeight) / 2;
-                        logger.log(Level.INFO, "Offset and Size (x,y,w,h): {0},{1},{2},{3}", new Object[]{offsetX, offsetY, maxWidth, maxHeight});
+                        logger.log(Level.FINE, "Offset and Size (x,y,w,h): {0},{1},{2},{3}", new Object[]{offsetX, offsetY, maxWidth, maxHeight});
+                        
                         result = resampled.getSubimage(offsetX, offsetY, maxWidth, maxHeight);
                     } else {
                         result = resampled;
