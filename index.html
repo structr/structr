@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+  <!DOCTYPE html>
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
@@ -9,12 +9,6 @@
                 padding: 0;
                 width: 100%;
                 height: 100%;
-                /*background: -webkit-gradient(linear, left bottom, left top, from(#747474), to(#cbcbcb)) no-repeat;
-                background: -moz-linear-gradient(-90deg, #cbcbcb, #747474) no-repeat;
-                filter: progid:DXImageTransform.Microsoft.Gradient(
-                    StartColorStr='#747474', EndColorStr='#cbcbcb', GradientType=0);
-                background-color: #e5e5e5;*/
-                /*background: #747474 url('background.gif') top left repeat-x;*/
             }
             body {
                 height: 100%;
@@ -28,20 +22,57 @@
                 /*height: auto;*/
                 background: url('structr-background.png') top center no-repeat;
             }
+            .mid {
+               width: 960px;
+            }
             #header {
-                height: 54px;
-                background: -webkit-gradient(linear, left bottom, left top, from(rgba(48,48,48,.95)), to(rgba(96,96,96,.95))) no-repeat;
-                background: -moz-linear-gradient(-90deg, rgba(96,96,96,.95), rgba(48,48,48,.95)) no-repeat;
-                filter: progid:DXImageTransform.Microsoft.Gradient(
-                    StartColorStr='#333333', EndColorStr='#616161', GradientType=0);
+                height: 134px;
+                background: #2b2b2b;
                 font-size: 1.3em;
                 color: #ededed;
                 font-weight: bold;
-                padding: 0px 0 0 10%;
+            }
+            #header #logo {
+               top: 25px;
+               position: relative;
+               
             }
             #header a, #header a:visited, #header a:link {
                 color: #ededed;
             }
+            #header .mid {
+               background: #353535;
+            }
+            #stage {
+              color: #fff;
+              height: 257px;
+              background: -webkit-gradient(linear, left bottom, left top, from(#363636), to(#666)) no-repeat;
+            }
+            #stage .mid {
+              background: -webkit-gradient(linear, left bottom, left top, from(#494949), to(#888)) no-repeat;
+            }
+            #stage h1 {
+              color: #fff;
+              font-size: 36pt;
+/*              margin-left: 43px;*/
+                margin: 0;
+                padding: 0;
+                line-height: 1.0em;
+
+            }
+            #stage h2 {
+              color: #fff;
+              font-size: 16pt;
+            }
+            #stage .mid {
+              height: 216px;
+              padding-top: 41px;
+            }
+            .mid {
+               height: inherit;
+               margin: 0 auto 0 auto;
+               padding-left: 43px;
+            }            
             .main {
                 width: 80%;
                 margin: 1em auto;
@@ -54,17 +85,29 @@
                 margin: 0;
             }
             h2 {
-                padding-top: 1em;
+                padding: 0;
                 font-size: 1.4em;
+                font-weight: normal;
             }
             a, a:link {
-                color: #15c9ff;
+                color: #81ce25;
             }
             a:visited {
-                color: #ffc300;
+                color: #81ce25;
             }
             a:hover {
-                color: #ff0066;
+                color: #50aa14;
+            }
+            .callToActionButton {
+              background: #81ce25;
+              width: 240px;
+              height: 32px;
+              border-radius: 5px;
+              -moz-border-radius: 5px;
+              -webkit-border-radius: 5px;
+              font-size: 14pt;
+              padding: 10px 0 0 10px;
+              margin: 30px 0 0 0;
             }
             .footer {
                 border-top: 1px solid #ccc;
@@ -89,21 +132,24 @@
                 margin: 4px;
                 color: #666;
             }
-            div#logo {
-                border: 1px solid #000;
-                margin: 6px 8px 0 0;
-                float: left;
-                width: 60px;
-                height: 40px;
-                background: #fff url('structr-small.png') center -34px no-repeat;
-            }
         </style>
     </head>
     <body>
-        <div id="header">
-            <div id="logo">&nbsp;</div><h1>structr</h1>
+      <div id="header">
+        <div class="mid">
+          <div id="logo"><img src="structr-logo.png"></div>
+        </div>
+        </div>
+        <div id="stage">
+        <div class="mid">
+        <h1>About to be released</h1>
+        <h2>structr is a free, open source CMS, written in Java,<br>
+        based on the fantastic NoSQL graph database <a href="http://neo4j.org">Neo4j</a></h2>
+        <div class="callToActionButton">Learn more about structr >></div>
+        </div>
         </div>
         <div class="main">
+          <div class="mid">
             <h2>About</h2>
             <p>
                 <b>structr</b> is a free, open-source <a href="http://en.wikipedia.org/wiki/Content_Management_System">CMS</a>, written in Java, based on the fantastic NoSQL graph database <a href="http://neo4j.org">Neo4j</a>.
@@ -120,11 +166,14 @@
                     He will play a responsible role in UI and usability design. Lars is a brilliant designer for 3D, web, print and UI. His impressive <a href="http://www.artworx3d.de/galerie.html">gallery</a> speaks for itself.
                     He's also a CMS expert and member of the TYPO3 backend design team, responsible for the latest design improvements of TYPO3 4.4 and 4.5.</p>
             </div>
+            </div>
         </div>
         <div class="footer">
+        <div class="mid">
             <p>For additional information, please contact the team at <a href="mailto:structr@structr.org?subject=%5Bstructr%5D%20Request%20for%20Information">structr@structr.org</a>.
                 Title/background image created with <a href="http://mariuswatz.com/works/abstract01js/">ABSTRACT01js</a> &copy; by Marius Watz. This site uses valid <a href="http://validator.w3.org/check?uri=structr.org">HTML5.</a></p>
             <p>All content on this site is &copy; 2011 Axel Morgner. Party responsible for website contents: Axel Morgner, Hanauer Landstraße 293a, 60314 Frankfurt, Germany</p>
+        </div>
         </div>
     </body>
 </html>
