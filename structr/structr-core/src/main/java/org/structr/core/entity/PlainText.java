@@ -1,14 +1,11 @@
 package org.structr.core.entity;
 
-import org.structr.core.entity.Template;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.StringWriter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.io.IOUtils;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.User;
 
 /**
  * 

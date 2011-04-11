@@ -43,6 +43,7 @@ public class Domain extends WebNode {
 
                     } else {
 
+			homepage.setRequestedNodePath(requestedNodePath);
                         homepage.renderView(out, this, editUrl, editNodeId, user);
 
                     }

@@ -62,6 +62,8 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
     // request parameters
     private HttpServletRequest request = null;
     private HttpSession session = null;
+    protected String requestedNodePath = null;
+
     private Map<Long, StructrRelationship> securityRelationships = null;
     private List<StructrRelationship> incomingLinkRelationships = null;
     private List<StructrRelationship> outgoingLinkRelationships = null;
@@ -212,6 +214,11 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 
     public void setRequest(final HttpServletRequest request) {
         this.request = request;
+    }
+
+    public void setRequestedNodePath(String requestedNodePath)
+    {
+	    this.requestedNodePath = requestedNodePath;
     }
 
     public HttpSession getSession() {

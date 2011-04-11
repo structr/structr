@@ -31,6 +31,7 @@
 <!--        <module>structr-modules</module>-->
         <module>structr-core-ui</module>
         <module>structr-module-web</module>
+        <module>structr-module-app</module>
         <module>structr-webapp</module>
   </modules>
 
