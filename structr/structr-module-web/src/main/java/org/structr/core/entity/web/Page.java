@@ -55,6 +55,7 @@ public class Page extends WebNode {
 
                 // propagate request
                 template.setRequest(getRequest());
+		template.setRequestedNodePath(requestedNodePath);
 
                 template.setCallingNode(this);
                 template.renderView(out, startNode, editUrl, editNodeId, user);
@@ -67,6 +68,7 @@ public class Page extends WebNode {
 
                     // propagate request
                     s.setRequest(getRequest());
+		    s.setRequestedNodePath(requestedNodePath);
                     s.renderView(out, startNode, editUrl, editNodeId, user);
                 }
             }

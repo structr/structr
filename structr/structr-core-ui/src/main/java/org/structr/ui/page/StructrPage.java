@@ -254,6 +254,9 @@ public class StructrPage extends Page {
 
                         AbstractNode byPathNode = TreeHelper.getNodeByPath(getRootNode(), nodeIdString, true, user);
                         if (byPathNode != null) {
+			    // let poor little node know the request path
+				logger.log(Level.INFO, "nodeIdString: {0}", nodeIdString);
+			    byPathNode.setRequestedNodePath(nodeIdString);
                             return byPathNode;
                         }
 

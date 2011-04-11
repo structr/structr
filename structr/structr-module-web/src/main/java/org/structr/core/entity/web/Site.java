@@ -42,6 +42,7 @@ public class Site extends WebNode {
                     if (homepage == null) {
                         out.append("No home page found for ").append(getName());
                     } else {
+			homepage.setRequestedNodePath(requestedNodePath);
                         homepage.renderView(out, homepage, editUrl, editNodeId, user);
                     }
 
