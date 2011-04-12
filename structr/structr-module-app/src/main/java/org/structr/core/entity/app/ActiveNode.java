@@ -24,6 +24,7 @@ import org.structr.core.entity.User;
 public abstract class ActiveNode extends AbstractNode
 {
 	private static final String TARGET_SLOT_NAME_KEY =		"targetSlotName";
+        private List<StructrRelationship> incomingDataRelationships = null;
 
 	public abstract boolean execute(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user);
 	public abstract Map<String, Slot> getSlots();
@@ -100,6 +101,20 @@ public abstract class ActiveNode extends AbstractNode
 	{
 		return(values.get(name));
 	}
+
+        /**
+         * Cached list of incoming data relationships
+         *
+         * @return
+         */
+        public List<StructrRelationship> getIncomingDataRelationships() {
+
+            if (incomingDataRelationships == null) {
+                incomingDataRelationships = getRelationships(RelType.DATA, Direction.INCOMING);
+            }
+            return incomingDataRelationships;
+        }
+
 
 	// ----- private methods -----
 	private List<InteractiveNode> getDataSources()
