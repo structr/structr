@@ -7,7 +7,6 @@ package org.structr.core.entity.app;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.servlet.http.HttpServletRequest;
 import org.structr.context.StructrContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.User;
@@ -28,20 +27,15 @@ public abstract class ActiveNode extends AbstractNode
 	@Override
 	public void renderView(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user)
 	{
-		HttpServletRequest request = getRequest();
+		String currentUrl = (String)StructrContext.getAttribute(StructrContext.CURRENT_NODE_PATH);
+		String myNodeUrl = getNodePath(user);
 
-		if(request != null)
+		// only execute this active node's method when the path
+		// matches exactly
+		logger.log(Level.INFO, "Checking '{0}' and '{1}' for equality..", new Object[] { currentUrl, myNodeUrl } );
+
+		if(myNodeUrl.equals(currentUrl))
 		{
-			String myNodeUrl = getNodePath(user);
-
-			logger.log(Level.INFO, "myNodeUrl:         {0}", myNodeUrl);
-			logger.log(Level.INFO, "requestedNodePath: {0}", StructrContext.getAttribute(StructrContext.CURRENT_NODE_PATH));
-
-			// FIXME:
-			//  need to know the path that lead to the current node..
-			//  to be found in nodeIdString in StructrPage, but no
-			//  luck in getting it down here yet...
-
 			execute(out, startNode, editUrl, editNodeId, user);
 		}
 	}
