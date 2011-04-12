@@ -17,6 +17,7 @@ import org.structr.core.entity.User;
 public class TextField extends HtmlNode implements InteractiveNode
 {
 	private static final String TEXTFIELD_ICON_SRC =	"/images/textfield.png";
+	private String mappedName = null;
 
 	public TextField()
 	{
@@ -32,7 +33,7 @@ public class TextField extends HtmlNode implements InteractiveNode
 	@Override
 	public void doBeforeRendering(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId, User user)
 	{
-		String name = (String)getProperty(NAME_KEY);
+		String name = getName();
 		Object value = getValue();
 
 		// add attributes here, do not access in constructor
@@ -58,7 +59,7 @@ public class TextField extends HtmlNode implements InteractiveNode
 	public String getValue()
 	{
 		HttpServletRequest request = StructrContext.getRequest();
-		String name = (String)getProperty(NAME_KEY);
+		String name = getName();
 		String ret = null;
 
 		if(request != null)
@@ -75,4 +76,20 @@ public class TextField extends HtmlNode implements InteractiveNode
 		return(String.class);
 	}
 
+	@Override
+	public void setMappedName(String mappedName)
+	{
+		this.mappedName = mappedName;
+	}
+
+	@Override
+	public String getMappedName()
+	{
+		if(this.mappedName != null)
+		{
+			return(mappedName);
+		}
+
+		return(getName());
+	}
 }

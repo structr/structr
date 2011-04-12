@@ -16,4 +16,7 @@ public interface InteractiveNode
 
 	public String getName();
 	public Object getValue();
+
+	public void setMappedName(String mappedName);
+	public String getMappedName();
 }
