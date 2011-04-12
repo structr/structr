@@ -18,12 +18,12 @@ import org.structr.core.entity.User;
 
 /**
  *
- * @author Christian Morgner, SoftService GmbH
+ * @author Christian Morgner
  */
 public abstract class HtmlNode extends AbstractNode
 {
 	private static final Logger logger = Logger.getLogger(HtmlNode.class.getName());
-	private static final String HTML_ICON_SRC = "/images/tag.png";
+	private static final String ICON_SRC = "/images/tag.png";
 
 	// private attributes
 	protected static final String LineSeparator = "\n";
@@ -40,7 +40,7 @@ public abstract class HtmlNode extends AbstractNode
 	@Override
 	public String getIconSrc()
 	{
-		return(HTML_ICON_SRC);
+		return(ICON_SRC);
 	}
 
 	public HtmlNode(String tag, String id)
