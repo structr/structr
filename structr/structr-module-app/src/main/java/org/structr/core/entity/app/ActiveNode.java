@@ -30,10 +30,13 @@ public abstract class ActiveNode extends AbstractNode
 		String currentUrl = (String)StructrContext.getAttribute(StructrContext.CURRENT_NODE_PATH);
 		String myNodeUrl = getNodePath(user);
 
-		// only execute this active node's method when the path
-		// matches exactly
-		logger.log(Level.INFO, "Checking '{0}' and '{1}' for equality..", new Object[] { currentUrl, myNodeUrl } );
+		// remove slashes from end of string
+		while(currentUrl.endsWith("/"))
+		{
+			currentUrl = currentUrl.substring(0, currentUrl.length() - 1);
+		}
 
+		// execute method if path matches exactly
 		if(myNodeUrl.equals(currentUrl))
 		{
 			execute(out, startNode, editUrl, editNodeId, user);
