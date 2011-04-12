@@ -169,11 +169,13 @@ body {
     background: #e5e5e5;
 }
 #main .top {
+	/*position: relative;*/
     height: 140px;
+    z-index: 0;
     background: -webkit-gradient(linear, left bottom, left top, from(#e5e5e5), to(#d4d4d4)) no-repeat;
     background: -moz-linear-gradient(90deg, #e5e5e5, #d4d4d4) no-repeat;
-    filter: progid:DXImageTransform.Microsoft.Gradient(
-        StartColorStr='#e5e5e5', EndColorStr='#d4d4d4', GradientType=0);
+    /*filter: progid:DXImageTransform.Microsoft.Gradient(
+        StartColorStr='#d4d4d4', EndColorStr='#e5e5e5', GradientType=0);*/
 }
 #main .mid .top {
     width: inherit;
