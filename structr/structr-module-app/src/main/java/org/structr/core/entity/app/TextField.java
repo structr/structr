@@ -14,7 +14,7 @@ import org.structr.core.entity.User;
  */
 public class TextField extends HtmlNode
 {
-	private static final String TEXTFIELD_ICON_SRC =	"/images/textfield.png";
+	private static final String ICON_SRC =	"/images/textfield.png";
 
 	public TextField(String id, String name, Object value)
 	{
@@ -27,7 +27,7 @@ public class TextField extends HtmlNode
 	@Override
 	public String getIconSrc()
 	{
-		return(TEXTFIELD_ICON_SRC);
+		return(ICON_SRC);
 	}
 
 	@Override
