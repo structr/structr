@@ -6,6 +6,7 @@ import java.io.StringWriter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * 
@@ -63,56 +64,19 @@ public class PlainText extends AbstractNode {
             if (isVisible(user)) {
                 String html = getContent();
 
-                if (html != null && html.length() > 0) {
+                if (StringUtils.isNotBlank(html)) {
 
-                    Template t = startNode.getTemplate(user);
+                    StringWriter content = new StringWriter();
 
-                    //StringBuilder content = new StringBuilder(html);
-                    //HttpServletRequest request = getRequest();
+                    // process content with Freemarker
+                    replaceByFreeMarker(html, content, startNode, editUrl, editNodeId, user);
 
-                    if (t != null && t.getCallingNode() != null) {
+                    StringBuilder content2 = new StringBuilder(content.toString());
 
-                        // then, replace $[paramKey] by request.getParameter(paramKey)
-//                        if (request != null) {
-//                            replaceByRequestValues(content, startNode, editUrl, editNodeId);
-//                        }
+                    // finally, replace %{subnodeKey} by rendered content of subnodes with this name
+                    replaceBySubnodes(content2, startNode, editUrl, editNodeId, user);
+                    out.append(content2.toString());
 
-                        //}
-
-                        // then replace placeholder for property values
-                        //replaceByPropertyValues(content, startNode, editUrl, editNodeId);
-
-                        //out.append(content);
-
-                        //StringWriter sw = new StringWriter();
-
-                        StringWriter content = new StringWriter();
-
-                        // process content with Freemarker
-                        //replaceByFreeMarker(html, sw, startNode, editUrl, editNodeId);
-                        replaceByFreeMarker(html, content, startNode, editUrl, editNodeId, user);
-
-                        String test = content.toString();
-
-
-
-//                        sw.flush();
-//
-                        StringBuilder content2 = new StringBuilder(test);
-
-
-                        // finally, replace %{subnodeKey} by rendered content of subnodes with this name
-                        replaceBySubnodes(content2, startNode, editUrl, editNodeId, user);
-//
-//                        out.append(content);
-
-                        String test2 = content2.toString();
-                        out.append(test2);
-
-
-                    } else {
-                        out.append(getContent());
-                    }
                 }
             }
         }
