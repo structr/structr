@@ -26,4 +26,6 @@ public interface InteractiveNode
 
 	public void setMappedName(String mappedName);
 	public String getMappedName();
+
+	public void setErrorCondition(boolean error);
 }

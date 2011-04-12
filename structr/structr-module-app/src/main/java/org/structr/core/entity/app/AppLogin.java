@@ -46,4 +46,18 @@ public class AppLogin extends ActiveNode
 
 		return(ret);
 	}
+
+	@Override
+	public String getSuccessMessage()
+	{
+		// TODO: fetch message from node properties
+		return("Login successful");
+	}
+
+	@Override
+	public String getFailureMessage()
+	{
+		// TODO: fetch message from node properties
+		return("Login failed");
+	}
 }

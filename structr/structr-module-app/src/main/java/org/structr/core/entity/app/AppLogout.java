@@ -41,4 +41,18 @@ public class AppLogout extends ActiveNode
 	{
 		return(null);
 	}
+
+	@Override
+	public String getSuccessMessage()
+	{
+		// TODO: fetch message from node properties
+		return("Logout successful");
+	}
+
+	@Override
+	public String getFailureMessage()
+	{
+		// TODO: fetch message from node properties
+		return("Logout failed");
+	}
 }

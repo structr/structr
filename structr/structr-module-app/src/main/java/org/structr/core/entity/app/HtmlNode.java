@@ -87,8 +87,6 @@ public abstract class HtmlNode extends AbstractNode
 	@Override
 	public void renderView(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user)
 	{
-		logger.log(Level.INFO, "rendering view..");
-
 		// notify component of rendering
 		doBeforeRendering(out, startNode, editUrl, editNodeId, user);
 

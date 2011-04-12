@@ -159,6 +159,7 @@ public class StructrPage extends Page {
 
 	// prepare global structr request context for this request and this thread
 	StructrContext.setRequest(getContext().getRequest());
+	StructrContext.setResponse(getContext().getResponse());
 	StructrContext.setAttribute(StructrContext.CURRENT_NODE_PATH, nodeId);
 
         if (user != null) {

@@ -9,6 +9,9 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.apache.batik.bridge.ErrorConstants;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.RelType;
 import org.structr.common.StructrContext;
@@ -23,9 +26,12 @@ import org.structr.core.entity.User;
  */
 public abstract class ActiveNode extends AbstractNode
 {
+	private static final Logger logger = Logger.getLogger(ActiveNode.class.getName());
 	private static final String TARGET_SLOT_NAME_KEY =		"targetSlotName";
 
 	public abstract boolean execute(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user);
+	public abstract String getSuccessMessage();
+	public abstract String getFailureMessage();
 	public abstract Map<String, Slot> getSlots();
 
 	private Map<String, Object> values = new LinkedHashMap<String, Object>();
@@ -37,6 +43,8 @@ public abstract class ActiveNode extends AbstractNode
 	public void renderView(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user)
 	{
 		String currentUrl = (String)StructrContext.getAttribute(StructrContext.CURRENT_NODE_PATH);
+		SessionValue<String> errorMessage = new SessionValue<String>("errorMessage");
+		SessionValue<String> okMessage = new SessionValue<String>("okMessage");
 		String myNodeUrl = getNodePath(user);
 
 		// remove slashes from end of string
@@ -70,10 +78,14 @@ public abstract class ActiveNode extends AbstractNode
 							if(value != null)
 							{
 								values.put(name, value);
+
 							}
 
 							// check if this slot is mandatory and if the value was != null
-							slotsSuccessful &= (slot.isMandatory() && value != null);
+							boolean errorCondition = (slot.isMandatory() && value != null);
+							source.setErrorCondition(errorCondition);
+							
+							slotsSuccessful &= errorCondition;
 						}
 					}
 				}
@@ -84,14 +96,28 @@ public abstract class ActiveNode extends AbstractNode
 				executionSuccessful = execute(out, startNode, editUrl, editNodeId, user);
 			}
 
+			logger.log(Level.INFO, "slotsSuccessful: {0}, executionSuccessful: {1}", new Object[] { slotsSuccessful, executionSuccessful } );
+
 			// the next block will be entered if slotsSuccessful was false, or if executionSuccessful was false!
 			if(executionSuccessful)
 			{
-				// TODO: redirect to success page
+				// redirect to success page
+				AbstractNode successTarget = getSuccessTarget();
+				if(successTarget != null)
+				{
+					okMessage.set(getSuccessMessage());
+					StructrContext.redirect(user, successTarget);
+				}
 
 			} else
 			{
-				// TODO: redirect to error page
+				// redirect to error page
+				AbstractNode failureTarget = getFailureTarget();
+				if(failureTarget != null)
+				{
+					errorMessage.set(getFailureMessage());
+					StructrContext.redirect(user, failureTarget);
+				}
 			}
 		}
 	}
@@ -122,6 +148,36 @@ public abstract class ActiveNode extends AbstractNode
 
 				ret.add(interactiveNode);
 			}
+		}
+
+		return(ret);
+	}
+
+	private AbstractNode getSuccessTarget()
+	{
+		List<StructrRelationship> rels = getRelationships(RelType.SUCCESS_DESTINATION, Direction.OUTGOING);
+		AbstractNode ret = null;
+
+		for(StructrRelationship rel : rels)
+		{
+			// first one wins
+			ret = rel.getEndNode();
+			break;
+		}
+
+		return(ret);
+	}
+
+	private AbstractNode getFailureTarget()
+	{
+		List<StructrRelationship> rels = getRelationships(RelType.ERROR_DESTINATION, Direction.OUTGOING);
+		AbstractNode ret = null;
+
+		for(StructrRelationship rel : rels)
+		{
+			// first one wins
+			ret = rel.getEndNode();
+			break;
 		}
 
 		return(ret);

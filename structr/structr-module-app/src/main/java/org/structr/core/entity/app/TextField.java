@@ -17,11 +17,16 @@ import org.structr.core.entity.User;
 public class TextField extends HtmlNode implements InteractiveNode
 {
 	private static final String TEXTFIELD_ICON_SRC =	"/images/textfield.png";
+
+	private SessionValue<String> errorMessage = new SessionValue<String>("errorMessage", "");
 	private String mappedName = null;
 
 	public TextField()
 	{
 		super("input");
+
+		// reset error message
+		errorMessage.set("");
 	}
 
 	@Override
@@ -40,6 +45,11 @@ public class TextField extends HtmlNode implements InteractiveNode
 		addAttribute("type", "text");
 		addAttribute("name", name);
 		addAttribute("value", value != null ? value : "");
+
+		if(errorMessage.get().length() > 0)
+		{
+			addAttribute("class", "error");
+		}
 	}
 
 	@Override
@@ -65,6 +75,10 @@ public class TextField extends HtmlNode implements InteractiveNode
 		if(request != null)
 		{
 			ret = request.getParameter(name);
+			if(ret != null && ret.length() == 0)
+			{
+				ret = null;
+			}
 		}
 
 		return(ret);
@@ -91,5 +105,14 @@ public class TextField extends HtmlNode implements InteractiveNode
 		}
 
 		return(getName());
+	}
+
+	@Override
+	public void setErrorCondition(boolean error)
+	{
+		if(error)
+		{
+			errorMessage.set("Error");
+		}
 	}
 }
