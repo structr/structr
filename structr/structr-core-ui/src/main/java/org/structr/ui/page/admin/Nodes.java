@@ -300,6 +300,7 @@ public class Nodes extends Admin {
             //relTypeField.setDefaultOption(linkOption);
             newRelationshipForm.add(relTypeField);
             newRelationshipForm.add(new TextField(REL_POSITION_KEY, false));
+            newRelationshipForm.add(new TextField(TARGET_SLOT_NAME_KEY, false));
             newRelationshipForm.add(new HiddenField(NODE_ID_KEY, nodeId != null ? nodeId : ""));
             newRelationshipForm.add(new HiddenField(RENDER_MODE_KEY, renderMode != null ? renderMode : ""));
             newRelationshipForm.add(new Submit("createNewRelationship", " Create new relationship ", this, "onCreateRelationship"));
@@ -705,6 +706,7 @@ public class Nodes extends Admin {
         if (newRelationshipForm.isValid()) {
             final String endNodeId = newRelationshipForm.getFieldValue(END_NODE_ID_KEY);
             final String relType = newRelationshipForm.getFieldValue(REL_TYPE_KEY);
+            final String targetSlotName = newRelationshipForm.getFieldValue(TARGET_SLOT_NAME_KEY);
 
             Command transactionCommand = Services.command(TransactionCommand.class);
             transactionCommand.execute(new StructrTransaction() {
@@ -717,7 +719,8 @@ public class Nodes extends Admin {
                     AbstractNode startNode = node;
                     AbstractNode endNode = (AbstractNode) findNode.execute(user, Long.parseLong(endNodeId));
 
-                    createRel.execute(startNode, endNode, relType);
+                    StructrRelationship newRel = (StructrRelationship) createRel.execute(startNode, endNode, relType);
+                    newRel.setProperty(TARGET_SLOT_NAME_KEY, targetSlotName);
 
                     return (null);
                 }
