@@ -77,8 +77,8 @@ public class View extends StructrPage {
         } else {
 
             // inject session and request
-            s.setRequest(getContext().getRequest());
-            s.setSession(getContext().getSession());
+//            s.setRequest(getContext().getRequest());
+//            s.setSession(getContext().getSession());
 
             // Check visibility before access rights to assure that the
             // existance of hidden objects is not exposed

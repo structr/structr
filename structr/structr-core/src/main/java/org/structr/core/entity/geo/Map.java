@@ -39,6 +39,7 @@ import org.opengis.filter.Filter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.User;
 import org.structr.common.MapHelper;
+import org.structr.common.StructrContext;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.node.GraphDatabaseCommand;
@@ -118,7 +119,7 @@ public class Map extends AbstractNode {
                 featureName = staticFeatureName;
             } else {
 
-                HttpServletRequest request = getRequest();
+                HttpServletRequest request = StructrContext.getRequest();
 
                 String featureNameParamName = getFeatureNameParamName();
                 if (featureNameParamName == null) {

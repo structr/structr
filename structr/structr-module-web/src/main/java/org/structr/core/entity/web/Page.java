@@ -54,7 +54,7 @@ public class Page extends WebNode {
             if (hasTemplate(user)) {
 
                 // propagate request
-                template.setRequest(getRequest());
+//                template.setRequest(getRequest());
 
                 template.setCallingNode(this);
                 template.renderView(out, startNode, editUrl, editNodeId, user);
@@ -66,7 +66,7 @@ public class Page extends WebNode {
                 for (AbstractNode s : subnodes) {
 
                     // propagate request
-                    s.setRequest(getRequest());
+//                    s.setRequest(getRequest());
                     s.renderView(out, startNode, editUrl, editNodeId, user);
                 }
             }

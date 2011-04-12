@@ -7,7 +7,7 @@ package org.structr.core.entity.app;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.context.StructrContext;
+import org.structr.common.StructrContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.User;
 

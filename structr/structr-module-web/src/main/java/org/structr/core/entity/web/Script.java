@@ -6,7 +6,10 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import org.apache.commons.io.IOUtils;
+import org.structr.common.StructrContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.User;
 //import org.structr.common.xpath.JXPathFinder;
@@ -95,11 +98,13 @@ public class Script extends AbstractNode {
 
         try {
 //            JXPathFinder nodeFinder = new JXPathFinder(this);
+            HttpServletRequest request = StructrContext.getRequest();
+            HttpSession session = StructrContext.getSession();
 
             Interpreter interpreter = new Interpreter();
             interpreter.set("_buffer", ret);
-            interpreter.set("_session", getSession());
-            interpreter.set("_request", getRequest());
+            interpreter.set("_session", session);
+            interpreter.set("_request", request);
 //            interpreter.set("_finder", nodeFinder);
 
             String contents = getText();
@@ -115,5 +120,4 @@ public class Script extends AbstractNode {
 
         return (ret.toString());
     }
-
 }

@@ -30,7 +30,6 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 //import org.neo4j.graphdb.*;
@@ -40,6 +39,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DateUtils;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
+import org.structr.common.StructrContext;
 import org.structr.common.TemplateHelper;
 import org.structr.core.cloud.NodeDataContainer;
 import org.structr.core.node.CreateNodeCommand;
@@ -60,9 +60,8 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
     private static final Logger logger = Logger.getLogger(AbstractNode.class.getName());
     private static final boolean updateIndexDefault = true;
     // request parameters
-    private HttpServletRequest request = null;
-    private HttpSession session = null;
-
+    //private HttpServletRequest request = null;
+    //private HttpSession session = null;
     private Map<Long, StructrRelationship> securityRelationships = null;
     private List<StructrRelationship> incomingLinkRelationships = null;
     private List<StructrRelationship> outgoingLinkRelationships = null;
@@ -207,22 +206,21 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
         return (this.getName().compareTo(node.getName()));
     }
 
-    public void setSession(final HttpSession session) {
-        this.session = session;
-    }
-
-    public void setRequest(final HttpServletRequest request) {
-        this.request = request;
-    }
-
-    public HttpSession getSession() {
-        return session;
-    }
-
-    public HttpServletRequest getRequest() {
-        return request;
-    }
-
+//    public void setSession(final HttpSession session) {
+//        this.session = session;
+//    }
+//
+//    public void setRequest(final HttpServletRequest request) {
+//        this.request = request;
+//    }
+//
+//    public HttpSession getSession() {
+//        return session;
+//    }
+//
+//    public HttpServletRequest getRequest() {
+//        return request;
+//    }
     public void setTemplate(final Template template) {
         this.template = template;
     }
@@ -1868,7 +1866,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
             } else {
                 return false;
             }
-            
+
         }
 
     }
@@ -2140,7 +2138,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
                 for (AbstractNode s : callingNodeSubnodes) {
 
                     // propagate request and template
-                    s.setRequest(getRequest());
+//                    s.setRequest(request);
                     s.renderView(replacement, startNode, editUrl, editNodeId, user);
                 }
 
@@ -2150,7 +2148,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
                 for (AbstractNode s : callingNodeSubnodesAndLinkedNodes) {
 
                     // propagate request and template
-                    s.setRequest(getRequest());
+//                    s.setRequest(request);
                     s.renderView(replacement, startNode, editUrl, editNodeId, user);
                 }
 
@@ -2177,7 +2175,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
                             }
 
                             // propagate request
-                            s.setRequest(getRequest());
+//                            s.setRequest(getRequest());
                             s.renderView(replacement, startNode, editUrl, editNodeId, user);
                         }
                     }
@@ -2190,7 +2188,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
                     }
 
                     // propagate request
-                    s.setRequest(getRequest());
+//                    s.setRequest(getRequest());
                     s.renderView(replacement, startNode, editUrl, editNodeId, user);
 
                 } else {
@@ -2310,7 +2308,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
                     root.put(callingNode.getType(), callingNode);
                 }
 
-                //HttpServletRequest request = getRequest();
+                HttpServletRequest request = StructrContext.getRequest();
                 if (request != null) {
                     //root.put("Request", new freemarker.template.SimpleHash(request.getParameterMap().));
                     root.put("Request", new freemarker.ext.servlet.HttpRequestParametersHashModel(request));

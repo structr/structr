@@ -57,7 +57,7 @@ public class WebNode extends AbstractNode {
             if (isVisible(user)) {
 
                 if (hasTemplate(user)) {
-                    template.setRequest(getRequest());
+//                    template.setRequest(getRequest());
                     template.setCallingNode(this);
                     template.renderView(out, startNode, editUrl, editNodeId, user);
                 } else {

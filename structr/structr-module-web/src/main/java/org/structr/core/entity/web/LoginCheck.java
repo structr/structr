@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
+import org.structr.common.StructrContext;
 import org.structr.context.SessionMonitor;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -198,7 +199,7 @@ public class LoginCheck extends WebNode {
 
         } else {
 
-            HttpServletRequest request = getRequest();
+            HttpServletRequest request = StructrContext.getRequest();
 
             if (request == null) {
                 return;
