@@ -52,4 +52,9 @@ public class DefaultNode extends AbstractNode
         }
     }
 
+    @Override
+    public String getIconSrc() {
+        return "/images/error.png";
+    }
+
 }

@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.batik.bridge.ErrorConstants;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.RelType;
 import org.structr.common.StructrContext;
@@ -145,7 +144,7 @@ public abstract class ActiveNode extends AbstractNode
 	// ----- private methods -----
 	private List<InteractiveNode> getDataSources()
 	{
-		List<StructrRelationship> rels = getRelationships(RelType.DATA, Direction.INCOMING);
+		List<StructrRelationship> rels = getIncomingDataRelationships();
 		List<InteractiveNode> ret = new LinkedList<InteractiveNode>();
 
 		for(StructrRelationship rel : rels)

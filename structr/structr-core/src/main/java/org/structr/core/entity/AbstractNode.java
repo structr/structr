@@ -77,9 +77,8 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
     // ----- abstract methods ----
     public abstract void renderView(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user);
 
-    public String getIconSrc() {
-        return ICON_SRC;
-    }
+    public abstract String getIconSrc();
+    
     // reference to database node
     protected Node dbNode;
     // dirty flag, true means that some changes are not yet written to the database
