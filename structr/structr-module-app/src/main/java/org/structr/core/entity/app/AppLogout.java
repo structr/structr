@@ -4,6 +4,7 @@
  */
 package org.structr.core.entity.app;
 
+import java.util.Map;
 import javax.servlet.http.HttpSession;
 import org.structr.common.StructrContext;
 import org.structr.core.entity.AbstractNode;
@@ -31,5 +32,11 @@ public class AppLogout extends ActiveNode
 		{
 			session.invalidate();
 		}
+	}
+
+	@Override
+	public Map<String, Slot> getSlots()
+	{
+		return(null);
 	}
 }

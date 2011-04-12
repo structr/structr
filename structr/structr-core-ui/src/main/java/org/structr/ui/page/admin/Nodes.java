@@ -296,6 +296,7 @@ public class Nodes extends Admin {
             relTypeField.add(new Option("SECURITY", "Security"));
             relTypeField.add(new Option("ROOT_NODE", "Root Node"));
             relTypeField.add(new Option("USE_TEMPLATE", "Use Template"));
+            relTypeField.add(new Option("DATA", "Data"));
             //relTypeField.setDefaultOption(linkOption);
             newRelationshipForm.add(relTypeField);
             newRelationshipForm.add(new TextField(REL_POSITION_KEY, false));

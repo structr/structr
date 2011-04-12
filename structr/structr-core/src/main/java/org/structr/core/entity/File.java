@@ -18,7 +18,7 @@ import org.structr.core.Services;
  * @author amorgner
  * 
  */
-public class File extends AbstractNode {
+public class File extends DefaultNode {
 
     private final static String ICON_SRC = "/images/page_white.png";
     private static final Logger logger = Logger.getLogger(File.class.getName());

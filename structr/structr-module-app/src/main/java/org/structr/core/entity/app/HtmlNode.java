@@ -90,7 +90,7 @@ public abstract class HtmlNode extends AbstractNode
 		logger.log(Level.INFO, "rendering view..");
 
 		// notify component of rendering
-		doBeforeRendering();
+		doBeforeRendering(out, startNode, editUrl, editNodeId, user);
 
 		boolean hasContent = hasContent(out, startNode, editUrl, editNodeId, user);
 
@@ -158,12 +158,6 @@ public abstract class HtmlNode extends AbstractNode
 
 		return(this);
 	}
-
-	// <editor-fold defaultstate="collapsed" desc="protected methods">
-	protected void doBeforeRendering()
-	{
-	}
-	// </editor-fold>
 
 	// <editor-fold defaultstate="collapsed" desc="private methods">
 	private Set getAttributes(String key)

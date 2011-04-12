@@ -71,6 +71,11 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
     private List<StructrRelationship> outgoingRelationships = null;
     private List<StructrRelationship> allRelationships = null;
 
+
+    // ----- abstract methods ----
+    public abstract void renderView(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user);
+
+
     public String getIconSrc() {
         return ICON_SRC;
     }
@@ -258,25 +263,6 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
     protected void renderEditFrame(StringBuilder out, final String editUrl) {
         // create IFRAME with given URL
         out.append("<iframe style=\"border: 1px solid #ccc; background-color: #fff\" src=\"").append(editUrl).append("\" width=\"100%\" height=\"100%\"").append("></iframe>");
-    }
-
-    /**
-     * Render a node-specific view as html
-     */
-    public void renderView(StringBuilder out, final AbstractNode startNode,
-            final String editUrl, final Long editNodeId, final User user) {
-
-        if (editNodeId != null && getId() == editNodeId.longValue()) {
-
-            renderEditFrame(out, editUrl);
-
-        } else {
-
-            if (isVisible(user)) {
-                out.append(getName());
-            }
-
-        }
     }
 
     /**
