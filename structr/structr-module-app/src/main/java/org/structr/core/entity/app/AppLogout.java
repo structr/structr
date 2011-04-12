@@ -12,7 +12,7 @@ import org.structr.core.entity.User;
 
 /**
  *
- * @author chrisi
+ * @author Christian Morgner
  */
 public class AppLogout extends ActiveNode
 {

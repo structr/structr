@@ -23,6 +23,8 @@ import org.structr.core.entity.User;
  */
 public abstract class ActiveNode extends AbstractNode
 {
+	private static final String TARGET_SLOT_KEY =		"targetSlotName";
+
 	public abstract void execute(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user);
 	public abstract Map<String, Slot> getSlots();
 
@@ -55,7 +57,7 @@ public abstract class ActiveNode extends AbstractNode
 			{
 				for(InteractiveNode source : dataSources)
 				{
-					String name = source.getName();
+					String name = source.getMappedName();
 					if(slots.containsKey(name))
 					{
 						Slot slot = slots.get(name);
@@ -88,7 +90,15 @@ public abstract class ActiveNode extends AbstractNode
 			AbstractNode node = rel.getStartNode();
 			if(node instanceof InteractiveNode)
 			{
-				ret.add((InteractiveNode)node);
+				InteractiveNode interactiveNode = (InteractiveNode)node;
+
+				if(rel.getRelationship().hasProperty(TARGET_SLOT_KEY))
+				{
+					String targetSlot = (String)rel.getRelationship().getProperty(TARGET_SLOT_KEY);
+					interactiveNode.setMappedName(targetSlot);
+				}
+
+				ret.add(interactiveNode);
 			}
 		}
 
