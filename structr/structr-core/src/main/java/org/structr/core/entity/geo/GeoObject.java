@@ -22,14 +22,14 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.structr.core.Command;
 import org.structr.core.Services;
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.DefaultNode;
 import org.structr.core.node.GraphDatabaseCommand;
 
 /**
  *
  * @author axel
  */
-public class GeoObject extends AbstractNode {
+public class GeoObject extends DefaultNode {
 
     private final static String ICON_SRC = "/images/world.png";
     private static final Logger logger = Logger.getLogger(GeoObject.class.getName());

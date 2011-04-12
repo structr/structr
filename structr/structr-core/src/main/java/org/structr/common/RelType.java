@@ -18,5 +18,6 @@ public enum RelType implements RelationshipType {
         ROOT_NODE,
         THUMBNAIL,
 	NEXT_LIST_ENTRY,
-	LAST_LIST_ENTRY
+	LAST_LIST_ENTRY,
+	DATA
 }

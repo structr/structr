@@ -10,7 +10,7 @@ import org.neo4j.graphdb.Node;
  * @author amorgner
  * 
  */
-public class DummyNode extends AbstractNode {
+public class DummyNode extends DefaultNode {
 
     private final static String ICON_SRC = "/images/error.png";
 

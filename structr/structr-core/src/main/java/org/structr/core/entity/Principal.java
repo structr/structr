@@ -13,4 +13,21 @@ public class Principal extends AbstractNode {
     public String getIconSrc() {
         return ICON_SRC;
     }
+
+    @Override
+    public void renderView(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user)
+    {
+
+        if (editNodeId != null && getId() == editNodeId.longValue()) {
+
+            renderEditFrame(out, editUrl);
+
+        } else {
+
+            if (isVisible(user)) {
+                out.append(getName());
+            }
+
+        }
+    }
 }

@@ -5,7 +5,7 @@ package org.structr.core.entity;
  * @author amorgner
  * 
  */
-public class Category extends AbstractNode {
+public class Category extends DefaultNode {
 
     private final static String ICON_SRC = "/images/tag_green.png";
 
