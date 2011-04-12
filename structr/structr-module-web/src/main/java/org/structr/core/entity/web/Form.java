@@ -58,16 +58,16 @@ public abstract class Form extends WebNode {
         return ICON_SRC;
     }
 
-    protected void validateParameters() {
+    protected boolean validateParameters() {
 
         if (StringUtils.isEmpty(param(submitButtonName))) {
             // Don't process form at all if submit button was not pressed
-            return;
+            return false;
         }
 
         if (StringUtils.isNotEmpty(param(antiRobotFieldName))) {
             // Don't process form if someone has filled the anti-robot field
-            return;
+            return false;
         }
 
         // Check mandatory parameters
@@ -86,6 +86,8 @@ public abstract class Form extends WebNode {
             }
         }
         errorStyle.append("</style>");
+
+        return true;
     }
 
     protected void readParameters() {

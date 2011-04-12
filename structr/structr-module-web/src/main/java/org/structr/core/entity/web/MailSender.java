@@ -46,7 +46,7 @@ public class MailSender extends Form {
         } else {
  
             readParameters();
-            validateParameters();
+            if (!validateParameters()) return;
 
             String to = replaceInContent(getToAddressTemplate(), parameterMap);
             String toName = replaceInContent(getToNameTemplate(), parameterMap);
