@@ -22,10 +22,12 @@ public class AppLogin extends ActiveNode
 	private static final Logger logger = Logger.getLogger(AppLogin.class.getName());
 
 	@Override
-	public void execute(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId, User user)
+	public boolean execute(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId, User user)
 	{
 		// do login
 		logger.log(Level.INFO, "login: {0}, password: {1}", new Object[] { getValue("login"), getValue("password") } );
+
+		return(true);
 	}
 
 	@Override
@@ -39,8 +41,8 @@ public class AppLogin extends ActiveNode
 	{
 		Map<String, Slot> ret = new LinkedHashMap<String, Slot>();
 
-		ret.put("login", new StringSlot());
-		ret.put("password", new StringSlot());
+		ret.put("login", new StringSlot(true));
+		ret.put("password", new StringSlot(true));
 
 		return(ret);
 	}

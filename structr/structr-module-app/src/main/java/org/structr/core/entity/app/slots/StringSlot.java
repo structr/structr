@@ -13,6 +13,11 @@ import org.structr.core.entity.app.Slot;
  */
 public class StringSlot extends Slot
 {
+	public StringSlot(boolean mandatory)
+	{
+		super(mandatory);
+	}
+
 	@Override
 	public Class getParameterType()
 	{

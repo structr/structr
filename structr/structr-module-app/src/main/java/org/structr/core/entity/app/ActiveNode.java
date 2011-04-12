@@ -23,9 +23,9 @@ import org.structr.core.entity.User;
  */
 public abstract class ActiveNode extends AbstractNode
 {
-	private static final String TARGET_SLOT_KEY =		"targetSlotName";
+	private static final String TARGET_SLOT_NAME_KEY =		"targetSlotName";
 
-	public abstract void execute(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user);
+	public abstract boolean execute(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user);
 	public abstract Map<String, Slot> getSlots();
 
 	private Map<String, Object> values = new LinkedHashMap<String, Object>();
@@ -52,6 +52,8 @@ public abstract class ActiveNode extends AbstractNode
 			// endpoint must implement InteractiveNode of the correct type
 			List<InteractiveNode> dataSources = getDataSources();
 			Map<String, Slot> slots = getSlots();
+			boolean executionSuccessful = false;
+			boolean slotsSuccessful = true;
 
 			if(slots != null)
 			{
@@ -64,13 +66,33 @@ public abstract class ActiveNode extends AbstractNode
 
 						if(slot.getParameterType().equals(source.getParameterType()))
 						{
-							values.put(name, source.getValue());
+							Object value = source.getValue();
+							if(value != null)
+							{
+								values.put(name, value);
+							}
+
+							// check if this slot is mandatory and if the value was != null
+							slotsSuccessful &= (slot.isMandatory() && value != null);
 						}
 					}
 				}
 			}
 
-			execute(out, startNode, editUrl, editNodeId, user);
+			if(slotsSuccessful)
+			{
+				executionSuccessful = execute(out, startNode, editUrl, editNodeId, user);
+			}
+
+			// the next block will be entered if slotsSuccessful was false, or if executionSuccessful was false!
+			if(executionSuccessful)
+			{
+				// TODO: redirect to success page
+
+			} else
+			{
+				// TODO: redirect to error page
+			}
 		}
 	}
 
@@ -92,9 +114,9 @@ public abstract class ActiveNode extends AbstractNode
 			{
 				InteractiveNode interactiveNode = (InteractiveNode)node;
 
-				if(rel.getRelationship().hasProperty(TARGET_SLOT_KEY))
+				if(rel.getRelationship().hasProperty(TARGET_SLOT_NAME_KEY))
 				{
-					String targetSlot = (String)rel.getRelationship().getProperty(TARGET_SLOT_KEY);
+					String targetSlot = (String)rel.getRelationship().getProperty(TARGET_SLOT_NAME_KEY);
 					interactiveNode.setMappedName(targetSlot);
 				}
 
