@@ -16,7 +16,6 @@ import org.structr.core.entity.User;
  */
 public class WebNode extends AbstractNode {
 
-    private final static String ICON_SRC = "/images/folder.png";
     private static final Logger logger = Logger.getLogger(AbstractNode.class.getName());
 
     protected final static String SESSION_BLOCKED = "sessionBlocked";
@@ -66,6 +65,11 @@ public class WebNode extends AbstractNode {
             }
 
         }
+    }
+
+    @Override
+    public String getIconSrc() {
+        return "/images/folder.png";
     }
 
 }
