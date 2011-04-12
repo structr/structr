@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -39,6 +40,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DateUtils;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.StructrContext;
 import org.structr.common.TemplateHelper;
 import org.structr.core.cloud.NodeDataContainer;
@@ -67,14 +69,13 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
     private List<StructrRelationship> outgoingLinkRelationships = null;
     private List<StructrRelationship> incomingChildRelationships = null;
     private List<StructrRelationship> outgoingChildRelationships = null;
+    private List<StructrRelationship> outgoingDataRelationships = null;
     private List<StructrRelationship> incomingRelationships = null;
     private List<StructrRelationship> outgoingRelationships = null;
     private List<StructrRelationship> allRelationships = null;
 
-
     // ----- abstract methods ----
     public abstract void renderView(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user);
-
 
     public String getIconSrc() {
         return ICON_SRC;
@@ -1565,6 +1566,19 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
             incomingLinkRelationships = getRelationships(RelType.LINK, Direction.INCOMING);
         }
         return incomingLinkRelationships;
+    }
+
+    /**
+     * Cached list of outgoing data relationships
+     *
+     * @return
+     */
+    public List<StructrRelationship> getOutgoingDataRelationships() {
+
+        if (outgoingDataRelationships == null) {
+            outgoingDataRelationships = getRelationships(RelType.DATA, Direction.OUTGOING);
+        }
+        return outgoingDataRelationships;
     }
 
     /**
