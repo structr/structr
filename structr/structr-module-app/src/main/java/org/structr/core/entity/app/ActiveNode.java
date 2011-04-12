@@ -5,9 +5,8 @@
 
 package org.structr.core.entity.app;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.structr.common.StructrContext;
+
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.User;
 
@@ -17,8 +16,6 @@ import org.structr.core.entity.User;
  */
 public abstract class ActiveNode extends AbstractNode
 {
-	private static final Logger logger = Logger.getLogger(ActiveNode.class.getName());
-
 	public abstract void execute(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user);
 
 	@Override

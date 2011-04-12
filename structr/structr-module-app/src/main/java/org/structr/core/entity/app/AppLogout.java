@@ -27,12 +27,6 @@ public class AppLogout extends ActiveNode
 	public void execute(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user)
 	{
 		HttpSession session = StructrContext.getSession();
-		
-		if(session == null)
-		{
-			session = StructrContext.getSession();
-		}
-		
 		if(session != null)
 		{
 			session.invalidate();
