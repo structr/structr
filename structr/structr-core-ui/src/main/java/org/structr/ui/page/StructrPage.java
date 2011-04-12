@@ -18,6 +18,7 @@ import org.apache.click.util.ClickUtils;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.TreeHelper;
 import org.structr.context.SessionMonitor;
+import org.structr.context.StructrContext;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.Link;
@@ -138,9 +139,6 @@ public class StructrPage extends Page {
             isSuperUser = true;
         }
 
-
-
-
 //        pageListTable.addColumn(new Column("canonicalName"));
 //        pageListTable.setDataProvider(new DataProvider() {
 //
@@ -158,6 +156,9 @@ public class StructrPage extends Page {
 
         super.onInit();
 
+	// prepare global structr request context for this request and this thread
+	StructrContext.setRequest(getContext().getRequest());
+	StructrContext.setAttribute(StructrContext.CURRENT_NODE_PATH, nodeId);
 
         if (user != null) {
             sessionId = (Long) getContext().getRequest().getSession().getAttribute(SessionMonitor.SESSION_ID);
@@ -254,9 +255,6 @@ public class StructrPage extends Page {
 
                         AbstractNode byPathNode = TreeHelper.getNodeByPath(getRootNode(), nodeIdString, true, user);
                         if (byPathNode != null) {
-			    // let poor little node know the request path
-				logger.log(Level.INFO, "nodeIdString: {0}", nodeIdString);
-			    byPathNode.setRequestedNodePath(nodeIdString);
                             return byPathNode;
                         }
 

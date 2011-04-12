@@ -8,9 +8,9 @@ package org.structr.core.entity.app;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
+import org.structr.context.StructrContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.User;
-import org.structr.core.entity.web.Page;
 
 /**
  *
@@ -35,7 +35,7 @@ public abstract class ActiveNode extends AbstractNode
 			String myNodeUrl = getNodePath(user);
 
 			logger.log(Level.INFO, "myNodeUrl:         {0}", myNodeUrl);
-			logger.log(Level.INFO, "requestedNodePath: {0}", requestedNodePath);
+			logger.log(Level.INFO, "requestedNodePath: {0}", StructrContext.getAttribute(StructrContext.CURRENT_NODE_PATH));
 
 			// FIXME:
 			//  need to know the path that lead to the current node..
