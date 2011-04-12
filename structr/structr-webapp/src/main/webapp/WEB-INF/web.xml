@@ -8,7 +8,7 @@
     <context-param>
         <description>The base path of this structr installation</description>
         <param-name>base.path</param-name>
-        <param-value>/opt/structr/t5s</param-value>
+        <param-value>/opt/structr</param-value>
     </context-param>
     <filter>
         <filter-name>UrlRewriteFilter</filter-name>
