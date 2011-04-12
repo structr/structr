@@ -5,6 +5,7 @@
 package org.structr.core.entity.app;
 
 import javax.servlet.http.HttpSession;
+import org.structr.common.StructrContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.User;
 
@@ -25,11 +26,11 @@ public class AppLogout extends ActiveNode
 	@Override
 	public void execute(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user)
 	{
-		HttpSession session = this.getSession();
+		HttpSession session = StructrContext.getSession();
 		
 		if(session == null)
 		{
-			session = this.getRequest().getSession();
+			session = StructrContext.getSession();
 		}
 		
 		if(session != null)
