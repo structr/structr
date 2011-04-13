@@ -5,6 +5,7 @@
 package org.structr.core.entity.app;
 
 import javax.servlet.http.HttpServletRequest;
+import org.apache.commons.lang.StringUtils;
 import org.structr.common.StructrContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.User;
@@ -83,7 +84,7 @@ public class TextField extends FormField implements InteractiveNode {
 
     @Override
     public String getMappedName() {
-        if (this.mappedName != null) {
+        if (StringUtils.isNotBlank(mappedName)) {
             return (mappedName);
         }
 

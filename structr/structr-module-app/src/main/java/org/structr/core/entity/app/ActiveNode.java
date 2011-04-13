@@ -30,8 +30,6 @@ public abstract class ActiveNode extends AbstractNode
         private List<StructrRelationship> incomingDataRelationships = null;
 
 	public abstract boolean execute(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user);
-	public abstract String getSuccessMessage();
-	public abstract String getFailureMessage();
 	public abstract Map<String, Slot> getSlots();
 
 	private Map<String, Object> values = new LinkedHashMap<String, Object>();
@@ -43,8 +41,6 @@ public abstract class ActiveNode extends AbstractNode
 	public void renderView(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user)
 	{
 		String currentUrl = (String)StructrContext.getAttribute(StructrContext.CURRENT_NODE_PATH);
-		SessionValue<String> errorMessage = new SessionValue<String>("errorMessage");
-		SessionValue<String> okMessage = new SessionValue<String>("okMessage");
 		String myNodeUrl = getNodePath(user);
 
 		// remove slashes from end of string
@@ -75,18 +71,45 @@ public abstract class ActiveNode extends AbstractNode
 						if(slot.getParameterType().equals(source.getParameterType()))
 						{
 							Object value = source.getValue();
-							if(value != null)
+							boolean accepted = slot.accepts(value);
+
+							if(accepted)
 							{
 								values.put(name, value);
 
 							}
 
 							// check if this slot is mandatory and if the value was != null
-							boolean errorCondition = (slot.isMandatory() && value != null);
+							boolean errorCondition = (slot.isMandatory() && accepted);
 							source.setErrorCondition(errorCondition);
-							
+
+							logger.log(Level.INFO,
+								"sourceName: {0}, mappedName: {1}, value: {2}, mandatory: {3}, errorCondition: {4}",
+								new Object[]
+								{
+									source.getName(),
+									source.getMappedName(),
+									value,
+									slot.isMandatory(),
+									errorCondition
+								}
+							);
+
 							slotsSuccessful &= errorCondition;
+						} else
+						{
+							logger.log(Level.INFO, "Parameter type mismatch: expected {0}, found {1}",
+								new Object[]
+								{
+									slot.getParameterType(),
+									source.getParameterType()
+								}
+							);
 						}
+
+					} else
+					{
+						logger.log(Level.INFO, "Slot not found {0}", name );
 					}
 				}
 			}
@@ -96,7 +119,7 @@ public abstract class ActiveNode extends AbstractNode
 				executionSuccessful = execute(out, startNode, editUrl, editNodeId, user);
 			}
 
-			logger.log(Level.INFO, "slotsSuccessful: {0}, executionSuccessful: {1}", new Object[] { slotsSuccessful, executionSuccessful } );
+			logger.log(Level.FINE, "slotsSuccessful: {0}, executionSuccessful: {1}", new Object[] { slotsSuccessful, executionSuccessful } );
 
 			// the next block will be entered if slotsSuccessful was false, or if executionSuccessful was false!
 			if(executionSuccessful)
@@ -105,7 +128,6 @@ public abstract class ActiveNode extends AbstractNode
 				AbstractNode successTarget = getSuccessTarget();
 				if(successTarget != null)
 				{
-					okMessage.set(getSuccessMessage());
 					StructrContext.redirect(user, successTarget);
 				}
 
@@ -115,7 +137,6 @@ public abstract class ActiveNode extends AbstractNode
 				AbstractNode failureTarget = getFailureTarget();
 				if(failureTarget != null)
 				{
-					errorMessage.set(getFailureMessage());
 					StructrContext.redirect(user, failureTarget);
 				}
 			}
@@ -195,5 +216,16 @@ public abstract class ActiveNode extends AbstractNode
 		}
 
 		return(ret);
+	}
+
+	// ----- protected methods -----
+	protected String createUniqueIdentifier(String prefix)
+	{
+		StringBuilder ret = new StringBuilder(100);
+
+		ret.append(prefix);
+		ret.append(getIdString());
+
+		return(ret.toString());
 	}
 }

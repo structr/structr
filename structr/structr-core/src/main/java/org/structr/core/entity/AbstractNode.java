@@ -22,7 +22,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -31,6 +30,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 //import org.neo4j.graphdb.*;
@@ -40,7 +40,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DateUtils;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.StructrContext;
 import org.structr.common.TemplateHelper;
 import org.structr.core.cloud.NodeDataContainer;
@@ -2332,6 +2331,21 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 
                 // Add a generic helper
                 root.put("Helper", new TemplateHelper());
+
+		// Add error and ok message if present
+		HttpSession session = StructrContext.getSession();
+		if(session != null)
+		{
+			if(session.getAttribute("errorMessage") != null)
+			{
+				root.put("ErrorMessage", session.getAttribute("errorMessage"));
+			}
+
+			if(session.getAttribute("errorMessage") != null)
+			{
+				root.put("OkMessage", session.getAttribute("okMessage"));
+			}
+		}
 
                 // add geo info if available
                 // TODO: add geo node information

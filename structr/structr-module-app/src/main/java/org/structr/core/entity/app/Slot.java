@@ -15,6 +15,7 @@ public abstract class Slot
 	private Object value = null;
 
 	public abstract Class getParameterType();
+	public abstract boolean accepts(Object value);
 
 	public Slot(boolean mandatory)
 	{

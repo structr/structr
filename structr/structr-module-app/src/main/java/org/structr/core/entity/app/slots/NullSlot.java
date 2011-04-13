@@ -5,29 +5,32 @@
 
 package org.structr.core.entity.app.slots;
 
-import org.apache.commons.lang.StringUtils;
 import org.structr.core.entity.app.Slot;
 
 /**
  *
  * @author Christian Morgner
  */
-public class StringSlot extends Slot
+public class NullSlot extends Slot
 {
-	public StringSlot(boolean mandatory)
+	private Class type = null;
+
+	public NullSlot(Class type, boolean mandatory)
 	{
 		super(mandatory);
-	}
 
-	@Override
-	public Class getParameterType()
-	{
-		return(String.class);
+		this.type = type;
 	}
 
 	@Override
 	public boolean accepts(Object value)
 	{
-		return(value != null && StringUtils.isNotBlank(value.toString()));
+		return(value == null);
+	}
+
+	@Override
+	public Class getParameterType()
+	{
+		return(type);
 	}
 }

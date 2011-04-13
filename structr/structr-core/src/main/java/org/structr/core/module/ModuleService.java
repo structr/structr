@@ -201,10 +201,6 @@ public class ModuleService implements SingletonService {
         if (modulesConf != null) {
             if (success) {
                 modulesConf.setProperty(moduleName, "active");
-
-            } else {
-                modulesConf.setProperty(moduleName, "inactive");
-
             }
 
             // save changes to disk
