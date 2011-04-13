@@ -165,8 +165,8 @@ public class CreateNode extends Nodes {
         public String getIconSrc() {
             try {
                 return implClass.newInstance().getIconSrc();
-            } catch (Exception ignore) {
-                return (new EmptyNode()).getIconSrc();
+            } catch (Throwable ignore) {
+                return "/images/error.png";
             }
         }
 
