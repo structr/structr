@@ -22,6 +22,7 @@ public interface InteractiveNode
 	 * @return the parsed value or null of an error occurred
 	 */
 	public Object getValue();
+        public String getStringValue();
 
 	public void setMappedName(String mappedName);
 	public String getMappedName();

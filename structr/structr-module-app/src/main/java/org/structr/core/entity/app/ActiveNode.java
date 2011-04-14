@@ -76,6 +76,9 @@ public abstract class ActiveNode extends AbstractNode
 							slot.setSource(source);
 
 							Object value = source.getValue();
+
+                                                        storeValue(name, value);
+                                                        
 							boolean accepted = slot.accepts(value);
 
 							if(accepted)
@@ -140,6 +143,7 @@ public abstract class ActiveNode extends AbstractNode
 				AbstractNode failureTarget = getFailureTarget();
 				if(failureTarget != null)
 				{
+
 					StructrContext.redirect(user, failureTarget);
 				}
 			}
@@ -277,6 +281,29 @@ public abstract class ActiveNode extends AbstractNode
 			if(source != null)
 			{
 				source.setErrorValue(errorValue);
+			}
+		}
+	}
+
+
+        /**
+         * Store value in session to make it survive the redirect
+         * 
+         * @param slotName
+         * @param value
+         */
+	protected void storeValue(String slotName, Object value)
+	{
+		Slot slot = getInputSlots().get(slotName);
+		if(slot != null)
+		{
+			InteractiveNode source = slot.getSource();
+			if(source != null && value != null)
+			{
+                            SessionValue<String> valueFromRequest = new SessionValue<String>("last_" + source.getName());
+                            logger.log(Level.INFO, "Saved " + "last_" + "{0}: {1}", new Object[]{source.getName(), value});
+
+                            valueFromRequest.set(value.toString());
 			}
 		}
 	}
