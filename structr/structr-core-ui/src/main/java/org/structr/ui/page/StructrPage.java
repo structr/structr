@@ -207,6 +207,11 @@ public class StructrPage extends Page {
 
     }
 
+    @Override
+    public void onDestroy()
+    {
+	    callCallbacks();
+    }
     /**
      * @see Page#onSecurityCheck()
      */
@@ -531,5 +536,10 @@ public class StructrPage extends Page {
         }
 
         return false;
+    }
+
+    private void callCallbacks()
+    {
+	    StructrContext.callCallbacks();
     }
 }

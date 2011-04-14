@@ -5,6 +5,7 @@
 
 package org.structr.core.entity.app;
 
+import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import org.structr.common.StructrContext;
@@ -15,8 +16,8 @@ import org.structr.common.StructrContext;
  */
 public class SessionValue<T>
 {
-	protected String key = null;
 	protected T defaultValue = null;
+	protected String key = null;
 
 	/**
 	 * Constructs a new property without a default value.

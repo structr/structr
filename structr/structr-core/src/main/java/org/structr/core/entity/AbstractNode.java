@@ -2370,4 +2370,15 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
         }
 
     }
+
+	// ----- protected methods -----
+	protected String createUniqueIdentifier(String prefix)
+	{
+		StringBuilder ret = new StringBuilder(100);
+
+		ret.append(prefix);
+		ret.append(getIdString());
+
+		return(ret.toString());
+	}
 }

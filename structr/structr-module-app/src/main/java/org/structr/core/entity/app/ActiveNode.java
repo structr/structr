@@ -77,10 +77,7 @@ public abstract class ActiveNode extends AbstractNode
 
 							Object value = source.getValue();
 
-                                                        storeValue(name, value);
-                                                        
 							boolean accepted = slot.accepts(value);
-
 							if(accepted)
 							{
 								values.put(name, value);
@@ -131,6 +128,7 @@ public abstract class ActiveNode extends AbstractNode
 			if(executionSuccessful)
 			{
 				// redirect to success page
+				// saved session values can be reset!
 				AbstractNode successTarget = getSuccessTarget();
 				if(successTarget != null)
 				{
@@ -140,10 +138,10 @@ public abstract class ActiveNode extends AbstractNode
 			} else
 			{
 				// redirect to error page
+				// saved session values must be kept
 				AbstractNode failureTarget = getFailureTarget();
 				if(failureTarget != null)
 				{
-
 					StructrContext.redirect(user, failureTarget);
 				}
 			}
@@ -259,17 +257,6 @@ public abstract class ActiveNode extends AbstractNode
 		}
 
 		return(inputSlots);
-	}
-
-	// ----- protected methods -----
-	protected String createUniqueIdentifier(String prefix)
-	{
-		StringBuilder ret = new StringBuilder(100);
-
-		ret.append(prefix);
-		ret.append(getIdString());
-
-		return(ret.toString());
 	}
 
 	protected void setErrorValue(String slotName, Object errorValue)

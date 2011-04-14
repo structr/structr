@@ -8,6 +8,9 @@ package org.structr.common;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.logging.Level;
@@ -15,7 +18,6 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import javax.swing.text.View;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.User;
 
@@ -33,6 +35,7 @@ public class StructrContext
 	// ----- private attributes -----
 	private static final Map<Thread, StructrContext> contextMap = Collections.synchronizedMap(new WeakHashMap<Thread, StructrContext>());
 	private Map<String, Object> attributes = new HashMap<String, Object>();		// no need to be synchronized
+	private final List<Callback> callbacks = new LinkedList<Callback>();
 	private HttpServletResponse internalResponse = null;
 	private HttpServletRequest internalRequest = null;
 
@@ -113,6 +116,16 @@ public class StructrContext
 		return(getRequest().getContextPath().concat("/view".concat(node.getNodePath(user).replace("&", "%26"))));
 	}
 
+	public static void registerCallback(Callback callback)
+	{
+		getContext().registerCallbackInternal(callback);
+	}
+
+	public static void callCallbacks()
+	{
+		getContext().callCallbacksInternal();
+	}
+
 	// ----- private methods -----
 	private void setRequestInternal(HttpServletRequest request)
 	{
@@ -142,6 +155,38 @@ public class StructrContext
 	private Object getAttributeInternal(String key)
 	{
 		return(this.attributes.get(key));
+	}
+
+	private void registerCallbackInternal(Callback callback)
+	{
+		synchronized(callbacks)
+		{
+			this.callbacks.add(callback);
+		}
+	}
+
+	private void callCallbacksInternal()
+	{
+		synchronized(callbacks)
+		{
+			for(Iterator<Callback> it = callbacks.iterator(); it.hasNext();)
+			{
+				Callback callback = it.next();
+
+				try
+				{
+					callback.callback();
+
+				} catch(Throwable t)
+				{
+					// do not let any exception prevent
+					// the callback list from being cleared
+				}
+
+				// remove current element
+				it.remove();
+			}
+		}
 	}
 
 	// ----- private static methods -----
