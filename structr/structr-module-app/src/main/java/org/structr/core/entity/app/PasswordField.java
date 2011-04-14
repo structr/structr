@@ -25,7 +25,6 @@ public class PasswordField extends TextField implements InteractiveNode
 	@Override
 	public void renderView(final StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user)
 	{
-
 		String name = getName();
 		String label = getLabel();
 		Object value = getValue();
