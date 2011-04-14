@@ -16,6 +16,7 @@ import org.structr.core.entity.User;
  *
  * @author Christian Morgner
  */
+
 public class TextField extends FormField implements InteractiveNode {
 
     private static final Logger logger = Logger.getLogger(TextField.class.getName());
@@ -154,4 +155,5 @@ public class TextField extends FormField implements InteractiveNode {
     public void setErrorValue(Object errorValue) {
         errorMessage.set(errorValue.toString());
     }
+
 }
