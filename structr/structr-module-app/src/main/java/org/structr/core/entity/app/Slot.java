@@ -11,27 +11,13 @@ package org.structr.core.entity.app;
  */
 public abstract class Slot
 {
-	private boolean mandatory = false;
+	private InteractiveNode source = null;
 	private Object value = null;
 
 	public abstract Class getParameterType();
 	public abstract boolean accepts(Object value);
 
-	public Slot(boolean mandatory)
-	{
-		this.mandatory = mandatory;
-	}
-
-	public void setMandatory(boolean mandatory)
-	{
-		this.mandatory = mandatory;
-	}
-
-	public boolean isMandatory()
-	{
-		return(mandatory);
-	}
-
+	// ----- builtin methods -----
 	public void setValue(Object value)
 	{
 		this.value = value;
@@ -40,5 +26,15 @@ public abstract class Slot
 	public Object getValue()
 	{
 		return(value);
+	}
+
+	public void setSource(InteractiveNode source)
+	{
+		this.source = source;
+	}
+
+	public InteractiveNode getSource()
+	{
+		return(source);
 	}
 }

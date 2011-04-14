@@ -58,7 +58,7 @@ public class AppLogin extends ActiveNode
 
 		if(alreadyLoggedIn)
 		{
-			return(false);
+			return(true);
 		}
 
 		Boolean sessionBlocked = getSessionBlockedValue().get();
@@ -86,7 +86,7 @@ public class AppLogin extends ActiveNode
 
 		if(StringUtils.isEmpty(username))
 		{
-			getErrorMessageValue().set("You must enter a username");
+			setErrorValue(USERNAME_FIELD_NAME, "You must enter a username");
 			countLoginFailure(maxRetries, delayThreshold, delayTime);
 
 			return(false);
@@ -94,7 +94,7 @@ public class AppLogin extends ActiveNode
 
 		if(StringUtils.isEmpty(password))
 		{
-			getErrorMessageValue().set("You must enter a password");
+			setErrorValue(PASSWORD_FIELD_NAME, "You must enter a password");
 			countLoginFailure(maxRetries, delayThreshold, delayTime);
 
 			return(false);
@@ -150,6 +150,7 @@ public class AppLogin extends ActiveNode
 		// Clear all blocking stuff
 		getSessionBlockedValue().set(false);
 		getLoginAttemptsValue().set(0);
+		getErrorMessageValue().set(null);
 
 		// set success message
 		getOkMessageValue().set("Login successful.");
@@ -169,9 +170,9 @@ public class AppLogin extends ActiveNode
 	{
 		Map<String, Slot> ret = new LinkedHashMap<String, Slot>();
 
-		ret.put(USERNAME_FIELD_NAME, new StringSlot(true));
-		ret.put(PASSWORD_FIELD_NAME, new StringSlot(true));
-		ret.put(ANTI_ROBOT_FIELD_NAME, new NullSlot(String.class, true));
+		ret.put(USERNAME_FIELD_NAME, new StringSlot());
+		ret.put(PASSWORD_FIELD_NAME, new StringSlot());
+		ret.put(ANTI_ROBOT_FIELD_NAME, new NullSlot(String.class));
 
 		return (ret);
 	}

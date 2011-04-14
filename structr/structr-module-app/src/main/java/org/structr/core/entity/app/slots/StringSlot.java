@@ -6,6 +6,7 @@
 package org.structr.core.entity.app.slots;
 
 import org.apache.commons.lang.StringUtils;
+import org.structr.core.entity.app.InteractiveNode;
 import org.structr.core.entity.app.Slot;
 
 /**
@@ -14,11 +15,6 @@ import org.structr.core.entity.app.Slot;
  */
 public class StringSlot extends Slot
 {
-	public StringSlot(boolean mandatory)
-	{
-		super(mandatory);
-	}
-
 	@Override
 	public Class getParameterType()
 	{
