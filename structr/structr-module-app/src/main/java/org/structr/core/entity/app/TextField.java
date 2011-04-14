@@ -20,9 +20,6 @@ public class TextField extends FormField implements InteractiveNode {
     private String mappedName = null;
 
     public TextField() {
-
-        // reset error message
-        errorMessage.set("");
     }
 
     @Override
@@ -44,7 +41,7 @@ public class TextField extends FormField implements InteractiveNode {
         out.append("<input");
 
         if (errorMessage.get().length() > 0) {
-            out.append("class=\"error\")");
+            out.append(" class=\"error\")");
         }
 
         out.append(" type=\"text\" name=\"").append(name).append("\" value=\"").append(value != null ? value : "").append("\">");
