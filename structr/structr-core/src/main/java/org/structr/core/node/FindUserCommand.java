@@ -19,7 +19,15 @@ import org.structr.core.entity.User;
 import org.structr.core.node.search.SearchAttribute;
 
 /**
- * Searches for a user node by her/his name in the database and returns the result.
+ * <p>Searches for a user node by her/his name in the database and returns the result.</p>
+ *
+ * <p>This command takes one or two parameters:</p>
+ *
+ * <ol>
+ *  <li>first parameter: User name
+ *  <li>second parameter (optional): Top node, return users beneath this node
+ * </ol>
+ *
  *
  * @author amorgner
  */
@@ -67,7 +75,7 @@ public class FindUserCommand extends NodeServiceCommand {
                         if (usersFound != null && usersFound.size() > 0) {
                             return usersFound.get(0);
                         } else {
-                            logger.log(Level.SEVERE, "No user with name {0} found. Contact superadmin", userName);
+                            logger.log(Level.SEVERE, "No user with name {0} found.", userName);
                             return null;
                         }
 
@@ -76,14 +84,24 @@ public class FindUserCommand extends NodeServiceCommand {
 
                 case 2:
 
-                    // we have user name and domain
-                    if (parameters[0] instanceof String && parameters[1] instanceof String) {
+                    // Limit search to a top node, means: Return users which are in the CHILD tree beneath a given node
+                    if (parameters[0] instanceof String && parameters[1] instanceof AbstractNode) {
 
                         String userName = (String) parameters[0];
-                        String domainName = (String) parameters[1];
+                        AbstractNode topNode = (AbstractNode) parameters[1];
 
-                        userXPath = "//Domain[@name='" + domainName + "']/*/User[@name='" + userName + "']";
-                        //userXPath = "//User[@name='" + userName + "']";
+                        List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
+                        searchAttrs.add(Search.andExactName(userName));
+                        searchAttrs.add(Search.andExactType(User.class.getSimpleName()));
+
+                        List<AbstractNode> usersFound = (List<AbstractNode>) searchNode.execute(topNode, null, false, false, searchAttrs);
+
+                        if (usersFound != null && usersFound.size() > 0) {
+                            return usersFound.get(0);
+                        } else {
+                            logger.log(Level.SEVERE, "No user with name {0} found.", userName);
+                            return null;
+                        }
 
                     }
                     break;
