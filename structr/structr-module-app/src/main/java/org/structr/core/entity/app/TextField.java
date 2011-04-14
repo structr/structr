@@ -4,6 +4,8 @@
  */
 package org.structr.core.entity.app;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.StructrContext;
@@ -14,84 +16,124 @@ import org.structr.core.entity.User;
  *
  * @author Christian Morgner
  */
-public class TextField extends FormField implements InteractiveNode {
+public class TextField extends FormField implements InteractiveNode
+{
+	private static final Logger logger = Logger.getLogger(TextField.class.getName());
 
-    private SessionValue<String> errorMessage = new SessionValue<String>("errorMessage", "");
-    private String mappedName = null;
+	private SessionValue<String> errorMessage = new SessionValue<String>("errorMessage", "");
+	private String mappedName = null;
 
-    public TextField() {
-    }
+	public TextField()
+	{
 
-    @Override
-    public String getIconSrc() {
-        return "/images/textfield.png";
-    }
+		// reset error message
+		errorMessage.set("");
+	}
 
-    @Override
-    public void renderView(final StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user) {
+	@Override
+	public String getIconSrc()
+	{
+		return "/images/textfield.png";
+	}
 
-        String name = getName();
-        String label = getLabel();
-        Object value = getValue();
+	@Override
+	public void renderView(final StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user)
+	{
+		// if this page is requested to be edited, render edit frame
+		if(editNodeId != null && getId() == editNodeId.longValue())
+		{
 
-        if (label != null) {
-            out.append("<div class=\"label\">").append(label).append("</div>");
-        }
-        
-        out.append("<input");
+			renderEditFrame(out, editUrl);
 
-        if (errorMessage.get().length() > 0) {
-            out.append(" class=\"error\")");
-        }
+			// otherwise, render subnodes in edit mode
+		} else
+		{
 
-        out.append(" type=\"text\" name=\"").append(name).append("\" value=\"").append(value != null ? value : "").append("\">");
+			if(hasTemplate(user))
+			{
+				template.setCallingNode(this);
+				template.renderView(out, startNode, editUrl, editNodeId, user);
 
-        if (errorMessage.get().length() > 0) {
-            out.append(errorMessage.get());
-        }
+			} else
+			{
+				logger.log(Level.WARNING, "Encountered TextField without template: {0}", this);
 
-    }
+				// TODO: default template for TextField?
+			}
+		}
 
-    // ----- interface InteractiveNode -----
-    @Override
-    public String getValue() {
-        HttpServletRequest request = StructrContext.getRequest();
-        String name = getName();
-        String ret = null;
+		/* TODO: remove this code when transition to template-based input is finished
+		String name = getName();
+		String label = getLabel();
+		Object value = getValue();
 
-        if (request != null) {
-            ret = request.getParameter(name);
-            if (ret != null && ret.length() == 0) {
-                ret = null;
-            }
-        }
+		if(label != null)
+		{
+			out.append("<div class=\"label\">").append(label).append("</div>");
+		}
 
-        return (ret);
-    }
+		out.append("<input");
 
-    @Override
-    public Class getParameterType() {
-        return (String.class);
-    }
+		if(errorMessage.get().length() > 0)
+		{
+			out.append("class=\"error\")");
+		}
 
-    @Override
-    public void setMappedName(String mappedName) {
-        this.mappedName = mappedName;
-    }
+		out.append(" type=\"text\" name=\"").append(name).append("\" value=\"").append(value != null ? value : "").append("\">");
 
-    @Override
-    public String getMappedName() {
-        if (StringUtils.isNotBlank(mappedName)) {
-            return (mappedName);
-        }
+		if(errorMessage.get().length() > 0)
+		{
+			out.append(errorMessage.get());
+		}
+		*/
+	}
 
-        return (getName());
-    }
+	// ----- interface InteractiveNode -----
+	@Override
+	public String getValue()
+	{
+		HttpServletRequest request = StructrContext.getRequest();
+		String name = getName();
+		String ret = null;
 
-    @Override
-    public void setErrorCondition(boolean error) {
-        if (error) {
-            errorMessage.set("Error");
-        }
-    }
+		if(request != null)
+		{
+			ret = request.getParameter(name);
+			if(ret != null && ret.length() == 0)
+			{
+				ret = null;
+			}
+		}
+
+		return (ret);
+	}
+
+	@Override
+	public Class getParameterType()
+	{
+		return (String.class);
+	}
+
+	@Override
+	public void setMappedName(String mappedName)
+	{
+		this.mappedName = mappedName;
+	}
+
+	@Override
+	public String getMappedName()
+	{
+		if(StringUtils.isNotBlank(mappedName))
+		{
+			return (mappedName);
+		}
+
+		return (getName());
+	}
+
+	@Override
+	public void setErrorValue(Object errorValue)
+	{
+		errorMessage.set(errorValue.toString());
+	}
 }

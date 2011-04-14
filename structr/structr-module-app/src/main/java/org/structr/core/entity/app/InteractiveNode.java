@@ -13,7 +13,6 @@ package org.structr.core.entity.app;
 public interface InteractiveNode
 {
 	public Class getParameterType();
-
 	public String getName();
 
 	/**
@@ -27,5 +26,11 @@ public interface InteractiveNode
 	public void setMappedName(String mappedName);
 	public String getMappedName();
 
-	public void setErrorCondition(boolean error);
+	/**
+	 * This method will be called from the node that handles the
+	 * request.
+	 * 
+	 * @param errorValue
+	 */
+	public void setErrorValue(Object errorValue);
 }

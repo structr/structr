@@ -11,32 +11,43 @@ import org.structr.core.entity.User;
  *
  * @author Axel Morgner
  */
-public class PasswordField extends TextField implements InteractiveNode {
+public class PasswordField extends TextField implements InteractiveNode
+{
+	private SessionValue<String> errorMessage = new SessionValue<String>("errorMessage", "");
 
-    private SessionValue<String> errorMessage = new SessionValue<String>("errorMessage", "");
+	public PasswordField()
+	{
 
-    public PasswordField() {
-    }
+		// reset error message
+		errorMessage.set(null);
+	}
 
-    @Override
-    public void renderView(final StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user) {
+	@Override
+	public void renderView(final StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user)
+	{
+		String name = getName();
+		String label = getLabel();
+		Object value = getValue();
 
-        String name = getName();
-        String label = getLabel();
-        Object value = getValue();
+		if(label != null)
+		{
+			out.append("<div class=\"label\">").append(label).append("</div>");
+		}
 
-        if (label != null) {
-            out.append("<div class=\"label\">").append(label).append("</div>");
-        }
-        
-        out.append("<input");
+		out.append("<input");
 
-        if (errorMessage.get().length() > 0) {
-            out.append(" class=\"error\")");
-        }
+		if(errorMessage.get().length() > 0)
+		{
+			out.append("class=\"error\")");
+		}
 
-        out.append(" type=\"password\" name=\"").append(name).append("\" value=\"").append(value != null ? value : "").append("\">");
+		out.append(" type=\"password\" name=\"").append(name).append("\" value=\"").append(value != null ? value : "").append("\">");
 
-    }
+	}
 
+	@Override
+	public void setErrorValue(Object errorValue)
+	{
+		errorMessage.set(errorValue.toString());
+	}
 }

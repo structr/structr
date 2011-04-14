@@ -5,6 +5,7 @@
 
 package org.structr.core.entity.app;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -27,7 +28,9 @@ public abstract class ActiveNode extends AbstractNode
 {
 	private static final Logger logger = Logger.getLogger(ActiveNode.class.getName());
 	private static final String TARGET_SLOT_NAME_KEY =		"targetSlotName";
-        private List<StructrRelationship> incomingDataRelationships = null;
+
+	private List<StructrRelationship> incomingDataRelationships = null;
+	private Map<String, Slot> inputSlots = null;
 
 	public abstract boolean execute(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user);
 	public abstract Map<String, Slot> getSlots();
@@ -55,7 +58,7 @@ public abstract class ActiveNode extends AbstractNode
 			// check incoming DATA relationships here
 			// endpoint must implement InteractiveNode of the correct type
 			List<InteractiveNode> dataSources = getDataSources();
-			Map<String, Slot> slots = getSlots();
+			Map<String, Slot> slots = getInputSlots();
 			boolean executionSuccessful = false;
 			boolean slotsSuccessful = true;
 
@@ -70,32 +73,28 @@ public abstract class ActiveNode extends AbstractNode
 
 						if(slot.getParameterType().equals(source.getParameterType()))
 						{
+							slot.setSource(source);
+
 							Object value = source.getValue();
 							boolean accepted = slot.accepts(value);
 
 							if(accepted)
 							{
 								values.put(name, value);
-
 							}
 
-							// check if this slot is mandatory and if the value was != null
-							boolean errorCondition = (slot.isMandatory() && accepted);
-							source.setErrorCondition(errorCondition);
-
 							logger.log(Level.INFO,
-								"sourceName: {0}, mappedName: {1}, value: {2}, mandatory: {3}, errorCondition: {4}",
+								"sourceName: {0}, mappedName: {1}, value: {2}, errorCondition: {3}",
 								new Object[]
 								{
 									source.getName(),
 									source.getMappedName(),
 									value,
-									slot.isMandatory(),
-									errorCondition
+									!accepted
 								}
 							);
 
-							slotsSuccessful &= errorCondition;
+							slotsSuccessful &= accepted;
 						} else
 						{
 							logger.log(Level.INFO, "Parameter type mismatch: expected {0}, found {1}",
@@ -114,12 +113,16 @@ public abstract class ActiveNode extends AbstractNode
 				}
 			}
 
+			logger.log(Level.INFO, "slotsSuccessful: {0}", slotsSuccessful );
+
 			if(slotsSuccessful)
 			{
+				logger.log(Level.INFO, "executing active node action..");
+
 				executionSuccessful = execute(out, startNode, editUrl, editNodeId, user);
 			}
 
-			logger.log(Level.FINE, "slotsSuccessful: {0}, executionSuccessful: {1}", new Object[] { slotsSuccessful, executionSuccessful } );
+			logger.log(Level.INFO, "executionSuccessful: {0}", executionSuccessful );
 
 			// the next block will be entered if slotsSuccessful was false, or if executionSuccessful was false!
 			if(executionSuccessful)
@@ -145,7 +148,27 @@ public abstract class ActiveNode extends AbstractNode
 
 	public Object getValue(String name)
 	{
-		return(values.get(name));
+		Slot slot = getInputSlots().get(name);
+		if(slot != null)
+		{
+			InteractiveNode source = slot.getSource();
+			if(source != null)
+			{
+				return(source.getValue());
+
+			} else
+			{
+				logger.log(Level.WARNING, "source for {0} was null", name);
+			}
+		} else
+		{
+			logger.log(Level.WARNING, "slot for {0} was null", name);
+		}
+
+		logger.log(Level.WARNING, "No source found for slot {0}, returning null", name);
+
+		// value not found
+		return(null);
 	}
 
         /**
@@ -218,6 +241,22 @@ public abstract class ActiveNode extends AbstractNode
 		return(ret);
 	}
 
+	private Map<String, Slot> getInputSlots()
+	{
+		if(inputSlots == null)
+		{
+			inputSlots = getSlots();
+
+			if(inputSlots == null)
+			{
+				// return empty map on failure
+				inputSlots = new HashMap<String, Slot>();
+			}
+		}
+
+		return(inputSlots);
+	}
+
 	// ----- protected methods -----
 	protected String createUniqueIdentifier(String prefix)
 	{
@@ -227,5 +266,18 @@ public abstract class ActiveNode extends AbstractNode
 		ret.append(getIdString());
 
 		return(ret.toString());
+	}
+
+	protected void setErrorValue(String slotName, Object errorValue)
+	{
+		Slot slot = getInputSlots().get(slotName);
+		if(slot != null)
+		{
+			InteractiveNode source = slot.getSource();
+			if(source != null)
+			{
+				source.setErrorValue(errorValue);
+			}
+		}
 	}
 }

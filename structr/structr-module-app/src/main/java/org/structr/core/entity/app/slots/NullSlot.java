@@ -15,10 +15,8 @@ public class NullSlot extends Slot
 {
 	private Class type = null;
 
-	public NullSlot(Class type, boolean mandatory)
+	public NullSlot(Class type)
 	{
-		super(mandatory);
-
 		this.type = type;
 	}
 
