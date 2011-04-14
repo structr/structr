@@ -25,9 +25,8 @@ public class TextField extends FormField implements InteractiveNode
 
 	public TextField()
 	{
-
 		// reset error message
-		errorMessage.set("");
+		errorMessage.set(null);
 	}
 
 	@Override
