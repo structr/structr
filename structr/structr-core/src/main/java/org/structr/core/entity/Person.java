@@ -1,5 +1,7 @@
 package org.structr.core.entity;
 
+import java.util.Date;
+
 /**
  * 
  * @author amorgner
@@ -27,7 +29,10 @@ public class Person extends Principal {
     public final static String STREET_KEY = "street";
     public final static String ZIP_CODE_KEY = "zipCode";
     public final static String CITY_KEY = "city";
+    public final static String STATE_KEY = "state";
     public final static String COUNTRY_KEY = "country";
+    public final static String BIRTHDAY_KEY = "birthday";
+    public final static String GENDER_KEY = "gender";
     public final static String NEWSLETTER_KEY = "newsletter";
     private final static String ICON_SRC = "/images/user.png";
 
@@ -197,6 +202,14 @@ public class Person extends Principal {
         return (String) getProperty(ZIP_CODE_KEY);
     }
 
+    public void setState(final String value) {
+        setProperty(STATE_KEY, value);
+    }
+
+    public String getState() {
+        return (String) getProperty(STATE_KEY);
+    }
+
     public void setCountry(final String value) {
         setProperty(COUNTRY_KEY, value);
     }
@@ -219,5 +232,21 @@ public class Person extends Principal {
 
     public boolean getNewsletter() {
         return getBooleanProperty(NEWSLETTER_KEY);
+    }
+
+    public void setBirthday(final Date value) {
+        setProperty(BIRTHDAY_KEY, value);
+    }
+
+    public Date getBirthday() {
+        return getDateProperty(BIRTHDAY_KEY);
+    }
+
+    public void setGender(final String value) {
+        setProperty(GENDER_KEY, value);
+    }
+
+    public String getGender() {
+        return (String) getProperty(GENDER_KEY);
     }
 }
