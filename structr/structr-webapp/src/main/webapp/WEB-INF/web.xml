@@ -5,11 +5,6 @@
         <param-name>config-service-class</param-name>
         <param-value>org.structr.ui.config.StructrConfigService</param-value>
     </context-param>
-    <context-param>
-        <description>The base path of this structr installation</description>
-        <param-name>base.path</param-name>
-        <param-value>/opt/structr/t5s</param-value>
-    </context-param>
     <filter>
         <filter-name>UrlRewriteFilter</filter-name>
         <filter-class>org.tuckey.web.filters.urlrewrite.UrlRewriteFilter</filter-class>
@@ -81,7 +76,7 @@
     <context-param>
         <description>Config file, relative to base path</description>
         <param-name>configfile.path</param-name>
-        <param-value>/opt/structr/structr.conf</param-value>
+        <param-value>/opt/structr/t5s/structr.conf</param-value>
     </context-param>
 <!--    <context-param>
         <description>Application Title</description>
