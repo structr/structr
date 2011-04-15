@@ -4,6 +4,8 @@
  */
 package org.structr.core.entity.web;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
@@ -12,6 +14,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.time.DateUtils;
 import org.jsoup.Jsoup;
 import org.structr.common.MailHelper;
 import org.structr.common.RelType;
@@ -69,6 +72,7 @@ public class RegistrationCheck extends LoginCheck {
     private final static String REGISTRATION_FAILURE_MANDATORY_FIELD_EMPTY = "Please fill out all mandatory fields!";
     private final static String REGISTRATION_FAILURE_NOT_AGREED_TO_TERMS_OF_USE = "To register, you have to agree to the terms of use!";
     private final static String REGISTRATION_FAILURE_WEAK_PASSWORD = "Your password is too weak, it must have at least 6 characters, contain at least one digit, one upper case and one lower case character.";
+    private final static String REGISTRATION_FAILURE_INVALID_DATE = "Invalid date format";
     public final static String PUBLIC_USER_DIRECTORY_NAME_KEY = "publicUserDirectoryName";
     public final static String SENDER_ADDRESS_KEY = "senderAddress";
     public final static String SENDER_NAME_KEY = "senderName";
@@ -76,14 +80,6 @@ public class RegistrationCheck extends LoginCheck {
     public final static String ASSIGNED_USERNAME_KEY = "assignedUsername";
     public final static String CONFIRMATION_KEY_FIELD_NAME_KEY = "confirmationKeyFieldName";
     public final static String CONFIRM_PASSWORD_FIELD_NAME_KEY = "confirmPasswordFieldName";
-    public final static String FIRST_NAME_FIELD_NAME_KEY = "firstNameFieldName";
-    public final static String LAST_NAME_FIELD_NAME_KEY = "lastNameFieldName";
-    public final static String EMAIL_FIELD_NAME_KEY = "emailFieldName";
-    public final static String CONFIRM_EMAIL_FIELD_NAME_KEY = "confirmEmailFieldName";
-    public final static String ZIP_CODE_FIELD_NAME_KEY = "zipCodeFieldName";
-    public final static String CITY_FIELD_NAME_KEY = "cityFieldName";
-    public final static String STREET_FIELD_NAME_KEY = "streetFieldName";
-    public final static String COUNTRY_FIELD_NAME_KEY = "countryFieldName";
     public final static String AGREED_TO_TERMS_OF_USE_FIELD_NAME_KEY = "agreedToTermsOfUseFieldName";
     public final static String NEWSLETTER_FIELD_NAME_KEY = "newsletterFieldName";
     private List<String> errors = new LinkedList<String>();
@@ -130,7 +126,7 @@ public class RegistrationCheck extends LoginCheck {
      * @return
      */
     public String getFirstNameFieldName() {
-        return getStringProperty(FIRST_NAME_FIELD_NAME_KEY);
+        return getStringProperty(RegistrationForm.FIRST_NAME_FIELD_NAME_KEY);
     }
 
     /**
@@ -139,7 +135,7 @@ public class RegistrationCheck extends LoginCheck {
      * @param value
      */
     public void setFirstNameFieldName(final String value) {
-        setProperty(FIRST_NAME_FIELD_NAME_KEY, value);
+        setProperty(RegistrationForm.FIRST_NAME_FIELD_NAME_KEY, value);
     }
 
     /**
@@ -148,7 +144,7 @@ public class RegistrationCheck extends LoginCheck {
      * @return
      */
     public String getLastNameFieldName() {
-        return getStringProperty(LAST_NAME_FIELD_NAME_KEY);
+        return getStringProperty(RegistrationForm.LAST_NAME_FIELD_NAME_KEY);
     }
 
     /**
@@ -157,7 +153,7 @@ public class RegistrationCheck extends LoginCheck {
      * @param value
      */
     public void setLastNameFieldName(final String value) {
-        setProperty(LAST_NAME_FIELD_NAME_KEY, value);
+        setProperty(RegistrationForm.LAST_NAME_FIELD_NAME_KEY, value);
     }
 
     /**
@@ -166,7 +162,7 @@ public class RegistrationCheck extends LoginCheck {
      * @return
      */
     public String getEmailFieldName() {
-        return getStringProperty(EMAIL_FIELD_NAME_KEY);
+        return getStringProperty(RegistrationForm.EMAIL_FIELD_NAME_KEY);
     }
 
     /**
@@ -175,7 +171,7 @@ public class RegistrationCheck extends LoginCheck {
      * @param value
      */
     public void setEmailFieldName(final String value) {
-        setProperty(EMAIL_FIELD_NAME_KEY, value);
+        setProperty(RegistrationForm.EMAIL_FIELD_NAME_KEY, value);
     }
 
     /**
@@ -184,7 +180,7 @@ public class RegistrationCheck extends LoginCheck {
      * @return
      */
     public String getConfirmEmailFieldName() {
-        return getStringProperty(CONFIRM_EMAIL_FIELD_NAME_KEY);
+        return getStringProperty(RegistrationForm.CONFIRM_EMAIL_FIELD_NAME_KEY);
     }
 
     /**
@@ -193,7 +189,7 @@ public class RegistrationCheck extends LoginCheck {
      * @param value
      */
     public void setConfirmEmailFieldName(final String value) {
-        setProperty(CONFIRM_EMAIL_FIELD_NAME_KEY, value);
+        setProperty(RegistrationForm.CONFIRM_EMAIL_FIELD_NAME_KEY, value);
     }
 
     /**
@@ -202,7 +198,7 @@ public class RegistrationCheck extends LoginCheck {
      * @return
      */
     public String getZipCodeFieldName() {
-        return getStringProperty(ZIP_CODE_FIELD_NAME_KEY);
+        return getStringProperty(RegistrationForm.ZIP_CODE_FIELD_NAME_KEY);
     }
 
     /**
@@ -211,7 +207,7 @@ public class RegistrationCheck extends LoginCheck {
      * @param value
      */
     public void setZipCodeFieldName(final String value) {
-        setProperty(ZIP_CODE_FIELD_NAME_KEY, value);
+        setProperty(RegistrationForm.ZIP_CODE_FIELD_NAME_KEY, value);
     }
 
     /**
@@ -220,7 +216,7 @@ public class RegistrationCheck extends LoginCheck {
      * @return
      */
     public String getCityFieldName() {
-        return getStringProperty(CITY_FIELD_NAME_KEY);
+        return getStringProperty(RegistrationForm.CITY_FIELD_NAME_KEY);
     }
 
     /**
@@ -229,7 +225,7 @@ public class RegistrationCheck extends LoginCheck {
      * @param value
      */
     public void setCityFieldName(final String value) {
-        setProperty(CITY_FIELD_NAME_KEY, value);
+        setProperty(RegistrationForm.CITY_FIELD_NAME_KEY, value);
     }
 
     /**
@@ -238,7 +234,7 @@ public class RegistrationCheck extends LoginCheck {
      * @return
      */
     public String getStreetFieldName() {
-        return getStringProperty(STREET_FIELD_NAME_KEY);
+        return getStringProperty(RegistrationForm.STREET_FIELD_NAME_KEY);
     }
 
     /**
@@ -247,8 +243,27 @@ public class RegistrationCheck extends LoginCheck {
      * @param value
      */
     public void setStreetFieldName(final String value) {
-        setProperty(STREET_FIELD_NAME_KEY, value);
+        setProperty(RegistrationForm.STREET_FIELD_NAME_KEY, value);
     }
+
+    /**
+     * Return name of state field
+     *
+     * @return
+     */
+    public String getStateFieldName() {
+        return getStringProperty(RegistrationForm.STATE_FIELD_NAME_KEY);
+    }
+
+    /**
+     * Set name of state field
+     *
+     * @param value
+     */
+    public void setStateFieldName(final String value) {
+        setProperty(RegistrationForm.STATE_FIELD_NAME_KEY, value);
+    }
+
 
     /**
      * Return name of country field
@@ -256,7 +271,7 @@ public class RegistrationCheck extends LoginCheck {
      * @return
      */
     public String getCountryFieldName() {
-        return getStringProperty(COUNTRY_FIELD_NAME_KEY);
+        return getStringProperty(RegistrationForm.COUNTRY_FIELD_NAME_KEY);
     }
 
     /**
@@ -265,7 +280,43 @@ public class RegistrationCheck extends LoginCheck {
      * @param value
      */
     public void setCountryFieldName(final String value) {
-        setProperty(COUNTRY_FIELD_NAME_KEY, value);
+        setProperty(RegistrationForm.COUNTRY_FIELD_NAME_KEY, value);
+    }
+
+    /**
+     * Return name of birthday field
+     *
+     * @return
+     */
+    public String getBirthdayFieldName() {
+        return getStringProperty(RegistrationForm.BIRTHDAY_FIELD_NAME_KEY);
+    }
+
+    /**
+     * Set name of birthday field
+     *
+     * @param value
+     */
+    public void setBirthdayFieldName(final String value) {
+        setProperty(RegistrationForm.BIRTHDAY_FIELD_NAME_KEY, value);
+    }
+
+    /**
+     * Return name of gender field
+     *
+     * @return
+     */
+    public String getGenderFieldName() {
+        return getStringProperty(RegistrationForm.GENDER_FIELD_NAME_KEY);
+    }
+
+    /**
+     * Set name of gender field
+     *
+     * @param value
+     */
+    public void setGenderFieldName(final String value) {
+        setProperty(RegistrationForm.GENDER_FIELD_NAME_KEY, value);
     }
 
     /**
@@ -452,6 +503,9 @@ public class RegistrationCheck extends LoginCheck {
             String zipCodeFieldName = getZipCodeFieldName() != null ? getZipCodeFieldName() : RegistrationForm.defaultZipCodeFieldName;
             String cityFieldName = getCityFieldName() != null ? getCityFieldName() : RegistrationForm.defaultCityFieldName;
             String countryFieldName = getCountryFieldName() != null ? getCountryFieldName() : RegistrationForm.defaultCountryFieldName;
+            String stateFieldName = getStateFieldName() != null ? getStateFieldName() : RegistrationForm.defaultStateFieldName;
+            String birthdayFieldName = getBirthdayFieldName() != null ? getBirthdayFieldName() : RegistrationForm.defaultBirthdayFieldName;
+            String genderFieldName = getGenderFieldName() != null ? getGenderFieldName() : RegistrationForm.defaultGenderFieldName;
 
             String agreedToTermsOfUseFieldName = getAgreedToTermsOfUseFieldName() != null ? getAgreedToTermsOfUseFieldName() : RegistrationForm.defaultAgreedToTermsOfUseFieldName;
             String newsletterFieldName = getNewsletterFieldName() != null ? getNewsletterFieldName() : RegistrationForm.defaultNewsletterFieldName;
@@ -475,7 +529,10 @@ public class RegistrationCheck extends LoginCheck {
             final String street = request.getParameter(streetFieldName);
             final String zipCode = request.getParameter(zipCodeFieldName);
             final String city = request.getParameter(cityFieldName);
+            final String state = request.getParameter(stateFieldName);
             final String country = request.getParameter(countryFieldName);
+            final String birthday = request.getParameter(birthdayFieldName);
+            final String gender = request.getParameter(genderFieldName);
             String agreedToTermsOfUse = request.getParameter(agreedToTermsOfUseFieldName);
             final String newsletter = request.getParameter(newsletterFieldName);
             String confirmationKey = request.getParameter(confirmationKeyFieldName);
@@ -611,6 +668,19 @@ public class RegistrationCheck extends LoginCheck {
                 registerFailure(out, message, session, maxRetries, delayThreshold, delayTime);
             }
 
+            Date parsedDate = null;
+            String parseErrorMsg = null;
+            try {
+                parsedDate = DateUtils.parseDate(birthday, new String[]{"MM.dd.yyyy"});
+            } catch (Exception e) {
+                parseErrorMsg = e.getLocalizedMessage();
+            }
+
+            if (parsedDate == null) {
+                String message = "<div class=\"errorMsg\">" + REGISTRATION_FAILURE_INVALID_DATE + ": " + parseErrorMsg + "</div>";
+                registerFailure(out, message, session, maxRetries, delayThreshold, delayTime);
+            }
+
             // Check that password is strong enough:
             // Must contain at least one digit, one upper and one lower case character.
             // Length must be greater than 6.
@@ -730,6 +800,7 @@ public class RegistrationCheck extends LoginCheck {
             }
 
             final RegistrationCheck registrationCheckNode = this;
+            final Date birthdayDate = parsedDate;
 
             // Create new user (will reserve username)
             User newUser = (User) Services.command(TransactionCommand.class).execute(new StructrTransaction() {
@@ -765,7 +836,10 @@ public class RegistrationCheck extends LoginCheck {
                             new NodeAttribute(Person.STREET_KEY, street),
                             new NodeAttribute(Person.ZIP_CODE_KEY, zipCode),
                             new NodeAttribute(Person.CITY_KEY, city),
+                            new NodeAttribute(Person.STATE_KEY, state),
                             new NodeAttribute(Person.COUNTRY_KEY, country),
+                            new NodeAttribute(Person.GENDER_KEY, gender),
+                            new NodeAttribute(Person.BIRTHDAY_KEY, birthdayDate),
                             new NodeAttribute(Person.EMAIL_1_KEY, email),
                             new NodeAttribute(Person.NEWSLETTER_KEY, StringUtils.isNotEmpty(newsletter)),
                             new NodeAttribute(User.BLOCKED_KEY, true),

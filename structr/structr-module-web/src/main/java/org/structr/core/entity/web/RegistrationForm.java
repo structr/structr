@@ -38,7 +38,10 @@ public class RegistrationForm extends Form {
     protected final static String defaultZipCodeFieldName = "regForm_zipCode";
     protected final static String defaultCityFieldName = "regForm_city";
     protected final static String defaultStreetFieldName = "regForm_street";
+    protected final static String defaultStateFieldName = "regForm_state";
     protected final static String defaultCountryFieldName = "regForm_country";
+    protected final static String defaultBirthdayFieldName = "regForm_birthday";
+    protected final static String defaultGenderFieldName = "regForm_gender";
     protected final static String defaultAgreedToTermsOfUseFieldName = "regForm_agreedToTermsOfUse";
     protected final static String defaultNewsletterFieldName = "regForm_newsletter";
     public final static String PUBLIC_USER_DIRECTORY_NAME_KEY = "publicUserDirectoryName";
@@ -55,7 +58,10 @@ public class RegistrationForm extends Form {
     public final static String ZIP_CODE_FIELD_NAME_KEY = "zipCodeFieldName";
     public final static String CITY_FIELD_NAME_KEY = "cityFieldName";
     public final static String STREET_FIELD_NAME_KEY = "streetFieldName";
+    public final static String STATE_FIELD_NAME_KEY = "stateFieldName";
     public final static String COUNTRY_FIELD_NAME_KEY = "countryFieldName";
+    public final static String BIRTHDAY_FIELD_NAME_KEY = "birthdayFieldName";
+    public final static String GENDER_FIELD_NAME_KEY = "genderFieldName";
     public final static String AGREED_TO_TERMS_OF_USE_FIELD_NAME_KEY = "agreedToTermsOfUseFieldName";
     public final static String NEWSLETTER_FIELD_NAME_KEY = "newsletterFieldName";
     /** Name of username field */
@@ -267,6 +273,25 @@ public class RegistrationForm extends Form {
     }
 
     /**
+     * Return name of state field
+     *
+     * @return
+     */
+    public String getStateFieldName() {
+        return getStringProperty(STATE_FIELD_NAME_KEY);
+    }
+
+    /**
+     * Set name of state field
+     *
+     * @param value
+     */
+    public void setStateFieldName(final String value) {
+        setProperty(STATE_FIELD_NAME_KEY, value);
+    }
+
+
+    /**
      * Return name of country field
      *
      * @return
@@ -282,6 +307,42 @@ public class RegistrationForm extends Form {
      */
     public void setCountryFieldName(final String value) {
         setProperty(COUNTRY_FIELD_NAME_KEY, value);
+    }
+
+    /**
+     * Return name of birthday field
+     *
+     * @return
+     */
+    public String getBirthdayFieldName() {
+        return getStringProperty(BIRTHDAY_FIELD_NAME_KEY);
+    }
+
+    /**
+     * Set name of birthday field
+     *
+     * @param value
+     */
+    public void setBirthdayFieldName(final String value) {
+        setProperty(BIRTHDAY_FIELD_NAME_KEY, value);
+    }
+
+    /**
+     * Return name of gender field
+     *
+     * @return
+     */
+    public String getGenderFieldName() {
+        return getStringProperty(GENDER_FIELD_NAME_KEY);
+    }
+
+    /**
+     * Set name of gender field
+     *
+     * @param value
+     */
+    public void setGenderFieldName(final String value) {
+        setProperty(GENDER_FIELD_NAME_KEY, value);
     }
 
     /**
@@ -477,7 +538,10 @@ public class RegistrationForm extends Form {
             String streetFieldName = getStreetFieldName() != null ? getStreetFieldName() : defaultStreetFieldName;
             String zipCodeFieldName = getZipCodeFieldName() != null ? getZipCodeFieldName() : defaultZipCodeFieldName;
             String cityFieldName = getCityFieldName() != null ? getCityFieldName() : defaultCityFieldName;
+            String stateFieldName = getStateFieldName() != null ? getStateFieldName() : defaultStateFieldName;
             String countryFieldName = getCountryFieldName() != null ? getCountryFieldName() : defaultCountryFieldName;
+            String birthdayFieldName = getBirthdayFieldName() != null ? getBirthdayFieldName() : defaultBirthdayFieldName;
+            String genderFieldName = getGenderFieldName() != null ? getGenderFieldName() : defaultGenderFieldName;
             String confirmEmailFieldName = getConfirmEmailFieldName() != null ? getConfirmEmailFieldName() : defaultConfirmEmailFieldName;
             String confirmPasswordFieldName = getConfirmPasswordFieldName() != null ? getConfirmPasswordFieldName() : defaultConfirmPasswordFieldName;
             String cssClass = getCssClass() != null ? getCssClass() : defaultCssClass;
@@ -495,43 +559,58 @@ public class RegistrationForm extends Form {
             String zipCode = StringUtils.trimToEmpty(request.getParameter(zipCodeFieldName));
             String street = StringUtils.trimToEmpty(request.getParameter(streetFieldName));
             String city = StringUtils.trimToEmpty(request.getParameter(cityFieldName));
+            String state = StringUtils.trimToEmpty(request.getParameter(stateFieldName));
             String country = StringUtils.trimToEmpty(request.getParameter(countryFieldName));
+            String birthday = StringUtils.trimToEmpty(request.getParameter(birthdayFieldName));
+            String gender = StringUtils.trimToEmpty(request.getParameter(genderFieldName));
             String agreedToTermsOfUse = StringUtils.isNotEmpty(request.getParameter(agreedToTermsOfUseFieldName)) ? "checked=\"checked\"" : "";
             String newsletter = StringUtils.isNotEmpty(request.getParameter(newsletterFieldName)) ? "checked=\"checked\"" : "";
 
 
-            out.append("<form name=\"").append(getName()).append("\" action=\"").append(action).append("\" method=\"post\">");
-            out.append("<input type=\"hidden\" name=\"").append(antiRobotFieldName).append("\" value=\"\">");
-            out.append("<table class=\"").append(cssClass).append("\">");
-            out.append("<tr><th><span class=\"heading\">").append(label).append("</span></th><th></th></tr>");
-            out.append("<tr><td class=\"label\">Username*</td><td></td></tr>");
-            out.append("<tr><td class=\"field\"><input type=\"text\" name=\"").append(usernameFieldName).append("\" value=\"").append(username).append("\" size=\"30\"></td></tr>");
-            out.append("<tr><td class=\"label\">Password*</td><td class=\"label\">Confirm Password*</td></tr>");
+            out.append("<form name='").append(getName()).append("' action='").append(action).append("' method='post'>");
+            out.append("<input type='hidden' name='").append(antiRobotFieldName).append("' value=''>");
+            out.append("<table class='").append(cssClass).append("'>");
+            out.append("<tr><th><span class='heading'>").append(label).append("</span></th><th></th></tr>");
+            out.append("<tr><td class='label'>Username*</td><td></td></tr>");
+            out.append("<tr><td class='field'><input type='text' name='").append(usernameFieldName).append("' value='").append(username).append("' size='30'></td></tr>");
+            out.append("<tr><td class='label'>Password*</td><td class='label'>Confirm Password*</td></tr>");
             out.append("<tr>");
-            out.append("<td class=\"field\"><input type=\"password\" name=\"").append(passwordFieldName).append("\" value=\"").append(password).append("\" size=\"30\"></td>");
-            out.append("<td class=\"field\"><input type=\"password\" name=\"").append(confirmPasswordFieldName).append("\" value=\"").append(confirmPassword).append("\" size=\"30\"></td>");
+            out.append("<td class='field'><input type='password' name='").append(passwordFieldName).append("' value='").append(password).append("' size='30'></td>");
+            out.append("<td class='field'><input type='password' name='").append(confirmPasswordFieldName).append("' value='").append(confirmPassword).append("' size='30'></td>");
             out.append("</tr>");
-            out.append("<tr><td class=\"label\">First Name*</td><td class=\"label\">Last Name*</td></tr>");
+            out.append("<tr><td class='label'>First Name*</td><td class='label'>Last Name*</td></tr>");
             out.append("<tr>");
-            out.append("<td class=\"field\"><input type=\"text\" name=\"").append(firstNameFieldName).append("\" value=\"").append(firstName).append("\" size=\"30\"></td>");
-            out.append("<td class=\"field\"><input type=\"text\" name=\"").append(lastNameFieldName).append("\" value=\"").append(lastName).append("\" size=\"30\"></td>");
+            out.append("<td class='field'><input type='text' name='").append(firstNameFieldName).append("' value='").append(firstName).append("' size='30'></td>");
+            out.append("<td class='field'><input type='text' name='").append(lastNameFieldName).append("' value='").append(lastName).append("' size='30'></td>");
             out.append("</tr>");
-            out.append("<tr><td class=\"label\" colspan=\"2\">Email*</td></tr>");
-            out.append("<tr><td class=\"field twoColumns\" colspan=\"2\"><input type=\"text\" name=\"").append(emailFieldName).append("\" value=\"").append(email).append("\" size=\"60\"></td></tr>");
-            out.append("<tr><td class=\"label\" colspan=\"2\">Confirm Email*</td></tr>");
-            out.append("<tr><td class=\"field twoColumns\" colspan=\"2\"><input type=\"text\" name=\"").append(confirmEmailFieldName).append("\" value=\"").append(confirmEmail).append("\" size=\"60\"></td></tr>");
-            out.append("<tr><td class=\"label\" colspan=\"2\">Street</td></tr>");
-            out.append("<tr><td class=\"field twoColumns\" colspan=\"2\"><input type=\"text\" name=\"").append(streetFieldName).append("\" value=\"").append(street).append("\" size=\"60\"></td></tr>");
-            out.append("<tr><td class=\"label\">ZIP / Postal Code</td><td class=\"label\">City</td></tr>");
+            out.append("<tr><td class='label' colspan='2'>Email*</td></tr>");
+            out.append("<tr><td class='field twoColumns' colspan='2'><input type='text' name='").append(emailFieldName).append("' value='").append(email).append("' size='60'></td></tr>");
+            out.append("<tr><td class='label' colspan='2'>Confirm Email*</td></tr>");
+            out.append("<tr><td class='field twoColumns' colspan='2'><input type='text' name='").append(confirmEmailFieldName).append("' value='").append(confirmEmail).append("' size='60'></td></tr>");
+            out.append("<tr><td class='label' colspan='2'>Street</td></tr>");
+            out.append("<tr><td class='field twoColumns' colspan='2'><input type='text' name='").append(streetFieldName).append("' value='").append(street).append("' size='60'></td></tr>");
+            out.append("<tr><td class='label'>ZIP / Postal Code</td><td class='label'>City</td></tr>");
             out.append("<tr>");
-            out.append("<td class=\"field\"><input type=\"text\" name=\"").append(zipCodeFieldName).append("\" value=\"").append(zipCode).append("\" size=\"30\"></td>");
-            out.append("<td class=\"field\"><input type=\"text\" name=\"").append(cityFieldName).append("\" value=\"").append(city).append("\" size=\"30\"></td>");
+            out.append("<td class='field'><input type='text' name='").append(zipCodeFieldName).append("' value='").append(zipCode).append("' size='30'></td>");
+            out.append("<td class='field'><input type='text' name='").append(cityFieldName).append("' value='").append(city).append("' size='30'></td>");
             out.append("</tr>");
-            out.append("<tr><td class=\"label\" colspan=\"2\">Country</td></tr>");
-            out.append("<tr><td class=\"field twoColumns\" colspan=\"2\"><input type=\"text\" name=\"").append(countryFieldName).append("\" value=\"").append(country).append("\" size=\"60\"></td></tr>");
-            out.append("<tr><td class=\"button\" colspan=\"2\"><input type=\"submit\" name=\"").append(submitButtonName).append("\" value=\"Submit\"></td></tr>");
-            out.append("<tr><td class=\"field\" colspan=\"2\"><input type=\"checkbox\" name=\"").append(newsletterFieldName).append("\" ").append(newsletter).append(">I would like to receive a newsletter</td></tr>");
-            out.append("<tr><td class=\"field\" colspan=\"2\"><input type=\"checkbox\" name=\"").append(agreedToTermsOfUseFieldName).append("\" ").append(agreedToTermsOfUse).append(">I agree to the terms of use</td></tr>");
+            out.append("<tr><td class='label'>State</td><td class='label'>Country</td></tr>");
+            out.append("<tr>");
+            out.append("<td class='field'><input type='text' name='").append(stateFieldName).append("' value='").append(state).append("' size='30'></td>");
+            out.append("<td class='field'><input type='text' name='").append(countryFieldName).append("' value='").append(country).append("' size='30'></td>");
+            out.append("</tr>");
+            out.append("<tr><td class='label'><table><tr><td style='text-align: left; width: 50%;'>Birthday</td><td style='width: 50%; text-align: right'>MM/DD/YYYY</td></tr></table></td><td class='label'>Gender</td></tr>");
+            out.append("<tr>");
+            out.append("<td class='field'><input type='text' name='").append(birthdayFieldName).append("' value='").append(birthday).append("' size='30'></td>");
+            out.append("<td class='field'><select name='").append(genderFieldName).append("'>");
+            out.append("<option value=''").append(">-- Please select --</option>");
+            out.append("<option value='w'").append("w".equals(gender)? "selected" : "").append(">Female</option>");
+            out.append("<option value='m'").append("m".equals(gender)? "selected" : "").append(">Male</option>");
+            out.append("</select></td>");
+            out.append("</tr>");
+            out.append("<tr><td class='button' colspan='2'><input type='submit' name='").append(submitButtonName).append("' value='Submit'></td></tr>");
+            out.append("<tr><td class='field' colspan='2'><input type='checkbox' name='").append(newsletterFieldName).append("' ").append(newsletter).append(">I would like to receive a newsletter</td></tr>");
+            out.append("<tr><td class='field' colspan='2'><input type='checkbox' name='").append(agreedToTermsOfUseFieldName).append("' ").append(agreedToTermsOfUse).append(">I agree to the terms of use</td></tr>");
             out.append("</table>");
             out.append("<p>* must be filled out.</p>");
             out.append("</form>");
