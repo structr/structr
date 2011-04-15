@@ -21,7 +21,7 @@ public class TextField extends FormField implements InteractiveNode
 {
 	private static final Logger logger = Logger.getLogger(TextField.class.getName());
 
-	protected SessionValue<String> errorMessage = null;
+	protected SessionValue<Object> errorSessionValue = null;
 	protected SessionValue<String> sessionValue = null;
 	private String mappedName = null;
 
@@ -146,18 +146,36 @@ public class TextField extends FormField implements InteractiveNode
 	@Override
 	public void setErrorValue(Object errorValue)
 	{
-		getErrorMessageValue().set(errorValue.toString());
+		getErrorMessageValue().set(errorValue);
+	}
+
+	@Override
+	public Object getErrorValue()
+	{
+		return(getErrorMessageValue().get());
+	}
+
+	@Override
+	public String getErrorMessage()
+	{
+		Object errorValue = getErrorValue();
+		if(errorValue != null)
+		{
+			return(errorValue.toString());
+		}
+
+		return(null);
 	}
 
 	// ----- private methods -----
-	private SessionValue<String> getErrorMessageValue()
+	private SessionValue<Object> getErrorMessageValue()
 	{
-		if(errorMessage == null)
+		if(errorSessionValue == null)
 		{
-			errorMessage = new SessionValue<String>(createUniqueIdentifier("errorMessage"));
+			errorSessionValue = new SessionValue<Object>(createUniqueIdentifier("errorMessage"));
 		}
 
-		return(errorMessage);
+		return(errorSessionValue);
 	}
 
 	private SessionValue<String> getLastValue()

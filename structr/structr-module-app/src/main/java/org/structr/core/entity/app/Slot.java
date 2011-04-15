@@ -15,7 +15,6 @@ public abstract class Slot
 	private Object value = null;
 
 	public abstract Class getParameterType();
-	public abstract boolean accepts(Object value);
 
 	// ----- builtin methods -----
 	public void setValue(Object value)

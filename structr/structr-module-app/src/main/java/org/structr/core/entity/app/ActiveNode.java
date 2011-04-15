@@ -6,7 +6,6 @@
 package org.structr.core.entity.app;
 
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -35,8 +34,6 @@ public abstract class ActiveNode extends AbstractNode
 	public abstract boolean execute(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user);
 	public abstract Map<String, Slot> getSlots();
 
-	private Map<String, Object> values = new LinkedHashMap<String, Object>();
-
 	@Override
 	public abstract String getIconSrc();
 
@@ -60,7 +57,6 @@ public abstract class ActiveNode extends AbstractNode
 			List<InteractiveNode> dataSources = getDataSources();
 			Map<String, Slot> slots = getInputSlots();
 			boolean executionSuccessful = false;
-			boolean slotsSuccessful = true;
 
 			if(slots != null)
 			{
@@ -76,24 +72,16 @@ public abstract class ActiveNode extends AbstractNode
 							slot.setSource(source);
 							Object value = source.getValue();
 
-							boolean accepted = slot.accepts(value);
-							if(accepted)
-							{
-								values.put(name, value);
-							}
-
 							logger.log(Level.INFO,
-								"sourceName: {0}, mappedName: {1}, value: {2}, errorCondition: {3}",
+								"sourceName: {0}, mappedName: {1}, value: {2}",
 								new Object[]
 								{
 									source.getName(),
 									source.getMappedName(),
-									value,
-									!accepted
+									value
 								}
 							);
 
-							slotsSuccessful &= accepted;
 						} else
 						{
 							logger.log(Level.INFO, "Parameter type mismatch: expected {0}, found {1}",
@@ -112,16 +100,9 @@ public abstract class ActiveNode extends AbstractNode
 				}
 			}
 
-			logger.log(Level.INFO, "slotsSuccessful: {0}", slotsSuccessful );
+			executionSuccessful = execute(out, startNode, editUrl, editNodeId, user);
 
-			if(slotsSuccessful)
-			{
-				logger.log(Level.INFO, "executing active node action..");
-
-				executionSuccessful = execute(out, startNode, editUrl, editNodeId, user);
-			}
-
-			logger.log(Level.INFO, "executionSuccessful: {0}", executionSuccessful );
+			logger.log(Level.FINE, "executionSuccessful: {0}", executionSuccessful );
 
 			// the next block will be entered if slotsSuccessful was false, or if executionSuccessful was false!
 			if(executionSuccessful)

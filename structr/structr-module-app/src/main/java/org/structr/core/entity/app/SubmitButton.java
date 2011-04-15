@@ -37,4 +37,21 @@ public class SubmitButton extends FormField {
     public String getIconSrc() {
         return "/images/tag.png";
     }
+
+	@Override
+	public String getErrorMessage()
+	{
+		return(null);
+	}
+
+	@Override
+	public Object getErrorValue()
+	{
+		return(null);
+	}
+
+	@Override
+	public void setErrorValue(Object errorValue)
+	{
+	}
 }

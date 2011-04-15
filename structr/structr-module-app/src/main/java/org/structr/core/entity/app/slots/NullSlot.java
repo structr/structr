@@ -21,12 +21,6 @@ public class NullSlot extends Slot
 	}
 
 	@Override
-	public boolean accepts(Object value)
-	{
-		return(value == null);
-	}
-
-	@Override
 	public Class getParameterType()
 	{
 		return(type);
