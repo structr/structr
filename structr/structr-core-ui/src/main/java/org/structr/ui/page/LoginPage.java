@@ -104,7 +104,8 @@ public class LoginPage extends Admin {
                 isSuperUser = true;
 
                 user = new SuperUser();
-                getContext().getRequest().getSession().setAttribute(USERNAME_KEY, userValue);
+//                getContext().getRequest().getSession().setAttribute(USERNAME_KEY, userValue);
+                SessionContext.setGlobalUsername(userValue);
 
                 Services.initialize();
 
