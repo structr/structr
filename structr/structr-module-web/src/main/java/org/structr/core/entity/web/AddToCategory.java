@@ -4,13 +4,14 @@
  */
 package org.structr.core.entity.web;
 
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.CurrentRequest;
-import org.structr.common.CurrentSession;
+//import org.structr.common.CurrentSession;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.User;
 
@@ -55,8 +56,8 @@ public class AddToCategory extends WebNode {
                 return;
             }
 
-//            String usernameFromSession = (String) session.getAttribute(USERNAME_KEY);
-            String usernameFromSession = CurrentSession.getGlobalUsername();
+            String usernameFromSession = (String) session.getAttribute(USERNAME_KEY);
+//            String usernameFromSession = CurrentSession.getGlobalUsername();
             Boolean loggedIn = usernameFromSession != null;
 
             if (!loggedIn) {
@@ -91,12 +92,17 @@ public class AddToCategory extends WebNode {
                 return;
             }
 
-            AbstractNode addedObject = user.addToCategory(categoryName, objectId);
+            String[] ids = StringUtils.split(objectId, ",");
 
-            if (addedObject != null) {
-                out.append("<div class=\"okMsg\">").append(addedObject.getName()).append(" successfully added to ").append(categoryName).append("</div>");
-            } else {
-                out.append("<div class=\"errorMsg\">").append("Could not add to category ").append(categoryName).append("</div>");
+            for (String id : ids) {
+                
+                AbstractNode addedObject = user.addToCategory(categoryName, id);
+
+                if (addedObject != null) {
+                    out.append("<div class=\"okMsg\">").append(addedObject.getName()).append(" successfully added to ").append(categoryName).append("</div>");
+                } else {
+                    out.append("<div class=\"errorMsg\">").append("Could not add to category ").append(categoryName).append("</div>");
+                }
             }
 
         }

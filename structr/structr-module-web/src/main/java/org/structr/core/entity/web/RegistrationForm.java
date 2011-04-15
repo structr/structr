@@ -8,7 +8,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.CurrentRequest;
-import org.structr.common.CurrentSession;
+//import org.structr.common.CurrentSession;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.User;
 
@@ -23,6 +23,8 @@ import org.structr.core.entity.User;
 public class RegistrationForm extends Form {
 
     private final static String ICON_SRC = "/images/form.png";
+    protected final static String defaultSubmitButtonName = "regForm_submit";
+    protected final static String defaultAntiRobotFieldName = "regForm_antiRobot";
     protected final static String defaultUsernameFieldName = "regForm_username";
     protected final static String defaultPasswordFieldName = "regForm_password";
     protected final static String defaultAssignedUsername = "admin";
@@ -503,8 +505,8 @@ public class RegistrationForm extends Form {
                 return;
             }
 
-//            String usernameFromSession = (String) session.getAttribute(USERNAME_KEY);
-            String usernameFromSession = CurrentSession.getGlobalUsername();
+            String usernameFromSession = (String) session.getAttribute(USERNAME_KEY);
+//            String usernameFromSession = CurrentSession.getGlobalUsername();
             Boolean alreadyLoggedIn = usernameFromSession != null;
 
             if (alreadyLoggedIn) {
@@ -571,7 +573,7 @@ public class RegistrationForm extends Form {
             out.append("<form name='").append(getName()).append("' action='").append(action).append("' method='post'>");
             out.append("<input type='hidden' name='").append(antiRobotFieldName).append("' value=''>");
             out.append("<table class='").append(cssClass).append("'>");
-            out.append("<tr><th><span class='heading'>").append(label).append("</span></th><th></th></tr>");
+            //out.append("<tr><th><span class='heading'>").append(label).append("</span></th><th></th></tr>");
             out.append("<tr><td class='label'>Username*</td><td></td></tr>");
             out.append("<tr><td class='field'><input type='text' name='").append(usernameFieldName).append("' value='").append(username).append("' size='30'></td></tr>");
             out.append("<tr><td class='label'>Password*</td><td class='label'>Confirm Password*</td></tr>");

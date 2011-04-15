@@ -11,7 +11,7 @@ import javax.servlet.http.HttpSession;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.CurrentRequest;
-import org.structr.common.CurrentSession;
+//import org.structr.common.CurrentSession;
 import org.structr.context.SessionMonitor;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -212,8 +212,8 @@ public class LoginCheck extends WebNode {
                 return;
             }
 
-//            String usernameFromSession = (String) session.getAttribute(USERNAME_KEY);
-            String usernameFromSession = CurrentSession.getGlobalUsername();
+            String usernameFromSession = (String) session.getAttribute(USERNAME_KEY);
+//            String usernameFromSession = CurrentSession.getGlobalUsername();
             Boolean alreadyLoggedIn = usernameFromSession != null;
 
             if (alreadyLoggedIn) {
@@ -301,8 +301,8 @@ public class LoginCheck extends WebNode {
             }
 
             // Username and password are both valid
-//            session.setAttribute(USERNAME_KEY, loginUser.getName());
-            CurrentSession.setGlobalUsername(loginUser.getName());
+            session.setAttribute(USERNAME_KEY, loginUser.getName());
+//            CurrentSession.setGlobalUsername(loginUser.getName());
 
             // Register user with internal session management
             long sessionId = SessionMonitor.registerUserSession(user, session);

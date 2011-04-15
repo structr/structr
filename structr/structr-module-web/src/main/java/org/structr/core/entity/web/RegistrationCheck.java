@@ -16,7 +16,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DateUtils;
 import org.jsoup.Jsoup;
 import org.structr.common.CurrentRequest;
-import org.structr.common.CurrentSession;
+//import org.structr.common.CurrentSession;
 import org.structr.common.MailHelper;
 import org.structr.common.RelType;
 import org.structr.core.Command;
@@ -477,7 +477,9 @@ public class RegistrationCheck extends LoginCheck {
                 return;
             }
 
-            Boolean alreadyLoggedIn = CurrentSession.getGlobalUsername() != null;
+            String usernameFromSession = (String) session.getAttribute(USERNAME_KEY);
+//            String usernameFromSession = CurrentSession.getGlobalUsername();
+            Boolean alreadyLoggedIn = usernameFromSession != null;
 
             if (alreadyLoggedIn) {
                 return;

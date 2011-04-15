@@ -9,7 +9,7 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import org.structr.common.CurrentRequest;
-import org.structr.common.CurrentSession;
+//import org.structr.common.CurrentSession;
 import org.structr.context.SessionMonitor;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.User;
@@ -73,8 +73,8 @@ public class Logout extends WebNode {
                 return;
             }
 
-//            String usernameFromSession = (String) session.getAttribute(USERNAME_KEY);
-            String usernameFromSession = CurrentSession.getGlobalUsername();
+            String usernameFromSession = (String) session.getAttribute(USERNAME_KEY);
+//            String usernameFromSession = CurrentSession.getGlobalUsername();
             Boolean alreadyLoggedIn = usernameFromSession != null;
 
             if (alreadyLoggedIn) {
@@ -92,7 +92,8 @@ public class Logout extends WebNode {
         String sessionId = session.getId();
 
         // Clear username in session
-        CurrentSession.setGlobalUsername(null);
+//        CurrentSession.setGlobalUsername(null);
+        session.setAttribute(USERNAME_KEY, null);
 
         // Invalidate (destroy) session
         session.invalidate();
