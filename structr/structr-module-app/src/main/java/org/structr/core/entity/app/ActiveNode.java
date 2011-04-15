@@ -74,7 +74,7 @@ public abstract class ActiveNode extends AbstractNode
 								slot.setSource(source);
 								Object value = source.getValue();
 
-								logger.log(Level.INFO,
+								logger.log(Level.FINE,
 									"sourceName: {0}, mappedName: {1}, value: {2}",
 									new Object[]
 									{
@@ -86,7 +86,7 @@ public abstract class ActiveNode extends AbstractNode
 
 							} else
 							{
-								logger.log(Level.INFO, "Parameter type mismatch: expected {0}, found {1}",
+								logger.log(Level.WARNING, "Parameter type mismatch: expected {0}, found {1}",
 									new Object[]
 									{
 										slot.getParameterType(),
@@ -104,7 +104,7 @@ public abstract class ActiveNode extends AbstractNode
 
 				executionSuccessful = execute(out, startNode, editUrl, editNodeId, user);
 
-				logger.log(Level.FINE, "executionSuccessful: {0}", executionSuccessful );
+				logger.log(Level.INFO, "executionSuccessful: {0}", executionSuccessful );
 
 				// the next block will be entered if slotsSuccessful was false, or if executionSuccessful was false!
 				if(executionSuccessful)

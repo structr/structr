@@ -36,7 +36,7 @@ public class TextField extends FormField implements InteractiveNode, RequestCycl
 	@Override
 	public void renderView(final StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user)
 	{
-//		CurrentRequest.registerRequestCycleListener(this);
+		CurrentRequest.registerRequestCycleListener(this);
 
 		// if this page is requested to be edited, render edit frame
 		if(editNodeId != null && getId() == editNodeId.longValue())

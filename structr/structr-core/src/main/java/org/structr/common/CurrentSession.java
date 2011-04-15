@@ -4,50 +4,33 @@
  */
 package org.structr.common;
 
+import java.util.logging.Logger;
 import javax.servlet.http.HttpSession;
 
 /**
+ * A helper class that encapsulates access methods to the current session
+ * in static methods.
  *
  * @author Christian Morgner
  */
 public class CurrentSession
 {
-	private static final String SESSION_CONTEXT_KEY =		"sessionContext";
+	private static final Logger logger = Logger.getLogger(CurrentSession.class.getName());
 
-	private boolean redirectFlagJustSet = false;
-	private boolean redirected = false;
-
-	private String globalUsername = null;
-
-	private CurrentSession()
-	{
-	}
-
-	public static CurrentSession getSessionContext()
-	{
-		HttpSession session = CurrentRequest.getSession();
-		CurrentSession context = null;
-		
-		if(session != null)
-		{
-			context = (CurrentSession)session.getAttribute(SESSION_CONTEXT_KEY);
-			if(context == null)
-			{
-				context = new CurrentSession();
-				
-				session.setAttribute(SESSION_CONTEXT_KEY, context);
-			}
-		}
-		
-		return(context);
-	}
+	private static final String GLOBAL_USERNAME_KEY =		"globalUserName";
+	private static final String JUST_REDIRECTED_KEY =		"justRedirected";
+	private static final String REDIRECTED_KEY =			"redirected";
 
 	public static boolean isRedirected()
 	{
-		CurrentSession session = CurrentSession.getSessionContext();
+		HttpSession session = CurrentRequest.getSession();
 		if(session != null)
 		{
-			session.isRedirectedInternal();
+			Boolean ret = (Boolean)session.getAttribute(REDIRECTED_KEY);
+			if(ret != null)
+			{
+				return(ret.booleanValue());
+			}
 		}
 
 		return(false);
@@ -55,19 +38,24 @@ public class CurrentSession
 
 	public static void setRedirected(boolean redirected)
 	{
-		CurrentSession session = CurrentSession.getSessionContext();
+		HttpSession session = CurrentRequest.getSession();
 		if(session != null)
 		{
-			session.setRedirectedInternal(redirected);
+			session.setAttribute(JUST_REDIRECTED_KEY, redirected);
+			session.setAttribute(REDIRECTED_KEY, redirected);
 		}
 	}
 
 	public static boolean wasJustRedirected()
 	{
-		CurrentSession session = CurrentSession.getSessionContext();
+		HttpSession session = CurrentRequest.getSession();
 		if(session != null)
 		{
-			return(session.wasJustRedirectedInternal());
+			Boolean ret = (Boolean)session.getAttribute(JUST_REDIRECTED_KEY);
+			if(ret != null)
+			{
+				return(ret.booleanValue());
+			}
 		}
 
 		return(false);
@@ -75,66 +63,59 @@ public class CurrentSession
 
 	public static void setJustRedirected(boolean justRedirected)
 	{
-		CurrentSession session = CurrentSession.getSessionContext();
+		HttpSession session = CurrentRequest.getSession();
 		if(session != null)
 		{
-			session.setJustRedirectedInternal(justRedirected);
+			session.setAttribute(JUST_REDIRECTED_KEY, justRedirected);
 		}
 	}
 
 	public static void setGlobalUsername(String username)
 	{
-		CurrentSession session = CurrentSession.getSessionContext();
+		HttpSession session = CurrentRequest.getSession();
 		if(session != null)
 		{
-			session.setGlobalUsernameInternal(username);
+			session.setAttribute(GLOBAL_USERNAME_KEY, username);
 		}
 	}
 
 	public static String getGlobalUsername()
 	{
-		CurrentSession session = CurrentSession.getSessionContext();
+		HttpSession session = CurrentRequest.getSession();
 		if(session != null)
 		{
-			return(session.getGlobalUsernameInternal());
+			String ret = (String)session.getAttribute(GLOBAL_USERNAME_KEY);
+			if(ret != null)
+			{
+				return(ret);
+			}
 		}
 
 		return(null);
 	}
 
-	// ----- private methods -----
-	private boolean isRedirectedInternal()
+	public static void setAttribute(String key, Object value)
 	{
-		return redirected;
+		HttpSession session = CurrentRequest.getSession();
+		if(session != null)
+		{
+			session.setAttribute(key, value);
+		}
 	}
 
-	private void setRedirectedInternal(boolean redirected)
+	public static Object getAttribute(String key)
 	{
-		if(redirected)
+		HttpSession session = CurrentRequest.getSession();
+		if(session != null)
 		{
-			this.redirectFlagJustSet = true;
+			return(session.getAttribute(key));
 		}
 
-		this.redirected = redirected;
+		return(null);
 	}
 
-	private boolean wasJustRedirectedInternal()
+	public static HttpSession getSession()
 	{
-		return(redirectFlagJustSet);
-	}
-
-	private void setJustRedirectedInternal(boolean justRedirected)
-	{
-		this.redirectFlagJustSet = justRedirected;
-	}
-
-	private void setGlobalUsernameInternal(final String username)
-	{
-		this.globalUsername = username;
-	}
-
-	private String getGlobalUsernameInternal()
-	{
-		return (this.globalUsername);
+		return(CurrentRequest.getSession());
 	}
 }

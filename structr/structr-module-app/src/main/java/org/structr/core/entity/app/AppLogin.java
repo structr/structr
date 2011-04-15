@@ -54,7 +54,6 @@ public class AppLogin extends ActiveNode
 	@Override
 	public boolean execute(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId, User user)
 	{
-		HttpSession session = CurrentRequest.getSession();
 		String usernameFromSession = CurrentSession.getGlobalUsername();
 		Boolean alreadyLoggedIn = usernameFromSession != null;
 
@@ -143,11 +142,11 @@ public class AppLogin extends ActiveNode
 		CurrentSession.setGlobalUsername(loginUser.getName());
 
 		// Register user with internal session management
-		long sessionId = SessionMonitor.registerUserSession(user, session);
+		long sessionId = SessionMonitor.registerUserSession(user, CurrentSession.getSession());
 		SessionMonitor.logActivity(user, sessionId, "Login");
 
 		// Mark this session with the internal session id
-		session.setAttribute(SessionMonitor.SESSION_ID, sessionId);
+		CurrentSession.setAttribute(SessionMonitor.SESSION_ID, sessionId);
 
 		// Clear all blocking stuff
 		getSessionBlockedValue().set(false);

@@ -50,7 +50,6 @@ public class CurrentRequest
 
 		if(request != null && response != null)
 		{
-//			String redirectUrl = destination.getNodeURL(user, RenderMode.LOCAL, request.getContextPath());
 			String redirectUrl = getAbsoluteNodePath(user, destination);
 
 			try
@@ -223,13 +222,13 @@ public class CurrentRequest
 
 	private void callOnRequestStart()
 	{
-		if(!CurrentSession.wasJustRedirected())
+		if(CurrentSession.wasJustRedirected())
 		{
-			CurrentSession.setRedirected(false);
+			CurrentSession.setJustRedirected(false);
 
 		} else
 		{
-			CurrentSession.setJustRedirected(false);
+			CurrentSession.setRedirected(false);
 		}
 
 		synchronized(requestCycleListener)
