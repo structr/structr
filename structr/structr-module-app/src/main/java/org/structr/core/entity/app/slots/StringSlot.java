@@ -20,10 +20,4 @@ public class StringSlot extends Slot
 	{
 		return(String.class);
 	}
-
-	@Override
-	public boolean accepts(Object value)
-	{
-		return(value != null && StringUtils.isNotBlank(value.toString()));
-	}
 }

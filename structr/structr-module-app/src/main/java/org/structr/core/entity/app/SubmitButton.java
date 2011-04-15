@@ -43,4 +43,21 @@ public class SubmitButton extends FormField {
             }
         }
     }
+
+	@Override
+	public String getErrorMessage()
+	{
+		return(null);
+	}
+
+	@Override
+	public Object getErrorValue()
+	{
+		return(null);
+	}
+
+	@Override
+	public void setErrorValue(Object errorValue)
+	{
+	}
 }

@@ -18,6 +18,10 @@ public abstract class FormField extends AbstractNode {
     public static final String HINT_KEY = "hint";
     public static final String HELP_TEXT_KEY = "helpText";
 
+    public abstract String getErrorMessage();
+    public abstract Object getErrorValue();
+    public abstract void setErrorValue(Object errorValue);
+
     public String getLabel() {
         return getStringProperty(LABEL_KEY);
     }
