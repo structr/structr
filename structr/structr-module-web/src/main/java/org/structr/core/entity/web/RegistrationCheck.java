@@ -4,7 +4,6 @@
  */
 package org.structr.core.entity.web;
 
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -16,10 +15,10 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DateUtils;
 import org.jsoup.Jsoup;
-import org.structr.common.MailHelper;
-import org.structr.common.RelType;
 import org.structr.common.CurrentRequest;
 import org.structr.common.CurrentSession;
+import org.structr.common.MailHelper;
+import org.structr.common.RelType;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -672,7 +671,7 @@ public class RegistrationCheck extends LoginCheck {
             Date parsedDate = null;
             String parseErrorMsg = null;
             try {
-                parsedDate = DateUtils.parseDate(birthday, new String[]{"MM.dd.yyyy"});
+                parsedDate = DateUtils.parseDate(birthday, new String[]{"MM/dd/yyyy"});
             } catch (Exception e) {
                 parseErrorMsg = e.getLocalizedMessage();
             }
