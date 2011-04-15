@@ -13,7 +13,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.RelType;
-import org.structr.common.SessionContext;
+import org.structr.common.CurrentRequest;
 
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.StructrRelationship;
@@ -40,89 +40,92 @@ public abstract class ActiveNode extends AbstractNode
 	@Override
 	public void renderView(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user)
 	{
-		String currentUrl = (String)SessionContext.getAttribute(SessionContext.CURRENT_NODE_PATH);
+		String currentUrl = CurrentRequest.getCurrentNodePath();
 		String myNodeUrl = getNodePath(user);
 
-		// remove slashes from end of string
-		while(currentUrl.endsWith("/"))
+		if(currentUrl != null)
 		{
-			currentUrl = currentUrl.substring(0, currentUrl.length() - 1);
-		}
-
-		// execute method if path matches exactly
-		if(myNodeUrl.equals(currentUrl))
-		{
-			// check incoming DATA relationships here
-			// endpoint must implement InteractiveNode of the correct type
-			List<InteractiveNode> dataSources = getDataSources();
-			Map<String, Slot> slots = getInputSlots();
-			boolean executionSuccessful = false;
-
-			if(slots != null)
+			// remove slashes from end of string
+			while(currentUrl.endsWith("/"))
 			{
-				for(InteractiveNode source : dataSources)
+				currentUrl = currentUrl.substring(0, currentUrl.length() - 1);
+			}
+
+			// execute method if path matches exactly
+			if(myNodeUrl.equals(currentUrl))
+			{
+				// check incoming DATA relationships here
+				// endpoint must implement InteractiveNode of the correct type
+				List<InteractiveNode> dataSources = getDataSources();
+				Map<String, Slot> slots = getInputSlots();
+				boolean executionSuccessful = false;
+
+				if(slots != null)
 				{
-					String name = source.getMappedName();
-					if(slots.containsKey(name))
+					for(InteractiveNode source : dataSources)
 					{
-						Slot slot = slots.get(name);
-
-						if(slot.getParameterType().equals(source.getParameterType()))
+						String name = source.getMappedName();
+						if(slots.containsKey(name))
 						{
-							slot.setSource(source);
-							Object value = source.getValue();
+							Slot slot = slots.get(name);
 
-							logger.log(Level.INFO,
-								"sourceName: {0}, mappedName: {1}, value: {2}",
-								new Object[]
-								{
-									source.getName(),
-									source.getMappedName(),
-									value
-								}
-							);
+							if(slot.getParameterType().equals(source.getParameterType()))
+							{
+								slot.setSource(source);
+								Object value = source.getValue();
+
+								logger.log(Level.INFO,
+									"sourceName: {0}, mappedName: {1}, value: {2}",
+									new Object[]
+									{
+										source.getName(),
+										source.getMappedName(),
+										value
+									}
+								);
+
+							} else
+							{
+								logger.log(Level.INFO, "Parameter type mismatch: expected {0}, found {1}",
+									new Object[]
+									{
+										slot.getParameterType(),
+										source.getParameterType()
+									}
+								);
+							}
 
 						} else
 						{
-							logger.log(Level.INFO, "Parameter type mismatch: expected {0}, found {1}",
-								new Object[]
-								{
-									slot.getParameterType(),
-									source.getParameterType()
-								}
-							);
+							logger.log(Level.INFO, "Slot not found {0}", name );
 						}
-
-					} else
-					{
-						logger.log(Level.INFO, "Slot not found {0}", name );
 					}
 				}
-			}
 
-			executionSuccessful = execute(out, startNode, editUrl, editNodeId, user);
+				executionSuccessful = execute(out, startNode, editUrl, editNodeId, user);
 
-			logger.log(Level.FINE, "executionSuccessful: {0}", executionSuccessful );
+				logger.log(Level.FINE, "executionSuccessful: {0}", executionSuccessful );
 
-			// the next block will be entered if slotsSuccessful was false, or if executionSuccessful was false!
-			if(executionSuccessful)
-			{
-				// redirect to success page
-				// saved session values can be reset!
-				AbstractNode successTarget = getSuccessTarget();
-				if(successTarget != null)
+				// the next block will be entered if slotsSuccessful was false, or if executionSuccessful was false!
+				if(executionSuccessful)
 				{
-					SessionContext.redirect(user, successTarget);
-				}
+					// redirect to success page
+					// saved session values can be reset!
+					AbstractNode successTarget = getSuccessTarget();
+					if(successTarget != null)
+					{
+						CurrentRequest.redirect(user, successTarget);
+					}
 
-			} else
-			{
-				// redirect to error page
-				// saved session values must be kept
-				AbstractNode failureTarget = getFailureTarget();
-				if(failureTarget != null)
+				} else
 				{
-					SessionContext.redirect(user, failureTarget);
+					// redirect to error page
+					// saved session values must be kept
+					AbstractNode failureTarget = getFailureTarget();
+					if(failureTarget != null)
+					{
+						CurrentRequest.redirect(user, failureTarget);
+					}
 				}
 			}
 		}

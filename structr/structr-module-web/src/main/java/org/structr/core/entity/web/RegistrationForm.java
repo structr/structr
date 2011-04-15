@@ -7,7 +7,8 @@ package org.structr.core.entity.web;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import org.apache.commons.lang.StringUtils;
-import org.structr.common.SessionContext;
+import org.structr.common.CurrentRequest;
+import org.structr.common.CurrentSession;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.User;
 
@@ -490,7 +491,7 @@ public class RegistrationForm extends Form {
 
         } else {
 
-            HttpServletRequest request = SessionContext.getRequest();
+            HttpServletRequest request = CurrentRequest.getRequest();
 
             if (request == null) {
                 return;
@@ -503,7 +504,7 @@ public class RegistrationForm extends Form {
             }
 
 //            String usernameFromSession = (String) session.getAttribute(USERNAME_KEY);
-            String usernameFromSession = SessionContext.getGlobalUsername();
+            String usernameFromSession = CurrentSession.getGlobalUsername();
             Boolean alreadyLoggedIn = usernameFromSession != null;
 
             if (alreadyLoggedIn) {

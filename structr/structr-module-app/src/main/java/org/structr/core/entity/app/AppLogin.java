@@ -12,7 +12,8 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpSession;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
-import org.structr.common.SessionContext;
+import org.structr.common.CurrentRequest;
+import org.structr.common.CurrentSession;
 import org.structr.context.SessionMonitor;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -53,8 +54,8 @@ public class AppLogin extends ActiveNode
 	@Override
 	public boolean execute(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId, User user)
 	{
-		HttpSession session = SessionContext.getSession();
-		String usernameFromSession = SessionContext.getGlobalUsername();
+		HttpSession session = CurrentRequest.getSession();
+		String usernameFromSession = CurrentSession.getGlobalUsername();
 		Boolean alreadyLoggedIn = usernameFromSession != null;
 
 		if(alreadyLoggedIn)
@@ -139,7 +140,7 @@ public class AppLogin extends ActiveNode
 		}
 
 		// Username and password are both valid
-		SessionContext.setGlobalUsername(loginUser.getName());
+		CurrentSession.setGlobalUsername(loginUser.getName());
 
 		// Register user with internal session management
 		long sessionId = SessionMonitor.registerUserSession(user, session);
@@ -208,7 +209,7 @@ public class AppLogin extends ActiveNode
 	// ----- private methods -----
 	private void countLoginFailure(int maxRetries, int delayThreshold, int delayTime)
 	{
-		HttpSession session = SessionContext.getSession();
+		HttpSession session = CurrentRequest.getSession();
 		Integer retries = getLoginAttemptsValue().get();
 
 		if(retries != null && retries > maxRetries)

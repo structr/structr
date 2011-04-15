@@ -9,7 +9,7 @@ import java.io.StringWriter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import org.apache.commons.io.IOUtils;
-import org.structr.common.SessionContext;
+import org.structr.common.CurrentRequest;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.User;
 //import org.structr.common.xpath.JXPathFinder;
@@ -98,8 +98,8 @@ public class Script extends AbstractNode {
 
         try {
 //            JXPathFinder nodeFinder = new JXPathFinder(this);
-            HttpServletRequest request = SessionContext.getRequest();
-            HttpSession session = SessionContext.getSession();
+            HttpServletRequest request = CurrentRequest.getRequest();
+            HttpSession session = CurrentRequest.getSession();
 
             Interpreter interpreter = new Interpreter();
             interpreter.set("_buffer", ret);
