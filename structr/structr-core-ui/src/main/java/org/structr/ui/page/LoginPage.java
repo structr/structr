@@ -19,6 +19,7 @@ import org.apache.click.control.Submit;
 import org.apache.click.control.TextField;
 import org.apache.click.extras.tree.TreeNode;
 import org.apache.commons.lang.StringUtils;
+import org.structr.common.SessionContext;
 import org.structr.context.SessionMonitor;
 import org.structr.core.Command;
 import org.structr.core.Services;
@@ -75,7 +76,9 @@ public class LoginPage extends Admin {
      */
     @Override
     public boolean onSecurityCheck() {
-        userName = (String) getContext().getRequest().getSession().getAttribute(USERNAME_KEY);
+        //userName = (String) getContext().getRequest().getSession().getAttribute(USERNAME_KEY);
+        userName = SessionContext.getGlobalUsername();
+
         if (userName != null) {
             initFirstPage();
             return false;
@@ -150,7 +153,8 @@ public class LoginPage extends Admin {
 
                 // username and password are both valid
                 userName = userValue;
-                getContext().getRequest().getSession().setAttribute(USERNAME_KEY, userValue);
+                SessionContext.setGlobalUsername(userValue);
+                //getContext().getRequest().getSession().setAttribute(USERNAME_KEY, userValue);
 
                 initFirstPage();
 

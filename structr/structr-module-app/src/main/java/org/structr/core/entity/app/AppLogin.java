@@ -54,7 +54,7 @@ public class AppLogin extends ActiveNode
 	public boolean execute(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId, User user)
 	{
 		HttpSession session = SessionContext.getSession();
-		String usernameFromSession = getUserNameValue().get();
+		String usernameFromSession = SessionContext.getGlobalUsername();
 		Boolean alreadyLoggedIn = usernameFromSession != null;
 
 		if(alreadyLoggedIn)
@@ -139,7 +139,7 @@ public class AppLogin extends ActiveNode
 		}
 
 		// Username and password are both valid
-		getUserNameValue().set(loginUser.getName());
+		SessionContext.setGlobalUsername(loginUser.getName());
 
 		// Register user with internal session management
 		long sessionId = SessionMonitor.registerUserSession(user, session);

@@ -39,6 +39,7 @@ public class SessionContext
 	private HttpServletResponse internalResponse = null;
 	private HttpServletRequest internalRequest = null;
 	private boolean redirectFlagJustSet = false;
+        private String globalUsername = null;
 
 	private SessionContext()
 	{
@@ -142,7 +143,25 @@ public class SessionContext
 		getContext().callOnRequestEnd();
 	}
 
+        public static String getGlobalUsername() {
+            return getContext().getGlobalUsernameInternal();
+        }
+
+        public static void setGlobalUsername(final String username) {
+            getContext().setGlobalUsernameInternal(username);
+        }
+
 	// ----- private methods -----
+
+        private void setGlobalUsernameInternal(final String username) {
+            this.globalUsername = username;
+        }
+
+	private String getGlobalUsernameInternal()
+	{
+		return(this.globalUsername);
+	}
+
 	private void setRequestInternal(HttpServletRequest request)
 	{
 		this.internalRequest = request;

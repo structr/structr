@@ -103,7 +103,8 @@ public class LoginForm extends Form {
                 return;
             }
 
-            String usernameFromSession = (String) session.getAttribute(USERNAME_KEY);
+//            String usernameFromSession = (String) session.getAttribute(USERNAME_KEY);
+            String usernameFromSession = SessionContext.getGlobalUsername();
             Boolean alreadyLoggedIn = usernameFromSession != null;
 
             if (alreadyLoggedIn) {

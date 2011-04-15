@@ -211,7 +211,8 @@ public class LoginCheck extends WebNode {
                 return;
             }
 
-            String usernameFromSession = (String) session.getAttribute(USERNAME_KEY);
+//            String usernameFromSession = (String) session.getAttribute(USERNAME_KEY);
+            String usernameFromSession = SessionContext.getGlobalUsername();
             Boolean alreadyLoggedIn = usernameFromSession != null;
 
             if (alreadyLoggedIn) {
@@ -299,7 +300,8 @@ public class LoginCheck extends WebNode {
             }
 
             // Username and password are both valid
-            session.setAttribute(USERNAME_KEY, loginUser.getName());
+//            session.setAttribute(USERNAME_KEY, loginUser.getName());
+            SessionContext.setGlobalUsername(loginUser.getName());
 
             // Register user with internal session management
             long sessionId = SessionMonitor.registerUserSession(user, session);

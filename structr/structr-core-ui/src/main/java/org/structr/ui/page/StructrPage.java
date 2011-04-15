@@ -133,7 +133,8 @@ public class StructrPage extends Page {
         //graphDb = (GraphDatabaseService)graphDbCommand.execute();
 
         //userName = getContext().getRequest().getRemoteUser();
-        userName = (String) getContext().getRequest().getSession().getAttribute(USERNAME_KEY);
+        //userName = (String) getContext().getRequest().getSession().getAttribute(USERNAME_KEY);
+        userName = SessionContext.getGlobalUsername();
         user = getUserNode();
 
         if (userName != null && userName.equals(SUPERUSER_KEY)) {

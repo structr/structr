@@ -54,7 +54,8 @@ public class AddToCategory extends WebNode {
                 return;
             }
 
-            String usernameFromSession = (String) session.getAttribute(USERNAME_KEY);
+//            String usernameFromSession = (String) session.getAttribute(USERNAME_KEY);
+            String usernameFromSession = SessionContext.getGlobalUsername();
             Boolean loggedIn = usernameFromSession != null;
 
             if (!loggedIn) {

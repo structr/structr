@@ -426,7 +426,7 @@ public class RegistrationCheck extends LoginCheck {
                 return;
             }
 
-            Boolean alreadyLoggedIn = session.getAttribute(USERNAME_KEY) != null;
+            Boolean alreadyLoggedIn = SessionContext.getGlobalUsername() != null;
 
             if (alreadyLoggedIn) {
                 return;

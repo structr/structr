@@ -72,7 +72,8 @@ public class Logout extends WebNode {
                 return;
             }
 
-            String usernameFromSession = (String) session.getAttribute(USERNAME_KEY);
+//            String usernameFromSession = (String) session.getAttribute(USERNAME_KEY);
+            String usernameFromSession = SessionContext.getGlobalUsername();
             Boolean alreadyLoggedIn = usernameFromSession != null;
 
             if (alreadyLoggedIn) {
@@ -90,7 +91,7 @@ public class Logout extends WebNode {
         String sessionId = session.getId();
 
         // Clear username in session
-        session.removeAttribute(USERNAME_KEY);
+        SessionContext.setGlobalUsername(null);
 
         // Invalidate (destroy) session
         session.invalidate();

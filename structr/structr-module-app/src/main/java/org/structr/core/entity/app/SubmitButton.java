@@ -4,6 +4,8 @@
  */
 package org.structr.core.entity.app;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.User;
 
@@ -13,28 +15,32 @@ import org.structr.core.entity.User;
  */
 public class SubmitButton extends FormField {
 
-    public SubmitButton() {
-    }
-
-    @Override
-    public void renderView(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId, User user) {
-
-        String name = getName();
-        String label = getLabel();
-
-
-        out.append("<input type=\"submit\"");
-        out.append(" name=\"").append(name).append("\"");
-
-        if (label != null) {
-            out.append(" value=\"").append(label).append("\"");
-        }
-        
-        out.append(">");
-    }
+    private static final Logger logger = Logger.getLogger(SubmitButton.class.getName());
 
     @Override
     public String getIconSrc() {
         return "/images/tag.png";
+    }
+
+    @Override
+    public void renderView(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId, User user) {
+        // if this page is requested to be edited, render edit frame
+        if (editNodeId != null && getId() == editNodeId.longValue()) {
+
+            renderEditFrame(out, editUrl);
+
+            // otherwise, render subnodes in edit mode
+        } else {
+
+            if (hasTemplate(user)) {
+                template.setCallingNode(this);
+                template.renderView(out, startNode, editUrl, editNodeId, user);
+
+            } else {
+                logger.log(Level.WARNING, "Encountered TextField without template: {0}", this);
+
+                // TODO: default template for TextField?
+            }
+        }
     }
 }
