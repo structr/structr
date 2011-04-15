@@ -75,7 +75,7 @@ public class FindUserCommand extends NodeServiceCommand {
                         if (usersFound != null && usersFound.size() > 0) {
                             return usersFound.get(0);
                         } else {
-                            logger.log(Level.SEVERE, "No user with name {0} found.", userName);
+                            logger.log(Level.FINE, "No user with name {0} found.", userName);
                             return null;
                         }
 
@@ -99,7 +99,7 @@ public class FindUserCommand extends NodeServiceCommand {
                         if (usersFound != null && usersFound.size() > 0) {
                             return usersFound.get(0);
                         } else {
-                            logger.log(Level.SEVERE, "No user with name {0} found.", userName);
+                            logger.log(Level.FINE, "No user with name {0} found.", userName);
                             return null;
                         }
 
