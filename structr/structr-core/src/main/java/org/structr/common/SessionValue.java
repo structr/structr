@@ -8,7 +8,7 @@ package org.structr.common;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import org.structr.common.SessionContext;
+import org.structr.common.CurrentRequest;
 
 /**
  *
@@ -66,7 +66,7 @@ public class SessionValue<T>
 
 	public T get()
 	{
-		HttpServletRequest request = SessionContext.getRequest();
+		HttpServletRequest request = CurrentRequest.getRequest();
 
 		if(request != null)
 		{
@@ -88,7 +88,7 @@ public class SessionValue<T>
 
 	public void set(T value)
 	{
-		HttpServletRequest request = SessionContext.getRequest();
+		HttpServletRequest request = CurrentRequest.getRequest();
 
 		if(request != null)
 		{

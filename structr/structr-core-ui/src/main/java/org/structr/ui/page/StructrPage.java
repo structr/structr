@@ -18,7 +18,8 @@ import org.apache.click.util.ClickUtils;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.TreeHelper;
 import org.structr.context.SessionMonitor;
-import org.structr.common.SessionContext;
+import org.structr.common.CurrentRequest;
+import org.structr.common.CurrentSession;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.Link;
@@ -134,7 +135,7 @@ public class StructrPage extends Page {
 
         //userName = getContext().getRequest().getRemoteUser();
         //userName = (String) getContext().getRequest().getSession().getAttribute(USERNAME_KEY);
-        userName = SessionContext.getGlobalUsername();
+        userName = CurrentSession.getGlobalUsername();
         user = getUserNode();
 
         if (userName != null && userName.equals(SUPERUSER_KEY)) {
@@ -156,12 +157,12 @@ public class StructrPage extends Page {
     @Override
     public void onInit() {
 
-        super.onInit();
-
 	// prepare global structr request context for this request and this thread
-	SessionContext.setRequest(getContext().getRequest());
-	SessionContext.setResponse(getContext().getResponse());
-	SessionContext.setAttribute(SessionContext.CURRENT_NODE_PATH, nodeId);
+	CurrentRequest.setRequest(getContext().getRequest());
+	CurrentRequest.setResponse(getContext().getResponse());
+	CurrentRequest.setCurrentNodePath(nodeId);
+
+        super.onInit();
 
         if (user != null) {
             sessionId = (Long) getContext().getRequest().getSession().getAttribute(SessionMonitor.SESSION_ID);
@@ -207,13 +208,13 @@ public class StructrPage extends Page {
         }
 
 	// call request cycle listener
-	SessionContext.onRequestStart();
+	CurrentRequest.onRequestStart();
     }
 
     @Override
     public void onDestroy()
     {
-	    SessionContext.onRequestEnd();
+	    CurrentRequest.onRequestEnd();
     }
     /**
      * @see Page#onSecurityCheck()

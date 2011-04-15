@@ -8,7 +8,7 @@ package org.structr.core.entity.app;
 import java.util.List;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.RelType;
-import org.structr.common.SessionContext;
+import org.structr.common.CurrentRequest;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.StructrRelationship;
 import org.structr.core.entity.User;
@@ -40,7 +40,7 @@ public class AppForm extends HtmlNode
 		ActiveNode submit = findSubmit(user);
 		if(submit != null)
 		{
-			addAttribute("action", SessionContext.getAbsoluteNodePath(user, submit));
+			addAttribute("action", CurrentRequest.getAbsoluteNodePath(user, submit));
 		}
 
 		addAttribute("method", "post");

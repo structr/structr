@@ -9,7 +9,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
-import org.structr.common.SessionContext;
+import org.structr.common.RequestCycleListener;
+import org.structr.common.CurrentRequest;
+import org.structr.common.CurrentSession;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.User;
 
@@ -17,7 +19,7 @@ import org.structr.core.entity.User;
  *
  * @author Christian Morgner
  */
-public class TextField extends FormField implements InteractiveNode
+public class TextField extends FormField implements InteractiveNode, RequestCycleListener
 {
 	private static final Logger logger = Logger.getLogger(TextField.class.getName());
 
@@ -34,6 +36,8 @@ public class TextField extends FormField implements InteractiveNode
 	@Override
 	public void renderView(final StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user)
 	{
+//		CurrentRequest.registerRequestCycleListener(this);
+
 		// if this page is requested to be edited, render edit frame
 		if(editNodeId != null && getId() == editNodeId.longValue())
 		{
@@ -62,13 +66,13 @@ public class TextField extends FormField implements InteractiveNode
 	@Override
 	public String getValue()
 	{
-		HttpServletRequest request = SessionContext.getRequest();
+		HttpServletRequest request = CurrentRequest.getRequest();
 		String valueFromLastRequest = null;
 		String name = getName();
 		String ret = null;
 
 		// only return value from last request if we were redirected before
-		if(SessionContext.isRedirected())
+		if(CurrentSession.isRedirected())
 		{
 			valueFromLastRequest = getLastValue().get();
 
@@ -186,5 +190,17 @@ public class TextField extends FormField implements InteractiveNode
 		}
 
 		return(sessionValue);
+	}
+
+	// ----- interface RequestCycleListener -----
+	@Override
+	public void onRequestStart()
+	{
+	}
+
+	@Override
+	public void onRequestEnd()
+	{
+		getErrorMessageValue().set(null);
 	}
 }

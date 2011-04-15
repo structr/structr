@@ -26,22 +26,19 @@ import org.structr.core.entity.User;
  *
  * @author Christian Morgner
  */
-public class SessionContext
+public class CurrentRequest
 {
-	private static final Map<Thread, SessionContext> contextMap = Collections.synchronizedMap(new WeakHashMap<Thread, SessionContext>());
-	private static final Logger logger = Logger.getLogger(SessionContext.class.getName());
-	public static final String CURRENT_NODE_PATH =			"current_node_path";
+	private static final Map<Thread, CurrentRequest> contextMap = Collections.synchronizedMap(new WeakHashMap<Thread, CurrentRequest>());
+	private static final Logger logger = Logger.getLogger(CurrentRequest.class.getName());
 
 	// ----- private attributes -----
-	private SessionValue<Boolean> redirectedValue = new SessionValue<Boolean>("redirected", false);		// default value is important here (autoboxing)!
 	private final List<RequestCycleListener> requestCycleListener = new LinkedList<RequestCycleListener>();
-	private Map<String, Object> attributes = new HashMap<String, Object>();					// no need to be synchronized
+	private final Map<String, Object> attributes = new HashMap<String, Object>();
 	private HttpServletResponse internalResponse = null;
 	private HttpServletRequest internalRequest = null;
-	private boolean redirectFlagJustSet = false;
-        private String globalUsername = null;
-
-	private SessionContext()
+	private String currentNodePath = null;
+        
+	private CurrentRequest()
 	{
 	}
 
@@ -58,7 +55,7 @@ public class SessionContext
 
 			try
 			{
-				SessionContext.setRedirected(true);
+				CurrentSession.setRedirected(true);
 				response.sendRedirect(redirectUrl);
 
 			} catch(IOException ioex)
@@ -70,29 +67,29 @@ public class SessionContext
 
 	public static void setRequest(HttpServletRequest request)
 	{
-		SessionContext context = getContext();
+		CurrentRequest context = getRequestContext();
 		context.setRequestInternal(request);
 	}
 
 	public static HttpServletRequest getRequest()
 	{
-		return(getContext().getRequestInternal());
+		return(getRequestContext().getRequestInternal());
 	}
 
 	public static void setResponse(HttpServletResponse response)
 	{
-		SessionContext context = getContext();
+		CurrentRequest context = getRequestContext();
 		context.setResponseInternal(response);
 	}
 
 	public static HttpServletResponse getResponse()
 	{
-		return(getContext().getResponseInternal());
+		return(getRequestContext().getResponseInternal());
 	}
 
 	public static HttpSession getSession()
 	{
-		HttpServletRequest request = getContext().getRequestInternal();
+		HttpServletRequest request = getRequestContext().getRequestInternal();
 		HttpSession ret = null;
 
 		if(request != null)
@@ -103,65 +100,79 @@ public class SessionContext
 		return(ret);
 	}
 
-	public static void setAttribute(String key, Object value)
+	public static void setCurrentNodePath(String currentNodePath)
 	{
-		getContext().setAttributeInternal(key, value);
+		CurrentRequest request = getRequestContext();
+		if(request != null)
+		{
+			request.setCurrentNodePathInternal(currentNodePath);
+		}
 	}
 
-	public static Object getAttribute(String key)
+	public static String getCurrentNodePath()
 	{
-		return(getContext().getAttributeInternal(key));
+		CurrentRequest request = getRequestContext();
+		if(request != null)
+		{
+			return(request.getCurrentNodePathInternal());
+		}
+
+		return(null);
 	}
 
 	public static String getAbsoluteNodePath(User user, AbstractNode node)
 	{
-		return(getRequest().getContextPath().concat("/view".concat(node.getNodePath(user).replace("&", "%26"))));
-	}
-
-	public static void setRedirected(boolean redirected)
-	{
-		getContext().setRedirectedInternal(redirected);
-	}
-
-	public static boolean isRedirected()
-	{
-		return(getContext().getRedirectedInternal());
+		return(CurrentRequest.getRequest().getContextPath().concat("/view".concat(node.getNodePath(user).replace("&", "%26"))));
 	}
 
 	public static void registerRequestCycleListener(RequestCycleListener callback)
 	{
-		getContext().registerRequestCycleListenerInternal(callback);
+		CurrentRequest request = getRequestContext();
+		if(request != null)
+		{
+			request.registerRequestCycleListenerInternal(callback);
+		}
+	}
+
+	public static void setAttribute(String key, Object value)
+	{
+		CurrentRequest request = getRequestContext();
+		if(request != null)
+		{
+			request.setRequestAttributeInternal(key, value);
+		}
+	}
+
+	public static Object getAttribute(String key)
+	{
+		CurrentRequest request = getRequestContext();
+		if(request != null)
+		{
+			request.getRequestAttributeInternal(key);
+		}
+
+		return(null);
 	}
 
 	public static void onRequestStart()
 	{
-		getContext().callOnRequestStart();
+		CurrentRequest request = getRequestContext();
+		if(request != null)
+		{
+			request.callOnRequestStart();
+		}
 	}
 
 	public static void onRequestEnd()
 	{
-		getContext().callOnRequestEnd();
+		CurrentRequest request = getRequestContext();
+		if(request != null)
+		{
+			request.callOnRequestEnd();
+		}
 	}
-
-        public static String getGlobalUsername() {
-            return getContext().getGlobalUsernameInternal();
-        }
-
-        public static void setGlobalUsername(final String username) {
-            getContext().setGlobalUsernameInternal(username);
-        }
 
 	// ----- private methods -----
-
-        private void setGlobalUsernameInternal(final String username) {
-            this.globalUsername = username;
-        }
-
-	private String getGlobalUsernameInternal()
-	{
-		return(this.globalUsername);
-	}
-
 	private void setRequestInternal(HttpServletRequest request)
 	{
 		this.internalRequest = request;
@@ -182,26 +193,24 @@ public class SessionContext
 		return(this.internalResponse);
 	}
 
-	private void setAttributeInternal(String key, Object value)
+	private void setRequestAttributeInternal(String key, Object value)
 	{
-		this.attributes.put(key, value);
+		attributes.put(key, value);
 	}
 
-	private Object getAttributeInternal(String key)
+	private void setCurrentNodePathInternal(String currentNodePath)
 	{
-		return(this.attributes.get(key));
+		this.currentNodePath = currentNodePath;
 	}
 
-	private void setRedirectedInternal(boolean redirected)
+	private String getCurrentNodePathInternal()
 	{
-		redirectFlagJustSet = true;
-
-		this.redirectedValue.set(redirected);
+		return(currentNodePath);
 	}
 
-	private boolean getRedirectedInternal()
+	private Object getRequestAttributeInternal(String key)
 	{
-		return(this.redirectedValue.get());
+		return(attributes.get(key));
 	}
 
 	private void registerRequestCycleListenerInternal(RequestCycleListener callback)
@@ -214,13 +223,13 @@ public class SessionContext
 
 	private void callOnRequestStart()
 	{
-		if(!redirectFlagJustSet)
+		if(!CurrentSession.wasJustRedirected())
 		{
-			this.redirectedValue.set(false);
+			CurrentSession.setRedirected(false);
 
 		} else
 		{
-			redirectFlagJustSet = false;
+			CurrentSession.setJustRedirected(false);
 		}
 
 		synchronized(requestCycleListener)
@@ -269,14 +278,14 @@ public class SessionContext
 	}
 
 	// ----- private static methods -----
-	private static SessionContext getContext()
+	private static CurrentRequest getRequestContext()
 	{
 		Thread currentThread = Thread.currentThread();
-		SessionContext ret = contextMap.get(currentThread);
+		CurrentRequest ret = contextMap.get(currentThread);
 
 		if(ret == null)
 		{
-			ret = new SessionContext();
+			ret = new CurrentRequest();
 			contextMap.put(currentThread, ret);
 		}
 

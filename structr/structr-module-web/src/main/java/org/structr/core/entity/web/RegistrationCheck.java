@@ -15,7 +15,8 @@ import org.apache.commons.lang.StringUtils;
 import org.jsoup.Jsoup;
 import org.structr.common.MailHelper;
 import org.structr.common.RelType;
-import org.structr.common.SessionContext;
+import org.structr.common.CurrentRequest;
+import org.structr.common.CurrentSession;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -414,7 +415,7 @@ public class RegistrationCheck extends LoginCheck {
             // otherwise, render subnodes in edit mode
         } else {
 
-            HttpServletRequest request = SessionContext.getRequest();
+            HttpServletRequest request = CurrentRequest.getRequest();
 
             if (request == null) {
                 return;
@@ -426,7 +427,7 @@ public class RegistrationCheck extends LoginCheck {
                 return;
             }
 
-            Boolean alreadyLoggedIn = SessionContext.getGlobalUsername() != null;
+            Boolean alreadyLoggedIn = CurrentSession.getGlobalUsername() != null;
 
             if (alreadyLoggedIn) {
                 return;
