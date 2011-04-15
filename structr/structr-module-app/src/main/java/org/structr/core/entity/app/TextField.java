@@ -4,12 +4,12 @@
  */
 package org.structr.core.entity.app;
 
+import org.structr.common.SessionValue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
-import org.structr.common.Callback;
-import org.structr.common.StructrContext;
+import org.structr.common.SessionContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.User;
 
@@ -17,23 +17,13 @@ import org.structr.core.entity.User;
  *
  * @author Christian Morgner
  */
-public class TextField extends FormField implements InteractiveNode, Callback
+public class TextField extends FormField implements InteractiveNode
 {
 	private static final Logger logger = Logger.getLogger(TextField.class.getName());
 
 	protected SessionValue<String> errorMessage = null;
 	protected SessionValue<String> sessionValue = null;
 	private String mappedName = null;
-
-	public TextField()
-	{
-		// register callback for resetting session values after request
-//		StructrContext.registerCallback(this);
-
-		// callback doesnt work, values should be reset after the request
-		// that follows the redirect..
-		// maybe we need a second variable level
-	}
 
 	@Override
 	public String getIconSrc()
@@ -72,15 +62,21 @@ public class TextField extends FormField implements InteractiveNode, Callback
 	@Override
 	public String getValue()
 	{
-		HttpServletRequest request = StructrContext.getRequest();
+		HttpServletRequest request = SessionContext.getRequest();
+		String valueFromLastRequest = null;
 		String name = getName();
 		String ret = null;
 
-		String valueFromLastRequest = getLastValue().get();
-		logger.log(Level.INFO, "Got " + "last_" + "{0}: {1}", new Object[]
+		// only return value from last request if we were redirected before
+		if(SessionContext.isRedirected())
 		{
-			name, valueFromLastRequest
-		});
+			valueFromLastRequest = getLastValue().get();
+
+		} else
+		{
+			// otherwise, clear value in session
+			getLastValue().set(null);
+		}
 
 		if(request == null)
 		{
@@ -89,25 +85,20 @@ public class TextField extends FormField implements InteractiveNode, Callback
 
 		if(request != null)
 		{
-
 			ret = request.getParameter(name);
-
 			if(ret != null)
 			{
 
 				// Parameter is there
-
 				if(ret.length() == 0)
 				{
-
 					// Empty value
-
 					return null;
 
 				} else
 				{
+					// store value in session, in case we get a redirect afterwards
 					getLastValue().set(ret);
-
 					return ret;
 				}
 
@@ -156,17 +147,6 @@ public class TextField extends FormField implements InteractiveNode, Callback
 	public void setErrorValue(Object errorValue)
 	{
 		getErrorMessageValue().set(errorValue.toString());
-	}
-
-	// ----- interface Callback -----
-	@Override
-	public void callback()
-	{
-		// clear session value
-		getLastValue().set(null);
-
-		// reset error message
-		getErrorMessageValue().set(null);
 	}
 
 	// ----- private methods -----

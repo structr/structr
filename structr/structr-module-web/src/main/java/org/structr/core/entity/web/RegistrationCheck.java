@@ -15,7 +15,7 @@ import org.apache.commons.lang.StringUtils;
 import org.jsoup.Jsoup;
 import org.structr.common.MailHelper;
 import org.structr.common.RelType;
-import org.structr.common.StructrContext;
+import org.structr.common.SessionContext;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -414,7 +414,7 @@ public class RegistrationCheck extends LoginCheck {
             // otherwise, render subnodes in edit mode
         } else {
 
-            HttpServletRequest request = StructrContext.getRequest();
+            HttpServletRequest request = SessionContext.getRequest();
 
             if (request == null) {
                 return;

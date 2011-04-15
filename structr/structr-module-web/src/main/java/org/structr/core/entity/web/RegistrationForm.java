@@ -7,7 +7,7 @@ package org.structr.core.entity.web;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import org.apache.commons.lang.StringUtils;
-import org.structr.common.StructrContext;
+import org.structr.common.SessionContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.User;
 
@@ -429,7 +429,7 @@ public class RegistrationForm extends Form {
 
         } else {
 
-            HttpServletRequest request = StructrContext.getRequest();
+            HttpServletRequest request = SessionContext.getRequest();
 
             if (request == null) {
                 return;

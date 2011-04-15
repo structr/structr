@@ -40,7 +40,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DateUtils;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
-import org.structr.common.StructrContext;
+import org.structr.common.SessionContext;
 import org.structr.common.TemplateHelper;
 import org.structr.core.cloud.NodeDataContainer;
 import org.structr.core.node.CreateNodeCommand;
@@ -2306,7 +2306,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
                     root.put(callingNode.getType(), callingNode);
                 }
 
-                HttpServletRequest request = StructrContext.getRequest();
+                HttpServletRequest request = SessionContext.getRequest();
                 if (request != null) {
                     //root.put("Request", new freemarker.template.SimpleHash(request.getParameterMap().));
                     root.put("Request", new freemarker.ext.servlet.HttpRequestParametersHashModel(request));
@@ -2333,7 +2333,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
                 root.put("Helper", new TemplateHelper());
 
 		// Add error and ok message if present
-		HttpSession session = StructrContext.getSession();
+		HttpSession session = SessionContext.getSession();
 		if(session != null)
 		{
 			if(session.getAttribute("errorMessage") != null)

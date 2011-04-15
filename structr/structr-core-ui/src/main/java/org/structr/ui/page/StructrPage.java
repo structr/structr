@@ -18,7 +18,7 @@ import org.apache.click.util.ClickUtils;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.TreeHelper;
 import org.structr.context.SessionMonitor;
-import org.structr.common.StructrContext;
+import org.structr.common.SessionContext;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.Link;
@@ -158,9 +158,9 @@ public class StructrPage extends Page {
         super.onInit();
 
 	// prepare global structr request context for this request and this thread
-	StructrContext.setRequest(getContext().getRequest());
-	StructrContext.setResponse(getContext().getResponse());
-	StructrContext.setAttribute(StructrContext.CURRENT_NODE_PATH, nodeId);
+	SessionContext.setRequest(getContext().getRequest());
+	SessionContext.setResponse(getContext().getResponse());
+	SessionContext.setAttribute(SessionContext.CURRENT_NODE_PATH, nodeId);
 
         if (user != null) {
             sessionId = (Long) getContext().getRequest().getSession().getAttribute(SessionMonitor.SESSION_ID);
@@ -205,12 +205,14 @@ public class StructrPage extends Page {
 
         }
 
+	// call request cycle listener
+	SessionContext.onRequestStart();
     }
 
     @Override
     public void onDestroy()
     {
-	    callCallbacks();
+	    SessionContext.onRequestEnd();
     }
     /**
      * @see Page#onSecurityCheck()
@@ -536,10 +538,5 @@ public class StructrPage extends Page {
         }
 
         return false;
-    }
-
-    private void callCallbacks()
-    {
-	    StructrContext.callCallbacks();
     }
 }

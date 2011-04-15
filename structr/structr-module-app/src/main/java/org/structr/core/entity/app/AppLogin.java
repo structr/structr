@@ -4,6 +4,7 @@
  */
 package org.structr.core.entity.app;
 
+import org.structr.common.SessionValue;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -11,7 +12,7 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpSession;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
-import org.structr.common.StructrContext;
+import org.structr.common.SessionContext;
 import org.structr.context.SessionMonitor;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -52,7 +53,7 @@ public class AppLogin extends ActiveNode
 	@Override
 	public boolean execute(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId, User user)
 	{
-		HttpSession session = StructrContext.getSession();
+		HttpSession session = SessionContext.getSession();
 		String usernameFromSession = getUserNameValue().get();
 		Boolean alreadyLoggedIn = usernameFromSession != null;
 
@@ -207,7 +208,7 @@ public class AppLogin extends ActiveNode
 	// ----- private methods -----
 	private void countLoginFailure(int maxRetries, int delayThreshold, int delayTime)
 	{
-		HttpSession session = StructrContext.getSession();
+		HttpSession session = SessionContext.getSession();
 		Integer retries = getLoginAttemptsValue().get();
 
 		if(retries != null && retries > maxRetries)

@@ -14,7 +14,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.RelType;
-import org.structr.common.StructrContext;
+import org.structr.common.SessionContext;
 
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.StructrRelationship;
@@ -43,7 +43,7 @@ public abstract class ActiveNode extends AbstractNode
 	@Override
 	public void renderView(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user)
 	{
-		String currentUrl = (String)StructrContext.getAttribute(StructrContext.CURRENT_NODE_PATH);
+		String currentUrl = (String)SessionContext.getAttribute(SessionContext.CURRENT_NODE_PATH);
 		String myNodeUrl = getNodePath(user);
 
 		// remove slashes from end of string
@@ -74,7 +74,6 @@ public abstract class ActiveNode extends AbstractNode
 						if(slot.getParameterType().equals(source.getParameterType()))
 						{
 							slot.setSource(source);
-
 							Object value = source.getValue();
 
 							boolean accepted = slot.accepts(value);
@@ -132,7 +131,7 @@ public abstract class ActiveNode extends AbstractNode
 				AbstractNode successTarget = getSuccessTarget();
 				if(successTarget != null)
 				{
-					StructrContext.redirect(user, successTarget);
+					SessionContext.redirect(user, successTarget);
 				}
 
 			} else
@@ -142,7 +141,7 @@ public abstract class ActiveNode extends AbstractNode
 				AbstractNode failureTarget = getFailureTarget();
 				if(failureTarget != null)
 				{
-					StructrContext.redirect(user, failureTarget);
+					SessionContext.redirect(user, failureTarget);
 				}
 			}
 		}
@@ -268,29 +267,6 @@ public abstract class ActiveNode extends AbstractNode
 			if(source != null)
 			{
 				source.setErrorValue(errorValue);
-			}
-		}
-	}
-
-
-        /**
-         * Store value in session to make it survive the redirect
-         * 
-         * @param slotName
-         * @param value
-         */
-	protected void storeValue(String slotName, Object value)
-	{
-		Slot slot = getInputSlots().get(slotName);
-		if(slot != null)
-		{
-			InteractiveNode source = slot.getSource();
-			if(source != null && value != null)
-			{
-                            SessionValue<String> valueFromRequest = new SessionValue<String>("last_" + source.getName());
-                            logger.log(Level.INFO, "Saved " + "last_" + "{0}: {1}", new Object[]{source.getName(), value});
-
-                            valueFromRequest.set(value.toString());
 			}
 		}
 	}

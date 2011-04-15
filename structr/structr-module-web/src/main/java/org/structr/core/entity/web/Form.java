@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
-import org.structr.common.StructrContext;
+import org.structr.common.SessionContext;
 
 /**
  * Abstract base class for all web forms
@@ -92,7 +92,7 @@ public abstract class Form extends WebNode {
 
     protected void readParameters() {
 
-           HttpServletRequest request = StructrContext.getRequest();
+           HttpServletRequest request = SessionContext.getRequest();
 
             if (request == null) {
                 return;

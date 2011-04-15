@@ -8,7 +8,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import org.structr.common.StructrContext;
+import org.structr.common.SessionContext;
 import org.structr.context.SessionMonitor;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.User;
@@ -60,7 +60,7 @@ public class Logout extends WebNode {
 
         } else {
 
-            HttpServletRequest request = StructrContext.getRequest();
+            HttpServletRequest request = SessionContext.getRequest();
 
             if (request == null) {
                 return;
