@@ -1,6 +1,9 @@
 package org.structr.core.entity;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -100,6 +103,95 @@ public class User extends Person {
     }
 
     /**
+     * Return all objects linked to the given category,
+     * sorted
+     *
+     * @param sortDirection 
+     * @param sortBy
+     * @param categoryName
+     * @return
+     */
+    public List<AbstractNode> getSortedObjectsOfCategory(final String categoryName, final String sortBy, final String sortDirection) {
+
+        List<AbstractNode> objects = getObjectsOfCategory(categoryName);
+
+        if (sortBy != null) {
+
+            Collections.sort(objects, new Comparator<AbstractNode>() {
+
+                @Override
+                public int compare(AbstractNode nodeOne, AbstractNode nodeTwo) {
+
+                    if (nodeOne instanceof Link) {
+                        nodeOne = ((Link) nodeOne).getStructrNode();
+                    }
+
+                    if (nodeTwo instanceof Link) {
+                        nodeTwo = ((Link) nodeTwo).getStructrNode();
+                    }
+
+                    Method getterOne = null;
+                    try {
+                        getterOne = nodeOne.getClass().getMethod(sortBy);
+                    } catch (Exception ex) {
+                        logger.log(Level.FINE, "Cannot invoke method {0}", sortBy);
+                    }
+
+                    Method getterTwo = null;
+                    try {
+                        getterTwo = nodeOne.getClass().getMethod(sortBy);
+                    } catch (Exception ex) {
+                        logger.log(Level.FINE, "Cannot invoke method {0}", sortBy);
+                    }
+                    int result = 0;
+
+                    if (getterOne != null && getterTwo != null) {
+
+                        Object valueOne = null;
+                        try {
+                            valueOne = getterOne.invoke(nodeOne);
+                        } catch (Exception ex) {
+                            logger.log(Level.FINE, "Cannot invoke method {0} on {1}", new Object[]{getterOne, nodeOne});
+                        }
+                        Object valueTwo = null;
+                        try {
+                            valueTwo = getterTwo.invoke(nodeTwo);
+                        } catch (Exception ex) {
+                            logger.log(Level.FINE, "Cannot invoke method {0} on {1}", new Object[]{getterTwo, nodeTwo});
+                        }
+
+                        if (valueOne != null && valueTwo != null) {
+                            if (valueOne instanceof Comparable && valueTwo instanceof Comparable) {
+
+                                if (sortDirection != null && sortDirection.equals("asc")) {
+                                    result = ((Comparable) valueOne).compareTo((Comparable) valueTwo);
+                                } else {
+                                    result = ((Comparable) valueTwo).compareTo((Comparable) valueOne);
+                                }
+
+
+                            } else {
+
+                                if (sortDirection != null && sortDirection.equals("asc")) {
+                                    result = valueOne.toString().compareTo(valueTwo.toString());
+                                } else {
+                                    result = valueTwo.toString().compareTo(valueOne.toString());
+                                }
+                            }
+                        }
+
+                    }
+
+                    return result;
+                }
+            });
+        }
+
+        return objects;
+
+    }
+
+    /**
      * Return all objects linked to the given category
      *
      * @param categoryName
@@ -180,6 +272,7 @@ public class User extends Person {
         if (relationshipToRemove != null) {
             final StructrRelationship relToDel = relationshipToRemove;
             Services.command(TransactionCommand.class).execute(new StructrTransaction() {
+
                 @Override
                 public Object execute() {
                     // Delete relationship

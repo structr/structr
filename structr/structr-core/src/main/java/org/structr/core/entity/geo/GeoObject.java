@@ -248,4 +248,9 @@ public class GeoObject extends DefaultNode {
     public void setLatitude(double latitude) {
         setProperty(LATITUDE_KEY, latitude);
     }
+
+    public Coordinate getCoordinates() {
+        return new Coordinate(getLongitude(), getLatitude());
+    }
+
 }

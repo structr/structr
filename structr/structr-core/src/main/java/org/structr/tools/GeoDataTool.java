@@ -30,7 +30,7 @@ public class GeoDataTool {
 
     protected static GraphDatabaseService graphDb;
     protected static Index<Node> index;
-    public final static String[] northernAmerica = new String[]{
+    public final static String[] northAmerica = new String[]{
         "Canada",
         "Greenland",
         "Mexico",
@@ -582,7 +582,7 @@ public class GeoDataTool {
         Map<String, String[]> regionMap = new HashMap<String, String[]>();
 
 
-        regionMap.put("Northern America", northernAmerica);
+        regionMap.put("North America", northAmerica);
         regionMap.put("Central America and Caribbean", centralAmericaAndCaribbean);
         regionMap.put("South America", southAmerica);
         regionMap.put("Africa", africa);
