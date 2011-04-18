@@ -1319,14 +1319,14 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 
     /**
      * Return the (cached) incoming relationship between this node and the
-     * given user which holds the security information.
+     * given principal which holds the security information.
      *
-     * @param user
+     * @param principal
      * @return incoming security relationship
      */
-    public StructrRelationship getSecurityRelationship(final User user) {
+    public StructrRelationship getSecurityRelationship(final Principal principal) {
 
-        long userId = user.getId();
+        long userId = principal.getId();
 
         if (securityRelationships == null) {
             securityRelationships = new HashMap<Long, StructrRelationship>();
@@ -1870,33 +1870,33 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
     }
 
     /**
-     * Return true if user has the given permission
+     * Return true if principal has the given permission
      * 
      * @param permission
-     * @param user
+     * @param principal
      * @return
      */
-    private boolean hasPermission(final String permission, final User user) {
+    private boolean hasPermission(final String permission, final Principal principal) {
 
         // just in case ...
-        if (user == null || permission == null) {
+        if (principal == null || permission == null) {
             return false;
         }
 
         // superuser
-        if (user instanceof SuperUser) {
+        if (principal instanceof SuperUser) {
             return true;
         }
 
         // user has full control over his/her own user node
-        if (this.equals(user)) {
+        if (this.equals(principal)) {
             return true;
         }
 
 
         StructrRelationship r = null;
 
-        r = getSecurityRelationship(user);
+        r = getSecurityRelationship(principal);
 
         if (r != null && r.isAllowed(permission)) {
             return true;
