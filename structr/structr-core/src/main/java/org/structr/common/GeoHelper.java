@@ -25,7 +25,7 @@ import org.structr.core.node.GraphDatabaseCommand;
  */
 public class GeoHelper {
 
-    public static List<AbstractNode> findClosestNodes(final GeoObject node, final double radius) {
+    synchronized public static List<AbstractNode> findClosestNodes(final GeoObject node, final double radius) {
 
         List<AbstractNode> result = new LinkedList<AbstractNode>();
 
