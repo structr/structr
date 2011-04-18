@@ -161,7 +161,7 @@ public abstract class ActiveNode extends AbstractNode
          *
          * @return
          */
-        public List<StructrRelationship> getIncomingDataRelationships() {
+        protected List<StructrRelationship> getIncomingDataRelationships() {
 
             if (incomingDataRelationships == null) {
                 incomingDataRelationships = getRelationships(RelType.DATA, Direction.INCOMING);
@@ -171,7 +171,7 @@ public abstract class ActiveNode extends AbstractNode
 
 
 	// ----- private methods -----
-	private List<InteractiveNode> getDataSources()
+	protected List<InteractiveNode> getDataSources()
 	{
 		List<StructrRelationship> rels = getIncomingDataRelationships();
 		List<InteractiveNode> ret = new LinkedList<InteractiveNode>();
