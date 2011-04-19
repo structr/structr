@@ -52,6 +52,17 @@ public class AppLogin extends ActiveNode
 	private SessionValue<String> userNameValue = null;
 
 	@Override
+	public boolean isPathSensitive()
+	{
+		return(true);
+	}
+
+	public boolean doRedirectAfterExecution()
+	{
+		return(true);
+	}
+
+	@Override
 	public boolean execute(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId, User user)
 	{
 		String usernameFromSession = CurrentSession.getGlobalUsername();

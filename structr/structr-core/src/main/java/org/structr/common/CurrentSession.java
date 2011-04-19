@@ -4,6 +4,8 @@
  */
 package org.structr.common;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpSession;
 
@@ -17,6 +19,7 @@ public class CurrentSession
 {
 	private static final Logger logger = Logger.getLogger(CurrentSession.class.getName());
 
+	private static final String SESSION_KEYS_KEY =			"sessionKeys";
 	private static final String GLOBAL_USERNAME_KEY =		"globalUserName";
 	private static final String JUST_REDIRECTED_KEY =		"justRedirected";
 	private static final String REDIRECTED_KEY =			"redirected";
@@ -117,5 +120,23 @@ public class CurrentSession
 	public static HttpSession getSession()
 	{
 		return(CurrentRequest.getSession());
+	}
+
+	public static Set<String> getSessionKeys()
+	{
+		HttpSession session = CurrentRequest.getSession();
+		Set<String> ret = null;
+
+		if(session != null)
+		{
+			ret = (Set<String>)session.getAttribute(SESSION_KEYS_KEY);
+			if(ret == null)
+			{
+				ret = new LinkedHashSet<String>();
+				session.setAttribute(SESSION_KEYS_KEY, ret);
+			}
+		}
+
+		return(ret);
 	}
 }

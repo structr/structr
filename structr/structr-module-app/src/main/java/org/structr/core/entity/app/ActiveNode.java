@@ -28,104 +28,145 @@ public abstract class ActiveNode extends AbstractNode
 	private static final Logger logger = Logger.getLogger(ActiveNode.class.getName());
 	private static final String TARGET_SLOT_NAME_KEY =		"targetSlotName";
 
-	private List<StructrRelationship> incomingDataRelationships = null;
 	private Map<String, Slot> inputSlots = null;
 
+	// ----- abstract methods -----
 	public abstract boolean execute(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user);
+	/**
+	 * Returns the slots supported by this active node, mapped to their input slot names.
+	 *
+	 * @return a map containing string to slot mappings for this active node
+	 */
 	public abstract Map<String, Slot> getSlots();
 
+	/**
+	 * Indicates whether this active node executes on an exact path match, or every time it is
+	 * encountered in the node tree.
+	 *
+	 * @return whether this active node is triggered by an exact path match or not
+	 */
+	public abstract boolean isPathSensitive();
+	
+	/**
+	 * Indicates whether this active node triggers a redirect after its execute method or not.
+	 * 
+	 * @return whether this active node redirects or not
+	 */
+	public abstract boolean doRedirectAfterExecution();
+
+	/**
+	 * Returns the icon path for this active node.
+	 *
+	 * @return the icon path
+	 */
 	@Override
 	public abstract String getIconSrc();
 
+
+
+	// ----- public methods -----
 	@Override
 	public void renderView(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user)
 	{
-		String currentUrl = CurrentRequest.getCurrentNodePath();
-		String myNodeUrl = getNodePath(user);
-
-		if(currentUrl != null)
+		if(isPathSensitive())
 		{
-			// remove slashes from end of string
-			while(currentUrl.endsWith("/"))
-			{
-				currentUrl = currentUrl.substring(0, currentUrl.length() - 1);
-			}
+			String currentUrl = CurrentRequest.getCurrentNodePath();
+			String myNodeUrl = getNodePath(user);
 
-			// execute method if path matches exactly
-			if(myNodeUrl.equals(currentUrl))
+			if(currentUrl != null)
 			{
-				// check incoming DATA relationships here
-				// endpoint must implement InteractiveNode of the correct type
-				List<InteractiveNode> dataSources = getDataSources();
-				Map<String, Slot> slots = getInputSlots();
-				boolean executionSuccessful = false;
-
-				if(slots != null)
+				// remove slashes from end of string
+				while(currentUrl.endsWith("/"))
 				{
-					for(InteractiveNode source : dataSources)
-					{
-						String name = source.getMappedName();
-						if(slots.containsKey(name))
-						{
-							Slot slot = slots.get(name);
-
-							if(slot.getParameterType().equals(source.getParameterType()))
-							{
-								slot.setSource(source);
-								Object value = source.getValue();
-
-								logger.log(Level.FINE,
-									"sourceName: {0}, mappedName: {1}, value: {2}",
-									new Object[]
-									{
-										source.getName(),
-										source.getMappedName(),
-										value
-									}
-								);
-
-							} else
-							{
-								logger.log(Level.WARNING, "Parameter type mismatch: expected {0}, found {1}",
-									new Object[]
-									{
-										slot.getParameterType(),
-										source.getParameterType()
-									}
-								);
-							}
-
-						} else
-						{
-							logger.log(Level.INFO, "Slot not found {0}", name );
-						}
-					}
+					currentUrl = currentUrl.substring(0, currentUrl.length() - 1);
 				}
 
-				executionSuccessful = execute(out, startNode, editUrl, editNodeId, user);
-
-				logger.log(Level.INFO, "executionSuccessful: {0}", executionSuccessful );
-
-				// the next block will be entered if slotsSuccessful was false, or if executionSuccessful was false!
-				if(executionSuccessful)
+				// only execute method if path matches exactly
+				if(!myNodeUrl.equals(currentUrl))
 				{
-					// redirect to success page
-					// saved session values can be reset!
-					AbstractNode successTarget = getSuccessTarget();
-					if(successTarget != null)
+					return;
+				}
+
+			} else
+			{
+				return;
+			}
+		}
+
+		// check incoming DATA relationships here
+		// endpoint must implement InteractiveNode of the correct type
+		List<InteractiveNode> dataSources = getInteractiveSourceNodes();
+		Map<String, Slot> slots = getInputSlots();
+		boolean executionSuccessful = false;
+
+		if(slots != null)
+		{
+			for(InteractiveNode source : dataSources)
+			{
+				String name = source.getMappedName();
+				if(slots.containsKey(name))
+				{
+					Slot slot = slots.get(name);
+
+					if(slot.getParameterType().equals(source.getParameterType()))
 					{
-						CurrentRequest.redirect(user, successTarget);
+						slot.setSource(source);
+						Object value = source.getValue();
+
+						logger.log(Level.FINE,
+							"sourceName: {0}, mappedName: {1}, value: {2}",
+							new Object[]
+							{
+								source.getName(),
+								source.getMappedName(),
+								value
+							}
+						);
+
+					} else
+					{
+						logger.log(Level.WARNING, "Parameter type mismatch: expected {0}, found {1}",
+							new Object[]
+							{
+								slot.getParameterType(),
+								source.getParameterType()
+							}
+						);
 					}
 
 				} else
 				{
-					// redirect to error page
-					// saved session values must be kept
-					AbstractNode failureTarget = getFailureTarget();
-					if(failureTarget != null)
-					{
-						CurrentRequest.redirect(user, failureTarget);
-					}
+					logger.log(Level.INFO, "Slot not found {0}", name );
+				}
+			}
+		}
+
+		// execute this active node's action
+		executionSuccessful = execute(out, startNode, editUrl, editNodeId, user);
+		logger.log(Level.INFO, "executionSuccessful: {0}", executionSuccessful );
+
+		// do redirect after execution?
+		if(doRedirectAfterExecution())
+		{
+			// the next block will be entered if slotsSuccessful was false, or if executionSuccessful was false!
+			if(executionSuccessful)
+			{
+				// redirect to success page
+				// saved session values can be reset!
+				AbstractNode successTarget = getSuccessTarget();
+				if(successTarget != null)
+				{
+					CurrentRequest.redirect(user, successTarget);
+				}
+
+			} else
+			{
+				// redirect to error page
+				// saved session values must be kept
+				AbstractNode failureTarget = getFailureTarget();
+				if(failureTarget != null)
+				{
+					CurrentRequest.redirect(user, failureTarget);
 				}
 			}
 		}
@@ -156,22 +197,8 @@ public abstract class ActiveNode extends AbstractNode
 		return(null);
 	}
 
-        /**
-         * Cached list of incoming data relationships
-         *
-         * @return
-         */
-        protected List<StructrRelationship> getIncomingDataRelationships() {
-
-            if (incomingDataRelationships == null) {
-                incomingDataRelationships = getRelationships(RelType.DATA, Direction.INCOMING);
-            }
-            return incomingDataRelationships;
-        }
-
-
 	// ----- private methods -----
-	protected List<InteractiveNode> getDataSources()
+	protected List<InteractiveNode> getInteractiveSourceNodes()
 	{
 		List<StructrRelationship> rels = getIncomingDataRelationships();
 		List<InteractiveNode> ret = new LinkedList<InteractiveNode>();

@@ -69,6 +69,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
     private List<StructrRelationship> incomingChildRelationships = null;
     private List<StructrRelationship> outgoingChildRelationships = null;
     private List<StructrRelationship> outgoingDataRelationships = null;
+    private List<StructrRelationship> incomingDataRelationships = null;
     private List<StructrRelationship> incomingRelationships = null;
     private List<StructrRelationship> outgoingRelationships = null;
     private List<StructrRelationship> allRelationships = null;
@@ -1577,6 +1578,19 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
             outgoingDataRelationships = getRelationships(RelType.DATA, Direction.OUTGOING);
         }
         return outgoingDataRelationships;
+    }
+
+    /**
+     * Cached list of incoming data relationships
+     *
+     * @return
+     */
+    public List<StructrRelationship> getIncomingDataRelationships() {
+
+        if (incomingDataRelationships == null) {
+            incomingDataRelationships = getRelationships(RelType.DATA, Direction.INCOMING);
+        }
+        return incomingDataRelationships;
     }
 
     /**

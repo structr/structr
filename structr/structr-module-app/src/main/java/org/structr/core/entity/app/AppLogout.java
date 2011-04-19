@@ -19,6 +19,17 @@ public class AppLogout extends ActiveNode
 	private static final String ICON_SRC = "/images/door_out.png";
 
 	@Override
+	public boolean isPathSensitive()
+	{
+		return(true);
+	}
+
+	public boolean doRedirectAfterExecution()
+	{
+		return(true);
+	}
+
+	@Override
 	public String getIconSrc()
 	{
 		return (ICON_SRC);
