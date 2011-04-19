@@ -74,11 +74,26 @@ public class AppNodeCreator extends ActiveNode
 			List<InteractiveNode> dataSource = getInteractiveSourceNodes();
 			attributes.add(new NodeAttribute("type", targetType));
 			AbstractNode storeNode = getNodeFromLoader();
+			boolean error = false;
 
 			// add attributes from data sources
 			for(InteractiveNode src : dataSource)
 			{
-				attributes.add(new NodeAttribute(src.getMappedName(), src.getValue()));
+				Object value = src.getValue();
+				if(value != null && value.toString().length() > 0)
+				{
+					attributes.add(new NodeAttribute(src.getMappedName(), value));
+
+				} else
+				{
+					setErrorValue(src.getName(), "Please enter a value for ".concat(src.getName()));
+					error = true;
+				}
+			}
+
+			if(error)
+			{
+				return(false);
 			}
 
 			// if no node provided by data source,
