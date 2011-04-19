@@ -4,6 +4,7 @@
  */
 package org.structr.core.entity.app;
 
+import java.util.List;
 import org.structr.common.SessionValue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -13,6 +14,7 @@ import org.structr.common.RequestCycleListener;
 import org.structr.common.CurrentRequest;
 import org.structr.common.CurrentSession;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.StructrRelationship;
 import org.structr.core.entity.User;
 
 /**
@@ -22,9 +24,10 @@ import org.structr.core.entity.User;
 public class TextField extends FormField implements InteractiveNode, RequestCycleListener
 {
 	private static final Logger logger = Logger.getLogger(TextField.class.getName());
+	private static final String SOURCE_SLOT_NAME_KEY =		"sourceSlotName";
 
 	protected SessionValue<Object> errorSessionValue = null;
-	protected SessionValue<String> sessionValue = null;
+	protected SessionValue<Object> sessionValue = null;
 	private String mappedName = null;
 
 	@Override
@@ -64,17 +67,17 @@ public class TextField extends FormField implements InteractiveNode, RequestCycl
 
 	// ----- interface InteractiveNode -----
 	@Override
-	public String getValue()
+	public Object getValue()
 	{
 		HttpServletRequest request = CurrentRequest.getRequest();
-		String valueFromLastRequest = null;
+		Object value = getValueFromSource();
 		String name = getName();
 		String ret = null;
 
 		// only return value from last request if we were redirected before
 		if(CurrentSession.isRedirected())
 		{
-			valueFromLastRequest = getLastValue().get();
+			value = getLastValue().get();
 
 		} else
 		{
@@ -84,7 +87,7 @@ public class TextField extends FormField implements InteractiveNode, RequestCycl
 
 		if(request == null)
 		{
-			return valueFromLastRequest;
+			return value;
 		}
 
 		if(request != null)
@@ -109,7 +112,7 @@ public class TextField extends FormField implements InteractiveNode, RequestCycl
 			} else
 			{
 				// Parameter is not in request
-				return valueFromLastRequest;
+				return value;
 			}
 
 		}
@@ -171,6 +174,18 @@ public class TextField extends FormField implements InteractiveNode, RequestCycl
 		return(null);
 	}
 
+	// ----- interface RequestCycleListener -----
+	@Override
+	public void onRequestStart()
+	{
+	}
+
+	@Override
+	public void onRequestEnd()
+	{
+		getErrorMessageValue().set(null);
+	}
+
 	// ----- private methods -----
 	private SessionValue<Object> getErrorMessageValue()
 	{
@@ -182,25 +197,59 @@ public class TextField extends FormField implements InteractiveNode, RequestCycl
 		return(errorSessionValue);
 	}
 
-	private SessionValue<String> getLastValue()
+	private SessionValue<Object> getLastValue()
 	{
 		if(sessionValue == null)
 		{
-			sessionValue = new SessionValue<String>(createUniqueIdentifier("lastValue"));
+			sessionValue = new SessionValue<Object>(createUniqueIdentifier("lastValue"));
 		}
 
 		return(sessionValue);
 	}
 
-	// ----- interface RequestCycleListener -----
-	@Override
-	public void onRequestStart()
+	/**
+	 * Follows any incoming DATA relationship and tries to obtain a data value with
+	 * the mapped name from the relationship.
+	 *
+	 * @return the value or null
+	 */
+	private Object getValueFromSource()
 	{
-	}
+		List<StructrRelationship> rels = getIncomingDataRelationships();
+		String sourceName = this.getName();
+		Object ret = null;
 
-	@Override
-	public void onRequestEnd()
-	{
-		getErrorMessageValue().set(null);
+		// follow INCOMING DATA relationships to found data source for this input field
+		for(StructrRelationship rel : rels)
+		{
+			// first one wins
+			AbstractNode startNode = rel.getStartNode();
+			if(startNode instanceof NodeSource)
+			{
+				// source name mapping present? use input field name otherwise
+				if(rel.getRelationship().hasProperty(SOURCE_SLOT_NAME_KEY))
+				{
+					sourceName = (String)rel.getRelationship().getProperty(SOURCE_SLOT_NAME_KEY);
+				}
+
+				NodeSource source = (NodeSource)startNode;
+				if(source != null)
+				{
+					AbstractNode loadedNode = source.loadNode();
+					if(loadedNode != null)
+					{
+						ret = loadedNode.getProperty(sourceName);
+					}
+				}
+			}
+
+			// if a value is found, return it, otherwise try the next data source
+			if(ret != null)
+			{
+				break;
+			}
+		}
+
+		return(ret);
 	}
 }

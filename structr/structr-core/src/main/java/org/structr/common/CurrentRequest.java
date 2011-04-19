@@ -12,6 +12,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -171,6 +172,21 @@ public class CurrentRequest
 		}
 	}
 
+	public static void pushToNextRequest(String key, Object value)
+	{
+		Set<String> sessionKeys = CurrentSession.getSessionKeys();
+		if(sessionKeys != null)
+		{
+			synchronized(sessionKeys)
+			{
+				sessionKeys.add(key);
+			}
+		}
+
+		CurrentSession.setAttribute(key, value);
+		CurrentSession.setAttribute("_".concat(key), value);
+	}
+
 	// ----- private methods -----
 	private void setRequestInternal(HttpServletRequest request)
 	{
@@ -231,6 +247,27 @@ public class CurrentRequest
 			CurrentSession.setRedirected(false);
 		}
 
+		// remove session key markers
+		Set<String> sessionKeys = CurrentSession.getSessionKeys();
+		if(sessionKeys != null)
+		{
+			synchronized(sessionKeys)
+			{
+				for(String sessionKey : sessionKeys)
+				{
+					String sessionKeyMarker = "_".concat(sessionKey);
+					// check for session key marker
+					if(CurrentSession.getAttribute(sessionKeyMarker) != null)
+					{
+						logger.log(Level.INFO, "Removing session key marker for {0}", sessionKey);
+
+						// remove session key marker if present
+						CurrentSession.setAttribute(sessionKeyMarker, null);
+					}
+				}
+			}
+		}
+
 		synchronized(requestCycleListener)
 		{
 			for(Iterator<RequestCycleListener> it = requestCycleListener.iterator(); it.hasNext();)
@@ -272,6 +309,29 @@ public class CurrentRequest
 
 				// end of request: remove current element
 				it.remove();
+			}
+		}
+
+		// remove session keys
+		Set<String> sessionKeys = CurrentSession.getSessionKeys();
+		if(sessionKeys != null)
+		{
+			synchronized(sessionKeys)
+			{
+				for(Iterator<String> sessionKeyIterator = sessionKeys.iterator(); sessionKeyIterator.hasNext();)
+				{
+					// check for session key marker
+					String sessionKey = sessionKeyIterator.next();
+
+					if(CurrentSession.getAttribute("_".concat(sessionKey)) == null)
+					{
+						logger.log(Level.INFO, "Removing session key marker for {0}", sessionKey);
+
+						// delete session key if marker is already gone
+						CurrentSession.setAttribute(sessionKey, null);
+						sessionKeyIterator.remove();
+					}
+				}
 			}
 		}
 	}
