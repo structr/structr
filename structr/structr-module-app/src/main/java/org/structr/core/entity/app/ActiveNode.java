@@ -143,7 +143,6 @@ public abstract class ActiveNode extends AbstractNode
 
 		// execute this active node's action
 		executionSuccessful = execute(out, startNode, editUrl, editNodeId, user);
-		logger.log(Level.INFO, "executionSuccessful: {0}", executionSuccessful );
 
 		// do redirect after execution?
 		if(doRedirectAfterExecution())
@@ -197,7 +196,40 @@ public abstract class ActiveNode extends AbstractNode
 		return(null);
 	}
 
-	// ----- private methods -----
+	// ----- protected methods -----
+	protected void setErrorValue(String slotName, Object errorValue)
+	{
+		Slot slot = getInputSlots().get(slotName);
+		if(slot != null)
+		{
+			InteractiveNode source = slot.getSource();
+			if(source != null)
+			{
+				source.setErrorValue(errorValue);
+			}
+		}
+	}
+
+	protected AbstractNode getNodeFromLoader()
+	{
+		List<StructrRelationship> rels = getIncomingDataRelationships();
+		AbstractNode ret = null;
+
+		for(StructrRelationship rel : rels)
+		{
+			// first one wins
+			AbstractNode startNode = rel.getStartNode();
+			if(startNode instanceof NodeSource)
+			{
+				NodeSource source = (NodeSource)startNode;
+				ret = source.loadNode();
+				break;
+			}
+		}
+
+		return(ret);
+	}
+
 	protected List<InteractiveNode> getInteractiveSourceNodes()
 	{
 		List<StructrRelationship> rels = getIncomingDataRelationships();
@@ -223,6 +255,7 @@ public abstract class ActiveNode extends AbstractNode
 		return(ret);
 	}
 
+	// ----- private methods -----
 	private AbstractNode getSuccessTarget()
 	{
 		List<StructrRelationship> rels = getRelationships(RelType.SUCCESS_DESTINATION, Direction.OUTGOING);
@@ -258,7 +291,6 @@ public abstract class ActiveNode extends AbstractNode
 		if(inputSlots == null)
 		{
 			inputSlots = getSlots();
-
 			if(inputSlots == null)
 			{
 				// return empty map on failure
@@ -267,18 +299,5 @@ public abstract class ActiveNode extends AbstractNode
 		}
 
 		return(inputSlots);
-	}
-
-	protected void setErrorValue(String slotName, Object errorValue)
-	{
-		Slot slot = getInputSlots().get(slotName);
-		if(slot != null)
-		{
-			InteractiveNode source = slot.getSource();
-			if(source != null)
-			{
-				source.setErrorValue(errorValue);
-			}
-		}
 	}
 }

@@ -7,6 +7,7 @@ package org.structr.core.entity.app.tests;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.RelType;
@@ -25,17 +26,26 @@ import org.structr.core.node.TransactionCommand;
  *
  * @author chrisi
  */
-public abstract class AppNodeTestCase extends AbstractNode
+public abstract class ApplicationNode extends AbstractNode
 {
+	private static final Logger logger = Logger.getLogger(ApplicationNode.class.getName());
+	
 	public abstract void buildTestCase();
 
 	@Override
 	public void renderView(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId, User user)
 	{
+		// just a container
 	}
 
 	@Override
-	public String getIconSrc()
+	public void onNodeCreation()
+	{
+		logger.log(Level.INFO, "callback..");
+	}
+
+	@Override
+	public void onNodeInstantiation()
 	{
 		if(!getNode().hasRelationship(Direction.OUTGOING))
 		{
@@ -51,8 +61,12 @@ public abstract class AppNodeTestCase extends AbstractNode
 				}
 			});
 		}
+	}
 
-		return("/images/plugin.png");
+	@Override
+	public String getIconSrc()
+	{
+		return("/images/bricks.png");
 	}
 
 	// ----- protected methods -----

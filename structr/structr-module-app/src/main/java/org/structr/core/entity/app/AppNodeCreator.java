@@ -100,7 +100,6 @@ public class AppNodeCreator extends ActiveNode
 			if(storeNode == null)
 			{
 				// create node
-				logger.log(Level.INFO, "storeNode was null, creating..");
 				storeNode = createNewNode(parentNode, targetType);
 
 			}
@@ -108,12 +107,10 @@ public class AppNodeCreator extends ActiveNode
 			// node exists / successfully created
 			if(storeNode != null)
 			{
-				logger.log(Level.INFO, "storing attributes in node..");
 				ret = storeNodeAttributes(storeNode, attributes);
 
 			} else
 			{
-				logger.log(Level.WARNING, "Unable to create new node");
 				ret = false;
 			}
 		}
@@ -186,7 +183,11 @@ public class AppNodeCreator extends ActiveNode
 			public Object execute() throws Throwable
 			{
 				List<NodeAttribute> attributes = new LinkedList<NodeAttribute>();
+
 				attributes.add(new NodeAttribute(TYPE_KEY, type));
+				
+				// FIXME: temporary
+				attributes.add(new NodeAttribute(PUBLIC_KEY, "true"));
 
 				AbstractNode newNode = (AbstractNode)Services.command(CreateNodeCommand.class).execute(attributes);
 				if(newNode != null)
@@ -200,30 +201,6 @@ public class AppNodeCreator extends ActiveNode
 				return(null);
 			}
 		});
-
-		return(ret);
-	}
-
-	private AbstractNode getNodeFromLoader()
-	{
-		List<StructrRelationship> rels = getIncomingDataRelationships();
-		AbstractNode ret = null;
-
-		logger.log(Level.INFO, "{0} incoming DATA relationships", rels.size());
-
-		for(StructrRelationship rel : rels)
-		{
-			// first one wins
-			AbstractNode startNode = rel.getStartNode();
-			if(startNode instanceof NodeSource)
-			{
-				logger.log(Level.INFO, "found NodeSource instance");
-
-				NodeSource source = (NodeSource)startNode;
-				ret = source.loadNode();
-				break;
-			}
-		}
 
 		return(ret);
 	}

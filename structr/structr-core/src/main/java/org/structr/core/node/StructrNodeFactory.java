@@ -52,7 +52,7 @@ public class StructrNodeFactory<T extends AbstractNode> implements Adapter<Node,
             try {
                 ret = (AbstractNode) nodeClass.newInstance();
 
-            } catch (Throwable t) {
+	    } catch (Throwable t) {
                 ret = null;
             }
 
@@ -63,6 +63,7 @@ public class StructrNodeFactory<T extends AbstractNode> implements Adapter<Node,
         }
 
         ret.init(node);
+	ret.onNodeInstantiation();
 
         return ret;
     }
@@ -176,7 +177,9 @@ public class StructrNodeFactory<T extends AbstractNode> implements Adapter<Node,
 
         newNode.init(data);
         newNode.commit(null);
+        newNode.onNodeInstantiation();
 
+	// FIXME: move this in onInstantiation() method
         if (data instanceof FileNodeDataContainer) {
 
             byte[] binaryContent = ((FileNodeDataContainer) data).getBinaryContent();

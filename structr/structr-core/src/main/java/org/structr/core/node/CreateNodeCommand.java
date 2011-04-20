@@ -116,6 +116,12 @@ public class CreateNodeCommand extends NodeServiceCommand {
 
         }
 
+	if(node != null)
+	{
+		// notify node of its creation
+		node.onNodeCreation();
+	}
+
         return node;
     }
 //

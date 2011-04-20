@@ -93,7 +93,7 @@ public class ConvertCsvToNodeListCommand extends NodeServiceCommand {
             // The field index stores the field name of a column
             Map<Integer, String> fieldIndex = new HashMap<Integer, String>();
 
-            // Instanciate object
+            // Instantiate object
             AbstractNode o = (AbstractNode) targetClass.newInstance();
 
             int col = 0;

@@ -8,12 +8,13 @@ package org.structr.core.entity.app.tests;
 import org.structr.common.RelType;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.PlainText;
+import org.structr.core.entity.web.HtmlSource;
 
 /**
  *
  * @author chrisi
  */
-public class AppNodeTestCase001 extends AppNodeTestCase
+public class AppNodeTestCase001 extends ApplicationNode
 {
 	@Override
 	public void buildTestCase()
@@ -51,8 +52,12 @@ public class AppNodeTestCase001 extends AppNodeTestCase
 		linkNodes(this, overview, RelType.HAS_CHILD);
 		linkNodes(overview, pageTemplate, RelType.USE_TEMPLATE);
 
+		HtmlSource tableNode = (HtmlSource)createNode("HtmlSource", "table");
+		linkNodes(overview, tableNode, RelType.HAS_CHILD);
+		tableNode.setContent(getTableTemplateSource());
+
 		AbstractNode listNode = createNode("AppList", "listNode");
-		linkNodes(overview, listNode, RelType.HAS_CHILD);
+		linkNodes(tableNode, listNode, RelType.HAS_CHILD);
 		linkNodes(listNode, listItemTemplate, RelType.USE_TEMPLATE);
 
 // page 2
@@ -86,6 +91,9 @@ public class AppNodeTestCase001 extends AppNodeTestCase
 		creator.setProperty("targetType", "DataNode");
 		linkNodes(form, creator, RelType.HAS_CHILD);
 
+		AbstractNode deleter = createNode("AppNodeDeleter", "delete");
+		linkNodes(form, deleter, RelType.HAS_CHILD);
+
 		AbstractNode submitButton = createNode("SubmitButton", "submit");
 		submitButton.setProperty("label", "Submit");
 		linkNodes(form, submitButton, RelType.HAS_CHILD);
@@ -104,9 +112,12 @@ public class AppNodeTestCase001 extends AppNodeTestCase
 		linkNodes(creator, editor, RelType.ERROR_DESTINATION);
 		linkNodes(creator, dataFolder, RelType.CREATE_DESTINATION);
 
+		linkNodes(deleter, overview, RelType.SUCCESS_DESTINATION);
+		linkNodes(deleter, overview, RelType.ERROR_DESTINATION);
 
 // data relationships
 		linkNodes(loader, creator, RelType.DATA);			// ensures that an edited object is not created again, but saved instead
+		linkNodes(loader, deleter, RelType.DATA);
 
 		linkNodes(loader, name, RelType.DATA);				// input from loader to name field
 		linkNodes(loader, surname, RelType.DATA);			// input from loader to surname field
@@ -116,6 +127,15 @@ public class AppNodeTestCase001 extends AppNodeTestCase
 		linkNodes(surname, creator, RelType.DATA);			// output from surname field to creator
 		linkNodes(location, creator, RelType.DATA);			// output from location field to creator
 
+
+
+		// loader  >--DATA-->   name	 >--DATA-->  creator
+		// loader  >--DATA-->  surname	 >--DATA-->  creator
+		// loader  >--DATA-->  location	 >--DATA-->  creator
+
+
+// finally, modify type to site
+		this.setProperty(TYPE_KEY, "Site");
 
 	}
 
@@ -135,7 +155,16 @@ public class AppNodeTestCase001 extends AppNodeTestCase
 
 
 
+	private String getTableTemplateSource()
+	{
+		StringBuilder ret = new StringBuilder(100);
 
+		ret.append("<table border='1' cellspacing='0' cellpadding='5'>\n");
+		ret.append("%{listNode}\n");
+		ret.append("</table>\n");
+
+		return(ret.toString());
+	}
 
 
 	private String getListItemTemplateSource()
@@ -143,13 +172,12 @@ public class AppNodeTestCase001 extends AppNodeTestCase
 		StringBuilder ret = new StringBuilder(100);
 
 		ret.append("<#setting number_format='0' />\n");
-		ret.append("<p class='listItem'>\n");
-		ret.append("<a href='editor?param=${Template.id}'>\n");
-		ret.append("<#if Template.getProperty(\"name\") ?? >${Template.getProperty(\"name\")}</#if>");
-		ret.append(",&nbsp;");
-		ret.append("<#if Template.getProperty(\"surname\") ?? >${Template.getProperty(\"surname\")}</#if>");
-		ret.append("<#if Template.getProperty(\"location\") ?? >&nbsp;(${Template.getProperty(\"location\")})</#if>");
-		ret.append("</a>\n");
+		ret.append("<tr>\n");
+		ret.append("<td>${Template.getProperty(\"name\")}</td>\n");
+		ret.append("<td>${Template.getProperty(\"surname\")}</td>\n");
+		ret.append("<td>${Template.getProperty(\"location\")}</td>\n");
+		ret.append("<td><a href='editor/form1/delete?param=${Template.id}'>delete</a></td>\n");
+		ret.append("</tr>\n");
 		ret.append("</p>\n");
 
 		return(ret.toString());

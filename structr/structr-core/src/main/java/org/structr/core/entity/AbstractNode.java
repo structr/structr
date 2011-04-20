@@ -57,7 +57,6 @@ import org.structr.core.node.search.Search;
  */
 public abstract class AbstractNode implements Comparable<AbstractNode> {
 
-    private final static String ICON_SRC = "/images/folder.png";
     private static final Logger logger = Logger.getLogger(AbstractNode.class.getName());
     private static final boolean updateIndexDefault = true;
     // request parameters
@@ -76,9 +75,12 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 
     // ----- abstract methods ----
     public abstract void renderView(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user);
-
     public abstract String getIconSrc();
-    
+
+    // ----- life-cycle callbacks
+    public void onNodeCreation() {	/* override me, will be called from within CreateNodeCommand */ }
+    public void onNodeInstantiation() {	/* override me, will be called from within StructrNodeFactory, after init() */ }
+
     // reference to database node
     protected Node dbNode;
     // dirty flag, true means that some changes are not yet written to the database

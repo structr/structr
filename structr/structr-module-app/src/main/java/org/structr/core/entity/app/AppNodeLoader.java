@@ -66,9 +66,7 @@ public class AppNodeLoader extends ActiveNode implements NodeSource
 	@Override
 	public Map<String, Slot> getSlots()
 	{
-		Map<String, Slot> ret = new HashMap<String, Slot>();
-
-		return(ret);
+		return(null);
 	}
 
 	@Override
@@ -100,8 +98,6 @@ public class AppNodeLoader extends ActiveNode implements NodeSource
 		{
 //			String username = CurrentSession.getGlobalUsername();
 //			User loginUser = (User)Services.command(FindUserCommand.class).execute(username);
-
-			logger.log(Level.INFO, "Loading node from parameter {0}", loaderSourceParameter);
 
 			// load by path or id?
 			String loaderValue = CurrentRequest.getRequest().getParameter(loaderSourceParameter);

@@ -164,6 +164,7 @@ public class CreateNode extends Nodes {
 
         public String getIconSrc() {
             try {
+		    // FIXME: does onNodeInstantiation() need to be called here?
                 return implClass.newInstance().getIconSrc();
             } catch (Throwable ignore) {
                 return "/images/error.png";

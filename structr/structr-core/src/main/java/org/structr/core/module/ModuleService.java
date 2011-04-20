@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.lang.reflect.Modifier;
 import java.util.Enumeration;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -120,10 +121,13 @@ public class ModuleService implements SingletonService {
                     if (possiblePath != null) {
                         try {
                             Class nodeClass = Class.forName(possiblePath + "." + name);
-                            entityClassCache.put(name, nodeClass);
+			    if(!Modifier.isAbstract(nodeClass.getModifiers()))
+			    {
+				entityClassCache.put(name, nodeClass);
 
-                            // first match wins
-                            break;
+			        // first match wins
+	                        break;
+			    }
 
                         } catch (ClassNotFoundException ex) {
                             // ignore
@@ -566,35 +570,38 @@ public class ModuleService implements SingletonService {
                 // instantiate class..
                 Class clazz = Class.forName(className);
 
-                if (AbstractNode.class.isAssignableFrom(clazz)) {
-                    String simpleName = clazz.getSimpleName();
-                    String fullName = clazz.getName();
+		if(!Modifier.isAbstract(clazz.getModifiers()))
+		{
+			if (AbstractNode.class.isAssignableFrom(clazz)) {
+			    String simpleName = clazz.getSimpleName();
+			    String fullName = clazz.getName();
 
-                    entityClassCache.put(simpleName, clazz);
-                    entityPackages.add(fullName.substring(0, fullName.lastIndexOf(".")));
+			    entityClassCache.put(simpleName, clazz);
+			    entityPackages.add(fullName.substring(0, fullName.lastIndexOf(".")));
 
-                }
+			}
 
-                if (Agent.class.isAssignableFrom(clazz)) {
-                    String simpleName = clazz.getSimpleName();
-                    String fullName = clazz.getName();
+			if (Agent.class.isAssignableFrom(clazz)) {
+			    String simpleName = clazz.getSimpleName();
+			    String fullName = clazz.getName();
 
-                    agentClassCache.put(simpleName, clazz);
-                    agentPackages.add(fullName.substring(0, fullName.lastIndexOf(".")));
+			    agentClassCache.put(simpleName, clazz);
+			    agentPackages.add(fullName.substring(0, fullName.lastIndexOf(".")));
 
-                }
+			}
 
-                if (structrPagePredicate.evaluate(clazz)) {
-                    String fullName = clazz.getName();
+			if (structrPagePredicate.evaluate(clazz)) {
+			    String fullName = clazz.getName();
 
-                    String packageName = fullName.substring(0, fullName.lastIndexOf("."));
-                    pagePackages.add(packageName);
+			    String packageName = fullName.substring(0, fullName.lastIndexOf("."));
+			    pagePackages.add(packageName);
 
-                    // this did the trick!
-                    String parentPackage = packageName.substring(0, packageName.lastIndexOf("."));
-                    pagePackages.add(parentPackage);
+			    // this did the trick!
+			    String parentPackage = packageName.substring(0, packageName.lastIndexOf("."));
+			    pagePackages.add(parentPackage);
 
-                }
+			}
+		    }
 
             } catch (Throwable t) {
                 // ignore
