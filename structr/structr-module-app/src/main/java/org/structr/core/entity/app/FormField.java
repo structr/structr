@@ -54,4 +54,13 @@ public abstract class FormField extends AbstractNode {
         setProperty(HELP_TEXT_KEY, value);
     }
 
+    @Override
+    public void onNodeCreation()
+    {
+    }
+
+    @Override
+    public void onNodeInstantiation()
+    {
+    }
 }

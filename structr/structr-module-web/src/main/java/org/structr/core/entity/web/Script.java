@@ -120,4 +120,14 @@ public class Script extends AbstractNode {
 
         return (ret.toString());
     }
+
+    @Override
+    public void onNodeCreation()
+    {
+    }
+
+    @Override
+    public void onNodeInstantiation()
+    {
+    }
 }

@@ -76,10 +76,8 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
     // ----- abstract methods ----
     public abstract void renderView(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user);
     public abstract String getIconSrc();
-
-    // ----- life-cycle callbacks
-    public void onNodeCreation() {	/* override me, will be called from within CreateNodeCommand */ }
-    public void onNodeInstantiation() {	/* override me, will be called from within StructrNodeFactory, after init() */ }
+    public abstract void onNodeCreation();
+    public abstract void onNodeInstantiation();
 
     // reference to database node
     protected Node dbNode;

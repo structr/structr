@@ -61,4 +61,14 @@ public class AppList extends AbstractNode
 			logger.log(Level.WARNING, "Node not visible");
 		}
 	}
+
+    @Override
+    public void onNodeCreation()
+    {
+    }
+
+    @Override
+    public void onNodeInstantiation()
+    {
+    }
 }

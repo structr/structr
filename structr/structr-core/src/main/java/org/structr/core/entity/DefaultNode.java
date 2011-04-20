@@ -57,4 +57,13 @@ public class DefaultNode extends AbstractNode
         return "/images/error.png";
     }
 
+    @Override
+    public void onNodeCreation()
+    {
+    }
+
+    @Override
+    public void onNodeInstantiation()
+    {
+    }
 }

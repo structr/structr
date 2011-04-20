@@ -36,4 +36,14 @@ public class DataNode extends AbstractNode
 	{
 		return("/images/database.png");
 	}
+
+    @Override
+    public void onNodeCreation()
+    {
+    }
+
+    @Override
+    public void onNodeInstantiation()
+    {
+    }
 }

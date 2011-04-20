@@ -172,4 +172,14 @@ public abstract class HtmlNode extends AbstractNode
 	}
 	// </editor-fold>
 
+
+    @Override
+    public void onNodeCreation()
+    {
+    }
+
+    @Override
+    public void onNodeInstantiation()
+    {
+    }
 }

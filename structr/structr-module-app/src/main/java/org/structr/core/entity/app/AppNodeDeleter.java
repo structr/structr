@@ -53,4 +53,14 @@ public class AppNodeDeleter extends ActiveNode
 	{
 		return("/images/brick_delete.png");
 	}
+
+    @Override
+    public void onNodeCreation()
+    {
+    }
+
+    @Override
+    public void onNodeInstantiation()
+    {
+    }
 }

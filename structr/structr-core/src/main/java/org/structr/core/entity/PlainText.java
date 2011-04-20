@@ -106,4 +106,14 @@ public class PlainText extends AbstractNode {
             }
         }
     }
+
+    @Override
+    public void onNodeCreation()
+    {
+    }
+
+    @Override
+    public void onNodeInstantiation()
+    {
+    }
 }

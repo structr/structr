@@ -74,4 +74,14 @@ public class Link extends AbstractNode {
     public void setIconSrc(String iconSrc) {
         this.iconSrc = iconSrc;
     }
+
+    @Override
+    public void onNodeCreation()
+    {
+    }
+
+    @Override
+    public void onNodeInstantiation()
+    {
+    }
 }

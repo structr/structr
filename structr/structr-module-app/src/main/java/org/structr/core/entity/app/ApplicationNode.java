@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 
-package org.structr.core.entity.app.tests;
+package org.structr.core.entity.app;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -24,7 +24,7 @@ import org.structr.core.node.TransactionCommand;
 
 /**
  *
- * @author chrisi
+ * @author Christian Morgner
  */
 public abstract class ApplicationNode extends AbstractNode
 {
@@ -41,7 +41,9 @@ public abstract class ApplicationNode extends AbstractNode
 	@Override
 	public void onNodeCreation()
 	{
-		logger.log(Level.INFO, "callback..");
+		// we cannot use this method to trigger the application unfolding, because
+		// the create node dialog starts with an EmptyNode and determines its type
+		// later.
 	}
 
 	@Override
@@ -49,7 +51,7 @@ public abstract class ApplicationNode extends AbstractNode
 	{
 		if(!getNode().hasRelationship(Direction.OUTGOING))
 		{
-			// build test case here
+			// build application here
 			Services.command(TransactionCommand.class).execute(new StructrTransaction()
 			{
 				@Override

@@ -298,6 +298,16 @@ public class Map extends AbstractNode {
         return ICON_SRC;
     }
 
+    @Override
+    public void onNodeCreation()
+    {
+    }
+
+    @Override
+    public void onNodeInstantiation()
+    {
+    }
+
 // <editor-fold defaultstate="collapsed" desc="getter and setter methods">
 // getter and setter methods
 

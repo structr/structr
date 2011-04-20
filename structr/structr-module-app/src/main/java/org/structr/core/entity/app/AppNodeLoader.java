@@ -110,4 +110,14 @@ public class AppNodeLoader extends ActiveNode implements NodeSource
 
 		return(ret);
 	}
+
+    @Override
+    public void onNodeCreation()
+    {
+    }
+
+    @Override
+    public void onNodeInstantiation()
+    {
+    }
 }

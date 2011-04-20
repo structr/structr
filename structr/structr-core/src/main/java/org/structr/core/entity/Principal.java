@@ -30,4 +30,14 @@ public abstract class Principal extends AbstractNode {
 
         }
     }
+
+    @Override
+    public void onNodeCreation()
+    {
+    }
+
+    @Override
+    public void onNodeInstantiation()
+    {
+    }
 }

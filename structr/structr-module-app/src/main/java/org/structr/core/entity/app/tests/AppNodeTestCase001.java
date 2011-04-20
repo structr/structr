@@ -5,6 +5,7 @@
 
 package org.structr.core.entity.app.tests;
 
+import org.structr.core.entity.app.ApplicationNode;
 import org.structr.common.RelType;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.PlainText;
@@ -128,15 +129,9 @@ public class AppNodeTestCase001 extends ApplicationNode
 		linkNodes(location, creator, RelType.DATA);			// output from location field to creator
 
 
-
 		// loader  >--DATA-->   name	 >--DATA-->  creator
 		// loader  >--DATA-->  surname	 >--DATA-->  creator
 		// loader  >--DATA-->  location	 >--DATA-->  creator
-
-
-// finally, modify type to site
-		this.setProperty(TYPE_KEY, "Site");
-
 	}
 
 

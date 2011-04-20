@@ -2,7 +2,6 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package org.structr.core.entity.app;
 
 import java.util.HashMap;
@@ -26,12 +25,12 @@ import org.structr.core.entity.User;
 public abstract class ActiveNode extends AbstractNode
 {
 	private static final Logger logger = Logger.getLogger(ActiveNode.class.getName());
-	private static final String TARGET_SLOT_NAME_KEY =		"targetSlotName";
-
+	private static final String TARGET_SLOT_NAME_KEY = "targetSlotName";
 	private Map<String, Slot> inputSlots = null;
 
 	// ----- abstract methods -----
 	public abstract boolean execute(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user);
+
 	/**
 	 * Returns the slots supported by this active node, mapped to their input slot names.
 	 *
@@ -46,7 +45,7 @@ public abstract class ActiveNode extends AbstractNode
 	 * @return whether this active node is triggered by an exact path match or not
 	 */
 	public abstract boolean isPathSensitive();
-	
+
 	/**
 	 * Indicates whether this active node triggers a redirect after its execute method or not.
 	 * 
@@ -61,8 +60,6 @@ public abstract class ActiveNode extends AbstractNode
 	 */
 	@Override
 	public abstract String getIconSrc();
-
-
 
 	// ----- public methods -----
 	@Override
@@ -120,8 +117,7 @@ public abstract class ActiveNode extends AbstractNode
 								source.getName(),
 								source.getMappedName(),
 								value
-							}
-						);
+							});
 
 					} else
 					{
@@ -130,13 +126,12 @@ public abstract class ActiveNode extends AbstractNode
 							{
 								slot.getParameterType(),
 								source.getParameterType()
-							}
-						);
+							});
 					}
 
 				} else
 				{
-					logger.log(Level.INFO, "Slot not found {0}", name );
+					logger.log(Level.INFO, "Slot not found {0}", name);
 				}
 			}
 		}
@@ -179,7 +174,7 @@ public abstract class ActiveNode extends AbstractNode
 			InteractiveNode source = slot.getSource();
 			if(source != null)
 			{
-				return(source.getValue());
+				return (source.getValue());
 
 			} else
 			{
@@ -193,7 +188,7 @@ public abstract class ActiveNode extends AbstractNode
 		logger.log(Level.WARNING, "No source found for slot {0}, returning null", name);
 
 		// value not found
-		return(null);
+		return (null);
 	}
 
 	// ----- protected methods -----
@@ -227,7 +222,7 @@ public abstract class ActiveNode extends AbstractNode
 			}
 		}
 
-		return(ret);
+		return (ret);
 	}
 
 	protected List<InteractiveNode> getInteractiveSourceNodes()
@@ -252,7 +247,7 @@ public abstract class ActiveNode extends AbstractNode
 			}
 		}
 
-		return(ret);
+		return (ret);
 	}
 
 	// ----- private methods -----
@@ -268,7 +263,7 @@ public abstract class ActiveNode extends AbstractNode
 			break;
 		}
 
-		return(ret);
+		return (ret);
 	}
 
 	private AbstractNode getFailureTarget()
@@ -283,7 +278,7 @@ public abstract class ActiveNode extends AbstractNode
 			break;
 		}
 
-		return(ret);
+		return (ret);
 	}
 
 	private Map<String, Slot> getInputSlots()
@@ -298,6 +293,16 @@ public abstract class ActiveNode extends AbstractNode
 			}
 		}
 
-		return(inputSlots);
+		return (inputSlots);
+	}
+
+	@Override
+	public void onNodeCreation()
+	{
+	}
+
+	@Override
+	public void onNodeInstantiation()
+	{
 	}
 }

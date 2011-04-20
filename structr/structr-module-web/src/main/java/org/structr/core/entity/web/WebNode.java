@@ -72,4 +72,13 @@ public class WebNode extends AbstractNode {
         return "/images/folder.png";
     }
 
+    @Override
+    public void onNodeCreation()
+    {
+    }
+
+    @Override
+    public void onNodeInstantiation()
+    {
+    }
 }

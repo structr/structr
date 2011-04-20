@@ -119,6 +119,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 	if(node != null)
 	{
 		// notify node of its creation
+		logger.log(Level.INFO, "Creating node of type {0}", node.getClass().getName());
 		node.onNodeCreation();
 	}
 
