@@ -2,15 +2,14 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package org.structr.core.entity.app;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.CurrentRequest;
 import org.structr.common.CurrentSession;
+import org.structr.common.SessionValue;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.User;
@@ -25,27 +24,28 @@ public class AppNodeLoader extends ActiveNode implements NodeSource
 	private static final Logger logger = Logger.getLogger(AppNodeLoader.class.getName());
 
 	// ----- session keys -----
-	private static final String LOADER_SOURCE_PARAMETER_KEY =	"loaderSourceParameter";
-	
+	private static final String LOADER_SOURCE_PARAMETER_KEY = "loaderSourceParameter";
+
 	// ----- instance variables -----
+	private SessionValue<Object> sessionValue = null;
 	private AbstractNode loadedNode = null;
 
 	@Override
 	public boolean isPathSensitive()
 	{
-		return(false);
+		return (false);
 	}
 
 	@Override
 	public boolean doRedirectAfterExecution()
 	{
-		return(false);
+		return (false);
 	}
 
 	@Override
 	public boolean execute(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId, User user)
 	{
-		// FIXME: HTML code hard-coded.. :(
+		// FIXME: HTML code hard-coded..
 
 		// maybe we can let the enclosing FORM instance decide how to pass request
 		// parameters into the form.
@@ -53,26 +53,38 @@ public class AppNodeLoader extends ActiveNode implements NodeSource
 		String loaderSourceParameter = (String)getProperty(LOADER_SOURCE_PARAMETER_KEY);
 		if(loaderSourceParameter != null)
 		{
+			Object value = getValue();
+
 			out.append("<input type='hidden' name='");
 			out.append(loaderSourceParameter);
 			out.append("' value='");
-			out.append(CurrentRequest.getRequest().getParameter(loaderSourceParameter));
+			out.append(value);
 			out.append("' />");
 		}
 
-		return(true);
+		return (true);
 	}
 
 	@Override
 	public Map<String, Slot> getSlots()
 	{
-		return(null);
+		return (null);
 	}
 
 	@Override
 	public String getIconSrc()
 	{
-		return("/images/brick_edit.png");
+		return ("/images/brick_edit.png");
+	}
+
+	@Override
+	public void onNodeCreation()
+	{
+	}
+
+	@Override
+	public void onNodeInstantiation()
+	{
 	}
 
 	// ----- interface NodeSource -----
@@ -84,40 +96,42 @@ public class AppNodeLoader extends ActiveNode implements NodeSource
 			loadedNode = loadNodeInternal();
 		}
 
-		return(loadedNode);
+		return (loadedNode);
 	}
 
 	// ----- private methods -----
 	private AbstractNode loadNodeInternal()
 	{
+		Object loaderValue = getValue();
+		return((AbstractNode)Services.command(FindNodeCommand.class).execute(null, this, loaderValue));
+	}
+
+	private Object getValue()
+	{
 		String loaderSourceParameter = (String)getProperty(LOADER_SOURCE_PARAMETER_KEY);
-		AbstractNode ret = null;
+		Object value = CurrentRequest.getRequest().getParameter(loaderSourceParameter);
 
-		// load node according to source property
-		if(loaderSourceParameter != null)
+		if(CurrentSession.isRedirected())
 		{
-//			String username = CurrentSession.getGlobalUsername();
-//			User loginUser = (User)Services.command(FindUserCommand.class).execute(username);
-
-			// load by path or id?
-			String loaderValue = CurrentRequest.getRequest().getParameter(loaderSourceParameter);
-			ret = (AbstractNode)Services.command(FindNodeCommand.class).execute(null, this, loaderValue);
+			value = getLastValue().get();
 
 		} else
 		{
-			logger.log(Level.WARNING, "AppNodeLoader needs {0} property", LOADER_SOURCE_PARAMETER_KEY);
+			// otherwise, clear value in session
+			getLastValue().set(value);
 		}
 
-		return(ret);
+		return(value);
 	}
 
-    @Override
-    public void onNodeCreation()
-    {
-    }
+	private SessionValue<Object> getLastValue()
+	{
+		if(sessionValue == null)
+		{
+			sessionValue = new SessionValue<Object>(createUniqueIdentifier("lastValue"));
+		}
 
-    @Override
-    public void onNodeInstantiation()
-    {
-    }
+		return(sessionValue);
+	}
+
 }
