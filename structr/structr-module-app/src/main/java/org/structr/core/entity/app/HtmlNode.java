@@ -11,7 +11,6 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.User;
@@ -120,7 +119,7 @@ public abstract class HtmlNode extends AbstractNode
 				out.append("\"");
 			}
 
-			if(hasContent && !forceClosingTag)
+			if(!hasContent && !forceClosingTag)
 			{
 				out.append(" />");
 
@@ -135,7 +134,7 @@ public abstract class HtmlNode extends AbstractNode
 			renderContent(out, startNode, editUrl, editNodeId, user);
 		}
 
-		if(tag != null && (forceClosingTag || !hasContent))
+		if(tag != null && (forceClosingTag || hasContent))
 		{
 			out.append("</");
 			out.append(tag);

@@ -5,6 +5,7 @@
 
 package org.structr.core.entity.app;
 
+import org.structr.core.NodeSource;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -29,27 +30,17 @@ import org.structr.core.node.TransactionCommand;
  *
  * @author Christian Morgner
  */
-public class AppNodeCreator extends ActiveNode
+public class AppNodeCreator extends ActionNode implements NodeSource
 {
 	private static final Logger logger = Logger.getLogger(AppNodeCreator.class.getName());
 
 	private static final String CREATOR_ICON_SRC =		"/images/brick_add.png";
 	private static final String TARGET_TYPE_KEY =		"targetType";
 
-	@Override
-	public boolean isPathSensitive()
-	{
-		return(true);
-	}
+	private AbstractNode currentNode = null;
 
 	@Override
-	public boolean doRedirectAfterExecution()
-	{
-		return(true);
-	}
-
-	@Override
-	public boolean execute(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId, User user)
+	public boolean doAction(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId, User user)
 	{
 		final List<NodeAttribute> attributes = new LinkedList<NodeAttribute>();
 		final AbstractNode parentNode = getCreateDestination();
@@ -113,6 +104,8 @@ public class AppNodeCreator extends ActiveNode
 			{
 				ret = false;
 			}
+
+			currentNode = storeNode;
 		}
 
 		return(ret);
@@ -147,6 +140,23 @@ public class AppNodeCreator extends ActiveNode
 	public void setTargetType(String targetType)
 	{
 		setProperty(TARGET_TYPE_KEY, targetType);
+	}
+
+	@Override
+	public void onNodeCreation()
+	{
+	}
+
+	@Override
+	public void onNodeInstantiation()
+	{
+	}
+
+	// ----- interface NodeSource -----
+	@Override
+	public AbstractNode loadNode()
+	{
+		return(currentNode);
 	}
 
 	// ----- private methods -----

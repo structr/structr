@@ -14,20 +14,9 @@ import org.structr.core.entity.User;
  *
  * @author Christian Morgner
  */
-public class AppLogout extends ActiveNode
+public class AppLogout extends ActionNode
 {
 	private static final String ICON_SRC = "/images/door_out.png";
-
-	@Override
-	public boolean isPathSensitive()
-	{
-		return(true);
-	}
-
-	public boolean doRedirectAfterExecution()
-	{
-		return(true);
-	}
 
 	@Override
 	public String getIconSrc()
@@ -36,7 +25,7 @@ public class AppLogout extends ActiveNode
 	}
 
 	@Override
-	public boolean execute(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user)
+	public boolean doAction(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user)
 	{
 		HttpSession session = CurrentRequest.getSession();
 		if(session != null)
@@ -51,5 +40,15 @@ public class AppLogout extends ActiveNode
 	public Map<String, Slot> getSlots()
 	{
 		return(null);
+	}
+
+	@Override
+	public void onNodeCreation()
+	{
+	}
+
+	@Override
+	public void onNodeInstantiation()
+	{
 	}
 }

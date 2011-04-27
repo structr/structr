@@ -2,7 +2,6 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package org.structr.core.entity.app;
 
 import java.util.Map;
@@ -15,10 +14,10 @@ import org.structr.core.node.DeleteNodeCommand;
  *
  * @author Christian Morgner
  */
-public class AppNodeDeleter extends ActiveNode
+public class AppNodeDeleter extends ActionNode
 {
 	@Override
-	public boolean execute(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId, User user)
+	public boolean doAction(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId, User user)
 	{
 		AbstractNode toDelete = getNodeFromLoader();
 		if(toDelete != null)
@@ -27,40 +26,28 @@ public class AppNodeDeleter extends ActiveNode
 			Services.command(DeleteNodeCommand.class).execute(toDelete, null);
 		}
 
-		return(true);
+		return (true);
 	}
 
 	@Override
 	public Map<String, Slot> getSlots()
 	{
-		return(null);
-	}
-
-	@Override
-	public boolean isPathSensitive()
-	{
-		return(true);
-	}
-
-	@Override
-	public boolean doRedirectAfterExecution()
-	{
-		return(true);
+		return (null);
 	}
 
 	@Override
 	public String getIconSrc()
 	{
-		return("/images/brick_delete.png");
+		return ("/images/brick_delete.png");
 	}
 
-    @Override
-    public void onNodeCreation()
-    {
-    }
+	@Override
+	public void onNodeCreation()
+	{
+	}
 
-    @Override
-    public void onNodeInstantiation()
-    {
-    }
+	@Override
+	public void onNodeInstantiation()
+	{
+	}
 }

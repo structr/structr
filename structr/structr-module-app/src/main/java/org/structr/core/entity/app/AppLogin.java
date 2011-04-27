@@ -26,7 +26,7 @@ import org.structr.core.node.FindUserCommand;
  *
  * @author Christian Morgner
  */
-public class AppLogin extends ActiveNode
+public class AppLogin extends ActionNode
 {
 	private static final Logger logger = Logger.getLogger(AppLogin.class.getName());
 
@@ -52,18 +52,7 @@ public class AppLogin extends ActiveNode
 	private SessionValue<String> userNameValue = null;
 
 	@Override
-	public boolean isPathSensitive()
-	{
-		return(true);
-	}
-
-	public boolean doRedirectAfterExecution()
-	{
-		return(true);
-	}
-
-	@Override
-	public boolean execute(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId, User user)
+	public boolean doAction(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId, User user)
 	{
 		String usernameFromSession = CurrentSession.getGlobalUsername();
 		Boolean alreadyLoggedIn = usernameFromSession != null;
@@ -323,6 +312,16 @@ public class AppLogin extends ActiveNode
 		}
 
 		return (okMessageValue);
+	}
+
+	@Override
+	public void onNodeCreation()
+	{
+	}
+
+	@Override
+	public void onNodeInstantiation()
+	{
 	}
 }
 

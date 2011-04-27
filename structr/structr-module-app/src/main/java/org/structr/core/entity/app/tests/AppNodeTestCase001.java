@@ -13,7 +13,7 @@ import org.structr.core.entity.web.HtmlSource;
 
 /**
  *
- * @author chrisi
+ * @author Christian Morgner
  */
 public class AppNodeTestCase001 extends ApplicationNode
 {

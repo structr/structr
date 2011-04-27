@@ -4,8 +4,7 @@
  */
 package org.structr.core.entity.app;
 
-import java.util.Map;
-import java.util.logging.Level;
+import org.structr.core.NodeSource;
 import java.util.logging.Logger;
 import org.structr.common.CurrentRequest;
 import org.structr.common.CurrentSession;
@@ -19,7 +18,7 @@ import org.structr.core.node.FindNodeCommand;
  *
  * @author Christian Morgner
  */
-public class AppNodeLoader extends ActiveNode implements NodeSource
+public class AppNodeLoader extends AbstractNode implements NodeSource
 {
 	private static final Logger logger = Logger.getLogger(AppNodeLoader.class.getName());
 
@@ -31,19 +30,7 @@ public class AppNodeLoader extends ActiveNode implements NodeSource
 	private AbstractNode loadedNode = null;
 
 	@Override
-	public boolean isPathSensitive()
-	{
-		return (false);
-	}
-
-	@Override
-	public boolean doRedirectAfterExecution()
-	{
-		return (false);
-	}
-
-	@Override
-	public boolean execute(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId, User user)
+	public void renderView(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId, User user)
 	{
 		// FIXME: HTML code hard-coded..
 
@@ -61,14 +48,6 @@ public class AppNodeLoader extends ActiveNode implements NodeSource
 			out.append(value);
 			out.append("' />");
 		}
-
-		return (true);
-	}
-
-	@Override
-	public Map<String, Slot> getSlots()
-	{
-		return (null);
 	}
 
 	@Override
@@ -133,5 +112,4 @@ public class AppNodeLoader extends ActiveNode implements NodeSource
 
 		return(sessionValue);
 	}
-
 }

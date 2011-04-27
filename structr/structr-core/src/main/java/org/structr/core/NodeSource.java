@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 
-package org.structr.core.entity.app;
+package org.structr.core;
 
 import org.structr.core.entity.AbstractNode;
 

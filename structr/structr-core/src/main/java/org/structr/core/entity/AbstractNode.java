@@ -42,6 +42,7 @@ import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.structr.common.CurrentRequest;
 import org.structr.common.TemplateHelper;
+import org.structr.core.NodeSource;
 import org.structr.core.cloud.NodeDataContainer;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;
@@ -2472,5 +2473,25 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 		ret.append(getIdString());
 
 		return(ret.toString());
+	}
+
+	protected AbstractNode getNodeFromLoader()
+	{
+		List<StructrRelationship> rels = getIncomingDataRelationships();
+		AbstractNode ret = null;
+
+		for(StructrRelationship rel : rels)
+		{
+			// first one wins
+			AbstractNode startNode = rel.getStartNode();
+			if(startNode instanceof NodeSource)
+			{
+				NodeSource source = (NodeSource)startNode;
+				ret = source.loadNode();
+				break;
+			}
+		}
+
+		return (ret);
 	}
 }

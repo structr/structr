@@ -37,7 +37,7 @@ public class AppForm extends HtmlNode
 	@Override
 	public void doBeforeRendering(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId, User user)
 	{
-		ActiveNode submit = findSubmit(user);
+		AppActionContainer submit = findSubmit(user);
 		if(submit != null)
 		{
 			addAttribute("action", CurrentRequest.getAbsoluteNodePath(user, submit));
@@ -62,9 +62,9 @@ public class AppForm extends HtmlNode
 	}
 
 	// ----- private methods -----
-	private ActiveNode findSubmit(User user)
+	private AppActionContainer findSubmit(User user)
 	{
-		ActiveNode ret = null;
+		AppActionContainer ret = null;
 
 		List<StructrRelationship> rels = getRelationships(RelType.SUBMIT, Direction.OUTGOING);
 		if(rels != null && rels.size() > 0)
@@ -72,9 +72,9 @@ public class AppForm extends HtmlNode
 			StructrRelationship rel = rels.get(0);
 			AbstractNode node = rel.getEndNode();
 
-			if(node != null && node instanceof ActiveNode)
+			if(node != null && node instanceof AppActionContainer)
 			{
-				ret = (ActiveNode)node;
+				ret = (AppActionContainer)node;
 			}
 		}
 
@@ -85,9 +85,9 @@ public class AppForm extends HtmlNode
 			List<AbstractNode> children = getDirectChildNodes(user);
 			for(AbstractNode child : children)
 			{
-				if(child instanceof ActiveNode)
+				if(child instanceof AppActionContainer)
 				{
-					ret = (ActiveNode)child;
+					ret = (AppActionContainer)child;
 					break;
 				}
 

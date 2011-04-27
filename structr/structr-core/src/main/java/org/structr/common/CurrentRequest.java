@@ -94,7 +94,14 @@ public class CurrentRequest
 
 		if(request != null)
 		{
-			ret = request.getSession();
+			try
+			{
+				ret = request.getSession();
+
+			} catch(Throwable t)
+			{
+				ret = null;
+			}
 		}
 
 		return(ret);

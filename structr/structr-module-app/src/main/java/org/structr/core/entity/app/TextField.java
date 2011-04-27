@@ -4,6 +4,7 @@
  */
 package org.structr.core.entity.app;
 
+import org.structr.core.NodeSource;
 import java.util.List;
 import org.structr.common.SessionValue;
 import java.util.logging.Level;
