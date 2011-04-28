@@ -23,7 +23,7 @@ public class AppNodeLoader extends AbstractNode implements NodeSource
 	private static final Logger logger = Logger.getLogger(AppNodeLoader.class.getName());
 
 	// ----- session keys -----
-	private static final String LOADER_SOURCE_PARAMETER_KEY = "loaderSourceParameter";
+	private static final String ID_SOURCCE_KEY = "idSource";
 
 	// ----- instance variables -----
 	private SessionValue<Object> sessionValue = null;
@@ -37,7 +37,7 @@ public class AppNodeLoader extends AbstractNode implements NodeSource
 		// maybe we can let the enclosing FORM instance decide how to pass request
 		// parameters into the form.
 
-		String loaderSourceParameter = (String)getProperty(LOADER_SOURCE_PARAMETER_KEY);
+		String loaderSourceParameter = (String)getProperty(ID_SOURCCE_KEY);
 		if(loaderSourceParameter != null)
 		{
 			Object value = getValue();
@@ -87,7 +87,7 @@ public class AppNodeLoader extends AbstractNode implements NodeSource
 
 	private Object getValue()
 	{
-		String loaderSourceParameter = (String)getProperty(LOADER_SOURCE_PARAMETER_KEY);
+		String loaderSourceParameter = (String)getProperty(ID_SOURCCE_KEY);
 		Object value = CurrentRequest.getRequest().getParameter(loaderSourceParameter);
 
 		if(CurrentSession.isRedirected())

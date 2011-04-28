@@ -14,6 +14,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.RelType;
+import org.structr.common.SessionValue;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -37,7 +38,7 @@ public class AppNodeCreator extends ActionNode implements NodeSource
 	private static final String CREATOR_ICON_SRC =		"/images/brick_add.png";
 	private static final String TARGET_TYPE_KEY =		"targetType";
 
-	private AbstractNode currentNode = null;
+	private SessionValue<AbstractNode> currentNode = null;
 
 	@Override
 	public boolean doAction(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId, User user)
@@ -60,7 +61,7 @@ public class AppNodeCreator extends ActionNode implements NodeSource
 			ret = false;
 		}
 
-		if(targetType != null && parentNode != null)
+		if(targetType != null) // && parentNode != null)
 		{
 			List<InteractiveNode> dataSource = getInteractiveSourceNodes();
 			attributes.add(new NodeAttribute("type", targetType));
@@ -105,7 +106,9 @@ public class AppNodeCreator extends ActionNode implements NodeSource
 				ret = false;
 			}
 
-			currentNode = storeNode;
+			logger.log(Level.INFO, "Saving newly created node {0}", storeNode);
+
+			currentNode.set(storeNode);
 		}
 
 		return(ret);
@@ -150,13 +153,16 @@ public class AppNodeCreator extends ActionNode implements NodeSource
 	@Override
 	public void onNodeInstantiation()
 	{
+		currentNode = new SessionValue<AbstractNode>(createUniqueIdentifier("currentNode"));
 	}
 
 	// ----- interface NodeSource -----
 	@Override
 	public AbstractNode loadNode()
 	{
-		return(currentNode);
+		logger.log(Level.INFO, "Returning newly created node {0}", currentNode.get());
+		
+		return(currentNode.get());
 	}
 
 	// ----- private methods -----
@@ -202,8 +208,11 @@ public class AppNodeCreator extends ActionNode implements NodeSource
 				AbstractNode newNode = (AbstractNode)Services.command(CreateNodeCommand.class).execute(attributes);
 				if(newNode != null)
 				{
-					Command createRelationship = Services.command(CreateRelationshipCommand.class);
-					createRelationship.execute(parentNode, newNode, RelType.HAS_CHILD);
+					if(parentNode != null)
+					{
+						Command createRelationship = Services.command(CreateRelationshipCommand.class);
+						createRelationship.execute(parentNode, newNode, RelType.HAS_CHILD);
+					}
 
 					return(newNode);
 				}
