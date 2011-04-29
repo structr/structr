@@ -6,11 +6,12 @@
 package org.structr.core.entity.app;
 
 import java.io.StringWriter;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.lang.StringUtils;
+import org.neo4j.graphdb.DynamicRelationshipType;
+import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.CurrentRequest;
-import org.structr.common.CurrentSession;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.User;
@@ -26,12 +27,13 @@ public class AppNodeView extends AbstractNode
 {
 	private static final Logger logger = Logger.getLogger(AppNodeView.class.getName());
 
-	private static final String ID_SOURCCE_KEY = "idSource";
+	private static final String FOLLOW_RELATIONSHIP_KEY =	"followRelationship";
+	private static final String ID_SOURCCE_KEY =		"idSource";
 
 	@Override
 	public String getIconSrc()
 	{
-		return("/images/brick_go.png");
+		return("/images/magnifier.png");
 	}
 
 	@Override
@@ -40,26 +42,7 @@ public class AppNodeView extends AbstractNode
 		AbstractNode sourceNode = loadNode();
 		if(sourceNode != null)
 		{
-			if(hasTemplate(user))
-			{
-				String html = template.getContent();
-				if(StringUtils.isNotBlank(html))
-				{
-					StringWriter content = new StringWriter(100);
-
-					// process content with Freemarker
-					AbstractNode.staticReplaceByFreeMarker(html, content, sourceNode, editUrl, editNodeId, user);
-					out.append(content.toString());
-
-				} else
-				{
-					logger.log(Level.WARNING, "No template!");
-				}
-
-			} else
-			{
-				logger.log(Level.WARNING, "No template!");
-			}
+			doRendering(out, this, sourceNode, editUrl, editNodeId, user);
 
 		} else
 		{
@@ -76,6 +59,38 @@ public class AppNodeView extends AbstractNode
 	public void onNodeInstantiation()
 	{
 	}
+
+	// ----- protected methods -----
+	protected void doRendering(StringBuilder out, AbstractNode viewNode, AbstractNode dataNode, String editUrl, Long editNodeId, User user)
+	{
+		String templateSource = getTemplateFromNode(viewNode, user);
+		StringWriter content = new StringWriter(100);
+
+		AbstractNode.staticReplaceByFreeMarker(templateSource, content, dataNode, editUrl, editNodeId, user);
+		out.append(content.toString());
+
+		List<AbstractNode> viewChildren = viewNode.getSortedDirectChildNodes(user);
+		for(AbstractNode viewChild : viewChildren)
+		{
+			// 1. get desired display relationship from view node
+			// 2. find requested child nodes from dataNode
+			// 3. render nodes with doRendering (recursion)
+
+			String followRel = viewChild.getStringProperty(FOLLOW_RELATIONSHIP_KEY);
+			if(followRel != null)
+			{
+				RelationshipType relType = DynamicRelationshipType.withName(followRel);
+				List<AbstractNode> dataChildren = dataNode.getDirectChildren(relType, user);
+
+				for(AbstractNode dataChild : dataChildren)
+				{
+					doRendering(out, viewChild, dataChild, editUrl, editNodeId, user);
+				}
+			}
+
+		}
+	}
+
 	// ----- private methods -----
 	private AbstractNode loadNode()
 	{
@@ -83,5 +98,17 @@ public class AppNodeView extends AbstractNode
 		String idSource = CurrentRequest.getRequest().getParameter(idSourceParameter);
 
 		return((AbstractNode)Services.command(FindNodeCommand.class).execute(null, this, idSource));
+	}
+	
+	private String getTemplateFromNode(AbstractNode node, User user)
+	{
+		String ret = "";
+		
+		if(node.hasTemplate(user))
+		{
+			ret = node.getTemplate(user).getContent();
+		}
+		
+		return(ret);
 	}
 }

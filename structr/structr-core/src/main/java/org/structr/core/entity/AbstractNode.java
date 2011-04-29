@@ -40,6 +40,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DateUtils;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.CurrentRequest;
 import org.structr.common.TemplateHelper;
 import org.structr.core.NodeSource;
@@ -1670,7 +1671,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      *
      * @return list with structr nodes
      */
-    public List<AbstractNode> getDirectChildren(final Enum relType, final User user) {
+    public List<AbstractNode> getDirectChildren(final RelationshipType relType, final User user) {
         return getDirectChildren(relType, null, user);
     }
 
@@ -1680,7 +1681,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      *
      * @return list with structr nodes
      */
-    public List<AbstractNode> getSortedDirectChildren(final Enum relType, final User user) {
+    public List<AbstractNode> getSortedDirectChildren(final RelationshipType relType, final User user) {
         List<AbstractNode> nodes = getDirectChildren(relType, null, user);
         Collections.sort(nodes);
         return nodes;
@@ -1694,7 +1695,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      *
      * @return list with structr nodes
      */
-    private List<AbstractNode> getDirectChildren(final Enum relType, final String nodeType, final User user) {
+    private List<AbstractNode> getDirectChildren(final RelationshipType relType, final String nodeType, final User user) {
 
         List<AbstractNode> nodes = new LinkedList<AbstractNode>();
 

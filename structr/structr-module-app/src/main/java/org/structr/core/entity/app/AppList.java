@@ -16,7 +16,7 @@ import org.structr.core.entity.User;
  *
  * @author Christian Morgner
  */
-public class AppList extends AbstractNode
+public class AppList extends AppNodeView
 {
 	private static final Logger logger = Logger.getLogger(AppList.class.getName());
 
@@ -42,11 +42,7 @@ public class AppList extends AbstractNode
 						// iterate over direct children of the given node
 						for(AbstractNode node : container.getSortedDirectChildNodes(user))
 						{
-							StringWriter content = new StringWriter(100);
-
-							// process content with Freemarker
-							AbstractNode.staticReplaceByFreeMarker(html, content, node, editUrl, editNodeId, user);
-							out.append(content.toString());
+							doRendering(out, this, node, editUrl, editNodeId, user);
 						}
 					}
 

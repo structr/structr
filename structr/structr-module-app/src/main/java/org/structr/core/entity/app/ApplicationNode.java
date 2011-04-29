@@ -7,13 +7,13 @@ package org.structr.core.entity.app;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.RelType;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.StructrRelationship;
 import org.structr.core.entity.User;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;
@@ -82,8 +82,8 @@ public abstract class ApplicationNode extends AbstractNode
 		return((AbstractNode)createNodeCommand.execute(attrs));
 	}
 
-	protected void linkNodes(AbstractNode startNode, AbstractNode endNode, RelType relType)
+	protected StructrRelationship linkNodes(AbstractNode startNode, AbstractNode endNode, RelType relType)
 	{
-		Services.command(CreateRelationshipCommand.class).execute(startNode, endNode, relType);
+		return((StructrRelationship)Services.command(CreateRelationshipCommand.class).execute(startNode, endNode, relType));
 	}
 }
