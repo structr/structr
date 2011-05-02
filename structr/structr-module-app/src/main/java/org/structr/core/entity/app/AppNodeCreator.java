@@ -28,6 +28,12 @@ import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 
 /**
+ * An ActionNode that collects values from input slots and stores them in a
+ * new (or existing) node of a specific type when executed.
+ *
+ * The type of node this ActionNode creates must be determined by the property
+ * <b>targetType</b>. The values for the newly created node will be collected
+ * from InteractiveNodes connected to this node by DATA relationships.
  *
  * @author Christian Morgner
  */
@@ -52,12 +58,6 @@ public class AppNodeCreator extends ActionNode implements NodeSource
 		if(targetType == null)
 		{
 			logger.log(Level.WARNING, "AppNodeCreator needs {0} property!", TARGET_TYPE_KEY);
-			ret = false;
-		}
-
-		if(parentNode == null)
-		{
-			logger.log(Level.WARNING, "AppNodeCreator needs CREATE_DESTINATION relationship!");
 			ret = false;
 		}
 
