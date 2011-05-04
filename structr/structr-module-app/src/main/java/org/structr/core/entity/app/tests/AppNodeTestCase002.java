@@ -24,181 +24,122 @@ public class AppNodeTestCase002 extends ApplicationNode
 	public void buildTestCase()
 	{
 // templates folder
-		AbstractNode templates = createNode("Folder", "Templates");
-		linkNodes(this, templates, RelType.HAS_CHILD);
+		AbstractNode templates = createNode(this, "Folder", "Templates");
 
-			Template blogTemplate = (Template)createNode("Template", "BlogTemplate");
+			Template blogTemplate = (Template)createNode(templates, "Template", "BlogTemplate");
 			blogTemplate.setContent(getBlogTemplateContent());
-			linkNodes(templates, blogTemplate, RelType.HAS_CHILD);
 
-			Template pageTemplate = (Template)createNode("Template", "PageTemplate");
+			Template pageTemplate = (Template)createNode(templates, "Template", "PageTemplate");
 			pageTemplate.setContent(getPageTemplateContent());
-			linkNodes(templates, pageTemplate, RelType.HAS_CHILD);
 
-			Template textFieldTemplate = (Template)createNode("Template", "TextFieldTemplate");
+			Template textFieldTemplate = (Template)createNode(templates, "Template", "TextFieldTemplate");
 			textFieldTemplate.setContent(getTextFieldTemplateContent());
-			linkNodes(templates, textFieldTemplate, RelType.HAS_CHILD);
 
-			Template submitButtonTemplate = (Template)createNode("Template", "SubmitTemplate");
+			Template submitButtonTemplate = (Template)createNode(templates, "Template", "SubmitTemplate");
 			submitButtonTemplate.setContent(getSubmitTemplateContent());
-			linkNodes(templates, submitButtonTemplate, RelType.HAS_CHILD);
 
-			Template textAreaTemplate = (Template)createNode("Template", "TextAreaTemplate");
+			Template textAreaTemplate = (Template)createNode(templates, "Template", "TextAreaTemplate");
 			textAreaTemplate.setContent(getTextAreaTemplateContent());
-			linkNodes(templates, textAreaTemplate, RelType.HAS_CHILD);
 
-			Template blogAdminTemplate = (Template)createNode("Template", "BlogAdminTemplate");
+			Template blogAdminTemplate = (Template)createNode(templates, "Template", "BlogAdminTemplate");
 			blogAdminTemplate.setContent(getBlogAdminTemplateContent());
-			linkNodes(templates, blogAdminTemplate, RelType.HAS_CHILD);
-
-			Template addCommentTemplate = (Template)createNode("Template", "AddCommentTemplate");
+			
+			Template addCommentTemplate = (Template)createNode(templates, "Template", "AddCommentTemplate");
 			addCommentTemplate.setContent(getAddCommentTemplateContent());
-			linkNodes(templates, addCommentTemplate, RelType.HAS_CHILD);
 
-			Template commentTemplate = (Template)createNode("Template", "CommentTemplate");
+			Template commentTemplate = (Template)createNode(templates, "Template", "CommentTemplate");
 			commentTemplate.setContent(getCommentTemplateContent());
-			linkNodes(templates, commentTemplate, RelType.HAS_CHILD);
 
 
 // blog page
-		AbstractNode blogPage = createNode("HomePage", "blog");
-		linkNodes(this, blogPage, RelType.HAS_CHILD);
+		AbstractNode blogPage = createNode(this, "HomePage", "blog", pageTemplate);
 
-			HtmlSource blogPageContent = (HtmlSource)createNode("HtmlSource", "content");
+			HtmlSource blogPageContent = (HtmlSource)createNode(blogPage, "HtmlSource", "content");
 			blogPageContent.setContent("%{list}");
-			linkNodes(blogPage, blogPageContent, RelType.HAS_CHILD);
 
-				AppList blogPageList = (AppList)createNode("AppList", "list");
-				linkNodes(blogPageContent, blogPageList, RelType.HAS_CHILD);
+				AppList blogPageList = (AppList)createNode(blogPageContent, "AppList", "list", blogTemplate);
 
-					AppNodeView blogPageNodeView = (AppNodeView)createNode("AppNodeView", "view");
+					AppNodeView blogPageNodeView = (AppNodeView)createNode(blogPageList, "AppNodeView", "view", commentTemplate);
 					blogPageNodeView.setProperty("followRelationship", "HAS_CHILD");
-					linkNodes(blogPageList, blogPageNodeView, RelType.HAS_CHILD);
 
 
 // admin page
-		AbstractNode adminPage = createNode("Page", "admin");
-		linkNodes(this, adminPage, RelType.HAS_CHILD);
-
-			AppList adminPageList = (AppList)createNode("AppList", "list");
-			linkNodes(adminPage, adminPageList, RelType.HAS_CHILD);
+		AbstractNode adminPage = createNode(this, "Page", "admin", pageTemplate);
+		AppList adminPageList = (AppList)createNode(adminPage, "AppList", "list", blogAdminTemplate);
 
 // editor page
-		AbstractNode editorPage = createNode("Page", "editor");
-		linkNodes(this, editorPage, RelType.HAS_CHILD);
+		AbstractNode editorPage = createNode(this, "Page", "editor", pageTemplate);
 
-		AbstractNode editorForm = createNode("AppForm", "form");
-		linkNodes(editorPage, editorForm, RelType.HAS_CHILD);
+		AbstractNode editorForm = createNode(editorPage, "AppForm", "form");
 
-			AbstractNode editorFormLoader = createNode("AppNodeLoader", "loader");
+			AbstractNode editorFormLoader = createNode(editorForm, "AppNodeLoader", "loader");
 			editorFormLoader.setProperty("idSource", "id");
-			linkNodes(editorForm, editorFormLoader, RelType.HAS_CHILD);
 
-			AbstractNode editorContentField = createNode("TextField", "content");
-			linkNodes(editorForm, editorContentField, RelType.HAS_CHILD);
+			AbstractNode editorContentField = createNode(editorForm, "TextField", "content", textAreaTemplate);
+			createNode(editorForm, "SubmitButton", "submit", submitButtonTemplate);
+			
+			AbstractNode editorFormActions = createNode(editorForm, "AppActionContainer", "actions");
 
-			AbstractNode editorSubmitButton = createNode("SubmitButton", "submit");
-			linkNodes(editorForm, editorSubmitButton, RelType.HAS_CHILD);
-
-			AbstractNode editorFormActions = createNode("AppActionContainer", "actions");
-			linkNodes(editorForm, editorFormActions, RelType.HAS_CHILD);
-
-				AbstractNode editorFormCreator = createNode("AppNodeCreator", "save");
+				AbstractNode editorFormCreator = createNode(editorFormActions, "AppNodeCreator", "save");
 				editorFormCreator.setProperty("targetType", "DataNode");
-				linkNodes(editorFormActions, editorFormCreator, RelType.HAS_CHILD);
 
 // add commen page
-		AbstractNode addCommentPage = createNode("Page", "addComment");
-		linkNodes(this, addCommentPage, RelType.HAS_CHILD);
+		AbstractNode addCommentPage = createNode(this, "Page", "addComment", pageTemplate);
 
-			HtmlSource addCommentContentContainer = (HtmlSource)createNode("HtmlSource", "content");
+			HtmlSource addCommentContentContainer = (HtmlSource)createNode(addCommentPage, "HtmlSource", "content");
 			addCommentContentContainer.setContent("%{view}\n%{form}");
-			linkNodes(addCommentPage, addCommentContentContainer, RelType.HAS_CHILD);
 
-				AbstractNode addCommentNodeView = createNode("AppNodeView", "view");
+				AbstractNode addCommentNodeView = createNode(addCommentContentContainer, "AppNodeView", "view", addCommentTemplate);
 				addCommentNodeView.setProperty("idSource", "id");
-				linkNodes(addCommentContentContainer, addCommentNodeView, RelType.HAS_CHILD);
 
-					AbstractNode addCommentChildView = createNode("AppNodeView", "childView");
+					AbstractNode addCommentChildView = createNode(addCommentNodeView, "AppNodeView", "childView", commentTemplate);
 					addCommentChildView.setProperty("followRelationship", "HAS_CHILD");
-					linkNodes(addCommentNodeView, addCommentChildView, RelType.HAS_CHILD);
 
-				AbstractNode addCommentForm = createNode("AppForm", "form");
-				linkNodes(addCommentContentContainer, addCommentForm, RelType.HAS_CHILD);
+				AbstractNode addCommentForm = createNode(addCommentContentContainer, "AppForm", "form");
 
-					AbstractNode addCommentFormLoader = createNode("AppNodeLoader", "loader");
+					AbstractNode addCommentFormLoader = createNode(addCommentForm, "AppNodeLoader", "loader");
 					addCommentFormLoader.setProperty("idSource", "id");
-					linkNodes(addCommentForm, addCommentFormLoader, RelType.HAS_CHILD);
 
-					AbstractNode addCommentCommentField = createNode("TextField", "comment");
-					linkNodes(addCommentForm, addCommentCommentField, RelType.HAS_CHILD);
+					AbstractNode addCommentCommentField = createNode(addCommentForm, "TextField", "comment", textFieldTemplate);
+					createNode(addCommentForm, "SubmitButton", "submit", submitButtonTemplate);
 
-					AbstractNode addCommentSubmitButton = createNode("SubmitButton", "submit");
-					linkNodes(addCommentForm, addCommentSubmitButton, RelType.HAS_CHILD);
+					AbstractNode addCommentActions = createNode(addCommentForm, "AppActionContainer", "actions");
 
-					AbstractNode addCommentActions = createNode("AppActionContainer", "actions");
-					linkNodes(addCommentForm, addCommentActions, RelType.HAS_CHILD);
-
-						AbstractNode addCommentCreator = createNode("AppNodeCreator", "save");
+						AbstractNode addCommentCreator = createNode(addCommentActions, "AppNodeCreator", "save");
 						addCommentCreator.setProperty("targetType", "DataNode");
-						linkNodes(addCommentActions, addCommentCreator, RelType.HAS_CHILD);
 
-						AbstractNode addCommentLinker = createNode("AppRelationshipCreator", "link");
+						AbstractNode addCommentLinker = createNode(addCommentActions, "AppRelationshipCreator", "link");
 						addCommentLinker.setProperty("targetRelType", "HAS_CHILD");
-						linkNodes(addCommentActions, addCommentLinker, RelType.HAS_CHILD);
-
-
 
 
 // blog entry folder
-		AbstractNode blogEntries = createNode("Folder", "BlogEntries");
-		linkNodes(this, blogEntries, RelType.HAS_CHILD);
+		AbstractNode blogEntries = createNode(this, "Folder", "BlogEntries");
 
 // system folder
-		AbstractNode system = createNode("Folder", "System");
-		linkNodes(this, system, RelType.HAS_CHILD);
-
-			AbstractNode timestamp = createNode("AppTimestamp", "timestamp");
-			linkNodes(system, timestamp, RelType.HAS_CHILD);
+		AbstractNode system = createNode(this, "Folder", "System");
+		AbstractNode timestamp = createNode(system, "AppTimestamp", "timestamp");
 
 // relationships
 
-		// page templates
-		linkNodes(blogPage, pageTemplate, RelType.USE_TEMPLATE);
-		linkNodes(adminPage, pageTemplate, RelType.USE_TEMPLATE);
-		linkNodes(editorPage, pageTemplate, RelType.USE_TEMPLATE);
-		linkNodes(addCommentPage, pageTemplate, RelType.USE_TEMPLATE);
-
 		// blog page
-		linkNodes(blogPageList, blogTemplate, RelType.USE_TEMPLATE);
 		linkNodes(blogPageList, blogEntries, RelType.DATA);
-		linkNodes(blogPageNodeView, commentTemplate, RelType.USE_TEMPLATE);
 
 		// admin page
-		linkNodes(adminPageList, blogAdminTemplate, RelType.USE_TEMPLATE);
 		linkNodes(adminPageList, blogEntries, RelType.DATA);
 
 		// editor page
 		linkNodes(editorFormLoader, editorContentField, RelType.DATA);
 		linkNodes(editorFormLoader, editorFormCreator, RelType.DATA);
-
 		linkNodes(editorContentField, editorFormCreator, RelType.DATA);
-		linkNodes(editorContentField, textAreaTemplate, RelType.USE_TEMPLATE);
-		linkNodes(editorSubmitButton, submitButtonTemplate, RelType.USE_TEMPLATE);
-
 		linkNodes(timestamp, editorFormCreator, RelType.DATA);
 
+		// add blog entry actions
 		linkNodes(editorFormCreator, blogEntries, RelType.CREATE_DESTINATION);
 		linkNodes(editorFormActions, editorPage, RelType.ERROR_DESTINATION);
 		linkNodes(editorFormActions, blogPage, RelType.SUCCESS_DESTINATION);
 
 		// add comment page
 		linkNodes(addCommentNodeView, blogEntries, RelType.DATA);
-		linkNodes(addCommentNodeView, addCommentTemplate, RelType.USE_TEMPLATE);
-		linkNodes(addCommentChildView, commentTemplate, RelType.USE_TEMPLATE);
-
-		linkNodes(addCommentCommentField, textFieldTemplate, RelType.USE_TEMPLATE);
-		linkNodes(addCommentSubmitButton, submitButtonTemplate, RelType.USE_TEMPLATE);
 
 		linkNodes(addCommentFormLoader, addCommentCommentField, RelType.DATA);
 		linkNodes(addCommentCommentField, addCommentCreator, RelType.DATA);
@@ -206,6 +147,7 @@ public class AppNodeTestCase002 extends ApplicationNode
 		linkNodes(addCommentFormLoader, addCommentLinker, RelType.DATA).setProperty("targetSlotName", "startNode");
 		linkNodes(addCommentCreator, addCommentLinker, RelType.DATA).setProperty("targetSlotName", "endNode");
 
+		// add comment actions
 		linkNodes(addCommentActions, addCommentPage, RelType.ERROR_DESTINATION);
 		linkNodes(addCommentActions, blogPage, RelType.SUCCESS_DESTINATION);
 

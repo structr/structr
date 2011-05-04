@@ -14,6 +14,7 @@ import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.StructrRelationship;
+import org.structr.core.entity.Template;
 import org.structr.core.entity.User;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;
@@ -72,14 +73,31 @@ public abstract class ApplicationNode extends AbstractNode
 	}
 
 	// ----- protected methods -----
-	protected AbstractNode createNode(String nodeType, String name)
+	protected AbstractNode createNode(AbstractNode parent, String nodeType, String name)
+	{
+		return(createNode(parent, nodeType, name, null));
+	}
+
+	protected AbstractNode createNode(AbstractNode parent, String nodeType, String name, Template template)
 	{
 		Command createNodeCommand = Services.command(CreateNodeCommand.class);
 		List<NodeAttribute> attrs = new LinkedList<NodeAttribute>();
 		attrs.add(new NodeAttribute(TYPE_KEY, nodeType));
 		attrs.add(new NodeAttribute(NAME_KEY, name));
 
-		return((AbstractNode)createNodeCommand.execute(attrs));
+		AbstractNode ret = (AbstractNode)createNodeCommand.execute(attrs);
+
+		if(parent != null)
+		{
+			linkNodes(parent, ret, RelType.HAS_CHILD);
+		}
+
+		if(template != null)
+		{
+			linkNodes(ret, template, RelType.USE_TEMPLATE);
+		}
+
+		return(ret);
 	}
 
 	protected StructrRelationship linkNodes(AbstractNode startNode, AbstractNode endNode, RelType relType)

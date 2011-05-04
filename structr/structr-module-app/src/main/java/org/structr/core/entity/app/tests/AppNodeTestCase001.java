@@ -9,6 +9,7 @@ import org.structr.core.entity.app.ApplicationNode;
 import org.structr.common.RelType;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.PlainText;
+import org.structr.core.entity.Template;
 import org.structr.core.entity.web.HtmlSource;
 
 /**
@@ -22,89 +23,60 @@ public class AppNodeTestCase001 extends ApplicationNode
 	{
 
 // templates folder
-		AbstractNode templates = createNode("Folder", "Templates");
-		linkNodes(this, templates, RelType.HAS_CHILD);
+		AbstractNode templates = createNode(this, "Folder", "Templates");
 
 
 // templates
-		PlainText pageTemplate = (PlainText)createNode("Template" , "PageTemplate");
-		linkNodes(templates, pageTemplate, RelType.HAS_CHILD);
+		Template pageTemplate = (Template)createNode(templates, "Template" , "PageTemplate");
 		pageTemplate.setContent(getPageTemplateSource());
-		pageTemplate.setContentType("text/plain");
 
-		PlainText inputTemplate = (PlainText)createNode("Template" , "InputTemplate");
-		linkNodes(templates, inputTemplate, RelType.HAS_CHILD);
+		Template inputTemplate = (Template)createNode(templates, "Template" , "InputTemplate");
 		inputTemplate.setContent(getInputTemplateSource());
-		inputTemplate.setContentType("text/plain");
 
-		PlainText buttonTemplate = (PlainText)createNode("Template" , "ButtonTemplate");
-		linkNodes(templates, buttonTemplate, RelType.HAS_CHILD);
+		Template buttonTemplate = (Template)createNode(templates, "Template" , "ButtonTemplate");
 		buttonTemplate.setContent(getButtonTemplateSource());
-		buttonTemplate.setContentType("text/plain");
 
-		PlainText listItemTemplate = (PlainText)createNode("Template" , "ListItemTemplate");
-		linkNodes(templates, listItemTemplate, RelType.HAS_CHILD);
+		Template listItemTemplate = (Template)createNode(templates, "Template" , "ListItemTemplate");
 		listItemTemplate.setContent(getListItemTemplateSource());
-		listItemTemplate.setContentType("text/plain");
 
 
 // page 1
-		AbstractNode overview = createNode("Page", "overview");
-		linkNodes(this, overview, RelType.HAS_CHILD);
-		linkNodes(overview, pageTemplate, RelType.USE_TEMPLATE);
+		AbstractNode overview = createNode(this, "Page", "overview", pageTemplate);
 
-		HtmlSource tableNode = (HtmlSource)createNode("HtmlSource", "table");
-		linkNodes(overview, tableNode, RelType.HAS_CHILD);
+		HtmlSource tableNode = (HtmlSource)createNode(overview, "HtmlSource", "table");
 		tableNode.setContent(getTableTemplateSource());
 
-		AbstractNode listNode = createNode("AppList", "listNode");
-		linkNodes(tableNode, listNode, RelType.HAS_CHILD);
-		linkNodes(listNode, listItemTemplate, RelType.USE_TEMPLATE);
+		AbstractNode listNode = createNode(tableNode, "AppList", "listNode", listItemTemplate);
 
 // page 2
-		AbstractNode editor = createNode("Page", "editor");
-		linkNodes(this, editor, RelType.HAS_CHILD);
-		linkNodes(editor, pageTemplate, RelType.USE_TEMPLATE);
+		AbstractNode editor = createNode(this, "Page", "editor", pageTemplate);
 
-		AbstractNode form = createNode("AppForm", "form1");
-		linkNodes(editor, form, RelType.HAS_CHILD);
+		AbstractNode form = createNode(editor, "AppForm", "form1");
 
-		AbstractNode loader = createNode("AppNodeLoader", "loader");
+		AbstractNode loader = createNode(form, "AppNodeLoader", "loader");
 		loader.setProperty("loaderSourceParameter", "param");
-		linkNodes(form, loader, RelType.HAS_CHILD);
 
-		AbstractNode name = createNode("TextField", "name");
+		AbstractNode name = createNode(form, "TextField", "name", inputTemplate);
 		name.setProperty("label", "Name");
-		linkNodes(form, name, RelType.HAS_CHILD);
-		linkNodes(name, inputTemplate, RelType.USE_TEMPLATE);
 
-		AbstractNode surname = createNode("TextField", "surname");
+		AbstractNode surname = createNode(form, "TextField", "surname", inputTemplate);
 		surname.setProperty("label", "Surname");
-		linkNodes(form, surname, RelType.HAS_CHILD);
-		linkNodes(surname, inputTemplate, RelType.USE_TEMPLATE);
 
-		AbstractNode location = createNode("TextField", "location");
+		AbstractNode location = createNode(form, "TextField", "location", inputTemplate);
 		location.setProperty("label", "Location");
-		linkNodes(form, location, RelType.HAS_CHILD);
-		linkNodes(location, inputTemplate, RelType.USE_TEMPLATE);
 
-		AbstractNode creator = createNode("AppNodeCreator", "creator");
+		AbstractNode creator = createNode(form, "AppNodeCreator", "creator");
 		creator.setProperty("targetType", "DataNode");
-		linkNodes(form, creator, RelType.HAS_CHILD);
 
-		AbstractNode deleter = createNode("AppNodeDeleter", "delete");
-		linkNodes(form, deleter, RelType.HAS_CHILD);
+		AbstractNode deleter = createNode(form, "AppNodeDeleter", "delete");
 
-		AbstractNode submitButton = createNode("SubmitButton", "submit");
+		AbstractNode submitButton = createNode(form, "SubmitButton", "submit", buttonTemplate);
 		submitButton.setProperty("label", "Submit");
-		linkNodes(form, submitButton, RelType.HAS_CHILD);
 		linkNodes(form, creator, RelType.SUBMIT);
-		linkNodes(submitButton, buttonTemplate, RelType.USE_TEMPLATE);
 
 
 // Data folder
-		AbstractNode dataFolder = createNode("Folder", "Data");		// the data folder
-		linkNodes(this, dataFolder, RelType.HAS_CHILD);
+		AbstractNode dataFolder = createNode(this, "Folder", "Data");		// the data folder
 		linkNodes(listNode, dataFolder, RelType.DATA);			// the list source
 
 
