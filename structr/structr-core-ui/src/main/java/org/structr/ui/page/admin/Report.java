@@ -47,6 +47,8 @@ import org.structr.core.node.search.TextualSearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
+import org.structr.core.node.search.Search;
+import org.structr.core.node.search.SearchAttribute;
 
 /**
  *
@@ -75,7 +77,7 @@ public class Report extends Nodes {
     protected TextField reportName = new TextField("reportName", "Save Report as (filename): ");
     //protected Submit saveReport = new Submit("saveReport", "Save Report", this, "onSaveReport");
     protected List<AbstractNode> reportResults = new LinkedList<AbstractNode>();
-    protected List<TextualSearchAttribute> searchAttributes = new LinkedList<TextualSearchAttribute>();
+    protected List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
     protected List<Column> columns = new LinkedList<Column>();
 
     public Report() {
@@ -422,7 +424,7 @@ public class Report extends Nodes {
     private void createDynamicFields(final String resultType) {
 
         // Always filter by type
-        searchAttributes.add(new TextualSearchAttribute(AbstractNode.TYPE_KEY, resultType, SearchOperator.AND));
+        searchAttributes.add(Search.andExactType(resultType));
 
         // Get the corresponding entity class
         //Class<AbstractNode> c = Services.getEntityClass(resultType);
