@@ -12,8 +12,11 @@ import java.util.Set;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
+import org.neo4j.gis.spatial.Layer;
+import org.neo4j.gis.spatial.NullListener;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
 import org.neo4j.gis.spatial.ShapefileImporter;
+import org.neo4j.gis.spatial.geotools.data.Neo4jSpatialDataStore;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
@@ -236,7 +239,7 @@ public class GeoDataTool {
         "Korea, Democratic People's Republic of", "Korea, Republic of",
         "Philippines", "Nepal", "Indonesia", "Taiwan", "Singapore",
         "Hong Kong", "Thailand", "Viet Nam", "Bangladesh", "Malaysia",
-        "Sri Lanka", "Cambodia"
+        "Sri Lanka", "Cambodia", "Maldives"
     };
     public final static String[] oceaniaAndAustralia = new String[]{
         "Australia",
@@ -386,16 +389,26 @@ public class GeoDataTool {
      *
      * @param file file path on disk
      * @param test if true, don't write to database
+     * @param layerName
      */
-    private void importShapefile(boolean test, String file, String layer) {
+    private void importShapefile(boolean test, String file, String layerName) {
 
         try {
+            // open data store from neo4j database
+            Neo4jSpatialDataStore n4jstore = new Neo4jSpatialDataStore(graphDb);
+            Layer layer = n4jstore.getSpatialDatabaseService().getLayer(layerName);
+
+            // try to delete layer
+            if (layer != null) {
+                layer.delete(new NullListener());
+            }
+
             ShapefileImporter importer = new ShapefileImporter(graphDb);
             if (!test) {
-                importer.importFile(file, layer);
+                importer.importFile(file, layerName);
             }
         } catch (Throwable t) {
-            System.out.println("Error while loading data from shapefile " + t.getMessage() + " into layer " + layer);
+            System.out.println("Error while loading data from shapefile " + t.getMessage() + " into layer " + layerName);
         }
     }
 
