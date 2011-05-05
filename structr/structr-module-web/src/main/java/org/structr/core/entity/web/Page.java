@@ -2,7 +2,6 @@ package org.structr.core.entity.web;
 
 import org.structr.core.entity.Template;
 import java.util.*;
-import org.neo4j.graphdb.Direction;
 import org.structr.common.RelType;
 import org.structr.core.Command;
 import org.structr.core.Services;
@@ -85,7 +84,7 @@ public class Page extends WebNode {
         Template templateNode = (Template) findNode.execute(new SuperUser(), value);
 
         // delete existing template relationships
-        List<StructrRelationship> templateRels = getRelationships(RelType.USE_TEMPLATE, Direction.OUTGOING);
+        List<StructrRelationship> templateRels = this.getOutgoingRelationships(RelType.USE_TEMPLATE);
         Command delRel = Services.command(DeleteRelationshipCommand.class);
         if (templateRels != null) {
             for (StructrRelationship r : templateRels) {

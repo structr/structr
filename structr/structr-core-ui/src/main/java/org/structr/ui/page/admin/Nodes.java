@@ -29,8 +29,6 @@ import org.apache.click.service.*;
 import org.apache.click.util.ClickUtils;
 import org.apache.click.util.HtmlStringBuffer;
 import org.apache.commons.fileupload.FileItem;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.TransactionFailureException;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.File;
@@ -537,7 +535,8 @@ public class Nodes extends Admin {
             Command nodeFactory = Services.command(NodeFactoryCommand.class);
             Command relCommand = Services.command(NodeRelationshipsCommand.class);
 
-            List<StructrRelationship> rels = (List<StructrRelationship>) relCommand.execute(nodeToAdd, RelType.HAS_CHILD, Direction.OUTGOING);
+            List<StructrRelationship> rels = nodeToAdd.getOutgoingChildRelationships();
+//            List<StructrRelationship> rels = (List<StructrRelationship>) relCommand.execute(nodeToAdd, RelType.HAS_CHILD, Direction.OUTGOING);
 
             if (rels.size() > 1000) {
                 logger.log(Level.WARNING, "Node has many relationships: {0}", rels.size());
@@ -572,7 +571,8 @@ public class Nodes extends Admin {
 
             nodeFactory = Services.command(LinkNodeFactoryCommand.class);
 
-            rels = (List<StructrRelationship>) relCommand.execute(nodeToAdd, RelType.LINK, Direction.OUTGOING);
+            rels = nodeToAdd.getOutgoingLinkRelationships();
+//            rels = (List<StructrRelationship>) relCommand.execute(nodeToAdd, RelType.LINK, Direction.OUTGOING);
 
             // now LINK relationships
             for (StructrRelationship r : rels) {
@@ -1029,12 +1029,12 @@ public class Nodes extends Admin {
                 }
 
 
-            } catch (TransactionFailureException tfe) {
+            } catch (Exception e) {
 
                 logger.log(Level.WARNING, "Node {0} could not be deleted.", getNodeId());
 
                 okMsg = null;
-                errorMsg = "Node " + getNodeId() + " could not be deleted. " + tfe.getMessage();
+                errorMsg = "Node " + getNodeId() + " could not be deleted. " + e.getMessage();
                 return true;
 
             }
