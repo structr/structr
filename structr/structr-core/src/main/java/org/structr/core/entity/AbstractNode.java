@@ -1557,6 +1557,15 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
     }
 
     /**
+     * Non-cached list of outgoing relationships
+     *
+     * @return
+     */
+    public List<StructrRelationship> getOutgoingRelationships(final RelType type) {
+        return getRelationships(type, Direction.OUTGOING);
+    }
+
+    /**
      * Cached list of incoming link relationships
      *
      * @return
