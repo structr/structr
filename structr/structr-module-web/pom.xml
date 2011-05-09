@@ -36,6 +36,7 @@
         </resources>
     </build>
     <properties>
+        <netbeans.hint.license>structr-gpl30</netbeans.hint.license>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <click.version>2.3.0</click.version>
     </properties>

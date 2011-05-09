@@ -17,6 +17,7 @@
     <url>http://structr.org</url>
 
     <properties>
+        <netbeans.hint.license>structr-gpl30</netbeans.hint.license>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <neo4j.version>1.3</neo4j.version>
 <!--        <netbeans.hint.deploy.server>Tomcat60</netbeans.hint.deploy.server>-->
