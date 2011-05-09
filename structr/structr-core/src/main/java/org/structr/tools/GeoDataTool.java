@@ -9,6 +9,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
@@ -31,6 +33,7 @@ import org.structr.core.entity.geo.GeoObject;
 
 public class GeoDataTool {
 
+    private static final Logger logger = Logger.getLogger(GeoDataTool.class.getName());
     protected static GraphDatabaseService graphDb;
     protected static Index<Node> index;
     public final static String[] northAmerica = new String[]{
@@ -267,6 +270,7 @@ public class GeoDataTool {
 
         boolean test = false;
         boolean importShapefile = false;
+        boolean importGeoJSON = false;
         boolean geocode = false;
         boolean linkCountries = false;
 
@@ -287,6 +291,8 @@ public class GeoDataTool {
                 test = true;
             } else if ("-importShapefile".equals(arg)) {
                 importShapefile = true;
+            } else if ("-importGeoJSON".equals(arg)) {
+                importGeoJSON = true;
             } else if ("-linkCountries".equals(arg)) {
                 linkCountries = true;
             } else if ("-geocode".equals(arg)) {
@@ -318,6 +324,11 @@ public class GeoDataTool {
 
                 System.out.println("Importing shapefile ...");
                 adminTool.importShapefile(test, file, layer);
+
+            } else if (importGeoJSON) {
+
+                System.out.println("Importing GeoJSON file ...");
+                adminTool.importGeoJSON(test, file, layer);
 
             } else if (geocode) {
 
@@ -382,6 +393,37 @@ public class GeoDataTool {
                 shutdown();
             }
         });
+    }
+
+    /**
+     * Import a GeoJSON file via neo4j-spatial
+     *
+     * @param file file path on disk
+     * @param test if true, don't write to database
+     * @param layerName
+     */
+    private void importGeoJSON(boolean test, String file, String layerName) {
+
+        try {
+            // open data store from neo4j database
+            Neo4jSpatialDataStore n4jstore = new Neo4jSpatialDataStore(graphDb);
+            Layer layer = n4jstore.getSpatialDatabaseService().getLayer(layerName);
+
+            // try to delete layer
+            if (layer != null) {
+                layer.delete(new NullListener());
+                logger.log(Level.INFO, "Layer {0} deleted", layerName);
+            }
+
+//            GeoJsonImporter importer = 
+            org.structr.tools.GeoJSONImporter importer = new GeoJSONImporter(graphDb);
+            if (!test) {
+                logger.log(Level.INFO, "Starting import of {0} into layer {1}", new Object[]{file, layerName});
+                importer.importFile(file, layerName);
+            }
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error while loading data from geoJSON file {0} into layer {1}: {2}", new Object[]{file, layerName, e.getMessage()});
+        }
     }
 
     /**

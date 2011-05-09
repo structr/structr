@@ -2,8 +2,9 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.structr.test;
+package org.structr.tools;
 
+import com.flagstone.transform.datatype.Color;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
@@ -18,6 +19,7 @@ import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.geotools.data.DataUtilities;
 import org.geotools.data.Query;
+import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureSource;
 import org.geotools.feature.FeatureCollections;
@@ -31,6 +33,7 @@ import org.geotools.map.MapLayer;
 import org.geotools.styling.FeatureTypeStyle;
 import org.geotools.styling.Rule;
 import org.geotools.styling.Style;
+import org.geotools.styling.StyleBuilder;
 import org.geotools.styling.Symbolizer;
 import org.neo4j.gis.spatial.geotools.data.Neo4jSpatialDataStore;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -38,12 +41,10 @@ import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.filter.Filter;
 
-import org.structr.core.entity.AbstractNode;
 import org.structr.common.MapHelper;
 import org.structr.common.StandaloneTestHelper;
 import org.structr.core.Command;
 import org.structr.core.Services;
-import org.structr.core.node.FindUserCommand;
 import org.structr.core.node.GraphDatabaseCommand;
 
 /**
@@ -56,11 +57,11 @@ public class SVGMapRenderer {
 
     public static void main(String[] args) {
 
-        StandaloneTestHelper.prepareStandaloneTest("/opt/structr/structr-tfs2");
+        StandaloneTestHelper.prepareStandaloneTest("/tmp/structr-maptest/db");
 
         StringBuilder out = new StringBuilder();
 
-        final AbstractNode adminNode = (AbstractNode) Services.command(FindUserCommand.class).execute("admin");
+//        final AbstractNode adminNode = (AbstractNode) Services.command(FindUserCommand.class).execute("admin");
 
         Command graphDbCommand = Services.command(GraphDatabaseCommand.class);
         GraphDatabaseService graphDb = (GraphDatabaseService) graphDbCommand.execute();
@@ -99,7 +100,9 @@ public class SVGMapRenderer {
             MapLayer layer = null;
             ReferencedEnvelope envelope = null;
 
-//            String shapeFilePath = getShapeFile();
+            // For a test, import shapefile
+
+//            String shapeFilePath = "/tmp/structr-maptest/map1.shp";
 //            if (shapeFilePath != null) {
 //
 //                // open data store from shapefile
