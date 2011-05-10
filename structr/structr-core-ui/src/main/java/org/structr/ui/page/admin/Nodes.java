@@ -1072,8 +1072,6 @@ public class Nodes extends Admin {
      */
     private TreeNode addTreeNode(AbstractNode s, TreeNode parentNode) {
 
-        // deprecated // TreeNode n = new TreeNode(s, String.valueOf(s.getId()), parentNode);
-
         TreeNode n = new TreeNode(s, String.valueOf(s.getId()));
         n.setIcon(contextPath + getIconSrc(s));
 
@@ -1126,16 +1124,6 @@ public class Nodes extends Admin {
      * @return List<Property>
      */
     public List<Property> getProperties() {
-//        Command transactionCommand = Services.command(TransactionCommand.class);
-//
-//        return ((List<Property>) transactionCommand.execute(new StructrTransaction() {
-//
-//            @Override
-//            public Object execute() throws Throwable {
-//                Command propertiesCommand = Services.command(NodePropertiesCommand.class);
-//                return (propertiesCommand.execute(node));
-//            }
-//        }));
         return ((List<Property>) Services.command(NodePropertiesCommand.class).execute(node));
     }
 
@@ -1179,37 +1167,6 @@ public class Nodes extends Admin {
         return false;
     }
 
-    /**
-     * Delete a property
-     */
-//    public boolean onDeleteProperty() {
-//        Command transaction = Services.command(TransactionCommand.class);
-//        final String localNodeId = deleteLink.getParameter(NODE_ID_KEY);
-//        final String key = deleteLink.getValue();
-//
-//        transaction.execute(new StructrTransaction() {
-//
-//            @Override
-//            public Object execute() throws Throwable {
-//                AbstractNode structrNode = getNodeById(Long.parseLong(localNodeId));
-//
-//                if (structrNode != null && structrNode.hasProperty(key)) {
-//                    structrNode.removeProperty(key);
-//                }
-//
-//                okMsg = "Property successfully removed!"; // TODO: localize
-//
-//                return (null);
-//            }
-//        });
-//
-//        Map<String, String> parameters = new HashMap<String, String>();
-//        parameters.put(NODE_ID_KEY, String.valueOf(getNodeId()));
-//        parameters.put(RENDER_MODE_KEY, renderMode);
-//        setRedirect(getRedirectPage(node, this), parameters);
-//
-//        return false;
-//    }
     /**
      * Back button
      */
@@ -1319,47 +1276,6 @@ public class Nodes extends Admin {
                             link.addStyleClass("public");
                         }
                         buf.append(link);
-//
-//                        buf.append(" ");
-//
-//                        PageLink editLink = new PageLink("edit", getEditPageClass(n)) {
-//
-//                            @Override
-//                            public String getHref() {
-//
-//                                if (getPageClass() == null) {
-//                                    throw new IllegalStateException("target pageClass is not defined");
-//                                }
-//
-//                                Context context = getContext();
-//                                HtmlStringBuffer buffer = new HtmlStringBuffer();
-//
-//                                buffer.append(context.getRequest().getContextPath());
-//
-//                                String pagePath = context.getPagePath(getPageClass());
-//
-//                                if (pagePath != null && pagePath.endsWith(".jsp")) {
-//                                    pagePath = StringUtils.replace(pagePath, ".jsp", ".htm");
-//                                }
-//
-//                                buffer.append(pagePath);
-//
-//                                if (hasParameters()) {
-//                                    buffer.append("?");
-//
-//                                    renderParameters(buffer, getParameters(), context);
-//                                }
-//
-//                                buffer.append("#content");
-//
-//                                return context.getResponse().encodeURL(buffer.toString());
-//                            }
-//                        };
-//
-//                        editLink.setParameter(NODE_ID_KEY, intId);
-//                        editLink.setImageSrc("/images/page_white_edit.png");
-//
-//                        buf.append(editLink);
 
 
                     }

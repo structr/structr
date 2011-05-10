@@ -44,18 +44,7 @@ public class Edit extends StructrPage {
     @Override
     public void onInit() {
 
-//        long t0 = System.currentTimeMillis();
-
         super.onInit();
-
-//        long t1 = System.currentTimeMillis();
-//        System.out.println("Edit onInit super.onInit()" + (t1 - t0) + " ms");
-
-        //Map<String, String> parameters = new HashMap<String, String>();
-        //parameters.put(NODE_ID_KEY, getNodeId());
-
-//        long t2 = System.currentTimeMillis();
-//        System.out.println("Edit onInit create Edit page" + (t2 - t2) + " ms");
 
         Class<? extends Page> pageClass = getRedirectPage(node);
         if (pageClass == null) {
