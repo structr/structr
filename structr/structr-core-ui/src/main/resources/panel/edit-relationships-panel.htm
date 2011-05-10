@@ -1,13 +1,81 @@
 <div id="relationships-tab" class="ui-tabs-hide">
-    <div class="body">
-        <b>Incoming</b>
-        <p>
-            $incomingRelationshipsTable
-        </p>
+  <div class="body">
+    <script src="$context/js/springy.js" type="text/javascript"></script>
+    <script src="$context/js/springyui.js" type="text/javascript"></script>
 
-        <b>Outgoing</b>
-        <p>
-            $outgoingRelationshipsTable
-        </p>
-    </div>
+    <table>
+      <tr><td>
+          #foreach( $rel in $node.incomingRelationships )
+          <a href="$context/admin/edit.htm?nodeId=$rel.startNode.id#relationships-tab">$rel.startNode.name [$rel.startNode.id]</a> -------- $rel.relType --------><br>
+          #end
+        </td><td>
+          $node.name [$node.id]
+        </td>
+        <td>
+
+          #foreach( $rel in $node.outgoingRelationships )
+          -------- $rel.relType --------> <a href="$context/admin/edit.htm?nodeId=$rel.endNode.id#relationships-tab">$rel.endNode.name [$rel.endNode.id]</a><br>
+          #end
+        </td></tr></table>
+    <script>
+      var graph = new Graph();
+
+      // this node
+      var node_$node.id = graph.newNode({label: '$node.name'});
+
+      // content relationships
+      var HAS_CHILD = '#000000';
+      var SECURITY = '#AA0000';
+      var OWNS = '#AAAA00';
+      var USE_TEMPLATE = '#00AA00';
+      var IS_MEMBER_OF_GROUP = '#121212';
+      var UNDEFINED = '#333333';
+      var LINK = '#333333';
+      var PAGE_LINK = '#333333';
+      var THUMBNAIL = '#A0B534';
+      var NEXT_LIST_ENTRY = '#AA00DD';
+      var LAST_LIST_ENTRY = '#AD00DA';
+
+      // application relationships
+      var DATA = '#AA00AA';
+      var SUBMIT = '#BA00AA';
+      var ERROR_DESTINATION = '#AA00BA';
+      var SUCCESS_DESTINATION = '#AB00AA';
+      var CREATE_DESTINATION = '#AA00AB';
+
+      // other (special) relationships
+      var DynamicRelationshipType = '#AAAAAA';
+      var SPATIAL = '#ABC000';
+      var LAYER = '#0AA000';
+      var RTREE_ROOT = '#0BC433';
+      var GEOMETRIES = '#15D330';
+      var RTREE_METADATA = '#6F43CA';
+
+      #foreach( $rel in $node.incomingRelationships )
+      #if( $foreach.count > 100 )
+        #break
+      #end
+      var node_$rel.startNode.id = graph.newNode({label: '$rel.startNode.name', link: '$context/admin/edit.htm?nodeId=$rel.startNode.id#relationships-tab'});
+      var edge_$rel.id = graph.newEdge(node_$rel.startNode.id, node_$node.id, {color: $rel.relType, type: '$rel.relType'});
+      #end
+
+      #foreach( $rel in $node.outgoingRelationships )
+      #if( $foreach.count > 100 )
+        #break
+      #end
+      var node_$rel.endNode.id = graph.newNode({label: '$rel.endNode.name', link: '$context/admin/edit.htm?nodeId=$rel.endNode.id#relationships-tab'});
+      var edge_$rel.id = graph.newEdge(node_$node.id, node_$rel.endNode.id, {color: $rel.relType, type: '$rel.relType'});
+      #end
+
+
+      jQuery(document).ready(function(){
+        jQuery('#viewport').springy({ 'graph': graph });
+      });
+
+    </script>
+    <canvas id="viewport" width="800" height="600"></canvas>
+
+
+
+  </div>
 </div>
