@@ -22,6 +22,13 @@ Copyright (c) 2010 Dennis Hotson
  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  OTHER DEALINGS IN THE SOFTWARE.
 */
+/**
+ *
+ * Modifications made for structr <structr@structr.org> by Axel Morgner:
+ *
+ * - added redraw method
+ *
+ */
 
 var Graph = function()
 {
@@ -236,6 +243,10 @@ Graph.prototype.filterEdges = function(fn)
 	}, this);
 };
 
+Graph.prototype.redraw = function()
+{
+  this.notify();
+};
 
 Graph.prototype.addGraphListener = function(obj)
 {
@@ -593,4 +604,3 @@ Renderer.prototype.start = function()
 		});
 	});
 };
-

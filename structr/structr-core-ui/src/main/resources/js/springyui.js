@@ -22,6 +22,14 @@ Copyright (c) 2010 Dennis Hotson
  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  OTHER DEALINGS IN THE SOFTWARE.
 */
+/**
+ *
+ * Modifications made for structr <structr@structr.org> by Axel Morgner:
+ *
+ * - added labels to edges
+ * - render icon on nodes
+ *
+ */
 
 (function() {
 
@@ -31,9 +39,9 @@ jQuery.fn.springy = function(params) {
         return;
     }
 
-    var stiffness = params.stiffness || 40.0;
-    var repulsion = params.repulsion || 40.0;
-    var damping = params.damping || 0.7;
+    var stiffness = params.stiffness || 1000.0;
+    var repulsion = params.repulsion || 400.0;
+    var damping = params.damping || 0.4;
 
 	var canvas = this[0];
 	var ctx = canvas.getContext("2d");
@@ -76,16 +84,17 @@ jQuery.fn.springy = function(params) {
 	var dragged = null;
 
 	jQuery(canvas).click(function(e){
-    e.preventDefault();
-	  var pos = jQuery(this).offset();
-	  var p = fromScreen({x: e.pageX - pos.left, y: e.pageY - pos.top});
-		selected = nearest = dragged = layout.nearest(p);
-	  if (selected.node.data.link) window.location = selected.node.data.link;
+//    e.preventDefault();
+    var pos = jQuery(this).offset();
+    var p = fromScreen({x: e.pageX - pos.left, y: e.pageY - pos.top});
+  	selected = nearest = dragged = layout.nearest(p);
+  	if (selected.node.data.link) {
+	    window.location = selected.node.data.link;
+	  }
 	});
 
 
 	jQuery(canvas).mousedown(function(e){
-    e.preventDefault();
 		jQuery('.actions').hide();
 
 		var pos = jQuery(this).offset();
@@ -186,8 +195,8 @@ jQuery.fn.springy = function(params) {
 			var weight = typeof(edge.data.weight) !== 'undefined' ? edge.data.weight : 1.0;
 
 			ctx.lineWidth = Math.max(weight *  2, 0.1);
-			arrowWidth = 1 + ctx.lineWidth;
-			arrowLength = 8;
+			arrowWidth = 3 + ctx.lineWidth;
+			arrowLength = 10;
 
 			var directional = typeof(edge.data.directional) !== 'undefined' ? edge.data.directional : true;
 
@@ -208,9 +217,11 @@ jQuery.fn.springy = function(params) {
 			ctx.lineTo(lineEnd.x, lineEnd.y);
 			ctx.stroke();
 
+      // label
+      var text = edge.data.label ? edge.data.label : 'unknown';
+      var width = ctx.measureText(text).width;
+			ctx.fillText(text, Math.min(x1,x2) + (Math.abs(x1-x2))/2.0 - width/2.0, Math.min(y1,y2) + (Math.abs(y1-y2))/2.0);
 
-      var text = edge.data.type ? edge.data.type : 'unknown';
-			ctx.fillText(text, Math.min(s1.x,s2.x) + (Math.abs(s1.x-s2.x))/2, Math.min(s1.y,s2.y) + (Math.abs(s1.y-s2.y))/2);
 			// arrow
 
 			if (directional)
@@ -264,6 +275,11 @@ jQuery.fn.springy = function(params) {
 			ctx.font = "12px Arial, sans-serif";
 			var text = node.data.label ? node.data.label : node.id;
 			ctx.fillText(text, s.x - boxWidth/2 + 5, s.y - 8);
+			if (node.data.imgSrc) {
+			  var img = new Image();
+			  img.src = node.data.imgSrc;
+			  ctx.drawImage(img, s.x - boxWidth/2 - 15, s.y - 8);
+			}
 
 			ctx.restore();
 		}
