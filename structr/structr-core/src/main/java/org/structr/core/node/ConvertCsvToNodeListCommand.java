@@ -136,7 +136,7 @@ public class ConvertCsvToNodeListCommand extends NodeServiceCommand {
 //			List<String[]> lines = reader.readAll();
 
             final User userCopy = user;
-            final AbstractNode sourceNodeCopy = sourceNode;
+            final AbstractNode sourceNodeCopy = csvFileNode;
 
             final Command transactionCommand = Services.command(TransactionCommand.class);
             final Command createNode = Services.command(CreateNodeCommand.class);
