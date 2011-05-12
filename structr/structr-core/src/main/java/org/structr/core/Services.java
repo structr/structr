@@ -61,6 +61,11 @@ public class Services {
     public static final String MODULES_PATH = "modules.path";
     public static final String ENTITY_PACKAGES = "entity.packages";
     public static final String STRUCTR_PAGE_PREDICATE = "structr.page.predicate";
+    // Security-related constants
+    public static final String SUPERUSER_USERNAME = "superuser.username";
+    public static final String SUPERUSER_PASSWORD = "superuser.password";
+
+
     private static final Map<Class, Class> serviceClassCache = new ConcurrentHashMap<Class, Class>(5, 0.75f, 100);
     private static final Map<Class, Service> serviceCache = new ConcurrentHashMap<Class, Service>(5, 0.75f, 100);
     private static Map<String, Object> context = null;
@@ -75,6 +80,8 @@ public class Services {
     private static String udpPort;// = "54777";
     private static String smtpHost;// = "localhost";
     private static String smtpPort;// = "25";
+    private static String superuserUsername;
+    private static String superuserPassword;
 
     /**
      * Return the static application title
@@ -161,6 +168,20 @@ public class Services {
     }
 
     /**
+     * Return the superuser username
+     */
+    public static String getSuperuserUsername() {
+        return superuserUsername;
+    }
+
+    /**
+     * Return the superuser username
+     */
+    public static String getSuperuserPassword() {
+        return superuserPassword;
+    }
+
+    /**
      * Creates and returns a command of the given <code>type</code>. If a command is
      * found, the corresponding service will be discovered and activated.
      *
@@ -238,6 +259,8 @@ public class Services {
         udpPort = getConfigValue(context, Services.UDP_PORT, "57555");
         smtpHost = getConfigValue(context, Services.SMTP_HOST, "localhost");
         smtpPort = getConfigValue(context, Services.SMTP_PORT, "25");
+        superuserUsername = getConfigValue(context, Services.SUPERUSER_USERNAME, "superadmin");
+        superuserPassword = getConfigValue(context, Services.SUPERUSER_PASSWORD, ""); // intentionally no default password!
 
         logger.log(Level.INFO, "Finished initialization of service layer");
     }
