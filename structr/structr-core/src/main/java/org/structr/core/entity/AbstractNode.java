@@ -95,10 +95,12 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 
     // ----- abstract methods ----
     public abstract void renderView(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user);
-    public abstract String getIconSrc();
-    public abstract void onNodeCreation();
-    public abstract void onNodeInstantiation();
 
+    public abstract String getIconSrc();
+
+    public abstract void onNodeCreation();
+
+    public abstract void onNodeInstantiation();
     // reference to database node
     protected Node dbNode;
     // dirty flag, true means that some changes are not yet written to the database
@@ -884,6 +886,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
         if (propertyValue instanceof Integer) {
             result = ((Integer) propertyValue).intValue();
         } else if (propertyValue instanceof String) {
+            if ("".equals((String) propertyValue)) {
+                return 0;
+            }
             result = Integer.parseInt(((String) propertyValue));
         }
         return result;
@@ -898,6 +903,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
         if (propertyValue instanceof Long) {
             result = ((Long) propertyValue).longValue();
         } else if (propertyValue instanceof String) {
+            if ("".equals((String) propertyValue)) {
+                return 0L;
+            }
             result = Long.parseLong(((String) propertyValue));
         }
         return result;
@@ -912,6 +920,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
         if (propertyValue instanceof Double) {
             result = ((Double) propertyValue).doubleValue();
         } else if (propertyValue instanceof String) {
+            if ("".equals((String) propertyValue)) {
+                return 0.0d;
+            }
             result = Double.parseDouble(((String) propertyValue));
         }
         return result;
@@ -2375,20 +2386,17 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
                 // Add a generic helper
                 root.put("Helper", new TemplateHelper());
 
-		// Add error and ok message if present
-		HttpSession session = CurrentRequest.getSession();
-		if(session != null)
-		{
-			if(session.getAttribute("errorMessage") != null)
-			{
-				root.put("ErrorMessage", session.getAttribute("errorMessage"));
-			}
+                // Add error and ok message if present
+                HttpSession session = CurrentRequest.getSession();
+                if (session != null) {
+                    if (session.getAttribute("errorMessage") != null) {
+                        root.put("ErrorMessage", session.getAttribute("errorMessage"));
+                    }
 
-			if(session.getAttribute("errorMessage") != null)
-			{
-				root.put("OkMessage", session.getAttribute("okMessage"));
-			}
-		}
+                    if (session.getAttribute("errorMessage") != null) {
+                        root.put("OkMessage", session.getAttribute("okMessage"));
+                    }
+                }
 
                 // add geo info if available
                 // TODO: add geo node information
@@ -2460,20 +2468,17 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
                 // Add a generic helper
                 root.put("Helper", new TemplateHelper());
 
-		// Add error and ok message if present
-		HttpSession session = CurrentRequest.getSession();
-		if(session != null)
-		{
-			if(session.getAttribute("errorMessage") != null)
-			{
-				root.put("ErrorMessage", session.getAttribute("errorMessage"));
-			}
+                // Add error and ok message if present
+                HttpSession session = CurrentRequest.getSession();
+                if (session != null) {
+                    if (session.getAttribute("errorMessage") != null) {
+                        root.put("ErrorMessage", session.getAttribute("errorMessage"));
+                    }
 
-			if(session.getAttribute("errorMessage") != null)
-			{
-				root.put("OkMessage", session.getAttribute("okMessage"));
-			}
-		}
+                    if (session.getAttribute("errorMessage") != null) {
+                        root.put("OkMessage", session.getAttribute("okMessage"));
+                    }
+                }
 
                 freemarker.template.Template t = new freemarker.template.Template(node.getName(), new StringReader(templateString), cfg);
                 t.process(root, out);
@@ -2492,34 +2497,30 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 
     }
 
-	// ----- protected methods -----
-	protected String createUniqueIdentifier(String prefix)
-	{
-		StringBuilder ret = new StringBuilder(100);
+    // ----- protected methods -----
+    protected String createUniqueIdentifier(String prefix) {
+        StringBuilder ret = new StringBuilder(100);
 
-		ret.append(prefix);
-		ret.append(getIdString());
+        ret.append(prefix);
+        ret.append(getIdString());
 
-		return(ret.toString());
-	}
+        return (ret.toString());
+    }
 
-	protected AbstractNode getNodeFromLoader()
-	{
-		List<StructrRelationship> rels = getIncomingDataRelationships();
-		AbstractNode ret = null;
+    protected AbstractNode getNodeFromLoader() {
+        List<StructrRelationship> rels = getIncomingDataRelationships();
+        AbstractNode ret = null;
 
-		for(StructrRelationship rel : rels)
-		{
-			// first one wins
-			AbstractNode startNode = rel.getStartNode();
-			if(startNode instanceof NodeSource)
-			{
-				NodeSource source = (NodeSource)startNode;
-				ret = source.loadNode();
-				break;
-			}
-		}
+        for (StructrRelationship rel : rels) {
+            // first one wins
+            AbstractNode startNode = rel.getStartNode();
+            if (startNode instanceof NodeSource) {
+                NodeSource source = (NodeSource) startNode;
+                ret = source.loadNode();
+                break;
+            }
+        }
 
-		return (ret);
-	}
+        return (ret);
+    }
 }
