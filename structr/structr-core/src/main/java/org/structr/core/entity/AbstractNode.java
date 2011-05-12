@@ -969,7 +969,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
     public void setProperty(final String key, final Object value, final boolean updateIndex) {
 
         if (key == null) {
-            logger.log(Level.SEVERE, "Tried to set property will null key (action was denied)");
+            logger.log(Level.SEVERE, "Tried to set property with null key (action was denied)");
             return;
         }
 
