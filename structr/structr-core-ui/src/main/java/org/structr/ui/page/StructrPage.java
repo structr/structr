@@ -89,7 +89,9 @@ public class StructrPage extends Page {
     protected String parentNodeId;
     @Bindable
     protected String returnUrl;
-    protected final static String SUPERUSER_KEY = "superadmin";
+    protected final static String SUPERADMIN_USERNAME_KEY = Services.getSuperuserUsername();
+    protected final static String SUPERADMIN_PASSWORD_KEY = Services.getSuperuserPassword();
+    //protected final static String SUPERUSER_KEY = "superadmin";
     protected final static String USERNAME_KEY = "username";
     protected final static String KEY_KEY = "key";
     protected final static String VALUE_KEY = "value";
@@ -152,7 +154,7 @@ public class StructrPage extends Page {
         //userName = CurrentSession.getGlobalUsername();
         user = getUserNode();
 
-        if (userName != null && userName.equals(SUPERUSER_KEY)) {
+        if (userName != null && userName.equals(SUPERADMIN_USERNAME_KEY)) {
             isSuperUser = true;
         }
 
@@ -487,7 +489,7 @@ public class StructrPage extends Page {
             return null;
         }
 
-        if (userName.equals(SUPERUSER_KEY)) {
+        if (userName.equals(SUPERADMIN_USERNAME_KEY)) {
             return new SuperUser();
         }
 

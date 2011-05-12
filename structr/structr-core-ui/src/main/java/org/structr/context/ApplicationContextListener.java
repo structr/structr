@@ -61,28 +61,34 @@ public class ApplicationContextListener implements ServletContextListener, HttpS
             properties.load(new FileInputStream(configFile));
 
             String appTitle = properties.getProperty(Services.APPLICATION_TITLE);
-            logger.log(Level.INFO, "Config file: Application title: {0}", appTitle);
+            logger.log(Level.INFO, "Config file application title: {0}", appTitle);
 
             String tmpPath = properties.getProperty(Services.TMP_PATH);
-            logger.log(Level.INFO, "Config file: Temp path: {0}", tmpPath);
+            logger.log(Level.INFO, "Config file temp path: {0}", tmpPath);
 
             String databasePath = properties.getProperty(Services.DATABASE_PATH);
-            logger.log(Level.INFO, "Config file: Database path: {0}", databasePath);
+            logger.log(Level.INFO, "Config file database path: {0}", databasePath);
 
             String filesPath = properties.getProperty(Services.FILES_PATH);
-            logger.log(Level.INFO, "Config file: Files path: {0}", filesPath);
+            logger.log(Level.INFO, "Config file files path: {0}", filesPath);
 
             String modulesPath = properties.getProperty(Services.MODULES_PATH);
-            logger.log(Level.INFO, "Config file: Modules path: {0}", modulesPath);
+            logger.log(Level.INFO, "Config file modules path: {0}", modulesPath);
 
             String entityPackages = properties.getProperty(Services.ENTITY_PACKAGES);
-            logger.log(Level.INFO, "Config file: Entity packages: {0}", entityPackages);
+            logger.log(Level.INFO, "Config file entity packages: {0}", entityPackages);
 
             String tcpPort = properties.getProperty(Services.TCP_PORT);
-            logger.log(Level.INFO, "Config file: TCP port {0}", tcpPort);
+            logger.log(Level.INFO, "Config file TCP port: {0}", tcpPort);
 
             String udpPort = properties.getProperty(Services.UDP_PORT);
-            logger.log(Level.INFO, "Config file: UDP port {0}", udpPort);
+            logger.log(Level.INFO, "Config file UDP port: {0}", udpPort);
+
+            String superuserUsername = properties.getProperty(Services.SUPERUSER_USERNAME);
+            logger.log(Level.INFO, "Config file superuser username: {0}", superuserUsername);
+
+            String superuserPassword = properties.getProperty(Services.SUPERUSER_PASSWORD);
+            logger.log(Level.INFO, "Config file superuser password: {0}", superuserPassword);
 
             if (appTitle != null) {
                 context.put(Services.APPLICATION_TITLE, appTitle);
@@ -130,6 +136,18 @@ public class ApplicationContextListener implements ServletContextListener, HttpS
                 context.put(Services.UDP_PORT, udpPort);
             } else {
                 context.put(Services.UDP_PORT, servletContext.getInitParameter(Services.UDP_PORT));
+            }
+
+            if (superuserUsername != null) {
+                context.put(Services.SUPERUSER_USERNAME, superuserUsername);
+            } else {
+                context.put(Services.SUPERUSER_USERNAME, servletContext.getInitParameter(Services.SUPERUSER_USERNAME));
+            }
+
+            if (superuserPassword != null) {
+                context.put(Services.SUPERUSER_PASSWORD, superuserPassword);
+            } else {
+                context.put(Services.SUPERUSER_PASSWORD, servletContext.getInitParameter(Services.SUPERUSER_PASSWORD));
             }
 
         } catch (Throwable t) {

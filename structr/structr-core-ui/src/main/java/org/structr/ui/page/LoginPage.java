@@ -53,7 +53,6 @@ public class LoginPage extends Admin {
     private static final Logger logger = Logger.getLogger(LoginPage.class.getName());
     //private final static String DOMAIN_KEY = "domain";
     private final static String PASSWORD_KEY = "password";
-    private final static String SUPERADMIN_PASSWORD_KEY = "sehrgeheim";
     protected Panel loginPanel = new Panel("loginPanel", "/panel/login-panel.htm");
     protected Form loginForm = new Form("loginForm");
 
@@ -110,11 +109,10 @@ public class LoginPage extends Admin {
             returnUrl = loginForm.getFieldValue(RETURN_URL_KEY);
             String passwordValue = loginForm.getFieldValue(PASSWORD_KEY);
 
-            // TODO: remove superadmin login!!
-            if (SUPERUSER_KEY.equals(userValue) && SUPERADMIN_PASSWORD_KEY.equals(passwordValue)) {
+            if (SUPERADMIN_USERNAME_KEY.equals(userValue) && SUPERADMIN_PASSWORD_KEY.equals(passwordValue)) {
 
                 logger.log(Level.INFO, "############# Logged in as superadmin! ############");
-                userName = SUPERUSER_KEY;
+                userName = SUPERADMIN_USERNAME_KEY;
                 isSuperUser = true;
 
                 user = new SuperUser();
