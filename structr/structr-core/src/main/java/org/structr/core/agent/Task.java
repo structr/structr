@@ -58,7 +58,6 @@ public interface Task extends Delayed, StatusInfo {
      * Returns the nodes this task should operate on.
      *
      * TODO: Set or List?
-     * TODO: AbstractNode or AbstractNode?
      *
      * @return a set of nodes relevant to this task.
      */
