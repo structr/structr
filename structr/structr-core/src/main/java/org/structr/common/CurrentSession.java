@@ -22,6 +22,11 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpSession;
+import org.structr.core.Command;
+import org.structr.core.Services;
+import org.structr.core.entity.SuperUser;
+import org.structr.core.entity.User;
+import org.structr.core.node.FindUserCommand;
 
 /**
  * A helper class that encapsulates access methods to the current session
@@ -110,6 +115,23 @@ public class CurrentSession
 
 		return(null);
 	}
+
+    public static User getUser() {
+
+        String userName = getGlobalUsername();
+        
+        // don't try to find a user node if userName is null or is superadmin
+        if (userName == null) {
+            return null;
+        }
+
+        if (userName.equals(Services.getSuperuserUsername())) {
+            return new SuperUser();
+        }
+
+        Command findUser = Services.command(FindUserCommand.class);
+        return ((User) findUser.execute(userName));
+    }
 
 	public static void setAttribute(String key, Object value)
 	{

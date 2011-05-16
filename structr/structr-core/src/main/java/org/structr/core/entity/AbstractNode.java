@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.StringReader;
 import java.io.Writer;
+import java.lang.reflect.Method;
 import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Collections;
@@ -2164,23 +2165,26 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
             String key = content.substring(start + NODE_KEY_PREFIX.length(), end);
 
             int indexOfComma = key.indexOf(",");
+            int indexOfDot = key.indexOf(".");
 
             String templateKey = null;
+            String methodKey = null;
+            Template customTemplate = null;
+
             if (indexOfComma > 0) {
                 String[] splitted = StringUtils.split(key, ",");
                 key = splitted[0];
                 templateKey = splitted[1];
-            }
 
-            Template customTemplate = null;
-            if (templateKey != null && !(templateKey.isEmpty())) {
-//                List<AbstractNode> templates = (List<AbstractNode>) findNode.execute(user, this, templateKey);
-                customTemplate = (Template) findNode.execute(user, this, new XPath(templateKey));
-//                if (templates != null && templates.size() == 1) {
-//                    customTemplate = (Template) templates.get(0);
-//                }
-            }
+                if (StringUtils.isNotEmpty(templateKey)) {
+                    customTemplate = (Template) findNode.execute(user, this, new XPath(templateKey));
+                }
 
+            } else if (indexOfDot > 0) {
+                String[] splitted = StringUtils.split(key, ".");
+                key = splitted[0];
+                methodKey = splitted[1];
+            }
 
             StringBuilder replacement = new StringBuilder();
 
@@ -2241,7 +2245,28 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 
                     // propagate request
 //                    s.setRequest(getRequest());
-                    s.renderView(replacement, startNode, editUrl, editNodeId, user);
+                    if (StringUtils.isNotEmpty(methodKey)) {
+
+                        methodKey = toGetter(methodKey);
+
+                        Method getter = null;
+                        try {
+                            getter = s.getClass().getMethod(methodKey);
+                            Object value = null;
+                            try {
+                                value = getter.invoke(s);
+                                replacement.append(value);
+                            } catch (Exception ex) {
+                                logger.log(Level.FINE, "Cannot invoke method {0} on {1}", new Object[]{getter, s});
+                            }
+
+                        } catch (Exception ex) {
+                            logger.log(Level.FINE, "Cannot invoke method {0}", methodKey);
+                        }
+
+                    } else {
+                        s.renderView(replacement, startNode, editUrl, editNodeId, user);
+                    }
 
                 } else {
                     replacement.append(result);
@@ -2271,6 +2296,11 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
             start = content.indexOf(NODE_KEY_PREFIX, start + replaceBy.length() + 1);
         }
 
+    }
+
+
+    protected static String toGetter(String name) {
+         return "get".concat(name.substring(0, 1).toUpperCase()).concat(name.substring(1));
     }
 
     /**
@@ -2354,7 +2384,8 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
                 callingNode = template.getCallingNode();
 
                 Map root = new HashMap();
-                root.put("Template", this);
+
+                root.put("this", this);
 
                 if (callingNode != null) {
                     root.put(callingNode.getType(), callingNode);

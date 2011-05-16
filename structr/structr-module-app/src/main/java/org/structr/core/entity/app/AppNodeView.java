@@ -42,7 +42,7 @@ public class AppNodeView extends AbstractNode
 	private static final Logger logger = Logger.getLogger(AppNodeView.class.getName());
 
 	private static final String FOLLOW_RELATIONSHIP_KEY =	"followRelationship";
-	private static final String ID_SOURCCE_KEY =		"idSource";
+	private static final String ID_SOURCE_KEY =		"idSource";
 
 	@Override
 	public String getIconSrc()
@@ -108,7 +108,7 @@ public class AppNodeView extends AbstractNode
 	// ----- private methods -----
 	private AbstractNode loadNode()
 	{
-		String idSourceParameter = (String)getProperty(ID_SOURCCE_KEY);
+		String idSourceParameter = (String)getProperty(ID_SOURCE_KEY);
 		String idSource = CurrentRequest.getRequest().getParameter(idSourceParameter);
 
 		return((AbstractNode)Services.command(FindNodeCommand.class).execute(null, this, idSource));
