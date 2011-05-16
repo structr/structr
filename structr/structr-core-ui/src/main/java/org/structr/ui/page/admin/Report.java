@@ -22,12 +22,12 @@ import au.com.bytecode.opencsv.CSVWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.click.Context;
@@ -71,7 +71,6 @@ import org.structr.core.node.search.SearchAttribute;
 public class Report extends Nodes {
 
     private static final Logger logger = Logger.getLogger(Report.class.getName());
-
     private final static String TYPE_SELECT_KEY = "typeSelect";
     private final static String REPORT_COLUMNS_KEY = "reportColumns";
     private final static String CSV_SEPARATOR_CHAR = "csvSeparatorCharacter";
@@ -81,7 +80,7 @@ public class Report extends Nodes {
     protected FieldSet propertyFields = new FieldSet("propertyFields");
     protected Panel reportPanel = new Panel("reportPanel", "/panel/report-panel.htm");
     protected Table reportTable = new Table("reportTable");
-    protected Select resultTypeSelect = new Select(TYPE_SELECT_KEY, "Select Result Type", true);
+    protected Select resultTypeSelect = new Select(TYPE_SELECT_KEY, "Node Type", true);
     protected Select csvSeparatorChar = new Select(CSV_SEPARATOR_CHAR, "CSV Separator Character");
     protected Select csvQuoteChar = new Select(CSV_QUOTE_CHAR, "CSV Quote Character");
     protected Select csvEscapeChar = new Select(CSV_ESCAPE_CHAR, "CSV Escape Character");
@@ -93,6 +92,12 @@ public class Report extends Nodes {
     protected List<AbstractNode> reportResults = new LinkedList<AbstractNode>();
     protected List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
     protected List<Column> columns = new LinkedList<Column>();
+    private String resultType;
+
+    @Override
+    public String getTemplate() {
+        return "/admin/report.htm";
+    }
 
     public Report() {
 
@@ -128,7 +133,6 @@ public class Report extends Nodes {
         resultTypeSelect.restoreState(getContext());
         String resultTypeFromSession = resultTypeSelect.getValue();
 
-        String resultType;
         if (resultTypeFromRequest != null && !(resultTypeFromRequest.equals(resultTypeFromSession))) {
             // Change of type requested
             resultType = resultTypeFromRequest;
@@ -179,6 +183,8 @@ public class Report extends Nodes {
         //restoreState();
         //populateReportResultsTable();
         if (reportForm.isValid()) {
+            // Always filter by type
+            searchAttributes.add(Search.andExactType(resultType));
             searchResults = (List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(user, null, false, false, searchAttributes);
             populateReportResultsTable();
             saveState();
@@ -287,6 +293,9 @@ public class Report extends Nodes {
     public boolean onPreviewReport() {
 
         if (reportForm.isValid()) {
+
+            // Always filter by type
+            searchAttributes.add(Search.andExactType(resultType));
             reportResults = (List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(user, null, false, false, searchAttributes);
             populateReportResultsTable();
             saveState();
@@ -296,7 +305,6 @@ public class Report extends Nodes {
         return false;
 
     }
-
 
     /**
      * Create report
@@ -324,15 +332,22 @@ public class Report extends Nodes {
 
         for (AbstractNode s : reportResults) {
 
+
 //            List<String> cols = new LinkedList<String>();
             List<String> values = new LinkedList<String>();
             for (Column c : columns) {
 
-                Object value = PropertyUtils.getValue(s, c.getName(), methodCache);
-                if (value != null) {
-                    values.add(value.toString());
-                } else {
-                    values.add("");
+                try {
+
+                    Object value = PropertyUtils.getValue(s, c.getName(), methodCache);
+                    if (value != null) {
+                        values.add(value.toString());
+                    } else {
+                        values.add("");
+                    }
+
+                } catch (RuntimeException re) {
+                    continue;
                 }
             }
 
@@ -437,9 +452,6 @@ public class Report extends Nodes {
 
     private void createDynamicFields(final String resultType) {
 
-        // Always filter by type
-        searchAttributes.add(Search.andExactType(resultType));
-
         // Get the corresponding entity class
         //Class<AbstractNode> c = Services.getEntityClass(resultType);
         Class<AbstractNode> c = (Class<AbstractNode>) Services.command(GetEntityClassCommand.class).execute(resultType);
@@ -520,8 +532,9 @@ public class Report extends Nodes {
         resultTypeSelect.add(new Option("", "--- Select Node Type ---"));
         resultTypeSelect.setAttribute("onchange", "form.submit();");
 
+        List<String> nodeTypes = new LinkedList<String>(((Map<String, Class>) Services.command(GetEntitiesCommand.class).execute()).keySet());
+        Collections.sort(nodeTypes);
 
-        Set<String> nodeTypes = ((Map<String, Class>) Services.command(GetEntitiesCommand.class).execute()).keySet();
         for (String className : nodeTypes) {
             Option o = new Option(className);
             resultTypeSelect.add(o);
