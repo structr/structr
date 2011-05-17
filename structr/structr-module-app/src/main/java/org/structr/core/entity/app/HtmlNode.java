@@ -27,7 +27,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Logger;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.User;
 
 /**
  *
@@ -46,9 +45,9 @@ public abstract class HtmlNode extends AbstractNode
 	protected String id = null;
 
 	// ----- abstract methods -----
-	public abstract void doBeforeRendering(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user);
-	public abstract void renderContent(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user);
-	public abstract boolean hasContent(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user);
+	public abstract void doBeforeRendering(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId);
+	public abstract void renderContent(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId);
+	public abstract boolean hasContent(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId);
 
 	@Override
 	public String getIconSrc()
@@ -98,12 +97,12 @@ public abstract class HtmlNode extends AbstractNode
 	}
 
 	@Override
-	public void renderView(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user)
+	public void renderView(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
 	{
 		// notify component of rendering
-		doBeforeRendering(out, startNode, editUrl, editNodeId, user);
+		doBeforeRendering(out, startNode, editUrl, editNodeId);
 
-		boolean hasContent = hasContent(out, startNode, editUrl, editNodeId, user);
+		boolean hasContent = hasContent(out, startNode, editUrl, editNodeId);
 
 		// only render if tag is set!
 		if(tag != null)
@@ -145,7 +144,7 @@ public abstract class HtmlNode extends AbstractNode
 
 		if(hasContent)
 		{
-			renderContent(out, startNode, editUrl, editNodeId, user);
+			renderContent(out, startNode, editUrl, editNodeId);
 		}
 
 		if(tag != null && (forceClosingTag || hasContent))

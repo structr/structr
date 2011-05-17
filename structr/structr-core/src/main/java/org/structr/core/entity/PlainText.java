@@ -71,7 +71,7 @@ public class PlainText extends AbstractNode {
 
     @Override
     public void renderView(StringBuilder out, final AbstractNode startNode,
-            final String editUrl, final Long editNodeId, final User user) {
+            final String editUrl, final Long editNodeId) {
 
         if (editNodeId != null && getId() == editNodeId.longValue()) {
 
@@ -79,7 +79,7 @@ public class PlainText extends AbstractNode {
 
         } else {
 
-            if (isVisible(user)) {
+            if (isVisible()) {
                 String html = getContent();
 
                 if (StringUtils.isNotBlank(html)) {
@@ -87,12 +87,12 @@ public class PlainText extends AbstractNode {
                     StringWriter content = new StringWriter();
 
                     // process content with Freemarker
-                    replaceByFreeMarker(html, content, startNode, editUrl, editNodeId, user);
+                    replaceByFreeMarker(html, content, startNode, editUrl, editNodeId);
 
                     StringBuilder content2 = new StringBuilder(content.toString());
 
                     // finally, replace %{subnodeKey} by rendered content of subnodes with this name
-                    replaceBySubnodes(content2, startNode, editUrl, editNodeId, user);
+                    replaceBySubnodes(content2, startNode, editUrl, editNodeId);
                     out.append(content2.toString());
 
                 }
@@ -107,14 +107,14 @@ public class PlainText extends AbstractNode {
      */
     @Override
     public void renderDirect(OutputStream out, final AbstractNode startNode,
-            final String editUrl, final Long editNodeId, final User user) {
+            final String editUrl, final Long editNodeId) {
 
-        if (isVisible(user)) {
+        if (isVisible()) {
 
             try {
 
                 StringBuilder sb = new StringBuilder();
-                renderView(sb, startNode, editUrl, editNodeId, user);
+                renderView(sb, startNode, editUrl, editNodeId);
 
                 // write to output stream
                 IOUtils.write(sb.toString(), out);

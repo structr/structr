@@ -24,6 +24,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import org.structr.common.CurrentRequest;
 //import org.structr.common.CurrentSession;
+import org.structr.common.CurrentSession;
 import org.structr.context.SessionMonitor;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.User;
@@ -64,7 +65,7 @@ public class Logout extends WebNode {
      */
     @Override
     public void renderView(StringBuilder out, final AbstractNode startNode,
-            final String editUrl, final Long editNodeId, final User user) {
+            final String editUrl, final Long editNodeId) {
 
 //        String errorMsg;
 
@@ -92,7 +93,7 @@ public class Logout extends WebNode {
             Boolean alreadyLoggedIn = usernameFromSession != null;
 
             if (alreadyLoggedIn) {
-                logout(user, session);
+                logout(session);
                 out.append("<div class=\"okMsg\">").append("User ").append(usernameFromSession).append(" logged out").append("</div>");
                 logger.log(Level.INFO, "User {0} logged out", usernameFromSession);
                 return;
@@ -101,18 +102,18 @@ public class Logout extends WebNode {
         }
     }
 
-    private void logout(final User user, HttpSession session) {
+    private void logout(HttpSession session) {
 
         String sessionId = session.getId();
 
         // Clear username in session
-//        CurrentSession.setGlobalUsername(null);
+        CurrentSession.setGlobalUsername(null);
         session.setAttribute(USERNAME_KEY, null);
 
         // Invalidate (destroy) session
         session.invalidate();
 
-        SessionMonitor.logActivity(user, SessionMonitor.getSessionByUId(sessionId), "Logout");
+        SessionMonitor.logActivity(SessionMonitor.getSessionByUId(sessionId), "Logout");
 
     }
 

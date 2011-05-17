@@ -132,7 +132,7 @@ public class Image extends File {
 
     @Override
     public void renderView(StringBuilder out, final AbstractNode startNode,
-            final String editUrl, final Long editNodeId, final User user) {
+            final String editUrl, final Long editNodeId) {
 
         if (editNodeId != null && getId() == editNodeId.longValue()) {
 
@@ -143,13 +143,13 @@ public class Image extends File {
             String imageUrl = null;
 
             if (getUrl() == null) {
-                imageUrl = getNodePath(user, startNode);
+                imageUrl = getNodePath(startNode);
             } else {
                 imageUrl = getUrl();
             }
 
             // FIXME: title shoud be rendered dependent of locale
-            if (isVisible(user)) {
+            if (isVisible()) {
                 //out.append("<img src=\"").append(getNodeURL(renderMode, contextPath)).append("\" title=\"").append(getTitle()).append("\" alt=\"").append(getTitle()).append("\" width=\"").append(getWidth()).append("\" height=\"").append(getHeight()).append("\">");
                 out.append("<img src=\"").append(imageUrl).append("\" title=\"").append(getTitle()).append("\" alt=\"").append(getTitle()).append("\" width=\"").append(getWidth()).append("\" height=\"").append(getHeight()).append("\">");
             }
@@ -164,10 +164,10 @@ public class Image extends File {
      */
     @Override
     public void renderDirect(OutputStream out, final AbstractNode startNode,
-            final String editUrl, final Long editNodeId, final User user) {
+            final String editUrl, final Long editNodeId) {
 
-        if (isVisible(user)) {
-            super.renderDirect(out, startNode, editUrl, editNodeId, user);
+        if (isVisible()) {
+            super.renderDirect(out, startNode, editUrl, editNodeId);
         }
     }
 //

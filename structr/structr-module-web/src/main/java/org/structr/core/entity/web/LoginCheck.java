@@ -203,7 +203,7 @@ public class LoginCheck extends WebNode {
      */
     @Override
     public void renderView(StringBuilder out, final AbstractNode startNode,
-            final String editUrl, final Long editNodeId, final User user) {
+            final String editUrl, final Long editNodeId) {
 
         String errorMsg;
 
@@ -319,8 +319,8 @@ public class LoginCheck extends WebNode {
 //            CurrentSession.setGlobalUsername(loginUser.getName());
 
             // Register user with internal session management
-            long sessionId = SessionMonitor.registerUserSession(user, session);
-            SessionMonitor.logActivity(user, sessionId, "Login");
+            long sessionId = SessionMonitor.registerUserSession(session);
+            SessionMonitor.logActivity(sessionId, "Login");
 
             // Mark this session with the internal session id
             session.setAttribute(SessionMonitor.SESSION_ID, sessionId);

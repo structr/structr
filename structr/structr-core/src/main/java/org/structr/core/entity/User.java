@@ -227,7 +227,7 @@ public class User extends Person {
         final User user = this;
         Category cat = null;
 
-        List<AbstractNode> children = this.getDirectChildNodes(user);
+        List<AbstractNode> children = this.getDirectChildNodes();
         for (AbstractNode child : children) {
             if (child instanceof Category && categoryName.equals(child.getName())) {
                 cat = (Category) child;
@@ -235,7 +235,7 @@ public class User extends Person {
         }
 
         if (cat != null) {
-            result = cat.getSortedLinkedNodes(user);
+            result = cat.getSortedLinkedNodes();
         }
 
         return result;
@@ -264,7 +264,7 @@ public class User extends Person {
 
         Category cat = null;
 
-        List<AbstractNode> children = this.getDirectChildNodes(user);
+        List<AbstractNode> children = this.getDirectChildNodes();
         for (AbstractNode child : children) {
             if (child instanceof Category && categoryName.equals(child.getName())) {
                 cat = (Category) child;
@@ -326,7 +326,7 @@ public class User extends Person {
 
         Category cat = null;
 
-        List<AbstractNode> children = this.getDirectChildNodes(user);
+        List<AbstractNode> children = this.getDirectChildNodes();
         for (AbstractNode child : children) {
             if (child instanceof Category && categoryName.equals(child.getName())) {
                 cat = (Category) child;

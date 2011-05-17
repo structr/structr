@@ -76,12 +76,12 @@ public class Script extends AbstractNode {
 
     @Override
     public void renderView(StringBuilder out, final AbstractNode startNode,
-            final String editUrl, final Long editNodeId, final User user) {
+            final String editUrl, final Long editNodeId) {
 
         if (editNodeId != null && getId() == editNodeId.longValue()) {
             renderEditFrame(out, editUrl);
         } else {
-            if (isVisible(user)) {
+            if (isVisible()) {
                 out.append(evaluate());
             }
         }
@@ -94,9 +94,9 @@ public class Script extends AbstractNode {
      */
     @Override
     public void renderDirect(OutputStream out, final AbstractNode startNode,
-            final String editUrl, final Long editNodeId, final User user) {
+            final String editUrl, final Long editNodeId) {
 
-        if (isVisible(user)) {
+        if (isVisible()) {
             try {
 
                 StringReader in = new StringReader(getText());

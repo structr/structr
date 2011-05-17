@@ -565,7 +565,7 @@ public class Nodes extends Admin {
                 AbstractNode subNode = r.getEndNode();
 
                 // if the node is readable for current user
-                if (isSuperUser || (subNode.readAllowed(user))) {
+                if (isSuperUser || (subNode.readAllowed())) {
 
                     // instantiate new tree node with given repository path,
                     // object's repository id as unique id (in tree context)
@@ -594,7 +594,7 @@ public class Nodes extends Admin {
                 AbstractNode subNode = r.getEndNode();
 
                 // if the node is readable for current user
-                if (isSuperUser || (subNode.readAllowed(user))) {
+                if (isSuperUser || (subNode.readAllowed())) {
 
                     // instantiate new tree node with given repository path,
                     // object's repository id as unique id (in tree context)

@@ -20,7 +20,6 @@
 package org.structr.core.entity.app;
 
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.User;
 
 /**
  *
@@ -34,18 +33,18 @@ public class AppButton extends HtmlNode
 	}
 
 	@Override
-	public void doBeforeRendering(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId, User user)
+	public void doBeforeRendering(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId)
 	{
 		addAttribute("type", "button");
 	}
 
 	@Override
-	public void renderContent(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId, User user)
+	public void renderContent(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId)
 	{
 	}
 
 	@Override
-	public boolean hasContent(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId, User user)
+	public boolean hasContent(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId)
 	{
 		return(false);
 	}

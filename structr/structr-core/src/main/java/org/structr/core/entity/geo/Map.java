@@ -68,16 +68,16 @@ public class Map extends AbstractNode {
 
     @Override
     public void renderView(StringBuilder out, final AbstractNode startNode,
-            final String editUrl, final Long editNodeId, final User user) {
+            final String editUrl, final Long editNodeId) {
 
         if (editNodeId != null && getId() == editNodeId.longValue()) {
             renderEditFrame(out, editUrl);
         } else {
 
-            if (isVisible(user)) {
+            if (isVisible()) {
 
                 if (getDontCache() == Boolean.TRUE) {
-                    renderSVGMap(out, user);
+                    renderSVGMap(out);
                     return;
                 }
 
@@ -86,7 +86,7 @@ public class Map extends AbstractNode {
                 if (StringUtils.isBlank(cachedSVGMap)) {
 
                     StringBuilder cache = new StringBuilder();
-                    renderSVGMap(cache, user);
+                    renderSVGMap(cache);
                     setSvgContent(cache.toString());
                     out.append(cache);
 
@@ -102,12 +102,12 @@ public class Map extends AbstractNode {
      */
     @Override
     public void renderDirect(OutputStream out, final AbstractNode startNode,
-            final String editUrl, final Long editNodeId, final User user) {
+            final String editUrl, final Long editNodeId) {
 
         try {
-            if (isVisible(user)) {
+            if (isVisible()) {
                 StringBuilder svgString = new StringBuilder();
-                renderSVGMap(svgString, user);
+                renderSVGMap(svgString);
                 out.write(svgString.toString().getBytes());
             }
         } catch (IOException e) {
@@ -115,7 +115,7 @@ public class Map extends AbstractNode {
         }
     }
 
-    private void renderSVGMap(StringBuilder out, final User user) {
+    private void renderSVGMap(StringBuilder out) {
 
         Command graphDbCommand = Services.command(GraphDatabaseCommand.class);
         GraphDatabaseService graphDb = (GraphDatabaseService) graphDbCommand.execute();

@@ -58,14 +58,14 @@ public class CurrentRequest
 	}
 
 	// ----- static methods -----
-	public static void redirect(User user, AbstractNode destination)
+	public static void redirect(AbstractNode destination)
 	{
 		HttpServletResponse response = getResponse();
 		HttpServletRequest request = getRequest();
 
 		if(request != null && response != null)
 		{
-			String redirectUrl = getAbsoluteNodePath(user, destination);
+			String redirectUrl = getAbsoluteNodePath(destination);
 
 			try
 			{
@@ -141,9 +141,9 @@ public class CurrentRequest
 		return(null);
 	}
 
-	public static String getAbsoluteNodePath(User user, AbstractNode node)
+	public static String getAbsoluteNodePath(AbstractNode node)
 	{
-		return(CurrentRequest.getRequest().getContextPath().concat("/view".concat(node.getNodePath(user).replace("&", "%26"))));
+		return(CurrentRequest.getRequest().getContextPath().concat("/view".concat(node.getNodePath().replace("&", "%26"))));
 	}
 
 	public static void registerRequestCycleListener(RequestCycleListener callback)

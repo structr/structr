@@ -59,7 +59,7 @@ public class StructrTemplateNodeModel implements TemplateNodeModel {
 
         List<StructrTemplateNodeModel> childNodeList = new LinkedList<StructrTemplateNodeModel>();
 
-        for (AbstractNode s : templateNode.getDirectChildNodes(user)) {
+        for (AbstractNode s : templateNode.getDirectChildNodes()) {
 
             StructrTemplateNodeModel m = new StructrTemplateNodeModel(s);
             childNodeList.add(m);
@@ -75,7 +75,7 @@ public class StructrTemplateNodeModel implements TemplateNodeModel {
 
     @Override
     public TemplateNodeModel getParentNode() {
-        return new StructrTemplateNodeModel(templateNode.getParentNode(user));
+        return new StructrTemplateNodeModel(templateNode.getParentNode());
     }
 
     @Override

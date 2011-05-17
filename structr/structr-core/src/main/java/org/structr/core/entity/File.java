@@ -132,10 +132,9 @@ public class File extends DefaultNode {
      * @param out
      */
     @Override
-    public void renderDirect(OutputStream out, final AbstractNode startNode,
-            final String editUrl, final Long editNodeId, final User user) {
+    public void renderDirect(OutputStream out, final AbstractNode startNode, final String editUrl, final Long editNodeId) {
 
-        if (isVisible(user)) {
+        if (isVisible()) {
             try {
 
                 InputStream in = getInputStream();

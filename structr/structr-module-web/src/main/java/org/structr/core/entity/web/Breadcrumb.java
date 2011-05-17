@@ -21,18 +21,8 @@ package org.structr.core.entity.web;
 //import java.util.Collections;
 //import java.util.Comparator;
 import java.util.List;
-import org.neo4j.graphdb.Direction;
-import org.structr.common.RelType;
-import org.structr.core.Command;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.StructrRelationship;
-import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
-import org.structr.core.node.CreateRelationshipCommand;
-import org.structr.core.node.DeleteRelationshipCommand;
-import org.structr.core.node.FindNodeCommand;
-import org.structr.core.node.NodeFactoryCommand;
 
 /**
  * Render a breadcrumb navigation element
@@ -54,7 +44,7 @@ public class Breadcrumb extends WebNode {
      */
     @Override
     public void renderView(StringBuilder out, final AbstractNode startNode,
-            final String editUrl, final Long editNodeId, final User user) {
+            final String editUrl, final Long editNodeId) {
 
         if (editNodeId != null && getId() == editNodeId.longValue()) {
 
@@ -62,9 +52,9 @@ public class Breadcrumb extends WebNode {
 
         } else {
 
-            if (isVisible(user)) {
+            if (isVisible()) {
 
-                renderBreadcrumbItems(out, startNode, this, user);
+                renderBreadcrumbItems(out, startNode, this);
 
             }
         }
@@ -76,9 +66,9 @@ public class Breadcrumb extends WebNode {
      * @param out
      * @param startNode
      */
-    private void renderBreadcrumbItems(StringBuilder out, final AbstractNode startNode, final AbstractNode currentNode, final User user) {
+    private void renderBreadcrumbItems(StringBuilder out, final AbstractNode startNode, final AbstractNode currentNode) {
 
-        List<AbstractNode> ancestors = startNode.getAncestorNodes(user);
+        List<AbstractNode> ancestors = startNode.getAncestorNodes();
 
         out.append("<ul>");
 
@@ -100,9 +90,9 @@ public class Breadcrumb extends WebNode {
                 cssClass += " current";
             }
 
-            if (breadcrumbItem.isVisible(user)) {
+            if (breadcrumbItem.isVisible()) {
 
-                String relativeNodePath = breadcrumbItem.getNodePath(user, startNode).replace("&", "%26");
+                String relativeNodePath = breadcrumbItem.getNodePath(startNode).replace("&", "%26");
 
                 if (!(cssClass.isEmpty())) {
                     cssClass = " class=\"" + cssClass + "\"";

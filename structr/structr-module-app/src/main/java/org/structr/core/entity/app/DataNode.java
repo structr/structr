@@ -20,7 +20,6 @@
 package org.structr.core.entity.app;
 
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.User;
 
 /**
  *
@@ -29,7 +28,7 @@ import org.structr.core.entity.User;
 public class DataNode extends AbstractNode
 {
 	@Override
-	public void renderView(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId, User user)
+	public void renderView(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId)
 	{
 	}
 

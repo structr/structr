@@ -29,7 +29,7 @@
         </init-param>
         <init-param>
             <param-name>application-version</param-name>
-            <param-value>0.2</param-value>
+            <param-value>0.2.1</param-value>
         </init-param>
         <init-param>
             <param-name>cacheable-paths</param-name>
@@ -76,7 +76,7 @@
     <context-param>
         <description>Config file, relative to base path</description>
         <param-name>configfile.path</param-name>
-        <param-value>/opt/structr/structr.conf</param-value>
+        <param-value>/opt/structr/t5s/structr.conf</param-value>
     </context-param>
 <!--    <context-param>
         <description>Application Title</description>

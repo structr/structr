@@ -25,6 +25,7 @@ import java.util.Map;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import org.structr.common.CurrentSession;
 import org.structr.common.RelType;
 import org.structr.core.Command;
 import org.structr.core.Services;
@@ -148,7 +149,7 @@ public class SessionMonitor {
 
             LogNodeList<Activity> activityList;
             // First, try to find user's activity list
-            for (AbstractNode s : user.getDirectChildNodes(user)) {
+            for (AbstractNode s : user.getDirectChildNodes()) {
                 if (s instanceof LogNodeList) {
 
                     // Take the first LogNodeList
@@ -248,8 +249,8 @@ public class SessionMonitor {
     /**
      * Register user in servlet context
      */
-    public static long registerUserSession(final User user, final HttpSession session) {
-
+    public static long registerUserSession(final HttpSession session) {
+        User user = CurrentSession.getUser();
         init(session.getServletContext());
         long id = nextId(session.getServletContext());
         sessions.add(new Session(id, session.getId(), user, new Date()));
@@ -277,9 +278,11 @@ public class SessionMonitor {
      * @param sessionId
      * @param action
      */
-    public static void logActivity(final User user, final long sessionId, final String action) {
+    public static void logActivity(final long sessionId, final String action) {
 
         Date now = new Date();
+
+        User user = CurrentSession.getUser();
 
         // Create a "dirty" activity node
         Activity activity = new Activity();
@@ -304,10 +307,12 @@ public class SessionMonitor {
      * @param sessionId
      * @param action
      */
-    public static void logPageRequest(final User user, final long sessionId, final String action, final HttpServletRequest request) {
+    public static void logPageRequest(final long sessionId, final String action, final HttpServletRequest request) {
 
 
         Date now = new Date();
+
+        User user = CurrentSession.getUser();
 
         // Create a "dirty" page request node
         PageRequest pageRequest = new PageRequest();

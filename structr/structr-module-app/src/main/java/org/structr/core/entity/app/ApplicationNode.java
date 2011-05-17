@@ -48,7 +48,7 @@ public abstract class ApplicationNode extends AbstractNode
 	public abstract void buildTestCase();
 
 	@Override
-	public void renderView(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId, User user)
+	public void renderView(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId)
 	{
 		// just a container
 	}

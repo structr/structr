@@ -66,7 +66,7 @@ public class AppLogin extends ActionNode
 	private SessionValue<String> userNameValue = null;
 
 	@Override
-	public boolean doAction(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId, User user)
+	public boolean doAction(final StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
 	{
 		String usernameFromSession = CurrentSession.getGlobalUsername();
 		Boolean alreadyLoggedIn = usernameFromSession != null;
@@ -156,8 +156,8 @@ public class AppLogin extends ActionNode
 		CurrentSession.setGlobalUsername(loginUser.getName());
 
 		// Register user with internal session management
-		long sessionId = SessionMonitor.registerUserSession(user, CurrentSession.getSession());
-		SessionMonitor.logActivity(user, sessionId, "Login");
+		long sessionId = SessionMonitor.registerUserSession(CurrentSession.getSession());
+		SessionMonitor.logActivity(sessionId, "Login");
 
 		// Mark this session with the internal session id
 		CurrentSession.setAttribute(SessionMonitor.SESSION_ID, sessionId);

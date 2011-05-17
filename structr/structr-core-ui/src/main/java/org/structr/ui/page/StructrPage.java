@@ -182,7 +182,7 @@ public class StructrPage extends Page {
 
         if (user != null) {
             sessionId = (Long) getContext().getRequest().getSession().getAttribute(SessionMonitor.SESSION_ID);
-            SessionMonitor.logPageRequest(user, sessionId, "Page Request", getContext().getRequest());
+            SessionMonitor.logPageRequest(sessionId, "Page Request", getContext().getRequest());
         }
 
         // Catch both, id and path
@@ -210,16 +210,16 @@ public class StructrPage extends Page {
 
         } else if (user != null && node != null) {
 
-            readAllowed = node.readAllowed(user);
-            showTreeAllowed = node.showTreeAllowed(user);
-            writeAllowed = node.writeAllowed(user);
-            accessControlAllowed = node.accessControlAllowed(user);
-            createNodeAllowed = node.createSubnodeAllowed(user);
-            deleteNodeAllowed = node.deleteNodeAllowed(user);
-            editPropertiesAllowed = node.editPropertiesAllowed(user);
-            editVisibilityAllowed = node.editPropertiesAllowed(user);// TODO: add access rights for visibility
-            addRelationshipAllowed = node.addRelationshipAllowed(user);
-            removeRelationshipAllowed = node.removeRelationshipAllowed(user);
+            readAllowed = node.readAllowed();
+            showTreeAllowed = node.showTreeAllowed();
+            writeAllowed = node.writeAllowed();
+            accessControlAllowed = node.accessControlAllowed();
+            createNodeAllowed = node.createSubnodeAllowed();
+            deleteNodeAllowed = node.deleteNodeAllowed();
+            editPropertiesAllowed = node.editPropertiesAllowed();
+            editVisibilityAllowed = node.editPropertiesAllowed();// TODO: add access rights for visibility
+            addRelationshipAllowed = node.addRelationshipAllowed();
+            removeRelationshipAllowed = node.removeRelationshipAllowed();
 
         }
 
@@ -280,7 +280,7 @@ public class StructrPage extends Page {
 
                     if (nodeIdString.startsWith("/")) {
 
-                        AbstractNode byPathNode = TreeHelper.getNodeByPath(getRootNode(), nodeIdString, true, user);
+                        AbstractNode byPathNode = TreeHelper.getNodeByPath(getRootNode(), nodeIdString, true);
                         if (byPathNode != null) {
                             return byPathNode;
                         }

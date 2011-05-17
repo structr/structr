@@ -73,7 +73,7 @@ public class RelinkContactPersons {
 
             if (rootNode != null) {
 
-                for (AbstractNode node : rootNode.getDirectChildNodes(new SuperUser())) {
+                for (AbstractNode node : rootNode.getDirectChildNodes()) {
 
                     Long hotelGroupId = node.getLongProperty("tmpHotelGroupId");
 

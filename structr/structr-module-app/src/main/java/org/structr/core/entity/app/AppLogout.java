@@ -22,7 +22,6 @@ import java.util.Map;
 import javax.servlet.http.HttpSession;
 import org.structr.common.CurrentRequest;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.User;
 
 /**
  *
@@ -39,7 +38,7 @@ public class AppLogout extends ActionNode
 	}
 
 	@Override
-	public boolean doAction(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user)
+	public boolean doAction(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
 	{
 		HttpSession session = CurrentRequest.getSession();
 		if(session != null)

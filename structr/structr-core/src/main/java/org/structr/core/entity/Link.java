@@ -70,21 +70,21 @@ public class Link extends AbstractNode {
      */
     @Override
     public void renderView(StringBuilder out, final AbstractNode startNode,
-            final String editUrl, final Long editNodeId, final User user) {
+            final String editUrl, final Long editNodeId) {
 
         AbstractNode node = getStructrNode();
 
-        node.setTemplate(getTemplate(user));
+        node.setTemplate(getTemplate());
 //        node.setRequest(getRequest());
 
         // if this page is requested to be edited, render edit frame
         if (editNodeId != null && getId() == editNodeId.longValue()) {
 
-            node.renderView(out, startNode, editUrl, editNodeId, user);
+            node.renderView(out, startNode, editUrl, editNodeId);
 
         } else {
-            if (isVisible(user)) {
-                getStructrNode().renderView(out, startNode, editUrl, editNodeId, user);
+            if (isVisible()) {
+                getStructrNode().renderView(out, startNode, editUrl, editNodeId);
             }
         }
     }

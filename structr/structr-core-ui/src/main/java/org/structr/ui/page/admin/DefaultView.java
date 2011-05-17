@@ -51,7 +51,7 @@ public class DefaultView extends Nodes {
 
         super.onRender();
 
-        externalViewUrl = node.getNodeURL(user, contextPath);
+        externalViewUrl = node.getNodeURL(contextPath);
         //localViewUrl = getContext().getResponse().encodeURL(viewLink.getHref());
         localViewUrl = getContext().getRequest().getContextPath().concat(
                 "/view".concat(
@@ -60,7 +60,7 @@ public class DefaultView extends Nodes {
         if (!(node instanceof Image)) {
             // render node's default view
             StringBuilder out = new StringBuilder();
-            node.renderView(out, node, null, null, user);
+            node.renderView(out, node, null, null);
 
             // provide rendition's source
             rendition = out.toString();

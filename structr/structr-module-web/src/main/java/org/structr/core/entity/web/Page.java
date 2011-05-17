@@ -58,7 +58,7 @@ public class Page extends WebNode {
      */
     @Override
     public void renderView(StringBuilder out, final AbstractNode startNode,
-            final String editUrl, final Long editNodeId, final User user) {
+            final String editUrl, final Long editNodeId) {
 
         // if this page is requested to be edited, render edit frame
         if (editNodeId != null && getId() == editNodeId.longValue()) {
@@ -68,30 +68,30 @@ public class Page extends WebNode {
             // otherwise, render subnodes in edit mode
         } else {
 
-            if (hasTemplate(user)) {
+            if (hasTemplate()) {
 
                 // propagate request
 //                template.setRequest(getRequest());
 
                 template.setCallingNode(this);
-                template.renderView(out, startNode, editUrl, editNodeId, user);
+                template.renderView(out, startNode, editUrl, editNodeId);
             } else {
 
-                List<AbstractNode> subnodes = getSortedDirectChildAndLinkNodes(user);
+                List<AbstractNode> subnodes = getSortedDirectChildAndLinkNodes();
 
                 // render subnodes in correct order
                 for (AbstractNode s : subnodes) {
 
                     // propagate request
 //                    s.setRequest(getRequest());
-                    s.renderView(out, startNode, editUrl, editNodeId, user);
+                    s.renderView(out, startNode, editUrl, editNodeId);
                 }
             }
         }
     }
 
-    public Long getTemplate() {
-        Template n = getTemplate(new SuperUser());
+    public Long getTemplateId() {
+        Template n = getTemplate();
         return (n != null ? n.getId() : null);
     }
 

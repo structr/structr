@@ -114,7 +114,7 @@ public class PushNodes extends CloudServiceCommand {
 
         if (recursive) {
 
-            List<AbstractNode> nodes = node.getAllChildren(user);
+            List<AbstractNode> nodes = node.getAllChildren();
 
             //Set<StructrRelationship> relationships = new HashSet<StructrRelationship>();
 

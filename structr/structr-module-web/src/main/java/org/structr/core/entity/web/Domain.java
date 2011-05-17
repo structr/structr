@@ -19,7 +19,6 @@
 package org.structr.core.entity.web;
 
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.User;
 
 /**
  * 
@@ -40,7 +39,7 @@ public class Domain extends WebNode {
      */
     @Override
     public void renderView(StringBuilder out, AbstractNode startNode,
-            final String editUrl, final Long editNodeId, final User user) {
+            final String editUrl, final Long editNodeId) {
 
         if (editNodeId != null && getId() == editNodeId.longValue()) {
 
@@ -48,7 +47,7 @@ public class Domain extends WebNode {
 
         } else {
 
-            if (isVisible(user)) {
+            if (isVisible()) {
 
                 if (this instanceof WebNode) {
 
@@ -61,7 +60,7 @@ public class Domain extends WebNode {
 
                     } else {
 
-                        homepage.renderView(out, this, editUrl, editNodeId, user);
+                        homepage.renderView(out, this, editUrl, editNodeId);
 
                     }
 

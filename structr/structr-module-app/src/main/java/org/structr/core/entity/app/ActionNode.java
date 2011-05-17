@@ -48,7 +48,7 @@ public abstract class ActionNode extends AbstractNode
 	 */
 	public abstract Map<String, Slot> getSlots();
 
-	public abstract boolean doAction(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user);
+	public abstract boolean doAction(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId);
 
 	public void initialize()
 	{
@@ -97,7 +97,7 @@ public abstract class ActionNode extends AbstractNode
 	}
 
 	@Override
-	public void renderView(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user)
+	public void renderView(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
 	{
 		// nothing to do here, wont be called
 	}

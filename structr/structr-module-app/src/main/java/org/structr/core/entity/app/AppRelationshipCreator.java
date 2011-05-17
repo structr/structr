@@ -30,7 +30,6 @@ import org.structr.core.NodeSource;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.StructrRelationship;
-import org.structr.core.entity.User;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 
@@ -44,7 +43,7 @@ public class AppRelationshipCreator extends ActionNode
 	private static final String TARGET_REL_TYPE = "targetRelType";
 
 	@Override
-	public boolean doAction(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId, User user)
+	public boolean doAction(final StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
 	{
 		String relType = getStringProperty(TARGET_REL_TYPE);
 		AbstractNode relStartNode = getNodeFromNamedSource("startNode");

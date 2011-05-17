@@ -29,7 +29,6 @@ import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.StructrRelationship;
 import org.structr.core.entity.SuperUser;
-import org.structr.core.entity.User;
 import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.DeleteRelationshipCommand;
 import org.structr.core.node.FindNodeCommand;
@@ -98,7 +97,7 @@ public class MenuItem extends WebNode {
      * @param out
      * @param startNode
      */
-    protected void renderMenuItems(StringBuilder out, final AbstractNode startNode, final AbstractNode currentNode, int currentDepth, int currentPos, int numberOfSubnodes, int maxDepth, final User user) {
+    protected void renderMenuItems(StringBuilder out, final AbstractNode startNode, final AbstractNode currentNode, int currentDepth, int currentPos, int numberOfSubnodes, int maxDepth) {
 
         AbstractNode menuItemNode = currentNode;
 
@@ -109,10 +108,10 @@ public class MenuItem extends WebNode {
         currentDepth++;
 
         List<AbstractNode> menuItems = new LinkedList<AbstractNode>();
-        List<AbstractNode> allMenuItems = menuItemNode.getSortedMenuItems(user);
+        List<AbstractNode> allMenuItems = menuItemNode.getSortedMenuItems();
 
         for (AbstractNode n : allMenuItems) {
-            if (n.isVisible(user)) {
+            if (n.isVisible()) {
                 menuItems.add(n);
             }
         }
@@ -157,9 +156,9 @@ public class MenuItem extends WebNode {
             }
 
 
-            if (menuItemNode.isVisible(user)) {
+            if (menuItemNode.isVisible()) {
 
-                String relativeNodePath = menuItemNode.getNodePath(user, startNode).replace("&", "%26");
+                String relativeNodePath = menuItemNode.getNodePath(startNode).replace("&", "%26");
 
                 if (!(cssClass.isEmpty())) {
                     cssClass = " class=\"" + cssClass + "\"";
@@ -171,12 +170,12 @@ public class MenuItem extends WebNode {
             }
         }
 
-        if (currentNode.isVisible(user)) {
+        if (currentNode.isVisible()) {
 
             int sub = menuItems.size();
             int pos = 0;
             for (AbstractNode s : menuItems) {
-                renderMenuItems(out, startNode, s, currentDepth, pos, sub, maxDepth, user);
+                renderMenuItems(out, startNode, s, currentDepth, pos, sub, maxDepth);
                 pos++;
             }
 

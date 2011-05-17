@@ -81,7 +81,7 @@ public class EditImage extends EditFile {
         }
         
         if (previewImage != null) {
-            externalPreviewViewUrl = previewImage.getNodeURL(user, contextPath);
+            externalPreviewViewUrl = previewImage.getNodeURL(contextPath);
             localPreviewViewUrl = contextPath + "/view.htm?nodeId=" + previewImage.getId();
         }
 

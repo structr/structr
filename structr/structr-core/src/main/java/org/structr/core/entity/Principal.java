@@ -33,7 +33,7 @@ public abstract class Principal extends AbstractNode {
     }
 
     @Override
-    public void renderView(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user)
+    public void renderView(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
     {
 
         if (editNodeId != null && getId() == editNodeId.longValue()) {
@@ -42,7 +42,7 @@ public abstract class Principal extends AbstractNode {
 
         } else {
 
-            if (isVisible(user)) {
+            if (isVisible()) {
                 out.append(getName());
             }
 

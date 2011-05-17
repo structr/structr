@@ -44,7 +44,7 @@ public class AppNodeLoader extends AbstractNode implements NodeSource
 	private AbstractNode loadedNode = null;
 
 	@Override
-	public void renderView(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId, User user)
+	public void renderView(final StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
 	{
 		// FIXME: HTML code hard-coded..
 

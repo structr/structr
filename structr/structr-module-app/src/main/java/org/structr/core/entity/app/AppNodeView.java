@@ -51,12 +51,12 @@ public class AppNodeView extends AbstractNode
 	}
 
 	@Override
-	public void renderView(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId, User user)
+	public void renderView(final StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
 	{
 		AbstractNode sourceNode = loadNode();
 		if(sourceNode != null)
 		{
-			doRendering(out, this, sourceNode, editUrl, editNodeId, user);
+			doRendering(out, this, sourceNode, editUrl, editNodeId);
 
 		} else
 		{
@@ -75,15 +75,15 @@ public class AppNodeView extends AbstractNode
 	}
 
 	// ----- protected methods -----
-	protected void doRendering(StringBuilder out, AbstractNode viewNode, AbstractNode dataNode, String editUrl, Long editNodeId, User user)
+	protected void doRendering(final StringBuilder out, final AbstractNode viewNode, final AbstractNode dataNode, final String editUrl, final Long editNodeId)
 	{
-		String templateSource = getTemplateFromNode(viewNode, user);
+		String templateSource = getTemplateFromNode(viewNode);
 		StringWriter content = new StringWriter(100);
 
-		AbstractNode.staticReplaceByFreeMarker(templateSource, content, dataNode, editUrl, editNodeId, user);
+		AbstractNode.staticReplaceByFreeMarker(templateSource, content, dataNode, editUrl, editNodeId);
 		out.append(content.toString());
 
-		List<AbstractNode> viewChildren = viewNode.getSortedDirectChildNodes(user);
+		List<AbstractNode> viewChildren = viewNode.getSortedDirectChildNodes();
 		for(AbstractNode viewChild : viewChildren)
 		{
 			// 1. get desired display relationship from view node
@@ -94,11 +94,11 @@ public class AppNodeView extends AbstractNode
 			if(followRel != null)
 			{
 				RelationshipType relType = DynamicRelationshipType.withName(followRel);
-				List<AbstractNode> dataChildren = dataNode.getDirectChildren(relType, user);
+				List<AbstractNode> dataChildren = dataNode.getDirectChildren(relType);
 
 				for(AbstractNode dataChild : dataChildren)
 				{
-					doRendering(out, viewChild, dataChild, editUrl, editNodeId, user);
+					doRendering(out, viewChild, dataChild, editUrl, editNodeId);
 				}
 			}
 
@@ -114,13 +114,13 @@ public class AppNodeView extends AbstractNode
 		return((AbstractNode)Services.command(FindNodeCommand.class).execute(null, this, idSource));
 	}
 	
-	private String getTemplateFromNode(AbstractNode node, User user)
+	private String getTemplateFromNode(final AbstractNode node)
 	{
 		String ret = "";
 		
-		if(node.hasTemplate(user))
+		if(node.hasTemplate())
 		{
-			ret = node.getTemplate(user).getContent();
+			ret = node.getTemplate().getContent();
 		}
 		
 		return(ret);

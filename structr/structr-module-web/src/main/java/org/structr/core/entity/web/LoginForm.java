@@ -99,7 +99,7 @@ public class LoginForm extends Form {
      */
     @Override
     public void renderView(StringBuilder out, final AbstractNode startNode,
-            final String editUrl, final Long editNodeId, final User user) {
+            final String editUrl, final Long editNodeId) {
 
         // if this page is requested to be edited, render edit frame
         if (editNodeId != null && getId() == editNodeId.longValue()) {

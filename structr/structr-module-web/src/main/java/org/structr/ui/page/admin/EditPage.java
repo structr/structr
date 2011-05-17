@@ -67,7 +67,7 @@ public class EditPage extends DefaultEdit {
             return;
         }
 
-        final Template templateNode = page.getTemplate(user);
+        final Template templateNode = page.getTemplate();
 
         templateSelect.setDataProvider(new DataProvider() {
 
@@ -96,14 +96,14 @@ public class EditPage extends DefaultEdit {
             }
         });
 
-        externalViewUrl = node.getNodeURL(user, contextPath);
+        externalViewUrl = node.getNodeURL(contextPath);
         //localViewUrl = getContext().getResponse().encodeURL(viewLink.getHref());
         localViewUrl = getContext().getRequest().getContextPath().concat(
                 "/view".concat(node.getNodePath(user).replace("&", "%26")));
 
         // render node's default view
         StringBuilder out = new StringBuilder();
-        node.renderView(out, node, null, null, user);
+        node.renderView(out, node, null, null);
         rendition = out.toString();
 //        // only pages and files may be rendered
 //        if (node instanceof org.structr.core.entity.web.Page || node instanceof File) {

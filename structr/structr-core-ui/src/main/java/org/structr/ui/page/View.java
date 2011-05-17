@@ -97,7 +97,7 @@ public class View extends StructrPage {
             // Check visibility before access rights to assure that the
             // existance of hidden objects is not exposed
 
-            if (!(s.isVisible(user))) {
+            if (!(s.isVisible())) {
                 logger.log(Level.FINE, "Hidden page requested ({0})", getNodeId());
 
                 // TODO: change to structr page (make independent from Click framework)
@@ -107,7 +107,7 @@ public class View extends StructrPage {
             }
 
             // check read access right
-            if (!(isSuperUser || s.readAllowed(user))) {
+            if (!(isSuperUser || s.readAllowed())) {
                 logger.log(Level.FINE, "Secure page requested ({0})", getNodeId());
 
                 // TODO: change to structr page (make independent from Click framework)
@@ -165,7 +165,7 @@ public class View extends StructrPage {
                 try {
                     // clean response's output
                     response.getOutputStream().flush();
-                    s.renderDirect(response.getOutputStream(), s, editUrl, editNodeId, user);
+                    s.renderDirect(response.getOutputStream(), s, editUrl, editNodeId);
 
                 } catch (IOException e) {
                     logger.log(Level.SEVERE, "Error while rendering to output stream: ", e.getStackTrace());
@@ -175,7 +175,7 @@ public class View extends StructrPage {
             } else {
 
                 StringBuilder out = new StringBuilder();
-                s.renderView(out, s, editUrl, editNodeId, user);
+                s.renderView(out, s, editUrl, editNodeId);
 
                 // enable outbound url rewriting rules
                 output = new StringBuilder(getContext().getResponse().encodeURL(out.toString()));

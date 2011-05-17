@@ -37,6 +37,7 @@ import org.apache.click.util.Bindable;
 import org.apache.click.extras.tree.Tree;
 import org.apache.click.extras.tree.TreeNode;
 import org.apache.commons.lang.ArrayUtils;
+import org.structr.common.CurrentSession;
 import org.structr.core.node.search.Search;
 import org.structr.context.SessionMonitor;
 import org.structr.core.Services;
@@ -139,11 +140,12 @@ public class Admin extends StructrPage {
      */
     public boolean onLogout() {
 
-        SessionMonitor.logActivity(user, sessionId, "Logout");
+        SessionMonitor.logActivity(sessionId, "Logout");
 
         getContext().getRequest().getSession().invalidate();
         userName = null;
 
+        CurrentSession.setGlobalUsername(null);
 
 //        if (returnUrl != null) {
 //            setRedirect(returnUrl);

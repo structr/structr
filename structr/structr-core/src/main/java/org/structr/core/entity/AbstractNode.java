@@ -61,6 +61,7 @@ import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.CurrentRequest;
+import org.structr.common.CurrentSession;
 import org.structr.common.TemplateHelper;
 import org.structr.core.NodeSource;
 import org.structr.core.cloud.NodeDataContainer;
@@ -95,7 +96,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
     private List<StructrRelationship> allRelationships = null;
 
     // ----- abstract methods ----
-    public abstract void renderView(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user);
+    public abstract void renderView(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId);
 
     public abstract String getIconSrc();
 
@@ -137,6 +138,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
     private final static String CALLING_NODE_SUBNODES_AND_LINKED_NODES_KEY = "#";
     protected Template template;
 
+    protected final static User user = CurrentSession.getUser();
 
     /*
      * Helper class for multilanguage titles
@@ -461,10 +463,10 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      * Should be overwritten by any node which holds binary content
      */
     public void renderDirect(OutputStream out, final AbstractNode startNode,
-            final String editUrl, final Long editNodeId, final User user) {
+            final String editUrl, final Long editNodeId) {
 
         try {
-            if (isVisible(user)) {
+            if (isVisible()) {
                 out.write(getName().getBytes());
             }
         } catch (IOException e) {
@@ -477,7 +479,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      *
      * @return
      */
-    public Template getTemplate(final User user) {
+    public Template getTemplate() {
 
         long t0 = System.currentTimeMillis();
 
@@ -506,7 +508,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
             }
 
             if (template == null) {
-                startNode = startNode.getParentNode(user);
+                startNode = startNode.getParentNode();
                 continue;
             }
         }
@@ -517,8 +519,8 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 
     }
 
-    public boolean hasTemplate(final User user) {
-        return (getTemplate(user) != null);
+    public boolean hasTemplate() {
+        return (getTemplate() != null);
     }
 
     /**
@@ -1126,13 +1128,13 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      * @param node
      * @return
      */
-    public String getNodePath(final User user, final AbstractNode node) {
+    public String getNodePath(final AbstractNode node) {
 
         // clicked node as reference
-        String refPath = node.getNodePath(user);
+        String refPath = node.getNodePath();
 
         // currently rendered node, the link target
-        String thisPath = this.getNodePath(user);
+        String thisPath = this.getNodePath();
 
         String[] refParts = refPath.split("/");
         String[] thisParts = thisPath.split("/");
@@ -1182,7 +1184,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      *
      * @return
      */
-    public String getNodePath(final User user) {
+    public String getNodePath() {
 
         String path = "";
 
@@ -1198,7 +1200,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 
             path = node.getName() + (!("".equals(path)) ? "/" + path : "");
 
-            node = node.getParentNode(user);
+            node = node.getParentNode();
 
             // check parent nodes
 //            Relationship r = node.getSingleRelationship(RelType.HAS_CHILD, Direction.INCOMING);
@@ -1217,7 +1219,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      *
      * @return
      */
-    public String getNodeXPath(final User user) {
+    public String getNodeXPath() {
 
         String xpath = "";
 
@@ -1234,15 +1236,15 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
             xpath = node.getType() + "[@name='" + node.getName() + "']" + (!("".equals(xpath)) ? "/" + xpath : "");
 
             // check parent nodes
-            node = node.getParentNode(user);
+            node = node.getParentNode();
 
         }
 
         return "/".concat(xpath); // add leading slash, because we always include the root node
     }
 
-    public String getNodeURL(final User user, final String contextPath) {
-        return getNodeURL(user, RenderMode.PUBLIC, contextPath);
+    public String getNodeURL(final String contextPath) {
+        return getNodeURL(RenderMode.PUBLIC, contextPath);
     }
 
     /**
@@ -1254,7 +1256,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      * @param contextPath
      * @return
      */
-    public String getNodeURL(final User user, final Enum renderMode, final String contextPath) {
+    public String getNodeURL(final Enum renderMode, final String contextPath) {
 
         String domain = "";
         String site = "";
@@ -1285,7 +1287,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
                 }
 
                 // check parent nodes
-                node = node.getParentNode(user);
+                node = node.getParentNode();
 //                StructrRelationship r = node.getRelationships(RelType.HAS_CHILD, Direction.INCOMING).get(0);
 //                if (r != null) {
 //                    node = r.getStartNode();
@@ -1299,7 +1301,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
             // /<context-url>/view.htm?nodeId=<path>
             // TODO: move this to a better place
             // TODO: improve handling for renderMode
-            String localUrl = contextPath.concat(getNodePath(user)).concat("&renderMode=local");
+            String localUrl = contextPath.concat(getNodePath()).concat("&renderMode=local");
             return localUrl;
 
         } else {
@@ -1415,29 +1417,29 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
         return (hasRelationship(RelType.HAS_CHILD, Direction.OUTGOING)
                 || hasRelationship(RelType.LINK, Direction.OUTGOING));
     }
-
-    /**
-     * Return true if this node has child nodes visible for current user
-     *
-     * @return
-     */
-    public boolean hasChildren(final User user) {
-        List<StructrRelationship> childRels = getOutgoingChildRelationships();
-        List<StructrRelationship> linkRels = getOutgoingLinkRelationships();
-        return (linkRels != null && !(linkRels.isEmpty())
-                && childRels != null && !(childRels.isEmpty()));
-//        return (hasRelationship(RelType.HAS_CHILD, Direction.OUTGOING)
-//                || hasRelationship(RelType.LINK, Direction.OUTGOING));
-    }
+//
+//    /**
+//     * Return true if this node has child nodes visible for current user
+//     *
+//     * @return
+//     */
+//    public boolean hasChildren() {
+//        List<StructrRelationship> childRels = getOutgoingChildRelationships();
+//        List<StructrRelationship> linkRels = getOutgoingLinkRelationships();
+//        return (linkRels != null && !(linkRels.isEmpty())
+//                && childRels != null && !(childRels.isEmpty()));
+////        return (hasRelationship(RelType.HAS_CHILD, Direction.OUTGOING)
+////                || hasRelationship(RelType.LINK, Direction.OUTGOING));
+//    }
 
     /**
      * Return unordered list of all direct child nodes (no recursion)
      *
      * @return list with structr nodes
      */
-    public List<AbstractNode> getDirectChildNodes(final User user) {
+    public List<AbstractNode> getDirectChildNodes() {
 
-        return getDirectChildren(RelType.HAS_CHILD, user);
+        return getDirectChildren(RelType.HAS_CHILD);
 
     }
 
@@ -1446,8 +1448,8 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      * 
      * @return
      */
-    public AbstractNode getParentNode(final User user) {
-        List<AbstractNode> parentNodes = getParentNodes(user);
+    public AbstractNode getParentNode() {
+        List<AbstractNode> parentNodes = getParentNodes();
         if (parentNodes != null && !(parentNodes.isEmpty())) {
             return parentNodes.get(0);
         } else {
@@ -1464,7 +1466,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 
         List<AbstractNode> nodes = new LinkedList<AbstractNode>();
 
-        AbstractNode parentNode = getParentNode(user);
+        AbstractNode parentNode = getParentNode();
 
         if (parentNode != null) {
 
@@ -1477,7 +1479,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
             for (StructrRelationship r : rels) {
 
                 AbstractNode s = (AbstractNode) nodeFactory.execute(r.getEndNode());
-                if (s.readAllowed(user)) {
+                if (s.readAllowed()) {
                     nodes.add(s);
                 }
 
@@ -1493,7 +1495,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      *
      * @return
      */
-    public List<AbstractNode> getAncestorNodes(final User user) {
+    public List<AbstractNode> getAncestorNodes() {
 
         List<AbstractNode> nodes = new LinkedList<AbstractNode>();
 
@@ -1503,7 +1505,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
         for (StructrRelationship r : rels) {
 
             AbstractNode s = (AbstractNode) nodeFactory.execute(r.getStartNode());
-            if (s.readAllowed(user)) {
+            if (s.readAllowed()) {
                 nodes.add(s);
             }
 
@@ -1518,7 +1520,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      * 
      * @return
      */
-    public List<AbstractNode> getParentNodes(final User user) {
+    public List<AbstractNode> getParentNodes() {
 
         List<AbstractNode> nodes = new LinkedList<AbstractNode>();
 
@@ -1528,7 +1530,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
         for (StructrRelationship r : rels) {
 
             AbstractNode s = (AbstractNode) nodeFactory.execute(r.getStartNode());
-            if (s.readAllowed(user)) {
+            if (s.readAllowed()) {
                 nodes.add(s);
             }
 
@@ -1678,9 +1680,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      *
      * @return list with structr nodes
      */
-    public List<AbstractNode> getLinkedNodes(final User user) {
+    public List<AbstractNode> getLinkedNodes() {
 
-        return getDirectChildren(RelType.LINK, user);
+        return getDirectChildren(RelType.LINK);
 
     }
 
@@ -1689,9 +1691,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      *
      * @return list with structr nodes
      */
-    public List<AbstractNode> getSortedLinkedNodes(final User user) {
+    public List<AbstractNode> getSortedLinkedNodes() {
 
-        return getSortedDirectChildren(RelType.LINK, user);
+        return getSortedDirectChildren(RelType.LINK);
 
     }
 
@@ -1700,8 +1702,8 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      *
      * @return list with structr nodes
      */
-    public List<AbstractNode> getAllChildren(final User user) {
-        return getAllChildren(null, user);
+    public List<AbstractNode> getAllChildren() {
+        return getAllChildren(null);
     }
 
     /**
@@ -1710,8 +1712,8 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      *
      * @return list with structr nodes
      */
-    public List<AbstractNode> getDirectChildren(final RelationshipType relType, final User user) {
-        return getDirectChildren(relType, null, user);
+    public List<AbstractNode> getDirectChildren(final RelationshipType relType) {
+        return getDirectChildren(relType, null);
     }
 
     /**
@@ -1720,8 +1722,8 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      *
      * @return list with structr nodes
      */
-    public List<AbstractNode> getSortedDirectChildren(final RelationshipType relType, final User user) {
-        List<AbstractNode> nodes = getDirectChildren(relType, null, user);
+    public List<AbstractNode> getSortedDirectChildren(final RelationshipType relType) {
+        List<AbstractNode> nodes = getDirectChildren(relType, null);
         Collections.sort(nodes);
         return nodes;
     }
@@ -1734,7 +1736,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      *
      * @return list with structr nodes
      */
-    private List<AbstractNode> getDirectChildren(final RelationshipType relType, final String nodeType, final User user) {
+    private List<AbstractNode> getDirectChildren(final RelationshipType relType, final String nodeType) {
 
         List<AbstractNode> nodes = new LinkedList<AbstractNode>();
 
@@ -1752,7 +1754,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 
             AbstractNode s = (AbstractNode) nodeFactory.execute(r.getEndNode());
 
-            if (s.readAllowed(user) && (nodeType == null || nodeType.equals(s.getType()))) {
+            if (s.readAllowed() && (nodeType == null || nodeType.equals(s.getType()))) {
                 nodes.add(s);
             }
 
@@ -1765,10 +1767,10 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      *
      * @return
      */
-    public List<AbstractNode> getSortedDirectChildNodes(final User user) {
+    public List<AbstractNode> getSortedDirectChildNodes() {
 
         List<AbstractNode> nodes = new LinkedList<AbstractNode>();
-        nodes.addAll(getDirectChildNodes(user));
+        nodes.addAll(getDirectChildNodes());
 
         // sort by position
         Collections.sort(nodes, new Comparator<AbstractNode>() {
@@ -1783,16 +1785,28 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 
     /**
      * Get direct child nodes, link nodes, and sort them before returning
+     *
+     * @return
+     */
+    public List<AbstractNode> getDirectChildAndLinkNodes() {
+
+        List<AbstractNode> nodes = new LinkedList<AbstractNode>();
+        nodes.addAll(getDirectChildNodes());
+
+        // get linked child nodes
+        nodes.addAll(getLinkedNodes());
+
+        return nodes;
+    }
+
+    /**
+     * Get direct child nodes, link nodes, and sort them before returning
      * 
      * @return
      */
-    public List<AbstractNode> getSortedDirectChildAndLinkNodes(final User user) {
+    public List<AbstractNode> getSortedDirectChildAndLinkNodes() {
 
-        List<AbstractNode> nodes = new LinkedList<AbstractNode>();
-        nodes.addAll(getDirectChildNodes(user));
-
-        // get linked child nodes
-        nodes.addAll(getLinkedNodes(user));
+        List<AbstractNode> nodes = getDirectChildAndLinkNodes();
 
         // sort by position
         Collections.sort(nodes, new Comparator<AbstractNode>() {
@@ -1810,15 +1824,15 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      *
      * @return
      */
-    public List<AbstractNode> getSortedMenuItems(final User user) {
+    public List<AbstractNode> getSortedMenuItems() {
 
         List<AbstractNode> menuItems = new LinkedList<AbstractNode>();
 
         // add direct children of type MenuItem
-        menuItems.addAll(getDirectChildren(RelType.HAS_CHILD, "MenuItem", user));
+        menuItems.addAll(getDirectChildren(RelType.HAS_CHILD, "MenuItem"));
 
         // add linked children, f.e. direct links to pages
-        menuItems.addAll(getDirectChildren(RelType.LINK, user));
+        menuItems.addAll(getDirectChildren(RelType.LINK));
 
         // sort by position
         Collections.sort(menuItems, new Comparator<AbstractNode>() {
@@ -1841,7 +1855,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      * @param user
      * @return list with structr nodes
      */
-    protected List<AbstractNode> getAllChildren(final String nodeType, final User user) {
+    protected List<AbstractNode> getAllChildren(final String nodeType) {
 
         List<AbstractNode> nodes = new LinkedList<AbstractNode>();
 
@@ -1850,7 +1864,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 
         for (AbstractNode s : result) {
 
-            if (s.readAllowed(user) && (nodeType == null || nodeType.equals(s.getType()))) {
+            if (s.readAllowed() && (nodeType == null || nodeType.equals(s.getType()))) {
                 nodes.add(s);
             }
 
@@ -1863,7 +1877,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      *
      * @return
      */
-    public boolean isVisible(final User user) {
+    public boolean isVisible() {
 
         if (user instanceof SuperUser) {
             // Super user may always see it
@@ -1965,10 +1979,10 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      *
      * @return
      */
-    public boolean readAllowed(final User user) {
+    public boolean readAllowed() {
 
         // Check global settings first
-        if (isVisible(user)) {
+        if (isVisible()) {
             return true;
         }
 
@@ -1981,7 +1995,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      *
      * @return
      */
-    public boolean showTreeAllowed(final User user) {
+    public boolean showTreeAllowed() {
         return hasPermission(StructrRelationship.SHOW_TREE_KEY, user);
     }
 
@@ -1990,7 +2004,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      *
      * @return
      */
-    public boolean writeAllowed(final User user) {
+    public boolean writeAllowed() {
         return hasPermission(StructrRelationship.WRITE_KEY, user);
     }
 
@@ -1999,7 +2013,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      *
      * @return
      */
-    public boolean createSubnodeAllowed(final User user) {
+    public boolean createSubnodeAllowed() {
         return hasPermission(StructrRelationship.CREATE_SUBNODE_KEY, user);
     }
 
@@ -2008,7 +2022,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      *
      * @return
      */
-    public boolean deleteNodeAllowed(final User user) {
+    public boolean deleteNodeAllowed() {
         return hasPermission(StructrRelationship.DELETE_NODE_KEY, user);
     }
 
@@ -2017,7 +2031,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      *
      * @return
      */
-    public boolean addRelationshipAllowed(final User user) {
+    public boolean addRelationshipAllowed() {
         return hasPermission(StructrRelationship.ADD_RELATIONSHIP_KEY, user);
     }
 
@@ -2026,7 +2040,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      *
      * @return
      */
-    public boolean editPropertiesAllowed(final User user) {
+    public boolean editPropertiesAllowed() {
         return hasPermission(StructrRelationship.EDIT_PROPERTIES_KEY, user);
     }
 
@@ -2035,7 +2049,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      *
      * @return
      */
-    public boolean removeRelationshipAllowed(final User user) {
+    public boolean removeRelationshipAllowed() {
         return hasPermission(StructrRelationship.REMOVE_RELATIONSHIP_KEY, user);
     }
 
@@ -2044,7 +2058,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      *
      * @return
      */
-    public boolean accessControlAllowed(final User user) {
+    public boolean accessControlAllowed() {
 
         // just in case ...
         if (user == null) {
@@ -2133,20 +2147,20 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      * @param editUrl
      * @param editNodeId
      */
-    protected void replaceBySubnodes(StringBuilder content, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user) {
+    protected void replaceBySubnodes(StringBuilder content, final AbstractNode startNode, final String editUrl, final Long editNodeId) {
 
 //        List<AbstractNode> subnodes = getSortedDirectChildAndLinkNodes(user);
         List<AbstractNode> callingNodeSubnodes = null;
         List<AbstractNode> callingNodeSubnodesAndLinkedNodes = null;
 
-        template = startNode.getTemplate(user);
+        template = startNode.getTemplate();
         AbstractNode callingNode = null;
         if (template != null) {
 
             callingNode = template.getCallingNode();
             if (callingNode != null) {
-                callingNodeSubnodesAndLinkedNodes = callingNode.getSortedDirectChildAndLinkNodes(user);
-                callingNodeSubnodes = callingNode.getSortedDirectChildNodes(user);
+                callingNodeSubnodesAndLinkedNodes = callingNode.getSortedDirectChildAndLinkNodes();
+                callingNodeSubnodes = callingNode.getSortedDirectChildNodes();
             }
         }
 
@@ -2195,7 +2209,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 
                     // propagate request and template
 //                    s.setRequest(request);
-                    s.renderView(replacement, startNode, editUrl, editNodeId, user);
+                    s.renderView(replacement, startNode, editUrl, editNodeId);
                 }
 
             } else if (callingNode != null && key.equals(CALLING_NODE_SUBNODES_AND_LINKED_NODES_KEY)) {
@@ -2205,7 +2219,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 
                     // propagate request and template
 //                    s.setRequest(request);
-                    s.renderView(replacement, startNode, editUrl, editNodeId, user);
+                    s.renderView(replacement, startNode, editUrl, editNodeId);
                 }
 
             } else { //if (key.startsWith("/") || key.startsWith("count(")) {
@@ -2232,7 +2246,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 
                             // propagate request
 //                            s.setRequest(getRequest());
-                            s.renderView(replacement, startNode, editUrl, editNodeId, user);
+                            s.renderView(replacement, startNode, editUrl, editNodeId);
                         }
                     }
                 } else if (result instanceof AbstractNode) {
@@ -2265,7 +2279,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
                         }
 
                     } else {
-                        s.renderView(replacement, startNode, editUrl, editNodeId, user);
+                        s.renderView(replacement, startNode, editUrl, editNodeId);
                     }
 
                 } else {
@@ -2298,9 +2312,38 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 
     }
 
+    /**
+     * Generic getter for use with Freemarker template language
+     * 
+     * @param key
+     * @return
+     */
+    public Object get(final String key) {
+
+        if (key == null) return null;
+
+        Object propertyValue = this.getProperty(key);
+
+        if (propertyValue != null) {
+            return propertyValue;
+        }
+
+        User user = CurrentSession.getUser();
+        List<AbstractNode> subnodes = this.getDirectChildAndLinkNodes();
+
+        for (AbstractNode node : subnodes) {
+            if (key.equals(node.getName())) {
+                return node;
+            }
+        }
+
+        // nothing found
+        return null;
+
+    }
 
     protected static String toGetter(String name) {
-         return "get".concat(name.substring(0, 1).toUpperCase()).concat(name.substring(1));
+        return "get".concat(name.substring(0, 1).toUpperCase()).concat(name.substring(1));
     }
 
     /**
@@ -2368,7 +2411,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 //            start = content.indexOf(keyPrefix, start + replaceBy.length() + 1);
 //        }
 //    }
-    protected void replaceByFreeMarker(final String templateString, Writer out, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user) {
+    protected void replaceByFreeMarker(final String templateString, Writer out, final AbstractNode startNode, final String editUrl, final Long editNodeId) {
 
         Configuration cfg = new Configuration();
 
@@ -2379,7 +2422,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 
             AbstractNode callingNode = null;
 
-            if (getTemplate(user) != null) {
+            if (getTemplate() != null) {
 
                 callingNode = template.getCallingNode();
 
@@ -2453,7 +2496,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 
     }
 
-    protected static void staticReplaceByFreeMarker(final String templateString, Writer out, final AbstractNode node, final String editUrl, final Long editNodeId, final User user) {
+    protected static void staticReplaceByFreeMarker(final String templateString, Writer out, final AbstractNode node, final String editUrl, final Long editNodeId) {
 
         Configuration cfg = new Configuration();
 
@@ -2492,9 +2535,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
                     }
                 }
 
-                if (user != null) {
+                //if (user != null) {
                     root.put("User", user);
-                }
+                //}
 
                 // Add a generic helper
                 root.put("Helper", new TemplateHelper());

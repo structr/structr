@@ -25,7 +25,6 @@ import org.structr.common.RelType;
 import org.structr.common.CurrentRequest;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.StructrRelationship;
-import org.structr.core.entity.User;
 
 /**
  *
@@ -49,34 +48,34 @@ public class AppForm extends HtmlNode
 
 
 	@Override
-	public void doBeforeRendering(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId, User user)
+	public void doBeforeRendering(final StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
 	{
-		AppActionContainer submit = findSubmit(user);
+		AppActionContainer submit = findSubmit();
 		if(submit != null)
 		{
-			addAttribute("action", CurrentRequest.getAbsoluteNodePath(user, submit));
+			addAttribute("action", CurrentRequest.getAbsoluteNodePath(submit));
 		}
 
 		addAttribute("method", "post");
 	}
 
 	@Override
-	public void renderContent(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId, User user)
+	public void renderContent(final StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
 	{
-		for(AbstractNode node : getSortedDirectChildNodes(user))
+		for(AbstractNode node : getSortedDirectChildNodes())
 		{
-			node.renderView(out, startNode, editUrl, editNodeId, user);
+			node.renderView(out, startNode, editUrl, editNodeId);
 		}
 	}
 
 	@Override
-	public boolean hasContent(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId, User user)
+	public boolean hasContent(final StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
 	{
 		return(hasChildren());
 	}
 
 	// ----- private methods -----
-	private AppActionContainer findSubmit(User user)
+	private AppActionContainer findSubmit()
 	{
 		AppActionContainer ret = null;
 
@@ -96,7 +95,7 @@ public class AppForm extends HtmlNode
 		if(ret == null)
 		{
 			// try direct children
-			List<AbstractNode> children = getDirectChildNodes(user);
+			List<AbstractNode> children = getDirectChildNodes();
 			for(AbstractNode child : children)
 			{
 				if(child instanceof AppActionContainer)

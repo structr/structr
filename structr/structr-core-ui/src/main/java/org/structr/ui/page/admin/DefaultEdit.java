@@ -605,7 +605,7 @@ public class DefaultEdit extends Nodes {
                 public List<AbstractNode> getData() {
 
                     List<AbstractNode> result = new LinkedList<AbstractNode>();
-                    result.addAll(node.getSortedDirectChildAndLinkNodes(user));
+                    result.addAll(node.getSortedDirectChildAndLinkNodes());
                     return result;
                 }
             });
@@ -844,7 +844,7 @@ public class DefaultEdit extends Nodes {
                             for (AbstractNode s : result) {
 
                                 // superuser can always change access control
-                                if (user instanceof SuperUser || s.accessControlAllowed(user)) {
+                                if (user instanceof SuperUser || s.accessControlAllowed()) {
                                     nodes.add(s);
                                 }
 
@@ -951,7 +951,7 @@ public class DefaultEdit extends Nodes {
 
                     AbstractNode root = getNodeByIdOrPath(getNodeId());
 
-                    List<AbstractNode> childNodes = root.getDirectChildNodes(user);
+                    List<AbstractNode> childNodes = root.getDirectChildNodes();
 
                     // include node itself
                     childNodes.add(root);
@@ -996,7 +996,7 @@ public class DefaultEdit extends Nodes {
 
                     AbstractNode root = getNodeByIdOrPath(getNodeId());
 
-                    List<AbstractNode> childNodes = root.getAllChildren(user);
+                    List<AbstractNode> childNodes = root.getAllChildren();
 
                     // include node itself
                     childNodes.add(root);

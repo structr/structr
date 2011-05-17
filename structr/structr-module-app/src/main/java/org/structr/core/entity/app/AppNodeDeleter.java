@@ -31,7 +31,7 @@ import org.structr.core.node.DeleteNodeCommand;
 public class AppNodeDeleter extends ActionNode
 {
 	@Override
-	public boolean doAction(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId, User user)
+	public boolean doAction(final StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
 	{
 		AbstractNode toDelete = getNodeFromLoader();
 		if(toDelete != null)

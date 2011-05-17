@@ -34,13 +34,13 @@ public abstract class TreeHelper {
     private static final Logger logger = Logger.getLogger(TreeHelper.class.getName());
 
     public static AbstractNode getNodeByPath(final AbstractNode startNode,
-            final String path, final boolean includeLinks, final User user) {
+            final String path, final boolean includeLinks) {
         AbstractNode currentNode = startNode;
         String[] names = StringUtils.split(path, "/");
         for (String name : names) {
 
             if ("..".equals(name)) {
-                currentNode = currentNode.getParentNode(user);
+                currentNode = currentNode.getParentNode();
                 continue;
             }
 
@@ -54,9 +54,9 @@ public abstract class TreeHelper {
                 return null;
             }
 
-            List<AbstractNode> children = currentNode.getDirectChildNodes(user);
+            List<AbstractNode> children = currentNode.getDirectChildNodes();
             if (includeLinks) {
-                List<AbstractNode> links = currentNode.getLinkedNodes(user);
+                List<AbstractNode> links = currentNode.getLinkedNodes();
                 if (links != null) {
                     children.addAll(links);
                 }
@@ -78,7 +78,7 @@ public abstract class TreeHelper {
     }
 
     public static Iterable<AbstractNode> getNodesByPath(final AbstractNode startNode,
-            final String path, final boolean includeLinks, final User user) {
+            final String path, final boolean includeLinks) {
 
         AbstractNode currentNode = startNode;
         String[] names = StringUtils.split(path, "/");
@@ -88,15 +88,15 @@ public abstract class TreeHelper {
         for (String name : names) {
 
             if ("..".equals(name)) {
-                currentNode = currentNode.getParentNode(user);
+                currentNode = currentNode.getParentNode();
                 continue;
             }
 
 
             boolean foundName = false;
-            children = currentNode.getDirectChildNodes(user);
+            children = currentNode.getDirectChildNodes();
             if (includeLinks) {
-                List<AbstractNode> links = currentNode.getLinkedNodes(user);
+                List<AbstractNode> links = currentNode.getLinkedNodes();
                 if (links != null) {
                     children.addAll(links);
                 }

@@ -21,7 +21,6 @@ package org.structr.core.entity.app;
 
 import java.text.SimpleDateFormat;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.User;
 
 /**
  *
@@ -32,7 +31,7 @@ public class AppTimestamp extends AbstractNode implements InteractiveNode
 	private static final String FORMAT_KEY =		"format";
 
 	@Override
-	public void renderView(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId, User user)
+	public void renderView(final StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
 	{
 	}
 

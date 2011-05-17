@@ -37,7 +37,7 @@ public class SubmitButton extends FormField {
     }
 
     @Override
-    public void renderView(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId, User user) {
+    public void renderView(final StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId) {
         // if this page is requested to be edited, render edit frame
         if (editNodeId != null && getId() == editNodeId.longValue()) {
 
@@ -46,9 +46,9 @@ public class SubmitButton extends FormField {
             // otherwise, render subnodes in edit mode
         } else {
 
-            if (hasTemplate(user)) {
+            if (hasTemplate()) {
                 template.setCallingNode(this);
-                template.renderView(out, startNode, editUrl, editNodeId, user);
+                template.renderView(out, startNode, editUrl, editNodeId);
 
             } else {
                 logger.log(Level.WARNING, "Encountered TextField without template: {0}", this);

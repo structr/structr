@@ -34,6 +34,7 @@ import org.apache.click.control.TextField;
 import org.apache.click.extras.tree.TreeNode;
 import org.apache.commons.lang.StringUtils;
 //import org.structr.common.CurrentSession;
+import org.structr.common.CurrentSession;
 import org.structr.context.SessionMonitor;
 import org.structr.core.Command;
 import org.structr.core.Services;
@@ -117,7 +118,7 @@ public class LoginPage extends Admin {
 
                 user = new SuperUser();
                 getContext().getRequest().getSession().setAttribute(USERNAME_KEY, userValue);
-//                CurrentSession.setGlobalUsername(userValue);
+                CurrentSession.setGlobalUsername(userValue);
 
                 Services.initialize();
 
@@ -166,7 +167,7 @@ public class LoginPage extends Admin {
 
                 // username and password are both valid
                 userName = userValue;
-//                CurrentSession.setGlobalUsername(userValue);
+                CurrentSession.setGlobalUsername(userValue);
                 getContext().getRequest().getSession().setAttribute(USERNAME_KEY, userValue);
 
                 initFirstPage();
@@ -174,8 +175,8 @@ public class LoginPage extends Admin {
             }
             
             // Register user with internal session management
-            sessionId = SessionMonitor.registerUserSession(user, getContext().getSession());
-            SessionMonitor.logActivity(user, sessionId, "Login");
+            sessionId = SessionMonitor.registerUserSession(getContext().getSession());
+            SessionMonitor.logActivity(sessionId, "Login");
 
             // Mark this session with the internal session id
             getContext().getRequest().getSession().setAttribute(SessionMonitor.SESSION_ID, sessionId);

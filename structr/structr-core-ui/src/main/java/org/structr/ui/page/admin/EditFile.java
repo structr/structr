@@ -67,7 +67,7 @@ public class EditFile extends DefaultEdit {
 
         if (node != null) {
 
-            externalViewUrl = node.getNodeURL(user, contextPath);
+            externalViewUrl = node.getNodeURL(contextPath);
             localViewUrl = getContext().getRequest().getContextPath().concat(
                     "/view".concat(
                     node.getNodePath(user).replace("&", "%26")));

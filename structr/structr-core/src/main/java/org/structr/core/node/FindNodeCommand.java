@@ -132,9 +132,9 @@ public class FindNodeCommand extends NodeServiceCommand {
                 Node rootNode = graphDb.getReferenceNode();
 
                 if (path.endsWith("*")) {
-                    result = TreeHelper.getNodesByPath(nodeFactory.createNode(rootNode), path, true, user);
+                    result = TreeHelper.getNodesByPath(nodeFactory.createNode(rootNode), path, true);
                 } else {
-                    result = TreeHelper.getNodeByPath(nodeFactory.createNode(rootNode), path, true, user);
+                    result = TreeHelper.getNodeByPath(nodeFactory.createNode(rootNode), path, true);
                 }
 
 
@@ -162,9 +162,9 @@ public class FindNodeCommand extends NodeServiceCommand {
             String path = xpath.getXPath();
 
             if (path.endsWith("*")) {
-                result = TreeHelper.getNodesByPath(nodeFactory.createNode(rootNode), path, true, user);
+                result = TreeHelper.getNodesByPath(nodeFactory.createNode(rootNode), path, true);
             } else {
-                result = TreeHelper.getNodeByPath(nodeFactory.createNode(rootNode), path, true, user);
+                result = TreeHelper.getNodeByPath(nodeFactory.createNode(rootNode), path, true);
             }
 
             //result = nodeFinder.findNodes(xpath, nodeFactory);
@@ -233,9 +233,9 @@ public class FindNodeCommand extends NodeServiceCommand {
             }
 
             if (path.endsWith("*")) {
-                result = TreeHelper.getNodesByPath(currentNode, path, true, user);
+                result = TreeHelper.getNodesByPath(currentNode, path, true);
             } else {
-                result = TreeHelper.getNodeByPath(currentNode, path, true, user);
+                result = TreeHelper.getNodeByPath(currentNode, path, true);
             }
 //
 //

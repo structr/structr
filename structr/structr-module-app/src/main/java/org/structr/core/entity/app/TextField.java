@@ -52,7 +52,7 @@ public class TextField extends FormField implements InteractiveNode, RequestCycl
 	}
 
 	@Override
-	public void renderView(final StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user)
+	public void renderView(final StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
 	{
 		CurrentRequest.registerRequestCycleListener(this);
 
@@ -66,10 +66,10 @@ public class TextField extends FormField implements InteractiveNode, RequestCycl
 		} else
 		{
 
-			if(hasTemplate(user))
+			if(hasTemplate())
 			{
 				template.setCallingNode(this);
-				template.renderView(out, startNode, editUrl, editNodeId, user);
+				template.renderView(out, startNode, editUrl, editNodeId);
 
 			} else
 			{

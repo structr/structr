@@ -148,7 +148,7 @@ public class LogService extends RunnableNodeService {
 
         if (userLogNodeList == null) {
             // First, try to find user's activity list
-            for (AbstractNode s : user.getDirectChildNodes(user)) {
+            for (AbstractNode s : user.getDirectChildNodes()) {
                 if (s instanceof LogNodeList) {
 
                     // Take the first LogNodeList

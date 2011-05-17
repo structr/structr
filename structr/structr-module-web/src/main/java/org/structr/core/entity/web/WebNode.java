@@ -40,7 +40,7 @@ public class WebNode extends AbstractNode {
      */
     public HomePage getHomePage(final User user) {
 
-        List<AbstractNode> childNodes = getAllChildren(HomePage.class.getSimpleName(), user);
+        List<AbstractNode> childNodes = getAllChildren(HomePage.class.getSimpleName());
 
         for (AbstractNode node : childNodes) {
 
@@ -59,7 +59,7 @@ public class WebNode extends AbstractNode {
      */
     @Override
     public void renderView(StringBuilder out, final AbstractNode startNode,
-            final String editUrl, final Long editNodeId, final User user) {
+            final String editUrl, final Long editNodeId) {
 
         if (editNodeId != null && getId() == editNodeId.longValue()) {
 
@@ -67,12 +67,12 @@ public class WebNode extends AbstractNode {
 
         } else {
 
-            if (isVisible(user)) {
+            if (isVisible()) {
 
-                if (hasTemplate(user)) {
+                if (hasTemplate()) {
 //                    template.setRequest(getRequest());
                     template.setCallingNode(this);
-                    template.renderView(out, startNode, editUrl, editNodeId, user);
+                    template.renderView(out, startNode, editUrl, editNodeId);
                 } else {
                     out.append(getName());
                 }

@@ -26,7 +26,6 @@ import org.structr.common.CurrentRequest;
 
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.StructrRelationship;
-import org.structr.core.entity.User;
 
 /**
  *
@@ -44,11 +43,11 @@ public class AppActionContainer extends AbstractNode
 
 	// ----- public methods -----
 	@Override
-	public void renderView(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user)
+	public void renderView(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
 	{
 		// only execute if path matches exactly
 		String currentUrl = CurrentRequest.getCurrentNodePath();
-		String myNodeUrl = getNodePath(user);
+		String myNodeUrl = getNodePath();
 
 		if(currentUrl != null)
 		{
@@ -70,7 +69,7 @@ public class AppActionContainer extends AbstractNode
 		}
 
 		// do actions (iterate over children)
-		List<AbstractNode> children = getSortedDirectChildNodes(user);
+		List<AbstractNode> children = getSortedDirectChildNodes();
 		boolean executionSuccessful = true;
 		for(AbstractNode node : children)
 		{
@@ -79,7 +78,7 @@ public class AppActionContainer extends AbstractNode
 				ActionNode actionNode = (ActionNode)node;
 				actionNode.initialize();
 
-				executionSuccessful &= actionNode.doAction(out, startNode, editUrl, editNodeId, user);
+				executionSuccessful &= actionNode.doAction(out, startNode, editUrl, editNodeId);
 			}
 		}
 
@@ -90,7 +89,7 @@ public class AppActionContainer extends AbstractNode
 			AbstractNode successTarget = getSuccessTarget();
 			if(successTarget != null)
 			{
-				CurrentRequest.redirect(user, successTarget);
+				CurrentRequest.redirect(successTarget);
 			}
 
 		} else
@@ -100,7 +99,7 @@ public class AppActionContainer extends AbstractNode
 			AbstractNode failureTarget = getFailureTarget();
 			if(failureTarget != null)
 			{
-				CurrentRequest.redirect(user, failureTarget);
+				CurrentRequest.redirect(failureTarget);
 			}
 		}
 	}

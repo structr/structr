@@ -70,7 +70,7 @@ public class JXPathFinder {
 
             if (currentNode != null && !(currentNode.isRootNode())) {
                 // find pointer to current node and make it the active context
-                Pointer currentNodePointer = context.getPointer(currentNode.getNodeXPath(user));
+                Pointer currentNodePointer = context.getPointer(currentNode.getNodeXPath());
 
                 // create relative context
                 context = context.getRelativeContext(currentNodePointer);

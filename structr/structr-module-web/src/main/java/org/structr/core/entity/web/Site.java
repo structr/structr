@@ -41,7 +41,7 @@ public class Site extends WebNode {
      */
     @Override
     public void renderView(StringBuilder out, AbstractNode startNode,
-            final String editUrl, final Long editNodeId, final User user) {
+            final String editUrl, final Long editNodeId) {
 
 
         if (editNodeId != null && getId() == editNodeId.longValue()) {
@@ -50,7 +50,7 @@ public class Site extends WebNode {
 
         } else {
 
-            if (isVisible(user)) {
+            if (isVisible()) {
 
                 if (this instanceof WebNode) {
 
@@ -60,7 +60,7 @@ public class Site extends WebNode {
                     if (homepage == null) {
                         out.append("No home page found for ").append(getName());
                     } else {
-                        homepage.renderView(out, homepage, editUrl, editNodeId, user);
+                        homepage.renderView(out, homepage, editUrl, editNodeId);
                     }
 
                 }

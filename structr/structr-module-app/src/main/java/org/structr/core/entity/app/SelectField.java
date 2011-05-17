@@ -56,7 +56,7 @@ public class SelectField extends FormField implements InteractiveNode
 	}
 
 	@Override
-	public void renderView(final StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user)
+	public void renderView(final StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
 	{
 		// if this page is requested to be edited, render edit frame
 		if(editNodeId != null && getId() == editNodeId.longValue())
@@ -68,10 +68,10 @@ public class SelectField extends FormField implements InteractiveNode
 		} else
 		{
 
-			if(hasTemplate(user))
+			if(hasTemplate())
 			{
 				template.setCallingNode(this);
-				template.renderView(out, startNode, editUrl, editNodeId, user);
+				template.renderView(out, startNode, editUrl, editNodeId);
 
 			} else
 			{
@@ -221,7 +221,7 @@ public class SelectField extends FormField implements InteractiveNode
             for (StructrRelationship rel : dataRels) {
 
                 AbstractNode node = rel.getStartNode();
-                dataNodes.addAll(node.getDirectChildNodes(user));
+                dataNodes.addAll(node.getDirectChildNodes());
 
             }
 

@@ -235,7 +235,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
                             // it is possible that a node has no parent (= incoming child) relationship, e.g. thumbnails
                             if (parentRel != null) {
                                 //newParentNode = (AbstractNode) findNode.execute(user, parentRel.getStartNode().getId());
-                                newParentNode = structrNode.getParentNode(user);
+                                newParentNode = structrNode.getParentNode();
                                 parentRel.delete();
                             }
                             // delete other incoming relationships

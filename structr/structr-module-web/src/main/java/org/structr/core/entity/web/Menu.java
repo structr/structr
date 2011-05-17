@@ -50,7 +50,7 @@ public class Menu extends MenuItem {
      */
     @Override
     public void renderView(StringBuilder out, final AbstractNode startNode,
-            final String editUrl, final Long editNodeId, final User user) {
+            final String editUrl, final Long editNodeId) {
 
         if (editNodeId != null && getId() == editNodeId.longValue()) {
 
@@ -58,9 +58,9 @@ public class Menu extends MenuItem {
 
         } else {
 
-            if (isVisible(user)) {
+            if (isVisible()) {
 
-                renderMenuItems(out, startNode, this, 0, 0, 0, getMaxDepth(), user);
+                renderMenuItems(out, startNode, this, 0, 0, 0, getMaxDepth());
 
             }
         }

@@ -61,7 +61,7 @@ public class AppNodeCreator extends ActionNode implements NodeSource
 	private SessionValue<AbstractNode> currentNode = null;
 
 	@Override
-	public boolean doAction(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId, User user)
+	public boolean doAction(final StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
 	{
 		final List<NodeAttribute> attributes = new LinkedList<NodeAttribute>();
 		final AbstractNode parentNode = getCreateDestination();
