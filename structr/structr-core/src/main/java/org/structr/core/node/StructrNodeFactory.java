@@ -25,6 +25,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.io.FileUtils;
 import org.neo4j.graphdb.Node;
+import org.structr.common.CurrentSession;
 import org.structr.core.Adapter;
 import org.structr.core.Services;
 import org.structr.core.cloud.FileNodeDataContainer;

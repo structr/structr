@@ -70,7 +70,7 @@ public class EditFile extends DefaultEdit {
             externalViewUrl = node.getNodeURL(contextPath);
             localViewUrl = getContext().getRequest().getContextPath().concat(
                     "/view".concat(
-                    node.getNodePath(user).replace("&", "%26")));
+                    node.getNodePath().replace("&", "%26")));
         }
     }
 }

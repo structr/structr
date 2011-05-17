@@ -779,7 +779,7 @@ public class RegistrationCheck extends LoginCheck {
             content.append(request.getScheme()).append("://").append(request.getServerName()).append(":").append(request.getServerPort());
 
             String pageUrl = request.getContextPath().concat(
-                    "/view".concat(startNode.getNodePath(user).replace("&", "%26"))).concat("?").concat(confirmationKeyFieldName).concat("=").concat(confirmationKeyForMail).concat("&").concat(usernameFieldName).concat("=").concat(username);
+                    "/view".concat(startNode.getNodePath().replace("&", "%26"))).concat("?").concat(confirmationKeyFieldName).concat("=").concat(confirmationKeyForMail).concat("&").concat(usernameFieldName).concat("=").concat(username);
 
             content.append(pageUrl);
             content.append("\">");

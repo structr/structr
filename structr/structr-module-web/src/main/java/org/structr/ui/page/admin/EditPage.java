@@ -99,7 +99,7 @@ public class EditPage extends DefaultEdit {
         externalViewUrl = node.getNodeURL(contextPath);
         //localViewUrl = getContext().getResponse().encodeURL(viewLink.getHref());
         localViewUrl = getContext().getRequest().getContextPath().concat(
-                "/view".concat(node.getNodePath(user).replace("&", "%26")));
+                "/view".concat(node.getNodePath().replace("&", "%26")));
 
         // render node's default view
         StringBuilder out = new StringBuilder();

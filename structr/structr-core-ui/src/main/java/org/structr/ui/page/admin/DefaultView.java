@@ -55,7 +55,7 @@ public class DefaultView extends Nodes {
         //localViewUrl = getContext().getResponse().encodeURL(viewLink.getHref());
         localViewUrl = getContext().getRequest().getContextPath().concat(
                 "/view".concat(
-                node.getNodePath(user).replace("&", "%26")));
+                node.getNodePath().replace("&", "%26")));
 
         if (!(node instanceof Image)) {
             // render node's default view

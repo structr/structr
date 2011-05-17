@@ -173,16 +173,17 @@ public class StructrPage extends Page {
     @Override
     public void onInit() {
 
-	// prepare global structr request context for this request and this thread
-	CurrentRequest.setRequest(getContext().getRequest());
-	CurrentRequest.setResponse(getContext().getResponse());
-	CurrentRequest.setCurrentNodePath(nodeId);
+        // prepare global structr request context for this request and this thread
+        CurrentRequest.setRequest(getContext().getRequest());
+        CurrentRequest.setResponse(getContext().getResponse());
+        CurrentRequest.setCurrentNodePath(nodeId);
 
         super.onInit();
 
         if (user != null) {
             sessionId = (Long) getContext().getRequest().getSession().getAttribute(SessionMonitor.SESSION_ID);
             SessionMonitor.logPageRequest(sessionId, "Page Request", getContext().getRequest());
+            CurrentRequest.setCurrentUser(user);
         }
 
         // Catch both, id and path
@@ -223,15 +224,15 @@ public class StructrPage extends Page {
 
         }
 
-	// call request cycle listener
-	CurrentRequest.onRequestStart();
+        // call request cycle listener
+        CurrentRequest.onRequestStart();
     }
 
     @Override
-    public void onDestroy()
-    {
-	    CurrentRequest.onRequestEnd();
+    public void onDestroy() {
+        CurrentRequest.onRequestEnd();
     }
+
     /**
      * @see Page#onSecurityCheck()
      */

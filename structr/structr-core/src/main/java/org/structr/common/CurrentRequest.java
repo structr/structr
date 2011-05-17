@@ -52,13 +52,14 @@ public class CurrentRequest
 	private HttpServletResponse internalResponse = null;
 	private HttpServletRequest internalRequest = null;
 	private String currentNodePath = null;
+        private User currentUser = null;
         
 	private CurrentRequest()
 	{
 	}
 
 	// ----- static methods -----
-	public static void redirect(AbstractNode destination)
+	public static void redirect(final AbstractNode destination)
 	{
 		HttpServletResponse response = getResponse();
 		HttpServletRequest request = getRequest();
@@ -79,7 +80,7 @@ public class CurrentRequest
 		}
 	}
 
-	public static void setRequest(HttpServletRequest request)
+	public static void setRequest(final HttpServletRequest request)
 	{
 		CurrentRequest context = getRequestContext();
 		context.setRequestInternal(request);
@@ -90,7 +91,7 @@ public class CurrentRequest
 		return(getRequestContext().getRequestInternal());
 	}
 
-	public static void setResponse(HttpServletResponse response)
+	public static void setResponse(final HttpServletResponse response)
 	{
 		CurrentRequest context = getRequestContext();
 		context.setResponseInternal(response);
@@ -121,7 +122,27 @@ public class CurrentRequest
 		return(ret);
 	}
 
-	public static void setCurrentNodePath(String currentNodePath)
+	public static void setCurrentUser(final User user)
+	{
+		CurrentRequest request = getRequestContext();
+		if(request != null)
+		{
+			request.setCurrentUserInternal(user);
+		}
+	}
+
+	public static User getCurrentUser()
+	{
+		CurrentRequest request = getRequestContext();
+		if(request != null)
+		{
+			return(request.getCurrentUserInternal());
+		}
+
+		return(null);
+	}
+
+	public static void setCurrentNodePath(final String currentNodePath)
 	{
 		CurrentRequest request = getRequestContext();
 		if(request != null)
@@ -141,12 +162,12 @@ public class CurrentRequest
 		return(null);
 	}
 
-	public static String getAbsoluteNodePath(AbstractNode node)
+	public static String getAbsoluteNodePath(final AbstractNode node)
 	{
 		return(CurrentRequest.getRequest().getContextPath().concat("/view".concat(node.getNodePath().replace("&", "%26"))));
 	}
 
-	public static void registerRequestCycleListener(RequestCycleListener callback)
+	public static void registerRequestCycleListener(final RequestCycleListener callback)
 	{
 		CurrentRequest request = getRequestContext();
 		if(request != null)
@@ -155,7 +176,7 @@ public class CurrentRequest
 		}
 	}
 
-	public static void setAttribute(String key, Object value)
+	public static void setAttribute(final String key, final Object value)
 	{
 		CurrentRequest request = getRequestContext();
 		if(request != null)
@@ -164,7 +185,7 @@ public class CurrentRequest
 		}
 	}
 
-	public static Object getAttribute(String key)
+	public static Object getAttribute(final String key)
 	{
 		CurrentRequest request = getRequestContext();
 		if(request != null)
@@ -193,7 +214,7 @@ public class CurrentRequest
 		}
 	}
 
-	public static void pushToNextRequest(String key, Object value)
+	public static void pushToNextRequest(final String key, final Object value)
 	{
 		Set<String> sessionKeys = CurrentSession.getSessionKeys();
 		if(sessionKeys != null)
@@ -209,7 +230,7 @@ public class CurrentRequest
 	}
 
 	// ----- private methods -----
-	private void setRequestInternal(HttpServletRequest request)
+	private void setRequestInternal(final HttpServletRequest request)
 	{
 		this.internalRequest = request;
 	}
@@ -219,7 +240,7 @@ public class CurrentRequest
 		return(this.internalRequest);
 	}
 
-	private void setResponseInternal(HttpServletResponse response)
+	private void setResponseInternal(final HttpServletResponse response)
 	{
 		this.internalResponse = response;
 	}
@@ -229,12 +250,22 @@ public class CurrentRequest
 		return(this.internalResponse);
 	}
 
-	private void setRequestAttributeInternal(String key, Object value)
+	private void setRequestAttributeInternal(final String key, final Object value)
 	{
 		attributes.put(key, value);
 	}
 
-	private void setCurrentNodePathInternal(String currentNodePath)
+	private void setCurrentUserInternal(final User currentUser)
+	{
+		this.currentUser = currentUser;
+	}
+
+	private User getCurrentUserInternal()
+	{
+		return(currentUser);
+	}
+
+	private void setCurrentNodePathInternal(final String currentNodePath)
 	{
 		this.currentNodePath = currentNodePath;
 	}
@@ -244,12 +275,12 @@ public class CurrentRequest
 		return(currentNodePath);
 	}
 
-	private Object getRequestAttributeInternal(String key)
+	private Object getRequestAttributeInternal(final String key)
 	{
 		return(attributes.get(key));
 	}
 
-	private void registerRequestCycleListenerInternal(RequestCycleListener callback)
+	private void registerRequestCycleListenerInternal(final RequestCycleListener callback)
 	{
 		synchronized(requestCycleListener)
 		{

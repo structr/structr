@@ -138,7 +138,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
     private final static String CALLING_NODE_SUBNODES_AND_LINKED_NODES_KEY = "#";
     protected Template template;
 
-    protected final static User user = CurrentSession.getUser();
+    protected User user;
 
     /*
      * Helper class for multilanguage titles
@@ -195,6 +195,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
     public void init(final Node dbNode) {
         this.dbNode = dbNode;
         isDirty = false;
+        user = CurrentRequest.getCurrentUser();
     }
 
     private void init(final AbstractNode node) {
@@ -2328,7 +2329,6 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
             return propertyValue;
         }
 
-        User user = CurrentSession.getUser();
         List<AbstractNode> subnodes = this.getDirectChildAndLinkNodes();
 
         for (AbstractNode node : subnodes) {
@@ -2536,7 +2536,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
                 }
 
                 //if (user != null) {
-                    root.put("User", user);
+                    root.put("User", CurrentRequest.getCurrentUser());
                 //}
 
                 // Add a generic helper

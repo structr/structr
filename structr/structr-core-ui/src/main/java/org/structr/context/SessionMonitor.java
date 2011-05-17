@@ -25,6 +25,7 @@ import java.util.Map;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import org.structr.common.CurrentRequest;
 import org.structr.common.CurrentSession;
 import org.structr.common.RelType;
 import org.structr.core.Command;
@@ -250,7 +251,7 @@ public class SessionMonitor {
      * Register user in servlet context
      */
     public static long registerUserSession(final HttpSession session) {
-        User user = CurrentSession.getUser();
+        User user = CurrentRequest.getCurrentUser();
         init(session.getServletContext());
         long id = nextId(session.getServletContext());
         sessions.add(new Session(id, session.getId(), user, new Date()));
@@ -282,7 +283,7 @@ public class SessionMonitor {
 
         Date now = new Date();
 
-        User user = CurrentSession.getUser();
+        User user = CurrentRequest.getCurrentUser();
 
         // Create a "dirty" activity node
         Activity activity = new Activity();
@@ -312,7 +313,7 @@ public class SessionMonitor {
 
         Date now = new Date();
 
-        User user = CurrentSession.getUser();
+        User user = CurrentRequest.getCurrentUser();
 
         // Create a "dirty" page request node
         PageRequest pageRequest = new PageRequest();

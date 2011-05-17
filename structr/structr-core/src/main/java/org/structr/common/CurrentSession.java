@@ -116,23 +116,6 @@ public class CurrentSession
 		return(null);
 	}
 
-    public static User getUser() {
-
-        String userName = getGlobalUsername();
-        
-        // don't try to find a user node if userName is null or is superadmin
-        if (userName == null) {
-            return null;
-        }
-
-        if (userName.equals(Services.getSuperuserUsername())) {
-            return new SuperUser();
-        }
-
-        Command findUser = Services.command(FindUserCommand.class);
-        return ((User) findUser.execute(userName));
-    }
-
 	public static void setAttribute(String key, Object value)
 	{
 		HttpSession session = CurrentRequest.getSession();
