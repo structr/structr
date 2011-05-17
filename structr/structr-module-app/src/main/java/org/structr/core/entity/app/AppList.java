@@ -36,160 +36,180 @@ import org.structr.core.entity.User;
  */
 public class AppList extends AppNodeView {
 
-    private static final Logger logger = Logger.getLogger(AppList.class.getName());
-    private static final String PAGE_NO_PARAMETER_NAME_KEY = "pageNoParameterName";
-    private static final String PAGE_SIZE_PARAMETER_NAME_KEY = "pageSizeParameterName";
-    private static final String SORT_KEY_PARAMETER_NAME_KEY = "sortKeyParameterName";
-    private static final String SORT_ORDER_PARAMETER_NAME_KEY = "sortOrderParameterName";
-    // defaults
-    private String sortKeyParameterName = "sortKey";
-    private String sortOrderParameterName = "sortOrder";
-    private String pageNoParameterName = "pageNo";
-    private String pageSizeParameterName = "pageSize";
-    private String sortKey = "name";
-    private String sortOrder = "";
-    private int pageNo = 0;
-    private int pageSize = 10;
+  private static final Logger logger = Logger.getLogger(AppList.class.getName());
+  private static final String PAGE_NO_PARAMETER_NAME_KEY = "pageNoParameterName";
+  private static final String PAGE_SIZE_PARAMETER_NAME_KEY = "pageSizeParameterName";
+  private static final String SORT_KEY_PARAMETER_NAME_KEY = "sortKeyParameterName";
+  private static final String SORT_ORDER_PARAMETER_NAME_KEY = "sortOrderParameterName";
+  // defaults
+  private String sortKeyParameterName = "sortKey";
+  private String sortOrderParameterName = "sortOrder";
+  private String pageNoParameterName = "pageNo";
+  private String pageSizeParameterName = "pageSize";
+  private String sortKey = "name";
+  private String sortOrder = "";
+  private int pageNo = 0;
+  private int pageSize = 10;
+  private int lastPage;
 
-    @Override
-    public String getIconSrc() {
-        return ("/images/application_side_list.png");
+  @Override
+  public String getIconSrc() {
+    return ("/images/application_side_list.png");
+  }
+
+  private void init() {
+
+    String sortKeyProperty = getStringProperty(SORT_KEY_PARAMETER_NAME_KEY);
+    if (StringUtils.isNotEmpty(sortKeyProperty)) {
+      sortKeyParameterName = sortKeyProperty;
+    }
+    if (StringUtils.isNotEmpty(sortKeyParameterName)) {
+      String sortKeyValue = CurrentRequest.getRequest().getParameter(sortKeyParameterName);
+      if (sortKeyValue != null) {
+        sortKey = sortKeyValue;
+      }
     }
 
-    private void init() {
-
-                    String sortKeyProperty = getStringProperty(SORT_KEY_PARAMETER_NAME_KEY);
-                    if (StringUtils.isNotEmpty(sortKeyProperty)) {
-                        sortKeyParameterName = sortKeyProperty;
-                    }
-                    if (StringUtils.isNotEmpty(sortKeyParameterName)) {
-                        String sortKeyValue = CurrentRequest.getRequest().getParameter(sortKeyParameterName);
-                        if (sortKeyValue != null) {
-                            sortKey = sortKeyValue;
-                        }
-                    }
-
-
-                    String sortOrderProperty = getStringProperty(SORT_ORDER_PARAMETER_NAME_KEY);
-                    if (StringUtils.isNotEmpty(sortOrderProperty)) {
-                        sortOrderParameterName = sortOrderProperty;
-                    }
-                    if (StringUtils.isNotEmpty(sortOrderParameterName)) {
-                        String sortOrderValue = CurrentRequest.getRequest().getParameter(sortOrderParameterName);
-                        if (sortOrderValue != null) {
-                            sortOrder = sortOrderValue;
-                        }
-                    }
-
-
-                    String pageNoProperty = getStringProperty(PAGE_NO_PARAMETER_NAME_KEY);
-                    if (StringUtils.isNotEmpty(pageNoProperty)) {
-                        pageNoParameterName = pageNoProperty;
-                    }
-                    if (StringUtils.isNotEmpty(pageNoParameterName)) {
-                        String pageNoValue = CurrentRequest.getRequest().getParameter(pageNoParameterName);
-                        if (pageNoValue != null) {
-                            pageNo = Integer.parseInt(pageNoValue);
-                        }
-                    }
-
-
-                    String pageSizeProperty = getStringProperty(PAGE_SIZE_PARAMETER_NAME_KEY);
-                    if (StringUtils.isNotEmpty(pageSizeProperty)) {
-                        pageSizeParameterName = pageSizeProperty;
-                    }
-                    if (StringUtils.isNotEmpty(pageSizeParameterName)) {
-                        String pageSizeValue = CurrentRequest.getRequest().getParameter(pageSizeParameterName);
-                        if (pageSizeValue != null) {
-                            pageSize = Integer.parseInt(pageSizeValue);
-                        }
-                    }
-
-                    sortKey = toGetter(sortKey);
+    String sortOrderProperty = getStringProperty(SORT_ORDER_PARAMETER_NAME_KEY);
+    if (StringUtils.isNotEmpty(sortOrderProperty)) {
+      sortOrderParameterName = sortOrderProperty;
+    }
+    if (StringUtils.isNotEmpty(sortOrderParameterName)) {
+      String sortOrderValue = CurrentRequest.getRequest().getParameter(sortOrderParameterName);
+      if (sortOrderValue != null) {
+        sortOrder = sortOrderValue;
+      }
     }
 
-    @Override
-    public void renderView(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId, User user) {
+    String pageNoProperty = getStringProperty(PAGE_NO_PARAMETER_NAME_KEY);
+    if (StringUtils.isNotEmpty(pageNoProperty)) {
+      pageNoParameterName = pageNoProperty;
+    }
+    if (StringUtils.isNotEmpty(pageNoParameterName)) {
+      String pageNoValue = CurrentRequest.getRequest().getParameter(pageNoParameterName);
+      if (pageNoValue != null) {
+        pageNo = Integer.parseInt(pageNoValue);
+      }
+    }
 
-        if (isVisible(user)) {
+    String pageSizeProperty = getStringProperty(PAGE_SIZE_PARAMETER_NAME_KEY);
+    if (StringUtils.isNotEmpty(pageSizeProperty)) {
+      pageSizeParameterName = pageSizeProperty;
+    }
+    if (StringUtils.isNotEmpty(pageSizeParameterName)) {
+      String pageSizeValue = CurrentRequest.getRequest().getParameter(pageSizeParameterName);
+      if (pageSizeValue != null) {
+        pageSize = Integer.parseInt(pageSizeValue);
+      }
+    }
 
-            if (hasTemplate(user)) {
+    lastPage = Math.abs(getSize() / pageSize);
+    if (getSize() % pageSize > 0) {
+      lastPage++;
+    }
+  }
 
-                String html = template.getContent();
+  @Override
+  public void renderView(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId, User user) {
 
-                if (StringUtils.isNotBlank(html)) {
+    if (isVisible(user)) {
 
-                    init();
+      if (hasTemplate(user)) {
 
-                    // iterate over children following the DATA relationship
-                    for (AbstractNode container : getSortedDirectChildren(RelType.DATA, user)) {
+        String html = template.getContent();
 
-                        List<AbstractNode> nodes = container.getDirectChildNodes(user);
-                        Collections.sort(nodes, new AbstractNodeComparator(sortKey, sortOrder));
+        if (StringUtils.isNotBlank(html)) {
 
-                        int toIndex = Math.min(((pageNo + 1) * pageSize), nodes.size());
-                        int fromIndex = Math.min(pageNo * pageSize, toIndex);
+          init();
 
-                        // iterate over direct children of the given node
-                        for (AbstractNode node : nodes.subList(fromIndex, toIndex)) {
+          // iterate over children following the DATA relationship
+          for (AbstractNode container : getSortedDirectChildren(RelType.DATA, user)) {
 
-                            doRendering(out, this, node, editUrl, editNodeId, user);
-                        }
-                    }
+            List<AbstractNode> nodes = container.getDirectChildNodes(user);
+            Collections.sort(nodes, new AbstractNodeComparator(toGetter(sortKey), sortOrder));
 
-                } else {
-                    logger.log(Level.WARNING, "No template!");
-                }
+            int toIndex = Math.min(pageNo * pageSize, nodes.size());
+
+            int fromIndex = Math.min(Math.max(pageNo - 1, 0) * pageSize, toIndex);
+
+            // iterate over direct children of the given node
+            for (AbstractNode node : nodes.subList(fromIndex, toIndex)) {
+
+              doRendering(out, this, node, editUrl, editNodeId, user);
             }
+          }
 
         } else {
-            logger.log(Level.WARNING, "Node not visible");
+          logger.log(Level.WARNING, "No template!");
         }
+      }
+
+    } else {
+      logger.log(Level.WARNING, "Node not visible");
+    }
+  }
+
+  public int getSize() {
+
+    User user = CurrentSession.getUser();
+    int size = 0;
+
+    // iterate over children following the DATA relationship
+    for (AbstractNode container : getSortedDirectChildren(RelType.DATA, user)) {
+      List<AbstractNode> nodes = container.getDirectChildNodes(user);
+      size += nodes.size();
+    }
+    return size;
+  }
+
+  public String getPager() {
+
+    StringBuilder out = new StringBuilder();
+
+    init();
+
+    out.append("<ul>");
+
+    if (pageNo > 1) {
+      out.append("<li><a href=\"?pageSize=").append(pageSize).append("&pageNo=").append(pageNo - 1).append("&sortKey=").append(sortKey).append("&sortOrder=").append(sortOrder).append("\">").append(" &lt; previous (").append(pageNo - 1).append(")").append("</a></li>");
     }
 
-    public int getSize() {
 
-        User user = CurrentSession.getUser();
-        int size = 0;
+    boolean skipped = false;
 
-        // iterate over children following the DATA relationship
-        for (AbstractNode container : getSortedDirectChildren(RelType.DATA, user)) {
-            List<AbstractNode> nodes = container.getDirectChildNodes(user);
-            size += nodes.size();
-        }
-        return size;
-    }
+    for (int i = 1; i <= lastPage; i++) {
 
-    public String getPager() {
+      // if we have more than 10 pages, skip some pages
+      if (lastPage > 10
+              && (i < pageNo - 5 || i > pageNo + 5)
+              && (i < lastPage - 5 && i > 5)) {
+        continue;
+      }
 
-        StringBuilder out = new StringBuilder();
-        
-        init();
-        
-        int noOfPages = Math.abs(getSize() / pageSize) + 1;
-
-        out.append("<ul>");
-
-        for (int i = 0; i < noOfPages; i++) {
-            out.append("<li");
-            if (i == pageNo) {
-                out.append(" class=\"current\"");
-            }
-            out.append("><a href=\"?pageSize=").append(pageSize).append("&pageNo=").append(i).append("\">").append(i).append("</a></li>");
-
-        }
-
-        out.append("</ul>");
-
-        return out.toString();
+      out.append("<li");
+      if (i == pageNo) {
+        out.append(" class=\"current\"");
+      }
+      out.append("><a href=\"?pageSize=").append(pageSize).append("&pageNo=").append(i).append("&sortKey=").append(sortKey).append("&sortOrder=").append(sortOrder).append("\">").append(i).append("</a></li>");
 
     }
 
-    @Override
-    public void onNodeCreation() {
+
+    if (pageNo < lastPage) {
+      out.append("<li><a href=\"?pageSize=").append(pageSize).append("&pageNo=").append(pageNo + 1).append("&sortKey=").append(sortKey).append("&sortOrder=").append(sortOrder).append("\">").append("next (").append(pageNo + 1).append(") &gt;").append("</a></li>");
     }
 
-    @Override
-    public void onNodeInstantiation() {
-    }
+    out.append("</ul>");
+
+    return out.toString();
+
+  }
+
+  @Override
+  public void onNodeCreation() {
+  }
+
+  @Override
+  public void onNodeInstantiation() {
+  }
 }
