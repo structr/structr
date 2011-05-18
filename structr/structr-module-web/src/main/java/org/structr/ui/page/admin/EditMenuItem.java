@@ -70,7 +70,7 @@ public class EditMenuItem extends DefaultEdit {
                 List<Option> options = new LinkedList<Option>();
                 List<AbstractNode> nodes = null;
                 if (linkTargetNode != null) {
-                    nodes = linkTargetNode.getSiblingNodes(user);
+                    nodes = linkTargetNode.getSiblingNodes();
                 } else {
                     List<TextualSearchAttribute> searchAttrs = new LinkedList<TextualSearchAttribute>();
                     searchAttrs.add(new TextualSearchAttribute(AbstractNode.TYPE_KEY, Page.class.getSimpleName(), SearchOperator.OR));

@@ -44,7 +44,7 @@ import org.structr.core.node.search.SearchNodeCommand;
 public class EditPage extends DefaultEdit {
 
     protected Page page;
-    protected Select templateSelect = new Select(Page.TEMPLATE_KEY);
+    protected Select templateSelect = new Select(Page.TEMPLATE_ID_KEY, "Template");
 
     public EditPage() {
 
@@ -76,7 +76,7 @@ public class EditPage extends DefaultEdit {
                 List<Option> options = new LinkedList<Option>();
                 List<AbstractNode> nodes = null;
                 if (templateNode != null) {
-                    nodes = templateNode.getSiblingNodes(user);
+                    nodes = templateNode.getSiblingNodes();
                 } else {
                     List<TextualSearchAttribute> searchAttrs = new LinkedList<TextualSearchAttribute>();
                     searchAttrs.add(new TextualSearchAttribute(AbstractNode.TYPE_KEY, Template.class.getSimpleName(), SearchOperator.OR));

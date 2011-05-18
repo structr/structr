@@ -1463,7 +1463,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      *
      * @return
      */
-    public List<AbstractNode> getSiblingNodes(final User user) {
+    public List<AbstractNode> getSiblingNodes() {
 
         List<AbstractNode> nodes = new LinkedList<AbstractNode>();
 

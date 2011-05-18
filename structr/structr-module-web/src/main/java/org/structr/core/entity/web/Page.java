@@ -26,7 +26,6 @@ import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.StructrRelationship;
 import org.structr.core.entity.SuperUser;
-import org.structr.core.entity.User;
 import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.DeleteRelationshipCommand;
 import org.structr.core.node.FindNodeCommand;
@@ -40,7 +39,7 @@ public class Page extends WebNode {
 
     private final static String ICON_SRC = "/images/page.png";
     
-    public final static String TEMPLATE_KEY = "template";
+    public final static String TEMPLATE_ID_KEY = "templateId";
     //public final static String TEMPLATES_KEY = "templates";
 
     @Override
@@ -95,7 +94,7 @@ public class Page extends WebNode {
         return (n != null ? n.getId() : null);
     }
 
-    public void setTemplate(final Long value) {
+    public void setTemplateId(final Long value) {
 
         // find template node
         Command findNode = Services.command(FindNodeCommand.class);

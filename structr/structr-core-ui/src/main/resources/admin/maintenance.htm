@@ -70,7 +70,7 @@
             <li><a href="#sessions-tab"><span>Sessions</span></a></li>
             <li><a href="#activities-tab"><span>Activities</span></a></li>
             <li><a href="#services-tab"><span>Services</span></a></li>
-            <li><a href="#tasks-tab"><span>Task Queue</span></a></li>
+            ##<li><a href="#tasks-tab"><span>Task Queue</span></a></li>
             <li><a href="#params-tab"><span>Parameters</span></a></li>
             <li><a href="#runtime-tab"><span>Runtime Values</span></a></li>
             <li><a href="#modules-tab"><span>Modules</span></a></li>
@@ -186,93 +186,10 @@
           setWindowHeightAndWidth(true);
         });
 
-        window.onbeforeunload = function () {
-          //alert(jQuery("#treeArea .body").scrollTop());
-          jQuery.cookies.set("scrollTree", jQuery("#treeArea .body").scrollTop());
-          //jQuery.cookies.set("scrollMain", jQuery("#tabArea .body").scrollTop());
-          jQuery.cookies.set("scrollCode", jQuery("#tabArea .CodeMirror-wrapping iframe").contents().scrollTop());
-          //alert(jQuery("#tabArea .CodeMirror-wrapping iframe").contents().scrollTop());
-          jQuery.cookies.set("scrollIframe", jQuery("#rendition-tab iframe").contents().scrollTop());
-          //alert(jQuery("#rendition-tab iframe").contents().scrollTop());
-          jQuery.cookies.set("scrollTextarea", jQuery("#source-tab textarea").scrollTop());
-        }
-
         jQuery(document).ready(function() {
 
           jQuery("#tabs").tabs();
-
           setWindowHeightAndWidth(false);
-
-          jQuery('.unblock').click(function() {
-            jQuery.unblockUI({
-              fadeOut: 0
-            });
-          });
-
-          jQuery('#toggleNewNodeForm').click(function() {
-            showNewNodePanel();
-          });
-
-          #if ($newNodeFormIsInvalid)
-            showNewNodePanel();
-          #end
-
-
-          jQuery('#toggleUploadForm').click(function() {
-            showUploadPanel();
-          });
-
-          #if ($uploadFormIsInvalid)
-            showUploadPanel();
-          #end
-
-          jQuery('#toggleExtractNodeForm').click(function() {
-            showExtractNodePanel();
-          });
-
-          #if ($extractNodeFormIsInvalid)
-            showExtractNodePanel();
-          #end
-
-          jQuery('#toggleCopyNodeForm').click(function() {
-            showCopyNodePanel()
-          });
-
-          #if ($copyNodeFormIsInvalid)
-            showCopyNodePanel();
-          #end
-
-          jQuery('#toggleMoveNodeForm').click(function() {
-            showMoveNodePanel()
-          });
-
-          #if ($moveNodeFormIsInvalid)
-            showMoveNodePanel();
-          #end
-
-          jQuery('#toggleNewRelationshipForm').click(function() {
-            showNewRelationshipPanel();
-          });
-
-          #if ($newRelationshipFormIsInvalid)
-            showNewRelationshipPanel();
-          #end
-
-          jQuery('#toggleEditPropertiesForm').click(function() {
-            showEditPropertiesPanel()
-          });
-
-          #if ($editPropertiesFormIsInvalid)
-            showNewRelationshipPanel();
-          #end
-
-          jQuery('#toggleDeleteNodeForm').click(function() {
-            showDeleteNodePanel()
-          });
-
-          #if ($deleteNodeFormIsInvalid)
-            showDeleteNodePanel();
-          #end
 
         });
       </script>
