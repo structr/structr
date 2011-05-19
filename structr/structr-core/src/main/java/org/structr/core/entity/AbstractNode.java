@@ -24,7 +24,6 @@ import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.NodeFactoryCommand;
-import org.structr.core.node.LinkNodeFactoryCommand;
 import org.structr.core.node.NodeRelationshipsCommand;
 import org.structr.core.node.FindNodeCommand;
 import org.structr.common.RelType;
@@ -60,8 +59,8 @@ import org.apache.commons.lang.time.DateUtils;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
+import org.structr.common.AbstractNodeComparator;
 import org.structr.common.CurrentRequest;
-import org.structr.common.CurrentSession;
 import org.structr.common.TemplateHelper;
 import org.structr.core.NodeSource;
 import org.structr.core.cloud.NodeDataContainer;
@@ -1396,7 +1395,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      *
      * @return list with relationships
      */
-    public List<StructrRelationship> getRelationships(RelType type, Direction dir) {
+    public List<StructrRelationship> getRelationships(RelationshipType type, Direction dir) {
         return (List<StructrRelationship>) Services.command(NodeRelationshipsCommand.class).execute(this, type, dir);
     }
 
@@ -1594,7 +1593,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      *
      * @return
      */
-    public List<StructrRelationship> getOutgoingRelationships(final RelType type) {
+    public List<StructrRelationship> getOutgoingRelationships(final RelationshipType type) {
         return getRelationships(type, Direction.OUTGOING);
     }
 
@@ -1741,19 +1740,21 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 
         List<AbstractNode> nodes = new LinkedList<AbstractNode>();
 
-        Command nodeFactory = null;
-        if (relType.equals(RelType.LINK)) {
-            nodeFactory = Services.command(LinkNodeFactoryCommand.class);
-        } else {
-            nodeFactory = Services.command(NodeFactoryCommand.class);
-        }
+//        Command nodeFactory = null;
+//        if (relType.equals(RelType.LINK)) {
+//            nodeFactory = Services.command(LinkNodeFactoryCommand.class);
+//        } else {
+//            nodeFactory = Services.command(NodeFactoryCommand.class);
+//        }
 
-        Command relsCommand = Services.command(NodeRelationshipsCommand.class);
-        List<StructrRelationship> rels = (List<StructrRelationship>) relsCommand.execute(this, relType, Direction.OUTGOING);
+//        Command relsCommand = Services.command(NodeRelationshipsCommand.class);
+//        List<StructrRelationship> rels = (List<StructrRelationship>) relsCommand.execute(this, relType, Direction.OUTGOING);
+
+        List<StructrRelationship> rels = this.getOutgoingRelationships(relType);
 
         for (StructrRelationship r : rels) {
 
-            AbstractNode s = (AbstractNode) nodeFactory.execute(r.getEndNode());
+            AbstractNode s = r.getEndNode();
 
             if (s.readAllowed() && (nodeType == null || nodeType.equals(s.getType()))) {
                 nodes.add(s);
@@ -1781,6 +1782,22 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
                 return nodeOne.getPosition().compareTo(nodeTwo.getPosition());
             }
         });
+        return nodes;
+    }
+
+    /**
+     * Get child nodes and sort them before returning
+     *
+     * @return
+     */
+    public List<AbstractNode> getSortedDirectChildNodes(final String sortKey, final String sortOrder) {
+
+        List<AbstractNode> nodes = new LinkedList<AbstractNode>();
+        nodes.addAll(getDirectChildNodes());
+
+        // sort by key, order by order {@see AbstractNodeComparator.ASCENDING} or {@see AbstractNodeComparator.DESCENDING}
+        Collections.sort(nodes, new AbstractNodeComparator(sortKey, sortOrder));
+
         return nodes;
     }
 

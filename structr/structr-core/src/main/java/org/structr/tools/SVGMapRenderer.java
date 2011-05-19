@@ -71,7 +71,7 @@ public class SVGMapRenderer {
 
     public static void main(String[] args) {
 
-        StandaloneTestHelper.prepareStandaloneTest("/tmp/structr-maptest/db");
+        StandaloneTestHelper.prepareStandaloneTest("/opt/structr/t5s/db");
 
         StringBuilder out = new StringBuilder();
 
@@ -134,7 +134,7 @@ public class SVGMapRenderer {
             // open data store from neo4j database
             Neo4jSpatialDataStore n4jstore = new Neo4jSpatialDataStore(graphDb);
 
-            String layerName = "world_regions"; //getLayer();
+            String layerName = "t5s_geodata"; //getLayer();
             if (StringUtils.isEmpty(layerName)) {
                 logger.log(Level.SEVERE, "No layer name!");
             }

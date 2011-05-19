@@ -18,11 +18,8 @@
  */
 package org.structr.core.node.search;
 
-import java.text.Normalizer;
-import java.text.Normalizer.Form;
 import java.util.LinkedList;
 import java.util.List;
-import org.apache.commons.lang.StringUtils;
 import org.structr.core.Services;
 import org.structr.core.entity.PlainText;
 import org.structr.core.entity.AbstractNode;
@@ -133,26 +130,26 @@ public abstract class Search {
         return result;
     }
 
-    public static String normalize(final String input) {
-        String output = Normalizer.normalize(input, Form.NFD);
-        output = StringUtils.trim(output);
-//        output = StringUtils.lowerCase(output);
-        output = StringUtils.replace(output, "\"", "");
-        output = StringUtils.replace(output, "´", "");
-        output = StringUtils.replace(output, "`", "");
-        output = StringUtils.replace(output, "^", "");
-        output = StringUtils.replace(output, "'", "");
-        output = StringUtils.replace(output, ".", "");
-        output = StringUtils.replace(output, ",", "");
-        output = StringUtils.replace(output, "-", "");
-        output = StringUtils.replace(output, "+", "");
-        output = StringUtils.replace(output, "(", "");
-        output = StringUtils.replace(output, ")", "");
-        output = StringUtils.replace(output, "=", "");
-        output = StringUtils.replace(output, ":", "");
-        output = StringUtils.replace(output, "~", "");
-        return output;
-    }
+//    public static String normalize(final String input) {
+//        String output = Normalizer.normalize(input, Form.NFD);
+//        output = StringUtils.trim(output);
+////        output = StringUtils.lowerCase(output);
+//        output = StringUtils.replace(output, "\"", "");
+//        output = StringUtils.replace(output, "´", "");
+//        output = StringUtils.replace(output, "`", "");
+//        output = StringUtils.replace(output, "^", "");
+//        output = StringUtils.replace(output, "'", "");
+//        output = StringUtils.replace(output, ".", "");
+//        output = StringUtils.replace(output, ",", "");
+//        output = StringUtils.replace(output, "-", "");
+//        output = StringUtils.replace(output, "+", "");
+//        output = StringUtils.replace(output, "(", "");
+//        output = StringUtils.replace(output, ")", "");
+//        output = StringUtils.replace(output, "=", "");
+//        output = StringUtils.replace(output, ":", "");
+//        output = StringUtils.replace(output, "~", "");
+//        return output;
+//    }
 
 
     /**

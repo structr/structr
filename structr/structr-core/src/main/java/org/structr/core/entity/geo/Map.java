@@ -34,6 +34,7 @@ import org.geotools.data.DataUtilities;
 import org.geotools.data.Query;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
+import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.data.simple.SimpleFeatureSource;
 import org.geotools.filter.text.cql2.CQL;
 import org.geotools.geometry.jts.ReferencedEnvelope;
@@ -51,11 +52,12 @@ import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.filter.Filter;
 
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.User;
 import org.structr.common.MapHelper;
 import org.structr.common.CurrentRequest;
 import org.structr.core.Command;
 import org.structr.core.Services;
+import org.structr.core.entity.StructrRelationship;
+import org.structr.core.entity.SuperUser;
 import org.structr.core.node.GraphDatabaseCommand;
 import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchNodeCommand;
@@ -181,6 +183,8 @@ public class Map extends AbstractNode {
 
             SimpleFeatureSource featureSource = n4jstore.getFeatureSource(layerName);
 
+            GeoObject featureNode = null;
+
             if (auto) {
 
                 if (featureName == null) {
@@ -203,6 +207,13 @@ public class Map extends AbstractNode {
                     if (featureCollection != null && !(featureCollection.isEmpty())) {
                         SimpleFeature requestedFeature = featureCollection.features().next();
                         envelope = (ReferencedEnvelope) requestedFeature.getBounds();
+                    }
+
+                    List<AbstractNode> result = (List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(new SuperUser(), null, false, false, Search.andExactName(featureName));
+                    for (AbstractNode n : result) {
+                        if (n instanceof GeoObject) {
+                            featureNode = (GeoObject) n;
+                        }
                     }
 
                 }
@@ -229,6 +240,17 @@ public class Map extends AbstractNode {
 
             // search all features within this bounding
             SimpleFeatureCollection features = MapHelper.getIntersectingFeatures(graphDb, envelope, layerName);
+//
+//            SimpleFeatureIterator it = features.features();
+//            while (it.hasNext()) {
+//
+//                SimpleFeature feature = it.next();
+//
+//                if (!(feature.getAttribute("NAME").equals(featureName))) {
+//                    feature.setAttribute("NAME", "dummy");
+//                }
+//
+//            }
 
             // create a style for displaying the polygons
             Symbolizer polygonSymbolizer = MapHelper.createPolygonSymbolizer(getLineColor(), getLineWidth(), getLineOpacity(), getFillColor(), getFillOpacity());
@@ -251,11 +273,21 @@ public class Map extends AbstractNode {
 
                 List<GeoObject> cities = new LinkedList<GeoObject>();
 
-                List<AbstractNode> result = (List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(user, null, false, false, Search.andExactType("City"));
+                List<AbstractNode> result = (List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(user, featureNode, false, false, Search.andExactType("City"));
 
                 for (AbstractNode node : result) {
                     if ("City".equals(node.getType())) {
-                        cities.add((GeoObject) node);
+                        GeoObject city = (GeoObject) node;
+
+                        List<StructrRelationship> linksIn = city.getIncomingLinkRelationships();
+                        for (StructrRelationship rel : linksIn) {
+
+                            if (rel.getStartNode().equals(featureNode)) {
+                                cities.add(city);
+                                break;
+                            }
+                        }
+                        
                     }
                 }
                 SimpleFeatureCollection collection = MapHelper.createPointsFromGeoObjects(cities);
@@ -313,18 +345,15 @@ public class Map extends AbstractNode {
     }
 
     @Override
-    public void onNodeCreation()
-    {
+    public void onNodeCreation() {
     }
 
     @Override
-    public void onNodeInstantiation()
-    {
+    public void onNodeInstantiation() {
     }
 
 // <editor-fold defaultstate="collapsed" desc="getter and setter methods">
 // getter and setter methods
-
     public String getContentType() {
         return (String) getProperty(CONTENT_TYPE_KEY);
     }
@@ -506,7 +535,6 @@ public class Map extends AbstractNode {
     }
 
     //########################################
-
     public void setContentType(final String contentType) {
         setProperty(CONTENT_TYPE_KEY, contentType);
     }
@@ -670,7 +698,6 @@ public class Map extends AbstractNode {
     public void setPointFontOpacity(final double value) {
         setProperty(POINT_FONT_OPACITY_KEY, value);
     }
-
     // </editor-fold>
     // Attributes
 // <editor-fold defaultstate="collapsed" desc="Attributes">
