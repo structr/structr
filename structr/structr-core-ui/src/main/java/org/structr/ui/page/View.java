@@ -86,7 +86,7 @@ public class View extends StructrPage {
 
             // TODO: change to structr page (make independent from Click framework)
             getContext().getResponse().setStatus(HttpServletResponse.SC_NOT_FOUND);
-            setForward("/click/not-found.htm");
+            setForward("/not-found.htm");
 
         } else {
 
@@ -102,7 +102,7 @@ public class View extends StructrPage {
 
                 // TODO: change to structr page (make independent from Click framework)
                 getContext().getResponse().setStatus(HttpServletResponse.SC_NOT_FOUND);
-                setForward("/click/not-found.htm");
+                setForward("/not-found.htm");
                 return;
             }
 
