@@ -46,14 +46,22 @@
     <div id="msg" class="warnMsg">$warnMsg</div>
     #end
 
+    <div id="main">
+      #if ($renderMode != "inline")
+      #if ($nodeTreePanel)
+      $nodeTreePanel
+      #end
+      #end
 
     #if ($renderMode != "inline")
-    <div id="maintenanceTabArea" class="contentBox">
+    <div class="contentBox tabArea wideTabArea">
       #else
-      <div id="tabArea" class="tabAreaInline">
+      <div class="tabAreaInline tabArea">
         #end
 
         <h2 class="header">Maintenance</h2>
+
+        <div class="actionsPanel"></div>
 
         #if ($renderMode != "inline")
         #if ($nodeTreePanel)
@@ -167,7 +175,7 @@
 
         </div><!-- #tabs -->
 
-      </div><!-- #tab_area -->
+      </div><!-- .tabArea -->
 
       $jsElements
 

@@ -386,14 +386,6 @@ public class Nodes extends Admin {
 
 
 
-        simpleSearchForm.add(searchTextField);
-        simpleSearchForm.add(new HiddenField(NODE_ID_KEY, nodeId != null ? nodeId : ""));
-        simpleSearchForm.add(new HiddenField(RENDER_MODE_KEY, renderMode != null ? renderMode : ""));
-        simpleSearchForm.setListener(this, "onSimpleSearch");
-        simpleSearchForm.setActionURL("search-results.htm#search-tab");
-//        simpleSearchForm.add(new Submit("Search", this, "onSimpleSearch"));
-        simpleSearchForm.add(new Submit("Search"));
-
         if (parentNodeId != null) {
             // set parent node id  on node deletion form
             deleteNodeForm.add(new HiddenField(PARENT_NODE_ID_KEY, parentNodeId));

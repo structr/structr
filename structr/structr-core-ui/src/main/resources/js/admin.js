@@ -27,14 +27,14 @@ function setWindowHeightAndWidth(resize) {
     jQuery("#treeArea .body").height(windowHeight - headerHeight - heightOffset);
     jQuery("#treeArea .body").width(200);
 
-    jQuery("#tabArea .body").height(windowHeight - headerHeight - heightOffset - 32);
-    jQuery("#tabArea .body").width(windowWidth - 288);
+    jQuery(".tabArea .body").height(windowHeight - headerHeight - heightOffset - 32);
+    jQuery(".tabArea .body").width(windowWidth - 288);
 
-    var tabAreaBodyWidth = jQuery("#tabArea .body").width();
-    var tabAreaBodyHeight = jQuery("#tabArea .body").height();
+    var tabAreaBodyWidth = jQuery(".tabArea .body").width();
+    var tabAreaBodyHeight = jQuery(".tabArea .body").height();
 
-    jQuery("#tabArea .CodeMirror-wrapping").width(tabAreaBodyWidth - 34);
-    jQuery("#tabArea .CodeMirror-wrapping").height(tabAreaBodyHeight - 70);
+    jQuery(".tabArea .CodeMirror-wrapping").width(tabAreaBodyWidth - 34);
+    jQuery(".tabArea .CodeMirror-wrapping").height(tabAreaBodyHeight - 70);
 
     jQuery("#rendition-tab iframe").width(tabAreaBodyWidth - 4);
     jQuery("#rendition-tab iframe").height(tabAreaBodyHeight - 42);
@@ -53,10 +53,10 @@ function setWindowHeightAndWidth(resize) {
 
     if (!resize) {
         jQuery("#treeArea .body").scrollTop(jQuery.cookies.get("scrollTree") || 0);
-        //jQuery("#tabArea .body").scrollTop(jQuery.cookies.get("scrollMain") || 0);
-        jQuery("#tabArea .CodeMirror-wrapping iframe").contents().scrollTop(jQuery.cookies.get("scrollCode") || 0);
-        jQuery("#tabArea .CodeMirror-wrapping iframe").load(function() {
-            jQuery("#tabArea .CodeMirror-wrapping iframe").contents().scrollTop(jQuery.cookies.get("scrollCode") || 0);
+        //jQuery(".tabArea .body").scrollTop(jQuery.cookies.get("scrollMain") || 0);
+        jQuery(".tabArea .CodeMirror-wrapping iframe").contents().scrollTop(jQuery.cookies.get("scrollCode") || 0);
+        jQuery(".tabArea .CodeMirror-wrapping iframe").load(function() {
+            jQuery(".tabArea .CodeMirror-wrapping iframe").contents().scrollTop(jQuery.cookies.get("scrollCode") || 0);
         });
         jQuery("#rendition-tab iframe").contents().scrollTop(jQuery.cookies.get("scrollIframe") || 0);
         jQuery("#rendition-tab iframe").load(function() {
@@ -77,9 +77,9 @@ jQuery(window).resize(function() {
 window.onbeforeunload = function () {
     //alert(jQuery("#treeArea .body").scrollTop());
     jQuery.cookies.set("scrollTree", jQuery("#treeArea .body").scrollTop());
-    //jQuery.cookies.set("scrollMain", jQuery("#tabArea .body").scrollTop());
-    jQuery.cookies.set("scrollCode", jQuery("#tabArea .CodeMirror-wrapping iframe").contents().scrollTop());
-    //alert(jQuery("#tabArea .CodeMirror-wrapping iframe").contents().scrollTop());
+    //jQuery.cookies.set("scrollMain", jQuery(".tabArea .body").scrollTop());
+    jQuery.cookies.set("scrollCode", jQuery(".tabArea .CodeMirror-wrapping iframe").contents().scrollTop());
+    //alert(jQuery(".tabArea .CodeMirror-wrapping iframe").contents().scrollTop());
     jQuery.cookies.set("scrollIframe", jQuery("#rendition-tab iframe").contents().scrollTop());
     //alert(jQuery("#rendition-tab iframe").contents().scrollTop());
     jQuery.cookies.set("scrollTextarea", jQuery("#source-tab textarea").scrollTop());

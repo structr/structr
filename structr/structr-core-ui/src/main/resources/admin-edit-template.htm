@@ -55,9 +55,9 @@
 
 
       #if ($renderMode != "inline")
-      <div id="tabArea" class="contentBox">
+      <div class="contentBox tabArea">
         #else
-        <div id="tabArea" class="tabAreaInline">
+        <div class="tabArea tabAreaInline">
           #end
 
           <h2 class="header"><img alt="$node.name"  src="$context/$node.iconSrc"> $node.name</h2>
@@ -187,7 +187,7 @@
 
         </div><!-- #tabs -->
 
-      </div><!-- #tab_area -->
+      </div><!-- .tabArea -->
 
       <div style="clear: both"></div>
 

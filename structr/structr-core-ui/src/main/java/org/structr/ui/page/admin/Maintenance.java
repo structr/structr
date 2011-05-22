@@ -121,7 +121,7 @@ public class Maintenance extends Admin {
     @Bindable
     protected ActionLink reloadModules = new ActionLink("reloadModules", "Reload modules", this, "onReloadModules");
     @Bindable
-    protected Panel maintenancePanel;
+//    protected Panel maintenancePanel;
     private List<AbstractNode> allNodes;
     protected Map<String, Long> nodesHistogram = new HashMap<String, Long>();
 //    @Bindable
@@ -133,7 +133,8 @@ public class Maintenance extends Admin {
 
     public Maintenance() {
 
-        maintenancePanel = new Panel("maintenancePanel", "/panel/maintenance-panel.htm");
+        super();
+//        maintenancePanel = new Panel("maintenancePanel", "/panel/maintenance-panel.htm");
 
         sessionsTable.addColumn(new Column("id"));
         sessionsTable.addColumn(new Column("uid"));

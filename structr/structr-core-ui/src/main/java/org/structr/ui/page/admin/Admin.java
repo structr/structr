@@ -28,8 +28,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.click.control.ActionLink;
 import org.apache.click.control.Form;
+import org.apache.click.control.HiddenField;
 import org.apache.click.control.PageLink;
 import org.apache.click.control.Panel;
+import org.apache.click.control.Submit;
 import org.apache.click.control.TextField;
 import org.apache.click.extras.control.AutoCompleteTextField;
 
@@ -122,9 +124,18 @@ public class Admin extends StructrPage {
     @Override
     public void onInit() {
         super.onInit();
+        
         PageLink returnLink = new PageLink("Return Link", getClass());
         returnLink.setParameter(NODE_ID_KEY, getNodeId());
         logoutLink.setParameter(RETURN_URL_KEY, returnLink.getHref());
+
+        simpleSearchForm.add(searchTextField);
+        simpleSearchForm.add(new HiddenField(NODE_ID_KEY, nodeId != null ? nodeId : ""));
+        simpleSearchForm.add(new HiddenField(RENDER_MODE_KEY, renderMode != null ? renderMode : ""));
+        simpleSearchForm.setListener(this, "onSimpleSearch");
+        simpleSearchForm.setActionURL("search-results.htm#search-tab");
+//        simpleSearchForm.add(new Submit("Search", this, "onSimpleSearch"));
+        simpleSearchForm.add(new Submit("Search"));
 
         List<AbstractNode> usersNodes = (List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(user, null, false, false, Search.andExactName("Users"));
         if (!(usersNodes.isEmpty())) {

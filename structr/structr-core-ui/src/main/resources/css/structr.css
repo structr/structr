@@ -252,14 +252,14 @@ span.required {
     margin: 0 10px;
 }
 
-#treeArea, #maintenanceTabArea {
+#treeArea, .wideTabArea {
     position: absolute;
     left: 14px;
     top: 70px;
     /*    width: 200px;*/
 }
 
-#tabArea {
+.tabArea {
     position: absolute;
     left: 250px;
     top: 70px;
@@ -267,7 +267,7 @@ span.required {
 }
 
 
-#tabArea ul:first-child {
+.tabArea ul:first-child {
     /*    margin-left: -1px;*/
 }
 
@@ -275,15 +275,15 @@ span.required {
     left: 281px;
 }*/
 /*
-#tabArea a,
-#tabArea a:link,
-#tabArea a:visited {
+.tabArea a,
+.tabArea a:link,
+.tabArea a:visited {
     color: #ededed;
     text-decoration: none;
 }
 
-#tabArea a:active,
-#tabArea a:hover {
+.tabArea a:active,
+.tabArea a:hover {
     color: #efefef;
     text-decoration: underline;
 }*/
