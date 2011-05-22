@@ -21,10 +21,6 @@
             <id>neo4j-public-repository</id>
             <url>http://m2.neo4j.org</url>
         </repository>
-<!--        <repository>
-            <id>maven.notnothing.de</id>
-            <url>http://maven.notnothing.de</url>
-        </repository>-->
         <repository>
             <id>wordrak</id>
             <url>http://wordrak.github.com/repo/</url>
@@ -47,14 +43,14 @@
             <artifactId>freemarker</artifactId>
             <version>2.3.16</version>
         </dependency>
-<!--        <dependency>
+        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>3.8.1</version>
             <type>jar</type>
             <scope>test</scope>
             <optional>false</optional>
-        </dependency>-->
+        </dependency>
         <dependency>
             <groupId>org.neo4j</groupId>
             <artifactId>neo4j-kernel</artifactId>
@@ -247,6 +243,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3.2</version>
                 <configuration>
                     <source>1.6</source>
                     <target>1.6</target>
@@ -256,6 +253,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
+                <version>2.5</version>
                 <configuration>
                     <encoding>${project.build.sourceEncoding}</encoding>
                 </configuration>

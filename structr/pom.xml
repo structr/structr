@@ -13,6 +13,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3.2</version>
                 <configuration>
                     <source>1.6</source>
                     <target>1.6</target>
@@ -20,6 +21,7 @@
                 </configuration>
             </plugin>
         </plugins>
+
     </build>
 
     <properties>
@@ -29,11 +31,10 @@
 
     <modules>
         <module>structr-core</module>
-<!--        <module>structr-modules</module>-->
         <module>structr-core-ui</module>
         <module>structr-module-web</module>
         <module>structr-module-app</module>
         <module>structr-webapp</module>
-  </modules>
+    </modules>
 
 </project>
