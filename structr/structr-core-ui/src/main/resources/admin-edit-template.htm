@@ -60,7 +60,11 @@
         <div class="tabArea tabAreaInline">
           #end
 
-          <h2 class="header"><img alt="$node.name"  src="$context/$node.iconSrc"> $node.name</h2>
+          <h2 class="header">
+              #if ($node.name && $node.name != "")
+              <img alt="$node.name"  src="$context/$node.iconSrc"> $node.name
+              #end
+          </h2>
 
           #if ($actionsPanel)
           <div class="actionsPanel">
