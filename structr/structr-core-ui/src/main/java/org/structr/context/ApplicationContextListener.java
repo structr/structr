@@ -75,8 +75,8 @@ public class ApplicationContextListener implements ServletContextListener, HttpS
             String modulesPath = properties.getProperty(Services.MODULES_PATH);
             logger.log(Level.INFO, "Config file modules path: {0}", modulesPath);
 
-            String entityPackages = properties.getProperty(Services.ENTITY_PACKAGES);
-            logger.log(Level.INFO, "Config file entity packages: {0}", entityPackages);
+//            String entityPackages = properties.getProperty(Services.ENTITY_PACKAGES);
+//            logger.log(Level.INFO, "Config file entity packages: {0}", entityPackages);
 
             String tcpPort = properties.getProperty(Services.TCP_PORT);
             logger.log(Level.INFO, "Config file TCP port: {0}", tcpPort);
@@ -120,11 +120,11 @@ public class ApplicationContextListener implements ServletContextListener, HttpS
                 context.put(Services.MODULES_PATH, servletContext.getInitParameter(Services.MODULES_PATH));
             }
 
-            if (entityPackages != null) {
-                context.put(Services.ENTITY_PACKAGES, entityPackages);
-            } else {
-                context.put(Services.ENTITY_PACKAGES, servletContext.getInitParameter(Services.ENTITY_PACKAGES));
-            }
+//            if (entityPackages != null) {
+//                context.put(Services.ENTITY_PACKAGES, entityPackages);
+//            } else {
+//                context.put(Services.ENTITY_PACKAGES, servletContext.getInitParameter(Services.ENTITY_PACKAGES));
+//            }
 
             if (tcpPort != null) {
                 context.put(Services.TCP_PORT, tcpPort);

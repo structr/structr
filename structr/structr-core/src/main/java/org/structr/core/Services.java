@@ -59,7 +59,7 @@ public class Services {
     public static final String LOG_SERVICE_THRESHOLD = "structr.logging.threshold";
     // ModuleService-related constants
     public static final String MODULES_PATH = "modules.path";
-    public static final String ENTITY_PACKAGES = "entity.packages";
+//    public static final String ENTITY_PACKAGES = "entity.packages";
     public static final String STRUCTR_PAGE_PREDICATE = "structr.page.predicate";
     // Security-related constants
     public static final String SUPERUSER_USERNAME = "superuser.username";
