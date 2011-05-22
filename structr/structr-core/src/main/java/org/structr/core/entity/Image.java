@@ -299,6 +299,10 @@ public class Image extends File {
         return thumbnailRelationships;
     }
 
+    public boolean isNotThumbnail() {
+        return !isThumbnail();
+    }
+
     /**
      * Return true if this image is a thumbnail image.
      *

@@ -753,6 +753,10 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
         setProperty(VISIBLE_TO_AUTHENTICATED_USERS_KEY, flag);
     }
 
+    public boolean isNotHidden() {
+        return !getHidden();
+    }
+
     public boolean isHidden() {
         return getHidden();
     }
@@ -763,6 +767,10 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 
     public void setHidden(final boolean hidden) {
         setProperty(HIDDEN_KEY, hidden);
+    }
+
+    public boolean isNotDeleted() {
+        return !getDeleted();
     }
 
     public boolean isDeleted() {
