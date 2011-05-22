@@ -211,7 +211,7 @@ public class Map extends AbstractNode {
 
                     List<AbstractNode> result = (List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(new SuperUser(), null, false, false, Search.andExactName(featureName));
                     for (AbstractNode n : result) {
-                        if (n instanceof GeoObject) {
+                        if (n instanceof GeoObject && n.isNotDeleted()) {
                             featureNode = (GeoObject) n;
                         }
                     }
@@ -282,7 +282,9 @@ public class Map extends AbstractNode {
                         List<StructrRelationship> linksIn = city.getIncomingLinkRelationships();
                         for (StructrRelationship rel : linksIn) {
 
-                            if (rel.getStartNode().equals(featureNode)) {
+                            AbstractNode startNode = rel.getStartNode();
+
+                            if (startNode.isNotDeleted() && startNode.equals(featureNode)) {
                                 cities.add(city);
                                 break;
                             }
