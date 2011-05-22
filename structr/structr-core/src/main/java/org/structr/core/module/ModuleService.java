@@ -367,11 +367,11 @@ public class ModuleService implements SingletonService {
             throw new RuntimeException(Services.STRUCTR_PAGE_PREDICATE + " not set, aborting!");
         }
 
-        // initialize default structr entites
-        String entityPackagesFromContext = (String) context.get(Services.ENTITY_PACKAGES);
-        for (String entityPackageFromContext : entityPackagesFromContext.split("[, ]+")) {
-            entityPackages.add(entityPackageFromContext);
-        }
+//        // initialize default structr entites
+//        String entityPackagesFromContext = (String) context.get(Services.ENTITY_PACKAGES);
+//        for (String entityPackageFromContext : entityPackagesFromContext.split("[, ]+")) {
+//            entityPackages.add(entityPackageFromContext);
+//        }
 
         initializeModules();
     }
@@ -523,11 +523,14 @@ public class ModuleService implements SingletonService {
         // 1a.: iterate over raw class names and deploy them
         Set<String> classes = module.getClasses();
         for (final String className : classes) {
+            logger.log(Level.FINE, "Deploying class {0} ", className);
             try {
                 // deploy class file to WEB-INF/classes
                 String sourcePath = className.replaceAll("[\\.]+", "/").concat(".class");
                 String destinationFile = createResourceFileName(servletContext, "WEB-INF/classes", sourcePath);
 
+                logger.log(Level.FINE, "sourcePath: {0}, destinationFile: {1}", new Object[]{sourcePath, destinationFile});
+                
                 ZipEntry entry = jarFile.getEntry(sourcePath);
                 if (entry != null) {
                     InputStream inputStream = jarFile.getInputStream(entry);
@@ -580,9 +583,12 @@ public class ModuleService implements SingletonService {
 
         // 2.: instantiate classes (this needs to be a distinct step because otherwise we wouldn't be able to instantiate classes with nested classes!)
         for (final String className : classes) {
+            logger.log(Level.FINE, "Instantiating class {0} ", className);
+            
             try {
                 // instantiate class..
                 Class clazz = Class.forName(className);
+                logger.log(Level.FINE, "Class {0} instanciated: {1}", new Object[]{className, clazz});
 
 		if(!Modifier.isAbstract(clazz.getModifiers()))
 		{
@@ -620,6 +626,7 @@ public class ModuleService implements SingletonService {
             } catch (Throwable t) {
                 // ignore
                 logger.log(Level.WARNING, "error instantiating class {0}: {1}", new Object[]{className, t});
+                t.printStackTrace(System.out);
             }
 
         }
