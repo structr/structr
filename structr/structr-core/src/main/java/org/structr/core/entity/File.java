@@ -26,7 +26,6 @@ import java.net.URL;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.io.FileUtils;
-
 import org.apache.commons.io.IOUtils;
 import org.structr.common.Path;
 import org.structr.core.Services;

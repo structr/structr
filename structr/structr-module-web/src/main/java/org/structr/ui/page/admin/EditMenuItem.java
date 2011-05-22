@@ -23,7 +23,6 @@ import java.util.Collections;
 import java.util.List;
 import org.apache.click.control.FieldSet;
 import org.structr.core.entity.AbstractNode;
-
 import org.apache.click.control.Option;
 import org.apache.click.control.Select;
 import org.apache.click.dataprovider.DataProvider;

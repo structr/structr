@@ -26,10 +26,8 @@ import java.util.logging.Logger;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.AbstractNodeComparator;
 import org.structr.common.CurrentRequest;
-import org.structr.common.CurrentSession;
 import org.structr.common.RelType;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.User;
 
 /**
  *

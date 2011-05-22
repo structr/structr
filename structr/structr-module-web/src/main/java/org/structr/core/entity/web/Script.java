@@ -29,8 +29,6 @@ import javax.servlet.http.HttpSession;
 import org.apache.commons.io.IOUtils;
 import org.structr.common.CurrentRequest;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.User;
-//import org.structr.common.xpath.JXPathFinder;
 
 /**
  * 

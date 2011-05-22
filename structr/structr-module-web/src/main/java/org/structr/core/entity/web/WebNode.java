@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.User;
 
 /**
  *
@@ -38,7 +37,7 @@ public class WebNode extends AbstractNode {
     /**
      * Traverse over all child nodes to find a home page
      */
-    public HomePage getHomePage(final User user) {
+    public HomePage getHomePage() {
 
         List<AbstractNode> childNodes = getAllChildren(HomePage.class.getSimpleName());
 

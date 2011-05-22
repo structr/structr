@@ -34,7 +34,6 @@ import org.apache.click.control.Panel;
 import org.apache.click.control.Submit;
 import org.apache.click.control.TextField;
 import org.apache.click.extras.control.AutoCompleteTextField;
-
 import org.apache.click.util.Bindable;
 import org.apache.click.extras.tree.Tree;
 import org.apache.click.extras.tree.TreeNode;

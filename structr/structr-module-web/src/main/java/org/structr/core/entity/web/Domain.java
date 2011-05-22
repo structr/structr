@@ -52,7 +52,7 @@ public class Domain extends WebNode {
                 if (this instanceof WebNode) {
 
                     WebNode webNode = (WebNode) this;
-                    HomePage homepage = webNode.getHomePage(user);
+                    HomePage homepage = webNode.getHomePage();
 
                     if (homepage == null) {
 

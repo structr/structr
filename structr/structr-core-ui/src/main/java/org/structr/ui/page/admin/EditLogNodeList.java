@@ -18,8 +18,6 @@
  */
 package org.structr.ui.page.admin;
 
-import java.util.logging.Logger;
-
 /**
  *
  * @author chrisi

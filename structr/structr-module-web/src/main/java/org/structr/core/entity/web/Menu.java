@@ -19,7 +19,6 @@
 package org.structr.core.entity.web;
 
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.User;
 
 /**
  * A Menu contains menu items which will be rendered recursively.

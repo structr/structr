@@ -27,14 +27,12 @@ import java.io.OutputStream;
 import java.util.LinkedList;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
-
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.geotools.data.DataUtilities;
 import org.geotools.data.Query;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
-import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.data.simple.SimpleFeatureSource;
 import org.geotools.filter.text.cql2.CQL;
 import org.geotools.geometry.jts.ReferencedEnvelope;
@@ -50,7 +48,6 @@ import org.neo4j.gis.spatial.geotools.data.Neo4jSpatialDataStore;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.filter.Filter;
-
 import org.structr.core.entity.AbstractNode;
 import org.structr.common.MapHelper;
 import org.structr.common.CurrentRequest;

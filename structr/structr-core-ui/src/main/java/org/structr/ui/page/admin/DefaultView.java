@@ -18,8 +18,6 @@
  */
 package org.structr.ui.page.admin;
 
-import org.apache.click.control.Panel;
-import org.apache.click.util.Bindable;
 import org.apache.click.util.ClickUtils;
 import org.structr.core.entity.Image;
 
@@ -29,16 +27,16 @@ import org.structr.core.entity.Image;
  */
 public class DefaultView extends Nodes {
 
-    @Bindable
-    protected Panel renditionPanel = new Panel("renditionPanel", "/panel/rendition-panel.htm");
-    @Bindable
-    protected String externalViewUrl;
-    @Bindable
-    protected String localViewUrl;
-    @Bindable
-    protected String rendition;
-    @Bindable
-    protected String source;
+//    @Bindable
+//    protected Panel renditionPanel = new Panel("renditionPanel", "/panel/rendition-panel.htm");
+//    @Bindable
+//    protected String externalViewUrl;
+//    @Bindable
+//    protected String localViewUrl;
+//    @Bindable
+//    protected String rendition;
+//    @Bindable
+//    protected String source;
     // use template for backend pages
 
     @Override

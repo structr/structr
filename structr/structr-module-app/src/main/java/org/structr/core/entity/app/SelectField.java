@@ -18,20 +18,14 @@
  */
 package org.structr.core.entity.app;
 
-import java.util.LinkedList;
-import java.util.List;
 import org.structr.common.SessionValue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
-import org.neo4j.graphdb.Direction;
 import org.structr.common.CurrentRequest;
 import org.structr.common.CurrentSession;
-import org.structr.common.RelType;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.StructrRelationship;
-import org.structr.core.entity.User;
 
 /**
  * Render a select field.
@@ -212,20 +206,21 @@ public class SelectField extends FormField implements InteractiveNode
 		return(sessionValue);
 	}
 
-        private List<AbstractNode> getDataNodes(final User user) {
-
-            List<AbstractNode> dataNodes = new LinkedList<AbstractNode>();
-
-            List<StructrRelationship> dataRels = this.getRelationships(RelType.DATA, Direction.INCOMING);
-
-            for (StructrRelationship rel : dataRels) {
-
-                AbstractNode node = rel.getStartNode();
-                dataNodes.addAll(node.getDirectChildNodes());
-
-            }
-
-            return dataNodes;
-
-        }
+        // apperently not used
+//        private List<AbstractNode> getDataNodes(final User user) {
+//
+//            List<AbstractNode> dataNodes = new LinkedList<AbstractNode>();
+//
+//            List<StructrRelationship> dataRels = this.getRelationships(RelType.DATA, Direction.INCOMING);
+//
+//            for (StructrRelationship rel : dataRels) {
+//
+//                AbstractNode node = rel.getStartNode();
+//                dataNodes.addAll(node.getDirectChildNodes());
+//
+//            }
+//
+//            return dataNodes;
+//
+//        }
 }

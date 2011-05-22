@@ -25,7 +25,6 @@ import javax.servlet.http.HttpSession;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.CurrentRequest;
-//import org.structr.common.CurrentSession;
 import org.structr.context.SessionMonitor;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;

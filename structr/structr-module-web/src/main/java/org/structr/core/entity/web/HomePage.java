@@ -18,8 +18,6 @@
  */
 package org.structr.core.entity.web;
 
-import org.structr.core.entity.web.Page;
-
 /**
  * 
  * @author amorgner

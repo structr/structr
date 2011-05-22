@@ -25,7 +25,6 @@ import org.apache.commons.lang.StringUtils;
 import org.jsoup.Jsoup;
 import org.structr.common.MailHelper;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.User;
 
 /**
  * Send e-mails containing form data.

@@ -25,7 +25,6 @@ import org.apache.click.Context;
 import org.apache.click.control.*;
 import org.apache.click.dataprovider.*;
 import org.apache.click.util.*;
-//import org.structr.core.ClasspathEntityLocator;
 import org.structr.core.Services;
 import org.structr.core.entity.EmptyNode;
 import org.structr.core.entity.AbstractNode;

@@ -20,7 +20,6 @@ package org.structr.core.entity;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;

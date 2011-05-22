@@ -18,8 +18,6 @@
  */
 package org.structr.core.entity.web;
 
-//import java.util.Collections;
-//import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import org.neo4j.graphdb.Direction;

@@ -63,7 +63,6 @@ import org.structr.core.node.NodeRelationshipsCommand;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 import org.structr.common.RelType;
-//import org.structr.core.ClasspathEntityLocator;
 import org.structr.core.entity.DummyNode;
 import org.structr.core.entity.PlainText;
 import org.structr.core.entity.Property;

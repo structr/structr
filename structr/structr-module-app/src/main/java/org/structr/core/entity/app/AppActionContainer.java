@@ -23,7 +23,6 @@ import java.util.logging.Logger;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.RelType;
 import org.structr.common.CurrentRequest;
-
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.StructrRelationship;
 

@@ -18,11 +18,8 @@
  */
 package org.structr.core.entity.web;
 
-//import java.util.Collections;
-//import java.util.Comparator;
 import java.util.List;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.User;
 
 /**
  * Render a breadcrumb navigation element

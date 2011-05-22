@@ -26,7 +26,6 @@ import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import org.structr.common.CurrentRequest;
-import org.structr.common.CurrentSession;
 import org.structr.common.RelType;
 import org.structr.core.Command;
 import org.structr.core.Services;

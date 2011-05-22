@@ -30,7 +30,6 @@ import org.structr.common.CurrentRequest;
 import org.structr.common.CurrentSession;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.StructrRelationship;
-import org.structr.core.entity.User;
 
 /**
  *

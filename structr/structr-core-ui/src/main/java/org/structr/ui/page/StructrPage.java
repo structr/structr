@@ -33,7 +33,6 @@ import org.apache.commons.lang.StringUtils;
 import org.structr.common.TreeHelper;
 import org.structr.context.SessionMonitor;
 import org.structr.common.CurrentRequest;
-//import org.structr.common.CurrentSession;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.Link;

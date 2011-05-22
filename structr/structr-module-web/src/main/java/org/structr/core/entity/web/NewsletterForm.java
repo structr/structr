@@ -22,9 +22,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.CurrentRequest;
-//import org.structr.common.CurrentSession;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.User;
 
 /**
  * Render a form for newsletter submission.

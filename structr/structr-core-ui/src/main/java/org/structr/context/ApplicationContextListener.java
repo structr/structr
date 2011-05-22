@@ -32,7 +32,6 @@ import javax.servlet.ServletContextListener;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionListener;
 import org.structr.core.cloud.StartCloudService;
-import org.structr.core.entity.SuperUser;
 import org.structr.ui.page.StructrPage;
 
 /**

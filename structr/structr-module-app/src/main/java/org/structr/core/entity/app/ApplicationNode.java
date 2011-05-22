@@ -29,7 +29,6 @@ import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.StructrRelationship;
 import org.structr.core.entity.Template;
-import org.structr.core.entity.User;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.NodeAttribute;

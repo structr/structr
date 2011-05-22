@@ -18,16 +18,13 @@
  */
 package org.structr.core.entity.web;
 
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.CurrentRequest;
-//import org.structr.common.CurrentSession;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.User;
 
 /**
  * Include a node of this type to add objects to categories of the

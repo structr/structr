@@ -21,7 +21,6 @@ package org.structr.ui.page.admin;
 import org.structr.core.entity.AbstractNode;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.apache.click.control.Form;
 import org.apache.click.control.HiddenField;
 import org.apache.click.control.Panel;

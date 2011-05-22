@@ -21,7 +21,6 @@ package org.structr.core.entity.app;
 import java.util.Map;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.User;
 import org.structr.core.node.DeleteNodeCommand;
 
 /**

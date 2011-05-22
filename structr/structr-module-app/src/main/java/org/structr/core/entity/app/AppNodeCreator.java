@@ -33,7 +33,6 @@ import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.StructrRelationship;
-import org.structr.core.entity.User;
 import org.structr.core.entity.app.slots.TypedDataSlot;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;

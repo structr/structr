@@ -19,7 +19,6 @@
 package org.structr.core.entity.web;
 
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.User;
 
 /**
  * 
@@ -55,7 +54,7 @@ public class Site extends WebNode {
                 if (this instanceof WebNode) {
 
                     WebNode webNode = (WebNode) this;
-                    HomePage homepage = webNode.getHomePage(user);
+                    HomePage homepage = webNode.getHomePage();
 
                     if (homepage == null) {
                         out.append("No home page found for ").append(getName());

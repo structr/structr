@@ -25,7 +25,6 @@ import org.structr.common.CurrentSession;
 import org.structr.common.SessionValue;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.User;
 import org.structr.core.node.FindNodeCommand;
 
 /**
