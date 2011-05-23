@@ -53,7 +53,6 @@ import org.structr.common.MapHelper;
 import org.structr.common.CurrentRequest;
 import org.structr.core.Command;
 import org.structr.core.Services;
-import org.structr.core.entity.StructrRelationship;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.node.GraphDatabaseCommand;
 import org.structr.core.node.search.Search;
@@ -266,30 +265,41 @@ public class Map extends AbstractNode {
 
             boolean displayCities = (getDisplayCities() == Boolean.TRUE);
 
-            if (displayCities) {
+            if (featureNode != null && "Country".equals(featureNode.getType()) && displayCities) {
 
+                List<AbstractNode> subNodes = featureNode.getSortedLinkedNodes();
+
+                List<GeoObject> geoObjects = new LinkedList<GeoObject>();
+                
                 List<GeoObject> cities = new LinkedList<GeoObject>();
+                List<GeoObject> hotels = new LinkedList<GeoObject>();
+                List<GeoObject> islands = new LinkedList<GeoObject>();
+//                List<AbstractNode> result = (List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(user, featureNode, false, false, Search.andExactType("City"));
 
-                List<AbstractNode> result = (List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(user, featureNode, false, false, Search.andExactType("City"));
-
-                for (AbstractNode node : result) {
+                for (AbstractNode node : subNodes) {
+                    
                     if ("City".equals(node.getType())) {
-                        GeoObject city = (GeoObject) node;
-
-                        List<StructrRelationship> linksIn = city.getIncomingLinkRelationships();
-                        for (StructrRelationship rel : linksIn) {
-
-                            AbstractNode startNode = rel.getStartNode();
-
-                            if (startNode.isNotDeleted() && startNode.equals(featureNode)) {
-                                cities.add(city);
-                                break;
-                            }
-                        }
-                        
+                        cities.add((GeoObject) node);
                     }
+
+                    if ("Hotel".equals(node.getType())) {
+                        hotels.add((GeoObject) node);
+                    }
+
+                    if ("Island".equals(node.getType())) {
+                        islands.add((GeoObject) node);
+                    }
+
                 }
-                SimpleFeatureCollection collection = MapHelper.createPointsFromGeoObjects(cities);
+                
+                // no cities -> show hotels directly
+                if (cities.isEmpty()) {
+                    geoObjects.addAll(hotels);
+                } else {
+                    geoObjects.addAll(cities);
+                }
+                
+                SimpleFeatureCollection collection = MapHelper.createPointsFromGeoObjects(geoObjects);
 
                 Symbolizer cityTextSym = MapHelper.createTextSymbolizer(getPointFontName(), getPointFontSize(), getPointFontColor(), getPointFontOpacity(), getLabelAnchorX(), getLabelAnchorY(), getLabelDisplacementX(), getLabelDisplacementY());
                 Symbolizer cityPointSym = MapHelper.createPointSymbolizer(getPointShape(), getPointDiameter(), getPointStrokeColor(), getPointStrokeLineWidth(), getPointFillColor(), this.getPointFillOpacity());
@@ -305,13 +315,17 @@ public class Map extends AbstractNode {
                 style2.featureTypeStyles().add(fts2);
 
                 SimpleFeatureSource source = DataUtilities.source(collection);
-                SimpleFeatureCollection cityFeatures = source.getFeatures();
+                SimpleFeatureCollection subFeatures = source.getFeatures();
 
                 //Style pointStyle = SLD.createPointStyle("Square", Color.yellow, Color.yellow, 1, 3);
                 //pointStyle.featureTypeStyles().add(fts2);
 
-                // add features and style as a map layer to the list of map layers
-                layers.add(new MapLayer(cityFeatures, style2));
+                if (!subFeatures.isEmpty()) {
+
+                    // add features and style as a map layer to the list of map layers
+                    layers.add(new MapLayer(subFeatures, style2));
+
+                }
 
             }
 
@@ -353,9 +367,9 @@ public class Map extends AbstractNode {
 
 // <editor-fold defaultstate="collapsed" desc="getter and setter methods">
 // getter and setter methods
-    public String getContentType() {
-        return (String) getProperty(CONTENT_TYPE_KEY);
-    }
+//    public String getContentType() {
+//        return (String) getProperty(CONTENT_TYPE_KEY);
+//    }
 
     public int getCanvasX() {
         return getIntProperty(CANVAS_X_KEY);

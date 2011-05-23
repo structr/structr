@@ -18,17 +18,8 @@
  */
 package org.structr.core.entity.web;
 
-import org.structr.core.entity.Template;
 import java.util.*;
-import org.structr.common.RelType;
-import org.structr.core.Command;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.StructrRelationship;
-import org.structr.core.entity.SuperUser;
-import org.structr.core.node.CreateRelationshipCommand;
-import org.structr.core.node.DeleteRelationshipCommand;
-import org.structr.core.node.FindNodeCommand;
 
 /**
  * 
@@ -38,9 +29,6 @@ import org.structr.core.node.FindNodeCommand;
 public class Page extends WebNode {
 
     private final static String ICON_SRC = "/images/page.png";
-    
-    public final static String TEMPLATE_ID_KEY = "templateId";
-    //public final static String TEMPLATES_KEY = "templates";
 
     @Override
     public String getIconSrc() {
@@ -64,13 +52,10 @@ public class Page extends WebNode {
 
             renderEditFrame(out, editUrl);
 
-            // otherwise, render subnodes in edit mode
+        // otherwise, render subnodes in edit mode
         } else {
 
             if (hasTemplate()) {
-
-                // propagate request
-//                template.setRequest(getRequest());
 
                 template.setCallingNode(this);
                 template.renderView(out, startNode, editUrl, editNodeId);
@@ -80,61 +65,9 @@ public class Page extends WebNode {
 
                 // render subnodes in correct order
                 for (AbstractNode s : subnodes) {
-
-                    // propagate request
-//                    s.setRequest(getRequest());
                     s.renderView(out, startNode, editUrl, editNodeId);
                 }
             }
         }
     }
-
-    public Long getTemplateId() {
-        Template n = getTemplate();
-        return (n != null ? n.getId() : null);
-    }
-
-    public void setTemplateId(final Long value) {
-
-        // find template node
-        Command findNode = Services.command(FindNodeCommand.class);
-        Template templateNode = (Template) findNode.execute(new SuperUser(), value);
-
-        // delete existing template relationships
-        List<StructrRelationship> templateRels = this.getOutgoingRelationships(RelType.USE_TEMPLATE);
-        Command delRel = Services.command(DeleteRelationshipCommand.class);
-        if (templateRels != null) {
-            for (StructrRelationship r : templateRels) {
-                delRel.execute(r);
-            }
-        }
-
-        // create new link target relationship
-        Command createRel = Services.command(CreateRelationshipCommand.class);
-        createRel.execute(this, templateNode, RelType.USE_TEMPLATE);
-    }
-//
-//    public List<Template> getTemplateNodes() {
-//        List<Template> result = new LinkedList<Template>();
-//        List<StructrRelationship> rels = getRelationships(RelType.USE_TEMPLATE, Direction.OUTGOING);
-//        for (StructrRelationship r : rels) {
-//            AbstractNode n = r.getEndNode();
-//            if (n instanceof Template) {
-//                result.add((Template) n);
-//            }
-//        }
-//        return result;
-//    }
-//
-//    public List<String> getTemplate() {
-//        List<String> ids = new LinkedList<String>();
-//        List<Template> templateNodes = getTemplateNodes();
-//        if (templateNodes != null && !(templateNodes.isEmpty())) {
-//            for (Template p : templateNodes) {
-//                ids.add(Long.toString(p.getId()));
-//            }
-//
-//        }
-//        return ids;
-//    }
 }

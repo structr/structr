@@ -18,6 +18,7 @@
  */
 package org.structr.ui.page.admin;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.HashMap;
 import java.util.List;
@@ -56,6 +57,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractNode.Title;
 import org.structr.core.entity.StructrRelationship;
 import org.structr.core.entity.SuperUser;
+import org.structr.core.entity.Template;
 import org.structr.core.entity.User;
 import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.DeleteRelationshipCommand;
@@ -63,6 +65,9 @@ import org.structr.core.node.FindNodeCommand;
 import org.structr.core.node.FindUserCommand;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
+import org.structr.core.node.search.SearchNodeCommand;
+import org.structr.core.node.search.SearchOperator;
+import org.structr.core.node.search.TextualSearchAttribute;
 
 /**
  *
@@ -100,6 +105,7 @@ public class DefaultEdit extends Nodes {
     protected IntegerField remoteTcpPort;
     protected IntegerField remoteUdpPort;
     protected Checkbox cloudRecursive = new Checkbox("cloudRecursive", "Recursive");
+    protected Select templateSelect = new Select(AbstractNode.TEMPLATE_ID_KEY, "Template");
 
     // use template for backend pages
     @Override
@@ -115,6 +121,10 @@ public class DefaultEdit extends Nodes {
     public void onInit() {
 
         super.onInit();
+
+        FieldSet templateFields = new FieldSet("Template");
+        templateFields.add(templateSelect);
+        editPropertiesForm.add(templateFields);
 
         FieldSet nodePropertiesFields = new FieldSet("Node Properties");
         nodePropertiesFields.setColumns(3);
@@ -581,6 +591,36 @@ public class DefaultEdit extends Nodes {
         super.onRender();
 
         if (node != null) {
+            
+            final Template templateNode = node.getTemplate();
+
+            templateSelect.setDataProvider(new DataProvider() {
+
+                @Override
+                public List<Option> getData() {
+                    List<Option> options = new LinkedList<Option>();
+                    List<AbstractNode> nodes = null;
+                    if (templateNode != null) {
+                        nodes = templateNode.getSiblingNodes();
+                    } else {
+                        List<TextualSearchAttribute> searchAttrs = new LinkedList<TextualSearchAttribute>();
+                        searchAttrs.add(new TextualSearchAttribute(AbstractNode.TYPE_KEY, Template.class.getSimpleName(), SearchOperator.OR));
+                        nodes = (List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(user, null, false, false, searchAttrs);
+                    }
+                    if (nodes != null) {
+                        Collections.sort(nodes);
+                        options.add(Option.EMPTY_OPTION);
+                        for (AbstractNode n : nodes) {
+                            if (n instanceof Template) {
+                                Option opt = new Option(n.getId(), n.getName());
+                                options.add(opt);
+                            }
+                        }
+                    }
+                    return options;
+                }
+            });
+
 
             editVisibilityForm.copyFrom(node);
             editVisibilityForm.add(new HiddenField(NODE_ID_KEY, nodeId != null ? nodeId : ""));

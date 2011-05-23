@@ -62,6 +62,7 @@ import org.structr.core.NodeSource;
 import org.structr.core.cloud.NodeDataContainer;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;
+import org.structr.core.node.DeleteRelationshipCommand;
 import org.structr.core.node.IndexNodeCommand;
 import org.structr.core.node.search.SearchNodeCommand;
 import org.structr.core.node.XPath;
@@ -131,6 +132,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 //    private final static String REQUEST_KEY_SUFFIX = "]";
     private final static String CALLING_NODE_SUBNODES_KEY = "*";
     private final static String CALLING_NODE_SUBNODES_AND_LINKED_NODES_KEY = "#";
+    public final static String TEMPLATE_ID_KEY = "templateId";
+    //public final static String TEMPLATES_KEY = "templates";
+    
     protected Template template;
 
     protected User user;
@@ -259,6 +263,31 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 
     }
 
+    public Long getTemplateId() {
+        Template n = getTemplate();
+        return (n != null ? n.getId() : null);
+    }
+
+    public void setTemplateId(final Long value) {
+
+        // find template node
+        Command findNode = Services.command(FindNodeCommand.class);
+        Template templateNode = (Template) findNode.execute(new SuperUser(), value);
+
+        // delete existing template relationships
+        List<StructrRelationship> templateRels = this.getOutgoingRelationships(RelType.USE_TEMPLATE);
+        Command delRel = Services.command(DeleteRelationshipCommand.class);
+        if (templateRels != null) {
+            for (StructrRelationship r : templateRels) {
+                delRel.execute(r);
+            }
+        }
+
+        // create new link target relationship
+        Command createRel = Services.command(CreateRelationshipCommand.class);
+        createRel.execute(this, templateNode, RelType.USE_TEMPLATE);
+    }
+    
     /**
      * Render a node-specific inline edit view as html
      * 
