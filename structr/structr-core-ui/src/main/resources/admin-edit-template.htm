@@ -205,9 +205,9 @@
 
       window.onbeforeunload = function () {
         //alert(jQuery("#treeArea .body").scrollTop());
-        jQuery.cookies.set("scrollTree", jQuery("#treeArea .body").scrollTop());
-        //jQuery.cookies.set("scrollMain", jQuery("#tabArea .body").scrollTop());
-        jQuery.cookies.set("scrollCode", jQuery("#tabArea .CodeMirror-wrapping iframe").contents().scrollTop());
+        jQuery.cookies.set("scrollTree", jQuery(".treeArea .body").scrollTop());
+        //jQuery.cookies.set("scrollMain", jQuery(".tabArea .body").scrollTop());
+        jQuery.cookies.set("scrollCode", jQuery(".tabArea .CodeMirror-wrapping iframe").contents().scrollTop());
         //alert(jQuery("#tabArea .CodeMirror-wrapping iframe").contents().scrollTop());
         jQuery.cookies.set("scrollIframe", jQuery("#rendition-tab iframe").contents().scrollTop());
         //alert(jQuery("#rendition-tab iframe").contents().scrollTop());
