@@ -321,10 +321,12 @@
             greedy: true,
             hoverClass: 'active droptarget',
             drop: function(event, ui) {
+//              console.log(ui.draggable);
 //              console.log('Source node id: ' + jQuery(ui.draggable).data('nodeId'));
 //              console.log(jQuery(this));
 //              console.log(jQuery(event.srcElement));
 //              console.log('Target node id: ' + getParam('nodeId', jQuery(this).attr('href')));
+              jQuery(ui.draggable).attr('href', '');
               var targetNodeId = getParam('nodeId', jQuery(this).attr('href'));
               jQuery(this).attr('href', '#');
               submitMoveNodeForm(jQuery(ui.draggable).data('nodeId'), targetNodeId);
@@ -346,9 +348,10 @@
         jQuery('#moveNodeForm_nodeId').val(sourceId);
         jQuery('#moveNodeForm_newParentNodeId').val(targetId);
         jQuery('#moveNodeForm_moveNode').val(' Move node ');
-        //jQuery('#moveNodeForm').submit();
+        jQuery('#moveNodeForm').attr('method', 'GET');
+        jQuery('#moveNodeForm').submit();
 //        console.log(document.forms['moveNodeForm']);
-        document.forms['moveNodeForm'].submit();
+//        document.forms['moveNodeForm'].submit();
       } 
       
       </script>
