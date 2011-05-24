@@ -55,12 +55,14 @@ import org.structr.core.cloud.PushNodes;
 import org.structr.core.entity.Image;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractNode.Title;
+import org.structr.core.entity.Group;
 import org.structr.core.entity.StructrRelationship;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.Template;
 import org.structr.core.entity.User;
 import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.DeleteRelationshipCommand;
+import org.structr.core.node.FindGroupCommand;
 import org.structr.core.node.FindNodeCommand;
 import org.structr.core.node.FindUserCommand;
 import org.structr.core.node.StructrTransaction;
@@ -93,6 +95,7 @@ public class DefaultEdit extends Nodes {
     protected Form securityForm = new Form("securityForm");
     protected Form cloudForm = new Form("cloudForm");
     protected Select userSelect = new Select("selectUser", "User");
+    protected Select groupSelect = new Select("selectGroup", "Group");
     protected PickList allowed = new PickList(StructrRelationship.ALLOWED_KEY, "Allowed");
     protected Checkbox recursive = new Checkbox("recursive");
     protected Panel editPropertiesPanel;
@@ -260,7 +263,7 @@ public class DefaultEdit extends Nodes {
                         Image thumbnail = image.getScaledImage(100, 100);
 
                         if (thumbnail != null) {
-                            String thumbnailSrc = "/view.htm?nodeId=" + thumbnail.getId();
+                            String thumbnailSrc = "/view/" + thumbnail.getId();
                             link.setImageSrc(thumbnailSrc);
                             //link.setRenderLabelAndImage(true);
                             hasThumbnail = true;
@@ -474,6 +477,32 @@ public class DefaultEdit extends Nodes {
 
         if (accessControlAllowed) {
 
+            typeColumn = new Column(AbstractNode.TYPE_KEY);
+
+            iconDec = new LinkDecorator(securityTable, viewRelLink, "id") {
+
+                @Override
+                protected void renderActionLink(HtmlStringBuffer buffer, AbstractLink link, Context context, Object row, Object value) {
+
+                    StructrRelationship r = (StructrRelationship) row;
+
+                    AbstractNode startNode = r.getStartNode();
+                    link = new PageLink("id", getEditPageClass(startNode)) {
+
+                        @Override
+                        public String getHref() {
+                            return super.getHref().concat("#security-tab");
+                        }
+                    };
+                    link.setParameter(NODE_ID_KEY, startNode.getId());
+                    link.setLabel(startNode.getName());
+                    link.setImageSrc(getIconSrc(startNode));
+
+                    super.renderActionLink(buffer, link, context, row, value);
+                }
+            };
+            typeColumn.setDecorator(iconDec);
+            securityTable.addColumn(typeColumn);
             nameColumn = new Column(AbstractNode.NAME_KEY);
             nameDec = new LinkDecorator(securityTable, viewRelLink, "id") {
 
@@ -483,7 +512,7 @@ public class DefaultEdit extends Nodes {
                     StructrRelationship r = (StructrRelationship) row;
 
                     AbstractNode startNode = r.getStartNode();
-                    PageLink pageLink = new PageLink("id", getEditPageClass(startNode)) {
+                    link = new PageLink("id", getEditPageClass(startNode)) {
 
                         @Override
                         public String getHref() {
@@ -491,10 +520,10 @@ public class DefaultEdit extends Nodes {
                         }
                     };
 
-                    pageLink.setParameter(NODE_ID_KEY, startNode.getId());
-                    pageLink.setLabel(startNode.getName());
+                    link.setParameter(NODE_ID_KEY, startNode.getId());
+                    link.setLabel(startNode.getName());
 
-                    super.renderActionLink(buffer, pageLink, context, row, value);
+                    super.renderActionLink(buffer, link, context, row, value);
 
                 }
             };
@@ -509,6 +538,7 @@ public class DefaultEdit extends Nodes {
             FieldSet setPermissionFields = new FieldSet("Set Permissions");
 
             setPermissionFields.add(userSelect);
+            setPermissionFields.add(groupSelect);
             setPermissionFields.add(recursive);
             List<Option> optionList = new LinkedList<Option>();
             Option readOption = new Option(StructrRelationship.READ_KEY, "Read");
@@ -591,7 +621,7 @@ public class DefaultEdit extends Nodes {
         super.onRender();
 
         if (node != null) {
-            
+
             final Template templateNode = node.getTemplate();
 
             templateSelect.setDataProvider(new DataProvider() {
@@ -685,11 +715,32 @@ public class DefaultEdit extends Nodes {
                 public List<Option> getData() {
 
                     List<Option> optionList = new LinkedList<Option>();
+                    optionList.add(Option.EMPTY_OPTION);
 
 //                List<AbstractNode> principals =  node.getSecurityPrincipals();
                     List<User> users = getAllUsers();
                     if (users != null) {
                         for (User u : users) {
+                            Option o = new Option(u.getName());
+                            optionList.add(o);
+                        }
+                    }
+                    return optionList;
+                }
+            });
+
+            groupSelect.setDataProvider(new DataProvider() {
+
+                @Override
+                public List<Option> getData() {
+
+                    List<Option> optionList = new LinkedList<Option>();
+                    optionList.add(Option.EMPTY_OPTION);
+
+//                List<AbstractNode> principals =  node.getSecurityPrincipals();
+                    List<Group> groups = getAllGroups();
+                    if (groups != null) {
+                        for (Group u : groups) {
                             Option o = new Option(u.getName());
                             optionList.add(o);
                         }
@@ -857,6 +908,7 @@ public class DefaultEdit extends Nodes {
         if (securityForm.isValid()) {
 
             final String selectedUserName = securityForm.getFieldValue(userSelect.getName());
+            final String selectedGroupName = securityForm.getFieldValue(groupSelect.getName());
             final List<String> selectedValues = allowed.getSelectedValues();
             final boolean rec = recursive.isChecked();
 
@@ -869,9 +921,12 @@ public class DefaultEdit extends Nodes {
                 public Object execute() throws Throwable {
 
                     Command findUser = Services.command(FindUserCommand.class);
-                    User selectedUser = (User) findUser.execute(selectedUserName);
+                    Command findGroup = Services.command(FindGroupCommand.class);
 
-                    if (selectedUser != null) {
+                    User selectedUser = (User) findUser.execute(selectedUserName);
+                    Group selectedGroup = (Group) findGroup.execute(selectedGroupName);
+
+                    if (selectedUser != null || selectedGroup != null) {
 
                         List<AbstractNode> nodes = new LinkedList<AbstractNode>();
 
@@ -893,33 +948,53 @@ public class DefaultEdit extends Nodes {
                             // not recursive, change only this node
                             nodes.add(node);
                         }
-
+                        
+                        Command createRel = Services.command(CreateRelationshipCommand.class);
+                        Command deleteRel = Services.command(DeleteRelationshipCommand.class);
+                        
                         for (AbstractNode n : nodes) {
 
-                            if (n.equals(selectedUser)) {
-                                // don't try to set a relationship with user node itself
+                            if (n.equals(selectedUser) || n.equals(selectedGroup)) {
+                                // don't try to set a relationship with node itself
                                 continue;
                             }
 
-                            StructrRelationship r = n.getSecurityRelationship(selectedUser);
+                            // User
+                            if (selectedUser != null) {
+                                StructrRelationship r = n.getSecurityRelationship(selectedUser);
+                                
+                                if (r == null) {
+                                    
+                                    r = (StructrRelationship) createRel.execute(selectedUser, n, RelType.SECURITY);
+                                }
 
-                            if (r == null) {
-                                Command createRel = Services.command(CreateRelationshipCommand.class);
-
-                                r = (StructrRelationship) createRel.execute(selectedUser, n, RelType.SECURITY);
-
+                                if (selectedValues != null && selectedValues.size() > 0) {
+                                    
+                                    r.setAllowed(selectedValues);
+                                } else {
+                                    
+                                    deleteRel.execute(r);
+                                }
                             }
 
-                            if (selectedValues != null && selectedValues.size() > 0) {
+                            // Group
+                            if (selectedGroup != null) {
+                                StructrRelationship r = n.getSecurityRelationship(selectedGroup);
+                                
+                                if (r == null) {
+                                    
+                                    r = (StructrRelationship) createRel.execute(selectedGroup, n, RelType.SECURITY);
+                                }
 
-                                r.setAllowed(selectedValues);
-
-                            } else {
-
-                                Command deleteRel = Services.command(DeleteRelationshipCommand.class);
-                                deleteRel.execute(r);
-
+                                if (selectedValues != null && selectedValues.size() > 0) {
+                                    
+                                    r.setAllowed(selectedValues);
+                                } else {
+                                    
+                                    deleteRel.execute(r);
+                                }
                             }
+
                         }
 
                         okMsg = "Permissions successfully set";

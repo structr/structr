@@ -35,9 +35,11 @@ import org.structr.context.SessionMonitor;
 import org.structr.common.CurrentRequest;
 import org.structr.core.Command;
 import org.structr.core.Services;
+import org.structr.core.entity.Group;
 import org.structr.core.entity.Link;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
+import org.structr.core.node.FindGroupCommand;
 import org.structr.core.node.FindNodeCommand;
 import org.structr.core.node.FindUserCommand;
 import org.structr.ui.page.admin.DefaultEdit;
@@ -529,6 +531,16 @@ public class StructrPage extends Page {
         return ((List<User>) findUser.execute());
     }
 
+    /**
+     * Return all groups
+     *
+     * @return
+     */
+    protected List<Group> getAllGroups() {
+        Command findGroup = Services.command(FindGroupCommand.class);
+        return ((List<Group>) findGroup.execute());
+    }
+    
     /**
      * General redirect after an edit action
      * 

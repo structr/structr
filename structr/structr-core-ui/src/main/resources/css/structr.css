@@ -683,6 +683,10 @@ table#properties td:first-child {
     text-decoration: underline ! important;
 }
 
+.treestyle .droptarget {
+  color: #fff ! important;
+}
+
 .treestyle .active {
     background-color: #616161;
     border-radius: 3px;

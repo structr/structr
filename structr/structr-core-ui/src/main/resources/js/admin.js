@@ -114,7 +114,7 @@ function showNewNodePanel() {
             //    + jQuery('#toggleNewNodeForm').height(),
             left: jQuery('#toggleNewNodeForm').offset().left-4
         },
-        message: jQuery('#newNodeForm'),
+        message: jQuery('#newNodeFormDiv'),
         baseZ: 9,
         fadeIn: 0,
         fadeOut: 0,
@@ -137,7 +137,7 @@ function showUploadPanel() {
             //    + jQuery('#toggleNewNodeForm').height(),
             left: jQuery('#toggleUploadForm').offset().left-4
         },
-        message: jQuery('#uploadForm'),
+        message: jQuery('#uploadFormDiv'),
         baseZ: 9,
         fadeIn: 0,
         fadeOut: 0,
@@ -159,7 +159,7 @@ function showExtractNodePanel() {
             //    + jQuery('#toggleNewNodeForm').height(),
             left: jQuery('#toggleExtractNodeForm').offset().left-4
         },
-        message: jQuery('#extractNodeForm'),
+        message: jQuery('#extractNodeFormDiv'),
         baseZ: 9,
         fadeIn: 0,
         fadeOut: 0,
@@ -181,7 +181,7 @@ function showCopyNodePanel() {
             //    + jQuery('#toggleNewNodeForm').height(),
             left: jQuery('#toggleCopyNodeForm').offset().left-4
         },
-        message: jQuery('#copyNodeForm'),
+        message: jQuery('#copyNodeFormDiv'),
         baseZ: 9,
         fadeIn: 0,
         fadeOut: 0,
@@ -203,7 +203,7 @@ function showMoveNodePanel() {
             //    + jQuery('#toggleNewNodeForm').height(),
             left: jQuery('#toggleMoveNodeForm').offset().left-4
         },
-        message: jQuery('#moveNodeForm'),
+        message: jQuery('#moveNodeFormDiv'),
         baseZ: 9,
         fadeIn: 0,
         fadeOut: 0,
@@ -225,7 +225,7 @@ function showNewRelationshipPanel() {
             //    + jQuery('#toggleNewRelationshipForm').height(),
             left: jQuery('#toggleNewRelationshipForm').offset().left-4
         },
-        message: jQuery('#newRelationshipForm'),
+        message: jQuery('#newRelationshipFormDiv'),
         baseZ: 9,
         fadeIn: 0,
         fadeOut: 0,
@@ -247,7 +247,7 @@ function showEditPropertiesPanel() {
             //    + jQuery('#toggleNewRelationshipForm').height(),
             left: jQuery('#toggleEditPropertiesForm').offset().left-4
         },
-        message: jQuery('#editPropertiesForm'),
+        message: jQuery('#editPropertiesFormDiv'),
         baseZ: 9,
         fadeIn: 0,
         fadeOut: 0,
@@ -270,7 +270,7 @@ function showDeleteNodePanel() {
             //    + jQuery('#toggleNewNodeForm').height(),
             left: jQuery('#toggleDeleteNodeForm').offset().left-4
         },
-        message: jQuery('#deleteNodeForm'),
+        message: jQuery('#deleteNodeFormDiv'),
         baseZ: 9,
         fadeIn: 0,
         fadeOut: 0,

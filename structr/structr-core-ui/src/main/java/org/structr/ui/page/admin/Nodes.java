@@ -678,21 +678,24 @@ public class Nodes extends Admin {
             // avoid NullPointerException when no node was created..
             if (s != null) {
                 okMsg = "New " + s.getType() + " node " + s.getName() + " has been created.";
-            }
 
-            Command findNode = Services.command(FindNodeCommand.class);
-            AbstractNode n = (AbstractNode) findNode.execute(user, s.getId());
+                Command findNode = Services.command(FindNodeCommand.class);
+                AbstractNode n = (AbstractNode) findNode.execute(user, s.getId());
 
-            Map<String, String> parameters = new HashMap<String, String>();
-            parameters.put(NODE_ID_KEY, String.valueOf(n.getId()));
-            parameters.put(RENDER_MODE_KEY, renderMode);
-            parameters.put(OK_MSG_KEY, okMsg);
-            setRedirect(getRedirectPage(n), parameters);
+                Map<String, String> parameters = new HashMap<String, String>();
+                parameters.put(NODE_ID_KEY, String.valueOf(n.getId()));
+                parameters.put(RENDER_MODE_KEY, renderMode);
+                parameters.put(OK_MSG_KEY, okMsg);
+                setRedirect(getRedirectPage(n), parameters);
 
-            if (n instanceof PlainText) {
-                setRedirect(getRedirect().concat("#content-tab"));
+                if (n instanceof PlainText) {
+                    setRedirect(getRedirect().concat("#content-tab"));
+                } else {
+                    setRedirect(getRedirect().concat("#properties-tab"));
+                }
+                
             } else {
-                setRedirect(getRedirect().concat("#properties-tab"));
+                errorMsg = "New node could not be created!";
             }
 
         }
@@ -703,7 +706,7 @@ public class Nodes extends Admin {
         }
 
         // return false to stop continuing current controls
-        return false;
+        return redirect();
     }
 
     /**

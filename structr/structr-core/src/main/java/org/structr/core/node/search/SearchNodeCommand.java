@@ -63,6 +63,7 @@ import org.structr.core.node.StructrNodeFactory;
 public class SearchNodeCommand extends NodeServiceCommand {
 
     private static final Logger logger = Logger.getLogger(SearchNodeCommand.class.getName());
+    private static String IMPROBABLE_SEARCH_VALUE = "xeHfc6OG30o3YQzX57_8____r-Wx-RW_70r84_71D-g--P9-3K";
 
     @Override
     public Object execute(Object... parameters) {
@@ -289,8 +290,8 @@ public class SearchNodeCommand extends NodeServiceCommand {
         String value = singleAttribute.getValue();
         SearchOperator op = singleAttribute.getSearchOperator();
 
-        if (StringUtils.isBlank(value)) {
-            return "";
+        if (StringUtils.isBlank(value) || value.equals("\"\"")) {
+            return " " + key + ":" + IMPROBABLE_SEARCH_VALUE + "";
         }
 
         // NOT operator should always be applied
@@ -311,7 +312,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
         boolean valueIsNoStringAndNotNull = (value != null && !(value instanceof String));
         boolean valueIsNoBlankString = (value != null && value instanceof String && StringUtils.isNotBlank((String) value));
 
-        if (StringUtils.isNotBlank(key) && (valueIsNoStringAndNotNull || valueIsNoBlankString)) {
+        if (StringUtils.isNotBlank(key) && (valueIsNoBlankString || valueIsNoStringAndNotNull)) {
             return new TermQuery(new Term(key, value.toString()));
         }
 

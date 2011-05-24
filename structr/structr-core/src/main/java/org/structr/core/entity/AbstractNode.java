@@ -134,9 +134,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
     private final static String CALLING_NODE_SUBNODES_AND_LINKED_NODES_KEY = "#";
     public final static String TEMPLATE_ID_KEY = "templateId";
     //public final static String TEMPLATES_KEY = "templates";
-    
     protected Template template;
-
     protected User user;
 
     /*
@@ -287,7 +285,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
         Command createRel = Services.command(CreateRelationshipCommand.class);
         createRel.execute(this, templateNode, RelType.USE_TEMPLATE);
     }
-    
+
     /**
      * Render a node-specific inline edit view as html
      * 
@@ -1206,7 +1204,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      * @return
      *//*
     public String getNodePath(final AbstractNode node, final Enum renderMode) {
-
+    
     Command nodeFactory = Services.command(NodeFactoryCommand.class);
     AbstractNode n = (AbstractNode) nodeFactory.execute(node);
     return n.getNodePath();
@@ -2014,12 +2012,31 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
         }
 
 
-        StructrRelationship r = null;
-
-        r = getSecurityRelationship(principal);
+        StructrRelationship r = getSecurityRelationship(principal);
 
         if (r != null && r.isAllowed(permission)) {
             return true;
+        }
+
+        // Check group
+
+        // We cannot use getParent() here because it uses hasPermission itself,
+        // that would lead to an infinite loop
+        List<StructrRelationship> rels = principal.getIncomingChildRelationships();
+        for (StructrRelationship sr : rels) {
+            AbstractNode node = sr.getStartNode();
+            
+            if (!(node instanceof Group)) {
+                continue;
+            }
+            
+            Group group = (Group) node;
+            
+            r = getSecurityRelationship(group);
+
+            if (r != null && r.isAllowed(permission)) {
+                return true;
+            }
         }
 
         return false;
@@ -2371,7 +2388,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      */
     public Object get(final String key) {
 
-        if (key == null) return null;
+        if (key == null) {
+            return null;
+        }
 
         Object propertyValue = this.getProperty(key);
 
@@ -2586,7 +2605,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
                 }
 
                 //if (user != null) {
-                    root.put("User", CurrentRequest.getCurrentUser());
+                root.put("User", CurrentRequest.getCurrentUser());
                 //}
 
                 // Add a generic helper

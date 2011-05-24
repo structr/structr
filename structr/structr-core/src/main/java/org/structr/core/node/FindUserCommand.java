@@ -28,7 +28,6 @@ import org.structr.core.node.search.Search;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
 import org.structr.core.node.search.SearchAttribute;
 
@@ -55,10 +54,10 @@ public class FindUserCommand extends NodeServiceCommand {
         GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
         //IndexService index = (LuceneFulltextIndexService) arguments.get("index");
 
-        Command findNode = Services.command(FindNodeCommand.class);
+//        Command findNode = Services.command(FindNodeCommand.class);
         Command searchNode = Services.command(SearchNodeCommand.class);
 
-        String userXPath = null;
+//        String userXPath = null;
 
         if (graphDb != null) {
 
@@ -125,36 +124,36 @@ public class FindUserCommand extends NodeServiceCommand {
 
             }
         }
-
-        // search for user nodes with super user permissions
-        List<AbstractNode> nodes = (List<AbstractNode>) findNode.execute(new SuperUser(), new XPath(userXPath));
-
-        if (nodes != null) {
-
-            if (nodes.size() == 1) {
-
-                AbstractNode r = nodes.get(0);
-
-                if (r instanceof User) {
-                    return (User) r;
-                } else {
-                    logger.log(Level.SEVERE, "XPath search {0} for User, but returned class was not User: {1}", new Object[]{userXPath, r.getType()});
-                    return null;
-                }
-
-            } else if (nodes.size() > 1) {
-
-                return nodes;
-
-            } else {
-//                Long nodeId = r.getId();
-//                String name = r.getName();
-//                String type = r.getType();
-//                String className = r.getClass().getCanonicalName();
-
-                logger.log(Level.SEVERE, "XPath search {0} for User, but returned class was not User!", userXPath);
-            }
-        }
+//
+//        // search for user nodes with super user permissions
+//        List<AbstractNode> nodes = (List<AbstractNode>) findNode.execute(new SuperUser(), new XPath(userXPath));
+//
+//        if (nodes != null) {
+//
+//            if (nodes.size() == 1) {
+//
+//                AbstractNode r = nodes.get(0);
+//
+//                if (r instanceof User) {
+//                    return (User) r;
+//                } else {
+//                    logger.log(Level.SEVERE, "XPath search {0} for User, but returned class was not User: {1}", new Object[]{userXPath, r.getType()});
+//                    return null;
+//                }
+//
+//            } else if (nodes.size() > 1) {
+//
+//                return nodes;
+//
+//            } else {
+////                Long nodeId = r.getId();
+////                String name = r.getName();
+////                String type = r.getType();
+////                String className = r.getClass().getCanonicalName();
+//
+//                logger.log(Level.SEVERE, "XPath search {0} for User, but returned class was not User!", userXPath);
+//            }
+//        }
 
         return null;
     }
