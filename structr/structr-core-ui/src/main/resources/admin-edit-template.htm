@@ -330,14 +330,9 @@
                 
                 //console.log(dragged.closest('li').find(dropTarget));
                 
-                if (!dragged.closest('li').find(dropTarget).length > 0) {
-                  console.log('move');
                   var targetNodeId = getParam('nodeId', dropTarget.attr('href'));
                   //jQuery(this).attr('href', '#');
-                  //submitMoveNodeForm(jQuery(ui.draggable).data('nodeId'), targetNodeId);
-                } else {
-                  console.log('move impossible');
-                }
+                  submitMoveNodeForm(jQuery(ui.draggable).data('nodeId'), targetNodeId);
               }
             });
           
