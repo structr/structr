@@ -29,6 +29,7 @@ import org.structr.core.entity.AbstractNode;
 public class Menu extends MenuItem {
 
     private final static String ICON_SRC = "/images/tree.png";
+    private final static int maxDepthDefault = 3;
 
     @Override
     public String getIconSrc() {
@@ -37,7 +38,15 @@ public class Menu extends MenuItem {
     public final static String MAX_DEPTH_KEY = "maxDepth";
 
     public int getMaxDepth() {
-        return getIntProperty(MAX_DEPTH_KEY);
+        Object depth = getProperty(MAX_DEPTH_KEY);
+        
+        // The first time, set default max depth
+        if (depth == null) {
+            setMaxDepth(maxDepthDefault);
+            return maxDepthDefault;
+        } else {
+            return getIntProperty(MAX_DEPTH_KEY);
+        }
     }
 
     public void setMaxDepth(final int maxDepth) {
@@ -64,8 +73,4 @@ public class Menu extends MenuItem {
             }
         }
     }
-
-
-
-
 }
