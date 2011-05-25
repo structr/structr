@@ -1,408 +1,417 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
-  <head>
-    <title>$title</title>
-    $headElements
-    <link href="$contextPath/css/smoothness/jquery-ui-1.8.4.custom.css" rel="stylesheet"  type="text/css"/>
-    <link href="$contextPath/css/structr.css" rel="stylesheet" type="text/css">
-    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-    <!--meta name="viewport" content="width=1024px, minimum-scale=1.0, maximum-scale=1.0" /-->
-  </head>
+    <head>
+        <title>$title</title>
+        $headElements
+        <link href="$contextPath/css/smoothness/jquery-ui-1.8.4.custom.css" rel="stylesheet"  type="text/css"/>
+        <link href="$contextPath/css/structr.css" rel="stylesheet" type="text/css">
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+        <!--meta name="viewport" content="width=1024px, minimum-scale=1.0, maximum-scale=1.0" /-->
+    </head>
 
-  <body>
-    #if ($renderMode != "inline")
-    <div id="header">
+    <body>
+        #if ($renderMode != "inline")
+        <div id="header">
 
-      <!--            <div class="structr"><span class="structrCap">s</span>tructr</div>-->
-      <div class="mainLink">$homeLink</div>
-      <div class="mainLink">$usersLink</div>
-      <div class="mainLink">$maintenanceLink</div>
-
-
-      #if ($userName)
-      <div class="util">
-        <img alt="$userName" title="$userName" src="$contextPath/images/user.png"> $userName
-        <span class="spacer">&nbsp;</span>
-        <img alt="Logout" title="Logout" src="$contextPath/images/door_out.png"> $logoutLink
-      </div>
-      #end
-
-      #if ($renderMode != "inline" && $simpleSearchPanel)
-      <div class="search">$simpleSearchPanel</div>
-      #end
-
-    </div>
-    #end
-
-    <div style="clear: both"></div>
-
-    #if ($errorMsg && $errorMsg != "")
-    <div id="msg" class="errorMsg">$errorMsg</div>
-    #end
-    #if ($okMsg && $okMsg != "")
-    <div id="msg" class="okMsg">$okMsg</div>
-    #end
-    #if ($warnMsg && $warnMsg != "")
-    <div id="msg" class="warnMsg">$warnMsg</div>
-    #end
-
-    <div id="main">
-      #if ($renderMode != "inline")
-      #if ($nodeTreePanel)
-      $nodeTreePanel
-      #end
-      #end
+            <!--            <div class="structr"><span class="structrCap">s</span>tructr</div>-->
+            <div class="mainLink">$homeLink</div>
+            <div class="mainLink">$usersLink</div>
+            <div class="mainLink">$maintenanceLink</div>
 
 
-      #if ($renderMode != "inline")
-      <div class="contentBox tabArea">
-        #else
-        <div class="tabArea tabAreaInline">
-          #end
-
-          <h2 class="header">
-            #if ($node.name && $node.name != "")
-            <img alt="$node.name"  src="$context/$node.iconSrc"> $node.name
+            #if ($userName)
+            <div class="util">
+                <img alt="$userName" title="$userName" src="$contextPath/images/user.png"> $userName
+                <span class="spacer">&nbsp;</span>
+                <img alt="Logout" title="Logout" src="$contextPath/images/door_out.png"> $logoutLink
+            </div>
             #end
-          </h2>
 
-          #if ($actionsPanel)
-          <div class="actionsPanel">
-            $actionsPanel
-          </div>
-          #end
+            #if ($renderMode != "inline" && $simpleSearchPanel)
+            <div class="search">$simpleSearchPanel</div>
+            #end
+
+        </div>
+        #end
+
+        <div style="clear: both"></div>
+
+        #if ($errorMsg && $errorMsg != "")
+        <div id="msg" class="errorMsg">$errorMsg</div>
+        #end
+        #if ($okMsg && $okMsg != "")
+        <div id="msg" class="okMsg">$okMsg</div>
+        #end
+        #if ($warnMsg && $warnMsg != "")
+        <div id="msg" class="warnMsg">$warnMsg</div>
+        #end
+
+        <div id="main">
+            #if ($renderMode != "inline")
+            #if ($nodeTreePanel)
+            $nodeTreePanel
+            #end
+            #end
 
 
-          <div id="tabs" class="ui-tabs">
+            #if ($renderMode != "inline")
+            <div class="contentBox tabArea">
+                #else
+                <div class="tabArea tabAreaInline">
+                    #end
 
-            <ul>
-              #if ($renditionPanel)
-              <li><a href="#rendition-tab"><span>View</span></a></li>
+                    <h2 class="header">
+                        #if ($node.name && $node.name != "")
+                        <img alt="$node.name"  src="$context/$node.iconSrc"> $node.name
+                        #end
+                    </h2>
 
-              ##if ($node.type != "File")
-              <li><a href="#source-tab"><span>Source</span></a></li>
-              ##end
-              #end
+                    #if ($actionsPanel)
+                    <div class="actionsPanel">
+                        $actionsPanel
+                    </div>
+                    #end
 
-              #if ($searchResultsPanel)
-              <li><a href="#search-tab"><span>Search Results</span></a></li>
-              #end
 
-              #if ($reportPanel)
-              <li><a href="#report-tab"><span>Reports</span></a></li>
-              #end
+                    <div id="tabs" class="ui-tabs">
 
-              #if ($editContentForm)
-              <li><a href="#content-tab"><span>Content</span></a></li>
-              #end
+                        <ul>
+                            #if ($renditionPanel)
+                            <li><a href="#rendition-tab"><span>View</span></a></li>
 
-              #if ($editChildNodesPanel)
-              <li><a href="#childnodes-tab"><span>Child Nodes</span></a></li>
-              #end
+                            ##if ($node.type != "File")
+                            <li><a href="#source-tab"><span>Source</span></a></li>
+                            ##end
+                            #end
 
-              #if ($editPropertiesPanel)
-              <li><a href="#properties-tab"><span>Properties</span></a></li>
-              #end
+                            #if ($searchResultsPanel)
+                            <li><a href="#search-tab"><span>Search Results</span></a></li>
+                            #end
 
-              #if ($editVisibilityPanel)
-              <li><a href="#visibility-tab"><span>Visibility</span></a></li>
-              #end
+                            #if ($reportPanel)
+                            <li><a href="#report-tab"><span>Reports</span></a></li>
+                            #end
 
-              #if ($editRelationshipsPanel)
-              <li><a href="#relationships-tab"><span>Relationships</span></a></li>
-              #end
+                            #if ($editContentForm)
+                            <li><a href="#content-tab"><span>Content</span></a></li>
+                            #end
 
-              #if ($editSecurityPanel)
-              <li><a href="#security-tab"><span>Security</span></a></li>
-              #end
+                            #if ($editChildNodesPanel)
+                            <li><a href="#childnodes-tab"><span>Child Nodes</span></a></li>
+                            #end
 
-              #if ($cloudPanel)
-              <li><a href="#cloud-tab"><span>Cloud</span></a></li>
-              #end
-            </ul>
+                            #if ($editPropertiesPanel)
+                            <li><a href="#properties-tab"><span>Properties</span></a></li>
+                            #end
+
+                            #if ($editVisibilityPanel)
+                            <li><a href="#visibility-tab"><span>Visibility</span></a></li>
+                            #end
+
+                            #if ($editRelationshipsPanel)
+                            <li><a href="#relationships-tab"><span>Relationships</span></a></li>
+                            #end
+
+                            #if ($editSecurityPanel)
+                            <li><a href="#security-tab"><span>Security</span></a></li>
+                            #end
+
+                            #if ($cloudPanel)
+                            <li><a href="#cloud-tab"><span>Cloud</span></a></li>
+                            #end
+                        </ul>
+
+                        <div style="clear: both"></div>
+
+                        #if ($renditionPanel)
+                        $renditionPanel
+                        #end
+
+                        $jsElements
+
+                        <script src="$context/js/jquery-1.6.1.min.js" type="text/javascript"></script>
+                        <script src="$context/js/jquery.ba-urlinternal.min.js" type="text/javascript"></script>
+                        <script src="$context/js/jquery.cookies.2.2.0.min.js" type="text/javascript"></script>
+                        <script src="$context/js/jquery.blockUI.js" type="text/javascript" ></script>
+                        <script src="$context/js/jquery-ui-1.8.12.custom.min.js" type="text/javascript" ></script>
+                        <script src="$context/js/admin.js" type="text/javascript"></script>
+
+                        #if ($editContentForm)
+                        <div id="content-tab" class="ui-tabs-hide">
+
+                            <div class="body">
+                                #parse($path)
+                            </div>
+
+                        </div>
+                        #end
+
+                        #if ($searchResultsPanel)
+                        <div id="search-tab" class="ui-tabs-hide">
+                            <div class="body">
+                                #parse($path)
+                            </div>
+                        </div>
+                        #end
+
+                        #if ($reportPanel)
+                        <div id="report-tab" class="ui-tabs-hide">
+                            #parse($path)
+                        </div>
+                        #end
+
+                        #if ($editChildNodesPanel)
+                        $editChildNodesPanel
+                        #end
+
+                        #if ($editPropertiesPanel)
+                        $editPropertiesPanel
+                        #end
+
+                        #if ($editVisibilityPanel)
+                        $editVisibilityPanel
+                        #end
+
+                        #if ($editRelationshipsPanel)
+                        $editRelationshipsPanel
+                        #end
+
+                        #if ($editSecurityPanel)
+                        $editSecurityPanel
+                        #end
+
+                        #if ($maintenancePanel)
+                        $maintenancePanel
+                        #end
+
+                        #if ($cloudPanel)
+                        $cloudPanel
+                        #end
+                    </div><!-- .body -->
+
+                </div><!-- #tabs -->
+
+            </div><!-- .tabArea -->
 
             <div style="clear: both"></div>
 
-            #if ($renditionPanel)
-            $renditionPanel
-            #end
 
-            $jsElements
-
-            <script src="$context/js/jquery-1.6.1.min.js" type="text/javascript"></script>
-            <script src="$context/js/jquery.ba-urlinternal.min.js" type="text/javascript"></script>
-            <script src="$context/js/jquery.cookies.2.2.0.min.js" type="text/javascript"></script>
-            <script src="$context/js/jquery.blockUI.js" type="text/javascript" ></script>
-            <script src="$context/js/jquery-ui-1.8.12.custom.min.js" type="text/javascript" ></script>
-            <script src="$context/js/admin.js" type="text/javascript"></script>
-
-            #if ($editContentForm)
-            <div id="content-tab" class="ui-tabs-hide">
-
-              <div class="body">
-                #parse($path)
-              </div>
-
-            </div>
-            #end
-
-            #if ($searchResultsPanel)
-            <div id="search-tab" class="ui-tabs-hide">
-              <div class="body">
-                #parse($path)
-              </div>
-            </div>
-            #end
-
-            #if ($reportPanel)
-            <div id="report-tab" class="ui-tabs-hide">
-              #parse($path)
-            </div>
-            #end
-
-            #if ($editChildNodesPanel)
-            $editChildNodesPanel
-            #end
-
-            #if ($editPropertiesPanel)
-            $editPropertiesPanel
-            #end
-
-            #if ($editVisibilityPanel)
-            $editVisibilityPanel
-            #end
-
-            #if ($editRelationshipsPanel)
-            $editRelationshipsPanel
-            #end
-
-            #if ($editSecurityPanel)
-            $editSecurityPanel
-            #end
-
-            #if ($maintenancePanel)
-            $maintenancePanel
-            #end
-
-            #if ($cloudPanel)
-            $cloudPanel
-            #end
-          </div><!-- .body -->
-
-        </div><!-- #tabs -->
-
-      </div><!-- .tabArea -->
-
-      <div style="clear: both"></div>
-
-
-      <script type="text/javascript">
-        var sourceId;
-        var targetId;
+            <script type="text/javascript">
+                var sourceId;
+                var targetId;
         
-        jQuery.noConflict();
+                jQuery.noConflict();
 
-        jQuery(window).resize(function() {
-          setWindowHeightAndWidth(true);
-        });
+                jQuery(window).resize(function() {
+                    setWindowHeightAndWidth(true);
+                });
 
-        window.onbeforeunload = function () {
-          //alert(jQuery("#treeArea .body").scrollTop());
-          jQuery.cookies.set("scrollTree", jQuery(".treeArea .body").scrollTop());
-          //jQuery.cookies.set("scrollMain", jQuery(".tabArea .body").scrollTop());
-          jQuery.cookies.set("scrollCode", jQuery(".tabArea .CodeMirror-wrapping iframe").contents().scrollTop());
-          //alert(jQuery("#tabArea .CodeMirror-wrapping iframe").contents().scrollTop());
-          jQuery.cookies.set("scrollIframe", jQuery("#rendition-tab iframe").contents().scrollTop());
-          //alert(jQuery("#rendition-tab iframe").contents().scrollTop());
-          jQuery.cookies.set("scrollTextarea", jQuery("#source-tab textarea").scrollTop());
-        }
+                window.onbeforeunload = function () {
+                    //alert(jQuery("#treeArea .body").scrollTop());
+                    jQuery.cookies.set("scrollTree", jQuery(".treeArea .body").scrollTop());
+                    //jQuery.cookies.set("scrollMain", jQuery(".tabArea .body").scrollTop());
+                    jQuery.cookies.set("scrollCode", jQuery(".tabArea .CodeMirror-wrapping iframe").contents().scrollTop());
+                    //alert(jQuery("#tabArea .CodeMirror-wrapping iframe").contents().scrollTop());
+                    jQuery.cookies.set("scrollIframe", jQuery("#rendition-tab iframe").contents().scrollTop());
+                    //alert(jQuery("#rendition-tab iframe").contents().scrollTop());
+                    jQuery.cookies.set("scrollTextarea", jQuery("#source-tab textarea").scrollTop());
+                }
 
-        jQuery(document).ready(function() {
+                jQuery(document).ready(function() {
 
-          jQuery("#tabs").tabs();
+                    jQuery("#tabs").tabs();
 
-          setWindowHeightAndWidth(false);
+                    setWindowHeightAndWidth(false);
 
-          jQuery('.unblock').click(function() {
-            jQuery.unblockUI({
-              fadeOut: 0
-            });
-          });
+                    jQuery('.unblock').click(function() {
+                        jQuery.unblockUI({
+                            fadeOut: 0
+                        });
+                    });
 
-          jQuery('#toggleNewNodeForm').click(function() {
-            showNewNodePanel();
-          });
+                    jQuery('#toggleNewNodeForm').click(function() {
+                        showNewNodePanel();
+                    });
 
-          #if ($newNodeFormIsInvalid)
-            showNewNodePanel();
-          #end
-
-
-          jQuery('#toggleUploadForm').click(function() {
-            showUploadPanel();
-          });
-
-          #if ($uploadFormIsInvalid)
-            showUploadPanel();
-          #end
-
-          jQuery('#toggleExtractNodeForm').click(function() {
-            showExtractNodePanel();
-          });
-
-          #if ($extractNodeFormIsInvalid)
-            showExtractNodePanel();
-          #end
-
-          jQuery('#toggleCopyNodeForm').click(function() {
-            showCopyNodePanel()
-          });
-
-          #if ($copyNodeFormIsInvalid)
-            showCopyNodePanel();
-          #end
-
-          jQuery('#toggleMoveNodeForm').click(function() {
-            showMoveNodePanel()
-          });
-
-          #if ($moveNodeFormIsInvalid)
-            showMoveNodePanel();
-          #end
-
-          jQuery('#toggleNewRelationshipForm').click(function() {
-            showNewRelationshipPanel();
-          });
-
-          #if ($newRelationshipFormIsInvalid)
-            showNewRelationshipPanel();
-          #end
-
-          jQuery('#toggleEditPropertiesForm').click(function() {
-            showEditPropertiesPanel()
-          });
-
-          #if ($editPropertiesFormIsInvalid)
-            showNewRelationshipPanel();
-          #end
-
-          jQuery('#toggleDeleteNodeForm').click(function() {
-            showDeleteNodePanel()
-          });
-
-          #if ($deleteNodeFormIsInvalid)
-            showDeleteNodePanel();
-          #end
+                    #if ($newNodeFormIsInvalid)
+                        showNewNodePanel();
+                    #end
 
 
-          var treeElements = jQuery('#tree li a').not('.spacer');
-          jQuery.each(treeElements, function(i, el) {
+                    jQuery('#toggleUploadForm').click(function() {
+                        showUploadPanel();
+                    });
+
+                    #if ($uploadFormIsInvalid)
+                        showUploadPanel();
+                    #end
+
+                    jQuery('#toggleExtractNodeForm').click(function() {
+                        showExtractNodePanel();
+                    });
+
+                    #if ($extractNodeFormIsInvalid)
+                        showExtractNodePanel();
+                    #end
+
+                    jQuery('#toggleCopyNodeForm').click(function() {
+                        showCopyNodePanel()
+                    });
+
+                    #if ($copyNodeFormIsInvalid)
+                        showCopyNodePanel();
+                    #end
+
+                    jQuery('#toggleMoveNodeForm').click(function() {
+                        showMoveNodePanel()
+                    });
+
+                    #if ($moveNodeFormIsInvalid)
+                        showMoveNodePanel();
+                    #end
+
+                    jQuery('#toggleNewRelationshipForm').click(function() {
+                        showNewRelationshipPanel();
+                    });
+
+                    #if ($newRelationshipFormIsInvalid)
+                        showNewRelationshipPanel();
+                    #end
+
+                    jQuery('#toggleEditPropertiesForm').click(function() {
+                        showEditPropertiesPanel()
+                    });
+
+                    #if ($editPropertiesFormIsInvalid)
+                        showNewRelationshipPanel();
+                    #end
+
+                    jQuery('#toggleDeleteNodeForm').click(function() {
+                        showDeleteNodePanel()
+                    });
+
+                    #if ($deleteNodeFormIsInvalid)
+                        showDeleteNodePanel();
+                    #end
+
+
+                    var treeElements = jQuery('#tree li a').not('.spacer');
+                    jQuery.each(treeElements, function(i, el) {
         
-            //console.log(jQuery('span a', el).attr('href'));
+                        //console.log(jQuery('span a', el).attr('href'));
 
-            jQuery(el).draggable({
-              distance:    '5',
-              //axis:        'y',
-              containment: '#tree',
-              //cursor:      'crosshair',
-              //cursorAt:    { top: 0, left: 0 },
-              //handle:      'a',
-              helper:      'clone',
-              scroll:      'true',
-              //opacity:     0.8,
-              revert:      'invalid'
-              //snap:        true
-              //snapMode:    'both'
-            }).data('nodeId', getParam('nodeId', jQuery(el).attr('href')));
+                        jQuery(el).draggable({
+                            distance:    '5',
+                            //axis:        'y',
+                            containment: '#tree',
+                            //cursor:      'crosshair',
+                            //cursorAt:    { top: 0, left: 0 },
+                            //handle:      'a',
+                            helper:      'clone',
+                            scroll:      'true',
+                            //opacity:     0.8,
+                            revert:      'invalid'
+                            //snap:        true
+                            //snapMode:    'both'
+                        }).data('nodeId', getParam('nodeId', jQuery(el).attr('href')));
 
-            jQuery(el).droppable({
-              accept: function(draggable) {
-                return !(draggable.closest('li').find(el).length > 0);
-              },
-              greedy: true,
-              tolerance: 'pointer',
-              hoverClass: 'droptarget',
-              drop: function(event, ui) {
-                //              console.log(ui.draggable);
-                //              console.log('Source node id: ' + jQuery(ui.draggable).data('nodeId'));
-                //              console.log(jQuery(this));
-                //              console.log(jQuery(event.srcElement));
-                //              console.log('Target node id: ' + getParam('nodeId', jQuery(this).attr('href')));
-                var dragged = jQuery(ui.draggable);
-                var dropTarget = jQuery(this);
+                        jQuery(el).droppable({
+                            accept: function(draggable) {
+                                return !(draggable.closest('li').find(el).length > 0);
+                            },
+                            greedy: true,
+                            tolerance: 'pointer',
+                            hoverClass: 'droptarget',
+                            drop: function(event, ui) {
+                                //              console.log(ui.draggable);
+                                //              console.log('Source node id: ' + jQuery(ui.draggable).data('nodeId'));
+                                //              console.log(jQuery(this));
+                                //              console.log(jQuery(event.srcElement));
+                                //              console.log('Target node id: ' + getParam('nodeId', jQuery(this).attr('href')));
+                                var dragged = jQuery(ui.draggable);
+                                var dropTarget = jQuery(this);
                 
-                //console.log(dragged.closest('li').find(dropTarget));
-                sourceId = jQuery(ui.draggable).data('nodeId');
-                targetId = getParam('nodeId', dropTarget.attr('href'));
-                //jQuery(this).attr('href', '#');
-                showDropSelect(jQuery(this));
+                                //console.log(dragged.closest('li').find(dropTarget));
+                                sourceId = jQuery(ui.draggable).data('nodeId');
+                                targetId = getParam('nodeId', dropTarget.attr('href'));
+                                //jQuery(this).attr('href', '#');
+                                showDropSelect(jQuery(this));
                 
-              }
-            });
+                            }
+                        });
           
-            //          console.log('Tree element ' + i + ': ' + li);
-          }); 
+                        //          console.log('Tree element ' + i + ': ' + li);
+                    }); 
 
 
-        });
+                });
       
-        function getParam(name,url) {
-          return decodeURI(
-          (RegExp(name + '=' + '(.+?)(&|$)').exec(url)||[,null])[1]
-        );
-        }
+                function getParam(name,url) {
+                    return decodeURI(
+                    (RegExp(name + '=' + '(.+?)(&|$)').exec(url)||[,null])[1]
+                );
+                }
       
-        function submitMoveNodeForm() {
-          console.log('Move node ' + sourceId + ' to ' + targetId);
-          jQuery('#moveNodeForm_sourceNodeId').val(sourceId);
-          jQuery('#moveNodeForm_targetNodeId').val(targetId);
-          jQuery('#moveNodeForm_moveNode').val(' Move node ');
-          jQuery('#moveNodeForm').submit();
-        }
+                function submitMoveNodeForm() {
+                    console.log('Move node ' + sourceId + ' to ' + targetId);
+                    jQuery('#moveNodeForm_sourceNodeId').val(sourceId);
+                    jQuery('#moveNodeForm_targetNodeId').val(targetId);
+                    jQuery('#moveNodeForm_moveNode').val(' Move node ');
+                    jQuery('#moveNodeForm').submit();
+                }
       
-        function submitCopyNodeForm() {
-          console.log('Copy node ' + sourceId + ' to ' + targetId);
-          jQuery('#copyNodeForm_sourceNodeId').val(sourceId);
-          jQuery('#copyNodeForm_targetNodeId').val(targetId);
-          jQuery('#copyNodeForm_copyNode').val(' Copy node ');
-          jQuery('#copyNodeForm').submit();
-        }
+                function submitCopyNodeForm() {
+                    console.log('Copy node ' + sourceId + ' to ' + targetId);
+                    jQuery('#copyNodeForm_sourceNodeId').val(sourceId);
+                    jQuery('#copyNodeForm_targetNodeId').val(targetId);
+                    jQuery('#copyNodeForm_copyNode').val(' Copy node ');
+                    jQuery('#copyNodeForm').submit();
+                }
     
-        function submitLinkNodeForm() {
-          console.log('Link node ' + sourceId + ' to ' + targetId);
-          jQuery('#linkNodeForm_sourceNodeId').val(sourceId);
-          jQuery('#linkNodeForm_targetNodeId').val(targetId);
-          jQuery('#linkNodeForm_linkNode').val(' Link node ');
-          jQuery('#linkNodeForm').submit();
-        }
+                function submitLinkNodeForm() {
+                    console.log('Link node ' + sourceId + ' to ' + targetId);
+                    jQuery('#newRelationshipForm_sourceNodeId').val(sourceId);
+                    jQuery('#newRelationshipForm_targetNodeId').val(targetId);
+                    jQuery('#newRelationshipForm_relType').val('LINK');
+                    jQuery('#newRelationshipForm_linkNode').val(' Link node ');
+                    jQuery('#newRelationshipForm').submit();
+                }
 
-      </script>
-      <style text="text/css">
-        #tree .highlight {
-          background-color: #fea;
-        }
-        #treeArea .body {
-          position: relative;
-        }
-        .clickable {
-          cursor: pointer;
-          cursor: hand;
-        }
-      </style>
-    </div><!-- #main -->
+            </script>
+            <style text="text/css">
+                #tree .highlight {
+                    background-color: #fea;
+                }
+                #treeArea .body {
+                    position: relative;
+                }
+                #dropSelectDiv {
+                    width: 100px;
+                }
+                #dropSelectDiv img {
+                    border: none;
+                    vertical-align: middle;
+                    margin: -1px 3px 0px 0px;
+                }
+                .clickable {
+                    cursor: pointer;
+                    cursor: hand;
+                }
+            </style>
+        </div><!-- #main -->
 
-    <div class="nodeActionMenu" id="dropSelectDiv">
-      <div class="clickable" onclick="submitCopyNodeForm()"><a href="#"><img alt="Copy" src="$context/images/page_copy.png"><span>Copy</span></a></div>
-      <div class="clickable" onclick="submitMoveNodeForm()"><a href="#"><img alt="Move" src="$context/images/folder_go.png"><span>Move</span></a></div>
-      <div class="clickable" onclick="submitLinkNodeForm()"><a href="#"><img alt="Link" src="$context/images/add_linked.png"><span>Link</span></a></div>
-      <div class="unblock">
-        <a href="#">
-          <img class="link" border="0" alt="Cancel" src="$context/images/cancel.png">
-          <span>Cancel</span>
-        </a>
-      </div>
-      <a href="#"></a>
-    </div>
+        <div class="nodeActionMenu" id="dropSelectDiv">
+            <div class="clickable" onclick="submitCopyNodeForm()"><a href="#"><img alt="Copy" src="$context/images/page_copy.png"><span>Copy</span></a></div>
+            <div class="clickable" onclick="submitMoveNodeForm()"><a href="#"><img alt="Move" src="$context/images/folder_go.png"><span>Move</span></a></div>
+            <div class="clickable" onclick="submitLinkNodeForm()"><a href="#"><img alt="Link" src="$context/images/add_linked.png"><span>Link</span></a></div>
+            <div class="unblock">
+                <a href="#">
+                    <img class="link" border="0" alt="Cancel" src="$context/images/cancel.png">
+                    <span>Cancel</span>
+                </a>
+            </div>
+            <a href="#"></a>
+        </div>
 
-  </body>
+    </body>
 </html>

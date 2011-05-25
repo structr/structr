@@ -101,7 +101,7 @@ public class StructrPage extends Page {
     protected final static String RETURN_URL_KEY = "returnUrl";
     protected final static String RENDER_MODE_KEY = "renderMode";
     protected final static String START_NODE_ID_KEY = "startNodeId";
-    protected final static String END_NODE_ID_KEY = "endNodeId";
+//    protected final static String END_NODE_ID_KEY = "endNodeId";
     protected final static String START_NODE_KEY = "startNode";
     protected final static String END_NODE_KEY = "endNode";
     protected final static String REL_TYPE_KEY = "relType";

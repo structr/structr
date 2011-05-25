@@ -300,7 +300,8 @@ public class Nodes extends Admin {
         if (addRelationshipAllowed) {
 
             // assemble form to create a new relationship
-            newRelationshipForm.add(new TextField(END_NODE_ID_KEY, true));
+            newRelationshipForm.add(new TextField(SOURCE_NODE_ID_KEY, true));
+            newRelationshipForm.add(new TextField(TARGET_NODE_ID_KEY, true));
             Select relTypeField = new Select(REL_TYPE_KEY, "Select Relationship Type", true);
             relTypeField.add(new Option("", "Please select"));
             //Option linkOption = new Option("LINK", "LINK");
@@ -722,7 +723,8 @@ public class Nodes extends Admin {
      */
     public boolean onCreateRelationship() {
         if (newRelationshipForm.isValid()) {
-            final String endNodeId = newRelationshipForm.getFieldValue(END_NODE_ID_KEY);
+            final String sourceNodeId = StringUtils.isNotEmpty(newRelationshipForm.getFieldValue(SOURCE_NODE_ID_KEY)) ? newRelationshipForm.getFieldValue(SOURCE_NODE_ID_KEY) : getNodeId();
+            final String targetNodeId = newRelationshipForm.getFieldValue(TARGET_NODE_ID_KEY);
             final String relType = newRelationshipForm.getFieldValue(REL_TYPE_KEY);
             final String targetSlotName = newRelationshipForm.getFieldValue(TARGET_SLOT_NAME_KEY);
 
@@ -734,8 +736,8 @@ public class Nodes extends Admin {
                     Command findNode = Services.command(FindNodeCommand.class);
                     Command createRel = Services.command(CreateRelationshipCommand.class);
 
-                    AbstractNode startNode = node;
-                    AbstractNode endNode = (AbstractNode) findNode.execute(user, Long.parseLong(endNodeId));
+                    AbstractNode startNode = (AbstractNode) findNode.execute(user, Long.parseLong(sourceNodeId));
+                    AbstractNode endNode = (AbstractNode) findNode.execute(user, Long.parseLong(targetNodeId));
 
                     StructrRelationship newRel = (StructrRelationship) createRel.execute(startNode, endNode, relType);
                     newRel.setProperty(TARGET_SLOT_NAME_KEY, targetSlotName);
@@ -744,7 +746,7 @@ public class Nodes extends Admin {
                 }
             });
 
-            okMsg = "New relationship to node " + endNodeId + " with type " + relType + " has been created.";
+            okMsg = "New relationship to node " + targetNodeId + " with type " + relType + " has been created.";
 
             Map<String, String> parameters = new HashMap<String, String>();
             parameters.put(NODE_ID_KEY, String.valueOf(getNodeId()));
