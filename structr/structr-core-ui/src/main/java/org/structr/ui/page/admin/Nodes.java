@@ -43,6 +43,7 @@ import org.apache.click.service.*;
 import org.apache.click.util.ClickUtils;
 import org.apache.click.util.HtmlStringBuffer;
 import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.lang.StringUtils;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.File;
@@ -285,7 +286,9 @@ public class Nodes extends Admin {
             // assemble form to move a node
             moveNodeForm.add(new TextField(NEW_PARENT_NODE_ID_KEY, true));
             moveNodeForm.add(new HiddenField(NODE_ID_KEY, nodeId != null ? nodeId : ""));
+            moveNodeForm.add(new HiddenField(SOURCE_NODE_ID_KEY, ""));
             moveNodeForm.add(new HiddenField(RENDER_MODE_KEY, renderMode != null ? renderMode : ""));
+            moveNodeForm.setListener(this, "onMoveNode");
             moveNodeForm.add(new Submit("moveNode", " Move node ", this, "onMoveNode"));
             moveNodePanel = new Panel("moveNodePanel", "/panel/move-node-panel.htm");
         }
@@ -759,14 +762,15 @@ public class Nodes extends Admin {
     public boolean onMoveNode() {
         if (moveNodeForm.isValid()) {
             final String newParentNodeId = moveNodeForm.getFieldValue(NEW_PARENT_NODE_ID_KEY);
-
+            final String sourceNodeId = StringUtils.isNotEmpty(moveNodeForm.getFieldValue(SOURCE_NODE_ID_KEY)) ? moveNodeForm.getFieldValue(SOURCE_NODE_ID_KEY) : getNodeId();
+            
             Command transactionCommand = Services.command(TransactionCommand.class);
             transactionCommand.execute(new StructrTransaction() {
 
                 @Override
                 public Object execute() throws Throwable {
                     Command moveNode = Services.command(MoveNodeCommand.class);
-                    moveNode.execute(getNodeId(), newParentNodeId);
+                    moveNode.execute(sourceNodeId, newParentNodeId);
                     return (null);
                 }
             });
