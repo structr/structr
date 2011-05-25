@@ -369,9 +369,9 @@
                 }
     
                 function submitLinkNodeForm() {
-                    console.log('Link node ' + sourceId + ' to ' + targetId);
-                    jQuery('#newRelationshipForm_sourceNodeId').val(sourceId);
-                    jQuery('#newRelationshipForm_targetNodeId').val(targetId);
+                    console.log('Link node ' + targetId + ' to ' + sourceId);
+                    jQuery('#newRelationshipForm_sourceNodeId').val(targetId);
+                    jQuery('#newRelationshipForm_targetNodeId').val(sourceId);
                     jQuery('#newRelationshipForm_relType').val('LINK');
                     jQuery('#newRelationshipForm_linkNode').val(' Link node ');
                     jQuery('#newRelationshipForm').submit();
