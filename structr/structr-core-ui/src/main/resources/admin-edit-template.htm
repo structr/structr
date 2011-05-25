@@ -197,6 +197,9 @@
 
 
       <script type="text/javascript">
+        var sourceId;
+        var targetId;
+        
         jQuery.noConflict();
 
         jQuery(window).resize(function() {
@@ -329,10 +332,11 @@
                 var dropTarget = jQuery(this);
                 
                 //console.log(dragged.closest('li').find(dropTarget));
+                sourceId = jQuery(ui.draggable).data('nodeId');
+                targetId = getParam('nodeId', dropTarget.attr('href'));
+                //jQuery(this).attr('href', '#');
+                showDropSelect(jQuery(this));
                 
-                  var targetNodeId = getParam('nodeId', dropTarget.attr('href'));
-                  //jQuery(this).attr('href', '#');
-                  submitMoveNodeForm(jQuery(ui.draggable).data('nodeId'), targetNodeId);
               }
             });
           
@@ -348,17 +352,30 @@
         );
         }
       
-        function submitMoveNodeForm(sourceId, targetId) {
+        function submitMoveNodeForm() {
           console.log('Move node ' + sourceId + ' to ' + targetId);
           jQuery('#moveNodeForm_sourceNodeId').val(sourceId);
-          jQuery('#moveNodeForm_newParentNodeId').val(targetId);
+          jQuery('#moveNodeForm_targetNodeId').val(targetId);
           jQuery('#moveNodeForm_moveNode').val(' Move node ');
-          //jQuery('#moveNodeForm').attr('method', 'GET');
           jQuery('#moveNodeForm').submit();
-          //        console.log(document.forms['moveNodeForm']);
-          //        document.forms['moveNodeForm'].submit();
-        } 
+        }
       
+        function submitCopyNodeForm() {
+          console.log('Copy node ' + sourceId + ' to ' + targetId);
+          jQuery('#copyNodeForm_sourceNodeId').val(sourceId);
+          jQuery('#copyNodeForm_targetNodeId').val(targetId);
+          jQuery('#copyNodeForm_copyNode').val(' Copy node ');
+          jQuery('#copyNodeForm').submit();
+        }
+    
+        function submitLinkNodeForm() {
+          console.log('Link node ' + sourceId + ' to ' + targetId);
+          jQuery('#linkNodeForm_sourceNodeId').val(sourceId);
+          jQuery('#linkNodeForm_targetNodeId').val(targetId);
+          jQuery('#linkNodeForm_linkNode').val(' Link node ');
+          jQuery('#linkNodeForm').submit();
+        }
+
       </script>
       <style text="text/css">
         #tree .highlight {
@@ -367,8 +384,25 @@
         #treeArea .body {
           position: relative;
         }
+        .clickable {
+          cursor: pointer;
+          cursor: hand;
+        }
       </style>
     </div><!-- #main -->
+
+    <div class="nodeActionMenu" id="dropSelectDiv">
+      <div class="clickable" onclick="submitCopyNodeForm()"><a href="#"><img alt="Copy" src="$context/images/page_copy.png"><span>Copy</span></a></div>
+      <div class="clickable" onclick="submitMoveNodeForm()"><a href="#"><img alt="Move" src="$context/images/folder_go.png"><span>Move</span></a></div>
+      <div class="clickable" onclick="submitLinkNodeForm()"><a href="#"><img alt="Link" src="$context/images/add_linked.png"><span>Link</span></a></div>
+      <div class="unblock">
+        <a href="#">
+          <img class="link" border="0" alt="Cancel" src="$context/images/cancel.png">
+          <span>Cancel</span>
+        </a>
+      </div>
+      <a href="#"></a>
+    </div>
 
   </body>
 </html>

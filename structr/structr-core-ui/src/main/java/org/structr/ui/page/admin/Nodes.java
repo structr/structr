@@ -232,9 +232,11 @@ public class Nodes extends Admin {
             newNodePanel = new Panel("newNodePanel", "/panel/new-node-panel.htm");
 
             // assemble form to copy a node
+            copyNodeForm.add(new TextField(SOURCE_NODE_ID_KEY, true));
             copyNodeForm.add(new TextField(TARGET_NODE_ID_KEY, true));
             copyNodeForm.add(new HiddenField(NODE_ID_KEY, nodeId != null ? nodeId : ""));
             copyNodeForm.add(new HiddenField(RENDER_MODE_KEY, renderMode != null ? renderMode : ""));
+            copyNodeForm.setListener(this, "onCopyNode");
             copyNodeForm.add(new Submit("copyNode", " Copy node ", this, "onCopyNode"));
             copyNodePanel = new Panel("copyNodePanel", "/panel/copy-node-panel.htm");
 
@@ -284,9 +286,9 @@ public class Nodes extends Admin {
             deleteNodePanel = new Panel("deleteNodePanel", "/panel/delete-node-panel.htm");
 
             // assemble form to move a node
-            moveNodeForm.add(new TextField(NEW_PARENT_NODE_ID_KEY, true));
             moveNodeForm.add(new HiddenField(NODE_ID_KEY, nodeId != null ? nodeId : ""));
-            moveNodeForm.add(new HiddenField(SOURCE_NODE_ID_KEY, ""));
+            moveNodeForm.add(new TextField(TARGET_NODE_ID_KEY, true));
+            moveNodeForm.add(new TextField(SOURCE_NODE_ID_KEY, ""));
             moveNodeForm.add(new HiddenField(RENDER_MODE_KEY, renderMode != null ? renderMode : ""));
             moveNodeForm.setListener(this, "onMoveNode");
             moveNodeForm.add(new Submit("moveNode", " Move node ", this, "onMoveNode"));
@@ -321,6 +323,7 @@ public class Nodes extends Admin {
             newRelationshipForm.add(new TextField(TARGET_SLOT_NAME_KEY, false));
             newRelationshipForm.add(new HiddenField(NODE_ID_KEY, nodeId != null ? nodeId : ""));
             newRelationshipForm.add(new HiddenField(RENDER_MODE_KEY, renderMode != null ? renderMode : ""));
+            newRelationshipForm.setListener(this, "onCreateRelationship");
             newRelationshipForm.add(new Submit("createNewRelationship", " Create new relationship ", this, "onCreateRelationship"));
             newRelationshipPanel = new Panel("newRelationshipPanel", "/panel/new-relationship-panel.htm");
         }
@@ -761,7 +764,7 @@ public class Nodes extends Admin {
 
     public boolean onMoveNode() {
         if (moveNodeForm.isValid()) {
-            final String newParentNodeId = moveNodeForm.getFieldValue(NEW_PARENT_NODE_ID_KEY);
+            final String targetNodeId = moveNodeForm.getFieldValue(TARGET_NODE_ID_KEY);
             final String sourceNodeId = StringUtils.isNotEmpty(moveNodeForm.getFieldValue(SOURCE_NODE_ID_KEY)) ? moveNodeForm.getFieldValue(SOURCE_NODE_ID_KEY) : getNodeId();
             
             Command transactionCommand = Services.command(TransactionCommand.class);
@@ -770,12 +773,12 @@ public class Nodes extends Admin {
                 @Override
                 public Object execute() throws Throwable {
                     Command moveNode = Services.command(MoveNodeCommand.class);
-                    moveNode.execute(sourceNodeId, newParentNodeId);
+                    moveNode.execute(sourceNodeId, targetNodeId);
                     return (null);
                 }
             });
 
-            okMsg = "Node moved to " + newParentNodeId + ".";
+            okMsg = "Node moved to " + targetNodeId + ".";
 
             Map<String, String> parameters = new HashMap<String, String>();
             parameters.put(NODE_ID_KEY, String.valueOf(getNodeId()));
@@ -796,6 +799,7 @@ public class Nodes extends Admin {
     public boolean onCopyNode() {
         if (copyNodeForm.isValid()) {
             final String targetNodeId = copyNodeForm.getFieldValue(TARGET_NODE_ID_KEY);
+            final String sourceNodeId = StringUtils.isNotEmpty(copyNodeForm.getFieldValue(SOURCE_NODE_ID_KEY)) ? copyNodeForm.getFieldValue(SOURCE_NODE_ID_KEY) : getNodeId();
 
             Command transactionCommand = Services.command(TransactionCommand.class);
             transactionCommand.execute(new StructrTransaction() {
@@ -803,7 +807,7 @@ public class Nodes extends Admin {
                 @Override
                 public Object execute() throws Throwable {
                     Command copyNode = Services.command(CopyNodeCommand.class);
-                    copyNode.execute(getNodeId(), targetNodeId, user);
+                    copyNode.execute(sourceNodeId, targetNodeId, user);
                     return (null);
                 }
             });
@@ -1281,9 +1285,6 @@ public class Nodes extends Admin {
 
             }
         };
-
-
-        //nodeTree.setRootNodeDisplayed(true);
 
     }
 

@@ -103,6 +103,30 @@ jQuery(document).ready(function() {
 
 });
 
+function showDropSelect(node) {
+    jQuery.blockUI.defaults.css = {};
+    jQuery.blockUI({
+        centerX: 0,
+        centerY: 0,
+        css: {
+            width: '',
+            top: node.offset().top-4,
+            //    + jQuery('#toggleNewNodeForm').height(),
+            left: node.offset().left-4
+        },
+        message: jQuery('#dropSelectDiv'),
+        baseZ: 9,
+        fadeIn: 0,
+        fadeOut: 0,
+        overlayCSS:  {
+            backgroundColor: '#000',
+            opacity:         0.5
+        }
+    });
+
+}
+
+
 function showNewNodePanel() {
     jQuery.blockUI.defaults.css = {};
     jQuery.blockUI({

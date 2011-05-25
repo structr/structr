@@ -108,7 +108,7 @@ public class StructrPage extends Page {
     protected final static String REL_POSITION_KEY = "relPosition";
     protected final static String TARGET_SLOT_NAME_KEY = "targetSlotName";
     protected final static String RELATIONSHIP_ID_KEY = "relationshipId";
-    protected final static String NEW_PARENT_NODE_ID_KEY = "newParentNodeId";
+//    protected final static String NEW_PARENT_NODE_ID_KEY = "newParentNodeId";
     protected final static String SOURCE_NODE_ID_KEY = "sourceNodeId";
     protected final static String TARGET_NODE_ID_KEY = "targetNodeId";
     protected final static String PARENT_NODE_ID_KEY = "parentNodeId";
