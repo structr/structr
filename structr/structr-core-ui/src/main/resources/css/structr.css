@@ -186,38 +186,6 @@ span.required {
 .loginFooter a:hover, .loginFooter a:active {
     text-decoration: underline;
 }
-/*
-#header {
-    height: 32px;
-        width: 100%;
-    padding: 0 6px 0 0;
-        margin: 10px;
-        background: -webkit-gradient(linear, left bottom, left top, from(rgba(48,48,48,.95)), to(rgba(96,96,96,.95))) no-repeat;
-        background: -moz-linear-gradient(-90deg, rgba(96,96,96,.95), rgba(48,48,48,.95)) no-repeat;
-        filter: progid:DXImageTransform.Microsoft.Gradient(
-            StartColorStr='#333333', EndColorStr='#616161', GradientType=0);
-
-        background: #000 url('../images/carbon.jpg') left top repeat-x;
-        background: -moz-linear-gradient(90deg, #111, #666);
-        background: -webkit-gradient(linear, left bottom, left top, from(#111), to(#666)) no-repeat;
-        filter: progid:DXImageTransform.Microsoft.Gradient(
-            StartColorStr='#111111', EndColorStr='#666666', GradientType=0);
-        background-color: #404040;
-
-        border-radius: 0.25em;
-        -moz-border-radius: 0.25em;
-        -webkit-border-radius: 0.25em;
-        box-shadow: 1px 1px 8px #ccc;
-        -webkit-box-shadow: 1px 1px 8px #ccc;
-        -moz-box-shadow: 1px 1px 8px #ccc;
-        border: 1px solid #bcbcbc;
-
-}
-
-#header div {
-    float: right;
-    margin: 8px;
-}*/
 
 #header {
     height: 54px;
