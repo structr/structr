@@ -30,7 +30,7 @@ import org.structr.core.Adapter;
 import org.structr.core.Services;
 import org.structr.core.cloud.FileNodeDataContainer;
 import org.structr.core.cloud.NodeDataContainer;
-import org.structr.core.entity.EmptyNode;
+import org.structr.core.entity.ArbitraryNode;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.File;
 import org.structr.core.entity.User;
@@ -74,7 +74,7 @@ public class StructrNodeFactory<T extends AbstractNode> implements Adapter<Node,
         }
 
         if (ret == null) {
-            ret = new EmptyNode();
+            ret = new ArbitraryNode();
         }
 
         ret.init(node);
@@ -187,7 +187,7 @@ public class StructrNodeFactory<T extends AbstractNode> implements Adapter<Node,
         }
 
         if (newNode == null) {
-            newNode = new EmptyNode();
+            newNode = new ArbitraryNode();
         }
 
         newNode.init(data);

@@ -50,7 +50,7 @@ import org.structr.common.RelType;
 import org.structr.core.node.search.SearchOperator;
 import org.structr.core.Command;
 import org.structr.core.Services;
-import org.structr.core.entity.EmptyNode;
+import org.structr.core.entity.ArbitraryNode;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.module.GetEntitiesCommand;
 import org.structr.core.module.GetEntityClassCommand;
@@ -462,7 +462,7 @@ public class Report extends Nodes {
             java.lang.reflect.Field[] fields = c.getFields();
             //reportFields.setColumns(fields.length);
 
-            AbstractNode o = new EmptyNode();
+            AbstractNode o = new ArbitraryNode();
             try {
 
                 // Instantiate an object to get the value of the public static fields

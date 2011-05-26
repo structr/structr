@@ -302,24 +302,27 @@ public class Nodes extends Admin {
             // assemble form to create a new relationship
             newRelationshipForm.add(new TextField(SOURCE_NODE_ID_KEY, true));
             newRelationshipForm.add(new TextField(TARGET_NODE_ID_KEY, true));
-            Select relTypeField = new Select(REL_TYPE_KEY, "Select Relationship Type", true);
-            relTypeField.add(new Option("", "Please select"));
-            //Option linkOption = new Option("LINK", "LINK");
-            //relTypeField.add(linkOption);
-            // TODO: get possible relationship types dynamically
-            relTypeField.add(new Option("HAS_CHILD", "Has Child"));
-            relTypeField.add(new Option("LINK", "Link"));
-            relTypeField.add(new Option("PAGE_LINK", "Page Link"));
-            relTypeField.add(new Option("SECURITY", "Security"));
-            relTypeField.add(new Option("ROOT_NODE", "Root Node"));
-            relTypeField.add(new Option("USE_TEMPLATE", "Use Template"));
-            relTypeField.add(new Option("DATA", "Data"));
-            relTypeField.add(new Option("SUBMIT", "Submit"));
-            relTypeField.add(new Option("SUCCESS_DESTINATION", "Success Destination"));
-            relTypeField.add(new Option("ERROR_DESTINATION", "Error Destination"));
-            relTypeField.add(new Option("CREATE_DESTINATION", "Create Destination"));
-            //relTypeField.setDefaultOption(linkOption);
-            newRelationshipForm.add(relTypeField);
+            newRelationshipForm.add(new TextField(REL_TYPE_KEY, true));
+//            Select relTypeField = new Select(REL_TYPE_KEY, "Select Relationship Type", true);
+//            relTypeField.add(new Option("", "Please select"));
+//            //Option linkOption = new Option("LINK", "LINK");
+//            //relTypeField.add(linkOption);
+//            // TODO: get possible relationship types dynamically
+//            relTypeField.add(new Option("HAS_CHILD", "Has Child"));
+//            relTypeField.add(new Option("LINK", "Link"));
+//            relTypeField.add(new Option("PAGE_LINK", "Page Link"));
+//            relTypeField.add(new Option("SECURITY", "Security"));
+//            relTypeField.add(new Option("ROOT_NODE", "Root Node"));
+//            relTypeField.add(new Option("USE_TEMPLATE", "Use Template"));
+//            relTypeField.add(new Option("DATA", "Data"));
+//            relTypeField.add(new Option("SUBMIT", "Submit"));
+//            relTypeField.add(new Option("SUCCESS_DESTINATION", "Success Destination"));
+//            relTypeField.add(new Option("ERROR_DESTINATION", "Error Destination"));
+//            relTypeField.add(new Option("CREATE_DESTINATION", "Create Destination"));
+//            relTypeField.add(new Option("TYPE", "Type"));
+//            relTypeField.add(new Option("SUBTYPE", "Sub Type"));
+//            //relTypeField.setDefaultOption(linkOption);
+//            newRelationshipForm.add(relTypeField);
             newRelationshipForm.add(new TextField(REL_POSITION_KEY, false));
             newRelationshipForm.add(new TextField(TARGET_SLOT_NAME_KEY, false));
             newRelationshipForm.add(new HiddenField(NODE_ID_KEY, nodeId != null ? nodeId : ""));

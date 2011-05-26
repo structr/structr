@@ -43,5 +43,9 @@ public enum RelType implements RelationshipType {
 	SUBMIT,
 	ERROR_DESTINATION,
 	SUCCESS_DESTINATION,
-	CREATE_DESTINATION
+	CREATE_DESTINATION,
+        
+        // type relationships
+        TYPE,
+        SUBTYPE
 }

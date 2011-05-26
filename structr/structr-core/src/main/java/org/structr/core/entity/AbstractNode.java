@@ -133,6 +133,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
     private final static String CALLING_NODE_SUBNODES_KEY = "*";
     private final static String CALLING_NODE_SUBNODES_AND_LINKED_NODES_KEY = "#";
     public final static String TEMPLATE_ID_KEY = "templateId";
+    public final static String TYPE_NODE_ID_KEY = "typeNodeId";
     //public final static String TEMPLATES_KEY = "templates";
     protected Template template;
     protected User user;
@@ -335,72 +336,77 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
         for (String key : getPropertyKeys()) {
 
             Object value = getProperty(key);
-            String displayValue = "";
 
-            if (value.getClass().isPrimitive()) {
-                displayValue = value.toString();
-            } else if (value.getClass().isArray()) {
+            if (value != null) {
 
-                if (value instanceof byte[]) {
 
-                    displayValue = new String((byte[]) value);
+                String displayValue = "";
 
-                } else if (value instanceof char[]) {
+                if (value.getClass().isPrimitive()) {
+                    displayValue = value.toString();
+                } else if (value.getClass().isArray()) {
 
-                    displayValue = new String((char[]) value);
+                    if (value instanceof byte[]) {
 
-                } else if (value instanceof double[]) {
+                        displayValue = new String((byte[]) value);
 
-                    Double[] values = ArrayUtils.toObject((double[]) value);
-                    displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
+                    } else if (value instanceof char[]) {
 
-                } else if (value instanceof float[]) {
+                        displayValue = new String((char[]) value);
 
-                    Float[] values = ArrayUtils.toObject((float[]) value);
-                    displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
+                    } else if (value instanceof double[]) {
 
-                } else if (value instanceof short[]) {
+                        Double[] values = ArrayUtils.toObject((double[]) value);
+                        displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
 
-                    Short[] values = ArrayUtils.toObject((short[]) value);
-                    displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
+                    } else if (value instanceof float[]) {
 
-                } else if (value instanceof long[]) {
+                        Float[] values = ArrayUtils.toObject((float[]) value);
+                        displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
 
-                    Long[] values = ArrayUtils.toObject((long[]) value);
-                    displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
+                    } else if (value instanceof short[]) {
 
-                } else if (value instanceof int[]) {
+                        Short[] values = ArrayUtils.toObject((short[]) value);
+                        displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
 
-                    Integer[] values = ArrayUtils.toObject((int[]) value);
-                    displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
+                    } else if (value instanceof long[]) {
 
-                } else if (value instanceof boolean[]) {
+                        Long[] values = ArrayUtils.toObject((long[]) value);
+                        displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
 
-                    Boolean[] values = (Boolean[]) value;
-                    displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
+                    } else if (value instanceof int[]) {
 
-                } else if (value instanceof byte[]) {
+                        Integer[] values = ArrayUtils.toObject((int[]) value);
+                        displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
 
-                    displayValue = new String((byte[]) value);
+                    } else if (value instanceof boolean[]) {
+
+                        Boolean[] values = (Boolean[]) value;
+                        displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
+
+                    } else if (value instanceof byte[]) {
+
+                        displayValue = new String((byte[]) value);
+
+                    } else {
+
+                        Object[] values = (Object[]) value;
+                        displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
+                    }
+
 
                 } else {
-
-                    Object[] values = (Object[]) value;
-                    displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
+                    displayValue = value.toString();
                 }
 
+                props.add("\"" + key + "\"" + " : " + "\"" + displayValue + "\"");
 
-            } else {
-                displayValue = value.toString();
             }
-
-            props.add("\"" + key + "\"" + " : " + "\"" + displayValue + "\"");
-
         }
-
         out.append("{ ").append(StringUtils.join(props.toArray(), " , ")).append(" }");
 
         return out.toString();
+
     }
 
     /**
@@ -843,10 +849,36 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
         // not allowed
     }
 
+    /**
+     * Return a map with all properties of this node
+     * 
+     * @return 
+     */
     public Map<String, Object> getPropertyMap() {
         return properties;
     }
 
+    /**
+     * Return the property signature of a node
+     * 
+     * @return 
+     */
+    public Map<String, Class> getSignature() {
+        Map<String, Class> signature = new HashMap<String, Class>();
+        for (String key : getPropertyKeys()) {
+            Object prop = getProperty(key);
+            if (prop != null) {
+                signature.put(key, prop.getClass());
+            }
+        }
+        return signature;
+    }
+
+    /**
+     * Return all property keys of the underlying database node
+     * 
+     * @return 
+     */
     public Iterable<String> getPropertyKeys() {
         return dbNode.getPropertyKeys();
     }
@@ -2025,13 +2057,13 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
         List<StructrRelationship> rels = principal.getIncomingChildRelationships();
         for (StructrRelationship sr : rels) {
             AbstractNode node = sr.getStartNode();
-            
+
             if (!(node instanceof Group)) {
                 continue;
             }
-            
+
             Group group = (Group) node;
-            
+
             r = getSecurityRelationship(group);
 
             if (r != null && r.isAllowed(permission)) {
@@ -2166,25 +2198,60 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      * @return
      */
     public User getOwnerNode() {
-
-        // check any security relationships
         for (StructrRelationship s : getRelationships(RelType.OWNS, Direction.INCOMING)) {
-
-            // check security properties
             return (User) s.getStartNode();
-
         }
         return null;
     }
 
+    public Long getTypeNodeId() {
+        NodeType n = getTypeNode();
+        return (n != null ? n.getId() : null);
+    }
+    
+    /**
+     * Return type node
+     *
+     * @return
+     */
+    public NodeType getTypeNode() {
+        for (StructrRelationship s : getRelationships(RelType.TYPE, Direction.OUTGOING)) {
+            AbstractNode n = s.getEndNode();
+            if (n instanceof NodeType) {
+                return (NodeType) n;
+            }
+        }
+        return null;
+    }
+    
+    public void setTypeNodeId(final Long value) {
+
+        // find type node
+        Command findNode = Services.command(FindNodeCommand.class);
+        NodeType typeNode = (NodeType) findNode.execute(new SuperUser(), value);
+
+        // delete existing type node relationships
+        List<StructrRelationship> templateRels = this.getOutgoingRelationships(RelType.TYPE);
+        Command delRel = Services.command(DeleteRelationshipCommand.class);
+        if (templateRels != null) {
+            for (StructrRelationship r : templateRels) {
+                delRel.execute(r);
+            }
+        }
+
+        // create new link target relationship
+        Command createRel = Services.command(CreateRelationshipCommand.class);
+        createRel.execute(this, typeNode, RelType.TYPE);
+    }
+    
     /**
      * Return owner
      *
      * @return
      */
     public String getOwner() {
-        User user = getOwnerNode();
-        return (user != null ? user.getRealName() + " (" + user.getName() + ")" : null);
+        User ownner = getOwnerNode();
+        return (ownner != null ? ownner.getRealName() + " (" + ownner.getName() + ")" : null);
     }
 
     /**

@@ -62,7 +62,7 @@
 
                     <h2 class="header">
                         #if ($node.name && $node.name != "")
-                        <img alt="$node.name"  src="$context/$node.iconSrc"> $node.name
+                        <img alt="$node.name"  src="$context$node.iconSrc"> $node.name
                         #end
                     </h2>
 
@@ -372,9 +372,12 @@
                     console.log('Link node ' + targetId + ' to ' + sourceId);
                     jQuery('#newRelationshipForm_sourceNodeId').val(targetId);
                     jQuery('#newRelationshipForm_targetNodeId').val(sourceId);
-                    jQuery('#newRelationshipForm_relType').val('LINK');
+                    var type = jQuery('#relTypeField').attr("value");
+                    //console.log(type);
+                    jQuery('#newRelationshipForm_relType').val(type);
+                    //console.log(jQuery('#newRelationshipForm_relType').val());
                     jQuery('#newRelationshipForm_linkNode').val(' Link node ');
-                    jQuery('#newRelationshipForm').submit();
+                    //jQuery('#newRelationshipForm').submit();
                 }
 
             </script>
@@ -404,6 +407,7 @@
             <div class="clickable" onclick="submitCopyNodeForm()"><a href="#"><img alt="Copy" src="$context/images/page_copy.png"><span>Copy</span></a></div>
             <div class="clickable" onclick="submitMoveNodeForm()"><a href="#"><img alt="Move" src="$context/images/folder_go.png"><span>Move</span></a></div>
             <div class="clickable" onclick="submitLinkNodeForm()"><a href="#"><img alt="Link" src="$context/images/add_linked.png"><span>Link</span></a></div>
+            <div><input type="text" id="relTypeField" name="relType" value="LINK" size="8"></div>
             <div class="unblock">
                 <a href="#">
                     <img class="link" border="0" alt="Cancel" src="$context/images/cancel.png">

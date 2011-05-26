@@ -56,6 +56,7 @@ import org.structr.core.entity.Image;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractNode.Title;
 import org.structr.core.entity.Group;
+import org.structr.core.entity.NodeType;
 import org.structr.core.entity.StructrRelationship;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.Template;
@@ -109,6 +110,7 @@ public class DefaultEdit extends Nodes {
     protected IntegerField remoteUdpPort;
     protected Checkbox cloudRecursive = new Checkbox("cloudRecursive", "Recursive");
     protected Select templateSelect = new Select(AbstractNode.TEMPLATE_ID_KEY, "Template");
+    protected Select typeSelect = new Select(AbstractNode.TYPE_NODE_ID_KEY, "Type");
 
     // use template for backend pages
     @Override
@@ -124,6 +126,10 @@ public class DefaultEdit extends Nodes {
     public void onInit() {
 
         super.onInit();
+
+        FieldSet typeFields = new FieldSet("Type");
+        typeFields.add(typeSelect);
+        editPropertiesForm.add(typeFields);
 
         FieldSet templateFields = new FieldSet("Template");
         templateFields.add(templateSelect);
@@ -651,6 +657,34 @@ public class DefaultEdit extends Nodes {
                 }
             });
 
+            final NodeType typeNode = node.getTypeNode();
+
+            typeSelect.setDataProvider(new DataProvider() {
+
+                @Override
+                public List<Option> getData() {
+                    List<Option> options = new LinkedList<Option>();
+                    List<AbstractNode> nodes = null;
+                    if (templateNode != null) {
+                        nodes = templateNode.getSiblingNodes();
+                    } else {
+                        List<TextualSearchAttribute> searchAttrs = new LinkedList<TextualSearchAttribute>();
+                        searchAttrs.add(new TextualSearchAttribute(AbstractNode.TYPE_KEY, NodeType.class.getSimpleName(), SearchOperator.OR));
+                        nodes = (List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(user, null, false, false, searchAttrs);
+                    }
+                    if (nodes != null) {
+                        Collections.sort(nodes);
+                        options.add(Option.EMPTY_OPTION);
+                        for (AbstractNode n : nodes) {
+                            if (n instanceof NodeType) {
+                                Option opt = new Option(n.getId(), n.getName());
+                                options.add(opt);
+                            }
+                        }
+                    }
+                    return options;
+                }
+            });            
 
             editVisibilityForm.copyFrom(node);
             editVisibilityForm.add(new HiddenField(NODE_ID_KEY, nodeId != null ? nodeId : ""));
