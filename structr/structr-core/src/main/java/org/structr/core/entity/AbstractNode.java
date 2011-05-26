@@ -2568,6 +2568,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 
                 if (callingNode != null) {
                     root.put(callingNode.getType(), callingNode);
+                    root.put("CallingNode", callingNode);
                 }
 
                 HttpServletRequest request = CurrentRequest.getRequest();
