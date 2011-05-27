@@ -139,7 +139,7 @@ public class DefaultEdit extends Nodes {
         nodePropertiesFields.setColumns(3);
 
         // add common fields
-        nodePropertiesFields.add(new TextField(AbstractNode.TYPE_KEY, true));
+        nodePropertiesFields.add(new TextField(AbstractNode.TYPE_KEY, false));
         nodePropertiesFields.add(new TextField(AbstractNode.NAME_KEY, true));
         nodePropertiesFields.add(new IntegerField(AbstractNode.POSITION_KEY));
 //        nodeInfo.add(new TextField(AbstractNode.NODE_ID_KEY));
