@@ -708,6 +708,10 @@ div.fakeBtn.enabled {
     -moz-box-shadow: none;
 }
 
+.search {
+    margin-top: 12px ! important;
+}
+
 .search script,
 .search table.buttons {
     display: none ! important;
