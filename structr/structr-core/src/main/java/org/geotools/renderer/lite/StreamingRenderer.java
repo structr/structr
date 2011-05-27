@@ -667,7 +667,7 @@ public final class StreamingRenderer implements GTRenderer {
         // enable advanced projection handling with the updated map extent
         if (isAdvancedProjectionHandlingEnabled()) {
             // get the projection handler and set a tentative envelope
-            projectionHandler = ProjectionHandlerFinder.getHandler(mapExtent);
+            projectionHandler = ProjectionHandlerFinder.getHandler(mapExtent, true);
         }
 
         // Setup the secondary painting thread
