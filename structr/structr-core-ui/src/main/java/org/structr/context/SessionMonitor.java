@@ -241,7 +241,9 @@ public class SessionMonitor {
 
     public static long getSessionByUId(final String sessionUid) {
         for (Session session : sessions) {
-            if (session.getUid().equals(sessionUid)) return session.getId();
+            if (session.getUid().equals(sessionUid)) {
+                return session.getId();
+            }
         }
         return -1L;
     }
@@ -251,11 +253,14 @@ public class SessionMonitor {
      */
     public static long registerUserSession(final HttpSession session) {
         User user = CurrentRequest.getCurrentUser();
-        init(session.getServletContext());
-        long id = nextId(session.getServletContext());
-        sessions.add(new Session(id, session.getId(), user, new Date()));
-        session.getServletContext().setAttribute(USER_LIST_KEY, sessions);
-        return id;
+        if (user != null) {
+            init(session.getServletContext());
+            long id = nextId(session.getServletContext());
+            sessions.add(new Session(id, session.getId(), user, new Date()));
+            session.getServletContext().setAttribute(USER_LIST_KEY, sessions);
+            return id;
+        }
+        return -1L;
 
     }
 
@@ -283,22 +288,22 @@ public class SessionMonitor {
         Date now = new Date();
 
         User user = CurrentRequest.getCurrentUser();
-
-        // Create a "dirty" activity node
-        Activity activity = new Activity();
-        activity.setProperty(AbstractNode.TYPE_KEY, Activity.class.getSimpleName());
-
         if (user != null) {
+
+            // Create a "dirty" activity node
+            Activity activity = new Activity();
+            activity.setProperty(AbstractNode.TYPE_KEY, Activity.class.getSimpleName());
+
             activity.setProperty(AbstractNode.NAME_KEY, "User: " + user.getName() + ", Action: " + action + ", Date: " + now);
+
+            activity.setProperty(Activity.SESSION_ID_KEY, sessionId);
+            activity.setProperty(Activity.START_TIMESTAMP_KEY, now);
+            activity.setProperty(Activity.END_TIMESTAMP_KEY, now);
+            activity.setUser(user);
+
+            getSession(sessionId).setLastActivity(activity);
+            Services.command(LogCommand.class).execute(activity);
         }
-
-        activity.setProperty(Activity.SESSION_ID_KEY, sessionId);
-        activity.setProperty(Activity.START_TIMESTAMP_KEY, now);
-        activity.setProperty(Activity.END_TIMESTAMP_KEY, now);
-        activity.setUser(user);
-
-        getSession(sessionId).setLastActivity(activity);
-        Services.command(LogCommand.class).execute(activity);
     }
 
     /**
@@ -314,24 +319,28 @@ public class SessionMonitor {
 
         User user = CurrentRequest.getCurrentUser();
 
-        // Create a "dirty" page request node
-        PageRequest pageRequest = new PageRequest();
-        pageRequest.setProperty(AbstractNode.TYPE_KEY, PageRequest.class.getSimpleName());
-        pageRequest.setProperty(AbstractNode.NAME_KEY, "Action: " + action + ", Date: " + now);
+        if (user != null) {
 
-        if (request != null) {
-            pageRequest.setProperty(PageRequest.URI_KEY, request.getRequestURI());
-            pageRequest.setProperty(PageRequest.REMOTE_ADDRESS_KEY, request.getRemoteAddr());
-            pageRequest.setProperty(PageRequest.REMOTE_HOST_KEY, request.getRemoteHost());
+            // Create a "dirty" page request node
+            PageRequest pageRequest = new PageRequest();
+            pageRequest.setProperty(AbstractNode.TYPE_KEY, PageRequest.class.getSimpleName());
+            pageRequest.setProperty(AbstractNode.NAME_KEY, "Action: " + action + ", Date: " + now);
+
+            if (request != null) {
+                pageRequest.setProperty(PageRequest.URI_KEY, request.getRequestURI());
+                pageRequest.setProperty(PageRequest.REMOTE_ADDRESS_KEY, request.getRemoteAddr());
+                pageRequest.setProperty(PageRequest.REMOTE_HOST_KEY, request.getRemoteHost());
+            }
+
+            pageRequest.setProperty(Activity.SESSION_ID_KEY, sessionId);
+            pageRequest.setProperty(Activity.START_TIMESTAMP_KEY, now);
+            pageRequest.setProperty(Activity.END_TIMESTAMP_KEY, now);
+            pageRequest.setUser(user);
+
+            getSession(sessionId).setLastActivity(pageRequest);
+            Services.command(LogCommand.class).execute(pageRequest);
+
         }
-
-        pageRequest.setProperty(Activity.SESSION_ID_KEY, sessionId);
-        pageRequest.setProperty(Activity.START_TIMESTAMP_KEY, now);
-        pageRequest.setProperty(Activity.END_TIMESTAMP_KEY, now);
-        pageRequest.setUser(user);
-
-        getSession(sessionId).setLastActivity(pageRequest);
-        Services.command(LogCommand.class).execute(pageRequest);
     }
     // ---------------- private methods ---------------------    
     // <editor-fold defaultstate="collapsed" desc="private methods">
