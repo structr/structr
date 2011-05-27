@@ -1,11 +1,44 @@
 <div id="treeArea" class="contentBox">
-    <h2 class="header">Tree</h2>
+    <h2 class="header">
+    Tree <img id="addNodeIcon" src="$context/images/add.png">
+    </h2>
     <div class="body">
         <div id="nodeTree">
             $nodeTree
         </div>
     </div>
 </div>
+<style type="text/css">
+#addNodeIcon {
+  display: none;
+}
 
+#treeArea .header {
+  /*position: relative;*/
+}
 
-
+#treeArea .header #addNodeIcon {
+  position: absolute;
+  top: 12px;
+  right: 28px;
+}
+#createSelectDiv {
+    width: 100px;
+}
+#createSelectDiv img {
+    border: none;
+    vertical-align: middle;
+    margin: -1px 3px 0px 0px;
+}
+</style>
+<div class="nodeActionMenu" id="createSelectDiv">
+    <div class="clickable" onclick="submitCreateNodeForm()"><a href="#"><img alt="Copy" src="$context/images/add.png"><span>Create Node</span></a></div>
+    <div><input type="text" id="nodeNameField" name="nodeName" value="" size="8"></div>
+    <div class="unblock">
+        <a href="#">
+            <img class="link" border="0" alt="Cancel" src="$context/images/cancel.png">
+            <span>Cancel</span>
+        </a>
+    </div>
+    <a href="#"></a>
+</div>

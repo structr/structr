@@ -334,8 +334,17 @@
                                 //console.log(dragged.closest('li').find(dropTarget));
                                 sourceId = jQuery(ui.draggable).data('nodeId');
                                 targetId = getParam('nodeId', dropTarget.attr('href'));
-                                //jQuery(this).attr('href', '#');
-                                showDropSelect(jQuery(this));
+                                
+                                console.log(sourceId);
+                                
+                                if (!sourceId) {
+                                  showCreateSelect(jQuery(this));
+                                } else {
+                                
+                                  
+                                  //jQuery(this).attr('href', '#');
+                                  showDropSelect(jQuery(this));
+                                }
                 
                             }
                         });
@@ -347,9 +356,16 @@
                 });
       
                 function getParam(name,url) {
-                    return decodeURI(
-                    (RegExp(name + '=' + '(.+?)(&|$)').exec(url)||[,null])[1]
-                );
+                    return decodeURI((RegExp(name + '=' + '(.+?)(&|$)').exec(url)||[,null])[1]);
+                }
+
+                function submitCreateNodeForm() {
+                    console.log('New node in ' + targetId);
+                    jQuery('#newNodeForm_targetNodeId').val(targetId);
+                    jQuery('#newNodeForm_createNewNode').val(' Create new node ');
+                    var name = jQuery('#nodeNameField').attr("value");   
+                    jQuery('#newNodeForm_name').val(name);                    
+                    jQuery('#newNodeForm').submit();
                 }
       
                 function submitMoveNodeForm() {

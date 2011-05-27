@@ -100,8 +100,37 @@ jQuery(document).ready(function() {
     jQuery('#toggleNewNodeForm').click(function() {
         showNewNodePanel()
     });
+    
+    jQuery('#treeArea .header').mouseover(function() {
+      var addIcon = jQuery('#addNodeIcon');
+      addIcon.draggable({
+        distance:    '5',
+        //axis:        'y',
+        containment: '#tree',
+        //cursor:      'crosshair',
+        //cursorAt:    { top: 0, left: 0 },
+        //handle:      'a',
+        helper:      'clone',
+        scroll:      'true',
+        //opacity:     0.8,
+        revert:      'invalid',
+        //snap:        true
+        //snapMode:    'both'
+        start: function() {
+          jQuery('#treeArea .header').unbind('mouseout');
+        }
+      });       
+      addIcon.show();
+    });
+
+    jQuery('#treeArea .header').mouseout(function() {
+      jQuery('#addNodeIcon').hide();
+    });
+    
+    
 
 });
+
 
 function showDropSelect(node) {
     jQuery.blockUI.defaults.css = {};
@@ -111,7 +140,6 @@ function showDropSelect(node) {
         css: {
             width: '',
             top: node.offset().top-4,
-            //    + jQuery('#toggleNewNodeForm').height(),
             left: node.offset().left-4
         },
         message: jQuery('#dropSelectDiv'),
@@ -126,6 +154,28 @@ function showDropSelect(node) {
 
 }
 
+
+function showCreateSelect(node) {
+    jQuery.blockUI.defaults.css = {};
+    jQuery.blockUI({
+        centerX: 0,
+        centerY: 0,
+        css: {
+            width: '',
+            top: node.offset().top-4,
+            left: node.offset().left-4
+        },
+        message: jQuery('#createSelectDiv'),
+        baseZ: 9,
+        fadeIn: 0,
+        fadeOut: 0,
+        overlayCSS:  {
+            backgroundColor: '#000',
+            opacity:         0.5
+        }
+    });
+
+}
 
 function showNewNodePanel() {
     jQuery.blockUI.defaults.css = {};
