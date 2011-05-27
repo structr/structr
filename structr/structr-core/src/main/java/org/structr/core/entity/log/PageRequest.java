@@ -32,41 +32,43 @@ public class PageRequest extends Activity {
         return ICON_SRC;
     }
 
-    public static final String URI_KEY = "uri";
-    public static final String REMOTE_HOST_KEY = "remoteHost";
-    public static final String REMOTE_ADDRESS_KEY = "remoteAddress";
+//    public static final String URI_KEY = "uri";
+//    public static final String PARAMETERS_KEY = "parameters";
+//    public static final String REMOTE_HOST_KEY = "remoteHost";
+//    public static final String REMOTE_ADDRESS_KEY = "remoteAddress";
 
-    public String getUri() {
-        return getStringProperty(URI_KEY);
-    }
-
-    public void setUri(final String uri) {
-        setProperty(URI_KEY, uri);
-    }
-
-    public String getRemoteHost() {
-        return getStringProperty(REMOTE_HOST_KEY);
-    }
-
-    public void setRemoteHost(final String remoteHost) {
-        setProperty(REMOTE_HOST_KEY, remoteHost);
-    }
-
-    public String getRemoteAddress() {
-        return getStringProperty(REMOTE_ADDRESS_KEY);
-    }
-
-    public void setRemoteAddress(final String remoteAddr) {
-        setProperty(REMOTE_ADDRESS_KEY, remoteAddr);
-    }
-
-    @Override
-    public String getActivityText() {
-        String text =
-                "URI: " + getUri() + "\n" +
-                "Remote Host: " + getRemoteHost() + "\n" +
-                "Remote Addr: " + getRemoteAddress();
-        return text;
-    }
+//    public String getUri() {
+//        return getStringProperty(URI_KEY);
+//    }
+//
+//    public void setUri(final String uri) {
+//        setProperty(URI_KEY, uri);
+//    }
+//
+//    public String getRemoteHost() {
+//        return getStringProperty(REMOTE_HOST_KEY);
+//    }
+//
+//    public void setRemoteHost(final String remoteHost) {
+//        setProperty(REMOTE_HOST_KEY, remoteHost);
+//    }
+//
+//    public String getRemoteAddress() {
+//        return getStringProperty(REMOTE_ADDRESS_KEY);
+//    }
+//
+//    public void setRemoteAddress(final String remoteAddr) {
+//        setProperty(REMOTE_ADDRESS_KEY, remoteAddr);
+//    }
+//
+//    @Override
+//    public String getActivityText() {
+//        String text =
+//                "URI: " + getStringProperty(URI_KEY) + "\n" +
+//                "Parameters: " + getStringProperty(PARAMETERS_KEY) + "\n" +
+//                "Remote Host: " + getStringProperty(REMOTE_HOST_KEY) + "\n" +
+//                "Remote Addr: " + getStringProperty(REMOTE_ADDRESS_KEY);
+//        return text;
+//    }
 
 }

@@ -144,7 +144,7 @@ public class AppLogin extends ActionNode
 
 		// Check password
 		String encryptedPasswordValue = DigestUtils.sha512Hex(password);
-		if(!encryptedPasswordValue.equals(loginUser.getPassword()))
+		if(!encryptedPasswordValue.equals(loginUser.getEncryptedPassword()))
 		{
 			logger.log(Level.INFO, "Wrong password for user {0}", loginUser);
 			countLoginFailure(maxRetries, delayThreshold, delayTime);

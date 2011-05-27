@@ -22,6 +22,9 @@ import java.util.LinkedList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -45,7 +48,9 @@ import org.structr.core.node.NodeAttribute;
  * @author axel
  */
 public class SessionMonitor {
-
+    
+    private static final Logger logger = Logger.getLogger(SessionMonitor.class.getName());
+    
     private static final String USER_LIST_KEY = "userList";
     private static List<Session> sessions = null;
     public static final String SESSION_ID = "sessionId";
@@ -309,7 +314,8 @@ public class SessionMonitor {
      */
     public static void logPageRequest(final long sessionId, final String action, final HttpServletRequest request) {
 
-
+        long t0 = System.currentTimeMillis();
+        
         Date now = new Date();
 
         User user = CurrentRequest.getCurrentUser();
@@ -317,12 +323,24 @@ public class SessionMonitor {
         // Create a "dirty" page request node
         PageRequest pageRequest = new PageRequest();
         pageRequest.setProperty(AbstractNode.TYPE_KEY, PageRequest.class.getSimpleName());
-        pageRequest.setProperty(AbstractNode.NAME_KEY, "Action: " + action + ", Date: " + now);
-
+        pageRequest.setProperty(AbstractNode.NAME_KEY, action + ", Date: " + now);
+        
+        StringBuilder text = new StringBuilder();
+        text.append("{");
+        
         if (request != null) {
-            pageRequest.setProperty(PageRequest.URI_KEY, request.getRequestURI());
-            pageRequest.setProperty(PageRequest.REMOTE_ADDRESS_KEY, request.getRemoteAddr());
-            pageRequest.setProperty(PageRequest.REMOTE_HOST_KEY, request.getRemoteHost());
+            
+            Map<String,Object> parameterMap = request.getParameterMap();
+            Set<String> keys = parameterMap.keySet();
+            for (String key : keys) {
+                text.append("\"").append(key).append("\": \"").append(request.getParameter(key)).append("\", ");
+            }
+            
+            
+            text.append("\"uri\": \"").append(request.getRequestURI()).append("\", ");
+            text.append("\"remoteAddress\": \"").append(request.getRemoteAddr()).append("\", ");
+            text.append("\"remoteHost\": \"").append(request.getRemoteHost()).append("\"");
+            
         }
 
         pageRequest.setProperty(Activity.SESSION_ID_KEY, sessionId);
@@ -330,8 +348,15 @@ public class SessionMonitor {
         pageRequest.setProperty(Activity.END_TIMESTAMP_KEY, now);
         pageRequest.setUser(user);
 
+        text.append("}");
+        pageRequest.setActivityText(text.toString());
+        
         getSession(sessionId).setLastActivity(pageRequest);
         Services.command(LogCommand.class).execute(pageRequest);
+        
+        long t1 = System.currentTimeMillis();
+        
+        logger.log(Level.INFO, "Logging of page request took {0} ms", (t1-t0)/1000);
     }
     // ---------------- private methods ---------------------    
     // <editor-fold defaultstate="collapsed" desc="private methods">

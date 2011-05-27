@@ -353,14 +353,12 @@ public class Maintenance extends Admin {
             public List<Map.Entry<String, Object>> getData() {
 
                 List<Map.Entry<String, Object>> params = new LinkedList<Map.Entry<String, Object>>();
-                Set<String> entityPackages = ((Set<String>) Services.command(GetEntityPackagesCommand.class).execute());
 
                 params.add(new AbstractMap.SimpleEntry<String, Object>("Configuration File Path", Services.getConfigFilePath()));
                 params.add(new AbstractMap.SimpleEntry<String, Object>("Application Title", Services.getApplicationTitle()));
                 params.add(new AbstractMap.SimpleEntry<String, Object>("Database Path", Services.getDatabasePath()));
                 params.add(new AbstractMap.SimpleEntry<String, Object>("Files Path", Services.getFilesPath()));
                 params.add(new AbstractMap.SimpleEntry<String, Object>("Modules Path", Services.getModulesPath()));
-                params.add(new AbstractMap.SimpleEntry<String, Object>("Entity Packages", entityPackages));
                 params.add(new AbstractMap.SimpleEntry<String, Object>("TCP Port", Services.getTcpPort()));
                 params.add(new AbstractMap.SimpleEntry<String, Object>("UDP Port", Services.getUdpPort()));
                 params.add(new AbstractMap.SimpleEntry<String, Object>("SMTP Host", Services.getSmtpHost()));
@@ -593,9 +591,9 @@ public class Maintenance extends Admin {
 //                user.init(node);
 
                 String password = RandomStringUtils.randomAlphanumeric(8);
-                user.setPassword(password);
+                adminUser.setPassword(password);
 
-                okMsg = "New " + adminUser.getType() + " node " + adminUser.getName() + " has been created with password " + password + ".";
+                okMsg = "New " + adminUser.getType() + " node " + adminUser.getName() + " has been created with password " + password;
 
                 StructrRelationship securityRel = (StructrRelationship) createRel.execute(adminUser, rootNode, RelType.SECURITY);
                 securityRel.setAllowed(Arrays.asList(StructrRelationship.ALL_PERMISSIONS));

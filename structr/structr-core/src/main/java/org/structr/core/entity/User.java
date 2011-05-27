@@ -79,8 +79,16 @@ public class User extends Person {
                 DigestUtils.sha512Hex(passwordValue));
     }
 
-    public String getPassword() {
+    public String getEncryptedPassword() {
         return getStringProperty(PASSWORD_KEY);
+    }
+    
+    /**
+     * Intentionally return null.
+     * @return 
+     */
+    public String getPassword() {
+        return null;
     }
 
     public String getRealName() {

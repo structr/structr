@@ -46,16 +46,9 @@ public class EditUser extends DefaultEdit {
         userFields.add(new TextField(User.REAL_NAME_KEY));
         userFields.add(new PasswordField(User.PASSWORD_KEY));
         userFields.add(new EmailField(Person.EMAIL_1_KEY, "E-Mail"));
-
-        // FIXME: support password change with hidden password,
-        // so that password is not set to the default 'XXXXXXXX'
-        // TODO: test, if fix works
-        Checkbox blocked = new Checkbox(User.BLOCKED_KEY);
-        userFields.add(blocked);
+        userFields.add(new Checkbox(User.BLOCKED_KEY));
         
         editPropertiesForm.add(userFields);
-
-
 
     }
 

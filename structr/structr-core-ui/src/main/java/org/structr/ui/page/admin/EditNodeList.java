@@ -26,6 +26,7 @@ import java.util.logging.Logger;
 import org.apache.click.control.Column;
 import org.apache.click.control.Panel;
 import org.apache.click.dataprovider.DataProvider;
+import org.apache.click.extras.control.FormTable;
 import org.structr.core.entity.NodeList;
 import org.structr.core.entity.AbstractNode;
 
@@ -37,16 +38,19 @@ public class EditNodeList extends DefaultEdit {
 
     private static final Logger logger = Logger.getLogger(EditNodeList.class.getName());
     protected NodeList<AbstractNode> nodeList;
+    protected FormTable nodeListTable = new FormTable("nodeListTable");
 
     public EditNodeList() {
+        
+        super();
 
-        childNodesTable.setSortable(true);
-        childNodesTable.setShowBanner(true);
-        childNodesTable.setPageSize(DEFAULT_PAGESIZE);
-        childNodesTable.setClass(TABLE_CLASS);
-        childNodesTable.setSortedColumn(AbstractNode.NODE_ID_KEY);
-        childNodesTable.setHoverRows(true);
-        addControl(childNodesTable);
+        nodeListTable.setSortable(true);
+        nodeListTable.setShowBanner(true);
+        nodeListTable.setPageSize(DEFAULT_PAGESIZE);
+        nodeListTable.setClass(TABLE_CLASS);
+        //nodeListTable.setSortedColumn(AbstractNode.NODE_ID_KEY);
+        nodeListTable.setHoverRows(true);
+        addControl(nodeListTable);
 
         editChildNodesPanel = new Panel("editChildNodesPanel", "/panel/edit-child-nodes-panel.htm");
         addControl(editChildNodesPanel);
@@ -59,7 +63,7 @@ public class EditNodeList extends DefaultEdit {
 
         if (node != null) {
 
-            childNodesTable.getControlLink().setParameter(AbstractNode.NODE_ID_KEY, getNodeId());
+            nodeListTable.getControlLink().setParameter(AbstractNode.NODE_ID_KEY, getNodeId());
 
             nodeList = (NodeList<AbstractNode>) node;
 
@@ -75,7 +79,7 @@ public class EditNodeList extends DefaultEdit {
                         fieldName = (String) f.get(firstNode);
                         Column col;
                         col = new Column(fieldName);
-                        childNodesTable.addColumn(col);
+                        nodeListTable.addColumn(col);
                         
                     } catch (IllegalAccessException ex) {
                         logger.log(Level.SEVERE, null, ex);
@@ -90,8 +94,10 @@ public class EditNodeList extends DefaultEdit {
 
     @Override
     public void onRender() {
+        
+        super.onRender();
 
-        childNodesTable.setDataProvider(new DataProvider() {
+        nodeListTable.setDataProvider(new DataProvider() {
 
             @Override
             public List<AbstractNode> getData() {

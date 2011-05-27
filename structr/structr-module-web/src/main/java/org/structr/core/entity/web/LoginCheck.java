@@ -306,7 +306,7 @@ public class LoginCheck extends WebNode {
 
             String encryptedPasswordValue = DigestUtils.sha512Hex(password);
 
-            if (!encryptedPasswordValue.equals(loginUser.getPassword())) {
+            if (!encryptedPasswordValue.equals(loginUser.getEncryptedPassword())) {
                 logger.log(Level.INFO, "Wrong password for user {0}", loginUser);
                 out.append("<div class=\"errorMsg\">").append(errorMsg).append("</div>");
                 countLoginFailure(out, session, maxRetries, delayThreshold, delayTime);
