@@ -18,6 +18,7 @@
  */
 package org.structr.core.node;
 
+import java.io.File;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -80,6 +81,14 @@ public class NodeService implements SingletonService {
 
             }
 
+            String filesPath = Services.getFilesPath();
+            
+            // check existence of files path
+            File files = new File(filesPath);
+            if (!files.exists()) {
+                files.mkdir();
+            }
+            
             logger.log(Level.INFO, "Database ready.");
 
             logger.log(Level.FINE, "Initializing index...");
