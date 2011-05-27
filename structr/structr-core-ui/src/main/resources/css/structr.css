@@ -57,19 +57,21 @@ input[readonly] {
     background-color: #ccc;
 }
 
-input {
+input, button {
     font-size: 1.0em;
     font-family: inherit;
     border: 1px solid #aaa;
     border-radius: 2px;
     -moz-border-radius: 2px;
     -webkit-border-radius: 2px;
+    margin: .5em;
+    padding: 2px;
 }
 
-input[type=submit] {
+input[type=submit], button {
     cursor: pointer;
     height: 2em;
-    min-width: 8em;
+    min-width: 6em;
     color: #333;
     background-color: #c9c9c9;
     background: -webkit-gradient(linear, left bottom, left top, from(#ccc), to(#fff));
@@ -84,19 +86,11 @@ input[type=submit] {
     -moz-box-shadow: 0px 0px 20px #ccc;*/
 }
 
-input[type=submit]:hover {
-    cursor: pointer;
-    height: 2em;
-    min-width: 8em;
-    color: #333;
-    background-color: #c9c9c9;
+input[type=submit]:hover, button:hover {
     background: -webkit-gradient(linear, left bottom, left top, from(#bbb), to(#eee));
     background: -moz-linear-gradient(90deg, #bbb, #eee);
     filter: progid:DXImageTransform.Microsoft.Gradient(
         StartColorStr='#bbbbbb', EndColorStr='#eeeeee', GradientType=0);
-    border-radius: 3px;
-    -moz-border-radius: 3px;
-    -webkit-border-radius: 3px;
 }
 
 
@@ -714,49 +708,6 @@ div.fakeBtn.enabled {
     -moz-box-shadow: none;
 }
 
-.search input[type=text] {
-    vertical-align: top;
-    margin: 0;
-/*    color: #a8a8a8;*/
-    padding: 0 0 0 4px;
-    border: none;
-    width: 180px;
-    height: 23px;
-    background: -webkit-gradient(linear, left bottom, left top, from(#fff), to(#dadada)) no-repeat;
-    background: -moz-linear-gradient(90deg, #fff, #dadada) no-repeat;
-    filter: progid:DXImageTransform.Microsoft.Gradient(
-        StartColorStr='#dadada', EndColorStr='#fff', GradientType=0);
-    border-radius: 5px;
-    -moz-border-radius: 5px;
-    -webkit-border-radius: 5px;
-}
-
-.search input[type=submit] {
-    font-weight: bold;
-    line-height: 1em;
-    vertical-align: top;
-    padding: 0 0 2px 0;
-    color: #fff;
-    border: none;
-    width: 60px;
-    height: 23px;
-    background: -webkit-gradient(linear, left bottom, left top, from(#73b821), to(#90e629)) no-repeat;
-    background: -moz-linear-gradient(90deg, #73b821, #90e629) no-repeat;
-    filter: progid:DXImageTransform.Microsoft.Gradient(
-        StartColorStr='#90e629', EndColorStr='#73b821', GradientType=0);
-    border-radius: 5px;
-    -moz-border-radius: 5px;
-    -webkit-border-radius: 5px;
-    cursor: pointer;
-}
-
-.search input[type=submit]:hover {
-    background: -webkit-gradient(linear, left bottom, left top, from(#7ec924), to(#96f02b)) no-repeat;
-    background: -moz-linear-gradient(90deg, #7ec924, #96f02b) no-repeat;
-    filter: progid:DXImageTransform.Microsoft.Gradient(
-        StartColorStr='#96f02b', EndColorStr='#7ec924', GradientType=0);
-}
-
 .search script,
 .search table.buttons {
     display: none ! important;
@@ -803,6 +754,7 @@ fieldset {
     -webkit-border-radius: 3px;
     border: 1px solid #ccc;
     color: #333;
+    margin: 1em 0;
 }
 
 fieldset legend {
@@ -811,11 +763,11 @@ fieldset legend {
     font-weight: bold;
     font-size: 1.25em;
     border: none;
-    padding: 1.25em .5em 1.5em .5em;
 }
 
 fieldset input, fieldset select {
     font-size: 1.0em;
+    margin-right: 2em;
 }
 
 fieldset td {
