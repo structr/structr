@@ -51,14 +51,14 @@
             <artifactId>structr-module-app</artifactId>
             <version>0.2.1</version>
         </dependency>
-        <dependency>
+<!--        <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>servlet-api</artifactId>
             <version>2.5</version>
             <type>jar</type>
             <scope>provided</scope>
             <optional>false</optional>
-        </dependency>
+        </dependency>-->
 <!--        <dependency>
             <groupId>javax.servlet.jsp</groupId>
             <artifactId>jsp-api</artifactId>
