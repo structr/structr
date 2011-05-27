@@ -40,12 +40,6 @@ public class EditPage extends DefaultEdit {
 
         super.onInit();
 
-        page = (Page) node;
-
-        if (page == null) {
-            return;
-        }
-
         externalViewUrl = node.getNodeURL(contextPath);
         //localViewUrl = getContext().getResponse().encodeURL(viewLink.getHref());
         localViewUrl = getContext().getRequest().getContextPath().concat(

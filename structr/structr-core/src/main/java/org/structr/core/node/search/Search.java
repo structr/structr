@@ -166,7 +166,7 @@ public abstract class Search {
         List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
 
         // always add wildcard character '*' for auto completion
-        searchAttrs.add(Search.andExactName(string + SearchAttribute.WILDCARD));
+        searchAttrs.add(Search.andName(string + SearchAttribute.WILDCARD));
         List<AbstractNode> result = (List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(null, null, false, false, searchAttrs);
 
         if (result != null) {

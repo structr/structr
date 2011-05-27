@@ -13,7 +13,7 @@
         #if ($renderMode != "inline")
         <div id="header">
 
-            <!--            <div class="structr"><span class="structrCap">s</span>tructr</div>-->
+            <div id="logo"><img width="86" height="23" src="$context/images/structr-logo.png" alt="structr-logo"></div>
             <div class="mainLink">$homeLink</div>
             <div class="mainLink">$usersLink</div>
             <div class="mainLink">$maintenanceLink</div>
@@ -219,6 +219,10 @@
 
                 jQuery(document).ready(function() {
 
+                    if (jQuery('#msg')) {
+                        setTimeout(function() {jQuery('#msg').hide(500);}, 2000);
+                    }
+
                     jQuery("#tabs").tabs();
 
                     setWindowHeightAndWidth(false);
@@ -338,12 +342,12 @@
                                 console.log(sourceId);
                                 
                                 if (!sourceId) {
-                                  showCreateSelect(jQuery(this));
+                                    showCreateSelect(jQuery(this));
                                 } else {
                                 
                                   
-                                  //jQuery(this).attr('href', '#');
-                                  showDropSelect(jQuery(this));
+                                    //jQuery(this).attr('href', '#');
+                                    showDropSelect(jQuery(this));
                                 }
                 
                             }
@@ -411,10 +415,6 @@
                     border: none;
                     vertical-align: middle;
                     margin: -1px 3px 0px 0px;
-                }
-                .clickable {
-                    cursor: pointer;
-                    cursor: hand;
                 }
             </style>
         </div><!-- #main -->

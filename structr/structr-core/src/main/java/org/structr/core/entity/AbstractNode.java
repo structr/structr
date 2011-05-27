@@ -2199,7 +2199,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      */
     public User getOwnerNode() {
         for (StructrRelationship s : getRelationships(RelType.OWNS, Direction.INCOMING)) {
-            return (User) s.getStartNode();
+            AbstractNode n = s.getStartNode();
+            if (n instanceof User) return (User) n;
+            logger.log(Level.SEVERE, "Owner node is not a user: {0}[{1}]", new Object[]{n.getName(), n.getId()});
         }
         return null;
     }
