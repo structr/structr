@@ -210,7 +210,7 @@ public class Nodes extends Admin {
 
         if (createNodeAllowed) {
 
-            Select nodeTypeField = new Select(AbstractNode.TYPE_KEY, "Select Node Type", true);
+            Select nodeTypeField = new Select(AbstractNode.TYPE_KEY, "Select Node Type", false);
             nodeTypeField.add(new Option("", "--- Select Node Type ---"));
 
             List<String> nodeTypes = new LinkedList<String>(((Map<String, Class>) Services.command(GetEntitiesCommand.class).execute()).keySet());
@@ -227,7 +227,9 @@ public class Nodes extends Admin {
 
             newNodeForm.add(new LongField(AbstractNode.POSITION_KEY, false));
             newNodeForm.add(new HiddenField(NODE_ID_KEY, nodeId != null ? nodeId : ""));
+            newNodeForm.add(new TextField(TARGET_NODE_ID_KEY, true));
             newNodeForm.add(new HiddenField(RENDER_MODE_KEY, renderMode != null ? renderMode : ""));
+            newNodeForm.setListener(this, "onCreateNode");
             newNodeForm.add(new Submit("createNewNode", " Create new node ", this, "onCreateNode"));
             newNodePanel = new Panel("newNodePanel", "/panel/new-node-panel.htm");
 
@@ -660,6 +662,8 @@ public class Nodes extends Admin {
     public boolean onCreateNode() {
         AbstractNode s = null;
 
+        final String targetNodeId = StringUtils.isNotEmpty(newNodeForm.getFieldValue(TARGET_NODE_ID_KEY)) ? newNodeForm.getFieldValue(TARGET_NODE_ID_KEY) : getNodeId();
+
         if (newNodeForm.isValid()) {
             Command transactionCommand = Services.command(TransactionCommand.class);
 
@@ -667,10 +671,11 @@ public class Nodes extends Admin {
 
                 @Override
                 public Object execute() throws Throwable {
+                    Command findNode = Services.command(FindNodeCommand.class);
                     Command createNode = Services.command(CreateNodeCommand.class);
                     Command createRel = Services.command(CreateRelationshipCommand.class);
 
-                    AbstractNode parentNode = node;
+                    AbstractNode parentNode = (AbstractNode) findNode.execute(user, Long.parseLong(targetNodeId));
                     AbstractNode newNode = (AbstractNode) createNode.execute(user);
 
                     newNodeForm.copyTo(newNode);
