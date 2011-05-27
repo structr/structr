@@ -252,9 +252,9 @@ public class Services {
 
         appTitle = getConfigValue(context, Services.APPLICATION_TITLE, "structr");
         tmpPath = getConfigValue(context, Services.TMP_PATH, "/tmp");
-        databasePath = getConfigValue(context, Services.DATABASE_PATH, "/opt/structr/t5s/db");
-        filesPath = getConfigValue(context, Services.FILES_PATH, "/opt/structr/t5s/files");
-        modulesPath = getConfigValue(context, Services.MODULES_PATH, "/opt/structr/t5s/modules");
+        databasePath = getConfigValue(context, Services.DATABASE_PATH, "/opt/structr/db");
+        filesPath = getConfigValue(context, Services.FILES_PATH, "/opt/structr/files");
+        modulesPath = getConfigValue(context, Services.MODULES_PATH, "/opt/structr/modules");
         tcpPort = getConfigValue(context, Services.TCP_PORT, "54555");
         udpPort = getConfigValue(context, Services.UDP_PORT, "57555");
         smtpHost = getConfigValue(context, Services.SMTP_HOST, "localhost");
