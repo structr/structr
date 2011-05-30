@@ -356,7 +356,7 @@ public class SessionMonitor {
         
         long t1 = System.currentTimeMillis();
         
-        logger.log(Level.INFO, "Logging of page request took {0} ms", (t1-t0)/1000);
+        logger.log(Level.FINE, "Logging of page request took {0} ms", (t1-t0)/1000);
     }
     // ---------------- private methods ---------------------    
     // <editor-fold defaultstate="collapsed" desc="private methods">

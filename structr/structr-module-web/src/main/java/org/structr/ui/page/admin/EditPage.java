@@ -40,24 +40,24 @@ public class EditPage extends DefaultEdit {
 
         super.onInit();
 
-        page = (Page) node;
+        if (node instanceof Page) {
 
-        if (page == null) {
-            return;
+            page = (Page) node;
+
+            externalViewUrl = page.getNodeURL(contextPath);
+            //localViewUrl = getContext().getResponse().encodeURL(viewLink.getHref());
+            localViewUrl = getContext().getRequest().getContextPath().concat(
+                    "/view".concat(page.getNodePath().replace("&", "%26")));
+
+            // render node's default view
+            StringBuilder out = new StringBuilder();
+            node.renderView(out, page, null, null);
+            rendition = out.toString();
+            // provide rendition's source
+            source = ClickUtils.escapeHtml(rendition);
+
+            renditionPanel = new Panel("renditionPanel", "/panel/rendition-panel.htm");
+
         }
-
-        externalViewUrl = node.getNodeURL(contextPath);
-        //localViewUrl = getContext().getResponse().encodeURL(viewLink.getHref());
-        localViewUrl = getContext().getRequest().getContextPath().concat(
-                "/view".concat(node.getNodePath().replace("&", "%26")));
-
-        // render node's default view
-        StringBuilder out = new StringBuilder();
-        node.renderView(out, node, null, null);
-        rendition = out.toString();
-        // provide rendition's source
-        source = ClickUtils.escapeHtml(rendition);
-
-        renditionPanel = new Panel("renditionPanel", "/panel/rendition-panel.htm");
     }
 }

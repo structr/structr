@@ -139,7 +139,7 @@ public class DefaultEdit extends Nodes {
         nodePropertiesFields.setColumns(3);
 
         // add common fields
-        nodePropertiesFields.add(new TextField(AbstractNode.TYPE_KEY, true));
+        nodePropertiesFields.add(new TextField(AbstractNode.TYPE_KEY, false));
         nodePropertiesFields.add(new TextField(AbstractNode.NAME_KEY, true));
         nodePropertiesFields.add(new IntegerField(AbstractNode.POSITION_KEY));
 //        nodeInfo.add(new TextField(AbstractNode.NODE_ID_KEY));
@@ -665,8 +665,8 @@ public class DefaultEdit extends Nodes {
                 public List<Option> getData() {
                     List<Option> options = new LinkedList<Option>();
                     List<AbstractNode> nodes = null;
-                    if (templateNode != null) {
-                        nodes = templateNode.getSiblingNodes();
+                    if (typeNode != null) {
+                        nodes = typeNode.getSiblingNodes();
                     } else {
                         List<TextualSearchAttribute> searchAttrs = new LinkedList<TextualSearchAttribute>();
                         searchAttrs.add(new TextualSearchAttribute(AbstractNode.TYPE_KEY, NodeType.class.getSimpleName(), SearchOperator.OR));
@@ -870,7 +870,7 @@ public class DefaultEdit extends Nodes {
                 AbstractNode s = getNodeByIdOrPath(getNodeId());
 
                 if (editPropertiesForm.isValid()) {
-                    editPropertiesForm.copyTo(s, true);
+                    editPropertiesForm.copyTo(s);
                     transactionCommand.setExitCode(Command.exitCode.SUCCESS);
                     okMsg = "Form data saved successfully";
                 } else {

@@ -67,8 +67,16 @@ public class FindUserCommand extends NodeServiceCommand {
 
                     //userXPath = "//User";
 //                    break;
-
-                    return (List<User>) searchNode.execute(null, null, false, false, Search.andExactType(User.class.getSimpleName()));
+                    List<User> users = new LinkedList<User>();
+                    List<AbstractNode> result = (List<AbstractNode>) searchNode.execute(null, null, false, false, Search.andExactType(User.class.getSimpleName()));
+                    
+                    for (AbstractNode n : result) {
+                        if (n instanceof User) {
+                            users.add((User) n);
+                        }
+                    }
+                    
+                    return users;
 
 
                 case 1:
@@ -85,8 +93,8 @@ public class FindUserCommand extends NodeServiceCommand {
 
                         List<AbstractNode> usersFound = (List<AbstractNode>) searchNode.execute(null, null, false, false, searchAttrs);
 
-                        if (usersFound != null && usersFound.size() > 0) {
-                            return usersFound.get(0);
+                        if (usersFound != null && usersFound.size() > 0 && usersFound.get(0) instanceof User) {
+                            return (User) usersFound.get(0);
                         } else {
                             logger.log(Level.FINE, "No user with name {0} found.", userName);
                             return null;
@@ -109,8 +117,8 @@ public class FindUserCommand extends NodeServiceCommand {
 
                         List<AbstractNode> usersFound = (List<AbstractNode>) searchNode.execute(topNode, null, false, false, searchAttrs);
 
-                        if (usersFound != null && usersFound.size() > 0) {
-                            return usersFound.get(0);
+                        if (usersFound != null && usersFound.size() > 0 && usersFound.get(0) instanceof User) {
+                            return (User) usersFound.get(0);
                         } else {
                             logger.log(Level.FINE, "No user with name {0} found.", userName);
                             return null;

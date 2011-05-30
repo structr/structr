@@ -68,13 +68,13 @@ public class Site extends WebNode {
         }
     }
 
-    /**
-     * Return part of an url
-     *
-     * @return
-     */
-    @Override
-    public String getUrlPart() {
-        return "http://" + getName();
-    }
+//    /**
+//     * Return part of an url
+//     *
+//     * @return
+//     */
+//    @Override
+//    public String getUrlPart() {
+//        return getName();
+//    }
 }

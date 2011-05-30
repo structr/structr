@@ -59,8 +59,7 @@ public class Domain extends WebNode {
                         out.append("No home page found for ").append(getName());
 
                     } else {
-
-                        homepage.renderView(out, this, editUrl, editNodeId);
+                        homepage.renderView(out, homepage, editUrl, editNodeId);
 
                     }
 
@@ -69,13 +68,13 @@ public class Domain extends WebNode {
         }
     }
 
-    /**
-     * Return part of an url
-     *
-     * @return
-     */
-    @Override
-    public String getUrlPart() {
-        return getName() + "/";
-    }
+//    /**
+//     * Return part of an url
+//     *
+//     * @return
+//     */
+//    @Override
+//    public String getUrlPart() {
+//        return getName();
+//    }
 }

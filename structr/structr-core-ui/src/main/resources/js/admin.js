@@ -45,7 +45,7 @@ function setWindowHeightAndWidth(resize) {
     var canvas = jQuery("#viewport").get(0);
     if (canvas) {
         canvas.width = tabAreaBodyWidth - 4;
-        canvas.height = tabAreaBodyHeight - 42;
+        canvas.height = tabAreaBodyHeight;
         if (graph) {
             graph.redraw();
         }

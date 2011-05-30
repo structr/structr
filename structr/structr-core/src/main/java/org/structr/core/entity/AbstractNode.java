@@ -1210,7 +1210,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 
         } else if (level < 0) {
             // link down
-            return thisPath.substring(refPath.length());
+//            return thisPath.substring(refPath.length());
+            // Bug fix: Don't include the leading "/", this is a relative path!
+            return thisPath.substring(refPath.length()+1);
 
         } else {
             // link up
@@ -1306,85 +1308,18 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
         return "/".concat(xpath); // add leading slash, because we always include the root node
     }
 
-    public String getNodeURL(final String contextPath) {
-        return getNodeURL(RenderMode.PUBLIC, contextPath);
-    }
-
-    /**
-     * Assemble URL for this node.
-     *
-     * This is an inverse method of @getNodeByIdOrPath.
-     *
-     * @param renderMode
-     * @param contextPath
-     * @return
-     */
-    public String getNodeURL(final Enum renderMode, final String contextPath) {
-
-        String domain = "";
-        String site = "";
-        String path = "";
-
-
-        if (RenderMode.PUBLIC.equals(renderMode)) {
-
-            // create bean node
-            Command nodeFactory = Services.command(NodeFactoryCommand.class);
-            AbstractNode node = (AbstractNode) nodeFactory.execute(this);
-
-            // TODO: remove references to db nodes
-            //Node node = n.getNode();
-
-            // stop at root node
-            while (node != null && node.getId() > 0) {
-
-                String urlPart = node.getUrlPart();
-                if (urlPart != null) {
-                    if (urlPart.startsWith("http://")) {
-                        site = urlPart;
-                    } else if (urlPart.endsWith("/")) {
-                        domain = urlPart;
-                    } else {
-                        path = node.getUrlPart() + (!("".equals(path)) ? "/" + path : "");
-                    }
-                }
-
-                // check parent nodes
-                node = node.getParentNode();
-//                StructrRelationship r = node.getRelationships(RelType.HAS_CHILD, Direction.INCOMING).get(0);
-//                if (r != null) {
-//                    node = r.getStartNode();
-//                }
-            }
-
-            return site + (site != null ? "." : "") + domain + path;
-
-        } else if (RenderMode.LOCAL.equals(renderMode)) {
-            // assemble relative URL following the pattern
-            // /<context-url>/view.htm?nodeId=<path>
-            // TODO: move this to a better place
-            // TODO: improve handling for renderMode
-            String localUrl = contextPath.concat(getNodePath()).concat("&renderMode=local");
-            return localUrl;
-
-        } else {
-            // TODO implement other modes
-            return null;
-        }
-    }
-
-    /**
-     * Default: Return this node's name
-     * 
-     * @param user
-     * @param renderMode
-     * @param contextPath
-     * @return
-     */
-    public String getUrlPart() {
-        return getName();
-    }
-
+//
+//    /**
+//     * Default: Return this node's name
+//     * 
+//     * @param user
+//     * @param renderMode
+//     * @param contextPath
+//     * @return
+//     */
+//    public String getUrlPart() {
+//        return getName();
+//    }
     /**
      * Return null mime type. Method has to be overwritten,
      * returning real mime type
@@ -2199,7 +2134,11 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      */
     public User getOwnerNode() {
         for (StructrRelationship s : getRelationships(RelType.OWNS, Direction.INCOMING)) {
-            return (User) s.getStartNode();
+            AbstractNode n = s.getStartNode();
+            if (n instanceof User) {
+                return (User) n;
+            }
+            logger.log(Level.SEVERE, "Owner node is not a user: {0}[{1}]", new Object[]{n.getName(), n.getId()});
         }
         return null;
     }
@@ -2208,7 +2147,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
         NodeType n = getTypeNode();
         return (n != null ? n.getId() : null);
     }
-    
+
     /**
      * Return type node
      *
@@ -2223,7 +2162,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
         }
         return null;
     }
-    
+
     public void setTypeNodeId(final Long value) {
 
         // find type node
@@ -2243,7 +2182,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
         Command createRel = Services.command(CreateRelationshipCommand.class);
         createRel.execute(this, typeNode, RelType.TYPE);
     }
-    
+
     /**
      * Return owner
      *
@@ -2559,73 +2498,75 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
             AbstractNode callingNode = null;
 
             if (getTemplate() != null) {
-
+                
                 callingNode = template.getCallingNode();
-
-                Map root = new HashMap();
-
-                root.put("this", this);
-
-                if (callingNode != null) {
-                    root.put(callingNode.getType(), callingNode);
-                    root.put("CallingNode", callingNode);
-                }
-
-                HttpServletRequest request = CurrentRequest.getRequest();
-                if (request != null) {
-                    //root.put("Request", new freemarker.template.SimpleHash(request.getParameterMap().));
-                    root.put("Request", new freemarker.ext.servlet.HttpRequestParametersHashModel(request));
-
-                    // if search string is given, put search results into freemarker model
-                    String searchString = request.getParameter("search");
-                    if (searchString != null && !(searchString.isEmpty())) {
-                        Command search = Services.command(SearchNodeCommand.class);
-                        List<AbstractNode> result = (List<AbstractNode>) search.execute(
-                                null, // user => null means super user
-                                null, // top node => null means search all
-                                false, // include hidden
-                                true, // public only
-                                Search.orName(searchString)); // search in name
-                        root.put("SearchResults", result);
-                    }
-                }
-
-                if (user != null) {
-                    root.put("User", user);
-                }
-
-                // Add a generic helper
-                root.put("Helper", new TemplateHelper());
-
-                // Add error and ok message if present
-                HttpSession session = CurrentRequest.getSession();
-                if (session != null) {
-                    if (session.getAttribute("errorMessage") != null) {
-                        root.put("ErrorMessage", session.getAttribute("errorMessage"));
-                    }
-
-                    if (session.getAttribute("errorMessage") != null) {
-                        root.put("OkMessage", session.getAttribute("okMessage"));
-                    }
-                }
-
-                // add geo info if available
-                // TODO: add geo node information
-
-
-                //root.put("Content", new StructrTemplateNodeModel(this, startNode, editUrl, editNodeId, user));
-                //root.put("ContextPath", callingNode.getNodePath(startNode));
-
-                freemarker.template.Template t = new freemarker.template.Template(template.getName(), new StringReader(templateString), cfg);
-                t.process(root, out);
-
+                
             } else {
-
-                // if no template is given, just copy the input
-                out.write(templateString);
-                out.flush();
-
+                
+                callingNode = startNode;
             }
+
+            Map root = new HashMap();
+
+            root.put("this", this);
+
+            if (callingNode != null) {
+                root.put(callingNode.getType(), callingNode);
+                root.put("CallingNode", callingNode);
+            }
+
+            HttpServletRequest request = CurrentRequest.getRequest();
+            if (request != null) {
+                //root.put("Request", new freemarker.template.SimpleHash(request.getParameterMap().));
+                root.put("Request", new freemarker.ext.servlet.HttpRequestParametersHashModel(request));
+
+                // if search string is given, put search results into freemarker model
+                String searchString = request.getParameter("search");
+                if (searchString != null && !(searchString.isEmpty())) {
+                    Command search = Services.command(SearchNodeCommand.class);
+                    List<AbstractNode> result = (List<AbstractNode>) search.execute(
+                            null, // user => null means super user
+                            null, // top node => null means search all
+                            false, // include hidden
+                            true, // public only
+                            Search.orName(searchString)); // search in name
+                    root.put("SearchResults", result);
+                }
+            }
+
+            if (user != null) {
+                root.put("User", user);
+            }
+
+            // Add a generic helper
+            root.put("Helper", new TemplateHelper());
+
+            // Add error and ok message if present
+            HttpSession session = CurrentRequest.getSession();
+            if (session != null) {
+                if (session.getAttribute("errorMessage") != null) {
+                    root.put("ErrorMessage", session.getAttribute("errorMessage"));
+                }
+
+                if (session.getAttribute("okMessage") != null) {
+                    root.put("OkMessage", session.getAttribute("okMessage"));
+                }
+            }
+
+            // add geo info if available
+            // TODO: add geo node information
+
+
+            //root.put("Content", new StructrTemplateNodeModel(this, startNode, editUrl, editNodeId, user));
+            //root.put("ContextPath", callingNode.getNodePath(startNode));
+            
+            String name = template != null ? template.getName() : getName();
+            
+            freemarker.template.Template t = new freemarker.template.Template(name, new StringReader(templateString), cfg);
+            t.process(root, out);
+
+
+            out.flush();
 
         } catch (Throwable t) {
             logger.log(Level.WARNING, "Error: {0}", t.getMessage());
