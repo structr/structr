@@ -27,7 +27,6 @@ import org.structr.core.node.NodeFactoryCommand;
 import org.structr.core.node.NodeRelationshipsCommand;
 import org.structr.core.node.FindNodeCommand;
 import org.structr.common.RelType;
-import org.structr.common.RenderMode;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -67,6 +66,7 @@ import org.structr.core.node.IndexNodeCommand;
 import org.structr.core.node.search.SearchNodeCommand;
 import org.structr.core.node.XPath;
 import org.structr.core.node.search.Search;
+import org.structr.core.node.search.SearchAttribute;
 
 /**
  * 
@@ -2520,16 +2520,29 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
                 //root.put("Request", new freemarker.template.SimpleHash(request.getParameterMap().));
                 root.put("Request", new freemarker.ext.servlet.HttpRequestParametersHashModel(request));
 
-                // if search string is given, put search results into freemarker model
                 String searchString = request.getParameter("search");
+                String searchInContent = request.getParameter("searchInContent");
+
+                boolean inContent = StringUtils.isNotEmpty(searchInContent) && Boolean.parseBoolean(searchInContent) ? true : false;
+                
+                // if search string is given, put search results into freemarker model
                 if (searchString != null && !(searchString.isEmpty())) {
+
+                    List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
+                    searchAttrs.add(Search.orName(searchString)); // search in name
+                    
+                    if (inContent) {
+                        searchAttrs.add(Search.orContent(searchString)); // search in name
+                    }
+                    
                     Command search = Services.command(SearchNodeCommand.class);
                     List<AbstractNode> result = (List<AbstractNode>) search.execute(
                             null, // user => null means super user
                             null, // top node => null means search all
                             false, // include hidden
                             true, // public only
-                            Search.orName(searchString)); // search in name
+                            searchAttrs);
+                    
                     root.put("SearchResults", result);
                 }
             }
