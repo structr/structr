@@ -33,7 +33,7 @@
     </init-param>
     <init-param>
       <param-name>application-version</param-name>
-      <param-value>0.2.1</param-value>
+      <param-value>0.3</param-value>
     </init-param>
     <init-param>
       <param-name>cacheable-paths</param-name>

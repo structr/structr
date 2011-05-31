@@ -6,13 +6,13 @@
     <parent>
         <groupId>org.structr</groupId>
         <artifactId>structr</artifactId>
-        <version>0.2.1</version>
+        <version>0.3</version>
     </parent>
 
     <groupId>org.structr</groupId>
     <artifactId>structr-module-app</artifactId>
     <packaging>jar</packaging>
-    <version>0.2.1</version>
+    <version>0.3</version>
     <name>structr-module-app</name>
     <url>http://maven.apache.org</url>
     <build>
