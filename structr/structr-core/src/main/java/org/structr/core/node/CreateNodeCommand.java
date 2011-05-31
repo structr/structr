@@ -29,6 +29,8 @@ import org.structr.common.RelType;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Group;
+import org.structr.core.entity.Principal;
 import org.structr.core.entity.StructrRelationship;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
@@ -110,12 +112,22 @@ public class CreateNodeCommand extends NodeServiceCommand {
             attrs.clear();
 
             if (user != null && !(user instanceof SuperUser)) {
+                
                 createRel.execute(user, node, RelType.OWNS);
                 logger.log(Level.FINEST, "Relationship to owner {0} added", user.getName());
+                
+                Principal principal;
+                
+                Group group = user.getGroupNode();
+                if (group != null) {
+                    principal = group;
+                } else {
+                    principal = user;
+                }
 
-                StructrRelationship securityRel = (StructrRelationship) createRel.execute(user, node, RelType.SECURITY);
+                StructrRelationship securityRel = (StructrRelationship) createRel.execute(principal, node, RelType.SECURITY);
                 securityRel.setAllowed(Arrays.asList(StructrRelationship.ALL_PERMISSIONS));
-                logger.log(Level.FINEST, "All permissions given to user {0}", user.getName());
+                logger.log(Level.FINEST, "All permissions given to {0}", principal.getName());
 
                 node.setProperty(AbstractNode.CREATED_BY_KEY, user.getRealName() + " (" + user.getName() + ")", false);
             }

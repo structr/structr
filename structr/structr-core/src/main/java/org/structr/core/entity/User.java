@@ -72,6 +72,17 @@ public class User extends Person {
         return null;
     }
 
+    /**
+     * Return group node this user is in (if any)
+     */
+    public Group getGroupNode() {
+        AbstractNode parentNode = getParentNode();
+        if (parentNode != null && parentNode instanceof Group) {
+            return (Group) parentNode;
+        }
+        return null;
+    }
+
     public void setPassword(final String passwordValue) {
 
         // store passwords always as SHA-512 hash
@@ -82,7 +93,7 @@ public class User extends Person {
     public String getEncryptedPassword() {
         return getStringProperty(PASSWORD_KEY);
     }
-    
+
     /**
      * Intentionally return null.
      * @return 

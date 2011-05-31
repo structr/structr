@@ -60,12 +60,10 @@ import org.structr.core.node.MoveNodeCommand;
 import org.structr.core.node.NodeAttribute;
 import org.structr.core.node.NodeFactoryCommand;
 import org.structr.core.node.NodePropertiesCommand;
-import org.structr.core.node.NodeRelationshipsCommand;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 import org.structr.common.RelType;
 import org.structr.core.entity.DummyNode;
-import org.structr.core.entity.PlainText;
 import org.structr.core.entity.Property;
 import org.structr.core.module.GetEntitiesCommand;
 import org.structr.core.node.ExtractFileCommand;
@@ -550,7 +548,7 @@ public class Nodes extends Admin {
             List<AbstractNode> nodes = new LinkedList<AbstractNode>();
 
             Command nodeFactory = Services.command(NodeFactoryCommand.class);
-            Command relCommand = Services.command(NodeRelationshipsCommand.class);
+//            Command relCommand = Services.command(NodeRelationshipsCommand.class);
 
             List<StructrRelationship> rels = nodeToAdd.getOutgoingChildRelationships();
 //            List<StructrRelationship> rels = (List<StructrRelationship>) relCommand.execute(nodeToAdd, RelType.HAS_CHILD, Direction.OUTGOING);
@@ -685,6 +683,7 @@ public class Nodes extends Admin {
                     newNodeForm.clearValues();
 
                     addTreeNode(newNode, getCurrentTreeNode());
+                    openNodes.add(getCurrentTreeNode());
 
                     return (newNode);
                 }

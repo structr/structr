@@ -274,7 +274,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
             }
         });
 
-        setExitCode(Command.exitCode.SUCCESS);
+        //setExitCode(Command.exitCode.SUCCESS);
         return newParentNode;
     }
 }

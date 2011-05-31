@@ -1,42 +1,72 @@
 <div id="treeArea" class="contentBox">
-    <h2 class="header">
-    Tree <img id="addNodeIcon" src="$context/images/add.png">
-    </h2>
-    <div class="body">
-        <div id="nodeTree">
-            $nodeTree
-        </div>
+  <h2 class="header">
+    Tree
+    <div id="treeActions">
+      <div class="fakeBtn"><img id="addNodeIcon" src="$context/images/add.png"></div>
+<!--      <div class="fakeBtn"><img id="deleteNodeIcon" src="$context/images/delete.png"></div>-->
     </div>
+  </h2>
+
+  <div class="body">
+    <div id="nodeTree">
+      <ul class="rootNode"><li><a class="fixed" href="edit.htm?nodeId=0"><img class="rootNodeIcon" src="$context/images/database.png"></a> <a class="fixed" href="edit.htm?nodeId=0">$rootNode.name</a></li></ul>
+      $nodeTree
+    </div>
+  </div>
 </div>
 <style type="text/css">
-#addNodeIcon {
-  display: none;
-}
 
-#treeArea .header {
-  /*position: relative;*/
-}
+  #treeActions {
 
-#treeArea .header #addNodeIcon {
-  position: absolute;
-  top: 12px;
-  right: 28px;
-}
-#createSelectDiv {
+  } 
+  .rootNode {
+    margin: 4px 0 0 -6px;
+    padding: 2px 0 0 0;
+    list-style-type: none;
+  }
+  .rootNode li {
+  }
+  .rootNode img {
+    vertical-align: top;
+    margin-top: -1px;
+  }
+  #addNodeIcon, #deleteNodeIcon {
+    display: none;
+  }
+
+  #treeArea .header {
+    /*position: relative;*/
+  }
+
+  #treeArea .header #addNodeIcon {
+    position: absolute;
+    top: 11px;
+    left: 112px;
+  }
+  #treeArea .header #addNodeIcon:hover {
+    cursor: move;
+  }
+  #treeArea .header #deleteNodeIcon {
+    position: absolute;
+    top: 11px;
+    left: 212px;
+  }
+  #createSelectDiv {
     width: 120px;
-}
-#createSelectDiv img {
+  }
+  #createSelectDiv img {
     border: none;
     vertical-align: middle;
     margin: -1px 3px 0px 0px;
-}
-#createSelectDiv button {
+  }
+  #createSelectDiv button {
     font-size: 1.0em;
-}
+  }
 </style>
 <div class="nodeActionMenu" id="createSelectDiv">
-    <h4>Create New Node</h4>
-    <div><label for="nodeName">Name:</label><input type="text" id="nodeNameField" name="nodeName" value="" size="8"></div>
-    <button onclick="submitCreateNodeForm()"><img alt="Create" src="$context/images/add.png">Create</button>
-    <span class="clickable unblock"><a href="#">Cancel</a></span>
+  <h4>Create New Node</h4>
+  <div><label for="nodeNameField">Name:</label><input type="text" id="nodeNameField" name="nodeName" value="" size="8"></div>
+  <div><label for="nodeTypeField">Type:</label><input type="text" id="nodeTypeField" name="nodeType" value="Folder" size="8"></div>
+  <button onclick="submitCreateNodeForm()"><img alt="Create" src="$context/images/add.png">Create</button>
+  <span class="clickable unblock"><a href="#">Cancel</a></span>
 </div>

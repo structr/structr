@@ -68,6 +68,7 @@ public class StructrPage extends Page {
     protected long sessionId;
     @Bindable
     protected User user;
+    @Bindable
     protected boolean isSuperUser;
     protected boolean readAllowed;
     protected boolean showTreeAllowed;

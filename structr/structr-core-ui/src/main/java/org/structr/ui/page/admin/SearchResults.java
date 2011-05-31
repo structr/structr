@@ -95,7 +95,6 @@ public class SearchResults extends Nodes {
         searchFields.setColumns(5);
         //advancedSearchForm.add(typeSearch);
         searchFields.add(searchTextField);
-        searchFields.add(new Label("in", "in"));
         searchFields.add(inNameCheckbox);
         searchFields.add(inTitleCheckbox);
         searchFields.add(inContentCheckbox);

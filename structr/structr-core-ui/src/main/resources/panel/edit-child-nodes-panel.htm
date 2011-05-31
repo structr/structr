@@ -1,14 +1,26 @@
 <div id="childnodes-tab" class="ui-tabs-hide">
+
+
   <div class="body">
+    #if ($trashForm)
+    $trashForm
+    #end
+
+    #if ($actionsPanel)
+    <div class="actionsPanel">
+      $actionsPanel
+    </div>
+    #end
+
     #if ($nodeListTable)
     <h3>Log Nodes</h3>
     $nodeListTable
     <h3>Child Nodes</h3>
     #end
-    
+
     #if ($childNodesTable)
     $childNodesTable
-    
+
     #end
   </div><!-- .body -->
 </div>
