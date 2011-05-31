@@ -1,3 +1,5 @@
+Welcome to structr. Please check out http://structr.org for more information.
+
 <h1>structr project structure</h1>
 
 <h2>structr contains the following maven projects:</h2>
