@@ -236,7 +236,11 @@ public class AppNodeTestCase002 extends ApplicationNode
 	{
 		StringBuilder ret = new StringBuilder();
 
-		ret.append("<script type=\"text/javascript\" src=\"/t5s/ckeditor/ckeditor.js\"></script>\n");
+        ret.append("<#assign context = \"\" />");
+        ret.append("<#if Request?? && Request.contextPath?? >");
+        ret.append("  <#assign context = Request.contextPath />");
+        ret.append("</#if>");
+		ret.append("<script type=\"text/javascript\" src=\"${context}/ckeditor/ckeditor.js\"></script>\n");
 		ret.append("<script type=\"text/javascript\">\n");
 		ret.append("window.onload = function()\n");
 		ret.append("{\n");
