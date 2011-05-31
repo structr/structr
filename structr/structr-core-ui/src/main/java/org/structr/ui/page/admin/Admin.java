@@ -78,7 +78,6 @@ public class Admin extends StructrPage {
     protected Form simpleSearchForm = new Form();
     @Bindable
     protected Panel simpleSearchPanel = new Panel("simpleSearchPanel", "/panel/simple-search-panel.htm");
-    @Bindable
     protected TextField searchTextField = new AutoCompleteTextField(SEARCH_TEXT_KEY, "Search for") {
 
         @Override
@@ -86,6 +85,7 @@ public class Admin extends StructrPage {
             return Search.getNodeNamesLike(criteria);
         }
     };
+    
     @Bindable
     protected List<AbstractNode> searchResults;
     // use template for backend pages
@@ -135,7 +135,7 @@ public class Admin extends StructrPage {
         simpleSearchForm.setActionURL("search-results.htm#search-tab");
 //        simpleSearchForm.add(new Submit("Search", this, "onSimpleSearch"));
         simpleSearchForm.add(new Submit("Search"));
-
+        
         List<AbstractNode> usersNodes = (List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(user, null, false, false, Search.andExactName("Users"));
         if (!(usersNodes.isEmpty())) {
             usersLink.setParameter("nodeId", usersNodes.get(0).getId());

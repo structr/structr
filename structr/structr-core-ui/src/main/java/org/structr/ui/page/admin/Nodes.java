@@ -698,17 +698,12 @@ public class Nodes extends Admin {
                 AbstractNode n = (AbstractNode) findNode.execute(user, s.getId());
 
                 Map<String, String> parameters = new HashMap<String, String>();
-                parameters.put(NODE_ID_KEY, String.valueOf(n.getId()));
+                parameters.put(NODE_ID_KEY, String.valueOf(s.getId()));
                 parameters.put(RENDER_MODE_KEY, renderMode);
                 parameters.put(OK_MSG_KEY, okMsg);
-                setRedirect(getRedirectPage(n), parameters);
+                setRedirect(getRedirectPage(s), parameters);
+                setRedirect(getRedirect().concat("#properties-tab"));
 
-                if (n instanceof PlainText) {
-                    setRedirect(getRedirect().concat("#content-tab"));
-                } else {
-                    setRedirect(getRedirect().concat("#properties-tab"));
-                }
-                
             } else {
                 errorMsg = "New node could not be created!";
             }
@@ -721,7 +716,7 @@ public class Nodes extends Admin {
         }
 
         // return false to stop continuing current controls
-        return redirect();
+        return false;
     }
 
     /**
@@ -776,7 +771,7 @@ public class Nodes extends Admin {
         if (moveNodeForm.isValid()) {
             final String targetNodeId = moveNodeForm.getFieldValue(TARGET_NODE_ID_KEY);
             final String sourceNodeId = StringUtils.isNotEmpty(moveNodeForm.getFieldValue(SOURCE_NODE_ID_KEY)) ? moveNodeForm.getFieldValue(SOURCE_NODE_ID_KEY) : getNodeId();
-            
+
             Command transactionCommand = Services.command(TransactionCommand.class);
             transactionCommand.execute(new StructrTransaction() {
 

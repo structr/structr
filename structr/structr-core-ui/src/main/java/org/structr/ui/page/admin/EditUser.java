@@ -41,8 +41,11 @@ public class EditUser extends DefaultEdit {
 
     public EditUser() {
 
+        super();
+        
         FieldSet userFields = new FieldSet("User Information");
 
+        userFields.add(new TextField(User.NAME_KEY, true));
         userFields.add(new TextField(User.REAL_NAME_KEY));
         userFields.add(new PasswordField(User.PASSWORD_KEY));
         userFields.add(new EmailField(Person.EMAIL_1_KEY, "E-Mail"));

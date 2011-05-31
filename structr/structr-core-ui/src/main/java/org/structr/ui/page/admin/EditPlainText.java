@@ -51,6 +51,9 @@ public class EditPlainText extends DefaultEdit {
 
     public EditPlainText() {
 
+        super();
+
+
         editPropertiesForm.add(new TextField(PlainText.CONTENT_TYPE_KEY, "Internet Media Type (Content-Type)", 30));
 
         addControl(editPlainTextPanel);

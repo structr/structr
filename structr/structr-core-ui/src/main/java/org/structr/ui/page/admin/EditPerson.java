@@ -36,6 +36,9 @@ public class EditPerson extends DefaultEdit {
 
     public EditPerson() {
 
+        super();
+
+
         personFields.setColumns(2);
         personFields.add(new TextField(Person.SALUTATION_KEY));
         personFields.add(new TextField(Person.FIRST_NAME_KEY));

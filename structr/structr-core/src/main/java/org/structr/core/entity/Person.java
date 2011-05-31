@@ -77,7 +77,7 @@ public class Person extends Principal {
 
     @Override
     public void setName(final String name) {
-        // use first name and last name instead
+        setProperty(NAME_KEY, name);
     }
 
     public String getLastName() {
