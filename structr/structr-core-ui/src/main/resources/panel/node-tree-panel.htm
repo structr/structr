@@ -41,7 +41,7 @@
   #treeArea .header #addNodeIcon {
     position: absolute;
     top: 11px;
-    left: 112px;
+    right: 12px;
   }
   #treeArea .header #addNodeIcon:hover {
     cursor: move;
@@ -65,8 +65,10 @@
 </style>
 <div class="nodeActionMenu" id="createSelectDiv">
   <h4>Create New Node</h4>
-  <div><label for="nodeNameField">Name:</label><input type="text" id="nodeNameField" name="nodeName" value="" size="8"></div>
-  <div><label for="nodeTypeField">Type:</label><input type="text" id="nodeTypeField" name="nodeType" value="Folder" size="8"></div>
+  <table>
+  <tr><td><label for="nodeNameField">Name:</label></td><td><input type="text" id="nodeNameField" name="nodeName" value="" size="8"></td></tr>
+  <tr><td><label for="nodeTypeField">Type:</label></td><td><input type="text" id="nodeTypeField" name="nodeType" value="Folder" size="8"></td></tr>
+  </table>
   <button onclick="submitCreateNodeForm()"><img alt="Create" src="$context/images/add.png">Create</button>
   <span class="clickable unblock"><a href="#">Cancel</a></span>
 </div>

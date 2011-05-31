@@ -733,6 +733,15 @@ div.fakeBtn.enabled {
   display: none ! important;
 }
 
+#simpleSearchForm_searchFor-auto-complete-div {
+  position: absolute;
+  z-index: 4;
+  color: #333;
+  width: 100% ! important;
+  font-weight: normal;
+  font-size: 10px;
+}
+
 .util img {
   vertical-align: middle;
 }

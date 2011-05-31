@@ -59,7 +59,6 @@ import org.structr.core.entity.log.LogNodeList;
 import org.structr.core.entity.log.PageRequest;
 import org.structr.core.log.GetGlobalLogCommand;
 import org.structr.core.module.GetEntitiesCommand;
-import org.structr.core.module.GetEntityPackagesCommand;
 import org.structr.core.module.ListModulesCommand;
 import org.structr.core.module.ReloadModulesCommand;
 import org.structr.core.node.CreateNodeCommand;

@@ -78,14 +78,6 @@ public class Admin extends StructrPage {
     protected Form simpleSearchForm = new Form();
     @Bindable
     protected Panel simpleSearchPanel = new Panel("simpleSearchPanel", "/panel/simple-search-panel.htm");
-    protected TextField searchTextField = new AutoCompleteTextField(SEARCH_TEXT_KEY, "Search for") {
-
-        @Override
-        public List<String> getAutoCompleteList(final String criteria) {
-            return Search.getNodeNamesLike(criteria);
-        }
-    };
-    
     @Bindable
     protected List<AbstractNode> searchResults;
     // use template for backend pages
@@ -123,19 +115,26 @@ public class Admin extends StructrPage {
     @Override
     public void onInit() {
         super.onInit();
-        
+
         PageLink returnLink = new PageLink("Return Link", getClass());
         returnLink.setParameter(NODE_ID_KEY, getNodeId());
         logoutLink.setParameter(RETURN_URL_KEY, returnLink.getHref());
 
-        simpleSearchForm.add(searchTextField);
+        simpleSearchForm.add(new AutoCompleteTextField(SEARCH_TEXT_KEY, "Search for") {
+
+            @Override
+            public List<String> getAutoCompleteList(final String criteria) {
+                return Search.getNodeNamesLike(criteria);
+            }
+        });
+
         simpleSearchForm.add(new HiddenField(NODE_ID_KEY, nodeId != null ? nodeId : ""));
         simpleSearchForm.add(new HiddenField(RENDER_MODE_KEY, renderMode != null ? renderMode : ""));
         simpleSearchForm.setListener(this, "onSimpleSearch");
         simpleSearchForm.setActionURL("search-results.htm#search-tab");
 //        simpleSearchForm.add(new Submit("Search", this, "onSimpleSearch"));
         simpleSearchForm.add(new Submit("Search"));
-        
+
         List<AbstractNode> usersNodes = (List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(user, null, false, false, Search.andExactName("Users"));
         if (!(usersNodes.isEmpty())) {
             usersLink.setParameter("nodeId", usersNodes.get(0).getId());

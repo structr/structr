@@ -803,10 +803,14 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
     }
 
     public boolean isDeleted() {
-        return getDeleted();
+        boolean hasDeletedFlag = getDeleted();
+        boolean isInTrash = isInTrash();
+        
+        return hasDeletedFlag || isInTrash;
     }
 
     public boolean getDeleted() {
+
         return getBooleanProperty(DELETED_KEY);
     }
 
@@ -1212,7 +1216,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
             // link down
 //            return thisPath.substring(refPath.length());
             // Bug fix: Don't include the leading "/", this is a relative path!
-            return thisPath.substring(refPath.length()+1);
+            return thisPath.substring(refPath.length() + 1);
 
         } else {
             // link up
@@ -1485,6 +1489,20 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
         }
         return nodes;
 
+    }
+
+    /**
+     * 
+     * Returns true if an ancestor node is a Trash node
+     */
+    public boolean isInTrash() {
+        List<AbstractNode> ancestors = getAncestorNodes();
+        for (AbstractNode node : ancestors) {
+            if (node instanceof Trash) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -2498,11 +2516,11 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
             AbstractNode callingNode = null;
 
             if (getTemplate() != null) {
-                
+
                 callingNode = template.getCallingNode();
-                
+
             } else {
-                
+
                 callingNode = startNode;
             }
 
@@ -2524,17 +2542,17 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
                 String searchInContent = request.getParameter("searchInContent");
 
                 boolean inContent = StringUtils.isNotEmpty(searchInContent) && Boolean.parseBoolean(searchInContent) ? true : false;
-                
+
                 // if search string is given, put search results into freemarker model
                 if (searchString != null && !(searchString.isEmpty())) {
 
                     List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
                     searchAttrs.add(Search.orName(searchString)); // search in name
-                    
+
                     if (inContent) {
                         searchAttrs.add(Search.orContent(searchString)); // search in name
                     }
-                    
+
                     Command search = Services.command(SearchNodeCommand.class);
                     List<AbstractNode> result = (List<AbstractNode>) search.execute(
                             null, // user => null means super user
@@ -2542,7 +2560,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
                             false, // include hidden
                             true, // public only
                             searchAttrs);
-                    
+
                     root.put("SearchResults", result);
                 }
             }
@@ -2572,9 +2590,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 
             //root.put("Content", new StructrTemplateNodeModel(this, startNode, editUrl, editNodeId, user));
             //root.put("ContextPath", callingNode.getNodePath(startNode));
-            
+
             String name = template != null ? template.getName() : getName();
-            
+
             freemarker.template.Template t = new freemarker.template.Template(name, new StringReader(templateString), cfg);
             t.process(root, out);
 

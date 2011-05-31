@@ -26,7 +26,6 @@ import org.apache.click.control.Checkbox;
 import org.apache.click.control.Column;
 import org.apache.click.control.FieldSet;
 import org.apache.click.control.Form;
-import org.apache.click.control.Label;
 import org.apache.click.control.Option;
 import org.apache.click.control.PageLink;
 import org.apache.click.control.TextField;
@@ -35,6 +34,7 @@ import org.apache.click.control.Select;
 import org.apache.click.control.Submit;
 import org.apache.click.control.Table;
 import org.apache.click.dataprovider.DataProvider;
+import org.apache.click.extras.control.AutoCompleteTextField;
 import org.apache.click.extras.control.LinkDecorator;
 import org.apache.click.util.Bindable;
 import org.apache.click.util.HtmlStringBuffer;
@@ -56,9 +56,9 @@ public class SearchResults extends Nodes {
     private final static String SEARCH_IN_TITLE_KEY = "inTitle";
     private final static String SEARCH_IN_CONTENT_KEY = "inContent";
     private static final String SEARCH_OPERATOR_KEY = "searchOp";
-    private static final String SEARCH_TOP_NODE_KEY = "topNode";
-    private static final String SEARCH_ONLY_PUBLIC_KEY = "onlyPublic";
-    private static final String SEARCH_INCLUDE_DELETED_KEY = "onlyPublic";
+//    private static final String SEARCH_TOP_NODE_KEY = "topNode";
+//    private static final String SEARCH_ONLY_PUBLIC_KEY = "onlyPublic";
+//    private static final String SEARCH_INCLUDE_DELETED_KEY = "onlyPublic";
     // defaults
     private static boolean inNameChecked = true;
     private static boolean inTitleChecked = true;
@@ -71,6 +71,9 @@ public class SearchResults extends Nodes {
     protected Panel searchResultsPanel = new Panel("searchResultsPanel", "/panel/search-results-panel.htm");
     @Bindable
     protected Table searchResultsTable = new Table();
+    @Bindable
+    protected TextField searchTextField = new TextField(SEARCH_TEXT_KEY, "Search for");
+    
     // common fields
     @Bindable
     protected Select searchOpSelect = new Select(SEARCH_OPERATOR_KEY, "Boolean Search Operator");
@@ -91,7 +94,6 @@ public class SearchResults extends Nodes {
     public SearchResults() {
 
         super();
-
         searchFields.setColumns(5);
         //advancedSearchForm.add(typeSearch);
         searchFields.add(searchTextField);
@@ -103,6 +105,7 @@ public class SearchResults extends Nodes {
         searchOpSelect.add(new Option(SearchOperator.OR));
         searchOpSelect.add(new Option(SearchOperator.AND));
         searchFields.add(searchOpSelect);
+
         advancedSearchForm.setActionURL(advancedSearchForm.getActionURL().concat("#search-tab"));
         advancedSearchForm.add(searchFields);
 
@@ -250,6 +253,8 @@ public class SearchResults extends Nodes {
         setDefaults();
         restoreState();
         populateSearchResultsTable();
+        
+        //advancedSearchForm.add(new HiddenField(AbstractNode.NODE_ID_KEY, getNodeId()));*
     }
 
     public boolean onReset() {
@@ -342,7 +347,7 @@ public class SearchResults extends Nodes {
             searchResults = (List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(
                     user, // filter by user
                     null, // top node
-                    true, // include deleted
+                    false, // include deleted
                     false, // only public
                     searchAttrs);
 

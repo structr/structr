@@ -35,6 +35,7 @@
         <module>structr-module-web</module>
         <module>structr-module-app</module>
         <module>structr-webapp</module>
-    </modules>
+    <module>structr-module-gis</module>
+  </modules>
 
 </project>

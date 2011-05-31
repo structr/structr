@@ -16,31 +16,32 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.tools;
 
-import org.structr.common.StandaloneTestHelper;
-import org.structr.core.Services;
-import org.structr.core.cloud.PushNodes;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.node.FindUserCommand;
+package org.structr.ui.page.admin;
+
+import org.apache.click.control.FieldSet;
+import org.apache.click.extras.control.DoubleField;
+import org.apache.click.util.Bindable;
+import org.structr.core.entity.geo.GeoObject;
+import org.structr.ui.page.admin.DefaultEdit;
 
 /**
  *
- * @author axel
+ * @author amorgner
  */
-public class PushNodeToRemoteServer {
+public class EditGeoObject extends DefaultEdit {
 
-    public static void main(String[] args) {
+    @Bindable
+    protected FieldSet geoFields = new FieldSet("Geo Data");
 
-        StandaloneTestHelper.prepareStandaloneTest("/opt/structr/structr-tfs2");
+    public EditGeoObject() {
 
-        final AbstractNode adminNode = (AbstractNode) Services.command(FindUserCommand.class).execute("admin");
-        final String remoteServer = "localhost";
+        super();
 
-
-        Services.command(PushNodes.class).execute(adminNode, remoteServer);
-
-        StandaloneTestHelper.finishStandaloneTest();
-
+        geoFields.setColumns(2);
+        geoFields.add(new DoubleField(GeoObject.LONGITUDE_KEY));
+        geoFields.add(new DoubleField(GeoObject.LATITUDE_KEY));
+        editPropertiesForm.add(geoFields);
     }
+
 }
