@@ -364,8 +364,8 @@ function getParam(name,url) {
 }
 
 function submitCreateNodeForm() {
-  console.log(targetId);
-  console.log(jQuery('#newNodeForm'));
+//  console.log(targetId);
+//  console.log(jQuery('#newNodeForm'));
   jQuery('#newNodeForm_targetNodeId').val(targetId);
   jQuery('#newNodeForm_createNewNode').val(' Create new node ');
   var name = jQuery('#nodeNameField').attr("value");   
