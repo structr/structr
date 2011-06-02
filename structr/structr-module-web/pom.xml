@@ -18,7 +18,7 @@
                     <source>1.6</source>
                     <target>1.6</target>
                     <encoding>${project.build.sourceEncoding}</encoding>
-                    <debug>false</debug>
+                    <debug>true</debug>
                 </configuration>
             </plugin>
         </plugins>
