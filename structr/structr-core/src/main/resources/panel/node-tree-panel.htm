@@ -9,60 +9,12 @@
 
   <div class="body">
     <div id="nodeTree">
-      <ul class="rootNode"><li><a class="fixed" href="edit.htm?nodeId=0"><img class="rootNodeIcon" src="$context/images/database.png"></a> <a class="fixed" href="edit.htm?nodeId=0">$rootNode.name</a></li></ul>
+      <ul class="rootNode"><li><a class="fixed" href="edit.htm?nodeId=0"><img class="rootNodeIcon" src="$context/images/database.png"></a> <a class="fixed" href="edit.htm?nodeId=0">$rootNode.name</a>
       $nodeTree
+      </li></ul>
     </div>
   </div>
 </div>
-<style type="text/css">
-
-  #treeActions {
-
-  } 
-  .rootNode {
-    margin: 4px 0 0 -6px;
-    padding: 2px 0 0 0;
-    list-style-type: none;
-  }
-  .rootNode li {
-  }
-  .rootNode img {
-    vertical-align: top;
-    margin-top: -1px;
-  }
-  #addNodeIcon, #deleteNodeIcon {
-    display: none;
-  }
-
-  #treeArea .header {
-    /*position: relative;*/
-  }
-
-  #treeArea .header #addNodeIcon {
-    position: absolute;
-    top: 11px;
-    right: 12px;
-  }
-  #treeArea .header #addNodeIcon:hover {
-    cursor: move;
-  }
-  #treeArea .header #deleteNodeIcon {
-    position: absolute;
-    top: 11px;
-    left: 212px;
-  }
-  #createSelectDiv {
-    width: 120px;
-  }
-  #createSelectDiv img {
-    border: none;
-    vertical-align: middle;
-    margin: -1px 3px 0px 0px;
-  }
-  #createSelectDiv button {
-    font-size: 1.0em;
-  }
-</style>
 <div class="nodeActionMenu" id="createSelectDiv">
   <h4>Create New Node</h4>
   <table>
