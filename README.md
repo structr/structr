@@ -1,6 +1,6 @@
-Welcome to structr. Please check out http://structr.org for more information.
+Welcome to structr. See http://structr.org for more information.
 
-<h1>structr project structure</h1>
+A Quick Start Guide is available here: http://structr.org/quick-start-guide
 
 <h2>structr contains the following maven projects:</h2>
 
