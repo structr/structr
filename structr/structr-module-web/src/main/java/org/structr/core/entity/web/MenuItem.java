@@ -164,7 +164,7 @@ public class MenuItem extends WebNode {
 
                 out.append("<li").append(cssClass).append(">");
                 out.append("<span>" + "<a href=\"").append(relativeNodePath).append("\">");
-                out.append(currentNode.getName());
+                out.append(currentNode.getTitleOrName());
             }
         }
 
