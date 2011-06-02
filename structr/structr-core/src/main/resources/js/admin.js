@@ -120,13 +120,13 @@ jQuery(document).ready(function() {
       }
     });       
     addIcon.show();
-    var deleteIcon = jQuery('#deleteNodeIcon');
-    deleteIcon.show();
+    //var deleteIcon = jQuery('#deleteNodeIcon');
+    //deleteIcon.show();
   });
 
   jQuery('#treeArea .header').mouseout(function() {
     jQuery('#addNodeIcon').hide();
-    jQuery('#deleteNodeIcon').hide();
+    //jQuery('#deleteNodeIcon').hide();
   });
     
     
@@ -398,6 +398,6 @@ function submitLinkNodeForm() {
   jQuery('#newRelationshipForm').submit();
 }
 
-jQuery('#deleteNodeIcon').click(function() {
-  showDeleteNodePanel()
-});
+//jQuery('#deleteNodeIcon').click(function() {
+//  showDeleteNodePanel()
+//});
