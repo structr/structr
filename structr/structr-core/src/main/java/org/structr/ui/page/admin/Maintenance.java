@@ -246,6 +246,7 @@ public class Maintenance extends Admin {
         registeredClassesTable.addColumn(new Column("count", "Count"));
         registeredClassesTable.setSortable(true);
         registeredClassesTable.setSortedColumn("name");
+        registeredClassesTable.setPageSize(15);
         registeredClassesTable.setHoverRows(true);
         registeredClassesTable.setShowBanner(true);
         registeredClassesTable.setClass(TABLE_CLASS);

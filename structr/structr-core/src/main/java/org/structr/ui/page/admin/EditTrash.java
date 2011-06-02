@@ -68,11 +68,18 @@ public class EditTrash extends EditFolder {
 
             Command deleteNode = Services.command(DeleteNodeCommand.class);
 
-            List<AbstractNode> contents = trash.getDirectChildAndLinkNodes();
-            for (AbstractNode nodeToDelete : contents) {
+            List<AbstractNode> children = trash.getDirectChildNodes();
+            for (AbstractNode nodeToDelete : children) {
 
                 // Delete subnodes recursively
                 deleteNode.execute(nodeToDelete, null, true, user);
+            }
+
+            List<AbstractNode> links = trash.getLinkedNodes();
+            for (AbstractNode nodeToDelete : links) {
+
+                // Delete links
+                deleteNode.execute(nodeToDelete, trash, true, user);
             }
 
         }

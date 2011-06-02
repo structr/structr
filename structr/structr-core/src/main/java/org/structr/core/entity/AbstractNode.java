@@ -561,6 +561,14 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
     }
 
     /**
+     * Return node's title, or if title is null, name
+     */
+    public String getTitleOrName() {
+        String title = getTitle();
+        return title != null ? title : getName();
+    }
+
+    /**
      * Get name from underlying db node
      *
      * If name is null, return node id as fallback
@@ -582,7 +590,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
     }
 
     /**
-     * Get (primary) title
+     * Return title dependend of locale
      * 
      * @param locale
      * @return
@@ -591,12 +599,13 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
         return (String) getProperty(getTitleKey(locale));
     }
 
-    /*
-     * Default, should not be used
+    /**
+     * Return title
      */
     public String getTitle() {
-        logger.log(Level.FINE, "Title without locale requested.");
-        return getTitle(new Locale("en"));
+//        logger.log(Level.FINE, "Title without locale requested.");
+//        return getTitle(new Locale("en"));
+        return getStringProperty(TITLE_KEY);
     }
 
     public static String getTitleKey(final Locale locale) {
@@ -805,7 +814,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
     public boolean isDeleted() {
         boolean hasDeletedFlag = getDeleted();
         boolean isInTrash = isInTrash();
-        
+
         return hasDeletedFlag || isInTrash;
     }
 

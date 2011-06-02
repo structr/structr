@@ -288,6 +288,7 @@ public class Nodes extends Admin {
             // assemble form to move a node
             moveNodeForm.add(new HiddenField(NODE_ID_KEY, nodeId != null ? nodeId : ""));
             moveNodeForm.add(new TextField(TARGET_NODE_ID_KEY, true));
+            moveNodeForm.add(new TextField(PARENT_NODE_ID_KEY, ""));
             moveNodeForm.add(new TextField(SOURCE_NODE_ID_KEY, ""));
             moveNodeForm.add(new HiddenField(RENDER_MODE_KEY, renderMode != null ? renderMode : ""));
             moveNodeForm.setListener(this, "onMoveNode");
@@ -398,6 +399,7 @@ public class Nodes extends Admin {
         if (parentNodeId != null) {
             // set parent node id  on node deletion form
             deleteNodeForm.add(new HiddenField(PARENT_NODE_ID_KEY, parentNodeId));
+//            moveNodeForm.add(new HiddenField(PARENT_NODE_ID_KEY, parentNodeId));
             //deleteNodeForm.getField(PARENT_NODE_ID_KEY).setValue(parentNodeId);
         }
 
@@ -769,6 +771,7 @@ public class Nodes extends Admin {
     public boolean onMoveNode() {
         if (moveNodeForm.isValid()) {
             final String targetNodeId = moveNodeForm.getFieldValue(TARGET_NODE_ID_KEY);
+            final boolean isLink = StringUtils.isNotEmpty(moveNodeForm.getFieldValue(PARENT_NODE_ID_KEY));
             final String sourceNodeId = StringUtils.isNotEmpty(moveNodeForm.getFieldValue(SOURCE_NODE_ID_KEY)) ? moveNodeForm.getFieldValue(SOURCE_NODE_ID_KEY) : getNodeId();
 
             Command transactionCommand = Services.command(TransactionCommand.class);
@@ -777,7 +780,7 @@ public class Nodes extends Admin {
                 @Override
                 public Object execute() throws Throwable {
                     Command moveNode = Services.command(MoveNodeCommand.class);
-                    moveNode.execute(sourceNodeId, targetNodeId);
+                    moveNode.execute(sourceNodeId, targetNodeId, isLink);
                     return (null);
                 }
             });
