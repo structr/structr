@@ -598,7 +598,7 @@ table#properties td:first-child {
     padding: .25em .5em;
 }
 
-.treestyle .active {
+.treestyle .active, .rootNode .active {
     background-color: #616161;
     border-radius: 3px;
     -moz-border-radius: 3px;

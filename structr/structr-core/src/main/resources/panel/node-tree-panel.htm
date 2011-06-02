@@ -5,10 +5,14 @@
       <img id="addNodeIcon" src="$context/images/add.png">
     </div>
   </h2>
-
+#if ($nodeId == "0")
+#set ($active = "active")
+#end
   <div class="body">
     <div id="nodeTree">
-      <ul class="rootNode"><li><a class="fixed" href="edit.htm?nodeId=0"><img class="rootNodeIcon" src="$context/images/database.png"></a> <a class="fixed" href="edit.htm?nodeId=0">$rootNode.name</a>
+      <ul class="rootNode">
+          <li>
+              <a class="fixed" href="edit.htm?nodeId=0"><img class="rootNodeIcon" src="$context/images/database.png"></a> <a class="$active fixed" href="edit.htm?nodeId=0">$rootNode.name</a>
       $nodeTree
       </li></ul>
     </div>
