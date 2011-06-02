@@ -55,6 +55,7 @@ import org.structr.core.cloud.PushNodes;
 import org.structr.core.entity.Image;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractNode.Title;
+import org.structr.core.entity.Folder;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.NodeType;
 import org.structr.core.entity.StructrRelationship;
@@ -224,7 +225,7 @@ public class DefaultEdit extends Nodes {
 
         // ------------------ child nodes start --------------------------------
 
-        if (node != null && node.hasChildren()) {
+        if (node != null && (node.hasChildren() || node instanceof Folder)) {
 //        if (node != null) {
 
             Column actionColumnNodes = new Column("Actions");
