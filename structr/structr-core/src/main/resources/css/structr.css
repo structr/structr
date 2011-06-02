@@ -196,18 +196,18 @@ span.required {
     margin-top: 14px ! important;
 }
 
-#main {
+/*#main {
     margin: 0 10px;
-}
+}*/
 
 #tree {
     margin: 0 0 0 -10px;
 }
 
 #treeArea, .wideTabArea {
-    position: absolute;
-    left: 14px;
-    top: 68px;
+    /*    position: absolute;
+        left: 0px;
+        top: 56px;*/
 }
 
 #tree .highlight {
@@ -218,12 +218,8 @@ span.required {
     position: relative;
 }
 
-#treeActions {
-
-} 
-
 .rootNode {
-    margin: 4px 0 0 -12px;
+    margin: -8px 0 0 -12px;
     padding: 2px 0 0 4px;
     list-style-type: none;
 }
@@ -238,7 +234,7 @@ span.required {
 }
 
 #treeArea .header {
-    /*position: relative;*/
+    position: relative;
 }
 
 #treeArea .header #addNodeIcon {
@@ -281,11 +277,11 @@ span.required {
     margin: -1px 3px 0px 0px;
 }
 
-.tabArea {
+/*.tabArea {
     position: absolute;
-    left: 250px;
-    top: 68px;
-}
+    left: 0;
+    top: 56px;
+}*/
 
 #msg {
     position: absolute;
@@ -364,7 +360,7 @@ span.spacer {
 
 .actionsPanel {
     height: 20px;
-    padding: 10px 0 8px 0px;
+    padding: 0px 0 8px 0px;
     white-space: nowrap;
 }
 
@@ -418,6 +414,13 @@ span.spacer {
     border-radius: 5px;
     -moz-border-radius: 5px;
     -webkit-border-radius: 5px;
+
+    float: left;
+    margin: 12px 0 0 12px;
+}
+
+.floating {
+    float: left;
 }
 
 .outerBox {
@@ -467,7 +470,7 @@ span.spacer {
 }
 
 .contentBox .body {
-    padding: 0 12px;
+    padding: 12px;
     overflow: auto;
 }
 
@@ -490,6 +493,9 @@ span.spacer {
     padding: 0 .5em;
 }
 
+.contentBox .body  h3 {
+    margin-top: 0;
+}
 .outerBox p {
     padding: 1px 4px;
 }
@@ -689,9 +695,9 @@ table#properties td:first-child {
     border-radius: 3px;
     -moz-border-radius: 3px;
     -webkit-border-radius: 3px;
-    box-shadow: 0px 0px 8px #111;
+    box-shadow: 0px 0px 8px #202020;
     -webkit-box-shadow: 0px 0px 7px #202020;
-    -moz-box-shadow: 0px 0px 8px #111;
+    -moz-box-shadow: 0px 0px 8px #202020;
 
 }
 
