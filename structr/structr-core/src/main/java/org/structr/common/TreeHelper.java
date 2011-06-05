@@ -1,6 +1,20 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ *  Copyright (C) 2011 Axel Morgner, structr <structr@structr.org>
+ * 
+ *  This file is part of structr <http://structr.org>.
+ * 
+ *  structr is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ * 
+ *  structr is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ * 
+ *  You should have received a copy of the GNU General Public License
+ *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.common;
 
@@ -9,7 +23,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang.StringUtils;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.User;
 
 /**
  *
@@ -20,13 +33,13 @@ public abstract class TreeHelper {
     private static final Logger logger = Logger.getLogger(TreeHelper.class.getName());
 
     public static AbstractNode getNodeByPath(final AbstractNode startNode,
-            final String path, final boolean includeLinks, final User user) {
+            final String path, final boolean includeLinks) {
         AbstractNode currentNode = startNode;
         String[] names = StringUtils.split(path, "/");
         for (String name : names) {
 
             if ("..".equals(name)) {
-                currentNode = currentNode.getParentNode(user);
+                currentNode = currentNode.getParentNode();
                 continue;
             }
 
@@ -40,9 +53,9 @@ public abstract class TreeHelper {
                 return null;
             }
 
-            List<AbstractNode> children = currentNode.getDirectChildNodes(user);
+            List<AbstractNode> children = currentNode.getDirectChildNodes();
             if (includeLinks) {
-                List<AbstractNode> links = currentNode.getLinkedNodes(user);
+                List<AbstractNode> links = currentNode.getLinkedNodes();
                 if (links != null) {
                     children.addAll(links);
                 }
@@ -64,7 +77,7 @@ public abstract class TreeHelper {
     }
 
     public static Iterable<AbstractNode> getNodesByPath(final AbstractNode startNode,
-            final String path, final boolean includeLinks, final User user) {
+            final String path, final boolean includeLinks) {
 
         AbstractNode currentNode = startNode;
         String[] names = StringUtils.split(path, "/");
@@ -74,15 +87,15 @@ public abstract class TreeHelper {
         for (String name : names) {
 
             if ("..".equals(name)) {
-                currentNode = currentNode.getParentNode(user);
+                currentNode = currentNode.getParentNode();
                 continue;
             }
 
 
             boolean foundName = false;
-            children = currentNode.getDirectChildNodes(user);
+            children = currentNode.getDirectChildNodes();
             if (includeLinks) {
-                List<AbstractNode> links = currentNode.getLinkedNodes(user);
+                List<AbstractNode> links = currentNode.getLinkedNodes();
                 if (links != null) {
                     children.addAll(links);
                 }

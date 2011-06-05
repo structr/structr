@@ -1,6 +1,20 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ *  Copyright (C) 2011 Axel Morgner, structr <structr@structr.org>
+ * 
+ *  This file is part of structr <http://structr.org>.
+ * 
+ *  structr is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ * 
+ *  structr is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ * 
+ *  You should have received a copy of the GNU General Public License
+ *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.entity.web;
 
@@ -9,10 +23,9 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import org.structr.common.CurrentRequest;
-//import org.structr.common.CurrentSession;
+import org.structr.common.CurrentSession;
 import org.structr.context.SessionMonitor;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.User;
 
 /**
  * Logs current user out
@@ -50,7 +63,7 @@ public class Logout extends WebNode {
      */
     @Override
     public void renderView(StringBuilder out, final AbstractNode startNode,
-            final String editUrl, final Long editNodeId, final User user) {
+            final String editUrl, final Long editNodeId) {
 
 //        String errorMsg;
 
@@ -78,7 +91,7 @@ public class Logout extends WebNode {
             Boolean alreadyLoggedIn = usernameFromSession != null;
 
             if (alreadyLoggedIn) {
-                logout(user, session);
+                logout(session);
                 out.append("<div class=\"okMsg\">").append("User ").append(usernameFromSession).append(" logged out").append("</div>");
                 logger.log(Level.INFO, "User {0} logged out", usernameFromSession);
                 return;
@@ -87,18 +100,18 @@ public class Logout extends WebNode {
         }
     }
 
-    private void logout(final User user, HttpSession session) {
+    private void logout(HttpSession session) {
 
         String sessionId = session.getId();
 
         // Clear username in session
-//        CurrentSession.setGlobalUsername(null);
+        CurrentSession.setGlobalUsername(null);
         session.setAttribute(USERNAME_KEY, null);
 
         // Invalidate (destroy) session
         session.invalidate();
 
-        SessionMonitor.logActivity(user, SessionMonitor.getSessionByUId(sessionId), "Logout");
+        SessionMonitor.logActivity(SessionMonitor.getSessionByUId(sessionId), "Logout");
 
     }
 

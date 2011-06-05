@@ -1,3 +1,21 @@
+/*
+ *  Copyright (C) 2011 Axel Morgner, structr <structr@structr.org>
+ * 
+ *  This file is part of structr <http://structr.org>.
+ * 
+ *  structr is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ * 
+ *  structr is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ * 
+ *  You should have received a copy of the GNU General Public License
+ *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package org.structr.core.entity;
 
 import java.io.IOException;
@@ -53,7 +71,7 @@ public class PlainText extends AbstractNode {
 
     @Override
     public void renderView(StringBuilder out, final AbstractNode startNode,
-            final String editUrl, final Long editNodeId, final User user) {
+            final String editUrl, final Long editNodeId) {
 
         if (editNodeId != null && getId() == editNodeId.longValue()) {
 
@@ -61,7 +79,7 @@ public class PlainText extends AbstractNode {
 
         } else {
 
-            if (isVisible(user)) {
+            if (isVisible()) {
                 String html = getContent();
 
                 if (StringUtils.isNotBlank(html)) {
@@ -69,12 +87,12 @@ public class PlainText extends AbstractNode {
                     StringWriter content = new StringWriter();
 
                     // process content with Freemarker
-                    replaceByFreeMarker(html, content, startNode, editUrl, editNodeId, user);
+                    replaceByFreeMarker(html, content, startNode, editUrl, editNodeId);
 
                     StringBuilder content2 = new StringBuilder(content.toString());
 
                     // finally, replace %{subnodeKey} by rendered content of subnodes with this name
-                    replaceBySubnodes(content2, startNode, editUrl, editNodeId, user);
+                    replaceBySubnodes(content2, startNode, editUrl, editNodeId);
                     out.append(content2.toString());
 
                 }
@@ -89,14 +107,14 @@ public class PlainText extends AbstractNode {
      */
     @Override
     public void renderDirect(OutputStream out, final AbstractNode startNode,
-            final String editUrl, final Long editNodeId, final User user) {
+            final String editUrl, final Long editNodeId) {
 
-        if (isVisible(user)) {
+        if (isVisible()) {
 
             try {
 
                 StringBuilder sb = new StringBuilder();
-                renderView(sb, startNode, editUrl, editNodeId, user);
+                renderView(sb, startNode, editUrl, editNodeId);
 
                 // write to output stream
                 IOUtils.write(sb.toString(), out);

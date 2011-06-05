@@ -1,14 +1,25 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ *  Copyright (C) 2011 Axel Morgner, structr <structr@structr.org>
+ * 
+ *  This file is part of structr <http://structr.org>.
+ * 
+ *  structr is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ * 
+ *  structr is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ * 
+ *  You should have received a copy of the GNU General Public License
+ *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.node.search;
 
-import java.text.Normalizer;
-import java.text.Normalizer.Form;
 import java.util.LinkedList;
 import java.util.List;
-import org.apache.commons.lang.StringUtils;
 import org.structr.core.Services;
 import org.structr.core.entity.PlainText;
 import org.structr.core.entity.AbstractNode;
@@ -119,26 +130,26 @@ public abstract class Search {
         return result;
     }
 
-    public static String normalize(final String input) {
-        String output = Normalizer.normalize(input, Form.NFD);
-        output = StringUtils.trim(output);
-//        output = StringUtils.lowerCase(output);
-        output = StringUtils.replace(output, "\"", "");
-        output = StringUtils.replace(output, "´", "");
-        output = StringUtils.replace(output, "`", "");
-        output = StringUtils.replace(output, "^", "");
-        output = StringUtils.replace(output, "'", "");
-        output = StringUtils.replace(output, ".", "");
-        output = StringUtils.replace(output, ",", "");
-        output = StringUtils.replace(output, "-", "");
-        output = StringUtils.replace(output, "+", "");
-        output = StringUtils.replace(output, "(", "");
-        output = StringUtils.replace(output, ")", "");
-        output = StringUtils.replace(output, "=", "");
-        output = StringUtils.replace(output, ":", "");
-        output = StringUtils.replace(output, "~", "");
-        return output;
-    }
+//    public static String normalize(final String input) {
+//        String output = Normalizer.normalize(input, Form.NFD);
+//        output = StringUtils.trim(output);
+////        output = StringUtils.lowerCase(output);
+//        output = StringUtils.replace(output, "\"", "");
+//        output = StringUtils.replace(output, "´", "");
+//        output = StringUtils.replace(output, "`", "");
+//        output = StringUtils.replace(output, "^", "");
+//        output = StringUtils.replace(output, "'", "");
+//        output = StringUtils.replace(output, ".", "");
+//        output = StringUtils.replace(output, ",", "");
+//        output = StringUtils.replace(output, "-", "");
+//        output = StringUtils.replace(output, "+", "");
+//        output = StringUtils.replace(output, "(", "");
+//        output = StringUtils.replace(output, ")", "");
+//        output = StringUtils.replace(output, "=", "");
+//        output = StringUtils.replace(output, ":", "");
+//        output = StringUtils.replace(output, "~", "");
+//        return output;
+//    }
 
 
     /**
@@ -155,7 +166,7 @@ public abstract class Search {
         List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
 
         // always add wildcard character '*' for auto completion
-        searchAttrs.add(Search.andExactName(string + SearchAttribute.WILDCARD));
+        searchAttrs.add(Search.andName(string + SearchAttribute.WILDCARD));
         List<AbstractNode> result = (List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(null, null, false, false, searchAttrs);
 
         if (result != null) {

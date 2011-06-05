@@ -1,6 +1,20 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ *  Copyright (C) 2011 Axel Morgner, structr <structr@structr.org>
+ * 
+ *  This file is part of structr <http://structr.org>.
+ * 
+ *  structr is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ * 
+ *  structr is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ * 
+ *  You should have received a copy of the GNU General Public License
+ *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.node;
 
@@ -118,9 +132,9 @@ public class FindNodeCommand extends NodeServiceCommand {
                 Node rootNode = graphDb.getReferenceNode();
 
                 if (path.endsWith("*")) {
-                    result = TreeHelper.getNodesByPath(nodeFactory.createNode(rootNode), path, true, user);
+                    result = TreeHelper.getNodesByPath(nodeFactory.createNode(rootNode), path, true);
                 } else {
-                    result = TreeHelper.getNodeByPath(nodeFactory.createNode(rootNode), path, true, user);
+                    result = TreeHelper.getNodeByPath(nodeFactory.createNode(rootNode), path, true);
                 }
 
 
@@ -148,9 +162,9 @@ public class FindNodeCommand extends NodeServiceCommand {
             String path = xpath.getXPath();
 
             if (path.endsWith("*")) {
-                result = TreeHelper.getNodesByPath(nodeFactory.createNode(rootNode), path, true, user);
+                result = TreeHelper.getNodesByPath(nodeFactory.createNode(rootNode), path, true);
             } else {
-                result = TreeHelper.getNodeByPath(nodeFactory.createNode(rootNode), path, true, user);
+                result = TreeHelper.getNodeByPath(nodeFactory.createNode(rootNode), path, true);
             }
 
             //result = nodeFinder.findNodes(xpath, nodeFactory);
@@ -219,9 +233,9 @@ public class FindNodeCommand extends NodeServiceCommand {
             }
 
             if (path.endsWith("*")) {
-                result = TreeHelper.getNodesByPath(currentNode, path, true, user);
+                result = TreeHelper.getNodesByPath(currentNode, path, true);
             } else {
-                result = TreeHelper.getNodeByPath(currentNode, path, true, user);
+                result = TreeHelper.getNodeByPath(currentNode, path, true);
             }
 //
 //

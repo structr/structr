@@ -1,16 +1,29 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ *  Copyright (C) 2011 Axel Morgner, structr <structr@structr.org>
+ * 
+ *  This file is part of structr <http://structr.org>.
+ * 
+ *  structr is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ * 
+ *  structr is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ * 
+ *  You should have received a copy of the GNU General Public License
+ *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.node.search;
 
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.collections.ListUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanClause;
@@ -21,7 +34,7 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexHits;
-import org.neo4j.index.impl.lucene.QueryContext;
+import org.neo4j.index.lucene.QueryContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.User;
 import org.structr.core.node.NodeServiceCommand;
@@ -50,6 +63,7 @@ import org.structr.core.node.StructrNodeFactory;
 public class SearchNodeCommand extends NodeServiceCommand {
 
     private static final Logger logger = Logger.getLogger(SearchNodeCommand.class.getName());
+    private static String IMPROBABLE_SEARCH_VALUE = "xeHfc6OG30o3YQzX57_8____r-Wx-RW_70r84_71D-g--P9-3K";
 
     @Override
     public Object execute(Object... parameters) {
@@ -57,8 +71,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
         Index<Node> index = (Index<Node>) arguments.get("index");
         StructrNodeFactory nodeFactory = (StructrNodeFactory) arguments.get("nodeFactory");
 
-        // Using TreeSet: No duplicates and no need to sort
-        Set<AbstractNode> result = new TreeSet<AbstractNode>();
+        List<AbstractNode> finalResult = new LinkedList<AbstractNode>();
 
         if (graphDb != null) {
 
@@ -127,6 +140,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
                         for (SearchAttribute groupedAttr : groupedAttributes) {
 
+                            // TODO: support other than textual search attributes
                             if (groupedAttr instanceof TextualSearchAttribute) {
 
                                 subQuery.add(toQuery((TextualSearchAttribute) groupedAttr), translateToBooleanClauseOccur(groupedAttr.getSearchOperator()));
@@ -161,7 +175,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
             if (searchAttrs.isEmpty() || StringUtils.isBlank(textualQueryString)) {
 
                 if (topNode != null) {
-                    intermediateResult = topNode.getAllChildren(user);
+                    intermediateResult = topNode.getAllChildren();
                 } else {
                     intermediateResult = new LinkedList<AbstractNode>();
 
@@ -189,7 +203,11 @@ public class SearchNodeCommand extends NodeServiceCommand {
             long t2 = System.currentTimeMillis();
 
             if (booleanAttributes.isEmpty()) {
-                result.addAll(intermediateResult);
+
+                // if no further boolean attributes, the final result equals the intermediate result
+
+                finalResult.addAll(intermediateResult);
+
             } else {
 
                 // Filter intermediate result
@@ -198,134 +216,71 @@ public class SearchNodeCommand extends NodeServiceCommand {
                     for (BooleanSearchAttribute attr : booleanAttributes) {
 
                         String key = attr.getKey();
-                        Boolean value = attr.getValue();
+                        Boolean searchValue = attr.getValue();
                         SearchOperator op = attr.getSearchOperator();
 
                         Object nodeValue = node.getProperty(key);
 
-                        if (op.equals(SearchOperator.OR)) {
-                            result.add(node);
-                        } else if (op.equals(SearchOperator.AND)) {
+                        if (op.equals(SearchOperator.NOT)) {
 
-                            if (nodeValue == null && value == null) {
-                                result.add(node);
+                            if (nodeValue != null && !(nodeValue.equals(searchValue))) {
+                                attr.addToResult(node);
                             }
 
-                            if (nodeValue != null && nodeValue.equals(value)) {
-                                result.add(node);
+                        } else {
+
+                            if (nodeValue == null && searchValue == null) {
+                                attr.addToResult(node);
                             }
 
-                        } else if (op.equals(SearchOperator.NOT)) {
-
-                            if (nodeValue != null && !(nodeValue.equals(value))) {
-                                result.add(node);
+                            if (nodeValue != null && nodeValue.equals(searchValue)) {
+                                attr.addToResult(node);
                             }
-
                         }
-//
-//
-//
-//                    Iterable<Node> nodes = null;
-//                    try {
-//
-//                        String stringValue = null;
-//                        boolean isString = false;
-//                        if (value instanceof String) {
-//                            isString = true;
-//                            stringValue = (String) value;
-//
-//                            if (TextualSearchAttribute.WILDCARD.equals(Search.unquoteExactMatch(stringValue))) {
-//                                value = Search.unquoteExactMatch(stringValue);
-//                            }
-//                        }
-//
-//                        // if more than one character with leading wildcard, remove wildcard
-//                        if (stringValue != null && stringValue.length() > 1 && stringValue.startsWith(TextualSearchAttribute.WILDCARD)) {
-//                            stringValue = stringValue.substring(1);
-//                        }
-//
-//                        boolean indexHits = false;
-//                        boolean wildcardHits = false;
-//
-//                        if (StringUtils.isNotBlank(key) && (value != null && (!isString || StringUtils.isNotBlank(stringValue)))) {
-//
-//                            // catch wildcard
-//                            if (TextualSearchAttribute.WILDCARD.equals(value)) {
-//                                nodes = graphDb.getAllNodes();
-//                                wildcardHits = (nodes != null && nodes.iterator().hasNext());
-//                            } else {
-//
-//                                if (isString) {
-//                                    nodes = index.query(attr.getKey(), stringValue);
-//                                } else {
-//                                    nodes = index.query(attr.getKey(), attr.getValue());
-//                                }
-//                                indexHits = (nodes != null && nodes.iterator().hasNext());
-//                            }
-//
-//                        }
-//
-//                        // if search operator is AND, stop search on first empty single result
-//                        if (op.equals(SearchOperator.AND) && !indexHits && !wildcardHits) {
-//                            return Collections.emptyList();
-//                        }
-//
-//                    } catch (Throwable t) {
-//                        logger.log(Level.WARNING, "Search error", t);
-//                    }
-//
-//                    List<AbstractNode> singleResult = nodeFactory.createNodes(nodes);
-//
-//                    if (op.equals(SearchOperator.OR)) {
-//
-//                        // OR operator: add single result to intermediate result list
-//                        intermediateResult = ListUtils.sum(intermediateResult, singleResult);
-//
-//                    } else if (op.equals(SearchOperator.AND)) {
-//
-//                        // If no intermediate result is given, start with the first single result
-//                        // Note: We can safely assume an empty intermediate result because
-//                        // in AND mode, search stops after the first empty single result set
-//                        if (intermediateResult.isEmpty()) {
-//                            intermediateResult = singleResult;
-//                        }
-//
-//                        // AND operator: intersect single result with intermediate result
-//                        List<AbstractNode> intersectionResult = ListUtils.intersection(intermediateResult, singleResult);
-//                        intermediateResult = intersectionResult;
-//
-//                    } else if (op.equals(SearchOperator.AND_NOT)) {
-//
-//                        // If no intermediate result is given, start with the first single result
-//                        // Note: We can safely assume an empty intermediate result because
-//                        // in AND mode, search stops after the first empty single result set
-//                        if (intermediateResult.isEmpty()) {
-//                            intermediateResult = singleResult;
-//                        }
-//                        // AND_NOT operator: intersect single result with intermediate result
-//                        List<AbstractNode> intersectionResult = ListUtils.subtract(intermediateResult, singleResult);
-//                        intermediateResult = intersectionResult;
-//                    }
 
 
                     }
                 }
+
+                // now sum, intersect or substract all partly results
+
+                for (BooleanSearchAttribute attr : booleanAttributes) {
+                    SearchOperator op = attr.getSearchOperator();
+                    List<AbstractNode> result = attr.getResult();
+
+                    if (op.equals(SearchOperator.AND)) {
+
+                        intermediateResult = ListUtils.intersection(intermediateResult, result);
+
+                    } else if (op.equals(SearchOperator.AND)) {
+
+                        intermediateResult = ListUtils.sum(intermediateResult, result);
+
+                    } else if (op.equals(SearchOperator.NOT)) {
+
+                        intermediateResult = ListUtils.subtract(intermediateResult, result);
+
+                    }
+
+                }
+                finalResult.addAll(intermediateResult);
+
+
             }
             long t3 = System.currentTimeMillis();
-            logger.log(Level.FINE, "Filtering nodes took {0} ms. Result size now {1}.", new Object[]{t3 - t2, result.size()});
+            logger.log(Level.FINE, "Filtering nodes took {0} ms. Result size now {1}.", new Object[]{t3 - t2, finalResult.size()});
 
-            //result = new LinkedList(intermediateResult);
         }
 
-//        long t4 = System.currentTimeMillis();
-//
-//        // sort search results; defaults to name, (@see AbstractNode.compareTo())
-//        Collections.sort(result);
-//
-//        long t5 = System.currentTimeMillis();
-//        logger.log(Level.INFO, "Sorting nodes took {0} ms.", new Object[]{t5 - t4});
+        long t4 = System.currentTimeMillis();
 
-        return new LinkedList<AbstractNode>(result);
+        // sort search results; defaults to name, (@see AbstractNode.compareTo())
+        Collections.sort(finalResult);
+
+        long t5 = System.currentTimeMillis();
+        logger.log(Level.FINE, "Sorting nodes took {0} ms.", new Object[]{t5 - t4});
+
+        return finalResult;
 
     }
 
@@ -335,8 +290,8 @@ public class SearchNodeCommand extends NodeServiceCommand {
         String value = singleAttribute.getValue();
         SearchOperator op = singleAttribute.getSearchOperator();
 
-        if (StringUtils.isBlank(value)) {
-            return "";
+        if (StringUtils.isBlank(value) || value.equals("\"\"")) {
+            return " " + key + ":" + IMPROBABLE_SEARCH_VALUE + "";
         }
 
         // NOT operator should always be applied
@@ -357,7 +312,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
         boolean valueIsNoStringAndNotNull = (value != null && !(value instanceof String));
         boolean valueIsNoBlankString = (value != null && value instanceof String && StringUtils.isNotBlank((String) value));
 
-        if (StringUtils.isNotBlank(key) && (valueIsNoStringAndNotNull || valueIsNoBlankString)) {
+        if (StringUtils.isNotBlank(key) && (valueIsNoBlankString || valueIsNoStringAndNotNull)) {
             return new TermQuery(new Term(key, value.toString()));
         }
 
@@ -410,12 +365,13 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
         // Expand key,word to ' (key:word* OR key:"word") '
 
-        int i=1;
+        int i = 1;
         for (String word : words) {
 
-            String cleanWord = Search.normalize(word);
+//            String cleanWord = Search.normalize(word);
 
-            result += " (" + key + ":" + cleanWord + "* OR " + key + ":\"" + cleanWord + "\")" + (i<words.length ? " AND " : " ) ");
+//            result += " (" + key + ":" + cleanWord + "* OR " + key + ":\"" + cleanWord + "\")" + (i<words.length ? " AND " : " ) ");
+            result += " (" + key + ":" + word + "* OR " + key + ":\"" + word + "\")" + (i < words.length ? " AND " : " ) ");
             i++;
 
         }

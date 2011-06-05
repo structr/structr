@@ -1,6 +1,20 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ *  Copyright (C) 2011 Axel Morgner, structr <structr@structr.org>
+ * 
+ *  This file is part of structr <http://structr.org>.
+ * 
+ *  structr is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ * 
+ *  structr is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ * 
+ *  You should have received a copy of the GNU General Public License
+ *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.entity.app;
 
@@ -52,7 +66,7 @@ public class AppLogin extends ActionNode
 	private SessionValue<String> userNameValue = null;
 
 	@Override
-	public boolean doAction(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId, User user)
+	public boolean doAction(final StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
 	{
 		String usernameFromSession = CurrentSession.getGlobalUsername();
 		Boolean alreadyLoggedIn = usernameFromSession != null;
@@ -130,7 +144,7 @@ public class AppLogin extends ActionNode
 
 		// Check password
 		String encryptedPasswordValue = DigestUtils.sha512Hex(password);
-		if(!encryptedPasswordValue.equals(loginUser.getPassword()))
+		if(!encryptedPasswordValue.equals(loginUser.getEncryptedPassword()))
 		{
 			logger.log(Level.INFO, "Wrong password for user {0}", loginUser);
 			countLoginFailure(maxRetries, delayThreshold, delayTime);
@@ -142,8 +156,8 @@ public class AppLogin extends ActionNode
 		CurrentSession.setGlobalUsername(loginUser.getName());
 
 		// Register user with internal session management
-		long sessionId = SessionMonitor.registerUserSession(user, CurrentSession.getSession());
-		SessionMonitor.logActivity(user, sessionId, "Login");
+		long sessionId = SessionMonitor.registerUserSession(CurrentSession.getSession());
+		SessionMonitor.logActivity(sessionId, "Login");
 
 		// Mark this session with the internal session id
 		CurrentSession.setAttribute(SessionMonitor.SESSION_ID, sessionId);

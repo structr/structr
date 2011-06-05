@@ -1,6 +1,20 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ *  Copyright (C) 2011 Axel Morgner, structr <structr@structr.org>
+ * 
+ *  This file is part of structr <http://structr.org>.
+ * 
+ *  structr is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ * 
+ *  structr is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ * 
+ *  You should have received a copy of the GNU General Public License
+ *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 package org.structr.core.entity.app;
@@ -13,7 +27,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Logger;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.User;
 
 /**
  *
@@ -32,9 +45,9 @@ public abstract class HtmlNode extends AbstractNode
 	protected String id = null;
 
 	// ----- abstract methods -----
-	public abstract void doBeforeRendering(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user);
-	public abstract void renderContent(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user);
-	public abstract boolean hasContent(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user);
+	public abstract void doBeforeRendering(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId);
+	public abstract void renderContent(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId);
+	public abstract boolean hasContent(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId);
 
 	@Override
 	public String getIconSrc()
@@ -84,12 +97,12 @@ public abstract class HtmlNode extends AbstractNode
 	}
 
 	@Override
-	public void renderView(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user)
+	public void renderView(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
 	{
 		// notify component of rendering
-		doBeforeRendering(out, startNode, editUrl, editNodeId, user);
+		doBeforeRendering(out, startNode, editUrl, editNodeId);
 
-		boolean hasContent = hasContent(out, startNode, editUrl, editNodeId, user);
+		boolean hasContent = hasContent(out, startNode, editUrl, editNodeId);
 
 		// only render if tag is set!
 		if(tag != null)
@@ -131,7 +144,7 @@ public abstract class HtmlNode extends AbstractNode
 
 		if(hasContent)
 		{
-			renderContent(out, startNode, editUrl, editNodeId, user);
+			renderContent(out, startNode, editUrl, editNodeId);
 		}
 
 		if(tag != null && (forceClosingTag || hasContent))

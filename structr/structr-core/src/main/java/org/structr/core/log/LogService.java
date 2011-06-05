@@ -1,6 +1,20 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ *  Copyright (C) 2011 Axel Morgner, structr <structr@structr.org>
+ * 
+ *  This file is part of structr <http://structr.org>.
+ * 
+ *  structr is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ * 
+ *  structr is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ * 
+ *  You should have received a copy of the GNU General Public License
+ *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.log;
 
@@ -64,7 +78,7 @@ public class LogService extends RunnableNodeService {
             logger.log(Level.INFO, "Starting LogService");
 
             // initialize global log..
-            getGlobalLog();
+            //getGlobalLog();
 
             while (run || !queue.isEmpty()) {
 
@@ -133,13 +147,13 @@ public class LogService extends RunnableNodeService {
         LogNodeList userLogNodeList = loggerCache.get(user);
 
         if (userLogNodeList == null) {
-            // First, try to find user's activity list
-            for (AbstractNode s : user.getDirectChildNodes(user)) {
-                if (s instanceof LogNodeList) {
 
-                    // Take the first LogNodeList
-                    userLogNodeList = (LogNodeList) s;
 
+            for (StructrRelationship rel : user.getOutgoingChildRelationships()) {
+                if (rel.getEndNode() instanceof LogNodeList) {
+
+                    // Take first LogNodeList below root node
+                    userLogNodeList = (LogNodeList) rel.getEndNode();
                     // store in cache
                     loggerCache.put(user, userLogNodeList);
 
@@ -157,7 +171,7 @@ public class LogService extends RunnableNodeService {
                     Command createNode = Services.command(CreateNodeCommand.class);
                     Command createRel = Services.command(CreateRelationshipCommand.class);
 
-                    LogNodeList<Activity> newLogNodeList = (LogNodeList<Activity>) createNode.execute(user,
+                    LogNodeList<Activity> newLogNodeList = (LogNodeList<Activity>) createNode.execute(
                             new NodeAttribute(AbstractNode.TYPE_KEY, LogNodeList.class.getSimpleName()),
                             new NodeAttribute(AbstractNode.NAME_KEY, user.getName() + "'s Activity Log"));
 
@@ -293,9 +307,9 @@ public class LogService extends RunnableNodeService {
         try {
             // wait a little bit
             sleep(1000);
-            
+
             this.interrupt();
-            
+
         } catch (Throwable t) { /* ignore */ }
     }
     // </editor-fold>

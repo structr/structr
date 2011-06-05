@@ -1,3 +1,21 @@
+/*
+ *  Copyright (C) 2011 Axel Morgner, structr <structr@structr.org>
+ * 
+ *  This file is part of structr <http://structr.org>.
+ * 
+ *  structr is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ * 
+ *  structr is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ * 
+ *  You should have received a copy of the GNU General Public License
+ *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package org.structr.core.entity;
 
 import freemarker.template.Configuration;
@@ -6,16 +24,15 @@ import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.NodeFactoryCommand;
-import org.structr.core.node.LinkNodeFactoryCommand;
 import org.structr.core.node.NodeRelationshipsCommand;
 import org.structr.core.node.FindNodeCommand;
 import org.structr.common.RelType;
-import org.structr.common.RenderMode;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.StringReader;
 import java.io.Writer;
+import java.lang.reflect.Method;
 import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Collections;
@@ -33,24 +50,23 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
-//import org.neo4j.graphdb.*;
-//import org.neo4j.index.IndexService;
-//import org.neo4j.index.lucene.LuceneFulltextIndexService;
-//import org.neo4j.kernel.Traversal;
 import org.apache.commons.lang.time.DateUtils;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
+import org.structr.common.AbstractNodeComparator;
 import org.structr.common.CurrentRequest;
 import org.structr.common.TemplateHelper;
 import org.structr.core.NodeSource;
 import org.structr.core.cloud.NodeDataContainer;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;
+import org.structr.core.node.DeleteRelationshipCommand;
 import org.structr.core.node.IndexNodeCommand;
 import org.structr.core.node.search.SearchNodeCommand;
 import org.structr.core.node.XPath;
 import org.structr.core.node.search.Search;
+import org.structr.core.node.search.SearchAttribute;
 
 /**
  * 
@@ -76,11 +92,13 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
     private List<StructrRelationship> allRelationships = null;
 
     // ----- abstract methods ----
-    public abstract void renderView(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user);
-    public abstract String getIconSrc();
-    public abstract void onNodeCreation();
-    public abstract void onNodeInstantiation();
+    public abstract void renderView(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId);
 
+    public abstract String getIconSrc();
+
+    public abstract void onNodeCreation();
+
+    public abstract void onNodeInstantiation();
     // reference to database node
     protected Node dbNode;
     // dirty flag, true means that some changes are not yet written to the database
@@ -114,8 +132,11 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 //    private final static String REQUEST_KEY_SUFFIX = "]";
     private final static String CALLING_NODE_SUBNODES_KEY = "*";
     private final static String CALLING_NODE_SUBNODES_AND_LINKED_NODES_KEY = "#";
+    public final static String TEMPLATE_ID_KEY = "templateId";
+    public final static String TYPE_NODE_ID_KEY = "typeNodeId";
+    //public final static String TEMPLATES_KEY = "templates";
     protected Template template;
-
+    protected User user;
 
     /*
      * Helper class for multilanguage titles
@@ -172,6 +193,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
     public void init(final Node dbNode) {
         this.dbNode = dbNode;
         isDirty = false;
+        user = CurrentRequest.getCurrentUser();
     }
 
     private void init(final AbstractNode node) {
@@ -240,6 +262,31 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 
     }
 
+    public Long getTemplateId() {
+        Template n = getTemplate();
+        return (n != null ? n.getId() : null);
+    }
+
+    public void setTemplateId(final Long value) {
+
+        // find template node
+        Command findNode = Services.command(FindNodeCommand.class);
+        Template templateNode = (Template) findNode.execute(new SuperUser(), value);
+
+        // delete existing template relationships
+        List<StructrRelationship> templateRels = this.getOutgoingRelationships(RelType.USE_TEMPLATE);
+        Command delRel = Services.command(DeleteRelationshipCommand.class);
+        if (templateRels != null) {
+            for (StructrRelationship r : templateRels) {
+                delRel.execute(r);
+            }
+        }
+
+        // create new link target relationship
+        Command createRel = Services.command(CreateRelationshipCommand.class);
+        createRel.execute(this, templateNode, RelType.USE_TEMPLATE);
+    }
+
     /**
      * Render a node-specific inline edit view as html
      * 
@@ -289,72 +336,77 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
         for (String key : getPropertyKeys()) {
 
             Object value = getProperty(key);
-            String displayValue = "";
 
-            if (value.getClass().isPrimitive()) {
-                displayValue = value.toString();
-            } else if (value.getClass().isArray()) {
+            if (value != null) {
 
-                if (value instanceof byte[]) {
 
-                    displayValue = new String((byte[]) value);
+                String displayValue = "";
 
-                } else if (value instanceof char[]) {
+                if (value.getClass().isPrimitive()) {
+                    displayValue = value.toString();
+                } else if (value.getClass().isArray()) {
 
-                    displayValue = new String((char[]) value);
+                    if (value instanceof byte[]) {
 
-                } else if (value instanceof double[]) {
+                        displayValue = new String((byte[]) value);
 
-                    Double[] values = ArrayUtils.toObject((double[]) value);
-                    displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
+                    } else if (value instanceof char[]) {
 
-                } else if (value instanceof float[]) {
+                        displayValue = new String((char[]) value);
 
-                    Float[] values = ArrayUtils.toObject((float[]) value);
-                    displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
+                    } else if (value instanceof double[]) {
 
-                } else if (value instanceof short[]) {
+                        Double[] values = ArrayUtils.toObject((double[]) value);
+                        displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
 
-                    Short[] values = ArrayUtils.toObject((short[]) value);
-                    displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
+                    } else if (value instanceof float[]) {
 
-                } else if (value instanceof long[]) {
+                        Float[] values = ArrayUtils.toObject((float[]) value);
+                        displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
 
-                    Long[] values = ArrayUtils.toObject((long[]) value);
-                    displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
+                    } else if (value instanceof short[]) {
 
-                } else if (value instanceof int[]) {
+                        Short[] values = ArrayUtils.toObject((short[]) value);
+                        displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
 
-                    Integer[] values = ArrayUtils.toObject((int[]) value);
-                    displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
+                    } else if (value instanceof long[]) {
 
-                } else if (value instanceof boolean[]) {
+                        Long[] values = ArrayUtils.toObject((long[]) value);
+                        displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
 
-                    Boolean[] values = (Boolean[]) value;
-                    displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
+                    } else if (value instanceof int[]) {
 
-                } else if (value instanceof byte[]) {
+                        Integer[] values = ArrayUtils.toObject((int[]) value);
+                        displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
 
-                    displayValue = new String((byte[]) value);
+                    } else if (value instanceof boolean[]) {
+
+                        Boolean[] values = (Boolean[]) value;
+                        displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
+
+                    } else if (value instanceof byte[]) {
+
+                        displayValue = new String((byte[]) value);
+
+                    } else {
+
+                        Object[] values = (Object[]) value;
+                        displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
+                    }
+
 
                 } else {
-
-                    Object[] values = (Object[]) value;
-                    displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
+                    displayValue = value.toString();
                 }
 
+                props.add("\"" + key + "\"" + " : " + "\"" + displayValue + "\"");
 
-            } else {
-                displayValue = value.toString();
             }
-
-            props.add("\"" + key + "\"" + " : " + "\"" + displayValue + "\"");
-
         }
-
         out.append("{ ").append(StringUtils.join(props.toArray(), " , ")).append(" }");
 
         return out.toString();
+
     }
 
     /**
@@ -440,10 +492,10 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      * Should be overwritten by any node which holds binary content
      */
     public void renderDirect(OutputStream out, final AbstractNode startNode,
-            final String editUrl, final Long editNodeId, final User user) {
+            final String editUrl, final Long editNodeId) {
 
         try {
-            if (isVisible(user)) {
+            if (isVisible()) {
                 out.write(getName().getBytes());
             }
         } catch (IOException e) {
@@ -456,7 +508,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      *
      * @return
      */
-    public Template getTemplate(final User user) {
+    public Template getTemplate() {
 
         long t0 = System.currentTimeMillis();
 
@@ -485,7 +537,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
             }
 
             if (template == null) {
-                startNode = startNode.getParentNode(user);
+                startNode = startNode.getParentNode();
                 continue;
             }
         }
@@ -496,8 +548,8 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 
     }
 
-    public boolean hasTemplate(final User user) {
-        return (getTemplate(user) != null);
+    public boolean hasTemplate() {
+        return (getTemplate() != null);
     }
 
     /**
@@ -506,6 +558,14 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      */
     public String getType() {
         return (String) getProperty(TYPE_KEY);
+    }
+
+    /**
+     * Return node's title, or if title is null, name
+     */
+    public String getTitleOrName() {
+        String title = getTitle();
+        return title != null ? title : getName();
     }
 
     /**
@@ -530,7 +590,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
     }
 
     /**
-     * Get (primary) title
+     * Return title dependend of locale
      * 
      * @param locale
      * @return
@@ -539,12 +599,13 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
         return (String) getProperty(getTitleKey(locale));
     }
 
-    /*
-     * Default, should not be used
+    /**
+     * Return title
      */
     public String getTitle() {
-        logger.log(Level.FINE, "Title without locale requested.");
-        return getTitle(new Locale("en"));
+//        logger.log(Level.FINE, "Title without locale requested.");
+//        return getTitle(new Locale("en"));
+        return getStringProperty(TITLE_KEY);
     }
 
     public static String getTitleKey(final Locale locale) {
@@ -730,6 +791,10 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
         setProperty(VISIBLE_TO_AUTHENTICATED_USERS_KEY, flag);
     }
 
+    public boolean isNotHidden() {
+        return !getHidden();
+    }
+
     public boolean isHidden() {
         return getHidden();
     }
@@ -742,11 +807,19 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
         setProperty(HIDDEN_KEY, hidden);
     }
 
+    public boolean isNotDeleted() {
+        return !getDeleted();
+    }
+
     public boolean isDeleted() {
-        return getDeleted();
+        boolean hasDeletedFlag = getDeleted();
+        boolean isInTrash = isInTrash();
+
+        return hasDeletedFlag || isInTrash;
     }
 
     public boolean getDeleted() {
+
         return getBooleanProperty(DELETED_KEY);
     }
 
@@ -789,10 +862,36 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
         // not allowed
     }
 
+    /**
+     * Return a map with all properties of this node
+     * 
+     * @return 
+     */
     public Map<String, Object> getPropertyMap() {
         return properties;
     }
 
+    /**
+     * Return the property signature of a node
+     * 
+     * @return 
+     */
+    public Map<String, Class> getSignature() {
+        Map<String, Class> signature = new HashMap<String, Class>();
+        for (String key : getPropertyKeys()) {
+            Object prop = getProperty(key);
+            if (prop != null) {
+                signature.put(key, prop.getClass());
+            }
+        }
+        return signature;
+    }
+
+    /**
+     * Return all property keys of the underlying database node
+     * 
+     * @return 
+     */
     public Iterable<String> getPropertyKeys() {
         return dbNode.getPropertyKeys();
     }
@@ -866,6 +965,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
         if (propertyValue instanceof Integer) {
             result = ((Integer) propertyValue).intValue();
         } else if (propertyValue instanceof String) {
+            if ("".equals((String) propertyValue)) {
+                return 0;
+            }
             result = Integer.parseInt(((String) propertyValue));
         }
         return result;
@@ -880,6 +982,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
         if (propertyValue instanceof Long) {
             result = ((Long) propertyValue).longValue();
         } else if (propertyValue instanceof String) {
+            if ("".equals((String) propertyValue)) {
+                return 0L;
+            }
             result = Long.parseLong(((String) propertyValue));
         }
         return result;
@@ -894,6 +999,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
         if (propertyValue instanceof Double) {
             result = ((Double) propertyValue).doubleValue();
         } else if (propertyValue instanceof String) {
+            if ("".equals((String) propertyValue)) {
+                return 0.0d;
+            }
             result = Double.parseDouble(((String) propertyValue));
         }
         return result;
@@ -951,7 +1059,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
     public void setProperty(final String key, final Object value, final boolean updateIndex) {
 
         if (key == null) {
-            logger.log(Level.SEVERE, "Tried to set property will null key (action was denied)");
+            logger.log(Level.SEVERE, "Tried to set property with null key (action was denied)");
             return;
         }
 
@@ -1096,13 +1204,13 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      * @param node
      * @return
      */
-    public String getNodePath(final User user, final AbstractNode node) {
+    public String getNodePath(final AbstractNode node) {
 
         // clicked node as reference
-        String refPath = node.getNodePath(user);
+        String refPath = node.getNodePath();
 
         // currently rendered node, the link target
-        String thisPath = this.getNodePath(user);
+        String thisPath = this.getNodePath();
 
         String[] refParts = refPath.split("/");
         String[] thisParts = thisPath.split("/");
@@ -1115,7 +1223,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 
         } else if (level < 0) {
             // link down
-            return thisPath.substring(refPath.length());
+//            return thisPath.substring(refPath.length());
+            // Bug fix: Don't include the leading "/", this is a relative path!
+            return thisPath.substring(refPath.length() + 1);
 
         } else {
             // link up
@@ -1141,7 +1251,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      * @return
      *//*
     public String getNodePath(final AbstractNode node, final Enum renderMode) {
-
+    
     Command nodeFactory = Services.command(NodeFactoryCommand.class);
     AbstractNode n = (AbstractNode) nodeFactory.execute(node);
     return n.getNodePath();
@@ -1152,7 +1262,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      *
      * @return
      */
-    public String getNodePath(final User user) {
+    public String getNodePath() {
 
         String path = "";
 
@@ -1168,7 +1278,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 
             path = node.getName() + (!("".equals(path)) ? "/" + path : "");
 
-            node = node.getParentNode(user);
+            node = node.getParentNode();
 
             // check parent nodes
 //            Relationship r = node.getSingleRelationship(RelType.HAS_CHILD, Direction.INCOMING);
@@ -1187,7 +1297,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      *
      * @return
      */
-    public String getNodeXPath(final User user) {
+    public String getNodeXPath() {
 
         String xpath = "";
 
@@ -1204,92 +1314,25 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
             xpath = node.getType() + "[@name='" + node.getName() + "']" + (!("".equals(xpath)) ? "/" + xpath : "");
 
             // check parent nodes
-            node = node.getParentNode(user);
+            node = node.getParentNode();
 
         }
 
         return "/".concat(xpath); // add leading slash, because we always include the root node
     }
 
-    public String getNodeURL(final User user, final String contextPath) {
-        return getNodeURL(user, RenderMode.PUBLIC, contextPath);
-    }
-
-    /**
-     * Assemble URL for this node.
-     *
-     * This is an inverse method of @getNodeByIdOrPath.
-     *
-     * @param renderMode
-     * @param contextPath
-     * @return
-     */
-    public String getNodeURL(final User user, final Enum renderMode, final String contextPath) {
-
-        String domain = "";
-        String site = "";
-        String path = "";
-
-
-        if (RenderMode.PUBLIC.equals(renderMode)) {
-
-            // create bean node
-            Command nodeFactory = Services.command(NodeFactoryCommand.class);
-            AbstractNode node = (AbstractNode) nodeFactory.execute(this);
-
-            // TODO: remove references to db nodes
-            //Node node = n.getNode();
-
-            // stop at root node
-            while (node != null && node.getId() > 0) {
-
-                String urlPart = node.getUrlPart();
-                if (urlPart != null) {
-                    if (urlPart.startsWith("http://")) {
-                        site = urlPart;
-                    } else if (urlPart.endsWith("/")) {
-                        domain = urlPart;
-                    } else {
-                        path = node.getUrlPart() + (!("".equals(path)) ? "/" + path : "");
-                    }
-                }
-
-                // check parent nodes
-                node = node.getParentNode(user);
-//                StructrRelationship r = node.getRelationships(RelType.HAS_CHILD, Direction.INCOMING).get(0);
-//                if (r != null) {
-//                    node = r.getStartNode();
-//                }
-            }
-
-            return site + (site != null ? "." : "") + domain + path;
-
-        } else if (RenderMode.LOCAL.equals(renderMode)) {
-            // assemble relative URL following the pattern
-            // /<context-url>/view.htm?nodeId=<path>
-            // TODO: move this to a better place
-            // TODO: improve handling for renderMode
-            String localUrl = contextPath.concat(getNodePath(user)).concat("&renderMode=local");
-            return localUrl;
-
-        } else {
-            // TODO implement other modes
-            return null;
-        }
-    }
-
-    /**
-     * Default: Return this node's name
-     * 
-     * @param user
-     * @param renderMode
-     * @param contextPath
-     * @return
-     */
-    public String getUrlPart() {
-        return getName();
-    }
-
+//
+//    /**
+//     * Default: Return this node's name
+//     * 
+//     * @param user
+//     * @param renderMode
+//     * @param contextPath
+//     * @return
+//     */
+//    public String getUrlPart() {
+//        return getName();
+//    }
     /**
      * Return null mime type. Method has to be overwritten,
      * returning real mime type
@@ -1363,7 +1406,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      *
      * @return list with relationships
      */
-    public List<StructrRelationship> getRelationships(RelType type, Direction dir) {
+    public List<StructrRelationship> getRelationships(RelationshipType type, Direction dir) {
         return (List<StructrRelationship>) Services.command(NodeRelationshipsCommand.class).execute(this, type, dir);
     }
 
@@ -1385,29 +1428,29 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
         return (hasRelationship(RelType.HAS_CHILD, Direction.OUTGOING)
                 || hasRelationship(RelType.LINK, Direction.OUTGOING));
     }
-
-    /**
-     * Return true if this node has child nodes visible for current user
-     *
-     * @return
-     */
-    public boolean hasChildren(final User user) {
-        List<StructrRelationship> childRels = getOutgoingChildRelationships();
-        List<StructrRelationship> linkRels = getOutgoingLinkRelationships();
-        return (linkRels != null && !(linkRels.isEmpty())
-                && childRels != null && !(childRels.isEmpty()));
-//        return (hasRelationship(RelType.HAS_CHILD, Direction.OUTGOING)
-//                || hasRelationship(RelType.LINK, Direction.OUTGOING));
-    }
+//
+//    /**
+//     * Return true if this node has child nodes visible for current user
+//     *
+//     * @return
+//     */
+//    public boolean hasChildren() {
+//        List<StructrRelationship> childRels = getOutgoingChildRelationships();
+//        List<StructrRelationship> linkRels = getOutgoingLinkRelationships();
+//        return (linkRels != null && !(linkRels.isEmpty())
+//                && childRels != null && !(childRels.isEmpty()));
+////        return (hasRelationship(RelType.HAS_CHILD, Direction.OUTGOING)
+////                || hasRelationship(RelType.LINK, Direction.OUTGOING));
+//    }
 
     /**
      * Return unordered list of all direct child nodes (no recursion)
      *
      * @return list with structr nodes
      */
-    public List<AbstractNode> getDirectChildNodes(final User user) {
+    public List<AbstractNode> getDirectChildNodes() {
 
-        return getDirectChildren(RelType.HAS_CHILD, user);
+        return getDirectChildren(RelType.HAS_CHILD);
 
     }
 
@@ -1416,8 +1459,8 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      * 
      * @return
      */
-    public AbstractNode getParentNode(final User user) {
-        List<AbstractNode> parentNodes = getParentNodes(user);
+    public AbstractNode getParentNode() {
+        List<AbstractNode> parentNodes = getParentNodes();
         if (parentNodes != null && !(parentNodes.isEmpty())) {
             return parentNodes.get(0);
         } else {
@@ -1430,11 +1473,11 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      *
      * @return
      */
-    public List<AbstractNode> getSiblingNodes(final User user) {
+    public List<AbstractNode> getSiblingNodes() {
 
         List<AbstractNode> nodes = new LinkedList<AbstractNode>();
 
-        AbstractNode parentNode = getParentNode(user);
+        AbstractNode parentNode = getParentNode();
 
         if (parentNode != null) {
 
@@ -1447,7 +1490,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
             for (StructrRelationship r : rels) {
 
                 AbstractNode s = (AbstractNode) nodeFactory.execute(r.getEndNode());
-                if (s.readAllowed(user)) {
+                if (s.readAllowed()) {
                     nodes.add(s);
                 }
 
@@ -1458,12 +1501,26 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
     }
 
     /**
+     * 
+     * Returns true if an ancestor node is a Trash node
+     */
+    public boolean isInTrash() {
+        List<AbstractNode> ancestors = getAncestorNodes();
+        for (AbstractNode node : ancestors) {
+            if (node instanceof Trash) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Return all ancestor nodes. Follows the INCOMING HAS_CHILD relationship
      * and stops at the root node.
      *
      * @return
      */
-    public List<AbstractNode> getAncestorNodes(final User user) {
+    public List<AbstractNode> getAncestorNodes() {
 
         List<AbstractNode> nodes = new LinkedList<AbstractNode>();
 
@@ -1473,7 +1530,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
         for (StructrRelationship r : rels) {
 
             AbstractNode s = (AbstractNode) nodeFactory.execute(r.getStartNode());
-            if (s.readAllowed(user)) {
+            if (s.readAllowed()) {
                 nodes.add(s);
             }
 
@@ -1488,7 +1545,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      * 
      * @return
      */
-    public List<AbstractNode> getParentNodes(final User user) {
+    public List<AbstractNode> getParentNodes() {
 
         List<AbstractNode> nodes = new LinkedList<AbstractNode>();
 
@@ -1498,7 +1555,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
         for (StructrRelationship r : rels) {
 
             AbstractNode s = (AbstractNode) nodeFactory.execute(r.getStartNode());
-            if (s.readAllowed(user)) {
+            if (s.readAllowed()) {
                 nodes.add(s);
             }
 
@@ -1554,6 +1611,15 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
             outgoingRelationships = getRelationships(null, Direction.OUTGOING);
         }
         return outgoingRelationships;
+    }
+
+    /**
+     * Non-cached list of outgoing relationships
+     *
+     * @return
+     */
+    public List<StructrRelationship> getOutgoingRelationships(final RelationshipType type) {
+        return getRelationships(type, Direction.OUTGOING);
     }
 
     /**
@@ -1639,9 +1705,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      *
      * @return list with structr nodes
      */
-    public List<AbstractNode> getLinkedNodes(final User user) {
+    public List<AbstractNode> getLinkedNodes() {
 
-        return getDirectChildren(RelType.LINK, user);
+        return getDirectChildren(RelType.LINK);
 
     }
 
@@ -1650,9 +1716,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      *
      * @return list with structr nodes
      */
-    public List<AbstractNode> getSortedLinkedNodes(final User user) {
+    public List<AbstractNode> getSortedLinkedNodes() {
 
-        return getSortedDirectChildren(RelType.LINK, user);
+        return getSortedDirectChildren(RelType.LINK);
 
     }
 
@@ -1661,8 +1727,8 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      *
      * @return list with structr nodes
      */
-    public List<AbstractNode> getAllChildren(final User user) {
-        return getAllChildren(null, user);
+    public List<AbstractNode> getAllChildren() {
+        return getAllChildren(null);
     }
 
     /**
@@ -1671,8 +1737,8 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      *
      * @return list with structr nodes
      */
-    public List<AbstractNode> getDirectChildren(final RelationshipType relType, final User user) {
-        return getDirectChildren(relType, null, user);
+    public List<AbstractNode> getDirectChildren(final RelationshipType relType) {
+        return getDirectChildren(relType, null);
     }
 
     /**
@@ -1681,8 +1747,8 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      *
      * @return list with structr nodes
      */
-    public List<AbstractNode> getSortedDirectChildren(final RelationshipType relType, final User user) {
-        List<AbstractNode> nodes = getDirectChildren(relType, null, user);
+    public List<AbstractNode> getSortedDirectChildren(final RelationshipType relType) {
+        List<AbstractNode> nodes = getDirectChildren(relType, null);
         Collections.sort(nodes);
         return nodes;
     }
@@ -1695,25 +1761,27 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      *
      * @return list with structr nodes
      */
-    private List<AbstractNode> getDirectChildren(final RelationshipType relType, final String nodeType, final User user) {
+    private List<AbstractNode> getDirectChildren(final RelationshipType relType, final String nodeType) {
 
         List<AbstractNode> nodes = new LinkedList<AbstractNode>();
 
-        Command nodeFactory = null;
-        if (relType.equals(RelType.LINK)) {
-            nodeFactory = Services.command(LinkNodeFactoryCommand.class);
-        } else {
-            nodeFactory = Services.command(NodeFactoryCommand.class);
-        }
+//        Command nodeFactory = null;
+//        if (relType.equals(RelType.LINK)) {
+//            nodeFactory = Services.command(LinkNodeFactoryCommand.class);
+//        } else {
+//            nodeFactory = Services.command(NodeFactoryCommand.class);
+//        }
 
-        Command relsCommand = Services.command(NodeRelationshipsCommand.class);
-        List<StructrRelationship> rels = (List<StructrRelationship>) relsCommand.execute(this, relType, Direction.OUTGOING);
+//        Command relsCommand = Services.command(NodeRelationshipsCommand.class);
+//        List<StructrRelationship> rels = (List<StructrRelationship>) relsCommand.execute(this, relType, Direction.OUTGOING);
+
+        List<StructrRelationship> rels = this.getOutgoingRelationships(relType);
 
         for (StructrRelationship r : rels) {
 
-            AbstractNode s = (AbstractNode) nodeFactory.execute(r.getEndNode());
+            AbstractNode s = r.getEndNode();
 
-            if (s.readAllowed(user) && (nodeType == null || nodeType.equals(s.getType()))) {
+            if (s.readAllowed() && (nodeType == null || nodeType.equals(s.getType()))) {
                 nodes.add(s);
             }
 
@@ -1726,10 +1794,10 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      *
      * @return
      */
-    public List<AbstractNode> getSortedDirectChildNodes(final User user) {
+    public List<AbstractNode> getSortedDirectChildNodes() {
 
         List<AbstractNode> nodes = new LinkedList<AbstractNode>();
-        nodes.addAll(getDirectChildNodes(user));
+        nodes.addAll(getDirectChildNodes());
 
         // sort by position
         Collections.sort(nodes, new Comparator<AbstractNode>() {
@@ -1743,17 +1811,45 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
     }
 
     /**
+     * Get child nodes and sort them before returning
+     *
+     * @return
+     */
+    public List<AbstractNode> getSortedDirectChildNodes(final String sortKey, final String sortOrder) {
+
+        List<AbstractNode> nodes = new LinkedList<AbstractNode>();
+        nodes.addAll(getDirectChildNodes());
+
+        // sort by key, order by order {@see AbstractNodeComparator.ASCENDING} or {@see AbstractNodeComparator.DESCENDING}
+        Collections.sort(nodes, new AbstractNodeComparator(sortKey, sortOrder));
+
+        return nodes;
+    }
+
+    /**
+     * Get direct child nodes, link nodes, and sort them before returning
+     *
+     * @return
+     */
+    public List<AbstractNode> getDirectChildAndLinkNodes() {
+
+        List<AbstractNode> nodes = new LinkedList<AbstractNode>();
+        nodes.addAll(getDirectChildNodes());
+
+        // get linked child nodes
+        nodes.addAll(getLinkedNodes());
+
+        return nodes;
+    }
+
+    /**
      * Get direct child nodes, link nodes, and sort them before returning
      * 
      * @return
      */
-    public List<AbstractNode> getSortedDirectChildAndLinkNodes(final User user) {
+    public List<AbstractNode> getSortedDirectChildAndLinkNodes() {
 
-        List<AbstractNode> nodes = new LinkedList<AbstractNode>();
-        nodes.addAll(getDirectChildNodes(user));
-
-        // get linked child nodes
-        nodes.addAll(getLinkedNodes(user));
+        List<AbstractNode> nodes = getDirectChildAndLinkNodes();
 
         // sort by position
         Collections.sort(nodes, new Comparator<AbstractNode>() {
@@ -1771,15 +1867,15 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      *
      * @return
      */
-    public List<AbstractNode> getSortedMenuItems(final User user) {
+    public List<AbstractNode> getSortedMenuItems() {
 
         List<AbstractNode> menuItems = new LinkedList<AbstractNode>();
 
         // add direct children of type MenuItem
-        menuItems.addAll(getDirectChildren(RelType.HAS_CHILD, "MenuItem", user));
+        menuItems.addAll(getDirectChildren(RelType.HAS_CHILD, "MenuItem"));
 
         // add linked children, f.e. direct links to pages
-        menuItems.addAll(getDirectChildren(RelType.LINK, user));
+        menuItems.addAll(getDirectChildren(RelType.LINK));
 
         // sort by position
         Collections.sort(menuItems, new Comparator<AbstractNode>() {
@@ -1802,7 +1898,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      * @param user
      * @return list with structr nodes
      */
-    protected List<AbstractNode> getAllChildren(final String nodeType, final User user) {
+    protected List<AbstractNode> getAllChildren(final String nodeType) {
 
         List<AbstractNode> nodes = new LinkedList<AbstractNode>();
 
@@ -1811,7 +1907,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 
         for (AbstractNode s : result) {
 
-            if (s.readAllowed(user) && (nodeType == null || nodeType.equals(s.getType()))) {
+            if (s.readAllowed() && (nodeType == null || nodeType.equals(s.getType()))) {
                 nodes.add(s);
             }
 
@@ -1824,7 +1920,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      *
      * @return
      */
-    public boolean isVisible(final User user) {
+    public boolean isVisible() {
 
         if (user instanceof SuperUser) {
             // Super user may always see it
@@ -1910,12 +2006,31 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
         }
 
 
-        StructrRelationship r = null;
-
-        r = getSecurityRelationship(principal);
+        StructrRelationship r = getSecurityRelationship(principal);
 
         if (r != null && r.isAllowed(permission)) {
             return true;
+        }
+
+        // Check group
+
+        // We cannot use getParent() here because it uses hasPermission itself,
+        // that would lead to an infinite loop
+        List<StructrRelationship> rels = principal.getIncomingChildRelationships();
+        for (StructrRelationship sr : rels) {
+            AbstractNode node = sr.getStartNode();
+
+            if (!(node instanceof Group)) {
+                continue;
+            }
+
+            Group group = (Group) node;
+
+            r = getSecurityRelationship(group);
+
+            if (r != null && r.isAllowed(permission)) {
+                return true;
+            }
         }
 
         return false;
@@ -1926,10 +2041,10 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      *
      * @return
      */
-    public boolean readAllowed(final User user) {
+    public boolean readAllowed() {
 
         // Check global settings first
-        if (isVisible(user)) {
+        if (isVisible()) {
             return true;
         }
 
@@ -1942,7 +2057,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      *
      * @return
      */
-    public boolean showTreeAllowed(final User user) {
+    public boolean showTreeAllowed() {
         return hasPermission(StructrRelationship.SHOW_TREE_KEY, user);
     }
 
@@ -1951,7 +2066,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      *
      * @return
      */
-    public boolean writeAllowed(final User user) {
+    public boolean writeAllowed() {
         return hasPermission(StructrRelationship.WRITE_KEY, user);
     }
 
@@ -1960,7 +2075,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      *
      * @return
      */
-    public boolean createSubnodeAllowed(final User user) {
+    public boolean createSubnodeAllowed() {
         return hasPermission(StructrRelationship.CREATE_SUBNODE_KEY, user);
     }
 
@@ -1969,7 +2084,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      *
      * @return
      */
-    public boolean deleteNodeAllowed(final User user) {
+    public boolean deleteNodeAllowed() {
         return hasPermission(StructrRelationship.DELETE_NODE_KEY, user);
     }
 
@@ -1978,7 +2093,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      *
      * @return
      */
-    public boolean addRelationshipAllowed(final User user) {
+    public boolean addRelationshipAllowed() {
         return hasPermission(StructrRelationship.ADD_RELATIONSHIP_KEY, user);
     }
 
@@ -1987,7 +2102,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      *
      * @return
      */
-    public boolean editPropertiesAllowed(final User user) {
+    public boolean editPropertiesAllowed() {
         return hasPermission(StructrRelationship.EDIT_PROPERTIES_KEY, user);
     }
 
@@ -1996,7 +2111,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      *
      * @return
      */
-    public boolean removeRelationshipAllowed(final User user) {
+    public boolean removeRelationshipAllowed() {
         return hasPermission(StructrRelationship.REMOVE_RELATIONSHIP_KEY, user);
     }
 
@@ -2005,7 +2120,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      *
      * @return
      */
-    public boolean accessControlAllowed(final User user) {
+    public boolean accessControlAllowed() {
 
         // just in case ...
         if (user == null) {
@@ -2045,15 +2160,54 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      * @return
      */
     public User getOwnerNode() {
-
-        // check any security relationships
         for (StructrRelationship s : getRelationships(RelType.OWNS, Direction.INCOMING)) {
-
-            // check security properties
-            return (User) s.getStartNode();
-
+            AbstractNode n = s.getStartNode();
+            if (n instanceof User) {
+                return (User) n;
+            }
+            logger.log(Level.SEVERE, "Owner node is not a user: {0}[{1}]", new Object[]{n.getName(), n.getId()});
         }
         return null;
+    }
+
+    public Long getTypeNodeId() {
+        NodeType n = getTypeNode();
+        return (n != null ? n.getId() : null);
+    }
+
+    /**
+     * Return type node
+     *
+     * @return
+     */
+    public NodeType getTypeNode() {
+        for (StructrRelationship s : getRelationships(RelType.TYPE, Direction.OUTGOING)) {
+            AbstractNode n = s.getEndNode();
+            if (n instanceof NodeType) {
+                return (NodeType) n;
+            }
+        }
+        return null;
+    }
+
+    public void setTypeNodeId(final Long value) {
+
+        // find type node
+        Command findNode = Services.command(FindNodeCommand.class);
+        NodeType typeNode = (NodeType) findNode.execute(new SuperUser(), value);
+
+        // delete existing type node relationships
+        List<StructrRelationship> templateRels = this.getOutgoingRelationships(RelType.TYPE);
+        Command delRel = Services.command(DeleteRelationshipCommand.class);
+        if (templateRels != null) {
+            for (StructrRelationship r : templateRels) {
+                delRel.execute(r);
+            }
+        }
+
+        // create new link target relationship
+        Command createRel = Services.command(CreateRelationshipCommand.class);
+        createRel.execute(this, typeNode, RelType.TYPE);
     }
 
     /**
@@ -2062,8 +2216,8 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      * @return
      */
     public String getOwner() {
-        User user = getOwnerNode();
-        return (user != null ? user.getRealName() + " (" + user.getName() + ")" : null);
+        User ownner = getOwnerNode();
+        return (ownner != null ? ownner.getRealName() + " (" + ownner.getName() + ")" : null);
     }
 
     /**
@@ -2094,20 +2248,20 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      * @param editUrl
      * @param editNodeId
      */
-    protected void replaceBySubnodes(StringBuilder content, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user) {
+    protected void replaceBySubnodes(StringBuilder content, final AbstractNode startNode, final String editUrl, final Long editNodeId) {
 
 //        List<AbstractNode> subnodes = getSortedDirectChildAndLinkNodes(user);
         List<AbstractNode> callingNodeSubnodes = null;
         List<AbstractNode> callingNodeSubnodesAndLinkedNodes = null;
 
-        template = startNode.getTemplate(user);
+        template = startNode.getTemplate();
         AbstractNode callingNode = null;
         if (template != null) {
 
             callingNode = template.getCallingNode();
             if (callingNode != null) {
-                callingNodeSubnodesAndLinkedNodes = callingNode.getSortedDirectChildAndLinkNodes(user);
-                callingNodeSubnodes = callingNode.getSortedDirectChildNodes(user);
+                callingNodeSubnodesAndLinkedNodes = callingNode.getSortedDirectChildAndLinkNodes();
+                callingNodeSubnodes = callingNode.getSortedDirectChildNodes();
             }
         }
 
@@ -2126,23 +2280,26 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
             String key = content.substring(start + NODE_KEY_PREFIX.length(), end);
 
             int indexOfComma = key.indexOf(",");
+            int indexOfDot = key.indexOf(".");
 
             String templateKey = null;
+            String methodKey = null;
+            Template customTemplate = null;
+
             if (indexOfComma > 0) {
                 String[] splitted = StringUtils.split(key, ",");
                 key = splitted[0];
                 templateKey = splitted[1];
-            }
 
-            Template customTemplate = null;
-            if (templateKey != null && !(templateKey.isEmpty())) {
-//                List<AbstractNode> templates = (List<AbstractNode>) findNode.execute(user, this, templateKey);
-                customTemplate = (Template) findNode.execute(user, this, new XPath(templateKey));
-//                if (templates != null && templates.size() == 1) {
-//                    customTemplate = (Template) templates.get(0);
-//                }
-            }
+                if (StringUtils.isNotEmpty(templateKey)) {
+                    customTemplate = (Template) findNode.execute(user, this, new XPath(templateKey));
+                }
 
+            } else if (indexOfDot > 0) {
+                String[] splitted = StringUtils.split(key, ".");
+                key = splitted[0];
+                methodKey = splitted[1];
+            }
 
             StringBuilder replacement = new StringBuilder();
 
@@ -2153,7 +2310,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 
                     // propagate request and template
 //                    s.setRequest(request);
-                    s.renderView(replacement, startNode, editUrl, editNodeId, user);
+                    s.renderView(replacement, startNode, editUrl, editNodeId);
                 }
 
             } else if (callingNode != null && key.equals(CALLING_NODE_SUBNODES_AND_LINKED_NODES_KEY)) {
@@ -2163,7 +2320,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 
                     // propagate request and template
 //                    s.setRequest(request);
-                    s.renderView(replacement, startNode, editUrl, editNodeId, user);
+                    s.renderView(replacement, startNode, editUrl, editNodeId);
                 }
 
             } else { //if (key.startsWith("/") || key.startsWith("count(")) {
@@ -2190,7 +2347,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 
                             // propagate request
 //                            s.setRequest(getRequest());
-                            s.renderView(replacement, startNode, editUrl, editNodeId, user);
+                            s.renderView(replacement, startNode, editUrl, editNodeId);
                         }
                     }
                 } else if (result instanceof AbstractNode) {
@@ -2203,7 +2360,28 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 
                     // propagate request
 //                    s.setRequest(getRequest());
-                    s.renderView(replacement, startNode, editUrl, editNodeId, user);
+                    if (StringUtils.isNotEmpty(methodKey)) {
+
+                        methodKey = toGetter(methodKey);
+
+                        Method getter = null;
+                        try {
+                            getter = s.getClass().getMethod(methodKey);
+                            Object value = null;
+                            try {
+                                value = getter.invoke(s);
+                                replacement.append(value);
+                            } catch (Exception ex) {
+                                logger.log(Level.FINE, "Cannot invoke method {0} on {1}", new Object[]{getter, s});
+                            }
+
+                        } catch (Exception ex) {
+                            logger.log(Level.FINE, "Cannot invoke method {0}", methodKey);
+                        }
+
+                    } else {
+                        s.renderView(replacement, startNode, editUrl, editNodeId);
+                    }
 
                 } else {
                     replacement.append(result);
@@ -2233,6 +2411,41 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
             start = content.indexOf(NODE_KEY_PREFIX, start + replaceBy.length() + 1);
         }
 
+    }
+
+    /**
+     * Generic getter for use with Freemarker template language
+     * 
+     * @param key
+     * @return
+     */
+    public Object get(final String key) {
+
+        if (key == null) {
+            return null;
+        }
+
+        Object propertyValue = this.getProperty(key);
+
+        if (propertyValue != null) {
+            return propertyValue;
+        }
+
+        List<AbstractNode> subnodes = this.getDirectChildAndLinkNodes();
+
+        for (AbstractNode node : subnodes) {
+            if (key.equals(node.getName())) {
+                return node;
+            }
+        }
+
+        // nothing found
+        return null;
+
+    }
+
+    protected static String toGetter(String name) {
+        return "get".concat(name.substring(0, 1).toUpperCase()).concat(name.substring(1));
     }
 
     /**
@@ -2300,7 +2513,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 //            start = content.indexOf(keyPrefix, start + replaceBy.length() + 1);
 //        }
 //    }
-    protected void replaceByFreeMarker(final String templateString, Writer out, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user) {
+    protected void replaceByFreeMarker(final String templateString, Writer out, final AbstractNode startNode, final String editUrl, final Long editNodeId) {
 
         Configuration cfg = new Configuration();
 
@@ -2311,75 +2524,89 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 
             AbstractNode callingNode = null;
 
-            if (getTemplate(user) != null) {
+            if (getTemplate() != null) {
 
                 callingNode = template.getCallingNode();
 
-                Map root = new HashMap();
-                root.put("Template", this);
-
-                if (callingNode != null) {
-                    root.put(callingNode.getType(), callingNode);
-                }
-
-                HttpServletRequest request = CurrentRequest.getRequest();
-                if (request != null) {
-                    //root.put("Request", new freemarker.template.SimpleHash(request.getParameterMap().));
-                    root.put("Request", new freemarker.ext.servlet.HttpRequestParametersHashModel(request));
-
-                    // if search string is given, put search results into freemarker model
-                    String searchString = request.getParameter("search");
-                    if (searchString != null && !(searchString.isEmpty())) {
-                        Command search = Services.command(SearchNodeCommand.class);
-                        List<AbstractNode> result = (List<AbstractNode>) search.execute(
-                                null, // user => null means super user
-                                null, // top node => null means search all
-                                false, // include hidden
-                                true, // public only
-                                Search.orName(searchString)); // search in name
-                        root.put("SearchResults", result);
-                    }
-                }
-
-                if (user != null) {
-                    root.put("User", user);
-                }
-
-                // Add a generic helper
-                root.put("Helper", new TemplateHelper());
-
-		// Add error and ok message if present
-		HttpSession session = CurrentRequest.getSession();
-		if(session != null)
-		{
-			if(session.getAttribute("errorMessage") != null)
-			{
-				root.put("ErrorMessage", session.getAttribute("errorMessage"));
-			}
-
-			if(session.getAttribute("errorMessage") != null)
-			{
-				root.put("OkMessage", session.getAttribute("okMessage"));
-			}
-		}
-
-                // add geo info if available
-                // TODO: add geo node information
-
-
-                //root.put("Content", new StructrTemplateNodeModel(this, startNode, editUrl, editNodeId, user));
-                //root.put("ContextPath", callingNode.getNodePath(startNode));
-
-                freemarker.template.Template t = new freemarker.template.Template(template.getName(), new StringReader(templateString), cfg);
-                t.process(root, out);
-
             } else {
 
-                // if no template is given, just copy the input
-                out.write(templateString);
-                out.flush();
-
+                callingNode = startNode;
             }
+
+            Map root = new HashMap();
+
+            root.put("this", this);
+
+            if (callingNode != null) {
+                root.put(callingNode.getType(), callingNode);
+                root.put("CallingNode", callingNode);
+            }
+
+            HttpServletRequest request = CurrentRequest.getRequest();
+            if (request != null) {
+                //root.put("Request", new freemarker.template.SimpleHash(request.getParameterMap().));
+                root.put("Request", new freemarker.ext.servlet.HttpRequestParametersHashModel(request));
+
+                String searchString = request.getParameter("search");
+                String searchInContent = request.getParameter("searchInContent");
+
+                boolean inContent = StringUtils.isNotEmpty(searchInContent) && Boolean.parseBoolean(searchInContent) ? true : false;
+
+                // if search string is given, put search results into freemarker model
+                if (searchString != null && !(searchString.isEmpty())) {
+
+                    List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
+                    searchAttrs.add(Search.orName(searchString)); // search in name
+
+                    if (inContent) {
+                        searchAttrs.add(Search.orContent(searchString)); // search in name
+                    }
+
+                    Command search = Services.command(SearchNodeCommand.class);
+                    List<AbstractNode> result = (List<AbstractNode>) search.execute(
+                            null, // user => null means super user
+                            null, // top node => null means search all
+                            false, // include hidden
+                            true, // public only
+                            searchAttrs);
+
+                    root.put("SearchResults", result);
+                }
+            }
+
+            if (user != null) {
+                root.put("User", user);
+            }
+
+            // Add a generic helper
+            root.put("Helper", new TemplateHelper());
+
+            // Add error and ok message if present
+            HttpSession session = CurrentRequest.getSession();
+            if (session != null) {
+                if (session.getAttribute("errorMessage") != null) {
+                    root.put("ErrorMessage", session.getAttribute("errorMessage"));
+                }
+
+                if (session.getAttribute("okMessage") != null) {
+                    root.put("OkMessage", session.getAttribute("okMessage"));
+                }
+            }
+
+            // add geo info if available
+            // TODO: add geo node information
+
+
+            //root.put("Content", new StructrTemplateNodeModel(this, startNode, editUrl, editNodeId, user));
+            //root.put("ContextPath", callingNode.getNodePath(startNode));
+
+            String name = template != null ? template.getName() : getName();
+
+            freemarker.template.Template t = new freemarker.template.Template(name, new StringReader(templateString), cfg);
+            t.process(root, out);
+
+
+            out.flush();
 
         } catch (Throwable t) {
             logger.log(Level.WARNING, "Error: {0}", t.getMessage());
@@ -2387,7 +2614,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 
     }
 
-    protected static void staticReplaceByFreeMarker(final String templateString, Writer out, final AbstractNode node, final String editUrl, final Long editNodeId, final User user) {
+    protected static void staticReplaceByFreeMarker(final String templateString, Writer out, final AbstractNode node, final String editUrl, final Long editNodeId) {
 
         Configuration cfg = new Configuration();
 
@@ -2426,27 +2653,24 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
                     }
                 }
 
-                if (user != null) {
-                    root.put("User", user);
-                }
+                //if (user != null) {
+                root.put("User", CurrentRequest.getCurrentUser());
+                //}
 
                 // Add a generic helper
                 root.put("Helper", new TemplateHelper());
 
-		// Add error and ok message if present
-		HttpSession session = CurrentRequest.getSession();
-		if(session != null)
-		{
-			if(session.getAttribute("errorMessage") != null)
-			{
-				root.put("ErrorMessage", session.getAttribute("errorMessage"));
-			}
+                // Add error and ok message if present
+                HttpSession session = CurrentRequest.getSession();
+                if (session != null) {
+                    if (session.getAttribute("errorMessage") != null) {
+                        root.put("ErrorMessage", session.getAttribute("errorMessage"));
+                    }
 
-			if(session.getAttribute("errorMessage") != null)
-			{
-				root.put("OkMessage", session.getAttribute("okMessage"));
-			}
-		}
+                    if (session.getAttribute("errorMessage") != null) {
+                        root.put("OkMessage", session.getAttribute("okMessage"));
+                    }
+                }
 
                 freemarker.template.Template t = new freemarker.template.Template(node.getName(), new StringReader(templateString), cfg);
                 t.process(root, out);
@@ -2465,34 +2689,30 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 
     }
 
-	// ----- protected methods -----
-	protected String createUniqueIdentifier(String prefix)
-	{
-		StringBuilder ret = new StringBuilder(100);
+    // ----- protected methods -----
+    protected String createUniqueIdentifier(String prefix) {
+        StringBuilder ret = new StringBuilder(100);
 
-		ret.append(prefix);
-		ret.append(getIdString());
+        ret.append(prefix);
+        ret.append(getIdString());
 
-		return(ret.toString());
-	}
+        return (ret.toString());
+    }
 
-	protected AbstractNode getNodeFromLoader()
-	{
-		List<StructrRelationship> rels = getIncomingDataRelationships();
-		AbstractNode ret = null;
+    protected AbstractNode getNodeFromLoader() {
+        List<StructrRelationship> rels = getIncomingDataRelationships();
+        AbstractNode ret = null;
 
-		for(StructrRelationship rel : rels)
-		{
-			// first one wins
-			AbstractNode startNode = rel.getStartNode();
-			if(startNode instanceof NodeSource)
-			{
-				NodeSource source = (NodeSource)startNode;
-				ret = source.loadNode();
-				break;
-			}
-		}
+        for (StructrRelationship rel : rels) {
+            // first one wins
+            AbstractNode startNode = rel.getStartNode();
+            if (startNode instanceof NodeSource) {
+                NodeSource source = (NodeSource) startNode;
+                ret = source.loadNode();
+                break;
+            }
+        }
 
-		return (ret);
-	}
+        return (ret);
+    }
 }

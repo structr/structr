@@ -1,6 +1,20 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ *  Copyright (C) 2011 Axel Morgner, structr <structr@structr.org>
+ * 
+ *  This file is part of structr <http://structr.org>.
+ * 
+ *  structr is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ * 
+ *  structr is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ * 
+ *  You should have received a copy of the GNU General Public License
+ *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 package org.structr.core.entity.app.tests;
@@ -222,7 +236,11 @@ public class AppNodeTestCase002 extends ApplicationNode
 	{
 		StringBuilder ret = new StringBuilder();
 
-		ret.append("<script type=\"text/javascript\" src=\"/t5s/ckeditor/ckeditor.js\"></script>\n");
+        ret.append("<#assign context = \"\" />");
+        ret.append("<#if Request?? && Request.contextPath?? >");
+        ret.append("  <#assign context = Request.contextPath />");
+        ret.append("</#if>");
+		ret.append("<script type=\"text/javascript\" src=\"${context}/ckeditor/ckeditor.js\"></script>\n");
 		ret.append("<script type=\"text/javascript\">\n");
 		ret.append("window.onload = function()\n");
 		ret.append("{\n");

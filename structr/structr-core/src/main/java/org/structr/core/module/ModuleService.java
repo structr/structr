@@ -1,6 +1,20 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ *  Copyright (C) 2011 Axel Morgner, structr <structr@structr.org>
+ * 
+ *  This file is part of structr <http://structr.org>.
+ * 
+ *  structr is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ * 
+ *  structr is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ * 
+ *  You should have received a copy of the GNU General Public License
+ *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.module;
 
@@ -34,7 +48,7 @@ import org.structr.core.Services;
 import org.structr.core.SingletonService;
 import org.structr.core.agent.Agent;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.EmptyNode;
+import org.structr.core.entity.ArbitraryNode;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -112,7 +126,7 @@ public class ModuleService implements SingletonService {
     }
 
     public Class getEntityClass(final String name) {
-        Class ret = EmptyNode.class;
+        Class ret = ArbitraryNode.class;
 
         if (name != null && name.length() > 0) {
             ret = entityClassCache.get(name);
@@ -353,11 +367,11 @@ public class ModuleService implements SingletonService {
             throw new RuntimeException(Services.STRUCTR_PAGE_PREDICATE + " not set, aborting!");
         }
 
-        // initialize default structr entites
-        String entityPackagesFromContext = (String) context.get(Services.ENTITY_PACKAGES);
-        for (String entityPackageFromContext : entityPackagesFromContext.split("[, ]+")) {
-            entityPackages.add(entityPackageFromContext);
-        }
+//        // initialize default structr entites
+//        String entityPackagesFromContext = (String) context.get(Services.ENTITY_PACKAGES);
+//        for (String entityPackageFromContext : entityPackagesFromContext.split("[, ]+")) {
+//            entityPackages.add(entityPackageFromContext);
+//        }
 
         initializeModules();
     }
@@ -509,11 +523,14 @@ public class ModuleService implements SingletonService {
         // 1a.: iterate over raw class names and deploy them
         Set<String> classes = module.getClasses();
         for (final String className : classes) {
+            logger.log(Level.FINE, "Deploying class {0} ", className);
             try {
                 // deploy class file to WEB-INF/classes
                 String sourcePath = className.replaceAll("[\\.]+", "/").concat(".class");
                 String destinationFile = createResourceFileName(servletContext, "WEB-INF/classes", sourcePath);
 
+                logger.log(Level.FINE, "sourcePath: {0}, destinationFile: {1}", new Object[]{sourcePath, destinationFile});
+                
                 ZipEntry entry = jarFile.getEntry(sourcePath);
                 if (entry != null) {
                     InputStream inputStream = jarFile.getInputStream(entry);
@@ -566,9 +583,12 @@ public class ModuleService implements SingletonService {
 
         // 2.: instantiate classes (this needs to be a distinct step because otherwise we wouldn't be able to instantiate classes with nested classes!)
         for (final String className : classes) {
+            logger.log(Level.FINE, "Instantiating class {0} ", className);
+            
             try {
                 // instantiate class..
                 Class clazz = Class.forName(className);
+                logger.log(Level.FINE, "Class {0} instanciated: {1}", new Object[]{className, clazz});
 
 		if(!Modifier.isAbstract(clazz.getModifiers()))
 		{
@@ -606,6 +626,7 @@ public class ModuleService implements SingletonService {
             } catch (Throwable t) {
                 // ignore
                 logger.log(Level.WARNING, "error instantiating class {0}: {1}", new Object[]{className, t});
+                t.printStackTrace(System.out);
             }
 
         }

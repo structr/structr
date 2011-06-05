@@ -1,0 +1,32 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+    <head>
+        <title>$title</title>
+        $headElements
+        <link href="$contextPath/css/structr.css" rel="stylesheet" type="text/css">
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+        <!--meta name="viewport" content="width=1024px, minimum-scale=1.0, maximum-scale=1.0" /-->
+    </head>
+
+    <body onload="document.getElementById('loginForm_username').focus()">
+
+        #if ($renderMode != "inline")
+        <div id="header">
+
+            <div id="logo"><img width="86" height="23" src="$context/images/structr-logo.png" alt="structr-logo"></div>
+
+        </div>
+        #end
+
+
+        <div id="login">
+ 
+        $loginPanel
+
+
+        </div><!-- #main -->
+
+        $jsElements
+
+    </body>
+</html>

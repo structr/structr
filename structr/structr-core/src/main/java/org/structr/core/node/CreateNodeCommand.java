@@ -1,6 +1,20 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ *  Copyright (C) 2011 Axel Morgner, structr <structr@structr.org>
+ * 
+ *  This file is part of structr <http://structr.org>.
+ * 
+ *  structr is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ * 
+ *  structr is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ * 
+ *  You should have received a copy of the GNU General Public License
+ *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.node;
 
@@ -15,6 +29,8 @@ import org.structr.common.RelType;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Group;
+import org.structr.core.entity.Principal;
 import org.structr.core.entity.StructrRelationship;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
@@ -96,12 +112,22 @@ public class CreateNodeCommand extends NodeServiceCommand {
             attrs.clear();
 
             if (user != null && !(user instanceof SuperUser)) {
+                
                 createRel.execute(user, node, RelType.OWNS);
                 logger.log(Level.FINEST, "Relationship to owner {0} added", user.getName());
+                
+                Principal principal;
+                
+                Group group = user.getGroupNode();
+                if (group != null) {
+                    principal = group;
+                } else {
+                    principal = user;
+                }
 
-                StructrRelationship securityRel = (StructrRelationship) createRel.execute(user, node, RelType.SECURITY);
+                StructrRelationship securityRel = (StructrRelationship) createRel.execute(principal, node, RelType.SECURITY);
                 securityRel.setAllowed(Arrays.asList(StructrRelationship.ALL_PERMISSIONS));
-                logger.log(Level.FINEST, "All permissions given to user {0}", user.getName());
+                logger.log(Level.FINEST, "All permissions given to {0}", principal.getName());
 
                 node.setProperty(AbstractNode.CREATED_BY_KEY, user.getRealName() + " (" + user.getName() + ")", false);
             }

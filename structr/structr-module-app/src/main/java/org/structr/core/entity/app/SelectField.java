@@ -1,23 +1,31 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ *  Copyright (C) 2011 Axel Morgner, structr <structr@structr.org>
+ * 
+ *  This file is part of structr <http://structr.org>.
+ * 
+ *  structr is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ * 
+ *  structr is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ * 
+ *  You should have received a copy of the GNU General Public License
+ *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.entity.app;
 
-import java.util.LinkedList;
-import java.util.List;
 import org.structr.common.SessionValue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
-import org.neo4j.graphdb.Direction;
 import org.structr.common.CurrentRequest;
 import org.structr.common.CurrentSession;
-import org.structr.common.RelType;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.StructrRelationship;
-import org.structr.core.entity.User;
 
 /**
  * Render a select field.
@@ -42,7 +50,7 @@ public class SelectField extends FormField implements InteractiveNode
 	}
 
 	@Override
-	public void renderView(final StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId, final User user)
+	public void renderView(final StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
 	{
 		// if this page is requested to be edited, render edit frame
 		if(editNodeId != null && getId() == editNodeId.longValue())
@@ -54,10 +62,10 @@ public class SelectField extends FormField implements InteractiveNode
 		} else
 		{
 
-			if(hasTemplate(user))
+			if(hasTemplate())
 			{
 				template.setCallingNode(this);
-				template.renderView(out, startNode, editUrl, editNodeId, user);
+				template.renderView(out, startNode, editUrl, editNodeId);
 
 			} else
 			{
@@ -198,20 +206,21 @@ public class SelectField extends FormField implements InteractiveNode
 		return(sessionValue);
 	}
 
-        private List<AbstractNode> getDataNodes(final User user) {
-
-            List<AbstractNode> dataNodes = new LinkedList<AbstractNode>();
-
-            List<StructrRelationship> dataRels = this.getRelationships(RelType.DATA, Direction.INCOMING);
-
-            for (StructrRelationship rel : dataRels) {
-
-                AbstractNode node = rel.getStartNode();
-                dataNodes.addAll(node.getDirectChildNodes(user));
-
-            }
-
-            return dataNodes;
-
-        }
+        // apperently not used
+//        private List<AbstractNode> getDataNodes(final User user) {
+//
+//            List<AbstractNode> dataNodes = new LinkedList<AbstractNode>();
+//
+//            List<StructrRelationship> dataRels = this.getRelationships(RelType.DATA, Direction.INCOMING);
+//
+//            for (StructrRelationship rel : dataRels) {
+//
+//                AbstractNode node = rel.getStartNode();
+//                dataNodes.addAll(node.getDirectChildNodes());
+//
+//            }
+//
+//            return dataNodes;
+//
+//        }
 }

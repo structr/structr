@@ -1,7 +1,23 @@
+/*
+ *  Copyright (C) 2011 Axel Morgner, structr <structr@structr.org>
+ * 
+ *  This file is part of structr <http://structr.org>.
+ * 
+ *  structr is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ * 
+ *  structr is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ * 
+ *  You should have received a copy of the GNU General Public License
+ *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package org.structr.core.entity.web;
 
-//import java.util.Collections;
-//import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import org.neo4j.graphdb.Direction;
@@ -11,7 +27,6 @@ import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.StructrRelationship;
 import org.structr.core.entity.SuperUser;
-import org.structr.core.entity.User;
 import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.DeleteRelationshipCommand;
 import org.structr.core.node.FindNodeCommand;
@@ -80,7 +95,7 @@ public class MenuItem extends WebNode {
      * @param out
      * @param startNode
      */
-    protected void renderMenuItems(StringBuilder out, final AbstractNode startNode, final AbstractNode currentNode, int currentDepth, int currentPos, int numberOfSubnodes, int maxDepth, final User user) {
+    protected void renderMenuItems(StringBuilder out, final AbstractNode startNode, final AbstractNode currentNode, int currentDepth, int currentPos, int numberOfSubnodes, int maxDepth) {
 
         AbstractNode menuItemNode = currentNode;
 
@@ -91,10 +106,10 @@ public class MenuItem extends WebNode {
         currentDepth++;
 
         List<AbstractNode> menuItems = new LinkedList<AbstractNode>();
-        List<AbstractNode> allMenuItems = menuItemNode.getSortedMenuItems(user);
+        List<AbstractNode> allMenuItems = menuItemNode.getSortedMenuItems();
 
         for (AbstractNode n : allMenuItems) {
-            if (n.isVisible(user)) {
+            if (n.isVisible()) {
                 menuItems.add(n);
             }
         }
@@ -139,9 +154,9 @@ public class MenuItem extends WebNode {
             }
 
 
-            if (menuItemNode.isVisible(user)) {
+            if (menuItemNode.isVisible()) {
 
-                String relativeNodePath = menuItemNode.getNodePath(user, startNode).replace("&", "%26");
+                String relativeNodePath = menuItemNode.getNodePath(startNode).replace("&", "%26");
 
                 if (!(cssClass.isEmpty())) {
                     cssClass = " class=\"" + cssClass + "\"";
@@ -149,16 +164,16 @@ public class MenuItem extends WebNode {
 
                 out.append("<li").append(cssClass).append(">");
                 out.append("<span>" + "<a href=\"").append(relativeNodePath).append("\">");
-                out.append(currentNode.getName());
+                out.append(currentNode.getTitleOrName());
             }
         }
 
-        if (currentNode.isVisible(user)) {
+        if (currentNode.isVisible()) {
 
             int sub = menuItems.size();
             int pos = 0;
             for (AbstractNode s : menuItems) {
-                renderMenuItems(out, startNode, s, currentDepth, pos, sub, maxDepth, user);
+                renderMenuItems(out, startNode, s, currentDepth, pos, sub, maxDepth);
                 pos++;
             }
 

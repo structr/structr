@@ -1,6 +1,20 @@
-            /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+/*
+ *  Copyright (C) 2011 Axel Morgner, structr <structr@structr.org>
+ * 
+ *  This file is part of structr <http://structr.org>.
+ * 
+ *  structr is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ * 
+ *  structr is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ * 
+ *  You should have received a copy of the GNU General Public License
+ *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.entity.web;
 
@@ -16,7 +30,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DateUtils;
 import org.jsoup.Jsoup;
 import org.structr.common.CurrentRequest;
-//import org.structr.common.CurrentSession;
 import org.structr.common.MailHelper;
 import org.structr.common.RelType;
 import org.structr.core.Command;
@@ -455,7 +468,7 @@ public class RegistrationCheck extends LoginCheck {
      */
     @Override
     public void renderView(StringBuilder out, final AbstractNode startNode,
-            final String editUrl, final Long editNodeId, final User user) {
+            final String editUrl, final Long editNodeId) {
 
         // if this page is requested to be edited, render edit frame
         if (editNodeId != null && getId() == editNodeId.longValue()) {
@@ -765,7 +778,7 @@ public class RegistrationCheck extends LoginCheck {
             content.append(request.getScheme()).append("://").append(request.getServerName()).append(":").append(request.getServerPort());
 
             String pageUrl = request.getContextPath().concat(
-                    "/view".concat(startNode.getNodePath(user).replace("&", "%26"))).concat("?").concat(confirmationKeyFieldName).concat("=").concat(confirmationKeyForMail).concat("&").concat(usernameFieldName).concat("=").concat(username);
+                    "/view".concat(startNode.getNodePath().replace("&", "%26"))).concat("?").concat(confirmationKeyFieldName).concat("=").concat(confirmationKeyForMail).concat("&").concat(usernameFieldName).concat("=").concat(username);
 
             content.append(pageUrl);
             content.append("\">");

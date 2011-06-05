@@ -1,6 +1,20 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ *  Copyright (C) 2011 Axel Morgner, structr <structr@structr.org>
+ * 
+ *  This file is part of structr <http://structr.org>.
+ * 
+ *  structr is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ * 
+ *  structr is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ * 
+ *  You should have received a copy of the GNU General Public License
+ *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core;
 
@@ -45,8 +59,13 @@ public class Services {
     public static final String LOG_SERVICE_THRESHOLD = "structr.logging.threshold";
     // ModuleService-related constants
     public static final String MODULES_PATH = "modules.path";
-    public static final String ENTITY_PACKAGES = "entity.packages";
+//    public static final String ENTITY_PACKAGES = "entity.packages";
     public static final String STRUCTR_PAGE_PREDICATE = "structr.page.predicate";
+    // Security-related constants
+    public static final String SUPERUSER_USERNAME = "superuser.username";
+    public static final String SUPERUSER_PASSWORD = "superuser.password";
+
+
     private static final Map<Class, Class> serviceClassCache = new ConcurrentHashMap<Class, Class>(5, 0.75f, 100);
     private static final Map<Class, Service> serviceCache = new ConcurrentHashMap<Class, Service>(5, 0.75f, 100);
     private static Map<String, Object> context = null;
@@ -61,6 +80,8 @@ public class Services {
     private static String udpPort;// = "54777";
     private static String smtpHost;// = "localhost";
     private static String smtpPort;// = "25";
+    private static String superuserUsername;
+    private static String superuserPassword;
 
     /**
      * Return the static application title
@@ -147,6 +168,20 @@ public class Services {
     }
 
     /**
+     * Return the superuser username
+     */
+    public static String getSuperuserUsername() {
+        return superuserUsername;
+    }
+
+    /**
+     * Return the superuser username
+     */
+    public static String getSuperuserPassword() {
+        return superuserPassword;
+    }
+
+    /**
      * Creates and returns a command of the given <code>type</code>. If a command is
      * found, the corresponding service will be discovered and activated.
      *
@@ -217,13 +252,15 @@ public class Services {
 
         appTitle = getConfigValue(context, Services.APPLICATION_TITLE, "structr");
         tmpPath = getConfigValue(context, Services.TMP_PATH, "/tmp");
-        databasePath = getConfigValue(context, Services.DATABASE_PATH, "/opt/structr/t5s/db");
-        filesPath = getConfigValue(context, Services.FILES_PATH, "/opt/structr/t5s/files");
-        modulesPath = getConfigValue(context, Services.MODULES_PATH, "/opt/structr/t5s/modules");
+        databasePath = getConfigValue(context, Services.DATABASE_PATH, "/opt/structr/db");
+        filesPath = getConfigValue(context, Services.FILES_PATH, "/opt/structr/files");
+        modulesPath = getConfigValue(context, Services.MODULES_PATH, "/opt/structr/modules");
         tcpPort = getConfigValue(context, Services.TCP_PORT, "54555");
         udpPort = getConfigValue(context, Services.UDP_PORT, "57555");
         smtpHost = getConfigValue(context, Services.SMTP_HOST, "localhost");
         smtpPort = getConfigValue(context, Services.SMTP_PORT, "25");
+        superuserUsername = getConfigValue(context, Services.SUPERUSER_USERNAME, "superadmin");
+        superuserPassword = getConfigValue(context, Services.SUPERUSER_PASSWORD, ""); // intentionally no default password!
 
         logger.log(Level.INFO, "Finished initialization of service layer");
     }

@@ -1,6 +1,23 @@
+/*
+ *  Copyright (C) 2011 Axel Morgner, structr <structr@structr.org>
+ * 
+ *  This file is part of structr <http://structr.org>.
+ * 
+ *  structr is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ * 
+ *  structr is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ * 
+ *  You should have received a copy of the GNU General Public License
+ *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package org.structr.core.entity;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.Comparator;
@@ -55,6 +72,17 @@ public class User extends Person {
         return null;
     }
 
+    /**
+     * Return group node this user is in (if any)
+     */
+    public Group getGroupNode() {
+        AbstractNode parentNode = getParentNode();
+        if (parentNode != null && parentNode instanceof Group) {
+            return (Group) parentNode;
+        }
+        return null;
+    }
+
     public void setPassword(final String passwordValue) {
 
         // store passwords always as SHA-512 hash
@@ -62,8 +90,16 @@ public class User extends Person {
                 DigestUtils.sha512Hex(passwordValue));
     }
 
-    public String getPassword() {
+    public String getEncryptedPassword() {
         return getStringProperty(PASSWORD_KEY);
+    }
+
+    /**
+     * Intentionally return null.
+     * @return 
+     */
+    public String getPassword() {
+        return null;
     }
 
     public String getRealName() {
@@ -209,7 +245,7 @@ public class User extends Person {
         final User user = this;
         Category cat = null;
 
-        List<AbstractNode> children = this.getDirectChildNodes(user);
+        List<AbstractNode> children = this.getDirectChildNodes();
         for (AbstractNode child : children) {
             if (child instanceof Category && categoryName.equals(child.getName())) {
                 cat = (Category) child;
@@ -217,7 +253,7 @@ public class User extends Person {
         }
 
         if (cat != null) {
-            result = cat.getSortedLinkedNodes(user);
+            result = cat.getSortedLinkedNodes();
         }
 
         return result;
@@ -246,7 +282,7 @@ public class User extends Person {
 
         Category cat = null;
 
-        List<AbstractNode> children = this.getDirectChildNodes(user);
+        List<AbstractNode> children = this.getDirectChildNodes();
         for (AbstractNode child : children) {
             if (child instanceof Category && categoryName.equals(child.getName())) {
                 cat = (Category) child;
@@ -308,7 +344,7 @@ public class User extends Person {
 
         Category cat = null;
 
-        List<AbstractNode> children = this.getDirectChildNodes(user);
+        List<AbstractNode> children = this.getDirectChildNodes();
         for (AbstractNode child : children) {
             if (child instanceof Category && categoryName.equals(child.getName())) {
                 cat = (Category) child;

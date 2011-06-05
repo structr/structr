@@ -1,6 +1,20 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ *  Copyright (C) 2011 Axel Morgner, structr <structr@structr.org>
+ * 
+ *  This file is part of structr <http://structr.org>.
+ * 
+ *  structr is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ * 
+ *  structr is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ * 
+ *  You should have received a copy of the GNU General Public License
+ *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 package org.structr.core.entity.app;
@@ -14,7 +28,6 @@ import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.CurrentRequest;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.User;
 import org.structr.core.node.FindNodeCommand;
 
 /**
@@ -28,7 +41,7 @@ public class AppNodeView extends AbstractNode
 	private static final Logger logger = Logger.getLogger(AppNodeView.class.getName());
 
 	private static final String FOLLOW_RELATIONSHIP_KEY =	"followRelationship";
-	private static final String ID_SOURCCE_KEY =		"idSource";
+	private static final String ID_SOURCE_KEY =		"idSource";
 
 	@Override
 	public String getIconSrc()
@@ -37,12 +50,12 @@ public class AppNodeView extends AbstractNode
 	}
 
 	@Override
-	public void renderView(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId, User user)
+	public void renderView(final StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
 	{
 		AbstractNode sourceNode = loadNode();
 		if(sourceNode != null)
 		{
-			doRendering(out, this, sourceNode, editUrl, editNodeId, user);
+			doRendering(out, this, sourceNode, editUrl, editNodeId);
 
 		} else
 		{
@@ -61,15 +74,15 @@ public class AppNodeView extends AbstractNode
 	}
 
 	// ----- protected methods -----
-	protected void doRendering(StringBuilder out, AbstractNode viewNode, AbstractNode dataNode, String editUrl, Long editNodeId, User user)
+	protected void doRendering(final StringBuilder out, final AbstractNode viewNode, final AbstractNode dataNode, final String editUrl, final Long editNodeId)
 	{
-		String templateSource = getTemplateFromNode(viewNode, user);
+		String templateSource = getTemplateFromNode(viewNode);
 		StringWriter content = new StringWriter(100);
 
-		AbstractNode.staticReplaceByFreeMarker(templateSource, content, dataNode, editUrl, editNodeId, user);
+		AbstractNode.staticReplaceByFreeMarker(templateSource, content, dataNode, editUrl, editNodeId);
 		out.append(content.toString());
 
-		List<AbstractNode> viewChildren = viewNode.getSortedDirectChildNodes(user);
+		List<AbstractNode> viewChildren = viewNode.getSortedDirectChildNodes();
 		for(AbstractNode viewChild : viewChildren)
 		{
 			// 1. get desired display relationship from view node
@@ -80,11 +93,11 @@ public class AppNodeView extends AbstractNode
 			if(followRel != null)
 			{
 				RelationshipType relType = DynamicRelationshipType.withName(followRel);
-				List<AbstractNode> dataChildren = dataNode.getDirectChildren(relType, user);
+				List<AbstractNode> dataChildren = dataNode.getDirectChildren(relType);
 
 				for(AbstractNode dataChild : dataChildren)
 				{
-					doRendering(out, viewChild, dataChild, editUrl, editNodeId, user);
+					doRendering(out, viewChild, dataChild, editUrl, editNodeId);
 				}
 			}
 
@@ -94,19 +107,19 @@ public class AppNodeView extends AbstractNode
 	// ----- private methods -----
 	private AbstractNode loadNode()
 	{
-		String idSourceParameter = (String)getProperty(ID_SOURCCE_KEY);
+		String idSourceParameter = (String)getProperty(ID_SOURCE_KEY);
 		String idSource = CurrentRequest.getRequest().getParameter(idSourceParameter);
 
 		return((AbstractNode)Services.command(FindNodeCommand.class).execute(null, this, idSource));
 	}
 	
-	private String getTemplateFromNode(AbstractNode node, User user)
+	private String getTemplateFromNode(final AbstractNode node)
 	{
 		String ret = "";
 		
-		if(node.hasTemplate(user))
+		if(node.hasTemplate())
 		{
-			ret = node.getTemplate(user).getContent();
+			ret = node.getTemplate().getContent();
 		}
 		
 		return(ret);
