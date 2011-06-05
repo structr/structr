@@ -13,7 +13,7 @@
     #if ($renderMode != "inline")
     <div id="header">
 
-      <div id="logo"><img width="86" height="23" src="$context/images/structr-logo.png" alt="structr-logo"></div>
+      <div id="logo"><a href="$context/admin/edit.htm?nodeId=0"><img width="86" height="23" src="$context/images/structr-logo.png" alt="structr-logo"></a></div>
       ##            <div class="mainLink">$homeLink</div>
       ##            <div class="mainLink">$usersLink</div>
       #if ($isSuperUser)
@@ -195,19 +195,9 @@
       <script type="text/javascript">
         var sourceId;
         var targetId;
+        var parentNodeId;
         
         jQuery.noConflict();
-
-        //                jQuery(window).resize(function() {
-        //                    setWindowHeightAndWidth(true);
-        //                });
-
-        //                window.onbeforeunload = function () {
-        //                    jQuery.cookies.set("scrollTree", jQuery(".treeArea .body").scrollTop());
-        //                    jQuery.cookies.set("scrollCode", jQuery(".tabArea .CodeMirror-wrapping iframe").contents().scrollTop());
-        //                    jQuery.cookies.set("scrollIframe", jQuery("#rendition-tab iframe").contents().scrollTop());
-        //                    jQuery.cookies.set("scrollTextarea", jQuery("#source-tab textarea").scrollTop());
-        //                }
 
         jQuery(document).ready(function() {
 
@@ -291,7 +281,7 @@
           #end
 
 
-          var treeElements = jQuery('#nodeTree li a').not('.spacer').not('.fixed');
+          var treeElements = jQuery('#nodeTree li a').not('.spacer');
           jQuery.each(treeElements, function(i, el) {
         
             jQuery(el).draggable({
@@ -300,7 +290,7 @@
               helper:      'clone',
               scroll:      'true',
               revert:      'invalid'
-            }).data('nodeId', getParam('nodeId', jQuery(el).attr('href')));
+            }).data('nodeId', getParam('nodeId', jQuery(el).attr('href'))).data('parentNodeId', getParam('parentNodeId', jQuery(el).attr('href')));
 
             jQuery(el).droppable({
               accept: function(draggable) {
@@ -313,6 +303,7 @@
                 var dragged = jQuery(ui.draggable);
                 var dropTarget = jQuery(this);
                 sourceId = jQuery(ui.draggable).data('nodeId');
+                parentNodeId = jQuery(ui.draggable).data('parentNodeId');
                 targetId = getParam('nodeId', dropTarget.attr('href'));
                 if (!sourceId) {
                   showCreateSelect(jQuery(this));

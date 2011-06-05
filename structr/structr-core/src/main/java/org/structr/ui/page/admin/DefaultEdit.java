@@ -55,12 +55,14 @@ import org.structr.core.cloud.PushNodes;
 import org.structr.core.entity.Image;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractNode.Title;
+import org.structr.core.entity.Folder;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.NodeType;
 import org.structr.core.entity.StructrRelationship;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.Template;
 import org.structr.core.entity.User;
+import org.structr.core.module.GetEntitiesCommand;
 import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.DeleteRelationshipCommand;
 import org.structr.core.node.FindGroupCommand;
@@ -110,7 +112,8 @@ public class DefaultEdit extends Nodes {
     protected IntegerField remoteUdpPort;
     protected Checkbox cloudRecursive = new Checkbox("cloudRecursive", "Recursive");
     protected Select templateSelect = new Select(AbstractNode.TEMPLATE_ID_KEY, "Template");
-    protected Select typeSelect = new Select(AbstractNode.TYPE_NODE_ID_KEY, "Type");
+    protected Select typeSelect = new Select(AbstractNode.TYPE_KEY, "Type");
+    protected Select customTypeSelect = new Select(AbstractNode.TYPE_NODE_ID_KEY, "Custom Type");
 
     // use template for backend pages
     @Override
@@ -127,20 +130,14 @@ public class DefaultEdit extends Nodes {
 
         super.onInit();
 
-        FieldSet typeFields = new FieldSet("Type");
-        typeFields.add(typeSelect);
-        editPropertiesForm.add(typeFields);
-
-        FieldSet templateFields = new FieldSet("Template");
-        templateFields.add(templateSelect);
-        editPropertiesForm.add(templateFields);
-
         FieldSet nodePropertiesFields = new FieldSet("Node Properties");
         nodePropertiesFields.setColumns(3);
 
         // add common fields
-        nodePropertiesFields.add(new TextField(AbstractNode.TYPE_KEY, false));
         nodePropertiesFields.add(new TextField(AbstractNode.NAME_KEY, true));
+//        nodePropertiesFields.add(new TextField(AbstractNode.TYPE_KEY, false));
+        nodePropertiesFields.add(typeSelect);
+        nodePropertiesFields.add(new TextField(AbstractNode.TITLE_KEY, false));
         nodePropertiesFields.add(new IntegerField(AbstractNode.POSITION_KEY));
 //        nodeInfo.add(new TextField(AbstractNode.NODE_ID_KEY));
 
@@ -167,6 +164,14 @@ public class DefaultEdit extends Nodes {
 
         editPropertiesForm.add(nodePropertiesFields);
         addControl(editPropertiesForm);
+
+        FieldSet templateFields = new FieldSet("Template");
+        templateFields.add(templateSelect);
+        editPropertiesForm.add(templateFields);
+
+        FieldSet customTypeFields = new FieldSet("Custom Type");
+        customTypeFields.add(customTypeSelect);
+        editPropertiesForm.add(customTypeFields);
 
         FieldSet visibilityFields = new FieldSet("Visibility");
         visibilityFields.setColumns(1);
@@ -224,7 +229,7 @@ public class DefaultEdit extends Nodes {
 
         // ------------------ child nodes start --------------------------------
 
-        if (node != null && node.hasChildren()) {
+        if (node != null && (node.hasChildren() || node instanceof Folder)) {
 //        if (node != null) {
 
             Column actionColumnNodes = new Column("Actions");
@@ -663,6 +668,25 @@ public class DefaultEdit extends Nodes {
 
                 @Override
                 public List<Option> getData() {
+                    List<Option> nodeList = new LinkedList<Option>();
+
+                    nodeList.add(new Option("", "--- Select Node Type ---"));
+
+                    List<String> nodeTypes = new LinkedList<String>(((Map<String, Class>) Services.command(GetEntitiesCommand.class).execute()).keySet());
+                    Collections.sort(nodeTypes);
+
+                    for (String className : nodeTypes) {
+                        Option o = new Option(className);
+                        nodeList.add(o);
+                    }
+                    return nodeList;
+                }
+            });
+
+            customTypeSelect.setDataProvider(new DataProvider() {
+
+                @Override
+                public List<Option> getData() {
                     List<Option> options = new LinkedList<Option>();
                     List<AbstractNode> nodes = null;
                     if (typeNode != null) {
@@ -684,7 +708,7 @@ public class DefaultEdit extends Nodes {
                     }
                     return options;
                 }
-            });            
+            });
 
             editVisibilityForm.copyFrom(node);
             editVisibilityForm.add(new HiddenField(NODE_ID_KEY, nodeId != null ? nodeId : ""));
@@ -982,10 +1006,10 @@ public class DefaultEdit extends Nodes {
                             // not recursive, change only this node
                             nodes.add(node);
                         }
-                        
+
                         Command createRel = Services.command(CreateRelationshipCommand.class);
                         Command deleteRel = Services.command(DeleteRelationshipCommand.class);
-                        
+
                         for (AbstractNode n : nodes) {
 
                             if (n.equals(selectedUser) || n.equals(selectedGroup)) {
@@ -996,17 +1020,17 @@ public class DefaultEdit extends Nodes {
                             // User
                             if (selectedUser != null) {
                                 StructrRelationship r = n.getSecurityRelationship(selectedUser);
-                                
+
                                 if (r == null) {
-                                    
+
                                     r = (StructrRelationship) createRel.execute(selectedUser, n, RelType.SECURITY);
                                 }
 
                                 if (selectedValues != null && selectedValues.size() > 0) {
-                                    
+
                                     r.setAllowed(selectedValues);
                                 } else {
-                                    
+
                                     deleteRel.execute(r);
                                 }
                             }
@@ -1014,17 +1038,17 @@ public class DefaultEdit extends Nodes {
                             // Group
                             if (selectedGroup != null) {
                                 StructrRelationship r = n.getSecurityRelationship(selectedGroup);
-                                
+
                                 if (r == null) {
-                                    
+
                                     r = (StructrRelationship) createRel.execute(selectedGroup, n, RelType.SECURITY);
                                 }
 
                                 if (selectedValues != null && selectedValues.size() > 0) {
-                                    
+
                                     r.setAllowed(selectedValues);
                                 } else {
-                                    
+
                                     deleteRel.execute(r);
                                 }
                             }
