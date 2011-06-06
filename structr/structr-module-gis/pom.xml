@@ -22,7 +22,7 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>2.3.2</version>
                 <configuration>
-                    <debug>false</debug>
+                    <debug>true</debug>
                 </configuration>
             </plugin>
         </plugins>
