@@ -75,7 +75,7 @@ public class Map extends AbstractNode {
             if (isVisible()) {
 
                 if (getDontCache() == Boolean.TRUE) {
-                    renderSVGMap(out);
+                    renderSVGMap(out, startNode);
                     return;
                 }
 
@@ -84,7 +84,7 @@ public class Map extends AbstractNode {
                 if (StringUtils.isBlank(cachedSVGMap)) {
 
                     StringBuilder cache = new StringBuilder();
-                    renderSVGMap(cache);
+                    renderSVGMap(cache, startNode);
                     setSvgContent(cache.toString());
                     out.append(cache);
 
@@ -105,7 +105,7 @@ public class Map extends AbstractNode {
         try {
             if (isVisible()) {
                 StringBuilder svgString = new StringBuilder();
-                renderSVGMap(svgString);
+                renderSVGMap(svgString, startNode);
                 out.write(svgString.toString().getBytes());
             }
         } catch (IOException e) {
@@ -113,7 +113,7 @@ public class Map extends AbstractNode {
         }
     }
 
-    private void renderSVGMap(StringBuilder out) {
+    private void renderSVGMap(StringBuilder out, final AbstractNode startNode) {
 
         Command graphDbCommand = Services.command(GraphDatabaseCommand.class);
         GraphDatabaseService graphDb = (GraphDatabaseService) graphDbCommand.execute();
@@ -124,23 +124,35 @@ public class Map extends AbstractNode {
             long t0 = System.currentTimeMillis();
 
             String featureName = null;
-
             String staticFeatureName = getStaticFeatureName();
 
+            GeoObject geoNode = null;
+
+            boolean auto = false;
+
             if (StringUtils.isNotBlank(staticFeatureName)) {
+
                 featureName = staticFeatureName;
+
             } else {
 
-                HttpServletRequest request = CurrentRequest.getRequest();
+                // first check if we were called by a geo object which has bounds defined
+                if (startNode != null && startNode instanceof GeoObject) {
+                    geoNode = (GeoObject) startNode;
+                    featureName = geoNode.getName();
+                } else {
 
-                String featureNameParamName = getFeatureNameParamName();
-                if (featureNameParamName == null) {
-                    featureNameParamName = defaultFeatureParamName;
-                }
+                    HttpServletRequest request = CurrentRequest.getRequest();
 
-                // get the feature name from the request
-                if (request != null) {
-                    featureName = request.getParameter(featureNameParamName);
+                    String featureNameParamName = getFeatureNameParamName();
+                    if (featureNameParamName == null) {
+                        featureNameParamName = defaultFeatureParamName;
+                    }
+
+                    // get the feature name from the request
+                    if (request != null) {
+                        featureName = request.getParameter(featureNameParamName);
+                    }
                 }
 
             }
@@ -148,7 +160,7 @@ public class Map extends AbstractNode {
             int cx = getCanvasX();
             int cy = getCanvasY();
 
-            boolean auto = getAutoEnvelope();
+            auto = geoNode != null ? geoNode.getAutoEnvelope() : getAutoEnvelope();
 
             List<MapLayer> layers = new LinkedList<MapLayer>();
             MapLayer layer = null;
@@ -178,9 +190,6 @@ public class Map extends AbstractNode {
             }
 
             SimpleFeatureSource featureSource = n4jstore.getFeatureSource(layerName);
-
-            GeoObject featureNode = null;
-
             if (auto) {
 
                 if (featureName == null) {
@@ -189,6 +198,8 @@ public class Map extends AbstractNode {
                     envelope = featureSource.getBounds();
 
                 } else {
+
+
 
                     // first, find the feature which corresponds with the requested feature
                     // (or the name of the node, if the request value is empty)
@@ -205,10 +216,14 @@ public class Map extends AbstractNode {
                         envelope = (ReferencedEnvelope) requestedFeature.getBounds();
                     }
 
-                    List<AbstractNode> result = (List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(new SuperUser(), null, false, false, Search.andExactName(featureName));
-                    for (AbstractNode n : result) {
-                        if (n instanceof GeoObject && n.isNotDeleted()) {
-                            featureNode = (GeoObject) n;
+
+                    if (geoNode == null) {
+
+                        List<AbstractNode> result = (List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(new SuperUser(), null, false, false, Search.andExactName(featureName));
+                        for (AbstractNode n : result) {
+                            if (n instanceof GeoObject && n.isNotDeleted()) {
+                                geoNode = (GeoObject) n;
+                            }
                         }
                     }
 
@@ -217,10 +232,25 @@ public class Map extends AbstractNode {
 
             } else {
 
-                Double eminx = getEnvelopeMinX();
-                Double emaxx = getEnvelopeMaxX();
-                Double eminy = getEnvelopeMinY();
-                Double emaxy = getEnvelopeMaxY();
+                Double eminx;
+                Double emaxx;
+                Double eminy;
+                Double emaxy;
+
+                if (geoNode != null) {
+
+                    eminx = geoNode.getEnvelopeMinX();
+                    emaxx = geoNode.getEnvelopeMaxX();
+                    eminy = geoNode.getEnvelopeMinY();
+                    emaxy = geoNode.getEnvelopeMaxY();
+
+                } else {
+
+                    eminx = getEnvelopeMinX();
+                    emaxx = getEnvelopeMaxX();
+                    eminy = getEnvelopeMinY();
+                    emaxy = getEnvelopeMaxY();
+                }
 
                 if (eminx != null && emaxx != null && eminy != null && emaxy != null) {
 
@@ -265,19 +295,19 @@ public class Map extends AbstractNode {
 
             boolean displayCities = (getDisplayCities() == Boolean.TRUE);
 
-            if (featureNode != null && "Country".equals(featureNode.getType()) && displayCities) {
+            if (geoNode != null && "Country".equals(geoNode.getType()) && displayCities) {
 
-                List<AbstractNode> subNodes = featureNode.getSortedLinkedNodes();
+                List<AbstractNode> subNodes = geoNode.getLinkedNodes(); // no sorting needed here
 
                 List<GeoObject> geoObjects = new LinkedList<GeoObject>();
-                
+
                 List<GeoObject> cities = new LinkedList<GeoObject>();
                 List<GeoObject> hotels = new LinkedList<GeoObject>();
                 List<GeoObject> islands = new LinkedList<GeoObject>();
 //                List<AbstractNode> result = (List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(user, featureNode, false, false, Search.andExactType("City"));
 
                 for (AbstractNode node : subNodes) {
-                    
+
                     if ("City".equals(node.getType())) {
                         cities.add((GeoObject) node);
                     }
@@ -291,14 +321,14 @@ public class Map extends AbstractNode {
                     }
 
                 }
-                
+
                 // no cities -> show hotels directly
                 if (cities.isEmpty()) {
                     geoObjects.addAll(hotels);
                 } else {
                     geoObjects.addAll(cities);
                 }
-                
+
                 SimpleFeatureCollection collection = MapHelper.createPointsFromGeoObjects(geoObjects);
 
                 Symbolizer cityTextSym = MapHelper.createTextSymbolizer(getPointFontName(), getPointFontSize(), getPointFontColor(), getPointFontOpacity(), getLabelAnchorX(), getLabelAnchorY(), getLabelDisplacementX(), getLabelDisplacementY());
@@ -370,7 +400,6 @@ public class Map extends AbstractNode {
 //    public String getContentType() {
 //        return (String) getProperty(CONTENT_TYPE_KEY);
 //    }
-
     public int getCanvasX() {
         return getIntProperty(CANVAS_X_KEY);
     }
