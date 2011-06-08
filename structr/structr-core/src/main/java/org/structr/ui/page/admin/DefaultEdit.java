@@ -885,7 +885,7 @@ public class DefaultEdit extends Nodes {
     /**
      * Save form data
      */
-    private void save() {
+    protected void save() {
         final Command transactionCommand = Services.command(TransactionCommand.class);
         transactionCommand.execute(new StructrTransaction() {
 

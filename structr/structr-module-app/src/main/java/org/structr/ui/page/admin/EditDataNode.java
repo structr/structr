@@ -16,13 +16,11 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package org.structr.ui.page.admin;
 
 /**
  *
- * @author amorgner
+ * @author axel
  */
-public class EditEmptyNode extends DefaultEdit {
-
+public class EditDataNode extends EditArbitraryNode {
 }

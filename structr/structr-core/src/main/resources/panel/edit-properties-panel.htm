@@ -3,6 +3,11 @@
     #if ($localPreviewViewUrl)
     <img src="$localPreviewViewUrl" alt="$localPreviewViewUrl">
     #end
+
+    #if ($dynamicPropertiesForm)
+    $dynamicPropertiesForm
+    #end
+
     $editPropertiesForm
 
     #if ($isSuperUser)

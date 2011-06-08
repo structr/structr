@@ -653,7 +653,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 //    public Long getId() {
 //        return getId();
 //    }
-    protected Date getDateProperty(final String key) {
+    public Date getDateProperty(final String key) {
         Object propertyValue = getProperty(key);
         if (propertyValue != null) {
             if (propertyValue instanceof Date) {
