@@ -59,16 +59,22 @@
       var SUBTYPE = '#53ED78';
 
       #foreach( $rel in $node.incomingRelationships )
-      #if( $velocityCount > 10 )
+      #if( $velocityCount > 30 )
         #break
+      #end
+      #if( $rel.startNode.type == "PageRequest" || $rel.startNode.type == "Activity")
+          #break
       #end
       var node_$rel.startNode.id = graph.newNode({label: '$format.javascript($rel.startNode.name)', link: '$context/admin/edit.htm?nodeId=$rel.startNode.id#relationships-tab', imgSrc: '$context$rel.startNode.iconSrc'});
       var edge_$rel.id = graph.newEdge(node_$rel.startNode.id, node_$node.id, {color: $rel.relType, label: '$rel.relType'});
       #end
 
       #foreach( $rel in $node.outgoingRelationships )
-      #if( $velocityCount > 10 )
+      #if( $velocityCount > 30 )
         #break
+      #end
+      #if( $rel.endNode.type == "PageRequest" || $rel.endNode.type == "Activity")
+          #break
       #end
       var node_$rel.endNode.id = graph.newNode({label: '$format.javascript($rel.endNode.name)', link: '$context/admin/edit.htm?nodeId=$rel.endNode.id#relationships-tab', imgSrc: '$context$rel.endNode.iconSrc'});
       var edge_$rel.id = graph.newEdge(node_$node.id, node_$rel.endNode.id, {color: $rel.relType, label: '$rel.relType'});
