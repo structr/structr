@@ -39,9 +39,9 @@ Copyright (c) 2010 Dennis Hotson
       return;
     }
 
-    var stiffness = params.stiffness || 1000.0;
+    var stiffness = params.stiffness || 400.0;
     var repulsion = params.repulsion || 400.0;
-    var damping = params.damping || 0.4;
+    var damping = params.damping || 0.5;
 
     var canvas = this[0];
     var ctx = canvas.getContext("2d");
@@ -86,16 +86,19 @@ Copyright (c) 2010 Dennis Hotson
     var nearest = null;
     var dragged = null;
 
-    jQuery(canvas).click(function(e){
+    jQuery(canvas).dblclick(function(e){
       //    e.preventDefault();
       var pos = jQuery(this).offset();
       var p = fromScreen({
         x: e.pageX - pos.left,
         y: e.pageY - pos.top
         });
-      selected = nearest = dragged = layout.nearest(p);
+      selected = layout.nearest(p);
       if (selected.node.data.link) {
         window.location = selected.node.data.link;
+      } else
+      {
+        selected = null;
       }
     });
 
@@ -149,7 +152,7 @@ Copyright (c) 2010 Dennis Hotson
     };
 
     Node.prototype.getHeight = function() {
-      return 20;
+      return 16;
     };
 
     var renderer = new Renderer(1, layout,
@@ -266,7 +269,7 @@ Copyright (c) 2010 Dennis Hotson
         var boxHeight = node.getHeight();
 
         // fill background
-        ctx.clearRect(s.x - boxWidth/2, s.y - 10, boxWidth, 20);
+        ctx.clearRect(s.x - boxWidth/2, s.y - 10, boxWidth, boxHeight);
 
         // fill background
         if (selected !== null && nearest.node !== null && selected.node.id === node.id)
@@ -282,7 +285,7 @@ Copyright (c) 2010 Dennis Hotson
           ctx.fillStyle = "transparent";
         }
 
-        ctx.fillRect(s.x - boxWidth/2, s.y - 10, boxWidth, 20);
+        ctx.fillRect(s.x - boxWidth/2, s.y - 10, boxWidth, boxHeight);
 
         ctx.textAlign = "left";
         ctx.textBaseline = "top";
@@ -295,7 +298,7 @@ Copyright (c) 2010 Dennis Hotson
         if (node.data.imgSrc) {
           var img = new Image();
           img.src = node.data.imgSrc;
-          ctx.drawImage(img, s.x - boxWidth/2 - 15, s.y - 8);
+          ctx.drawImage(img, s.x - boxWidth/2 - 15, s.y - 12);
         }
 
         ctx.restore();
