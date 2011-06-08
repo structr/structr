@@ -1012,10 +1012,10 @@ public class DefaultEdit extends Nodes {
 
                         for (AbstractNode n : nodes) {
 
-                            if (n.equals(selectedUser) || n.equals(selectedGroup)) {
-                                // don't try to set a relationship with node itself
-                                continue;
-                            }
+//                            if (n.equals(selectedUser) || n.equals(selectedGroup)) {
+//                                // don't try to set a relationship with node itself
+//                                continue;
+//                            }
 
                             // User
                             if (selectedUser != null) {
