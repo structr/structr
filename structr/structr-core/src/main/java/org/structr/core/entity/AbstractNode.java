@@ -213,35 +213,35 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 
     @Override
     public boolean equals(final Object o) {
-	    
-/*
-	if (o == null) {
+
+        if (o == null) {
             return false;
         }
+        
         if (!(o instanceof AbstractNode)) {
             return false;
         }
+        
+        /*
         return ((AbstractNode) o).equals(this);
-    }
-
-    private boolean equals(final AbstractNode node) {
+        }
+        
+        private boolean equals(final AbstractNode node) {
         if (node == null) {
-            return false;
+        return false;
         }
         return (this.getId() == (node.getId()));
-*/
-	    return(new Integer(this.hashCode()).equals(new Integer(o.hashCode())));
+         */
+        return (new Integer(this.hashCode()).equals(new Integer(o.hashCode())));
     }
 
     @Override
-    public int hashCode()
-    {
-	if(this.dbNode == null)
-	{
-		return(super.hashCode());
-	}
+    public int hashCode() {
+        if (this.dbNode == null) {
+            return (super.hashCode());
+        }
 
-	return(new Long(dbNode.getId()).hashCode());
+        return (new Long(dbNode.getId()).hashCode());
     }
 
     @Override
@@ -2462,148 +2462,124 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 
     }
 
-	public Set<AbstractNode> getRelatedNodes(int maxDepth)
-	{
-		return(getRelatedNodes(maxDepth, Integer.MAX_VALUE, null));
-	}
+    public Set<AbstractNode> getRelatedNodes(int maxDepth) {
+        return (getRelatedNodes(maxDepth, Integer.MAX_VALUE, null));
+    }
 
-	public Set<AbstractNode> getRelatedNodes(int maxDepth, String relTypes)
-	{
-		return(getRelatedNodes(maxDepth, Integer.MAX_VALUE, relTypes));
-	}
+    public Set<AbstractNode> getRelatedNodes(int maxDepth, String relTypes) {
+        return (getRelatedNodes(maxDepth, Integer.MAX_VALUE, relTypes));
+    }
 
-	public Set<AbstractNode> getRelatedNodes(int maxDepth, int maxNum)
-	{
-		return(getRelatedNodes(maxDepth, maxNum, null));
-	}
+    public Set<AbstractNode> getRelatedNodes(int maxDepth, int maxNum) {
+        return (getRelatedNodes(maxDepth, maxNum, null));
+    }
 
-	public Set<AbstractNode> getRelatedNodes(int maxDepth, int maxNum, String relTypes)
-	{
-		Set<AbstractNode> visitedNodes = new LinkedHashSet<AbstractNode>();
-		Set<AbstractNode> nodes = new LinkedHashSet<AbstractNode>();
-		Set<StructrRelationship> rels = new LinkedHashSet<StructrRelationship>();
+    public Set<AbstractNode> getRelatedNodes(int maxDepth, int maxNum, String relTypes) {
+        Set<AbstractNode> visitedNodes = new LinkedHashSet<AbstractNode>();
+        Set<AbstractNode> nodes = new LinkedHashSet<AbstractNode>();
+        Set<StructrRelationship> rels = new LinkedHashSet<StructrRelationship>();
 
-		collectRelatedNodes(nodes, rels, visitedNodes, this, 0, maxDepth, maxNum, splitRelationshipTypes(relTypes));
+        collectRelatedNodes(nodes, rels, visitedNodes, this, 0, maxDepth, maxNum, splitRelationshipTypes(relTypes));
 
-		return(nodes);
-	}
+        return (nodes);
+    }
 
-	public Set<StructrRelationship> getRelatedRels(int maxDepth)
-	{
-		return(getRelatedRels(maxDepth, Integer.MAX_VALUE, null));
-	}
+    public Set<StructrRelationship> getRelatedRels(int maxDepth) {
+        return (getRelatedRels(maxDepth, Integer.MAX_VALUE, null));
+    }
 
-	public Set<StructrRelationship> getRelatedRels(int maxDepth, String relTypes)
-	{
-		return(getRelatedRels(maxDepth, Integer.MAX_VALUE, relTypes));
-	}
+    public Set<StructrRelationship> getRelatedRels(int maxDepth, String relTypes) {
+        return (getRelatedRels(maxDepth, Integer.MAX_VALUE, relTypes));
+    }
 
-	public Set<StructrRelationship> getRelatedRels(int maxDepth, int maxNum)
-	{
-		return(getRelatedRels(maxDepth, maxNum, null));
-	}
+    public Set<StructrRelationship> getRelatedRels(int maxDepth, int maxNum) {
+        return (getRelatedRels(maxDepth, maxNum, null));
+    }
 
-	public Set<StructrRelationship> getRelatedRels(int maxDepth, int maxNum, String relTypes)
-	{
-		Set<AbstractNode> visitedNodes = new LinkedHashSet<AbstractNode>();
-		Set<AbstractNode> nodes = new LinkedHashSet<AbstractNode>();
-		Set<StructrRelationship> rels = new LinkedHashSet<StructrRelationship>();
+    public Set<StructrRelationship> getRelatedRels(int maxDepth, int maxNum, String relTypes) {
+        Set<AbstractNode> visitedNodes = new LinkedHashSet<AbstractNode>();
+        Set<AbstractNode> nodes = new LinkedHashSet<AbstractNode>();
+        Set<StructrRelationship> rels = new LinkedHashSet<StructrRelationship>();
 
-		collectRelatedNodes(nodes, rels, visitedNodes, this, 0, maxDepth, maxNum, splitRelationshipTypes(relTypes));
+        collectRelatedNodes(nodes, rels, visitedNodes, this, 0, maxDepth, maxNum, splitRelationshipTypes(relTypes));
 
-		return(rels);
-	}
+        return (rels);
+    }
 
-	private RelationshipType[] splitRelationshipTypes(String relTypes)
-	{
-		if(relTypes != null)
-		{
-			List<RelationshipType> relTypeList = new ArrayList<RelationshipType>(10);
-			for(String type : relTypes.split("[, ]+"))
-			{
-				relTypeList.add(DynamicRelationshipType.withName(type));
-			}
+    private RelationshipType[] splitRelationshipTypes(String relTypes) {
+        if (relTypes != null) {
+            List<RelationshipType> relTypeList = new ArrayList<RelationshipType>(10);
+            for (String type : relTypes.split("[, ]+")) {
+                relTypeList.add(DynamicRelationshipType.withName(type));
+            }
 
-			return(relTypeList.toArray(new RelationshipType[0]));
-		}
+            return (relTypeList.toArray(new RelationshipType[0]));
+        }
 
-		return(null);
-	}
+        return (null);
+    }
 
-	/**
-	 * Recursively add Html / JavaScript nodes to the springy graph
-	 *
-	 * @param buffer
-	 * @param currentNode
-	 * @param depth
-	 * @param maxDepth
-	 */
-	private void collectRelatedNodes(Set<AbstractNode> nodes, Set<StructrRelationship> rels, Set<AbstractNode> visitedNodes, AbstractNode currentNode, int depth, int maxDepth, int maxNum, RelationshipType... relTypes)
-	{
-		if(depth >= maxDepth)
-		{
-			return;
-		}
+    /**
+     * Recursively add Html / JavaScript nodes to the springy graph
+     *
+     * @param buffer
+     * @param currentNode
+     * @param depth
+     * @param maxDepth
+     */
+    private void collectRelatedNodes(Set<AbstractNode> nodes, Set<StructrRelationship> rels, Set<AbstractNode> visitedNodes, AbstractNode currentNode, int depth, int maxDepth, int maxNum, RelationshipType... relTypes) {
+        if (depth >= maxDepth) {
+            return;
+        }
 
-		if(nodes.size() < maxNum)
-		{
-			nodes.add(currentNode);
+        if (nodes.size() < maxNum) {
+            nodes.add(currentNode);
 
-			// collect incoming relationships
-			List<StructrRelationship> inRels = new LinkedList<StructrRelationship>();
-			if(relTypes != null && relTypes.length > 0)
-			{
-				for(RelationshipType type : relTypes)
-				{
-					inRels.addAll(currentNode.getRelationships(type, Direction.INCOMING));
-				}
+            // collect incoming relationships
+            List<StructrRelationship> inRels = new LinkedList<StructrRelationship>();
+            if (relTypes != null && relTypes.length > 0) {
+                for (RelationshipType type : relTypes) {
+                    inRels.addAll(currentNode.getRelationships(type, Direction.INCOMING));
+                }
 
-			} else
-			{
-				inRels = currentNode.getIncomingRelationships();
-			}
+            } else {
+                inRels = currentNode.getIncomingRelationships();
+            }
 
-			for(StructrRelationship rel : inRels)
-			{
-				AbstractNode startNode = rel.getStartNode();
-				if(startNode != null)
-				{
-					nodes.add(startNode);
-					rels.add(rel);
+            for (StructrRelationship rel : inRels) {
+                AbstractNode startNode = rel.getStartNode();
+                if (startNode != null) {
+                    nodes.add(startNode);
+                    rels.add(rel);
 
-					collectRelatedNodes(nodes, rels, visitedNodes, startNode, depth+1, maxDepth, maxNum, relTypes);
-				}
-			}
+                    collectRelatedNodes(nodes, rels, visitedNodes, startNode, depth + 1, maxDepth, maxNum, relTypes);
+                }
+            }
 
-			// collect outgoing relationships
-			List<StructrRelationship> outRels = new LinkedList<StructrRelationship>();
-			if(relTypes != null && relTypes.length > 0)
-			{
-				for(RelationshipType type : relTypes)
-				{
-					outRels.addAll(currentNode.getRelationships(type, Direction.OUTGOING));
-				}
+            // collect outgoing relationships
+            List<StructrRelationship> outRels = new LinkedList<StructrRelationship>();
+            if (relTypes != null && relTypes.length > 0) {
+                for (RelationshipType type : relTypes) {
+                    outRels.addAll(currentNode.getRelationships(type, Direction.OUTGOING));
+                }
 
-			} else
-			{
-				outRels = currentNode.getOutgoingRelationships();
-			}
+            } else {
+                outRels = currentNode.getOutgoingRelationships();
+            }
 
-			for(StructrRelationship rel : outRels)
-			{
-				AbstractNode endNode = rel.getEndNode();
-				if(endNode != null)
-				{
-					nodes.add(endNode);
-					rels.add(rel);
+            for (StructrRelationship rel : outRels) {
+                AbstractNode endNode = rel.getEndNode();
+                if (endNode != null) {
+                    nodes.add(endNode);
+                    rels.add(rel);
 
-					collectRelatedNodes(nodes, rels, visitedNodes, endNode, depth+1, maxDepth, maxNum, relTypes);
-				}
-			}
-			
-			// visitedNodes.add(currentNode);
-		}
-	}
+                    collectRelatedNodes(nodes, rels, visitedNodes, endNode, depth + 1, maxDepth, maxNum, relTypes);
+                }
+            }
+
+            // visitedNodes.add(currentNode);
+        }
+    }
 
     // ----- protected methods -----
     protected static String toGetter(String name) {
