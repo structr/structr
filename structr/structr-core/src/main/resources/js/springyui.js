@@ -39,8 +39,8 @@ Copyright (c) 2010 Dennis Hotson
       return;
     }
 
-    var stiffness = params.stiffness || 200.0;
-    var repulsion = params.repulsion || 200.0;
+    var stiffness = params.stiffness || 50.0;
+    var repulsion = params.repulsion || 50.0;
     var damping = params.damping || 0.5;
 
     var canvas = this[0];
