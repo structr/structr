@@ -41,173 +41,213 @@ import org.structr.core.node.FindNodeCommand;
  *
  * @author axel
  */
-public class PushNodes extends CloudServiceCommand {
+public class PushNodes extends CloudServiceCommand
+{
+	private static final Logger logger = Logger.getLogger(PushNodes.class.getName());
 
-    private static final Logger logger = Logger.getLogger(PushNodes.class.getName());
+	@Override
+	public Object execute(Object... parameters)
+	{
 
-    @Override
-    public Object execute(Object... parameters) {
+		User user = null;
+		AbstractNode node = null;
+		String remoteHost = null;
+		int remoteTcpPort = 0;
+		int remoteUdpPort = 0;
+		boolean recursive = false;
 
-        User user = null;
-        AbstractNode node = null;
-        String remoteHost = null;
-        int remoteTcpPort = 0;
-        int remoteUdpPort = 0;
-        boolean recursive = false;
+		Command findNode = Services.command(FindNodeCommand.class);
 
-        Command findNode = Services.command(FindNodeCommand.class);
+		switch(parameters.length)
+		{
+			case 0:
+				throw new UnsupportedArgumentError("No arguments supplied");
 
-        switch (parameters.length) {
-            case 0:
-                throw new UnsupportedArgumentError("No arguments supplied");
+			case 6:
 
-            case 6:
+				if(parameters[0] instanceof User)
+				{
+					user = (User) parameters[0];
+				}
 
-                if (parameters[0] instanceof User) {
-                    user = (User) parameters[0];
-                }
+				if(parameters[1] instanceof Long)
+				{
+					long id = ((Long) parameters[1]).longValue();
+					node = (AbstractNode) findNode.execute(null, id);
 
-                if (parameters[1] instanceof Long) {
-                    long id = ((Long) parameters[1]).longValue();
-                    node = (AbstractNode) findNode.execute(null, id);
+				} else if(parameters[1] instanceof AbstractNode)
+				{
+					node = ((AbstractNode) parameters[1]);
 
-                } else if (parameters[1] instanceof AbstractNode) {
-                    node = ((AbstractNode) parameters[1]);
+				} else if(parameters[1] instanceof String)
+				{
+					long id = Long.parseLong((String) parameters[1]);
+					node = (AbstractNode) findNode.execute(null, id);
+				}
 
-                } else if (parameters[1] instanceof String) {
-                    long id = Long.parseLong((String) parameters[1]);
-                    node = (AbstractNode) findNode.execute(null, id);
-                }
+				if(parameters[2] instanceof String)
+				{
+					remoteHost = (String) parameters[2];
+				}
 
-                if (parameters[2] instanceof String) {
-                    remoteHost = (String) parameters[2];
-                }
+				if(parameters[3] instanceof Integer)
+				{
+					remoteTcpPort = (Integer) parameters[3];
+				}
 
-                if (parameters[3] instanceof Integer) {
-                    remoteTcpPort = (Integer) parameters[3];
-                }
+				if(parameters[4] instanceof Integer)
+				{
+					remoteUdpPort = (Integer) parameters[4];
+				}
 
-                if (parameters[4] instanceof Integer) {
-                    remoteUdpPort = (Integer) parameters[4];
-                }
+				if(parameters[5] instanceof Boolean)
+				{
+					recursive = (Boolean) parameters[5];
+				}
 
-                if (parameters[5] instanceof Boolean) {
-                    recursive = (Boolean) parameters[5];
-                }
+				pushNodes(user, node, remoteHost, remoteTcpPort, remoteUdpPort, recursive);
 
-                pushNodes(user, node, remoteHost, remoteTcpPort, remoteUdpPort, recursive);
+			default:
 
-            default:
+		}
 
-        }
+		return null;
 
-        return null;
+	}
 
-    }
+	private void pushNodes(final User user, final AbstractNode node, final String remoteHost, final int remoteTcpPort, final int remoteUdpPort, final boolean recursive)
+	{
 
-    private void pushNodes(final User user, final AbstractNode node, final String remoteHost, final int remoteTcpPort, final int remoteUdpPort, final boolean recursive) {
+		List<DataContainer> transportSet = new LinkedList<DataContainer>();
+		Set<RelationshipDataContainer> transportRelationships = new HashSet<RelationshipDataContainer>();
 
-        List<DataContainer> transportSet = new LinkedList<DataContainer>();
-        Set<RelationshipDataContainer> transportRelationships = new HashSet<RelationshipDataContainer>();
+		int chunkSize = 65536;
+		int maxSize = 4096;
 
-        int maxSize = 4096;
+		if(recursive)
+		{
+			List<AbstractNode> nodes = node.getAllChildren();
+			for(AbstractNode n : nodes)
+			{
+				if(n instanceof File)
+				{
+					File file = (File)n;
+					FileNodeDataContainer container = new FileNodeDataContainer(file);
+					transportSet.add(container);
 
-        if (recursive) {
+					maxSize = Math.max(maxSize, container.getEstimatedSize());
 
-            List<AbstractNode> nodes = node.getAllChildren();
+					for(FileChunkContainer chunk : FileNodeDataContainer.getChunks(file, chunkSize))
+					{
+						maxSize = Math.max(maxSize, chunk.getEstimatedSize());
+						transportSet.add(chunk);
+					}
 
-            //Set<StructrRelationship> relationships = new HashSet<StructrRelationship>();
+				} else
+				{
+					DataContainer container = new NodeDataContainer(n);
+					transportSet.add(container);
 
-            for (AbstractNode n : nodes) {
-
-                DataContainer container;
-                if (n instanceof File) {
-                    container = new FileNodeDataContainer(n);
-                } else {
-                    container = new NodeDataContainer(n);
-                }
-                
-                maxSize = Math.max(maxSize, container.getEstimatedSize());
-
-                transportSet.add(container);
-
-                // Collect all relationships whose start and end nodes are contained in the above list
-                List<StructrRelationship> rels = n.getOutgoingRelationships();
-
-                for (StructrRelationship r : rels) {
-
-                    AbstractNode startNode = r.getStartNode();
-                    AbstractNode endNode = r.getEndNode();
-
-                    if (nodes.contains(startNode) && nodes.contains(endNode)) {
-                        transportRelationships.add(new RelationshipDataContainer(r));
-                    }
-                }
-            }
-
-            // After all nodes are through, add relationships
-            transportSet.addAll(transportRelationships);
-
-        } else {
-
-            // If not recursive, add only the node itself
-            transportSet.add(new NodeDataContainer(node));
-
-        }
+					maxSize = Math.max(maxSize, container.getEstimatedSize());
+				}
 
 
+				// Collect all relationships whose start and end nodes are contained in the above list
+				List<StructrRelationship> rels = n.getOutgoingRelationships();
+				for(StructrRelationship r : rels)
+				{
 
-        // Be quiet
-        Log.set(Log.LEVEL_DEBUG);
+					AbstractNode startNode = r.getStartNode();
+					AbstractNode endNode = r.getEndNode();
 
-        Client client = new Client(maxSize*8, maxSize*2);
+					if(nodes.contains(startNode) && nodes.contains(endNode))
+					{
+						transportRelationships.add(new RelationshipDataContainer(r));
+					}
+				}
+			}
 
-        client.start();
+			// After all nodes are through, add relationships
+			transportSet.addAll(transportRelationships);
 
-        logger.log(Level.INFO, "KryoNet client started, buffer sizes {0}, {1}", new Object[]{maxSize*8, maxSize*2});
+		} else
+		{
 
-        Kryo kryo = client.getKryo();
+			if(node instanceof File)
+			{
+				File file = (File)node;
+				FileNodeDataContainer container = new FileNodeDataContainer(file);
+				transportSet.add(container);
 
-        CloudService.registerClasses(kryo);
+				maxSize = Math.max(maxSize, container.getEstimatedSize());
+
+				for(FileChunkContainer chunk : FileNodeDataContainer.getChunks(file, chunkSize))
+				{
+					maxSize = Math.max(maxSize, chunk.getEstimatedSize());
+					transportSet.add(chunk);
+				}
+
+			} else
+			{
+				// If not recursive, add only the node itself
+				transportSet.add(new NodeDataContainer(node));
+			}
+
+		}
+
+		// Be quiet
+		Log.set(Log.LEVEL_DEBUG);
+
+		Client client = new Client(maxSize * 8, maxSize * 2);
+		client.start();
+
+		logger.log(Level.INFO, "KryoNet client started, buffer sizes {0}, {1}", new Object[]
+			{
+				maxSize * 8, maxSize * 2
+			});
+
+		Kryo kryo = client.getKryo();
+		CloudService.registerClasses(kryo);
+
+		try
+		{
+
+			client.connect(5000, remoteHost, remoteTcpPort, remoteUdpPort);
+
+			logger.log(Level.INFO, "Connected to structr instance on {0} (tcp port: {1}, udp port: {2})", new Object[]
+				{
+					remoteHost, remoteTcpPort, remoteUdpPort
+				});
+
+			// mark start of transaction
+			client.sendTCP(CloudService.BEGIN_TRANSACTION);
+			for(DataContainer container : transportSet)
+			{
+
+				client.sendTCP(container);
+				
+				try
+				{
+					// prevent buffer overflow
+					Thread.sleep(client.getReturnTripTime());
+					
+				} catch(Throwable t) {}
+
+			}
+
+			// mark end of transaction
+			client.sendTCP(CloudService.END_TRANSACTION);
+
+			logger.log(Level.INFO, "Transport set with {0} nodes/relationships was sent", transportSet.size()); // TODO: Reduce log level, when stable
 
 
-        try {
+			// TODO: Has the client really to be closed after each transport?
+			//client.close();
 
-            client.connect(5000, remoteHost, remoteTcpPort, remoteUdpPort);
-            logger.log(Level.INFO, "Connected to structr instance on {0} (tcp port: {1}, udp port: {2})", new Object[]{remoteHost, remoteTcpPort, remoteUdpPort});
+		} catch(IOException ex)
+		{
+			logger.log(Level.SEVERE, "Error while sending nodes to remote instance", ex);
+		}
 
-            int size = transportSet.size();
-
-            if (size < 16) {
-
-                // For small transfers, send all nodes and relationships of the transport set to remote server in one transaction
-                
-                client.sendTCP(transportSet);
-
-            } else {
-
-                // More than 16 nodes => send one by one
-
-                client.sendTCP(CloudService.BEGIN_TRANSACTION); // mark start of transaction
-
-                for (DataContainer container : transportSet) {
-
-                    client.sendTCP(container);
-
-                }
-                client.sendTCP(CloudService.END_TRANSACTION); // mark end of transaction
-
-            }
-
-            logger.log(Level.INFO, "Transport set with {0} nodes/relationships was sent", transportSet.size()); // TODO: Reduce log level, when stable
-
-
-            // TODO: Has the client really to be closed after each transport?
-            //client.close();
-
-        } catch (IOException ex) {
-            logger.log(Level.SEVERE, "Error while sending nodes to remote instance", ex);
-        }
-
-    }
+	}
 }

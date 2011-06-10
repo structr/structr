@@ -20,10 +20,11 @@ package org.structr.core.cloud;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.io.IOUtils;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.File;
 
 /**
@@ -31,40 +32,107 @@ import org.structr.core.entity.File;
  * 
  * @author axel
  */
-public class FileNodeDataContainer extends NodeDataContainer {
+public class FileNodeDataContainer extends NodeDataContainer
+{
+	private static final Logger logger = Logger.getLogger(FileNodeDataContainer.class.getName());
 
-    private static final Logger logger = Logger.getLogger(FileNodeDataContainer.class.getName());
-    protected byte[] binaryContent;
+	protected Map<Integer, FileChunkContainer> chunks = null;
+	protected int fileSize = 0;
 
-    public FileNodeDataContainer() {
-    }
+	public FileNodeDataContainer()
+	{
+	}
 
-    public FileNodeDataContainer(final AbstractNode node) {
+	public FileNodeDataContainer(final File fileNode)
+	{
+		super(fileNode);
 
-        super(node);
+		this.fileSize = (int)fileNode.getSize();
 
-        if (node instanceof File) {
+	}
 
-            File fileNode = (File) node;
+	public byte[] getBinaryContent()
+	{
+		ByteBuffer ret = ByteBuffer.allocate(fileSize);
+		if(chunks != null)
+		{
+			for(FileChunkContainer container : chunks.values())
+			{
+				ret.put(container.getBinaryContent());
+			}
+		}
 
-            estimatedSize += fileNode.getSize();
+		return(ret.array());
+	}
 
-            try {
+	public void addChunk(FileChunkContainer chunk)
+	{
+		if(chunks == null)
+		{
+			chunks = new TreeMap<Integer, FileChunkContainer>();
+		}
 
-                InputStream in = fileNode.getInputStream();
+		checkFileSize(chunk.getFileSize());
+		this.chunks.put(chunk.getSequenceNumber(), chunk);
+	}
 
-                if (in != null) {
-                    binaryContent = IOUtils.toByteArray(in);
-                }
+	public void setFileSize(int fileSize)
+	{
+		this.fileSize = fileSize;
+	}
 
-            } catch (IOException ex) {
-                logger.log(Level.SEVERE, "Could not read file", ex);
-            }
+	// ----- public static methods -----
+	public static Iterable<FileChunkContainer> getChunks(File fileNode, int chunkSize)
+	{
+		Map<Integer, FileChunkContainer> chunks = new TreeMap<Integer, FileChunkContainer>();
+		int fileSize = (int)fileNode.getSize();
 
-        }
-    }
+		try
+		{
 
-    public byte[] getBinaryContent() {
-        return binaryContent;
-    }
+			InputStream is = fileNode.getInputStream();
+			if(is != null)
+			{
+				int sequenceNumber = 0;
+				int readSize = 0;
+
+				for(int available = is.available(); available > 0; available = is.available())
+				{
+					readSize = available < chunkSize ? available : chunkSize;
+
+					FileChunkContainer chunk = new FileChunkContainer(fileNode.getId(), fileSize, sequenceNumber, readSize);
+					is.read(chunk.getBuffer(), 0, readSize);
+
+					chunks.put(sequenceNumber, chunk);
+
+					sequenceNumber++;
+				}
+
+				is.close();
+			}
+
+		} catch(IOException ex)
+		{
+			logger.log(Level.SEVERE, "Could not read file", ex);
+		}
+
+		return(chunks.values());
+	}
+
+	// ----- private methods -----
+	private void checkFileSize(int fileSize) throws IllegalStateException
+	{
+		if(this.fileSize == 0)
+		{
+			this.fileSize = fileSize;
+
+		} else
+		{
+			if(fileSize != this.fileSize)
+			{
+				logger.log(Level.WARNING, "File size mismatch while adding chunk! Got {0}, expected {1}", new Object[] { fileSize, this.fileSize } );
+			}
+		}
+
+	}
 }

@@ -25,6 +25,7 @@ import com.esotericsoftware.kryonet.Server;
 import com.esotericsoftware.minlog.Log;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -51,262 +52,338 @@ import org.structr.core.node.TransactionCommand;
  *
  * @author axel
  */
-public class CloudService extends RunnableNodeService {
+public class CloudService extends RunnableNodeService
+{
+	private static final Logger logger = Logger.getLogger(CloudService.class.getName());
+	public static final Integer BEGIN_TRANSACTION = 0;
+	public static final Integer END_TRANSACTION = 1;
+	/** Containing addresses of all available structr instances */
+	private static final Set<InstanceAddress> instanceAddresses = new LinkedHashSet<InstanceAddress>();
+	/** Local KryoNet server remote clients can connect to */
+	private Server server = null;
+	private final static int DefaultTcpPort = 54555;
+	private final static int DefaultUdpPort = 57555;
+	private int tcpPort = DefaultTcpPort;
+	private int udpPort = DefaultUdpPort;
+	// Map source containerId to target containerId
+	private final Map<Long, Long> idMap = new HashMap<Long, Long>();
+	private boolean linkNode = false;
+	private final Command findNode = Services.command(FindNodeCommand.class);
+	private final Command createRel = Services.command(CreateRelationshipCommand.class);
+	private final Command nodeFactory = Services.command(NodeFactoryCommand.class);
+	private final AbstractNode rootNode = (AbstractNode) Services.command(FindNodeCommand.class).execute(new SuperUser(), 0L);
+
+	public CloudService()
+	{
+		super("CloudService");
+
+		//this.setPriority(Thread.MIN_PRIORITY);
+	}
+
+	@Override
+	public void injectArguments(Command command)
+	{
+		if(command != null)
+		{
+			command.setArgument("server", server);
+			command.setArgument("instanceAddresses", instanceAddresses);
+		}
+	}
+
+	@Override
+	public void initialize(Map<String, Object> context)
+	{
+
+		tcpPort = Integer.parseInt(Services.getTcpPort());
+		udpPort = Integer.parseInt(Services.getUdpPort());
+
+	}
+
+	@Override
+	public void shutdown()
+	{
+		if(isRunning())
+		{
+			server.stop();
+			server.close();
+			server = null;
+		}
+	}
+
+	@Override
+	public boolean isRunning()
+	{
+		return (server != null);
+	}
+
+	@Override
+	public void startService()
+	{
+
+		// Be quiet
+		Log.set(Log.LEVEL_INFO);
+
+		server = new Server(4194304, 1048576);
+
+		server.start();
+
+		Kryo kryo = server.getKryo();
+
+		registerClasses(kryo);
+
+		logger.log(Level.INFO, "KryoNet server started");
+
+		try
+		{
+			server.bind(tcpPort, udpPort);
+
+			server.addListener(new Listener()
+			{
+				Map<Long, FileNodeDataContainer> fileMap = new HashMap<Long, FileNodeDataContainer>();
+
+				@Override
+				public void received(Connection connection, Object object)
+				{
+
+					logger.log(Level.FINE, "Received object {0}", object); // TODO: reduce log level
+
+					if(object instanceof Integer)
+					{
+
+						// Control signal received
+						Integer controlSignal = (Integer) object;
+
+						if(BEGIN_TRANSACTION.equals(controlSignal))
+						{
+							linkNode = true;
+						}
 
-    private static final Logger logger = Logger.getLogger(CloudService.class.getName());
-    public static final Integer BEGIN_TRANSACTION = 0;
-    public static final Integer END_TRANSACTION = 1;
-    /** Containing addresses of all available structr instances */
-    private static final Set<InstanceAddress> instanceAddresses = new LinkedHashSet<InstanceAddress>();
-    /** Local KryoNet server remote clients can connect to */
-    private Server server = null;
-    private final static int DefaultTcpPort = 54555;
-    private final static int DefaultUdpPort = 57555;
-    private int tcpPort = DefaultTcpPort;
-    private int udpPort = DefaultUdpPort;
-    // Map source id to target id
-    private final Map<Long, Long> idMap = new HashMap<Long, Long>();
-    private boolean linkNode = false;
-    private final Command findNode = Services.command(FindNodeCommand.class);
-    private final Command createRel = Services.command(CreateRelationshipCommand.class);
-    private final Command nodeFactory = Services.command(NodeFactoryCommand.class);
-    private final AbstractNode rootNode = (AbstractNode) Services.command(FindNodeCommand.class).execute(new SuperUser(), 0L);
+						if(END_TRANSACTION.equals(controlSignal))
+						{
+							idMap.clear();
 
-    public CloudService() {
-        super("CloudService");
+							Command transactionCommand = Services.command(TransactionCommand.class);
+							transactionCommand.execute(new StructrTransaction()
+							{
+								@Override
+								public Object execute() throws Throwable
+								{
+									// write file nodes
+									for(Iterator<FileNodeDataContainer> it = fileMap.values().iterator(); it.hasNext();)
+									{
+										storeNode(it.next(), linkNode);
+										it.remove();
+									}
 
-        //this.setPriority(Thread.MIN_PRIORITY);
-    }
+									return null;
+								}
+							});
+						}
 
-    @Override
-    public void injectArguments(Command command) {
-        if (command != null) {
-            command.setArgument("server", server);
-            command.setArgument("instanceAddresses", instanceAddresses);
-        }
-    }
+					} else if(object instanceof FileNodeDataContainer)
+					{
+						final FileNodeDataContainer container = (FileNodeDataContainer)object;
+						fileMap.put(container.sourceNodeId, container);
 
-    @Override
-    public void initialize(Map<String, Object> context) {
+					} else if(object instanceof FileChunkContainer)
+					{
+						final FileChunkContainer chunk = (FileChunkContainer)object;
+						FileNodeDataContainer container = fileMap.get(chunk.getContainerId());
 
-        tcpPort = Integer.parseInt(Services.getTcpPort());
-        udpPort = Integer.parseInt(Services.getUdpPort());
+						if(container == null)
+						{
+							logger.log(Level.WARNING, "Received file chunk for ID {0} without file, this should not happen!", chunk.getContainerId());
+						} else
+						{
+							container.addChunk(chunk);
+						}
 
-    }
+						connection.sendTCP("File chunk received");
 
-    @Override
-    public void shutdown() {
-        if (isRunning()) {
-            server.stop();
-            server.close();
-            server = null;
-        }
-    }
+					} else if(object instanceof NodeDataContainer)
+					{
 
-    @Override
-    public boolean isRunning() {
-        return (server != null);
-    }
+						final NodeDataContainer receivedNodeData = (NodeDataContainer) object;
 
-    @Override
-    public void startService() {
+						Command transactionCommand = Services.command(TransactionCommand.class);
+						transactionCommand.execute(new StructrTransaction()
+						{
+							@Override
+							public Object execute() throws Throwable
+							{
 
-        // Be quiet
-        Log.set(Log.LEVEL_DEBUG);
+								storeNode(receivedNodeData, linkNode);
 
-        server = new Server(4194304, 1048576);
+								return null;
+							}
+						});
 
-        server.start();
+						connection.sendTCP("Node data received");
 
-        Kryo kryo = server.getKryo();
+					} else if(object instanceof RelationshipDataContainer)
+					{
 
-        registerClasses(kryo);
+						final RelationshipDataContainer receivedRelationshipData = (RelationshipDataContainer) object;
 
-        logger.log(Level.INFO, "KryoNet server started");
+						Command transactionCommand = Services.command(TransactionCommand.class);
+						transactionCommand.execute(new StructrTransaction()
+						{
+							@Override
+							public Object execute() throws Throwable
+							{
 
-        try {
+								storeRelationship(receivedRelationshipData);
 
-            server.bind(tcpPort, udpPort);
+								return null;
+							}
+						});
 
-            server.addListener(new Listener() {
+						connection.sendTCP("Relationship data received");
 
-                @Override
-                public void received(Connection connection, Object object) {
+					} else if(object instanceof List)
+					{
 
-                    logger.log(Level.FINE, "Received object {0}", object); // TODO: reduce log level
+						// hopefully won't happen with the new implementation
 
-                    if (object instanceof Integer) {
+						final List<DataContainer> dataContainers = (List<DataContainer>) object;
 
-                        // Control signal received
-                        Integer controlSignal = (Integer) object;
+						Command transactionCommand = Services.command(TransactionCommand.class);
+						transactionCommand.execute(new StructrTransaction()
+						{
+							@Override
+							public Object execute() throws Throwable
+							{
 
-                        if (BEGIN_TRANSACTION.equals(controlSignal)) {
-                            linkNode = true;
-                        }
 
-                        if (END_TRANSACTION.equals(controlSignal)) {
-                            idMap.clear();
-                        }
+								boolean linkFirstNode = true;
 
-                    } else if (object instanceof NodeDataContainer) {
+								for(DataContainer receivedData : dataContainers)
+								{
 
-                        final NodeDataContainer receivedNodeData = (NodeDataContainer) object;
+									if(receivedData instanceof NodeDataContainer)
+									{
 
-                        Command transactionCommand = Services.command(TransactionCommand.class);
-                        transactionCommand.execute(new StructrTransaction() {
+										storeNode(receivedData, linkFirstNode);
+										linkFirstNode = false;
 
-                            @Override
-                            public Object execute() throws Throwable {
+									} else if(receivedData instanceof RelationshipDataContainer)
+									{
 
-                                storeNode(receivedNodeData, linkNode);
+										storeRelationship(receivedData);
+									}
 
-                                return null;
-                            }
-                        });
 
-                        connection.sendTCP("Node data received");
+								}
 
-                    } else if (object instanceof RelationshipDataContainer) {
+								return null;
+							}
+						});
 
-                        final RelationshipDataContainer receivedRelationshipData = (RelationshipDataContainer) object;
+						connection.sendTCP("List data received");
 
-                        Command transactionCommand = Services.command(TransactionCommand.class);
-                        transactionCommand.execute(new StructrTransaction() {
+					}
 
-                            @Override
-                            public Object execute() throws Throwable {
+				}
+			});
 
-                                storeRelationship(receivedRelationshipData);
+			logger.log(Level.INFO, "KryoNet server listening on TCP port {0} and UDP port {1}", new Object[]
+				{
+					tcpPort, udpPort
+				});
 
-                                return null;
-                            }
-                        });
+		} catch(IOException ex)
+		{
+			logger.log(Level.SEVERE, "KryoNet server could not bind to TCP port " + tcpPort + " or UDP port " + udpPort, ex);
+		}
+	}
 
-                        connection.sendTCP("Relationship data received");
+	@Override
+	public void stopService()
+	{
+		shutdown();
+	}
 
-                    } else if (object instanceof List) {
+	private AbstractNode storeNode(final DataContainer receivedData, final boolean linkToRootNode)
+	{
 
-                        final List<DataContainer> dataContainers = (List<DataContainer>) object;
+		NodeDataContainer receivedNodeData = (NodeDataContainer) receivedData;
 
-                        Command transactionCommand = Services.command(TransactionCommand.class);
-                        transactionCommand.execute(new StructrTransaction() {
+		// Create (dirty) node
+		AbstractNode newNode = (AbstractNode) nodeFactory.execute(receivedNodeData);
 
-                            @Override
-                            public Object execute() throws Throwable {
+		// Connect first node with root node
+		if(linkToRootNode)
+		{
+			// TODO: Implement a smart strategy how and where to link nodes in target instance
+			createRel.execute(rootNode, newNode, RelType.HAS_CHILD);
 
+			// Reset link node flag, has to be explicetly set to true!
+			linkNode = false;
+			logger.log(Level.INFO, "First node {0} linked to root node", newNode.getIdString()); // TODO: reduce log level
+		}
 
-                                boolean linkFirstNode = true;
+		idMap.put(receivedNodeData.getSourceNodeId(), newNode.getId());
 
-                                for (DataContainer receivedData : dataContainers) {
+		logger.log(Level.INFO, "New node {0} created from remote data", newNode.getIdString()); // TODO: reduce log level
 
-                                    if (receivedData instanceof NodeDataContainer) {
+		return newNode;
 
-                                        storeNode(receivedData, linkFirstNode);
-                                        linkFirstNode = false;
+	}
 
-                                    } else if (receivedData instanceof RelationshipDataContainer) {
+	private StructrRelationship storeRelationship(final DataContainer receivedData)
+	{
 
-                                        storeRelationship(receivedData);
-                                    }
+		RelationshipDataContainer receivedRelationshipData = (RelationshipDataContainer) receivedData;
 
+		StructrRelationship newRelationship = null;
 
-                                }
+		long sourceStartNodeId = receivedRelationshipData.getSourceStartNodeId();
+		long sourceEndNodeId = receivedRelationshipData.getSourceEndNodeId();
 
-                                return null;
-                            }
-                        });
+		long targetStartNodeId = idMap.get(sourceStartNodeId);
+		long targetEndNodeId = idMap.get(sourceEndNodeId);
 
-                        connection.sendTCP("List data received");
+		// Get new start and end node
+		AbstractNode targetStartNode = (AbstractNode) findNode.execute(new SuperUser(), targetStartNodeId);
+		AbstractNode targetEndNode = (AbstractNode) findNode.execute(new SuperUser(), targetEndNodeId);
+		String name = receivedRelationshipData.getName();
 
-                    }
+		if(targetStartNode != null && targetEndNode != null && StringUtils.isNotEmpty(name))
+		{
 
-                }
-            });
+			newRelationship = (StructrRelationship) createRel.execute(targetStartNode, targetEndNode, name);
+			logger.log(Level.INFO, "New {3} relationship {0} created from remote data between {1} and {2}", new Object[]
+				{
+					newRelationship.getId(), targetStartNodeId, targetEndNodeId, name
+				}); // TODO: reduce log level
 
-            logger.log(Level.INFO, "KryoNet server listening on TCP port {0} and UDP port {1}", new Object[]{tcpPort, udpPort});
+		}
 
-        } catch (IOException ex) {
-            logger.log(Level.SEVERE, "KryoNet server could not bind to TCP port " + tcpPort + " or UDP port " + udpPort, ex);
-        }
-    }
+		return newRelationship;
+	}
 
-    @Override
-    public void stopService() {
-        shutdown();
-    }
+	public static void registerClasses(Kryo kryo)
+	{
 
-    private AbstractNode storeNode(final DataContainer receivedData, final boolean linkToRootNode) {
+		kryo.register(HashMap.class);
+		kryo.register(LinkedList.class);
 
-        NodeDataContainer receivedNodeData = (NodeDataContainer) receivedData;
+		// structr classes
+		kryo.register(NodeDataContainer.class);
+		kryo.register(FileChunkContainer.class);
+		kryo.register(FileNodeDataContainer.class);
+		kryo.register(RelationshipDataContainer.class);
 
-        // Create (dirty) node
-        AbstractNode newNode = (AbstractNode) nodeFactory.execute(receivedNodeData);
+		// Neo4j array types
+		kryo.register(String[].class);
+		kryo.register(char[].class);
+		kryo.register(byte[].class);
+		kryo.register(boolean[].class);
+		kryo.register(int[].class);
+		kryo.register(long[].class);
+		kryo.register(short[].class);
+		kryo.register(float[].class);
+		kryo.register(double[].class);
 
-        // Connect first node with root node
-        if (linkToRootNode) {
-            // TODO: Implement a smart strategy how and where to link nodes in target instance
-            createRel.execute(rootNode, newNode, RelType.HAS_CHILD);
-
-            // Reset link node flag, has to be explicetly set to true!
-            linkNode = false;
-            logger.log(Level.INFO, "First node {0} linked to root node", newNode.getIdString()); // TODO: reduce log level
-        }
-
-        idMap.put(receivedNodeData.getSourceNodeId(), newNode.getId());
-
-        logger.log(Level.INFO, "New node {0} created from remote data", newNode.getIdString()); // TODO: reduce log level
-
-        return newNode;
-
-    }
-
-    private StructrRelationship storeRelationship(final DataContainer receivedData) {
-
-        RelationshipDataContainer receivedRelationshipData = (RelationshipDataContainer) receivedData;
-
-        StructrRelationship newRelationship = null;
-
-        long sourceStartNodeId = receivedRelationshipData.getSourceStartNodeId();
-        long sourceEndNodeId = receivedRelationshipData.getSourceEndNodeId();
-
-        long targetStartNodeId = idMap.get(sourceStartNodeId);
-        long targetEndNodeId = idMap.get(sourceEndNodeId);
-
-        // Get new start and end node
-        AbstractNode targetStartNode = (AbstractNode) findNode.execute(new SuperUser(), targetStartNodeId);
-        AbstractNode targetEndNode = (AbstractNode) findNode.execute(new SuperUser(), targetEndNodeId);
-        String name = receivedRelationshipData.getName();
-
-        if (targetStartNode != null && targetEndNode != null && StringUtils.isNotEmpty(name)) {
-
-            newRelationship = (StructrRelationship) createRel.execute(targetStartNode, targetEndNode, name);
-            logger.log(Level.INFO, "New {3} relationship {0} created from remote data between {1} and {2}", new Object[]{newRelationship.getId(), targetStartNodeId, targetEndNodeId, name}); // TODO: reduce log level
-
-        }
-
-        return newRelationship;
-    }
-
-    public static void registerClasses(Kryo kryo) {
-
-        kryo.register(HashMap.class);
-        kryo.register(LinkedList.class);
-
-        // structr classes
-        kryo.register(NodeDataContainer.class);
-        kryo.register(FileNodeDataContainer.class);
-        kryo.register(RelationshipDataContainer.class);
-
-        // Neo4j array types
-        kryo.register(String[].class);
-        kryo.register(char[].class);
-        kryo.register(byte[].class);
-        kryo.register(boolean[].class);
-        kryo.register(int[].class);
-        kryo.register(long[].class);
-        kryo.register(short[].class);
-        kryo.register(float[].class);
-        kryo.register(double[].class);
-
-    }
+	}
 }
