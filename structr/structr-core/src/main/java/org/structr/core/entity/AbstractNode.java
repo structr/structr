@@ -39,6 +39,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -90,6 +91,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
     private List<StructrRelationship> incomingRelationships = null;
     private List<StructrRelationship> outgoingRelationships = null;
     private List<StructrRelationship> allRelationships = null;
+
+    private Map<Integer, Set<StructrRelationship>> relatedRelsMappedToDepth = null;
+    private Map<Integer, Set<AbstractNode>> relatedNodesMappedToDepth = null;
 
     // ----- abstract methods ----
     public abstract void renderView(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId);
@@ -210,7 +214,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 
     @Override
     public boolean equals(final Object o) {
-        if (o == null) {
+	    
+/*
+	if (o == null) {
             return false;
         }
         if (!(o instanceof AbstractNode)) {
@@ -224,6 +230,19 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
             return false;
         }
         return (this.getId() == (node.getId()));
+*/
+	    return(new Integer(this.hashCode()).equals(new Integer(o.hashCode())));
+    }
+
+    @Override
+    public int hashCode()
+    {
+	if(this.dbNode == null)
+	{
+		return(super.hashCode());
+	}
+
+	return(new Long(dbNode.getId()).hashCode());
     }
 
     @Override
@@ -2444,6 +2463,111 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 
     }
 
+	public Set<AbstractNode> getRelatedNodes(int maxDepth)
+	{
+		if(!getRelatedNodeMap().containsKey(maxDepth))
+		{
+			Set<AbstractNode> visitedNodes = new LinkedHashSet<AbstractNode>();
+			collectRelatedNodes(visitedNodes, this, 0, maxDepth);
+		}
+
+		return(getRelatedNodeMap().get(maxDepth));
+	}
+
+	public Set<StructrRelationship> getRelatedRels(int maxDepth)
+	{
+		if(!getRelatedRelMap().containsKey(maxDepth))
+		{
+			Set<AbstractNode> visitedNodes = new LinkedHashSet<AbstractNode>();
+			collectRelatedNodes(visitedNodes, this, 0, maxDepth);
+		}
+
+		return(getRelatedRelMap().get(maxDepth));
+	}
+
+	/**
+	 * Recursively add Html / JavaScript nodes to the springy graph
+	 *
+	 * @param buffer
+	 * @param currentNode
+	 * @param depth
+	 * @param maxDepth
+	 */
+	private void collectRelatedNodes(Set<AbstractNode> visitedNodes, AbstractNode currentNode, int depth, int maxDepth)
+	{
+		if(depth >= maxDepth)
+		{
+			return;
+		}
+
+		Set<AbstractNode> nodes = getRelatedNodeMap().get(maxDepth);
+		Set<StructrRelationship> rels = getRelatedRelMap().get(maxDepth);
+
+		if(nodes == null)
+		{
+			nodes = new LinkedHashSet<AbstractNode>();
+			getRelatedNodeMap().put(maxDepth, nodes);
+		}
+
+		if(rels == null)
+		{
+			rels = new LinkedHashSet<StructrRelationship>();
+			getRelatedRelMap().put(maxDepth, rels);
+		}
+
+		if(!visitedNodes.contains(currentNode))
+		{
+			nodes.add(currentNode);
+
+			for(StructrRelationship rel : currentNode.getIncomingRelationships())
+			{
+				AbstractNode startNode = rel.getStartNode();
+				if(startNode != null)
+				{
+					nodes.add(startNode);
+					rels.add(rel);
+
+					collectRelatedNodes(visitedNodes, startNode, depth+1, maxDepth);
+				}
+			}
+
+			for(StructrRelationship rel : currentNode.getOutgoingRelationships())
+			{
+				AbstractNode endNode = rel.getEndNode();
+				if(endNode != null)
+				{
+					nodes.add(endNode);
+					rels.add(rel);
+
+					collectRelatedNodes(visitedNodes, endNode, depth+1, maxDepth);
+				}
+			}
+			
+			visitedNodes.add(currentNode);
+		}
+	}
+
+	private Map<Integer, Set<AbstractNode>> getRelatedNodeMap()
+	{
+		if(relatedNodesMappedToDepth == null)
+		{
+			relatedNodesMappedToDepth = new HashMap<Integer, Set<AbstractNode>>();
+		}
+
+		return(relatedNodesMappedToDepth);
+	}
+
+	private Map<Integer, Set<StructrRelationship>> getRelatedRelMap()
+	{
+		if(relatedRelsMappedToDepth == null)
+		{
+			relatedRelsMappedToDepth = new HashMap<Integer, Set<StructrRelationship>>();
+		}
+
+		return(relatedRelsMappedToDepth);
+	}
+
+    // ----- protected methods -----
     protected static String toGetter(String name) {
         return "get".concat(name.substring(0, 1).toUpperCase()).concat(name.substring(1));
     }

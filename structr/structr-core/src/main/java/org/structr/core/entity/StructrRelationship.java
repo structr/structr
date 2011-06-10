@@ -279,4 +279,20 @@ public class StructrRelationship {
         }
         return false;
     }
+
+    @Override
+    public boolean equals(final Object o) {
+	    return(new Integer(this.hashCode()).equals(new Integer(o.hashCode())));
+    }
+
+    @Override
+    public int hashCode()
+    {
+	if(this.dbRelationship == null)
+	{
+		return(super.hashCode());
+	}
+
+	return(new Long(dbRelationship.getId()).hashCode());
+    }
 }
