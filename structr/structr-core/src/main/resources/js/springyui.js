@@ -269,7 +269,7 @@ Copyright (c) 2010 Dennis Hotson
         var boxHeight = node.getHeight();
 
         // fill background
-        ctx.clearRect(s.x - boxWidth/2, s.y - 10, boxWidth, boxHeight);
+        // ctx.clearRect(s.x - boxWidth/2, s.y - 10, boxWidth, boxHeight);
 
         // fill background
         if (selected !== null && nearest.node !== null && selected.node.id === node.id)
