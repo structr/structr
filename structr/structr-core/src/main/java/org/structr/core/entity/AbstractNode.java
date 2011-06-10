@@ -34,6 +34,7 @@ import java.io.StringReader;
 import java.io.Writer;
 import java.lang.reflect.Method;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -53,6 +54,7 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DateUtils;
 import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.AbstractNodeComparator;
@@ -91,9 +93,6 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
     private List<StructrRelationship> incomingRelationships = null;
     private List<StructrRelationship> outgoingRelationships = null;
     private List<StructrRelationship> allRelationships = null;
-
-    private Map<Integer, Set<StructrRelationship>> relatedRelsMappedToDepth = null;
-    private Map<Integer, Set<AbstractNode>> relatedNodesMappedToDepth = null;
 
     // ----- abstract methods ----
     public abstract void renderView(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId);
@@ -2465,24 +2464,70 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 
 	public Set<AbstractNode> getRelatedNodes(int maxDepth)
 	{
-		if(!getRelatedNodeMap().containsKey(maxDepth))
-		{
-			Set<AbstractNode> visitedNodes = new LinkedHashSet<AbstractNode>();
-			collectRelatedNodes(visitedNodes, this, 0, maxDepth);
-		}
+		return(getRelatedNodes(maxDepth, Integer.MAX_VALUE, null));
+	}
 
-		return(getRelatedNodeMap().get(maxDepth));
+	public Set<AbstractNode> getRelatedNodes(int maxDepth, String relTypes)
+	{
+		return(getRelatedNodes(maxDepth, Integer.MAX_VALUE, relTypes));
+	}
+
+	public Set<AbstractNode> getRelatedNodes(int maxDepth, int maxNum)
+	{
+		return(getRelatedNodes(maxDepth, maxNum, null));
+	}
+
+	public Set<AbstractNode> getRelatedNodes(int maxDepth, int maxNum, String relTypes)
+	{
+		Set<AbstractNode> visitedNodes = new LinkedHashSet<AbstractNode>();
+		Set<AbstractNode> nodes = new LinkedHashSet<AbstractNode>();
+		Set<StructrRelationship> rels = new LinkedHashSet<StructrRelationship>();
+
+		collectRelatedNodes(nodes, rels, visitedNodes, this, 0, maxDepth, maxNum, splitRelationshipTypes(relTypes));
+
+		return(nodes);
 	}
 
 	public Set<StructrRelationship> getRelatedRels(int maxDepth)
 	{
-		if(!getRelatedRelMap().containsKey(maxDepth))
+		return(getRelatedRels(maxDepth, Integer.MAX_VALUE, null));
+	}
+
+	public Set<StructrRelationship> getRelatedRels(int maxDepth, String relTypes)
+	{
+		return(getRelatedRels(maxDepth, Integer.MAX_VALUE, relTypes));
+	}
+
+	public Set<StructrRelationship> getRelatedRels(int maxDepth, int maxNum)
+	{
+		return(getRelatedRels(maxDepth, maxNum, null));
+	}
+
+	public Set<StructrRelationship> getRelatedRels(int maxDepth, int maxNum, String relTypes)
+	{
+		Set<AbstractNode> visitedNodes = new LinkedHashSet<AbstractNode>();
+		Set<AbstractNode> nodes = new LinkedHashSet<AbstractNode>();
+		Set<StructrRelationship> rels = new LinkedHashSet<StructrRelationship>();
+
+		collectRelatedNodes(nodes, rels, visitedNodes, this, 0, maxDepth, maxNum, splitRelationshipTypes(relTypes));
+
+		return(rels);
+	}
+
+	private RelationshipType[] splitRelationshipTypes(String relTypes)
+	{
+		if(relTypes != null)
 		{
-			Set<AbstractNode> visitedNodes = new LinkedHashSet<AbstractNode>();
-			collectRelatedNodes(visitedNodes, this, 0, maxDepth);
+			List<RelationshipType> relTypeList = new ArrayList<RelationshipType>(10);
+			for(String type : relTypes.split("[, ]+"))
+			{
+				relTypeList.add(DynamicRelationshipType.withName(type));
+			}
+
+			return(relTypeList.toArray(new RelationshipType[0]));
 		}
 
-		return(getRelatedRelMap().get(maxDepth));
+		return(null);
 	}
 
 	/**
@@ -2493,33 +2538,32 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 	 * @param depth
 	 * @param maxDepth
 	 */
-	private void collectRelatedNodes(Set<AbstractNode> visitedNodes, AbstractNode currentNode, int depth, int maxDepth)
+	private void collectRelatedNodes(Set<AbstractNode> nodes, Set<StructrRelationship> rels, Set<AbstractNode> visitedNodes, AbstractNode currentNode, int depth, int maxDepth, int maxNum, RelationshipType... relTypes)
 	{
 		if(depth >= maxDepth)
 		{
 			return;
 		}
 
-		Set<AbstractNode> nodes = getRelatedNodeMap().get(maxDepth);
-		Set<StructrRelationship> rels = getRelatedRelMap().get(maxDepth);
-
-		if(nodes == null)
-		{
-			nodes = new LinkedHashSet<AbstractNode>();
-			getRelatedNodeMap().put(maxDepth, nodes);
-		}
-
-		if(rels == null)
-		{
-			rels = new LinkedHashSet<StructrRelationship>();
-			getRelatedRelMap().put(maxDepth, rels);
-		}
-
-		if(!visitedNodes.contains(currentNode))
+		if(nodes.size() < maxNum)
 		{
 			nodes.add(currentNode);
 
-			for(StructrRelationship rel : currentNode.getIncomingRelationships())
+			// collect incoming relationships
+			List<StructrRelationship> inRels = new LinkedList<StructrRelationship>();
+			if(relTypes != null && relTypes.length > 0)
+			{
+				for(RelationshipType type : relTypes)
+				{
+					inRels.addAll(currentNode.getRelationships(type, Direction.INCOMING));
+				}
+
+			} else
+			{
+				inRels = currentNode.getIncomingRelationships();
+			}
+
+			for(StructrRelationship rel : inRels)
 			{
 				AbstractNode startNode = rel.getStartNode();
 				if(startNode != null)
@@ -2527,11 +2571,25 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 					nodes.add(startNode);
 					rels.add(rel);
 
-					collectRelatedNodes(visitedNodes, startNode, depth+1, maxDepth);
+					collectRelatedNodes(nodes, rels, visitedNodes, startNode, depth+1, maxDepth, maxNum, relTypes);
 				}
 			}
 
-			for(StructrRelationship rel : currentNode.getOutgoingRelationships())
+			// collect outgoing relationships
+			List<StructrRelationship> outRels = new LinkedList<StructrRelationship>();
+			if(relTypes != null && relTypes.length > 0)
+			{
+				for(RelationshipType type : relTypes)
+				{
+					outRels.addAll(currentNode.getRelationships(type, Direction.OUTGOING));
+				}
+
+			} else
+			{
+				outRels = currentNode.getOutgoingRelationships();
+			}
+
+			for(StructrRelationship rel : outRels)
 			{
 				AbstractNode endNode = rel.getEndNode();
 				if(endNode != null)
@@ -2539,32 +2597,12 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 					nodes.add(endNode);
 					rels.add(rel);
 
-					collectRelatedNodes(visitedNodes, endNode, depth+1, maxDepth);
+					collectRelatedNodes(nodes, rels, visitedNodes, endNode, depth+1, maxDepth, maxNum, relTypes);
 				}
 			}
 			
-			visitedNodes.add(currentNode);
+			// visitedNodes.add(currentNode);
 		}
-	}
-
-	private Map<Integer, Set<AbstractNode>> getRelatedNodeMap()
-	{
-		if(relatedNodesMappedToDepth == null)
-		{
-			relatedNodesMappedToDepth = new HashMap<Integer, Set<AbstractNode>>();
-		}
-
-		return(relatedNodesMappedToDepth);
-	}
-
-	private Map<Integer, Set<StructrRelationship>> getRelatedRelMap()
-	{
-		if(relatedRelsMappedToDepth == null)
-		{
-			relatedRelsMappedToDepth = new HashMap<Integer, Set<StructrRelationship>>();
-		}
-
-		return(relatedRelsMappedToDepth);
 	}
 
     // ----- protected methods -----

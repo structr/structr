@@ -55,14 +55,28 @@
       var TYPE = '#64AE32';
       var SUBTYPE = '#53ED78';
 
-      #foreach( $relNode in $node.getRelatedNodes(3) )
+      // begin maxDepth
+      #set($maxDepth = 2)
+      #if( $request.getParameter("maxDepth") )
+            #set($maxDepth = $maxDepth.parseInt($request.getParameter("maxDepth")))
+      #end
+      // end maxDepth
+
+      // begin maxNodes
+      #set($maxNodes = 1000000)
+      #if( $request.getParameter("maxNodes") )
+            #set($maxNodes = $maxNodes.parseInt($request.getParameter("maxNodes")))
+      #end
+      // end maxNodes
+
+      #foreach( $relNode in $node.getRelatedNodes($maxDepth, $maxNodes, $request.getParameter("relTypes")) )
           #if( $relNode.type == "PageRequest" || $relNode.type == "Activity")
               #break
           #end
           var node_$relNode.id = graph.newNode({label: '$format.javascript($relNode.name)', link: '$context/admin/edit.htm?nodeId=$relNode.id#relationships-tab', imgSrc: '$context$relNode.iconSrc'});
       #end
 
-      #foreach( $rel in $node.getRelatedRels(3) )
+      #foreach( $rel in $node.getRelatedRels($maxDepth, $maxNodes, $request.getParameter("relTypes")) )
           #if( $rel.startNode.type == "PageRequest" || $rel.startNode.type == "Activity" || $rel.endNode.type == "PageRequest" || $rel.endNode.type == "Activity" )
               #break
           #end
