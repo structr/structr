@@ -194,30 +194,21 @@ public class StructrNodeFactory<T extends AbstractNode> implements Adapter<Node,
         newNode.commit(null);
         newNode.onNodeInstantiation();
 
-	// FIXME: move this in onInstantiation() method
-        if (data instanceof FileNodeDataContainer) {
+        if(data instanceof FileNodeDataContainer)
+	{
 
-            byte[] binaryContent = ((FileNodeDataContainer) data).getBinaryContent();
+	   FileNodeDataContainer container = (FileNodeDataContainer)data;
+           File fileNode = (File) newNode;
 
-            if (binaryContent != null) {
+           String relativeFilePath = newNode.getId() + "_" + System.currentTimeMillis();
+           String path = Services.getFilesPath() + "/" + relativeFilePath;
 
-                File fileNode = (File) newNode;
-
-                String relativeFilePath = newNode.getId() + "_" + System.currentTimeMillis();
-                String path = Services.getFilesPath() + "/" + relativeFilePath;
-                long size = binaryContent.length;
-                java.io.File fileOnDisk = new java.io.File(path);
-
-                try {
-
-                    FileUtils.writeByteArrayToFile(fileOnDisk, binaryContent);
-                    fileNode.setSize(size);
-                    fileNode.setRelativeFilePath(relativeFilePath);
-
-                } catch (Exception e) {
-                    logger.log(Level.SEVERE, "Could not write file", e);
-                }
-            }
+	   // rename temporary file to new location etc.
+	   if(container.persistTemporaryFile(path))
+	   {
+		   fileNode.setSize(container.getFileSize());
+		   fileNode.setRelativeFilePath(relativeFilePath);
+	   }
         }
 
         return newNode;

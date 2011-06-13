@@ -1,14 +1,14 @@
 /*
  *  Copyright (C) 2011 Axel Morgner, structr <structr@structr.org>
  * 
- *  This file is part of structr <http://structr.org>.
+ *  This file inputStream part of structr <http://structr.org>.
  * 
- *  structr is free software: you can redistribute it and/or modify
+ *  structr inputStream free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
  * 
- *  structr is distributed in the hope that it will be useful,
+ *  structr inputStream distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
@@ -18,11 +18,10 @@
  */
 package org.structr.core.cloud;
 
-import java.io.IOException;
+import java.io.FileOutputStream;
 import java.io.InputStream;
-import java.nio.ByteBuffer;
-import java.util.Map;
-import java.util.TreeMap;
+import java.io.OutputStream;
+import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.entity.File;
@@ -36,8 +35,10 @@ public class FileNodeDataContainer extends NodeDataContainer
 {
 	private static final Logger logger = Logger.getLogger(FileNodeDataContainer.class.getName());
 
-	protected Map<Integer, FileChunkContainer> chunks = null;
-	protected int fileSize = 0;
+	private java.io.File temporaryFile = null;
+	private OutputStream outputStream = null;
+	private int sequenceNumber = 0;
+	private int fileSize = 0;
 
 	public FileNodeDataContainer()
 	{
@@ -48,32 +49,108 @@ public class FileNodeDataContainer extends NodeDataContainer
 		super(fileNode);
 
 		this.fileSize = (int)fileNode.getSize();
-
 	}
 
-	public byte[] getBinaryContent()
+	/**
+	 * Adds a chunk of data to this container's temporary file, creating the
+	 * file if it does not exist yet.
+	 *
+	 * @param chunk the chunk to add
+	 */
+	public void addChunk(FileNodeChunk chunk)
 	{
-		ByteBuffer ret = ByteBuffer.allocate(fileSize);
-		if(chunks != null)
+		// check file size
+		if(this.fileSize > 0)
 		{
-			for(FileChunkContainer container : chunks.values())
+			if(chunk.getFileSize() != this.fileSize)
 			{
-				ret.put(container.getBinaryContent());
+				throw new IllegalStateException("File size mismatch while adding chunk. Expected " + fileSize + ", received " + chunk.getFileSize() );
 			}
+
+		} else
+		{
+			this.fileSize = chunk.getFileSize();
 		}
 
-		return(ret.array());
+		// check sequence number
+		if(chunk.getSequenceNumber() != this.sequenceNumber)
+		{
+			throw new IllegalStateException("Sequence number mismatch while adding chunk. Expected " + sequenceNumber + ", received " + chunk.getSequenceNumber());
+
+		} else
+		{
+			sequenceNumber++;
+		}
+
+		// TODO: check chunk checksum here?
+		try
+		{
+			if(temporaryFile == null)
+			{
+				temporaryFile = java.io.File.createTempFile("structr", "file");
+				outputStream = new FileOutputStream(temporaryFile);
+			}
+			
+			if(outputStream != null)
+			{
+				outputStream.write(chunk.getBinaryContent());
+			}
+			
+		} catch(Throwable t)
+		{
+			t.printStackTrace();
+		}
 	}
 
-	public void addChunk(FileChunkContainer chunk)
+	/**
+	 * Flushes and closes the temporary file after receiving it from a remote
+	 * structr instance. This method is called when the cloud service recevies
+	 * a <code>FileNodeEndChunk</code>.
+	 */
+	public void flushAndCloseTemporaryFile()
 	{
-		if(chunks == null)
+		// TODO: check file checksum here?!
+
+		if(outputStream != null)
 		{
-			chunks = new TreeMap<Integer, FileChunkContainer>();
+			try
+			{
+				outputStream.flush();
+				outputStream.close();
+
+			} catch(Throwable t)
+			{
+				t.printStackTrace();
+			}
+
+		} else
+		{
+			logger.log(Level.WARNING, "outputStream was null!");
+		}
+	}
+
+	/**
+	 * Renames / moves the temporary file to its final location. This method
+	 * is called when the cloud service recevies a <code>FileNodeEndChunk</code>.
+	 *
+	 * @param finalPath the final path of this file
+	 * @return whether the renaming/moving was successful
+	 */
+	public boolean persistTemporaryFile(String finalPath)
+	{
+		boolean ret = false;
+
+		if(temporaryFile != null)
+		{
+			ret = temporaryFile.renameTo(new java.io.File(finalPath));
 		}
 
-		checkFileSize(chunk.getFileSize());
-		this.chunks.put(chunk.getSequenceNumber(), chunk);
+		return(ret);
+	}
+
+	public int getFileSize()
+	{
+		return(this.fileSize);
 	}
 
 	public void setFileSize(int fileSize)
@@ -82,56 +159,104 @@ public class FileNodeDataContainer extends NodeDataContainer
 	}
 
 	// ----- public static methods -----
-	public static Iterable<FileChunkContainer> getChunks(File fileNode, int chunkSize)
+	/**
+	 * Creates and returns an Iterable instance whose iterator creates
+	 * <code<FileNodeChunk</code> instances of the given file.
+	 *
+	 * @param fileNode the node to read from
+	 * @param chunkSize the desired chunk size
+	 * @return an Iterable that generates FileNodeChunks
+	 */
+	public static Iterable<FileNodeChunk> getChunks(final File fileNode, final int chunkSize)
 	{
-		Map<Integer, FileChunkContainer> chunks = new TreeMap<Integer, FileChunkContainer>();
-		int fileSize = (int)fileNode.getSize();
-
-		try
+		return(new Iterable<FileNodeChunk>()
 		{
-
-			InputStream is = fileNode.getInputStream();
-			if(is != null)
+			@Override
+			public Iterator<FileNodeChunk> iterator()
 			{
-				int sequenceNumber = 0;
-				int readSize = 0;
-
-				for(int available = is.available(); available > 0; available = is.available())
-				{
-					readSize = available < chunkSize ? available : chunkSize;
-
-					FileChunkContainer chunk = new FileChunkContainer(fileNode.getId(), fileSize, sequenceNumber, readSize);
-					is.read(chunk.getBuffer(), 0, readSize);
-
-					chunks.put(sequenceNumber, chunk);
-
-					sequenceNumber++;
-				}
-
-				is.close();
+				return(new ChunkIterator(fileNode, chunkSize));
 			}
-
-		} catch(IOException ex)
-		{
-			logger.log(Level.SEVERE, "Could not read file", ex);
 		}
-
-		return(chunks.values());
+		);
 	}
 
-	// ----- private methods -----
-	private void checkFileSize(int fileSize) throws IllegalStateException
+	// ----- nested classes -----
+	/**
+	 * An iterator that creates <code>FileNodeChunks</code> while reading
+	 * a large file from disk.
+	 */
+	private static class ChunkIterator implements Iterator<FileNodeChunk>
 	{
-		if(this.fileSize == 0)
-		{
-			this.fileSize = fileSize;
+		private InputStream inputStream = null;
+		private File fileNode = null;
+		private int sequenceNumber = 0;
+		private int fileSize = 0;
+		private int chunkSize = 0;
 
-		} else
+		public ChunkIterator(File fileNode, int chunkSize)
 		{
-			if(fileSize != this.fileSize)
+			this.fileNode = fileNode;
+			this.fileSize = (int)fileNode.getSize();
+			this.chunkSize = chunkSize;
+
+			this.inputStream = fileNode.getInputStream();
+		}
+
+		@Override
+		public boolean hasNext()
+		{
+			boolean ret = false;
+
+			if(inputStream != null)
 			{
-				logger.log(Level.WARNING, "File size mismatch while adding chunk! Got {0}, expected {1}", new Object[] { fileSize, this.fileSize } );
+				try
+				{
+					ret = inputStream.available() > 0;
+					if(!ret)
+					{
+						inputStream.close();
+					}
+
+				} catch(Throwable t)
+				{
+					logger.log(Level.WARNING, "Exception in ChunkIterator: {0}", t);
+				}
 			}
+
+			return(ret);
+		}
+
+		@Override
+		public FileNodeChunk next()
+		{
+			FileNodeChunk chunk = null;
+
+			if(inputStream != null)
+			{
+				try
+				{
+					int available = inputStream.available();
+					int readSize = available < chunkSize ? available : chunkSize;
+
+					chunk = new FileNodeChunk(fileNode.getId(), fileSize, sequenceNumber, readSize);
+					inputStream.read(chunk.getBuffer(), 0, readSize);
+
+					sequenceNumber++;
+
+				} catch(Throwable t)
+				{
+					logger.log(Level.WARNING, "Exception in ChunkIterator: {0}", t);
+				}
+			}
+
+			return(chunk);
+
+		}
+
+		@Override
+		public void remove()
+		{
+			throw new UnsupportedOperationException("Not supported.");
 		}
 
 	}

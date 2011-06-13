@@ -214,13 +214,13 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
     @Override
     public boolean equals(final Object o) {
 	    
-/*
 	if (o == null) {
             return false;
         }
         if (!(o instanceof AbstractNode)) {
             return false;
         }
+/*
         return ((AbstractNode) o).equals(this);
     }
 
@@ -903,6 +903,15 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
             }
         }
         return signature;
+    }
+
+    /**
+     * Return all property keys of the underlying database node
+     *
+     * @return
+     */
+    public final Iterable<String> getDatabasePropertyKeys() {
+        return dbNode.getPropertyKeys();
     }
 
     /**
@@ -1749,6 +1758,16 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
         return getAllChildren(null);
     }
 
+
+    public List<AbstractNode> getAllChildrenForRemotePush(User remoteUser) {
+
+	// FIXME: add handling for remote user here
+
+        Command findNode = Services.command(FindNodeCommand.class);
+        return((List<AbstractNode>) findNode.execute(remoteUser, this));
+    }
+
+
     /**
      * Return unordered list of all direct child nodes (no recursion)
      * with given relationship type
@@ -1923,14 +1942,26 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
         Command findNode = Services.command(FindNodeCommand.class);
         List<AbstractNode> result = (List<AbstractNode>) findNode.execute(user, this);
 
-        for (AbstractNode s : result) {
+	for (AbstractNode s : result) {
 
             if (s.readAllowed() && (nodeType == null || nodeType.equals(s.getType()))) {
                 nodes.add(s);
             }
 
         }
-        return nodes;
+
+	return nodes;
+    }
+
+    /**
+     * Sets the currently accessing user, overriding user from request in case
+     * there is no request..
+     *
+     * @param user
+     */
+    public void setAccessingUser(User user)
+    {
+	    this.user = user;
     }
 
     /**

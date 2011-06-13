@@ -74,6 +74,9 @@ public class ApplicationContextListener implements ServletContextListener, HttpS
             String modulesPath = properties.getProperty(Services.MODULES_PATH);
             logger.log(Level.INFO, "Config file modules path: {0}", modulesPath);
 
+            String serverIp = properties.getProperty(Services.SERVER_IP);
+            logger.log(Level.INFO, "Config file server IP: {0}", serverIp);
+
             String tcpPort = properties.getProperty(Services.TCP_PORT);
             logger.log(Level.INFO, "Config file TCP port: {0}", tcpPort);
 
@@ -120,6 +123,12 @@ public class ApplicationContextListener implements ServletContextListener, HttpS
                 context.put(Services.TCP_PORT, tcpPort);
             } else {
                 context.put(Services.TCP_PORT, servletContext.getInitParameter(Services.TCP_PORT));
+            }
+
+            if (serverIp != null) {
+                context.put(Services.SERVER_IP, serverIp);
+            } else {
+                context.put(Services.SERVER_IP, servletContext.getInitParameter(Services.SERVER_IP));
             }
 
             if (udpPort != null) {

@@ -23,6 +23,7 @@ import java.util.LinkedList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 import org.apache.click.Context;
 import org.apache.click.Page;
 import org.apache.click.control.AbstractLink;
@@ -45,12 +46,17 @@ import org.apache.click.extras.control.DateField;
 import org.apache.click.extras.control.FormTable;
 import org.apache.click.extras.control.IntegerField;
 import org.apache.click.extras.control.LinkDecorator;
+import org.apache.click.extras.control.LongField;
 import org.apache.click.extras.control.PickList;
 import org.apache.click.util.HtmlStringBuffer;
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.RelType;
 import org.structr.core.Command;
 import org.structr.core.Services;
+import org.structr.core.cloud.CloudService;
+import org.structr.core.cloud.CloudTransmission;
+import org.structr.core.cloud.GetCloudServiceCommand;
+import org.structr.core.cloud.PullNode;
 import org.structr.core.cloud.PushNodes;
 import org.structr.core.entity.Image;
 import org.structr.core.entity.AbstractNode;
@@ -80,6 +86,8 @@ import org.structr.core.node.search.TextualSearchAttribute;
  */
 public class DefaultEdit extends Nodes {
 
+	private static final Logger logger = Logger.getLogger(DefaultEdit.class.getName());
+
     /**
      * The main form for editing node parameter.
      * Child pages should just append fields to this form.
@@ -107,10 +115,14 @@ public class DefaultEdit extends Nodes {
     protected Panel editSecurityPanel;
     protected Panel editVisibilityPanel;
     protected Panel cloudPanel;
+
     protected TextField remoteHost;
+    protected LongField remoteSourceNode;
     protected IntegerField remoteTcpPort;
     protected IntegerField remoteUdpPort;
+    protected Select cloudPushPull = new Select("cloudPushPull", "Push / Pull");
     protected Checkbox cloudRecursive = new Checkbox("cloudRecursive", "Recursive");
+
     protected Select templateSelect = new Select(AbstractNode.TEMPLATE_ID_KEY, "Template");
     protected Select typeSelect = new Select(AbstractNode.TYPE_KEY, "Type");
     protected Select customTypeSelect = new Select(AbstractNode.TYPE_NODE_ID_KEY, "Custom Type");
@@ -406,6 +418,7 @@ public class DefaultEdit extends Nodes {
             incomingRelationshipsTable.addColumn(new Column(START_NODE_KEY));
             incomingRelationshipsTable.addColumn(new Column(END_NODE_KEY));
             incomingRelationshipsTable.addColumn(new Column(REL_TYPE_KEY));
+            incomingRelationshipsTable.addColumn(new Column(REL_ATTRS_KEY));
             incomingRelationshipsTable.addColumn(actionColumnIn);
             incomingRelationshipsTable.setPageSize(DEFAULT_PAGESIZE);
             incomingRelationshipsTable.getControlLink().setParameter(AbstractNode.NODE_ID_KEY, getNodeId());
@@ -472,6 +485,7 @@ public class DefaultEdit extends Nodes {
             outgoingRelationshipsTable.addColumn(new Column(START_NODE_KEY));
             outgoingRelationshipsTable.addColumn(new Column(END_NODE_KEY));
             outgoingRelationshipsTable.addColumn(new Column(REL_TYPE_KEY));
+            outgoingRelationshipsTable.addColumn(new Column(REL_ATTRS_KEY));
             outgoingRelationshipsTable.addColumn(actionColumnOut);
             outgoingRelationshipsTable.setPageSize(DEFAULT_PAGESIZE);
             outgoingRelationshipsTable.getControlLink().setParameter(AbstractNode.NODE_ID_KEY, getNodeId());
@@ -588,17 +602,46 @@ public class DefaultEdit extends Nodes {
         // ------------------ cloud begin ---------------------
 
 
-        FieldSet pushFields = new FieldSet("Push Nodes");
+        FieldSet pushFields = new FieldSet("Transmit Nodes");
+        remoteSourceNode = new LongField("remoteSourceNode", "Remote Node ID");
         remoteHost = new TextField("remoteHost", "Remote Host");
         remoteTcpPort = new IntegerField("remoteTcpPort", "Remote TCP Port");
         remoteUdpPort = new IntegerField("remoteUdp", "Remote UDP Port");
+	cloudPushPull.add(new Option("push", "Push nodes to remote destination"));
+	cloudPushPull.add(new Option("pull", "Pull nodes from remote destination"));
+        pushFields.add(remoteSourceNode);
         pushFields.add(remoteHost);
         pushFields.add(remoteTcpPort);
         pushFields.add(remoteUdpPort);
+	pushFields.add(cloudPushPull);
         pushFields.add(cloudRecursive);
 
-        pushFields.add(new Submit("pushNodes", "Push Nodes", this, "onPushNodes"));
+        pushFields.add(new Submit("transmitNodes", "Transmit", this, "onTransmitNodes"));
+
+	Table transmissionsTable = new Table("Transmissions");
+	transmissionsTable.addColumn(new Column("transmissionType", "Type"));
+	transmissionsTable.addColumn(new Column("remoteHost", "Remote Host"));
+	transmissionsTable.addColumn(new Column("remoteTcpPort", "TCP"));
+	transmissionsTable.addColumn(new Column("remoteUdpPort", "UDP"));
+	transmissionsTable.addColumn(new Column("estimatedSize", "Estimated Size"));
+	transmissionsTable.addColumn(new Column("transmittedObjectCount", "Objects Transmitted"));
+	transmissionsTable.setDataProvider(new DataProvider()
+	{
+		@Override
+		public List<CloudTransmission> getData()
+		{
+			CloudService cloudService = (CloudService)Services.command(GetCloudServiceCommand.class).execute();
+			if(cloudService != null)
+			{
+				return(cloudService.getActiveTransmissions());
+			}
+
+			return(new LinkedList());
+		}
+	});
+
         cloudForm.add(pushFields);
+	cloudForm.add(transmissionsTable);
         cloudForm.add(new HiddenField(NODE_ID_KEY, nodeId != null ? nodeId : ""));
         cloudForm.add(new HiddenField(RENDER_MODE_KEY, renderMode != null ? renderMode : ""));
         cloudForm.setActionURL(cloudForm.getActionURL().concat("#cloud-tab"));
@@ -1199,16 +1242,27 @@ public class DefaultEdit extends Nodes {
 
     }
 
-    public boolean onPushNodes() {
-
-        Command pushNodes = Services.command(PushNodes.class);
+    public boolean onTransmitNodes() {
 
         String remoteHostValue = remoteHost.getValue();
+	Long targetNodeValue = remoteSourceNode.getLong();
         Integer tcpPort = remoteTcpPort.getInteger();
         Integer udpPort = remoteUdpPort.getInteger();
         boolean rec = cloudRecursive.isChecked();
+	String pushPull = cloudPushPull.getValue();
 
-        pushNodes.execute(user, node, remoteHostValue, tcpPort, udpPort, rec);
+	if("push".equals(pushPull))
+	{
+		Command transmitCommand = Services.command(PushNodes.class);
+		transmitCommand.execute(user, node, targetNodeValue, remoteHostValue, tcpPort, udpPort, rec);
+
+	} else
+	if("pull".equals(pushPull))
+	{
+		Command transmitCommand = Services.command(PullNode.class);
+		transmitCommand.execute(user, targetNodeValue, node, remoteHostValue, tcpPort, udpPort, rec);
+
+	}
 
         return false;
 

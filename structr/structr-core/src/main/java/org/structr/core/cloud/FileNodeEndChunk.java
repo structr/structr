@@ -18,55 +18,32 @@
  */
 package org.structr.core.cloud;
 
-import java.util.logging.Logger;
-
 /**
+ * Marks the end of a <code>FileNodeDataContainer</code>. This class does not
+ * contain binary content itself, its a marker only.
  *
  * @author Christian Morgner
  */
-public class FileChunkContainer extends DataContainer
+public class FileNodeEndChunk extends DataContainer
 {
-	private static final Logger logger = Logger.getLogger(FileNodeDataContainer.class.getName());
-	protected int sequenceNumber = 0;
 	protected long containerId = 0L;
-	protected int chunkSize = 0;
 	protected int fileSize = 0;
-	protected byte[] binaryContent;
 
-	public FileChunkContainer()
+	public FileNodeEndChunk()
 	{
 	}
 
-	public FileChunkContainer(long containerId, int fileSize, int sequenceNumber, int chunkSize)
+	public FileNodeEndChunk(long containerId, int fileSize)
 	{
 		this.containerId = containerId;
-		this.sequenceNumber = sequenceNumber;
-		this.chunkSize = chunkSize;
 		this.fileSize = fileSize;
 
-		binaryContent = new byte[chunkSize];
-
-		estimatedSize = chunkSize;
-	}
-
-	public byte[] getBuffer()
-	{
-		return(binaryContent);
-	}
-
-	public int getSequenceNumber()
-	{
-		return(sequenceNumber);
+		estimatedSize = 1024;
 	}
 
 	public int getFileSize()
 	{
 		return(fileSize);
-	}
-
-	public byte[] getBinaryContent()
-	{
-		return binaryContent;
 	}
 
 	public long getContainerId()
