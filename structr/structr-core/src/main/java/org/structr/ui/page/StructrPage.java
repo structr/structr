@@ -106,6 +106,7 @@ public class StructrPage extends Page {
     protected final static String START_NODE_KEY = "startNode";
     protected final static String END_NODE_KEY = "endNode";
     protected final static String REL_TYPE_KEY = "relType";
+    protected final static String REL_ATTRS_KEY = "properties";
     protected final static String REL_POSITION_KEY = "relPosition";
     protected final static String TARGET_SLOT_NAME_KEY = "targetSlotName";
     protected final static String RELATIONSHIP_ID_KEY = "relationshipId";

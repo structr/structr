@@ -38,7 +38,7 @@ public class NodeDataContainer extends DataContainer {
         sourceNodeId = node.getId();
         //Map properties = new HashMap<String, Object>();
 
-        for (String key : node.getPropertyKeys()) {
+        for (String key : node.getDatabasePropertyKeys()) {
             Object value = node.getProperty(key);
             properties.put(key, value);
 
@@ -48,9 +48,7 @@ public class NodeDataContainer extends DataContainer {
             }
 
         }
-
     }
-
 
     /**
      * Return id of node in source instance
