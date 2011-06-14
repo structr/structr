@@ -16,14 +16,17 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.common;
+
+package org.structr.core;
+
+import org.structr.common.StructrOutputStream;
+import org.structr.core.entity.AbstractNode;
 
 /**
  *
- * @author amorgner
+ * @author Christian Morgner
  */
-public enum RenderMode
+public interface NodeRenderer
 {
-	Default, Direct,
-	PUBLIC, LOCAL, EDIT;
+	public void renderNode(final StructrOutputStream out, final AbstractNode startNode, final String editUrl, final Long editNodeId);
 }

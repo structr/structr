@@ -37,6 +37,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -57,8 +58,10 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.AbstractNodeComparator;
 import org.structr.common.CurrentRequest;
+import org.structr.common.RenderMode;
 import org.structr.common.StructrOutputStream;
 import org.structr.common.TemplateHelper;
+import org.structr.core.NodeRenderer;
 import org.structr.core.NodeSource;
 import org.structr.core.cloud.NodeDataContainer;
 import org.structr.core.node.CreateNodeCommand;
@@ -79,9 +82,12 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 
     private static final Logger logger = Logger.getLogger(AbstractNode.class.getName());
     private static final boolean updateIndexDefault = true;
+
     // request parameters
     //private HttpServletRequest request = null;
     //private HttpSession session = null;
+    private final Map<RenderMode, NodeRenderer> rendererMap = new EnumMap<RenderMode, NodeRenderer>(RenderMode.class);
+
     private Map<Long, StructrRelationship> securityRelationships = null;
     private List<StructrRelationship> incomingLinkRelationships = null;
     private List<StructrRelationship> outgoingLinkRelationships = null;
@@ -94,7 +100,22 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
     private List<StructrRelationship> allRelationships = null;
 
     // ----- abstract methods ----
-    public abstract void renderNode(final StructrOutputStream out, final AbstractNode startNode, final String editUrl, final Long editNodeId);
+    public final void renderNode(final StructrOutputStream out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
+    {
+	    RenderMode renderMode = RenderMode.Default;
+	    if(this.equals(startNode))
+	    {
+		    renderMode = RenderMode.Direct;
+	    }
+	    
+	    NodeRenderer ret = rendererMap.get(renderMode);
+	    if(ret == null)
+	    {
+		    ret = new DefaultRenderer();
+	    }
+	    
+	    ret.renderNode(out, startNode, editUrl, editNodeId);
+    }
 
     public abstract String getIconSrc();
 
@@ -2872,5 +2893,14 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
         }
 
         return (ret);
+    }
+
+    private class DefaultRenderer implements NodeRenderer
+    {
+		@Override
+		public void renderNode(StructrOutputStream out, AbstractNode startNode, String editUrl, Long editNodeId)
+		{
+			out.append(startNode.getName());
+		}
     }
 }
