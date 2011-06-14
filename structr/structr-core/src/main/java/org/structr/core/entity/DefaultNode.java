@@ -21,7 +21,8 @@ package org.structr.core.entity;
 
 import java.util.Map;
 import org.neo4j.graphdb.Node;
-import org.structr.common.StructrOutputStream;
+import org.structr.common.RenderMode;
+import org.structr.core.NodeRenderer;
 import org.structr.core.cloud.NodeDataContainer;
 
 /**
@@ -51,20 +52,8 @@ public class DefaultNode extends AbstractNode
     }
 
     @Override
-    public void renderNode(final StructrOutputStream out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
+    public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers)
     {
-
-        if (editNodeId != null && getId() == editNodeId.longValue()) {
-
-            renderEditFrame(out, editUrl);
-
-        } else {
-
-            if (isVisible()) {
-                out.append(getName());
-            }
-
-        }
     }
 
     @Override

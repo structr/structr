@@ -25,7 +25,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.RenderMode;
 import org.structr.common.StructrOutputStream;
+import org.structr.core.NodeRenderer;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.StructrRelationship;
 
@@ -96,12 +98,6 @@ public abstract class ActionNode extends AbstractNode
 		}
 	}
 
-	@Override
-	public void renderNode(StructrOutputStream out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
-	{
-		// nothing to do here, wont be called
-	}
-
 	public Object getValue(String name)
 	{
 		Slot slot = getInputSlots().get(name);
@@ -125,6 +121,11 @@ public abstract class ActionNode extends AbstractNode
 
 		// value not found
 		return (null);
+	}
+
+	@Override
+	public void initializeRenderers(final Map<RenderMode, NodeRenderer> rendererMap)
+	{
 	}
 
 	// ----- protected methods -----

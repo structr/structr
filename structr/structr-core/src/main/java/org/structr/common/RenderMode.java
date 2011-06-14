@@ -24,6 +24,9 @@ package org.structr.common;
  */
 public enum RenderMode
 {
-	Default, Direct,
+	// new types
+	Default, Direct, Edit,
+
+	// old types
 	PUBLIC, LOCAL, EDIT;
 }

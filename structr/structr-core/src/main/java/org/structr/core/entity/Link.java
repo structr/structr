@@ -18,7 +18,11 @@
  */
 package org.structr.core.entity;
 
-import org.structr.common.StructrOutputStream;
+import java.util.Map;
+import org.structr.common.RenderMode;
+import org.structr.common.renderer.FileStreamRenderer;
+import org.structr.common.renderer.LinkRenderer;
+import org.structr.core.NodeRenderer;
 
 /**
  * 
@@ -62,37 +66,14 @@ public class Link extends AbstractNode {
         this.structrNode = structrNode;
     }
 
-    /**
-     * Render edit view
-     *
-     * @param out
-     * @param startNode
-     * @param editUrl
-     * @param editNodeId
-     */
-    @Override
-    public void renderNode(StructrOutputStream out, final AbstractNode startNode,
-            final String editUrl, final Long editNodeId) {
-
-        AbstractNode node = getStructrNode();
-
-        node.setTemplate(getTemplate());
-//        node.setRequest(getRequest());
-
-        // if this page is requested to be edited, render edit frame
-        if (editNodeId != null && getId() == editNodeId.longValue()) {
-
-            node.renderNode(out, startNode, editUrl, editNodeId);
-
-        } else {
-            if (isVisible()) {
-                getStructrNode().renderNode(out, startNode, editUrl, editNodeId);
-            }
-        }
-    }
-
     public void setIconSrc(String iconSrc) {
         this.iconSrc = iconSrc;
+    }
+
+    @Override
+    public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers)
+    {
+	    renderers.put(RenderMode.Default, new LinkRenderer());
     }
 
     @Override

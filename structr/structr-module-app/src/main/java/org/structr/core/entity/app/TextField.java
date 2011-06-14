@@ -20,15 +20,17 @@ package org.structr.core.entity.app;
 
 import org.structr.core.NodeSource;
 import java.util.List;
+import java.util.Map;
 import org.structr.common.SessionValue;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.RequestCycleListener;
 import org.structr.common.CurrentRequest;
 import org.structr.common.CurrentSession;
-import org.structr.common.StructrOutputStream;
+import org.structr.common.RenderMode;
+import org.structr.common.renderer.TemplateRenderer;
+import org.structr.core.NodeRenderer;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.StructrRelationship;
 
@@ -52,32 +54,9 @@ public class TextField extends FormField implements InteractiveNode, RequestCycl
 	}
 
 	@Override
-	public void renderNode(StructrOutputStream out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
+	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers)
 	{
-		CurrentRequest.registerRequestCycleListener(this);
-
-		// if this page is requested to be edited, render edit frame
-		if(editNodeId != null && getId() == editNodeId.longValue())
-		{
-
-			renderEditFrame(out, editUrl);
-
-			// otherwise, render subnodes in edit mode
-		} else
-		{
-
-			if(hasTemplate())
-			{
-				template.setCallingNode(this);
-				template.renderNode(out, startNode, editUrl, editNodeId);
-
-			} else
-			{
-				logger.log(Level.WARNING, "Encountered TextField without template: {0}", this);
-
-				// TODO: default template for TextField?
-			}
-		}
+		renderers.put(RenderMode.Default, new TemplateRenderer());
 	}
 
 	// ----- interface InteractiveNode -----

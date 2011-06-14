@@ -19,6 +19,7 @@
 
 package org.structr.core;
 
+import org.structr.common.RenderMode;
 import org.structr.common.StructrOutputStream;
 import org.structr.core.entity.AbstractNode;
 
@@ -26,7 +27,8 @@ import org.structr.core.entity.AbstractNode;
  *
  * @author Christian Morgner
  */
-public interface NodeRenderer
+public interface NodeRenderer<T extends AbstractNode>
 {
-	public void renderNode(final StructrOutputStream out, final AbstractNode startNode, final String editUrl, final Long editNodeId);
+	public void renderNode(final StructrOutputStream out, final T currentNode, final AbstractNode startNode, final String editUrl, final Long editNodeId, RenderMode renderMode);
+	public String getContentType(final T currentNode);
 }

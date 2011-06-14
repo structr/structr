@@ -20,15 +20,16 @@ package org.structr.core.entity;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.structr.common.Path;
-import org.structr.common.StructrOutputStream;
+import org.structr.common.RenderMode;
+import org.structr.common.renderer.FileStreamRenderer;
+import org.structr.core.NodeRenderer;
 import org.structr.core.Services;
 
 /**
@@ -58,6 +59,12 @@ public class File extends DefaultNode {
     @Override
     public String getContentType() {
         return (String) getProperty(CONTENT_TYPE_KEY);
+    }
+
+    @Override
+    public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers)
+    {
+	    renderers.put(RenderMode.Direct, new FileStreamRenderer());
     }
 
     public long getSize() {
@@ -124,29 +131,5 @@ public class File extends DefaultNode {
 
         return null;
 
-    }
-
-    /**
-     * Stream content directly to output.
-     *
-     * @param out
-     */
-    @Override
-    public void renderNode(StructrOutputStream out, final AbstractNode startNode, final String editUrl, final Long editNodeId) {
-
-        if (isVisible()) {
-            try {
-
-                InputStream in = getInputStream();
-
-                if (in != null) {
-                    // just copy to output stream
-                    IOUtils.copy(in, out);
-                }
-
-            } catch (Throwable t) {
-                logger.log(Level.SEVERE, "Error while rendering file", t);
-            }
-        }
     }
 }

@@ -19,56 +19,26 @@
 package org.structr.core.entity.web;
 
 import java.util.*;
-import org.structr.common.StructrOutputStream;
-import org.structr.core.entity.AbstractNode;
+import org.structr.common.RenderMode;
+import org.structr.common.renderer.DefaultTemplateRenderer;
+import org.structr.core.NodeRenderer;
 
 /**
  * 
  * @author amorgner
  * 
  */
-public class Page extends WebNode {
+public class Page extends WebNode
+{
+	@Override
+	public String getIconSrc()
+	{
+		return("/images/page.png");
+	}
 
-    private final static String ICON_SRC = "/images/page.png";
-
-    @Override
-    public String getIconSrc() {
-        return ICON_SRC;
-    }
-
-    /**
-     * Render view
-     * 
-     * @param out
-     * @param startNode
-     * @param editUrl
-     * @param editNodeId
-     */
-    @Override
-    public void renderNode(final StructrOutputStream out, final AbstractNode startNode,
-            final String editUrl, final Long editNodeId) {
-
-        // if this page is requested to be edited, render edit frame
-        if (editNodeId != null && getId() == editNodeId.longValue()) {
-
-            renderEditFrame(out, editUrl);
-
-        // otherwise, render subnodes in edit mode
-        } else {
-
-            if (hasTemplate()) {
-
-                template.setCallingNode(this);
-                template.renderNode(out, startNode, editUrl, editNodeId);
-            } else {
-
-                List<AbstractNode> subnodes = getSortedDirectChildAndLinkNodes();
-
-                // render subnodes in correct order
-                for (AbstractNode s : subnodes) {
-                    s.renderNode(out, startNode, editUrl, editNodeId);
-                }
-            }
-        }
-    }
+	@Override
+	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers)
+	{
+		renderers.put(RenderMode.Default, new DefaultTemplateRenderer());
+	}
 }

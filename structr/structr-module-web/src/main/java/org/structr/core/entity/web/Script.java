@@ -19,16 +19,16 @@
 package org.structr.core.entity.web;
 
 import bsh.Interpreter;
-import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.StringReader;
 import java.io.StringWriter;
+import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import org.apache.commons.io.IOUtils;
 import org.structr.common.CurrentRequest;
-import org.structr.common.StructrOutputStream;
+import org.structr.common.RenderMode;
+import org.structr.core.NodeRenderer;
 import org.structr.core.entity.AbstractNode;
+import org.structr.renderer.ScriptRenderer;
 
 /**
  * 
@@ -73,42 +73,6 @@ public class Script extends AbstractNode {
     }
 
     @Override
-    public void renderNode(final StructrOutputStream out, final AbstractNode startNode,
-            final String editUrl, final Long editNodeId) {
-
-        if (editNodeId != null && getId() == editNodeId.longValue()) {
-            renderEditFrame(out, editUrl);
-        } else {
-            if (isVisible()) {
-                out.append(evaluate());
-            }
-        }
-    }
-
-    /**
-     * Stream content directly to output.
-     *
-     * @param out
-    @Override
-    public void renderNode(final StructrOutputStream out, final AbstractNode startNode,
-            final String editUrl, final Long editNodeId) {
-
-        if (isVisible()) {
-            try {
-
-                StringReader in = new StringReader(getText());
-
-                // just copy to output stream
-                IOUtils.copy(in, out);
-
-            } catch (IOException e) {
-                System.out.println("Error while rendering " + getText() + ": " + e.getMessage());
-            }
-        }
-    }
-     */
-
-    @Override
     public String evaluate() {
         StringBuilder ret = new StringBuilder();
 
@@ -145,5 +109,11 @@ public class Script extends AbstractNode {
     @Override
     public void onNodeInstantiation()
     {
+    }
+
+    @Override
+    public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers)
+    {
+	    renderers.put(RenderMode.Default, new ScriptRenderer());
     }
 }

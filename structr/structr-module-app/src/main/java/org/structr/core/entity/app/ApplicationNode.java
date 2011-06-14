@@ -21,11 +21,13 @@ package org.structr.core.entity.app;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.RelType;
-import org.structr.common.StructrOutputStream;
+import org.structr.common.RenderMode;
 import org.structr.core.Command;
+import org.structr.core.NodeRenderer;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.StructrRelationship;
@@ -46,12 +48,6 @@ public abstract class ApplicationNode extends AbstractNode
 	private static final Logger logger = Logger.getLogger(ApplicationNode.class.getName());
 	
 	public abstract void buildTestCase();
-
-	@Override
-	public void renderNode(StructrOutputStream out, AbstractNode startNode, String editUrl, Long editNodeId)
-	{
-		// just a container
-	}
 
 	@Override
 	public void onNodeCreation()
@@ -84,6 +80,11 @@ public abstract class ApplicationNode extends AbstractNode
 	public String getIconSrc()
 	{
 		return("/images/bricks.png");
+	}
+
+	@Override
+	public void initializeRenderers(final Map<RenderMode, NodeRenderer> rendererMap)
+	{
 	}
 
 	// ----- protected methods -----

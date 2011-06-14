@@ -18,13 +18,11 @@
  */
 package org.structr.core.entity;
 
-import java.io.IOException;
-import java.io.StringWriter;
-import java.util.logging.Level;
+import java.util.Map;
 import java.util.logging.Logger;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
-import org.structr.common.StructrOutputStream;
+import org.structr.common.RenderMode;
+import org.structr.common.renderer.SubnodeTemplateRenderer;
+import org.structr.core.NodeRenderer;
 
 /**
  * 
@@ -33,7 +31,6 @@ import org.structr.common.StructrOutputStream;
  */
 public class PlainText extends AbstractNode {
 
-    private final static Logger logger = Logger.getLogger(PlainText.class.getName());
     private final static String ICON_SRC = "/images/page_white_text.png";
 
     @Override
@@ -70,34 +67,9 @@ public class PlainText extends AbstractNode {
     }
 
     @Override
-    public void renderNode(StructrOutputStream out, final AbstractNode startNode,
-            final String editUrl, final Long editNodeId) {
-
-        if (editNodeId != null && getId() == editNodeId.longValue()) {
-
-            renderEditFrame(out, editUrl);
-
-        } else {
-
-            if (isVisible()) {
-                String html = getContent();
-
-                if (StringUtils.isNotBlank(html)) {
-
-                    StringWriter content = new StringWriter();
-
-                    // process content with Freemarker
-                    replaceByFreeMarker(html, content, startNode, editUrl, editNodeId);
-
-                    StringBuilder content2 = new StringBuilder(content.toString());
-
-                    // finally, replace %{subnodeKey} by rendered content of subnodes with this name
-                    replaceBySubnodes(content2, startNode, editUrl, editNodeId);
-                    out.append(content2.toString());
-
-                }
-            }
-        }
+    public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers)
+    {
+	    renderers.put(RenderMode.Default, new SubnodeTemplateRenderer());
     }
 
     /**

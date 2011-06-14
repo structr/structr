@@ -18,46 +18,37 @@
  */
 package org.structr.core.entity;
 
-import org.structr.common.StructrOutputStream;
+import java.util.Map;
+import org.structr.common.RenderMode;
+import org.structr.core.NodeRenderer;
 
 /**
  * 
  * @author amorgner
  * 
  */
-public abstract class Principal extends AbstractNode {
+public abstract class Principal extends AbstractNode
+{
+	private final static String ICON_SRC = "/images/user.png";
 
-    private final static String ICON_SRC = "/images/user.png";
+	@Override
+	public String getIconSrc()
+	{
+		return ICON_SRC;
+	}
 
-    @Override
-    public String getIconSrc() {
-        return ICON_SRC;
-    }
+	@Override
+	public void onNodeCreation()
+	{
+	}
 
-    @Override
-    public void renderNode(StructrOutputStream out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
-    {
+	@Override
+	public void onNodeInstantiation()
+	{
+	}
 
-        if (editNodeId != null && getId() == editNodeId.longValue()) {
-
-            renderEditFrame(out, editUrl);
-
-        } else {
-
-            if (isVisible()) {
-                out.append(getName());
-            }
-
-        }
-    }
-
-    @Override
-    public void onNodeCreation()
-    {
-    }
-
-    @Override
-    public void onNodeInstantiation()
-    {
-    }
+	@Override
+	public void initializeRenderers(final Map<RenderMode, NodeRenderer> rendererMap)
+	{
+	}
 }

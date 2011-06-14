@@ -40,6 +40,11 @@ public final class StructrOutputStream extends OutputStream
 		stringBuilder = new StringBuilder(1024);
 	}
 
+	public StructrOutputStream(StringBuilder toWrap)
+	{
+		stringBuilder = toWrap;
+	}
+
 	public StructrOutputStream(OutputStream outputStream)
 	{
 		this.outputStream = outputStream;

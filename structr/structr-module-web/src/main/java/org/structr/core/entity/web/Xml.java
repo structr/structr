@@ -18,135 +18,39 @@
  */
 package org.structr.core.entity.web;
 
+import java.util.Map;
+import org.structr.common.RenderMode;
+import org.structr.core.NodeRenderer;
 import org.structr.core.entity.PlainText;
-import org.structr.core.Command;
-import org.structr.core.Services;
-import org.structr.core.node.NodeFactoryCommand;
-import java.util.List;
-import org.neo4j.graphdb.Direction;
-import org.structr.core.node.NodeRelationshipsCommand;
-import org.structr.common.RelType;
-import org.structr.common.StructrOutputStream;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.StructrRelationship;
+import org.structr.renderer.XmlRenderer;
 
 /**
  * 
  * @author amorgner
  * 
  */
-public class Xml extends PlainText {
+public class Xml extends PlainText
+{
+	@Override
+	public String getIconSrc()
+	{
+		return("/images/page_white_code_red.png");
+	}
+	private final static String XML_KEY = "xml";
 
-    private final static String keyPrefix = "${";
-    private final static String keySuffix = "}";
-    private final static String ICON_SRC = "/images/page_white_code_red.png";
+	public String getXml()
+	{
+		return (String)getProperty(XML_KEY);
+	}
 
-    @Override
-    public String getIconSrc() {
-        return ICON_SRC;
-    }
-    private final static String XML_KEY = "xml";
+	public void setXml(String text)
+	{
+		setProperty(XML_KEY, text);
+	}
 
-    public String getXml() {
-        return (String) getProperty(XML_KEY);
-    }
-
-    public void setXml(String text) {
-        setProperty(XML_KEY, text);
-    }
-
-    /**
-     * Render XML content as HTML, replace keys by values
-     */
-    @Override
-    public void renderNode(final StructrOutputStream out, final AbstractNode startNode,
-            final String editUrl, final Long editNodeId) {
-
-        if (isVisible()) {
-            StringBuilder xml = new StringBuilder(getXml());
-
-            // start with first occurrence of key prefix
-            int start = xml.indexOf(keyPrefix);
-
-            while (start > -1) {
-
-                int end = xml.indexOf(keySuffix, start + keyPrefix.length());
-                String key = xml.substring(start + keyPrefix.length(), end);
-
-                //System.out.println("Key to replace: '" + key + "'");
-
-                StringBuilder replacement = new StringBuilder();
-
-                // first, look for a property with name=key
-                if (dbNode.hasProperty(key)) {
-
-                    replacement.append(dbNode.getProperty(key));
-
-                } else {
-
-                    Command nodeFactory = Services.command(NodeFactoryCommand.class);
-                    Command relsCommand = Services.command(NodeRelationshipsCommand.class);
-
-                    List<StructrRelationship> rels = (List<StructrRelationship>) relsCommand.execute(this, RelType.HAS_CHILD, Direction.OUTGOING);
-                    for (StructrRelationship r : rels) {
-
-                        AbstractNode s = (AbstractNode) nodeFactory.execute(r.getEndNode());
-
-                        if (key.equals(s.getName())) {
-                            s.renderNode(		null,startNode, editUrl, editNodeId);
-                        }
-
-
-                    }
-
-                    rels = (List<StructrRelationship>) relsCommand.execute(this, RelType.LINK, Direction.OUTGOING);
-                    for (StructrRelationship r : rels) {
-
-                        AbstractNode s = (AbstractNode) nodeFactory.execute(r.getEndNode());
-
-                        if (key.equals(s.getName())) {
-                            s.renderNode(		null,startNode, editUrl, editNodeId);
-                        }
-
-                    }
-
-
-                }
-
-                xml.replace(start, end + keySuffix.length(), replacement.toString());
-
-                start = xml.indexOf(keyPrefix, end + keySuffix.length() + 1);
-
-            }
-
-
-            out.append(xml);
-        }
-    }
-
-    /**
-     * Stream content directly to output.
-     *
-     * @param out
-    @Override
-    public void renderNode(final StructrOutputStream out, final AbstractNode startNode,
-            final String editUrl, final Long editNodeId) {
-
-
-        if (isVisible()) {
-            try {
-
-                StringReader in = new StringReader(getXml());
-
-                // just copy to output stream
-                IOUtils.copy(in, out);
-
-            } catch (IOException e) {
-                System.out.println("Error while rendering " + getXml() + ": " + e.getMessage());
-            }
-
-        }
-
-    }
-     */
+	@Override
+	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers)
+	{
+		renderers.put(RenderMode.Default, new XmlRenderer());
+	}
 }

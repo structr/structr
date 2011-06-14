@@ -38,8 +38,8 @@ public class WebNode extends ArbitraryNode {
 
     private static final Logger logger = Logger.getLogger(AbstractNode.class.getName());
 
-    protected final static String SESSION_BLOCKED = "sessionBlocked";
-    protected final static String USERNAME_KEY = "username";
+    public final static String SESSION_BLOCKED = "sessionBlocked";
+    public final static String USERNAME_KEY = "username";
 
     /**
      * Traverse over all child nodes to find a home page

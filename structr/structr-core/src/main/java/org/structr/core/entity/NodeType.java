@@ -18,7 +18,9 @@
  */
 package org.structr.core.entity;
 
-import org.structr.common.StructrOutputStream;
+import java.util.Map;
+import org.structr.common.RenderMode;
+import org.structr.core.NodeRenderer;
 
 /**
  * A NodeType node defines the type of all connected nodes.
@@ -28,26 +30,26 @@ import org.structr.common.StructrOutputStream;
  * 
  * @author axel
  */
+public class NodeType extends AbstractNode
+{
+	@Override
+	public String getIconSrc()
+	{
+		return "/images/database_table.png";
+	}
 
+	@Override
+	public void onNodeCreation()
+	{
+	}
 
-public class NodeType extends AbstractNode {
+	@Override
+	public void onNodeInstantiation()
+	{
+	}
 
-    @Override
-    public void renderNode(StructrOutputStream out, AbstractNode startNode, String editUrl, Long editNodeId) {
-        out.append(getName());
-    }
-
-    @Override
-    public String getIconSrc() {
-        return "/images/database_table.png";
-    }
-
-    @Override
-    public void onNodeCreation() {
-    }
-
-    @Override
-    public void onNodeInstantiation() {
-    }
-    
+	@Override
+	public void initializeRenderers(final Map<RenderMode, NodeRenderer> rendererMap)
+	{
+	}
 }

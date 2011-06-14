@@ -16,37 +16,42 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package org.structr.core.entity.app;
 
-import org.structr.common.StructrOutputStream;
+import java.util.Map;
+import org.structr.common.RenderMode;
+import org.structr.core.NodeRenderer;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.renderer.HtmlRenderer;
 
 /**
  *
  * @author Christian Morgner
  */
-public class AppButton extends HtmlNode
+public class AppButton extends AbstractNode
 {
-	public AppButton()
+	@Override
+	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers)
 	{
-		super("input");
+		HtmlRenderer renderer = new HtmlRenderer("input");
+		renderer.addAttribute("type", "button");
+
+		renderers.put(RenderMode.Default, renderer);
 	}
 
 	@Override
-	public void doBeforeRendering(StructrOutputStream out, AbstractNode startNode, String editUrl, Long editNodeId)
+	public String getIconSrc()
 	{
-		addAttribute("type", "button");
+		return("/images/");
 	}
 
 	@Override
-	public void renderContent(StructrOutputStream out, AbstractNode startNode, String editUrl, Long editNodeId)
+	public void onNodeCreation()
 	{
 	}
 
 	@Override
-	public boolean hasContent(StructrOutputStream out, AbstractNode startNode, String editUrl, Long editNodeId)
+	public void onNodeInstantiation()
 	{
-		return(false);
 	}
 }
