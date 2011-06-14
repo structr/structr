@@ -24,6 +24,7 @@ import java.util.logging.Logger;
 import org.apache.commons.lang.StringUtils;
 import org.jsoup.Jsoup;
 import org.structr.common.MailHelper;
+import org.structr.common.StructrOutputStream;
 import org.structr.core.entity.AbstractNode;
 
 /**
@@ -48,7 +49,7 @@ public class MailSender extends Form {
      * @param editNodeId
      */
     @Override
-    public void renderView(StringBuilder out, final AbstractNode startNode,
+    public void renderNode(final StructrOutputStream out, final AbstractNode startNode,
             final String editUrl, final Long editNodeId) {
 
         // if this page is requested to be edited, render edit frame

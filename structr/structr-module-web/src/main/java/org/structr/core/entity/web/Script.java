@@ -20,7 +20,6 @@ package org.structr.core.entity.web;
 
 import bsh.Interpreter;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -28,6 +27,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import org.apache.commons.io.IOUtils;
 import org.structr.common.CurrentRequest;
+import org.structr.common.StructrOutputStream;
 import org.structr.core.entity.AbstractNode;
 
 /**
@@ -73,7 +73,7 @@ public class Script extends AbstractNode {
     }
 
     @Override
-    public void renderView(StringBuilder out, final AbstractNode startNode,
+    public void renderNode(final StructrOutputStream out, final AbstractNode startNode,
             final String editUrl, final Long editNodeId) {
 
         if (editNodeId != null && getId() == editNodeId.longValue()) {
@@ -89,9 +89,8 @@ public class Script extends AbstractNode {
      * Stream content directly to output.
      *
      * @param out
-     */
     @Override
-    public void renderDirect(OutputStream out, final AbstractNode startNode,
+    public void renderNode(final StructrOutputStream out, final AbstractNode startNode,
             final String editUrl, final Long editNodeId) {
 
         if (isVisible()) {
@@ -107,6 +106,7 @@ public class Script extends AbstractNode {
             }
         }
     }
+     */
 
     @Override
     public String evaluate() {

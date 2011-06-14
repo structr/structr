@@ -24,6 +24,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.CurrentRequest;
+import org.structr.common.StructrOutputStream;
 import org.structr.core.entity.AbstractNode;
 
 /**
@@ -45,7 +46,7 @@ public class AddToCategory extends WebNode {
      * @param editNodeId
      */
     @Override
-    public void renderView(StringBuilder out, final AbstractNode startNode,
+    public void renderNode(StructrOutputStream out, final AbstractNode startNode,
             final String editUrl, final Long editNodeId) {
 
         // if this page is requested to be edited, render edit frame

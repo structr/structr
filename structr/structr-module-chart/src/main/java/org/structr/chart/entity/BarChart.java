@@ -1,11 +1,11 @@
 package org.structr.chart.entity;
 
 import java.awt.image.BufferedImage;
-import java.io.OutputStream;
 import javax.imageio.ImageIO;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.data.category.DefaultCategoryDataset;
+import org.structr.common.StructrOutputStream;
 import org.structr.core.entity.AbstractNode;
 
 /**
@@ -15,7 +15,7 @@ import org.structr.core.entity.AbstractNode;
 public class BarChart extends AbstractNode
 {
 	@Override
-	public void renderDirect(OutputStream out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
+	public void renderNode(StructrOutputStream out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
 	{
 		DefaultCategoryDataset dataSet = new DefaultCategoryDataset();
 		String categoryAxisLabel = "";
@@ -57,23 +57,20 @@ public class BarChart extends AbstractNode
 		return("image/png");
 	}
 
+	@Override
 	public String getIconSrc()
 	{
 		return("/images/chart_bar.png");
 	}
 
+	@Override
 	public void onNodeCreation()
 	{
 		//
 	}
 
+	@Override
 	public void onNodeInstantiation()
 	{
-	}
-
-	@Override
-	public void renderView(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId)
-	{
-		// nothing to do here
 	}
 }

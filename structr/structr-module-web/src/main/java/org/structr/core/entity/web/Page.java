@@ -19,6 +19,7 @@
 package org.structr.core.entity.web;
 
 import java.util.*;
+import org.structr.common.StructrOutputStream;
 import org.structr.core.entity.AbstractNode;
 
 /**
@@ -44,7 +45,7 @@ public class Page extends WebNode {
      * @param editNodeId
      */
     @Override
-    public void renderView(StringBuilder out, final AbstractNode startNode,
+    public void renderNode(final StructrOutputStream out, final AbstractNode startNode,
             final String editUrl, final Long editNodeId) {
 
         // if this page is requested to be edited, render edit frame
@@ -58,14 +59,14 @@ public class Page extends WebNode {
             if (hasTemplate()) {
 
                 template.setCallingNode(this);
-                template.renderView(out, startNode, editUrl, editNodeId);
+                template.renderNode(out, startNode, editUrl, editNodeId);
             } else {
 
                 List<AbstractNode> subnodes = getSortedDirectChildAndLinkNodes();
 
                 // render subnodes in correct order
                 for (AbstractNode s : subnodes) {
-                    s.renderView(out, startNode, editUrl, editNodeId);
+                    s.renderNode(out, startNode, editUrl, editNodeId);
                 }
             }
         }

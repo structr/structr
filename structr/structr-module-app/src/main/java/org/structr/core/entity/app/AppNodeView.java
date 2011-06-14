@@ -26,6 +26,7 @@ import java.util.logging.Logger;
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.CurrentRequest;
+import org.structr.common.StructrOutputStream;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.FindNodeCommand;
@@ -50,7 +51,7 @@ public class AppNodeView extends AbstractNode
 	}
 
 	@Override
-	public void renderView(final StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
+	public void renderNode(StructrOutputStream out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
 	{
 		AbstractNode sourceNode = loadNode();
 		if(sourceNode != null)
@@ -74,7 +75,7 @@ public class AppNodeView extends AbstractNode
 	}
 
 	// ----- protected methods -----
-	protected void doRendering(final StringBuilder out, final AbstractNode viewNode, final AbstractNode dataNode, final String editUrl, final Long editNodeId)
+	protected void doRendering(final StructrOutputStream out, final AbstractNode viewNode, final AbstractNode dataNode, final String editUrl, final Long editNodeId)
 	{
 		String templateSource = getTemplateFromNode(viewNode);
 		StringWriter content = new StringWriter(100);

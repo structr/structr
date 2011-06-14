@@ -25,6 +25,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.CurrentRequest;
 import org.structr.common.CurrentSession;
+import org.structr.common.StructrOutputStream;
 import org.structr.core.entity.AbstractNode;
 
 /**
@@ -50,7 +51,7 @@ public class SelectField extends FormField implements InteractiveNode
 	}
 
 	@Override
-	public void renderView(final StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
+	public void renderNode(StructrOutputStream out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
 	{
 		// if this page is requested to be edited, render edit frame
 		if(editNodeId != null && getId() == editNodeId.longValue())
@@ -65,7 +66,7 @@ public class SelectField extends FormField implements InteractiveNode
 			if(hasTemplate())
 			{
 				template.setCallingNode(this);
-				template.renderView(out, startNode, editUrl, editNodeId);
+				template.renderNode(out, startNode, editUrl, editNodeId);
 
 			} else
 			{

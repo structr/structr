@@ -19,12 +19,12 @@
 package org.structr.core.entity;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.StringWriter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.structr.common.StructrOutputStream;
 
 /**
  * 
@@ -70,7 +70,7 @@ public class PlainText extends AbstractNode {
     }
 
     @Override
-    public void renderView(StringBuilder out, final AbstractNode startNode,
+    public void renderNode(StructrOutputStream out, final AbstractNode startNode,
             final String editUrl, final Long editNodeId) {
 
         if (editNodeId != null && getId() == editNodeId.longValue()) {
@@ -104,9 +104,8 @@ public class PlainText extends AbstractNode {
      * Stream content directly to output.
      *
      * @param out
-     */
     @Override
-    public void renderDirect(OutputStream out, final AbstractNode startNode,
+    public void renderNode(StructrOutputStream out, final AbstractNode startNode,
             final String editUrl, final Long editNodeId) {
 
         if (isVisible()) {
@@ -114,7 +113,7 @@ public class PlainText extends AbstractNode {
             try {
 
                 StringBuilder sb = new StringBuilder();
-                renderView(sb, startNode, editUrl, editNodeId);
+                renderNode(	null,startNode, editUrl, editNodeId);
 
                 // write to output stream
                 IOUtils.write(sb.toString(), out);
@@ -124,6 +123,7 @@ public class PlainText extends AbstractNode {
             }
         }
     }
+     */
 
     @Override
     public void onNodeCreation()

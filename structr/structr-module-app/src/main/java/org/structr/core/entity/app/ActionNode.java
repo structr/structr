@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.StructrOutputStream;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.StructrRelationship;
 
@@ -47,7 +48,7 @@ public abstract class ActionNode extends AbstractNode
 	 */
 	public abstract Map<String, Slot> getSlots();
 
-	public abstract boolean doAction(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId);
+	public abstract boolean doAction(StructrOutputStream out, final AbstractNode startNode, final String editUrl, final Long editNodeId);
 
 	public void initialize()
 	{
@@ -96,7 +97,7 @@ public abstract class ActionNode extends AbstractNode
 	}
 
 	@Override
-	public void renderView(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
+	public void renderNode(StructrOutputStream out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
 	{
 		// nothing to do here, wont be called
 	}

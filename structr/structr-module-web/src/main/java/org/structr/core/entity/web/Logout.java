@@ -24,6 +24,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import org.structr.common.CurrentRequest;
 import org.structr.common.CurrentSession;
+import org.structr.common.StructrOutputStream;
 import org.structr.context.SessionMonitor;
 import org.structr.core.entity.AbstractNode;
 
@@ -62,7 +63,7 @@ public class Logout extends WebNode {
      * @param editNodeId
      */
     @Override
-    public void renderView(StringBuilder out, final AbstractNode startNode,
+    public void renderNode(final StructrOutputStream out, final AbstractNode startNode,
             final String editUrl, final Long editNodeId) {
 
 //        String errorMsg;

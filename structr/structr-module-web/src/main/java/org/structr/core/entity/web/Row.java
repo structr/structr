@@ -20,6 +20,7 @@ package org.structr.core.entity.web;
 
 
 import java.util.*;
+import org.structr.common.StructrOutputStream;
 import org.structr.core.entity.AbstractNode;
 
 /**
@@ -45,7 +46,7 @@ public class Row extends HtmlText {
      * @param editNodeId
      */
     @Override
-    public void renderView(StringBuilder out, final AbstractNode startNode,
+    public void renderNode(StructrOutputStream out, final AbstractNode startNode,
             final String editUrl, final Long editNodeId) {
 
         // if this page is requested to be edited, render edit frame
@@ -67,7 +68,7 @@ public class Row extends HtmlText {
                 if (editNodeId != null && s.getId() == editNodeId.longValue()) {
                     renderEditFrame(out, editUrl);
                 } else {
-                    s.renderView(out, startNode, editUrl, editNodeId);
+                    s.renderNode(	null,startNode, editUrl, editNodeId);
                 }
                 out.append("</div>");
             }

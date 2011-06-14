@@ -20,6 +20,7 @@
 package org.structr.core.entity.app;
 
 import java.text.SimpleDateFormat;
+import org.structr.common.StructrOutputStream;
 import org.structr.core.entity.AbstractNode;
 
 /**
@@ -31,7 +32,7 @@ public class AppTimestamp extends AbstractNode implements InteractiveNode
 	private static final String FORMAT_KEY =		"format";
 
 	@Override
-	public void renderView(final StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
+	public void renderNode(StructrOutputStream out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
 	{
 	}
 

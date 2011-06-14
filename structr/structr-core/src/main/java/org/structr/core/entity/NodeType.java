@@ -18,6 +18,8 @@
  */
 package org.structr.core.entity;
 
+import org.structr.common.StructrOutputStream;
+
 /**
  * A NodeType node defines the type of all connected nodes.
  * 
@@ -31,7 +33,7 @@ package org.structr.core.entity;
 public class NodeType extends AbstractNode {
 
     @Override
-    public void renderView(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId) {
+    public void renderNode(StructrOutputStream out, AbstractNode startNode, String editUrl, Long editNodeId) {
         out.append(getName());
     }
 

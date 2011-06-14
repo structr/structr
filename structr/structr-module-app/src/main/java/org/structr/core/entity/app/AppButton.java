@@ -19,6 +19,7 @@
 
 package org.structr.core.entity.app;
 
+import org.structr.common.StructrOutputStream;
 import org.structr.core.entity.AbstractNode;
 
 /**
@@ -33,18 +34,18 @@ public class AppButton extends HtmlNode
 	}
 
 	@Override
-	public void doBeforeRendering(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId)
+	public void doBeforeRendering(StructrOutputStream out, AbstractNode startNode, String editUrl, Long editNodeId)
 	{
 		addAttribute("type", "button");
 	}
 
 	@Override
-	public void renderContent(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId)
+	public void renderContent(StructrOutputStream out, AbstractNode startNode, String editUrl, Long editNodeId)
 	{
 	}
 
 	@Override
-	public boolean hasContent(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId)
+	public boolean hasContent(StructrOutputStream out, AbstractNode startNode, String editUrl, Long editNodeId)
 	{
 		return(false);
 	}

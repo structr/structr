@@ -20,6 +20,7 @@ package org.structr.core.entity;
 
 import java.util.Collections;
 import java.util.List;
+import org.structr.common.StructrOutputStream;
 
 /**
  * 
@@ -60,7 +61,7 @@ public class ArbitraryNode extends AbstractNode {
     }
 
     @Override
-    public void renderView(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId) {
+    public void renderNode(StructrOutputStream out, AbstractNode startNode, String editUrl, Long editNodeId) {
 
         // if this page is requested to be edited, render edit frame
         if (editNodeId != null && getId() == editNodeId.longValue()) {
@@ -73,14 +74,14 @@ public class ArbitraryNode extends AbstractNode {
             if (hasTemplate()) {
 
                 template.setCallingNode(this);
-                template.renderView(out, startNode, editUrl, editNodeId);
+                template.renderNode(out, startNode, editUrl, editNodeId);
             } else {
 
                 List<AbstractNode> subnodes = getSortedDirectChildAndLinkNodes();
 
                 // render subnodes in correct order
                 for (AbstractNode s : subnodes) {
-                    s.renderView(out, startNode, editUrl, editNodeId);
+                    s.renderNode(	null,startNode, editUrl, editNodeId);
                 }
             }
         }

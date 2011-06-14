@@ -19,6 +19,7 @@
 package org.structr.core.entity.web;
 
 import java.util.List;
+import org.structr.common.StructrOutputStream;
 import org.structr.core.entity.AbstractNode;
 
 /**
@@ -40,7 +41,7 @@ public class Breadcrumb extends WebNode {
      * Render a breadcrumb
      */
     @Override
-    public void renderView(StringBuilder out, final AbstractNode startNode,
+    public void renderNode(final StructrOutputStream out, final AbstractNode startNode,
             final String editUrl, final Long editNodeId) {
 
         if (editNodeId != null && getId() == editNodeId.longValue()) {
@@ -63,7 +64,7 @@ public class Breadcrumb extends WebNode {
      * @param out
      * @param startNode
      */
-    private void renderBreadcrumbItems(StringBuilder out, final AbstractNode startNode, final AbstractNode currentNode) {
+    private void renderBreadcrumbItems(final StructrOutputStream out, final AbstractNode startNode, final AbstractNode currentNode) {
 
         List<AbstractNode> ancestors = startNode.getAncestorNodes();
 

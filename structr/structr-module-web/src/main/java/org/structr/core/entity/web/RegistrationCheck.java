@@ -32,6 +32,7 @@ import org.jsoup.Jsoup;
 import org.structr.common.CurrentRequest;
 import org.structr.common.MailHelper;
 import org.structr.common.RelType;
+import org.structr.common.StructrOutputStream;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -467,7 +468,7 @@ public class RegistrationCheck extends LoginCheck {
      * @param editNodeId
      */
     @Override
-    public void renderView(StringBuilder out, final AbstractNode startNode,
+    public void renderNode(final StructrOutputStream out, final AbstractNode startNode,
             final String editUrl, final Long editNodeId) {
 
         // if this page is requested to be edited, render edit frame
@@ -911,7 +912,7 @@ public class RegistrationCheck extends LoginCheck {
         }
     }
 
-    private boolean hasFailures(final StringBuilder out) {
+    private boolean hasFailures(final StructrOutputStream out) {
         if (!(errors.isEmpty())) {
             for (String error : errors) {
                 out.append(error);
@@ -921,7 +922,7 @@ public class RegistrationCheck extends LoginCheck {
         return false;
     }
 
-    private void registerFailure(final StringBuilder out, final String errorMsg, final HttpSession session, final int maxRetries, final int delayThreshold, final int delayTime) {
+    private void registerFailure(final StructrOutputStream out, final String errorMsg, final HttpSession session, final int maxRetries, final int delayThreshold, final int delayTime) {
 
         errors.add(errorMsg);
 

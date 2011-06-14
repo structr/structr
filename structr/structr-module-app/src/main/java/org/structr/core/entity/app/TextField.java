@@ -28,6 +28,7 @@ import org.apache.commons.lang.StringUtils;
 import org.structr.common.RequestCycleListener;
 import org.structr.common.CurrentRequest;
 import org.structr.common.CurrentSession;
+import org.structr.common.StructrOutputStream;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.StructrRelationship;
 
@@ -51,7 +52,7 @@ public class TextField extends FormField implements InteractiveNode, RequestCycl
 	}
 
 	@Override
-	public void renderView(final StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
+	public void renderNode(StructrOutputStream out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
 	{
 		CurrentRequest.registerRequestCycleListener(this);
 
@@ -68,7 +69,7 @@ public class TextField extends FormField implements InteractiveNode, RequestCycl
 			if(hasTemplate())
 			{
 				template.setCallingNode(this);
-				template.renderView(out, startNode, editUrl, editNodeId);
+				template.renderNode(out, startNode, editUrl, editNodeId);
 
 			} else
 			{

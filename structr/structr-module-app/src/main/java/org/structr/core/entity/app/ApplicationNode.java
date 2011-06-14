@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.RelType;
+import org.structr.common.StructrOutputStream;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -47,7 +48,7 @@ public abstract class ApplicationNode extends AbstractNode
 	public abstract void buildTestCase();
 
 	@Override
-	public void renderView(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId)
+	public void renderNode(StructrOutputStream out, AbstractNode startNode, String editUrl, Long editNodeId)
 	{
 		// just a container
 	}

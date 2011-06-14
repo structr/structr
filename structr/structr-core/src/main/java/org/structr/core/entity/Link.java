@@ -18,6 +18,8 @@
  */
 package org.structr.core.entity;
 
+import org.structr.common.StructrOutputStream;
+
 /**
  * 
  * @author amorgner
@@ -69,7 +71,7 @@ public class Link extends AbstractNode {
      * @param editNodeId
      */
     @Override
-    public void renderView(StringBuilder out, final AbstractNode startNode,
+    public void renderNode(StructrOutputStream out, final AbstractNode startNode,
             final String editUrl, final Long editNodeId) {
 
         AbstractNode node = getStructrNode();
@@ -80,11 +82,11 @@ public class Link extends AbstractNode {
         // if this page is requested to be edited, render edit frame
         if (editNodeId != null && getId() == editNodeId.longValue()) {
 
-            node.renderView(out, startNode, editUrl, editNodeId);
+            node.renderNode(out, startNode, editUrl, editNodeId);
 
         } else {
             if (isVisible()) {
-                getStructrNode().renderView(out, startNode, editUrl, editNodeId);
+                getStructrNode().renderNode(out, startNode, editUrl, editNodeId);
             }
         }
     }

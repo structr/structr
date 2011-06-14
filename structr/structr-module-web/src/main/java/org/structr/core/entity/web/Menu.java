@@ -18,6 +18,7 @@
  */
 package org.structr.core.entity.web;
 
+import org.structr.common.StructrOutputStream;
 import org.structr.core.entity.AbstractNode;
 
 /**
@@ -57,7 +58,7 @@ public class Menu extends MenuItem {
      * Render a menu
      */
     @Override
-    public void renderView(StringBuilder out, final AbstractNode startNode,
+    public void renderNode(final StructrOutputStream out, final AbstractNode startNode,
             final String editUrl, final Long editNodeId) {
 
         if (editNodeId != null && getId() == editNodeId.longValue()) {

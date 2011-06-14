@@ -19,6 +19,7 @@
 package org.structr.core.entity.app;
 
 import java.util.Map;
+import org.structr.common.StructrOutputStream;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.DeleteNodeCommand;
@@ -30,7 +31,7 @@ import org.structr.core.node.DeleteNodeCommand;
 public class AppNodeDeleter extends ActionNode
 {
 	@Override
-	public boolean doAction(final StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
+	public boolean doAction(final StructrOutputStream out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
 	{
 		AbstractNode toDelete = getNodeFromLoader();
 		if(toDelete != null)

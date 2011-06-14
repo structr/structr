@@ -21,6 +21,7 @@ package org.structr.core.entity;
 
 import java.util.Map;
 import org.neo4j.graphdb.Node;
+import org.structr.common.StructrOutputStream;
 import org.structr.core.cloud.NodeDataContainer;
 
 /**
@@ -50,7 +51,7 @@ public class DefaultNode extends AbstractNode
     }
 
     @Override
-    public void renderView(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
+    public void renderNode(final StructrOutputStream out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
     {
 
         if (editNodeId != null && getId() == editNodeId.longValue()) {

@@ -18,6 +18,8 @@
  */
 package org.structr.core.entity;
 
+import org.structr.common.StructrOutputStream;
+
 /**
  * 
  * @author amorgner
@@ -33,7 +35,7 @@ public abstract class Principal extends AbstractNode {
     }
 
     @Override
-    public void renderView(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
+    public void renderNode(StructrOutputStream out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
     {
 
         if (editNodeId != null && getId() == editNodeId.longValue()) {

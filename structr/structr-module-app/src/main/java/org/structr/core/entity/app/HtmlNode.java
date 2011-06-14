@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Logger;
+import org.structr.common.StructrOutputStream;
 import org.structr.core.entity.AbstractNode;
 
 /**
@@ -45,9 +46,9 @@ public abstract class HtmlNode extends AbstractNode
 	protected String id = null;
 
 	// ----- abstract methods -----
-	public abstract void doBeforeRendering(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId);
-	public abstract void renderContent(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId);
-	public abstract boolean hasContent(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId);
+	public abstract void doBeforeRendering(StructrOutputStream out, final AbstractNode startNode, final String editUrl, final Long editNodeId);
+	public abstract void renderContent(StructrOutputStream out, final AbstractNode startNode, final String editUrl, final Long editNodeId);
+	public abstract boolean hasContent(StructrOutputStream out, final AbstractNode startNode, final String editUrl, final Long editNodeId);
 
 	@Override
 	public String getIconSrc()
@@ -97,7 +98,7 @@ public abstract class HtmlNode extends AbstractNode
 	}
 
 	@Override
-	public void renderView(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
+	public void renderNode(final StructrOutputStream out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
 	{
 		// notify component of rendering
 		doBeforeRendering(out, startNode, editUrl, editNodeId);

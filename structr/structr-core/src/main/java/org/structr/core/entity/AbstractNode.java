@@ -28,8 +28,6 @@ import org.structr.core.node.NodeRelationshipsCommand;
 import org.structr.core.node.FindNodeCommand;
 import org.structr.common.RelType;
 
-import java.io.IOException;
-import java.io.OutputStream;
 import java.io.StringReader;
 import java.io.Writer;
 import java.lang.reflect.Method;
@@ -59,6 +57,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.AbstractNodeComparator;
 import org.structr.common.CurrentRequest;
+import org.structr.common.StructrOutputStream;
 import org.structr.common.TemplateHelper;
 import org.structr.core.NodeSource;
 import org.structr.core.cloud.NodeDataContainer;
@@ -95,7 +94,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
     private List<StructrRelationship> allRelationships = null;
 
     // ----- abstract methods ----
-    public abstract void renderView(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId);
+    public abstract void renderNode(final StructrOutputStream out, final AbstractNode startNode, final String editUrl, final Long editNodeId);
 
     public abstract String getIconSrc();
 
@@ -303,7 +302,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      * @param editUrl
      * @param editNodeId
      */
-    public void renderEditView(StringBuilder out, final AbstractNode startNode,
+    public void renderEditView(StructrOutputStream out, final AbstractNode startNode,
             final String editUrl, final Long editNodeId) {
 
         if (getId() == editNodeId.longValue()) {
@@ -317,7 +316,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      * @param out
      * @param editUrl
      */
-    protected void renderEditFrame(StringBuilder out, final String editUrl) {
+    protected void renderEditFrame(StructrOutputStream out, final String editUrl) {
         // create IFRAME with given URL
         out.append("<iframe style=\"border: 1px solid #ccc; background-color: #fff\" src=\"").append(editUrl).append("\" width=\"100%\" height=\"100%\"").append("></iframe>");
     }
@@ -498,8 +497,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
      * Render a node-specific view (binary)
      *
      * Should be overwritten by any node which holds binary content
-     */
-    public void renderDirect(OutputStream out, final AbstractNode startNode,
+    public void renderNode(StructrOutputStream out, final AbstractNode startNode,
             final String editUrl, final Long editNodeId) {
 
         try {
@@ -510,6 +508,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
             logger.log(Level.SEVERE, "Could not write node name to output stream: {0}", e.getStackTrace());
         }
     }
+     */
 
     /**
      * Get this node's template
@@ -2349,7 +2348,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 
                     // propagate request and template
 //                    s.setRequest(request);
-                    s.renderView(replacement, startNode, editUrl, editNodeId);
+                    s.renderNode(	null,startNode, editUrl, editNodeId);
                 }
 
             } else if (callingNode != null && key.equals(CALLING_NODE_SUBNODES_AND_LINKED_NODES_KEY)) {
@@ -2359,7 +2358,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 
                     // propagate request and template
 //                    s.setRequest(request);
-                    s.renderView(replacement, startNode, editUrl, editNodeId);
+                    s.renderNode(	null,startNode, editUrl, editNodeId);
                 }
 
             } else { //if (key.startsWith("/") || key.startsWith("count(")) {
@@ -2386,7 +2385,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 
                             // propagate request
 //                            s.setRequest(getRequest());
-                            s.renderView(replacement, startNode, editUrl, editNodeId);
+                            s.renderNode(		null,startNode, editUrl, editNodeId);
                         }
                     }
                 } else if (result instanceof AbstractNode) {
@@ -2419,7 +2418,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
                         }
 
                     } else {
-                        s.renderView(replacement, startNode, editUrl, editNodeId);
+                        s.renderNode(		null,startNode, editUrl, editNodeId);
                     }
 
                 } else {
@@ -2437,7 +2436,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 //
 //                        // propagate request
 //                        s.setRequest(getRequest());
-//                        s.renderView(replacement, startNode, editUrl, editNodeId, user);
+//                        s.renderNode(replacement, startNode, editUrl, editNodeId, user);
 //
 //                    }
 //                }
@@ -2638,7 +2637,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 //
 //                    // propagate request
 //                    s.setRequest(getRequest());
-//                    s.renderView(replacement, startNode, editUrl, editNodeId);
+//                    s.renderNode(replacement, startNode, editUrl, editNodeId);
 //                }
 //
 //            } else if (callingNode.getNode() != null && callingNode.getNode().hasProperty(key)) {
@@ -2661,7 +2660,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 ////                    for (AbstractNode s : nodes) {
 ////                        // propagate request
 ////                        s.setRequest(getRequest());
-////                        s.renderView(replacement, startNode, editUrl, editNodeId);
+////                        s.renderNode(replacement, startNode, editUrl, editNodeId);
 ////                    }
 ////                }
 ////

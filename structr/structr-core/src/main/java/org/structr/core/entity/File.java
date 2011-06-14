@@ -28,6 +28,7 @@ import java.util.logging.Logger;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.structr.common.Path;
+import org.structr.common.StructrOutputStream;
 import org.structr.core.Services;
 
 /**
@@ -131,7 +132,7 @@ public class File extends DefaultNode {
      * @param out
      */
     @Override
-    public void renderDirect(OutputStream out, final AbstractNode startNode, final String editUrl, final Long editNodeId) {
+    public void renderNode(StructrOutputStream out, final AbstractNode startNode, final String editUrl, final Long editNodeId) {
 
         if (isVisible()) {
             try {

@@ -23,6 +23,7 @@ import java.util.logging.Logger;
 import org.structr.common.CurrentRequest;
 import org.structr.common.CurrentSession;
 import org.structr.common.SessionValue;
+import org.structr.common.StructrOutputStream;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.FindNodeCommand;
@@ -43,7 +44,7 @@ public class AppNodeLoader extends AbstractNode implements NodeSource
 	private AbstractNode loadedNode = null;
 
 	@Override
-	public void renderView(final StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
+	public void renderNode(StructrOutputStream out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
 	{
 		// FIXME: HTML code hard-coded..
 

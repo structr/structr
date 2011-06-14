@@ -18,6 +18,7 @@
  */
 package org.structr.core.entity.web;
 
+import org.structr.common.StructrOutputStream;
 import org.structr.core.entity.AbstractNode;
 
 /**
@@ -39,7 +40,7 @@ public class Site extends WebNode {
      *
      */
     @Override
-    public void renderView(StringBuilder out, AbstractNode startNode,
+    public void renderNode(final StructrOutputStream out, AbstractNode startNode,
             final String editUrl, final Long editNodeId) {
 
 
@@ -59,7 +60,7 @@ public class Site extends WebNode {
                     if (homepage == null) {
                         out.append("No home page found for ").append(getName());
                     } else {
-                        homepage.renderView(out, homepage, editUrl, editNodeId);
+                        homepage.renderNode(	null,homepage, editUrl, editNodeId);
                     }
 
                 }

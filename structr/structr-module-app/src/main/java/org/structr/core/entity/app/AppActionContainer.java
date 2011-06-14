@@ -23,6 +23,7 @@ import java.util.logging.Logger;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.RelType;
 import org.structr.common.CurrentRequest;
+import org.structr.common.StructrOutputStream;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.StructrRelationship;
 
@@ -42,7 +43,7 @@ public class AppActionContainer extends AbstractNode
 
 	// ----- public methods -----
 	@Override
-	public void renderView(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
+	public void renderNode(StructrOutputStream out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
 	{
 		// only execute if path matches exactly
 		String currentUrl = CurrentRequest.getCurrentNodePath();

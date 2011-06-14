@@ -22,14 +22,11 @@ import org.structr.core.entity.PlainText;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.node.NodeFactoryCommand;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.StringReader;
 import java.util.List;
-import org.apache.commons.io.IOUtils;
 import org.neo4j.graphdb.Direction;
 import org.structr.core.node.NodeRelationshipsCommand;
 import org.structr.common.RelType;
+import org.structr.common.StructrOutputStream;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.StructrRelationship;
 
@@ -62,7 +59,7 @@ public class Xml extends PlainText {
      * Render XML content as HTML, replace keys by values
      */
     @Override
-    public void renderView(StringBuilder out, final AbstractNode startNode,
+    public void renderNode(final StructrOutputStream out, final AbstractNode startNode,
             final String editUrl, final Long editNodeId) {
 
         if (isVisible()) {
@@ -96,7 +93,7 @@ public class Xml extends PlainText {
                         AbstractNode s = (AbstractNode) nodeFactory.execute(r.getEndNode());
 
                         if (key.equals(s.getName())) {
-                            s.renderView(replacement, startNode, editUrl, editNodeId);
+                            s.renderNode(		null,startNode, editUrl, editNodeId);
                         }
 
 
@@ -108,7 +105,7 @@ public class Xml extends PlainText {
                         AbstractNode s = (AbstractNode) nodeFactory.execute(r.getEndNode());
 
                         if (key.equals(s.getName())) {
-                            s.renderView(replacement, startNode, editUrl, editNodeId);
+                            s.renderNode(		null,startNode, editUrl, editNodeId);
                         }
 
                     }
@@ -131,9 +128,8 @@ public class Xml extends PlainText {
      * Stream content directly to output.
      *
      * @param out
-     */
     @Override
-    public void renderDirect(OutputStream out, final AbstractNode startNode,
+    public void renderNode(final StructrOutputStream out, final AbstractNode startNode,
             final String editUrl, final Long editNodeId) {
 
 
@@ -152,4 +148,5 @@ public class Xml extends PlainText {
         }
 
     }
+     */
 }

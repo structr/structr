@@ -19,7 +19,6 @@
 package org.structr.core.entity;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -30,6 +29,7 @@ import org.neo4j.graphdb.Direction;
 import org.structr.common.ImageHelper;
 import org.structr.common.ImageHelper.Thumbnail;
 import org.structr.common.RelType;
+import org.structr.common.StructrOutputStream;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.node.CreateNodeCommand;
@@ -130,45 +130,41 @@ public class Image extends File {
     }
 
     @Override
-    public void renderView(StringBuilder out, final AbstractNode startNode,
-            final String editUrl, final Long editNodeId) {
+    public void renderNode(final StructrOutputStream out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
+    {
+	boolean renderDirect = false;
 
-        if (editNodeId != null && getId() == editNodeId.longValue()) {
+	if(renderDirect)
+	{
+		if (isVisible()) {
+		    super.renderNode(out, startNode, editUrl, editNodeId);
+		}
 
-            renderEditFrame(out, editUrl);
+	} else
+	{
+		if (editNodeId != null && getId() == editNodeId.longValue()) {
 
-        } else {
+		    renderEditFrame(out, editUrl);
 
-            String imageUrl = null;
+		} else {
 
-            if (getUrl() == null) {
-                imageUrl = getNodePath(startNode);
-            } else {
-                imageUrl = getUrl();
-            }
+		    String imageUrl = null;
 
-            // FIXME: title shoud be rendered dependent of locale
-            if (isVisible()) {
-                //out.append("<img src=\"").append(getNodeURL(renderMode, contextPath)).append("\" title=\"").append(getTitle()).append("\" alt=\"").append(getTitle()).append("\" width=\"").append(getWidth()).append("\" height=\"").append(getHeight()).append("\">");
-                out.append("<img src=\"").append(imageUrl).append("\" title=\"").append(getTitle()).append("\" alt=\"").append(getTitle()).append("\" width=\"").append(getWidth()).append("\" height=\"").append(getHeight()).append("\">");
-            }
-        }
+		    if (getUrl() == null) {
+			imageUrl = getNodePath(startNode);
+		    } else {
+			imageUrl = getUrl();
+		    }
+
+		    // FIXME: title shoud be rendered dependent of locale
+		    if (isVisible()) {
+			//out.append("<img src=\"").append(getNodeURL(renderMode, contextPath)).append("\" title=\"").append(getTitle()).append("\" alt=\"").append(getTitle()).append("\" width=\"").append(getWidth()).append("\" height=\"").append(getHeight()).append("\">");
+			out.append("<img src=\"").append(imageUrl).append("\" title=\"").append(getTitle()).append("\" alt=\"").append(getTitle()).append("\" width=\"").append(getWidth()).append("\" height=\"").append(getHeight()).append("\">");
+		    }
+		}
+	    }
     }
 
-    /**
-     * Stream content directly to output.
-     *
-     * @param filesPath
-     * @param out
-     */
-    @Override
-    public void renderDirect(OutputStream out, final AbstractNode startNode,
-            final String editUrl, final Long editNodeId) {
-
-        if (isVisible()) {
-            super.renderDirect(out, startNode, editUrl, editNodeId);
-        }
-    }
 //
 //    /**
 //     * Get thumbnail image of this image

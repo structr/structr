@@ -22,6 +22,7 @@ import java.util.LinkedList;
 import java.util.List;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.RelType;
+import org.structr.common.StructrOutputStream;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -95,7 +96,7 @@ public class MenuItem extends WebNode {
      * @param out
      * @param startNode
      */
-    protected void renderMenuItems(StringBuilder out, final AbstractNode startNode, final AbstractNode currentNode, int currentDepth, int currentPos, int numberOfSubnodes, int maxDepth) {
+    protected void renderMenuItems(final StructrOutputStream out, final AbstractNode startNode, final AbstractNode currentNode, int currentDepth, int currentPos, int numberOfSubnodes, int maxDepth) {
 
         AbstractNode menuItemNode = currentNode;
 

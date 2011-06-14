@@ -23,6 +23,7 @@ import java.util.List;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.RelType;
 import org.structr.common.CurrentRequest;
+import org.structr.common.StructrOutputStream;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.StructrRelationship;
 
@@ -48,7 +49,7 @@ public class AppForm extends HtmlNode
 
 
 	@Override
-	public void doBeforeRendering(final StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
+	public void doBeforeRendering(final StructrOutputStream out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
 	{
 		AppActionContainer submit = findSubmit();
 		if(submit != null)
@@ -60,16 +61,16 @@ public class AppForm extends HtmlNode
 	}
 
 	@Override
-	public void renderContent(final StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
+	public void renderContent(final StructrOutputStream out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
 	{
 		for(AbstractNode node : getSortedDirectChildNodes())
 		{
-			node.renderView(out, startNode, editUrl, editNodeId);
+			node.renderNode(out, startNode, editUrl, editNodeId);
 		}
 	}
 
 	@Override
-	public boolean hasContent(final StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
+	public boolean hasContent(final StructrOutputStream out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
 	{
 		return(hasChildren());
 	}

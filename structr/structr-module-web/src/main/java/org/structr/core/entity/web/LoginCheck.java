@@ -25,6 +25,7 @@ import javax.servlet.http.HttpSession;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.CurrentRequest;
+import org.structr.common.StructrOutputStream;
 import org.structr.context.SessionMonitor;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -201,7 +202,7 @@ public class LoginCheck extends WebNode {
      * @param editNodeId
      */
     @Override
-    public void renderView(StringBuilder out, final AbstractNode startNode,
+    public void renderNode(final StructrOutputStream out, final AbstractNode startNode,
             final String editUrl, final Long editNodeId) {
 
         String errorMsg;
@@ -333,7 +334,7 @@ public class LoginCheck extends WebNode {
         }
     }
 
-    private void countLoginFailure(final StringBuilder out, final HttpSession session, final int maxRetries, final int delayThreshold, final int delayTime) {
+    private void countLoginFailure(final StructrOutputStream out, final HttpSession session, final int maxRetries, final int delayThreshold, final int delayTime) {
 
         Integer retries = (Integer) session.getAttribute(NUMBER_OF_LOGIN_ATTEMPTS);
 

@@ -26,6 +26,7 @@ import java.util.logging.Logger;
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
+import org.structr.common.StructrOutputStream;
 import org.structr.core.NodeSource;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -43,7 +44,7 @@ public class AppRelationshipCreator extends ActionNode
 	private static final String TARGET_REL_TYPE = "targetRelType";
 
 	@Override
-	public boolean doAction(final StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
+	public boolean doAction(final StructrOutputStream out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
 	{
 		String relType = getStringProperty(TARGET_REL_TYPE);
 		AbstractNode relStartNode = getNodeFromNamedSource("startNode");
