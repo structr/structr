@@ -163,8 +163,9 @@ public class MenuItem extends WebNode {
                 }
 
                 out.append("<li").append(cssClass).append(">");
-                out.append("<span>" + "<a href=\"").append(relativeNodePath).append("\">");
+                out.append("<span><a href=\"").append(relativeNodePath).append("\">");
                 out.append(currentNode.getTitleOrName());
+                out.append("</a></span>");
             }
         }
 
@@ -178,7 +179,7 @@ public class MenuItem extends WebNode {
             }
 
             if (currentNode != this) {
-                out.append("</a>").append("</span>\n");
+                
                 out.append("</li>");
 
                 if (currentPos == numberOfSubnodes - 1) {
