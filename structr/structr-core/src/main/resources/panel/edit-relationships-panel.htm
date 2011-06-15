@@ -56,14 +56,14 @@
       var SUBTYPE = '#53ED78';
 
       // begin maxDepth
-      #set($maxDepth = 2)
+      #set($maxDepth = 1)
       #if( $request.getParameter("maxDepth") )
             #set($maxDepth = $maxDepth.parseInt($request.getParameter("maxDepth")))
       #end
       // end maxDepth
 
       // begin maxNodes
-      #set($maxNodes = 1000000)
+      #set($maxNodes = 10)
       #if( $request.getParameter("maxNodes") )
             #set($maxNodes = $maxNodes.parseInt($request.getParameter("maxNodes")))
       #end
