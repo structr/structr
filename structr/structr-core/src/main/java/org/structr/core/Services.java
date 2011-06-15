@@ -50,6 +50,7 @@ public class Services {
     public static final String DATABASE_PATH = "database.path";
     public static final String FILES_PATH = "files.path";
     // Network-related constants
+    public static final String SERVER_IP = "server.ip";
     public static final String TCP_PORT = "tcp.port";
     public static final String UDP_PORT = "udp.port";
     public static final String SMTP_HOST = "smtp.host";
@@ -76,6 +77,7 @@ public class Services {
     private static String modulesPath;// = "/opt/structr/modules";
     private static String configFilePath;// = "/opt/structr/structr.conf";
     private static String tmpPath;// = "/tmp";
+    private static String serverIp;// = "localhost";
     private static String tcpPort;// = "54555";
     private static String udpPort;// = "54777";
     private static String smtpHost;// = "localhost";
@@ -136,6 +138,13 @@ public class Services {
      */
     public static String getModulesPath() {
         return getPath(Path.Modules);
+    }
+
+    /**
+     * Return the local host address for the outside world
+     */
+    public static String getServerIP() {
+        return serverIp;
     }
 
     /**
@@ -255,6 +264,7 @@ public class Services {
         databasePath = getConfigValue(context, Services.DATABASE_PATH, "/opt/structr/db");
         filesPath = getConfigValue(context, Services.FILES_PATH, "/opt/structr/files");
         modulesPath = getConfigValue(context, Services.MODULES_PATH, "/opt/structr/modules");
+        serverIp = getConfigValue(context, Services.SERVER_IP, "127.0.0.1");
         tcpPort = getConfigValue(context, Services.TCP_PORT, "54555");
         udpPort = getConfigValue(context, Services.UDP_PORT, "57555");
         smtpHost = getConfigValue(context, Services.SMTP_HOST, "localhost");
