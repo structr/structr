@@ -20,7 +20,7 @@ package org.structr.core.entity.web;
 
 import java.util.*;
 import org.structr.common.RenderMode;
-import org.structr.common.renderer.DefaultTemplateRenderer;
+import org.structr.common.renderer.ExternalTemplateRenderer;
 import org.structr.core.NodeRenderer;
 
 /**
@@ -39,6 +39,6 @@ public class Page extends WebNode
 	@Override
 	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers)
 	{
-		renderers.put(RenderMode.Default, new DefaultTemplateRenderer());
+		renderers.put(RenderMode.Default, new ExternalTemplateRenderer(true));
 	}
 }

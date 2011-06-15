@@ -20,6 +20,7 @@ package org.structr.core.entity.app;
 
 import java.util.Map;
 import org.structr.common.RenderMode;
+import org.structr.common.StructrOutputStream;
 import org.structr.core.NodeRenderer;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.renderer.HtmlRenderer;
@@ -28,7 +29,7 @@ import org.structr.core.renderer.HtmlRenderer;
  *
  * @author Christian Morgner
  */
-public class AppButton extends AbstractNode
+public class AppButton extends HtmlNode
 {
 	@Override
 	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers)
@@ -37,6 +38,22 @@ public class AppButton extends AbstractNode
 		renderer.addAttribute("type", "button");
 
 		renderers.put(RenderMode.Default, renderer);
+	}
+
+	@Override
+	public boolean hasContent(HtmlRenderer renderer, StructrOutputStream out, AbstractNode startNode, String editUrl, Long editNodeId)
+	{
+		return(false);
+	}
+
+	@Override
+	public void doBeforeRendering(HtmlRenderer renderer, StructrOutputStream out, AbstractNode startNode, String editUrl, Long editNodeId)
+	{
+	}
+
+	@Override
+	public void renderContent(HtmlRenderer renderer, StructrOutputStream out, AbstractNode startNode, String editUrl, Long editNodeId)
+	{
 	}
 
 	@Override

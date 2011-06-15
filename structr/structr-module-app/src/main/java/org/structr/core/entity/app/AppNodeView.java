@@ -41,7 +41,7 @@ public class AppNodeView extends AbstractNode
 	@Override
 	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers)
 	{
-		renderers.put(RenderMode.Direct, new NodeViewRenderer());
+		renderers.put(RenderMode.Default, new NodeViewRenderer());
 	}
 
 	@Override

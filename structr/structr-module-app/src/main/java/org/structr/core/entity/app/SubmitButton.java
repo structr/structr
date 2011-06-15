@@ -20,7 +20,7 @@ package org.structr.core.entity.app;
 
 import java.util.Map;
 import org.structr.common.RenderMode;
-import org.structr.common.renderer.TemplateRenderer;
+import org.structr.common.renderer.ExternalTemplateRenderer;
 import org.structr.core.NodeRenderer;
 
 /**
@@ -38,7 +38,7 @@ public class SubmitButton extends FormField
 	@Override
 	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers)
 	{
-		renderers.put(RenderMode.Default, new TemplateRenderer());
+		renderers.put(RenderMode.Default, new ExternalTemplateRenderer(false));
 	}
 
 	@Override

@@ -16,27 +16,30 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.entity.web;
 
+package org.structr.common.renderer;
+
+import org.structr.common.RenderMode;
+import org.structr.common.StructrOutputStream;
+import org.structr.core.NodeRenderer;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.PlainText;
 
 /**
- * 
- * @author amorgner
- * 
+ *
+ * @author Christian Morgner
  */
-public class HtmlSource extends PlainText {
+public class ContentRenderer implements NodeRenderer<PlainText>
+{
+	@Override
+	public void renderNode(StructrOutputStream out, PlainText currentNode, AbstractNode startNode, String editUrl, Long editNodeId, RenderMode renderMode)
+	{
+		out.append(currentNode.getContent());
+	}
 
-//    private final static String keyPrefix = "${";
-//    private final static String keySuffix = "}";
-//    private final static String requestKeyPrefix = "$[";
-//    private final static String requestKeySuffix = "]";
-//    private final static String subnodeKeyPrefix = "$(";
-//    private final static String subnodeKeySuffix = ")";
-    private final static String ICON_SRC = "/images/html.png";
-
-    @Override
-    public String getIconSrc() {
-        return ICON_SRC;
-    }
+	@Override
+	public String getContentType(PlainText currentNode)
+	{
+		return(currentNode.getContentType());
+	}
 }

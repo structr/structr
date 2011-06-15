@@ -19,9 +19,8 @@
 package org.structr.core.entity;
 
 import java.util.Map;
-import java.util.logging.Logger;
 import org.structr.common.RenderMode;
-import org.structr.common.renderer.SubnodeTemplateRenderer;
+import org.structr.common.renderer.ContentTemplateRenderer;
 import org.structr.core.NodeRenderer;
 
 /**
@@ -69,33 +68,8 @@ public class PlainText extends AbstractNode {
     @Override
     public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers)
     {
-	    renderers.put(RenderMode.Default, new SubnodeTemplateRenderer());
+	    renderers.put(RenderMode.Default, new ContentTemplateRenderer());
     }
-
-    /**
-     * Stream content directly to output.
-     *
-     * @param out
-    @Override
-    public void renderNode(StructrOutputStream out, final AbstractNode startNode,
-            final String editUrl, final Long editNodeId) {
-
-        if (isVisible()) {
-
-            try {
-
-                StringBuilder sb = new StringBuilder();
-                renderNode(	null,startNode, editUrl, editNodeId);
-
-                // write to output stream
-                IOUtils.write(sb.toString(), out);
-
-            } catch (IOException e) {
-                logger.log(Level.WARNING, "Error while rendering {0}: {1}", new String[]{getContent(), e.getMessage()});
-            }
-        }
-    }
-     */
 
     @Override
     public void onNodeCreation()

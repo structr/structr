@@ -26,7 +26,7 @@ import org.apache.commons.lang.StringUtils;
 import org.structr.common.CurrentRequest;
 import org.structr.common.CurrentSession;
 import org.structr.common.RenderMode;
-import org.structr.common.renderer.DefaultTemplateRenderer;
+import org.structr.common.renderer.ExternalTemplateRenderer;
 import org.structr.core.NodeRenderer;
 
 /**
@@ -53,7 +53,7 @@ public class SelectField extends FormField implements InteractiveNode
 	@Override
 	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers)
 	{
-		renderers.put(RenderMode.Default, new DefaultTemplateRenderer(false));
+		renderers.put(RenderMode.Default, new ExternalTemplateRenderer(false));
 	}
 
 	// ----- interface InteractiveNode -----

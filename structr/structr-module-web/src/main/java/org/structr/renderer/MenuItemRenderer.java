@@ -101,6 +101,7 @@ public abstract class MenuItemRenderer
 				out.append("<li").append(cssClass).append(">");
 				out.append("<span>" + "<a href=\"").append(relativeNodePath).append("\">");
 				out.append(startNode.getTitleOrName());
+				out.append("</a>").append("</span>\n");
 			}
 		}
 
@@ -117,7 +118,6 @@ public abstract class MenuItemRenderer
 
 			if(startNode != currentNode)
 			{
-				out.append("</a>").append("</span>\n");
 				out.append("</li>");
 
 				if(currentPos == numberOfSubnodes - 1)

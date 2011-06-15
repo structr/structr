@@ -21,7 +21,7 @@ package org.structr.core.entity;
 import java.util.Collections;
 import java.util.Map;
 import org.structr.common.RenderMode;
-import org.structr.common.renderer.DefaultTemplateRenderer;
+import org.structr.common.renderer.NullRenderer;
 import org.structr.core.NodeRenderer;
 
 /**
@@ -65,8 +65,7 @@ public class ArbitraryNode extends AbstractNode {
     @Override
     public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers)
     {
-	    DefaultTemplateRenderer defaultRenderer = new DefaultTemplateRenderer();
-	    renderers.put(RenderMode.Default, defaultRenderer);
+	    renderers.put(RenderMode.Default, new NullRenderer());
     }
 
     @Override

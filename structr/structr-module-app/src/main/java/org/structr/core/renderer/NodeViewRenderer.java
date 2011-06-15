@@ -82,7 +82,9 @@ public class NodeViewRenderer implements NodeRenderer<AbstractNode>
 		String idSourceParameter = node.getStringProperty(ID_SOURCE_KEY);
 		String idSource = CurrentRequest.getRequest().getParameter(idSourceParameter);
 
-		return ((AbstractNode)Services.command(FindNodeCommand.class).execute(null, this, idSource));
+		logger.log(Level.INFO, "Got idSourceParameter {0}, parameter {1}, loading node..", new Object[] { idSourceParameter, idSource } );
+
+		return ((AbstractNode)Services.command(FindNodeCommand.class).execute(null, node, idSource));
 	}
 
 	private String getTemplateFromNode(final AbstractNode node)

@@ -268,11 +268,6 @@ public abstract class AbstractNode implements Comparable<AbstractNode>
 		return (this.getName().compareTo(node.getName()));
 	}
 
-	public boolean hasDirect()
-	{
-		return(false);
-	}
-
 	public final void renderNode(final StructrOutputStream out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
 	{
 		// initialize renderers
@@ -284,7 +279,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>
 
 		// determine RenderMode
 		RenderMode renderMode = RenderMode.Default;
-		if(this.equals(startNode) && this.hasDirect())
+		if(this.equals(startNode) && rendererMap.containsKey(RenderMode.Direct))
 		{
 			renderMode = RenderMode.Direct;
 		}
@@ -297,7 +292,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>
 		NodeRenderer ret = rendererMap.get(renderMode);
 		if(ret == null)
 		{
-			logger.log(Level.INFO, "No renderer found for mode {0}, using default renderers", renderMode);
+			logger.log(Level.FINE, "No renderer found for mode {0}, using default renderers", renderMode);
 
 			switch(renderMode)
 			{
@@ -315,10 +310,11 @@ public abstract class AbstractNode implements Comparable<AbstractNode>
 			}
 		}
 
-		logger.log(Level.INFO, "Got renderer {0} for node type {1} ({2})",
+		logger.log(Level.FINER, "Got renderer {0} for mode {1}, node type {2} ({3})",
 			new Object[]
 			{
 				ret != null ? ret.getClass().getName() : "Unknown",
+				renderMode,
 				this.getType(),
 				this.getId()
 			}
@@ -2673,8 +2669,6 @@ public abstract class AbstractNode implements Comparable<AbstractNode>
 	 */
 	public void replaceBySubnodes(StringBuilder content, final AbstractNode startNode, final String editUrl, final Long editNodeId)
 	{
-
-//        List<AbstractNode> subnodes = getSortedDirectChildAndLinkNodes(user);
 		List<AbstractNode> callingNodeSubnodes = null;
 		List<AbstractNode> callingNodeSubnodesAndLinkedNodes = null;
 
@@ -2725,7 +2719,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>
 
 				if(StringUtils.isNotEmpty(templateKey))
 				{
-					customTemplate = (Template)findNode.execute(user, this, new XPath(templateKey));
+					customTemplate = (Template) findNode.execute(user, this, new XPath(templateKey));
 				}
 
 			} else if(indexOfDot > 0)
@@ -2735,9 +2729,8 @@ public abstract class AbstractNode implements Comparable<AbstractNode>
 				methodKey = splitted[1];
 			}
 
-			// wrap existing StringBuilder in existing StructrOutputStream
-			StructrOutputStream buf = new StructrOutputStream(content);
-			StringBuilder replacement = new StringBuilder();
+			// StringBuilder replacement = new StringBuilder();
+			StructrOutputStream replacement = new StructrOutputStream();
 
 			if(callingNode != null && key.equals(CALLING_NODE_SUBNODES_KEY))
 			{
@@ -2747,10 +2740,8 @@ public abstract class AbstractNode implements Comparable<AbstractNode>
 				{
 
 					// propagate request and template
-//		                        s.setRequest(request);
-					s.renderNode(buf, startNode, editUrl, editNodeId);
-
-
+					// s.setRequest(request);
+					s.renderNode(replacement, startNode, editUrl, editNodeId);
 				}
 
 			} else if(callingNode != null && key.equals(CALLING_NODE_SUBNODES_AND_LINKED_NODES_KEY))
@@ -2761,26 +2752,25 @@ public abstract class AbstractNode implements Comparable<AbstractNode>
 				{
 
 					// propagate request and template
-//                    s.setRequest(request);
-					s.renderNode(buf, startNode, editUrl, editNodeId);
+					// s.setRequest(request);
+					s.renderNode(replacement, startNode, editUrl, editNodeId);
 				}
 
 			} else
-			{ //if (key.startsWith("/") || key.startsWith("count(")) {
+			{
+				//if (key.startsWith("/") || key.startsWith("count(")) {
 				// use XPath notation
-
-
 				// search relative to calling node
 				//List<AbstractNode> nodes = (List<AbstractNode>) findNode.execute(user, callingNode, new XPath(key));
 
-//                Object result = findNode.execute(user, this, new XPath(key));
+				// Object result = findNode.execute(user, this, new XPath(key));
 				Object result = findNode.execute(user, this, key);
 
 				if(result instanceof List)
 				{
 
 					// get referenced nodes relative to the template
-					List<AbstractNode> nodes = (List<AbstractNode>)result;
+					List<AbstractNode> nodes = (List<AbstractNode>) result;
 
 					if(nodes != null)
 					{
@@ -2793,14 +2783,14 @@ public abstract class AbstractNode implements Comparable<AbstractNode>
 							}
 
 							// propagate request
-//                            s.setRequest(getRequest());
-							s.renderNode(buf, startNode, editUrl, editNodeId);
+							// s.setRequest(getRequest());
+							s.renderNode(replacement, startNode, editUrl, editNodeId);
 						}
 					}
 				} else if(result instanceof AbstractNode)
 				{
 
-					AbstractNode s = (AbstractNode)result;
+					AbstractNode s = (AbstractNode) result;
 
 					if(customTemplate != null)
 					{
@@ -2808,7 +2798,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>
 					}
 
 					// propagate request
-//                    s.setRequest(getRequest());
+					// s.setRequest(getRequest());
 					if(StringUtils.isNotEmpty(methodKey))
 					{
 
@@ -2838,7 +2828,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>
 
 					} else
 					{
-						s.renderNode(buf, startNode, editUrl, editNodeId);
+						s.renderNode(replacement, startNode, editUrl, editNodeId);
 					}
 
 				} else
@@ -2848,29 +2838,15 @@ public abstract class AbstractNode implements Comparable<AbstractNode>
 				}
 
 			}
-//            else {
-//
-//                // subnodes of this object
-//                for (AbstractNode s : subnodes) {
-//
-//                    if (key.equals(s.getName())) {
-//
-//                        // propagate request
-//                        s.setRequest(getRequest());
-//                        s.renderNode(replacement, startNode, editUrl, editNodeId, user);
-//
-//                    }
-//                }
-//            }
-			String replaceBy = replacement.toString();
 
+			String replaceBy = replacement.toString();
 			content.replace(start, end
 				+ NODE_KEY_SUFFIX.length(), replaceBy);
+			
 			// avoid replacing in the replacement again
 			start = content.indexOf(NODE_KEY_PREFIX, start + replaceBy.length() + 1);
 		}
-
-	}
+  }
 
 	/**
 	 * Generic getter for use with Freemarker template language

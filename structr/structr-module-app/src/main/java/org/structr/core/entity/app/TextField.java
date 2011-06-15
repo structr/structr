@@ -29,7 +29,7 @@ import org.structr.common.RequestCycleListener;
 import org.structr.common.CurrentRequest;
 import org.structr.common.CurrentSession;
 import org.structr.common.RenderMode;
-import org.structr.common.renderer.TemplateRenderer;
+import org.structr.common.renderer.ExternalTemplateRenderer;
 import org.structr.core.NodeRenderer;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.StructrRelationship;
@@ -56,7 +56,7 @@ public class TextField extends FormField implements InteractiveNode, RequestCycl
 	@Override
 	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers)
 	{
-		renderers.put(RenderMode.Default, new TemplateRenderer());
+		renderers.put(RenderMode.Default, new ExternalTemplateRenderer(false));
 	}
 
 	// ----- interface InteractiveNode -----

@@ -19,7 +19,6 @@
 package org.structr.core.entity.app;
 
 import java.util.Map;
-import java.util.logging.Logger;
 import org.structr.common.RenderMode;
 import org.structr.common.renderer.NullRenderer;
 import org.structr.core.NodeRenderer;
@@ -41,7 +40,8 @@ public class AppActionContainer extends AbstractNode
 	@Override
 	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers)
 	{
-		renderers.put(RenderMode.Default, new ActionRenderer());
+		renderers.put(RenderMode.Default, new NullRenderer());
+		renderers.put(RenderMode.Direct, new ActionRenderer());
 	}
 
 	@Override

@@ -12,7 +12,7 @@ import org.structr.core.entity.PlainText;
  *
  * @author Christian Morgner
  */
-public class SubnodeTemplateRenderer implements NodeRenderer<PlainText>
+public class ContentTemplateRenderer implements NodeRenderer<PlainText>
 {
 	@Override
 	public void renderNode(StructrOutputStream out, PlainText currentNode, AbstractNode startNode, String editUrl, Long editNodeId, RenderMode renderMode)
@@ -22,7 +22,6 @@ public class SubnodeTemplateRenderer implements NodeRenderer<PlainText>
 			String html = currentNode.getContent();
 			if(StringUtils.isNotBlank(html))
 			{
-
 				StringWriter content = new StringWriter();
 
 				// process content with Freemarker
@@ -34,6 +33,18 @@ public class SubnodeTemplateRenderer implements NodeRenderer<PlainText>
 				currentNode.replaceBySubnodes(content2, startNode, editUrl, editNodeId);
 				out.append(content2.toString());
 
+/*
+			}
+			} else
+			{
+				List<AbstractNode> subnodes = currentNode.getSortedDirectChildAndLinkNodes();
+
+				// render subnodes in correct order
+				for(AbstractNode s : subnodes)
+				{
+					s.renderNode(out, currentNode, editUrl, editNodeId);
+				}
+ */
 			}
 		}
 	}
@@ -41,6 +52,6 @@ public class SubnodeTemplateRenderer implements NodeRenderer<PlainText>
 	@Override
 	public String getContentType(PlainText node)
 	{
-		return ("text/html");
+		return (node.getContentType());
 	}
 }
