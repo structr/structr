@@ -363,6 +363,7 @@ public class Maintenance extends Admin {
                 params.add(new AbstractMap.SimpleEntry<String, Object>("UDP Port", Services.getUdpPort()));
                 params.add(new AbstractMap.SimpleEntry<String, Object>("SMTP Host", Services.getSmtpHost()));
                 params.add(new AbstractMap.SimpleEntry<String, Object>("SMTP Port", Services.getSmtpPort()));
+                params.add(new AbstractMap.SimpleEntry<String, Object>("Server IP", Services.getServerIP()));
 
                 return params;
 
