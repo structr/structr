@@ -117,6 +117,12 @@ public class ApplicationContextListener implements ServletContextListener, HttpS
                 context.put(Services.SERVER_IP, serverIp);
             }
 
+            if (serverIp != null) {
+                context.put(Services.SERVER_IP, serverIp);
+            } else {
+                context.put(Services.SERVER_IP, servletContext.getInitParameter(Services.SERVER_IP));
+            }
+
             if (udpPort != null) {
                 context.put(Services.UDP_PORT, udpPort);
             }

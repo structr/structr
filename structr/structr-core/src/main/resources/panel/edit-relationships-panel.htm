@@ -58,32 +58,32 @@
       // begin maxDepth
       #set($maxDepth = 1)
       #if( $request.getParameter("maxDepth") )
-            #set($maxDepth = $maxDepth.parseInt($request.getParameter("maxDepth")))
+        #set($maxDepth = $maxDepth.parseInt($request.getParameter("maxDepth")))
       #end
       // end maxDepth
 
       // begin maxNodes
       #set($maxNodes = 10)
       #if( $request.getParameter("maxNodes") )
-            #set($maxNodes = $maxNodes.parseInt($request.getParameter("maxNodes")))
+        #set($maxNodes = $maxNodes.parseInt($request.getParameter("maxNodes")))
       #end
       // end maxNodes
 
       #foreach( $relNode in $node.getRelatedNodes($maxDepth, $maxNodes, $request.getParameter("relTypes")) )
-          #if( $relNode.type == "PageRequest" || $relNode.type == "Activity")
-              #break
-          #end
-          var node_$relNode.id = graph.newNode({label: '$format.javascript($relNode.name)', link: '$context/admin/edit.htm?nodeId=$relNode.id#relationships-tab', imgSrc: '$context$relNode.iconSrc'});
+      #if( $relNode.type == "PageRequest" || $relNode.type == "Activity")
+        #break
+      #end
+      var node_$relNode.id = graph.newNode({label: '$format.javascript($relNode.name)', link: '$context/admin/edit.htm?nodeId=$relNode.id#relationships-tab', imgSrc: '$context$relNode.iconSrc'});
       #end
 
       #foreach( $rel in $node.getRelatedRels($maxDepth, $maxNodes, $request.getParameter("relTypes")) )
-          #if( $rel.startNode.type == "PageRequest" || $rel.startNode.type == "Activity" || $rel.endNode.type == "PageRequest" || $rel.endNode.type == "Activity" )
-              #break
-          #end
-          if(node_$rel.startNode.id && node_$rel.endNode.id)
-          {
-            var edge_$rel.id = graph.newEdge(node_$rel.startNode.id, node_$rel.endNode.id, {color: $rel.relType, label: '$rel.relType'});
-          }
+      #if( $rel.startNode.type == "PageRequest" || $rel.startNode.type == "Activity" || $rel.endNode.type == "PageRequest" || $rel.endNode.type == "Activity" )
+        #break
+      #end
+      if(node_$rel.startNode.id && node_$rel.endNode.id)
+      {
+        var edge_$rel.id = graph.newEdge(node_$rel.startNode.id, node_$rel.endNode.id, {color: $rel.relType, label: '$rel.relType'});
+      }
       #end
 
       jQuery(document).ready(function(){
@@ -104,9 +104,6 @@
 
     <h3>Outgoing Relationships</h3>
     $outgoingRelationshipsTable
-
-
-
 
   </div>
 </div>

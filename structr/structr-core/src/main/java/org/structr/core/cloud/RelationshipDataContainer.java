@@ -38,7 +38,7 @@ public class RelationshipDataContainer extends DataContainer implements Comparab
     public RelationshipDataContainer(final StructrRelationship relationship) {
 
         name = relationship.getRelType().name();
-        properties = relationship.getProperties();
+        properties.putAll(relationship.getProperties());
         sourceStartNodeId = relationship.getStartNode().getId();
         sourceEndNodeId = relationship.getEndNode().getId();
 

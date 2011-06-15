@@ -229,6 +229,14 @@ public class Map extends AbstractNode {
 
                 }
 
+                // Write envelope data back to geo node
+                if (geoNode != null && geoNode.getAutoEnvelope()) {
+                    geoNode.setEnvelopeMinX(envelope.getMinX());
+                    geoNode.setEnvelopeMaxX(envelope.getMaxX());
+                    geoNode.setEnvelopeMinY(envelope.getMinY());
+                    geoNode.setEnvelopeMaxY(envelope.getMaxY());
+                }
+                
 
             } else {
 
