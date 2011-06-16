@@ -103,9 +103,6 @@ public class View extends StructrPage
 				return;
 			}
 
-
-
-			String contentType = nodeToRender.getContentType();
 			String editUrl = null;
 			if(editNodeId != null)
 			{
@@ -115,14 +112,14 @@ public class View extends StructrPage
 
 			try
 			{
-				HttpServletResponse response = getContext().getResponse();
-				response.setContentType(contentType);
-
-				StructrOutputStream outputStream = new StructrOutputStream(response.getOutputStream());
-
+				// create output stream wrapper
+				StructrOutputStream outputStream = new StructrOutputStream(getContext().getResponse());
 				nodeToRender.renderNode(outputStream, nodeToRender, editUrl, editNodeId);
-				outputStream.flush();
 
+				// commit response
+				getContext().getResponse().getOutputStream().flush();
+				
+				
 			} catch(Throwable t)
 			{
 				logger.log(Level.WARNING, "Exception while rendering to output stream: {0}", t);

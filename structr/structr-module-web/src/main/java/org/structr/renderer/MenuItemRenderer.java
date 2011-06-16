@@ -17,12 +17,11 @@ public abstract class MenuItemRenderer
 	 * Render a menu item recursively. Stop at the given maximum depth
 	 *
 	 * @param out
-	 * @param currentNode
+	 * @param currentMenuNode
 	 */
-	protected void renderMenuItems(final StructrOutputStream out, final AbstractNode currentNode, final AbstractNode startNode, int currentDepth, int currentPos, int numberOfSubnodes, int maxDepth)
+	protected void renderMenuItems(final StructrOutputStream out, final AbstractNode currentNode, final AbstractNode startNode, final AbstractNode currentMenuNode, int currentDepth, int currentPos, int numberOfSubnodes, int maxDepth)
 	{
-
-		AbstractNode menuItemNode = startNode;
+		AbstractNode menuItemNode = currentMenuNode;
 
 		if(currentDepth > maxDepth)
 		{
@@ -54,7 +53,7 @@ public abstract class MenuItemRenderer
 		String cssClass = "";
 
 		// don't render menu node itself
-		if(menuItemNode != startNode)
+		if(menuItemNode != currentNode)
 		{
 
 			if(currentPos == 0)
@@ -82,7 +81,7 @@ public abstract class MenuItemRenderer
 				}
 			}
 
-			if(menuItemNode.equals(currentNode))
+			if(menuItemNode.equals(startNode))
 			{
 				cssClass += " current";
 			}
@@ -91,7 +90,7 @@ public abstract class MenuItemRenderer
 			if(menuItemNode.isVisible())
 			{
 
-				String relativeNodePath = menuItemNode.getNodePath(currentNode).replace("&", "%26");
+				String relativeNodePath = menuItemNode.getNodePath(startNode).replace("&", "%26");
 
 				if(!(cssClass.isEmpty()))
 				{
@@ -99,25 +98,26 @@ public abstract class MenuItemRenderer
 				}
 
 				out.append("<li").append(cssClass).append(">");
-				out.append("<span>" + "<a href=\"").append(relativeNodePath).append("\">");
-				out.append(startNode.getTitleOrName());
-				out.append("</a>").append("</span>\n");
+				out.append("<span><a href=\"").append(relativeNodePath).append("\">");
+				out.append(currentMenuNode.getTitleOrName());
+				out.append("</a></span>");
 			}
 		}
 
-		if(startNode.isVisible())
+		if(currentMenuNode.isVisible())
 		{
 
 			int sub = menuItems.size();
 			int pos = 0;
 			for(AbstractNode s : menuItems)
 			{
-				renderMenuItems(out, currentNode, s, currentDepth, pos, sub, maxDepth);
+				renderMenuItems(out, currentNode, startNode, s, currentDepth, pos, sub, maxDepth);
 				pos++;
 			}
 
-			if(startNode != currentNode)
+			if(currentMenuNode != currentNode)
 			{
+
 				out.append("</li>");
 
 				if(currentPos == numberOfSubnodes - 1)
@@ -128,7 +128,7 @@ public abstract class MenuItemRenderer
 
 		}
 
-		if(startNode != currentNode)
+		if(currentMenuNode != currentNode)
 		{
 
 			if(currentPos == numberOfSubnodes - 1)
@@ -137,6 +137,5 @@ public abstract class MenuItemRenderer
 
 			}
 		}
-
 	}
 }

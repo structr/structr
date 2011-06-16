@@ -56,6 +56,6 @@ public class ChartRenderer implements NodeRenderer<Chart>
 
 	public String getContentType(Chart currentNode)
 	{
-		return(currentNode.getContentType());
+		return("image/png");
 	}
 }

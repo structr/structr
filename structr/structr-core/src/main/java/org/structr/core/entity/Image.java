@@ -32,6 +32,7 @@ import org.structr.common.ImageHelper.Thumbnail;
 import org.structr.common.RelType;
 import org.structr.common.RenderMode;
 import org.structr.common.StructrOutputStream;
+import org.structr.common.renderer.FileStreamRenderer;
 import org.structr.common.renderer.ImageSourceRenderer;
 import org.structr.core.Command;
 import org.structr.core.NodeRenderer;
@@ -137,6 +138,7 @@ public class Image extends File {
     public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers)
     {
 	    renderers.put(RenderMode.Default, new ImageSourceRenderer());
+	    renderers.put(RenderMode.Direct, new FileStreamRenderer());
     }
 
 //

@@ -25,23 +25,23 @@
 		    <target>1.5</target>
 		</configuration>
 	    </plugin>
-	  <plugin>
-	    <artifactId>maven-dependency-plugin</artifactId>
-	    <executions>
-	      <execution>
-		<id>${project.artifactId}-fetch-deps</id>
-		<phase>generate-sources</phase>
-		<goals><goal>copy-dependencies</goal></goals>
-		<configuration>
-		  <outputDirectory>${project.build.outputDirectory}</outputDirectory>
-		  <stripVersion>true</stripVersion>
-		  <excludeTransitive>true</excludeTransitive>
-		  <excludeArtifactIds>junit</excludeArtifactIds>
-		</configuration>
-	      </execution>
-	    </executions>
-	  </plugin>
-	  </plugins>
+	    <plugin>
+	      <artifactId>maven-dependency-plugin</artifactId>
+	      <executions>
+		<execution>
+		  <id>${project.artifactId}-fetch-deps</id>
+		  <phase>generate-sources</phase>
+		  <goals><goal>copy-dependencies</goal></goals>
+		  <configuration>
+		    <outputDirectory>${project.build.outputDirectory}</outputDirectory>
+		    <stripVersion>true</stripVersion>
+		    <excludeTransitive>true</excludeTransitive>
+		    <excludeArtifactIds>junit</excludeArtifactIds>
+		  </configuration>
+		</execution>
+	      </executions>
+	    </plugin>
+    </plugins>
     </build>
     <dependencies>
     <dependency>
@@ -60,8 +60,15 @@
         <artifactId>jfreechart</artifactId>
         <version>1.0.12</version>
       </dependency>
+        <dependency>
+            <artifactId>jcommon</artifactId>
+            <groupId>jfree</groupId>
+            <type>jar</type>
+            <version>1.0.15</version>
+        </dependency>
     </dependencies>
 </project>
+
 
 
 

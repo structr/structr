@@ -15,11 +15,10 @@ public class MenuRenderer extends MenuItemRenderer implements NodeRenderer<Menu>
 	@Override
 	public void renderNode(StructrOutputStream out, Menu currentNode, AbstractNode startNode, String editUrl, Long editNodeId, RenderMode renderMode)
 	{
-
 		if(currentNode.isVisible())
 		{
 
-			renderMenuItems(out, currentNode, startNode, 0, 0, 0, currentNode.getMaxDepth());
+			renderMenuItems(out, currentNode, startNode, currentNode, 0, 0, 0, currentNode.getMaxDepth());
 
 		}
 	}

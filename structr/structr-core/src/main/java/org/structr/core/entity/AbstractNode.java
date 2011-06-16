@@ -310,7 +310,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>
 			}
 		}
 
-		logger.log(Level.FINER, "Got renderer {0} for mode {1}, node type {2} ({3})",
+		logger.log(Level.FINE, "Got renderer {0} for mode {1}, node type {2} ({3})",
 			new Object[]
 			{
 				ret != null ? ret.getClass().getName() : "Unknown",
@@ -322,7 +322,10 @@ public abstract class AbstractNode implements Comparable<AbstractNode>
 
 		if(ret != null)
 		{
-			// render away :)
+			// set content type
+			out.setContentType(ret.getContentType(this));
+
+			// render node
 			ret.renderNode(out, this, startNode, editUrl, editNodeId, renderMode);
 
 		} else
@@ -3343,7 +3346,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>
 		@Override
 		public String getContentType(AbstractNode node)
 		{
-			return ("text/html");
+			return ("blah");
 		}
 	}
 }

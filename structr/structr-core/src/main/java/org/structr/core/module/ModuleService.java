@@ -645,8 +645,8 @@ public class ModuleService implements SingletonService {
 
             } catch (Throwable t) {
                 // ignore
-                logger.log(Level.WARNING, "error instantiating class {0}: {1}", new Object[]{className, t});
-                t.printStackTrace(System.out);
+//                logger.log(Level.WARNING, "error instantiating class {0}: {1}", new Object[]{className, t});
+//                t.printStackTrace(System.out);
             }
 
         // 3.: iterate over resources and deploy them
