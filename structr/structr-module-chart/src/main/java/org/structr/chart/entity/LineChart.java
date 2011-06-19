@@ -4,24 +4,26 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.CategoryAxis;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.CategoryPlot;
-import org.jfree.chart.renderer.category.BarRenderer;
 import org.jfree.chart.renderer.category.CategoryItemRenderer;
+import org.jfree.chart.renderer.category.LineAndShapeRenderer;
 
 /**
  *
  * @author Christian Morgner
  */
-public class BarChart extends CategoryChart
+public class LineChart extends CategoryChart
 {
+
 	@Override
 	public CategoryItemRenderer getCategoryItemRenderer()
 	{
-		return(new BarRenderer());
+		return(new LineAndShapeRenderer());
 	}
 
 	@Override
 	public void configureCategoryAxis(CategoryAxis categoryAxis)
 	{
+		categoryAxis.setCategoryMargin(0.0);
 	}
 
 	@Override
@@ -42,6 +44,6 @@ public class BarChart extends CategoryChart
 	@Override
 	public String getIconSrc()
 	{
-		return ("/images/chart_bar.png");
+		return ("/images/chart_curve.png");
 	}
 }

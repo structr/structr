@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.neo4j.graphdb.*;
+import org.structr.common.PropertyKey;
 import org.structr.common.RelType;
 import org.structr.core.Command;
 import org.structr.core.Services;
@@ -95,8 +96,16 @@ public class StructrRelationship {
         return properties;
     }
 
+    public Object getProperty(final PropertyKey propertyKey) {
+        return dbRelationship.getProperty(propertyKey.name(), null);
+    }
+
     public Object getProperty(final String key) {
         return dbRelationship.getProperty(key, null);
+    }
+
+    public void setProperty(final PropertyKey propertyKey, final Object value) {
+        dbRelationship.setProperty(propertyKey.name(), value);
     }
 
     public void setProperty(final String key, final Object value) {

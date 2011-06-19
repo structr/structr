@@ -25,7 +25,7 @@ import org.structr.core.entity.Template;
 import org.structr.core.entity.app.AppForm;
 import org.structr.core.entity.app.AppList;
 import org.structr.core.entity.app.AppNodeView;
-import org.structr.core.entity.app.ApplicationNode;
+import org.structr.core.entity.ApplicationNode;
 import org.structr.core.entity.web.HtmlSource;
 
 /**

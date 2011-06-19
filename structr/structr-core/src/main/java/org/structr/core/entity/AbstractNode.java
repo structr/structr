@@ -58,6 +58,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.AbstractNodeComparator;
 import org.structr.common.CurrentRequest;
+import org.structr.common.PropertyKey;
 import org.structr.common.RenderMode;
 import org.structr.common.StructrOutputStream;
 import org.structr.common.TemplateHelper;
@@ -1114,6 +1115,11 @@ public abstract class AbstractNode implements Comparable<AbstractNode>
 		return dbNode.getPropertyKeys();
 	}
 
+	public Object getProperty(final PropertyKey propertyKey)
+	{
+		return(getProperty(propertyKey.name()));
+	}
+
 	public Object getProperty(final String key)
 	{
 
@@ -1131,6 +1137,11 @@ public abstract class AbstractNode implements Comparable<AbstractNode>
 		}
 	}
 
+	public String getStringProperty(final PropertyKey propertyKey)
+	{
+		return(getStringProperty(propertyKey.name()));
+	}
+
 	public String getStringProperty(final String key)
 	{
 		Object propertyValue = getProperty(key);
@@ -1144,6 +1155,11 @@ public abstract class AbstractNode implements Comparable<AbstractNode>
 			result = ((String)propertyValue);
 		}
 		return result;
+	}
+
+	public List<String> getStringListProperty(final PropertyKey propertyKey)
+	{
+		return(getStringListProperty(propertyKey.name()));
 	}
 
 	public List<String> getStringListProperty(final String key)
@@ -1169,6 +1185,11 @@ public abstract class AbstractNode implements Comparable<AbstractNode>
 		return result;
 	}
 
+	public String getStringArrayPropertyAsString(final PropertyKey propertyKey)
+	{
+		return(getStringArrayPropertyAsString(propertyKey.name()));
+	}
+
 	public String getStringArrayPropertyAsString(final String key)
 	{
 		Object propertyValue = getProperty(key);
@@ -1187,6 +1208,11 @@ public abstract class AbstractNode implements Comparable<AbstractNode>
 			}
 		}
 		return result.toString();
+	}
+
+	public int getIntProperty(final PropertyKey propertyKey)
+	{
+		return(getIntProperty(propertyKey.name()));
 	}
 
 	public int getIntProperty(final String key)
@@ -1211,6 +1237,11 @@ public abstract class AbstractNode implements Comparable<AbstractNode>
 		return result;
 	}
 
+	public long getLongProperty(final PropertyKey propertyKey)
+	{
+		return(getLongProperty(propertyKey.name()));
+	}
+
 	public long getLongProperty(final String key)
 	{
 		Object propertyValue = getProperty(key);
@@ -1231,6 +1262,11 @@ public abstract class AbstractNode implements Comparable<AbstractNode>
 			result = Long.parseLong(((String)propertyValue));
 		}
 		return result;
+	}
+
+	public double getDoubleProperty(final PropertyKey propertyKey)
+	{
+		return(getDoubleProperty(propertyKey.name()));
 	}
 
 	public double getDoubleProperty(final String key)
@@ -1255,6 +1291,11 @@ public abstract class AbstractNode implements Comparable<AbstractNode>
 		return result;
 	}
 
+	public boolean getBooleanProperty(final PropertyKey propertyKey)
+	{
+		return(getBooleanProperty(propertyKey.name()));
+	}
+
 	public boolean getBooleanProperty(final String key)
 	{
 		Object propertyValue = getProperty(key);
@@ -1273,6 +1314,11 @@ public abstract class AbstractNode implements Comparable<AbstractNode>
 		return result;
 	}
 
+	public void setProperty(final PropertyKey propertyKey, final Object value)
+	{
+		setProperty(propertyKey.name(), value);
+	}
+
 	/**
 	 * Set a property in database backend without updating index
 	 *
@@ -1286,6 +1332,11 @@ public abstract class AbstractNode implements Comparable<AbstractNode>
 		setProperty(key, value, updateIndexDefault);
 	}
 
+	public void setPropertyAsStringArray(final PropertyKey propertyKey, final String value)
+	{
+		setPropertyAsStringArray(propertyKey.name(), value);
+	}
+
 	/**
 	 * Split String value and set as String[] property in database backend
 	 *
@@ -1297,6 +1348,11 @@ public abstract class AbstractNode implements Comparable<AbstractNode>
 	{
 		String[] values = StringUtils.split(((String)value), "\r\n");
 		setProperty(key, values, updateIndexDefault);
+	}
+
+	public void setProperty(final PropertyKey propertyKey, final Object value, final boolean updateIndex)
+	{
+		setProperty(propertyKey.name(), value, updateIndex);
 	}
 
 	/**
