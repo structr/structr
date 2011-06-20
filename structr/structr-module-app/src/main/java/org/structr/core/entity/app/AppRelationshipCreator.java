@@ -134,6 +134,10 @@ public class AppRelationshipCreator extends ActionNode
 	{
 	}
 
+    @Override
+    public void onNodeDeletion() {
+    }
+
 	// ----- private methods -----
 	private AbstractNode getNodeFromNamedSource(String name)
 	{

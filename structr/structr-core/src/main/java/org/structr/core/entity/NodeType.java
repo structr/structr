@@ -52,4 +52,8 @@ public class NodeType extends AbstractNode
 	public void initializeRenderers(final Map<RenderMode, NodeRenderer> rendererMap)
 	{
 	}
+
+    @Override
+    public void onNodeDeletion() {
+    }
 }

@@ -31,7 +31,6 @@ import org.structr.common.ImageHelper;
 import org.structr.common.ImageHelper.Thumbnail;
 import org.structr.common.RelType;
 import org.structr.common.RenderMode;
-import org.structr.common.StructrOutputStream;
 import org.structr.common.renderer.FileStreamRenderer;
 import org.structr.common.renderer.ImageSourceRenderer;
 import org.structr.core.Command;

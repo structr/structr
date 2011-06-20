@@ -63,6 +63,10 @@ public class AppNodeLoader extends AbstractNode implements NodeSource
 	{
 	}
 
+
+    @Override
+    public void onNodeDeletion() {
+    }
 	public AbstractNode loadNodeInternal()
 	{
 		Object loaderValue = getValue();

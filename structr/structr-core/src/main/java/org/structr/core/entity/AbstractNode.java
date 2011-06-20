@@ -147,6 +147,8 @@ public abstract class AbstractNode implements Comparable<AbstractNode>
 
 	public abstract void onNodeInstantiation();
 
+	public abstract void onNodeDeletion();
+
 	/*
 	 * Helper class for multilanguage titles
 	 */

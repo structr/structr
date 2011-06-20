@@ -57,4 +57,8 @@ public class SubmitButton extends FormField
 	public void setErrorValue(Object errorValue)
 	{
 	}
+
+    @Override
+    public void onNodeDeletion() {
+    }
 }

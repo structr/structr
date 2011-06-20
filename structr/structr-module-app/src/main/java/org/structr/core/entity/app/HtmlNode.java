@@ -33,6 +33,10 @@ public abstract class HtmlNode extends AbstractNode
 	{
 	}
 
+    @Override
+    public void onNodeDeletion() {
+    }
+
 	@Override
 	public void initializeRenderers(final Map<RenderMode, NodeRenderer> rendererMap)
 	{

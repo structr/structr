@@ -112,6 +112,10 @@ public class Script extends AbstractNode {
     }
 
     @Override
+    public void onNodeDeletion() {
+    }
+
+    @Override
     public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers)
     {
 	    renderers.put(RenderMode.Default, new ScriptRenderer());

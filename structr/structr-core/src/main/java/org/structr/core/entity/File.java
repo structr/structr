@@ -37,7 +37,7 @@ import org.structr.core.Services;
  * @author amorgner
  * 
  */
-public class File extends DefaultNode {
+public class File extends AbstractNode {
 
     private final static String ICON_SRC = "/images/page_white.png";
     private static final Logger logger = Logger.getLogger(File.class.getName());
@@ -130,6 +130,34 @@ public class File extends DefaultNode {
         }
 
         return null;
+
+    }
+
+    @Override
+    public void onNodeCreation()
+    {
+    }
+
+    @Override
+    public void onNodeInstantiation()
+    {
+    }
+
+    @Override
+    public void onNodeDeletion() {
+
+	    try
+	    {
+		    java.io.File toDelete = new java.io.File(getFileLocation().toURI());
+		    if(toDelete.exists() && toDelete.isFile())
+		    {
+			    toDelete.delete();
+		    }
+
+	    } catch(Throwable t)
+	    {
+		    logger.log(Level.WARNING, "Exception while trying to delete file {0}: {1}", new Object[] { getFileLocation(), t} );
+	    }
 
     }
 }

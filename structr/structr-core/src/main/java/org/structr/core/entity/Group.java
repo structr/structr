@@ -31,4 +31,8 @@ public class Group extends Principal {
     public String getIconSrc() {
         return ICON_SRC;
     }
+
+    @Override
+    public void onNodeDeletion() {
+    }
 }

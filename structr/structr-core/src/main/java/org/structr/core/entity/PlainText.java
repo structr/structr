@@ -80,4 +80,8 @@ public class PlainText extends AbstractNode {
     public void onNodeInstantiation()
     {
     }
+
+    @Override
+    public void onNodeDeletion() {
+    }
 }

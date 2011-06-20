@@ -53,4 +53,8 @@ public class AppNodeView extends AbstractNode
 	public void onNodeInstantiation()
 	{
 	}
+
+    @Override
+    public void onNodeDeletion() {
+    }
 }

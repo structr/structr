@@ -85,4 +85,8 @@ public class Link extends AbstractNode {
     public void onNodeInstantiation()
     {
     }
+
+    @Override
+    public void onNodeDeletion() {
+    }
 }

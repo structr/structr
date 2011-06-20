@@ -49,6 +49,10 @@ public class AppTimestamp extends AbstractNode implements InteractiveNode
 	{
 	}
 
+    @Override
+    public void onNodeDeletion() {
+    }
+
 	@Override
 	public void initializeRenderers(final Map<RenderMode, NodeRenderer> rendererMap)
 	{
