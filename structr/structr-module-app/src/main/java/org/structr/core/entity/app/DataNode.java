@@ -19,20 +19,16 @@
 
 package org.structr.core.entity.app;
 
+import org.structr.common.StructrOutputStream;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.ArbitraryNode;
 
 /**
  *
- * @author chrisi
+ * @author Christian Morgner
  */
 public class DataNode extends ArbitraryNode
 {
-	@Override
-	public void renderView(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId)
-	{
-	}
-
 	@Override
 	public Object getProperty(String key)
 	{

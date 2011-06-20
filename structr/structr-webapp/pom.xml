@@ -23,6 +23,8 @@
                 <version>2.3.2</version>
                 <configuration>
                     <debug>true</debug>
+                    <source>1.5</source>
+                    <target>1.5</target>
                 </configuration>
             </plugin>
         </plugins>
@@ -209,7 +211,7 @@
                     <scanIntervalSeconds>5</scanIntervalSeconds>
                 </configuration>
             </plugin>
-            
+
             <plugin>
                 <groupId>net.sf.alchim</groupId>
                 <artifactId>winstone-maven-plugin</artifactId>
@@ -222,7 +224,7 @@
                     </dependency>
                 </dependencies>
                 <configuration>
-                    
+
                     <cmdLineOptions>
                         <property>
                             <name>httpPort</name>
@@ -272,6 +274,7 @@
     </build>-->
 
 </project>
+
 
 
 

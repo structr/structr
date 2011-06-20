@@ -16,10 +16,14 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package org.structr.core.entity.app;
 
+import java.util.Map;
+import org.structr.common.RenderMode;
+import org.structr.common.StructrOutputStream;
+import org.structr.core.NodeRenderer;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.renderer.HtmlRenderer;
 
 /**
  *
@@ -27,25 +31,44 @@ import org.structr.core.entity.AbstractNode;
  */
 public class AppButton extends HtmlNode
 {
-	public AppButton()
+	@Override
+	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers)
 	{
-		super("input");
+		HtmlRenderer renderer = new HtmlRenderer("input");
+		renderer.addAttribute("type", "button");
+
+		renderers.put(RenderMode.Default, renderer);
 	}
 
 	@Override
-	public void doBeforeRendering(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId)
-	{
-		addAttribute("type", "button");
-	}
-
-	@Override
-	public void renderContent(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId)
-	{
-	}
-
-	@Override
-	public boolean hasContent(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId)
+	public boolean hasContent(HtmlRenderer renderer, StructrOutputStream out, AbstractNode startNode, String editUrl, Long editNodeId)
 	{
 		return(false);
+	}
+
+	@Override
+	public void doBeforeRendering(HtmlRenderer renderer, StructrOutputStream out, AbstractNode startNode, String editUrl, Long editNodeId)
+	{
+	}
+
+	@Override
+	public void renderContent(HtmlRenderer renderer, StructrOutputStream out, AbstractNode startNode, String editUrl, Long editNodeId)
+	{
+	}
+
+	@Override
+	public String getIconSrc()
+	{
+		return("/images/");
+	}
+
+	@Override
+	public void onNodeCreation()
+	{
+	}
+
+	@Override
+	public void onNodeInstantiation()
+	{
 	}
 }

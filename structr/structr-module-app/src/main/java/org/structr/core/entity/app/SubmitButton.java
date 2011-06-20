@@ -18,55 +18,39 @@
  */
 package org.structr.core.entity.app;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.structr.core.entity.AbstractNode;
+import java.util.Map;
+import org.structr.common.RenderMode;
+import org.structr.common.renderer.ExternalTemplateRenderer;
+import org.structr.core.NodeRenderer;
 
 /**
  *
  * @author Christian Morgner
  */
-public class SubmitButton extends FormField {
+public class SubmitButton extends FormField
+{
+	@Override
+	public String getIconSrc()
+	{
+		return "/images/tag.png";
+	}
 
-    private static final Logger logger = Logger.getLogger(SubmitButton.class.getName());
-
-    @Override
-    public String getIconSrc() {
-        return "/images/tag.png";
-    }
-
-    @Override
-    public void renderView(final StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId) {
-        // if this page is requested to be edited, render edit frame
-        if (editNodeId != null && getId() == editNodeId.longValue()) {
-
-            renderEditFrame(out, editUrl);
-
-            // otherwise, render subnodes in edit mode
-        } else {
-
-            if (hasTemplate()) {
-                template.setCallingNode(this);
-                template.renderView(out, startNode, editUrl, editNodeId);
-
-            } else {
-                logger.log(Level.WARNING, "Encountered TextField without template: {0}", this);
-
-                // TODO: default template for TextField?
-            }
-        }
-    }
+	@Override
+	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers)
+	{
+		renderers.put(RenderMode.Default, new ExternalTemplateRenderer(false));
+	}
 
 	@Override
 	public String getErrorMessage()
 	{
-		return(null);
+		return (null);
 	}
 
 	@Override
 	public Object getErrorValue()
 	{
-		return(null);
+		return (null);
 	}
 
 	@Override

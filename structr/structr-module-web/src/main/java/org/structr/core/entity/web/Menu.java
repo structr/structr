@@ -18,7 +18,10 @@
  */
 package org.structr.core.entity.web;
 
-import org.structr.core.entity.AbstractNode;
+import java.util.Map;
+import org.structr.common.RenderMode;
+import org.structr.core.NodeRenderer;
+import org.structr.renderer.MenuRenderer;
 
 /**
  * A Menu contains menu items which will be rendered recursively.
@@ -26,51 +29,41 @@ import org.structr.core.entity.AbstractNode;
  * @author amorgner
  * 
  */
-public class Menu extends MenuItem {
+public class Menu extends MenuItem
+{
+	private final static String ICON_SRC = "/images/tree.png";
+	private final static int maxDepthDefault = 3;
 
-    private final static String ICON_SRC = "/images/tree.png";
-    private final static int maxDepthDefault = 3;
+	@Override
+	public String getIconSrc()
+	{
+		return ICON_SRC;
+	}
+	public final static String MAX_DEPTH_KEY = "maxDepth";
 
-    @Override
-    public String getIconSrc() {
-        return ICON_SRC;
-    }
-    public final static String MAX_DEPTH_KEY = "maxDepth";
+	public int getMaxDepth()
+	{
+		Object depth = getProperty(MAX_DEPTH_KEY);
 
-    public int getMaxDepth() {
-        Object depth = getProperty(MAX_DEPTH_KEY);
-        
-        // The first time, set default max depth
-        if (depth == null) {
-            setMaxDepth(maxDepthDefault);
-            return maxDepthDefault;
-        } else {
-            return getIntProperty(MAX_DEPTH_KEY);
-        }
-    }
+		// The first time, set default max depth
+		if(depth == null)
+		{
+			setMaxDepth(maxDepthDefault);
+			return maxDepthDefault;
+		} else
+		{
+			return getIntProperty(MAX_DEPTH_KEY);
+		}
+	}
 
-    public void setMaxDepth(final int maxDepth) {
-        setProperty(MAX_DEPTH_KEY, maxDepth);
-    }
+	public void setMaxDepth(final int maxDepth)
+	{
+		setProperty(MAX_DEPTH_KEY, maxDepth);
+	}
 
-    /**
-     * Render a menu
-     */
-    @Override
-    public void renderView(StringBuilder out, final AbstractNode startNode,
-            final String editUrl, final Long editNodeId) {
-
-        if (editNodeId != null && getId() == editNodeId.longValue()) {
-
-            renderEditFrame(out, editUrl);
-
-        } else {
-
-            if (isVisible()) {
-
-                renderMenuItems(out, startNode, this, 0, 0, 0, getMaxDepth());
-
-            }
-        }
-    }
+	@Override
+	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers)
+	{
+		renderers.put(RenderMode.Default, new MenuRenderer());
+	}
 }

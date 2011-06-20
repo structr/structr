@@ -16,13 +16,17 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package org.structr.common;
 
 /**
  *
  * @author amorgner
  */
-public enum RenderMode {
-    PUBLIC, LOCAL, EDIT;
+public enum RenderMode
+{
+	// new types
+	Default, Direct, Edit,
+
+	// old types
+	PUBLIC, LOCAL, EDIT;
 }

@@ -29,6 +29,7 @@ import java.util.logging.Logger;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.RelType;
 import org.structr.common.SessionValue;
+import org.structr.common.StructrOutputStream;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -60,7 +61,7 @@ public class AppNodeCreator extends ActionNode implements NodeSource
 	private SessionValue<AbstractNode> currentNode = null;
 
 	@Override
-	public boolean doAction(final StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
+	public boolean doAction(final StructrOutputStream out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
 	{
 		final List<NodeAttribute> attributes = new LinkedList<NodeAttribute>();
 		final AbstractNode parentNode = getCreateDestination();

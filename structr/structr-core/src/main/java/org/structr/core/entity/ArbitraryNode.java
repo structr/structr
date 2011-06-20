@@ -19,7 +19,10 @@
 package org.structr.core.entity;
 
 import java.util.Collections;
-import java.util.List;
+import java.util.Map;
+import org.structr.common.RenderMode;
+import org.structr.common.renderer.NullRenderer;
+import org.structr.core.NodeRenderer;
 
 /**
  * 
@@ -60,30 +63,9 @@ public class ArbitraryNode extends AbstractNode {
     }
 
     @Override
-    public void renderView(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId) {
-
-        // if this page is requested to be edited, render edit frame
-        if (editNodeId != null && getId() == editNodeId.longValue()) {
-
-            renderEditFrame(out, editUrl);
-
-        // otherwise, render subnodes in edit mode
-        } else {
-
-            if (hasTemplate()) {
-
-                template.setCallingNode(this);
-                template.renderView(out, startNode, editUrl, editNodeId);
-            } else {
-
-                List<AbstractNode> subnodes = getSortedDirectChildAndLinkNodes();
-
-                // render subnodes in correct order
-                for (AbstractNode s : subnodes) {
-                    s.renderView(out, startNode, editUrl, editNodeId);
-                }
-            }
-        }
+    public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers)
+    {
+	    renderers.put(RenderMode.Default, new NullRenderer());
     }
 
     @Override

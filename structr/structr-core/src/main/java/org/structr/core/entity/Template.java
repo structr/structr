@@ -44,5 +44,4 @@ public class Template extends PlainText {
     public AbstractNode getCallingNode() {
         return callingNode;
     }
-
 }

@@ -39,14 +39,4 @@ public class HtmlSource extends PlainText {
     public String getIconSrc() {
         return ICON_SRC;
     }
-
-    /**
-     * Render HTML content
-     */
-//    @Override
-//    public void renderView(StringBuilder out, final StructrNode startNode,
-//            final String editUrl, final Long editNodeId) {
-//
-//            super.renderView(out, startNode, editUrl, editNodeId);
-//    }
 }

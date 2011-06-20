@@ -18,8 +18,10 @@
  */
 package org.structr.core.entity.web;
 
-import java.util.List;
-import org.structr.core.entity.AbstractNode;
+import java.util.Map;
+import org.structr.common.RenderMode;
+import org.structr.core.NodeRenderer;
+import org.structr.renderer.BreadcrumbRenderer;
 
 /**
  * Render a breadcrumb navigation element
@@ -36,75 +38,9 @@ public class Breadcrumb extends WebNode {
         return ICON_SRC;
     }
 
-    /**
-     * Render a breadcrumb
-     */
     @Override
-    public void renderView(StringBuilder out, final AbstractNode startNode,
-            final String editUrl, final Long editNodeId) {
-
-        if (editNodeId != null && getId() == editNodeId.longValue()) {
-
-            renderEditFrame(out, editUrl);
-
-        } else {
-
-            if (isVisible()) {
-
-                renderBreadcrumbItems(out, startNode, this);
-
-            }
-        }
-    }
-
-    /**
-     * Render breadcrumb items
-     *
-     * @param out
-     * @param startNode
-     */
-    private void renderBreadcrumbItems(StringBuilder out, final AbstractNode startNode, final AbstractNode currentNode) {
-
-        List<AbstractNode> ancestors = startNode.getAncestorNodes();
-
-        out.append("<ul>");
-
-        String cssClass = "";
-
-        int currentPos = 0;
-
-        for (AbstractNode breadcrumbItem : ancestors) {
-
-            if (currentPos == 0) {
-                cssClass = " first";
-            }
-            
-            if (currentPos == ancestors.size() - 1) {
-                cssClass = " last";
-            }
-
-            if (breadcrumbItem.equals(startNode)) {
-                cssClass += " current";
-            }
-
-            if (breadcrumbItem.isVisible()) {
-
-                String relativeNodePath = breadcrumbItem.getNodePath(startNode).replace("&", "%26");
-
-                if (!(cssClass.isEmpty())) {
-                    cssClass = " class=\"" + cssClass + "\"";
-                }
-
-                out.append("<li").append(cssClass).append(">");
-                out.append("<span>" + "<a href=\"").append(relativeNodePath).append("\">");
-                out.append(breadcrumbItem.getName());
-                out.append("</a>").append("</span>\n");
-                out.append("</li>");
-
-            }
-        }
-
-        out.append("</ul>");
-
+    public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers)
+    {
+	    renderers.put(RenderMode.Default, new BreadcrumbRenderer());
     }
 }

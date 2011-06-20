@@ -520,6 +520,26 @@ public class ModuleService implements SingletonService {
         String modulePath = module.getModulePath();
         JarFile jarFile = new JarFile(modulePath);
 
+        // 0.: iterate over libraries and deploy them
+        Set<String> libraries = module.getLibraries();
+        for (String library : libraries) {
+            String destinationPath = createResourceFileName(servletContext, "WEB-INF/lib", library);
+
+            try {
+                ZipEntry entry = jarFile.getEntry(library);
+                InputStream inputStream = jarFile.getInputStream(entry);
+                File destinationFile = new File(destinationPath);
+
+                deployFile(inputStream, destinationFile);
+
+		logger.log(Level.INFO, "Deploying library {0} to {1}", new Object[] { entry.getName(), destinationFile } );
+
+            } catch (Throwable t) {
+                // ignore!
+                // logger.log(Level.WARNING, "Error deploying {0} to {1}: {2}", new Object[] { entryName, destinationPath, t } );
+            }
+        }
+
         // 1a.: iterate over raw class names and deploy them
         Set<String> classes = module.getClasses();
         for (final String className : classes) {
@@ -588,7 +608,7 @@ public class ModuleService implements SingletonService {
             try {
                 // instantiate class..
                 Class clazz = Class.forName(className);
-                logger.log(Level.FINE, "Class {0} instanciated: {1}", new Object[]{className, clazz});
+                logger.log(Level.FINE, "Class {0} instantiated: {1}", new Object[]{className, clazz});
 
 		if(!Modifier.isAbstract(clazz.getModifiers()))
 		{
@@ -625,11 +645,9 @@ public class ModuleService implements SingletonService {
 
             } catch (Throwable t) {
                 // ignore
-                logger.log(Level.WARNING, "error instantiating class {0}: {1}", new Object[]{className, t});
-                t.printStackTrace(System.out);
+//                logger.log(Level.WARNING, "error instantiating class {0}: {1}", new Object[]{className, t});
+//                t.printStackTrace(System.out);
             }
-
-        }
 
         // 3.: iterate over resources and deploy them
         Set<String> resources = module.getResources();
@@ -649,6 +667,7 @@ public class ModuleService implements SingletonService {
             }
         }
 
+        }
     }
 
     /**
@@ -660,6 +679,7 @@ public class ModuleService implements SingletonService {
      * @throws IOException
      */
     private void unimportIndex(Module module) throws IOException {
+
         // 1.: iterate over resources and delete
         Set<String> resources = module.getResources();
         for (String resource : resources) {
@@ -705,6 +725,15 @@ public class ModuleService implements SingletonService {
                 logger.log(Level.WARNING, "error instantiating class {0}: {1}", new Object[]{className, t});
             }
 
+	// 3.: iterate over libraries and delete
+        Set<String> libraries = module.getLibraries();
+        for (String library : libraries) {
+            String destinationPath = createResourceFileName(servletContext, "WEB-INF/lib", library);
+
+            undeployFile(library, destinationPath);
+        }
+
+
         }
     }
 
@@ -729,6 +758,7 @@ public class ModuleService implements SingletonService {
         Set<String> classes = ret.getClasses();
         Set<String> properties = ret.getProperties();
         Set<String> resources = ret.getResources();
+        Set<String> libraries = ret.getLibraries();
 
         JarFile jarFile = new JarFile(moduleFile);
 
@@ -736,6 +766,7 @@ public class ModuleService implements SingletonService {
         // ignore entries beginning with meta-inf/
         // handle entries beginning with images/ as IMAGE
         // handle entries beginning with pages/ as PAGES
+	// handle entries ending with .jar as libraries, to be deployed to WEB-INF/lib
         // handle other entries as potential page and/or entity classes
 
         // .. to be extended
@@ -762,6 +793,10 @@ public class ModuleService implements SingletonService {
 
                 // add property entry to Module
                 properties.add(fileEntry.substring(0, fileEntry.length() - 11));
+
+            } else if (entryName.toLowerCase().endsWith(".jar")) {
+
+		libraries.add(entryName);
 
             } else {
                 // add resources to module

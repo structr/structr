@@ -19,10 +19,10 @@
 package org.structr.core.entity;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.io.FileUtils;
@@ -30,7 +30,12 @@ import org.neo4j.graphdb.Direction;
 import org.structr.common.ImageHelper;
 import org.structr.common.ImageHelper.Thumbnail;
 import org.structr.common.RelType;
+import org.structr.common.RenderMode;
+import org.structr.common.StructrOutputStream;
+import org.structr.common.renderer.FileStreamRenderer;
+import org.structr.common.renderer.ImageSourceRenderer;
 import org.structr.core.Command;
+import org.structr.core.NodeRenderer;
 import org.structr.core.Services;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;
@@ -130,45 +135,12 @@ public class Image extends File {
     }
 
     @Override
-    public void renderView(StringBuilder out, final AbstractNode startNode,
-            final String editUrl, final Long editNodeId) {
-
-        if (editNodeId != null && getId() == editNodeId.longValue()) {
-
-            renderEditFrame(out, editUrl);
-
-        } else {
-
-            String imageUrl = null;
-
-            if (getUrl() == null) {
-                imageUrl = getNodePath(startNode);
-            } else {
-                imageUrl = getUrl();
-            }
-
-            // FIXME: title shoud be rendered dependent of locale
-            if (isVisible()) {
-                //out.append("<img src=\"").append(getNodeURL(renderMode, contextPath)).append("\" title=\"").append(getTitle()).append("\" alt=\"").append(getTitle()).append("\" width=\"").append(getWidth()).append("\" height=\"").append(getHeight()).append("\">");
-                out.append("<img src=\"").append(imageUrl).append("\" title=\"").append(getTitle()).append("\" alt=\"").append(getTitle()).append("\" width=\"").append(getWidth()).append("\" height=\"").append(getHeight()).append("\">");
-            }
-        }
+    public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers)
+    {
+	    renderers.put(RenderMode.Default, new ImageSourceRenderer());
+	    renderers.put(RenderMode.Direct, new FileStreamRenderer());
     }
 
-    /**
-     * Stream content directly to output.
-     *
-     * @param filesPath
-     * @param out
-     */
-    @Override
-    public void renderDirect(OutputStream out, final AbstractNode startNode,
-            final String editUrl, final Long editNodeId) {
-
-        if (isVisible()) {
-            super.renderDirect(out, startNode, editUrl, editNodeId);
-        }
-    }
 //
 //    /**
 //     * Get thumbnail image of this image
