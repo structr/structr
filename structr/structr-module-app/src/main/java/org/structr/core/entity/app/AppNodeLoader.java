@@ -19,6 +19,8 @@
 package org.structr.core.entity.app;
 
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.structr.common.CurrentRequest;
 import org.structr.common.CurrentSession;
 import org.structr.common.RenderMode;
@@ -36,10 +38,12 @@ import org.structr.core.renderer.NodeLoaderRenderer;
  */
 public class AppNodeLoader extends AbstractNode implements NodeSource
 {
+	public static final Logger logger = Logger.getLogger(AppNodeLoader.class.getName());
+
 	public static final String ID_SOURCE_KEY = "idSource";
+
 	// ----- instance variables -----
 	private SessionValue<Object> sessionValue = null;
-	private AbstractNode loadedNode = null;
 
 	@Override
 	public String getIconSrc()
@@ -63,14 +67,9 @@ public class AppNodeLoader extends AbstractNode implements NodeSource
 	{
 	}
 
-
-    @Override
-    public void onNodeDeletion() {
-    }
-	public AbstractNode loadNodeInternal()
+	@Override
+	public void onNodeDeletion()
 	{
-		Object loaderValue = getValue();
-		return ((AbstractNode)Services.command(FindNodeCommand.class).execute(null, this, loaderValue));
 	}
 
 	public Object getValue()
@@ -105,11 +104,12 @@ public class AppNodeLoader extends AbstractNode implements NodeSource
 	@Override
 	public AbstractNode loadNode()
 	{
-		if(loadedNode == null)
+		Object loaderValue = getValue();
+		if(loaderValue != null)
 		{
-			loadedNode = loadNodeInternal();
+			return ((AbstractNode)Services.command(FindNodeCommand.class).execute(null, this, loaderValue));
 		}
 
-		return (loadedNode);
+		return(null);
 	}
 }

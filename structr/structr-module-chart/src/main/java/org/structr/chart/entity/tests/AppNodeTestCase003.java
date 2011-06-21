@@ -156,6 +156,8 @@ public class AppNodeTestCase003 extends ApplicationNode
 		ret.append("<div>").append(lineSeparator);
 		ret.append("%{*}").append(lineSeparator);
 		ret.append("</div>").append(lineSeparator);
+		ret.append("</body>").append(lineSeparator);
+		ret.append("</html>").append(lineSeparator);
 
 		return(ret.toString());
 	}

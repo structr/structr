@@ -21,6 +21,7 @@ package org.structr.core.entity;
 import java.util.Map;
 import org.structr.common.RenderMode;
 import org.structr.core.NodeRenderer;
+import org.structr.core.NodeSource;
 
 /**
  * A NodeType node defines the type of all connected nodes.
@@ -30,7 +31,7 @@ import org.structr.core.NodeRenderer;
  * 
  * @author axel
  */
-public class NodeType extends AbstractNode
+public class NodeType extends AbstractNode implements NodeSource
 {
 	@Override
 	public String getIconSrc()
@@ -53,7 +54,14 @@ public class NodeType extends AbstractNode
 	{
 	}
 
-    @Override
-    public void onNodeDeletion() {
-    }
+	@Override
+	public void onNodeDeletion()
+	{
+	}
+
+	@Override
+	public AbstractNode loadNode()
+	{
+		return(this);
+	}
 }

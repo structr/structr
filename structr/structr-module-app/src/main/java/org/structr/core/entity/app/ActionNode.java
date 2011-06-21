@@ -71,7 +71,7 @@ public abstract class ActionNode extends AbstractNode
 						slot.setSource(source);
 						Object value = source.getValue();
 
-						logger.log(Level.FINE,
+						logger.log(Level.INFO,
 							"sourceName: {0}, mappedName: {1}, value: {2}",
 							new Object[]
 							{
