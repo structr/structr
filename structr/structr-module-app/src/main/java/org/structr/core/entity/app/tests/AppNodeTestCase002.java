@@ -22,7 +22,6 @@ package org.structr.core.entity.app.tests;
 import org.structr.common.RelType;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Template;
-import org.structr.core.entity.app.AppForm;
 import org.structr.core.entity.app.AppList;
 import org.structr.core.entity.app.AppNodeView;
 import org.structr.core.entity.ApplicationNode;

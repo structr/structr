@@ -170,6 +170,10 @@ public class AppNodeCreator extends ActionNode implements NodeSource
 		currentNode = new SessionValue<AbstractNode>(createUniqueIdentifier("currentNode"));
 	}
 
+    @Override
+    public void onNodeDeletion() {
+    }
+
 	// ----- interface NodeSource -----
 	@Override
 	public AbstractNode loadNode()

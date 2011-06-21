@@ -75,4 +75,8 @@ public class ArbitraryNode extends AbstractNode {
     @Override
     public void onNodeInstantiation() {
     }
+
+    @Override
+    public void onNodeDeletion() {
+    }
 }

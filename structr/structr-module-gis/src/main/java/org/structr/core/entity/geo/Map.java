@@ -52,6 +52,10 @@ public class Map extends AbstractNode
 	{
 	}
 
+    @Override
+    public void onNodeDeletion() {
+    }
+
 // <editor-fold defaultstate="collapsed" desc="getter and setter methods">
 // getter and setter methods
 //    public String getContentType() {

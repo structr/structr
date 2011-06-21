@@ -256,4 +256,8 @@ public class TextField extends FormField implements InteractiveNode, RequestCycl
     public void onNodeInstantiation()
     {
     }
+
+    @Override
+    public void onNodeDeletion() {
+    }
 }

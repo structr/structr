@@ -71,4 +71,8 @@ public class AppButton extends HtmlNode
 	public void onNodeInstantiation()
 	{
 	}
+
+    @Override
+    public void onNodeDeletion() {
+    }
 }

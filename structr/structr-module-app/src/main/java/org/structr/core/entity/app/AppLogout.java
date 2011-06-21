@@ -65,4 +65,8 @@ public class AppLogout extends ActionNode
 	public void onNodeInstantiation()
 	{
 	}
+
+    @Override
+    public void onNodeDeletion() {
+    }
 }

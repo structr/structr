@@ -73,6 +73,10 @@ public abstract class ApplicationNode extends AbstractNode
 		}
 	}
 
+    @Override
+    public void onNodeDeletion() {
+    }
+
 	@Override
 	public String getIconSrc()
 	{

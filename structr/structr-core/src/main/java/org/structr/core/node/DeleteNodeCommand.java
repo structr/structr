@@ -215,6 +215,13 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
                                 // delete the HAS_CHILD relationship of this child node
                                 //if (r != null) r.delete();
+				
+			        // deletion callback, must not prevent node deletion!
+				try
+			        {
+					((AbstractNode)findNode.execute(user, n.getId())).onNodeDeletion();
+
+    			        } catch(Throwable t) { logger.log(Level.WARNING, "Exception while calling onDeletion callback: {0}", t); }
 
                                 // delete the child node itself
                                 n.delete();
@@ -244,6 +251,14 @@ public class DeleteNodeCommand extends NodeServiceCommand {
                                 r.getRelationship().delete();
                             }
 
+			    // deletion callback, must not prevent node deletion!
+			    try
+			    {
+				structrNode.onNodeDeletion();
+
+    			    } catch(Throwable t) { logger.log(Level.WARNING, "Exception while calling onDeletion callback: {0}", t); }
+
+			    // delete node
                             node.delete();
                         }
 

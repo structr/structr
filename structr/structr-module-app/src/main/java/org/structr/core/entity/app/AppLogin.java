@@ -338,5 +338,9 @@ public class AppLogin extends ActionNode
 	public void onNodeInstantiation()
 	{
 	}
+
+    @Override
+    public void onNodeDeletion() {
+    }
 }
 

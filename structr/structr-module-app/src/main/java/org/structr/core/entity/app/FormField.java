@@ -77,4 +77,8 @@ public abstract class FormField extends AbstractNode {
     public void onNodeInstantiation()
     {
     }
+
+    @Override
+    public void onNodeDeletion() {
+    }
 }

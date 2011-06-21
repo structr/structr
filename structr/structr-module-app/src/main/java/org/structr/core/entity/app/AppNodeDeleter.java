@@ -64,4 +64,8 @@ public class AppNodeDeleter extends ActionNode
 	public void onNodeInstantiation()
 	{
 	}
+
+    @Override
+    public void onNodeDeletion() {
+    }
 }

@@ -29,15 +29,4 @@ public abstract class Chart extends ArbitraryNode
 	{
 		return("image/png");
 	}
-
-	@Override
-	public void onNodeCreation()
-	{
-		//
-	}
-
-	@Override
-	public void onNodeInstantiation()
-	{
-	}
 }
