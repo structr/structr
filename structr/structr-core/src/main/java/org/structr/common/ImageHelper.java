@@ -92,7 +92,7 @@ public abstract class ImageHelper {
         return createThumbnail(originalImage, maxWidth, maxHeight, false);
     }
 
-    public static Thumbnail createThumbnail(final Image originalImage, final int maxWidth, final int maxHeight, final boolean crop) {
+    synchronized public static Thumbnail createThumbnail(final Image originalImage, final int maxWidth, final int maxHeight, final boolean crop) {
 
         //String contentType = (String) originalImage.getProperty(Image.CONTENT_TYPE_KEY);
 
