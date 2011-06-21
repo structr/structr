@@ -46,6 +46,7 @@ import org.structr.context.SessionMonitor.Session;
 import org.structr.core.Command;
 import org.structr.core.Service;
 import org.structr.core.Services;
+import org.structr.core.agent.CleanUpFilesTask;
 import org.structr.core.agent.ProcessTaskCommand;
 import org.structr.core.agent.RebuildIndexTask;
 import org.structr.core.agent.UpdateImageMetadataTask;
@@ -109,6 +110,8 @@ public class Maintenance extends Admin {
     protected ActionLink shutdownLink = new ActionLink("shutdownLink", "Shutdown", this, "onShutdown");
     @Bindable
     protected ActionLink rebuildIndexLink = new ActionLink("rebuildIndexLink", "Rebuild Index (Background)", this, "onRebuildIndex");
+    @Bindable
+    protected ActionLink cleanUpFilesLink = new ActionLink("cleanUpFilesLink", "Clean-up Files (Background)", this, "onCleanUpFiles");
     @Bindable
     protected ActionLink removeThumbnailsLink = new ActionLink("removeThumbnailsLink", "Remove Thumbnails (Ad-hoc)", this, "onRemoveThumbnails");
     @Bindable
@@ -690,6 +693,17 @@ public class Maintenance extends Admin {
     public boolean onRebuildIndex() {
         Command processTask = Services.command(ProcessTaskCommand.class);
         processTask.execute(new RebuildIndexTask());
+        return redirect();
+    }
+
+    /**
+     * Remove unused files, running in background
+     * 
+     * @return
+     */
+    public boolean onCleanUpFiles() {
+        Command processTask = Services.command(ProcessTaskCommand.class);
+        processTask.execute(new CleanUpFilesTask());
         return redirect();
     }
 
