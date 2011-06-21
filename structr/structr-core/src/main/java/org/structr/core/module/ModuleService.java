@@ -57,7 +57,7 @@ import org.w3c.dom.Element;
  * This service keeps an index of installed / activated modules for efficient access
  * files:
  *  - $BASEDIR/modules/modules.conf		-> properties file
- *  - $BASEDIR/modules/*.Zip			-> module Zip
+ *  - $BASEDIR/modules/*.jar			-> module jar
  *  - $BASEDIR/modules/index/$NAME.index	-> serialized instance of Module.java
  *
  * The entity class cache needs to be initialized with the structr core entities even
@@ -765,7 +765,7 @@ public class ModuleService implements SingletonService {
         // ignore entries beginning with meta-inf/
         // handle entries beginning with images/ as IMAGE
         // handle entries beginning with pages/ as PAGES
-	// handle entries ending with .Zip as libraries, to be deployed to WEB-INF/lib
+	// handle entries ending with .jar as libraries, to be deployed to WEB-INF/lib
         // handle other entries as potential page and/or entity classes
 
         // .. to be extended
@@ -793,7 +793,7 @@ public class ModuleService implements SingletonService {
                 // add property entry to Module
                 properties.add(fileEntry.substring(0, fileEntry.length() - 11));
 
-            } else if (entryName.toLowerCase().endsWith(".Zip")) {
+            } else if (entryName.toLowerCase().endsWith(".jar")) {
 
 		libraries.add(entryName);
 
