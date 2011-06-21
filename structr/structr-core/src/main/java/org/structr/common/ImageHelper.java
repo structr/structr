@@ -138,8 +138,6 @@ public abstract class ImageHelper {
                     int destWidth = Math.max(3, Math.round(sourceWidth / scale));
                     int destHeight = Math.max(3, Math.round(sourceHeight / scale));
 
-                    tn.setWidth(destWidth);
-                    tn.setHeight(destHeight);
 
 //                System.out.println("Dest (w,h): " + destWidth + ", " + destHeight);
 
@@ -153,15 +151,26 @@ public abstract class ImageHelper {
                         int offsetX = Math.abs(maxWidth - destWidth) / 2;
                         int offsetY = Math.abs(maxHeight - destHeight) / 2;
                         logger.log(Level.FINE, "Offset and Size (x,y,w,h): {0},{1},{2},{3}", new Object[]{offsetX, offsetY, maxWidth, maxHeight});
-                        
+
                         result = resampled.getSubimage(offsetX, offsetY, maxWidth, maxHeight);
+                        tn.setWidth(maxWidth);
+                        tn.setHeight(maxHeight);
+
                     } else {
+
                         result = resampled;
+                        tn.setWidth(destWidth);
+                        tn.setHeight(destHeight);
                     }
 
                     ImageIO.write(result, Thumbnail.FORMAT, baos);
+                    
                 } else {
+
+                    // Thumbnail is source image
                     ImageIO.write(source, Thumbnail.FORMAT, baos);
+                    tn.setWidth(sourceWidth);
+                    tn.setHeight(sourceHeight);
                 }
             } else {
                 logger.log(Level.WARNING, "Thumbnail could not be created");
