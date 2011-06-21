@@ -142,9 +142,6 @@ public class AppNodeTestCase003 extends ApplicationNode
 
 		linkNodes(lineChart, data, RelType.DATA);
 		linkNodes(lineChart, barType, RelType.TYPE);
-
-		// change this into a Folder
-		this.setProperty("type", "Folder");
 	}
 
 	private String createPageTemplateContent()
