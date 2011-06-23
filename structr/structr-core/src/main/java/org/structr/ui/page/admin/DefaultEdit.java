@@ -108,6 +108,7 @@ public class DefaultEdit extends Nodes {
     protected FormTable securityTable = new FormTable("Security");
     protected Form securityForm = new Form("securityForm");
     protected Form cloudForm = new Form("cloudForm");
+    protected Form consoleForm = new Form("consoleForm");
     protected Select userSelect = new Select("selectUser", "User");
     protected Select groupSelect = new Select("selectGroup", "Group");
     protected PickList allowed = new PickList(StructrRelationship.ALLOWED_KEY, "Allowed");
@@ -118,6 +119,7 @@ public class DefaultEdit extends Nodes {
     protected Panel editSecurityPanel;
     protected Panel editVisibilityPanel;
     protected Panel cloudPanel;
+    protected Panel consolePanel;
 
     protected TextField remoteHost;
     protected LongField remoteSourceNode;
@@ -650,8 +652,16 @@ public class DefaultEdit extends Nodes {
         cloudForm.setActionURL(cloudForm.getActionURL().concat("#cloud-tab"));
         addControl(cloudForm);
 
+	// cloud
         cloudPanel = new Panel("cloudPanel", "/panel/cloud-panel.htm");
-        addControl(cloudPanel);
+	addControl(cloudPanel);
+
+	// console
+	consoleForm.setActionURL(consoleForm.getActionURL().concat("#console-tab"));
+	addControl(consoleForm);
+
+        consolePanel = new Panel("consolePanel", "/panel/console-panel.htm");
+        addControl(consolePanel);
 
         // ------------------ cloud end ---------------------
 

@@ -115,6 +115,10 @@
               #if ($cloudPanel)
               <li><a href="#cloud-tab"><span>Cloud</span></a></li>
               #end
+
+              #if ($consolePanel)
+              <li><a href="#console-tab"><span>Console</span></a></li>
+              #end
             </ul>
 
             <div style="clear: both"></div>
@@ -182,6 +186,10 @@
 
             #if ($cloudPanel)
             $cloudPanel
+            #end
+
+            #if ($consolePanel)
+            $consolePanel
             #end
           </div><!-- .body -->
 
@@ -402,8 +410,8 @@
 </div>
 #end
 
-#if ($consolePanel)
-    $consolePanel
+#if ($notificationPanel)
+    $notificationPanel
 #end
 
   </body>

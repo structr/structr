@@ -188,7 +188,7 @@ public class Nodes extends Admin {
     protected String source;
 
     @Bindable
-    protected Panel consolePanel;
+    protected Panel notificationPanel;
 
     public Nodes() {
 
@@ -409,7 +409,7 @@ public class Nodes extends Admin {
         }
 
 	// console panel
-	consolePanel = new Panel("consolePanel", "/panel/console-panel.htm");
+	notificationPanel = new Panel("notificationPanel", "/panel/notification-panel.htm");
     }
 
     @Override

@@ -24,11 +24,33 @@ import org.structr.common.StructrOutputStream;
 import org.structr.core.entity.AbstractNode;
 
 /**
+ * Defines the signature of a pluggable node renderer. Classes that implement
+ * this interface can be used in the
+ * {@see org.structr.core.entity.AbstractNode#initializeRenderers} method to
+ * control the appearance of different node types.
  *
  * @author Christian Morgner
  */
 public interface NodeRenderer<T extends AbstractNode>
 {
+	/**
+	 * Renders the node <code>currentNode</code> to the output stream
+	 * <code>out</code>.
+	 *
+	 * @param out the output stream that can be used for rendering
+	 * @param currentNode the node to be rendered
+	 * @param startNode the first node of the current rendering turn
+	 * @param editUrl the edit url
+	 * @param editNodeId the ID of the node that should be edited
+	 * @param renderMode the render mode
+	 */
 	public void renderNode(final StructrOutputStream out, final T currentNode, final AbstractNode startNode, final String editUrl, final Long editNodeId, RenderMode renderMode);
+
+	/**
+	 * Returns the content type of this renderer.
+	 *
+	 * @param currentNode the node to be rendered
+	 * @return the content type of the content this renderer produces
+	 */
 	public String getContentType(final T currentNode);
 }

@@ -1,15 +1,40 @@
+/*
+ *  Copyright (C) 2011 Axel Morgner, structr <structr@structr.org>
+ *
+ *  This file is part of structr <http://structr.org>.
+ *
+ *  structr is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  structr is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package org.structr.core.notification;
 
 import java.text.DecimalFormat;
-import java.util.logging.Logger;
 
 /**
+ * A notification that displays a progress bar in the admin UI. Notifications
+ * of this type have two integer values that together specify the displayed
+ * progress. The <code>targetProgress</code> value defines the completion
+ * threshold, and the <code>currentProgress</code> value specifies the current
+ * value. There are several methods that can be used to increase the current
+ * progress value. This notification stays visible until 3 seconds after the
+ * <code>currentProgress</code> value passes the <code>targetProgress</code>
+ * threshold. The delay can be specified via the {@see #setLifespan}
+ * method.
  *
  * @author Christian Morgner
  */
 public class ProgressBarNotification extends DefaultNotification {
-
-	private static final Logger logger=  Logger.getLogger(ProgressBarNotification.class.getName());
 
 	private DecimalFormat format = new DecimalFormat("0");
 	private boolean showAbsoluteValues = false;
@@ -17,16 +42,38 @@ public class ProgressBarNotification extends DefaultNotification {
 	private int currentProgress = 0;
 	private int targetProgress = 0;
 
+	/**
+	 * Constructs a new instance of this notification with the given title.
+	 *
+	 * @param title the title to display
+	 */
 	public ProgressBarNotification(String title)
 	{
 		this(title, 0, false);
 	}
 
+	/**
+	 * Constructs a new instance of this notification with the given title
+	 * and the given targetProgress counter.
+	 *
+	 * @param title the title to display
+	 * @param targetProgress the target progress threshold
+	 */
 	public ProgressBarNotification(String title, int targetProgress)
 	{
 		this(title, targetProgress, false);
 	}
 
+	/**
+	 * Constructs a new instance of this notification with the given title
+	 * and the given targetProgress. The <code>showAbsoluteValues</code>
+	 * flag indicates whether this progress bar displays absolute values,
+	 * (e.g. "55/100"), or a percentage (e.g. "55 %").
+	 *
+	 * @param title the title to display
+	 * @param targetProgress the target progress threshold
+	 * @param showAbsoluteValues whether to show absolute values or percentage
+	 */
 	public ProgressBarNotification(String title, int targetProgress, boolean showAbsoluteValues)
 	{
 		super(title, "");
@@ -36,24 +83,43 @@ public class ProgressBarNotification extends DefaultNotification {
 		this.showAbsoluteValues = showAbsoluteValues;
 	}
 
+	/**
+	 * Increases the current progress value by 1.
+	 */
 	public void increaseProgress()
 	{
 		this.currentProgress += 1;
 		checkFinished();
 	}
 
+	/**
+	 * Increases the current progress value by <code>progress</code>.
+	 *
+	 * @param progress the progress to add
+	 */
 	public void increaseProgress(int progress)
 	{
 		this.currentProgress += progress;
 		checkFinished();
 	}
 
+	/**
+	 * Sets the current progress value of this progress bar to the given
+	 * value.
+	 *
+	 * @param progress the current progress value to set
+	 */
 	public void setProgress(int progress)
 	{
 		this.currentProgress = progress;
 		checkFinished();
 	}
 
+	/**
+	 * Returns the progress percentage of this progress bar.
+	 *
+	 * @return the progress percentage
+	 */
 	public double getProgress()
 	{
 		double dCurrent = (double)currentProgress;
@@ -65,6 +131,11 @@ public class ProgressBarNotification extends DefaultNotification {
 		return(ret);
 	}
 
+	/**
+	 * Sets the target progress threshold for 100%.
+	 *
+	 * @param targetProgress the target progress threshold
+	 */
 	public void setTargetProgress(int targetProgress)
 	{
 		this.targetProgress = targetProgress;

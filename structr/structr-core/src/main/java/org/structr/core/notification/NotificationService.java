@@ -1,3 +1,22 @@
+/*
+ *  Copyright (C) 2011 Axel Morgner, structr <structr@structr.org>
+ *
+ *  This file is part of structr <http://structr.org>.
+ *
+ *  structr is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  structr is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package org.structr.core.notification;
 
 import java.util.Collections;
@@ -11,6 +30,17 @@ import org.structr.core.Command;
 import org.structr.core.SingletonService;
 
 /**
+ * The structr notification service. This service provides commands to get and
+ * set notifications in the structr admin UI. Notifications are small
+ * information widgets that are displayed in the lower right corner of the
+ * admin UI.
+ * 
+ * <p>This service provides the following commands:</p>
+ * <ul>
+ *	<li>{@see org.structr.core.notification.AddNotificationCommand}</li>
+ *	<li>{@see org.structr.core.notification.GetNotificationsCommand}</li>
+ *	<li>{@see org.structr.core.notification.AddGlobalNotificationCommand}</li>
+ * </ul>
  *
  * @author Christian Morgner
  */

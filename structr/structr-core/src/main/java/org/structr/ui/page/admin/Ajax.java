@@ -1,8 +1,6 @@
 package org.structr.ui.page.admin;
 
 import java.util.Collection;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.click.ActionResult;
 import org.structr.core.Services;
 import org.structr.core.notification.GetNotificationsCommand;
@@ -15,14 +13,14 @@ import org.structr.ui.page.StructrPage;
  */
 public class Ajax extends StructrPage
 {
-	public ActionResult onUpdateConsoleContent()
+	public ActionResult onUpdateNotificationContent()
 	{
 		StringBuilder ret = new StringBuilder(200);
 		int zIndex = 999;
 
 		Collection<Notification> notifications = (Collection<Notification>)Services.command(GetNotificationsCommand.class).execute(getContext().getSession().getId());
 
-		ret.append("<div id=\"consoleContent\">");
+		ret.append("<div id=\"notificationContent\">");
 
 		if(notifications != null) {
 
