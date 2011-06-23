@@ -314,7 +314,7 @@ public class PushNodes extends CloudServiceCommand
 		}
 	}
 
-	public static class PushTransmission implements CloudTransmission, Notification
+	public static class PushTransmission implements CloudTransmission
 	{
 		private String remoteHost = null;
 		private boolean finished = false;
@@ -374,45 +374,6 @@ public class PushNodes extends CloudServiceCommand
 		public void setSize(int size)
 		{
 			this.size = size;
-		}
-
-		// ----- interface Notification -----
-		@Override
-		public String getTitle()
-		{
-			return("Active transmission to " + remoteHost + ":" + tcpPort);
-		}
-
-		@Override
-		public String getText()
-		{
-			if(finished)
-			{
-				return("Transmission complete");
-
-			} else
-			{
-				if(size == 0)
-				{
-					return("Preparing transmission..");
-					
-				} else
-				{
-					return(count.value + " / " + size + " objects transmitted");
-				}
-			}
-		}
-
-		@Override
-		public boolean isExpired()
-		{
-			return(finished && System.currentTimeMillis() > this.startTime + this.lifeSpan);
-		}
-
-		public void setExpired(boolean expired)
-		{
-			this.startTime = System.currentTimeMillis();
-			this.finished = true;
 		}
 	}
 

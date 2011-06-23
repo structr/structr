@@ -16,7 +16,6 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package org.structr.core.notification;
 
 /**
@@ -27,65 +26,74 @@ package org.structr.core.notification;
  */
 public class DefaultNotification implements Notification {
 
-	protected long creationTime = 0L;
-	protected long lifespan = 0L;
-	protected String title = null;
-	protected String text = null;
+    protected long creationTime = 0L;
+    protected long lifespan = 0L;
+    protected String title = null;
+    protected String text = null;
 
-	/**
-	 * Constructs a new instance of this notification with the given title
-	 * and text.
-	 *
-	 * @param title the title to display
-	 * @param text the text to display
-	 */
-	public DefaultNotification(String title, String text)
-	{
-		this(title, text, 3000);
-	}
+    /**
+     * Constructs a new instance of this notification with the given title
+     * and text.
+     *
+     * @param title the title to display
+     * @param text the text to display
+     */
+    public DefaultNotification(String title, String text) {
+	this(title, text, 3000);
+    }
 
-	/**
-	 * Constructs a new instance of this notification with the given title,
-	 * text and lifespan.
-	 *
-	 * @param title the title to display
-	 * @param text the text to display
-	 * @param lifespan the lifespan in milliseconds
-	 */
-	public DefaultNotification(String title, String text, long lifespan)
-	{
-		this.creationTime = System.currentTimeMillis();
-		this.lifespan = lifespan;
+    /**
+     * Constructs a new instance of this notification with the given title,
+     * text and lifespan.
+     *
+     * @param title the title to display
+     * @param text the text to display
+     * @param lifespan the lifespan in milliseconds
+     */
+    public DefaultNotification(String title, String text, long lifespan) {
+	this.creationTime = System.currentTimeMillis();
+	this.lifespan = lifespan;
 
-		this.title = title;
-		this.text = text;
-	}
+	this.title = title;
+	this.text = text;
+    }
 
-	@Override
-	public String getTitle()
-	{
-		return(title);
-	}
+    @Override
+    public String getTitle() {
+	return (title);
+    }
 
-	@Override
-	public String getText()
-	{
-		return(text);
-	}
+    @Override
+    public String getText() {
+	return (text);
+    }
 
-	/**
-	 * Sets the lifespan of this notification to the given value (ms).
-	 *
-	 * @param lifespan the lifespan in milliseconds
-	 */
-	public void setLifespan(long lifespan)
-	{
-		this.lifespan = lifespan;
-	}
+    @Override
+    public String getContainerCss() {
+	return("notification");
+    }
 
-	@Override
-	public boolean isExpired()
-	{
-		return(System.currentTimeMillis() > this.creationTime + lifespan);
-	}
+    @Override
+    public String getTitleCss() {
+	return("notificationTitle");
+    }
+
+    @Override
+    public String getTextCss() {
+	return("notificationText");
+    }
+
+    /**
+     * Sets the lifespan of this notification to the given value (ms).
+     *
+     * @param lifespan the lifespan in milliseconds
+     */
+    public void setLifespan(long lifespan) {
+	this.lifespan = lifespan;
+    }
+
+    @Override
+    public boolean isExpired() {
+	return (System.currentTimeMillis() > this.creationTime + lifespan);
+    }
 }

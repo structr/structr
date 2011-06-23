@@ -41,6 +41,24 @@ public interface Notification {
 	public String getText();
 
 	/**
+	 * Returns the CSS class(es) for the notification widget.
+	 * @return css classes
+	 */
+	public String getContainerCss();
+
+	/**
+	 * Returns the CSS class(es) for the notification title.
+	 * @return css classes
+	 */
+	public String getTitleCss();
+
+	/**
+	 * Returns the CSS class(es) for the notification text.
+	 * @return css classes
+	 */
+	public String getTextCss();
+
+	/**
 	 * Whether this notification is expired. Notifications are removed from
 	 * the NotificationService only after this method returns false.
 	 *

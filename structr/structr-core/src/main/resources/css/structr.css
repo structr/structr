@@ -1044,12 +1044,44 @@ span.pagelinks-nobanner {
     right: 0px;
 }
 
+.notification.success {
+    background: #f0feed url('../images/tick.png') 1em no-repeat;
+    padding: 1em 2em 1em 3em;
+    border: 1px solid #83b362;
+    border-right: none;
+    border-bottom: none;
+}
+
+.notification.error {
+    background: #ffe8e8 url('../images/exclamation.png') 1em no-repeat;
+    border: 1px solid #dd0000;
+    border-right: none;
+    border-bottom: none;
+}
+
+.notificationIcon {
+    margin: 0px;
+    margin-right: 10px;
+    vertical-align: middle;
+}
+
 .notificationTitle {
     margin: 0px;
 }
 
 .notificationText {
     margin: 0px;
+    font-size:9pt;
+}
+
+.notificationText.success
+{
+    color: #619140;
+}
+
+.notificationText.error
+{
+    color: #c20000;
 }
 
 .progressBarNotification {
