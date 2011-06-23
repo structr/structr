@@ -99,6 +99,6 @@ public class XmlRenderer implements NodeRenderer<Xml>
 	@Override
 	public String getContentType(Xml currentNode)
 	{
-		return ("text/html");
+		return ("text/xml");
 	}
 }
