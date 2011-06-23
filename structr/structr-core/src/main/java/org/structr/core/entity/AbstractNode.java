@@ -2134,6 +2134,38 @@ public abstract class AbstractNode implements Comparable<AbstractNode>
 		return ((List<AbstractNode>)findNode.execute(remoteUser, this));
 	}
 
+	public int getRemotePushSize(User remoteUser, int chunkSize)
+	{
+		Command findNode = Services.command(FindNodeCommand.class);
+		List<AbstractNode> list = ((List<AbstractNode>)findNode.execute(remoteUser, this));
+		int size = 0;
+
+		for(AbstractNode node : list)
+		{
+			if(node instanceof File)
+			{
+				File file = (File)node;
+				size += (file.getSize() / chunkSize);
+				size += 3;
+
+			} else
+			{
+				size++;
+			}
+
+			List<StructrRelationship> rels = node.getOutgoingRelationships();
+			for(StructrRelationship r : rels)
+			{
+				if(list.contains(r.getStartNode()) && list.contains(r.getEndNode()))
+				{
+					size++;
+				}
+			}
+		}
+
+		return(size);
+	}
+
 	/**
 	 * Return unordered list of all direct child nodes (no recursion)
 	 * with given relationship type

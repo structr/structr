@@ -23,6 +23,7 @@ import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.minlog.Log;
+import com.sun.corba.se.spi.activation.TCPPortHelper;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -37,6 +38,9 @@ import org.structr.core.entity.StructrRelationship;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
 import org.structr.core.node.FindNodeCommand;
+import org.structr.core.notification.AddNotificationCommand;
+import org.structr.core.notification.Notification;
+import org.structr.core.notification.ProgressBarNotification;
 
 /**
  *
@@ -150,33 +154,42 @@ public class PushNodes extends CloudServiceCommand
 			PushTransmission transmission = new PushTransmission(remoteHost, remoteTcpPort, remoteUdpPort, count, estimatedSize);
 			cloudService.registerTransmission(transmission);
 
+			StringBuilder titleBuffer = new StringBuilder();
+			titleBuffer.append("Transmission to ").append(remoteHost).append(":").append(remoteTcpPort);
+
+			// create transmission notification
+			ProgressBarNotification progressNotification = new ProgressBarNotification(titleBuffer.toString());
+			Services.command(AddNotificationCommand.class).execute(progressNotification);
+
 			// connect
 			client.connect(10000, remoteHost, remoteTcpPort, remoteUdpPort);
 
 			// mark start of transaction
 			client.sendTCP(CloudService.BEGIN_TRANSACTION);
-			count.value++;
 
 			// send type of request
 			client.sendTCP(new PushNodeRequestContainer(remoteTargetNodeId));
-			count.value++;
 
 			// send child nodes when recursive sending is requested
 			if(recursive)
 			{
 				List<AbstractNode> nodes = sourceNode.getAllChildrenForRemotePush(new SuperUser()); // FIXME: use real user here
 
+				// FIXME: were collecting the nodes twice here, the first time is only for counting..
+				progressNotification.setTargetProgress(sourceNode.getRemotePushSize(new SuperUser(), chunkSize));
+
 				for(AbstractNode n : nodes)
 				{
 					if(n instanceof File)
 					{
-						sendFile(client, listener, (File)n, chunkSize, count);
+						sendFile(client, listener, (File)n, chunkSize, progressNotification);
 
 					} else
 					{
 						NodeDataContainer container = new NodeDataContainer(n);
 						client.sendTCP(container);
-						count.value++;
+
+						progressNotification.increaseProgress();
 					}
 				}
 
@@ -190,7 +203,7 @@ public class PushNodes extends CloudServiceCommand
 						if(nodes.contains(r.getStartNode()) && nodes.contains(r.getEndNode()))
 						{
 							client.sendTCP(new RelationshipDataContainer(r));
-							count.value++;
+							progressNotification.increaseProgress();
 						}
 					}
 				}
@@ -200,24 +213,19 @@ public class PushNodes extends CloudServiceCommand
 				// send start node
 				if(sourceNode instanceof File)
 				{
-					sendFile(client, listener, (File)sourceNode, chunkSize, count);
+					sendFile(client, listener, (File)sourceNode, chunkSize, progressNotification);
 
 				} else
 				{
 					// If not recursive, add only the node itself
 					client.sendTCP(new NodeDataContainer(sourceNode));
-					count.value++;
+					progressNotification.increaseProgress();
 				}
 
 			}
 
-			logger.log(Level.INFO, "Data transmitted, sending END_TRANSACTION signal..");
-
 			// mark end of transaction
 			client.sendTCP(CloudService.END_TRANSACTION);
-			count.value++;
-
-			logger.log(Level.INFO, "Transmission done, {0} objects sent", count);
 
 			cloudService.unregisterTransmission(transmission);
 
@@ -243,12 +251,12 @@ public class PushNodes extends CloudServiceCommand
 	 *
 	 * @return the number of objects that have been sent over the network
 	 */
-	private void sendFile(Client client, final SynchronizingListener listener, File file, int chunkSize, Value count)
+	private void sendFile(Client client, final SynchronizingListener listener, File file, int chunkSize, ProgressBarNotification progressNotification)
 	{
 		// send file container first
 		FileNodeDataContainer container = new FileNodeDataContainer(file);
 		client.sendTCP(container);
-		count.value++;
+		progressNotification.increaseProgress();
 
 		// send chunks
 		for(FileNodeChunk chunk : FileNodeDataContainer.getChunks(file, chunkSize))
@@ -265,12 +273,12 @@ public class PushNodes extends CloudServiceCommand
 				break;
 			}
 
-			count.value++;
+			progressNotification.increaseProgress();
 		}
 
 		// mark end of file with special chunk
 		client.sendTCP(new FileNodeEndChunk(container.getSourceNodeId(), container.getFileSize()));
-		count.value++;
+		progressNotification.increaseProgress();
 	}
 
 	private class SynchronizingListener extends Listener
@@ -307,13 +315,17 @@ public class PushNodes extends CloudServiceCommand
 		}
 	}
 
-	public static class PushTransmission implements CloudTransmission
+	public static class PushTransmission implements CloudTransmission, Notification
 	{
 		private String remoteHost = null;
+		private boolean finished = false;
 		private int estimatedSize = 0;
+		private long lifeSpan = 3000;
+		private long startTime = 0;
 		private Value count = null;
 		private int tcpPort = 0;
 		private int udpPort = 0;
+		private int size = 0;
 
 		public PushTransmission(String remoteHost, int tcpPort, int udpPort, Value count, int estimatedSize)
 		{
@@ -358,6 +370,50 @@ public class PushNodes extends CloudServiceCommand
 		public int getRemoteUdpPort()
 		{
 			return(udpPort);
+		}
+
+		public void setSize(int size)
+		{
+			this.size = size;
+		}
+
+		// ----- interface Notification -----
+		@Override
+		public String getTitle()
+		{
+			return("Active transmission to " + remoteHost + ":" + tcpPort);
+		}
+
+		@Override
+		public String getText()
+		{
+			if(finished)
+			{
+				return("Transmission complete");
+
+			} else
+			{
+				if(size == 0)
+				{
+					return("Preparing transmission..");
+					
+				} else
+				{
+					return(count.value + " / " + size + " objects transmitted");
+				}
+			}
+		}
+
+		@Override
+		public boolean isExpired()
+		{
+			return(finished && System.currentTimeMillis() > this.startTime + this.lifeSpan);
+		}
+
+		public void setExpired(boolean expired)
+		{
+			this.startTime = System.currentTimeMillis();
+			this.finished = true;
 		}
 	}
 

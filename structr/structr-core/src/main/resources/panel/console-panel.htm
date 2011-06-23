@@ -1,0 +1,24 @@
+<div id="consolePanel">
+	<div id="consoleContent"></div>
+</div>
+<script type="text/javascript">
+
+	jQuery(document).ready(function() {
+
+		window.setTimeout("updateConsoleContent()", 20);
+		window.setInterval("updateConsoleContent()", 500);
+	})
+
+	function updateConsoleContent() {
+
+		var url = "$context/admin/ajax.htm";
+		var extraData = "pageAction=onUpdateConsoleContent";
+
+		jQuery.get(url, extraData, function(data) {
+
+			// 'data' is the response returned by the server
+			// replace content of consolePanel with result
+			jQuery("#consoleContent").replaceWith(data);
+		});
+	}
+</script>

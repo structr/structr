@@ -24,6 +24,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import org.apache.click.Context;
 import org.apache.click.Page;
 import org.apache.click.control.AbstractLink;
@@ -50,6 +52,7 @@ import org.apache.click.extras.control.LongField;
 import org.apache.click.extras.control.PickList;
 import org.apache.click.util.HtmlStringBuffer;
 import org.neo4j.graphdb.RelationshipType;
+import org.structr.common.CurrentRequest;
 import org.structr.common.RelType;
 import org.structr.core.Command;
 import org.structr.core.Services;
@@ -1244,25 +1247,33 @@ public class DefaultEdit extends Nodes {
 
     public boolean onTransmitNodes() {
 
-        String remoteHostValue = remoteHost.getValue();
-	Long targetNodeValue = remoteSourceNode.getLong();
-        Integer tcpPort = remoteTcpPort.getInteger();
-        Integer udpPort = remoteUdpPort.getInteger();
-        boolean rec = cloudRecursive.isChecked();
-	String pushPull = cloudPushPull.getValue();
+        final String remoteHostValue = remoteHost.getValue();
+	final Long targetNodeValue = remoteSourceNode.getLong();
+        final Integer tcpPort = remoteTcpPort.getInteger();
+        final Integer udpPort = remoteUdpPort.getInteger();
+        final boolean rec = cloudRecursive.isChecked();
+	final String pushPull = cloudPushPull.getValue();
 
-	if("push".equals(pushPull))
-	{
-		Command transmitCommand = Services.command(PushNodes.class);
-		transmitCommand.execute(user, node, targetNodeValue, remoteHostValue, tcpPort, udpPort, rec);
+	// start new thread with name of current session Id
+	new Thread(new Runnable() {
 
-	} else
-	if("pull".equals(pushPull))
-	{
-		Command transmitCommand = Services.command(PullNode.class);
-		transmitCommand.execute(user, targetNodeValue, node, remoteHostValue, tcpPort, udpPort, rec);
+		@Override
+		public void run() {
 
-	}
+			if("push".equals(pushPull)) {
+
+				Command transmitCommand = Services.command(PushNodes.class);
+				transmitCommand.execute(user, node, targetNodeValue, remoteHostValue, tcpPort, udpPort, rec);
+
+			} else
+			if("pull".equals(pushPull)) {
+
+				Command transmitCommand = Services.command(PullNode.class);
+				transmitCommand.execute(user, targetNodeValue, node, remoteHostValue, tcpPort, udpPort, rec);
+			}
+		}
+
+	}, getContext().getSession().getId()).start();
 
         return false;
 

@@ -33,6 +33,8 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.common.RelType;
 import org.structr.core.entity.StructrRelationship;
 import org.structr.core.entity.User;
+import org.structr.core.notification.AddNotificationCommand;
+import org.structr.core.notification.DefaultNotification;
 
 /**
  * Deletes a node, or removes a LINK relationship respectively.

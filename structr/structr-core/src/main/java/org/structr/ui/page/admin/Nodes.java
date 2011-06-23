@@ -67,6 +67,8 @@ import org.structr.core.entity.DummyNode;
 import org.structr.core.entity.Property;
 import org.structr.core.module.GetEntitiesCommand;
 import org.structr.core.node.ExtractFileCommand;
+import org.structr.core.notification.AddNotificationCommand;
+import org.structr.core.notification.DefaultNotification;
 
 /**
  * Display the node tree.
@@ -184,6 +186,9 @@ public class Nodes extends Admin {
     protected String rendition;
     @Bindable
     protected String source;
+
+    @Bindable
+    protected Panel consolePanel;
 
     public Nodes() {
 
@@ -403,7 +408,8 @@ public class Nodes extends Admin {
             //deleteNodeForm.getField(PARENT_NODE_ID_KEY).setValue(parentNodeId);
         }
 
-
+	// console panel
+	consolePanel = new Panel("consolePanel", "/panel/console-panel.htm");
     }
 
     @Override
@@ -694,6 +700,7 @@ public class Nodes extends Admin {
             // avoid NullPointerException when no node was created..
             if (s != null) {
                 okMsg = "New " + s.getType() + " node " + s.getName() + " has been created.";
+		Services.command(AddNotificationCommand.class).execute(new DefaultNotification(okMsg, null));
 
                 Command findNode = Services.command(FindNodeCommand.class);
                 AbstractNode n = (AbstractNode) findNode.execute(user, s.getId());
@@ -707,6 +714,7 @@ public class Nodes extends Admin {
 
             } else {
                 errorMsg = "New node could not be created!";
+		Services.command(AddNotificationCommand.class).execute(new DefaultNotification(errorMsg, null));
             }
 
         }
@@ -751,6 +759,7 @@ public class Nodes extends Admin {
             });
 
             okMsg = "New relationship to node " + targetNodeId + " with type " + relType + " has been created.";
+	    Services.command(AddNotificationCommand.class).execute(new DefaultNotification(okMsg, null));
 
             Map<String, String> parameters = new HashMap<String, String>();
             parameters.put(NODE_ID_KEY, String.valueOf(getNodeId()));
@@ -786,6 +795,7 @@ public class Nodes extends Admin {
             });
 
             okMsg = "Node moved to " + targetNodeId + ".";
+	    Services.command(AddNotificationCommand.class).execute(new DefaultNotification(okMsg, null));
 
             Map<String, String> parameters = new HashMap<String, String>();
             parameters.put(NODE_ID_KEY, String.valueOf(getNodeId()));
@@ -820,6 +830,7 @@ public class Nodes extends Admin {
             });
 
             okMsg = "Node copied to " + targetNodeId + ".";
+	    Services.command(AddNotificationCommand.class).execute(new DefaultNotification(okMsg, null));
 
             Map<String, String> parameters = new HashMap<String, String>();
             parameters.put(NODE_ID_KEY, String.valueOf(getNodeId()));
@@ -871,9 +882,11 @@ public class Nodes extends Admin {
 
             if (transactionCommand.getExitCode().equals(Command.exitCode.FAILURE)) {
                 errorMsg = transactionCommand.getErrorMessage();
+		Services.command(AddNotificationCommand.class).execute(new DefaultNotification(errorMsg, null));
                 parameters.put(ERROR_MSG_KEY, errorMsg);
             } else {
                 okMsg = "Node extracted to " + targetNodeId;
+		Services.command(AddNotificationCommand.class).execute(new DefaultNotification(okMsg, null));
                 parameters.put(OK_MSG_KEY, okMsg);
             }
 
@@ -984,6 +997,7 @@ public class Nodes extends Admin {
 
             // assemble feedback message
             okMsg = "New " + s.getType() + " node " + s.getName() + " has been created.";
+	    Services.command(AddNotificationCommand.class).execute(new DefaultNotification(okMsg, null));
 
             Map<String, String> parameters = new HashMap<String, String>();
             parameters.put(NODE_ID_KEY, String.valueOf(getNodeId()));
@@ -1058,6 +1072,7 @@ public class Nodes extends Admin {
 
                 okMsg = null;
                 errorMsg = "Node " + getNodeId() + " could not be deleted. " + e.getMessage();
+		Services.command(AddNotificationCommand.class).execute(new DefaultNotification(errorMsg, null));
                 return true;
 
             }
@@ -1152,6 +1167,7 @@ public class Nodes extends Admin {
         });
 
         okMsg = "Property successfully set!"; // TODO: localize
+	Services.command(AddNotificationCommand.class).execute(new DefaultNotification(okMsg, null));
 
         Map<String, String> parameters = new HashMap<String, String>();
         parameters.put(NODE_ID_KEY, String.valueOf(getNodeId()));
@@ -1167,6 +1183,7 @@ public class Nodes extends Admin {
     public boolean onUpdateProperties() {
 
         okMsg = "Property successfully set!"; // TODO: localize
+	Services.command(AddNotificationCommand.class).execute(new DefaultNotification(okMsg, null));
 
         Map<String, String> parameters = new HashMap<String, String>();
         parameters.put(NODE_ID_KEY, String.valueOf(getNodeId()));

@@ -29,6 +29,8 @@ import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Trash;
 import org.structr.core.node.DeleteNodeCommand;
+import org.structr.core.notification.AddNotificationCommand;
+import org.structr.core.notification.DefaultNotification;
 
 /**
  *
@@ -86,6 +88,8 @@ public class EditTrash extends EditFolder {
 
         // assemble feedback message
         okMsg = "Trash emptied";
+
+	Services.command(AddNotificationCommand.class).execute(new DefaultNotification(okMsg, null));
 
         Map<String, String> parameters = new HashMap<String, String>();
         parameters.put(NODE_ID_KEY, String.valueOf(getNodeId()));
