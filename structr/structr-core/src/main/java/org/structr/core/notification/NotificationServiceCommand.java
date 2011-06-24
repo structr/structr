@@ -17,22 +17,20 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.structr.common;
+package org.structr.core.notification;
+
+import org.structr.core.Command;
 
 /**
- * Convenience interface to enable the use of enum types as node property keys.
- * The signature of this interface matches the signature of the enum class, so
- * you can use the following code to define property keys for
- * {@see org.structr.core.entity.AbstractNode} and subclasses.
- *
- * <pre>
- * public enum Key { property1, property2, property3 }
- * </pre>
+ * Abstract base class for NotificationService commands.
  *
  * @author Christian Morgner
  */
-public interface PropertyKey
-{
-	public String name();
-	public int ordinal();
+public abstract class NotificationServiceCommand extends Command {
+
+	@Override
+	public Class getServiceClass()
+	{
+		return(NotificationService.class);
+	}
 }

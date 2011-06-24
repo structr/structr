@@ -24,6 +24,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import org.apache.click.Context;
 import org.apache.click.Page;
 import org.apache.click.control.AbstractLink;
@@ -50,6 +52,7 @@ import org.apache.click.extras.control.LongField;
 import org.apache.click.extras.control.PickList;
 import org.apache.click.util.HtmlStringBuffer;
 import org.neo4j.graphdb.RelationshipType;
+import org.structr.common.CurrentRequest;
 import org.structr.common.RelType;
 import org.structr.core.Command;
 import org.structr.core.Services;
@@ -105,6 +108,7 @@ public class DefaultEdit extends Nodes {
     protected FormTable securityTable = new FormTable("Security");
     protected Form securityForm = new Form("securityForm");
     protected Form cloudForm = new Form("cloudForm");
+    protected Form consoleForm = new Form("consoleForm");
     protected Select userSelect = new Select("selectUser", "User");
     protected Select groupSelect = new Select("selectGroup", "Group");
     protected PickList allowed = new PickList(StructrRelationship.ALLOWED_KEY, "Allowed");
@@ -115,6 +119,7 @@ public class DefaultEdit extends Nodes {
     protected Panel editSecurityPanel;
     protected Panel editVisibilityPanel;
     protected Panel cloudPanel;
+    protected Panel consolePanel;
 
     protected TextField remoteHost;
     protected LongField remoteSourceNode;
@@ -647,8 +652,16 @@ public class DefaultEdit extends Nodes {
         cloudForm.setActionURL(cloudForm.getActionURL().concat("#cloud-tab"));
         addControl(cloudForm);
 
+	// cloud
         cloudPanel = new Panel("cloudPanel", "/panel/cloud-panel.htm");
-        addControl(cloudPanel);
+	addControl(cloudPanel);
+
+	// console
+	consoleForm.setActionURL(consoleForm.getActionURL().concat("#console-tab"));
+	addControl(consoleForm);
+
+        consolePanel = new Panel("consolePanel", "/panel/console-panel.htm");
+        addControl(consolePanel);
 
         // ------------------ cloud end ---------------------
 
@@ -1244,25 +1257,33 @@ public class DefaultEdit extends Nodes {
 
     public boolean onTransmitNodes() {
 
-        String remoteHostValue = remoteHost.getValue();
-	Long targetNodeValue = remoteSourceNode.getLong();
-        Integer tcpPort = remoteTcpPort.getInteger();
-        Integer udpPort = remoteUdpPort.getInteger();
-        boolean rec = cloudRecursive.isChecked();
-	String pushPull = cloudPushPull.getValue();
+        final String remoteHostValue = remoteHost.getValue();
+	final Long targetNodeValue = remoteSourceNode.getLong();
+        final Integer tcpPort = remoteTcpPort.getInteger();
+        final Integer udpPort = remoteUdpPort.getInteger();
+        final boolean rec = cloudRecursive.isChecked();
+	final String pushPull = cloudPushPull.getValue();
 
-	if("push".equals(pushPull))
-	{
-		Command transmitCommand = Services.command(PushNodes.class);
-		transmitCommand.execute(user, node, targetNodeValue, remoteHostValue, tcpPort, udpPort, rec);
+	// start new thread with name of current session Id
+	new Thread(new Runnable() {
 
-	} else
-	if("pull".equals(pushPull))
-	{
-		Command transmitCommand = Services.command(PullNode.class);
-		transmitCommand.execute(user, targetNodeValue, node, remoteHostValue, tcpPort, udpPort, rec);
+		@Override
+		public void run() {
 
-	}
+			if("push".equals(pushPull)) {
+
+				Command transmitCommand = Services.command(PushNodes.class);
+				transmitCommand.execute(user, node, targetNodeValue, remoteHostValue, tcpPort, udpPort, rec);
+
+			} else
+			if("pull".equals(pushPull)) {
+
+				Command transmitCommand = Services.command(PullNode.class);
+				transmitCommand.execute(user, targetNodeValue, node, remoteHostValue, tcpPort, udpPort, rec);
+			}
+		}
+
+	}, getContext().getSession().getId()).start();
 
         return false;
 

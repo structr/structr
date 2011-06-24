@@ -287,7 +287,7 @@ span.required {
     position: absolute;
     top: 0;
     left: 0;
-    width: 100%;
+    width: 95%;
     z-index: 99;
 }
 
@@ -1022,4 +1022,87 @@ span.pagelinks-nobanner {
     display: block;
     margin-top: 10px;
     margin-bottom: 10px;
+}
+
+#notificationPanel {
+    width: 100%;
+}
+
+.notification {
+    display: block;
+    visibility: visible;
+    position: absolute;
+    border: 1px solid #999999;
+    border-right: none;
+    border-bottom: none;
+    background-color: #ffffff;
+    margin: 0px;
+    padding: 10px;
+    padding-left: 20px;
+    padding-right: 20px;
+    bottom: 0px;
+    right: 0px;
+}
+
+.notification.success {
+    background: #f0feed url('../images/tick.png') 1em no-repeat;
+    padding: 1em 2em 1em 3em;
+    border: 1px solid #83b362;
+    border-right: none;
+    border-bottom: none;
+}
+
+.notification.error {
+    background: #ffe8e8 url('../images/exclamation.png') 1em no-repeat;
+    border: 1px solid #dd0000;
+    border-right: none;
+    border-bottom: none;
+}
+
+.notificationIcon {
+    margin: 0px;
+    margin-right: 10px;
+    vertical-align: middle;
+}
+
+.notificationTitle {
+    margin: 0px;
+}
+
+.notificationText {
+    margin: 0px;
+    font-size:9pt;
+}
+
+.notificationText.success
+{
+    color: #619140;
+}
+
+.notificationText.error
+{
+    color: #c20000;
+}
+
+.progressBarNotification {
+    width: 200px;
+    border: 1px solid #eeeeee;
+    margin: 0px;
+    margin-top: 5px;
+    padding: 0px;
+    position: relative;
+}
+
+.progressBar {
+    background-color:#44dd44;
+}
+
+.progressBarText {
+    width:100%;
+    font-weight:bold;
+    text-align:center;
+    background-color:transparent;
+    position:absolute;
+    top:0px;
+    left:0px;
 }

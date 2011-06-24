@@ -17,22 +17,32 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.structr.common;
+package org.structr.core.notification;
+
+import java.util.List;
 
 /**
- * Convenience interface to enable the use of enum types as node property keys.
- * The signature of this interface matches the signature of the enum class, so
- * you can use the following code to define property keys for
- * {@see org.structr.core.entity.AbstractNode} and subclasses.
- *
- * <pre>
- * public enum Key { property1, property2, property3 }
- * </pre>
- *
+ * Returns a list of Notifications for the given session ID when executed. This
+ * command takes a single parameter, namely the session ID for which the
+ * notifications should be returned. Please note that this command will return
+ * any global notification as well.
+ * 
  * @author Christian Morgner
  */
-public interface PropertyKey
-{
-	public String name();
-	public int ordinal();
+public class GetNotificationsCommand extends NotificationServiceCommand {
+
+	@Override
+	public Object execute(Object... parameters)
+	{
+		NotificationService service = (NotificationService)getArgument("service");
+		List<Notification> ret = null;
+
+		if(parameters.length == 1 && service != null && parameters[0] instanceof String) {
+
+			String sessionId = (String)parameters[0];
+			ret = service.getNotifications(sessionId);
+		}
+
+		return(ret);
+	}
 }

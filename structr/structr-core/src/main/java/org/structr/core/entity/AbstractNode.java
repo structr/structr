@@ -76,7 +76,8 @@ import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
 
 /**
- * 
+ * The base class for alle node types in structr.
+ *
  * @author amorgner
  * 
  */
@@ -139,14 +140,35 @@ public abstract class AbstractNode implements Comparable<AbstractNode>
 	protected User user;
 
 	// ----- abstract methods ----
+	/**
+	 * Implement this method to specify renderers for the different rendering modes.
+	 *
+	 * @param rendererMap the map that hosts renderers for the different rendering modes
+	 */
 	public abstract void initializeRenderers(final Map<RenderMode, NodeRenderer> rendererMap);
 
+	/**
+	 * Returns the icon src attribute for this node type.
+	 *
+	 * @return the icon src attribute, for use in the HTML img element
+	 */
 	public abstract String getIconSrc();
 
+	/**
+	 * Called when a node of this type is created in the UI.
+	 */
 	public abstract void onNodeCreation();
 
+	/**
+	 * Called when a node of this type is instatiated. Please note that a
+	 * node can (and will) be instantiated several times during a normal
+	 * rendering turn.
+	 */
 	public abstract void onNodeInstantiation();
 
+	/**
+	 * Called when a node of this type is deleted.
+	 */
 	public abstract void onNodeDeletion();
 
 	/*
@@ -2132,6 +2154,38 @@ public abstract class AbstractNode implements Comparable<AbstractNode>
 
 		Command findNode = Services.command(FindNodeCommand.class);
 		return ((List<AbstractNode>)findNode.execute(remoteUser, this));
+	}
+
+	public int getRemotePushSize(User remoteUser, int chunkSize)
+	{
+		Command findNode = Services.command(FindNodeCommand.class);
+		List<AbstractNode> list = ((List<AbstractNode>)findNode.execute(remoteUser, this));
+		int size = 0;
+
+		for(AbstractNode node : list)
+		{
+			if(node instanceof File)
+			{
+				File file = (File)node;
+				size += (file.getSize() / chunkSize);
+				size += 3;
+
+			} else
+			{
+				size++;
+			}
+
+			List<StructrRelationship> rels = node.getOutgoingRelationships();
+			for(StructrRelationship r : rels)
+			{
+				if(list.contains(r.getStartNode()) && list.contains(r.getEndNode()))
+				{
+					size++;
+				}
+			}
+		}
+
+		return(size);
 	}
 
 	/**

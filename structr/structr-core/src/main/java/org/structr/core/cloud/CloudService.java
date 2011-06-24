@@ -51,6 +51,8 @@ import org.structr.core.node.NodeFactoryCommand;
 import org.structr.core.node.RunnableNodeService;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
+import org.structr.core.notification.AddGlobalNotificationCommand;
+import org.structr.core.notification.DefaultNotification;
 
 /**
  * The cloud service handles networking between structr instances
@@ -282,6 +284,11 @@ public class CloudService extends RunnableNodeService
 			listeners.put(connection, listener);
 			activeTransmissions.add(listener);
 
+			Services.command(AddGlobalNotificationCommand.class).execute(new DefaultNotification(
+				"Incoming transmission from " + connection.getRemoteAddressTCP(),
+				null
+			));
+
 		}
 
 		@Override
@@ -293,6 +300,11 @@ public class CloudService extends RunnableNodeService
 				activeTransmissions.remove(listener);
 				listeners.remove(connection);
 			}
+
+			Services.command(AddGlobalNotificationCommand.class).execute(new DefaultNotification(
+				"Transmission from " + connection.getRemoteAddressTCP() + " completed",
+				null
+			));
 		}
 	}
 
