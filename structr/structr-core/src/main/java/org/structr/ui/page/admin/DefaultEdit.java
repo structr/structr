@@ -24,8 +24,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.apache.click.Context;
 import org.apache.click.Page;
 import org.apache.click.control.AbstractLink;
@@ -50,9 +48,9 @@ import org.apache.click.extras.control.IntegerField;
 import org.apache.click.extras.control.LinkDecorator;
 import org.apache.click.extras.control.LongField;
 import org.apache.click.extras.control.PickList;
+import org.apache.click.util.Bindable;
 import org.apache.click.util.HtmlStringBuffer;
 import org.neo4j.graphdb.RelationshipType;
-import org.structr.common.CurrentRequest;
 import org.structr.common.RelType;
 import org.structr.core.Command;
 import org.structr.core.Services;
@@ -77,6 +75,7 @@ import org.structr.core.node.DeleteRelationshipCommand;
 import org.structr.core.node.FindGroupCommand;
 import org.structr.core.node.FindNodeCommand;
 import org.structr.core.node.FindUserCommand;
+import org.structr.core.node.NodeConsoleCommand;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 import org.structr.core.node.search.SearchNodeCommand;
@@ -131,6 +130,9 @@ public class DefaultEdit extends Nodes {
     protected Select templateSelect = new Select(AbstractNode.TEMPLATE_ID_KEY, "Template");
     protected Select typeSelect = new Select(AbstractNode.TYPE_KEY, "Type");
     protected Select customTypeSelect = new Select(AbstractNode.TYPE_NODE_ID_KEY, "Custom Type");
+
+    protected TextField consoleCommand;
+    @Bindable protected String consoleOutput;
 
     // use template for backend pages
     @Override
@@ -657,7 +659,16 @@ public class DefaultEdit extends Nodes {
 	addControl(cloudPanel);
 
 	// console
-	consoleForm.setActionURL(consoleForm.getActionURL().concat("#console-tab"));
+	consoleCommand = new TextField("command", "Command");
+	consoleCommand.addStyleClass("commandInput");
+	consoleForm.add(consoleCommand);
+	consoleForm.add(new Submit("executeCommand", "Execute", this, "onConsoleCommand"));
+
+	StringBuilder actionURL = new StringBuilder(100);
+	actionURL.append(consoleForm.getActionURL());
+	if(nodeId != null) actionURL.append("?nodeId=").append(nodeId);
+	actionURL.append("#console-tab");
+	consoleForm.setActionURL(actionURL.toString());
 	addControl(consoleForm);
 
         consolePanel = new Panel("consolePanel", "/panel/console-panel.htm");
@@ -1287,5 +1298,12 @@ public class DefaultEdit extends Nodes {
 
         return false;
 
+    }
+
+    public boolean onConsoleCommand() {
+
+	    consoleOutput = Services.command(NodeConsoleCommand.class).execute(consoleCommand.getValue()).toString();
+
+	    return(false);
     }
 }

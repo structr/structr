@@ -1106,3 +1106,7 @@ span.pagelinks-nobanner {
     top:0px;
     left:0px;
 }
+
+.commandInput {
+    width: 80%;
+}
