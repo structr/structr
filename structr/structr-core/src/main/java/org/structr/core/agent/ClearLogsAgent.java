@@ -18,15 +18,15 @@
  */
 package org.structr.core.agent;
 
-import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.Command;
 import org.structr.core.Services;
-import org.structr.core.entity.Image;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.node.ExtractAndSetImageDimensionsAndFormat;
+import org.structr.core.entity.SuperUser;
+import org.structr.core.entity.log.Activity;
+import org.structr.core.node.DeleteNodeCommand;
 import org.structr.core.node.GetAllNodes;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
@@ -35,63 +35,66 @@ import org.structr.core.node.TransactionCommand;
  *
  * @author amorgner
  */
-public class UpdateImageMetadataAgent extends Agent {
+public class ClearLogsAgent extends Agent {
 
-    private static final Logger logger = Logger.getLogger(UpdateImageMetadataAgent.class.getName());
+    private static final Logger logger = Logger.getLogger(ClearLogsAgent.class.getName());
 
-    public UpdateImageMetadataAgent() {
-        setName("UpdateImageMetadataAgent");
+    public ClearLogsAgent() {
+        setName("ClearLogsAgent");
     }
 
     @Override
     public Class getSupportedTaskType() {
-        return (UpdateImageMetadataTask.class);
+        return (ClearLogsTask.class);
     }
 
     @Override
     public ReturnValue processTask(Task task) {
 
-        if (task instanceof UpdateImageMetadataTask) {
+        if (task instanceof ClearLogsTask) {
 
             long t0 = System.currentTimeMillis();
-            logger.log(Level.INFO, "Starting update metadata of all images ...");
+            logger.log(Level.INFO, "Starting clearing logs ...");
 
-            long nodes = updateImageMetadata();
+            long nodes = clearLog();
 
             long t1 = System.currentTimeMillis();
-            logger.log(Level.INFO, "Update image metadata finished, {0} nodes processed in {1} s", new Object[]{nodes, (t1 - t0) / 1000});
+            logger.log(Level.INFO, "Clearing logs finished, {0} nodes processed in {1} s", new Object[]{nodes, (t1 - t0) / 1000});
 
         }
 
         return (ReturnValue.Success);
     }
 
-    private long updateImageMetadata() {
+    private long clearLog() {
 
-        final Command extract = Services.command(ExtractAndSetImageDimensionsAndFormat.class);
+        final Command deleteNode = Services.command(DeleteNodeCommand.class);
 
         Command transactionCommand = Services.command(TransactionCommand.class);
-        Long numberOfImages = (Long) transactionCommand.execute(new StructrTransaction() {
+        Long numberOfLogNodes = (Long) transactionCommand.execute(new StructrTransaction() {
 
             @Override
             public Object execute() throws Throwable {
 
-                List<Image> images = new LinkedList<Image>();
+                long count = 0;
 
                 List<AbstractNode> allNodes = (List<AbstractNode>) Services.command(GetAllNodes.class).execute();
                 for (AbstractNode s : allNodes) {
-                    if (s instanceof Image) {
-                        images.add((Image) s);
+                    if (s instanceof Activity) {
+
+                        try {
+
+                            deleteNode.execute(s, null, true, new SuperUser());
+                            count++;
+
+                        } catch (Throwable ignore) {
+                        }
                     }
                 }
-
-                extract.execute(images);
-
-                return images.size();
-
+                return count;
             }
         });
 
-        return numberOfImages;
+        return numberOfLogNodes;
     }
 }
