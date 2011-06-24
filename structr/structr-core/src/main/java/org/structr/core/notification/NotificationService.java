@@ -17,7 +17,14 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+
+
 package org.structr.core.notification;
+
+import org.structr.core.Command;
+import org.structr.core.SingletonService;
+
+//~--- JDK imports ------------------------------------------------------------
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -26,134 +33,145 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import org.structr.core.Command;
-import org.structr.core.SingletonService;
+
+//~--- classes ----------------------------------------------------------------
 
 /**
  * The structr notification service. This service provides commands to get and
  * set notifications in the structr admin UI. Notifications are small
  * information widgets that are displayed in the lower right corner of the
  * admin UI.
- * 
+ *
  * <p>This service provides the following commands:</p>
  * <ul>
- *	<li>{@see org.structr.core.notification.AddNotificationCommand}</li>
- *	<li>{@see org.structr.core.notification.GetNotificationsCommand}</li>
- *	<li>{@see org.structr.core.notification.AddGlobalNotificationCommand}</li>
+ *  <li>{@see org.structr.core.notification.AddNotificationCommand}</li>
+ *  <li>{@see org.structr.core.notification.GetNotificationsCommand}</li>
+ *  <li>{@see org.structr.core.notification.AddGlobalNotificationCommand}</li>
  * </ul>
  *
  * @author Christian Morgner
  */
 public class NotificationService implements SingletonService {
 
-	public static final Map<String, Queue<Notification>> globalNotificationMap = Collections.synchronizedMap(new HashMap<String, Queue<Notification>>());
-	public static final Queue<Notification> globalNotifications = new ConcurrentLinkedQueue<Notification>();
+    public static final Map<String, Queue<Notification>> globalNotificationMap =
+        Collections.synchronizedMap(new HashMap<String, Queue<Notification>>());
+    public static final Queue<Notification> globalNotifications = new ConcurrentLinkedQueue<Notification>();
 
-	public List<Notification> getNotifications(String sessionId)
-	{
-		List<Notification> ret = new LinkedList<Notification>();
+    //~--- get methods --------------------------------------------------------
 
-		ret.addAll(getNotificationsInternal(sessionId));
-		ret.addAll(getGlobalNotifications());
+    public List<Notification> getNotifications(String sessionId) {
 
-		return(ret);
-	}
+        List<Notification> ret            = new LinkedList<Notification>();
+        Queue<Notification> notifications = getNotificationsInternal(sessionId);
 
-	public boolean addNotification(Notification notification)
-	{
-		return(addNotification(null, notification));
-	}
+        if (notifications != null) {
+            ret.addAll(notifications);
+        }
 
-	public boolean addNotification(String sessionId, Notification notification)
-	{
-		if(sessionId != null) {
+        getGlobalNotifications();
 
-			Queue<Notification> notifications = getNotificationsInternal(sessionId);
-			boolean ret = false;
+        if (globalNotifications != null) {
+            ret.addAll(globalNotifications);
+        }
 
-			if(notifications == null) {
+        return (ret);
+    }
 
-				notifications = new ConcurrentLinkedQueue<Notification>();
-				synchronized(globalNotificationMap) {
+    //~--- methods ------------------------------------------------------------
 
-					globalNotificationMap.put(sessionId, notifications);
-				}
-			}
+    public boolean addNotification(Notification notification) {
+        return (addNotification(null, notification));
+    }
 
-			synchronized(notifications) {
+    public boolean addNotification(String sessionId, Notification notification) {
 
-				// store in list
-				ret = notifications.add(notification);
-			}
+        if (sessionId != null) {
 
-			return(ret);
+            Queue<Notification> notifications = getNotificationsInternal(sessionId);
+            boolean ret                       = false;
 
-		} else {
+            if (notifications == null) {
 
-			globalNotifications.add(notification);
+                notifications = new ConcurrentLinkedQueue<Notification>();
 
-			return(true);
-		}
-	}
+                synchronized (globalNotificationMap) {
+                    globalNotificationMap.put(sessionId, notifications);
+                }
+            }
 
-	private Queue<Notification> getNotificationsInternal(String sessionId)
-	{
-		Queue<Notification> ret = null;
+            synchronized (notifications) {
 
-		synchronized(globalNotificationMap) {
+                // store in list
+                ret = notifications.add(notification);
+            }
 
-			ret = globalNotificationMap.get(sessionId);
+            return (ret);
 
-			if(ret != null) {
+        } else {
 
-				Notification head = ret.peek();
-				if(head != null && head.isExpired()) {
+            globalNotifications.add(notification);
 
-					ret.remove();
-				}
-			}
-		}
+            return (true);
+        }
+    }
 
-		return(ret);
-	}
+    //~--- get methods --------------------------------------------------------
 
-	private Queue<Notification> getGlobalNotifications()
-	{
-		Notification head = globalNotifications.peek();
-		if(head != null && head.isExpired()) {
+    private Queue<Notification> getNotificationsInternal(String sessionId) {
 
-			globalNotifications.remove();
-		}
+        Queue<Notification> ret = null;
 
-		return(globalNotifications);
-	}
+        synchronized (globalNotificationMap) {
 
-	// ----- interface SingletonService -----
-	@Override
-	public void injectArguments(Command command)
-	{
-		command.setArgument("service", this);
-	}
+            ret = globalNotificationMap.get(sessionId);
 
-	@Override
-	public void initialize(Map<String, Object> context)
-	{
-	}
+            if (ret != null) {
 
-	@Override
-	public void shutdown()
-	{
-	}
+                Notification head = ret.peek();
 
-	@Override
-	public boolean isRunning()
-	{
-		return(true);
-	}
+                if ((head != null) && head.isExpired()) {
+                    ret.remove();
+                }
+            }
+        }
 
-	@Override
-	public String getName()
-	{
-		return("structr notification service");
-	}
+        return (ret);
+    }
+
+    private Queue<Notification> getGlobalNotifications() {
+
+        Notification head = globalNotifications.peek();
+
+        if ((head != null) && head.isExpired()) {
+            globalNotifications.remove();
+        }
+
+        return (globalNotifications);
+    }
+
+    //~--- methods ------------------------------------------------------------
+
+    // ----- interface SingletonService -----
+    @Override
+    public void injectArguments(Command command) {
+        command.setArgument("service", this);
+    }
+
+    @Override
+    public void initialize(Map<String, Object> context) {}
+
+    @Override
+    public void shutdown() {}
+
+    //~--- get methods --------------------------------------------------------
+
+    @Override
+    public boolean isRunning() {
+        return (true);
+    }
+
+    @Override
+    public String getName() {
+        return ("structr notification service");
+    }
 }
