@@ -39,6 +39,7 @@ import org.structr.core.node.operation.DeleteOperation;
 import org.structr.core.node.operation.InOperation;
 import org.structr.core.node.operation.InvalidOperationException;
 import org.structr.core.node.operation.InvalidParameterException;
+import org.structr.core.node.operation.InvalidSwitchException;
 import org.structr.core.node.operation.LinkOperation;
 import org.structr.core.node.operation.ListOperation;
 import org.structr.core.node.operation.MooOperation;
@@ -47,7 +48,6 @@ import org.structr.core.node.operation.NodeCommandException;
 import org.structr.core.node.operation.OnOperation;
 import org.structr.core.node.operation.Operation;
 import org.structr.core.node.operation.PrimaryOperation;
-import org.structr.core.node.operation.RecursiveOperation;
 import org.structr.core.node.operation.SetOperation;
 import org.structr.core.node.operation.Transformation;
 import org.structr.core.node.operation.UsingOperation;
@@ -76,7 +76,6 @@ public class NodeConsoleCommand extends NodeServiceCommand {
 		operationsMap.put("with", WithOperation.class);
 		operationsMap.put("using", UsingOperation.class);
 		operationsMap.put("rm", DeleteOperation.class);
-		operationsMap.put("rec", RecursiveOperation.class);
 		operationsMap.put("cd", CdOperation.class);
 		operationsMap.put("set", SetOperation.class);
 		operationsMap.put("ln", LinkOperation.class);
@@ -117,6 +116,13 @@ public class NodeConsoleCommand extends NodeServiceCommand {
 				Object[] commands = splitCommandLine(commandLine);
 				if(commands.length > 0) {
 
+					/*
+					ret.append("<p class=\"debug\">");
+					ret.append("DEBUG: command line:");
+					for(Object o : commands) ret.append(" '").append(o).append("'");
+					ret.append("</p>");
+					*/
+					
 					// now we have an array of strings that represents the command line
 					// we take the first token and extract the primary operation from it
 					// lets use the following line as a first example:
@@ -133,33 +139,19 @@ public class NodeConsoleCommand extends NodeServiceCommand {
 
 						PrimaryOperation primaryOperation = null;
 
-						for(int i=0; i<commands.length; i++) {
+						for(int currentPosition=0; currentPosition<commands.length; currentPosition++) {
 
-							Operation operation = getOperation(commands[i]);
+							Operation operation = getOperation(commands[currentPosition]);
 							if(operation != null) {
 
 								if(currentNode != null) {
 									operation.setCurrentNode(currentNode);
 								}
 
-								if(commands.length == 1 && operation instanceof PrimaryOperation && operation.getParameterCount() != 0) {
+								// advance current position according to parameters
+								currentPosition += handleParameters(ret, currentPosition, commands, operation);
 
-									ret.append(((PrimaryOperation)operation).help());
-									break;
-
-								} else if(commands.length < i + operation.getParameterCount() + 1) {
-
-									throw new InvalidParameterException(operation.getKeyword() + " needs " + operation.getParameterCount() + " parameters");
-								}
-
-								// operation found, add parameters
-								int parameterCount = operation.getParameterCount();
-								for(int j=0; j<parameterCount; j++) {
-
-									i++;
-									operation.addParameter(commands[i]);
-								}
-
+								// set operation
 								if(primaryOperation == null) {
 
 									if(operation instanceof PrimaryOperation) {
@@ -171,7 +163,6 @@ public class NodeConsoleCommand extends NodeServiceCommand {
 										}
 									} else
 									{
-										// semantic error, primary operation is not primary
 										throw new InvalidOperationException(operation.getKeyword() + " is not a primary operation");
 									}
 
@@ -184,18 +175,17 @@ public class NodeConsoleCommand extends NodeServiceCommand {
 
 									} else {
 
-										// semantic error, primary operation is not primary
 										throw new InvalidOperationException(operation.getKeyword() + " is not a transformation");
 									}
 								}
 
 							} else
 							{
-								throw new InvalidOperationException(commands[i].toString() + " not found");
+								throw new InvalidOperationException(commands[currentPosition].toString() + " not found");
 							}
 						}
 
-						if(primaryOperation != null) {
+						if(primaryOperation != null && primaryOperation.canExecute()) {
 
 							StringBuilder stdOut = new StringBuilder(200);
 							if(!primaryOperation.executeOperation(stdOut)) {
@@ -209,6 +199,10 @@ public class NodeConsoleCommand extends NodeServiceCommand {
 								ret.append(stdOut.toString());
 								ret.append("</p>\n");
 							}
+
+						} else {
+
+							ret.append("<p class=\"error\">Cannot execute</p>\n");
 						}
 
 					} catch(NodeCommandException ncex) {
@@ -220,6 +214,53 @@ public class NodeConsoleCommand extends NodeServiceCommand {
 		}
 
 		return (ret.toString());
+	}
+
+	private int handleParameters(StringBuilder out, int currentPosition, Object[] commands, Operation operation) throws InvalidParameterException, InvalidSwitchException {
+
+		int parameterCount = operation.getParameterCount();
+		int ret = 0;
+
+		/*
+		if(commands.length == 1 && operation instanceof PrimaryOperation && operation.getParameterCount() != 0) {
+
+			out.append(((PrimaryOperation)operation).help());
+
+		} else if(commands.length < currentPosition + operation.getParameterCount() + 1) {
+		}
+		*/
+
+		// operation found, add parameters
+
+		for(int j=0; j<parameterCount; j++) {
+
+			ret += 1;
+			int parameterPosition = currentPosition + ret;
+
+			if(parameterPosition < commands.length) {
+
+				Object parameter = commands[parameterPosition];
+
+				// try to identifiy switches
+				if(parameter.toString().startsWith("-")) {
+
+					operation.addSwitch(parameter.toString());
+					parameterCount++;
+
+				} else {
+
+					operation.addParameter(parameter);
+				}
+			}
+		}
+
+		if(!operation.canExecute()) {
+
+			throw new InvalidParameterException(operation.getKeyword() + " needs " + operation.getParameterCount() + " parameters");
+		}
+
+
+		return(ret);
 	}
 
 	private Operation getOperation(Object name) throws InvalidOperationException
@@ -322,7 +363,7 @@ public class NodeConsoleCommand extends NodeServiceCommand {
 
 		List<String> secondPassResult = new LinkedList<String>();
 		{
-			// second pass, combine elements with '=' between them to a String
+			// second pass, combine elements with '=' between them to a single String
 			StringBuilder buf = new StringBuilder(40);
 			int size = parts.size();
 

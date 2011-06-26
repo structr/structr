@@ -33,7 +33,7 @@ import org.structr.core.node.FindNodeCommand;
  *
  * @author Christian Morgner
  */
-public class DeleteOperation implements PrimaryOperation, BooleanParameterOperation {
+public class DeleteOperation implements PrimaryOperation {
 
 	private Command deleteCommand = Services.command(DeleteNodeCommand.class);
 	private List<Callback> callbacks = new LinkedList<Callback>();
@@ -44,7 +44,8 @@ public class DeleteOperation implements PrimaryOperation, BooleanParameterOperat
 	@Override
 	public boolean executeOperation(StringBuilder stdOut) throws NodeCommandException {
 
-		AbstractNode newParentNode = null;
+		List<AbstractNode> toDelete = new LinkedList<AbstractNode>();
+		AbstractNode newParentNode = currentNode;
 
 		for(String param : parameters) {
 
@@ -53,53 +54,35 @@ public class DeleteOperation implements PrimaryOperation, BooleanParameterOperat
 				stdOut.append("Cannot delete current node");
 
 			} else {
-				long nodeId = -1;
 
-				try {
+				Object findNodeResult = Services.command(FindNodeCommand.class).execute(CurrentRequest.getCurrentUser(), currentNode, param);
+				if(findNodeResult != null) {
 
-					nodeId = Long.parseLong(param.toString());
+					if(findNodeResult instanceof Collection) {
 
-				} catch(Throwable t) {
+						toDelete.addAll((Collection)findNodeResult);
 
-					AbstractNode findNode = (AbstractNode)Services.command(FindNodeCommand.class).execute(CurrentRequest.getCurrentUser(), currentNode, param);
-					if(findNode != null) {
+					} else if(findNodeResult instanceof AbstractNode) {
 
-						nodeId = findNode.getId();
-
-					} else {
-
-						nodeId = -1;
+						toDelete.add((AbstractNode)findNodeResult);
 					}
 				}
 
-				if(nodeId > 0) {
+				for(AbstractNode node : toDelete) {
 
-					if(nodeId == currentNode.getId()) {
-
-						newParentNode = currentNode.getParentNode();
-					}
-
-					// execute delete node command and call callbacks
-					AbstractNode returnedNode = (AbstractNode)deleteCommand.execute(nodeId, null, recursive, CurrentRequest.getCurrentUser());
-					if(returnedNode != null && newParentNode == null)
+					try
 					{
-						newParentNode = returnedNode;
+						// execute delete node command and call callbacks
+						deleteCommand.execute(node, null, recursive, CurrentRequest.getCurrentUser());
+
+						if(deleteCommand.getExitCode().equals(Command.exitCode.FAILURE)) {
+							stdOut.append(deleteCommand.getErrorMessage());
+						}
+
+					} catch(Throwable t) {
+
+						stdOut.append(t.getMessage());
 					}
-
-					Command.exitCode exitCode = deleteCommand.getExitCode();
-					switch(exitCode) {
-						case FAILURE:
-							stdOut.append(deleteCommand.getErrorMessage()).append("\n");
-							break;
-
-						case SUCCESS:
-							stdOut.append("Node [").append(nodeId).append("] deleted.\n");
-							break;
-					}
-
-				} else {
-
-					stdOut.append("Node not found");
 				}
 			}
 
@@ -119,7 +102,7 @@ public class DeleteOperation implements PrimaryOperation, BooleanParameterOperat
 	public String help() {
 
 		StringBuilder ret = new StringBuilder(100);
-		ret.append("usage: rm [node(s)] [rec] - remove nodes");
+		ret.append("usage: rm [-r] [node(s)] - remove nodes, -r toggles recursive delete, wildcards allowed");
 
 		return(ret.toString());
 	}
@@ -148,6 +131,40 @@ public class DeleteOperation implements PrimaryOperation, BooleanParameterOperat
 	}
 
 	@Override
+	public boolean canExecute() {
+
+		return(!parameters.isEmpty());
+	}
+
+	@Override
+	public void addSwitch(String switches) throws InvalidSwitchException {
+
+		if(switches.startsWith("-") && switches.length() > 1) {
+
+			String sw = switches.substring(1);
+			int len = sw.length();
+
+			for(int i=0; i<len; i++) {
+
+				char ch = sw.charAt(i);
+				switch(ch) {
+
+					case 'r':
+						recursive = true;
+						break;
+
+					default:
+						throw new InvalidSwitchException("Invalid switch " + ch);
+				}
+			}
+
+		} else {
+
+			throw new InvalidSwitchException("Invalid switch " + switches);
+		}
+	}
+
+	@Override
 	public void addParameter(Object parameter) throws InvalidParameterException {
 
 		if(parameter instanceof Collection) {
@@ -157,16 +174,6 @@ public class DeleteOperation implements PrimaryOperation, BooleanParameterOperat
 		} else {
 
 			parameters.add(parameter.toString());
-		}
-	}
-
-	// ----- interface BooleanParameterOperation -----
-	@Override
-	public void setBooleanParameter(String name, boolean value) {
-
-		if("recursive".equals(name)) {
-
-			this.recursive = value;
 		}
 	}
 }

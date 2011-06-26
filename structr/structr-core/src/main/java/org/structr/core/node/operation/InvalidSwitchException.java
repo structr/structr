@@ -19,48 +19,14 @@
 
 package org.structr.core.node.operation;
 
-import org.structr.core.entity.AbstractNode;
-
 /**
  *
  * @author Christian Morgner
  */
-public class RecursiveOperation implements Transformation {
+public class InvalidSwitchException extends NodeCommandException {
 
-	@Override
-	public void transform(Operation operation) throws InvalidTransformationException {
+	public InvalidSwitchException(String msg) {
 
-		if(operation instanceof BooleanParameterOperation) {
-
-			((BooleanParameterOperation)operation).setBooleanParameter("recursive", true);
-
-		} else {
-
-			throw new InvalidTransformationException("REC cannot be applied to " + operation.getKeyword());
-		}
+		super(msg);
 	}
-
-	@Override
-	public void setCurrentNode(AbstractNode currentNode) {
-	}
-
-	@Override
-	public int getParameterCount() {
-
-		return(0);
-	}
-
-	@Override
-	public String getKeyword() {
-
-		return("rec");
-	}
-
-	@Override
-	public void addParameter(Object parameter) throws InvalidParameterException {
-
-		// should not happen
-		throw new IllegalStateException("REC does not take parameters");
-	}
-
 }

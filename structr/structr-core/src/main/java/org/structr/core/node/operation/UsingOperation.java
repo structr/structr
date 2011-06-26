@@ -66,6 +66,18 @@ public class UsingOperation implements Transformation {
 	}
 
 	@Override
+	public boolean canExecute() {
+
+		return(!relationshipTypes.isEmpty());
+	}
+
+	@Override
+	public void addSwitch(String switches) throws InvalidSwitchException {
+
+		throw new InvalidSwitchException("USING does not support " + switches);
+	}
+
+	@Override
 	public void addParameter(Object parameter) throws InvalidParameterException {
 
 		if(parameter instanceof Collection) {

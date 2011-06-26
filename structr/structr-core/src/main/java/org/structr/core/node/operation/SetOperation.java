@@ -88,6 +88,18 @@ public class SetOperation implements PrimaryOperation, NodeListOperation {
 	}
 
 	@Override
+	public boolean canExecute() {
+
+		return(!attributes.isEmpty());
+	}
+
+	@Override
+	public void addSwitch(String switches) throws InvalidSwitchException {
+
+		throw new InvalidSwitchException("SET does not support " + switches);
+	}
+
+	@Override
 	public void addParameter(Object parameter) throws InvalidParameterException {
 
 		if(parameter instanceof Collection) {

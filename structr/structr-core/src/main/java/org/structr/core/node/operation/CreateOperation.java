@@ -142,6 +142,18 @@ public class CreateOperation implements PrimaryOperation, NodeTypeOperation, Nod
 	}
 
 	@Override
+	public boolean canExecute() {
+
+		return(!nodeNames.isEmpty());
+	}
+
+	@Override
+	public void addSwitch(String switches) throws InvalidSwitchException {
+
+		throw new InvalidSwitchException("MK does not support " + switches);
+	}
+
+	@Override
 	public void addParameter(Object parameter) throws InvalidParameterException {
 
 		if(parameter instanceof Collection) {

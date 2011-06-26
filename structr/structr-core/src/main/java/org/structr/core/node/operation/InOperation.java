@@ -63,6 +63,18 @@ public class InOperation implements Transformation {
 	}
 
 	@Override
+	public boolean canExecute() {
+
+		return(parentNodeId != -1);
+	}
+
+	@Override
+	public void addSwitch(String switches) throws InvalidSwitchException {
+
+		throw new InvalidSwitchException("IN does not support " + switches);
+	}
+
+	@Override
 	public void addParameter(Object parameter) throws InvalidParameterException {
 
 		if(parameter instanceof Collection) {

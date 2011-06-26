@@ -36,6 +36,7 @@ public class ListOperation implements PrimaryOperation {
 
 	private List<AbstractNode> nodeList = new LinkedList<AbstractNode>();
 	private AbstractNode currentNode = null;
+	private boolean recursive = false;
 
 	@Override
 	public boolean executeOperation(StringBuilder stdOut) throws NodeCommandException {
@@ -48,19 +49,8 @@ public class ListOperation implements PrimaryOperation {
 
 		for(AbstractNode node : nodeList) {
 
-			List<AbstractNode> children = node.getSortedDirectChildNodes();
-			if(children.isEmpty()) {
+			list(stdOut, node);
 
-				stdOut.append("<p>No children</p>");
-
-			} else {
-
-				DecimalFormat df = new DecimalFormat("###0000");
-				for(AbstractNode child : children) {
-
-					stdOut.append("<p>").append(df.format(child.getId())).append(" ").append(child.getName()).append(" (").append(child.getType()).append(")</p>");
-				}
-			}
 		}
 
 		return(true);
@@ -92,6 +82,40 @@ public class ListOperation implements PrimaryOperation {
 	public String getKeyword() {
 
 		return("ls");
+	}
+
+	@Override
+	public boolean canExecute() {
+
+		return(true);
+	}
+
+	@Override
+	public void addSwitch(String switches) throws InvalidSwitchException {
+
+		if(switches.startsWith("-") && switches.length() > 1) {
+
+			String sw = switches.substring(1);
+			int len = sw.length();
+
+			for(int i=0; i<len; i++) {
+
+				char ch = sw.charAt(i);
+				switch(ch) {
+
+					case 'r':
+						recursive = true;
+						break;
+
+					default:
+						throw new InvalidSwitchException("Invalid switch " + ch);
+				}
+			}
+
+		} else {
+
+			throw new InvalidSwitchException("Invalid switch " + switches);
+		}
 	}
 
 	@Override
@@ -131,6 +155,37 @@ public class ListOperation implements PrimaryOperation {
 					}
 				}
 			}
+		}
+	}
+
+	private void list(StringBuilder stdOut, AbstractNode node) {
+
+		List<AbstractNode> children = node.getSortedDirectChildNodes();
+		DecimalFormat df = new DecimalFormat("0000000");
+
+		if(!children.isEmpty()) {
+
+			stdOut.append("<ul>");
+			for(AbstractNode child : children) {
+
+				stdOut.append("<li>");
+				stdOut.append("<p>");
+				stdOut.append(df.format(child.getId()));
+				stdOut.append(" ");
+				stdOut.append(child.getName());
+				stdOut.append(" (");
+				stdOut.append(child.getType());
+				stdOut.append(")");
+				stdOut.append("</p>");
+
+				if(recursive) {
+
+					list(stdOut, child);
+				}
+
+				stdOut.append("</li>");
+			}
+			stdOut.append("</ul>");
 		}
 	}
 }

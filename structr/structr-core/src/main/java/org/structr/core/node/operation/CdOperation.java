@@ -97,6 +97,18 @@ public class CdOperation implements PrimaryOperation {
 	}
 
 	@Override
+	public boolean canExecute() {
+
+		return(target != null);
+	}
+
+	@Override
+	public void addSwitch(String switches) throws InvalidSwitchException {
+
+		throw new InvalidSwitchException("CD does not support " + switches);
+	}
+
+	@Override
 	public void addParameter(Object parameter) throws InvalidParameterException {
 
 		if(parameter instanceof Collection) {

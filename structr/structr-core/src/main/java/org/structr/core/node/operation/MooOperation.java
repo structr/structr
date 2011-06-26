@@ -67,6 +67,18 @@ public class MooOperation implements PrimaryOperation {
 	}
 
 	@Override
+	public boolean canExecute() {
+
+		return(true);
+	}
+
+	@Override
+	public void addSwitch(String switches) throws InvalidSwitchException {
+
+		throw new InvalidSwitchException("MOO does not support " + switches);
+	}
+
+	@Override
 	public void addParameter(Object parameter) throws InvalidParameterException {
 	}
 }

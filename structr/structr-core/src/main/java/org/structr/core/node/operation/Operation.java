@@ -33,6 +33,8 @@ public interface Operation {
 	public int getParameterCount();
 	public String getKeyword();
 
+	public boolean canExecute();
+	public void addSwitch(String sw) throws InvalidSwitchException;
 	public void addParameter(Object parameter) throws InvalidParameterException;
 
 }

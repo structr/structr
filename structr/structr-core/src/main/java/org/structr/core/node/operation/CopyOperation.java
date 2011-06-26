@@ -101,6 +101,18 @@ public class CopyOperation implements PrimaryOperation {
 	}
 
 	@Override
+	public boolean canExecute() {
+
+		return(parameterState.equals(ParameterState.DestinationNodeSet));
+	}
+
+	@Override
+	public void addSwitch(String switches) throws InvalidSwitchException {
+
+		throw new InvalidSwitchException("CP does not support " + switches);
+	}
+
+	@Override
 	public void addParameter(Object parameter) throws InvalidParameterException {
 
 		switch(parameterState) {

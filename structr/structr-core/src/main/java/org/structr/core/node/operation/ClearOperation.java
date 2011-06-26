@@ -68,6 +68,18 @@ public class ClearOperation implements PrimaryOperation {
 	}
 
 	@Override
+	public boolean canExecute() {
+
+		return(true);
+	}
+
+	@Override
+	public void addSwitch(String switches) throws InvalidSwitchException {
+
+		throw new InvalidSwitchException("CLEAR does not support " + switches);
+	}
+
+	@Override
 	public void addParameter(Object parameter) throws InvalidParameterException {
 
 		throw new InvalidParameterException("CLEAR does not take parameters");

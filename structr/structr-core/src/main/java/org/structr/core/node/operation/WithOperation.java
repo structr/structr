@@ -83,6 +83,18 @@ public class WithOperation implements Transformation {
 	}
 
 	@Override
+	public boolean canExecute() {
+
+		return(true);
+	}
+
+	@Override
+	public void addSwitch(String switches) throws InvalidSwitchException {
+
+		throw new InvalidSwitchException("WITH does not support " + switches);
+	}
+
+	@Override
 	public void addParameter(Object parameter) throws InvalidParameterException {
 
 		if(parameter instanceof Collection) {
