@@ -16,36 +16,17 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.node;
+
+package org.structr.core.node.operation;
 
 /**
  *
  * @author Christian Morgner
  */
-public class HelpCommand extends NodeServiceCommand {
+public class InvalidParameterException extends NodeCommandException {
 
-	@Override
-	public Object execute(Object... parameters) {
+	public InvalidParameterException(String msg) {
 
-		StringBuilder ret = new StringBuilder(200);
-
-		if(parameters.length == 0) {
-
-			ret.append("Supported commands:\n");
-			for(String cmd : NodeConsoleCommand.commandMap.keySet()) {
-
-				ret.append(cmd);
-				ret.append(", ");
-			}
-
-			ret.append("\n");
-
-		} else {
-
-			ret.append("Help not yet implemented, see HelpCommand.java:44");
-
-		}
-
-		return (ret.toString());
+		super(msg);
 	}
 }

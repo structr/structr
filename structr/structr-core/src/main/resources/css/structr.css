@@ -1108,5 +1108,33 @@ span.pagelinks-nobanner {
 }
 
 .commandInput {
-    width: 80%;
+    width: 400px;
+}
+
+div#console {
+    margin:0px;
+    margin-bottom:10px;
+    padding:10px;
+    background-color:#000000;
+    color:#dddddd;
+    border:1px solid #cccccc;
+    font-family: monospace, serif;
+    font-size: 9pt;
+}
+
+div#console p {
+    margin: 0px;
+    padding: 0px;
+}
+
+div#console p.error {
+    color: #dd4444;
+}
+
+div#console p.success {
+    color: #44dd44;
+}
+
+div#console p.debug {
+    color: #888888;
 }

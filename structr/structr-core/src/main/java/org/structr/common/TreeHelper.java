@@ -43,6 +43,10 @@ public abstract class TreeHelper {
                 continue;
             }
 
+            if (".".equals(name)) {
+                continue;
+            }
+
             if ("*".equals(name)) {
             }
 

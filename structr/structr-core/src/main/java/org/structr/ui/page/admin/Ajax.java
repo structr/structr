@@ -13,16 +13,6 @@ import org.structr.ui.page.StructrPage;
  */
 public class Ajax extends StructrPage {
 
-	public ActionResult onSubmitConsoleCommand() {
-
-		StringBuilder ret = new StringBuilder(200);
-
-
-
-		// Return an action result containing the message
-		return new ActionResult(ret.toString(), ActionResult.HTML);
-	}
-
 	public ActionResult onUpdateNotificationContent() {
 
 		StringBuilder ret = new StringBuilder(200);

@@ -1,9 +1,19 @@
 <div id="console-tab" class="ui-tabs-hide">
 <div class="body">
 <h3>Console</h3>
-<pre style="margin:0px; margin-bottom:10px; padding:10px; background-color:#ffffff; border:1px solid #cccccc;">
+<div id="console">
 $consoleOutput
-</pre>
+</div>
 $consoleForm
 </div>
 </div>
+<script type="text/javascript">
+
+	jQuery(document).ready(function() {
+
+		if(jQuery("#consoleForm_command")) {
+			jQuery("#consoleForm_command").focus();
+		}
+	});
+	
+</script>

@@ -23,6 +23,7 @@ import java.util.LinkedList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Logger;
 import org.apache.click.Context;
 import org.apache.click.Page;
@@ -78,6 +79,10 @@ import org.structr.core.node.FindUserCommand;
 import org.structr.core.node.NodeConsoleCommand;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
+import org.structr.core.node.operation.Callback;
+import org.structr.core.node.operation.CallbackValue;
+import org.structr.core.node.operation.Operation;
+import org.structr.core.node.operation.PrimaryOperation;
 import org.structr.core.node.search.SearchNodeCommand;
 import org.structr.core.node.search.SearchOperator;
 import org.structr.core.node.search.TextualSearchAttribute;
@@ -658,10 +663,13 @@ public class DefaultEdit extends Nodes {
         cloudPanel = new Panel("cloudPanel", "/panel/cloud-panel.htm");
 	addControl(cloudPanel);
 
+	// ------------------ cloud end ---------------------
+
 	// console
 	consoleCommand = new TextField("command", "Command");
 	consoleCommand.addStyleClass("commandInput");
 	consoleForm.add(consoleCommand);
+	consoleForm.addStyleClass("commandInput");
 	consoleForm.add(new Submit("executeCommand", "Execute", this, "onConsoleCommand"));
 
 	StringBuilder actionURL = new StringBuilder(100);
@@ -674,7 +682,8 @@ public class DefaultEdit extends Nodes {
         consolePanel = new Panel("consolePanel", "/panel/console-panel.htm");
         addControl(consolePanel);
 
-        // ------------------ cloud end ---------------------
+	readConsoleOutput();
+        // ------------------ console end ---------------------
 
         if (!(editPropertiesAllowed)) {
 
@@ -1302,8 +1311,88 @@ public class DefaultEdit extends Nodes {
 
     public boolean onConsoleCommand() {
 
-	    consoleOutput = Services.command(NodeConsoleCommand.class).execute(consoleCommand.getValue()).toString();
+	    List<String> consoleLines = getConsoleLines();
 
-	    return(false);
+	    // create callback to pass new parent node on deleted nodes
+	    final CallbackValue<String> newNodeId = new CallbackValue<String>(nodeId);
+	    Callback callback = new Callback() {
+
+		    @Override public void callback(Object... params) {
+
+			    if(params.length > 0) {
+				    newNodeId.setValue(params[0].toString());
+			    }
+		    }
+	    };
+
+	    consoleLines.add(Services.command(NodeConsoleCommand.class).execute(node, consoleCommand.getValue(), callback).toString());
+	    if(consoleLines.size() > 20)
+	    {
+		    consoleLines.remove(0);
+	    }
+
+	    readConsoleOutput();
+
+	    StringBuilder redirectPath = new StringBuilder(100);
+	    redirectPath.append(getContext().getRequest().getContextPath());
+	    redirectPath.append(getPath());
+	    redirectPath.append("?nodeId=").append(newNodeId.getValue());
+	    redirectPath.append("#console-tab");
+
+	    // test
+	    nodeTree.expand(getTreeNode(newNodeId.getValue()));
+
+	    redirect = redirectPath.toString();
+
+	    return(true);
+    }
+
+    private void readConsoleOutput() {
+
+	    List<String> consoleLines = getConsoleLines();
+
+	    // initialize buffer with estimated size to prevent resizing
+	    StringBuilder buffer = new StringBuilder(consoleLines.size() * 80);
+	    for(String line : consoleLines) {
+		    buffer.append(line);
+	    }
+
+	    // set consoleOutput
+	    consoleOutput = buffer.toString();
+
+    }
+
+    private List<String> getConsoleLines()
+    {
+	    List<String> ret = (List<String>)getContext().getSession().getAttribute(NodeConsoleCommand.CONSOLE_BUFFER_KEY);
+
+	    if(ret == null) {
+
+		    StringBuilder welcome = new StringBuilder();
+
+		    welcome.append("<p>Welcome to the structr console!</p>");
+		    welcome.append("<p>Supported commands: ");
+
+		    for(Entry<String, Class<? extends Operation>> entry : NodeConsoleCommand.operationsMap.entrySet()) {
+			    
+			    String cmd = entry.getKey();
+			    Class op = entry.getValue();
+			    
+			    if(PrimaryOperation.class.isAssignableFrom(op)) {
+				    
+				    welcome.append(" <b>").append(cmd).append("</b>");
+			    }
+		    }
+		    welcome.append("</p>");
+		    welcome.append("<p>Typing the command without any parameters will show a short help text for each command.</p>");
+		    welcome.append("<p>&nbsp;</p>");
+
+		    ret = new LinkedList<String>();
+		    ret.add(welcome.toString());
+
+		    getContext().getSession().setAttribute(NodeConsoleCommand.CONSOLE_BUFFER_KEY, ret);
+	    }
+
+	    return(ret);
     }
 }

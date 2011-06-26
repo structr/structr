@@ -18,11 +18,40 @@
  */
 package org.structr.core.node;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
+import java.util.TreeMap;
 import java.util.logging.Logger;
+import org.structr.common.CurrentRequest;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.SuperUser;
+import org.structr.core.node.operation.AsOperation;
+import org.structr.core.node.operation.Callback;
+import org.structr.core.node.operation.CdOperation;
+import org.structr.core.node.operation.ClearOperation;
+import org.structr.core.node.operation.CopyOperation;
+import org.structr.core.node.operation.CreateOperation;
+import org.structr.core.node.operation.DeleteOperation;
+import org.structr.core.node.operation.InOperation;
+import org.structr.core.node.operation.InvalidOperationException;
+import org.structr.core.node.operation.InvalidParameterException;
+import org.structr.core.node.operation.LinkOperation;
+import org.structr.core.node.operation.ListOperation;
+import org.structr.core.node.operation.MooOperation;
+import org.structr.core.node.operation.MoveOperation;
+import org.structr.core.node.operation.NodeCommandException;
+import org.structr.core.node.operation.OnOperation;
+import org.structr.core.node.operation.Operation;
+import org.structr.core.node.operation.PrimaryOperation;
+import org.structr.core.node.operation.RecursiveOperation;
+import org.structr.core.node.operation.SetOperation;
+import org.structr.core.node.operation.Transformation;
+import org.structr.core.node.operation.UsingOperation;
+import org.structr.core.node.operation.WithOperation;
 
 /**
  *
@@ -31,58 +60,347 @@ import java.util.logging.Logger;
 public class NodeConsoleCommand extends NodeServiceCommand {
 
 	private static final Logger logger = Logger.getLogger(NodeConsoleCommand.class.getName());
-	public static final Map<String, Class<? extends NodeServiceCommand>> commandMap;
+
+	public static final Map<String, Class<? extends Operation>> operationsMap;
+	public static final String CONSOLE_BUFFER_KEY = "consoleOutputLines";
 
 	// serves as a static constructor
 	static {
-		commandMap = Collections.synchronizedMap(new LinkedHashMap<String, Class<? extends NodeServiceCommand>>());
 
-		commandMap.put("create", CreateNodeCommand.class);
-		commandMap.put("help", HelpCommand.class);
-		commandMap.put("?", HelpCommand.class);
+		operationsMap = Collections.synchronizedMap(new TreeMap<String, Class<? extends Operation>>());
+
+		operationsMap.put("mk", CreateOperation.class);
+		operationsMap.put("in", InOperation.class);
+		operationsMap.put("on", OnOperation.class);
+		operationsMap.put("as", AsOperation.class);
+		operationsMap.put("with", WithOperation.class);
+		operationsMap.put("using", UsingOperation.class);
+		operationsMap.put("rm", DeleteOperation.class);
+		operationsMap.put("rec", RecursiveOperation.class);
+		operationsMap.put("cd", CdOperation.class);
+		operationsMap.put("set", SetOperation.class);
+		operationsMap.put("ln", LinkOperation.class);
+		operationsMap.put("clear", ClearOperation.class);
+		operationsMap.put("mv", MoveOperation.class);
+		operationsMap.put("cp", CopyOperation.class);
+		operationsMap.put("ls", ListOperation.class);
+		operationsMap.put("moo", MooOperation.class);
 	}
 
 	@Override
 	public Object execute(Object... parameters) {
 
 		StringBuilder ret = new StringBuilder(200);
+		AbstractNode currentNode = null;
+		Callback callback = null;
+		String commandLine = null;
 
-		if(parameters.length > 0) {
+		if(parameters.length == 3) {
 
-			if(parameters[0] instanceof String) {
+			if(parameters[0] instanceof AbstractNode) {
+				currentNode = (AbstractNode)parameters[0];
+			}
+			if(parameters[1] instanceof String) {
+				commandLine = (String)parameters[1];
+			}
+			if(parameters[2] instanceof Callback) {
+				callback = (Callback)parameters[2];
+			}
 
-				String commandLine = (String)parameters[0];
+			if(commandLine != null) {
 
-				// split command line on whitespace characters
-				String[] commands = commandLine.split("[\\s]+");
+				ret.append("<p>structr");
+				ret.append(CurrentRequest.getCurrentUser() instanceof SuperUser ? "# " : "$ ");
+				ret.append(commandLine);
+				ret.append("</p>");
+
+				Object[] commands = splitCommandLine(commandLine);
 				if(commands.length > 0) {
 
-					Class<? extends NodeServiceCommand> commandClass = commandMap.get(commands[0].toString());
-					if(commandClass != null) {
+					// now we have an array of strings that represents the command line
+					// we take the first token and extract the primary operation from it
+					// lets use the following line as a first example:
+					// create "foo" in 0 as Domain
 
-						try
-						{
-							NodeServiceCommand command = commandClass.newInstance();
-							Object[] params = new Object[parameters.length - 1];
-							for(int i=1; i<parameters.length; i++) params[i-1] = parameters[i];
+					// "create" is the primary operation, which takes 1 parameter ("foo")
+					// "in" is the second operation, taking 1 parameter ("0")
+					// "as" is the third, takin 1 parameter ("Domain")
 
-							ret.append(command.execute(params));
+					// the primary operation is instantiated from our command map, and all
+					// subsequent operations are added to it
 
-						} catch(Throwable t)
-						{
-							logger.log(Level.WARNING, "Error instantiating command {0}: {1}", new Object[] { commands[0].toString(), t.getMessage() } );
+					try {
+
+						PrimaryOperation primaryOperation = null;
+
+						for(int i=0; i<commands.length; i++) {
+
+							Operation operation = getOperation(commands[i]);
+							if(operation != null) {
+
+								if(currentNode != null) {
+									operation.setCurrentNode(currentNode);
+								}
+
+								if(commands.length == 1 && operation instanceof PrimaryOperation && operation.getParameterCount() != 0) {
+
+									ret.append(((PrimaryOperation)operation).help());
+									break;
+
+								} else if(commands.length < i + operation.getParameterCount() + 1) {
+
+									throw new InvalidParameterException(operation.getKeyword() + " needs " + operation.getParameterCount() + " parameters");
+								}
+
+								// operation found, add parameters
+								int parameterCount = operation.getParameterCount();
+								for(int j=0; j<parameterCount; j++) {
+
+									i++;
+									operation.addParameter(commands[i]);
+								}
+
+								if(primaryOperation == null) {
+
+									if(operation instanceof PrimaryOperation) {
+
+										primaryOperation = (PrimaryOperation)operation;
+
+										if(callback != null) {
+											primaryOperation.addCallback(callback);
+										}
+									} else
+									{
+										// semantic error, primary operation is not primary
+										throw new InvalidOperationException(operation.getKeyword() + " is not a primary operation");
+									}
+
+								} else {
+
+									if(operation instanceof Transformation) {
+
+										Transformation transformation = (Transformation)operation;
+										transformation.transform(primaryOperation);
+
+									} else {
+
+										// semantic error, primary operation is not primary
+										throw new InvalidOperationException(operation.getKeyword() + " is not a transformation");
+									}
+								}
+
+							} else
+							{
+								throw new InvalidOperationException(commands[i].toString() + " not found");
+							}
 						}
+
+						if(primaryOperation != null) {
+
+							StringBuilder stdOut = new StringBuilder(200);
+							if(!primaryOperation.executeOperation(stdOut)) {
+
+								ret.append("<p class=\"error\">Execution failed</p>\n");
+							}
+
+							if(stdOut.length() > 0) {
+
+								ret.append("<p>");
+								ret.append(stdOut.toString());
+								ret.append("</p>\n");
+							}
+						}
+
+					} catch(NodeCommandException ncex) {
+
+						ret.append("<p class=\"error\">ERROR: ").append(ncex.getMessage()).append("</p>\n");
+					}
+				}
+			}
+		}
+
+		return (ret.toString());
+	}
+
+	private Operation getOperation(Object name) throws InvalidOperationException
+	{
+		if(name instanceof Collection) {
+
+			throw new InvalidOperationException("Invalid operation");
+
+		} else {
+
+			Class<? extends Operation> clazz = operationsMap.get(name.toString());
+			Operation ret = null;
+
+			if(clazz != null) {
+
+				try
+				{
+					ret = clazz.newInstance();
+
+				} catch(Throwable t) { }
+
+			}
+
+			return(ret);
+		}
+	}
+
+	private Object[] splitCommandLine(String commandLine) {
+		
+		ArrayList<String> parts = new ArrayList<String>();
+		StringBuilder currentPart = new StringBuilder(50);
+		int len = commandLine.length();
+		boolean inQuotes = false;
+		boolean equals = false;
+
+		for(int i=0; i<len; i++) {
+
+			char ch = commandLine.charAt(i);
+			switch(ch) {
+
+				case '\'':
+				case '"':
+					inQuotes = !inQuotes;
+					if(!equals) {
+						if(currentPart.toString().trim().length() > 0) {
+							parts.add(currentPart.toString().trim());
+						}
+						currentPart.setLength(0);
+
+					}
+					break;
+
+				case '=':
+					if(!inQuotes) {
+
+						equals = true;
+
+						currentPart.append("=");
+					}
+					break;
+
+				case ',':
+					if(!inQuotes) {
+
+						if(currentPart.toString().trim().length() > 0) {
+							parts.add(currentPart.toString().trim());
+						}
+						currentPart.setLength(0);
+
+						parts.add(",");
+					}
+
+				case ' ':
+					if(inQuotes) {
+
+						currentPart.append(ch);
 
 					} else {
 
-						ret.append("Command not found");
+						if(currentPart.toString().trim().length() > 0) {
+							parts.add(currentPart.toString().trim());
+						}
+						currentPart.setLength(0);
+
 					}
-				}
+					break;
+
+				default:
+					equals = false;
+					currentPart.append(ch);
+					break;
 
 			}
 		}
 
+		// add last part
+		if(currentPart.toString().trim().length() > 0) {
+			parts.add(currentPart.toString().trim());
+		}
 
-		return (ret.toString());
+		List<String> secondPassResult = new LinkedList<String>();
+		{
+			// second pass, combine elements with '=' between them to a String
+			StringBuilder buf = new StringBuilder(40);
+			int size = parts.size();
+
+			for(int i=0; i<size; i++)
+			{
+				String nextPart = parts.size() > i+1 ? parts.get(i+1) : null;
+				String part = parts.get(i);
+
+				// next part is a list separator, add current part to list
+				if("=".equals(nextPart)) {
+
+					buf.append(part);
+					buf.append("=");
+					i++;
+
+				} else {
+
+					// finish list and start a new one
+					if(buf.length() > 0) {
+
+						buf.append(part);
+						secondPassResult.add(buf.toString());
+
+						buf.setLength(0);
+
+					} else {
+
+						secondPassResult.add(part);
+					}
+				}
+			}
+
+			if(buf.length() > 0)
+			{
+				secondPassResult.add(buf.toString());
+			}
+		}
+
+		ArrayList thirdPassResult = new ArrayList();
+		{
+			// third pass, combine elements with ',' between them to a List<String>
+			List<String> list = new LinkedList<String>();
+			int size = secondPassResult.size();
+
+			for(int i=0; i<size; i++)
+			{
+				String nextPart = secondPassResult.size() > i+1 ? secondPassResult.get(i+1) : null;
+				String part = secondPassResult.get(i);
+
+				// next part is a list separator, add current part to list
+				if(",".equals(nextPart)) {
+
+					list.add(part);
+					i++;
+
+				} else {
+
+					// finish list and start a new one
+					if(!list.isEmpty()) {
+
+						list.add(part);
+						thirdPassResult.add(list);
+
+						list = new LinkedList<String>();
+
+					} else {
+
+						thirdPassResult.add(part);
+					}
+				}
+			}
+
+			if(!list.isEmpty())
+			{
+				thirdPassResult.add(list);
+			}
+		}
+
+		return(thirdPassResult.toArray());
 	}
 }
