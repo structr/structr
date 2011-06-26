@@ -155,6 +155,21 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
         }
 
+        if (node == null) {
+            setExitCode(Command.exitCode.FAILURE);
+            setErrorMessage("Could not delete node null");
+            logger.log(Level.WARNING, getErrorMessage());
+            return null;
+        }
+
+
+        if (node.getId() == 0) {
+            setExitCode(Command.exitCode.FAILURE);
+            setErrorMessage("Deleting the root node is not allowed.");
+            logger.log(Level.WARNING, getErrorMessage());
+            return null;
+        }
+
         return doDeleteNode(user, node, parentNode, recursive);
     }
 
@@ -174,121 +189,112 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
                 AbstractNode newParentNode = null;
 
-                if (node != null) {
+                Command findNode = Services.command(FindNodeCommand.class);
+                if (parentNode == null) {
 
-                    Command findNode = Services.command(FindNodeCommand.class);
-                    if (parentNode == null) {
+                    if (recursive) {
 
-                        if (recursive) {
+                        Relationship parentRel = node.getSingleRelationship(RelType.HAS_CHILD, Direction.INCOMING);
+                        if (parentRel != null) {
+                            newParentNode = (AbstractNode) findNode.execute(user, parentRel.getStartNode().getId());
+                            parentRel.delete();
+                        }
 
-                            Relationship parentRel = node.getSingleRelationship(RelType.HAS_CHILD, Direction.INCOMING);
-                            if (parentRel != null) {
-                                newParentNode = (AbstractNode) findNode.execute(user, parentRel.getStartNode().getId());
-                                parentRel.delete();
-                            }
+                        //newParentNode = structrNode.getParentNode(user);
 
-                            //newParentNode = structrNode.getParentNode(user);
+                        // delete HAS_CHILD relationship to parent node
 
-                            // delete HAS_CHILD relationship to parent node
-
-                            // iterate over all child nodes
-                            for (Path p : Traversal.description().breadthFirst().relationships(RelType.HAS_CHILD, Direction.OUTGOING).traverse(node)) {
+                        // iterate over all child nodes
+                        for (Path p : Traversal.description().breadthFirst().relationships(RelType.HAS_CHILD, Direction.OUTGOING).traverse(node)) {
 
 //                        Relationship r = p.lastRelationship();
-                                Node n = p.endNode();
+                            Node n = p.endNode();
 
-                                // delete any outgoing relationships
-                                for (Relationship l : n.getRelationships(Direction.OUTGOING)) {
-                                    try {
-                                        l.delete();
-                                    } catch (IllegalStateException ise) {
-                                        // relationship was already deleted
-                                        logger.log(Level.WARNING, "Relationship {0} already deleted in this transaction", l.getId());
-                                    }
-                                }
-
-                                // delete any incoming relationships
-                                for (Relationship l : n.getRelationships(Direction.INCOMING)) {
-                                    try {
-                                        l.delete();
-                                    } catch (IllegalStateException ise) {
-                                        // relationship was already deleted
-                                        logger.log(Level.WARNING, "Relationship {0} already deleted in this transaction", l.getId());
-                                    }
-                                }
-
-                                // delete the HAS_CHILD relationship of this child node
-                                //if (r != null) r.delete();
-
-                                // deletion callback, must not prevent node deletion!
+                            // delete any outgoing relationships
+                            for (Relationship l : n.getRelationships(Direction.OUTGOING)) {
                                 try {
-                                    ((AbstractNode) findNode.execute(user, n.getId())).onNodeDeletion();
-
-                                } catch (Throwable t) {
-                                    logger.log(Level.WARNING, "Exception while calling onDeletion callback: {0}", t);
+                                    l.delete();
+                                } catch (IllegalStateException ise) {
+                                    // relationship was already deleted
+                                    logger.log(Level.WARNING, "Relationship {0} already deleted in this transaction", l.getId());
                                 }
-
-                                // delete the child node itself
-                                n.delete();
                             }
 
-                        } else {
-
-                            // check if node has subnodes
-                            if (structrNode.hasChildren()) {
-                                setExitCode(Command.exitCode.FAILURE);
-                                setErrorMessage("Could not delete node " + node.getId() + " because it has still child nodes");
-                                logger.log(Level.WARNING, getErrorMessage());
-                                return null;
+                            // delete any incoming relationships
+                            for (Relationship l : n.getRelationships(Direction.INCOMING)) {
+                                try {
+                                    l.delete();
+                                } catch (IllegalStateException ise) {
+                                    // relationship was already deleted
+                                    logger.log(Level.WARNING, "Relationship {0} already deleted in this transaction", l.getId());
+                                }
                             }
 
-                            Relationship parentRel = node.getSingleRelationship(RelType.HAS_CHILD, Direction.INCOMING);
-
-                            // it is possible that a node has no parent (= incoming child) relationship, e.g. thumbnails
-                            if (parentRel != null) {
-                                //newParentNode = (AbstractNode) findNode.execute(user, parentRel.getStartNode().getId());
-                                newParentNode = structrNode.getParentNode();
-                                parentRel.delete();
-                            }
-                            // delete other incoming relationships
-                            List<StructrRelationship> incomingRels = structrNode.getIncomingRelationships();
-                            for (StructrRelationship r : incomingRels) {
-                                r.getRelationship().delete();
-                            }
+                            // delete the HAS_CHILD relationship of this child node
+                            //if (r != null) r.delete();
 
                             // deletion callback, must not prevent node deletion!
                             try {
-                                structrNode.onNodeDeletion();
+                                ((AbstractNode) findNode.execute(user, n.getId())).onNodeDeletion();
 
                             } catch (Throwable t) {
                                 logger.log(Level.WARNING, "Exception while calling onDeletion callback: {0}", t);
                             }
 
-                            // delete node
-                            node.delete();
+                            // delete the child node itself
+                            n.delete();
                         }
 
                     } else {
 
-                        for (Relationship r : node.getRelationships(RelType.LINK, Direction.INCOMING)) {
-
-                            AbstractNode p = (AbstractNode) findNode.execute(user, r.getStartNode().getId());
-                            if (p.equals(parentNode)) {
-                                r.delete();
-                            }
+                        // check if node has subnodes
+                        if (structrNode.hasChildren()) {
+                            setExitCode(Command.exitCode.FAILURE);
+                            setErrorMessage("Could not delete node " + node.getId() + " because it has still child nodes");
+                            logger.log(Level.WARNING, getErrorMessage());
+                            return null;
                         }
 
-                        newParentNode = parentNode;
+                        Relationship parentRel = node.getSingleRelationship(RelType.HAS_CHILD, Direction.INCOMING);
 
-                        return newParentNode;
+                        // it is possible that a node has no parent (= incoming child) relationship, e.g. thumbnails
+                        if (parentRel != null) {
+                            //newParentNode = (AbstractNode) findNode.execute(user, parentRel.getStartNode().getId());
+                            newParentNode = structrNode.getParentNode();
+                            parentRel.delete();
+                        }
+                        // delete other incoming relationships
+                        List<StructrRelationship> incomingRels = structrNode.getIncomingRelationships();
+                        for (StructrRelationship r : incomingRels) {
+                            r.getRelationship().delete();
+                        }
 
+                        // deletion callback, must not prevent node deletion!
+                        try {
+                            structrNode.onNodeDeletion();
+
+                        } catch (Throwable t) {
+                            logger.log(Level.WARNING, "Exception while calling onDeletion callback: {0}", t);
+                        }
+
+                        // delete node
+                        node.delete();
                     }
 
-
                 } else {
-                    setExitCode(Command.exitCode.FAILURE);
-                    setErrorMessage("Node was null");
+
+                    for (Relationship r : node.getRelationships(RelType.LINK, Direction.INCOMING)) {
+
+                        AbstractNode p = (AbstractNode) findNode.execute(user, r.getStartNode().getId());
+                        if (p.equals(parentNode)) {
+                            r.delete();
+                        }
+                    }
+
+                    newParentNode = parentNode;
+
                     return newParentNode;
+
                 }
 
                 return newParentNode;
