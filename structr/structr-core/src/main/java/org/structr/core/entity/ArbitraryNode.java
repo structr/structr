@@ -19,10 +19,18 @@
 package org.structr.core.entity;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import org.neo4j.graphdb.Direction;
+import org.structr.common.RelType;
 import org.structr.common.RenderMode;
-import org.structr.common.renderer.NullRenderer;
+import org.structr.common.renderer.ExternalTemplateRenderer;
+import org.structr.core.Command;
 import org.structr.core.NodeRenderer;
+import org.structr.core.Services;
+import org.structr.core.node.CreateRelationshipCommand;
+import org.structr.core.node.DeleteRelationshipCommand;
+import org.structr.core.node.FindNodeCommand;
 
 /**
  * 
@@ -33,12 +41,25 @@ public class ArbitraryNode extends AbstractNode {
 
     private final static String ICON_SRC = "/images/error.png";
     public final static String ICON_SRC_KEY = "iconSrc";
+    private NodeType typeNode;
+
+    @Override
+    public String getType() {
+        typeNode = getTypeNode();
+        if (typeNode != null) {
+            return typeNode.getName();
+        } else {
+            return super.getType();
+        }
+    }
 
     @Override
     public String getIconSrc() {
 
-        NodeType typeNode = getTypeNode();
-        
+        if (typeNode == null) {
+            typeNode = getTypeNode();
+        }
+
         Object iconSrc = null;
         if (typeNode != null) {
             iconSrc = typeNode.getProperty(ICON_SRC_KEY);
@@ -53,9 +74,11 @@ public class ArbitraryNode extends AbstractNode {
 
     @Override
     public Iterable<String> getPropertyKeys() {
-        
-        NodeType typeNode = getTypeNode();
-        
+
+        if (typeNode == null) {
+            typeNode = getTypeNode();
+        }
+
         if (typeNode != null) {
             return typeNode.getPropertyKeys();
         }
@@ -63,9 +86,8 @@ public class ArbitraryNode extends AbstractNode {
     }
 
     @Override
-    public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers)
-    {
-	    renderers.put(RenderMode.Default, new NullRenderer());
+    public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers) {
+        renderers.put(RenderMode.Default, new ExternalTemplateRenderer(false));
     }
 
     @Override
@@ -78,5 +100,50 @@ public class ArbitraryNode extends AbstractNode {
 
     @Override
     public void onNodeDeletion() {
+    }
+
+    public Long getTypeNodeId() {
+        NodeType n = getTypeNode();
+        return (n != null ? n.getId() : null);
+    }
+
+    /**
+     * Return (cached) type node
+     *
+     * @return
+     */
+    public NodeType getTypeNode() {
+
+        if (typeNode != null) {
+            return typeNode;
+        }
+
+        for (StructrRelationship s : getRelationships(RelType.TYPE, Direction.OUTGOING)) {
+            AbstractNode n = s.getEndNode();
+            if (n instanceof NodeType) {
+                return (NodeType) n;
+            }
+        }
+        return null;
+    }
+
+    public void setTypeNodeId(final Long value) {
+
+        // find type node
+        Command findNode = Services.command(FindNodeCommand.class);
+        NodeType newTypeNode = (NodeType) findNode.execute(new SuperUser(), value);
+
+        // delete existing type node relationships
+        List<StructrRelationship> templateRels = this.getOutgoingRelationships(RelType.TYPE);
+        Command delRel = Services.command(DeleteRelationshipCommand.class);
+        if (templateRels != null) {
+            for (StructrRelationship r : templateRels) {
+                delRel.execute(r);
+            }
+        }
+
+        // create new link target relationship
+        Command createRel = Services.command(CreateRelationshipCommand.class);
+        createRel.execute(this, newTypeNode, RelType.TYPE);
     }
 }

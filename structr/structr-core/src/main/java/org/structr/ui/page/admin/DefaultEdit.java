@@ -60,6 +60,7 @@ import org.structr.core.cloud.CloudTransmission;
 import org.structr.core.cloud.GetCloudServiceCommand;
 import org.structr.core.cloud.PullNode;
 import org.structr.core.cloud.PushNodes;
+import org.structr.core.entity.ArbitraryNode;
 import org.structr.core.entity.Image;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractNode.Title;
@@ -93,8 +94,7 @@ import org.structr.core.node.search.TextualSearchAttribute;
  */
 public class DefaultEdit extends Nodes {
 
-	private static final Logger logger = Logger.getLogger(DefaultEdit.class.getName());
-
+    private static final Logger logger = Logger.getLogger(DefaultEdit.class.getName());
     /**
      * The main form for editing node parameter.
      * Child pages should just append fields to this form.
@@ -124,20 +124,18 @@ public class DefaultEdit extends Nodes {
     protected Panel editVisibilityPanel;
     protected Panel cloudPanel;
     protected Panel consolePanel;
-
     protected TextField remoteHost;
     protected LongField remoteSourceNode;
     protected IntegerField remoteTcpPort;
     protected IntegerField remoteUdpPort;
     protected Select cloudPushPull = new Select("cloudPushPull", "Push / Pull");
     protected Checkbox cloudRecursive = new Checkbox("cloudRecursive", "Recursive");
-
     protected Select templateSelect = new Select(AbstractNode.TEMPLATE_ID_KEY, "Template");
     protected Select typeSelect = new Select(AbstractNode.TYPE_KEY, "Type");
     protected Select customTypeSelect = new Select(AbstractNode.TYPE_NODE_ID_KEY, "Custom Type");
-
     protected TextField consoleCommand;
-    @Bindable protected String consoleOutput;
+    @Bindable
+    protected String consoleOutput;
 
     // use template for backend pages
     @Override
@@ -619,70 +617,70 @@ public class DefaultEdit extends Nodes {
         remoteHost = new TextField("remoteHost", "Remote Host");
         remoteTcpPort = new IntegerField("remoteTcpPort", "Remote TCP Port");
         remoteUdpPort = new IntegerField("remoteUdp", "Remote UDP Port");
-	cloudPushPull.add(new Option("push", "Push nodes to remote destination"));
-	cloudPushPull.add(new Option("pull", "Pull nodes from remote destination"));
+        cloudPushPull.add(new Option("push", "Push nodes to remote destination"));
+        cloudPushPull.add(new Option("pull", "Pull nodes from remote destination"));
         pushFields.add(remoteSourceNode);
         pushFields.add(remoteHost);
         pushFields.add(remoteTcpPort);
         pushFields.add(remoteUdpPort);
-	pushFields.add(cloudPushPull);
+        pushFields.add(cloudPushPull);
         pushFields.add(cloudRecursive);
 
         pushFields.add(new Submit("transmitNodes", "Transmit", this, "onTransmitNodes"));
 
-	Table transmissionsTable = new Table("Transmissions");
-	transmissionsTable.addColumn(new Column("transmissionType", "Type"));
-	transmissionsTable.addColumn(new Column("remoteHost", "Remote Host"));
-	transmissionsTable.addColumn(new Column("remoteTcpPort", "TCP"));
-	transmissionsTable.addColumn(new Column("remoteUdpPort", "UDP"));
-	transmissionsTable.addColumn(new Column("estimatedSize", "Estimated Size"));
-	transmissionsTable.addColumn(new Column("transmittedObjectCount", "Objects Transmitted"));
-	transmissionsTable.setDataProvider(new DataProvider()
-	{
-		@Override
-		public List<CloudTransmission> getData()
-		{
-			CloudService cloudService = (CloudService)Services.command(GetCloudServiceCommand.class).execute();
-			if(cloudService != null)
-			{
-				return(cloudService.getActiveTransmissions());
-			}
+        Table transmissionsTable = new Table("Transmissions");
+        transmissionsTable.addColumn(new Column("transmissionType", "Type"));
+        transmissionsTable.addColumn(new Column("remoteHost", "Remote Host"));
+        transmissionsTable.addColumn(new Column("remoteTcpPort", "TCP"));
+        transmissionsTable.addColumn(new Column("remoteUdpPort", "UDP"));
+        transmissionsTable.addColumn(new Column("estimatedSize", "Estimated Size"));
+        transmissionsTable.addColumn(new Column("transmittedObjectCount", "Objects Transmitted"));
+        transmissionsTable.setDataProvider(new DataProvider() {
 
-			return(new LinkedList());
-		}
-	});
+            @Override
+            public List<CloudTransmission> getData() {
+                CloudService cloudService = (CloudService) Services.command(GetCloudServiceCommand.class).execute();
+                if (cloudService != null) {
+                    return (cloudService.getActiveTransmissions());
+                }
+
+                return (new LinkedList());
+            }
+        });
 
         cloudForm.add(pushFields);
-	cloudForm.add(transmissionsTable);
+        cloudForm.add(transmissionsTable);
         cloudForm.add(new HiddenField(NODE_ID_KEY, nodeId != null ? nodeId : ""));
         cloudForm.add(new HiddenField(RENDER_MODE_KEY, renderMode != null ? renderMode : ""));
         cloudForm.setActionURL(cloudForm.getActionURL().concat("#cloud-tab"));
         addControl(cloudForm);
 
-	// cloud
+        // cloud
         cloudPanel = new Panel("cloudPanel", "/panel/cloud-panel.htm");
-	addControl(cloudPanel);
+        addControl(cloudPanel);
 
-	// ------------------ cloud end ---------------------
+        // ------------------ cloud end ---------------------
 
-	// console
-	consoleCommand = new TextField("command", "Command");
-	consoleCommand.addStyleClass("commandInput");
-	consoleForm.add(consoleCommand);
-	consoleForm.addStyleClass("commandInput");
-	consoleForm.add(new Submit("executeCommand", "Execute", this, "onConsoleCommand"));
+        // console
+        consoleCommand = new TextField("command", "Command");
+        consoleCommand.addStyleClass("commandInput");
+        consoleForm.add(consoleCommand);
+        consoleForm.addStyleClass("commandInput");
+        consoleForm.add(new Submit("executeCommand", "Execute", this, "onConsoleCommand"));
 
-	StringBuilder actionURL = new StringBuilder(100);
-	actionURL.append(consoleForm.getActionURL());
-	if(nodeId != null) actionURL.append("?nodeId=").append(nodeId);
-	actionURL.append("#console-tab");
-	consoleForm.setActionURL(actionURL.toString());
-	addControl(consoleForm);
+        StringBuilder actionURL = new StringBuilder(100);
+        actionURL.append(consoleForm.getActionURL());
+        if (nodeId != null) {
+            actionURL.append("?nodeId=").append(nodeId);
+        }
+        actionURL.append("#console-tab");
+        consoleForm.setActionURL(actionURL.toString());
+        addControl(consoleForm);
 
         consolePanel = new Panel("consolePanel", "/panel/console-panel.htm");
         addControl(consolePanel);
 
-	readConsoleOutput();
+        readConsoleOutput();
         // ------------------ console end ---------------------
 
         if (!(editPropertiesAllowed)) {
@@ -738,7 +736,37 @@ public class DefaultEdit extends Nodes {
                 }
             });
 
-            final NodeType typeNode = node.getTypeNode();
+            if (node instanceof ArbitraryNode) {
+
+                final NodeType typeNode = ((ArbitraryNode) node).getTypeNode();
+
+                customTypeSelect.setDataProvider(new DataProvider() {
+
+                    @Override
+                    public List<Option> getData() {
+                        List<Option> options = new LinkedList<Option>();
+                        List<AbstractNode> nodes = null;
+                        if (typeNode != null) {
+                            nodes = typeNode.getSiblingNodes();
+                        } else {
+                            List<TextualSearchAttribute> searchAttrs = new LinkedList<TextualSearchAttribute>();
+                            searchAttrs.add(new TextualSearchAttribute(AbstractNode.TYPE_KEY, NodeType.class.getSimpleName(), SearchOperator.OR));
+                            nodes = (List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(user, null, false, false, searchAttrs);
+                        }
+                        if (nodes != null) {
+                            Collections.sort(nodes);
+                            options.add(Option.EMPTY_OPTION);
+                            for (AbstractNode n : nodes) {
+                                if (n instanceof NodeType) {
+                                    Option opt = new Option(n.getId(), n.getName());
+                                    options.add(opt);
+                                }
+                            }
+                        }
+                        return options;
+                    }
+                });
+            }
 
             typeSelect.setDataProvider(new DataProvider() {
 
@@ -756,33 +784,6 @@ public class DefaultEdit extends Nodes {
                         nodeList.add(o);
                     }
                     return nodeList;
-                }
-            });
-
-            customTypeSelect.setDataProvider(new DataProvider() {
-
-                @Override
-                public List<Option> getData() {
-                    List<Option> options = new LinkedList<Option>();
-                    List<AbstractNode> nodes = null;
-                    if (typeNode != null) {
-                        nodes = typeNode.getSiblingNodes();
-                    } else {
-                        List<TextualSearchAttribute> searchAttrs = new LinkedList<TextualSearchAttribute>();
-                        searchAttrs.add(new TextualSearchAttribute(AbstractNode.TYPE_KEY, NodeType.class.getSimpleName(), SearchOperator.OR));
-                        nodes = (List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(user, null, false, false, searchAttrs);
-                    }
-                    if (nodes != null) {
-                        Collections.sort(nodes);
-                        options.add(Option.EMPTY_OPTION);
-                        for (AbstractNode n : nodes) {
-                            if (n instanceof NodeType) {
-                                Option opt = new Option(n.getId(), n.getName());
-                                options.add(opt);
-                            }
-                        }
-                    }
-                    return options;
                 }
             });
 
@@ -1278,32 +1279,30 @@ public class DefaultEdit extends Nodes {
     public boolean onTransmitNodes() {
 
         final String remoteHostValue = remoteHost.getValue();
-	final Long targetNodeValue = remoteSourceNode.getLong();
+        final Long targetNodeValue = remoteSourceNode.getLong();
         final Integer tcpPort = remoteTcpPort.getInteger();
         final Integer udpPort = remoteUdpPort.getInteger();
         final boolean rec = cloudRecursive.isChecked();
-	final String pushPull = cloudPushPull.getValue();
+        final String pushPull = cloudPushPull.getValue();
 
-	// start new thread with name of current session Id
-	new Thread(new Runnable() {
+        // start new thread with name of current session Id
+        new Thread(new Runnable() {
 
-		@Override
-		public void run() {
+            @Override
+            public void run() {
 
-			if("push".equals(pushPull)) {
+                if ("push".equals(pushPull)) {
 
-				Command transmitCommand = Services.command(PushNodes.class);
-				transmitCommand.execute(user, node, targetNodeValue, remoteHostValue, tcpPort, udpPort, rec);
+                    Command transmitCommand = Services.command(PushNodes.class);
+                    transmitCommand.execute(user, node, targetNodeValue, remoteHostValue, tcpPort, udpPort, rec);
 
-			} else
-			if("pull".equals(pushPull)) {
+                } else if ("pull".equals(pushPull)) {
 
-				Command transmitCommand = Services.command(PullNode.class);
-				transmitCommand.execute(user, targetNodeValue, node, remoteHostValue, tcpPort, udpPort, rec);
-			}
-		}
-
-	}, getContext().getSession().getId()).start();
+                    Command transmitCommand = Services.command(PullNode.class);
+                    transmitCommand.execute(user, targetNodeValue, node, remoteHostValue, tcpPort, udpPort, rec);
+                }
+            }
+        }, getContext().getSession().getId()).start();
 
         return false;
 
@@ -1311,88 +1310,87 @@ public class DefaultEdit extends Nodes {
 
     public boolean onConsoleCommand() {
 
-	    List<String> consoleLines = getConsoleLines();
+        List<String> consoleLines = getConsoleLines();
 
-	    // create callback to pass new parent node on deleted nodes
-	    final CallbackValue<String> newNodeId = new CallbackValue<String>(nodeId);
-	    Callback callback = new Callback() {
+        // create callback to pass new parent node on deleted nodes
+        final CallbackValue<String> newNodeId = new CallbackValue<String>(nodeId);
+        Callback callback = new Callback() {
 
-		    @Override public void callback(Object... params) {
+            @Override
+            public void callback(Object... params) {
 
-			    if(params.length > 0) {
-				    newNodeId.setValue(params[0].toString());
-			    }
-		    }
-	    };
+                if (params.length > 0) {
+                    newNodeId.setValue(params[0].toString());
+                }
+            }
+        };
 
-	    consoleLines.add(Services.command(NodeConsoleCommand.class).execute(node, consoleCommand.getValue(), callback).toString());
-	    if(consoleLines.size() > 20)
-	    {
-		    consoleLines.remove(0);
-	    }
+        consoleLines.add(Services.command(NodeConsoleCommand.class).execute(node, consoleCommand.getValue(), callback).toString());
+        if (consoleLines.size() > 20) {
+            consoleLines.remove(0);
+        }
 
-	    readConsoleOutput();
+        readConsoleOutput();
 
-	    StringBuilder redirectPath = new StringBuilder(100);
-	    redirectPath.append(getContext().getRequest().getContextPath());
-	    redirectPath.append(getPath());
-	    redirectPath.append("?nodeId=").append(newNodeId.getValue());
-	    redirectPath.append("#console-tab");
+        StringBuilder redirectPath = new StringBuilder(100);
+        redirectPath.append(getContext().getRequest().getContextPath());
+        redirectPath.append(getPath());
+        redirectPath.append("?nodeId=").append(newNodeId.getValue());
+        redirectPath.append("#console-tab");
 
-	    // test
-	    nodeTree.expand(getTreeNode(newNodeId.getValue()));
+        // test
+        nodeTree.expand(getTreeNode(newNodeId.getValue()));
 
-	    redirect = redirectPath.toString();
+        redirect = redirectPath.toString();
 
-	    return(true);
+        return (true);
     }
 
     private void readConsoleOutput() {
 
-	    List<String> consoleLines = getConsoleLines();
+        List<String> consoleLines = getConsoleLines();
 
-	    // initialize buffer with estimated size to prevent resizing
-	    StringBuilder buffer = new StringBuilder(consoleLines.size() * 80);
-	    for(String line : consoleLines) {
-		    buffer.append(line);
-	    }
+        // initialize buffer with estimated size to prevent resizing
+        StringBuilder buffer = new StringBuilder(consoleLines.size() * 80);
+        for (String line : consoleLines) {
+            buffer.append(line);
+        }
 
-	    // set consoleOutput
-	    consoleOutput = buffer.toString();
+        // set consoleOutput
+        consoleOutput = buffer.toString();
 
     }
 
-    private List<String> getConsoleLines()
-    {
-	    List<String> ret = (List<String>)getContext().getSession().getAttribute(NodeConsoleCommand.CONSOLE_BUFFER_KEY);
+    private List<String> getConsoleLines() {
+        List<String> ret = (List<String>) getContext().getSession().getAttribute(NodeConsoleCommand.CONSOLE_BUFFER_KEY);
 
-	    if(ret == null) {
+        if (ret == null) {
 
-		    StringBuilder welcome = new StringBuilder();
+            StringBuilder welcome = new StringBuilder();
 
-		    welcome.append("<p>Welcome to the structr console!</p>");
-		    welcome.append("<p>Supported commands: ");
+            welcome.append("<p>Welcome to the structr console!</p>");
+            welcome.append("<p>Supported commands: ");
 
-		    for(Entry<String, Class<? extends Operation>> entry : NodeConsoleCommand.operationsMap.entrySet()) {
-			    
-			    String cmd = entry.getKey();
-			    Class op = entry.getValue();
-			    
-			    if(PrimaryOperation.class.isAssignableFrom(op)) {
-				    
-				    welcome.append(" <b>").append(cmd).append("</b>");
-			    }
-		    }
-		    welcome.append("</p>");
-		    welcome.append("<p>Typing the command without any parameters will show a short help text for each command.</p>");
-		    welcome.append("<p>&nbsp;</p>");
+            for (Entry<String, Class<? extends Operation>> entry : NodeConsoleCommand.operationsMap.entrySet()) {
 
-		    ret = new LinkedList<String>();
-		    ret.add(welcome.toString());
+                String cmd = entry.getKey();
+                Class op = entry.getValue();
 
-		    getContext().getSession().setAttribute(NodeConsoleCommand.CONSOLE_BUFFER_KEY, ret);
-	    }
+                if (PrimaryOperation.class.isAssignableFrom(op)) {
 
-	    return(ret);
+                    welcome.append(" <b>").append(cmd).append("</b>");
+                }
+            }
+            welcome.append("</p>");
+            welcome.append("<p>Typing the command without any parameters will show a short help text for each command.</p>");
+            welcome.append("<p>&nbsp;</p>");
+
+            ret = new LinkedList<String>();
+            ret.add(welcome.toString());
+
+            getContext().getSession().setAttribute(NodeConsoleCommand.CONSOLE_BUFFER_KEY, ret);
+        }
+
+        return (ret);
     }
 }

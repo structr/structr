@@ -2694,53 +2694,6 @@ public abstract class AbstractNode implements Comparable<AbstractNode>
 		return null;
 	}
 
-	public Long getTypeNodeId()
-	{
-		NodeType n = getTypeNode();
-		return (n != null ? n.getId() : null);
-	}
-
-	/**
-	 * Return type node
-	 *
-	 * @return
-	 */
-	public NodeType getTypeNode()
-	{
-		for(StructrRelationship s : getRelationships(RelType.TYPE, Direction.OUTGOING))
-		{
-			AbstractNode n = s.getEndNode();
-			if(n instanceof NodeType)
-			{
-				return (NodeType)n;
-			}
-		}
-		return null;
-	}
-
-	public void setTypeNodeId(final Long value)
-	{
-
-		// find type node
-		Command findNode = Services.command(FindNodeCommand.class);
-		NodeType typeNode = (NodeType)findNode.execute(new SuperUser(), value);
-
-		// delete existing type node relationships
-		List<StructrRelationship> templateRels = this.getOutgoingRelationships(RelType.TYPE);
-		Command delRel = Services.command(DeleteRelationshipCommand.class);
-		if(templateRels != null)
-		{
-			for(StructrRelationship r : templateRels)
-			{
-				delRel.execute(r);
-			}
-		}
-
-		// create new link target relationship
-		Command createRel = Services.command(CreateRelationshipCommand.class);
-		createRel.execute(this, typeNode, RelType.TYPE);
-	}
-
 	/**
 	 * Return owner
 	 *
