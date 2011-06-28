@@ -70,6 +70,9 @@ public abstract class ApplicationNode extends AbstractNode
 					return(null);
 				}
 			});
+
+			// change this into a Folder
+			this.setProperty("type", "Folder");
 		}
 	}
 

@@ -46,6 +46,8 @@ import org.structr.context.SessionMonitor.Session;
 import org.structr.core.Command;
 import org.structr.core.Service;
 import org.structr.core.Services;
+import org.structr.core.agent.CleanUpFilesTask;
+import org.structr.core.agent.ClearLogsTask;
 import org.structr.core.agent.ProcessTaskCommand;
 import org.structr.core.agent.RebuildIndexTask;
 import org.structr.core.agent.UpdateImageMetadataTask;
@@ -99,16 +101,20 @@ public class Maintenance extends Admin {
     protected Table runtimeValuesTable = new Table("runtimeValuesTable");
     @Bindable
     protected Table modulesTable = new Table("modulesTable");
-    @Bindable
-    protected Table registeredClassesTable = new Table("registeredClassesTable");
-    @Bindable
-    protected Table allNodesTable = new Table("allNodesTable");
+//    @Bindable
+//    protected Table registeredClassesTable = new Table("registeredClassesTable");
+//    @Bindable
+//    protected Table allNodesTable = new Table("allNodesTable");
     @Bindable
     protected ActionLink startupLink = new ActionLink("startupLink", "Startup", this, "onStartup");
     @Bindable
     protected ActionLink shutdownLink = new ActionLink("shutdownLink", "Shutdown", this, "onShutdown");
     @Bindable
     protected ActionLink rebuildIndexLink = new ActionLink("rebuildIndexLink", "Rebuild Index (Background)", this, "onRebuildIndex");
+    @Bindable
+    protected ActionLink cleanUpFilesLink = new ActionLink("cleanUpFilesLink", "Clean-up Files (Background)", this, "onCleanUpFiles");
+    @Bindable
+    protected ActionLink clearLogsLink = new ActionLink("clearLogsLink", "Clear Logs (Background)", this, "onClearLogs");
     @Bindable
     protected ActionLink removeThumbnailsLink = new ActionLink("removeThumbnailsLink", "Remove Thumbnails (Ad-hoc)", this, "onRemoveThumbnails");
     @Bindable
@@ -120,7 +126,7 @@ public class Maintenance extends Admin {
     @Bindable
 //    protected Panel maintenancePanel;
     private List<AbstractNode> allNodes;
-    protected Map<String, Long> nodesHistogram = new HashMap<String, Long>();
+//    protected Map<String, Long> nodesHistogram = new HashMap<String, Long>();
 //    @Bindable
 //    protected FieldSet statsFields = new FieldSet("statsFields", "Statistics");
     @Override
@@ -241,37 +247,37 @@ public class Maintenance extends Admin {
             }
         });
 
-        registeredClassesTable.addColumn(iconCol);
-        registeredClassesTable.addColumn(new Column("name", "Name"));
-        registeredClassesTable.addColumn(new Column("count", "Count"));
-        registeredClassesTable.setSortable(true);
-        registeredClassesTable.setSortedColumn("name");
-        registeredClassesTable.setPageSize(15);
-        registeredClassesTable.setHoverRows(true);
-        registeredClassesTable.setShowBanner(true);
-        registeredClassesTable.setClass(TABLE_CLASS);
+//        registeredClassesTable.addColumn(iconCol);
+//        registeredClassesTable.addColumn(new Column("name", "Name"));
+//        registeredClassesTable.addColumn(new Column("count", "Count"));
+//        registeredClassesTable.setSortable(true);
+//        registeredClassesTable.setSortedColumn("name");
+//        registeredClassesTable.setPageSize(15);
+//        registeredClassesTable.setHoverRows(true);
+//        registeredClassesTable.setShowBanner(true);
+//        registeredClassesTable.setClass(TABLE_CLASS);
 
-        allNodesTable.addColumn(new Column(AbstractNode.NODE_ID_KEY));
-        allNodesTable.addColumn(new Column(AbstractNode.NAME_KEY));
-        allNodesTable.addColumn(new Column(AbstractNode.TYPE_KEY));
-        allNodesTable.addColumn(new Column(AbstractNode.POSITION_KEY));
-        allNodesTable.addColumn(new Column(AbstractNode.PUBLIC_KEY));
-        allNodesTable.addColumn(new Column(AbstractNode.OWNER_KEY));
-        allNodesTable.addColumn(new Column(AbstractNode.CREATED_BY_KEY));
-        allNodesTable.addColumn(new Column(AbstractNode.CREATED_DATE_KEY));
-        allNodesTable.addColumn(new Column("allProperties"));
-        allNodesTable.setSortable(true);
-        allNodesTable.setPageSize(15);
-        allNodesTable.setHoverRows(true);
-        allNodesTable.setShowBanner(true);
-        allNodesTable.setClass(TABLE_CLASS);
+//        allNodesTable.addColumn(new Column(AbstractNode.NODE_ID_KEY));
+//        allNodesTable.addColumn(new Column(AbstractNode.NAME_KEY));
+//        allNodesTable.addColumn(new Column(AbstractNode.TYPE_KEY));
+//        allNodesTable.addColumn(new Column(AbstractNode.POSITION_KEY));
+//        allNodesTable.addColumn(new Column(AbstractNode.PUBLIC_KEY));
+//        allNodesTable.addColumn(new Column(AbstractNode.OWNER_KEY));
+//        allNodesTable.addColumn(new Column(AbstractNode.CREATED_BY_KEY));
+//        allNodesTable.addColumn(new Column(AbstractNode.CREATED_DATE_KEY));
+//        allNodesTable.addColumn(new Column("allProperties"));
+//        allNodesTable.setSortable(true);
+//        allNodesTable.setPageSize(15);
+//        allNodesTable.setHoverRows(true);
+//        allNodesTable.setShowBanner(true);
+//        allNodesTable.setClass(TABLE_CLASS);
 
     }
 
     @Override
     public void onInit() {
         super.onInit();
-        initHistogram();
+//        initHistogram();
     }
 
     @Override
@@ -370,36 +376,36 @@ public class Maintenance extends Admin {
             }
         });
 
-        runtimeValuesTable.setDataProvider(new DataProvider() {
-
-            @Override
-            public List<Map.Entry<String, Object>> getData() {
-
-                List<Map.Entry<String, Object>> params = new LinkedList<Map.Entry<String, Object>>();
-
-                //params.add(new HashMap.Entry<String, Object>("Number of Nodes", numberOfNodes));
-//                Command findNode = Services.command(FindNodeCommand.class);
-
-                for (AbstractNode s : allNodes) {
-
-                    String type = s.getType();
-                    long value = 0L;
-                    if (nodesHistogram.containsKey(type)) {
-                        value = (Long) nodesHistogram.get(type);
-                    }
-
-                    value++;
-
-                    // increase counter
-                    nodesHistogram.put(type, value);
-                }
-
-                params.add(new AbstractMap.SimpleEntry<String, Object>("Nodes", allNodes.size()));
-
-                return params;
-
-            }
-        });
+//        runtimeValuesTable.setDataProvider(new DataProvider() {
+//
+//            @Override
+//            public List<Map.Entry<String, Object>> getData() {
+//
+//                List<Map.Entry<String, Object>> params = new LinkedList<Map.Entry<String, Object>>();
+//
+//                //params.add(new HashMap.Entry<String, Object>("Number of Nodes", numberOfNodes));
+////                Command findNode = Services.command(FindNodeCommand.class);
+//
+//                for (AbstractNode s : allNodes) {
+//
+//                    String type = s.getType();
+//                    long value = 0L;
+//                    if (nodesHistogram.containsKey(type)) {
+//                        value = (Long) nodesHistogram.get(type);
+//                    }
+//
+//                    value++;
+//
+//                    // increase counter
+//                    nodesHistogram.put(type, value);
+//                }
+//
+//                params.add(new AbstractMap.SimpleEntry<String, Object>("Nodes", allNodes.size()));
+//
+//                return params;
+//
+//            }
+//        });
 
         modulesTable.setDataProvider(new DataProvider() {
 
@@ -412,58 +418,58 @@ public class Maintenance extends Admin {
             }
         });
 
-        registeredClassesTable.setDataProvider(new DataProvider() {
-
-            @Override
-            public Set<NodeClassEntry> getData() {
-
-                SortedSet<NodeClassEntry> nodeClassList = new TreeSet<NodeClassEntry>();
-
-                Map<String, Class> entities = (Map<String, Class>) Services.command(GetEntitiesCommand.class).execute();
-
-                for (Entry<String, Class> entry : entities.entrySet()) {
-                    String n = entry.getKey();
-                    Class c = entry.getValue();
-
-                    NodeType type = new NodeType(n, c);
-
-                    String iconSrc = type.getIconSrc();
-                    String shortName = type.getKey();
-
-                    nodeClassList.add(new NodeClassEntry(c.getName(), iconSrc, nodesHistogram.get(shortName)));
-
-                }
-//                Set<String> types = Services.getCachedEntityTypes();
-//                for (String type : types) {
-//                    Class c = Services.getEntityClass(type);
-//                    String name = c.getName();
-//                    AbstractNode s;
-//                    try {
-//                        s = (AbstractNode) c.newInstance();
-//                        String iconSrc = s.getIconSrc();
-//                        String shortName = c.getSimpleName();
-//                        nodeClassList.add(new NodeClassEntry(name, iconSrc, nodesHistogram.get(shortName)));
+//        registeredClassesTable.setDataProvider(new DataProvider() {
 //
-//                    } catch (InstantiationException ex) {
-//                        Logger.getLogger(Maintenance.class.getName()).log(Level.SEVERE, null, ex);
-//                    } catch (IllegalAccessException ex) {
-//                        Logger.getLogger(Maintenance.class.getName()).log(Level.SEVERE, null, ex);
-//                    }
+//            @Override
+//            public Set<NodeClassEntry> getData() {
+//
+//                SortedSet<NodeClassEntry> nodeClassList = new TreeSet<NodeClassEntry>();
+//
+//                Map<String, Class> entities = (Map<String, Class>) Services.command(GetEntitiesCommand.class).execute();
+//
+//                for (Entry<String, Class> entry : entities.entrySet()) {
+//                    String n = entry.getKey();
+//                    Class c = entry.getValue();
+//
+//                    NodeType type = new NodeType(n, c);
+//
+//                    String iconSrc = type.getIconSrc();
+//                    String shortName = type.getKey();
+//
+//                    nodeClassList.add(new NodeClassEntry(c.getName(), iconSrc, nodesHistogram.get(shortName)));
 //
 //                }
-                return nodeClassList;
-            }
-        });
+////                Set<String> types = Services.getCachedEntityTypes();
+////                for (String type : types) {
+////                    Class c = Services.getEntityClass(type);
+////                    String name = c.getName();
+////                    AbstractNode s;
+////                    try {
+////                        s = (AbstractNode) c.newInstance();
+////                        String iconSrc = s.getIconSrc();
+////                        String shortName = c.getSimpleName();
+////                        nodeClassList.add(new NodeClassEntry(name, iconSrc, nodesHistogram.get(shortName)));
+////
+////                    } catch (InstantiationException ex) {
+////                        Logger.getLogger(Maintenance.class.getName()).log(Level.SEVERE, null, ex);
+////                    } catch (IllegalAccessException ex) {
+////                        Logger.getLogger(Maintenance.class.getName()).log(Level.SEVERE, null, ex);
+////                    }
+////
+////                }
+//                return nodeClassList;
+//            }
+//        });
 
-        allNodesTable.setDataProvider(new DataProvider() {
-
-            @Override
-            public List<AbstractNode> getData() {
-
-                return getAllNodes();
-
-            }
-        });
+//        allNodesTable.setDataProvider(new DataProvider() {
+//
+//            @Override
+//            public List<AbstractNode> getData() {
+//
+//                return getAllNodes();
+//
+//            }
+//        });
 
     }
 
@@ -527,22 +533,22 @@ public class Maintenance extends Admin {
         }
     }
 
-    private void initHistogram() {
-
-        for (AbstractNode s : getAllNodes()) {
-
-            String type = s.getType();
-            long value = 0L;
-            if (nodesHistogram.containsKey(type)) {
-                value = (Long) nodesHistogram.get(type);
-            }
-
-            value++;
-
-            // increase counter
-            nodesHistogram.put(type, value);
-        }
-    }
+//    private void initHistogram() {
+//
+//        for (AbstractNode s : getAllNodes()) {
+//
+//            String type = s.getType();
+//            long value = 0L;
+//            if (nodesHistogram.containsKey(type)) {
+//                value = (Long) nodesHistogram.get(type);
+//            }
+//
+//            value++;
+//
+//            // increase counter
+//            nodesHistogram.put(type, value);
+//        }
+//    }
 
     public boolean onReloadModules() {
         ServletContext servletContext = this.getContext().getServletContext();
@@ -690,6 +696,28 @@ public class Maintenance extends Admin {
     public boolean onRebuildIndex() {
         Command processTask = Services.command(ProcessTaskCommand.class);
         processTask.execute(new RebuildIndexTask());
+        return redirect();
+    }
+
+    /**
+     * Remove unused files, running in background
+     * 
+     * @return
+     */
+    public boolean onCleanUpFiles() {
+        Command processTask = Services.command(ProcessTaskCommand.class);
+        processTask.execute(new CleanUpFilesTask());
+        return redirect();
+    }
+
+    /**
+     * Remove all log nodes, running in background
+     * 
+     * @return
+     */
+    public boolean onClearLogs() {
+        Command processTask = Services.command(ProcessTaskCommand.class);
+        processTask.execute(new ClearLogsTask());
         return redirect();
     }
 

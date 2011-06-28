@@ -142,9 +142,6 @@ public class AppNodeTestCase003 extends ApplicationNode
 
 		linkNodes(lineChart, data, RelType.DATA);
 		linkNodes(lineChart, barType, RelType.TYPE);
-
-		// change this into a Folder
-		this.setProperty("type", "Folder");
 	}
 
 	private String createPageTemplateContent()
@@ -159,6 +156,8 @@ public class AppNodeTestCase003 extends ApplicationNode
 		ret.append("<div>").append(lineSeparator);
 		ret.append("%{*}").append(lineSeparator);
 		ret.append("</div>").append(lineSeparator);
+		ret.append("</body>").append(lineSeparator);
+		ret.append("</html>").append(lineSeparator);
 
 		return(ret.toString());
 	}

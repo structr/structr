@@ -24,12 +24,14 @@ public class NodeLoaderRenderer implements NodeRenderer<AppNodeLoader>
 		if(loaderSourceParameter != null)
 		{
 			Object value = currentNode.getValue();
-
-			out.append("<input type='hidden' name='");
-			out.append(loaderSourceParameter);
-			out.append("' value='");
-			out.append(value);
-			out.append("' />");
+			if(value != null)
+			{
+				out.append("<input type='hidden' name='");
+				out.append(loaderSourceParameter);
+				out.append("' value='");
+				out.append(value);
+				out.append("' />");
+			}
 		}
 	}
 

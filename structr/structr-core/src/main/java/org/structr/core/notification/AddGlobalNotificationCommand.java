@@ -17,22 +17,38 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.structr.common;
+package org.structr.core.notification;
 
 /**
- * Convenience interface to enable the use of enum types as node property keys.
- * The signature of this interface matches the signature of the enum class, so
- * you can use the following code to define property keys for
- * {@see org.structr.core.entity.AbstractNode} and subclasses.
- *
- * <pre>
- * public enum Key { property1, property2, property3 }
- * </pre>
+ * Adds a notification to the global list of notifications when executed. The
+ * notification will be visible for <b>all</b> users that are currently logged
+ * in to the structr admin UI.
  *
  * @author Christian Morgner
  */
-public interface PropertyKey
-{
-	public String name();
-	public int ordinal();
+public class AddGlobalNotificationCommand extends NotificationServiceCommand {
+
+	@Override
+	public Object execute(Object... parameters)
+	{
+		Notification notification = null;
+
+		switch(parameters.length) {
+
+			case 1:
+				if(parameters[0] instanceof Notification) {
+
+					notification = (Notification)parameters[0];
+				}
+		}
+
+		// if everything is ok, add notification
+		if(notification != null) {
+
+			NotificationService service = (NotificationService)getArgument("service");
+			service.addNotification(null, notification);
+		}
+
+		return(null);
+	}
 }

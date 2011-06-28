@@ -20,10 +20,17 @@
 package org.structr.core;
 
 /**
+ * An unary predicate that evaluates classes of type T.
  *
  * @author Christian Morgner
  */
 public interface Predicate<T>
 {
+	/**
+	 * Evaluates the given object and returns a boolean value.
+	 *
+	 * @param obj the object to evaluate
+	 * @return true or false
+	 */
 	public boolean evaluate(T obj);
 }

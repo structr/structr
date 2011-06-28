@@ -96,6 +96,9 @@ public class AppNodeTestCase002 extends ApplicationNode
 				AbstractNode editorFormCreator = createNode(editorFormActions, "AppNodeCreator", "save");
 				editorFormCreator.setProperty("targetType", "DataNode");
 
+				AbstractNode nodeTypeBlogEntryLinker = createNode(editorFormActions, "AppRelationshipCreator", "setNodeType");
+				nodeTypeBlogEntryLinker.setProperty("targetRelType", "TYPE");
+
 // add commen page
 		AbstractNode addCommentPage = createNode(this, "Page", "addComment", pageTemplate);
 
@@ -124,6 +127,9 @@ public class AppNodeTestCase002 extends ApplicationNode
 						AbstractNode addCommentLinker = createNode(addCommentActions, "AppRelationshipCreator", "link");
 						addCommentLinker.setProperty("targetRelType", "HAS_CHILD");
 
+						AbstractNode nodeTypeBlogCommentLinker = createNode(addCommentActions, "AppRelationshipCreator", "setNodeType");
+						nodeTypeBlogCommentLinker.setProperty("targetRelType", "TYPE");
+
 
 // blog entry folder
 		AbstractNode blogEntries = createNode(this, "Folder", "BlogEntries");
@@ -131,6 +137,12 @@ public class AppNodeTestCase002 extends ApplicationNode
 // system folder
 		AbstractNode system = createNode(this, "Folder", "System");
 		AbstractNode timestamp = createNode(system, "AppTimestamp", "timestamp");
+
+		AbstractNode nodeTypeBlogEntry = createNode(system, "NodeType", "BlogEntry");
+		nodeTypeBlogEntry.setProperty("_content", "java.lang.String");
+
+		AbstractNode nodeTypeBlogComment = createNode(system, "NodeType", "BlogComment");
+		nodeTypeBlogComment.setProperty("_comment", "java.lang.String");
 
 // relationships
 
@@ -163,6 +175,13 @@ public class AppNodeTestCase002 extends ApplicationNode
 		// add comment actions
 		linkNodes(addCommentActions, addCommentPage, RelType.ERROR_DESTINATION);
 		linkNodes(addCommentActions, blogPage, RelType.SUCCESS_DESTINATION);
+
+		// add node type relationship creator
+		linkNodes(editorFormCreator, nodeTypeBlogEntryLinker, RelType.DATA).setProperty("targetSlotName", "startNode");
+		linkNodes(nodeTypeBlogEntry, nodeTypeBlogEntryLinker, RelType.DATA).setProperty("targetSlotName", "endNode");
+
+		linkNodes(addCommentCreator, nodeTypeBlogCommentLinker, RelType.DATA).setProperty("targetSlotName", "startNode");
+		linkNodes(nodeTypeBlogComment, nodeTypeBlogCommentLinker, RelType.DATA).setProperty("targetSlotName", "endNode");
 
 	}
 
@@ -251,8 +270,8 @@ public class AppNodeTestCase002 extends ApplicationNode
 		ret.append("}\n");
 		ret.append("</script>\n");
 		ret.append("<p>\n");
-		ret.append("<textarea name=\"${TextField.name}\" id=\"content\">\n");
-		ret.append("<#if TextField.value ?? >${TextField.value}</#if>\n");
+		ret.append("<textarea name=\"${TextField.name}\" id=\"content\">");
+		ret.append("<#if TextField.value ?? >${TextField.value}</#if>");
 		ret.append("</textarea>\n");
 		ret.append("</p>\n");
 

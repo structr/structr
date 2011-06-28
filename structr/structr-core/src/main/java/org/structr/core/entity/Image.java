@@ -134,10 +134,9 @@ public class Image extends File {
     }
 
     @Override
-    public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers)
-    {
-	    renderers.put(RenderMode.Default, new ImageSourceRenderer());
-	    renderers.put(RenderMode.Direct, new FileStreamRenderer());
+    public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers) {
+        renderers.put(RenderMode.Default, new ImageSourceRenderer());
+        renderers.put(RenderMode.Direct, new FileStreamRenderer());
     }
 
 //
@@ -224,7 +223,6 @@ public class Image extends File {
 //        return thumbnail;
 //
 //    }
-
     public List<Image> getThumbnails() {
         List<Image> thumbnails = new LinkedList<Image>();
 
@@ -243,7 +241,7 @@ public class Image extends File {
 
             AbstractNode thumbnail = s.getEndNode();
 
-            if (((Image)thumbnail).equals(this)) {
+            if (((Image) thumbnail).equals(this)) {
                 logger.log(Level.SEVERE, "Attempted to remove me as thumbnail!!");
                 continue;
             }
@@ -340,11 +338,18 @@ public class Image extends File {
 
                     if ((w == maxWidth && h <= maxHeight)
                             || (w <= maxWidth && h == maxHeight)
-                            || (cropToFit && ((w == maxWidth && h >= maxHeight) || (w >= maxWidth && h == maxHeight)))
+//                            || (cropToFit && ((w == maxWidth && h >= maxHeight) || (w >= maxWidth && h == maxHeight)))
                             || (origWidth <= w && origHeight <= h)) // orginal image is equal or smaller than requested size
                     {
-                        thumbnail = (Image) r.getEndNode();
 
+//                    if ((w == maxWidth && h <= maxHeight)
+//                            || (w <= maxWidth && h == maxHeight)
+//                            || (cropToFit && ((w == maxWidth && h >= maxHeight) || (w >= maxWidth && h == maxHeight)))
+//                            || (origWidth <= w && origHeight <= h)) // orginal image is equal or smaller than requested size
+//                    {
+
+                        thumbnail = (Image) r.getEndNode();
+                        
                         // Check age: Use thumbnail only if younger than original image
                         if (!(originalImage.getLastModifiedDate().after(thumbnail.getLastModifiedDate()))) {
                             return thumbnail;
