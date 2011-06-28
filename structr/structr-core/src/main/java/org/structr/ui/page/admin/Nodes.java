@@ -1111,7 +1111,7 @@ public class Nodes extends Admin {
      * @param nodeId
      * @return
      */
-    private TreeNode getTreeNode(String nodeId) {
+    protected TreeNode getTreeNode(String nodeId) {
         return nodeTree.find(nodeId);
     }
 
