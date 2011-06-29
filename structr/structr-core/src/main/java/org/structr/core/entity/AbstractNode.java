@@ -2220,7 +2220,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>
 	 *
 	 * @return list with structr nodes
 	 */
-	private List<AbstractNode> getDirectChildren(final RelationshipType relType, final String nodeType)
+	protected List<AbstractNode> getDirectChildren(final RelationshipType relType, final String nodeType)
 	{
 
 		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
