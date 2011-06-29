@@ -29,6 +29,7 @@ import java.util.logging.Logger;
 import org.structr.common.CurrentRequest;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SuperUser;
+import org.structr.core.entity.User;
 import org.structr.core.node.operation.AsOperation;
 import org.structr.core.node.operation.Callback;
 import org.structr.core.node.operation.CdOperation;
@@ -108,8 +109,13 @@ public class NodeConsoleCommand extends NodeServiceCommand {
 
 			if(commandLine != null) {
 
-				ret.append("<p>structr");
-				ret.append(CurrentRequest.getCurrentUser() instanceof SuperUser ? "# " : "$ ");
+				User user = CurrentRequest.getCurrentUser();
+				boolean superUser = user != null && user instanceof SuperUser;
+
+				ret.append("<p>");
+				ret.append(user != null ? user.getName() : "anonymous");
+				ret.append("@structr");
+				ret.append(superUser ? "# " : "$ ");
 				ret.append(commandLine);
 				ret.append("</p>");
 

@@ -23,6 +23,7 @@ import java.text.DecimalFormat;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import org.apache.commons.lang.StringUtils;
 import org.structr.common.CurrentRequest;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -47,11 +48,15 @@ public class ListOperation implements PrimaryOperation {
 			nodeList.add(currentNode);
 		}
 
+		stdOut.append("<table class=\"file-list\">");
+
 		for(AbstractNode node : nodeList) {
 
-			list(stdOut, node);
+			list(stdOut, node, 0);
 
 		}
+
+		stdOut.append("</table>");
 
 		return(true);
 	}
@@ -158,34 +163,41 @@ public class ListOperation implements PrimaryOperation {
 		}
 	}
 
-	private void list(StringBuilder stdOut, AbstractNode node) {
+	private void list(StringBuilder stdOut, AbstractNode node, int depth) {
 
 		List<AbstractNode> children = node.getSortedDirectChildNodes();
-		DecimalFormat df = new DecimalFormat("0000000");
+		DecimalFormat df = new DecimalFormat("0");
 
 		if(!children.isEmpty()) {
 
-			stdOut.append("<ul>");
 			for(AbstractNode child : children) {
 
-				stdOut.append("<li>");
-				stdOut.append("<p>");
-				stdOut.append(df.format(child.getId()));
-				stdOut.append(" ");
+				stdOut.append("<tr>");
+				stdOut.append("<td class=\"listed-file-name\">");
+
+				for(int i=0; i<depth; i++) {
+					stdOut.append("&nbsp;&nbsp;&nbsp;&nbsp;");
+				}
+
+				if(depth > 0) {
+					stdOut.append("-&nbsp;");
+				}
+
 				stdOut.append(child.getName());
-				stdOut.append(" (");
+				stdOut.append("</td>");
+				stdOut.append("<td class=\"listed-file-id\">");
+				stdOut.append(df.format(child.getId()));
+				stdOut.append("</td>");
+				stdOut.append("<td class=\"listed-file-type\">");
 				stdOut.append(child.getType());
-				stdOut.append(")");
-				stdOut.append("</p>");
+				stdOut.append("</td>");
+				stdOut.append("</tr>");
 
 				if(recursive) {
 
-					list(stdOut, child);
+					list(stdOut, child, depth + 1);
 				}
-
-				stdOut.append("</li>");
 			}
-			stdOut.append("</ul>");
 		}
 	}
 }

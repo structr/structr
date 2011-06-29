@@ -1138,3 +1138,29 @@ div#console p.success {
 div#console p.debug {
     color: #888888;
 }
+
+div#console pre {
+    margin: 0px;
+}
+
+div#console table.file-list {
+    margin: 15px;
+}
+
+table.file-list td {
+    padding: 1em;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+table.file-list td.listed-file-name {
+    text-align: left;
+}
+
+table.file-list td.listed-file-id {
+    text-align: right;
+}
+
+table.file-list td.listed-file-type {
+    text-align: left;
+}
