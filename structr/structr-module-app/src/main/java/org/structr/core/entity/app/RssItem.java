@@ -21,6 +21,8 @@ package org.structr.core.entity.app;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.RenderMode;
 import org.structr.core.NodeRenderer;
@@ -33,20 +35,23 @@ import org.w3c.dom.NodeList;
  * @author Christian Morgner
  */
 public class RssItem extends AbstractNode {
+	
+	private static final Logger logger = Logger.getLogger(RssItem.class.getName());
 
-	private Map<String, String> values = new LinkedHashMap<String, String>();
+	private Map<String, Object> values = new LinkedHashMap<String, Object>();
 	private Node source = null;
 
 	public RssItem() {
 	}
 
-	public RssItem(Node node) {
+	public RssItem(int index, Node node) {
 
 		this.source = node;
 
 		// synthesize type
 		values.put(TYPE_KEY, "RssItem");
-
+		values.put(NAME_KEY, "item" + index);
+		
 		initialize();
 	}
 
@@ -102,10 +107,31 @@ public class RssItem extends AbstractNode {
 
 				if(StringUtils.isNotBlank(name) && StringUtils.isNotBlank(value)) {
 
-					values.put(name, value);
+					logger.log(Level.INFO, "found tag {0} with value {1}", new Object[] { name, value } );
+					
+					if(name.contains(":")) {
+						
+						String[] namespaceParts = name.split("[:]+");
+						if(namespaceParts.length == 2) {
+							
+							String namespace = namespaceParts[0];
+							String relativeName = namespaceParts[1];
+							
+							Map<String, Object> namespaceMap = (Map<String, Object>)values.get(namespace);
+							if(namespaceMap == null) {
+								namespaceMap = new LinkedHashMap<String, Object>();
+								values.put(namespace, namespaceMap);
+							}
+							
+							namespaceMap.put(relativeName, value);
+						}
+						
+					} else {
+						
+						values.put(name, value);
+					}
 				}
 			}
-
 		}
 	}
 

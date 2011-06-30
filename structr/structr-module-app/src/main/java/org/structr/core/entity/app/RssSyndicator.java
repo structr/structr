@@ -30,7 +30,7 @@ import org.structr.common.PropertyKey;
 import org.structr.common.RenderMode;
 import org.structr.core.NodeRenderer;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.renderer.NodeViewRenderer;
+import org.structr.core.renderer.ContentChildTemplateRenderer;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 
@@ -42,14 +42,12 @@ public class RssSyndicator extends AbstractNode  {
 
 	public enum Key implements PropertyKey {
 
-		source
+		source, numItems
 	}
 
 	@Override
 	protected List<AbstractNode> getDirectChildren(final RelationshipType relType, final String nodeType)
 	{
-//	public List<AbstractNode> getSortedDirectChildren(final RelationshipType relType) {
-
 		List<AbstractNode> ret = new LinkedList<AbstractNode>();
 		String source = getStringProperty(Key.source);
 
@@ -61,11 +59,11 @@ public class RssSyndicator extends AbstractNode  {
 			Document doc = builder.parse(url.openStream());
 
 			NodeList items = doc.getElementsByTagName("item");
-			int len = items.getLength();
+			int len = Math.min(items.getLength(), getIntProperty(Key.numItems));
 
 			for(int i=0; i<len; i++) {
 
-				ret.add(new RssItem(items.item(i)));
+				ret.add(new RssItem(i, items.item(i)));
 			}
 
 		} catch(Throwable t) {
@@ -80,7 +78,7 @@ public class RssSyndicator extends AbstractNode  {
 	@Override
 	public void initializeRenderers(Map<RenderMode, NodeRenderer> rendererMap) {
 
-		rendererMap.put(RenderMode.Default, new NodeViewRenderer());
+		rendererMap.put(RenderMode.Default, new ContentChildTemplateRenderer());
 	}
 
 	@Override
