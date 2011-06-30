@@ -51,6 +51,7 @@ import org.structr.core.node.operation.Operation;
 import org.structr.core.node.operation.PrimaryOperation;
 import org.structr.core.node.operation.SetOperation;
 import org.structr.core.node.operation.Transformation;
+import org.structr.core.node.operation.UnsetOperation;
 import org.structr.core.node.operation.UsingOperation;
 import org.structr.core.node.operation.WithOperation;
 
@@ -85,6 +86,7 @@ public class NodeConsoleCommand extends NodeServiceCommand {
 		operationsMap.put("cp", CopyOperation.class);
 		operationsMap.put("ls", ListOperation.class);
 		operationsMap.put("moo", MooOperation.class);
+		operationsMap.put("unset", UnsetOperation.class);
 	}
 
 	@Override
