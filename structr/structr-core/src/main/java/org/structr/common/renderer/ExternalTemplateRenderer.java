@@ -1,8 +1,6 @@
 package org.structr.common.renderer;
 
-import java.io.StringWriter;
 import java.util.List;
-import org.apache.commons.lang.StringUtils;
 import org.structr.common.RenderMode;
 import org.structr.common.StructrOutputStream;
 import org.structr.core.NodeRenderer;
