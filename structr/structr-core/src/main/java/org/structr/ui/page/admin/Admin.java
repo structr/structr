@@ -150,10 +150,11 @@ public class Admin extends StructrPage {
 
         SessionMonitor.logActivity(sessionId, "Logout");
 
-        getContext().getRequest().getSession().invalidate();
+        CurrentSession.setGlobalUsername(null);
+        CurrentSession.getSession().invalidate();
+        //getContext().getRequest().getSession().invalidate();
         userName = null;
 
-        CurrentSession.setGlobalUsername(null);
 
 //        if (returnUrl != null) {
 //            setRedirect(returnUrl);

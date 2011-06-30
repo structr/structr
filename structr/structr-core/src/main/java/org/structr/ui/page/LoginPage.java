@@ -33,6 +33,7 @@ import org.apache.click.control.Submit;
 import org.apache.click.control.TextField;
 import org.apache.click.extras.tree.TreeNode;
 import org.apache.commons.lang.StringUtils;
+import org.structr.common.CurrentRequest;
 import org.structr.common.CurrentSession;
 import org.structr.context.SessionMonitor;
 import org.structr.core.Command;
@@ -89,8 +90,8 @@ public class LoginPage extends Admin {
      */
     @Override
     public boolean onSecurityCheck() {
-        userName = (String) getContext().getRequest().getSession().getAttribute(USERNAME_KEY);
-//        userName = CurrentSession.getGlobalUsername();
+        //userName = (String) getContext().getRequest().getSession().getAttribute(USERNAME_KEY);
+        userName = CurrentSession.getGlobalUsername();
 
         if (userName != null) {
             initFirstPage();
@@ -116,7 +117,8 @@ public class LoginPage extends Admin {
                 isSuperUser = true;
 
                 user = new SuperUser();
-                getContext().getRequest().getSession().setAttribute(USERNAME_KEY, userValue);
+                CurrentRequest.setCurrentUser(user) ;
+                //getContext().getRequest().getSession().setAttribute(USERNAME_KEY, userValue);
                 CurrentSession.setGlobalUsername(userValue);
 
                 Services.initialize();
@@ -166,8 +168,9 @@ public class LoginPage extends Admin {
 
                 // username and password are both valid
                 userName = userValue;
+                CurrentRequest.setCurrentUser(user) ;
                 CurrentSession.setGlobalUsername(userValue);
-                getContext().getRequest().getSession().setAttribute(USERNAME_KEY, userValue);
+                //getContext().getRequest().getSession().setAttribute(USERNAME_KEY, userValue);
 
                 initFirstPage();
 
@@ -178,7 +181,8 @@ public class LoginPage extends Admin {
             SessionMonitor.logActivity(sessionId, "Login");
 
             // Mark this session with the internal session id
-            getContext().getRequest().getSession().setAttribute(SessionMonitor.SESSION_ID, sessionId);
+            //getContext().getRequest().getSession().setAttribute(SessionMonitor.SESSION_ID, sessionId);
+            CurrentSession.setAttribute(SessionMonitor.SESSION_ID, sessionId);
 
             return false;
 

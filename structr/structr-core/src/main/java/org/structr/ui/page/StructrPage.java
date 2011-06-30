@@ -33,6 +33,7 @@ import org.apache.commons.lang.StringUtils;
 import org.structr.common.TreeHelper;
 import org.structr.context.SessionMonitor;
 import org.structr.common.CurrentRequest;
+import org.structr.common.CurrentSession;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.Group;
@@ -147,6 +148,10 @@ public class StructrPage extends Page {
 
         super();
 
+        // prepare global structr request context for this request and this thread
+        CurrentRequest.setRequest(getContext().getRequest());
+        CurrentRequest.setResponse(getContext().getResponse());
+        
         contextPath = getContext().getRequest().getContextPath();
         FILES_PATH = Services.getFilesPath();
 
@@ -154,8 +159,8 @@ public class StructrPage extends Page {
         //graphDb = (GraphDatabaseService)graphDbCommand.execute();
 
         //userName = getContext().getRequest().getRemoteUser();
-        userName = (String) getContext().getRequest().getSession().getAttribute(USERNAME_KEY);
-        //userName = CurrentSession.getGlobalUsername();
+        //userName = (String) getContext().getRequest().getSession().getAttribute(USERNAME_KEY);
+        userName = CurrentSession.getGlobalUsername();
         user = getUserNode();
 
         if (userName != null && userName.equals(SUPERADMIN_USERNAME_KEY)) {
@@ -177,17 +182,16 @@ public class StructrPage extends Page {
     @Override
     public void onInit() {
 
-        // prepare global structr request context for this request and this thread
-        CurrentRequest.setRequest(getContext().getRequest());
-        CurrentRequest.setResponse(getContext().getResponse());
-        CurrentRequest.setCurrentNodePath(nodeId);
-
         super.onInit();
 
+        CurrentRequest.setCurrentNodePath(nodeId);
+
         if (user != null) {
-            sessionId = (Long) getContext().getRequest().getSession().getAttribute(SessionMonitor.SESSION_ID);
-            SessionMonitor.logPageRequest(sessionId, "Page Request", getContext().getRequest());
             CurrentRequest.setCurrentUser(user);
+            CurrentSession.setGlobalUsername(userName);
+            //sessionId = (Long) getContext().getRequest().getSession().getAttribute(SessionMonitor.SESSION_ID);
+            sessionId = (Long) CurrentSession.getAttribute(SessionMonitor.SESSION_ID);
+            SessionMonitor.logPageRequest(sessionId, "Page Request", getContext().getRequest());
         }
 
         // Catch both, id and path

@@ -1223,7 +1223,7 @@ public class Nodes extends Admin {
         //getContext().getRequest().getSession().invalidate();
 
         // cleare user name variable
-        userName = null;
+        //userName = null;
 
         Map<String, String> parameters = new HashMap<String, String>();
         parameters.put(NODE_ID_KEY, getNodeId());
