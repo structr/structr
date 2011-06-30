@@ -20,14 +20,11 @@ package org.structr.ui.page.admin;
 
 import java.util.AbstractMap;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
 import java.util.logging.Logger;
 import javax.servlet.ServletContext;
 import org.apache.click.Context;
@@ -60,7 +57,6 @@ import org.structr.core.entity.log.Activity;
 import org.structr.core.entity.log.LogNodeList;
 import org.structr.core.entity.log.PageRequest;
 import org.structr.core.log.GetGlobalLogCommand;
-import org.structr.core.module.GetEntitiesCommand;
 import org.structr.core.module.ListModulesCommand;
 import org.structr.core.module.ReloadModulesCommand;
 import org.structr.core.node.CreateNodeCommand;
@@ -72,7 +68,6 @@ import org.structr.core.node.NodeAttribute;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 import org.structr.ui.config.StructrConfigService;
-import org.structr.ui.page.admin.CreateNode.NodeType;
 
 /**
  *
@@ -611,13 +606,6 @@ public class Maintenance extends Admin {
 
         return redirect();
 
-    }
-
-    private List<AbstractNode> getAllNodes() {
-        if (allNodes == null) {
-            allNodes = (List<AbstractNode>) Services.command(GetAllNodes.class).execute();
-        }
-        return allNodes;
     }
 
     /**

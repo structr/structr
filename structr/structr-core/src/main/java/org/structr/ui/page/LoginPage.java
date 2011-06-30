@@ -124,7 +124,7 @@ public class LoginPage extends Admin {
                 Services.initialize();
 
                 // redirect superuser to maintenance
-                setRedirect("/admin/maintenance.htm");
+                setRedirect("/admin/dashboard.htm");
 
             } else {
 

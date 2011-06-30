@@ -44,6 +44,7 @@ import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Link;
 import org.structr.core.entity.SuperUser;
+import org.structr.core.node.GetAllNodes;
 import org.structr.core.node.search.SearchNodeCommand;
 import org.structr.ui.page.LoginPage;
 import org.structr.ui.page.StructrPage;
@@ -91,11 +92,15 @@ public class Admin extends StructrPage {
     protected ActionLink logoutLink = new ActionLink("logoutLink", "Logout", this, "onLogout");
     protected PageLink homeLink = new PageLink("homeLink", "Home", DefaultEdit.class);
     protected PageLink usersLink = new PageLink("usersLink", "Users", DefaultEdit.class);
-    protected PageLink maintenanceLink = new PageLink("maintenanceLink", "Maintenance", Maintenance.class);
+//    protected PageLink maintenanceLink = new PageLink("maintenanceLink", "Maintenance", Maintenance.class);
+    protected PageLink dashboardLink = new PageLink("dashboardLink", "Dashboard", Dashboard.class);
+    protected PageLink sessionsLink = new PageLink("sessionsLink", "Sessions", Sessions.class);
+    protected PageLink allNodesLink = new PageLink("allNodesLink", "All Nodes", AllNodes.class);
     @Bindable
     protected Panel actionsPanel = new Panel("actionsPanel", "/panel/actions-panel.htm");
     protected final Locale locale = getContext().getLocale();
     protected final SimpleDateFormat dateFormat = new SimpleDateFormat();
+    protected List<AbstractNode> allNodes;
 
 //    protected final SimpleDateFormat dateFormat =
 //            (SimpleDateFormat) DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, locale);
@@ -108,7 +113,10 @@ public class Admin extends StructrPage {
 
         addControl(usersLink);
 
-        addControl(maintenanceLink);
+//        addControl(maintenanceLink);
+        addControl(dashboardLink);
+        addControl(sessionsLink);
+        addControl(allNodesLink);
     }
 
     @Override
@@ -301,4 +309,12 @@ public class Admin extends StructrPage {
         iconSrc = iconSrc.substring(0, i) + "_linked." + ext;
         return iconSrc;
     }
+    
+
+    protected List<AbstractNode> getAllNodes() {
+        if (allNodes == null) {
+            allNodes = (List<AbstractNode>) Services.command(GetAllNodes.class).execute();
+        }
+        return allNodes;
+    }    
 }
