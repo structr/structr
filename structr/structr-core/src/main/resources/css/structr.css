@@ -1143,6 +1143,7 @@ div#console {
   border:1px solid #cccccc;
   font-family: monospace, serif;
   font-size: 9pt;
+  overflow: auto;
 }
 
 div#console p {
@@ -1168,6 +1169,18 @@ div#console pre {
 
 div#console table.file-list {
   margin: 15px;
+}
+
+div#console input[type=text] {
+  color: #ddd;
+  background-color: #000;
+  border: none;
+  margin: 0 0 0 -8px;
+  padding: 0;
+}
+
+div#console input[type=button],  div#console input[type=submit] {
+  display: none;
 }
 
 table.file-list td {

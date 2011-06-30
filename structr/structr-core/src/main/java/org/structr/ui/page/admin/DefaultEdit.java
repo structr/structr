@@ -662,7 +662,10 @@ public class DefaultEdit extends Nodes {
         // ------------------ cloud end ---------------------
 
         // console
-        consoleCommand = new TextField("command", "Command");
+        String prompt = (user != null ? user.getName() : "anonymous") + "@structr" + (isSuperUser ? "# " : "$ ");
+
+
+        consoleCommand = new TextField("command", prompt);
         consoleCommand.addStyleClass("commandInput");
         consoleForm.add(consoleCommand);
         consoleForm.addStyleClass("commandInput");
