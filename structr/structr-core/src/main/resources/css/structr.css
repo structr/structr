@@ -1141,7 +1141,8 @@ div#console {
   background-color:#000000;
   color:#dddddd;
   border:1px solid #cccccc;
-  font-family: monospace, serif;
+  /*font-family: monospace, serif;*/
+  font-family: "Liberation Mono", "DejaVu Sans Mono", Consolas, Monaco, "Vera Sans Mono", "Lucida Console", "Courier New", monospace !important;
   font-size: 9pt;
   overflow: auto;
 }
