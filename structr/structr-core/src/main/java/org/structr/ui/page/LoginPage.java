@@ -91,7 +91,7 @@ public class LoginPage extends Admin {
     @Override
     public boolean onSecurityCheck() {
         //userName = (String) getContext().getRequest().getSession().getAttribute(USERNAME_KEY);
-        userName = CurrentSession.getGlobalUsername();
+        userName = getUsernameFromSession();
 
         if (userName != null) {
             initFirstPage();
@@ -119,7 +119,7 @@ public class LoginPage extends Admin {
                 user = new SuperUser();
                 CurrentRequest.setCurrentUser(user) ;
                 //getContext().getRequest().getSession().setAttribute(USERNAME_KEY, userValue);
-                CurrentSession.setGlobalUsername(userValue);
+                setUsernameInSession(userValue);
 
                 Services.initialize();
 
@@ -169,7 +169,7 @@ public class LoginPage extends Admin {
                 // username and password are both valid
                 userName = userValue;
                 CurrentRequest.setCurrentUser(user) ;
-                CurrentSession.setGlobalUsername(userValue);
+                setUsernameInSession(userValue);
                 //getContext().getRequest().getSession().setAttribute(USERNAME_KEY, userValue);
 
                 initFirstPage();
@@ -230,7 +230,7 @@ public class LoginPage extends Admin {
 
             }
             // fill session
-            getContext().getSession().setAttribute(EXPANDED_NODES_KEY, openNodes);
+            CurrentSession.setAttribute(EXPANDED_NODES_KEY, openNodes);
         }
     }
 }
