@@ -47,16 +47,17 @@ public class View extends StructrPage
 			NODE_ID_KEY.concat("=")));
 
 	}
-
-	/**
-	 * @see Page#onSecurityCheck()
-	 */
-	@Override
-	public boolean onSecurityCheck()
-	{
-		userName = getContext().getRequest().getRemoteUser();
-		return true;
-	}
+//
+//	/**
+//	 * @see Page#onSecurityCheck()
+//	 */
+//	@Override
+//	public boolean onSecurityCheck()
+//	{
+////		userName = getContext().getRequest().getRemoteUser();
+//		userName = CurrentSession.getGlobalUsername();
+//		return true;
+//	}
 
 	/**
 	 * Render current node to output.

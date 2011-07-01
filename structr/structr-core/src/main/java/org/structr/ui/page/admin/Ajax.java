@@ -1,11 +1,17 @@
 package org.structr.ui.page.admin;
 
-import java.util.Collection;
 import org.apache.click.ActionResult;
+
 import org.structr.core.Services;
 import org.structr.core.notification.GetNotificationsCommand;
 import org.structr.core.notification.Notification;
 import org.structr.ui.page.StructrPage;
+
+//~--- JDK imports ------------------------------------------------------------
+
+import java.util.Collection;
+
+//~--- classes ----------------------------------------------------------------
 
 /**
  *
@@ -15,60 +21,67 @@ public class Ajax extends StructrPage {
 
 	public ActionResult onUpdateNotificationContent() {
 
-		StringBuilder ret = new StringBuilder(200);
-		int zIndex = 999;
+		StringBuilder output                   = new StringBuilder(200);
+		int zIndex                             = 999;
+		Collection<Notification> notifications = (Collection<Notification>) Services.command(
+							     GetNotificationsCommand.class).execute(
+							     getContext().getSession().getId());
 
-		Collection<Notification> notifications = (Collection<Notification>)Services.command(GetNotificationsCommand.class).execute(getContext().getSession().getId());
+		output.append("<div id=\"notificationContent\">");
 
-		ret.append("<div id=\"notificationContent\">");
+		if (notifications != null) {
 
-		if(notifications != null) {
+			for (Notification notification : notifications) {
 
-			for(Notification notification : notifications) {
 				String notificationTitle = notification.getTitle();
-				String notificationText = notification.getText();
-				String containerCss = notification.getContainerCss();
-				String titleCss = notification.getTitleCss();
-				String textCss = notification.getTextCss();
+				String notificationText  = notification.getText();
+				String containerCss      = notification.getContainerCss();
+				String titleCss          = notification.getTitleCss();
+				String textCss           = notification.getTextCss();
 
-				ret.append("<div class='");
-				if(containerCss != null) {
-					ret.append(containerCss);
+				output.append("<div class='");
+
+				if (containerCss != null) {
+					output.append(containerCss);
 				}
-				ret.append("' style='z-index:");
-				ret.append(zIndex--);
-				ret.append(";'>");
 
-				if(notificationTitle != null && notificationTitle.length() > 0) {
+				output.append("' style='z-index:");
+				output.append(zIndex--);
+				output.append(";'>");
 
-					ret.append("<h3 class='");
-					if(titleCss != null) {
-						ret.append(titleCss);
+				if ((notificationTitle != null) && (notificationTitle.length() > 0)) {
+
+					output.append("<h3 class='");
+
+					if (titleCss != null) {
+						output.append(titleCss);
 					}
-					ret.append("'>");
-					ret.append(notificationTitle);
-					ret.append("</h3>");
+
+					output.append("'>");
+					output.append(notificationTitle);
+					output.append("</h3>");
 				}
 
-				if(notificationText != null && notificationText.length() > 0) {
+				if ((notificationText != null) && (notificationText.length() > 0)) {
 
-					ret.append("<p class='");
-					if(textCss != null) {
-						ret.append(textCss);
+					output.append("<p class='");
+
+					if (textCss != null) {
+						output.append(textCss);
 					}
-					ret.append("'>");
-					ret.append(notification.getText());
-					ret.append("</p>");
+
+					output.append("'>");
+					output.append(notification.getText());
+					output.append("</p>");
 				}
 
-				ret.append("</div>");
+				output.append("</div>");
 			}
-
 		}
 
-		ret.append("</div>");
+		output.append("</div>");
 
 		// Return an action result containing the message
-		return new ActionResult(ret.toString(), ActionResult.HTML);
+		return new ActionResult(output.toString(), ActionResult.HTML);
 	}
 }

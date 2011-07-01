@@ -236,7 +236,8 @@ public abstract class AbstractNode implements Comparable<AbstractNode>
 	{
 		this.dbNode = dbNode;
 		isDirty = false;
-		user = CurrentRequest.getCurrentUser();
+		setAccessingUser(CurrentRequest.getCurrentUser());
+        logger.log(Level.INFO, "User set to {0}", user);
 	}
 
 	private void init(final AbstractNode node)

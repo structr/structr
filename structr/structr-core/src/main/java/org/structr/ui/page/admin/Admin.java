@@ -158,7 +158,7 @@ public class Admin extends StructrPage {
 
         SessionMonitor.logActivity(sessionId, "Logout");
 
-        CurrentSession.setGlobalUsername(null);
+        setUsernameInSession(null);
         CurrentSession.getSession().invalidate();
         //getContext().getRequest().getSession().invalidate();
         userName = null;
@@ -184,7 +184,7 @@ public class Admin extends StructrPage {
      */
     protected void resetExpandedTreeNodes() {
 
-        getContext().getSession().setAttribute(EXPANDED_NODES_KEY, null);
+        CurrentSession.setAttribute(EXPANDED_NODES_KEY, null);
     }
 
     /**
