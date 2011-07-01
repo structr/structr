@@ -18,6 +18,9 @@
  */
 
 function setWindowHeightAndWidth(resize) {
+
+
+
     var windowHeight = jQuery(window).height();
     var windowWidth = jQuery(window).width();
     var headerHeight = jQuery("#header").height();
@@ -26,22 +29,46 @@ function setWindowHeightAndWidth(resize) {
 
     var treeArea = jQuery("#treeArea .body");
     var tabArea = jQuery(".tabArea .body");
+
+
     //  console.log(treeArea.length);
     //  console.log(tabArea.length);
     if (treeArea.length > 0) {
         treeArea.height(windowHeight - headerHeight - heightOffset);
-        treeArea.width(200);
+        treeArea.width(jQuery.cookies.get("treeAreaWidth") || 200);
+
         tabArea.height(windowHeight - headerHeight - heightOffset);
-        tabArea.width(windowWidth - 288);
+        tabArea.width(jQuery.cookies.get("tabAreaWidth") || windowWidth - 288);
+        
     } else {
         //jQuery(".tabArea").css("left", 0);
         tabArea.height(windowHeight - headerHeight - heightOffset);
-        tabArea.width(windowWidth - 50);
+        tabArea.width(jQuery.cookies.get("tabAreaWidth") || windowWidth - 50);
     }
 
+    var resizeHandle = jQuery("#resizeHandle");
 
-    var tabAreaBodyWidth = jQuery(".tabArea .body").width();
-    var tabAreaBodyHeight = jQuery(".tabArea .body").height();
+    resizeHandle.css({
+        "height": treeArea.height() + 64 + "px",
+        "left": (treeArea.width() + 36) + "px",
+        "top": headerHeight + 12 + "px"
+    });
+
+    resizeHandle.draggable({
+        axis: 'x',
+        cursor: 'ew-resize',
+        drag: function() {
+            treeArea.width(resizeHandle.position().left - 36);
+            tabArea.width(windowWidth - treeArea.width() - 88);
+        },
+        stop: function() {
+            treeArea.width(resizeHandle.position().left - 36);
+            tabArea.width(windowWidth - treeArea.width() - 88);
+        }
+    });
+
+    var tabAreaBodyWidth = tabArea.width();
+    var tabAreaBodyHeight = tabArea.height();
 
     jQuery(".tabArea .CodeMirror-wrapping").width(tabAreaBodyWidth - 34);
     jQuery(".tabArea .CodeMirror-wrapping").height(tabAreaBodyHeight - 70);
@@ -62,7 +89,11 @@ function setWindowHeightAndWidth(resize) {
     }
 
     if (!resize) {
-        jQuery("#treeArea .body").scrollTop(jQuery.cookies.get("scrollTree") || 0);
+        treeArea.scrollTop(jQuery.cookies.get("scrollTree") || 0);
+
+        //console.log(jQuery.cookies.get("treeAreaWidth"));
+        
+        //console.log(jQuery.cookies.get("treeAreaWidth"));
         //jQuery(".tabArea .body").scrollTop(jQuery.cookies.get("scrollMain") || 0);
         jQuery(".tabArea .CodeMirror-wrapping iframe").contents().scrollTop(jQuery.cookies.get("scrollCode") || 0);
         jQuery(".tabArea .CodeMirror-wrapping iframe").load(function() {
@@ -85,10 +116,19 @@ jQuery(window).resize(function() {
 });
 
 window.onbeforeunload = function () {
-    jQuery.cookies.set("scrollTree", jQuery("#treeArea .body").scrollTop());
+
+    var treeArea = jQuery("#treeArea .body");
+    var tabArea = jQuery(".tabArea .body");
+
+    console.log("treeAreaWidth", treeArea.width());
+    console.log("tabAreaWidth", tabArea.width());
+    
+    jQuery.cookies.set("scrollTree",treeArea.scrollTop());
     jQuery.cookies.set("scrollCode", jQuery(".tabArea .CodeMirror-wrapping iframe").contents().scrollTop());
     jQuery.cookies.set("scrollIframe", jQuery("#rendition-tab iframe").contents().scrollTop());
     jQuery.cookies.set("scrollTextarea", jQuery("#source-tab textarea").scrollTop());
+    jQuery.cookies.set("treeAreaWidth", treeArea.width());
+    jQuery.cookies.set("tabAreaWidth", tabArea.width());
 }
 
 jQuery(document).ready(function() {
