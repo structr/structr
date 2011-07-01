@@ -19,6 +19,7 @@
 
 package org.structr.core.cloud;
 
+import java.io.FileWriter;
 import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.HashMap;
@@ -48,7 +49,7 @@ public abstract class DataContainer implements Serializable {
      *
      * @return
      */
-    public Map getProperties() {
+    public Map<String, Object> getProperties() {
         return properties;
     }
 

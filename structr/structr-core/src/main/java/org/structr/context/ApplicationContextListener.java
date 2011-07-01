@@ -65,6 +65,9 @@ public class ApplicationContextListener implements ServletContextListener, HttpS
             String tmpPath = properties.getProperty(Services.TMP_PATH);
             logger.log(Level.INFO, "Config file temp path: {0}", tmpPath);
 
+            String basePath = properties.getProperty(Services.BASE_PATH);
+            logger.log(Level.INFO, "Config file base path: {0}", basePath);
+
             String databasePath = properties.getProperty(Services.DATABASE_PATH);
             logger.log(Level.INFO, "Config file database path: {0}", databasePath);
 
@@ -73,6 +76,9 @@ public class ApplicationContextListener implements ServletContextListener, HttpS
 
             String modulesPath = properties.getProperty(Services.MODULES_PATH);
             logger.log(Level.INFO, "Config file modules path: {0}", modulesPath);
+
+            String serverIp = properties.getProperty(Services.SERVER_IP);
+            logger.log(Level.INFO, "Config file server IP: {0}", serverIp);
 
             String tcpPort = properties.getProperty(Services.TCP_PORT);
             logger.log(Level.INFO, "Config file TCP port: {0}", tcpPort);
@@ -88,56 +94,46 @@ public class ApplicationContextListener implements ServletContextListener, HttpS
 
             if (appTitle != null) {
                 context.put(Services.APPLICATION_TITLE, appTitle);
-            } else {
-                context.put(Services.APPLICATION_TITLE, servletContext.getInitParameter(Services.APPLICATION_TITLE));
             }
 
             if (tmpPath != null) {
                 context.put(Services.TMP_PATH, tmpPath);
-            } else {
-                context.put(Services.TMP_PATH, servletContext.getInitParameter(Services.TMP_PATH));
+            }
+
+            if (basePath != null) {
+                context.put(Services.BASE_PATH, basePath);
             }
 
             if (databasePath != null) {
                 context.put(Services.DATABASE_PATH, databasePath);
-            } else {
-                context.put(Services.DATABASE_PATH, servletContext.getInitParameter(Services.DATABASE_PATH));
             }
 
             if (filesPath != null) {
                 context.put(Services.FILES_PATH, filesPath);
-            } else {
-                context.put(Services.FILES_PATH, servletContext.getInitParameter(Services.FILES_PATH));
             }
 
             if (modulesPath != null) {
                 context.put(Services.MODULES_PATH, modulesPath);
-            } else {
-                context.put(Services.MODULES_PATH, servletContext.getInitParameter(Services.MODULES_PATH));
             }
 
             if (tcpPort != null) {
                 context.put(Services.TCP_PORT, tcpPort);
-            } else {
-                context.put(Services.TCP_PORT, servletContext.getInitParameter(Services.TCP_PORT));
+            }
+
+            if (serverIp != null) {
+                context.put(Services.SERVER_IP, serverIp);
             }
 
             if (udpPort != null) {
                 context.put(Services.UDP_PORT, udpPort);
-            } else {
-                context.put(Services.UDP_PORT, servletContext.getInitParameter(Services.UDP_PORT));
             }
 
             if (superuserUsername != null) {
                 context.put(Services.SUPERUSER_USERNAME, superuserUsername);
-            } else {
-                context.put(Services.SUPERUSER_USERNAME, servletContext.getInitParameter(Services.SUPERUSER_USERNAME));
             }
 
             if (superuserPassword != null) {
                 context.put(Services.SUPERUSER_PASSWORD, superuserPassword);
-            } else {
-                context.put(Services.SUPERUSER_PASSWORD, servletContext.getInitParameter(Services.SUPERUSER_PASSWORD));
             }
 
         } catch (Throwable t) {

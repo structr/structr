@@ -28,6 +28,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.CurrentRequest;
 import org.structr.common.CurrentSession;
+import org.structr.common.StructrOutputStream;
 import org.structr.context.SessionMonitor;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -66,7 +67,7 @@ public class AppLogin extends ActionNode
 	private SessionValue<String> userNameValue = null;
 
 	@Override
-	public boolean doAction(final StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
+	public boolean doAction(final StructrOutputStream out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
 	{
 		String usernameFromSession = CurrentSession.getGlobalUsername();
 		Boolean alreadyLoggedIn = usernameFromSession != null;
@@ -337,5 +338,9 @@ public class AppLogin extends ActionNode
 	public void onNodeInstantiation()
 	{
 	}
+
+    @Override
+    public void onNodeDeletion() {
+    }
 }
 

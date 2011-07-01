@@ -18,14 +18,16 @@
  */
 package org.structr.core.entity.app;
 
+import java.util.Map;
 import org.structr.common.SessionValue;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.CurrentRequest;
 import org.structr.common.CurrentSession;
-import org.structr.core.entity.AbstractNode;
+import org.structr.common.RenderMode;
+import org.structr.common.renderer.ExternalTemplateRenderer;
+import org.structr.core.NodeRenderer;
 
 /**
  * Render a select field.
@@ -38,7 +40,6 @@ import org.structr.core.entity.AbstractNode;
 public class SelectField extends FormField implements InteractiveNode
 {
 	private static final Logger logger = Logger.getLogger(SelectField.class.getName());
-
 	protected SessionValue<Object> errorSessionValue = null;
 	protected SessionValue<String> sessionValue = null;
 	private String mappedName = null;
@@ -50,30 +51,9 @@ public class SelectField extends FormField implements InteractiveNode
 	}
 
 	@Override
-	public void renderView(final StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
+	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers)
 	{
-		// if this page is requested to be edited, render edit frame
-		if(editNodeId != null && getId() == editNodeId.longValue())
-		{
-
-			renderEditFrame(out, editUrl);
-
-			// otherwise, render subnodes in edit mode
-		} else
-		{
-
-			if(hasTemplate())
-			{
-				template.setCallingNode(this);
-				template.renderView(out, startNode, editUrl, editNodeId);
-
-			} else
-			{
-				logger.log(Level.WARNING, "Encountered SelectField without template: {0}", this);
-
-				// TODO: default template for TextField?
-			}
-		}
+		renderers.put(RenderMode.Default, new ExternalTemplateRenderer(false));
 	}
 
 	// ----- interface InteractiveNode -----
@@ -170,7 +150,7 @@ public class SelectField extends FormField implements InteractiveNode
 	@Override
 	public Object getErrorValue()
 	{
-		return(getErrorMessageValue().get());
+		return (getErrorMessageValue().get());
 	}
 
 	@Override
@@ -179,10 +159,10 @@ public class SelectField extends FormField implements InteractiveNode
 		Object errorValue = getErrorValue();
 		if(errorValue != null)
 		{
-			return(errorValue.toString());
+			return (errorValue.toString());
 		}
 
-		return(null);
+		return (null);
 	}
 
 	// ----- private methods -----
@@ -193,7 +173,7 @@ public class SelectField extends FormField implements InteractiveNode
 			errorSessionValue = new SessionValue<Object>(createUniqueIdentifier("errorMessage"));
 		}
 
-		return(errorSessionValue);
+		return (errorSessionValue);
 	}
 
 	private SessionValue<String> getLastValue()
@@ -203,10 +183,9 @@ public class SelectField extends FormField implements InteractiveNode
 			sessionValue = new SessionValue<String>(createUniqueIdentifier("lastValue"));
 		}
 
-		return(sessionValue);
+		return (sessionValue);
 	}
-
-        // apperently not used
+	// apperently not used
 //        private List<AbstractNode> getDataNodes(final User user) {
 //
 //            List<AbstractNode> dataNodes = new LinkedList<AbstractNode>();

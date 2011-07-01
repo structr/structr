@@ -487,7 +487,7 @@ Layout.ForceDirected.prototype.getBoundingBox = function()
 		}
 	});
 
-	var padding = topright.subtract(bottomleft).multiply(0.07); // 5% padding
+	var padding = topright.subtract(bottomleft).multiply(0.2);
 
 	return {bottomleft: bottomleft.subtract(padding), topright: topright.add(padding)};
 };

@@ -18,14 +18,19 @@
  */
 package org.structr.core.entity.app;
 
-import org.structr.core.NodeSource;
+import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.CurrentRequest;
 import org.structr.common.CurrentSession;
+import org.structr.common.RenderMode;
 import org.structr.common.SessionValue;
+import org.structr.core.NodeRenderer;
+import org.structr.core.NodeSource;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.FindNodeCommand;
+import org.structr.core.renderer.NodeLoaderRenderer;
 
 /**
  *
@@ -33,40 +38,23 @@ import org.structr.core.node.FindNodeCommand;
  */
 public class AppNodeLoader extends AbstractNode implements NodeSource
 {
-	private static final Logger logger = Logger.getLogger(AppNodeLoader.class.getName());
+	public static final Logger logger = Logger.getLogger(AppNodeLoader.class.getName());
 
-	// ----- session keys -----
-	private static final String ID_SOURCCE_KEY = "idSource";
+	public static final String ID_SOURCE_KEY = "idSource";
 
 	// ----- instance variables -----
 	private SessionValue<Object> sessionValue = null;
-	private AbstractNode loadedNode = null;
-
-	@Override
-	public void renderView(final StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
-	{
-		// FIXME: HTML code hard-coded..
-
-		// maybe we can let the enclosing FORM instance decide how to pass request
-		// parameters into the form.
-
-		String loaderSourceParameter = (String)getProperty(ID_SOURCCE_KEY);
-		if(loaderSourceParameter != null)
-		{
-			Object value = getValue();
-
-			out.append("<input type='hidden' name='");
-			out.append(loaderSourceParameter);
-			out.append("' value='");
-			out.append(value);
-			out.append("' />");
-		}
-	}
 
 	@Override
 	public String getIconSrc()
 	{
 		return ("/images/brick_edit.png");
+	}
+
+	@Override
+	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers)
+	{
+		renderers.put(RenderMode.Default, new NodeLoaderRenderer());
 	}
 
 	@Override
@@ -79,28 +67,14 @@ public class AppNodeLoader extends AbstractNode implements NodeSource
 	{
 	}
 
-	// ----- interface NodeSource -----
 	@Override
-	public AbstractNode loadNode()
+	public void onNodeDeletion()
 	{
-		if(loadedNode == null)
-		{
-			loadedNode = loadNodeInternal();
-		}
-
-		return (loadedNode);
 	}
 
-	// ----- private methods -----
-	private AbstractNode loadNodeInternal()
+	public Object getValue()
 	{
-		Object loaderValue = getValue();
-		return((AbstractNode)Services.command(FindNodeCommand.class).execute(null, this, loaderValue));
-	}
-
-	private Object getValue()
-	{
-		String loaderSourceParameter = (String)getProperty(ID_SOURCCE_KEY);
+		String loaderSourceParameter = (String)getProperty(ID_SOURCE_KEY);
 		Object value = CurrentRequest.getRequest().getParameter(loaderSourceParameter);
 
 		if(CurrentSession.isRedirected())
@@ -113,16 +87,29 @@ public class AppNodeLoader extends AbstractNode implements NodeSource
 			getLastValue().set(value);
 		}
 
-		return(value);
+		return (value);
 	}
 
-	private SessionValue<Object> getLastValue()
+	public SessionValue<Object> getLastValue()
 	{
 		if(sessionValue == null)
 		{
 			sessionValue = new SessionValue<Object>(createUniqueIdentifier("lastValue"));
 		}
 
-		return(sessionValue);
+		return (sessionValue);
+	}
+
+	// ----- interface NodeSource -----
+	@Override
+	public AbstractNode loadNode()
+	{
+		Object loaderValue = getValue();
+		if(loaderValue != null)
+		{
+			return ((AbstractNode)Services.command(FindNodeCommand.class).execute(null, this, loaderValue));
+		}
+
+		return(null);
 	}
 }

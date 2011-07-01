@@ -31,6 +31,7 @@ public class ClickModule implements Module
 	private Set<String> rawClasses = new LinkedHashSet<String>();
 	private Set<String> properties = new LinkedHashSet<String>();
 	private Set<String> resources = new LinkedHashSet<String>();
+	private Set<String> libraries = new LinkedHashSet<String>();
 	private String modulePath = null;
 
 	public ClickModule(String modulePath)
@@ -60,5 +61,11 @@ public class ClickModule implements Module
 	public Set<String> getResources()
 	{
 		return(resources);
+	}
+
+        @Override
+	public Set<String> getLibraries()
+	{
+		return(libraries);
 	}
 }

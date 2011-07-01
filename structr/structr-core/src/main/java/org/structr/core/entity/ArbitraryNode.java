@@ -20,6 +20,17 @@ package org.structr.core.entity;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import org.neo4j.graphdb.Direction;
+import org.structr.common.RelType;
+import org.structr.common.RenderMode;
+import org.structr.common.renderer.ExternalTemplateRenderer;
+import org.structr.core.Command;
+import org.structr.core.NodeRenderer;
+import org.structr.core.Services;
+import org.structr.core.node.CreateRelationshipCommand;
+import org.structr.core.node.DeleteRelationshipCommand;
+import org.structr.core.node.FindNodeCommand;
 
 /**
  * 
@@ -28,69 +39,112 @@ import java.util.List;
  */
 public class ArbitraryNode extends AbstractNode {
 
-    private final static String ICON_SRC = "/images/error.png";
-    public final static String ICON_SRC_KEY = "iconSrc";
+	private final static String ICON_SRC = "/images/error.png";
+	public final static String ICON_SRC_KEY = "iconSrc";
+	public final static String TYPE_NODE_ID_KEY = "typeNodeId";
+	private NodeType typeNode;
 
-    @Override
-    public String getIconSrc() {
+	@Override
+	public String getType() {
+		typeNode = getTypeNode();
+		if (typeNode != null) {
+			return typeNode.getName();
+		} else {
+			return super.getType();
+		}
+	}
 
-        NodeType typeNode = getTypeNode();
-        
-        Object iconSrc = null;
-        if (typeNode != null) {
-            iconSrc = typeNode.getProperty(ICON_SRC_KEY);
-        }
+	@Override
+	public String getIconSrc() {
 
-        if (iconSrc != null && iconSrc instanceof String) {
-            return (String) iconSrc;
-        } else {
-            return ICON_SRC;
-        }
-    }
+		if (typeNode == null) {
+			typeNode = getTypeNode();
+		}
 
-    @Override
-    public Iterable<String> getPropertyKeys() {
-        
-        NodeType typeNode = getTypeNode();
-        
-        if (typeNode != null) {
-            return typeNode.getPropertyKeys();
-        }
-        return Collections.EMPTY_LIST;
-    }
+		Object iconSrc = null;
+		if (typeNode != null) {
+			iconSrc = typeNode.getProperty(ICON_SRC_KEY);
+		}
 
-    @Override
-    public void renderView(StringBuilder out, AbstractNode startNode, String editUrl, Long editNodeId) {
+		if (iconSrc != null && iconSrc instanceof String) {
+			return (String) iconSrc;
+		} else {
+			return ICON_SRC;
+		}
+	}
 
-        // if this page is requested to be edited, render edit frame
-        if (editNodeId != null && getId() == editNodeId.longValue()) {
+	@Override
+	public Iterable<String> getPropertyKeys() {
 
-            renderEditFrame(out, editUrl);
+		if (typeNode == null) {
+			typeNode = getTypeNode();
+		}
 
-        // otherwise, render subnodes in edit mode
-        } else {
+		if (typeNode != null) {
+			return typeNode.getPropertyKeys();
+		}
+		return Collections.EMPTY_LIST;
+	}
 
-            if (hasTemplate()) {
+	@Override
+	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers) {
+		renderers.put(RenderMode.Default, new ExternalTemplateRenderer(false));
+	}
 
-                template.setCallingNode(this);
-                template.renderView(out, startNode, editUrl, editNodeId);
-            } else {
+	@Override
+	public void onNodeCreation() {
+	}
 
-                List<AbstractNode> subnodes = getSortedDirectChildAndLinkNodes();
+	@Override
+	public void onNodeInstantiation() {
+	}
 
-                // render subnodes in correct order
-                for (AbstractNode s : subnodes) {
-                    s.renderView(out, startNode, editUrl, editNodeId);
-                }
-            }
-        }
-    }
+	@Override
+	public void onNodeDeletion() {
+	}
 
-    @Override
-    public void onNodeCreation() {
-    }
+	public Long getTypeNodeId() {
+		NodeType n = getTypeNode();
+		return (n != null ? n.getId() : null);
+	}
 
-    @Override
-    public void onNodeInstantiation() {
-    }
+	/**
+	 * Return (cached) type node
+	 *
+	 * @return
+	 */
+	public NodeType getTypeNode() {
+
+		if (typeNode != null) {
+			return typeNode;
+		}
+
+		for (StructrRelationship s : getRelationships(RelType.TYPE, Direction.OUTGOING)) {
+			AbstractNode n = s.getEndNode();
+			if (n instanceof NodeType) {
+				return (NodeType) n;
+			}
+		}
+		return null;
+	}
+
+	public void setTypeNodeId(final Long value) {
+
+		// find type node
+		Command findNode = Services.command(FindNodeCommand.class);
+		NodeType newTypeNode = (NodeType) findNode.execute(new SuperUser(), value);
+
+		// delete existing type node relationships
+		List<StructrRelationship> templateRels = this.getOutgoingRelationships(RelType.TYPE);
+		Command delRel = Services.command(DeleteRelationshipCommand.class);
+		if (templateRels != null) {
+			for (StructrRelationship r : templateRels) {
+				delRel.execute(r);
+			}
+		}
+
+		// create new link target relationship
+		Command createRel = Services.command(CreateRelationshipCommand.class);
+		createRel.execute(this, newTypeNode, RelType.TYPE);
+	}
 }

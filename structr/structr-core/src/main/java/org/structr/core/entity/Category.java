@@ -18,17 +18,40 @@
  */
 package org.structr.core.entity;
 
+import java.util.Map;
+import org.structr.common.RenderMode;
+import org.structr.core.NodeRenderer;
+
 /**
  * 
  * @author amorgner
  * 
  */
-public class Category extends DefaultNode {
+public class Category extends AbstractNode {
 
     private final static String ICON_SRC = "/images/tag_green.png";
 
     @Override
     public String getIconSrc() {
         return ICON_SRC;
+    }
+
+    @Override
+    public void initializeRenderers(Map<RenderMode, NodeRenderer> rendererMap)
+    {
+    }
+
+    @Override
+    public void onNodeCreation()
+    {
+    }
+
+    @Override
+    public void onNodeInstantiation()
+    {
+    }
+
+    @Override
+    public void onNodeDeletion() {
     }
 }

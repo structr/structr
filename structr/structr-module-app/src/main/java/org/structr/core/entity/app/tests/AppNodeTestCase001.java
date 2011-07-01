@@ -19,7 +19,7 @@
 
 package org.structr.core.entity.app.tests;
 
-import org.structr.core.entity.app.ApplicationNode;
+import org.structr.core.entity.ApplicationNode;
 import org.structr.common.RelType;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Template;

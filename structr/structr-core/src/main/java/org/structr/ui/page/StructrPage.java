@@ -33,6 +33,7 @@ import org.apache.commons.lang.StringUtils;
 import org.structr.common.TreeHelper;
 import org.structr.context.SessionMonitor;
 import org.structr.common.CurrentRequest;
+import org.structr.common.CurrentSession;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.Group;
@@ -106,6 +107,7 @@ public class StructrPage extends Page {
     protected final static String START_NODE_KEY = "startNode";
     protected final static String END_NODE_KEY = "endNode";
     protected final static String REL_TYPE_KEY = "relType";
+    protected final static String REL_ATTRS_KEY = "properties";
     protected final static String REL_POSITION_KEY = "relPosition";
     protected final static String TARGET_SLOT_NAME_KEY = "targetSlotName";
     protected final static String RELATIONSHIP_ID_KEY = "relationshipId";
@@ -146,6 +148,10 @@ public class StructrPage extends Page {
 
         super();
 
+        // prepare global structr request context for this request and this thread
+        CurrentRequest.setRequest(getContext().getRequest());
+        CurrentRequest.setResponse(getContext().getResponse());
+        
         contextPath = getContext().getRequest().getContextPath();
         FILES_PATH = Services.getFilesPath();
 
@@ -153,8 +159,8 @@ public class StructrPage extends Page {
         //graphDb = (GraphDatabaseService)graphDbCommand.execute();
 
         //userName = getContext().getRequest().getRemoteUser();
-        userName = (String) getContext().getRequest().getSession().getAttribute(USERNAME_KEY);
-        //userName = CurrentSession.getGlobalUsername();
+        //userName = (String) getContext().getRequest().getSession().getAttribute(USERNAME_KEY);
+        userName = CurrentSession.getGlobalUsername();
         user = getUserNode();
 
         if (userName != null && userName.equals(SUPERADMIN_USERNAME_KEY)) {
@@ -176,17 +182,16 @@ public class StructrPage extends Page {
     @Override
     public void onInit() {
 
-        // prepare global structr request context for this request and this thread
-        CurrentRequest.setRequest(getContext().getRequest());
-        CurrentRequest.setResponse(getContext().getResponse());
-        CurrentRequest.setCurrentNodePath(nodeId);
-
         super.onInit();
 
+        CurrentRequest.setCurrentNodePath(nodeId);
+
         if (user != null) {
-            sessionId = (Long) getContext().getRequest().getSession().getAttribute(SessionMonitor.SESSION_ID);
-            SessionMonitor.logPageRequest(sessionId, "Page Request", getContext().getRequest());
             CurrentRequest.setCurrentUser(user);
+            CurrentSession.setGlobalUsername(userName);
+            //sessionId = (Long) getContext().getRequest().getSession().getAttribute(SessionMonitor.SESSION_ID);
+            sessionId = (Long) CurrentSession.getAttribute(SessionMonitor.SESSION_ID);
+            SessionMonitor.logPageRequest(sessionId, "Page Request", getContext().getRequest());
         }
 
         // Catch both, id and path
@@ -273,12 +278,18 @@ public class StructrPage extends Page {
         return nodeId;
     }
 
-    protected final AbstractNode getNodeByIdOrPath(Object nodeId) {
+    /**
+     * Locates and returns the node with the given id or path.
+     * 
+     * @param nodeIdOrPath
+     * @return 
+     */
+    protected final AbstractNode getNodeByIdOrPath(Object nodeIdOrPath) {
 
-        if (nodeId != null) {
-            if (nodeId instanceof String) {
+        if (nodeIdOrPath != null) {
+            if (nodeIdOrPath instanceof String) {
 
-                String nodeIdString = (String) nodeId;
+                String nodeIdString = (String) nodeIdOrPath;
 
                 try {
 
@@ -298,19 +309,19 @@ public class StructrPage extends Page {
 
                     }
 
-                    return getNodeById(Long.parseLong((String) nodeId));
+                    return getNodeById(Long.parseLong((String) nodeIdOrPath));
 
                 } catch (Exception e) {
 
-                    logger.log(Level.SEVERE, "Could not handle nodeId {0}", nodeId);
+                    logger.log(Level.SEVERE, "Could not handle nodeId {0}", nodeIdOrPath);
                     return null;
 
                 }
 
-            } else if (nodeId instanceof Long) {
-                return getNodeById((Long) nodeId);
+            } else if (nodeIdOrPath instanceof Long) {
+                return getNodeById((Long) nodeIdOrPath);
             } else {
-                logger.log(Level.SEVERE, "Node requested by unknown object: {0}", nodeId);
+                logger.log(Level.SEVERE, "Node requested by unknown object: {0}", nodeIdOrPath);
                 return null;
             }
         } else {
@@ -334,37 +345,6 @@ public class StructrPage extends Page {
         return (ret);
     }
 
-    /**
-     * Locates and returns a node by id or path. Note that this method does
-     * not run in a transaction.
-     *
-     * @param requestedId
-     * @return
-     */
-//    protected AbstractNode getNodeByPath(final String requestedPath) {
-//        Command findNode = Services.command(FindNodeCommand.class);
-//        AbstractNode ret = null;
-//        long id = 0;
-//
-//        String rpath = requestedPath;
-//
-//        // remove trailing slash (fixes STRUCTR-7)
-//        // FIXME: workaround is temporary, see STRUCTR-10
-//        if (rpath.endsWith("/")) {
-//            rpath = rpath.substring(0, rpath.lastIndexOf("/"));
-//        }
-//
-//        // parsing to Long failed, try xpath
-//        XPath xpath = new XPath();
-//        xpath.setPath(rpath);
-//
-//        List<AbstractNode> nodeList = (List<AbstractNode>) findNode.execute(user, xpath);
-//        if (nodeList != null && !nodeList.isEmpty()) {
-//            ret = nodeList.get(0);
-//        }
-//
-//        return (ret);
-//    }
     /**
      * Return (cached) list with the configured page classes
      * 
@@ -394,19 +374,6 @@ public class StructrPage extends Page {
         return ret;
     }
 
-    /**
-     * Get view page for the given structr node
-     *
-     * @param n
-     * @return
-     */
-//    public Class<? extends Page> getViewPageClass(final AbstractNode n) {
-//        Class<? extends Page> ret = getPageClass(n, "View");
-//        if (ret == null) {
-//            ret = DefaultView.class;
-//        }
-//        return ret;
-//    }
     /**
      * Get page for the given prefix and node
      * 
@@ -447,22 +414,7 @@ public class StructrPage extends Page {
      * @return
      */
     protected Class<? extends Page> getRedirectPage(AbstractNode node) {
-        // decide whether to use a view or an edit page
-//        Class<? extends Page> c = DefaultView.class;
-//
-//        if (page instanceof DefaultView) {
-//
-//            // we are currently in view mode, so get the corresponding view page
-//            c = getViewPageClass(node);
-//
-//        } else if (page instanceof Edit) {
-//
-//            // we are currently in edit mode, so get the corresponding edit page
-//            c = getEditPageClass(node);
-//
-//        } else {
-//            logger.log(Level.FINE, "No view or edit page found, falling back to default page");
-//        }
+
         Class<? extends Page> c = Edit.class;
         c = getEditPageClass(node);
         return c;

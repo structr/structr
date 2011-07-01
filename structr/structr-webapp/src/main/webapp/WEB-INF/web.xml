@@ -2,8 +2,8 @@
 <web-app xmlns="http://java.sun.com/xml/ns/javaee"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
-        http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
-        version="3.0">
+        http://java.sun.com/xml/ns/javaee/web-app_2_4.xsd"
+        version="2.4">
   <context-param>
     <description>Internal config service class</description>
     <param-name>config-service-class</param-name>
@@ -33,7 +33,7 @@
     </init-param>
     <init-param>
       <param-name>application-version</param-name>
-      <param-value>0.3</param-value>
+      <param-value>0.4-SNAPSHOT</param-value>
     </init-param>
     <init-param>
       <param-name>cacheable-paths</param-name>

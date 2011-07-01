@@ -23,6 +23,10 @@ import java.util.Iterator;
 import org.structr.core.Adapter;
 
 /**
+ * Converts an Iterable of source type S to and Iterable of target type T by
+ * passing each element through and {@see org.structr.core.Adapter}. This class
+ * implements lazy evaluation in the sense that a call to {@see #next} causes
+ * the next element of the source Iterable to be converted and returned.
  *
  * @author Christian Morgner
  */
