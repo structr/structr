@@ -68,6 +68,8 @@ public class UpdateImageMetadataAgent extends Agent {
 
     private long updateImageMetadata() {
 
+        final Command extract = Services.command(ExtractAndSetImageDimensionsAndFormat.class);
+
         Command transactionCommand = Services.command(TransactionCommand.class);
         Long numberOfImages = (Long) transactionCommand.execute(new StructrTransaction() {
 
@@ -83,7 +85,7 @@ public class UpdateImageMetadataAgent extends Agent {
                     }
                 }
 
-                Services.command(ExtractAndSetImageDimensionsAndFormat.class).execute(images);
+                extract.execute(images);
 
                 return images.size();
 

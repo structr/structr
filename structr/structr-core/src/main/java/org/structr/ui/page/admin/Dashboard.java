@@ -28,9 +28,11 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletContext;
 import org.apache.click.Context;
+import org.apache.click.Page;
 import org.apache.click.control.ActionLink;
 import org.apache.click.control.Column;
 import org.apache.click.control.Decorator;
@@ -41,11 +43,11 @@ import org.apache.click.service.ConfigService;
 import org.apache.click.util.Bindable;
 import org.apache.commons.lang.RandomStringUtils;
 import org.structr.common.RelType;
-import org.structr.context.SessionMonitor;
-import org.structr.context.SessionMonitor.Session;
 import org.structr.core.Command;
 import org.structr.core.Service;
 import org.structr.core.Services;
+import org.structr.core.agent.CleanUpFilesTask;
+import org.structr.core.agent.ClearLogsTask;
 import org.structr.core.agent.ProcessTaskCommand;
 import org.structr.core.agent.RebuildIndexTask;
 import org.structr.core.agent.UpdateImageMetadataTask;
@@ -65,7 +67,6 @@ import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.DeleteNodeCommand;
 import org.structr.core.node.DeleteRelationshipCommand;
-import org.structr.core.node.GetAllNodes;
 import org.structr.core.node.NodeAttribute;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
@@ -76,17 +77,15 @@ import org.structr.ui.page.admin.CreateNode.NodeType;
  *
  * @author axel
  */
-public class Maintenance extends Admin {
+public class Dashboard extends Admin {
 
-    private static final Logger logger = Logger.getLogger(Maintenance.class.getName());
+    private static final Logger logger = Logger.getLogger(Dashboard.class.getName());
     protected final static String DATABASE_OPEN_KEY = "databaseOpen";
     protected final static String SERVICES_KEY = "services";
     @Bindable
     protected PageLink rootNodeLink = new PageLink("rootNodeLink", "Root Node", Edit.class);
     @Bindable
     protected PageLink reportLink = new PageLink("reportLink", "Reports", Report.class);
-    @Bindable
-    protected Table sessionsTable = new Table("sessionsTable");
     @Bindable
     protected Table activitiesTable = new Table("activitiesTable");
     @Bindable
@@ -102,84 +101,36 @@ public class Maintenance extends Admin {
     @Bindable
     protected Table registeredClassesTable = new Table("registeredClassesTable");
     @Bindable
-    protected Table allNodesTable = new Table("allNodesTable");
-    @Bindable
     protected ActionLink startupLink = new ActionLink("startupLink", "Startup", this, "onStartup");
     @Bindable
     protected ActionLink shutdownLink = new ActionLink("shutdownLink", "Shutdown", this, "onShutdown");
     @Bindable
-    protected ActionLink rebuildIndexLink = new ActionLink("rebuildIndexLink", "Rebuild Index (Background)", this, "onRebuildIndex");
+    protected ActionLink rebuildIndexLink = new ActionLink("rebuildIndexLink", "Rebuild index", this, "onRebuildIndex");
     @Bindable
-    protected ActionLink removeThumbnailsLink = new ActionLink("removeThumbnailsLink", "Remove Thumbnails (Ad-hoc)", this, "onRemoveThumbnails");
+    protected ActionLink removeThumbnailsLink = new ActionLink("removeThumbnailsLink", "Remove thumbnails", this, "onRemoveThumbnails");
     @Bindable
-    protected ActionLink setImageDimensionsLink = new ActionLink("setImageDimensionsLink", "Set image dimensions on all Image nodes (Background)", this, "onSetImageDimensions");
+    protected ActionLink setImageDimensionsLink = new ActionLink("setImageDimensionsLink", "Set image dimensions on all image nodes", this, "onSetImageDimensions");
     @Bindable
     protected ActionLink createAdminLink = new ActionLink("createAdminLink", "Create admin user", this, "onCreateAdminUser");
     @Bindable
     protected ActionLink reloadModules = new ActionLink("reloadModules", "Reload modules", this, "onReloadModules");
     @Bindable
+    protected ActionLink cleanUpFilesLink = new ActionLink("cleanUpFilesLink", "Clean-up files", this, "onCleanUpFiles");
+    @Bindable
+    protected ActionLink clearLogsLink = new ActionLink("clearLogsLink", "Clear logs", this, "onClearLogs");
+    @Bindable
 //    protected Panel maintenancePanel;
-    private List<AbstractNode> allNodes;
     protected Map<String, Long> nodesHistogram = new HashMap<String, Long>();
 //    @Bindable
 //    protected FieldSet statsFields = new FieldSet("statsFields", "Statistics");
     @Override
     public String getTemplate() {
-        return "/admin/maintenance.htm";
+        return "/maintenance-template.htm";
     }
 
-    public Maintenance() {
+    public Dashboard() {
 
         super();
-//        maintenancePanel = new Panel("maintenancePanel", "/panel/maintenance-panel.htm");
-
-        sessionsTable.addColumn(new Column("id"));
-        sessionsTable.addColumn(new Column("uid"));
-        sessionsTable.addColumn(new Column("state"));
-        sessionsTable.addColumn(new Column("userName"));
-        Column loginTimestampColumn = new Column("loginTimestamp", "Login");
-        loginTimestampColumn.setFormat("{0,date,medium} {0,time,medium}");
-        sessionsTable.addColumn(loginTimestampColumn);
-        Column logoutTimestampColumn = new Column("logoutTimestamp", "Logout");
-        logoutTimestampColumn.setFormat("{0,date,medium} {0,time,medium}");
-        sessionsTable.addColumn(logoutTimestampColumn);
-        sessionsTable.addColumn(new Column("lastActivityText"));
-
-
-        Column inactiveSinceColumn = new Column("inactiveSince", "Inactive");
-        inactiveSinceColumn.setDecorator(new Decorator() {
-
-            @Override
-            public String render(Object row, Context context) {
-                long ms = ((Session) row).getInactiveSince();
-                if (ms < 1000) {
-                    return ms + " ms";
-                } else if (ms < 60 * 1000) {
-                    return ms / 1000 + " s";
-                } else if (ms < 60 * 60 * 1000) {
-                    long min = ms / (60 * 1000);
-                    long sec = (ms - (min * 60 * 1000)) / 1000;
-                    return min + " m " + sec + " s";
-                } else if (ms < 24 * 60 * 60 * 1000) {
-                    long hrs = ms / (60 * 60 * 1000);
-                    long min = (ms - (hrs * 60 * 60 * 1000)) / (60 * 1000);
-                    long sec = (ms - (hrs * 60 * 60 * 1000) - (min * 60 * 1000)) / 1000;
-                    return hrs + " h " + min + " m " + sec + " s";
-                } else {
-                    return "more than a day";
-                }
-            }
-        });
-        sessionsTable.addColumn(inactiveSinceColumn);
-
-        sessionsTable.setSortable(true);
-        sessionsTable.setSortedColumn("inactiveSince");
-        sessionsTable.setSortedAscending(true);
-        sessionsTable.setPageSize(15);
-        sessionsTable.setHoverRows(true);
-        sessionsTable.setShowBanner(true);
-        sessionsTable.setClass(TABLE_CLASS);
-
         activitiesTable.addColumn(new Column(Activity.OWNER_KEY, "User"));
         activitiesTable.addColumn(new Column(Activity.NODE_ID_KEY));
         activitiesTable.addColumn(new Column(Activity.NAME_KEY));
@@ -251,21 +202,22 @@ public class Maintenance extends Admin {
         registeredClassesTable.setShowBanner(true);
         registeredClassesTable.setClass(TABLE_CLASS);
 
-        allNodesTable.addColumn(new Column(AbstractNode.NODE_ID_KEY));
-        allNodesTable.addColumn(new Column(AbstractNode.NAME_KEY));
-        allNodesTable.addColumn(new Column(AbstractNode.TYPE_KEY));
-        allNodesTable.addColumn(new Column(AbstractNode.POSITION_KEY));
-        allNodesTable.addColumn(new Column(AbstractNode.PUBLIC_KEY));
-        allNodesTable.addColumn(new Column(AbstractNode.OWNER_KEY));
-        allNodesTable.addColumn(new Column(AbstractNode.CREATED_BY_KEY));
-        allNodesTable.addColumn(new Column(AbstractNode.CREATED_DATE_KEY));
-        allNodesTable.addColumn(new Column("allProperties"));
-        allNodesTable.setSortable(true);
-        allNodesTable.setPageSize(15);
-        allNodesTable.setHoverRows(true);
-        allNodesTable.setShowBanner(true);
-        allNodesTable.setClass(TABLE_CLASS);
+    }
 
+    /**
+     * @see Page#onSecurityCheck()
+     */
+    @Override
+    public boolean onSecurityCheck() {
+
+        //userName = getContext().getRequest().getRemoteUser();
+        if (!isSuperUser) {
+            logger.log(Level.INFO, "Access to admin dashboard denied.");
+            setForward("/not-authorized.html");
+            return false;
+        }
+        
+        return true;
     }
 
     @Override
@@ -310,15 +262,6 @@ public class Maintenance extends Admin {
                 }
                 return result;
 
-            }
-        });
-
-        // fill table with sessions
-        sessionsTable.setDataProvider(new DataProvider() {
-
-            @Override
-            public List<Session> getData() {
-                return (List<Session>) SessionMonitor.getSessions();
             }
         });
 
@@ -451,16 +394,6 @@ public class Maintenance extends Admin {
 //
 //                }
                 return nodeClassList;
-            }
-        });
-
-        allNodesTable.setDataProvider(new DataProvider() {
-
-            @Override
-            public List<AbstractNode> getData() {
-
-                return getAllNodes();
-
             }
         });
 
@@ -606,12 +539,6 @@ public class Maintenance extends Admin {
 
     }
 
-    private List<AbstractNode> getAllNodes() {
-        if (allNodes == null) {
-            allNodes = (List<AbstractNode>) Services.command(GetAllNodes.class).execute();
-        }
-        return allNodes;
-    }
 
     /**
      * Remove all thumbnails in the system
@@ -700,6 +627,28 @@ public class Maintenance extends Admin {
     public boolean onShutdown() {
         Services.shutdown();
         return false;
+    }
+
+    /**
+     * Remove unused files, running in background
+     * 
+     * @return
+     */
+    public boolean onCleanUpFiles() {
+        Command processTask = Services.command(ProcessTaskCommand.class);
+        processTask.execute(new CleanUpFilesTask());
+        return redirect();
+    }
+
+    /**
+     * Remove all log nodes, running in background
+     * 
+     * @return
+     */
+    public boolean onClearLogs() {
+        Command processTask = Services.command(ProcessTaskCommand.class);
+        processTask.execute(new ClearLogsTask());
+        return redirect();
     }
 
 }

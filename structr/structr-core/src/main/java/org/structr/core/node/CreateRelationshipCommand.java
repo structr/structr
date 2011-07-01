@@ -61,6 +61,9 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 
             RelationshipType relType = null;
             if (arg2 instanceof String) {
+
+
+
                 relType = DynamicRelationshipType.withName((String) arg2);
             } else if (arg2 instanceof RelationshipType) {
                 relType = (RelationshipType) arg2;
@@ -92,7 +95,7 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 
             RelationshipType relType = null;
             if (arg2 instanceof String) {
-                relType = DynamicRelationshipType.withName((String) arg2);
+                relType = getRelationshipTypeFor((String) arg2);
             } else if (arg2 instanceof RelationshipType) {
                 relType = (RelationshipType) arg2;
             } else {
@@ -135,7 +138,6 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
         return null;
     }
 
-    
     private StructrRelationship createRelationship(final Node fromNode, final Node toNode, final RelationshipType relType) {
 
         final Command transactionCommand = Services.command(TransactionCommand.class);
@@ -150,4 +152,20 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
         return newRelationship;
     }
 
+    private RelationshipType getRelationshipTypeFor(final String relTypeString) {
+
+        RelationshipType relType = null;
+        
+        try {
+            relType = RelType.valueOf(relTypeString);
+        } catch (Exception ignore) {
+        }
+
+        if (relType == null) {
+            relType = DynamicRelationshipType.withName(relTypeString);
+        }
+
+        return relType;
+
+    }
 }

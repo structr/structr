@@ -6,13 +6,13 @@
     <parent>
         <groupId>org.structr</groupId>
         <artifactId>structr</artifactId>
-        <version>0.3</version>
+        <version>0.4.M01</version>
     </parent>
 
     <groupId>org.structr</groupId>
     <artifactId>structr-module-gis</artifactId>
     <packaging>jar</packaging>
-    <version>0.3</version>
+    <version>0.4.M01</version>
     <name>structr-module-gis</name>
     <url>http://maven.apache.org</url>
     <build>
@@ -22,7 +22,7 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>2.3.2</version>
                 <configuration>
-                    <debug>false</debug>
+                    <debug>true</debug>
                 </configuration>
             </plugin>
         </plugins>
@@ -43,12 +43,6 @@
             <groupId>org.apache.click</groupId>
             <artifactId>click-nodeps</artifactId>
             <version>2.3.0</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>click-nodeps</artifactId>
-                    <groupId>org.apache.click</groupId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>

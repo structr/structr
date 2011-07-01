@@ -20,14 +20,16 @@ package org.structr.core.entity;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.structr.common.Path;
+import org.structr.common.RenderMode;
+import org.structr.common.renderer.FileStreamRenderer;
+import org.structr.core.NodeRenderer;
 import org.structr.core.Services;
 
 /**
@@ -35,7 +37,7 @@ import org.structr.core.Services;
  * @author amorgner
  * 
  */
-public class File extends DefaultNode {
+public class File extends AbstractNode {
 
     private final static String ICON_SRC = "/images/page_white.png";
     private static final Logger logger = Logger.getLogger(File.class.getName());
@@ -57,6 +59,12 @@ public class File extends DefaultNode {
     @Override
     public String getContentType() {
         return (String) getProperty(CONTENT_TYPE_KEY);
+    }
+
+    @Override
+    public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers)
+    {
+	    renderers.put(RenderMode.Direct, new FileStreamRenderer());
     }
 
     public long getSize() {
@@ -125,27 +133,31 @@ public class File extends DefaultNode {
 
     }
 
-    /**
-     * Stream content directly to output.
-     *
-     * @param out
-     */
     @Override
-    public void renderDirect(OutputStream out, final AbstractNode startNode, final String editUrl, final Long editNodeId) {
+    public void onNodeCreation()
+    {
+    }
 
-        if (isVisible()) {
-            try {
+    @Override
+    public void onNodeInstantiation()
+    {
+    }
 
-                InputStream in = getInputStream();
+    @Override
+    public void onNodeDeletion() {
 
-                if (in != null) {
-                    // just copy to output stream
-                    IOUtils.copy(in, out);
-                }
+	    try
+	    {
+		    java.io.File toDelete = new java.io.File(getFileLocation().toURI());
+		    if(toDelete.exists() && toDelete.isFile())
+		    {
+			    toDelete.delete();
+		    }
 
-            } catch (Throwable t) {
-                logger.log(Level.SEVERE, "Error while rendering file", t);
-            }
-        }
+	    } catch(Throwable t)
+	    {
+		    logger.log(Level.WARNING, "Exception while trying to delete file {0}: {1}", new Object[] { getFileLocation(), t} );
+	    }
+
     }
 }

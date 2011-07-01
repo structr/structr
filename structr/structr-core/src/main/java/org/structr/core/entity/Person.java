@@ -277,4 +277,8 @@ public class Person extends Principal {
     public void onNodeInstantiation()
     {
     }
+
+    @Override
+    public void onNodeDeletion() {
+    }
 }

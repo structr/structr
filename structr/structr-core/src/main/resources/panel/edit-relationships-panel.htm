@@ -23,9 +23,6 @@
     <script>
       var graph = new Graph();
 
-      // this node
-      var node_$node.id = graph.newNode({label: '$format.javascript($node.name)', imgSrc: '$context$node.iconSrc'});
-
       // content relationships
       var HAS_CHILD = '#555555';
       var SECURITY = '#AA0000';
@@ -58,22 +55,36 @@
       var TYPE = '#64AE32';
       var SUBTYPE = '#53ED78';
 
-      #foreach( $rel in $node.incomingRelationships )
-      #if( $velocityCount > 10 )
+      // begin maxDepth
+      #set($maxDepth = 1)
+      #if( $request.getParameter("maxDepth") )
+        #set($maxDepth = $maxDepth.parseInt($request.getParameter("maxDepth")))
+      #end
+      // end maxDepth
+
+      // begin maxNodes
+      #set($maxNodes = 10)
+      #if( $request.getParameter("maxNodes") )
+        #set($maxNodes = $maxNodes.parseInt($request.getParameter("maxNodes")))
+      #end
+      // end maxNodes
+
+      #foreach( $relNode in $node.getRelatedNodes($maxDepth, $maxNodes, $request.getParameter("relTypes")) )
+      #if( $relNode.type == "PageRequest" || $relNode.type == "Activity")
         #break
       #end
-      var node_$rel.startNode.id = graph.newNode({label: '$format.javascript($rel.startNode.name)', link: '$context/admin/edit.htm?nodeId=$rel.startNode.id#relationships-tab', imgSrc: '$context$rel.startNode.iconSrc'});
-      var edge_$rel.id = graph.newEdge(node_$rel.startNode.id, node_$node.id, {color: $rel.relType, label: '$rel.relType'});
+      var node_$relNode.id = graph.newNode({label: '$format.javascript($relNode.name)', link: '$context/admin/edit.htm?nodeId=$relNode.id#relationships-tab', imgSrc: '$context$relNode.iconSrc'});
       #end
 
-      #foreach( $rel in $node.outgoingRelationships )
-      #if( $velocityCount > 10 )
+      #foreach( $rel in $node.getRelatedRels($maxDepth, $maxNodes, $request.getParameter("relTypes")) )
+      #if( $rel.startNode.type == "PageRequest" || $rel.startNode.type == "Activity" || $rel.endNode.type == "PageRequest" || $rel.endNode.type == "Activity" )
         #break
       #end
-      var node_$rel.endNode.id = graph.newNode({label: '$format.javascript($rel.endNode.name)', link: '$context/admin/edit.htm?nodeId=$rel.endNode.id#relationships-tab', imgSrc: '$context$rel.endNode.iconSrc'});
-      var edge_$rel.id = graph.newEdge(node_$node.id, node_$rel.endNode.id, {color: $rel.relType, label: '$rel.relType'});
+      if(node_$rel.startNode.id && node_$rel.endNode.id)
+      {
+        var edge_$rel.id = graph.newEdge(node_$rel.startNode.id, node_$rel.endNode.id, {color: $rel.relType, label: '$rel.relType'});
+      }
       #end
-
 
       jQuery(document).ready(function(){
         jQuery('#viewport').springy({ 'graph': graph });
@@ -93,9 +104,6 @@
 
     <h3>Outgoing Relationships</h3>
     $outgoingRelationshipsTable
-
-
-
 
   </div>
 </div>

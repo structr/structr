@@ -360,6 +360,9 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
         String result = "( ";
 
+        // Clean string
+        stringValue = Search.normalize(stringValue); 
+        
         // Split string into words
         String[] words = StringUtils.split(stringValue, " ");
 

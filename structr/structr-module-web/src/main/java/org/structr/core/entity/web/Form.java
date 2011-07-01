@@ -19,13 +19,7 @@
 
 package org.structr.core.entity.web;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.logging.Logger;
-import javax.servlet.http.HttpServletRequest;
-import org.apache.commons.lang.StringUtils;
-import org.structr.common.CurrentRequest;
 
 /**
  * Abstract base class for all web forms
@@ -33,19 +27,6 @@ import org.structr.common.CurrentRequest;
  * @author axel
  */
 public abstract class Form extends WebNode {
-
-    protected final static String defaultAction = "";
-    protected final static String defaultCssClass = "formTable";
-    protected final static String defaultLabel = "Login";
-    protected final static String defaultSubmitButtonName = "form_submit";
-    protected final static String defaultAntiRobotFieldName = "form_antiRobot";
-
-    protected Map parameterMap = new HashMap<String, String>();
-    protected StringBuilder errorMsg = new StringBuilder();
-    protected StringBuilder errorStyle = new StringBuilder();
-
-    private String submitButtonName;
-    private String antiRobotFieldName;
 
     /** Form action */
     public final static String ACTION_KEY = "action";
@@ -65,93 +46,10 @@ public abstract class Form extends WebNode {
     public final static String STRIP_FROM_VALUES_KEY = "stripFromValues";
 
     private final static String ICON_SRC = "/images/form.png";
-    private static final Logger logger = Logger.getLogger(Form.class.getName());
 
     @Override
     public String getIconSrc() {
         return ICON_SRC;
-    }
-
-    protected boolean validateParameters() {
-
-        if (StringUtils.isEmpty(param(submitButtonName))) {
-            // Don't process form at all if submit button was not pressed
-            return false;
-        }
-
-        if (StringUtils.isNotEmpty(param(antiRobotFieldName))) {
-            // Don't process form if someone has filled the anti-robot field
-            return false;
-        }
-
-        // Check mandatory parameters
-
-        errorStyle.append("<style type=\"text/css\">");
-
-        List<String> mandatoryParameterNames = getMandatoryParameterNamesAsList();
-
-        if (mandatoryParameterNames != null) {
-
-            for (String mandatoryParameterName : mandatoryParameterNames) {
-                if (StringUtils.isEmpty(param(mandatoryParameterName))) {
-                    errorMsg.append("<div class=\"errorMsg\">").append("Please fill out \"").append("<script type=\"text/javascript\">document.write(getLabel('").append(mandatoryParameterName).append("'));</script>\"").append("</div>");
-                    errorStyle.append("input[name=").append(mandatoryParameterName).append("] { background-color: #ffc }\n");
-                }
-            }
-        }
-        errorStyle.append("</style>");
-
-        return true;
-    }
-
-    protected void readParameters() {
-
-           HttpServletRequest request = CurrentRequest.getRequest();
-
-            if (request == null) {
-                return;
-            }
-
-//            HttpSession session = request.getSession();
-//
-//            if (session == null) {
-//                return;
-//            }
-
-        List<String> parameterNames = getParameterNamesAsList();
-
-        // Get values from config page, or defaults
-        submitButtonName = getSubmitButtonName() != null ? getSubmitButtonName() : defaultSubmitButtonName;
-        antiRobotFieldName = getAntiRobotFieldName() != null ? getAntiRobotFieldName() : defaultAntiRobotFieldName;
-
-        // Static, technical parameters
-        parameterMap.put(submitButtonName, request.getParameter(submitButtonName));
-        parameterMap.put(antiRobotFieldName, request.getParameter(antiRobotFieldName));
-
-        if (parameterNames != null) {
-            for (String parameterName : parameterNames) {
-
-                String parameterValue = request.getParameter(parameterName);
-
-                // Clean values and add to parameter map
-                parameterMap.put(parameterName, clean(parameterValue));
-            }
-        }
-    }
-
-    protected String clean(final String input) {
-
-        String output = StringUtils.trimToEmpty(input);
-
-        for (String strip : getStripFromValuesAsList()) {
-            output = StringUtils.replace(output, strip, "");
-        }
-
-        return output;
-    }
-
-    protected String param(final String key) {
-        return (parameterMap.containsKey(key) ? (String) parameterMap.get(key) : "");
     }
 
 
@@ -164,7 +62,7 @@ public abstract class Form extends WebNode {
         return getStringArrayPropertyAsString(PARAMETER_NAMES_KEY);
     }
 
-    private List<String> getParameterNamesAsList() {
+    public List<String> getParameterNamesAsList() {
         return getStringListProperty(PARAMETER_NAMES_KEY);
     }
 
@@ -186,7 +84,7 @@ public abstract class Form extends WebNode {
         return getStringArrayPropertyAsString(MANDATORY_PARAMETER_NAMES_KEY);
     }
 
-    private List<String> getMandatoryParameterNamesAsList() {
+    public List<String> getMandatoryParameterNamesAsList() {
         return getStringListProperty(MANDATORY_PARAMETER_NAMES_KEY);
     }
 
@@ -208,7 +106,7 @@ public abstract class Form extends WebNode {
         return getStringArrayPropertyAsString(STRIP_FROM_VALUES_KEY);
     }
 
-    private List<String> getStripFromValuesAsList() {
+    public List<String> getStripFromValuesAsList() {
         return getStringListProperty(STRIP_FROM_VALUES_KEY);
     }
 

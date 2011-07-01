@@ -33,11 +33,10 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 import javax.servlet.ServletContext;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.Path;
@@ -58,7 +57,7 @@ import org.w3c.dom.Element;
  * This service keeps an index of installed / activated modules for efficient access
  * files:
  *  - $BASEDIR/modules/modules.conf		-> properties file
- *  - $BASEDIR/modules/*.jar			-> module JAR
+ *  - $BASEDIR/modules/*.jar			-> module jar
  *  - $BASEDIR/modules/index/$NAME.index	-> serialized instance of Module.java
  *
  * The entity class cache needs to be initialized with the structr core entities even
@@ -518,7 +517,27 @@ public class ModuleService implements SingletonService {
      */
     private void importIndex(Module module) throws IOException {
         String modulePath = module.getModulePath();
-        JarFile jarFile = new JarFile(modulePath);
+        ZipFile zipFile = new ZipFile(modulePath);
+
+        // 0.: iterate over libraries and deploy them
+        Set<String> libraries = module.getLibraries();
+        for (String library : libraries) {
+            String destinationPath = createResourceFileName(servletContext, "WEB-INF/lib", library);
+
+            try {
+                ZipEntry entry = zipFile.getEntry(library);
+                InputStream inputStream = zipFile.getInputStream(entry);
+                File destinationFile = new File(destinationPath);
+
+                deployFile(inputStream, destinationFile);
+
+		logger.log(Level.INFO, "Deploying library {0} to {1}", new Object[] { entry.getName(), destinationFile } );
+
+            } catch (Throwable t) {
+                // ignore!
+                // logger.log(Level.WARNING, "Error deploying {0} to {1}: {2}", new Object[] { entryName, destinationPath, t } );
+            }
+        }
 
         // 1a.: iterate over raw class names and deploy them
         Set<String> classes = module.getClasses();
@@ -531,9 +550,9 @@ public class ModuleService implements SingletonService {
 
                 logger.log(Level.FINE, "sourcePath: {0}, destinationFile: {1}", new Object[]{sourcePath, destinationFile});
                 
-                ZipEntry entry = jarFile.getEntry(sourcePath);
+                ZipEntry entry = zipFile.getEntry(sourcePath);
                 if (entry != null) {
-                    InputStream inputStream = jarFile.getInputStream(entry);
+                    InputStream inputStream = zipFile.getInputStream(entry);
                     if (inputStream != null) {
                         deployFile(inputStream, new File(destinationFile));
 
@@ -560,9 +579,9 @@ public class ModuleService implements SingletonService {
                 String sourcePath = propertiesName.replaceAll("[\\.]+", "/").concat(".properties");
                 String destinationFile = createResourceFileName(servletContext, "WEB-INF/classes", sourcePath);
 
-                ZipEntry entry = jarFile.getEntry(sourcePath);
+                ZipEntry entry = zipFile.getEntry(sourcePath);
                 if (entry != null) {
-                    InputStream inputStream = jarFile.getInputStream(entry);
+                    InputStream inputStream = zipFile.getInputStream(entry);
                     if (inputStream != null) {
                         deployFile(inputStream, new File(destinationFile));
 
@@ -588,7 +607,7 @@ public class ModuleService implements SingletonService {
             try {
                 // instantiate class..
                 Class clazz = Class.forName(className);
-                logger.log(Level.FINE, "Class {0} instanciated: {1}", new Object[]{className, clazz});
+                logger.log(Level.FINE, "Class {0} instantiated: {1}", new Object[]{className, clazz});
 
 		if(!Modifier.isAbstract(clazz.getModifiers()))
 		{
@@ -625,11 +644,9 @@ public class ModuleService implements SingletonService {
 
             } catch (Throwable t) {
                 // ignore
-                logger.log(Level.WARNING, "error instantiating class {0}: {1}", new Object[]{className, t});
-                t.printStackTrace(System.out);
+//                logger.log(Level.WARNING, "error instantiating class {0}: {1}", new Object[]{className, t});
+//                t.printStackTrace(System.out);
             }
-
-        }
 
         // 3.: iterate over resources and deploy them
         Set<String> resources = module.getResources();
@@ -637,8 +654,8 @@ public class ModuleService implements SingletonService {
             String destinationPath = createResourceFileName(servletContext, resource);
 
             try {
-                ZipEntry entry = jarFile.getEntry(resource);
-                InputStream inputStream = jarFile.getInputStream(entry);
+                ZipEntry entry = zipFile.getEntry(resource);
+                InputStream inputStream = zipFile.getInputStream(entry);
                 File destinationFile = new File(destinationPath);
 
                 deployFile(inputStream, destinationFile);
@@ -649,6 +666,7 @@ public class ModuleService implements SingletonService {
             }
         }
 
+        }
     }
 
     /**
@@ -660,6 +678,7 @@ public class ModuleService implements SingletonService {
      * @throws IOException
      */
     private void unimportIndex(Module module) throws IOException {
+
         // 1.: iterate over resources and delete
         Set<String> resources = module.getResources();
         for (String resource : resources) {
@@ -705,11 +724,20 @@ public class ModuleService implements SingletonService {
                 logger.log(Level.WARNING, "error instantiating class {0}: {1}", new Object[]{className, t});
             }
 
+	// 3.: iterate over libraries and delete
+        Set<String> libraries = module.getLibraries();
+        for (String library : libraries) {
+            String destinationPath = createResourceFileName(servletContext, "WEB-INF/lib", library);
+
+            undeployFile(library, destinationPath);
+        }
+
+
         }
     }
 
     /**
-     * Scans the JAR file for the given moduleName and creates an index file with
+     * Scans the Zip file for the given moduleName and creates an index file with
      * the information from it.
      *
      * @param moduleName the name of the module
@@ -729,21 +757,23 @@ public class ModuleService implements SingletonService {
         Set<String> classes = ret.getClasses();
         Set<String> properties = ret.getProperties();
         Set<String> resources = ret.getResources();
+        Set<String> libraries = ret.getLibraries();
 
-        JarFile jarFile = new JarFile(moduleFile);
+        ZipFile zipFile = new ZipFile(moduleFile);
 
         // conventions that might be useful here:
         // ignore entries beginning with meta-inf/
         // handle entries beginning with images/ as IMAGE
         // handle entries beginning with pages/ as PAGES
+	// handle entries ending with .jar as libraries, to be deployed to WEB-INF/lib
         // handle other entries as potential page and/or entity classes
 
         // .. to be extended
 
         // (entries that end with "/" are directories)
 
-        for (Enumeration<JarEntry> entries = jarFile.entries(); entries.hasMoreElements();) {
-            JarEntry entry = entries.nextElement();
+        for (Enumeration<? extends ZipEntry> entries = zipFile.entries(); entries.hasMoreElements();) {
+            ZipEntry entry = entries.nextElement();
             String entryName = entry.getName();
 
             if (entryName.toLowerCase().startsWith("meta-inf/")) {
@@ -762,6 +792,10 @@ public class ModuleService implements SingletonService {
 
                 // add property entry to Module
                 properties.add(fileEntry.substring(0, fileEntry.length() - 11));
+
+            } else if (entryName.toLowerCase().endsWith(".jar")) {
+
+		libraries.add(entryName);
 
             } else {
                 // add resources to module
@@ -820,7 +854,7 @@ public class ModuleService implements SingletonService {
      * @return an absolute path name for the given resource inside the web app root directory
      */
     private String createResourceFileName(ServletContext servletContext, String... pathParts) {
-        StringBuilder ret = new StringBuilder();
+        StringBuilder ret = new StringBuilder(100);
 
         ret.append(servletContext.getRealPath("/"));
 

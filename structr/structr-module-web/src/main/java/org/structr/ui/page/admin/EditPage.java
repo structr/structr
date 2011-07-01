@@ -20,6 +20,7 @@ package org.structr.ui.page.admin;
 
 import org.apache.click.control.Panel;
 import org.apache.click.util.ClickUtils;
+import org.structr.common.StructrOutputStream;
 import org.structr.core.entity.web.Page;
 
 /**
@@ -50,9 +51,10 @@ public class EditPage extends DefaultEdit {
                     "/view".concat(page.getNodePath().replace("&", "%26")));
 
             // render node's default view
-            StringBuilder out = new StringBuilder();
-            node.renderView(out, page, null, null);
+	    StructrOutputStream out = new StructrOutputStream();
+            node.renderNode(out, page, null, null);
             rendition = out.toString();
+
             // provide rendition's source
             source = ClickUtils.escapeHtml(rendition);
 

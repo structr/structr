@@ -199,6 +199,9 @@ span.required {
 /*#main {
     margin: 0 10px;
 }*/
+div.superuser {
+    border-bottom: 2px solid #f00;
+}
 
 #tree {
     margin: 0 0 0 -10px;
@@ -287,7 +290,7 @@ span.required {
     position: absolute;
     top: 0;
     left: 0;
-    width: 100%;
+    width: 95%;
     z-index: 99;
 }
 
@@ -410,7 +413,7 @@ span.spacer {
         -moz-box-shadow: 0px 0px 6px #616161;*/
     box-shadow: 0px 0px 20px #b5b5b5;
     -webkit-box-shadow: 0px 0px 18px #bbb;
-    -moz-box-shadow: 0px 0px 20px #b5b5b5;    
+    -moz-box-shadow: 0px 0px 20px #b5b5b5;
     border-radius: 5px;
     -moz-border-radius: 5px;
     -webkit-border-radius: 5px;
@@ -476,6 +479,21 @@ span.spacer {
 
 .contentBox .body iframe {
     border: 1px solid #ccc;
+}
+
+.contentBox .body div.section {
+    float: left;
+    width: 200px;
+    padding: 6px;
+    margin: 6px;
+    /*  border: 1px solid #ccc;
+      border-radius: 3px;
+      -moz-border-radius: 3px;
+      -webkit-border-radius: 3px;*/
+}
+
+.contentBox .body div.section h3 {
+    font-size: 1.3em;
 }
 
 .outerBox h2 {
@@ -658,6 +676,11 @@ table#properties td:first-child {
 
 .treestyle img.customIcon {
     vertical-align: top;
+}
+
+.linkIcon {
+    vertical-align: top;
+    margin-top: -1px;
 }
 
 
@@ -1023,3 +1046,171 @@ span.pagelinks-nobanner {
     margin-top: 10px;
     margin-bottom: 10px;
 }
+
+#notificationPanel {
+    width: 100%;
+}
+
+.notification {
+    display: block;
+    visibility: visible;
+    position: absolute;
+    border: 1px solid #999999;
+    border-right: none;
+    border-bottom: none;
+    background-color: #ffffff;
+    margin: 0px;
+    padding: 10px;
+    padding-left: 20px;
+    padding-right: 20px;
+    bottom: 0px;
+    right: 0px;
+}
+
+.notification.success {
+    background: #f0feed url('../images/tick.png') 1em no-repeat;
+    padding: 1em 2em 1em 3em;
+    border: 1px solid #83b362;
+    border-right: none;
+    border-bottom: none;
+}
+
+.notification.error {
+    background: #ffe8e8 url('../images/exclamation.png') 1em no-repeat;
+    border: 1px solid #dd0000;
+    border-right: none;
+    border-bottom: none;
+}
+
+.notificationIcon {
+    margin: 0px;
+    margin-right: 10px;
+    vertical-align: middle;
+}
+
+.notificationTitle {
+    margin: 0px;
+}
+
+.notificationText {
+    margin: 0px;
+    font-size:9pt;
+}
+
+.notificationText.success
+{
+    color: #619140;
+}
+
+.notificationText.error
+{
+    color: #c20000;
+}
+
+.progressBarNotification {
+    width: 200px;
+    border: 1px solid #eeeeee;
+    margin: 0px;
+    margin-top: 5px;
+    padding: 0px;
+    position: relative;
+}
+
+.progressBar {
+    background-color:#44dd44;
+}
+
+.progressBarText {
+    width:100%;
+    font-weight:bold;
+    text-align:center;
+    background-color:transparent;
+    position:absolute;
+    top:0px;
+    left:0px;
+}
+
+.commandInput {
+    width: 400px;
+}
+
+div#console {
+    margin:0px;
+    margin-bottom:10px;
+    padding:10px;
+    background-color:#000000;
+    color:#dddddd;
+    border:1px solid #cccccc;
+    /*font-family: monospace, serif;*/
+    font-family: "Liberation Mono", "DejaVu Sans Mono", Consolas, Monaco, "Vera Sans Mono", "Lucida Console", "Courier New", monospace !important;
+    font-size: 9pt;
+    overflow: auto;
+}
+
+div#console p {
+    margin: 0px;
+    padding: 0px;
+}
+
+div#console p.error {
+    color: #dd4444;
+}
+
+div#console p.success {
+    color: #44dd44;
+}
+
+div#console p.debug {
+    color: #888888;
+}
+
+div#console pre {
+    margin: 0px;
+}
+
+div#console table.file-list {
+    margin: 15px;
+}
+
+div#console input[type=text] {
+    color: #ddd;
+    background-color: #000;
+    border: none;
+    margin: 0 0 0 -8px;
+    padding: 0;
+}
+
+div#console input[type=button],  div#console input[type=submit] {
+    display: none;
+}
+
+table.file-list td {
+    padding: 1em;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+table.file-list td.listed-file-name {
+    text-align: left;
+}
+
+table.file-list td.listed-file-id {
+    text-align: right;
+}
+
+table.file-list td.listed-file-type {
+    text-align: left;
+}
+
+/* resize handle */
+
+#resizeHandle {
+/*    border: 1px solid red;*/
+    width: 10px;
+    height: 300px;
+    position: absolute;
+}
+#resizeHandle:hover {
+    cursor: ew-resize;
+}
+

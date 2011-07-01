@@ -36,14 +36,14 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.structr.core.Command;
 import org.structr.core.Services;
-import org.structr.core.entity.DefaultNode;
+import org.structr.core.entity.web.WebNode;
 import org.structr.core.node.GraphDatabaseCommand;
 
 /**
  *
  * @author axel
  */
-public class GeoObject extends DefaultNode {
+public class GeoObject extends WebNode {
 
     private final static String ICON_SRC = "/images/world.png";
     private static final Logger logger = Logger.getLogger(GeoObject.class.getName());
@@ -265,6 +265,52 @@ public class GeoObject extends DefaultNode {
 
     public Coordinate getCoordinates() {
         return new Coordinate(getLongitude(), getLatitude());
+    }
+    
+    public static final String ENVELOPE_MIN_X_KEY = "envelopeMinX";
+    public static final String ENVELOPE_MAX_X_KEY = "envelopeMaxX";
+    public static final String ENVELOPE_MIN_Y_KEY = "envelopeMinY";
+    public static final String ENVELOPE_MAX_Y_KEY = "envelopeMaxY";
+    public static final String AUTO_ENVELOPE_KEY = "autoEnvelope";
+
+    public double getEnvelopeMinX() {
+        return getDoubleProperty(ENVELOPE_MIN_X_KEY);
+    }
+
+    public double getEnvelopeMinY() {
+        return getDoubleProperty(ENVELOPE_MIN_Y_KEY);
+    }
+
+    public double getEnvelopeMaxX() {
+        return getDoubleProperty(ENVELOPE_MAX_X_KEY);
+    }
+
+    public double getEnvelopeMaxY() {
+        return getDoubleProperty(ENVELOPE_MAX_Y_KEY);
+    }
+
+    public boolean getAutoEnvelope() {
+        return getBooleanProperty(AUTO_ENVELOPE_KEY);
+    }
+    
+    public void setEnvelopeMinX(final double value) {
+        setProperty(ENVELOPE_MIN_X_KEY, value);
+    }
+
+    public void setEnvelopeMinY(final double value) {
+        setProperty(ENVELOPE_MIN_Y_KEY, value);
+    }
+
+    public void setEnvelopeMaxX(final double value) {
+        setProperty(ENVELOPE_MAX_X_KEY, value);
+    }
+
+    public void setEnvelopeMaxY(final double value) {
+        setProperty(ENVELOPE_MAX_Y_KEY, value);
+    }
+
+    public void setAutoEnvelope(final boolean value) {
+        setProperty(AUTO_ENVELOPE_KEY, value);
     }
 
 }

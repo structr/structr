@@ -20,7 +20,9 @@ package org.structr.core.entity.log;
 
 import java.util.Date;
 import java.util.Map;
-import org.structr.core.entity.DefaultNode;
+import org.structr.common.RenderMode;
+import org.structr.core.NodeRenderer;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.User;
 
 /**
@@ -32,7 +34,7 @@ import org.structr.core.entity.User;
  *
  * @author axel
  */
-public class Activity extends DefaultNode {
+public class Activity extends AbstractNode {
 
     private final static String ICON_SRC = "/images/sport_soccer.png";
 
@@ -47,6 +49,25 @@ public class Activity extends DefaultNode {
     @Override
     public String getIconSrc() {
         return ICON_SRC;
+    }
+
+    @Override
+    public void initializeRenderers(Map<RenderMode, NodeRenderer> rendererMap)
+    {
+    }
+
+    @Override
+    public void onNodeCreation()
+    {
+    }
+
+    @Override
+    public void onNodeInstantiation()
+    {
+    }
+
+    @Override
+    public void onNodeDeletion() {
     }
 
     public static final String SESSION_ID_KEY = "sessionId";

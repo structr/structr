@@ -24,6 +24,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.Direction;
@@ -36,9 +37,11 @@ import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.graphdb.traversal.Traverser;
 import org.neo4j.kernel.Traversal;
 import org.structr.common.RelType;
+import org.structr.common.RenderMode;
 import org.structr.core.Command;
 import org.structr.core.Decorable;
 import org.structr.core.Decorator;
+import org.structr.core.NodeRenderer;
 import org.structr.core.Services;
 import org.structr.core.node.Evaluable;
 import org.structr.core.node.IterableAdapter;
@@ -65,7 +68,7 @@ import org.structr.core.node.TransactionCommand;
  *
  * @author Christian Morgner
  */
-public class NodeList<T extends AbstractNode> extends DefaultNode implements List<T>, Decorable<T>, Evaluable {
+public class NodeList<T extends AbstractNode> extends AbstractNode implements List<T>, Decorable<T>, Evaluable {
 
     private static final Logger logger = Logger.getLogger(NodeList.class.getName());
     private static final String PARENT_KEY = "parent";
@@ -87,6 +90,25 @@ public class NodeList<T extends AbstractNode> extends DefaultNode implements Lis
     @Override
     public String getIconSrc() {
         return ICON_SRC;
+    }
+
+    @Override
+    public void initializeRenderers(Map<RenderMode, NodeRenderer> rendererMap)
+    {
+    }
+
+    @Override
+    public void onNodeCreation()
+    {
+    }
+
+    @Override
+    public void onNodeInstantiation()
+    {
+    }
+
+    @Override
+    public void onNodeDeletion() {
     }
 
     /**

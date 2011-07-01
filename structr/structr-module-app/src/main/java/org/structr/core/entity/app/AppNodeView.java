@@ -16,19 +16,13 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package org.structr.core.entity.app;
 
-import java.io.StringWriter;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.neo4j.graphdb.DynamicRelationshipType;
-import org.neo4j.graphdb.RelationshipType;
-import org.structr.common.CurrentRequest;
-import org.structr.core.Services;
+import java.util.Map;
+import org.structr.common.RenderMode;
+import org.structr.core.NodeRenderer;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.node.FindNodeCommand;
+import org.structr.core.renderer.NodeViewRenderer;
 
 /**
  * AppNodeView loads the node with the ID found in the request parameter specified
@@ -38,29 +32,16 @@ import org.structr.core.node.FindNodeCommand;
  */
 public class AppNodeView extends AbstractNode
 {
-	private static final Logger logger = Logger.getLogger(AppNodeView.class.getName());
-
-	private static final String FOLLOW_RELATIONSHIP_KEY =	"followRelationship";
-	private static final String ID_SOURCE_KEY =		"idSource";
-
 	@Override
 	public String getIconSrc()
 	{
-		return("/images/magnifier.png");
+		return ("/images/magnifier.png");
 	}
 
 	@Override
-	public void renderView(final StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
+	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers)
 	{
-		AbstractNode sourceNode = loadNode();
-		if(sourceNode != null)
-		{
-			doRendering(out, this, sourceNode, editUrl, editNodeId);
-
-		} else
-		{
-			logger.log(Level.WARNING, "sourceNode was null");
-		}
+		renderers.put(RenderMode.Default, new NodeViewRenderer());
 	}
 
 	@Override
@@ -73,55 +54,7 @@ public class AppNodeView extends AbstractNode
 	{
 	}
 
-	// ----- protected methods -----
-	protected void doRendering(final StringBuilder out, final AbstractNode viewNode, final AbstractNode dataNode, final String editUrl, final Long editNodeId)
-	{
-		String templateSource = getTemplateFromNode(viewNode);
-		StringWriter content = new StringWriter(100);
-
-		AbstractNode.staticReplaceByFreeMarker(templateSource, content, dataNode, editUrl, editNodeId);
-		out.append(content.toString());
-
-		List<AbstractNode> viewChildren = viewNode.getSortedDirectChildNodes();
-		for(AbstractNode viewChild : viewChildren)
-		{
-			// 1. get desired display relationship from view node
-			// 2. find requested child nodes from dataNode
-			// 3. render nodes with doRendering (recursion)
-
-			String followRel = viewChild.getStringProperty(FOLLOW_RELATIONSHIP_KEY);
-			if(followRel != null)
-			{
-				RelationshipType relType = DynamicRelationshipType.withName(followRel);
-				List<AbstractNode> dataChildren = dataNode.getDirectChildren(relType);
-
-				for(AbstractNode dataChild : dataChildren)
-				{
-					doRendering(out, viewChild, dataChild, editUrl, editNodeId);
-				}
-			}
-
-		}
-	}
-
-	// ----- private methods -----
-	private AbstractNode loadNode()
-	{
-		String idSourceParameter = (String)getProperty(ID_SOURCE_KEY);
-		String idSource = CurrentRequest.getRequest().getParameter(idSourceParameter);
-
-		return((AbstractNode)Services.command(FindNodeCommand.class).execute(null, this, idSource));
-	}
-	
-	private String getTemplateFromNode(final AbstractNode node)
-	{
-		String ret = "";
-		
-		if(node.hasTemplate())
-		{
-			ret = node.getTemplate().getContent();
-		}
-		
-		return(ret);
-	}
+    @Override
+    public void onNodeDeletion() {
+    }
 }

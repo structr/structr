@@ -21,6 +21,7 @@ package org.structr.core.entity.app;
 import java.util.Map;
 import javax.servlet.http.HttpSession;
 import org.structr.common.CurrentRequest;
+import org.structr.common.StructrOutputStream;
 import org.structr.core.entity.AbstractNode;
 
 /**
@@ -38,7 +39,7 @@ public class AppLogout extends ActionNode
 	}
 
 	@Override
-	public boolean doAction(StringBuilder out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
+	public boolean doAction(final StructrOutputStream out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
 	{
 		HttpSession session = CurrentRequest.getSession();
 		if(session != null)
@@ -64,4 +65,8 @@ public class AppLogout extends ActionNode
 	public void onNodeInstantiation()
 	{
 	}
+
+    @Override
+    public void onNodeDeletion() {
+    }
 }

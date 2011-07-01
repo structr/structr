@@ -34,4 +34,5 @@ public interface Module extends Serializable
 	public Set<String> getClasses();
 	public Set<String> getProperties();
 	public Set<String> getResources();
+	public Set<String> getLibraries();
 }
