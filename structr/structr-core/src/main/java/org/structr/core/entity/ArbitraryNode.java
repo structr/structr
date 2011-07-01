@@ -39,111 +39,112 @@ import org.structr.core.node.FindNodeCommand;
  */
 public class ArbitraryNode extends AbstractNode {
 
-    private final static String ICON_SRC = "/images/error.png";
-    public final static String ICON_SRC_KEY = "iconSrc";
-    private NodeType typeNode;
+	private final static String ICON_SRC = "/images/error.png";
+	public final static String ICON_SRC_KEY = "iconSrc";
+	public final static String TYPE_NODE_ID_KEY = "typeNodeId";
+	private NodeType typeNode;
 
-    @Override
-    public String getType() {
-        typeNode = getTypeNode();
-        if (typeNode != null) {
-            return typeNode.getName();
-        } else {
-            return super.getType();
-        }
-    }
+	@Override
+	public String getType() {
+		typeNode = getTypeNode();
+		if (typeNode != null) {
+			return typeNode.getName();
+		} else {
+			return super.getType();
+		}
+	}
 
-    @Override
-    public String getIconSrc() {
+	@Override
+	public String getIconSrc() {
 
-        if (typeNode == null) {
-            typeNode = getTypeNode();
-        }
+		if (typeNode == null) {
+			typeNode = getTypeNode();
+		}
 
-        Object iconSrc = null;
-        if (typeNode != null) {
-            iconSrc = typeNode.getProperty(ICON_SRC_KEY);
-        }
+		Object iconSrc = null;
+		if (typeNode != null) {
+			iconSrc = typeNode.getProperty(ICON_SRC_KEY);
+		}
 
-        if (iconSrc != null && iconSrc instanceof String) {
-            return (String) iconSrc;
-        } else {
-            return ICON_SRC;
-        }
-    }
+		if (iconSrc != null && iconSrc instanceof String) {
+			return (String) iconSrc;
+		} else {
+			return ICON_SRC;
+		}
+	}
 
-    @Override
-    public Iterable<String> getPropertyKeys() {
+	@Override
+	public Iterable<String> getPropertyKeys() {
 
-        if (typeNode == null) {
-            typeNode = getTypeNode();
-        }
+		if (typeNode == null) {
+			typeNode = getTypeNode();
+		}
 
-        if (typeNode != null) {
-            return typeNode.getPropertyKeys();
-        }
-        return Collections.EMPTY_LIST;
-    }
+		if (typeNode != null) {
+			return typeNode.getPropertyKeys();
+		}
+		return Collections.EMPTY_LIST;
+	}
 
-    @Override
-    public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers) {
-        renderers.put(RenderMode.Default, new ExternalTemplateRenderer(false));
-    }
+	@Override
+	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers) {
+		renderers.put(RenderMode.Default, new ExternalTemplateRenderer(false));
+	}
 
-    @Override
-    public void onNodeCreation() {
-    }
+	@Override
+	public void onNodeCreation() {
+	}
 
-    @Override
-    public void onNodeInstantiation() {
-    }
+	@Override
+	public void onNodeInstantiation() {
+	}
 
-    @Override
-    public void onNodeDeletion() {
-    }
+	@Override
+	public void onNodeDeletion() {
+	}
 
-    public Long getTypeNodeId() {
-        NodeType n = getTypeNode();
-        return (n != null ? n.getId() : null);
-    }
+	public Long getTypeNodeId() {
+		NodeType n = getTypeNode();
+		return (n != null ? n.getId() : null);
+	}
 
-    /**
-     * Return (cached) type node
-     *
-     * @return
-     */
-    public NodeType getTypeNode() {
+	/**
+	 * Return (cached) type node
+	 *
+	 * @return
+	 */
+	public NodeType getTypeNode() {
 
-        if (typeNode != null) {
-            return typeNode;
-        }
+		if (typeNode != null) {
+			return typeNode;
+		}
 
-        for (StructrRelationship s : getRelationships(RelType.TYPE, Direction.OUTGOING)) {
-            AbstractNode n = s.getEndNode();
-            if (n instanceof NodeType) {
-                return (NodeType) n;
-            }
-        }
-        return null;
-    }
+		for (StructrRelationship s : getRelationships(RelType.TYPE, Direction.OUTGOING)) {
+			AbstractNode n = s.getEndNode();
+			if (n instanceof NodeType) {
+				return (NodeType) n;
+			}
+		}
+		return null;
+	}
 
-    public void setTypeNodeId(final Long value) {
+	public void setTypeNodeId(final Long value) {
 
-        // find type node
-        Command findNode = Services.command(FindNodeCommand.class);
-        NodeType newTypeNode = (NodeType) findNode.execute(new SuperUser(), value);
+		// find type node
+		Command findNode = Services.command(FindNodeCommand.class);
+		NodeType newTypeNode = (NodeType) findNode.execute(new SuperUser(), value);
 
-        // delete existing type node relationships
-        List<StructrRelationship> templateRels = this.getOutgoingRelationships(RelType.TYPE);
-        Command delRel = Services.command(DeleteRelationshipCommand.class);
-        if (templateRels != null) {
-            for (StructrRelationship r : templateRels) {
-                delRel.execute(r);
-            }
-        }
+		// delete existing type node relationships
+		List<StructrRelationship> templateRels = this.getOutgoingRelationships(RelType.TYPE);
+		Command delRel = Services.command(DeleteRelationshipCommand.class);
+		if (templateRels != null) {
+			for (StructrRelationship r : templateRels) {
+				delRel.execute(r);
+			}
+		}
 
-        // create new link target relationship
-        Command createRel = Services.command(CreateRelationshipCommand.class);
-        createRel.execute(this, newTypeNode, RelType.TYPE);
-    }
+		// create new link target relationship
+		Command createRel = Services.command(CreateRelationshipCommand.class);
+		createRel.execute(this, newTypeNode, RelType.TYPE);
+	}
 }

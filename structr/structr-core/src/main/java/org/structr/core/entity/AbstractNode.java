@@ -134,7 +134,6 @@ public abstract class AbstractNode implements Comparable<AbstractNode>
 	private final static String CALLING_NODE_SUBNODES_KEY = "*";
 	private final static String CALLING_NODE_SUBNODES_AND_LINKED_NODES_KEY = "#";
 	public final static String TEMPLATE_ID_KEY = "templateId";
-	public final static String TYPE_NODE_ID_KEY = "typeNodeId";
 	//public final static String TEMPLATES_KEY = "templates";
 	protected Template template;
 	protected User user;

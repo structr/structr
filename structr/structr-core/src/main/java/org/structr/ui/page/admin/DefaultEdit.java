@@ -132,7 +132,7 @@ public class DefaultEdit extends Nodes {
     protected Checkbox cloudRecursive = new Checkbox("cloudRecursive", "Recursive");
     protected Select templateSelect = new Select(AbstractNode.TEMPLATE_ID_KEY, "Template");
     protected Select typeSelect = new Select(AbstractNode.TYPE_KEY, "Type");
-    protected Select customTypeSelect = new Select(AbstractNode.TYPE_NODE_ID_KEY, "Custom Type");
+    protected Select customTypeSelect = new Select(ArbitraryNode.TYPE_NODE_ID_KEY, "Custom Type");
     protected TextField consoleCommand;
     @Bindable
     protected String consoleOutput;
