@@ -46,6 +46,7 @@ public class Services {
     public static final String CONFIG_FILE_PATH = "configfile.path";
     public static final String SERVLET_CONTEXT = "servlet.context";
     public static final String TMP_PATH = "tmp.path";
+    public static final String BASE_PATH = "base.path";
     // Database-related constants
     public static final String DATABASE_PATH = "database.path";
     public static final String FILES_PATH = "files.path";
@@ -70,18 +71,18 @@ public class Services {
     private static final Map<Class, Class> serviceClassCache = new ConcurrentHashMap<Class, Class>(5, 0.75f, 100);
     private static final Map<Class, Service> serviceCache = new ConcurrentHashMap<Class, Service>(5, 0.75f, 100);
     private static Map<String, Object> context = null;
-    private static String basePath;// = "/opt/structr";
-    private static String databasePath;// = "/opt/structr/structr-tfs2/files";
-    private static String filesPath;// = "/opt/structr/structr-tfs2/files";
-    private static String appTitle;// = "structr";
-    private static String modulesPath;// = "/opt/structr/modules";
-    private static String configFilePath;// = "/opt/structr/structr.conf";
-    private static String tmpPath;// = "/tmp";
-    private static String serverIp;// = "localhost";
-    private static String tcpPort;// = "54555";
-    private static String udpPort;// = "54777";
-    private static String smtpHost;// = "localhost";
-    private static String smtpPort;// = "25";
+    private static String basePath;
+    private static String databasePath;
+    private static String filesPath;
+    private static String appTitle;
+    private static String modulesPath;
+    private static String configFilePath;
+    private static String tmpPath;
+    private static String serverIp;
+    private static String tcpPort;
+    private static String udpPort;
+    private static String smtpHost;
+    private static String smtpPort;
     private static String superuserUsername;
     private static String superuserPassword;
 
@@ -261,6 +262,7 @@ public class Services {
 
         appTitle = getConfigValue(context, Services.APPLICATION_TITLE, "structr");
         tmpPath = getConfigValue(context, Services.TMP_PATH, "/tmp");
+        basePath = getConfigValue(context, Services.BASE_PATH, "/opt/structr");
         databasePath = getConfigValue(context, Services.DATABASE_PATH, "/opt/structr/db");
         filesPath = getConfigValue(context, Services.FILES_PATH, "/opt/structr/files");
         modulesPath = getConfigValue(context, Services.MODULES_PATH, "/opt/structr/modules");

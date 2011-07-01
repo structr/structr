@@ -65,6 +65,9 @@ public class ApplicationContextListener implements ServletContextListener, HttpS
             String tmpPath = properties.getProperty(Services.TMP_PATH);
             logger.log(Level.INFO, "Config file temp path: {0}", tmpPath);
 
+            String basePath = properties.getProperty(Services.BASE_PATH);
+            logger.log(Level.INFO, "Config file base path: {0}", basePath);
+
             String databasePath = properties.getProperty(Services.DATABASE_PATH);
             logger.log(Level.INFO, "Config file database path: {0}", databasePath);
 
@@ -95,6 +98,10 @@ public class ApplicationContextListener implements ServletContextListener, HttpS
 
             if (tmpPath != null) {
                 context.put(Services.TMP_PATH, tmpPath);
+            }
+
+            if (basePath != null) {
+                context.put(Services.BASE_PATH, basePath);
             }
 
             if (databasePath != null) {
