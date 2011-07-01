@@ -19,6 +19,12 @@ import java.util.Collection;
  */
 public class Ajax extends StructrPage {
 
+	public Ajax() {
+		super();
+	}
+
+	//~--- methods --------------------------------------------------------
+
 	public ActionResult onUpdateNotificationContent() {
 
 		StringBuilder output                   = new StringBuilder(200);

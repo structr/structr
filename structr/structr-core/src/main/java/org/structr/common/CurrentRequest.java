@@ -278,7 +278,7 @@ public class CurrentRequest {
 
 		if (request != null) {
 
-			logger.log(Level.INFO, "Current user: {0}", request.getCurrentUserInternal());
+			logger.log(Level.FINE, "Current user: {0}", request.getCurrentUserInternal());
 
 			return request.getCurrentUserInternal();
 		}
@@ -339,7 +339,7 @@ public class CurrentRequest {
 
 		Thread currentThread = Thread.currentThread();
 
-		logger.log(Level.INFO, "Current thread: {0}[{1}]", new Object[] { currentThread.getName(),
+		logger.log(Level.FINE, "Current thread: {0}[{1}]", new Object[] { currentThread.getName(),
 			currentThread.getId() });
 
 		CurrentRequest request = contextMap.get(currentThread);

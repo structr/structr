@@ -577,7 +577,7 @@ public class Nodes extends Admin {
                 // if the node is readable for current user
                 if (isSuperUser || (subNode.readAllowed())) {
                     
-                    logger.log(Level.INFO, "isSuperUser? {0}, readAllowed? {1}", new Object[]{isSuperUser, subNode.readAllowed()}) ;
+                    logger.log(Level.FINEST, "isSuperUser? {0}, readAllowed? {1}", new Object[]{isSuperUser, subNode.readAllowed()}) ;
                     
 
                     // instantiate new tree node with given repository path,
