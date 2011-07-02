@@ -19,72 +19,41 @@
 
 package org.structr.core.entity.app;
 
-import java.net.URL;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
+import java.util.Set;
+import java.util.logging.Logger;
 import org.neo4j.graphdb.RelationshipType;
-import org.structr.common.PropertyKey;
+import org.structr.common.RelType;
 import org.structr.common.RenderMode;
 import org.structr.core.NodeRenderer;
+import org.structr.core.Predicate;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.renderer.ContentChildTemplateRenderer;
-import org.w3c.dom.Document;
-import org.w3c.dom.NodeList;
+import org.structr.core.node.FilterSourceCollector;
+import org.structr.core.node.IterableFilter;
 
 /**
  *
  * @author Christian Morgner
  */
-public class RssSyndicator extends AbstractNode  {
+public abstract class FilterNode extends AbstractNode {
 
-	public enum Key implements PropertyKey {
+	public abstract Set<Predicate<AbstractNode>> getFilterPredicates();
 
-		source, numItems
-	}
-
+	// ----- Filterable -----
 	@Override
-	protected List<AbstractNode> getDirectChildren(final RelationshipType relType, final String nodeType)
-	{
-		List<AbstractNode> ret = new LinkedList<AbstractNode>();
-		String source = getStringProperty(Key.source);
+	public Iterable<AbstractNode> getFilterSource(final RelationshipType relType, final String nodeType) {
 
-		try {
-
-			URL url = new URL(source);
-
-			DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-			Document doc = builder.parse(url.openStream());
-
-			NodeList items = doc.getElementsByTagName("item");
-			int len = Math.min(items.getLength(), getIntProperty(Key.numItems));
-
-			for(int i=0; i<len; i++) {
-
-				ret.add(new RssItem(i, items.item(i)));
-			}
-
-		} catch(Throwable t) {
-
-			t.printStackTrace();
-		}
-
-		return(ret);
+		return (new IterableFilter<AbstractNode>(new FilterSourceCollector(this, RelType.DATA, nodeType), getFilterPredicates()));
 	}
 
 	// ----- AbstractNode -----
 	@Override
 	public void initializeRenderers(Map<RenderMode, NodeRenderer> rendererMap) {
-
-		rendererMap.put(RenderMode.Default, new ContentChildTemplateRenderer());
 	}
 
 	@Override
 	public String getIconSrc() {
-
-		return("/images/feed.png");
+		return("/images/flag_blue.png");
 	}
 
 	@Override

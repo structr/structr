@@ -63,6 +63,7 @@ import org.structr.common.RenderMode;
 import org.structr.common.StructrOutputStream;
 import org.structr.common.TemplateHelper;
 import org.structr.common.renderer.DefaultEditRenderer;
+import org.structr.core.Filterable;
 import org.structr.core.NodeRenderer;
 import org.structr.core.NodeSource;
 import org.structr.core.cloud.NodeDataContainer;
@@ -81,7 +82,7 @@ import org.structr.core.node.search.SearchAttribute;
  * @author amorgner
  * 
  */
-public abstract class AbstractNode implements Comparable<AbstractNode>
+public abstract class AbstractNode implements Comparable<AbstractNode>, Filterable
 {
 	private static final Logger logger = Logger.getLogger(AbstractNode.class.getName());
 	private static final boolean updateIndexDefault = true;
@@ -2220,7 +2221,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>
 	 *
 	 * @return list with structr nodes
 	 */
-	protected List<AbstractNode> getDirectChildren(final RelationshipType relType, final String nodeType)
+	public List<AbstractNode> getDirectChildren(final RelationshipType relType, final String nodeType)
 	{
 
 		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
@@ -2387,6 +2388,12 @@ public abstract class AbstractNode implements Comparable<AbstractNode>
 		}
 
 		return nodes;
+	}
+
+	@Override
+	public Iterable<AbstractNode> getFilterSource(final RelationshipType relType, final String nodeType) {
+
+		return(getDirectChildren(relType, nodeType));
 	}
 
 	/**

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2011 Axel Morgner, structr <structr@structr.org>
+ *  Copyright (C) 2011 Axel Morgner
  * 
  *  This file is part of structr <http://structr.org>.
  * 
@@ -19,20 +19,13 @@
 
 package org.structr.core;
 
+import org.neo4j.graphdb.RelationshipType;
+
 /**
- * Defines a filtering adapter that can adapt an instance of source
- * class S to an instance of target class T.
  *
  * @author Christian Morgner
  */
-public interface Adapter<S, T>
-{
-	/**
-	 * Adapts the given instance of S to T.
-	 *
-	 * @param s the source class
-	 * @return the target class
-	 */
-	public T adapt(S s);
+public interface Filterable<T> {
 
+	public Iterable<T> getFilterSource(final RelationshipType relType, final String nodeType);
 }
