@@ -73,7 +73,7 @@ public class DeleteOperation implements PrimaryOperation {
 					try
 					{
 						// execute delete node command and call callbacks
-						deleteCommand.execute(node, null, recursive, CurrentRequest.getCurrentUser());
+						deleteCommand.execute(node, currentNode, recursive, CurrentRequest.getCurrentUser());
 
 						if(deleteCommand.getExitCode().equals(Command.exitCode.FAILURE)) {
 							stdOut.append(deleteCommand.getErrorMessage());
