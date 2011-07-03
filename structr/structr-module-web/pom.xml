@@ -7,13 +7,13 @@
   <parent>
     <groupId>org.structr</groupId>
     <artifactId>structr</artifactId>
-    <version>0.4.M01</version>
+    <version>0.4-SNAPSHOT</version>
   </parent>
     
   <groupId>org.structr</groupId>
   <artifactId>structr-module-web</artifactId>
   <packaging>jar</packaging>
-  <version>0.4.M01</version>
+  <version>0.4-SNAPSHOT</version>
   <name>structr-module-web</name>
   <url>http://maven.apache.org</url>
   <build>
@@ -54,7 +54,7 @@
     <dependency>
       <groupId>org.structr</groupId>
       <artifactId>structr-core</artifactId>
-      <version>0.4.M01</version>
+      <version>0.4-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.apache.click</groupId>
