@@ -50,14 +50,14 @@ public class ApplicationContextListener implements ServletContextListener, HttpS
         Map<String, Object> context = new ConcurrentHashMap<String, Object>();
         ServletContext servletContext = sce.getServletContext();
 
-        String configFile = servletContext.getInitParameter(Services.CONFIG_FILE_PATH);
-        context.put(Services.CONFIG_FILE_PATH, configFile);
+        String configFilePath = servletContext.getInitParameter(Services.CONFIG_FILE_PATH);
+        context.put(Services.CONFIG_FILE_PATH, configFilePath);
         context.put(Services.SERVLET_CONTEXT, servletContext);
 
         try {
             // load config file
             Properties properties = new Properties();
-            properties.load(new FileInputStream(configFile));
+            properties.load(new FileInputStream(configFilePath));
 
             String appTitle = properties.getProperty(Services.APPLICATION_TITLE);
             logger.log(Level.INFO, "Config file application title: {0}", appTitle);
@@ -68,7 +68,7 @@ public class ApplicationContextListener implements ServletContextListener, HttpS
             String basePath = properties.getProperty(Services.BASE_PATH);
             logger.log(Level.INFO, "Config file base path: {0}", basePath);
 
-            String databasePath = properties.getProperty(Services.DATABASE_PATH);
+	    String databasePath = properties.getProperty(Services.DATABASE_PATH);
             logger.log(Level.INFO, "Config file database path: {0}", databasePath);
 
             String filesPath = properties.getProperty(Services.FILES_PATH);

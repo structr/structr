@@ -1,33 +1,26 @@
 /*
  *  Copyright (C) 2011 Axel Morgner, structr <structr@structr.org>
- * 
+ *
  *  This file is part of structr <http://structr.org>.
- * 
+ *
  *  structr is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
- * 
+ *
  *  structr is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- * 
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+
+
 package org.structr.context;
 
-import java.util.LinkedList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.servlet.ServletContext;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 import org.structr.common.CurrentRequest;
 import org.structr.common.RelType;
 import org.structr.core.Command;
@@ -42,347 +35,457 @@ import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.NodeAttribute;
 
+//~--- JDK imports ------------------------------------------------------------
+
+import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+import org.structr.ui.page.admin.Ajax;
+
+//~--- classes ----------------------------------------------------------------
+
 /**
  * Helper class for handling session management
  *
  * @author axel
  */
 public class SessionMonitor {
-    
-    private static final Logger logger = Logger.getLogger(SessionMonitor.class.getName());
-    
-    private static final String USER_LIST_KEY = "userList";
-    private static List<Session> sessions = null;
-    public static final String SESSION_ID = "sessionId";
 
-    /**
-     * This class holds information about a user session, e.g.
-     * the user object, the login and logout time, and a list
-     * with activities.
-     *
-     */
-    // <editor-fold defaultstate="collapsed" desc="Session">
-    public static class Session {
+	public static final String SESSION_ID     = "sessionId";
+	private static final String USER_LIST_KEY = "userList";
+	private static final Logger logger        = Logger.getLogger(SessionMonitor.class.getName());
+	private static List<Session> sessions     = null;
 
-        private long id;
-        private String uid;
-        private State state;
-        private User user;
-        private Date loginTimestamp;
-        private Date logoutTimestamp;
-//        private LogNodeList<Activity> activityList;
-        private Map<String, Object> lastActivityProperties;
+	//~--- constant enums -------------------------------------------------
 
-        public Session(final long id, String uid, final User user, Date loginTime) {
-            this.id = id;
-            this.uid = uid;
-            this.state = State.ACTIVE;
-            this.user = user;
-            this.loginTimestamp = loginTime;
-//            this.activityList = getActivityList();
-        }
+	// <editor-fold defaultstate="collapsed" desc="State">
+	public enum State {
+		UNDEFINED, ACTIVE, INACTIVE, WAITING, CLOSED, STARTED, FINISHED;
+	}    // </editor-fold>
 
-        private boolean hasActivity() {
-            Activity lastActivity = getLastActivity();
-            return (lastActivity != null);
-        }
+	//~--- get methods ----------------------------------------------------
 
-        /**
-         * @return last activity type
-         */
-        public String getLastActivityType() {
-            Activity lastActivity = getLastActivity();
-            return lastActivity != null ? getLastActivity().getType() : null;
-        }
+	/**
+	 * Return list with all sessions
+	 *
+	 * @return
+	 */
+	public static List<Session> getSessions() {
+		return sessions;
+	}
 
-        /**
-         * @return last activity start timestamp
-         */
-        public Date getLastActivityStartTimestamp() {
-            return hasActivity() ? getLastActivity().getStartTimestamp() : null;
-        }
+	public static long getSessionByUId(final String sessionUid) {
 
-        /**
-         * @return last activity end timestamp
-         */
-        public Date getLastActivityEndTimestamp() {
-            return hasActivity() ? getLastActivity().getEndTimestamp() : null;
-        }
+		for (Session session : sessions) {
 
-        /**
-         * @return last activity URI
-         */
-        public String getLastActivityText() {
-            return hasActivity() ? getLastActivity().getActivityText() : null;
-        }
+			if (session.getUid().equals(sessionUid)) {
+				return session.getId();
+			}
+		}
 
-        /**
-         * Return time since last activity
-         * @return time since last activity
-         */
-        public Long getInactiveSince() {
-            if (hasActivity()) {
-                return (new Date()).getTime() - getLastActivityEndTimestamp().getTime();
-            }
-            return null;
-        }
+		return -1L;
+	}
 
-        public String getUserName() {
-            if (user == null) {
-                return null;
-            }
-            return user.getName();
-        }
+	//~--- methods --------------------------------------------------------
 
-        public User getUser() {
-            return user;
-        }
+	/**
+	 * Register user in servlet context
+	 */
+	public static long registerUserSession(final HttpSession session) {
 
-        public void setUser(final User user) {
-            this.user = user;
-        }
+		User user = CurrentRequest.getCurrentUser();
 
-        public Date getLoginTimestamp() {
-            return loginTimestamp;
-        }
+		init(session.getServletContext());
 
-        public void setLoginTimestamp(final Date loginTimestamp) {
-            this.loginTimestamp = loginTimestamp;
-        }
+		long id = nextId(session.getServletContext());
 
-        public LogNodeList<Activity> getActivityList() {
+		sessions.add(new Session(id, session.getId(), user, new Date()));
+		session.getServletContext().setAttribute(USER_LIST_KEY, sessions);
 
-            LogNodeList<Activity> activityList;
-            // First, try to find user's activity list
-            for (AbstractNode s : user.getDirectChildNodes()) {
-                if (s instanceof LogNodeList) {
+		return id;
+	}
 
-                    // Take the first LogNodeList
-                    activityList = (LogNodeList) s;
-                    return activityList;
-                }
-            }
+	/**
+	 * Unregister user in servlet context
+	 */
+	public static void unregisterUserSession(final long id, final ServletContext context) {
 
-            // Create a new activity list as child node of the respective user
-            Command createNode = Services.command(CreateNodeCommand.class);
-            Command createRel = Services.command(CreateRelationshipCommand.class);
+		init(context);
 
-            activityList = (LogNodeList<Activity>) createNode.execute(user,
-                    new NodeAttribute(AbstractNode.TYPE_KEY, LogNodeList.class.getSimpleName()),
-                    new NodeAttribute(AbstractNode.NAME_KEY, user.getName() + "'s Activity Log"));
-//            activityList = new LogNodeList<Activity>();
-//            activityList.init(s);
+		Session session = getSession(id);
 
-            createRel.execute(user, activityList, RelType.HAS_CHILD);
+		session.setLogoutTime(new Date());
+		session.setState(State.INACTIVE);
 
-            return activityList;
-        }
+//              context.setAttribute(USER_LIST_KEY, sessions);
+	}
 
-        private void setLastActivity(final Activity activity) {
-            lastActivityProperties = activity.getPropertyMap();
-        }
+	/**
+	 * Append an activity to the activity list
+	 *
+	 * @param sessionId
+	 * @param action
+	 */
+	public static void logActivity(final long sessionId, final String action) {
 
-        private Activity getLastActivity() {
-            Activity a = new Activity(lastActivityProperties);
-            return a;
-        }
+		Date now  = new Date();
+		User user = CurrentRequest.getCurrentUser();
 
-//        public void setActivityList(final List<Activity> activityList) {
-//            this.setActivityList(activityList);
-//        }
-        public Date getLogoutTimestamp() {
-            return logoutTimestamp;
-        }
+		// Create a "dirty" activity node
+		Activity activity = new Activity();
 
-        public void setLogoutTime(final Date logoutTime) {
-            this.logoutTimestamp = logoutTime;
-        }
+		activity.setProperty(AbstractNode.TYPE_KEY, Activity.class.getSimpleName());
 
-        public long getId() {
-            return id;
-        }
+		if (user != null) {
 
-        public void setId(final long id) {
-            this.id = id;
-        }
+			activity.setProperty(AbstractNode.NAME_KEY,
+					     "User: " + user.getName() + ", Action: " + action + ", Date: " + now);
+		}
 
-        public String getUid() {
-            return uid;
-        }
+		activity.setProperty(Activity.SESSION_ID_KEY, sessionId);
+		activity.setProperty(Activity.START_TIMESTAMP_KEY, now);
+		activity.setProperty(Activity.END_TIMESTAMP_KEY, now);
+		activity.setUser(user);
+		getSession(sessionId).setLastActivity(activity);
+		Services.command(LogCommand.class).execute(activity);
+	}
 
-        /**
-         * @param uid the uid to set
-         */
-        public void setUid(final String uid) {
-            this.uid = uid;
-        }
+	/**
+	 * Append a page request to the activity list
+	 *
+	 * @param sessionId
+	 * @param action
+	 */
+	public static void logPageRequest(final long sessionId, final String action, final HttpServletRequest request) {
 
-//        public void addActivity(final Activity activity) {
-//            activityList.add(activity);
-//        }
-        public State getState() {
-            return state;
-        }
+		long t0   = System.currentTimeMillis();
+		Date now  = new Date();
+		User user = CurrentRequest.getCurrentUser();
 
-        public void setState(final State state) {
-            this.state = state;
-        }
-    }// </editor-fold>
+		// Create a "dirty" page request node
+		PageRequest pageRequest = new PageRequest();
 
-    // <editor-fold defaultstate="collapsed" desc="State">
-    public enum State {
+		pageRequest.setProperty(AbstractNode.TYPE_KEY, PageRequest.class.getSimpleName());
+		pageRequest.setProperty(AbstractNode.NAME_KEY, action + ", Date: " + now);
 
-        UNDEFINED, ACTIVE, INACTIVE, WAITING, CLOSED, STARTED, FINISHED;
-    }// </editor-fold>
+		StringBuilder text = new StringBuilder();
 
-    /**
-     * Return list with all sessions
-     * 
-     * @return
-     */
-    public static List<Session> getSessions() {
-        return sessions;
-    }
+		text.append("{");
 
-    public static long getSessionByUId(final String sessionUid) {
-        for (Session session : sessions) {
-            if (session.getUid().equals(sessionUid)) return session.getId();
-        }
-        return -1L;
-    }
+		if (request != null) {
 
-    /**
-     * Register user in servlet context
-     */
-    public static long registerUserSession(final HttpSession session) {
-        User user = CurrentRequest.getCurrentUser();
-        init(session.getServletContext());
-        long id = nextId(session.getServletContext());
-        sessions.add(new Session(id, session.getId(), user, new Date()));
-        session.getServletContext().setAttribute(USER_LIST_KEY, sessions);
-        return id;
+			Map<String, Object> parameterMap = request.getParameterMap();
+			Set<String> keys                 = parameterMap.keySet();
 
-    }
+			for (String key : keys) {
 
-    /**
-     * Unregister user in servlet context
-     */
-    public static void unregisterUserSession(final long id, final ServletContext context) {
+				String value = request.getParameter(key);
 
-        init(context);
-        Session session = getSession(id);
-        session.setLogoutTime(new Date());
-        session.setState(State.INACTIVE);
-//        context.setAttribute(USER_LIST_KEY, sessions);
+				// Don't log ajax notification requests
+				if ("onUpdateNotificationContent".equals(value)) return;
 
-    }
+				text.append("\"").append(key).append("\": \"").append(value).append(
+				    "\", ");
+			}
 
-    /**
-     * Append an activity to the activity list
-     * 
-     * @param sessionId
-     * @param action
-     */
-    public static void logActivity(final long sessionId, final String action) {
+			text.append("\"uri\": \"").append(request.getRequestURI()).append("\", ");
+			text.append("\"remoteAddress\": \"").append(request.getRemoteAddr()).append("\", ");
+			text.append("\"remoteHost\": \"").append(request.getRemoteHost()).append("\"");
+		}
 
-        Date now = new Date();
+		pageRequest.setProperty(Activity.SESSION_ID_KEY, sessionId);
+		pageRequest.setProperty(Activity.START_TIMESTAMP_KEY, now);
+		pageRequest.setProperty(Activity.END_TIMESTAMP_KEY, now);
+		pageRequest.setUser(user);
+		text.append("}");
+		pageRequest.setActivityText(text.toString());
+		getSession(sessionId).setLastActivity(pageRequest);
+		Services.command(LogCommand.class).execute(pageRequest);
 
-        User user = CurrentRequest.getCurrentUser();
+		long t1 = System.currentTimeMillis();
 
-        // Create a "dirty" activity node
-        Activity activity = new Activity();
-        activity.setProperty(AbstractNode.TYPE_KEY, Activity.class.getSimpleName());
+		logger.log(Level.FINE, "Logging of page request took {0} ms", (t1 - t0) / 1000);
+	}
 
-        if (user != null) {
-            activity.setProperty(AbstractNode.NAME_KEY, "User: " + user.getName() + ", Action: " + action + ", Date: " + now);
-        }
+	// ---------------- private methods ---------------------
+	// <editor-fold defaultstate="collapsed" desc="private methods">
 
-        activity.setProperty(Activity.SESSION_ID_KEY, sessionId);
-        activity.setProperty(Activity.START_TIMESTAMP_KEY, now);
-        activity.setProperty(Activity.END_TIMESTAMP_KEY, now);
-        activity.setUser(user);
+	//~--- get methods ----------------------------------------------------
 
-        getSession(sessionId).setLastActivity(activity);
-        Services.command(LogCommand.class).execute(activity);
-    }
+	private static Session getSession(final long sessionId) {
 
-    /**
-     * Append a page request to the activity list
-     *
-     * @param sessionId
-     * @param action
-     */
-    public static void logPageRequest(final long sessionId, final String action, final HttpServletRequest request) {
+		for (Session s : sessions) {
 
-        long t0 = System.currentTimeMillis();
-        
-        Date now = new Date();
+			if (s.getId() == sessionId) {
+				return s;
+			}
+		}
 
-        User user = CurrentRequest.getCurrentUser();
+		return null;
+	}
 
-        // Create a "dirty" page request node
-        PageRequest pageRequest = new PageRequest();
-        pageRequest.setProperty(AbstractNode.TYPE_KEY, PageRequest.class.getSimpleName());
-        pageRequest.setProperty(AbstractNode.NAME_KEY, action + ", Date: " + now);
-        
-        StringBuilder text = new StringBuilder();
-        text.append("{");
-        
-        if (request != null) {
-            
-            Map<String,Object> parameterMap = request.getParameterMap();
-            Set<String> keys = parameterMap.keySet();
-            for (String key : keys) {
-                text.append("\"").append(key).append("\": \"").append(request.getParameter(key)).append("\", ");
-            }
-            
-            
-            text.append("\"uri\": \"").append(request.getRequestURI()).append("\", ");
-            text.append("\"remoteAddress\": \"").append(request.getRemoteAddr()).append("\", ");
-            text.append("\"remoteHost\": \"").append(request.getRemoteHost()).append("\"");
-            
-        }
+	//~--- methods --------------------------------------------------------
 
-        pageRequest.setProperty(Activity.SESSION_ID_KEY, sessionId);
-        pageRequest.setProperty(Activity.START_TIMESTAMP_KEY, now);
-        pageRequest.setProperty(Activity.END_TIMESTAMP_KEY, now);
-        pageRequest.setUser(user);
+	private static void init(final ServletContext context) {
 
-        text.append("}");
-        pageRequest.setActivityText(text.toString());
-        
-        getSession(sessionId).setLastActivity(pageRequest);
-        Services.command(LogCommand.class).execute(pageRequest);
-        
-        long t1 = System.currentTimeMillis();
-        
-        logger.log(Level.FINE, "Logging of page request took {0} ms", (t1-t0)/1000);
-    }
-    // ---------------- private methods ---------------------    
-    // <editor-fold defaultstate="collapsed" desc="private methods">
+		if (sessions == null) {
+			sessions = (List<Session>) context.getAttribute(USER_LIST_KEY);
+		}
 
-    private static Session getSession(final long sessionId) {
-        for (Session s : sessions) {
-            if (s.getId() == sessionId) {
-                return s;
-            }
-        }
-        return null;
-    }
+		if (sessions == null) {
+			sessions = new LinkedList<Session>();
+		}
+	}
 
-    private static void init(final ServletContext context) {
-        if (sessions == null) {
-            sessions = (List<Session>) context.getAttribute(USER_LIST_KEY);
-        }
+	private static long nextId(final ServletContext context) {
 
-        if (sessions == null) {
-            sessions = new LinkedList<Session>();
-        }
-    }
+		init(context);
 
-    private static long nextId(final ServletContext context) {
-        init(context);
-        return sessions.size();
-    }
-    // </editor-fold>
+		return sessions.size();
+	}
+
+	//~--- inner classes --------------------------------------------------
+
+	/**
+	 * This class holds information about a user session, e.g.
+	 * the user object, the login and logout time, and a list
+	 * with activities.
+	 *
+	 */
+
+	// <editor-fold defaultstate="collapsed" desc="Session">
+	public static class Session {
+
+		private long id;
+
+//              private LogNodeList<Activity> activityList;
+		private Map<String, Object> lastActivityProperties;
+		private Date loginTimestamp;
+		private Date logoutTimestamp;
+		private State state;
+		private String uid;
+		private User user;
+
+		//~--- constructors -------------------------------------------
+
+		public Session(final long id, String uid, final User user, Date loginTime) {
+
+			this.id             = id;
+			this.uid            = uid;
+			this.state          = State.ACTIVE;
+			this.user           = user;
+			this.loginTimestamp = loginTime;
+
+//                      this.activityList = getActivityList();
+		}
+
+		//~--- get methods --------------------------------------------
+
+		private boolean hasActivity() {
+
+			Activity lastActivity = getLastActivity();
+
+			return (lastActivity != null);
+		}
+
+		/**
+		 * @return last activity type
+		 */
+		public String getLastActivityType() {
+
+			Activity lastActivity = getLastActivity();
+
+			return (lastActivity != null)
+			       ? getLastActivity().getType()
+			       : null;
+		}
+
+		/**
+		 * @return last activity start timestamp
+		 */
+		public Date getLastActivityStartTimestamp() {
+
+			return hasActivity()
+			       ? getLastActivity().getStartTimestamp()
+			       : null;
+		}
+
+		/**
+		 * @return last activity end timestamp
+		 */
+		public Date getLastActivityEndTimestamp() {
+
+			return hasActivity()
+			       ? getLastActivity().getEndTimestamp()
+			       : null;
+		}
+
+		/**
+		 * @return last activity URI
+		 */
+		public String getLastActivityText() {
+
+			return hasActivity()
+			       ? getLastActivity().getActivityText()
+			       : null;
+		}
+
+		/**
+		 * Return time since last activity
+		 * @return time since last activity
+		 */
+		public Long getInactiveSince() {
+
+			if (hasActivity()) {
+				return (new Date()).getTime() - getLastActivityEndTimestamp().getTime();
+			}
+
+			return null;
+		}
+
+		public String getUserName() {
+
+			if (user == null) {
+				return null;
+			}
+
+			return user.getName();
+		}
+
+		public User getUser() {
+			return user;
+		}
+
+		//~--- set methods --------------------------------------------
+
+		public void setUser(final User user) {
+			this.user = user;
+		}
+
+		//~--- get methods --------------------------------------------
+
+		public Date getLoginTimestamp() {
+			return loginTimestamp;
+		}
+
+		//~--- set methods --------------------------------------------
+
+		public void setLoginTimestamp(final Date loginTimestamp) {
+			this.loginTimestamp = loginTimestamp;
+		}
+
+		//~--- get methods --------------------------------------------
+
+		public LogNodeList<Activity> getActivityList() {
+
+			LogNodeList<Activity> activityList;
+
+			// First, try to find user's activity list
+			for (AbstractNode s : user.getDirectChildNodes()) {
+
+				if (s instanceof LogNodeList) {
+
+					// Take the first LogNodeList
+					activityList = (LogNodeList) s;
+
+					return activityList;
+				}
+			}
+
+			// Create a new activity list as child node of the respective user
+			Command createNode = Services.command(CreateNodeCommand.class);
+			Command createRel  = Services.command(CreateRelationshipCommand.class);
+
+			activityList = (LogNodeList<Activity>) createNode.execute(user,
+				new NodeAttribute(AbstractNode.TYPE_KEY, LogNodeList.class.getSimpleName()),
+				new NodeAttribute(AbstractNode.NAME_KEY, user.getName() + "'s Activity Log"));
+
+//                      activityList = new LogNodeList<Activity>();
+//                      activityList.init(s);
+			createRel.execute(user, activityList, RelType.HAS_CHILD);
+
+			return activityList;
+		}
+
+		//~--- set methods --------------------------------------------
+
+		private void setLastActivity(final Activity activity) {
+			lastActivityProperties = activity.getPropertyMap();
+		}
+
+		//~--- get methods --------------------------------------------
+
+		private Activity getLastActivity() {
+
+			Activity a = new Activity(lastActivityProperties);
+
+			return a;
+		}
+
+//              public void setActivityList(final List<Activity> activityList) {
+//                  this.setActivityList(activityList);
+//              }
+		public Date getLogoutTimestamp() {
+			return logoutTimestamp;
+		}
+
+		//~--- set methods --------------------------------------------
+
+		public void setLogoutTime(final Date logoutTime) {
+			this.logoutTimestamp = logoutTime;
+		}
+
+		//~--- get methods --------------------------------------------
+
+		public long getId() {
+			return id;
+		}
+
+		//~--- set methods --------------------------------------------
+
+		public void setId(final long id) {
+			this.id = id;
+		}
+
+		//~--- get methods --------------------------------------------
+
+		public String getUid() {
+			return uid;
+		}
+
+		//~--- set methods --------------------------------------------
+
+		/**
+		 * @param uid the uid to set
+		 */
+		public void setUid(final String uid) {
+			this.uid = uid;
+		}
+
+		//~--- get methods --------------------------------------------
+
+//              public void addActivity(final Activity activity) {
+//                  activityList.add(activity);
+//              }
+		public State getState() {
+			return state;
+		}
+
+		//~--- set methods --------------------------------------------
+
+		public void setState(final State state) {
+			this.state = state;
+		}
+
+	}    // </editor-fold>
+
+	// </editor-fold>
 }

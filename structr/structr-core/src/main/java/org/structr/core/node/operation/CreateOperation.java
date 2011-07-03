@@ -79,6 +79,7 @@ public class CreateOperation implements PrimaryOperation, NodeTypeOperation, Nod
 					for(String nodeName : nodeNames) {
 
 						AbstractNode newNode = (AbstractNode)createNodeCommand.execute(
+						    CurrentRequest.getCurrentUser(),
 						    nodeAttributes
 						);
 						
