@@ -17,13 +17,14 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.structr.core.entity.app;
+package org.structr.core.entity.app.filter;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
 import org.structr.common.PropertyKey;
 import org.structr.core.Predicate;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.app.FilterNode;
 
 /**
  *

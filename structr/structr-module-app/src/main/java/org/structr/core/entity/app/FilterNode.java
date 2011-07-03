@@ -21,7 +21,6 @@ package org.structr.core.entity.app;
 
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Logger;
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.RelType;
 import org.structr.common.RenderMode;
@@ -32,6 +31,7 @@ import org.structr.core.node.FilterSourceCollector;
 import org.structr.core.node.IterableFilter;
 
 /**
+ * The abstract base class for filter nodes.
  *
  * @author Christian Morgner
  */
