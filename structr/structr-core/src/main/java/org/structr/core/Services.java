@@ -259,6 +259,8 @@ public class Services {
             logger.log(Level.SEVERE, "Could not initialize service layer: Service context is null");
             return;
         }
+	
+	configFilePath = getConfigValue(context, Services.CONFIG_FILE_PATH, "/opt/structr/structr.conf");
 
         appTitle = getConfigValue(context, Services.APPLICATION_TITLE, "structr");
         tmpPath = getConfigValue(context, Services.TMP_PATH, "/tmp");

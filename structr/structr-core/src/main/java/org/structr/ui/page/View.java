@@ -54,7 +54,8 @@ public class View extends StructrPage
 	@Override
 	public boolean onSecurityCheck()
 	{
-		userName = getContext().getRequest().getRemoteUser();
+//		userName = getContext().getRequest().getRemoteUser();
+		userName = getUsernameFromSession();
 		return true;
 	}
 
