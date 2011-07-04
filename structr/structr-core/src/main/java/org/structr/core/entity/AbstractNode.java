@@ -1509,24 +1509,24 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 	}
 
 	//~--- methods --------------------------------------------------------
-
-	/**
-	 * Render a minimal html header
-	 *
-	 * @param out
-	 */
-	protected void renderHeader(StringBuilder out) {
-		out.append("<html><head><title>").append(getName()).append(" (Domain)</title></head><body>");
-	}
-
-	/**
-	 * Render a minimal html footer
-	 *
-	 * @param out
-	 */
-	protected void renderFooter(StringBuilder out) {
-		out.append("</body></html>");
-	}
+//
+//	/**
+//	 * Render a minimal html header
+//	 *
+//	 * @param out
+//	 */
+//	protected void renderHeader(StringBuilder out) {
+//		out.append("<html><head><title>").append(getName()).append(" (Domain)</title></head><body>");
+//	}
+//
+//	/**
+//	 * Render a minimal html footer
+//	 *
+//	 * @param out
+//	 */
+//	protected void renderFooter(StringBuilder out) {
+//		out.append("</body></html>");
+//	}
 
 	/*
 	 * @Override
