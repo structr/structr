@@ -11,7 +11,6 @@ import org.structr.common.CurrentRequest;
 import org.structr.common.RelType;
 import org.structr.common.RenderMode;
 import org.structr.common.StructrOutputStream;
-import org.structr.core.Filterable;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Template;
 
@@ -54,9 +53,9 @@ public class NodeListRenderer extends NodeViewRenderer
 					List<AbstractNode> nodesToRender = new LinkedList<AbstractNode>();
 
 					// iterate over children following the DATA relationship and collect all nodes
-					for(AbstractNode container : currentNode.getSortedDirectChildren(RelType.DATA))
+					for(AbstractNode container : currentNode.getDirectChildren(RelType.DATA))
 					{
-						Iterable<AbstractNode> iterable = container.getFilterSource(RelType.DATA, null);
+						Iterable<AbstractNode> iterable = container.getDataNodes();
 
 						for(AbstractNode node : iterable) {
 							nodesToRender.add(node);

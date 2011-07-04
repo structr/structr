@@ -27,7 +27,6 @@ import java.util.concurrent.TimeUnit;
 import javax.servlet.ServletContext;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.CurrentRequest;
 import org.structr.common.PropertyKey;
 import org.structr.common.RenderMode;
@@ -51,11 +50,13 @@ public class RssSource extends AbstractNode {
 	}
 
 	@Override
-	public Iterable<AbstractNode> getFilterSource(final RelationshipType relType, final String nodeType)
+	public Iterable<AbstractNode> getDataNodes()
 	{
 		// content is cached in servlet context
 		ServletContext context = CurrentRequest.getRequest().getSession().getServletContext();
 		List<AbstractNode> ret = null;
+
+		// TODO: synchronization
 
 		if(context != null) {
 

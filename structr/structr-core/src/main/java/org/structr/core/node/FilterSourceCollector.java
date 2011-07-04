@@ -20,24 +20,21 @@
 package org.structr.core.node;
 
 import java.util.Iterator;
-import org.neo4j.graphdb.RelationshipType;
 import org.structr.core.entity.AbstractNode;
 
 /**
+ * This class combines multiple data source into a single Iterable
+ * for easy aggregation.
  *
  * @author Christian Morgner
  */
 public class FilterSourceCollector implements Iterable<AbstractNode> {
 
 	private Iterator<AbstractNode> iterator = null;
-	private RelationshipType relType = null;
-	private String nodeType = null;
 
-	public FilterSourceCollector(AbstractNode root, RelationshipType relType, String nodeType) {
+	public FilterSourceCollector(Iterable<AbstractNode> source) {
 
-		this.iterator = root.getDirectChildren(relType, nodeType).iterator();
-		this.relType = relType;
-		this.nodeType = nodeType;
+		this.iterator = source.iterator();
 	}
 
 	@Override
@@ -60,8 +57,12 @@ public class FilterSourceCollector implements Iterable<AbstractNode> {
 					{
 						if(iterator.hasNext()) {
 
-							currentIterator = iterator.next().getFilterSource(relType, nodeType).iterator();
-							return(true);
+							Iterable<AbstractNode> nextDataNodes = iterator.next().getDataNodes();
+							if(nextDataNodes != null) {
+
+								currentIterator = nextDataNodes.iterator();
+								return(true);
+							}
 						}
 
 					}
@@ -70,8 +71,12 @@ public class FilterSourceCollector implements Iterable<AbstractNode> {
 
 					if(iterator.hasNext()) {
 
-						currentIterator = iterator.next().getFilterSource(relType, nodeType).iterator();
-						return(true);
+						Iterable<AbstractNode> nextDataNodes = iterator.next().getDataNodes();
+						if(nextDataNodes != null) {
+
+							currentIterator = nextDataNodes.iterator();
+							return(true);
+						}
 					}
 				}
 
