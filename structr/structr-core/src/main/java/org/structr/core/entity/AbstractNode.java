@@ -2159,7 +2159,8 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 	 *
 	 * @return list with structr nodes
 	 */
-	protected List<AbstractNode> getDirectChildren(final RelationshipType relType, final String nodeType) {
+	public List<AbstractNode> getDirectChildren(final RelationshipType relType, final String nodeType)
+	{
 
 		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
 
@@ -2317,6 +2318,12 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 		}
 
 		return nodes;
+	}
+
+	public Iterable<AbstractNode> getDataNodes() {
+
+		// this is the default implementation
+		return(getDirectChildNodes());
 	}
 
 	//~--- set methods ----------------------------------------------------

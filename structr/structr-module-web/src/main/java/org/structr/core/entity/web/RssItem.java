@@ -17,7 +17,7 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.structr.core.entity.app;
+package org.structr.core.entity.web;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -36,8 +36,6 @@ import org.w3c.dom.NodeList;
  */
 public class RssItem extends AbstractNode {
 	
-	private static final Logger logger = Logger.getLogger(RssItem.class.getName());
-
 	private Map<String, Object> values = new LinkedHashMap<String, Object>();
 	private Node source = null;
 
@@ -107,8 +105,6 @@ public class RssItem extends AbstractNode {
 
 				if(StringUtils.isNotBlank(name) && StringUtils.isNotBlank(value)) {
 
-					logger.log(Level.INFO, "found tag {0} with value {1}", new Object[] { name, value } );
-					
 					if(name.contains(":")) {
 						
 						String[] namespaceParts = name.split("[:]+");
