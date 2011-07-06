@@ -19,11 +19,11 @@
 package org.structr.core.cloud;
 
 import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.serialize.FieldSerializer;
 import com.esotericsoftware.kryonet.Server;
 import com.esotericsoftware.minlog.Log;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -33,12 +33,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.Command;
 import org.structr.core.Services;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.SuperUser;
-import org.structr.core.entity.User;
-import org.structr.core.node.CreateRelationshipCommand;
-import org.structr.core.node.FindNodeCommand;
-import org.structr.core.node.NodeFactoryCommand;
 import org.structr.core.node.RunnableNodeService;
 
 /**
@@ -125,7 +119,8 @@ public class CloudService extends RunnableNodeService
 
 		server = new Server(CloudService.BUFFER_SIZE * 4, CloudService.BUFFER_SIZE * 2);
 		Kryo kryo = server.getKryo();
-		registerClasses(kryo);
+
+		registerClasses(kryo, rootListener);
 
 		server.start();
 
@@ -168,31 +163,31 @@ public class CloudService extends RunnableNodeService
 		activeTransmissions.remove(transmission);
 	}
 	
-	public static void registerClasses(Kryo kryo)
+	public static void registerClasses(Kryo kryo, CipherProvider keyProvider)
 	{
 
 		kryo.register(HashMap.class);
 		kryo.register(LinkedList.class);
 
 		// structr classes
-		kryo.register(NodeDataContainer.class);
-		kryo.register(FileNodeChunk.class);
-		kryo.register(FileNodeEndChunk.class);
-		kryo.register(FileNodeDataContainer.class);
-		kryo.register(RelationshipDataContainer.class);
-		kryo.register(PullNodeRequestContainer.class);
-		kryo.register(PushNodeRequestContainer.class);
+		kryo.register(NodeDataContainer.class, new EncryptingCompressor(new FieldSerializer(kryo, NodeDataContainer.class), keyProvider));
+		kryo.register(FileNodeChunk.class, new EncryptingCompressor(new FieldSerializer(kryo, FileNodeChunk.class), keyProvider));
+		kryo.register(FileNodeEndChunk.class, new EncryptingCompressor(new FieldSerializer(kryo, FileNodeEndChunk.class), keyProvider));
+		kryo.register(FileNodeDataContainer.class, new EncryptingCompressor(new FieldSerializer(kryo, FileNodeDataContainer.class), keyProvider));
+		kryo.register(RelationshipDataContainer.class, new EncryptingCompressor(new FieldSerializer(kryo, RelationshipDataContainer.class), keyProvider));
+		kryo.register(PullNodeRequestContainer.class, new EncryptingCompressor(new FieldSerializer(kryo, PullNodeRequestContainer.class), keyProvider));
+		kryo.register(PushNodeRequestContainer.class, new EncryptingCompressor(new FieldSerializer(kryo, PushNodeRequestContainer.class), keyProvider));
 
 		// Neo4j array types
-		kryo.register(String[].class);
-		kryo.register(char[].class);
-		kryo.register(byte[].class);
-		kryo.register(boolean[].class);
-		kryo.register(int[].class);
-		kryo.register(long[].class);
-		kryo.register(short[].class);
-		kryo.register(float[].class);
-		kryo.register(double[].class);
+		kryo.register(String[].class, new EncryptingCompressor(new FieldSerializer(kryo, String[].class), keyProvider));
+		kryo.register(char[].class, new EncryptingCompressor(new FieldSerializer(kryo, char[].class), keyProvider));
+		kryo.register(byte[].class, new EncryptingCompressor(new FieldSerializer(kryo, byte[].class), keyProvider));
+		kryo.register(boolean[].class, new EncryptingCompressor(new FieldSerializer(kryo, boolean[].class), keyProvider));
+		kryo.register(int[].class, new EncryptingCompressor(new FieldSerializer(kryo, int[].class), keyProvider));
+		kryo.register(long[].class, new EncryptingCompressor(new FieldSerializer(kryo, long[].class), keyProvider));
+		kryo.register(short[].class, new EncryptingCompressor(new FieldSerializer(kryo, short[].class), keyProvider));
+		kryo.register(float[].class, new EncryptingCompressor(new FieldSerializer(kryo, float[].class), keyProvider));
+		kryo.register(double[].class, new EncryptingCompressor(new FieldSerializer(kryo, double[].class), keyProvider));
 	}
 
 }

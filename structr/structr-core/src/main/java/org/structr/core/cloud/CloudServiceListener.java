@@ -23,6 +23,8 @@ import com.esotericsoftware.kryonet.Listener;
 import java.util.Collections;
 import java.util.Map;
 import java.util.WeakHashMap;
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
 
 /**
  * The root listener for all cloud service connections. This listener can be
@@ -31,7 +33,7 @@ import java.util.WeakHashMap;
  *
  * @author Christian Morgner
  */
-public class CloudServiceListener extends Listener {
+public class CloudServiceListener extends Listener implements CipherProvider {
 
 	private final Map<Connection, ConnectionListener> listeners = Collections.synchronizedMap(new WeakHashMap<Connection, ConnectionListener>());
 
@@ -59,5 +61,44 @@ public class CloudServiceListener extends Listener {
 		if(listener != null) {
 			listeners.remove(connection);
 		}
+	}
+
+	// ----- interface CipherProvider -----
+	@Override
+	public Cipher getEncryptionCipher(Object obj) {
+
+		Cipher ret = null;
+
+		try {
+			byte[] key = null;
+			SecretKeySpec keySpec = new SecretKeySpec(key, "Blowfish");
+
+			ret = Cipher.getInstance("Blowfish");
+			ret.init(Cipher.ENCRYPT_MODE, keySpec);
+
+		} catch(Throwable t) {
+		}
+
+		return(ret);
+
+	}
+
+	@Override
+	public Cipher getDecryptionCipher(Object obj) {
+
+		Cipher ret = null;
+
+		try {
+			byte[] key = null;
+			SecretKeySpec keySpec = new SecretKeySpec(key, "Blowfish");
+
+			ret = Cipher.getInstance("Blowfish");
+			ret.init(Cipher.DECRYPT_MODE, keySpec);
+
+		} catch(Throwable t) {
+		}
+
+		return(ret);
+
 	}
 }
