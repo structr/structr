@@ -1509,24 +1509,24 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 	}
 
 	//~--- methods --------------------------------------------------------
-
-	/**
-	 * Render a minimal html header
-	 *
-	 * @param out
-	 */
-	protected void renderHeader(StringBuilder out) {
-		out.append("<html><head><title>").append(getName()).append(" (Domain)</title></head><body>");
-	}
-
-	/**
-	 * Render a minimal html footer
-	 *
-	 * @param out
-	 */
-	protected void renderFooter(StringBuilder out) {
-		out.append("</body></html>");
-	}
+//
+//	/**
+//	 * Render a minimal html header
+//	 *
+//	 * @param out
+//	 */
+//	protected void renderHeader(StringBuilder out) {
+//		out.append("<html><head><title>").append(getName()).append(" (Domain)</title></head><body>");
+//	}
+//
+//	/**
+//	 * Render a minimal html footer
+//	 *
+//	 * @param out
+//	 */
+//	protected void renderFooter(StringBuilder out) {
+//		out.append("</body></html>");
+//	}
 
 	/*
 	 * @Override
@@ -2159,7 +2159,8 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 	 *
 	 * @return list with structr nodes
 	 */
-	protected List<AbstractNode> getDirectChildren(final RelationshipType relType, final String nodeType) {
+	public List<AbstractNode> getDirectChildren(final RelationshipType relType, final String nodeType)
+	{
 
 		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
 
@@ -2317,6 +2318,12 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 		}
 
 		return nodes;
+	}
+
+	public Iterable<AbstractNode> getDataNodes() {
+
+		// this is the default implementation
+		return(getDirectChildNodes());
 	}
 
 	//~--- set methods ----------------------------------------------------

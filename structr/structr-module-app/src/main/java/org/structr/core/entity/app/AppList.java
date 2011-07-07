@@ -18,15 +18,9 @@
  */
 package org.structr.core.entity.app;
 
-import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
-import org.apache.commons.lang.StringUtils;
-import org.structr.common.CurrentRequest;
-import org.structr.common.RelType;
 import org.structr.common.RenderMode;
 import org.structr.core.NodeRenderer;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.renderer.NodeListRenderer;
 
 /**
