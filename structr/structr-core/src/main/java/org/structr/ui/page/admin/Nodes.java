@@ -532,7 +532,7 @@ public class Nodes extends Admin {
 
         long t1 = System.currentTimeMillis();
 
-        logger.log(Level.INFO, "Built tree in {0} ms.", (t1 - t0));
+        logger.log(Level.FINE, "Built tree in {0} ms.", (t1 - t0));
 
     }
 
