@@ -72,6 +72,10 @@ public class CurrentSession {
 
 		HttpSession session = CurrentRequest.getSession();
 
+		if (session == null) {
+			return null;
+		}
+
 		return (User) session.getAttribute(USER_NODE_KEY);
 	}
 
