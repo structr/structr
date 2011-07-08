@@ -53,9 +53,13 @@ public class NodeListRenderer extends NodeViewRenderer
 					List<AbstractNode> nodesToRender = new LinkedList<AbstractNode>();
 
 					// iterate over children following the DATA relationship and collect all nodes
-					for(AbstractNode container : currentNode.getSortedDirectChildren(RelType.DATA))
+					for(AbstractNode container : currentNode.getDirectChildren(RelType.DATA))
 					{
-						nodesToRender.addAll(container.getDirectChildNodes());
+						Iterable<AbstractNode> iterable = container.getDataNodes();
+
+						for(AbstractNode node : iterable) {
+							nodesToRender.add(node);
+						}
 					}
 
 					Collections.sort(nodesToRender, new AbstractNodeComparator(AbstractNode.toGetter(sortKey), sortOrder));
