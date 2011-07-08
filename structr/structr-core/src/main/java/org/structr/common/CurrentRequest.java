@@ -272,19 +272,21 @@ public class CurrentRequest {
 		return session;
 	}
 
-	public static User getCurrentUser() {
-
-		CurrentRequest request = getRequestContext();
-
-		if (request != null) {
-
-			logger.log(Level.FINE, "Current user: {0}", request.getCurrentUserInternal());
-
-			return request.getCurrentUserInternal();
-		}
-
-		return (null);
-	}
+//	public static User getCurrentUser() {
+//
+//		CurrentRequest request = getRequestContext();
+//
+//		if (request != null) {
+//
+//			User currentUser = request.getCurrentUserInternal();
+//
+//			logger.log(Level.FINE, "Current user: {0}", currentUser);
+//
+//			return currentUser;
+//		}
+//
+//		return (null);
+//	}
 
 	public static String getCurrentNodePath() {
 
@@ -322,9 +324,9 @@ public class CurrentRequest {
 		return (this.internalResponse);
 	}
 
-	private User getCurrentUserInternal() {
-		return (currentUser);
-	}
+//	private User getCurrentUserInternal() {
+//		return (currentUser);
+//	}
 
 	private String getCurrentNodePathInternal() {
 		return (currentNodePath);
@@ -369,14 +371,14 @@ public class CurrentRequest {
 		context.setResponseInternal(response);
 	}
 
-	public static void setCurrentUser(final User user) {
-
-		CurrentRequest request = getRequestContext();
-
-		if (request != null) {
-			request.setCurrentUserInternal(user);
-		}
-	}
+//	public static void setCurrentUser(final User user) {
+//
+//		CurrentRequest request = getRequestContext();
+//
+//		if (request != null) {
+//			request.setCurrentUserInternal(user);
+//		}
+//	}
 
 	public static void setCurrentNodePath(final String currentNodePath) {
 
@@ -409,9 +411,9 @@ public class CurrentRequest {
 		attributes.put(key, value);
 	}
 
-	private void setCurrentUserInternal(final User currentUser) {
-		this.currentUser = currentUser;
-	}
+//	private void setCurrentUserInternal(final User currentUser) {
+//		this.currentUser = currentUser;
+//	}
 
 	private void setCurrentNodePathInternal(final String currentNodePath) {
 		this.currentNodePath = currentNodePath;

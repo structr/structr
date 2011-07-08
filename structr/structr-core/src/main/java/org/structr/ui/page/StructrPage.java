@@ -190,7 +190,7 @@ public class StructrPage extends Page {
 
         if (user != null) {
 
-			CurrentRequest.setCurrentUser(user);
+			CurrentSession.setUser(user);
 
 			// sessionId = (Long) getContext().getRequest().getSession().getAttribute(SessionMonitor.SESSION_ID);
 			sessionId = (Long) CurrentSession.getAttribute(SessionMonitor.SESSION_ID);
@@ -382,7 +382,7 @@ public class StructrPage extends Page {
 
 				} catch (Exception e) {
 
-					logger.log(Level.SEVERE, "Could not handle nodeId {0}", nodeIdOrPath);
+					logger.log(Level.WARNING, "Could not handle nodeId {0}", nodeIdOrPath);
 
 					return null;
 				}
@@ -391,7 +391,7 @@ public class StructrPage extends Page {
 				return getNodeById((Long) nodeIdOrPath);
 			} else {
 
-				logger.log(Level.SEVERE, "Node requested by unknown object: {0}", nodeIdOrPath);
+				logger.log(Level.WARNING, "Node requested by unknown object: {0}", nodeIdOrPath);
 
 				return null;
 			}

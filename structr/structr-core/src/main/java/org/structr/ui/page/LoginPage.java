@@ -117,7 +117,7 @@ public class LoginPage extends Admin {
                 isSuperUser = true;
 
                 user = new SuperUser();
-                CurrentRequest.setCurrentUser(user) ;
+                CurrentSession.setUser(user) ;
                 //getContext().getRequest().getSession().setAttribute(USERNAME_KEY, userValue);
                 setUsernameInSession(userValue);
 
@@ -168,7 +168,7 @@ public class LoginPage extends Admin {
 
                 // username and password are both valid
                 userName = userValue;
-                CurrentRequest.setCurrentUser(user) ;
+                CurrentSession.setUser(user) ;
                 setUsernameInSession(userValue);
                 //getContext().getRequest().getSession().setAttribute(USERNAME_KEY, userValue);
 

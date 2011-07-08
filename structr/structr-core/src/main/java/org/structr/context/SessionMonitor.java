@@ -48,7 +48,7 @@ import java.util.logging.Logger;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import org.structr.ui.page.admin.Ajax;
+import org.structr.common.CurrentSession;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -101,7 +101,7 @@ public class SessionMonitor {
 	 */
 	public static long registerUserSession(final HttpSession session) {
 
-		User user = CurrentRequest.getCurrentUser();
+		User user = CurrentSession.getUser();
 
 		init(session.getServletContext());
 
@@ -137,7 +137,7 @@ public class SessionMonitor {
 	public static void logActivity(final long sessionId, final String action) {
 
 		Date now  = new Date();
-		User user = CurrentRequest.getCurrentUser();
+		User user = CurrentSession.getUser();
 
 		// Create a "dirty" activity node
 		Activity activity = new Activity();
@@ -168,7 +168,7 @@ public class SessionMonitor {
 
 		long t0   = System.currentTimeMillis();
 		Date now  = new Date();
-		User user = CurrentRequest.getCurrentUser();
+		User user = CurrentSession.getUser();
 
 		// Create a "dirty" page request node
 		PageRequest pageRequest = new PageRequest();

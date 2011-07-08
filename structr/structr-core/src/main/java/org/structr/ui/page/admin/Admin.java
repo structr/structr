@@ -37,6 +37,7 @@ import org.apache.click.util.Bindable;
 import org.apache.click.extras.tree.Tree;
 import org.apache.click.extras.tree.TreeNode;
 import org.apache.commons.lang.ArrayUtils;
+import org.structr.common.CurrentRequest;
 import org.structr.common.CurrentSession;
 import org.structr.core.node.search.Search;
 import org.structr.context.SessionMonitor;
@@ -159,6 +160,7 @@ public class Admin extends StructrPage {
         SessionMonitor.logActivity(sessionId, "Logout");
 
         setUsernameInSession(null);
+        //CurrentRequest.setCurrentUser(null);
         CurrentSession.getSession().invalidate();
         //getContext().getRequest().getSession().invalidate();
         userName = null;

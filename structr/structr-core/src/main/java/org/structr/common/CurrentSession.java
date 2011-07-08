@@ -21,6 +21,10 @@
 
 package org.structr.common;
 
+import org.structr.core.entity.User;
+
+//~--- JDK imports ------------------------------------------------------------
+
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -41,8 +45,9 @@ public class CurrentSession {
 	private static final String JUST_REDIRECTED_KEY = "justRedirected";
 	private static final String REDIRECTED_KEY      = "redirected";
 	private static final String SESSION_KEYS_KEY    = "sessionKeys";
+	private static final String USER_NODE_KEY       = "userNode";
 	private static final Logger logger              = Logger.getLogger(CurrentSession.class.getName());
-    
+
 	//~--- methods --------------------------------------------------------
 
 	public static boolean wasJustRedirected() {
@@ -62,6 +67,13 @@ public class CurrentSession {
 	}
 
 	//~--- get methods ----------------------------------------------------
+
+	public static User getUser() {
+
+		HttpSession session = CurrentRequest.getSession();
+
+		return (User) session.getAttribute(USER_NODE_KEY);
+	}
 
 	public static String getGlobalUsername() {
 
@@ -130,6 +142,13 @@ public class CurrentSession {
 	}
 
 	//~--- set methods ----------------------------------------------------
+
+	public static void setUser(final User user) {
+
+		HttpSession session = CurrentRequest.getSession();
+
+		session.setAttribute(USER_NODE_KEY, user);
+	}
 
 	public static void setRedirected(boolean redirected) {
 
