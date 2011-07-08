@@ -29,6 +29,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.RelType;
 import org.structr.core.Command;
@@ -39,6 +42,7 @@ import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
 import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.FindNodeCommand;
+import org.structr.core.node.FindUserCommand;
 import org.structr.core.node.NodeFactoryCommand;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
@@ -47,7 +51,7 @@ import org.structr.core.node.TransactionCommand;
  *
  * @author Christian Morgner
  */
-public class ConnectionListener extends Listener implements CloudTransmission {
+public class ConnectionListener extends Listener implements CloudTransmission, CipherProvider {
 
 	// the logger
 	private static final Logger logger = Logger.getLogger(ConnectionListener.class.getName());
@@ -68,6 +72,12 @@ public class ConnectionListener extends Listener implements CloudTransmission {
 	private int remoteUdpPort = 0;
 	private int estimatedSize = 0;
 
+	// authentication
+	private Cipher encryptionCipher = null;
+	private Cipher decryptionCipher = null;
+	private User targetUser = null;
+	private String userName = null;
+	
 	// commands
 	private final Command createRel = Services.command(CreateRelationshipCommand.class);
 	private final Command nodeFactory = Services.command(NodeFactoryCommand.class);
@@ -92,12 +102,12 @@ public class ConnectionListener extends Listener implements CloudTransmission {
 	@Override
 	public void received(Connection connection, Object object) {
 
-		logger.log(Level.INFO, "Received {0} ({1})", new Object[] { object, object.getClass().getName() } );
+		logger.log(Level.FINEST, "Received {0} ({1})", new Object[] { object, object.getClass().getName() } );
 
 		// close connection on first keepalive package when transaction is done
 		if(transactionFinished && object instanceof KeepAlive) {
 
-			logger.log(Level.INFO, "Received first KeepAlive after transaction finished, closing connection.");
+			logger.log(Level.FINE, "Received first KeepAlive after transaction finished, closing connection.");
 			connection.close();
 
 		} else if(object instanceof Integer) {
@@ -127,6 +137,23 @@ public class ConnectionListener extends Listener implements CloudTransmission {
 
 			connection.sendTCP(CloudService.ACK_DATA);
 
+		} else if(object instanceof AuthenticationContainer) {
+			
+			AuthenticationContainer auth = (AuthenticationContainer)object;
+			this.userName = auth.getUserName();
+			
+			logger.log(Level.INFO, "Received authentication container, user {0}", auth.getUserName());
+			
+			// try to find target user
+			targetUser = (User)Services.command(FindUserCommand.class).execute(userName);
+			if(targetUser == null) {
+				
+				logger.log(Level.WARNING, "User not found, disconnecting");
+			
+				connection.sendTCP("Authentication failed");
+				connection.close();
+			}
+			
 		} else if(object instanceof PullNodeRequestContainer) {
 
 			pullRequests.add((PullNodeRequestContainer)object);
@@ -350,5 +377,87 @@ public class ConnectionListener extends Listener implements CloudTransmission {
 	@Override
 	public int getRemoteUdpPort() {
 		return (remoteUdpPort);
+	}
+
+	// ----- interface CipherProvider -----
+	@Override
+	public void enableEncryption(String key) {
+	}
+	
+	@Override
+	public Cipher getEncryptionCipher(Object obj) {
+
+		if(encryptionCipher == null) {
+			
+			if(targetUser != null) {
+				
+				logger.log(Level.FINE, "Creating encryption cipher for {0}: user {1}", new Object[] { obj, targetUser.getName() } );
+
+				String password = targetUser.getEncryptedPassword();
+				if(password != null) {
+					
+					try {
+
+						byte[] key = DigestUtils.md5(password);
+						SecretKeySpec keySpec = new SecretKeySpec(key, "Blowfish");
+
+						encryptionCipher = Cipher.getInstance("Blowfish");
+						encryptionCipher.init(Cipher.ENCRYPT_MODE, keySpec);
+
+					} catch(Throwable t) {
+
+						logger.log(Level.WARNING, "Unable to initialize encryption cipher: {0}", t);
+					}
+					
+				} else {
+					
+					logger.log(Level.WARNING, "Unable to initialize encryption cipher, password was null!");
+				}
+				
+			} else {
+				
+				logger.log(Level.WARNING, "NOT creating encryption cipher for {0}, no user set", obj);
+			}				
+		}
+
+		return(encryptionCipher);
+	}
+
+	@Override
+	public Cipher getDecryptionCipher(Object obj) {
+
+		if(decryptionCipher == null) {
+			
+			if(targetUser != null) {
+				
+				logger.log(Level.FINE, "Creating decryption cipher for {0}: user {1}", new Object[] { obj, targetUser.getName() } );
+
+				String password = targetUser.getEncryptedPassword();
+				if(password != null) {
+
+					try {
+						byte[] key = DigestUtils.md5(password);
+						SecretKeySpec keySpec = new SecretKeySpec(key, "Blowfish");
+
+						decryptionCipher = Cipher.getInstance("Blowfish");
+						decryptionCipher.init(Cipher.DECRYPT_MODE, keySpec);
+
+					} catch(Throwable t) {
+
+						logger.log(Level.WARNING, "Unable to initialize decryption cipher: {0}", t);
+					}
+					
+				} else {
+					
+					logger.log(Level.WARNING, "Unable to initialize decryption cipher, password was null!");
+				}
+				
+			} else {
+				
+				logger.log(Level.WARNING, "NOT creating decryption cipher for {0}, no user set", obj);
+			}				
+		}
+
+		return(decryptionCipher);
 	}
 }

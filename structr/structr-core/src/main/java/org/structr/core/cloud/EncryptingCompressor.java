@@ -20,10 +20,11 @@ package org.structr.core.cloud;
 
 import com.esotericsoftware.kryo.Compressor;
 import com.esotericsoftware.kryo.Kryo;
-import com.esotericsoftware.kryo.SerializationException;
 import com.esotericsoftware.kryo.Serializer;
 import java.nio.ByteBuffer;
 import java.security.GeneralSecurityException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.crypto.Cipher;
 
 /**
@@ -32,11 +33,13 @@ import javax.crypto.Cipher;
  */
 public class EncryptingCompressor extends Compressor {
 
+	private static final Logger logger = Logger.getLogger(EncryptingCompressor.class.getName());
+	
 	private CipherProvider cypherProvider = null;
 
 	public EncryptingCompressor(Serializer serializer, CipherProvider cipherProvider) {
 
-		this(serializer, cipherProvider, 2048);
+		this(serializer, cipherProvider, CloudService.BUFFER_SIZE);
 	}
 
 	public EncryptingCompressor(Serializer serializer, CipherProvider cipherProvider, int bufferSize) {
@@ -48,34 +51,64 @@ public class EncryptingCompressor extends Compressor {
 	@Override
 	public void compress(ByteBuffer inputBuffer, Object object, ByteBuffer outputBuffer) {
 
+		boolean unencrypted = false;
+		
 		try {
 
 			Cipher encrypt = cypherProvider.getEncryptionCipher(Kryo.getContext().getRemoteEntityID());
 			if(encrypt != null) {
 
+				logger.log(Level.FINE, "Input buffer size {0}, output buffer size {1}", new Object[] { inputBuffer.capacity(), outputBuffer.capacity() } );
 				encrypt.doFinal(inputBuffer, outputBuffer);
+				
+			} else {
+				
+				unencrypted = true;
 			}
 
 		} catch(GeneralSecurityException ex) {
 
-			throw new SerializationException(ex);
+			logger.log(Level.WARNING, "Exception while compressing {0}: {1}", new Object[] { object.getClass().getName(), ex.getMessage() });
+			
+			unencrypted = true;
+		}
+		
+		if(unencrypted) {
+			
+			// no encryption..
+			outputBuffer.put(inputBuffer);
 		}
 	}
 
 	@Override
 	public void decompress(ByteBuffer inputBuffer, Class type, ByteBuffer outputBuffer) {
 
+		boolean unencrypted = false;
+		
 		try {
 
 			Cipher decrypt = cypherProvider.getDecryptionCipher(Kryo.getContext().getRemoteEntityID());
 			if(decrypt != null) {
 
-				decrypt.doFinal(inputBuffer, outputBuffer);
+				logger.log(Level.FINE, "Input buffer size {0}, output buffer size {1}", new Object[] { inputBuffer.capacity(), outputBuffer.capacity() } );
+				decrypt.doFinal(inputBuffer, outputBuffer);	
+				
+			} else {
+				
+				unencrypted = true;
 			}
 
 		} catch(GeneralSecurityException ex) {
 
-			throw new SerializationException(ex);
+			logger.log(Level.WARNING, "Exception while decompressing {0}: {1}", new Object[] { type.getName(), ex.getMessage() });
+
+			unencrypted = true;
+		}
+		
+		if(unencrypted) {
+			
+			// no encryption..
+			outputBuffer.put(inputBuffer);
 		}
 	}
 }

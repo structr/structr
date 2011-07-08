@@ -30,7 +30,11 @@ public class ActionRenderer implements NodeRenderer<AbstractNode>
 				ActionNode actionNode = (ActionNode)n;
 				actionNode.initialize();
 
-				executionSuccessful &= actionNode.doAction(out, startNode, editUrl, editNodeId);
+				if(!actionNode.doAction(out, startNode, editUrl, editNodeId)) {
+					
+					executionSuccessful = false;
+					break;
+				}
 			}
 		}
 

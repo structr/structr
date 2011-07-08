@@ -21,8 +21,10 @@ package org.structr.core.cloud;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.WeakHashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 
@@ -35,7 +37,10 @@ import javax.crypto.spec.SecretKeySpec;
  */
 public class CloudServiceListener extends Listener implements CipherProvider {
 
-	private final Map<Connection, ConnectionListener> listeners = Collections.synchronizedMap(new WeakHashMap<Connection, ConnectionListener>());
+	private static final Logger logger = Logger.getLogger(CloudServiceListener.class.getName());
+	
+	private final Map<Connection, ConnectionListener> listeners = Collections.synchronizedMap(new HashMap<Connection, ConnectionListener>());
+	private final Map<Integer, Connection> connections = Collections.synchronizedMap(new HashMap<Integer, Connection>());
 
 	@Override
 	public void received(Connection connection, Object object) {
@@ -51,6 +56,7 @@ public class CloudServiceListener extends Listener implements CipherProvider {
 
 		// create and start a new connection listener for this connection
 		listeners.put(connection, new ConnectionListener(connection));
+		connections.put(connection.getID(), connection);
 
 	}
 
@@ -60,45 +66,70 @@ public class CloudServiceListener extends Listener implements CipherProvider {
 		ConnectionListener listener = listeners.get(connection);
 		if(listener != null) {
 			listeners.remove(connection);
+			connections.remove(connection.getID());
 		}
 	}
 
 	// ----- interface CipherProvider -----
 	@Override
+	public void enableEncryption(String key) {
+	}
+	
+	@Override
 	public Cipher getEncryptionCipher(Object obj) {
 
-		Cipher ret = null;
-
-		try {
-			byte[] key = null;
-			SecretKeySpec keySpec = new SecretKeySpec(key, "Blowfish");
-
-			ret = Cipher.getInstance("Blowfish");
-			ret.init(Cipher.ENCRYPT_MODE, keySpec);
-
-		} catch(Throwable t) {
+		if(obj instanceof Integer) {
+			
+			Integer connectionId = (Integer)obj;
+			Connection connection = connections.get(connectionId);
+			
+			if(connection != null) {
+				
+				ConnectionListener listener = listeners.get(connection);
+				if(listener != null) {
+					
+					return(listener.getEncryptionCipher(obj));
+					
+				} else {
+					
+					logger.log(Level.WARNING, "NO listener found for {0}", obj);
+				}
+				
+			} else {
+					
+				logger.log(Level.WARNING, "NO connection found for {0}", obj);				
+			}
 		}
-
-		return(ret);
-
+		
+		return(null);
 	}
 
 	@Override
 	public Cipher getDecryptionCipher(Object obj) {
 
-		Cipher ret = null;
-
-		try {
-			byte[] key = null;
-			SecretKeySpec keySpec = new SecretKeySpec(key, "Blowfish");
-
-			ret = Cipher.getInstance("Blowfish");
-			ret.init(Cipher.DECRYPT_MODE, keySpec);
-
-		} catch(Throwable t) {
+		if(obj instanceof Integer) {
+			
+			Integer connectionId = (Integer)obj;
+			Connection connection = connections.get(connectionId);
+			
+			if(connection != null) {
+				
+				ConnectionListener listener = listeners.get(connection);
+				if(listener != null) {
+					
+					return(listener.getDecryptionCipher(obj));
+					
+				} else {
+					
+					logger.log(Level.WARNING, "NO listener found for {0}", obj);
+				}
+				
+			} else {
+					
+				logger.log(Level.WARNING, "NO connection found for {0}", obj);				
+			}
 		}
-
-		return(ret);
-
+		
+		return(null);
 	}
 }

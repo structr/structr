@@ -41,6 +41,8 @@ public class ProgressBarNotification extends DefaultNotification {
 	private boolean finished = false;
 	private int currentProgress = 0;
 	private int targetProgress = 0;
+	
+	private String errorMessage = null;
 
 	/**
 	 * Constructs a new instance of this notification with the given title.
@@ -140,6 +142,17 @@ public class ProgressBarNotification extends DefaultNotification {
 	{
 		this.targetProgress = targetProgress;
 	}
+	
+	/**
+	 * Sets the status of this notification to "cancelled".
+	 */
+	public void setErrorMessage(String errorMessage) {
+		
+		this.errorMessage = errorMessage;
+		
+		creationTime = System.currentTimeMillis();
+		finished = true;
+	}
 
 	@Override
 	public String getText()
@@ -150,16 +163,23 @@ public class ProgressBarNotification extends DefaultNotification {
 		ret.append("<div class='progressBar' style='width:").append(getProgress()).append("%;'>&nbsp;</div>");
 		ret.append("<div class='progressBarText'>");
 
-		if(showAbsoluteValues) {
-
-			ret.append(currentProgress);
-			ret.append(" / ");
-			ret.append(targetProgress);
-
+		if(errorMessage != null) {
+			
+			ret.append(errorMessage);
+			
 		} else {
+			
+			if(showAbsoluteValues) {
 
-			ret.append(format.format(getProgress()));
-			ret.append("&nbsp;%");
+				ret.append(currentProgress);
+				ret.append(" / ");
+				ret.append(targetProgress);
+
+			} else {
+
+				ret.append(format.format(getProgress()));
+				ret.append("&nbsp;%");
+			}
 		}
 		
 		ret.append("</div>");

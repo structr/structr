@@ -27,6 +27,8 @@ import javax.crypto.Cipher;
  */
 public interface CipherProvider {
 
+	public void enableEncryption(String key);
+	
 	public Cipher getEncryptionCipher(Object obj);
 	public Cipher getDecryptionCipher(Object obj);
 }

@@ -38,6 +38,7 @@ import org.apache.click.control.HiddenField;
 import org.apache.click.control.Option;
 import org.apache.click.control.PageLink;
 import org.apache.click.control.Panel;
+import org.apache.click.control.PasswordField;
 import org.apache.click.control.Select;
 import org.apache.click.control.Submit;
 import org.apache.click.control.Table;
@@ -125,6 +126,8 @@ public class DefaultEdit extends Nodes {
     protected Panel cloudPanel;
     protected Panel consolePanel;
     protected TextField remoteHost;
+    protected TextField userNameInput;
+    protected PasswordField passwordInput;
     protected LongField remoteSourceNode;
     protected IntegerField remoteTcpPort;
     protected IntegerField remoteUdpPort;
@@ -615,12 +618,16 @@ public class DefaultEdit extends Nodes {
         FieldSet pushFields = new FieldSet("Transmit Nodes");
         remoteSourceNode = new LongField("remoteSourceNode", "Remote Node ID");
         remoteHost = new TextField("remoteHost", "Remote Host");
+	userNameInput = new TextField("userName", "User Name");
+	passwordInput = new PasswordField("password", "Password");
         remoteTcpPort = new IntegerField("remoteTcpPort", "Remote TCP Port");
         remoteUdpPort = new IntegerField("remoteUdp", "Remote UDP Port");
         cloudPushPull.add(new Option("push", "Push nodes to remote destination"));
         cloudPushPull.add(new Option("pull", "Pull nodes from remote destination"));
         pushFields.add(remoteSourceNode);
         pushFields.add(remoteHost);
+	pushFields.add(userNameInput);
+	pushFields.add(passwordInput);
         pushFields.add(remoteTcpPort);
         pushFields.add(remoteUdpPort);
         pushFields.add(cloudPushPull);
@@ -1282,6 +1289,8 @@ public class DefaultEdit extends Nodes {
     public boolean onTransmitNodes() {
 
         final String remoteHostValue = remoteHost.getValue();
+	final String userNameValue = userNameInput.getValue();
+	final String passwordValue = passwordInput.getValue();
         final Long targetNodeValue = remoteSourceNode.getLong();
         final Integer tcpPort = remoteTcpPort.getInteger();
         final Integer udpPort = remoteUdpPort.getInteger();
@@ -1297,7 +1306,7 @@ public class DefaultEdit extends Nodes {
                 if ("push".equals(pushPull)) {
 
                     Command transmitCommand = Services.command(PushNodes.class);
-                    transmitCommand.execute(user, node, targetNodeValue, remoteHostValue, tcpPort, udpPort, rec);
+                    transmitCommand.execute(userNameValue, passwordValue, node, targetNodeValue, remoteHostValue, tcpPort, udpPort, rec);
 
                 } else if ("pull".equals(pushPull)) {
 
