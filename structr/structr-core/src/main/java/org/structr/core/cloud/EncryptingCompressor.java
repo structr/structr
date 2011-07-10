@@ -22,7 +22,6 @@ import com.esotericsoftware.kryo.Compressor;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
 import java.nio.ByteBuffer;
-import java.security.GeneralSecurityException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.crypto.Cipher;
@@ -35,47 +34,40 @@ public class EncryptingCompressor extends Compressor {
 
 	private static final Logger logger = Logger.getLogger(EncryptingCompressor.class.getName());
 	
-	private CipherProvider cypherProvider = null;
+	public EncryptingCompressor(Serializer serializer) {
 
-	public EncryptingCompressor(Serializer serializer, CipherProvider cipherProvider) {
-
-		this(serializer, cipherProvider, CloudService.BUFFER_SIZE);
+		this(serializer, CloudService.BUFFER_SIZE);
 	}
 
-	public EncryptingCompressor(Serializer serializer, CipherProvider cipherProvider, int bufferSize) {
+	public EncryptingCompressor(Serializer serializer, int bufferSize) {
 
 		super(serializer, bufferSize);
-		this.cypherProvider = cipherProvider;
 	}
 
 	@Override
 	public void compress(ByteBuffer inputBuffer, Object object, ByteBuffer outputBuffer) {
 
-		boolean unencrypted = false;
-		
-		try {
+		int remoteEntityId = Kryo.getContext().getRemoteEntityID();
 
-			Cipher encrypt = cypherProvider.getEncryptionCipher(Kryo.getContext().getRemoteEntityID());
-			if(encrypt != null) {
+		Cipher cipher = EncryptionContext.getEncryptionCipher(remoteEntityId);
+		if(cipher != null) {
 
-				logger.log(Level.FINE, "Input buffer size {0}, output buffer size {1}", new Object[] { inputBuffer.capacity(), outputBuffer.capacity() } );
-				encrypt.doFinal(inputBuffer, outputBuffer);
-				
-			} else {
-				
-				unencrypted = true;
+			try {
+
+				cipher.doFinal(inputBuffer, outputBuffer);
+
+			} catch(Throwable t) {
+
+				EncryptionContext.setErrorMessage(remoteEntityId, t.getMessage());
+
+				t.printStackTrace();
 			}
 
-		} catch(GeneralSecurityException ex) {
+		} else {
 
-			logger.log(Level.WARNING, "Exception while compressing {0}: {1}", new Object[] { object.getClass().getName(), ex.getMessage() });
-			
-			unencrypted = true;
-		}
-		
-		if(unencrypted) {
-			
-			// no encryption..
+			logger.log(Level.INFO, "sending {0} bytes without encryption", (inputBuffer.limit() - inputBuffer.position()));
+
+			// no encryption
 			outputBuffer.put(inputBuffer);
 		}
 	}
@@ -83,31 +75,27 @@ public class EncryptingCompressor extends Compressor {
 	@Override
 	public void decompress(ByteBuffer inputBuffer, Class type, ByteBuffer outputBuffer) {
 
-		boolean unencrypted = false;
-		
-		try {
+		int remoteEntityId = Kryo.getContext().getRemoteEntityID();
 
-			Cipher decrypt = cypherProvider.getDecryptionCipher(Kryo.getContext().getRemoteEntityID());
-			if(decrypt != null) {
+		Cipher cipher = EncryptionContext.getDecryptionCipher(remoteEntityId);
+		if(cipher != null) {
 
-				logger.log(Level.FINE, "Input buffer size {0}, output buffer size {1}", new Object[] { inputBuffer.capacity(), outputBuffer.capacity() } );
-				decrypt.doFinal(inputBuffer, outputBuffer);	
-				
-			} else {
-				
-				unencrypted = true;
+			try {
+
+				cipher.doFinal(inputBuffer, outputBuffer);
+
+			} catch(Throwable t) {
+
+				EncryptionContext.setErrorMessage(remoteEntityId, t.getMessage());
+
+				t.printStackTrace();
 			}
 
-		} catch(GeneralSecurityException ex) {
+		} else {
 
-			logger.log(Level.WARNING, "Exception while decompressing {0}: {1}", new Object[] { type.getName(), ex.getMessage() });
+			logger.log(Level.INFO, "sending {0} bytes without encryption", (inputBuffer.limit() - inputBuffer.position()));
 
-			unencrypted = true;
-		}
-		
-		if(unencrypted) {
-			
-			// no encryption..
+			// no encryption
 			outputBuffer.put(inputBuffer);
 		}
 	}

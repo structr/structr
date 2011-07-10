@@ -26,7 +26,6 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.crypto.Cipher;
-import javax.crypto.spec.SecretKeySpec;
 
 /**
  * The root listener for all cloud service connections. This listener can be
@@ -35,7 +34,7 @@ import javax.crypto.spec.SecretKeySpec;
  *
  * @author Christian Morgner
  */
-public class CloudServiceListener extends Listener implements CipherProvider {
+public class CloudServiceListener extends Listener {
 
 	private static final Logger logger = Logger.getLogger(CloudServiceListener.class.getName());
 	
@@ -68,68 +67,5 @@ public class CloudServiceListener extends Listener implements CipherProvider {
 			listeners.remove(connection);
 			connections.remove(connection.getID());
 		}
-	}
-
-	// ----- interface CipherProvider -----
-	@Override
-	public void enableEncryption(String key) {
-	}
-	
-	@Override
-	public Cipher getEncryptionCipher(Object obj) {
-
-		if(obj instanceof Integer) {
-			
-			Integer connectionId = (Integer)obj;
-			Connection connection = connections.get(connectionId);
-			
-			if(connection != null) {
-				
-				ConnectionListener listener = listeners.get(connection);
-				if(listener != null) {
-					
-					return(listener.getEncryptionCipher(obj));
-					
-				} else {
-					
-					logger.log(Level.WARNING, "NO listener found for {0}", obj);
-				}
-				
-			} else {
-					
-				logger.log(Level.WARNING, "NO connection found for {0}", obj);				
-			}
-		}
-		
-		return(null);
-	}
-
-	@Override
-	public Cipher getDecryptionCipher(Object obj) {
-
-		if(obj instanceof Integer) {
-			
-			Integer connectionId = (Integer)obj;
-			Connection connection = connections.get(connectionId);
-			
-			if(connection != null) {
-				
-				ConnectionListener listener = listeners.get(connection);
-				if(listener != null) {
-					
-					return(listener.getDecryptionCipher(obj));
-					
-				} else {
-					
-					logger.log(Level.WARNING, "NO listener found for {0}", obj);
-				}
-				
-			} else {
-					
-				logger.log(Level.WARNING, "NO connection found for {0}", obj);				
-			}
-		}
-		
-		return(null);
 	}
 }

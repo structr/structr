@@ -147,8 +147,7 @@ public class PushNodes extends CloudServiceCommand
 		Log.set(CloudService.KRYONET_LOG_LEVEL);
 
 		Kryo kryo = client.getKryo();
-		CipherProvider cipherProvider = new CipherProviderImpl(null);
-		CloudService.registerClasses(kryo, cipherProvider);
+		CloudService.registerClasses(kryo);
 
 		// add GUI notification
 		StringBuilder titleBuffer = new StringBuilder();
@@ -158,6 +157,7 @@ public class PushNodes extends CloudServiceCommand
 		
 		// enable notifications to be passed to UI
 		listener.setNotification(progressNotification);
+		listener.setPassword(password);
 		
 		try
 		{
@@ -170,65 +170,66 @@ public class PushNodes extends CloudServiceCommand
 			
 			// send authentication container
 			client.sendTCP(new AuthenticationContainer(userName));
-			
-			// enable encryption after handshake
-			cipherProvider.enableEncryption(DigestUtils.sha512Hex(password));
 
-			// send type of request
-			client.sendTCP(new PushNodeRequestContainer(remoteTargetNodeId));
+			// wait for authentication container reply from server
+			if(listener.waitForAuthentication()) {
 
-			// send child nodes when recursive sending is requested
-			if(recursive)
-			{
-				List<AbstractNode> nodes = sourceNode.getAllChildrenForRemotePush(new SuperUser()); // FIXME: use real user here
+				// send type of request
+				client.sendTCP(new PushNodeRequestContainer(remoteTargetNodeId));
 
-				// FIXME: were collecting the nodes twice here, the first time is only for counting..
-				progressNotification.setTargetProgress(sourceNode.getRemotePushSize(new SuperUser(), chunkSize));
-
-				for(AbstractNode n : nodes)
+				// send child nodes when recursive sending is requested
+				if(recursive)
 				{
-					if(n instanceof File)
+					List<AbstractNode> nodes = sourceNode.getAllChildrenForRemotePush(new SuperUser()); // FIXME: use real user here
+
+					// FIXME: were collecting the nodes twice here, the first time is only for counting..
+					progressNotification.setTargetProgress(sourceNode.getRemotePushSize(new SuperUser(), chunkSize));
+
+					for(AbstractNode n : nodes)
 					{
-						sendFile(client, listener, (File)n, chunkSize, progressNotification);
-
-					} else
-					{
-						NodeDataContainer container = new NodeDataContainer(n);
-						client.sendTCP(container);
-
-						progressNotification.increaseProgress();
-					}
-				}
-
-				for(AbstractNode n : nodes)
-				{
-					// Collect all relationships whose start and end nodes are contained in the above list
-					List<StructrRelationship> rels = n.getOutgoingRelationships();
-					for(StructrRelationship r : rels)
-					{
-
-						if(nodes.contains(r.getStartNode()) && nodes.contains(r.getEndNode()))
+						if(n instanceof File)
 						{
-							client.sendTCP(new RelationshipDataContainer(r));
+							sendFile(client, listener, (File)n, chunkSize, progressNotification);
+
+						} else
+						{
+							NodeDataContainer container = new NodeDataContainer(n);
+							client.sendTCP(container);
+
 							progressNotification.increaseProgress();
 						}
 					}
-				}
 
-			} else
-			{
-				// send start node
-				if(sourceNode instanceof File)
-				{
-					sendFile(client, listener, (File)sourceNode, chunkSize, progressNotification);
+					for(AbstractNode n : nodes)
+					{
+						// Collect all relationships whose start and end nodes are contained in the above list
+						List<StructrRelationship> rels = n.getOutgoingRelationships();
+						for(StructrRelationship r : rels)
+						{
+
+							if(nodes.contains(r.getStartNode()) && nodes.contains(r.getEndNode()))
+							{
+								client.sendTCP(new RelationshipDataContainer(r));
+								progressNotification.increaseProgress();
+							}
+						}
+					}
 
 				} else
 				{
-					// If not recursive, add only the node itself
-					client.sendTCP(new NodeDataContainer(sourceNode));
-					progressNotification.increaseProgress();
-				}
+					// send start node
+					if(sourceNode instanceof File)
+					{
+						sendFile(client, listener, (File)sourceNode, chunkSize, progressNotification);
 
+					} else
+					{
+						// If not recursive, add only the node itself
+						client.sendTCP(new NodeDataContainer(sourceNode));
+						progressNotification.increaseProgress();
+					}
+
+				}
 			}
 
 			// mark end of transaction
@@ -291,7 +292,9 @@ public class PushNodes extends CloudServiceCommand
 	private class SynchronizingListener extends Listener
 	{
 		private ProgressBarNotification notification = null;
+		private boolean authenticated = false;
 		private String errorMessage = null;
+		private String password = null;
 		private long lastReceived = 0;
 		private int currentValue = 0;
 		
@@ -305,10 +308,25 @@ public class PushNodes extends CloudServiceCommand
 
 				lastReceived = System.currentTimeMillis();
 				
+			} else if(object instanceof AuthenticationContainer) {
+
+				EncryptionContext.setPassword(connection.getID(), DigestUtils.sha512Hex(password));
+				authenticated = true;
+
 			} else if(object instanceof String) {
-				
+
 				errorMessage = object.toString();
 			}
+		}
+
+		public void setPassword(String password) {
+
+			this.password = password;
+		}
+
+		public void setAuthenticated(boolean authenticated) {
+
+			this.authenticated = authenticated;
 		}
 		
 		@Override
@@ -344,6 +362,25 @@ public class PushNodes extends CloudServiceCommand
 			{
 				logger.log(Level.WARNING, "Exception while waiting for sequence number {0}: {1}", new Object[] { sequenceNumber, t } );
 			}
+		}
+
+		public boolean waitForAuthentication()
+		{
+			long authTimer = System.currentTimeMillis();
+
+			try
+			{
+				// wait for at most 2 seconds for arrival of correct sequence number
+				while(!authenticated && System.currentTimeMillis() < authTimer + TimeUnit.SECONDS.toMillis(2))
+				{
+					Thread.yield();
+				}
+
+			} catch(Throwable t)
+			{
+			}
+
+			return(authenticated);
 		}
 	}
 }
