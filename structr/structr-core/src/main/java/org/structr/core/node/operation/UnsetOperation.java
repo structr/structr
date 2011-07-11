@@ -20,30 +20,42 @@
 package org.structr.core.node.operation;
 
 import java.util.Collection;
-import org.structr.common.CurrentSession;
-import org.structr.core.Services;
+import java.util.LinkedList;
+import java.util.List;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.node.FindNodeCommand;
 
 /**
  *
  * @author Christian Morgner
  */
-public class InOperation implements Transformation {
+public class UnsetOperation implements PrimaryOperation, NodeListOperation {
+	
+	private List<AbstractNode> nodeList = new LinkedList<AbstractNode>();
+	private List<String> properties = new LinkedList<String>();
+	
+	// ----- PrimaryOperation -----
+	@Override
+	public boolean executeOperation(StringBuilder stdOut) throws NodeCommandException {
 
-	private long parentNodeId = 0L;
+		for(AbstractNode node : nodeList) {
+
+			for(String property : properties) {
+
+				node.setProperty(property, null);
+			}
+		}
+
+		return(true);
+	}
 
 	@Override
-	public void transform(Operation operation) throws InvalidTransformationException {
+	public void addCallback(Callback callback) {
+	}
 
-		if(operation instanceof NodeParentOperation) {
+	@Override
+	public String help() {
 
-			((NodeParentOperation)operation).setNodeParent(parentNodeId);
-
-		} else {
-
-			throw new InvalidTransformationException("IN cannot be applied to " + operation.getKeyword());
-		}
+		return("unset [property name(s)] on [node(s)] - unset properties ");
 	}
 
 	@Override
@@ -59,19 +71,19 @@ public class InOperation implements Transformation {
 	@Override
 	public String getKeyword() {
 
-		return("in");
+		return("unset");
 	}
 
 	@Override
 	public boolean canExecute() {
 
-		return(parentNodeId != -1);
+		return(!(nodeList.isEmpty() && properties.isEmpty()));
 	}
 
 	@Override
-	public void addSwitch(String switches) throws InvalidSwitchException {
+	public void addSwitch(String sw) throws InvalidSwitchException {
 
-		throw new InvalidSwitchException("IN does not support " + switches);
+		throw new InvalidSwitchException("UNSET does not support switches");
 	}
 
 	@Override
@@ -79,31 +91,18 @@ public class InOperation implements Transformation {
 
 		if(parameter instanceof Collection) {
 
-			throw new InvalidParameterException("IN cannot handle multiple parmeters");
+			properties.addAll((Collection)parameter);
 
 		} else {
 
-			try {
-
-				parentNodeId = Long.parseLong(parameter.toString());
-
-			} catch(Throwable t) {
-
-				AbstractNode findNode = (AbstractNode)Services.command(FindNodeCommand.class).execute(CurrentSession.getUser(), parameter);
-				if(findNode != null) {
-
-					parentNodeId = findNode.getId();
-
-				} else {
-
-					parentNodeId = -1;
-				}
-			}
-
-			if(parentNodeId == -1) {
-
-				throw new InvalidParameterException("Invalid parent node ID");
-			}
+			properties.add(parameter.toString());
 		}
+	}
+
+	// ----- NodeListOperation -----
+	@Override
+	public void addNodeToList(AbstractNode node) {
+
+		nodeList.add(node);
 	}
 }

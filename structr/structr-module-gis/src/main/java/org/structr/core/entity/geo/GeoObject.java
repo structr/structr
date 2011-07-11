@@ -245,21 +245,19 @@ public class GeoObject extends WebNode {
         return null;
     }
 
-    public double getLongitude() {
-        Object p = getProperty(LONGITUDE_KEY);
-        return (p != null ? (Double) p : Double.NaN);
+    public Double getLongitude() {
+        return getDoubleProperty(LONGITUDE_KEY);
     }
 
-    public double getLatitude() {
-        Object p = getProperty(LATITUDE_KEY);
-        return (p != null ? (Double) p : Double.NaN);
+    public Double getLatitude() {
+        return getDoubleProperty(LATITUDE_KEY);
     }
 
-    public void setLongitude(double longitude) {
+    public void setLongitude(Double longitude) {
         setProperty(LONGITUDE_KEY, longitude);
     }
 
-    public void setLatitude(double latitude) {
+    public void setLatitude(Double latitude) {
         setProperty(LATITUDE_KEY, latitude);
     }
 

@@ -22,7 +22,7 @@ package org.structr.core.node.operation;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import org.structr.common.CurrentRequest;
+import org.structr.common.CurrentSession;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -55,7 +55,7 @@ public class DeleteOperation implements PrimaryOperation {
 
 			} else {
 
-				Object findNodeResult = Services.command(FindNodeCommand.class).execute(CurrentRequest.getCurrentUser(), currentNode, param);
+				Object findNodeResult = Services.command(FindNodeCommand.class).execute(CurrentSession.getUser(), currentNode, param);
 				if(findNodeResult != null) {
 
 					if(findNodeResult instanceof Collection) {
@@ -73,7 +73,7 @@ public class DeleteOperation implements PrimaryOperation {
 					try
 					{
 						// execute delete node command and call callbacks
-						deleteCommand.execute(node, null, recursive, CurrentRequest.getCurrentUser());
+						deleteCommand.execute(node, currentNode, recursive, CurrentSession.getUser());
 
 						if(deleteCommand.getExitCode().equals(Command.exitCode.FAILURE)) {
 							stdOut.append(deleteCommand.getErrorMessage());

@@ -22,7 +22,7 @@ package org.structr.core.node.operation;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import org.structr.common.CurrentRequest;
+import org.structr.common.CurrentSession;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.FindNodeCommand;
@@ -43,7 +43,7 @@ public class CdOperation implements PrimaryOperation {
 		if(target != null) {
 
 			AbstractNode newLocation = (AbstractNode)Services.command(FindNodeCommand.class).execute(
-			    CurrentRequest.getCurrentUser(),
+			    CurrentSession.getUser(),
 			    currentNode,
 			    target
 			   );

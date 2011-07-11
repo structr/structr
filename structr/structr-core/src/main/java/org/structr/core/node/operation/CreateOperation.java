@@ -22,7 +22,7 @@ package org.structr.core.node.operation;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import org.structr.common.CurrentRequest;
+import org.structr.common.CurrentSession;
 import org.structr.common.RelType;
 import org.structr.core.Command;
 import org.structr.core.Services;
@@ -61,7 +61,7 @@ public class CreateOperation implements PrimaryOperation, NodeTypeOperation, Nod
 	@Override
 	public boolean executeOperation(final StringBuilder stdOut) throws NodeCommandException {
 
-		final AbstractNode parent = (AbstractNode)Services.command(FindNodeCommand.class).execute(CurrentRequest.getCurrentUser(), nodeParent);
+		final AbstractNode parent = (AbstractNode)Services.command(FindNodeCommand.class).execute(CurrentSession.getUser(), nodeParent);
 		boolean ret = false;
 
 		if(parent != null) {
@@ -79,6 +79,7 @@ public class CreateOperation implements PrimaryOperation, NodeTypeOperation, Nod
 					for(String nodeName : nodeNames) {
 
 						AbstractNode newNode = (AbstractNode)createNodeCommand.execute(
+						    CurrentSession.getUser(),
 						    nodeAttributes
 						);
 						
