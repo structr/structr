@@ -43,8 +43,6 @@ public class EncryptionContext {
 
 	public static final synchronized Cipher getEncryptionCipher(int remoteEntityId) {
 
-		logger.log(Level.INFO, "Remote entity ID {0}", remoteEntityId);
-
 		Cipher ret = encryptionCipherMap.get(remoteEntityId);
 
 		if(ret == null && passwordMap.containsKey(remoteEntityId)) {
@@ -72,8 +70,6 @@ public class EncryptionContext {
 
 	public static final synchronized Cipher getDecryptionCipher(int remoteEntityId) {
 
-		logger.log(Level.INFO, "Remote entity ID {0}", remoteEntityId);
-
 		Cipher ret = decryptionCipherMap.get(remoteEntityId);
 
 		if(ret == null && passwordMap.containsKey(remoteEntityId)) {
@@ -93,7 +89,6 @@ public class EncryptionContext {
 
 				logger.log(Level.WARNING, "Unable to initialize decryption cipher: {0}", t);
 			}
-
 		}
 
 		return(ret);
@@ -101,14 +96,10 @@ public class EncryptionContext {
 
 	public static synchronized void setErrorMessage(int remoteEntityId, String message) {
 
-		logger.log(Level.INFO, "Remote entity ID {0}", remoteEntityId);
-
 		messageMap.put(remoteEntityId, message);
 	}
 
 	public static synchronized void setPassword(int remoteEntityId, String password) {
-
-		logger.log(Level.INFO, "Remote entity ID {0}", remoteEntityId);
 
 		passwordMap.put(remoteEntityId, password);
 	}

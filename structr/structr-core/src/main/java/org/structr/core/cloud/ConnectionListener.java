@@ -138,8 +138,6 @@ public class ConnectionListener extends Listener implements CloudTransmission {
 			
 			AuthenticationContainer auth = (AuthenticationContainer)object;
 			
-			logger.log(Level.INFO, "Received authentication container, user {0}", auth.getUserName());
-			
 			// try to find target user
 			targetUser = (User)Services.command(FindUserCommand.class).execute(auth.getUserName());
 			if(targetUser == null) {

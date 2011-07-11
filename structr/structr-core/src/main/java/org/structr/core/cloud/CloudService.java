@@ -63,10 +63,10 @@ public class CloudService extends RunnableNodeService
 	public static final Integer CLOSE_TRANSACTION =		2;			// close channels
 	public static final Integer ACK_DATA =			3;			// confirm reception
 
-	public static final int CHUNK_SIZE =			 16000;
-	public static final int BUFFER_SIZE =			 CHUNK_SIZE * 8;
+	public static final int CHUNK_SIZE =			 2048;
+	public static final int BUFFER_SIZE =			 CHUNK_SIZE * 16;
 
-	public static final int KRYONET_LOG_LEVEL =		Log.LEVEL_DEBUG;
+	public static final int KRYONET_LOG_LEVEL =		Log.LEVEL_NONE;
 
 	/** Containing addresses of all available structr instances */
 	private static final Set<InstanceAddress> instanceAddresses = new LinkedHashSet<InstanceAddress>();

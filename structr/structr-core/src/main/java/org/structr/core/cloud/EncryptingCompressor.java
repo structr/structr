@@ -65,8 +65,6 @@ public class EncryptingCompressor extends Compressor {
 
 		} else {
 
-			logger.log(Level.INFO, "sending {0} bytes without encryption", (inputBuffer.limit() - inputBuffer.position()));
-
 			// no encryption
 			outputBuffer.put(inputBuffer);
 		}
@@ -92,8 +90,6 @@ public class EncryptingCompressor extends Compressor {
 			}
 
 		} else {
-
-			logger.log(Level.INFO, "sending {0} bytes without encryption", (inputBuffer.limit() - inputBuffer.position()));
 
 			// no encryption
 			outputBuffer.put(inputBuffer);
