@@ -199,6 +199,9 @@ span.required {
 /*#main {
     margin: 0 10px;
 }*/
+div.superuser {
+    border-bottom: 2px solid #f00;
+}
 
 #tree {
     margin: 0 0 0 -10px;
@@ -410,7 +413,7 @@ span.spacer {
         -moz-box-shadow: 0px 0px 6px #616161;*/
     box-shadow: 0px 0px 20px #b5b5b5;
     -webkit-box-shadow: 0px 0px 18px #bbb;
-    -moz-box-shadow: 0px 0px 20px #b5b5b5;    
+    -moz-box-shadow: 0px 0px 20px #b5b5b5;
     border-radius: 5px;
     -moz-border-radius: 5px;
     -webkit-border-radius: 5px;
@@ -476,6 +479,21 @@ span.spacer {
 
 .contentBox .body iframe {
     border: 1px solid #ccc;
+}
+
+.contentBox .body div.section {
+    float: left;
+    width: 200px;
+    padding: 6px;
+    margin: 6px;
+    /*  border: 1px solid #ccc;
+      border-radius: 3px;
+      -moz-border-radius: 3px;
+      -webkit-border-radius: 3px;*/
+}
+
+.contentBox .body div.section h3 {
+    font-size: 1.3em;
 }
 
 .outerBox h2 {
@@ -658,6 +676,11 @@ table#properties td:first-child {
 
 .treestyle img.customIcon {
     vertical-align: top;
+}
+
+.linkIcon {
+    vertical-align: top;
+    margin-top: -1px;
 }
 
 
@@ -1118,8 +1141,10 @@ div#console {
     background-color:#000000;
     color:#dddddd;
     border:1px solid #cccccc;
-    font-family: monospace, serif;
+    /*font-family: monospace, serif;*/
+    font-family: "Liberation Mono", "DejaVu Sans Mono", Consolas, Monaco, "Vera Sans Mono", "Lucida Console", "Courier New", monospace !important;
     font-size: 9pt;
+    overflow: auto;
 }
 
 div#console p {
@@ -1147,6 +1172,18 @@ div#console table.file-list {
     margin: 15px;
 }
 
+div#console input[type=text] {
+    color: #ddd;
+    background-color: #000;
+    border: none;
+    margin: 0 0 0 -8px;
+    padding: 0;
+}
+
+div#console input[type=button],  div#console input[type=submit] {
+    display: none;
+}
+
 table.file-list td {
     padding: 1em;
     padding-top: 0;
@@ -1164,3 +1201,16 @@ table.file-list td.listed-file-id {
 table.file-list td.listed-file-type {
     text-align: left;
 }
+
+/* resize handle */
+
+#resizeHandle {
+/*    border: 1px solid red;*/
+    width: 10px;
+    height: 300px;
+    position: absolute;
+}
+#resizeHandle:hover {
+    cursor: ew-resize;
+}
+

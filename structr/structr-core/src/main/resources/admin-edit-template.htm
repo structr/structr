@@ -11,13 +11,13 @@
 
   <body>
     #if ($renderMode != "inline")
-    <div id="header">
+    <div id="header" #if ($isSuperUser) class="superuser" #end>
 
       <div id="logo"><a href="$context/admin/edit.htm?nodeId=0"><img width="86" height="23" src="$context/images/structr-logo.png" alt="structr-logo"></a></div>
       ##            <div class="mainLink">$homeLink</div>
       ##            <div class="mainLink">$usersLink</div>
       #if ($isSuperUser)
-      <div class="mainLink">$maintenanceLink</div>
+      <div class="mainLink">$dashboardLink</div>
       #end
 
 
@@ -55,7 +55,8 @@
       #end
       #end
 
-
+      <div id="resizeHandle"></div>
+      
       #if ($renderMode != "inline")
       <div class="contentBox tabArea">
         #else
