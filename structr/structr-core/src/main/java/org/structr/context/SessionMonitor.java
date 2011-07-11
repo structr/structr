@@ -22,6 +22,7 @@
 package org.structr.context;
 
 import org.structr.common.CurrentRequest;
+import org.structr.common.CurrentSession;
 import org.structr.common.RelType;
 import org.structr.core.Command;
 import org.structr.core.Services;
@@ -48,7 +49,6 @@ import java.util.logging.Logger;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import org.structr.ui.page.admin.Ajax;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -71,29 +71,6 @@ public class SessionMonitor {
 		UNDEFINED, ACTIVE, INACTIVE, WAITING, CLOSED, STARTED, FINISHED;
 	}    // </editor-fold>
 
-	//~--- get methods ----------------------------------------------------
-
-	/**
-	 * Return list with all sessions
-	 *
-	 * @return
-	 */
-	public static List<Session> getSessions() {
-		return sessions;
-	}
-
-	public static long getSessionByUId(final String sessionUid) {
-
-		for (Session session : sessions) {
-
-			if (session.getUid().equals(sessionUid)) {
-				return session.getId();
-			}
-		}
-
-		return -1L;
-	}
-
 	//~--- methods --------------------------------------------------------
 
 	/**
@@ -101,7 +78,7 @@ public class SessionMonitor {
 	 */
 	public static long registerUserSession(final HttpSession session) {
 
-		User user = CurrentRequest.getCurrentUser();
+		User user = CurrentSession.getUser();
 
 		init(session.getServletContext());
 
@@ -137,7 +114,7 @@ public class SessionMonitor {
 	public static void logActivity(final long sessionId, final String action) {
 
 		Date now  = new Date();
-		User user = CurrentRequest.getCurrentUser();
+		User user = CurrentSession.getUser();
 
 		// Create a "dirty" activity node
 		Activity activity = new Activity();
@@ -168,7 +145,7 @@ public class SessionMonitor {
 
 		long t0   = System.currentTimeMillis();
 		Date now  = new Date();
-		User user = CurrentRequest.getCurrentUser();
+		User user = CurrentSession.getUser();
 
 		// Create a "dirty" page request node
 		PageRequest pageRequest = new PageRequest();
@@ -190,10 +167,11 @@ public class SessionMonitor {
 				String value = request.getParameter(key);
 
 				// Don't log ajax notification requests
-				if ("onUpdateNotificationContent".equals(value)) return;
+				if ("onUpdateNotificationContent".equals(value)) {
+					return;
+				}
 
-				text.append("\"").append(key).append("\": \"").append(value).append(
-				    "\", ");
+				text.append("\"").append(key).append("\": \"").append(value).append("\", ");
 			}
 
 			text.append("\"uri\": \"").append(request.getRequestURI()).append("\", ");
@@ -215,25 +193,6 @@ public class SessionMonitor {
 		logger.log(Level.FINE, "Logging of page request took {0} ms", (t1 - t0) / 1000);
 	}
 
-	// ---------------- private methods ---------------------
-	// <editor-fold defaultstate="collapsed" desc="private methods">
-
-	//~--- get methods ----------------------------------------------------
-
-	private static Session getSession(final long sessionId) {
-
-		for (Session s : sessions) {
-
-			if (s.getId() == sessionId) {
-				return s;
-			}
-		}
-
-		return null;
-	}
-
-	//~--- methods --------------------------------------------------------
-
 	private static void init(final ServletContext context) {
 
 		if (sessions == null) {
@@ -250,6 +209,51 @@ public class SessionMonitor {
 		init(context);
 
 		return sessions.size();
+	}
+
+	//~--- get methods ----------------------------------------------------
+
+	/**
+	 * Return list with all sessions
+	 *
+	 * @return
+	 */
+	public static List<Session> getSessions() {
+		return sessions;
+	}
+
+	public static long getSessionByUId(final String sessionUid) {
+
+        if ((sessions == null) || sessions.isEmpty()) {
+			return -1L;
+		}
+
+		for (Session session : sessions) {
+
+			if (session.getUid().equals(sessionUid)) {
+				return session.getId();
+			}
+		}
+
+		return -1L;
+	}
+
+	// ---------------- private methods ---------------------
+	// <editor-fold defaultstate="collapsed" desc="private methods">
+	private static Session getSession(final long sessionId) {
+
+		if ((sessions == null) || sessions.isEmpty()) {
+			return null;
+		}
+
+		for (Session s : sessions) {
+
+			if (s.getId() == sessionId) {
+				return s;
+			}
+		}
+
+		return null;
 	}
 
 	//~--- inner classes --------------------------------------------------
@@ -288,13 +292,6 @@ public class SessionMonitor {
 		}
 
 		//~--- get methods --------------------------------------------
-
-		private boolean hasActivity() {
-
-			Activity lastActivity = getLastActivity();
-
-			return (lastActivity != null);
-		}
 
 		/**
 		 * @return last activity type
@@ -364,25 +361,9 @@ public class SessionMonitor {
 			return user;
 		}
 
-		//~--- set methods --------------------------------------------
-
-		public void setUser(final User user) {
-			this.user = user;
-		}
-
-		//~--- get methods --------------------------------------------
-
 		public Date getLoginTimestamp() {
 			return loginTimestamp;
 		}
-
-		//~--- set methods --------------------------------------------
-
-		public void setLoginTimestamp(final Date loginTimestamp) {
-			this.loginTimestamp = loginTimestamp;
-		}
-
-		//~--- get methods --------------------------------------------
 
 		public LogNodeList<Activity> getActivityList() {
 
@@ -415,14 +396,6 @@ public class SessionMonitor {
 			return activityList;
 		}
 
-		//~--- set methods --------------------------------------------
-
-		private void setLastActivity(final Activity activity) {
-			lastActivityProperties = activity.getPropertyMap();
-		}
-
-		//~--- get methods --------------------------------------------
-
 		private Activity getLastActivity() {
 
 			Activity a = new Activity(lastActivityProperties);
@@ -437,40 +410,13 @@ public class SessionMonitor {
 			return logoutTimestamp;
 		}
 
-		//~--- set methods --------------------------------------------
-
-		public void setLogoutTime(final Date logoutTime) {
-			this.logoutTimestamp = logoutTime;
-		}
-
-		//~--- get methods --------------------------------------------
-
 		public long getId() {
 			return id;
 		}
 
-		//~--- set methods --------------------------------------------
-
-		public void setId(final long id) {
-			this.id = id;
-		}
-
-		//~--- get methods --------------------------------------------
-
 		public String getUid() {
 			return uid;
 		}
-
-		//~--- set methods --------------------------------------------
-
-		/**
-		 * @param uid the uid to set
-		 */
-		public void setUid(final String uid) {
-			this.uid = uid;
-		}
-
-		//~--- get methods --------------------------------------------
 
 //              public void addActivity(final Activity activity) {
 //                  activityList.add(activity);
@@ -479,7 +425,41 @@ public class SessionMonitor {
 			return state;
 		}
 
+		private boolean hasActivity() {
+
+			Activity lastActivity = getLastActivity();
+
+			return (lastActivity != null);
+		}
+
 		//~--- set methods --------------------------------------------
+
+		public void setUser(final User user) {
+			this.user = user;
+		}
+
+		public void setLoginTimestamp(final Date loginTimestamp) {
+			this.loginTimestamp = loginTimestamp;
+		}
+
+		private void setLastActivity(final Activity activity) {
+			lastActivityProperties = activity.getPropertyMap();
+		}
+
+		public void setLogoutTime(final Date logoutTime) {
+			this.logoutTimestamp = logoutTime;
+		}
+
+		public void setId(final long id) {
+			this.id = id;
+		}
+
+		/**
+		 * @param uid the uid to set
+		 */
+		public void setUid(final String uid) {
+			this.uid = uid;
+		}
 
 		public void setState(final State state) {
 			this.state = state;

@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 import org.structr.common.CurrentRequest;
+import org.structr.common.CurrentSession;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
@@ -111,7 +112,7 @@ public class NodeConsoleCommand extends NodeServiceCommand {
 
 			if(commandLine != null) {
 
-				User user = CurrentRequest.getCurrentUser();
+				User user = CurrentSession.getUser();
 				boolean superUser = user != null && user instanceof SuperUser;
 
 				ret.append("<p>");

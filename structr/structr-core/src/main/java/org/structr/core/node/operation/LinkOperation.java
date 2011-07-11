@@ -22,7 +22,7 @@ package org.structr.core.node.operation;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import org.structr.common.CurrentRequest;
+import org.structr.common.CurrentSession;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -190,7 +190,7 @@ public class LinkOperation implements PrimaryOperation, NodeRelationshipOperatio
 
 		} else {
 
-			Object findNodeReturnValue = findNodeCommand.execute(CurrentRequest.getCurrentUser(), currentNode, parameter);
+			Object findNodeReturnValue = findNodeCommand.execute(CurrentSession.getUser(), currentNode, parameter);
 			if(findNodeReturnValue instanceof Collection) {
 
 				throw new InvalidParameterException("LINK does not support wildcards");

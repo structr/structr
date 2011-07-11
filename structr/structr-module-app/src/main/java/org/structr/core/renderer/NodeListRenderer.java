@@ -1,6 +1,7 @@
 package org.structr.core.renderer;
 
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
@@ -53,9 +54,9 @@ public class NodeListRenderer extends NodeViewRenderer
 					List<AbstractNode> nodesToRender = new LinkedList<AbstractNode>();
 
 					// iterate over children following the DATA relationship and collect all nodes
-					for(AbstractNode container : currentNode.getSortedDirectChildren(RelType.DATA))
+					for(AbstractNode container : currentNode.getDirectChildren(RelType.DATA))
 					{
-						nodesToRender.addAll(container.getDirectChildNodes());
+						collectDataNodes(container, nodesToRender, 0, 255);
 					}
 
 					Collections.sort(nodesToRender, new AbstractNodeComparator(AbstractNode.toGetter(sortKey), sortOrder));
@@ -93,6 +94,41 @@ public class NodeListRenderer extends NodeViewRenderer
 		return ("text/html");
 	}
 
+	// ----- private methods -----
+	private void collectDataNodes(AbstractNode rootNode, List<AbstractNode> nodesToRender, int depth, int maxDepth) {
+		
+		if(rootNode != null && depth < maxDepth) {
+			
+			Iterable<AbstractNode> iterable = rootNode.getDataNodes();
+			if(iterable != null) {
+				
+				Iterator<AbstractNode> iter = iterable.iterator();
+				if(iter.hasNext()) {
+
+					for(AbstractNode dataNode : iterable) {
+
+						// recurse deeper
+						collectDataNodes(dataNode, nodesToRender, depth+1, maxDepth);
+					}
+					
+				} else {
+					
+					// empty collection => this is a leaf
+					nodesToRender.add(rootNode);
+					
+					// recursion ends here
+				}
+				
+			} else {
+				
+				// empty collection => this is a leaf
+				nodesToRender.add(rootNode);
+					
+				// recursion ends here				
+			}
+		}
+	}
+	
 	private void init(AbstractNode node)
 	{
 

@@ -20,8 +20,8 @@
 package org.structr.core;
 
 /**
- * Defines an adapter that converts an instance of source class S to an
- * instance of target class T.
+ * Defines a filtering adapter that can adapt an instance of source
+ * class S to an instance of target class T.
  *
  * @author Christian Morgner
  */
@@ -34,4 +34,5 @@ public interface Adapter<S, T>
 	 * @return the target class
 	 */
 	public T adapt(S s);
+
 }
