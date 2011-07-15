@@ -188,6 +188,7 @@ public abstract class MapHelper {
          */
         PointSymbolizer sym = styleFactory.createPointSymbolizer(graphic, null);
 
+
         return sym;
     }
 
@@ -249,6 +250,9 @@ public abstract class MapHelper {
                 filterFactory.literal(fontOpacity));
 
         TextSymbolizer sym = styleFactory.createTextSymbolizer(fill, new Font[]{gtFont}, null, pn, placement, null);
+        sym.getOptions().put(TextSymbolizer.CONFLICT_RESOLUTION_KEY, "false");
+        sym.getOptions().put(TextSymbolizer.AUTO_WRAP_KEY, "200");
+        sym.getOptions().put(TextSymbolizer.GOODNESS_OF_FIT_KEY, "0.1");
 
         return sym;
     }
