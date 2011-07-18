@@ -87,6 +87,8 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import org.structr.common.CurrentSession;
+import org.structr.common.renderer.RenderContext;
+import org.structr.common.renderer.RenderController;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -96,7 +98,7 @@ import org.structr.common.CurrentSession;
  * @author amorgner
  *
  */
-public abstract class AbstractNode implements Comparable<AbstractNode> {
+public abstract class AbstractNode implements Comparable<AbstractNode>, RenderController {
 
 	private final static String CALLING_NODE_SUBNODES_AND_LINKED_NODES_KEY = "#";
 
@@ -219,7 +221,14 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 	 * Called when a node of this type is deleted.
 	 */
 	public abstract void onNodeDeletion();
-
+        
+        
+        @Override
+        public boolean renderingAllowed(final RenderContext context) {
+                return true;
+        }
+       
+       
 	public void init(final Node dbNode) {
 
 		this.dbNode = dbNode;
@@ -278,9 +287,18 @@ public abstract class AbstractNode implements Comparable<AbstractNode> {
 		return (this.getName().compareTo(node.getName()));
 	}
 
+        
 	public final void renderNode(final StructrOutputStream out, final AbstractNode startNode, final String editUrl,
 				     final Long editNodeId) {
 
+                if (this.equals(startNode) && !(this.renderingAllowed(RenderContext.AsTopNode))) {
+                    return;
+                }
+                
+                if (!(this.equals(startNode)) && !(this.renderingAllowed(RenderContext.AsSubnode))) {
+                    return;
+                }
+            
 		// initialize renderers
 		if (!renderersInitialized) {
 

@@ -26,6 +26,7 @@ import org.apache.commons.lang.StringUtils;
 import org.structr.common.CurrentRequest;
 import org.structr.common.RenderMode;
 import org.structr.common.renderer.ExternalTemplateRenderer;
+import org.structr.common.renderer.RenderContext;
 import org.structr.core.Command;
 import org.structr.core.NodeRenderer;
 import org.structr.core.Services;
@@ -172,4 +173,23 @@ public class WebNode extends ArbitraryNode {
     @Override
     public void onNodeInstantiation() {
     }
+
+    @Override
+    public boolean renderingAllowed(final RenderContext context) {
+
+        switch (context) {
+
+            case AsSubnode:
+                return false;
+            case AsTopNode:
+                return true;
+            case AsSoleNode:
+                return true;
+            default:
+                return true;
+
+        }
+
+    }
+
 }
