@@ -1097,7 +1097,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		// TODO: enable access to content tree, see below (Content variable)
 		// cfg.setSharedVariable("Tree", new StructrTemplateNodeModel(this));
 		try {
-
+			
 			AbstractNode callingNode = null;
 
 			if (getTemplate() != null) {
@@ -1109,6 +1109,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 			Map root = new HashMap();
 
 			root.put("this", this);
+			root.put("StartNode", startNode);
 
 			if (callingNode != null) {
 
@@ -1173,8 +1174,6 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 				}
 			}
 
-			// add geo info if available
-			// TODO: add geo node information
 			// root.put("Content", new StructrTemplateNodeModel(this, startNode, editUrl, editNodeId, user));
 			// root.put("ContextPath", callingNode.getNodePath(startNode));
 			String name                    = (template != null)
@@ -1961,6 +1960,16 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	}
 
 	/**
+	 * Get path relative to this node
+	 *
+	 * @param node
+	 * @return
+	 */
+	public String getRelativeNodePath() {
+		return getNodePath(this);
+	}
+
+	/**
 	 * Assemble path for given node.
 	 *
 	 * This is an inverse method of @getNodeByIdOrPath.
@@ -2189,7 +2198,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 		return nodes;
 	}
-
+	
 	/**
 	 * Return parent nodes. Follows the INCOMING HAS_CHILD relationship
 	 *

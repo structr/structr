@@ -77,13 +77,15 @@ public class WebNode extends ArbitraryNode {
         for (AbstractNode n : ancestors) {
 
             if (n instanceof Site || n instanceof Domain) {
-                sublevel++;
+                break;
             }
+	    
+	    sublevel++;
 
         }
 
         StringBuilder path = new StringBuilder();
-        for (int i = 1; i < sublevel; i++) {
+        for (int i = 0; i < sublevel; i++) {
             path.append("../");
         }
         return path.toString();
