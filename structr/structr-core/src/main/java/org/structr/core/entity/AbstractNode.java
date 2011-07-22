@@ -312,16 +312,16 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
                 }
 
                 // fetch Renderer
-                NodeRenderer ret = rendererMap.get(renderMode);
+                NodeRenderer nodeRenderer = rendererMap.get(renderMode);
 
-                if (ret == null) {
+                if (nodeRenderer == null) {
 
                         logger.log(Level.FINE, "No renderer found for mode {0}, using default renderers", renderMode);
 
                         switch (renderMode) {
 
                         case Default :
-                                ret = new DefaultRenderer();
+                                nodeRenderer = new DefaultRenderer();
 
                                 break;
 
@@ -331,24 +331,24 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
                                 break;
 
                         case Edit :
-                                ret = new DefaultEditRenderer();
+                                nodeRenderer = new DefaultEditRenderer();
 
                                 break;
                         }
                 }
 
                 logger.log(Level.FINE, "Got renderer {0} for mode {1}, node type {2} ({3})",
-                           new Object[] { (ret != null)
-                                          ? ret.getClass().getName()
+                           new Object[] { (nodeRenderer != null)
+                                          ? nodeRenderer.getClass().getName()
                                           : "Unknown", renderMode, this.getType(), this.getId() });
 
-                if (ret != null) {
+                if (nodeRenderer != null) {
 
                         // set content type
-                        out.setContentType(ret.getContentType(this));
+                        out.setContentType(nodeRenderer.getContentType(this));
 
                         // render node
-                        ret.renderNode(out, this, startNode, editUrl, editNodeId, renderMode);
+                        nodeRenderer.renderNode(out, this, startNode, editUrl, editNodeId, renderMode);
                 } else {
 
                         logger.log(Level.WARNING, "No renderer for mode {0}, node {1}", new Object[] { renderMode,
