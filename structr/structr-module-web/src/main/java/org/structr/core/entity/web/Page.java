@@ -39,34 +39,34 @@ import java.util.*;
  */
 public class Page extends WebNode {
 
-        @Override
-        public String getIconSrc() {
-                return ("/images/page.png");
-        }
+	@Override
+	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers) {
+		renderers.put(RenderMode.Default, new ExternalTemplateRenderer(true));
+	}
 
-        //~--- methods --------------------------------------------------------
+	@Override
+	public boolean renderingAllowed(final RenderContext context) {
 
-        @Override
-        public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers) {
-                renderers.put(RenderMode.Default, new ExternalTemplateRenderer(true));
-        }
+		switch (context) {
 
-        @Override
-        public boolean renderingAllowed(final RenderContext context) {
+			case AsSubnode :
+				return false;
 
-                switch (context) {
+			case AsTopNode :
+				return true;
 
-                case AsSubnode :
-                        return false;
+			case AsSoleNode :
+				return true;
 
-                case AsTopNode :
-                        return true;
+			default :
+				return true;
+		}
+	}
 
-                case AsSoleNode :
-                        return true;
+	//~--- get methods ----------------------------------------------------
 
-                default :
-                        return true;
-                }
-        }
+	@Override
+	public String getIconSrc() {
+		return ("/images/page.png");
+	}
 }
