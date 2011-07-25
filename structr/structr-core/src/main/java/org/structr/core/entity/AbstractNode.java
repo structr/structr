@@ -21,6 +21,7 @@
 
 package org.structr.core.entity;
 
+import freemarker.ext.servlet.HttpRequestParametersHashModel;
 import freemarker.template.Configuration;
 
 import org.apache.commons.lang.ArrayUtils;
@@ -1121,7 +1122,12 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
                         if (request != null) {
 
                                 // root.put("Request", new freemarker.template.SimpleHash(request.getParameterMap().));
-                                root.put("Request", new freemarker.ext.servlet.HttpRequestParametersHashModel(request));
+				
+				HttpRequestParametersHashModel requestModel = new HttpRequestParametersHashModel(request);
+				root.put("Request", requestModel);
+				
+				root.put("ContextPath", request.getContextPath());
+				
 
                                 String searchString    = request.getParameter("search");
                                 String searchInContent = request.getParameter("searchInContent");
