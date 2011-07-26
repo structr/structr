@@ -126,8 +126,8 @@ window.onbeforeunload = function () {
   var treeArea = jQuery("#treeArea .body");
   var tabArea = jQuery(".tabArea .body");
 
-  console.log("treeAreaWidth", treeArea.width());
-  console.log("tabAreaWidth", tabArea.width());
+  //console.log("treeAreaWidth", treeArea.width());
+  //console.log("tabAreaWidth", tabArea.width());
     
   jQuery.cookies.set("scrollTree",treeArea.scrollTop());
   jQuery.cookies.set("scrollCode", jQuery(".tabArea .CodeMirror-wrapping iframe").contents().scrollTop());
