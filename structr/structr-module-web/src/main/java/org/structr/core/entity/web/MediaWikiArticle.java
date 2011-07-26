@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2011 Axel Morgner
+ *  Copyright (C) 2011 Axel Morgner, structr <structr@structr.org>
  *
  *  This file is part of structr <http://structr.org>.
  *
@@ -21,6 +21,9 @@
 
 package org.structr.core.entity.web;
 
+import net.sourceforge.jwbf.core.contentRep.SimpleArticle;
+import net.sourceforge.jwbf.mediawiki.bots.MediaWikiBot;
+
 import org.structr.common.CurrentRequest;
 import org.structr.common.PropertyKey;
 import org.structr.common.RenderMode;
@@ -28,12 +31,7 @@ import org.structr.core.NodeRenderer;
 import org.structr.core.TemporaryValue;
 import org.structr.core.entity.AbstractNode;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.NodeList;
-
 //~--- JDK imports ------------------------------------------------------------
-
-import java.net.URL;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -42,31 +40,25 @@ import java.util.concurrent.TimeUnit;
 
 import javax.servlet.ServletContext;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-
 //~--- classes ----------------------------------------------------------------
 
 /**
+ * A MediaWikiArticle is an interface to articleName in a MediaWiki.
  *
- * @author Christian Morgner
+ * @author axel
  */
-public class RssSource extends AbstractNode {
+public class MediaWikiArticle extends AbstractNode {
 
-	private static final String CACHED_RSS_CONTENT = "cached_rss_content";
+	private static final String CACHED_MEDIAWIKI_CONTENT = "cached_mediawiki_content";
 
 	//~--- constant enums -------------------------------------------------
 
-	public enum Key implements PropertyKey{ sourceUrl }
+	public enum Key implements PropertyKey{ wikiUrl, articleName }
 
 	//~--- methods --------------------------------------------------------
 
-	// ----- AbstractNode -----
 	@Override
-	public void initializeRenderers(Map<RenderMode, NodeRenderer> rendererMap) {
-
-		// not visible directly
-	}
+	public void initializeRenderers(Map<RenderMode, NodeRenderer> rendererMap) {}
 
 	@Override
 	public void onNodeCreation() {}
@@ -82,63 +74,60 @@ public class RssSource extends AbstractNode {
 	@Override
 	public Iterable<AbstractNode> getDataNodes() {
 
-		// content is cached in servlet context
+		// articleName is cached in servlet context
 		ServletContext context = CurrentRequest.getRequest().getSession().getServletContext();
-		List<AbstractNode> ret = null;
+		List<AbstractNode> dataNodes = null;
 
 		// TODO: synchronization
 		if (context != null) {
 
 			TemporaryValue<List<AbstractNode>> value =
 				(TemporaryValue<List<AbstractNode>>) context.getAttribute(
-				    CACHED_RSS_CONTENT.concat(this.getIdString()));
+				    CACHED_MEDIAWIKI_CONTENT.concat(this.getIdString()));
 
 			if (value == null) {
 
 				value = new TemporaryValue<List<AbstractNode>>(null, TimeUnit.MINUTES.toMillis(10));
-				context.setAttribute(CACHED_RSS_CONTENT.concat(this.getIdString()), value);
+				context.setAttribute(CACHED_MEDIAWIKI_CONTENT.concat(this.getIdString()), value);
 			}
 
 			if ((value.getStoredValue() == null) || value.isExpired()) {
 
-				ret = getContentFromSource();
-				value.refreshStoredValue(ret);
+				dataNodes = getContentFromSource();
+				value.refreshStoredValue(dataNodes);
 
 			} else {
-				ret = value.getStoredValue();
+				dataNodes = value.getStoredValue();
 			}
 		}
 
-		return (ret);
+		return dataNodes;
 	}
 
 	@Override
 	public String getIconSrc() {
-		return ("/images/feed.png");
+		return "/images/lightbulb.png";
 	}
 
 	// ----- private methods ----
 	private LinkedList<AbstractNode> getContentFromSource() {
 
-		LinkedList<AbstractNode> nodeList = new LinkedList<AbstractNode>();
-		String source                     = getStringProperty(Key.sourceUrl);
+		LinkedList<AbstractNode> ret = new LinkedList<AbstractNode>();
+		String wikiUrl               = getStringProperty(Key.wikiUrl);
+		String articleName               = getStringProperty(Key.articleName);
 
 		try {
 
-			URL url                 = new URL(source);
-			DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-			Document doc            = builder.parse(url.openStream());
-			NodeList items          = doc.getElementsByTagName("item");
-			int len                 = items.getLength();
+			// do fetch articleName from MediaWiki wiki
+			MediaWikiBot b   = new MediaWikiBot(wikiUrl);
+			SimpleArticle sa = new SimpleArticle(b.readContent(articleName));
 
-			for (int i = 0; i < len; i++) {
-				nodeList.add(new RssItem(i, items.item(i)));
-			}
-
+			
+			System.out.println(sa.getText());
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
 
-		return nodeList;
+		return (ret);
 	}
 }
