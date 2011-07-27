@@ -124,7 +124,7 @@ public class SetOperation implements PrimaryOperation, NodeListOperation {
 	private void addParameterInternal(Object source) throws InvalidParameterException {
 
 		// try to parse attributes and set..
-		String[] parts = source.toString().split("[=]+");
+		String[] parts = source.toString().split("[=]+", 2);
 		if(parts.length == 2) {
 
 			String key = parts[0].trim();
