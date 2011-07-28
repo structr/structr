@@ -52,9 +52,27 @@
 				//console.log("editBasePath: " + editBasePath);
 		
 				var newQueryString = href.replace(/&/, "&___").replace(/\?/g, "&___");
+				
+				var path = newQueryString;
+				
+				if (path.indexOf("/") > -1) {
+					path = newQueryString.substring(0, newQueryString.lastIndexOf("/"));
+				}
+				
+				//console.log("path: " + path);
+				
+				if (nodePath.endsWith(path)) {
+					nodePath = nodePath.replace(path, "");
+					if (nodePath.endsWith("/")) {
+						nodePath = nodePath.substring(0, nodePath.length-1);
+					}
+				}
+				//console.log("nodePath: " + nodePath);
+				//console.log("newQueryString: " + newQueryString);
 		
 				var newPath = editBasePath + '?nodeId=' + nodePath + '/' + newQueryString; //href.split("?")[0];
 				//console.log("newPath: " + newPath);
+				//alert('wait');
 		
 				window.location = newPath;
 			}
