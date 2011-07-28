@@ -34,6 +34,6 @@ public interface RenderController {
      * @param context
      * @return 
      */
-    public boolean renderingAllowed(final RenderContext context);   
+    public abstract boolean renderingAllowed(final RenderContext context);   
     
 }
