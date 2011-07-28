@@ -41,6 +41,11 @@
             <id>neo4j-public-repository</id>
             <url>http://m2.neo4j.org</url>
         </repository>
+        <repository>
+            <id>repo.rasea.org</id>
+            <name>Rasea Maven Repository</name>
+            <url>http://repo.rasea.org/maven2/</url>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -115,7 +120,7 @@
         <dependency>
             <groupId>org.tuckey</groupId>
             <artifactId>urlrewritefilter</artifactId>
-            <version>3.1.0</version>
+            <version>3.2.0</version>
             <type>jar</type>
             <optional>false</optional>
         </dependency>
