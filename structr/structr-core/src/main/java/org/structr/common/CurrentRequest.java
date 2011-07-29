@@ -81,7 +81,7 @@ public class CurrentRequest {
 
 		if ((request != null) && (response != null)) {
 
-			String redirectUrl = getAbsoluteNodePath(destination);
+			String redirectUrl = destination.getNodePath(destination.getContextNode()); // getAbsoluteNodePath(destination);
 
 			try {
 

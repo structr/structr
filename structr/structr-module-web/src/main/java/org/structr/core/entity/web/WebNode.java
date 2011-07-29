@@ -75,12 +75,36 @@ public class WebNode extends ArbitraryNode {
         }
 
         /**
+         * Return the node of next ancestor site (or domain, if no site exists),
+         * or the root node, if no domain or site is in the path.
+         *
+         * @return
+         */
+	@Override
+	public AbstractNode getContextNode() {
+                List<AbstractNode> ancestors = getAncestorNodes();
+
+                for (AbstractNode n : ancestors) {
+
+                        if ((n instanceof Site) || (n instanceof Domain)) {
+                                return n;
+                        }
+
+                }
+
+		// Return root node
+		return ancestors.get(0);
+
+	}
+
+        /**
          * Return the node path of next ancestor site (or domain, if no site exists),
          * or the root node, if no domain or site is in the
          * path.
          *
          * @return
          */
+	@Override
         public String getContextPath() {
 
                 int sublevel                 = 0;
