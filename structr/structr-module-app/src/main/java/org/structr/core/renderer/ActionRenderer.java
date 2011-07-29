@@ -45,7 +45,7 @@ public class ActionRenderer implements NodeRenderer<AbstractNode>
 			AbstractNode successTarget = getSuccessTarget(currentNode);
 			if(successTarget != null)
 			{
-				CurrentRequest.redirect(successTarget);
+				CurrentRequest.redirect(currentNode, successTarget);
 			}
 
 		} else
@@ -55,7 +55,7 @@ public class ActionRenderer implements NodeRenderer<AbstractNode>
 			AbstractNode failureTarget = getFailureTarget(currentNode);
 			if(failureTarget != null)
 			{
-				CurrentRequest.redirect(failureTarget);
+				CurrentRequest.redirect(currentNode, failureTarget);
 			}
 		}
 	}

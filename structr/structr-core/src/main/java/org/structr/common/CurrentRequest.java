@@ -21,6 +21,8 @@
 
 package org.structr.common;
 
+import org.apache.commons.lang.StringUtils;
+
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.User;
 
@@ -74,18 +76,41 @@ public class CurrentRequest {
 	//~--- methods --------------------------------------------------------
 
 	// ----- static methods -----
-	public static void redirect(final AbstractNode destination) {
+	public static void redirect(final AbstractNode currentNode, final AbstractNode destination) {
 
 		HttpServletResponse response = getResponse();
 		HttpServletRequest request   = getRequest();
 
 		if ((request != null) && (response != null)) {
 
-			String redirectUrl = destination.getNodePath(destination.getContextNode()); // getAbsoluteNodePath(destination);
+			String redirectUrl = null;
+			String referrer    = request.getHeader("referer");
+			String requestURI  = request.getRequestURI();
+
+			// TODO: Find a better solution for this.
+			// Currently, we check the referrer if it contains the context path.
+			// If yes redirect to the absolute node path which contains the context path
+			if ((currentNode != null) && (!referrer.contains(request.getContextPath()))) {
+
+				redirectUrl = destination.getNodePath(currentNode);
+
+				// Substract request URI path
+				String[] requestUriParts = StringUtils.split(requestURI, "/");
+
+				for (int i = 0; i < requestUriParts.length + 1; i++) {
+					redirectUrl = "../".concat(redirectUrl);
+				}
+
+			} else {
+				redirectUrl = getAbsoluteNodePath(destination);
+			}
 
 			try {
 
 				CurrentSession.setRedirected(true);
+
+				// Use encodeURL here to enable UrlRewriteFilter rule
+				// response.sendRedirect(response.encodeURL(redirectUrl));
 				response.sendRedirect(redirectUrl);
 
 			} catch (IOException ioex) {
@@ -272,22 +297,21 @@ public class CurrentRequest {
 		return session;
 	}
 
-//	public static User getCurrentUser() {
+//      public static User getCurrentUser() {
 //
-//		CurrentRequest request = getRequestContext();
+//              CurrentRequest request = getRequestContext();
 //
-//		if (request != null) {
+//              if (request != null) {
 //
-//			User currentUser = request.getCurrentUserInternal();
+//                      User currentUser = request.getCurrentUserInternal();
 //
-//			logger.log(Level.FINE, "Current user: {0}", currentUser);
+//                      logger.log(Level.FINE, "Current user: {0}", currentUser);
 //
-//			return currentUser;
-//		}
+//                      return currentUser;
+//              }
 //
-//		return (null);
-//	}
-
+//              return (null);
+//      }
 	public static String getCurrentNodePath() {
 
 		CurrentRequest request = getRequestContext();
@@ -324,10 +348,9 @@ public class CurrentRequest {
 		return (this.internalResponse);
 	}
 
-//	private User getCurrentUserInternal() {
-//		return (currentUser);
-//	}
-
+//      private User getCurrentUserInternal() {
+//              return (currentUser);
+//      }
 	private String getCurrentNodePathInternal() {
 		return (currentNodePath);
 	}
@@ -371,15 +394,14 @@ public class CurrentRequest {
 		context.setResponseInternal(response);
 	}
 
-//	public static void setCurrentUser(final User user) {
+//      public static void setCurrentUser(final User user) {
 //
-//		CurrentRequest request = getRequestContext();
+//              CurrentRequest request = getRequestContext();
 //
-//		if (request != null) {
-//			request.setCurrentUserInternal(user);
-//		}
-//	}
-
+//              if (request != null) {
+//                      request.setCurrentUserInternal(user);
+//              }
+//      }
 	public static void setCurrentNodePath(final String currentNodePath) {
 
 		CurrentRequest request = getRequestContext();
@@ -411,10 +433,9 @@ public class CurrentRequest {
 		attributes.put(key, value);
 	}
 
-//	private void setCurrentUserInternal(final User currentUser) {
-//		this.currentUser = currentUser;
-//	}
-
+//      private void setCurrentUserInternal(final User currentUser) {
+//              this.currentUser = currentUser;
+//      }
 	private void setCurrentNodePathInternal(final String currentNodePath) {
 		this.currentNodePath = currentNodePath;
 	}
