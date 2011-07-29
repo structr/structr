@@ -61,7 +61,6 @@ public class CurrentRequest {
 	//~--- fields ---------------------------------------------------------
 
 	private String currentNodePath               = null;
-	private User currentUser                     = null;
 	private HttpServletRequest internalRequest   = null;
 	private HttpServletResponse internalResponse = null;
 
