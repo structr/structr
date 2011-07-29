@@ -25,6 +25,7 @@ import freemarker.ext.servlet.HttpRequestParametersHashModel;
 
 import freemarker.template.Configuration;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DateUtils;
@@ -1708,6 +1709,21 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		return (getStringProperty(propertyKey.name()));
 	}
 
+	public String getPropertyMD5(final String key) {
+
+		Object value = getProperty(key);
+
+		if (value instanceof String) {
+			return DigestUtils.md5Hex((String) value);
+		} else if (value instanceof byte[]) {
+			return DigestUtils.md5Hex((byte[]) value);
+		}
+
+		logger.log(Level.WARNING, "Could not create MD5 hex out of value {0}", value);
+
+		return null;
+	}
+
 	public String getStringProperty(final String key) {
 
 		Object propertyValue = getProperty(key);
@@ -2185,8 +2201,10 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		List<AbstractNode> ancestors = getAncestorNodes();
 
 		// If node has no ancestors, itself is its context node
-		if (ancestors.isEmpty()) return this;
-		
+		if (ancestors.isEmpty()) {
+			return this;
+		}
+
 		// Return root node
 		return ancestors.get(0);
 	}
