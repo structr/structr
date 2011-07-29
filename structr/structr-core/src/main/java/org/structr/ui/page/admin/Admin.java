@@ -143,10 +143,12 @@ public class Admin extends StructrPage {
 //        simpleSearchForm.add(new Submit("Search", this, "onSimpleSearch"));
         simpleSearchForm.add(new Submit("Search"));
 
-        List<AbstractNode> usersNodes = (List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(user, null, false, false, Search.andExactName("Users"));
-        if (!(usersNodes.isEmpty())) {
-            usersLink.setParameter("nodeId", usersNodes.get(0).getId());
-        }
+//        List<AbstractNode> usersNodes = (List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(user, null, false, false, Search.andExactName("Users"));
+//        if (!(usersNodes.isEmpty())) {
+//            usersLink.setParameter("nodeId", usersNodes.get(0).getId());
+//        }
+	
+	
 
     }
 
