@@ -22,8 +22,12 @@ import javax.servlet.http.HttpServletResponse;
 import org.structr.core.entity.AbstractNode;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.click.util.Bindable;
 import org.apache.click.Page;
+import org.apache.click.util.Bindable;
+import org.structr.common.AccessMode;
+import org.structr.common.CurrentRequest;
+import org.structr.common.Permission;
+import org.structr.common.SecurityContext;
 import org.structr.common.StructrOutputStream;
 
 /**
@@ -46,6 +50,7 @@ public class View extends StructrPage
 			getContext().getPagePath(View.class).concat("?").concat(
 			NODE_ID_KEY.concat("=")));
 
+		CurrentRequest.setAccessMode(AccessMode.Frontend);
 	}
 
 	/**
@@ -68,6 +73,7 @@ public class View extends StructrPage
 	@Override
 	public void onRender()
 	{
+		SecurityContext securityContext = CurrentRequest.getSecurityContext();
 		AbstractNode nodeToRender = getNodeByIdOrPath(getNodeId());
 		if(nodeToRender == null)
 		{
@@ -82,19 +88,21 @@ public class View extends StructrPage
 			// Check visibility before access rights to assure that the
 			// existance of hidden objects is not exposed
 
-			if(!(nodeToRender.isVisible()))
-			{
+			if(!securityContext.isVisible(nodeToRender)) {
+
+			}
 				logger.log(Level.FINE, "Hidden page requested ({0})", getNodeId());
 
 				// TODO: change to structr page (make independent from Click framework)
 				getContext().getResponse().setStatus(HttpServletResponse.SC_NOT_FOUND);
 				setForward("/not-found.htm");
+
 				return;
 			}
 
 			// check read access right
-			if(!(isSuperUser || nodeToRender.readAllowed()))
-			{
+			if(!securityContext.isAllowed(nodeToRender, Permission.Read)) {
+				
 				logger.log(Level.FINE, "Secure page requested ({0})", getNodeId());
 
 				// TODO: change to structr page (make independent from Click framework)
@@ -192,6 +200,5 @@ public class View extends StructrPage
 
 			}
 		*/
-		}
  	}
 }

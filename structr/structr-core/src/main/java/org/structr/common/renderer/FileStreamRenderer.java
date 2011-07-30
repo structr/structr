@@ -15,6 +15,8 @@ import java.io.InputStream;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.CurrentRequest;
+import org.structr.common.SecurityContext;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -32,7 +34,8 @@ public class FileStreamRenderer implements NodeRenderer<File> {
 	public void renderNode(StructrOutputStream out, File currentNode, AbstractNode startNode, String editUrl,
 			       Long editNodeId, RenderMode renderMode) {
 
-		if (currentNode.isVisible()) {
+		SecurityContext securityContext = CurrentRequest.getSecurityContext();
+		if(securityContext.isVisible(currentNode)) {
 
 			InputStream in = currentNode.getInputStream();
 

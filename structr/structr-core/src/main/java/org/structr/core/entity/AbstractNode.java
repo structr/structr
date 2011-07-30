@@ -96,6 +96,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import org.neo4j.graphdb.traversal.Evaluator;
 import org.neo4j.kernel.Traversal;
+import org.structr.common.Permission;
+import org.structr.common.SecurityContext;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -636,7 +638,6 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * Check if given node may be read by current user.
 	 *
 	 * @return
-	 */
 	public boolean readAllowed() {
 
 		// Check global settings first
@@ -647,75 +648,75 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		// Then check per-user permissions
 		return hasPermission(StructrRelationship.READ_KEY, user);
 	}
+	 */
 
 	/**
 	 * Check if given node may see the navigation tree
 	 *
 	 * @return
-	 */
 	public boolean showTreeAllowed() {
 		return hasPermission(StructrRelationship.SHOW_TREE_KEY, user);
 	}
+	 */
 
 	/**
 	 * Check if given node may be written by current user.
 	 *
 	 * @return
-	 */
 	public boolean writeAllowed() {
 		return hasPermission(StructrRelationship.WRITE_KEY, user);
 	}
+	 */
 
 	/**
 	 * Check if given user may create new sub nodes.
 	 *
 	 * @return
-	 */
 	public boolean createSubnodeAllowed() {
 		return hasPermission(StructrRelationship.CREATE_SUBNODE_KEY, user);
 	}
+	 */
 
 	/**
 	 * Check if given user may delete this node
 	 *
 	 * @return
-	 */
 	public boolean deleteNodeAllowed() {
 		return hasPermission(StructrRelationship.DELETE_NODE_KEY, user);
 	}
+	 */
 
 	/**
 	 * Check if given user may add new relationships to this node
 	 *
 	 * @return
-	 */
 	public boolean addRelationshipAllowed() {
 		return hasPermission(StructrRelationship.ADD_RELATIONSHIP_KEY, user);
 	}
+	 */
 
 	/**
 	 * Check if given user may edit (set) properties of this node
 	 *
 	 * @return
-	 */
 	public boolean editPropertiesAllowed() {
 		return hasPermission(StructrRelationship.EDIT_PROPERTIES_KEY, user);
 	}
+	 */
 
 	/**
 	 * Check if given user may remove relationships to this node
 	 *
 	 * @return
-	 */
 	public boolean removeRelationshipAllowed() {
 		return hasPermission(StructrRelationship.REMOVE_RELATIONSHIP_KEY, user);
 	}
+	 */
 
 	/**
 	 * Check if access of given node may be controlled by current user.
 	 *
 	 * @return
-	 */
 	public boolean accessControlAllowed() {
 
 		// just in case ...
@@ -748,6 +749,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 		return false;
 	}
+	 */
 
 	/**
 	 * Replace $(key) by the content rendered by the subnode with name "key"
@@ -2232,6 +2234,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 */
 	public List<AbstractNode> getSiblingNodes() {
 
+		SecurityContext securityContext = CurrentRequest.getSecurityContext();
 		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
 		AbstractNode parentNode  = getParentNode();
 
@@ -2245,8 +2248,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 			for (StructrRelationship r : rels) {
 
 				AbstractNode s = (AbstractNode) nodeFactory.execute(r.getEndNode());
-
-				if (s.readAllowed()) {
+				if(securityContext.isAllowed(s, Permission.Read)) {
 					nodes.add(s);
 				}
 			}
@@ -2292,6 +2294,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 */
 	public List<AbstractNode> getParentNodes() {
 
+		SecurityContext securityContext = CurrentRequest.getSecurityContext();
 		List<AbstractNode> nodes       = new LinkedList<AbstractNode>();
 		Command nodeFactory            = Services.command(NodeFactoryCommand.class);
 		List<StructrRelationship> rels = getIncomingChildRelationships();
@@ -2299,8 +2302,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		for (StructrRelationship r : rels) {
 
 			AbstractNode s = (AbstractNode) nodeFactory.execute(r.getStartNode());
-
-			if (s.readAllowed()) {
+			if (securityContext.isAllowed(s, Permission.Read)) {
 				nodes.add(s);
 			}
 		}
@@ -2583,23 +2585,15 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 */
 	public List<AbstractNode> getDirectChildren(final RelationshipType relType, final String nodeType) {
 
-		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
-
-//              Command nodeFactory = null;
-//              if (relType.equals(RelType.LINK)) {
-//                  nodeFactory = Services.command(LinkNodeFactoryCommand.class);
-//              } else {
-//                  nodeFactory = Services.command(NodeFactoryCommand.class);
-//              }
-//              Command relsCommand = Services.command(NodeRelationshipsCommand.class);
-//              List<StructrRelationship> rels = (List<StructrRelationship>) relsCommand.execute(this, relType, Direction.OUTGOING);
 		List<StructrRelationship> rels = this.getOutgoingRelationships(relType);
+		SecurityContext securityContext = CurrentRequest.getSecurityContext();
+		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
 
 		for (StructrRelationship r : rels) {
 
 			AbstractNode s = r.getEndNode();
 
-			if (s.readAllowed() && ((nodeType == null) || nodeType.equals(s.getType()))) {
+			if (securityContext.isAllowed(s, Permission.Read) && ((nodeType == null) || nodeType.equals(s.getType()))) {
 				nodes.add(s);
 			}
 		}
@@ -2727,13 +2721,14 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 */
 	protected List<AbstractNode> getAllChildren(final String nodeType) {
 
-		List<AbstractNode> nodes  = new LinkedList<AbstractNode>();
-		Command findNode          = Services.command(FindNodeCommand.class);
-		List<AbstractNode> result = (List<AbstractNode>) findNode.execute(user, this);
+		SecurityContext securityContext = CurrentRequest.getSecurityContext();
+		List<AbstractNode> nodes        = new LinkedList<AbstractNode>();
+		Command findNode                = Services.command(FindNodeCommand.class);
+		List<AbstractNode> result       = (List<AbstractNode>) findNode.execute(user, this);
 
 		for (AbstractNode s : result) {
 
-			if (s.readAllowed() && ((nodeType == null) || nodeType.equals(s.getType()))) {
+			if (securityContext.isAllowed(s, Permission.Read) && ((nodeType == null) || nodeType.equals(s.getType()))) {
 				nodes.add(s);
 			}
 		}
@@ -2982,7 +2977,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * @param principal
 	 * @return
 	 */
-	private boolean hasPermission(final String permission, final Principal principal) {
+	public boolean hasPermission(final String permission, final Principal principal) {
 
 		// just in case ...
 		if ((principal == null) || (permission == null)) {
@@ -3100,7 +3095,6 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * Check visibility of given node, used for rendering in view mode
 	 *
 	 * @return
-	 */
 	public boolean isVisible() {
 
 		if (user instanceof SuperUser) {
@@ -3161,6 +3155,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 			}
 		}
 	}
+	 */
 
 	//~--- set methods ----------------------------------------------------
 
@@ -3409,8 +3404,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		public void renderNode(StructrOutputStream out, AbstractNode currentNode, AbstractNode startNode,
 				       String editUrl, Long editNodeId, RenderMode renderMode) {
 
-			if (isVisible()) {
-				out.append(getName());
+			SecurityContext securityContext = CurrentRequest.getSecurityContext();
+			if (securityContext.isVisible(currentNode)) {
+				out.append(currentNode.getName());
 			}
 		}
 

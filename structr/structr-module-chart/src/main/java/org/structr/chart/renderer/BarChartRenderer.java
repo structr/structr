@@ -9,9 +9,10 @@ import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.renderer.category.CategoryItemRenderer;
 import org.jfree.data.category.DefaultCategoryDataset;
-import org.jfree.ui.RectangleInsets;
 import org.structr.chart.entity.CategoryChart;
+import org.structr.common.CurrentRequest;
 import org.structr.common.RenderMode;
+import org.structr.common.SecurityContext;
 import org.structr.common.StructrOutputStream;
 import org.structr.core.NodeRenderer;
 import org.structr.core.entity.AbstractNode;
@@ -25,59 +26,63 @@ public class BarChartRenderer extends ChartRenderer implements NodeRenderer<Cate
 {
 	public void renderNode(StructrOutputStream out, CategoryChart currentNode, AbstractNode startNode, String editUrl, Long editNodeId, RenderMode renderMode)
 	{
-		DefaultCategoryDataset dataSet = new DefaultCategoryDataset();
-		String categoryAxisLabel = currentNode.getCategroyAxisLabel();
-		String valueAxisLabel = currentNode.getValueAxisLabel();
+		SecurityContext securityContext = CurrentRequest.getSecurityContext();
+		if(securityContext.isVisible(currentNode)) {
 
-		String categoryPropertyName = currentNode.getStringProperty(CategoryChart.Key.categoryProperty);
-		String valuePropertyName = currentNode.getStringProperty(CategoryChart.Key.valueProperty);
+			DefaultCategoryDataset dataSet = new DefaultCategoryDataset();
+			String categoryAxisLabel = currentNode.getCategroyAxisLabel();
+			String valueAxisLabel = currentNode.getValueAxisLabel();
 
-		boolean recursive = currentNode.getRecursive();
-		int width = currentNode.getWidth();
-		int height = currentNode.getHeight();
+			String categoryPropertyName = currentNode.getStringProperty(CategoryChart.Key.categoryProperty);
+			String valuePropertyName = currentNode.getStringProperty(CategoryChart.Key.valueProperty);
 
-		PlotOrientation orientation = PlotOrientation.HORIZONTAL;
-		if(currentNode.getOrientation() != null)
-		{
-			String orientationFromNode = currentNode.getOrientation();
-			
-			if("vertical".equals(orientationFromNode))	orientation = PlotOrientation.VERTICAL;
-			if("horizontal".equals(orientationFromNode))	orientation = PlotOrientation.HORIZONTAL;
-		}
+			boolean recursive = currentNode.getRecursive();
+			int width = currentNode.getWidth();
+			int height = currentNode.getHeight();
 
-		// collect data
-		for(StructrRelationship rel : currentNode.getOutgoingDataRelationships())
-		{
-			AbstractNode endNode = rel.getEndNode();
-			for(AbstractNode child : endNode.getDirectChildNodes())
+			PlotOrientation orientation = PlotOrientation.HORIZONTAL;
+			if(currentNode.getOrientation() != null)
 			{
-				collectData(categoryPropertyName, valuePropertyName, child, dataSet, recursive);
+				String orientationFromNode = currentNode.getOrientation();
+
+				if("vertical".equals(orientationFromNode))	orientation = PlotOrientation.VERTICAL;
+				if("horizontal".equals(orientationFromNode))	orientation = PlotOrientation.HORIZONTAL;
 			}
+
+			// collect data
+			for(StructrRelationship rel : currentNode.getOutgoingDataRelationships())
+			{
+				AbstractNode endNode = rel.getEndNode();
+				for(AbstractNode child : endNode.getDirectChildNodes())
+				{
+					collectData(categoryPropertyName, valuePropertyName, child, dataSet, recursive);
+				}
+			}
+
+			CategoryAxis domainAxis = new CategoryAxis(categoryAxisLabel);
+			currentNode.configureCategoryAxis(domainAxis);
+
+			ValueAxis valueAxis = new NumberAxis(valueAxisLabel);
+			currentNode.configureValueAxis(valueAxis);
+
+			CategoryItemRenderer renderer = currentNode.getCategoryItemRenderer();
+			CategoryPlot plot = new CategoryPlot(dataSet, domainAxis, valueAxis, renderer);
+			plot.setBackgroundPaint(Color.WHITE);
+			plot.setOrientation(orientation);
+
+			// allow node to override plot settings
+			currentNode.configurePlot(plot);
+
+			JFreeChart chart = new JFreeChart(plot);
+			chart.setBorderVisible(false);
+			chart.setBackgroundPaint(Color.WHITE);
+
+			// allow node to override chart settings
+			currentNode.configureChart(chart);
+
+			// write image
+			writeImage(out, chart.createBufferedImage(width, height));
 		}
-
-		CategoryAxis domainAxis = new CategoryAxis(categoryAxisLabel);
-		currentNode.configureCategoryAxis(domainAxis);
-
-		ValueAxis valueAxis = new NumberAxis(valueAxisLabel);
-		currentNode.configureValueAxis(valueAxis);
-
-		CategoryItemRenderer renderer = currentNode.getCategoryItemRenderer();
-		CategoryPlot plot = new CategoryPlot(dataSet, domainAxis, valueAxis, renderer);
-		plot.setBackgroundPaint(Color.WHITE);
-		plot.setOrientation(orientation);
-
-		// allow node to override plot settings
-		currentNode.configurePlot(plot);
-
-		JFreeChart chart = new JFreeChart(plot);
-		chart.setBorderVisible(false);
-		chart.setBackgroundPaint(Color.WHITE);
-
-		// allow node to override chart settings
-		currentNode.configureChart(chart);
-
-		// write image
-		writeImage(out, chart.createBufferedImage(width, height));
 	}
 
 	public String getContentType(CategoryChart currentNode)

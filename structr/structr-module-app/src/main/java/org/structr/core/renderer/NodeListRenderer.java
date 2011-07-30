@@ -11,6 +11,7 @@ import org.structr.common.AbstractNodeComparator;
 import org.structr.common.CurrentRequest;
 import org.structr.common.RelType;
 import org.structr.common.RenderMode;
+import org.structr.common.SecurityContext;
 import org.structr.common.StructrOutputStream;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Template;
@@ -40,8 +41,9 @@ public class NodeListRenderer extends NodeViewRenderer
 	@Override
 	public void renderNode(StructrOutputStream out, AbstractNode currentNode, AbstractNode startNode, String editUrl, Long editNodeId, RenderMode renderMode)
 	{
-		if(currentNode.isVisible())
-		{
+		SecurityContext securityContext = CurrentRequest.getSecurityContext();
+		if(securityContext.isVisible(currentNode)) {
+
 			if(currentNode.hasTemplate())
 			{
 				Template template = currentNode.getTemplate();

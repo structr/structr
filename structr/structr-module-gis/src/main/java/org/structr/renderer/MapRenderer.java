@@ -31,6 +31,7 @@ import org.opengis.filter.Filter;
 import org.structr.common.CurrentRequest;
 import org.structr.common.MapHelper;
 import org.structr.common.RenderMode;
+import org.structr.common.SecurityContext;
 import org.structr.common.StructrOutputStream;
 import org.structr.core.Command;
 import org.structr.core.NodeRenderer;
@@ -61,8 +62,9 @@ public class MapRenderer implements NodeRenderer<Map>
 
 		} else
 		{
-			if(currentNode.isVisible())
-			{
+			SecurityContext securityContext = CurrentRequest.getSecurityContext();
+			if(securityContext.isVisible(currentNode)) {
+
 				if(currentNode.getDontCache() == Boolean.TRUE)
 				{
 					StringBuilder content = new StringBuilder(1000);

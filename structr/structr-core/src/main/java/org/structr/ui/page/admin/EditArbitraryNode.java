@@ -36,6 +36,9 @@ import org.apache.click.extras.control.IntegerField;
 import org.apache.click.extras.control.LongField;
 import org.apache.click.extras.control.NumberField;
 import org.apache.click.util.ContainerUtils;
+import org.structr.common.CurrentRequest;
+import org.structr.common.Permission;
+import org.structr.common.SecurityContext;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -66,7 +69,7 @@ public class EditArbitraryNode extends DefaultEdit {
 
         super.onInit();
 
-
+	SecurityContext securityContext = CurrentRequest.getSecurityContext();
         ArbitraryNode arbitraryNode = null;
 
         if (node != null) {
@@ -111,7 +114,7 @@ public class EditArbitraryNode extends DefaultEdit {
         dynamicPropertiesForm.copyTo(node);
 
         dynamicPropertiesForm.setActionURL(dynamicPropertiesForm.getActionURL().concat("#properties-tab"));
-        if (editPropertiesAllowed) {
+	if(securityContext.isAllowed(node, Permission.EditProperty)) {
             dynamicProperties.add(new Submit("saveDynamicProperties", " Save Dynamic Properties ", this, "onSaveDynamicProperties"));
 //            editPropertiesForm.add(new Submit("savePropertiesAndReturn", " Save and Return ", this, "onSaveAndReturn"));
             dynamicProperties.add(new Submit("cancel", " Cancel ", this, "onCancel"));
