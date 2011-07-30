@@ -33,7 +33,9 @@ import org.apache.commons.lang.time.DateUtils;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.traversal.Evaluation;
 
 import org.structr.common.AbstractNodeComparator;
 import org.structr.common.CurrentRequest;
@@ -92,6 +94,8 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import org.neo4j.graphdb.traversal.Evaluator;
+import org.neo4j.kernel.Traversal;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -2895,6 +2899,53 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		return (ret);
 	}
 
+
+	/**
+	 * Returns an Iterable that lazily traverses the node tree depth first with the given parameters.
+	 *
+	 * @param relType the relationship type to follow
+	 * @param direction the direction of the relationship to follow
+	 * @param evaluator the evaluator that decides how the traversal will be done
+	 *
+	 * @return an Iterable of the nodes found in the traversal
+	 */
+	protected Iterable<Node> traverseDepthFirst(final RelationshipType relType, final Direction direction, Evaluator evaluator) {
+
+		return(Traversal.description().depthFirst().relationships(relType, direction).evaluator(evaluator).traverse(dbNode).nodes());
+	}
+
+	/**
+	 * Returns an Iterable that lazily traverses the node tree breadth first with the given parameters.
+	 *
+	 * @param relType the relationship type to follow
+	 * @param direction the direction of the relationship to follow
+	 * @param evaluator the evaluator that decides how the traversal will be done
+	 *
+	 * @return an Iterable of the nodes found in the traversal
+	 */
+	protected Iterable<Node> traverseBreadthFirst(final RelationshipType relType, final Direction direction, Evaluator evaluator) {
+
+		return(Traversal.description().breadthFirst().relationships(relType, direction).evaluator(evaluator).traverse(dbNode).nodes());
+	}
+
+	/**
+	 * Returns the number of elements in the given Iterable
+	 *
+	 * @param iterable
+	 * @return the number of elements in the given iterable
+	 */
+	protected int countIterableElements(Iterable iterable) {
+
+		int count = 0;
+
+		for(Object o : iterable) {
+
+			count++;
+		}
+
+		return(count);
+	}
+
 	public boolean hasTemplate() {
 		return (getTemplate() != null);
 	}
@@ -3022,16 +3073,27 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 */
 	public boolean isInTrash() {
 
-		List<AbstractNode> ancestors = getAncestorNodes();
+		return(countIterableElements(traverseDepthFirst(RelType.HAS_CHILD, Direction.INCOMING, new Evaluator() {
 
-		for (AbstractNode node : ancestors) {
+			@Override
+			public Evaluation evaluate(Path path) {
 
-			if (node instanceof Trash) {
-				return true;
+				Node node = path.endNode();
+
+				// check for type property with value "Trash"
+				if(node.hasProperty(TYPE_KEY) && node.getProperty(TYPE_KEY).equals("Trash")) {
+
+					// only include Trash nodes in result set
+					return(Evaluation.INCLUDE_AND_PRUNE);
+
+				} else {
+
+					// else just continue
+					return(Evaluation.EXCLUDE_AND_CONTINUE);
+				}
 			}
-		}
 
-		return false;
+		})) > 0);
 	}
 
 	/**
