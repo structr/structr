@@ -118,7 +118,7 @@ public class StructrNodeFactory<T extends AbstractNode> implements Adapter<Node,
 
 				AbstractNode n = createNode(node);
 
-				if (((user == null) || n.readAllowed()) && (includeDeleted ||!(n.isDeleted()))
+				if (n != null && ((user == null) || n.readAllowed()) && (includeDeleted ||!(n.isDeleted()))
 					&& (!publicOnly || n.isPublic())) {
 					nodes.add(n);
 				}
