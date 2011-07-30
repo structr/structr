@@ -1,29 +1,36 @@
 /*
  *  Copyright (C) 2011 Axel Morgner
- * 
+ *
  *  This file is part of structr <http://structr.org>.
- * 
+ *
  *  structr is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
- * 
+ *
  *  structr is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- * 
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+
+
 package org.structr.common;
 
-import java.util.Date;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.StructrRelationship;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
+
+//~--- JDK imports ------------------------------------------------------------
+
+import java.util.Date;
+
+//~--- classes ----------------------------------------------------------------
 
 /**
  * Encapsulates the current user and access path and provides methods
@@ -36,28 +43,34 @@ public class SecurityContext {
 
 	private AccessMode accessMode = AccessMode.Frontend;
 
-	public SecurityContext() {
+	//~--- constructors ---------------------------------------------------
+
+	public SecurityContext() {}
+
+	//~--- get methods ----------------------------------------------------
+
+	private User getUser() {
+		return CurrentSession.getUser();
 	}
 
 	public boolean isAllowed(AbstractNode node, Permission permission) {
 
-		switch(accessMode) {
-			
-			case Backend:
-				return(isAllowedInBackend(node, permission));
-				
-			case Frontend:
-				return(isAllowedInFrontend(node, permission));
+		switch (accessMode) {
+
+			case Backend :
+				return isAllowedInBackend(node, permission);
+
+			case Frontend :
+				return isAllowedInFrontend(node, permission);
 		}
-		
-		return(false);
+
+		return (false);
 	}
 
 	public boolean isVisible(AbstractNode node) {
 
-		if(node == null) {
-
-			return(false);
+		if (node == null) {
+			return (false);
 		}
 
 		User user = getUser();
@@ -121,24 +134,18 @@ public class SecurityContext {
 		}
 	}
 
-	public void setAccessMode(AccessMode accessMode) {
-
-		this.accessMode = accessMode;
-	}
-
 	// ----- private methods -----
 	private boolean isAllowedInBackend(AbstractNode node, Permission permission) {
 
 		User user = getUser();
 
-		if(node == null) {
-
-			return(false);
+		if (node == null) {
+			return false;
 		}
 
-		switch(permission) {
+		switch (permission) {
 
-			case AccessControl:
+			case AccessControl :
 				if (user == null) {
 					return false;
 				}
@@ -166,51 +173,51 @@ public class SecurityContext {
 					return true;
 				}
 
-				return(false);
+				return false;
 
-			case CreateNode:
-				return(node.hasPermission(StructrRelationship.CREATE_SUBNODE_KEY, user));
+			case CreateNode :
+				return node.hasPermission(StructrRelationship.CREATE_SUBNODE_KEY, user);
 
-			case CreateRelationship:
-				return(node.hasPermission(StructrRelationship.ADD_RELATIONSHIP_KEY, user));
+			case CreateRelationship :
+				return node.hasPermission(StructrRelationship.ADD_RELATIONSHIP_KEY, user);
 
-			case DeleteNode:
-				return(node.hasPermission(StructrRelationship.DELETE_NODE_KEY, user));
+			case DeleteNode :
+				return node.hasPermission(StructrRelationship.DELETE_NODE_KEY, user);
 
-			case DeleteRelationship:
-				return(node.hasPermission(StructrRelationship.REMOVE_RELATIONSHIP_KEY, user));
+			case DeleteRelationship :
+				return node.hasPermission(StructrRelationship.REMOVE_RELATIONSHIP_KEY, user);
 
-			case EditProperty:
-				return(node.hasPermission(StructrRelationship.EDIT_PROPERTIES_KEY, user));
+			case EditProperty :
+				return node.hasPermission(StructrRelationship.EDIT_PROPERTIES_KEY, user);
 
-			case Execute:
-				return(node.hasPermission(StructrRelationship.EXECUTE_KEY, user));
+			case Execute :
+				return node.hasPermission(StructrRelationship.EXECUTE_KEY, user);
 
-			case Read:
-				return(node.hasPermission(StructrRelationship.READ_KEY, user));
+			case Read :
+				return node.hasPermission(StructrRelationship.READ_KEY, user);
 
-			case ShowTree:
-				return(node.hasPermission(StructrRelationship.SHOW_TREE_KEY, user));
+			case ShowTree :
+				return node.hasPermission(StructrRelationship.SHOW_TREE_KEY, user);
 
-			case Write:
-				return(node.hasPermission(StructrRelationship.WRITE_KEY, user));
+			case Write :
+				return node.hasPermission(StructrRelationship.WRITE_KEY, user);
 		}
 
-		return(false);
+		return (false);
 	}
 
 	private boolean isAllowedInFrontend(AbstractNode node, Permission permission) {
 
-		if(node == null) {
-
-			return(false);
+		if (node == null) {
+			return false;
 		}
 
-		return(isAllowedInBackend(node, permission));
+		return isAllowedInBackend(node, permission);
 	}
 
-	private User getUser() {
+	//~--- set methods ----------------------------------------------------
 
-		return(CurrentSession.getUser());
+	public void setAccessMode(AccessMode accessMode) {
+		this.accessMode = accessMode;
 	}
 }
