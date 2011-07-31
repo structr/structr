@@ -47,7 +47,7 @@ import javax.servlet.http.HttpSession;
 //~--- classes ----------------------------------------------------------------
 
 /**
- * Encapsulates structr context information private to a single session
+ * Encapsulates structr context information private to a single request
  *
  * @author Christian Morgner
  */
@@ -59,9 +59,11 @@ public class CurrentRequest {
 
 	//~--- fields ---------------------------------------------------------
 
-	private String currentNodePath               = null;
-	private HttpServletRequest internalRequest   = null;
-	private HttpServletResponse internalResponse = null;
+	private String currentNodePath                  = null;
+	private HttpServletRequest internalRequest      = null;
+	private HttpServletResponse internalResponse    = null;
+
+	private SecurityContext internalSecurityContext = new SecurityContext();
 
 	// ----- private attributes -----
 	private final List<RequestCycleListener> requestCycleListener = new LinkedList<RequestCycleListener>();
@@ -269,6 +271,10 @@ public class CurrentRequest {
 	}
 
 	//~--- get methods ----------------------------------------------------
+	public static SecurityContext getSecurityContext() {
+
+		return(getRequestContext().getSecurityContextInternal());
+	}
 
 	public static HttpServletRequest getRequest() {
 		return (getRequestContext().getRequestInternal());
@@ -338,6 +344,10 @@ public class CurrentRequest {
 		return (null);
 	}
 
+	private SecurityContext getSecurityContextInternal() {
+		return (this.internalSecurityContext);
+	}
+
 	private HttpServletRequest getRequestInternal() {
 		return (this.internalRequest);
 	}
@@ -400,6 +410,13 @@ public class CurrentRequest {
 //                      request.setCurrentUserInternal(user);
 //              }
 //      }
+
+	public static void setAccessMode(AccessMode accessMode) {
+
+		// wont return null
+		getSecurityContext().setAccessMode(accessMode);
+	}
+
 	public static void setCurrentNodePath(final String currentNodePath) {
 
 		CurrentRequest request = getRequestContext();

@@ -1,6 +1,8 @@
 package org.structr.common.renderer;
 
+import org.structr.common.CurrentRequest;
 import org.structr.common.RenderMode;
+import org.structr.common.SecurityContext;
 import org.structr.common.StructrOutputStream;
 import org.structr.core.NodeRenderer;
 import org.structr.core.entity.AbstractNode;
@@ -25,8 +27,9 @@ public class ImageSourceRenderer implements NodeRenderer<Image>
 		}
 
 		// FIXME: title shoud be rendered dependent of locale
-		if(currentNode.isVisible())
-		{
+		SecurityContext securityContext = CurrentRequest.getSecurityContext();
+		if(securityContext.isVisible(currentNode)) {
+
 			String title = currentNode.getTitle();
 
 			//out.append("<img src=\"").append(getNodeURL(renderMode, contextPath)).append("\" title=\"").append(getTitle()).append("\" alt=\"").append(getTitle()).append("\" width=\"").append(getWidth()).append("\" height=\"").append(getHeight()).append("\">");

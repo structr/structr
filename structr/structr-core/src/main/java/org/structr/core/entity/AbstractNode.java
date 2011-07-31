@@ -36,13 +36,17 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.traversal.Evaluation;
+import org.neo4j.graphdb.traversal.Evaluator;
+import org.neo4j.kernel.Traversal;
 
 import org.structr.common.AbstractNodeComparator;
 import org.structr.common.CurrentRequest;
 import org.structr.common.CurrentSession;
+import org.structr.common.Permission;
 import org.structr.common.PropertyKey;
 import org.structr.common.RelType;
 import org.structr.common.RenderMode;
+import org.structr.common.SecurityContext;
 import org.structr.common.StructrOutputStream;
 import org.structr.common.TemplateHelper;
 import org.structr.common.renderer.DefaultEditRenderer;
@@ -94,8 +98,6 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import org.neo4j.graphdb.traversal.Evaluator;
-import org.neo4j.kernel.Traversal;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -636,118 +638,118 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * Check if given node may be read by current user.
 	 *
 	 * @return
+	 * public boolean readAllowed() {
+	 *
+	 *       // Check global settings first
+	 *       if (isVisible()) {
+	 *               return true;
+	 *       }
+	 *
+	 *       // Then check per-user permissions
+	 *       return hasPermission(StructrRelationship.READ_KEY, user);
+	 * }
 	 */
-	public boolean readAllowed() {
-
-		// Check global settings first
-		if (isVisible()) {
-			return true;
-		}
-
-		// Then check per-user permissions
-		return hasPermission(StructrRelationship.READ_KEY, user);
-	}
 
 	/**
 	 * Check if given node may see the navigation tree
 	 *
 	 * @return
+	 * public boolean showTreeAllowed() {
+	 *       return hasPermission(StructrRelationship.SHOW_TREE_KEY, user);
+	 * }
 	 */
-	public boolean showTreeAllowed() {
-		return hasPermission(StructrRelationship.SHOW_TREE_KEY, user);
-	}
 
 	/**
 	 * Check if given node may be written by current user.
 	 *
 	 * @return
+	 * public boolean writeAllowed() {
+	 *       return hasPermission(StructrRelationship.WRITE_KEY, user);
+	 * }
 	 */
-	public boolean writeAllowed() {
-		return hasPermission(StructrRelationship.WRITE_KEY, user);
-	}
 
 	/**
 	 * Check if given user may create new sub nodes.
 	 *
 	 * @return
+	 * public boolean createSubnodeAllowed() {
+	 *       return hasPermission(StructrRelationship.CREATE_SUBNODE_KEY, user);
+	 * }
 	 */
-	public boolean createSubnodeAllowed() {
-		return hasPermission(StructrRelationship.CREATE_SUBNODE_KEY, user);
-	}
 
 	/**
 	 * Check if given user may delete this node
 	 *
 	 * @return
+	 * public boolean deleteNodeAllowed() {
+	 *       return hasPermission(StructrRelationship.DELETE_NODE_KEY, user);
+	 * }
 	 */
-	public boolean deleteNodeAllowed() {
-		return hasPermission(StructrRelationship.DELETE_NODE_KEY, user);
-	}
 
 	/**
 	 * Check if given user may add new relationships to this node
 	 *
 	 * @return
+	 * public boolean addRelationshipAllowed() {
+	 *       return hasPermission(StructrRelationship.ADD_RELATIONSHIP_KEY, user);
+	 * }
 	 */
-	public boolean addRelationshipAllowed() {
-		return hasPermission(StructrRelationship.ADD_RELATIONSHIP_KEY, user);
-	}
 
 	/**
 	 * Check if given user may edit (set) properties of this node
 	 *
 	 * @return
+	 * public boolean editPropertiesAllowed() {
+	 *       return hasPermission(StructrRelationship.EDIT_PROPERTIES_KEY, user);
+	 * }
 	 */
-	public boolean editPropertiesAllowed() {
-		return hasPermission(StructrRelationship.EDIT_PROPERTIES_KEY, user);
-	}
 
 	/**
 	 * Check if given user may remove relationships to this node
 	 *
 	 * @return
+	 * public boolean removeRelationshipAllowed() {
+	 *       return hasPermission(StructrRelationship.REMOVE_RELATIONSHIP_KEY, user);
+	 * }
 	 */
-	public boolean removeRelationshipAllowed() {
-		return hasPermission(StructrRelationship.REMOVE_RELATIONSHIP_KEY, user);
-	}
 
 	/**
 	 * Check if access of given node may be controlled by current user.
 	 *
 	 * @return
+	 * public boolean accessControlAllowed() {
+	 *
+	 *       // just in case ...
+	 *       if (user == null) {
+	 *               return false;
+	 *       }
+	 *
+	 *       // superuser
+	 *       if (user instanceof SuperUser) {
+	 *               return true;
+	 *       }
+	 *
+	 *       // node itself
+	 *       if (this.equals(user)) {
+	 *               return true;
+	 *       }
+	 *
+	 *       StructrRelationship r = null;
+	 *
+	 *       // owner has always access control
+	 *       if (user.equals(getOwnerNode())) {
+	 *               return true;
+	 *       }
+	 *
+	 *       r = getSecurityRelationship(user);
+	 *
+	 *       if ((r != null) && r.isAllowed(StructrRelationship.ACCESS_CONTROL_KEY)) {
+	 *               return true;
+	 *       }
+	 *
+	 *       return false;
+	 * }
 	 */
-	public boolean accessControlAllowed() {
-
-		// just in case ...
-		if (user == null) {
-			return false;
-		}
-
-		// superuser
-		if (user instanceof SuperUser) {
-			return true;
-		}
-
-		// node itself
-		if (this.equals(user)) {
-			return true;
-		}
-
-		StructrRelationship r = null;
-
-		// owner has always access control
-		if (user.equals(getOwnerNode())) {
-			return true;
-		}
-
-		r = getSecurityRelationship(user);
-
-		if ((r != null) && r.isAllowed(StructrRelationship.ACCESS_CONTROL_KEY)) {
-			return true;
-		}
-
-		return false;
-	}
 
 	/**
 	 * Replace $(key) by the content rendered by the subnode with name "key"
@@ -985,7 +987,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 				AbstractNode startNode = rel.getStartNode();
 
-				if (startNode != null) {
+				if (startNode != null && nodes.size() < maxNum) {
 
 					nodes.add(startNode);
 					rels.add(rel);
@@ -1011,7 +1013,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 				AbstractNode endNode = rel.getEndNode();
 
-				if (endNode != null) {
+				if (endNode != null && nodes.size() < maxNum) {
 
 					nodes.add(endNode);
 					rels.add(rel);
@@ -1292,6 +1294,55 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		ret.append(getIdString());
 
 		return (ret.toString());
+	}
+
+	/**
+	 * Returns an Iterable that lazily traverses the node tree depth first with the given parameters.
+	 *
+	 * @param relType the relationship type to follow
+	 * @param direction the direction of the relationship to follow
+	 * @param evaluator the evaluator that decides how the traversal will be done
+	 *
+	 * @return an Iterable of the nodes found in the traversal
+	 */
+	protected Iterable<Node> traverseDepthFirst(final RelationshipType relType, final Direction direction,
+		Evaluator evaluator) {
+
+		return (Traversal.description().depthFirst().relationships(relType,
+			direction).evaluator(evaluator).traverse(dbNode).nodes());
+	}
+
+	/**
+	 * Returns an Iterable that lazily traverses the node tree breadth first with the given parameters.
+	 *
+	 * @param relType the relationship type to follow
+	 * @param direction the direction of the relationship to follow
+	 * @param evaluator the evaluator that decides how the traversal will be done
+	 *
+	 * @return an Iterable of the nodes found in the traversal
+	 */
+	protected Iterable<Node> traverseBreadthFirst(final RelationshipType relType, final Direction direction,
+		Evaluator evaluator) {
+
+		return (Traversal.description().breadthFirst().relationships(relType,
+			direction).evaluator(evaluator).traverse(dbNode).nodes());
+	}
+
+	/**
+	 * Returns the number of elements in the given Iterable
+	 *
+	 * @param iterable
+	 * @return the number of elements in the given iterable
+	 */
+	protected int countIterableElements(Iterable iterable) {
+
+		int count = 0;
+
+		for (Object o : iterable) {
+			count++;
+		}
+
+		return (count);
 	}
 
 	//~--- get methods ----------------------------------------------------
@@ -2232,8 +2283,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 */
 	public List<AbstractNode> getSiblingNodes() {
 
-		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
-		AbstractNode parentNode  = getParentNode();
+		SecurityContext securityContext = CurrentRequest.getSecurityContext();
+		List<AbstractNode> nodes        = new LinkedList<AbstractNode>();
+		AbstractNode parentNode         = getParentNode();
 
 		if (parentNode != null) {
 
@@ -2246,7 +2298,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 				AbstractNode s = (AbstractNode) nodeFactory.execute(r.getEndNode());
 
-				if (s.readAllowed()) {
+				if (securityContext.isAllowed(s, Permission.Read)) {
 					nodes.add(s);
 				}
 			}
@@ -2292,15 +2344,16 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 */
 	public List<AbstractNode> getParentNodes() {
 
-		List<AbstractNode> nodes       = new LinkedList<AbstractNode>();
-		Command nodeFactory            = Services.command(NodeFactoryCommand.class);
-		List<StructrRelationship> rels = getIncomingChildRelationships();
+		SecurityContext securityContext = CurrentRequest.getSecurityContext();
+		List<AbstractNode> nodes        = new LinkedList<AbstractNode>();
+		Command nodeFactory             = Services.command(NodeFactoryCommand.class);
+		List<StructrRelationship> rels  = getIncomingChildRelationships();
 
 		for (StructrRelationship r : rels) {
 
 			AbstractNode s = (AbstractNode) nodeFactory.execute(r.getStartNode());
 
-			if (s.readAllowed()) {
+			if (securityContext.isAllowed(s, Permission.Read)) {
 				nodes.add(s);
 			}
 		}
@@ -2583,23 +2636,16 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 */
 	public List<AbstractNode> getDirectChildren(final RelationshipType relType, final String nodeType) {
 
-		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
-
-//              Command nodeFactory = null;
-//              if (relType.equals(RelType.LINK)) {
-//                  nodeFactory = Services.command(LinkNodeFactoryCommand.class);
-//              } else {
-//                  nodeFactory = Services.command(NodeFactoryCommand.class);
-//              }
-//              Command relsCommand = Services.command(NodeRelationshipsCommand.class);
-//              List<StructrRelationship> rels = (List<StructrRelationship>) relsCommand.execute(this, relType, Direction.OUTGOING);
-		List<StructrRelationship> rels = this.getOutgoingRelationships(relType);
+		List<StructrRelationship> rels  = this.getOutgoingRelationships(relType);
+		SecurityContext securityContext = CurrentRequest.getSecurityContext();
+		List<AbstractNode> nodes        = new LinkedList<AbstractNode>();
 
 		for (StructrRelationship r : rels) {
 
 			AbstractNode s = r.getEndNode();
 
-			if (s.readAllowed() && ((nodeType == null) || nodeType.equals(s.getType()))) {
+			if (securityContext.isAllowed(s, Permission.Read)
+				&& ((nodeType == null) || nodeType.equals(s.getType()))) {
 				nodes.add(s);
 			}
 		}
@@ -2727,13 +2773,15 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 */
 	protected List<AbstractNode> getAllChildren(final String nodeType) {
 
-		List<AbstractNode> nodes  = new LinkedList<AbstractNode>();
-		Command findNode          = Services.command(FindNodeCommand.class);
-		List<AbstractNode> result = (List<AbstractNode>) findNode.execute(user, this);
+		SecurityContext securityContext = CurrentRequest.getSecurityContext();
+		List<AbstractNode> nodes        = new LinkedList<AbstractNode>();
+		Command findNode                = Services.command(FindNodeCommand.class);
+		List<AbstractNode> result       = (List<AbstractNode>) findNode.execute(user, this);
 
 		for (AbstractNode s : result) {
 
-			if (s.readAllowed() && ((nodeType == null) || nodeType.equals(s.getType()))) {
+			if (securityContext.isAllowed(s, Permission.Read)
+				&& ((nodeType == null) || nodeType.equals(s.getType()))) {
 				nodes.add(s);
 			}
 		}
@@ -2829,11 +2877,11 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	}
 
 	public Set<AbstractNode> getRelatedNodes(int maxDepth) {
-		return (getRelatedNodes(maxDepth, Integer.MAX_VALUE, null));
+		return (getRelatedNodes(maxDepth, 20 /*Integer.MAX_VALUE*/, null));
 	}
 
 	public Set<AbstractNode> getRelatedNodes(int maxDepth, String relTypes) {
-		return (getRelatedNodes(maxDepth, Integer.MAX_VALUE, relTypes));
+		return (getRelatedNodes(maxDepth, 20 /*Integer.MAX_VALUE*/, relTypes));
 	}
 
 	public Set<AbstractNode> getRelatedNodes(int maxDepth, int maxNum) {
@@ -2853,11 +2901,11 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	}
 
 	public Set<StructrRelationship> getRelatedRels(int maxDepth) {
-		return (getRelatedRels(maxDepth, Integer.MAX_VALUE, null));
+		return (getRelatedRels(maxDepth, 20 /*Integer.MAX_VALUE*/, null));
 	}
 
 	public Set<StructrRelationship> getRelatedRels(int maxDepth, String relTypes) {
-		return (getRelatedRels(maxDepth, Integer.MAX_VALUE, relTypes));
+		return (getRelatedRels(maxDepth, 20 /*Integer.MAX_VALUE*/, relTypes));
 	}
 
 	public Set<StructrRelationship> getRelatedRels(int maxDepth, int maxNum) {
@@ -2899,53 +2947,6 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		return (ret);
 	}
 
-
-	/**
-	 * Returns an Iterable that lazily traverses the node tree depth first with the given parameters.
-	 *
-	 * @param relType the relationship type to follow
-	 * @param direction the direction of the relationship to follow
-	 * @param evaluator the evaluator that decides how the traversal will be done
-	 *
-	 * @return an Iterable of the nodes found in the traversal
-	 */
-	protected Iterable<Node> traverseDepthFirst(final RelationshipType relType, final Direction direction, Evaluator evaluator) {
-
-		return(Traversal.description().depthFirst().relationships(relType, direction).evaluator(evaluator).traverse(dbNode).nodes());
-	}
-
-	/**
-	 * Returns an Iterable that lazily traverses the node tree breadth first with the given parameters.
-	 *
-	 * @param relType the relationship type to follow
-	 * @param direction the direction of the relationship to follow
-	 * @param evaluator the evaluator that decides how the traversal will be done
-	 *
-	 * @return an Iterable of the nodes found in the traversal
-	 */
-	protected Iterable<Node> traverseBreadthFirst(final RelationshipType relType, final Direction direction, Evaluator evaluator) {
-
-		return(Traversal.description().breadthFirst().relationships(relType, direction).evaluator(evaluator).traverse(dbNode).nodes());
-	}
-
-	/**
-	 * Returns the number of elements in the given Iterable
-	 *
-	 * @param iterable
-	 * @return the number of elements in the given iterable
-	 */
-	protected int countIterableElements(Iterable iterable) {
-
-		int count = 0;
-
-		for(Object o : iterable) {
-
-			count++;
-		}
-
-		return(count);
-	}
-
 	public boolean hasTemplate() {
 		return (getTemplate() != null);
 	}
@@ -2982,7 +2983,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * @param principal
 	 * @return
 	 */
-	private boolean hasPermission(final String permission, final Principal principal) {
+	public boolean hasPermission(final String permission, final Principal principal) {
 
 		// just in case ...
 		if ((principal == null) || (permission == null)) {
@@ -3073,7 +3074,8 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 */
 	public boolean isInTrash() {
 
-		return(countIterableElements(traverseDepthFirst(RelType.HAS_CHILD, Direction.INCOMING, new Evaluator() {
+		return (countIterableElements(traverseDepthFirst(RelType.HAS_CHILD, Direction.INCOMING,
+			new Evaluator() {
 
 			@Override
 			public Evaluation evaluate(Path path) {
@@ -3081,89 +3083,94 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 				Node node = path.endNode();
 
 				// check for type property with value "Trash"
-				if(node.hasProperty(TYPE_KEY) && node.getProperty(TYPE_KEY).equals("Trash")) {
+				if (node.hasProperty(TYPE_KEY) && node.getProperty(TYPE_KEY).equals("Trash")) {
 
 					// only include Trash nodes in result set
-					return(Evaluation.INCLUDE_AND_PRUNE);
-
+					return (Evaluation.INCLUDE_AND_PRUNE);
 				} else {
 
 					// else just continue
-					return(Evaluation.EXCLUDE_AND_CONTINUE);
+					return (Evaluation.EXCLUDE_AND_CONTINUE);
 				}
 			}
 
 		})) > 0);
 	}
 
-	/**
-	 * Check visibility of given node, used for rendering in view mode
-	 *
-	 * @return
-	 */
 	public boolean isVisible() {
 
-		if (user instanceof SuperUser) {
+		SecurityContext securityContext = CurrentRequest.getSecurityContext();
 
-			// Super user may always see it
-			return true;
-		}
-
-		// check hidden flag (see STRUCTR-12)
-		if (isHidden()) {
-			return false;
-		}
-
-		boolean visibleByTime = false;
-
-		// check visibility period of time (see STRUCTR-13)
-		Date visStartDate       = getVisibilityStartDate();
-		long effectiveStartDate = 0L;
-		Date createdDate        = getCreatedDate();
-
-		if (createdDate != null) {
-			effectiveStartDate = Math.max(createdDate.getTime(), 0L);
-		}
-
-		// if no start date for visibility is given,
-		// take the maximum of 0 and creation date.
-		visStartDate = ((visStartDate == null)
-				? new Date(effectiveStartDate)
-				: visStartDate);
-
-		// if no end date for visibility is given,
-		// take the Long.MAX_VALUE
-		Date visEndDate = getVisibilityEndDate();
-
-		visEndDate = ((visEndDate == null)
-			      ? new Date(Long.MAX_VALUE)
-			      : visEndDate);
-
-		Date now = new Date();
-
-		visibleByTime = (now.after(visStartDate) && now.before(visEndDate));
-
-		if (user == null) {
-
-			// No logged-in user
-			if (isPublic()) {
-				return visibleByTime;
-			} else {
-				return false;
-			}
-		} else {
-
-			// Logged-in users
-			if (isVisibleToAuthenticatedUsers()) {
-				return visibleByTime;
-			} else {
-				return false;
-			}
-		}
+		return securityContext.isVisible(this);
 	}
 
 	//~--- set methods ----------------------------------------------------
 
+	/**
+	 * Check visibility of given node, used for rendering in view mode
+	 *
+	 * @return
+	 * public boolean isVisible() {
+	 *
+	 *       if (user instanceof SuperUser) {
+	 *
+	 *               // Super user may always see it
+	 *               return true;
+	 *       }
+	 *
+	 *       // check hidden flag (see STRUCTR-12)
+	 *       if (isHidden()) {
+	 *               return false;
+	 *       }
+	 *
+	 *       boolean visibleByTime = false;
+	 *
+	 *       // check visibility period of time (see STRUCTR-13)
+	 *       Date visStartDate       = getVisibilityStartDate();
+	 *       long effectiveStartDate = 0L;
+	 *       Date createdDate        = getCreatedDate();
+	 *
+	 *       if (createdDate != null) {
+	 *               effectiveStartDate = Math.max(createdDate.getTime(), 0L);
+	 *       }
+	 *
+	 *       // if no start date for visibility is given,
+	 *       // take the maximum of 0 and creation date.
+	 *       visStartDate = ((visStartDate == null)
+	 *                       ? new Date(effectiveStartDate)
+	 *                       : visStartDate);
+	 *
+	 *       // if no end date for visibility is given,
+	 *       // take the Long.MAX_VALUE
+	 *       Date visEndDate = getVisibilityEndDate();
+	 *
+	 *       visEndDate = ((visEndDate == null)
+	 *                     ? new Date(Long.MAX_VALUE)
+	 *                     : visEndDate);
+	 *
+	 *       Date now = new Date();
+	 *
+	 *       visibleByTime = (now.after(visStartDate) && now.before(visEndDate));
+	 *
+	 *       if (user == null) {
+	 *
+	 *               // No logged-in user
+	 *               if (isPublic()) {
+	 *                       return visibleByTime;
+	 *               } else {
+	 *                       return false;
+	 *               }
+	 *       } else {
+	 *
+	 *               // Logged-in users
+	 *               if (isVisibleToAuthenticatedUsers()) {
+	 *                       return visibleByTime;
+	 *               } else {
+	 *                       return false;
+	 *               }
+	 *       }
+	 * }
+	 */
 	public void setTemplate(final Template template) {
 		this.template = template;
 	}
@@ -3409,8 +3416,10 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		public void renderNode(StructrOutputStream out, AbstractNode currentNode, AbstractNode startNode,
 				       String editUrl, Long editNodeId, RenderMode renderMode) {
 
-			if (isVisible()) {
-				out.append(getName());
+			SecurityContext securityContext = CurrentRequest.getSecurityContext();
+
+			if (securityContext.isVisible(currentNode)) {
+				out.append(currentNode.getName());
 			}
 		}
 

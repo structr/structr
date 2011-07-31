@@ -40,6 +40,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.CurrentRequest;
+import org.structr.common.Permission;
+import org.structr.common.SecurityContext;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -110,6 +113,7 @@ public class StructrNodeFactory<T extends AbstractNode> implements Adapter<Node,
 	public List<AbstractNode> createNodes(final Iterable<Node> input, final User user,
 		final boolean includeDeleted, final boolean publicOnly) {
 
+		SecurityContext securityContext = CurrentRequest.getSecurityContext();
 		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
 
 		if ((input != null) && input.iterator().hasNext()) {
@@ -118,7 +122,7 @@ public class StructrNodeFactory<T extends AbstractNode> implements Adapter<Node,
 
 				AbstractNode n = createNode(node);
 
-				if (n != null && ((user == null) || n.readAllowed()) && (includeDeleted ||!(n.isDeleted()))
+				if (((user == null) || securityContext.isAllowed(n, Permission.Read)) && (includeDeleted ||!(n.isDeleted()))
 					&& (!publicOnly || n.isPublic())) {
 					nodes.add(n);
 				}

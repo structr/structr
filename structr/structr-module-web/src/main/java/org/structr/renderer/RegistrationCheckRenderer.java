@@ -506,7 +506,7 @@ public class RegistrationCheckRenderer implements NodeRenderer<RegistrationCheck
 					new NodeAttribute(AbstractNode.TYPE_KEY, User.class.getSimpleName()),
 					new NodeAttribute(Person.FIRST_NAME_KEY, firstName),
 					new NodeAttribute(Person.LAST_NAME_KEY, lastName),
-					new NodeAttribute(User.REAL_NAME_KEY, (firstName + " " + lastName)),
+					new NodeAttribute(User.Key.realName.name(), (firstName + " " + lastName)),
 					new NodeAttribute(Person.STREET_KEY, street),
 					new NodeAttribute(Person.ZIP_CODE_KEY, zipCode),
 					new NodeAttribute(Person.CITY_KEY, city),
@@ -516,8 +516,8 @@ public class RegistrationCheckRenderer implements NodeRenderer<RegistrationCheck
 					new NodeAttribute(Person.BIRTHDAY_KEY, birthdayDate),
 					new NodeAttribute(Person.EMAIL_1_KEY, email),
 					new NodeAttribute(Person.NEWSLETTER_KEY, StringUtils.isNotEmpty(newsletter)),
-					new NodeAttribute(User.BLOCKED_KEY, true),
-					new NodeAttribute(User.CONFIRMATION_KEY_KEY, confirmationKeyForMail));
+					new NodeAttribute(User.Key.realName.name(), true),
+					new NodeAttribute(User.Key.confirmationKey.name(), confirmationKeyForMail));
 
 				// Use method for password to be hashed
 				newUser.setPassword(password);

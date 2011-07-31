@@ -124,19 +124,19 @@ public class StructrPage extends Page {
 
 	// TODO: move to global configuration
 	protected final String FILES_PATH;
-	protected boolean accessControlAllowed;
-	protected boolean addRelationshipAllowed;
+//	protected boolean accessControlAllowed;
+//	protected boolean addRelationshipAllowed;
 
 	// @Bindable
 	// protected Table pageListTable = new Table();
 	// cached list with all avaliable page classes
 	private List<Class<? extends Page>> configuredPageClasses;
-	protected boolean createNodeAllowed;
-	protected boolean deleteNodeAllowed;
+//	protected boolean createNodeAllowed;
+//	protected boolean deleteNodeAllowed;
 	@Bindable
 	protected Long editNodeId;
-	protected boolean editPropertiesAllowed;
-	protected boolean editVisibilityAllowed;
+//	protected boolean editPropertiesAllowed;
+//	protected boolean editVisibilityAllowed;
 	@Bindable
 	protected boolean isSuperUser;
 
@@ -149,8 +149,8 @@ public class StructrPage extends Page {
 	/** id of parent node (needed for link deletion */
 	@Bindable
 	protected String parentNodeId;
-	protected boolean readAllowed;
-	protected boolean removeRelationshipAllowed;
+//	protected boolean readAllowed;
+//	protected boolean removeRelationshipAllowed;
 	@Bindable
 	protected String renderMode;
 	@Bindable
@@ -160,14 +160,14 @@ public class StructrPage extends Page {
 	@Bindable
 	protected AbstractNode rootNode;
 	protected long sessionId;
-	protected boolean showTreeAllowed;
+//	protected boolean showTreeAllowed;
 	@Bindable
 	protected String title;
 	@Bindable
 	protected User user;
 	@Bindable
 	protected String userName;
-	protected boolean writeAllowed;
+//	protected boolean writeAllowed;
 
 	//~--- constructors ---------------------------------------------------
 
@@ -230,6 +230,7 @@ public class StructrPage extends Page {
 		// Internally, use node ids
 		nodeId = node.getIdString();
 
+		/*
 		if (isSuperUser) {
 
 			readAllowed               = true;
@@ -256,6 +257,7 @@ public class StructrPage extends Page {
 			addRelationshipAllowed    = node.addRelationshipAllowed();
 			removeRelationshipAllowed = node.removeRelationshipAllowed();
 		}
+		*/
 
 		// call request cycle listener
 		CurrentRequest.onRequestStart();

@@ -2,6 +2,8 @@ package org.structr.renderer;
 
 import java.util.LinkedList;
 import java.util.List;
+import org.structr.common.CurrentRequest;
+import org.structr.common.SecurityContext;
 import org.structr.common.StructrOutputStream;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.web.MenuItem;
@@ -21,6 +23,7 @@ public abstract class MenuItemRenderer
 	 */
 	protected void renderMenuItems(final StructrOutputStream out, final AbstractNode currentNode, final AbstractNode startNode, final AbstractNode currentMenuNode, int currentDepth, int currentPos, int numberOfSubnodes, int maxDepth)
 	{
+		SecurityContext securityContext = CurrentRequest.getSecurityContext();
 		AbstractNode menuItemNode = currentMenuNode;
 
 		if(currentDepth > maxDepth)
@@ -35,8 +38,8 @@ public abstract class MenuItemRenderer
 
 		for(AbstractNode n : allMenuItems)
 		{
-			if(n.isVisible())
-			{
+			if(securityContext.isVisible(n)) {
+
 				menuItems.add(n);
 			}
 		}
@@ -86,9 +89,7 @@ public abstract class MenuItemRenderer
 				cssClass += " current";
 			}
 
-
-			if(menuItemNode.isVisible())
-			{
+			if(securityContext.isVisible(menuItemNode)) {
 
 				String relativeNodePath = menuItemNode.getNodePath(startNode).replace("&", "%26");
 
@@ -104,8 +105,7 @@ public abstract class MenuItemRenderer
 			}
 		}
 
-		if(currentMenuNode.isVisible())
-		{
+		if(securityContext.isVisible(currentMenuNode)) {
 
 			int sub = menuItems.size();
 			int pos = 0;

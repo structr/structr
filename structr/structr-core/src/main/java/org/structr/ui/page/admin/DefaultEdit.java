@@ -53,7 +53,10 @@ import org.apache.click.extras.control.PickList;
 import org.apache.click.util.Bindable;
 import org.apache.click.util.HtmlStringBuffer;
 import org.neo4j.graphdb.RelationshipType;
+import org.structr.common.CurrentRequest;
+import org.structr.common.Permission;
 import org.structr.common.RelType;
+import org.structr.common.SecurityContext;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.cloud.CloudService;
@@ -69,7 +72,6 @@ import org.structr.core.entity.Folder;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.NodeType;
 import org.structr.core.entity.StructrRelationship;
-import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.Template;
 import org.structr.core.entity.User;
 import org.structr.core.module.GetEntitiesCommand;
@@ -155,6 +157,7 @@ public class DefaultEdit extends Nodes {
 
         super.onInit();
 
+	SecurityContext securityContext = CurrentRequest.getSecurityContext();
         FieldSet nodePropertiesFields = new FieldSet("Node Properties");
         nodePropertiesFields.setColumns(3);
 
@@ -224,7 +227,7 @@ public class DefaultEdit extends Nodes {
         editVisibilityForm.add(new HiddenField(NODE_ID_KEY, nodeId != null ? nodeId : ""));
         editVisibilityForm.add(new HiddenField(RENDER_MODE_KEY, renderMode != null ? renderMode : ""));
         editVisibilityForm.setActionURL(editVisibilityForm.getActionURL().concat("#visibility-tab"));
-        if (editVisibilityAllowed) {
+        if (securityContext.isAllowed(node, Permission.EditProperty)) {
             visibilityFields.add(new Submit("saveVisibility", " Save Visibility ", this, "onSaveVisibility"));
             visibilityFields.add(new Submit("saveVisibilityDirectChildren", " Save Visibility (including direct children) ", this, "onSaveVisibilityIncludingDirectChildren"));
             visibilityFields.add(new Submit("saveVisibilityAllChildren", " Save Visibility (including all children) ", this, "onSaveVisibilityIncludingAllChildren"));
@@ -239,7 +242,7 @@ public class DefaultEdit extends Nodes {
         editPropertiesForm.add(new HiddenField(NODE_ID_KEY, nodeId != null ? nodeId : ""));
         editPropertiesForm.add(new HiddenField(RENDER_MODE_KEY, renderMode != null ? renderMode : ""));
         editPropertiesForm.setActionURL(editPropertiesForm.getActionURL().concat("#properties-tab"));
-        if (editPropertiesAllowed) {
+        if (securityContext.isAllowed(node, Permission.EditProperty)) {
             nodePropertiesFields.add(new Submit("saveProperties", " Save Properties ", this, "onSaveProperties"));
 //            editPropertiesForm.add(new Submit("savePropertiesAndReturn", " Save and Return ", this, "onSaveAndReturn"));
             nodePropertiesFields.add(new Submit("cancel", " Cancel ", this, "onCancel"));
@@ -364,7 +367,7 @@ public class DefaultEdit extends Nodes {
         // ------------------ child nodes end --------------------------------
 
         // ------------------ incoming relationships start ---------------------
-        if (removeRelationshipAllowed) {
+        if (securityContext.isAllowed(node, Permission.DeleteRelationship)) {
 
             deleteRelationshipLink.setImageSrc("/images/delete.png");
             deleteRelationshipLink.setTitle("Delete relationship");
@@ -513,7 +516,7 @@ public class DefaultEdit extends Nodes {
 
         // ------------------ security begin ---------------------
 
-        if (accessControlAllowed) {
+        if (securityContext.isAllowed(node, Permission.AccessControl)) {
 
             typeColumn = new Column(AbstractNode.TYPE_KEY);
 
@@ -693,7 +696,7 @@ public class DefaultEdit extends Nodes {
         readConsoleOutput();
         // ------------------ console end ---------------------
 
-        if (!(editPropertiesAllowed)) {
+        if (!(securityContext.isAllowed(node, Permission.EditProperty))) {
 
             // make all property fields read-only
             List<Field> propertyFields = editPropertiesForm.getFieldList();
@@ -1048,6 +1051,7 @@ public class DefaultEdit extends Nodes {
      */
     public boolean onSetPermissions() {
 
+	final SecurityContext securityContext = CurrentRequest.getSecurityContext();
         final Map<String, String> parameters = new HashMap<String, String>();
 
         if (securityForm.isValid()) {
@@ -1084,7 +1088,7 @@ public class DefaultEdit extends Nodes {
                             for (AbstractNode s : result) {
 
                                 // superuser can always change access control
-                                if (user instanceof SuperUser || s.accessControlAllowed()) {
+                                if (securityContext.isAllowed(node, Permission.AccessControl)) {
                                     nodes.add(s);
                                 }
 
