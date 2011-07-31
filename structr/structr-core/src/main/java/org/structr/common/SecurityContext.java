@@ -201,6 +201,11 @@ public class SecurityContext {
 
 		visibleByTime = (now.after(visStartDate) && now.before(visEndDate));
 
+		// public nodes are always visible (constrained by time)
+		if(node.isPublic()) {
+			return visibleByTime;
+		}
+
 		// fetch user
 		User user = getUser();
 
@@ -213,24 +218,12 @@ public class SecurityContext {
 
 			// frontend user
 			if (user.isFrontendUser()) {
-				return isAllowedInFrontend(node, Permission.Read);
-			} else {
 
-				if (node.isPublic()) {
-					return visibleByTime;
-				}
-			}
-
-			return (false);
-		} else {
-
-			// No logged-in user
-			if (node.isPublic()) {
-				return visibleByTime;
-			} else {
-				return false;
+				return node.hasPermission(StructrRelationship.READ_KEY, user);
 			}
 		}
+
+		return (false);
 	}
 
 	private boolean isAllowedInBackend(AbstractNode node, Permission permission) {
