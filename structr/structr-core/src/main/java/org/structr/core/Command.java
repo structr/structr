@@ -110,15 +110,6 @@ public abstract class Command {
         return (this.arguments.get(key));
     }
 
-    @Override
-    protected void finalize() throws Throwable {
-
-        // do cleanup
-        arguments.clear();
-
-        super.finalize();
-    }
-
     public Command.status getStatus() {
         return status;
     }

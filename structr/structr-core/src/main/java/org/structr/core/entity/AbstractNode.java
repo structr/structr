@@ -987,7 +987,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 				AbstractNode startNode = rel.getStartNode();
 
-				if (startNode != null) {
+				if (startNode != null && nodes.size() < maxNum) {
 
 					nodes.add(startNode);
 					rels.add(rel);
@@ -1013,7 +1013,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 				AbstractNode endNode = rel.getEndNode();
 
-				if (endNode != null) {
+				if (endNode != null && nodes.size() < maxNum) {
 
 					nodes.add(endNode);
 					rels.add(rel);
@@ -2877,11 +2877,11 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	}
 
 	public Set<AbstractNode> getRelatedNodes(int maxDepth) {
-		return (getRelatedNodes(maxDepth, Integer.MAX_VALUE, null));
+		return (getRelatedNodes(maxDepth, 20 /*Integer.MAX_VALUE*/, null));
 	}
 
 	public Set<AbstractNode> getRelatedNodes(int maxDepth, String relTypes) {
-		return (getRelatedNodes(maxDepth, Integer.MAX_VALUE, relTypes));
+		return (getRelatedNodes(maxDepth, 20 /*Integer.MAX_VALUE*/, relTypes));
 	}
 
 	public Set<AbstractNode> getRelatedNodes(int maxDepth, int maxNum) {
@@ -2901,11 +2901,11 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	}
 
 	public Set<StructrRelationship> getRelatedRels(int maxDepth) {
-		return (getRelatedRels(maxDepth, Integer.MAX_VALUE, null));
+		return (getRelatedRels(maxDepth, 20 /*Integer.MAX_VALUE*/, null));
 	}
 
 	public Set<StructrRelationship> getRelatedRels(int maxDepth, String relTypes) {
-		return (getRelatedRels(maxDepth, Integer.MAX_VALUE, relTypes));
+		return (getRelatedRels(maxDepth, 20 /*Integer.MAX_VALUE*/, relTypes));
 	}
 
 	public Set<StructrRelationship> getRelatedRels(int maxDepth, int maxNum) {

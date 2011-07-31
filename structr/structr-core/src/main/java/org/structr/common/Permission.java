@@ -26,5 +26,17 @@ package org.structr.common;
  */
 public enum Permission {
 
-	ShowTree, Read, Write, Execute, CreateNode, DeleteNode, EditProperty, CreateRelationship, DeleteRelationship, AccessControl
+	BackendAccess, FrontendAccess,
+	
+	ShowTree,
+
+	Read, Write, Execute,
+
+	CreateNode, DeleteNode,
+
+	EditProperty,
+
+	CreateRelationship, DeleteRelationship,
+
+	AccessControl
 }

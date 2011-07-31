@@ -29,6 +29,8 @@ import org.structr.core.entity.User;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -41,6 +43,7 @@ import java.util.Date;
  */
 public class SecurityContext {
 
+	private static final Logger logger = Logger.getLogger(SecurityContext.class.getName());
 	private AccessMode accessMode = AccessMode.Frontend;
 
 	//~--- constructors ---------------------------------------------------
@@ -55,30 +58,103 @@ public class SecurityContext {
 
 	public boolean isAllowed(AbstractNode node, Permission permission) {
 
+		boolean ret = false;
+
 		switch (accessMode) {
 
 			case Backend :
-				return isAllowedInBackend(node, permission);
+				ret = isAllowedInBackend(node, permission);
+				break;
 
 			case Frontend :
-				return isAllowedInFrontend(node, permission);
+				ret = isAllowedInFrontend(node, permission);
+				break;
 		}
 
-		return (false);
+		if(node != null) {
+
+			User user = getUser();
+			logger.log(Level.INFO, "Returning {0} for user {1}, access mode {2}, node {3}, permission {4}", new Object[] { ret, user != null ? user.getName() : "null", accessMode, node.getId(), permission } );
+		}
+
+		return(ret);
 	}
 
 	public boolean isVisible(AbstractNode node) {
 
-		if (node == null) {
-			return (false);
+		boolean ret = false;
+
+		switch (accessMode) {
+
+			case Backend :
+				ret = isVisibleInBackend(node);
+				break;
+
+			case Frontend :
+				ret = isVisibleInFrontend(node);
+				break;
 		}
 
+		if(node != null) {
+			
+			User user = getUser();
+			logger.log(Level.INFO, "Returning {0} for user {1}, access mode {2}, node {3}", new Object[] { ret, user != null ? user.getName() : "null", accessMode, node.getId() } );
+		}
+
+		return (ret);
+	}
+
+	// ----- private methods -----
+	private boolean isVisibleInBackend(AbstractNode node) {
+
+		// no node, nothing to see here..
+		if (node == null) {
+
+			return(false);
+		}
+
+		// fetch user
 		User user = getUser();
 
+		// anonymous users may not see any nodes in backend
+		if(user == null) {
+
+			return(false);
+		}
+
+		// SuperUser may always see the node
 		if (user instanceof SuperUser) {
 
-			// Super user may always see it
 			return true;
+		}
+
+		// non-backend users are not allowed here
+		if(!user.isBackendUser()) {
+
+			return(false);
+		}
+
+		// users with read permissions may see the node
+		if(isAllowedInBackend(node, Permission.Read)) {
+
+			return(true);
+		}
+
+		// no match, node is not visible
+		return(false);
+	}
+
+	/**
+	 * Indicates whether the given node is visible for a frontend
+	 * request. This method ignores the user.
+	 *
+	 * @param node
+	 * @return
+	 */
+	private boolean isVisibleInFrontend(AbstractNode node) {
+
+		if (node == null) {
+			return (false);
 		}
 
 		// check hidden flag (see STRUCTR-12)
@@ -115,32 +191,59 @@ public class SecurityContext {
 
 		visibleByTime = (now.after(visStartDate) && now.before(visEndDate));
 
-		if (user == null) {
+
+		// fetch user
+		User user = getUser();
+		if (user != null) {
+
+			// SuperUser
+			if(user instanceof SuperUser) {
+
+				return(true);
+			}
+
+			// frontend user
+			if(user.isFrontendUser()) {
+
+				return(isAllowedInFrontend(node, Permission.Read));
+
+			} else {
+
+				if(node.isPublic()) {
+
+					return(visibleByTime);
+				}
+			}
+
+			return(false);
+
+		} else {
+
 
 			// No logged-in user
 			if (node.isPublic()) {
-				return visibleByTime;
-			} else {
-				return false;
-			}
-		} else {
 
-			// Logged-in users
-			if (node.isVisibleToAuthenticatedUsers()) {
 				return visibleByTime;
+
 			} else {
+
 				return false;
 			}
 		}
 	}
 
-	// ----- private methods -----
 	private boolean isAllowedInBackend(AbstractNode node, Permission permission) {
 
 		User user = getUser();
 
 		if (node == null) {
 			return false;
+		}
+
+		// SuperUser has all permissions
+		if(user != null && user instanceof SuperUser) {
+
+			return(true);
 		}
 
 		switch (permission) {
@@ -212,7 +315,20 @@ public class SecurityContext {
 			return false;
 		}
 
-		return isAllowedInBackend(node, permission);
+		User user = getUser();
+		if(user != null && user instanceof SuperUser) {
+
+			return(true);
+		}
+
+		switch (permission) {
+
+			case Read:
+				return node.hasPermission(StructrRelationship.READ_KEY, user);
+
+			default:
+				return(false);
+		}
 	}
 
 	//~--- set methods ----------------------------------------------------

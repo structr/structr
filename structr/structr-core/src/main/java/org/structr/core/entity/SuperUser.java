@@ -77,4 +77,14 @@ public class SuperUser extends User {
     public void block() {
         // not supported
     }
+
+    @Override
+    public boolean isFrontendUser() {
+	    return(true);
+    }
+
+    @Override
+    public boolean isBackendUser() {
+	    return(true);
+    }
 }
