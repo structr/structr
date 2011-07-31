@@ -117,16 +117,17 @@ public abstract class MapHelper {
                 filterFactory.literal(lineWidth),
                 filterFactory.literal(lineOpacity));
 
-        // create a partial opaque fill
-        Fill fill = styleFactory.createFill(
-                filterFactory.literal(Color.decode(fillColor)),
-                filterFactory.literal(fillOpacity));
+//        // create a partial opaque fill
+//        Fill fill = styleFactory.createFill(
+//                filterFactory.literal(Color.decode(fillColor)),
+//                filterFactory.literal(fillOpacity));
 
               /*
          * Setting the geometryPropertyName arg to null signals that we want to
          * draw the default geomettry of features
          */
-        PolygonSymbolizer sym = styleFactory.createPolygonSymbolizer(stroke, fill, null);
+        //PolygonSymbolizer sym = styleFactory.createPolygonSymbolizer(stroke, fill, null);
+        PolygonSymbolizer sym = styleFactory.createPolygonSymbolizer(stroke, null, null);
 
         return sym;
 
@@ -252,7 +253,7 @@ public abstract class MapHelper {
         TextSymbolizer sym = styleFactory.createTextSymbolizer(fill, new Font[]{gtFont}, null, pn, placement, null);
         sym.getOptions().put(TextSymbolizer.CONFLICT_RESOLUTION_KEY, "false");
         sym.getOptions().put(TextSymbolizer.AUTO_WRAP_KEY, "200");
-        sym.getOptions().put(TextSymbolizer.GOODNESS_OF_FIT_KEY, "0.1");
+        sym.getOptions().put(TextSymbolizer.GOODNESS_OF_FIT_KEY, "0.0001");
 
         return sym;
     }
@@ -336,8 +337,9 @@ public abstract class MapHelper {
                 featureBuilder.add(point);
                 featureBuilder.add(obj.getName());
                 featureBuilder.add(obj.getName());
-                //featureBuilder.add(obj.getId());
+                featureBuilder.add(obj.getId());
                 SimpleFeature feature = featureBuilder.buildFeature(null);
+		feature.getUserData().put("label", obj.getName());
                 collection.add(feature);
 
             }

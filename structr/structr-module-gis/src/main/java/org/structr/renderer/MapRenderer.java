@@ -391,11 +391,12 @@ public class MapRenderer implements NodeRenderer<Map>
 				if(!subFeatures.isEmpty())
 				{
 
+
 					// add features and style as a map layer to the list of map layers
 					layers.add(new MapLayer(subFeatures, style2));
 
 				}
-
+				
 			}
 
 			// create a map context
