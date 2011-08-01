@@ -1851,25 +1851,25 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		return result.toString();
 	}
 
-	public int getIntProperty(final PropertyKey propertyKey) {
+	public Integer getIntProperty(final PropertyKey propertyKey) {
 		return (getIntProperty(propertyKey.name()));
 	}
 
-	public int getIntProperty(final String key) {
+	public Integer getIntProperty(final String key) {
 
 		Object propertyValue = getProperty(key);
 		Integer result       = null;
 
 		if (propertyValue == null) {
-			return 0;
+			return null;
 		}
 
 		if (propertyValue instanceof Integer) {
-			result = ((Integer) propertyValue).intValue();
+			result = ((Integer) propertyValue);
 		} else if (propertyValue instanceof String) {
 
 			if ("".equals((String) propertyValue)) {
-				return 0;
+				return null;
 			}
 
 			result = Integer.parseInt(((String) propertyValue));
@@ -1878,25 +1878,25 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		return result;
 	}
 
-	public long getLongProperty(final PropertyKey propertyKey) {
+	public Long getLongProperty(final PropertyKey propertyKey) {
 		return (getLongProperty(propertyKey.name()));
 	}
 
-	public long getLongProperty(final String key) {
+	public Long getLongProperty(final String key) {
 
 		Object propertyValue = getProperty(key);
 		Long result          = null;
 
 		if (propertyValue == null) {
-			return 0L;
+			return null;
 		}
 
 		if (propertyValue instanceof Long) {
-			result = ((Long) propertyValue).longValue();
+			result = ((Long) propertyValue);
 		} else if (propertyValue instanceof String) {
 
 			if ("".equals((String) propertyValue)) {
-				return 0L;
+				return null;
 			}
 
 			result = Long.parseLong(((String) propertyValue));
@@ -1905,17 +1905,17 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		return result;
 	}
 
-	public double getDoubleProperty(final PropertyKey propertyKey) {
+	public Double getDoubleProperty(final PropertyKey propertyKey) {
 		return (getDoubleProperty(propertyKey.name()));
 	}
 
-	public double getDoubleProperty(final String key) {
+	public Double getDoubleProperty(final String key) {
 
 		Object propertyValue = getProperty(key);
 		Double result        = null;
 
 		if (propertyValue == null) {
-			return 0.0d;
+			return null;
 		}
 
 		if (propertyValue instanceof Double) {
@@ -1927,7 +1927,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 				// clean NaN values from database
 				setProperty(key, null);
 
-				return 0.0d;
+				return null;
 			}
 
 			result = doubleValue.doubleValue();
@@ -1935,7 +1935,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		} else if (propertyValue instanceof String) {
 
 			if ("".equals((String) propertyValue)) {
-				return 0.0d;
+				return null;
 			}
 
 			result = Double.parseDouble(((String) propertyValue));

@@ -257,20 +257,20 @@ public class FindNodeCommand extends NodeServiceCommand {
 
         return result;
     }
-
-    /**
-     * Round value by converting it to long
-     * 
-     * @param value a (@see Number)
-     * @return
-     */
-    private long longValue(final Object value) {
-        // return rounded value
-        if (value != null && value instanceof Number) {
-            return ((Number) value).longValue();
-        } else {
-            return -1L;
-        }
-    }
+//
+//    /**
+//     * Round value by converting it to long
+//     *
+//     * @param value a (@see Number)
+//     * @return
+//     */
+//    private long longValue(final Object value) {
+//        // return rounded value
+//        if (value != null && value instanceof Number) {
+//            return ((Number) value).longValue();
+//        } else {
+//            return -1L;
+//        }
+//    }
     // </editor-fold>
 }
