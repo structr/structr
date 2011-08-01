@@ -24,6 +24,7 @@ package org.structr.core.entity.web;
 import org.structr.common.CurrentRequest;
 import org.structr.common.PropertyKey;
 import org.structr.common.RenderMode;
+import org.structr.common.SecurityContext;
 import org.structr.core.NodeRenderer;
 import org.structr.core.TemporaryValue;
 import org.structr.core.entity.AbstractNode;
@@ -83,8 +84,8 @@ public class MediaWikiSearch extends AbstractNode {
 	public Iterable<AbstractNode> getDataNodes() {
 
 		// content is cached in servlet context
-		ServletContext context = CurrentRequest.getRequest().getSession().getServletContext();
-		List<AbstractNode> ret = null;
+		ServletContext context       = CurrentRequest.getRequest().getSession().getServletContext();
+		List<AbstractNode> dataNodes = null;
 
 		// TODO: synchronization
 		if (context != null) {
@@ -93,23 +94,23 @@ public class MediaWikiSearch extends AbstractNode {
 				(TemporaryValue<List<AbstractNode>>) context.getAttribute(
 				    CACHED_WIKI_CONTENT.concat(this.getIdString()));
 
-			if (value == null) {
+//                      if (value == null) {
+//
+//                              value = new TemporaryValue<List<AbstractNode>>(null, TimeUnit.MINUTES.toMillis(10));
+//                              context.setAttribute(CACHED_WIKI_CONTENT.concat(this.getIdString()), value);
+//                      }
+//
+//                      if ((value.getStoredValue() == null) || value.isExpired()) {
+			dataNodes = getContentFromSource();
 
-				value = new TemporaryValue<List<AbstractNode>>(null, TimeUnit.MINUTES.toMillis(10));
-				context.setAttribute(CACHED_WIKI_CONTENT.concat(this.getIdString()), value);
-			}
-
-			if ((value.getStoredValue() == null) || value.isExpired()) {
-
-				ret = getContentFromSource();
-				value.refreshStoredValue(ret);
-
-			} else {
-				ret = value.getStoredValue();
-			}
+//                      value.refreshStoredValue(ret);
+//
+//                      } else {
+//                      ret = value.getStoredValue();
+//                      }
 		}
 
-		return (ret);
+		return dataNodes;
 	}
 
 	@Override
@@ -121,24 +122,39 @@ public class MediaWikiSearch extends AbstractNode {
 	private LinkedList<AbstractNode> getContentFromSource() {
 
 		LinkedList<AbstractNode> nodeList = new LinkedList<AbstractNode>();
-				String source                     = getStringProperty(Key.baseUrl)
-			.concat("?action=opensearch&format=xml&search=")
-			.concat(CurrentRequest.getRequest().getParameter("search")); // TODO: generalize "search" keyword into global variable!!
+		String source                     = getStringProperty(Key.baseUrl);
+		String nodePath                   = CurrentRequest.getCurrentNodePath();
+		String search                     = null;
 
-		try {
+		if (nodePath != null) {
 
-			URL url                 = new URL(source);
-			DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-			Document doc            = builder.parse(url.openStream());
-			NodeList items          = doc.getElementsByTagName("Item");
-			int len                 = items.getLength();
-
-			for (int i = 0; i < len; i++) {
-				nodeList.add(new MediaWikiItem(i, items.item(i)));
+			if (nodePath.endsWith("/")) {
+				nodePath = nodePath.substring(0, nodePath.length() - 1);
 			}
 
-		} catch (Throwable t) {
-			t.printStackTrace();
+			search = nodePath.substring(nodePath.lastIndexOf("/")+1);
+		}
+
+		if ((source != null) && (search != null)) {
+
+			source = source.concat("?action=opensearch&format=xml&search=").concat(search);
+
+//                      CurrentRequest.getRequest().getParameter("search"));    // TODO: generalize "search" keyword into global variable!!
+			try {
+
+				URL url                 = new URL(source);
+				DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+				Document doc            = builder.parse(url.openStream());
+				NodeList items          = doc.getElementsByTagName("Item");
+				int len                 = items.getLength();
+
+				for (int i = 0; i < len; i++) {
+					nodeList.add(new MediaWikiItem(i, items.item(i)));
+				}
+
+			} catch (Throwable t) {
+				t.printStackTrace();
+			}
 		}
 
 		return nodeList;
