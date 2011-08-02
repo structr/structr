@@ -2213,6 +2213,16 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	}
 
 	/**
+	 * Return unordered list of all direct child nodes (no recursion)
+	 * Ignores permissions
+	 *
+	 * @return list with structr nodes
+	 */
+	public List<AbstractNode> getDirectChildNodesIgnorePermissions() {
+		return getDirectChildrenIgnorePermissions(RelType.HAS_CHILD);
+	}
+
+	/**
 	 * Return the first parent node found.
 	 *
 	 * @return
@@ -2611,6 +2621,17 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		return getDirectChildren(relType, null);
 	}
 
+
+	/**
+	 * Return unordered list of all direct child nodes (no recursion)
+	 * with given relationship type
+	 * Ignores permissions
+	 *
+	 * @return list with structr nodes
+	 */
+	public List<AbstractNode> getDirectChildrenIgnorePermissions(final RelationshipType relType) {
+		return getDirectChildrenIgnorePermissions(relType, null);
+	}
 	/**
 	 * Return ordered list of all direct child nodes (no recursion)
 	 * with given relationship type
@@ -2654,6 +2675,32 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	}
 
 	/**
+	 * Return unordered list of all direct child nodes (no recursion)
+	 * with given relationship type and given node type.
+	 *
+	 * Ignores permissions
+	 *
+	 * @return list with structr nodes
+	 */
+	public List<AbstractNode> getDirectChildrenIgnorePermissions(final RelationshipType relType, final String nodeType) {
+
+		List<StructrRelationship> rels  = this.getOutgoingRelationships(relType);
+//		SecurityContext securityContext = CurrentRequest.getSecurityContext();
+		List<AbstractNode> nodes        = new LinkedList<AbstractNode>();
+
+		for (StructrRelationship r : rels) {
+
+			AbstractNode s = r.getEndNode();
+
+			if ((nodeType == null) || nodeType.equals(s.getType())) {
+				nodes.add(s);
+			}
+		}
+
+		return nodes;
+	}
+
+	/**
 	 * Get child nodes and sort them before returning
 	 *
 	 * @return
@@ -2663,6 +2710,32 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
 
 		nodes.addAll(getDirectChildNodes());
+
+		// sort by position
+		Collections.sort(nodes, new Comparator<AbstractNode>() {
+
+			@Override
+			public int compare(AbstractNode nodeOne, AbstractNode nodeTwo) {
+				return nodeOne.getPosition().compareTo(nodeTwo.getPosition());
+			}
+
+		});
+
+		return nodes;
+	}
+
+
+	/**
+	 * Get child nodes and sort them before returning
+	 * Ignores permissions
+	 *
+	 * @return
+	 */
+	public List<AbstractNode> getSortedDirectChildNodesIgnorePermissions() {
+
+		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
+
+		nodes.addAll(getDirectChildNodesIgnorePermissions());
 
 		// sort by position
 		Collections.sort(nodes, new Comparator<AbstractNode>() {
