@@ -56,7 +56,17 @@ public class SecurityContext {
 	//~--- get methods ----------------------------------------------------
 
 	private User getUser() {
-		return CurrentSession.getUser();
+
+		User ret = CurrentSession.getUser();
+		if(ret != null) {
+			return ret;
+		}
+
+		return null;
+	}
+
+	public AccessMode getAccessMode() {
+		return(accessMode);
 	}
 
 	public boolean isAllowed(AbstractNode node, Permission permission) {
@@ -203,6 +213,7 @@ public class SecurityContext {
 
 		// public nodes are always visible (constrained by time)
 		if(node.isPublic()) {
+
 			return visibleByTime;
 		}
 

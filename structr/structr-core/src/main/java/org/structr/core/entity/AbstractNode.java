@@ -1696,7 +1696,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	}
 
 	/**
-	 * Return a map with all properties of this node
+	 * Return a map with all properties of this node. Caution, this method can
+	 * not be used to retrieve the full map of persistent properties. Use
+	 * {@see #getPropertyKeys} instead.
 	 *
 	 * @return
 	 */
@@ -3059,7 +3061,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	public boolean hasPermission(final String permission, final Principal principal) {
 
 		// just in case ...
-		if ((principal == null) || (permission == null)) {
+		if ((permission == null) || (permission == null)) {
 			return false;
 		}
 
