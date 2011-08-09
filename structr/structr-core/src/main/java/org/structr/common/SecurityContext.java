@@ -56,13 +56,7 @@ public class SecurityContext {
 	//~--- get methods ----------------------------------------------------
 
 	private User getUser() {
-
-		User ret = CurrentSession.getUser();
-		if(ret != null) {
-			return ret;
-		}
-
-		return null;
+		return CurrentSession.getUser();
 	}
 
 	public AccessMode getAccessMode() {
