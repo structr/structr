@@ -638,118 +638,118 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * Check if given node may be read by current user.
 	 *
 	 * @return
-	 * public boolean readAllowed() {
-	 *
-	 *       // Check global settings first
-	 *       if (isVisible()) {
-	 *               return true;
-	 *       }
-	 *
-	 *       // Then check per-user permissions
-	 *       return hasPermission(StructrRelationship.READ_KEY, user);
-	 * }
 	 */
+	public boolean readAllowed() {
+
+		// Check global settings first
+		if (isVisible()) {
+			return true;
+		}
+
+		// Then check per-user permissions
+		return hasPermission(StructrRelationship.READ_KEY, user);
+	}
 
 	/**
 	 * Check if given node may see the navigation tree
 	 *
 	 * @return
-	 * public boolean showTreeAllowed() {
-	 *       return hasPermission(StructrRelationship.SHOW_TREE_KEY, user);
-	 * }
 	 */
+	public boolean showTreeAllowed() {
+		return hasPermission(StructrRelationship.SHOW_TREE_KEY, user);
+	}
 
 	/**
 	 * Check if given node may be written by current user.
 	 *
 	 * @return
-	 * public boolean writeAllowed() {
-	 *       return hasPermission(StructrRelationship.WRITE_KEY, user);
-	 * }
 	 */
+	public boolean writeAllowed() {
+		return hasPermission(StructrRelationship.WRITE_KEY, user);
+	}
 
 	/**
 	 * Check if given user may create new sub nodes.
 	 *
 	 * @return
-	 * public boolean createSubnodeAllowed() {
-	 *       return hasPermission(StructrRelationship.CREATE_SUBNODE_KEY, user);
-	 * }
 	 */
+	public boolean createSubnodeAllowed() {
+		return hasPermission(StructrRelationship.CREATE_SUBNODE_KEY, user);
+	}
 
 	/**
 	 * Check if given user may delete this node
 	 *
 	 * @return
-	 * public boolean deleteNodeAllowed() {
-	 *       return hasPermission(StructrRelationship.DELETE_NODE_KEY, user);
-	 * }
 	 */
+	public boolean deleteNodeAllowed() {
+		return hasPermission(StructrRelationship.DELETE_NODE_KEY, user);
+	}
 
 	/**
 	 * Check if given user may add new relationships to this node
 	 *
 	 * @return
-	 * public boolean addRelationshipAllowed() {
-	 *       return hasPermission(StructrRelationship.ADD_RELATIONSHIP_KEY, user);
-	 * }
 	 */
+	public boolean addRelationshipAllowed() {
+		return hasPermission(StructrRelationship.ADD_RELATIONSHIP_KEY, user);
+	}
 
 	/**
 	 * Check if given user may edit (set) properties of this node
 	 *
 	 * @return
-	 * public boolean editPropertiesAllowed() {
-	 *       return hasPermission(StructrRelationship.EDIT_PROPERTIES_KEY, user);
-	 * }
 	 */
+	public boolean editPropertiesAllowed() {
+		return hasPermission(StructrRelationship.EDIT_PROPERTIES_KEY, user);
+	}
 
 	/**
 	 * Check if given user may remove relationships to this node
 	 *
 	 * @return
-	 * public boolean removeRelationshipAllowed() {
-	 *       return hasPermission(StructrRelationship.REMOVE_RELATIONSHIP_KEY, user);
-	 * }
 	 */
+	public boolean removeRelationshipAllowed() {
+		return hasPermission(StructrRelationship.REMOVE_RELATIONSHIP_KEY, user);
+	}
 
 	/**
 	 * Check if access of given node may be controlled by current user.
 	 *
 	 * @return
-	 * public boolean accessControlAllowed() {
-	 *
-	 *       // just in case ...
-	 *       if (user == null) {
-	 *               return false;
-	 *       }
-	 *
-	 *       // superuser
-	 *       if (user instanceof SuperUser) {
-	 *               return true;
-	 *       }
-	 *
-	 *       // node itself
-	 *       if (this.equals(user)) {
-	 *               return true;
-	 *       }
-	 *
-	 *       StructrRelationship r = null;
-	 *
-	 *       // owner has always access control
-	 *       if (user.equals(getOwnerNode())) {
-	 *               return true;
-	 *       }
-	 *
-	 *       r = getSecurityRelationship(user);
-	 *
-	 *       if ((r != null) && r.isAllowed(StructrRelationship.ACCESS_CONTROL_KEY)) {
-	 *               return true;
-	 *       }
-	 *
-	 *       return false;
-	 * }
 	 */
+	public boolean accessControlAllowed() {
+
+		// just in case ...
+		if (user == null) {
+			return false;
+		}
+
+		// superuser
+		if (user instanceof SuperUser) {
+			return true;
+		}
+
+		// node itself
+		if (this.equals(user)) {
+			return true;
+		}
+
+		StructrRelationship r = null;
+
+		// owner has always access control
+		if (user.equals(getOwnerNode())) {
+			return true;
+		}
+
+		r = getSecurityRelationship(user);
+
+		if ((r != null) && r.isAllowed(StructrRelationship.ACCESS_CONTROL_KEY)) {
+			return true;
+		}
+
+		return false;
+	}
 
 	/**
 	 * Replace $(key) by the content rendered by the subnode with name "key"
@@ -987,7 +987,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 				AbstractNode startNode = rel.getStartNode();
 
-				if (startNode != null && nodes.size() < maxNum) {
+				if ((startNode != null) && (nodes.size() < maxNum)) {
 
 					nodes.add(startNode);
 					rels.add(rel);
@@ -1013,7 +1013,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 				AbstractNode endNode = rel.getEndNode();
 
-				if (endNode != null && nodes.size() < maxNum) {
+				if ((endNode != null) && (nodes.size() < maxNum)) {
 
 					nodes.add(endNode);
 					rels.add(rel);
@@ -1217,7 +1217,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 				Map root = new HashMap();
 
-				root.put("Template", node);
+				root.put("Node", node);
 
 				if (callingNode != null) {
 					root.put(callingNode.getType(), callingNode);
@@ -2166,6 +2166,10 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 */
 	public StructrRelationship getSecurityRelationship(final Principal principal) {
 
+		if (principal == null) {
+			return null;
+		}
+
 		long userId = principal.getId();
 
 		if (securityRelationships == null) {
@@ -2623,7 +2627,6 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		return getDirectChildren(relType, null);
 	}
 
-
 	/**
 	 * Return unordered list of all direct child nodes (no recursion)
 	 * with given relationship type
@@ -2634,6 +2637,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	public List<AbstractNode> getDirectChildrenIgnorePermissions(final RelationshipType relType) {
 		return getDirectChildrenIgnorePermissions(relType, null);
 	}
+
 	/**
 	 * Return ordered list of all direct child nodes (no recursion)
 	 * with given relationship type
@@ -2684,11 +2688,13 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 *
 	 * @return list with structr nodes
 	 */
-	public List<AbstractNode> getDirectChildrenIgnorePermissions(final RelationshipType relType, final String nodeType) {
+	public List<AbstractNode> getDirectChildrenIgnorePermissions(final RelationshipType relType,
+		final String nodeType) {
 
-		List<StructrRelationship> rels  = this.getOutgoingRelationships(relType);
-//		SecurityContext securityContext = CurrentRequest.getSecurityContext();
-		List<AbstractNode> nodes        = new LinkedList<AbstractNode>();
+		List<StructrRelationship> rels = this.getOutgoingRelationships(relType);
+
+//              SecurityContext securityContext = CurrentRequest.getSecurityContext();
+		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
 
 		for (StructrRelationship r : rels) {
 
@@ -2725,7 +2731,6 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 		return nodes;
 	}
-
 
 	/**
 	 * Get child nodes and sort them before returning
@@ -2952,11 +2957,11 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	}
 
 	public Set<AbstractNode> getRelatedNodes(int maxDepth) {
-		return (getRelatedNodes(maxDepth, 20 /*Integer.MAX_VALUE*/, null));
+		return (getRelatedNodes(maxDepth, 20 /* Integer.MAX_VALUE */, null));
 	}
 
 	public Set<AbstractNode> getRelatedNodes(int maxDepth, String relTypes) {
-		return (getRelatedNodes(maxDepth, 20 /*Integer.MAX_VALUE*/, relTypes));
+		return (getRelatedNodes(maxDepth, 20 /* Integer.MAX_VALUE */, relTypes));
 	}
 
 	public Set<AbstractNode> getRelatedNodes(int maxDepth, int maxNum) {
@@ -2976,11 +2981,11 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	}
 
 	public Set<StructrRelationship> getRelatedRels(int maxDepth) {
-		return (getRelatedRels(maxDepth, 20 /*Integer.MAX_VALUE*/, null));
+		return (getRelatedRels(maxDepth, 20 /* Integer.MAX_VALUE */, null));
 	}
 
 	public Set<StructrRelationship> getRelatedRels(int maxDepth, String relTypes) {
-		return (getRelatedRels(maxDepth, 20 /*Integer.MAX_VALUE*/, relTypes));
+		return (getRelatedRels(maxDepth, 20 /* Integer.MAX_VALUE */, relTypes));
 	}
 
 	public Set<StructrRelationship> getRelatedRels(int maxDepth, int maxNum) {
@@ -3059,6 +3064,10 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * @return
 	 */
 	public boolean hasPermission(final String permission, final Principal principal) {
+
+		if (principal == null) {
+			return false;
+		}
 
 		// just in case ...
 		if ((permission == null) || (permission == null)) {
