@@ -60,8 +60,8 @@ public abstract class Command {
     }
 
     public Command() {
-        this.arguments = new ConcurrentHashMap<String, Object>();
-        this.exitStatus = new ConcurrentHashMap<String, Object>();
+        this.arguments = new ConcurrentHashMap<String, Object>(10, 0.9f, 8);
+        this.exitStatus = new ConcurrentHashMap<String, Object>(10, 0.9f, 8);
 
         // Set default
         exitStatus.put(EXIT_CODE, exitCode.UNKNOWN);

@@ -26,7 +26,9 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.lang.reflect.Modifier;
+import java.util.Collections;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -70,8 +72,8 @@ public class ModuleService implements SingletonService {
 
     private static final Logger logger = Logger.getLogger(ModuleService.class.getName());
     private static final String MODULES_CONF = "modules.conf";
-    private static final Map<String, Class> entityClassCache = new ConcurrentHashMap<String, Class>(100, 0.75f, 100);
-    private static final Map<String, Class> agentClassCache = new ConcurrentHashMap<String, Class>(100, 0.75f, 100);
+    private static final Map<String, Class> entityClassCache = new ConcurrentHashMap<String, Class>(100, 0.9f, 8);
+    private static final Map<String, Class> agentClassCache = new ConcurrentHashMap<String, Class>(10, 0.9f, 8);
     private static final Set<String> entityPackages = new LinkedHashSet<String>();
     private static final Set<String> pagePackages = new LinkedHashSet<String>();
     private static final Set<String> agentPackages = new LinkedHashSet<String>();

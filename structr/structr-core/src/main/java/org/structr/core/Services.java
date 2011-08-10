@@ -68,8 +68,8 @@ public class Services {
     public static final String SUPERUSER_PASSWORD = "superuser.password";
 
 
-    private static final Map<Class, Class> serviceClassCache = new ConcurrentHashMap<Class, Class>(5, 0.75f, 100);
-    private static final Map<Class, Service> serviceCache = new ConcurrentHashMap<Class, Service>(5, 0.75f, 100);
+    private static final Map<Class, Class> serviceClassCache = new ConcurrentHashMap<Class, Class>(10, 0.9f, 8);
+    private static final Map<Class, Service> serviceCache = new ConcurrentHashMap<Class, Service>(10, 0.9f, 8);
     private static Map<String, Object> context = null;
     private static String basePath;
     private static String databasePath;
