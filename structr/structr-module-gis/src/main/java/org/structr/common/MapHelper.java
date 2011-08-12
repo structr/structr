@@ -380,7 +380,8 @@ public abstract class MapHelper {
 	 * @param optimizeFtsRendering
 	 * @param lineWidthOptimization
 	 */
-	synchronized public static void renderSVGDocument(StringBuilder out, final MapContext mapContext,
+	//synchronized
+	public static void renderSVGDocument(StringBuilder out, final MapContext mapContext,
 		final ReferencedEnvelope envelope, final int canvasX, final int canvasY,
 		final Boolean optimizeFtsRendering, final Boolean lineWidthOptimization) {
 
