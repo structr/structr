@@ -10,25 +10,6 @@
 		<param-value>org.structr.ui.config.StructrConfigService</param-value>
 	</context-param>
 	<filter>
-		<filter-name>UrlRewriteFilter</filter-name>
-		<filter-class>org.tuckey.web.filters.urlrewrite.UrlRewriteFilter</filter-class>
-        <!-- set the amount of seconds the conf file will be checked for reload
-        can be a valid integer (0 denotes check every time,
-        -1 denotes no reload check, default -1) -->
-		<init-param>
-			<param-name>confReloadCheckInterval</param-name>
-			<param-value>-1</param-value>
-		</init-param>
-<!--		<init-param>
-			<param-name>logLevel</param-name>
-			<param-value>DEBUG</param-value>
-		</init-param>-->
-	</filter>
-	<filter-mapping>
-		<filter-name>UrlRewriteFilter</filter-name>
-		<url-pattern>/*</url-pattern>
-	</filter-mapping>
-	<filter>
 		<filter-name>PerformanceFilter</filter-name>
 		<filter-class>org.apache.click.extras.filter.PerformanceFilter</filter-class>
 		<init-param>
@@ -41,12 +22,12 @@
 		</init-param>
 		<init-param>
 			<param-name>cacheable-paths</param-name>
-			<param-value>/images/*, /click/*, /click/tree/*, /click/css/*, /click/tree/images/*, /assets/*, css/*, js/*, *.css, *.js, *.svg</param-value>
+			<param-value>/structr-webapp-0.4-SNAPSHOT/view/*, /view/*, /images/*, /click/*, /click/tree/*, /click/css/*, /click/tree/images/*, /assets/*, /css/*, /js/*, *.png, *.gif, *.jpg, *.htm, *.css, *.js</param-value>
 		</init-param>
 	</filter>
 	<filter-mapping>
 		<filter-name>PerformanceFilter</filter-name>
-		<url-pattern>*.htm</url-pattern>
+		<url-pattern>*</url-pattern>
 	</filter-mapping>
 	<filter-mapping>
 		<filter-name>PerformanceFilter</filter-name>
@@ -66,11 +47,34 @@
 	</filter-mapping>
 	<filter-mapping>
 		<filter-name>PerformanceFilter</filter-name>
+		<url-pattern>*.svg</url-pattern>
+	</filter-mapping>
+	<filter-mapping>
+		<filter-name>PerformanceFilter</filter-name>
 		<servlet-name>ClickServlet</servlet-name>
 	</filter-mapping>
 	<listener>
 		<listener-class>org.structr.context.ApplicationContextListener</listener-class>
 	</listener>
+	<filter>
+		<filter-name>UrlRewriteFilter</filter-name>
+		<filter-class>org.tuckey.web.filters.urlrewrite.UrlRewriteFilter</filter-class>
+        <!-- set the amount of seconds the conf file will be checked for reload
+        can be a valid integer (0 denotes check every time,
+        -1 denotes no reload check, default -1) -->
+		<init-param>
+			<param-name>confReloadCheckInterval</param-name>
+			<param-value>-1</param-value>
+		</init-param>
+<!--		<init-param>
+			<param-name>logLevel</param-name>
+			<param-value>DEBUG</param-value>
+		</init-param>-->
+	</filter>
+	<filter-mapping>
+		<filter-name>UrlRewriteFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
 	<servlet>
 		<servlet-name>ClickServlet</servlet-name>
 		<servlet-class>org.apache.click.ClickServlet</servlet-class>
