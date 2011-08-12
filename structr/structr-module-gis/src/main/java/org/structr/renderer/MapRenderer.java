@@ -259,13 +259,13 @@ public class MapRenderer implements NodeRenderer<Map> {
 					Filter filter                             =
 						MapHelper.featureFactory.or(filterList);
 					Query query                               = new Query(layerName, filter);
-					long t2                                   = System.currentTimeMillis();
+//					long t2                                   = System.currentTimeMillis();
 					SimpleFeatureCollection featureCollection = featureSource.getFeatures(query);
-					long t3                                   = System.currentTimeMillis();
+//					long t3                                   = System.currentTimeMillis();
 
-					logger.log(Level.INFO, "getFeatures() for query \"{0}\" took {1} ms",
-						   new Object[] { query,
-								  t3 - t2 });
+//					logger.log(Level.INFO, "getFeatures() for query \"{0}\" took {1} ms",
+//						   new Object[] { query,
+//								  t3 - t2 });
 
 					if ((featureCollection != null) &&!(featureCollection.isEmpty())) {
 
@@ -331,16 +331,16 @@ public class MapRenderer implements NodeRenderer<Map> {
 			// Expand envelope as needed
 			MapHelper.expandEnvelope(envelope, new Double(cx), new Double(cy));
 
-			long t4 = System.currentTimeMillis();
+//			long t4 = System.currentTimeMillis();
 
 			// search all features within this bounding
 			SimpleFeatureCollection features = MapHelper.getIntersectingFeatures(graphDb, envelope,
 								   layerName);
-			long t5 = System.currentTimeMillis();
-
-			logger.log(Level.INFO, "getIntersectingFeatures() for layer \"{0}\" took {1} ms",
-				   new Object[] { layerName,
-						  t5 - t4 });
+//			long t5 = System.currentTimeMillis();
+//
+//			logger.log(Level.INFO, "getIntersectingFeatures() for layer \"{0}\" took {1} ms",
+//				   new Object[] { layerName,
+//						  t5 - t4 });
 
 //
 //                      SimpleFeatureIterator it = features.features();
@@ -374,14 +374,14 @@ public class MapRenderer implements NodeRenderer<Map> {
 
 			style.featureTypeStyles().add(fts);
 
-			long t12 = System.currentTimeMillis();
+//			long t12 = System.currentTimeMillis();
 
 			// add features and style as a map layer to the list of map layers
 			layers.add(new MapLayer(features, style));
 
-			long t13 = System.currentTimeMillis();
-
-			logger.log(Level.INFO, "new MapLayer() took {0} ms", new Object[] { t13 - t12 });
+//			long t13 = System.currentTimeMillis();
+//
+//			logger.log(Level.INFO, "new MapLayer() took {0} ms", new Object[] { t13 - t12 });
 
 			boolean displayCities = (currentNode.getDisplayCities() == Boolean.TRUE);
 
@@ -445,12 +445,12 @@ public class MapRenderer implements NodeRenderer<Map> {
 				style2.featureTypeStyles().add(fts2);
 
 				SimpleFeatureSource source          = DataUtilities.source(collection);
-				long t6                             = System.currentTimeMillis();
+//				long t6                             = System.currentTimeMillis();
 				SimpleFeatureCollection subFeatures = source.getFeatures();
-				long t7                             = System.currentTimeMillis();
-
-				logger.log(Level.INFO, "Subfeatures: getFeatures() took {0} ms",
-					   new Object[] { t7 - t6 });
+//				long t7                             = System.currentTimeMillis();
+//
+//				logger.log(Level.INFO, "Subfeatures: getFeatures() took {0} ms",
+//					   new Object[] { t7 - t6 });
 
 				// Style pointStyle = SLD.createPointStyle("Square", Color.yellow, Color.yellow, 1, 3);
 				// pointStyle.featureTypeStyles().add(fts2);
@@ -461,32 +461,32 @@ public class MapRenderer implements NodeRenderer<Map> {
 				}
 			}
 
-			long t8 = System.currentTimeMillis();
+//			long t8 = System.currentTimeMillis();
 
 			// create a map context
 			mapContext = new DefaultMapContext(layers.toArray(new MapLayer[] {}));
 
-			long t9 = System.currentTimeMillis();
+//			long t9 = System.currentTimeMillis();
 
-			logger.log(Level.INFO, "Creating map context took {0} ms", new Object[] { t9 - t8 });
+//			logger.log(Level.INFO, "Creating map context took {0} ms", new Object[] { t9 - t8 });
 
-			long t10 = System.currentTimeMillis();
+//			long t10 = System.currentTimeMillis();
 
 			// render map to SVG
 			MapHelper.renderSVGDocument(out, mapContext, envelope, cx, cy,
 						    currentNode.getOptimizeFtsRendering(),
 						    currentNode.getLineWidthOptimization());
 
-			long t11 = System.currentTimeMillis();
-
-			logger.log(Level.INFO, "renderSVGDocument took {0} ms", new Object[] { t11 - t10 });
+//			long t11 = System.currentTimeMillis();
+//
+//			logger.log(Level.INFO, "renderSVGDocument took {0} ms", new Object[] { t11 - t10 });
 
 			// clear map content
 			mapContext.dispose();
 
 			long t1 = System.currentTimeMillis();
 
-			logger.log(Level.INFO, "SVG image successfully rendered in {0} ms", (t1 - t0));
+			logger.log(Level.FINE, "SVG image successfully rendered in {0} ms", (t1 - t0));
 
 		} catch (Throwable t) {
 			logger.log(Level.SEVERE, "Error while rendering map to SVG", t);
@@ -502,6 +502,6 @@ public class MapRenderer implements NodeRenderer<Map> {
 
 	@Override
 	public String getContentType(Map currentNode) {
-		return ("image/svg");
+		return ("image/svg+xml");
 	}
 }
