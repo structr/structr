@@ -182,7 +182,7 @@ public class EditArbitraryNode extends DefaultEdit {
 		int columns = inputField.getColumns();
 		boolean required = inputField.isRequired();
 		
-		logger.log(Level.INFO, "{0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}",
+		logger.log(Level.FINE, "{0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}",
 			new Object[] {
 				
 				javaClassName != null ? javaClassName : "null",
