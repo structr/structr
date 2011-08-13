@@ -191,7 +191,7 @@ public class NodeType extends AbstractNode implements NodeSource
 		private int size = 20;
 		private int maxLength = -1;
 		private int rows = 0;
-		private int columns = 0;
+		private int columns = 80;
 		private boolean required = false;
 		
 		public InputFieldImpl() {

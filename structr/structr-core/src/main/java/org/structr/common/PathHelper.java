@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2011 Axel Morgner, structr <structr@structr.org>
+ *  Copyright (C) 2011 Axel Morgner
  * 
  *  This file is part of structr <http://structr.org>.
  * 
@@ -17,16 +17,33 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.structr.ui.page.admin;
+package org.structr.common;
+
+import org.structr.core.Command;
+import org.structr.core.Services;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.node.FindNodeCommand;
 
 /**
  *
- * @author amorgner
+ * @author Christian Morgner
  */
-public class EditTemplate extends EditHtmlSource {
+public class PathHelper {
 
-	public EditTemplate() {
+	public AbstractNode find(String path) {
 
-		super();
+		AbstractNode node = null;
+
+		Command findNodeCommand = Services.command(FindNodeCommand.class);
+		node = (AbstractNode)findNodeCommand.execute(null, path);
+
+		// check security context
+		SecurityContext context = CurrentRequest.getSecurityContext();
+		if(context.isVisible(node)) {
+
+			return(node);
+		}
+
+		return(null);
 	}
 }
