@@ -33,7 +33,7 @@ public class NodeListRenderer extends NodeViewRenderer
 	private String pageNoParameterName = "pageNo";
 	private String pageSizeParameterName = "pageSize";
 	private String sortKey = "name";
-	private String sortOrder = "";
+	private String sortOrder = AbstractNodeComparator.ASCENDING;
 	private int pageNo = 1;
 	private int pageSize = 10;
 	private int lastPage = -1;
@@ -61,7 +61,7 @@ public class NodeListRenderer extends NodeViewRenderer
 						collectDataNodes(container, nodesToRender, 0, 255);
 					}
 
-					Collections.sort(nodesToRender, new AbstractNodeComparator(AbstractNode.toGetter(sortKey), sortOrder));
+					//Collections.sort(nodesToRender, new AbstractNodeComparator(AbstractNode.toGetter(sortKey), sortOrder));
 
 					int toIndex = Math.min(pageNo * pageSize, nodesToRender.size());
 					int fromIndex = Math.min(Math.max(pageNo - 1, 0) * pageSize, toIndex);

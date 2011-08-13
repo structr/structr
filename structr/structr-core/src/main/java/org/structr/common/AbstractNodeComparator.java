@@ -32,7 +32,8 @@ import org.structr.core.entity.Link;
 public class AbstractNodeComparator implements Comparator {
 
     private static final Logger logger = Logger.getLogger(AbstractNodeComparator.class.getName());
-    private static final String ASCENDING = "asc";
+    public static final String ASCENDING = "asc";
+    public static final String DESCENDING = "desc";
 
     private String sortKey;
     private String sortOrder;
@@ -93,7 +94,7 @@ public class AbstractNodeComparator implements Comparator {
             if (valueOne != null && valueTwo != null) {
                 if (valueOne instanceof Comparable && valueTwo instanceof Comparable) {
 
-                    if (sortOrder != null && sortOrder.equals(ASCENDING)) {
+                    if (sortOrder != null && sortOrder.equals(DESCENDING)) {
                         result = ((Comparable) valueOne).compareTo((Comparable) valueTwo);
                     } else {
                         result = ((Comparable) valueTwo).compareTo((Comparable) valueOne);
@@ -102,7 +103,7 @@ public class AbstractNodeComparator implements Comparator {
 
                 } else {
 
-                    if (sortOrder != null && sortOrder.equals(ASCENDING)) {
+                    if (sortOrder != null && sortOrder.equals(DESCENDING)) {
                         result = valueOne.toString().compareTo(valueTwo.toString());
                     } else {
                         result = valueTwo.toString().compareTo(valueOne.toString());
