@@ -42,8 +42,6 @@ import org.structr.core.node.TransactionCommand;
  */
 public class EditPlainText extends DefaultEdit {
 
-   private static final Logger logger = Logger.getLogger(EditPlainText.class.getName());
-
     /**
      * The main form for editing node content.
      * Child pages should just append fields to this form.
@@ -56,8 +54,6 @@ public class EditPlainText extends DefaultEdit {
     public EditPlainText() {
 
         super();
-
-	logger.log(Level.INFO, "Constructor!");
 
         editPropertiesForm.add(new TextField(PlainText.CONTENT_TYPE_KEY, "Internet Media Type (Content-Type)", 30));
 

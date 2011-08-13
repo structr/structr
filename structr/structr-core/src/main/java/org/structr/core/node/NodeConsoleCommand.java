@@ -21,7 +21,6 @@
 
 package org.structr.core.node;
 
-import org.structr.common.CurrentRequest;
 import org.structr.common.CurrentSession;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SuperUser;
@@ -61,6 +60,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.logging.Logger;
+import org.structr.core.node.operation.HelpOperation;
 import org.structr.core.node.operation.ShowOperation;
 
 //~--- classes ----------------------------------------------------------------
@@ -71,8 +71,9 @@ import org.structr.core.node.operation.ShowOperation;
  */
 public class NodeConsoleCommand extends NodeServiceCommand {
 
-	public static final String CONSOLE_BUFFER_KEY = "consoleOutputLines";
 	private static final Logger logger            = Logger.getLogger(NodeConsoleCommand.class.getName());
+	public static final String CONSOLE_BUFFER_KEY = "consoleOutputLines";
+
 	public static final Map<String, Class<? extends Operation>> operationsMap;
 
 	//~--- static initializers --------------------------------------------
@@ -98,6 +99,7 @@ public class NodeConsoleCommand extends NodeServiceCommand {
 		operationsMap.put("moo", MooOperation.class);
 		operationsMap.put("unset", UnsetOperation.class);
 		operationsMap.put("show", ShowOperation.class);
+		operationsMap.put("help", HelpOperation.class);
 	}
 
 	//~--- methods --------------------------------------------------------
