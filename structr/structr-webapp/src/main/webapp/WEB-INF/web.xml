@@ -22,7 +22,7 @@
 		</init-param>
 		<init-param>
 			<param-name>cacheable-paths</param-name>
-			<param-value>/structr-webapp-0.4-SNAPSHOT/view/*, /view/*, /images/*, /click/*, /click/tree/*, /click/css/*, /click/tree/images/*, /assets/*, /css/*, /js/*, *.png, *.gif, *.jpg, *.htm, *.css, *.js</param-value>
+			<param-value>/structr-webapp-0.4-SNAPSHOT/view/*, /view/*, /images/*, /click/*, /click/tree/*, /click/css/*, /click/tree/images/*, /assets/*, /css/*, /js/*, *.png, *.gif, *.jpg, *.css, *.js</param-value>
 		</init-param>
 	</filter>
 	<filter-mapping>
