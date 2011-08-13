@@ -220,8 +220,7 @@ public class AppNodeCreator extends ActionNode implements NodeSource
 
 				attributes.add(new NodeAttribute(TYPE_KEY, type));
 				
-				// FIXME: temporary
-				attributes.add(new NodeAttribute(PUBLIC_KEY, "true"));
+				// attributes.add(new NodeAttribute(PUBLIC_KEY, "true"));
 
 				AbstractNode newNode = (AbstractNode)Services.command(CreateNodeCommand.class).execute(attributes);
 				if(newNode != null)

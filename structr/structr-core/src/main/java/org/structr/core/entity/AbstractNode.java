@@ -638,118 +638,118 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * Check if given node may be read by current user.
 	 *
 	 * @return
-	 * public boolean readAllowed() {
-	 *
-	 *       // Check global settings first
-	 *       if (isVisible()) {
-	 *               return true;
-	 *       }
-	 *
-	 *       // Then check per-user permissions
-	 *       return hasPermission(StructrRelationship.READ_KEY, user);
-	 * }
 	 */
+	public boolean readAllowed() {
+
+		// Check global settings first
+		if (isVisible()) {
+			return true;
+		}
+
+		// Then check per-user permissions
+		return hasPermission(StructrRelationship.READ_KEY, user);
+	}
 
 	/**
 	 * Check if given node may see the navigation tree
 	 *
 	 * @return
-	 * public boolean showTreeAllowed() {
-	 *       return hasPermission(StructrRelationship.SHOW_TREE_KEY, user);
-	 * }
 	 */
+	public boolean showTreeAllowed() {
+		return hasPermission(StructrRelationship.SHOW_TREE_KEY, user);
+	}
 
 	/**
 	 * Check if given node may be written by current user.
 	 *
 	 * @return
-	 * public boolean writeAllowed() {
-	 *       return hasPermission(StructrRelationship.WRITE_KEY, user);
-	 * }
 	 */
+	public boolean writeAllowed() {
+		return hasPermission(StructrRelationship.WRITE_KEY, user);
+	}
 
 	/**
 	 * Check if given user may create new sub nodes.
 	 *
 	 * @return
-	 * public boolean createSubnodeAllowed() {
-	 *       return hasPermission(StructrRelationship.CREATE_SUBNODE_KEY, user);
-	 * }
 	 */
+	public boolean createSubnodeAllowed() {
+		return hasPermission(StructrRelationship.CREATE_SUBNODE_KEY, user);
+	}
 
 	/**
 	 * Check if given user may delete this node
 	 *
 	 * @return
-	 * public boolean deleteNodeAllowed() {
-	 *       return hasPermission(StructrRelationship.DELETE_NODE_KEY, user);
-	 * }
 	 */
+	public boolean deleteNodeAllowed() {
+		return hasPermission(StructrRelationship.DELETE_NODE_KEY, user);
+	}
 
 	/**
 	 * Check if given user may add new relationships to this node
 	 *
 	 * @return
-	 * public boolean addRelationshipAllowed() {
-	 *       return hasPermission(StructrRelationship.ADD_RELATIONSHIP_KEY, user);
-	 * }
 	 */
+	public boolean addRelationshipAllowed() {
+		return hasPermission(StructrRelationship.ADD_RELATIONSHIP_KEY, user);
+	}
 
 	/**
 	 * Check if given user may edit (set) properties of this node
 	 *
 	 * @return
-	 * public boolean editPropertiesAllowed() {
-	 *       return hasPermission(StructrRelationship.EDIT_PROPERTIES_KEY, user);
-	 * }
 	 */
+	public boolean editPropertiesAllowed() {
+		return hasPermission(StructrRelationship.EDIT_PROPERTIES_KEY, user);
+	}
 
 	/**
 	 * Check if given user may remove relationships to this node
 	 *
 	 * @return
-	 * public boolean removeRelationshipAllowed() {
-	 *       return hasPermission(StructrRelationship.REMOVE_RELATIONSHIP_KEY, user);
-	 * }
 	 */
+	public boolean removeRelationshipAllowed() {
+		return hasPermission(StructrRelationship.REMOVE_RELATIONSHIP_KEY, user);
+	}
 
 	/**
 	 * Check if access of given node may be controlled by current user.
 	 *
 	 * @return
-	 * public boolean accessControlAllowed() {
-	 *
-	 *       // just in case ...
-	 *       if (user == null) {
-	 *               return false;
-	 *       }
-	 *
-	 *       // superuser
-	 *       if (user instanceof SuperUser) {
-	 *               return true;
-	 *       }
-	 *
-	 *       // node itself
-	 *       if (this.equals(user)) {
-	 *               return true;
-	 *       }
-	 *
-	 *       StructrRelationship r = null;
-	 *
-	 *       // owner has always access control
-	 *       if (user.equals(getOwnerNode())) {
-	 *               return true;
-	 *       }
-	 *
-	 *       r = getSecurityRelationship(user);
-	 *
-	 *       if ((r != null) && r.isAllowed(StructrRelationship.ACCESS_CONTROL_KEY)) {
-	 *               return true;
-	 *       }
-	 *
-	 *       return false;
-	 * }
 	 */
+	public boolean accessControlAllowed() {
+
+		// just in case ...
+		if (user == null) {
+			return false;
+		}
+
+		// superuser
+		if (user instanceof SuperUser) {
+			return true;
+		}
+
+		// node itself
+		if (this.equals(user)) {
+			return true;
+		}
+
+		StructrRelationship r = null;
+
+		// owner has always access control
+		if (user.equals(getOwnerNode())) {
+			return true;
+		}
+
+		r = getSecurityRelationship(user);
+
+		if ((r != null) && r.isAllowed(StructrRelationship.ACCESS_CONTROL_KEY)) {
+			return true;
+		}
+
+		return false;
+	}
 
 	/**
 	 * Replace $(key) by the content rendered by the subnode with name "key"
@@ -987,7 +987,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 				AbstractNode startNode = rel.getStartNode();
 
-				if (startNode != null && nodes.size() < maxNum) {
+				if ((startNode != null) && (nodes.size() < maxNum)) {
 
 					nodes.add(startNode);
 					rels.add(rel);
@@ -1013,7 +1013,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 				AbstractNode endNode = rel.getEndNode();
 
-				if (endNode != null && nodes.size() < maxNum) {
+				if ((endNode != null) && (nodes.size() < maxNum)) {
 
 					nodes.add(endNode);
 					rels.add(rel);
@@ -1117,8 +1117,12 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 			Map root = new HashMap();
 
 			root.put("this", this);
+			
 			root.put("StartNode", startNode);
 
+			// just for convenience
+			root.put("node", startNode);
+			
 			if (callingNode != null) {
 
 				root.put(callingNode.getType(), callingNode);
@@ -1201,89 +1205,89 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 			logger.log(Level.WARNING, "Error: {0}", t.getMessage());
 		}
 	}
-
-	public static void staticReplaceByFreeMarker(final String templateString, Writer out, final AbstractNode node,
-		final String editUrl, final Long editNodeId) {
-
-		Configuration cfg = new Configuration();
-
-		// TODO: enable access to content tree, see below (Content variable)
-		// cfg.setSharedVariable("Tree", new StructrTemplateNodeModel(this));
-		try {
-
-			AbstractNode callingNode = null;
-
-			if (templateString != null) {
-
-				Map root = new HashMap();
-
-				root.put("Template", node);
-
-				if (callingNode != null) {
-					root.put(callingNode.getType(), callingNode);
-				}
-
-				HttpServletRequest request = CurrentRequest.getRequest();
-
-				if (request != null) {
-
-					// root.put("Request", new freemarker.template.SimpleHash(request.getParameterMap().));
-					root.put("Request",
-						 new freemarker.ext.servlet.HttpRequestParametersHashModel(request));
-
-					// if search string is given, put search results into freemarker model
-					String searchString = request.getParameter("search");
-
-					if ((searchString != null) &&!(searchString.isEmpty())) {
-
-						Command search            = Services.command(SearchNodeCommand.class);
-						List<AbstractNode> result = (List<AbstractNode>) search.execute(null,    // user => null means super user
-							null,                            // top node => null means search all
-							false,                           // include hidden
-							true,                            // public only
-							Search.orName(searchString));    // search in name
-
-						root.put("SearchResults", result);
-					}
-				}
-
-				// if (user != null) {
-				root.put("User", CurrentSession.getUser());
-
-				// }
-				// Add a generic helper
-				root.put("Helper", new TemplateHelper());
-
-				// Add error and ok message if present
-				HttpSession session = CurrentRequest.getSession();
-
-				if (session != null) {
-
-					if (session.getAttribute("errorMessage") != null) {
-						root.put("ErrorMessage", session.getAttribute("errorMessage"));
-					}
-
-					if (session.getAttribute("errorMessage") != null) {
-						root.put("OkMessage", session.getAttribute("okMessage"));
-					}
-				}
-
-				freemarker.template.Template t = new freemarker.template.Template(node.getName(),
-									 new StringReader(templateString), cfg);
-
-				t.process(root, out);
-
-			} else {
-
-				// if no template is given, just copy the input
-				out.write(templateString);
-				out.flush();
-			}
-
-		} catch (Throwable t) {
-			logger.log(Level.WARNING, "Error: {0}", t.getMessage());
-		}
-	}
+//
+//	public static void staticReplaceByFreeMarker(final String templateString, Writer out, final AbstractNode startNode,
+//		final String editUrl, final Long editNodeId) {
+//
+//		Configuration cfg = new Configuration();
+//
+//		// TODO: enable access to content tree, see below (Content variable)
+//		// cfg.setSharedVariable("Tree", new StructrTemplateNodeModel(this));
+//		try {
+//
+//			AbstractNode callingNode = null;
+//
+//			if (templateString != null) {
+//
+//				Map root = new HashMap();
+//
+//				root.put("StartNode", startNode);
+//
+//				if (callingNode != null) {
+//					root.put(callingNode.getType(), callingNode);
+//				}
+//
+//				HttpServletRequest request = CurrentRequest.getRequest();
+//
+//				if (request != null) {
+//
+//					// root.put("Request", new freemarker.template.SimpleHash(request.getParameterMap().));
+//					root.put("Request",
+//						 new freemarker.ext.servlet.HttpRequestParametersHashModel(request));
+//
+//					// if search string is given, put search results into freemarker model
+//					String searchString = request.getParameter("search");
+//
+//					if ((searchString != null) &&!(searchString.isEmpty())) {
+//
+//						Command search            = Services.command(SearchNodeCommand.class);
+//						List<AbstractNode> result = (List<AbstractNode>) search.execute(null,    // user => null means super user
+//							null,                            // top node => null means search all
+//							false,                           // include hidden
+//							true,                            // public only
+//							Search.orName(searchString));    // search in name
+//
+//						root.put("SearchResults", result);
+//					}
+//				}
+//
+//				// if (user != null) {
+//				root.put("User", CurrentSession.getUser());
+//
+//				// }
+//				// Add a generic helper
+//				root.put("Helper", new TemplateHelper());
+//
+//				// Add error and ok message if present
+//				HttpSession session = CurrentRequest.getSession();
+//
+//				if (session != null) {
+//
+//					if (session.getAttribute("errorMessage") != null) {
+//						root.put("ErrorMessage", session.getAttribute("errorMessage"));
+//					}
+//
+//					if (session.getAttribute("errorMessage") != null) {
+//						root.put("OkMessage", session.getAttribute("okMessage"));
+//					}
+//				}
+//
+//				freemarker.template.Template t = new freemarker.template.Template(startNode.getName(),
+//									 new StringReader(templateString), cfg);
+//
+//				t.process(root, out);
+//
+//			} else {
+//
+//				// if no template is given, just copy the input
+//				out.write(templateString);
+//				out.flush();
+//			}
+//
+//		} catch (Throwable t) {
+//			logger.log(Level.WARNING, "Error: {0}", t.getMessage());
+//		}
+//	}
 
 	// ----- protected methods -----
 	protected String createUniqueIdentifier(String prefix) {
@@ -1696,7 +1700,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	}
 
 	/**
-	 * Return a map with all properties of this node
+	 * Return a map with all properties of this node. Caution, this method can
+	 * not be used to retrieve the full map of persistent properties. Use
+	 * {@see #getPropertyKeys} instead.
 	 *
 	 * @return
 	 */
@@ -2164,6 +2170,10 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 */
 	public StructrRelationship getSecurityRelationship(final Principal principal) {
 
+		if (principal == null) {
+			return null;
+		}
+
 		long userId = principal.getId();
 
 		if (securityRelationships == null) {
@@ -2621,7 +2631,6 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		return getDirectChildren(relType, null);
 	}
 
-
 	/**
 	 * Return unordered list of all direct child nodes (no recursion)
 	 * with given relationship type
@@ -2632,6 +2641,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	public List<AbstractNode> getDirectChildrenIgnorePermissions(final RelationshipType relType) {
 		return getDirectChildrenIgnorePermissions(relType, null);
 	}
+
 	/**
 	 * Return ordered list of all direct child nodes (no recursion)
 	 * with given relationship type
@@ -2682,11 +2692,13 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 *
 	 * @return list with structr nodes
 	 */
-	public List<AbstractNode> getDirectChildrenIgnorePermissions(final RelationshipType relType, final String nodeType) {
+	public List<AbstractNode> getDirectChildrenIgnorePermissions(final RelationshipType relType,
+		final String nodeType) {
 
-		List<StructrRelationship> rels  = this.getOutgoingRelationships(relType);
-//		SecurityContext securityContext = CurrentRequest.getSecurityContext();
-		List<AbstractNode> nodes        = new LinkedList<AbstractNode>();
+		List<StructrRelationship> rels = this.getOutgoingRelationships(relType);
+
+//              SecurityContext securityContext = CurrentRequest.getSecurityContext();
+		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
 
 		for (StructrRelationship r : rels) {
 
@@ -2723,7 +2735,6 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 		return nodes;
 	}
-
 
 	/**
 	 * Get child nodes and sort them before returning
@@ -2950,11 +2961,11 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	}
 
 	public Set<AbstractNode> getRelatedNodes(int maxDepth) {
-		return (getRelatedNodes(maxDepth, 20 /*Integer.MAX_VALUE*/, null));
+		return (getRelatedNodes(maxDepth, 20 /* Integer.MAX_VALUE */, null));
 	}
 
 	public Set<AbstractNode> getRelatedNodes(int maxDepth, String relTypes) {
-		return (getRelatedNodes(maxDepth, 20 /*Integer.MAX_VALUE*/, relTypes));
+		return (getRelatedNodes(maxDepth, 20 /* Integer.MAX_VALUE */, relTypes));
 	}
 
 	public Set<AbstractNode> getRelatedNodes(int maxDepth, int maxNum) {
@@ -2974,11 +2985,11 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	}
 
 	public Set<StructrRelationship> getRelatedRels(int maxDepth) {
-		return (getRelatedRels(maxDepth, 20 /*Integer.MAX_VALUE*/, null));
+		return (getRelatedRels(maxDepth, 20 /* Integer.MAX_VALUE */, null));
 	}
 
 	public Set<StructrRelationship> getRelatedRels(int maxDepth, String relTypes) {
-		return (getRelatedRels(maxDepth, 20 /*Integer.MAX_VALUE*/, relTypes));
+		return (getRelatedRels(maxDepth, 20 /* Integer.MAX_VALUE */, relTypes));
 	}
 
 	public Set<StructrRelationship> getRelatedRels(int maxDepth, int maxNum) {
@@ -3058,8 +3069,12 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 */
 	public boolean hasPermission(final String permission, final Principal principal) {
 
+		if (principal == null) {
+			return false;
+		}
+
 		// just in case ...
-		if ((principal == null) || (permission == null)) {
+		if ((permission == null) || (permission == null)) {
 			return false;
 		}
 

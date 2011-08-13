@@ -51,7 +51,7 @@ public class NodeViewRenderer implements NodeRenderer<AbstractNode>
 		String templateSource = getTemplateFromNode(viewNode);
 		StringWriter content = new StringWriter(100);
 
-		AbstractNode.staticReplaceByFreeMarker(templateSource, content, dataNode, editUrl, editNodeId);
+		viewNode.replaceByFreeMarker(templateSource, content, dataNode, editUrl, editNodeId);
 		out.append(content.toString());
 
 		List<AbstractNode> viewChildren = viewNode.getSortedDirectChildNodes();

@@ -61,6 +61,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.logging.Logger;
+import org.structr.core.node.operation.ShowOperation;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -96,6 +97,7 @@ public class NodeConsoleCommand extends NodeServiceCommand {
 		operationsMap.put("ls", ListOperation.class);
 		operationsMap.put("moo", MooOperation.class);
 		operationsMap.put("unset", UnsetOperation.class);
+		operationsMap.put("show", ShowOperation.class);
 	}
 
 	//~--- methods --------------------------------------------------------
