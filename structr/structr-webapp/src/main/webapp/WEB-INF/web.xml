@@ -22,12 +22,16 @@
 		</init-param>
 		<init-param>
 			<param-name>cacheable-paths</param-name>
-			<param-value>/structr-webapp-0.4-SNAPSHOT/view/*, /view/*, /images/*, /click/*, /click/tree/*, /click/css/*, /click/tree/images/*, /assets/*, /css/*, /js/*, *.png, *.gif, *.jpg, *.htm, *.css, *.js</param-value>
+			<param-value>/structr-webapp-0.4-SNAPSHOT/view/*, /view/*, /images/*, /click/*, /click/tree/*, /click/css/*, /click/tree/images/*, /assets/*, /css/*, /js/*, *.svg, *.png, *.gif, *.jpg, *.css, *.js</param-value>
 		</init-param>
 	</filter>
 	<filter-mapping>
 		<filter-name>PerformanceFilter</filter-name>
 		<url-pattern>*</url-pattern>
+	</filter-mapping>
+	<filter-mapping>
+		<filter-name>PerformanceFilter</filter-name>
+		<url-pattern>*.htm</url-pattern>
 	</filter-mapping>
 	<filter-mapping>
 		<filter-name>PerformanceFilter</filter-name>
@@ -40,6 +44,10 @@
 	<filter-mapping>
 		<filter-name>PerformanceFilter</filter-name>
 		<url-pattern>*.gif</url-pattern>
+	</filter-mapping>
+	<filter-mapping>
+		<filter-name>PerformanceFilter</filter-name>
+		<url-pattern>*.jpg</url-pattern>
 	</filter-mapping>
 	<filter-mapping>
 		<filter-name>PerformanceFilter</filter-name>
@@ -88,7 +96,7 @@
 	<context-param>
 		<description>structr config file path</description>
 		<param-name>configfile.path</param-name>
-		<param-value>/opt/structr/structr.conf</param-value>
+		<param-value>/opt/structr/t5s/structr.conf</param-value>
 	</context-param>
     <!--  custom context parameter end -->
 	<welcome-file-list>
