@@ -382,9 +382,9 @@ public class StructrPage extends Page {
 
 					return getNodeById(Long.parseLong((String) nodeIdOrPath));
 
-				} catch (Exception e) {
+				} catch (NumberFormatException e) {
 
-					logger.log(Level.WARNING, "Could not handle nodeId {0}", nodeIdOrPath);
+					logger.log(Level.FINE, "Could not parse {0} to number", nodeIdOrPath);
 
 					return null;
 				}

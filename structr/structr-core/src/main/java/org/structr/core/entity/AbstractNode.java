@@ -26,6 +26,7 @@ import freemarker.ext.servlet.HttpRequestParametersHashModel;
 import freemarker.template.Configuration;
 
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DateUtils;
@@ -42,6 +43,7 @@ import org.neo4j.kernel.Traversal;
 import org.structr.common.AbstractNodeComparator;
 import org.structr.common.CurrentRequest;
 import org.structr.common.CurrentSession;
+import org.structr.common.PathHelper;
 import org.structr.common.Permission;
 import org.structr.common.PropertyKey;
 import org.structr.common.RelType;
@@ -97,7 +99,6 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import org.structr.common.PathHelper;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -1117,12 +1118,11 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 			Map root = new HashMap();
 
 			root.put("this", this);
-			
 			root.put("StartNode", startNode);
 
 			// just for convenience
 			root.put("node", startNode);
-			
+
 			if (callingNode != null) {
 
 				root.put(callingNode.getType(), callingNode);
@@ -1198,7 +1198,6 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 			String name                    = (template != null)
 							 ? template.getName()
 							 : getName();
-
 			freemarker.template.Template t = new freemarker.template.Template(name,
 								 new StringReader(templateString), cfg);
 
@@ -1209,89 +1208,90 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 			logger.log(Level.WARNING, "Error: {0}", t.getMessage());
 		}
 	}
+
 //
-//	public static void staticReplaceByFreeMarker(final String templateString, Writer out, final AbstractNode startNode,
-//		final String editUrl, final Long editNodeId) {
+//      public static void staticReplaceByFreeMarker(final String templateString, Writer out, final AbstractNode startNode,
+//              final String editUrl, final Long editNodeId) {
 //
-//		Configuration cfg = new Configuration();
+//              Configuration cfg = new Configuration();
 //
-//		// TODO: enable access to content tree, see below (Content variable)
-//		// cfg.setSharedVariable("Tree", new StructrTemplateNodeModel(this));
-//		try {
+//              // TODO: enable access to content tree, see below (Content variable)
+//              // cfg.setSharedVariable("Tree", new StructrTemplateNodeModel(this));
+//              try {
 //
-//			AbstractNode callingNode = null;
+//                      AbstractNode callingNode = null;
 //
-//			if (templateString != null) {
+//                      if (templateString != null) {
 //
-//				Map root = new HashMap();
+//                              Map root = new HashMap();
 //
-//				root.put("StartNode", startNode);
+//                              root.put("StartNode", startNode);
 //
-//				if (callingNode != null) {
-//					root.put(callingNode.getType(), callingNode);
-//				}
+//                              if (callingNode != null) {
+//                                      root.put(callingNode.getType(), callingNode);
+//                              }
 //
-//				HttpServletRequest request = CurrentRequest.getRequest();
+//                              HttpServletRequest request = CurrentRequest.getRequest();
 //
-//				if (request != null) {
+//                              if (request != null) {
 //
-//					// root.put("Request", new freemarker.template.SimpleHash(request.getParameterMap().));
-//					root.put("Request",
-//						 new freemarker.ext.servlet.HttpRequestParametersHashModel(request));
+//                                      // root.put("Request", new freemarker.template.SimpleHash(request.getParameterMap().));
+//                                      root.put("Request",
+//                                               new freemarker.ext.servlet.HttpRequestParametersHashModel(request));
 //
-//					// if search string is given, put search results into freemarker model
-//					String searchString = request.getParameter("search");
+//                                      // if search string is given, put search results into freemarker model
+//                                      String searchString = request.getParameter("search");
 //
-//					if ((searchString != null) &&!(searchString.isEmpty())) {
+//                                      if ((searchString != null) &&!(searchString.isEmpty())) {
 //
-//						Command search            = Services.command(SearchNodeCommand.class);
-//						List<AbstractNode> result = (List<AbstractNode>) search.execute(null,    // user => null means super user
-//							null,                            // top node => null means search all
-//							false,                           // include hidden
-//							true,                            // public only
-//							Search.orName(searchString));    // search in name
+//                                              Command search            = Services.command(SearchNodeCommand.class);
+//                                              List<AbstractNode> result = (List<AbstractNode>) search.execute(null,    // user => null means super user
+//                                                      null,                            // top node => null means search all
+//                                                      false,                           // include hidden
+//                                                      true,                            // public only
+//                                                      Search.orName(searchString));    // search in name
 //
-//						root.put("SearchResults", result);
-//					}
-//				}
+//                                              root.put("SearchResults", result);
+//                                      }
+//                              }
 //
-//				// if (user != null) {
-//				root.put("User", CurrentSession.getUser());
+//                              // if (user != null) {
+//                              root.put("User", CurrentSession.getUser());
 //
-//				// }
-//				// Add a generic helper
-//				root.put("Helper", new TemplateHelper());
+//                              // }
+//                              // Add a generic helper
+//                              root.put("Helper", new TemplateHelper());
 //
-//				// Add error and ok message if present
-//				HttpSession session = CurrentRequest.getSession();
+//                              // Add error and ok message if present
+//                              HttpSession session = CurrentRequest.getSession();
 //
-//				if (session != null) {
+//                              if (session != null) {
 //
-//					if (session.getAttribute("errorMessage") != null) {
-//						root.put("ErrorMessage", session.getAttribute("errorMessage"));
-//					}
+//                                      if (session.getAttribute("errorMessage") != null) {
+//                                              root.put("ErrorMessage", session.getAttribute("errorMessage"));
+//                                      }
 //
-//					if (session.getAttribute("errorMessage") != null) {
-//						root.put("OkMessage", session.getAttribute("okMessage"));
-//					}
-//				}
+//                                      if (session.getAttribute("errorMessage") != null) {
+//                                              root.put("OkMessage", session.getAttribute("okMessage"));
+//                                      }
+//                              }
 //
-//				freemarker.template.Template t = new freemarker.template.Template(startNode.getName(),
-//									 new StringReader(templateString), cfg);
+//                              freemarker.template.Template t = new freemarker.template.Template(startNode.getName(),
+//                                                                       new StringReader(templateString), cfg);
 //
-//				t.process(root, out);
+//                              t.process(root, out);
 //
-//			} else {
+//                      } else {
 //
-//				// if no template is given, just copy the input
-//				out.write(templateString);
-//				out.flush();
-//			}
+//                              // if no template is given, just copy the input
+//                              out.write(templateString);
+//                              out.flush();
+//                      }
 //
-//		} catch (Throwable t) {
-//			logger.log(Level.WARNING, "Error: {0}", t.getMessage());
-//		}
-//	}
+//              } catch (Throwable t) {
+//                      logger.log(Level.WARNING, "Error: {0}", t.getMessage());
+//              }
+//      }
 
 	// ----- protected methods -----
 	protected String createUniqueIdentifier(String prefix) {
@@ -2004,6 +2004,23 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 //              out.append("</body></html>");
 //      }
 
+	/**
+	 * Return a relative URL according to RFC 1808
+	 *
+	 * @param node
+	 * @return
+	 */
+	public String getNodeURL(final AbstractNode node) {
+
+		String nodePath = getNodePath(node);
+
+		if (nodePath.startsWith("../")) {
+			return nodePath.substring(3);
+		}
+
+		return nodePath;
+	}
+
 	/*
 	 * @Override
 	 * public int compareTo(AbstractNode otherNode) {
@@ -2023,33 +2040,43 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		String refPath = node.getNodePath();
 
 		// currently rendered node, the link target
-		String thisPath    = this.getNodePath();
-		String[] refParts  = refPath.split("/");
-		String[] thisParts = thisPath.split("/");
-		int level          = refParts.length - thisParts.length;
+		String thisPath = this.getNodePath();
 
-		if (level == 0) {
+		// Both not working :-(
+		// String combinedPath = FilenameUtils.concat(thisPath, refPath);
+		// String combinedPath = new java.io.File(refPath).toURI().relativize(new java.io.File(thisPath).toURI()).getPath();
+		String combinedPath = PathHelper.getNewRelativePath(refPath, thisPath);
 
-			// paths are identical, return last part
-			return thisParts[thisParts.length - 1];
-		} else if (level < 0) {
+		logger.log(Level.FINE, "{0} + {1} = {2}", new Object[] { thisPath, refPath, combinedPath });
 
-			// link down
-//                      return thisPath.substring(refPath.length());
-			// Bug fix: Don't include the leading "/", this is a relative path!
-			return thisPath.substring(refPath.length() + 1);
-		} else {
+		return combinedPath;
 
-			// link up
-			int i      = 0;
-			String ret = "";
-
-			do {
-				ret = ret.concat("../");
-			} while (++i < level);
-
-			return ret.concat(thisParts[thisParts.length - 1]);
-		}
+//              String[] refParts  = refPath.split("/");
+//              String[] thisParts = thisPath.split("/");
+//              int level          = refParts.length - thisParts.length;
+//
+//              if (level == 0) {
+//
+//                      // paths are identical, return last part
+//                      return thisParts[thisParts.length - 1];
+//              } else if (level < 0) {
+//
+//                      // link down
+////                      return thisPath.substring(refPath.length());
+//                      // Bug fix: Don't include the leading "/", this is a relative path!
+//                      return thisPath.substring(refPath.length() + 1);
+//              } else {
+//
+//                      // link up
+//                      int i      = 0;
+//                      String ret = "";
+//
+//                      do {
+//                              ret = ret.concat("../");
+//                      } while (++i < level);
+//
+//                      return ret.concat(thisParts[thisParts.length - 1]);
+//              }
 	}
 
 	/**
@@ -3267,31 +3294,31 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		this.template = template;
 	}
 
-	/** unused
-	public void setTemplateId(final Long value) {
-
-		// find template node
-		Command findNode      = Services.command(FindNodeCommand.class);
-		Template templateNode = (Template) findNode.execute(new SuperUser(), value);
-
-		// delete existing template relationships
-		List<StructrRelationship> templateRels = this.getOutgoingRelationships(RelType.USE_TEMPLATE);
-		Command delRel                         = Services.command(DeleteRelationshipCommand.class);
-
-		if (templateRels != null) {
-
-			for (StructrRelationship r : templateRels) {
-				delRel.execute(r);
-			}
-		}
-
-		// create new link target relationship
-		Command createRel = Services.command(CreateRelationshipCommand.class);
-
-		createRel.execute(this, templateNode, RelType.USE_TEMPLATE);
-	}
+	/**
+	 * unused
+	 * public void setTemplateId(final Long value) {
+	 *
+	 *       // find template node
+	 *       Command findNode      = Services.command(FindNodeCommand.class);
+	 *       Template templateNode = (Template) findNode.execute(new SuperUser(), value);
+	 *
+	 *       // delete existing template relationships
+	 *       List<StructrRelationship> templateRels = this.getOutgoingRelationships(RelType.USE_TEMPLATE);
+	 *       Command delRel                         = Services.command(DeleteRelationshipCommand.class);
+	 *
+	 *       if (templateRels != null) {
+	 *
+	 *               for (StructrRelationship r : templateRels) {
+	 *                       delRel.execute(r);
+	 *               }
+	 *       }
+	 *
+	 *       // create new link target relationship
+	 *       Command createRel = Services.command(CreateRelationshipCommand.class);
+	 *
+	 *       createRel.execute(this, templateNode, RelType.USE_TEMPLATE);
+	 * }
 	 */
-
 	public void setCreatedBy(final String createdBy) {
 		setProperty(CREATED_BY_KEY, createdBy);
 	}

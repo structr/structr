@@ -91,7 +91,7 @@ public abstract class MenuItemRenderer
 
 			if(securityContext.isVisible(menuItemNode)) {
 
-				String relativeNodePath = menuItemNode.getNodePath(startNode).replace("&", "%26");
+				String relativeNodeURL = menuItemNode.getNodeURL(startNode).replace("&", "%26");
 
 				if(!(cssClass.isEmpty()))
 				{
@@ -99,7 +99,7 @@ public abstract class MenuItemRenderer
 				}
 
 				out.append("<li").append(cssClass).append(">");
-				out.append("<span><a href=\"").append(relativeNodePath).append("\">");
+				out.append("<span><a href=\"").append(relativeNodeURL).append("\">");
 				out.append(currentMenuNode.getTitleOrName());
 				out.append("</a></span>");
 			}
