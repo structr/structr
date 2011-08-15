@@ -59,7 +59,6 @@ import org.structr.core.Services;
 import org.structr.core.cloud.NodeDataContainer;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;
-import org.structr.core.node.DeleteRelationshipCommand;
 import org.structr.core.node.FindNodeCommand;
 import org.structr.core.node.IndexNodeCommand;
 import org.structr.core.node.NodeFactoryCommand;
@@ -98,6 +97,7 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import org.structr.common.PathHelper;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -1176,6 +1176,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 			// Add a generic helper
 			root.put("Helper", new TemplateHelper());
 
+			// Add path helper / finder
+			root.put("path", new PathHelper());
+
 			// Add error and ok message if present
 			HttpSession session = CurrentRequest.getSession();
 
@@ -1195,6 +1198,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 			String name                    = (template != null)
 							 ? template.getName()
 							 : getName();
+
 			freemarker.template.Template t = new freemarker.template.Template(name,
 								 new StringReader(templateString), cfg);
 
@@ -3263,6 +3267,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		this.template = template;
 	}
 
+	/** unused
 	public void setTemplateId(final Long value) {
 
 		// find template node
@@ -3285,6 +3290,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 		createRel.execute(this, templateNode, RelType.USE_TEMPLATE);
 	}
+	 */
 
 	public void setCreatedBy(final String createdBy) {
 		setProperty(CREATED_BY_KEY, createdBy);
