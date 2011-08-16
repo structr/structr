@@ -62,7 +62,6 @@ public class CurrentRequest {
 	private String currentNodePath                  = null;
 	private HttpServletRequest internalRequest      = null;
 	private HttpServletResponse internalResponse    = null;
-
 	private SecurityContext internalSecurityContext = new SecurityContext();
 
 	// ----- private attributes -----
@@ -271,9 +270,9 @@ public class CurrentRequest {
 	}
 
 	//~--- get methods ----------------------------------------------------
-	public static SecurityContext getSecurityContext() {
 
-		return(getRequestContext().getSecurityContextInternal());
+	public static SecurityContext getSecurityContext() {
+		return (getRequestContext().getSecurityContextInternal());
 	}
 
 	public static HttpServletRequest getRequest() {
@@ -410,7 +409,6 @@ public class CurrentRequest {
 //                      request.setCurrentUserInternal(user);
 //              }
 //      }
-
 	public static void setAccessMode(AccessMode accessMode) {
 
 		// wont return null
