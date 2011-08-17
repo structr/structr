@@ -18,6 +18,11 @@
  */
 package org.structr.core.entity;
 
+import org.structr.common.AbstractComponent;
+import org.structr.help.Container;
+import org.structr.help.Content;
+import org.structr.help.Paragraph;
+
 /**
  * Trash folder
  * 
@@ -32,4 +37,18 @@ public class Trash extends Folder {
     public String getIconSrc() {
         return ICON_SRC;
     }
+
+	@Override
+	public AbstractComponent getHelpContent() {
+
+		AbstractComponent root = new Container();
+
+		root.add(new Paragraph().add(new Content(
+		    "This is a Trash node. You can drag and drop other nodes into it,",
+		    "and recover them later, or empty the trash to delete ",
+		    "the nodes permanently."
+		   )));
+
+		return(root);
+	}
 }

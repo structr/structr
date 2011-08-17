@@ -79,6 +79,7 @@ import org.structr.core.entity.StructrRelationship;
 import org.structr.core.entity.Template;
 import org.structr.core.entity.User;
 import org.structr.core.module.GetEntitiesCommand;
+import org.structr.core.module.GetEntityClassCommand;
 import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.DeleteRelationshipCommand;
 import org.structr.core.node.FindGroupCommand;
@@ -1425,14 +1426,34 @@ public class DefaultEdit extends Nodes {
 
 	private void createHelpOutput() {
 
-		if (node != null) {
+		String helpTarget = CurrentRequest.getRequest().getParameter("helpTarget");
+		AbstractNode helpNode = null;
+
+		if(helpTarget != null && helpTarget.length() > 0) {
+
+			Class nodeClass = (Class)Services.command(GetEntityClassCommand.class).execute(helpTarget);
+			if(nodeClass != null) {
+
+				try {
+
+					helpNode = (AbstractNode)nodeClass.newInstance();
+
+				} catch(Throwable t) {}
+			}
+
+		} else {
+			
+			helpNode = this.node;
+		}
+		
+		if (helpNode != null) {
 
 			HtmlComponentRenderer htmlComponentRenderer = new HtmlComponentRenderer();
 			StructrOutputStream out = new StructrOutputStream();
-			AbstractComponent content = node.getHelpContent();
+			AbstractComponent content = helpNode.getHelpContent();
 
 			if(content != null) {
-				htmlComponentRenderer.renderNode(out, content, node, "", editNodeId, RenderMode.Direct);
+				htmlComponentRenderer.renderNode(out, content, helpNode, "", editNodeId, RenderMode.Direct);
 				
 				// create help output
 				helpOutput = out.toString();

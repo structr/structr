@@ -12,7 +12,12 @@ import org.structr.common.StructrOutputStream;
 import org.structr.core.NodeRenderer;
 import org.structr.core.entity.AbstractNode;
 import org.structr.help.Container;
+import org.structr.help.HelpLink;
+import org.structr.help.ListItem;
 import org.structr.help.Paragraph;
+import org.structr.help.Subtitle;
+import org.structr.help.Title;
+import org.structr.help.UnorderedList;
 
 /**
  *
@@ -25,6 +30,11 @@ public class HtmlComponentRenderer implements NodeRenderer<AbstractComponent> {
 	static {
 		
 		// initialize tag set
+		tagMap.put(HelpLink.class, "a");
+		tagMap.put(Title.class, "h3");
+		tagMap.put(Subtitle.class, "h4");
+		tagMap.put(UnorderedList.class, "ul");
+		tagMap.put(ListItem.class, "li");
 		tagMap.put(Container.class, "div");
 		tagMap.put(Paragraph.class, "p");
 	}
@@ -33,6 +43,7 @@ public class HtmlComponentRenderer implements NodeRenderer<AbstractComponent> {
 	public void renderNode(StructrOutputStream output, AbstractComponent currentNode, AbstractNode startNode, String editUrl, Long editNodeId, RenderMode renderMode) {
 		
 		if(currentNode != null) {
+
 			List<AbstractComponent> components = currentNode.getComponents();
 			boolean forceClosingTag = currentNode.getForceClosingTag();
 			Map<String, Set> attributes = currentNode.getAttributes();
@@ -87,7 +98,20 @@ public class HtmlComponentRenderer implements NodeRenderer<AbstractComponent> {
 				if(content != null) {
 
 					for(Object o : content) {
-						output.append(o);
+
+						if(o instanceof AbstractComponent) {
+
+							// found component in content stream (inline),
+							// initialize and render it
+							AbstractComponent comp = (AbstractComponent)o;
+							comp.initComponents();
+
+							renderNode(output, comp, startNode, editUrl, editNodeId, renderMode);
+
+						} else {
+
+							output.append(o);
+						}
 					}
 				}
 

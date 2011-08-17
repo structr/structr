@@ -21,7 +21,6 @@
 
 package org.structr.common;
 
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.StructrRelationship;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
@@ -63,7 +62,7 @@ public class SecurityContext {
 		return(accessMode);
 	}
 
-	public boolean isAllowed(AbstractNode node, Permission permission) {
+	public boolean isAllowed(AccessControllable node, Permission permission) {
 
 		boolean isAllowed = false;
 
@@ -87,13 +86,13 @@ public class SecurityContext {
 			logger.log(Level.FINEST, "Returning {0} for user {1}, access mode {2}, node {3}, permission {4}",
 				   new Object[] { isAllowed, (user != null)
 				? user.getName()
-				: "null", accessMode, node.getId(), permission });
+				: "null", accessMode, node, permission });
 		}
 
 		return isAllowed;
 	}
 
-	public boolean isVisible(AbstractNode node) {
+	public boolean isVisible(AccessControllable node) {
 
 		boolean ret = false;
 
@@ -117,14 +116,14 @@ public class SecurityContext {
 			logger.log(Level.FINEST, "Returning {0} for user {1}, access mode {2}, node {3}",
 				   new Object[] { ret, (user != null)
 						       ? user.getName()
-						       : "null", accessMode, node.getId() });
+						       : "null", accessMode, node });
 		}
 
 		return (ret);
 	}
 
 	// ----- private methods -----
-	private boolean isVisibleInBackend(AbstractNode node) {
+	private boolean isVisibleInBackend(AccessControllable node) {
 
 		// no node, nothing to see here..
 		if (node == null) {
@@ -165,7 +164,7 @@ public class SecurityContext {
 	 * @param node
 	 * @return
 	 */
-	private boolean isVisibleInFrontend(AbstractNode node) {
+	private boolean isVisibleInFrontend(AccessControllable node) {
 
 		if (node == null) {
 			return false;
@@ -204,7 +203,7 @@ public class SecurityContext {
 		Date now = new Date();
 
 		visibleByTime = (now.after(visStartDate) && now.before(visEndDate));
-
+		
 		// public nodes are always visible (constrained by time)
 		if(node.isPublic()) {
 
@@ -231,7 +230,7 @@ public class SecurityContext {
 		return (false);
 	}
 
-	private boolean isAllowedInBackend(AbstractNode node, Permission permission) {
+	private boolean isAllowedInBackend(AccessControllable node, Permission permission) {
 
 		User user = getUser();
 
@@ -307,7 +306,7 @@ public class SecurityContext {
 		return (false);
 	}
 
-	private boolean isAllowedInFrontend(AbstractNode node, Permission permission) {
+	private boolean isAllowedInFrontend(AccessControllable node, Permission permission) {
 
 		if (node == null) {
 			return false;
