@@ -28,6 +28,10 @@ import org.structr.core.NodeRenderer;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.Map;
+import org.structr.common.AbstractComponent;
+import org.structr.help.Container;
+import org.structr.help.Content;
+import org.structr.help.Paragraph;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -64,5 +68,15 @@ public class Folder extends AbstractNode {
 	@Override
 	public String getIconSrc() {
 		return ICON_SRC;
+	}
+	
+	@Override
+	public AbstractComponent getHelpContent() {
+		
+		AbstractComponent root = new Container();
+		
+		root.add(new Paragraph().add(new Content("This is a Folder node.")));
+		
+		return(root);
 	}
 }

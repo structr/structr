@@ -120,6 +120,10 @@
               #if ($consolePanel)
               <li><a href="#console-tab"><span>Console</span></a></li>
               #end
+
+              #if ($helpPanel)
+              <li><a href="#help-tab"><span>Help</span></a></li>
+              #end
             </ul>
 
             <div style="clear: both"></div>
@@ -191,6 +195,10 @@
 
             #if ($consolePanel)
             $consolePanel
+            #end
+
+            #if ($helpPanel)
+            $helpPanel
             #end
           </div><!-- .body -->
 

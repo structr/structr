@@ -53,10 +53,14 @@ import org.apache.click.extras.control.PickList;
 import org.apache.click.util.Bindable;
 import org.apache.click.util.HtmlStringBuffer;
 import org.neo4j.graphdb.RelationshipType;
+import org.structr.common.AbstractComponent;
 import org.structr.common.CurrentRequest;
 import org.structr.common.Permission;
 import org.structr.common.RelType;
+import org.structr.common.RenderMode;
 import org.structr.common.SecurityContext;
+import org.structr.common.StructrOutputStream;
+import org.structr.common.renderer.HtmlComponentRenderer;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.cloud.CloudService;
@@ -127,6 +131,7 @@ public class DefaultEdit extends Nodes {
     protected Panel editVisibilityPanel;
     protected Panel cloudPanel;
     protected Panel consolePanel;
+    protected Panel helpPanel;
     protected TextField remoteHost;
     protected TextField userNameInput;
     protected PasswordField passwordInput;
@@ -141,6 +146,8 @@ public class DefaultEdit extends Nodes {
     protected TextField consoleCommand;
     @Bindable
     protected String consoleOutput;
+    @Bindable
+    protected String helpOutput;
 
     // use template for backend pages
     @Override
@@ -694,6 +701,12 @@ public class DefaultEdit extends Nodes {
         addControl(consolePanel);
 
         readConsoleOutput();
+        // ------------------ console end ---------------------
+
+	helpPanel = new Panel("helpPanel", "/panel/help-panel.htm");
+        addControl(helpPanel);
+
+        createHelpOutput();
         // ------------------ console end ---------------------
 
         if (!(securityContext.isAllowed(node, Permission.EditProperty))) {
@@ -1409,4 +1422,25 @@ public class DefaultEdit extends Nodes {
 
         return (ret);
     }
+
+	private void createHelpOutput() {
+
+		if (node != null) {
+
+			HtmlComponentRenderer htmlComponentRenderer = new HtmlComponentRenderer();
+			StructrOutputStream out = new StructrOutputStream();
+			AbstractComponent content = node.getHelpContent();
+
+			if(content != null) {
+				htmlComponentRenderer.renderNode(out, content, node, "", editNodeId, RenderMode.Direct);
+				
+				// create help output
+				helpOutput = out.toString();
+				
+			} else {
+				
+				helpOutput = "No help available for this node type.";
+			}
+		}
+	}
 }

@@ -26,7 +26,6 @@ import freemarker.ext.servlet.HttpRequestParametersHashModel;
 import freemarker.template.Configuration;
 
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DateUtils;
@@ -99,6 +98,7 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import org.structr.common.AbstractComponent;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -3529,6 +3529,10 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		this.user = user;
 	}
 
+	public AbstractComponent getHelpContent() {
+		return(null);
+	}
+	
 	//~--- inner classes --------------------------------------------------
 
 	private class DefaultRenderer implements NodeRenderer<AbstractNode> {
