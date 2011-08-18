@@ -6,6 +6,7 @@ import org.structr.common.CurrentRequest;
 import org.structr.common.SecurityContext;
 import org.structr.common.StructrOutputStream;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Link;
 import org.structr.core.entity.web.MenuItem;
 import org.structr.core.entity.web.Page;
 
@@ -91,7 +92,16 @@ public abstract class MenuItemRenderer
 
 			if(securityContext.isVisible(menuItemNode)) {
 
-				String relativeNodeURL = menuItemNode.getNodeURL(startNode).replace("&", "%26");
+				AbstractNode contextNode;
+
+				if (startNode instanceof Link) {
+					contextNode = ((Link) startNode).getStructrNode().getContextNode();
+				} else {
+					contextNode = startNode.getContextNode();
+				}
+
+
+				String relativeNodeURL = menuItemNode.getNodeURL(contextNode).replace("&", "%26");
 
 				if(!(cssClass.isEmpty()))
 				{
