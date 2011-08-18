@@ -29,16 +29,18 @@ public class HelpLink extends AbstractComponent {
 
 	private String helpTarget = null;
 	private String content = null;
-	private String href = null;
 
-	public HelpLink(String href, String helpTarget, String content) {
-		this.helpTarget = helpTarget;
-		this.content = content;
-		this.href = href;
+	public HelpLink(String targetType) {
+
+		this.helpTarget = targetType;
+		this.content = targetType;
 	}
 
 	@Override
 	public void initComponents() {
+	}
+
+	public void setHref(String href) {
 
 		if(href != null) {
 
@@ -46,12 +48,11 @@ public class HelpLink extends AbstractComponent {
 			buf.append(href);
 			buf.append("&amp;helpTarget=");
 			buf.append(helpTarget);
-			
+			buf.append("#help-tab");
+
 			addAttribute("href", buf.toString());
 		}
 
 		add(new Content(content));
 	}
-
-
 }

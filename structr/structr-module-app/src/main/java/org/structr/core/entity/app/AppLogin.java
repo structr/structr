@@ -354,7 +354,7 @@ public class AppLogin extends ActionNode {
 
 		root.add(new Paragraph().add(new Content(
 		    "This is a Login node. It can only be activated when used as a child of ",
-		    new HelpLink("", "AppActionContainer", "AppActionContainer")
+		    new HelpLink("AppActionContainer")
 		   )));
 
 		root.add(new Subtitle().add(new Content("Slots")));

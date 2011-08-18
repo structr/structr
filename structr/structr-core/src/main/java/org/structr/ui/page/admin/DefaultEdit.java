@@ -1453,6 +1453,7 @@ public class DefaultEdit extends Nodes {
 			AbstractComponent content = helpNode.getHelpContent();
 
 			if(content != null) {
+				
 				htmlComponentRenderer.renderNode(out, content, helpNode, "", editNodeId, RenderMode.Direct);
 				
 				// create help output

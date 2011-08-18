@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import org.structr.common.AbstractComponent;
+import org.structr.common.CurrentRequest;
 import org.structr.common.RenderMode;
 import org.structr.common.StructrOutputStream;
 import org.structr.core.NodeRenderer;
@@ -52,6 +53,13 @@ public class HtmlComponentRenderer implements NodeRenderer<AbstractComponent> {
 
 			// notify component of rendering
 			currentNode.doBeforeRendering();
+
+			// create correct href attribute for online-help display
+			if(currentNode instanceof HelpLink && startNode != null) {
+				((HelpLink)currentNode).setHref(
+				    CurrentRequest.getRequest().getRequestURL().toString().concat("?nodeId=").concat(startNode.getIdString())
+				);
+			}
 
 			// only render if tag is set!
 			if(tag != null)
