@@ -21,6 +21,8 @@
 
 package org.structr.common;
 
+import org.apache.commons.io.FilenameUtils;
+
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -54,60 +56,70 @@ public class PathHelper {
 	//~--- get methods ----------------------------------------------------
 
 	/**
-	 * 
-	 * Assemble a relative path for the given new path, relativ to base path
-	 * 
-	 * Derived from http://mrpmorris.blogspot.com/2007/05/convert-absolute-path-to-relative-path.html
-	 * 
+	 * Assemble a relative path for the given absolute paths
+	 *
 	 * @param basePath
-	 * @param newPath
-	 * @return 
+	 * @param targetPath
+	 * @return
 	 */
-	public static String getNewRelativePath(String basePath, String newPath) {
+	public static String getRelativeNodePath(String basePath, String targetPath) {
 
-		if (basePath.equals(newPath)) {
-			return "./";
+		// Both paths are equal
+		if (basePath.equals(targetPath)) {
+			return ".";
 		}
 
-		String[] absoluteAncestors = basePath.split("/");
-		String[] relativeAncestors = newPath.split("/");
-		int length                 = (absoluteAncestors.length < relativeAncestors.length)
-					     ? absoluteAncestors.length
-					     : relativeAncestors.length;
+		if (basePath.equals("/") && targetPath.length() > 1) {
+			// Base path is root path
+			return targetPath.substring(1);
+		}
 
-		int lastCommonRoot = -1;
+		String[] baseAncestors   = FilenameUtils.normalizeNoEndSeparator(basePath).split("/");
+		String[] targetAncestors = FilenameUtils.normalizeNoEndSeparator(targetPath).split("/");
+		int length               = (baseAncestors.length < targetAncestors.length)
+					   ? baseAncestors.length
+					   : targetAncestors.length;
+		int lastCommonRoot       = -1;
 		int i;
 
+		// Iterate over the shorter path
 		for (i = 0; i < length; i++) {
 
-			if (absoluteAncestors[i].equals(relativeAncestors[i])) {
+			if (baseAncestors[i].equals(targetAncestors[i])) {
 				lastCommonRoot = i;
 			} else {
 				break;
 			}
 		}
 
+		// Last common root is the common base path
 		if (lastCommonRoot != -1) {
 
 			StringBuilder newRelativePath = new StringBuilder();
 
-			for (i = lastCommonRoot + 1; i < absoluteAncestors.length; i++) {
+			// How often must we go back from base path to common root?
+			for (i = lastCommonRoot + 1; i < baseAncestors.length; i++) {
 
-				if (absoluteAncestors[i].length() > 0) {
+				if (baseAncestors[i].length() > 0) {
 					newRelativePath.append("../");
 				}
 			}
 
-			for (i = lastCommonRoot + 1; i < relativeAncestors.length - 1; i++) {
-				newRelativePath.append(relativeAncestors[i]).append("/");
+			// How often must we go forth from common root to get to tagret path?
+			for (i = lastCommonRoot + 1; i < targetAncestors.length; i++) {
+				newRelativePath.append(targetAncestors[i]).append("/");
 			}
 
-			newRelativePath.append(relativeAncestors[relativeAncestors.length - 1]);
-			
-			return newRelativePath.toString();
-		}
-		
-		return "./";
+			// newRelativePath.append(targetAncestors[targetAncestors.length - 1]);
+			String result = newRelativePath.toString();
 
+			if (result.endsWith("/")) {
+				result = result.substring(0, result.length() - 1);
+			}
+
+			return result;
+		}
+
+		return targetPath;
 	}
 }

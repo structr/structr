@@ -2014,6 +2014,8 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 		String nodePath = getNodePath(node);
 
+		if (nodePath.equals(".")) return "";
+
 		if (nodePath.startsWith("../")) {
 			return nodePath.substring(3);
 		}
@@ -2045,7 +2047,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		// Both not working :-(
 		// String combinedPath = FilenameUtils.concat(thisPath, refPath);
 		// String combinedPath = new java.io.File(refPath).toURI().relativize(new java.io.File(thisPath).toURI()).getPath();
-		String combinedPath = PathHelper.getNewRelativePath(refPath, thisPath);
+		String combinedPath = PathHelper.getRelativeNodePath(refPath, thisPath);
 
 		logger.log(Level.FINE, "{0} + {1} = {2}", new Object[] { thisPath, refPath, combinedPath });
 
