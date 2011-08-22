@@ -312,5 +312,10 @@ public class LogService extends RunnableNodeService {
 
         } catch (Throwable t) { /* ignore */ }
     }
+
+    @Override
+    public boolean runOnStartup() {
+        return(true);
+    }
     // </editor-fold>
 }

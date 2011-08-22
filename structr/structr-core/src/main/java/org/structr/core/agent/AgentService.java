@@ -162,6 +162,11 @@ public class AgentService extends Thread implements RunnableService {
     public void stopService() {
         run = false;
     }
+
+    @Override
+    public boolean runOnStartup() {
+        return(true);
+    }
     // </editor-fold>
 
     // <editor-fold defaultstate="collapsed" desc="private methods">

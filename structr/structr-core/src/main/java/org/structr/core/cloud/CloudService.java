@@ -54,45 +54,36 @@ import org.structr.core.node.RunnableNodeService;
  *
  * @author axel
  */
-public class CloudService extends RunnableNodeService
-{
+public class CloudService extends RunnableNodeService {
+
 	private static final Logger logger = Logger.getLogger(CloudService.class.getName());
-	
-	public static final Integer BEGIN_TRANSACTION =		0;			// initialize client / server
-	public static final Integer END_TRANSACTION =		1;			// finish transmission
-	public static final Integer CLOSE_TRANSACTION =		2;			// close channels
-	public static final Integer ACK_DATA =			3;			// confirm reception
-
-	public static final int CHUNK_SIZE =			 2048;
-	public static final int BUFFER_SIZE =			 CHUNK_SIZE * 16;
-
-	public static final int KRYONET_LOG_LEVEL =		Log.LEVEL_NONE;
-
+	public static final Integer BEGIN_TRANSACTION = 0;			// initialize client / server
+	public static final Integer END_TRANSACTION = 1;			// finish transmission
+	public static final Integer CLOSE_TRANSACTION = 2;			// close channels
+	public static final Integer ACK_DATA = 3;			// confirm reception
+	public static final int CHUNK_SIZE = 2048;
+	public static final int BUFFER_SIZE = CHUNK_SIZE * 16;
+	public static final int KRYONET_LOG_LEVEL = Log.LEVEL_NONE;
 	/** Containing addresses of all available structr instances */
 	private static final Set<InstanceAddress> instanceAddresses = new LinkedHashSet<InstanceAddress>();
-
 	/** Local KryoNet server remote clients can connect to */
 	private Server server = null;
 	private final static int DefaultTcpPort = 54555;
 	private final static int DefaultUdpPort = 57555;
 	private int tcpPort = DefaultTcpPort;
 	private int udpPort = DefaultUdpPort;
-
 	private final List<CloudTransmission> activeTransmissions = new LinkedList<CloudTransmission>();
 	private final CloudServiceListener rootListener = new CloudServiceListener();
 
-	public CloudService()
-	{
+	public CloudService() {
 		super("CloudService");
 
 		//this.setPriority(Thread.MIN_PRIORITY);
 	}
 
 	@Override
-	public void injectArguments(Command command)
-	{
-		if(command != null)
-		{
+	public void injectArguments(Command command) {
+		if (command != null) {
 			command.setArgument("service", this);
 			command.setArgument("server", server);
 			command.setArgument("instanceAddresses", instanceAddresses);
@@ -100,8 +91,7 @@ public class CloudService extends RunnableNodeService
 	}
 
 	@Override
-	public void initialize(Map<String, Object> context)
-	{
+	public void initialize(Map<String, Object> context) {
 
 		tcpPort = Integer.parseInt(Services.getTcpPort());
 		udpPort = Integer.parseInt(Services.getUdpPort());
@@ -109,10 +99,8 @@ public class CloudService extends RunnableNodeService
 	}
 
 	@Override
-	public void shutdown()
-	{
-		if(isRunning())
-		{
+	public void shutdown() {
+		if (isRunning()) {
 			server.stop();
 			server.close();
 			server = null;
@@ -120,14 +108,12 @@ public class CloudService extends RunnableNodeService
 	}
 
 	@Override
-	public boolean isRunning()
-	{
+	public boolean isRunning() {
 		return (server != null);
 	}
 
 	@Override
-	public void startService()
-	{
+	public void startService() {
 		// Be quiet
 		Log.set(CloudService.KRYONET_LOG_LEVEL);
 
@@ -140,45 +126,42 @@ public class CloudService extends RunnableNodeService
 
 		logger.log(Level.INFO, "KryoNet server started");
 
-		try
-		{
+		try {
 			server.bind(tcpPort, udpPort);
 			server.addListener(rootListener);
 
-			logger.log(Level.INFO, "KryoNet server listening on TCP port {0} and UDP port {1}", new Object[]
-				{
+			logger.log(Level.INFO, "KryoNet server listening on TCP port {0} and UDP port {1}", new Object[]{
 					tcpPort, udpPort
 				});
 
-		} catch(IOException ex)
-		{
+		} catch (IOException ex) {
 			logger.log(Level.SEVERE, "KryoNet server could not bind to TCP port " + tcpPort + " or UDP port " + udpPort, ex);
 		}
 	}
 
 	@Override
-	public void stopService()
-	{
+	public void stopService() {
 		shutdown();
 	}
 
-	public List<CloudTransmission> getActiveTransmissions()
-	{
-		return(activeTransmissions);
+	@Override
+	public boolean runOnStartup() {
+		return (true);
 	}
 
-	public void registerTransmission(CloudTransmission transmission)
-	{
+	public List<CloudTransmission> getActiveTransmissions() {
+		return (activeTransmissions);
+	}
+
+	public void registerTransmission(CloudTransmission transmission) {
 		activeTransmissions.add(transmission);
 	}
 
-	public void unregisterTransmission(CloudTransmission transmission)
-	{
+	public void unregisterTransmission(CloudTransmission transmission) {
 		activeTransmissions.remove(transmission);
 	}
-	
-	public static void registerClasses(Kryo kryo)
-	{
+
+	public static void registerClasses(Kryo kryo) {
 		kryo.register(AuthenticationContainer.class);
 
 		// Java classes
@@ -200,7 +183,7 @@ public class CloudService extends RunnableNodeService
 		kryo.register(boolean.class, new EncryptingCompressor(new BooleanSerializer()));
 		kryo.register(Boolean.class, new EncryptingCompressor(new BooleanSerializer()));
 		kryo.register(Date.class, new EncryptingCompressor(new DateSerializer()));
-		
+
 		kryo.register(HashMap.class, new EncryptingCompressor(new MapSerializer(kryo)));
 		kryo.register(LinkedList.class, new EncryptingCompressor(new CollectionSerializer(kryo)));
 
@@ -224,5 +207,4 @@ public class CloudService extends RunnableNodeService
 		kryo.register(float[].class, new EncryptingCompressor(new ArraySerializer(kryo)));
 		kryo.register(double[].class, new EncryptingCompressor(new ArraySerializer(kryo)));
 	}
-
 }
