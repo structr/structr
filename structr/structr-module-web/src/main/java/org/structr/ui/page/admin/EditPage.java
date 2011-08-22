@@ -84,7 +84,7 @@ public class EditPage extends DefaultEdit {
 	}
 
 	/**
-	 * Append any preview parametera found in the current request.
+	 * Append any preview parameters found in the current request.
 	 *
 	 * Preview parameters are the URL parameters of the page which is
 	 * currently displayed in the preview rendition iframe.
