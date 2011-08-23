@@ -154,7 +154,7 @@ public class ApplicationContextListener implements ServletContextListener, HttpS
         //Services.setContext(context);
 
         // Initialize cloud service
-        Services.command(StartCloudService.class);
+        // not needed any more: Services.command(StartCloudService.class);
 
         logger.log(Level.INFO, "structr application context initialized (structr started successfully)");
 

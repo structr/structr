@@ -20,13 +20,16 @@ package org.structr.core;
 
 import java.util.LinkedList;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.Path;
-import org.structr.core.agent.AgentService;
+import org.structr.core.module.InitializeModuleServiceCommand;
+import org.structr.core.module.ModuleService;
 //import org.structr.common.xpath.NeoNodePointerFactory;
 
 /**
@@ -68,8 +71,9 @@ public class Services {
     public static final String SUPERUSER_PASSWORD = "superuser.password";
 
 
-    private static final Map<Class, Class> serviceClassCache = new ConcurrentHashMap<Class, Class>(10, 0.9f, 8);
+//    private static final Map<Class, Class> serviceClassCache = new ConcurrentHashMap<Class, Class>(10, 0.9f, 8);
     private static final Map<Class, Service> serviceCache = new ConcurrentHashMap<Class, Service>(10, 0.9f, 8);
+    private static final Set<Class> registeredServiceClasses = new LinkedHashSet<Class>();
     private static Map<String, Object> context = null;
     private static String basePath;
     private static String databasePath;
@@ -276,7 +280,29 @@ public class Services {
         superuserUsername = getConfigValue(context, Services.SUPERUSER_USERNAME, "superadmin");
         superuserPassword = getConfigValue(context, Services.SUPERUSER_PASSWORD, ""); // intentionally no default password!
 
-        logger.log(Level.INFO, "Finished initialization of service layer");
+        logger.log(Level.INFO, "Starting services");
+
+	// initialize module service (which can be thought of as the root service)
+	Services.command(InitializeModuleServiceCommand.class).execute();
+
+	// initialize other services
+	for(Class serviceClass : registeredServiceClasses) {
+	    if (Service.class.isAssignableFrom(serviceClass)) {
+		    try {
+			    createService(serviceClass);
+		    } catch (Throwable t) {
+			    logger.log(Level.WARNING, "Exception while registering service {0}: {1}", new Object[]{
+					    serviceClass.getName(),
+					    t.getMessage()
+				    });
+		    }
+	    }
+	}
+
+	logger.log(Level.INFO, "{0} service(s) processed", registeredServiceClasses.size());
+	registeredServiceClasses.clear();
+	
+	logger.log(Level.INFO, "Initialization complete");
     }
 
     public static void shutdown() {
@@ -295,7 +321,7 @@ public class Services {
         }
 
         serviceCache.clear();
-        serviceClassCache.clear();
+//        serviceClassCache.clear();
 
         logger.log(Level.INFO, "Finished shutdown of service layer");
     }
@@ -317,10 +343,22 @@ public class Services {
     }
 
     /**
+     * Registers a service, enabling the service layer to automatically start
+     * autorun servies.
+     * 
+     * @param serviceClass the service class to register
+     */
+    public static void registerServiceClass(Class serviceClass) {
+	    // register service classes except module service (which is initialized manually)
+	    if(!serviceClass.equals(ModuleService.class)) {
+		registeredServiceClasses.add(serviceClass);
+	    }
+    }
+    
+    /**
      * Return all agents
      *
      * @return
-     */
     public static List<Service> getAgents() {
 
         List<Service> services = new LinkedList<Service>();
@@ -333,6 +371,7 @@ public class Services {
         }
         return services;
     }
+     */
 
     public static void setContext(final Map<String, Object> envContext) {
         context = envContext;
@@ -412,13 +451,15 @@ public class Services {
 
         if (service instanceof RunnableService) {
 
-            logger.log(Level.FINER, "Starting RunnableService instance ", serviceClass.getName());
+		RunnableService runnableService = (RunnableService)service;
+		if(runnableService.runOnStartup()) {
 
-            // start RunnableService and cache it
-            RunnableService runnableService = (RunnableService) service;
-            runnableService.startService();
+			logger.log(Level.FINER, "Starting RunnableService instance ", serviceClass.getName());
 
-            serviceCache.put(serviceClass, service);
+		    // start RunnableService and cache it
+		    runnableService.startService();
+		    serviceCache.put(serviceClass, service);
+		}
 
         } else if (service instanceof SingletonService) {
 

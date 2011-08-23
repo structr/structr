@@ -26,9 +26,7 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.lang.reflect.Modifier;
-import java.util.Collections;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -45,6 +43,7 @@ import org.structr.common.Path;
 import org.structr.core.Command;
 import org.structr.core.Module;
 import org.structr.core.Predicate;
+import org.structr.core.Service;
 import org.structr.core.Services;
 import org.structr.core.SingletonService;
 import org.structr.core.agent.Agent;
@@ -613,15 +612,21 @@ public class ModuleService implements SingletonService {
 
 		if(!Modifier.isAbstract(clazz.getModifiers()))
 		{
+			// register entity classes
 			if (AbstractNode.class.isAssignableFrom(clazz)) {
 			    String simpleName = clazz.getSimpleName();
 			    String fullName = clazz.getName();
 
 			    entityClassCache.put(simpleName, clazz);
 			    entityPackages.add(fullName.substring(0, fullName.lastIndexOf(".")));
-
 			}
 
+			// register services
+			if (Service.class.isAssignableFrom(clazz)) {
+				Services.registerServiceClass(clazz);
+			}
+			
+			// register agents
 			if (Agent.class.isAssignableFrom(clazz)) {
 			    String simpleName = clazz.getSimpleName();
 			    String fullName = clazz.getName();
@@ -631,6 +636,7 @@ public class ModuleService implements SingletonService {
 
 			}
 
+			// register page packages
 			if (structrPagePredicate.evaluate(clazz)) {
 			    String fullName = clazz.getName();
 

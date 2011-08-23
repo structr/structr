@@ -36,20 +36,22 @@ public class TransactionCommand extends NodeServiceCommand {
         if (parameters.length > 0 && parameters[0] instanceof StructrTransaction) {
 
             StructrTransaction transaction = (StructrTransaction) parameters[0];
-            Transaction tx = graphDb.beginTx();
-            try {
-                ret = transaction.execute();
+	    if(graphDb != null) {
+		    Transaction tx = graphDb.beginTx();
+		    try {
+			ret = transaction.execute();
 
-                tx.success();
+			tx.success();
 
-            } catch (Throwable t) {
-                t.printStackTrace();
+		    } catch (Throwable t) {
+			t.printStackTrace();
 
-                tx.failure();
+			tx.failure();
 
-            } finally {
-                tx.finish();
-            }
+		    } finally {
+			tx.finish();
+		    }
+	    }
 
         } else if (parameters.length > 0 && parameters[0] instanceof BatchTransaction) {
 

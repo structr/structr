@@ -1293,7 +1293,6 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 //                      logger.log(Level.WARNING, "Error: {0}", t.getMessage());
 //              }
 //      }
-
 	// ----- protected methods -----
 	protected String createUniqueIdentifier(String prefix) {
 
@@ -1582,8 +1581,8 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 					try {
 
 						Date date = DateUtils.parseDate(((String) propertyValue),
-										new String[] { "yyyymmdd",
-							"yyyymm", "yyyy" });
+										new String[] { "yyyy-MM-ddTHH:mm:ssZ",
+							"yyyymmdd", "yyyymm", "yyyy" });
 
 						return date;
 
@@ -1999,6 +1998,10 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 		String nodePath = getNodePath(node);
 
+		if (nodePath.equals(".")) {
+			return "";
+		}
+
 		if (nodePath.startsWith("../")) {
 			return nodePath.substring(3);
 		}
@@ -2030,7 +2033,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		// Both not working :-(
 		// String combinedPath = FilenameUtils.concat(thisPath, refPath);
 		// String combinedPath = new java.io.File(refPath).toURI().relativize(new java.io.File(thisPath).toURI()).getPath();
-		String combinedPath = PathHelper.getNewRelativePath(refPath, thisPath);
+		String combinedPath = PathHelper.getRelativeNodePath(refPath, thisPath);
 
 		logger.log(Level.FINE, "{0} + {1} = {2}", new Object[] { thisPath, refPath, combinedPath });
 
@@ -3302,31 +3305,29 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		this.template = template;
 	}
 
-	/**
-	 * unused
-	 * public void setTemplateId(final Long value) {
-	 *
-	 *       // find template node
-	 *       Command findNode      = Services.command(FindNodeCommand.class);
-	 *       Template templateNode = (Template) findNode.execute(new SuperUser(), value);
-	 *
-	 *       // delete existing template relationships
-	 *       List<StructrRelationship> templateRels = this.getOutgoingRelationships(RelType.USE_TEMPLATE);
-	 *       Command delRel                         = Services.command(DeleteRelationshipCommand.class);
-	 *
-	 *       if (templateRels != null) {
-	 *
-	 *               for (StructrRelationship r : templateRels) {
-	 *                       delRel.execute(r);
-	 *               }
-	 *       }
-	 *
-	 *       // create new link target relationship
-	 *       Command createRel = Services.command(CreateRelationshipCommand.class);
-	 *
-	 *       createRel.execute(this, templateNode, RelType.USE_TEMPLATE);
-	 * }
-	 */
+	public void setTemplateId(final Long value) {
+
+		// find template node
+		Command findNode      = Services.command(FindNodeCommand.class);
+		Template templateNode = (Template) findNode.execute(new SuperUser(), value);
+
+		// delete existing template relationships
+		List<StructrRelationship> templateRels = this.getOutgoingRelationships(RelType.USE_TEMPLATE);
+		Command delRel                         = Services.command(DeleteRelationshipCommand.class);
+
+		if (templateRels != null) {
+
+			for (StructrRelationship r : templateRels) {
+				delRel.execute(r);
+			}
+		}
+
+		// create new link target relationship
+		Command createRel = Services.command(CreateRelationshipCommand.class);
+
+		createRel.execute(this, templateNode, RelType.USE_TEMPLATE);
+	}
+
 	public void setCreatedBy(final String createdBy) {
 		setProperty(CREATED_BY_KEY, createdBy);
 	}
