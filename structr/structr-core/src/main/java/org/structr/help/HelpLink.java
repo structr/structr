@@ -17,26 +17,42 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.structr.common;
+package org.structr.help;
+
+import org.structr.common.AbstractComponent;
 
 /**
- * A type-safe enumeration of structr's node access privileges
  *
  * @author Christian Morgner
  */
-public enum Permission {
+public class HelpLink extends AbstractComponent {
 
-	BackendAccess, FrontendAccess,
-	
-	ShowTree,
+	private String helpTarget = null;
+	private String content = null;
 
-	Read, Write, Execute,
+	public HelpLink(String targetType) {
 
-	CreateNode, DeleteNode,
+		this.helpTarget = targetType;
+		this.content = targetType;
+	}
 
-	EditProperty,
+	@Override
+	public void initComponents() {
+	}
 
-	CreateRelationship, DeleteRelationship,
+	public void setHref(String href) {
 
-	AccessControl;
+		if(href != null) {
+
+			StringBuilder buf = new StringBuilder();
+			buf.append(href);
+			buf.append("&amp;helpTarget=");
+			buf.append(helpTarget);
+			buf.append("#help-tab");
+
+			addAttribute("href", buf.toString());
+		}
+
+		add(new Content(content));
+	}
 }

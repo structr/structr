@@ -17,26 +17,17 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.structr.common;
+package org.structr.help;
+
+import org.structr.common.AbstractComponent;
 
 /**
- * A type-safe enumeration of structr's node access privileges
  *
  * @author Christian Morgner
  */
-public enum Permission {
+public class ListItem extends AbstractComponent {
 
-	BackendAccess, FrontendAccess,
-	
-	ShowTree,
-
-	Read, Write, Execute,
-
-	CreateNode, DeleteNode,
-
-	EditProperty,
-
-	CreateRelationship, DeleteRelationship,
-
-	AccessControl;
+	@Override
+	public void initComponents() {
+	}
 }

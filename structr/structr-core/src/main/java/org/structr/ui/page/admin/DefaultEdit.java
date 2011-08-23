@@ -53,10 +53,14 @@ import org.apache.click.extras.control.PickList;
 import org.apache.click.util.Bindable;
 import org.apache.click.util.HtmlStringBuffer;
 import org.neo4j.graphdb.RelationshipType;
+import org.structr.common.AbstractComponent;
 import org.structr.common.CurrentRequest;
 import org.structr.common.Permission;
 import org.structr.common.RelType;
+import org.structr.common.RenderMode;
 import org.structr.common.SecurityContext;
+import org.structr.common.StructrOutputStream;
+import org.structr.common.renderer.HtmlComponentRenderer;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.cloud.CloudService;
@@ -75,6 +79,7 @@ import org.structr.core.entity.StructrRelationship;
 import org.structr.core.entity.Template;
 import org.structr.core.entity.User;
 import org.structr.core.module.GetEntitiesCommand;
+import org.structr.core.module.GetEntityClassCommand;
 import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.DeleteRelationshipCommand;
 import org.structr.core.node.FindGroupCommand;
@@ -127,6 +132,7 @@ public class DefaultEdit extends Nodes {
     protected Panel editVisibilityPanel;
     protected Panel cloudPanel;
     protected Panel consolePanel;
+    protected Panel helpPanel;
     protected TextField remoteHost;
     protected TextField userNameInput;
     protected PasswordField passwordInput;
@@ -141,6 +147,8 @@ public class DefaultEdit extends Nodes {
     protected TextField consoleCommand;
     @Bindable
     protected String consoleOutput;
+    @Bindable
+    protected String helpOutput;
 
     // use template for backend pages
     @Override
@@ -694,6 +702,12 @@ public class DefaultEdit extends Nodes {
         addControl(consolePanel);
 
         readConsoleOutput();
+        // ------------------ console end ---------------------
+
+	helpPanel = new Panel("helpPanel", "/panel/help-panel.htm");
+        addControl(helpPanel);
+
+        createHelpOutput();
         // ------------------ console end ---------------------
 
         if (!(securityContext.isAllowed(node, Permission.EditProperty))) {
@@ -1398,7 +1412,7 @@ public class DefaultEdit extends Nodes {
                 }
             }
             welcome.append("</p>");
-            welcome.append("<p>Typing the command without any parameters will show a short help text for each command.</p>");
+            welcome.append("<p>Use 'help <command>' to show a short help text for each command.</p>");
             welcome.append("<p>&nbsp;</p>");
 
             ret = new LinkedList<String>();
@@ -1409,4 +1423,46 @@ public class DefaultEdit extends Nodes {
 
         return (ret);
     }
+
+	private void createHelpOutput() {
+
+		String helpTarget = CurrentRequest.getRequest().getParameter("helpTarget");
+		AbstractNode helpNode = null;
+
+		if(helpTarget != null && helpTarget.length() > 0) {
+
+			Class nodeClass = (Class)Services.command(GetEntityClassCommand.class).execute(helpTarget);
+			if(nodeClass != null) {
+
+				try {
+
+					helpNode = (AbstractNode)nodeClass.newInstance();
+
+				} catch(Throwable t) {}
+			}
+
+		} else {
+			
+			helpNode = this.node;
+		}
+		
+		if (helpNode != null) {
+
+			HtmlComponentRenderer htmlComponentRenderer = new HtmlComponentRenderer();
+			StructrOutputStream out = new StructrOutputStream();
+			AbstractComponent content = helpNode.getHelpContent();
+
+			if(content != null) {
+				
+				htmlComponentRenderer.renderNode(out, content, helpNode, "", editNodeId, RenderMode.Direct);
+				
+				// create help output
+				helpOutput = out.toString();
+				
+			} else {
+				
+				helpOutput = "No help available for this node type.";
+			}
+		}
+	}
 }

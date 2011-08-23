@@ -98,6 +98,8 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import org.structr.common.AbstractComponent;
+import org.structr.common.AccessControllable;
 import org.structr.core.node.DeleteRelationshipCommand;
 
 //~--- classes ----------------------------------------------------------------
@@ -108,7 +110,7 @@ import org.structr.core.node.DeleteRelationshipCommand;
  * @author amorgner
  *
  */
-public abstract class AbstractNode implements Comparable<AbstractNode>, RenderController {
+public abstract class AbstractNode implements Comparable<AbstractNode>, RenderController, AccessControllable {
 
 	public final static String CATEGORIES_KEY         = "categories";
 	public final static String CREATED_BY_KEY         = "createdBy";
@@ -1613,22 +1615,6 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		return (String) getProperty(CREATED_BY_KEY);
 	}
 
-	public Date getCreatedDate() {
-		return getDateProperty(CREATED_DATE_KEY);
-	}
-
-	public Date getLastModifiedDate() {
-		return getDateProperty(LAST_MODIFIED_DATE_KEY);
-	}
-
-	public Date getVisibilityStartDate() {
-		return getDateProperty(VISIBILITY_START_DATE_KEY);
-	}
-
-	public Date getVisibilityEndDate() {
-		return getDateProperty(VISIBILITY_END_DATE_KEY);
-	}
-
 	public Long getPosition() {
 
 		Object p = getProperty(POSITION_KEY);
@@ -2202,6 +2188,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * @param principal
 	 * @return incoming security relationship
 	 */
+	@Override
 	public StructrRelationship getSecurityRelationship(final Principal principal) {
 
 		if (principal == null) {
@@ -2912,6 +2899,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 *
 	 * @return
 	 */
+	@Override
 	public User getOwnerNode() {
 
 		for (StructrRelationship s : getRelationships(RelType.OWNS, Direction.INCOMING)) {
@@ -3094,13 +3082,8 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 			|| hasRelationship(RelType.LINK, Direction.OUTGOING));
 	}
 
-	/**
-	 * Return true if principal has the given permission
-	 *
-	 * @param permission
-	 * @param principal
-	 * @return
-	 */
+	// ----- interface AccessControllable -----
+	@Override
 	public boolean hasPermission(final String permission, final Principal principal) {
 
 		if (principal == null) {
@@ -3108,7 +3091,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		}
 
 		// just in case ...
-		if ((permission == null) || (permission == null)) {
+		if (permission == null) {
 			return false;
 		}
 
@@ -3153,21 +3136,47 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		return false;
 	}
 
+	@Override
 	public boolean isPublic() {
 		return getBooleanProperty(PUBLIC_KEY);
 	}
 
+	@Override
 	public boolean isVisibleToAuthenticatedUsers() {
 		return getBooleanProperty(VISIBLE_TO_AUTHENTICATED_USERS_KEY);
 	}
 
+	@Override
 	public boolean isNotHidden() {
 		return !getHidden();
 	}
 
+	@Override
 	public boolean isHidden() {
 		return getHidden();
 	}
+
+	@Override
+	public Date getVisibilityStartDate() {
+		return getDateProperty(VISIBILITY_START_DATE_KEY);
+	}
+
+	@Override
+	public Date getVisibilityEndDate() {
+		return getDateProperty(VISIBILITY_END_DATE_KEY);
+	}
+
+	@Override
+	public Date getCreatedDate() {
+		return getDateProperty(CREATED_DATE_KEY);
+	}
+
+	@Override
+	public Date getLastModifiedDate() {
+		return getDateProperty(LAST_MODIFIED_DATE_KEY);
+	}
+
+	// ----- end interface AccessControllable -----
 
 	public boolean isNotDeleted() {
 		return !getDeleted();
@@ -3530,6 +3539,10 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		this.user = user;
 	}
 
+	public AbstractComponent getHelpContent() {
+		return(null);
+	}
+	
 	//~--- inner classes --------------------------------------------------
 
 	private class DefaultRenderer implements NodeRenderer<AbstractNode> {

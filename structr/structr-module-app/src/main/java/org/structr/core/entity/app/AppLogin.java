@@ -44,6 +44,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpSession;
+import org.structr.common.AbstractComponent;
+import org.structr.help.Container;
+import org.structr.help.Content;
+import org.structr.help.HelpLink;
+import org.structr.help.ListItem;
+import org.structr.help.Paragraph;
+import org.structr.help.Subtitle;
+import org.structr.help.UnorderedList;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -337,5 +345,25 @@ public class AppLogin extends ActionNode {
 		}
 
 		return (okMessageValue);
+	}
+
+	@Override
+	public AbstractComponent getHelpContent() {
+
+		AbstractComponent root = new Container();
+
+		root.add(new Paragraph().add(new Content(
+		    "This is a Login node. It can only be activated when used as a child of ",
+		    new HelpLink("AppActionContainer")
+		   )));
+
+		root.add(new Subtitle().add(new Content("Slots")));
+		root.add(new UnorderedList()
+		    .add(new ListItem().add(new Content("username")))
+		    .add(new ListItem().add(new Content("password")))
+		    .add(new ListItem().add(new Content("antiRobot")))
+		);
+
+		return(root);
 	}
 }
