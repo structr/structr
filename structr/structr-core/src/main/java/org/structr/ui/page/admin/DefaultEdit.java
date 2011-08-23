@@ -1412,7 +1412,7 @@ public class DefaultEdit extends Nodes {
                 }
             }
             welcome.append("</p>");
-            welcome.append("<p>Typing the command without any parameters will show a short help text for each command.</p>");
+            welcome.append("<p>Use 'help <command>' to show a short help text for each command.</p>");
             welcome.append("<p>&nbsp;</p>");
 
             ret = new LinkedList<String>();
