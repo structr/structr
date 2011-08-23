@@ -37,6 +37,8 @@ import org.apache.click.util.Bindable;
 import org.apache.click.extras.tree.Tree;
 import org.apache.click.extras.tree.TreeNode;
 import org.apache.commons.lang.ArrayUtils;
+import org.structr.common.AccessMode;
+import org.structr.common.CurrentRequest;
 import org.structr.common.CurrentSession;
 import org.structr.core.node.search.Search;
 import org.structr.context.SessionMonitor;
@@ -45,7 +47,6 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Link;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.node.GetAllNodes;
-import org.structr.core.node.search.SearchNodeCommand;
 import org.structr.ui.page.LoginPage;
 import org.structr.ui.page.StructrPage;
 
@@ -104,9 +105,13 @@ public class Admin extends StructrPage {
 
 //    protected final SimpleDateFormat dateFormat =
 //            (SimpleDateFormat) DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, locale);
+
     public Admin() {
+
         super();
         title = "STRUCTR Admin Console";
+
+	CurrentRequest.setAccessMode(AccessMode.Backend);
 
         homeLink.setParameter("nodeId", "0");
         addControl(homeLink);
@@ -142,10 +147,12 @@ public class Admin extends StructrPage {
 //        simpleSearchForm.add(new Submit("Search", this, "onSimpleSearch"));
         simpleSearchForm.add(new Submit("Search"));
 
-        List<AbstractNode> usersNodes = (List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(user, null, false, false, Search.andExactName("Users"));
-        if (!(usersNodes.isEmpty())) {
-            usersLink.setParameter("nodeId", usersNodes.get(0).getId());
-        }
+//        List<AbstractNode> usersNodes = (List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(user, null, false, false, Search.andExactName("Users"));
+//        if (!(usersNodes.isEmpty())) {
+//            usersLink.setParameter("nodeId", usersNodes.get(0).getId());
+//        }
+	
+	
 
     }
 
@@ -159,6 +166,7 @@ public class Admin extends StructrPage {
         SessionMonitor.logActivity(sessionId, "Logout");
 
         setUsernameInSession(null);
+        //CurrentRequest.setCurrentUser(null);
         CurrentSession.getSession().invalidate();
         //getContext().getRequest().getSession().invalidate();
         userName = null;

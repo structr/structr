@@ -43,6 +43,7 @@ import org.structr.common.Path;
 import org.structr.core.Command;
 import org.structr.core.Module;
 import org.structr.core.Predicate;
+import org.structr.core.Service;
 import org.structr.core.Services;
 import org.structr.core.SingletonService;
 import org.structr.core.agent.Agent;
@@ -70,8 +71,8 @@ public class ModuleService implements SingletonService {
 
     private static final Logger logger = Logger.getLogger(ModuleService.class.getName());
     private static final String MODULES_CONF = "modules.conf";
-    private static final Map<String, Class> entityClassCache = new ConcurrentHashMap<String, Class>(100, 0.75f, 100);
-    private static final Map<String, Class> agentClassCache = new ConcurrentHashMap<String, Class>(100, 0.75f, 100);
+    private static final Map<String, Class> entityClassCache = new ConcurrentHashMap<String, Class>(100, 0.9f, 8);
+    private static final Map<String, Class> agentClassCache = new ConcurrentHashMap<String, Class>(10, 0.9f, 8);
     private static final Set<String> entityPackages = new LinkedHashSet<String>();
     private static final Set<String> pagePackages = new LinkedHashSet<String>();
     private static final Set<String> agentPackages = new LinkedHashSet<String>();
@@ -611,15 +612,21 @@ public class ModuleService implements SingletonService {
 
 		if(!Modifier.isAbstract(clazz.getModifiers()))
 		{
+			// register entity classes
 			if (AbstractNode.class.isAssignableFrom(clazz)) {
 			    String simpleName = clazz.getSimpleName();
 			    String fullName = clazz.getName();
 
 			    entityClassCache.put(simpleName, clazz);
 			    entityPackages.add(fullName.substring(0, fullName.lastIndexOf(".")));
-
 			}
 
+			// register services
+			if (Service.class.isAssignableFrom(clazz)) {
+				Services.registerServiceClass(clazz);
+			}
+			
+			// register agents
 			if (Agent.class.isAssignableFrom(clazz)) {
 			    String simpleName = clazz.getSimpleName();
 			    String fullName = clazz.getName();
@@ -629,6 +636,7 @@ public class ModuleService implements SingletonService {
 
 			}
 
+			// register page packages
 			if (structrPagePredicate.evaluate(clazz)) {
 			    String fullName = clazz.getName();
 

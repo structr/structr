@@ -1,6 +1,7 @@
 package org.structr.core.renderer;
 
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
@@ -10,6 +11,7 @@ import org.structr.common.AbstractNodeComparator;
 import org.structr.common.CurrentRequest;
 import org.structr.common.RelType;
 import org.structr.common.RenderMode;
+import org.structr.common.SecurityContext;
 import org.structr.common.StructrOutputStream;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Template;
@@ -31,7 +33,7 @@ public class NodeListRenderer extends NodeViewRenderer
 	private String pageNoParameterName = "pageNo";
 	private String pageSizeParameterName = "pageSize";
 	private String sortKey = "name";
-	private String sortOrder = "";
+	private String sortOrder = AbstractNodeComparator.ASCENDING;
 	private int pageNo = 1;
 	private int pageSize = 10;
 	private int lastPage = -1;
@@ -39,8 +41,9 @@ public class NodeListRenderer extends NodeViewRenderer
 	@Override
 	public void renderNode(StructrOutputStream out, AbstractNode currentNode, AbstractNode startNode, String editUrl, Long editNodeId, RenderMode renderMode)
 	{
-		if(currentNode.isVisible())
-		{
+		SecurityContext securityContext = CurrentRequest.getSecurityContext();
+		if(securityContext.isVisible(currentNode)) {
+
 			if(currentNode.hasTemplate())
 			{
 				Template template = currentNode.getTemplate();
@@ -55,14 +58,10 @@ public class NodeListRenderer extends NodeViewRenderer
 					// iterate over children following the DATA relationship and collect all nodes
 					for(AbstractNode container : currentNode.getDirectChildren(RelType.DATA))
 					{
-						Iterable<AbstractNode> iterable = container.getDataNodes();
-
-						for(AbstractNode node : iterable) {
-							nodesToRender.add(node);
-						}
+						collectDataNodes(container, nodesToRender, 0, 255);
 					}
 
-					Collections.sort(nodesToRender, new AbstractNodeComparator(AbstractNode.toGetter(sortKey), sortOrder));
+					//Collections.sort(nodesToRender, new AbstractNodeComparator(AbstractNode.toGetter(sortKey), sortOrder));
 
 					int toIndex = Math.min(pageNo * pageSize, nodesToRender.size());
 					int fromIndex = Math.min(Math.max(pageNo - 1, 0) * pageSize, toIndex);
@@ -97,6 +96,41 @@ public class NodeListRenderer extends NodeViewRenderer
 		return ("text/html");
 	}
 
+	// ----- private methods -----
+	private void collectDataNodes(AbstractNode rootNode, List<AbstractNode> nodesToRender, int depth, int maxDepth) {
+		
+		if(rootNode != null && depth < maxDepth) {
+			
+			Iterable<AbstractNode> iterable = rootNode.getDataNodes();
+			if(iterable != null) {
+				
+				Iterator<AbstractNode> iter = iterable.iterator();
+				if(iter.hasNext()) {
+
+					for(AbstractNode dataNode : iterable) {
+
+						// recurse deeper
+						collectDataNodes(dataNode, nodesToRender, depth+1, maxDepth);
+					}
+					
+				} else {
+					
+					// empty collection => this is a leaf
+					nodesToRender.add(rootNode);
+					
+					// recursion ends here
+				}
+				
+			} else {
+				
+				// empty collection => this is a leaf
+				nodesToRender.add(rootNode);
+					
+				// recursion ends here				
+			}
+		}
+	}
+	
 	private void init(AbstractNode node)
 	{
 

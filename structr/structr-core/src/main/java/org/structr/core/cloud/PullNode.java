@@ -119,8 +119,6 @@ public class PullNode extends CloudServiceCommand
 
 	private void pullNodes(final User user, final long remoteSourceNodeId, AbstractNode localTargetNode, final String remoteHost, final int remoteTcpPort, final int remoteUdpPort, final boolean recursive)
 	{
-		final CloudService cloudService = (CloudService)Services.command(GetCloudServiceCommand.class).execute();
-		final PushNodes.Value count = new PushNodes.Value();
 		int writeBufferSize = CloudService.BUFFER_SIZE * 4;
 		int objectBufferSize = CloudService.BUFFER_SIZE * 2;
 
@@ -129,15 +127,15 @@ public class PullNode extends CloudServiceCommand
 
 		Log.set(CloudService.KRYONET_LOG_LEVEL);
 
+		throw new UnsupportedOperationException("PullNodes is not functional right now");
+		
+		/*
+		
 		Kryo kryo = client.getKryo();
-		CloudService.registerClasses(kryo);
+		CloudService.registerClasses(kryo, new CipherProviderImpl(null));
 
 		try
 		{
-			int estimatedSize = 0; // FIXME!
-			PushNodes.PushTransmission transmission = new PushNodes.PushTransmission(remoteHost, remoteTcpPort, remoteUdpPort, count, estimatedSize);
-			cloudService.registerTransmission(transmission);
-
 			client.connect(5000, remoteHost, remoteTcpPort, remoteUdpPort);
 
 			// mark start of transaction
@@ -167,6 +165,6 @@ public class PullNode extends CloudServiceCommand
 		{
 			logger.log(Level.SEVERE, "Error while sending nodes to remote instance", ex);
 		}
-
+		*/
 	}
 }

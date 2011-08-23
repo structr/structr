@@ -1,60 +1,93 @@
 <div id="rendition-tab" class="ui-tabs-hide">
-    <div class="body">
-        External URL: <a href="$externalViewUrl" target="_blank">$externalViewUrl</a><br>
-        Local URL: <a href="$localViewUrl" target="_blank">$localViewUrl</a>
-        #if ($localViewUrl)
-        #if ($node.type == "Image")
-        <img class="preview" src="$localPreviewViewUrl" alt="$node.name">
-        #else
-        <iframe id="previewIframe" onload="addClickCapture()" src="$localViewUrl"></iframe>
-        #end
-        #else
-        $rendition
-        #end
-    </div>
+	<div class="body">
+		External URL: <a href="$externalViewUrl" target="_blank">$externalViewUrl</a><br>
+		Local URL: <a href="$localViewUrl" target="_blank">$localViewUrl</a>
+		#if ($localViewUrl)
+		#if ($node.type == "Image")
+		<img class="preview" src="$localPreviewViewUrl" alt="$node.name">
+		#else
+		<iframe id="previewIframe" onload="addClickCapture()" src="$localViewUrl"></iframe>
+		#end
+		#else
+		$rendition
+		#end
+	</div>
 </div><!-- #rendition -->
 <script type="text/javascript">
 
-    function addClickCapture() {
+	function addClickCapture() {
 
-        var iframe = document.getElementById('previewIframe');
-        iframe.contentWindow.document.body.onclick = function(event) {
+		var iframe = document.getElementById('previewIframe');
+		iframe.contentWindow.document.body.onclick = function(event) {
 
-            if (!event) event = window.event;
-            var clickedNode = event.target;
-            var aElement = jQuery(clickedNode).closest('a');
-            var href = aElement.attr('href');
+			if (!event) event = window.event;
+			var clickedNode = event.target;
+			var aElement = jQuery(clickedNode).closest('a');
+			var href = aElement.attr('href');
+	    
+			//console.log(href);
+	    
+			if (jQuery.isUrlExternal(href)) return;
+			if (jQuery.isUrlExternal(href) == undefined) return;
 
-            if (jQuery.isUrlExternal(href)) return;
-            if (jQuery.isUrlExternal(href) == undefined) return;
+			// Prevent href link
+			event.preventDefault();
+			event.stopPropagation();
+			event.cancelBubble = true;
 
-            // Prevent href link
-            event.preventDefault();
-            event.stopPropagation();
-            event.cancelBubble = true;
+			if (href.substr(0,1) != '/') {
+		    
+				//console.log(href);
 
-            if (href.substr(0,1) != '/') {
+				var iframePath = iframe.contentWindow.document.location.pathname;
+				//console.log("iframePath: " + iframePath);
+		
+				var basePath = iframePath.substr(0, iframePath.lastIndexOf('/'));
+				//console.log("basePath: " + basePath);
+		
+				var nodePath = basePath.substr(basePath.indexOf('/view')+5, basePath.length-1);
+				//console.log("nodePath: " + nodePath);
+		
+				var editBasePath = window.location.pathname; // something like '/context/admin/edit.htm'
+				//console.log("editBasePath: " + editBasePath);
+		
+				var newQueryString = href.replace(/&/, "&___").replace(/\?/g, "&___");
+				
+				var path = newQueryString;
+				
+				if (path.indexOf("/") > -1) {
+					path = newQueryString.substring(0, newQueryString.lastIndexOf("/"));
+				}
+				
+				//console.log("path: " + path);
+				
+				if (nodePath.endsWith(path)) {
+					nodePath = nodePath.replace(path, "");
+					if (nodePath.endsWith("/")) {
+						nodePath = nodePath.substring(0, nodePath.length-1);
+					}
+				}
+				//console.log("nodePath: " + nodePath);
+				//console.log("newQueryString: " + newQueryString);
+		
+				var newPath = editBasePath + '?nodeId=' + nodePath + '/' + newQueryString; //href.split("?")[0];
+				//console.log("newPath: " + newPath);
+				//alert('wait');
+		
+				window.location = newPath;
+			}
 
-                var iframePath = iframe.contentWindow.document.location.pathname;
-                var basePath = iframePath.substr(0, iframePath.lastIndexOf('/'));
-                var nodePath = basePath.substr(basePath.indexOf('/view')+5, basePath.length-1);
-                var editBasePath = window.location.pathname; // something like '/context/admin/edit.htm'
-                var newPath = editBasePath + '?nodeId=' + nodePath + '/' + href;
-
-                window.location = newPath;
-            }
-
-        }
-    }
+		}
+	}
 
 
 </script>
 ##if ($node.type != "File")
 <div id="source-tab" class="ui-tabs-hide">
-    <div class="body">
-        External URL: <a href="$externalViewUrl" target="_blank">$externalViewUrl</a><br>
-        Local URL: <a href="$localViewUrl" target="_blank">$localViewUrl</a>
-        <textarea readonly cols="30" rows="10">$source</textarea>
-    </div>
+	<div class="body">
+		External URL: <a href="$externalViewUrl" target="_blank">$externalViewUrl</a><br>
+		Local URL: <a href="$localViewUrl" target="_blank">$localViewUrl</a>
+		<textarea readonly cols="30" rows="10">$source</textarea>
+	</div>
 </div>
 ##end

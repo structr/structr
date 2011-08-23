@@ -167,8 +167,8 @@ public final class StyledShapePainter {
                         graphics.setPaint(ms2d.getContour());
                         graphics.setStroke(ms2d.getStroke());
                         graphics.setComposite(ms2d.getContourComposite());
-                        graphics.draw(transformedShape);
-                        //graphics.draw(shape);
+                        //graphics.draw(transformedShape);
+                        graphics.draw(shape);
                     }
                     citer.next();
                 }

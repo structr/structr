@@ -2,7 +2,9 @@ package org.structr.common.renderer;
 
 import java.io.StringWriter;
 import org.apache.commons.lang.StringUtils;
+import org.structr.common.CurrentRequest;
 import org.structr.common.RenderMode;
+import org.structr.common.SecurityContext;
 import org.structr.common.StructrOutputStream;
 import org.structr.core.NodeRenderer;
 import org.structr.core.entity.AbstractNode;
@@ -17,8 +19,9 @@ public class ContentTemplateRenderer implements NodeRenderer<PlainText>
 	@Override
 	public void renderNode(StructrOutputStream out, PlainText currentNode, AbstractNode startNode, String editUrl, Long editNodeId, RenderMode renderMode)
 	{
-		if(currentNode.isVisible())
-		{
+		SecurityContext securityContext = CurrentRequest.getSecurityContext();
+		if(securityContext.isVisible(currentNode)) {
+
 			String html = currentNode.getContent();
 			if(StringUtils.isNotBlank(html))
 			{

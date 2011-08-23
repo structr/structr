@@ -47,7 +47,7 @@ public class ApplicationContextListener implements ServletContextListener, HttpS
     public void contextInitialized(ServletContextEvent sce) {
         logger.log(Level.INFO, "Servlet context created");
 
-        Map<String, Object> context = new ConcurrentHashMap<String, Object>();
+        Map<String, Object> context = new ConcurrentHashMap<String, Object>(20, 0.9f, 8);
         ServletContext servletContext = sce.getServletContext();
 
         String configFilePath = servletContext.getInitParameter(Services.CONFIG_FILE_PATH);
@@ -154,7 +154,7 @@ public class ApplicationContextListener implements ServletContextListener, HttpS
         //Services.setContext(context);
 
         // Initialize cloud service
-        Services.command(StartCloudService.class);
+        // not needed any more: Services.command(StartCloudService.class);
 
         logger.log(Level.INFO, "structr application context initialized (structr started successfully)");
 

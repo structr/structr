@@ -73,7 +73,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 
                 if (o instanceof List) {
 
-                    attrs = (List<NodeAttribute>) o;
+                    attrs.addAll((List)o);
 
                 } else if (o instanceof NodeAttribute) {
 

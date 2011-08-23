@@ -2,8 +2,11 @@ package org.structr.renderer;
 
 import java.util.LinkedList;
 import java.util.List;
+import org.structr.common.CurrentRequest;
+import org.structr.common.SecurityContext;
 import org.structr.common.StructrOutputStream;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Link;
 import org.structr.core.entity.web.MenuItem;
 import org.structr.core.entity.web.Page;
 
@@ -21,6 +24,7 @@ public abstract class MenuItemRenderer
 	 */
 	protected void renderMenuItems(final StructrOutputStream out, final AbstractNode currentNode, final AbstractNode startNode, final AbstractNode currentMenuNode, int currentDepth, int currentPos, int numberOfSubnodes, int maxDepth)
 	{
+		SecurityContext securityContext = CurrentRequest.getSecurityContext();
 		AbstractNode menuItemNode = currentMenuNode;
 
 		if(currentDepth > maxDepth)
@@ -35,8 +39,8 @@ public abstract class MenuItemRenderer
 
 		for(AbstractNode n : allMenuItems)
 		{
-			if(n.isVisible())
-			{
+			if(securityContext.isVisible(n)) {
+
 				menuItems.add(n);
 			}
 		}
@@ -86,11 +90,18 @@ public abstract class MenuItemRenderer
 				cssClass += " current";
 			}
 
+			if(securityContext.isVisible(menuItemNode)) {
 
-			if(menuItemNode.isVisible())
-			{
+				AbstractNode contextNode;
 
-				String relativeNodePath = menuItemNode.getNodePath(startNode).replace("&", "%26");
+				if (startNode instanceof Link) {
+					contextNode = ((Link) startNode).getStructrNode().getContextNode();
+				} else {
+					contextNode = startNode.getContextNode();
+				}
+
+
+				String relativeNodeURL = menuItemNode.getNodeURL(contextNode).replace("&", "%26");
 
 				if(!(cssClass.isEmpty()))
 				{
@@ -98,14 +109,13 @@ public abstract class MenuItemRenderer
 				}
 
 				out.append("<li").append(cssClass).append(">");
-				out.append("<span><a href=\"").append(relativeNodePath).append("\">");
+				out.append("<span><a href=\"").append(relativeNodeURL).append("\">");
 				out.append(currentMenuNode.getTitleOrName());
 				out.append("</a></span>");
 			}
 		}
 
-		if(currentMenuNode.isVisible())
-		{
+		if(securityContext.isVisible(currentMenuNode)) {
 
 			int sub = menuItems.size();
 			int pos = 0;

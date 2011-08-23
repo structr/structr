@@ -86,7 +86,7 @@ public class FilterSourceCollector implements Iterable<AbstractNode> {
 			@Override
 			public AbstractNode next() {
 
-				if(currentIterator != null) {
+				if(currentIterator != null && currentIterator.hasNext()) {
 
 					return(currentIterator.next());
 				}

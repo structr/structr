@@ -26,6 +26,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.neo4j.graphdb.Direction;
+import org.structr.common.PropertyKey;
 import org.structr.common.RelType;
 import org.structr.core.Command;
 import org.structr.core.Services;
@@ -45,16 +46,15 @@ import org.structr.core.node.TransactionCommand;
 public class User extends Person {
 
     private static final Logger logger = Logger.getLogger(User.class.getName());
-    private final static String ICON_SRC = "/images/user.png";
-    public final static String REAL_NAME_KEY = "realName";
-    public final static String PASSWORD_KEY = "password";
-    public final static String BLOCKED_KEY = "blocked";
-    public final static String SESSION_ID_KEY = "sessionId";
-    public final static String CONFIRMATION_KEY_KEY = "confirmationKey";
+
+    public enum Key implements PropertyKey {
+
+	    realName, password, blocked, sessionId, confirmationKey, backendUser, frontendUser
+    }
 
     @Override
     public String getIconSrc() {
-        return ICON_SRC;
+        return "/images/user.png";
     }
 
     /**
@@ -86,12 +86,12 @@ public class User extends Person {
     public void setPassword(final String passwordValue) {
 
         // store passwords always as SHA-512 hash
-        setProperty(PASSWORD_KEY,
+        setProperty(Key.password,
                 DigestUtils.sha512Hex(passwordValue));
     }
 
     public String getEncryptedPassword() {
-        return getStringProperty(PASSWORD_KEY);
+        return getStringProperty(Key.password);
     }
 
     /**
@@ -103,15 +103,15 @@ public class User extends Person {
     }
 
     public String getRealName() {
-        return getStringProperty(REAL_NAME_KEY);
+        return getStringProperty(Key.realName);
     }
 
     public String getConfirmationKey() {
-        return getStringProperty(CONFIRMATION_KEY_KEY);
+        return getStringProperty(Key.confirmationKey);
     }
 
     public Boolean getBlocked() {
-        return (Boolean) getProperty(BLOCKED_KEY);
+        return (Boolean) getProperty(Key.blocked);
     }
 
     public Boolean isBlocked() {
@@ -119,19 +119,35 @@ public class User extends Person {
     }
 
     public String getSessionId() {
-        return getStringProperty(SESSION_ID_KEY);
+        return getStringProperty(Key.sessionId);
+    }
+
+    public boolean isBackendUser() {
+	    return(getBooleanProperty(Key.backendUser));
+    }
+
+    public boolean isFrontendUser() {
+	    return(getBooleanProperty(Key.frontendUser));
     }
 
     public void setRealName(final String realName) {
-        setProperty(REAL_NAME_KEY, realName);
+        setProperty(Key.realName, realName);
     }
 
     public void setBlocked(final Boolean blocked) {
-        setProperty(BLOCKED_KEY, blocked);
+        setProperty(Key.blocked, blocked);
     }
 
     public void setConfirmationKey(final String value) {
-        setProperty(CONFIRMATION_KEY_KEY, value);
+        setProperty(Key.confirmationKey, value);
+    }
+
+    public void setFrontendUser(final boolean isFrontendUser) {
+	    setProperty(Key.frontendUser, isFrontendUser);
+    }
+
+    public void setBackendUser(final boolean isBackendUser) {
+	    setProperty(Key.backendUser, isBackendUser);
     }
 
     public void block() {

@@ -21,8 +21,11 @@ package org.structr.core.cloud;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.WeakHashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.crypto.Cipher;
 
 /**
  * The root listener for all cloud service connections. This listener can be
@@ -33,7 +36,10 @@ import java.util.WeakHashMap;
  */
 public class CloudServiceListener extends Listener {
 
-	private final Map<Connection, ConnectionListener> listeners = Collections.synchronizedMap(new WeakHashMap<Connection, ConnectionListener>());
+	private static final Logger logger = Logger.getLogger(CloudServiceListener.class.getName());
+	
+	private final Map<Connection, ConnectionListener> listeners = Collections.synchronizedMap(new HashMap<Connection, ConnectionListener>());
+	private final Map<Integer, Connection> connections = Collections.synchronizedMap(new HashMap<Integer, Connection>());
 
 	@Override
 	public void received(Connection connection, Object object) {
@@ -49,6 +55,7 @@ public class CloudServiceListener extends Listener {
 
 		// create and start a new connection listener for this connection
 		listeners.put(connection, new ConnectionListener(connection));
+		connections.put(connection.getID(), connection);
 
 	}
 
@@ -58,6 +65,7 @@ public class CloudServiceListener extends Listener {
 		ConnectionListener listener = listeners.get(connection);
 		if(listener != null) {
 			listeners.remove(connection);
+			connections.remove(connection.getID());
 		}
 	}
 }

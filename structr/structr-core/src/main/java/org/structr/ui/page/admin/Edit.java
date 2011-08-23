@@ -19,6 +19,8 @@
 package org.structr.ui.page.admin;
 
 import org.apache.click.Page;
+import org.structr.common.AccessMode;
+import org.structr.common.CurrentRequest;
 import org.structr.ui.page.StructrPage;
 
 /**
@@ -37,22 +39,25 @@ import org.structr.ui.page.StructrPage;
  */
 public class Edit extends StructrPage {
 
-    public Edit() {
-        super();
-    }
+	public Edit() {
+		super();
 
-    @Override
-    public void onInit() {
+		CurrentRequest.setAccessMode(AccessMode.Backend);
 
-        super.onInit();
+	}
 
-        Class<? extends Page> pageClass = getRedirectPage(node);
-        if (pageClass == null) {
-            pageClass = DefaultEdit.class;
-        }
-        StructrPage editPage = (StructrPage) getContext().createPage(pageClass);
+	@Override
+	public void onInit() {
 
-        setForward(editPage);
+		super.onInit();
 
-    }
+		Class<? extends Page> pageClass = getRedirectPage(node);
+		if(pageClass == null) {
+			pageClass = DefaultEdit.class;
+		}
+		StructrPage editPage = (StructrPage)getContext().createPage(pageClass);
+
+		setForward(editPage);
+
+	}
 }

@@ -20,6 +20,8 @@ package org.structr.ui.page.admin;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.apache.click.control.Form;
 import org.apache.click.control.HiddenField;
@@ -52,7 +54,6 @@ public class EditPlainText extends DefaultEdit {
     public EditPlainText() {
 
         super();
-
 
         editPropertiesForm.add(new TextField(PlainText.CONTENT_TYPE_KEY, "Internet Media Type (Content-Type)", 30));
 

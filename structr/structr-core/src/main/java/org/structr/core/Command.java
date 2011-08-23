@@ -60,8 +60,8 @@ public abstract class Command {
     }
 
     public Command() {
-        this.arguments = new ConcurrentHashMap<String, Object>();
-        this.exitStatus = new ConcurrentHashMap<String, Object>();
+        this.arguments = new ConcurrentHashMap<String, Object>(10, 0.9f, 8);
+        this.exitStatus = new ConcurrentHashMap<String, Object>(10, 0.9f, 8);
 
         // Set default
         exitStatus.put(EXIT_CODE, exitCode.UNKNOWN);
@@ -108,15 +108,6 @@ public abstract class Command {
      */
     public final Object getArgument(String key) {
         return (this.arguments.get(key));
-    }
-
-    @Override
-    protected void finalize() throws Throwable {
-
-        // do cleanup
-        arguments.clear();
-
-        super.finalize();
     }
 
     public Command.status getStatus() {

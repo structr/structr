@@ -25,4 +25,8 @@ package org.structr.ui.page.admin;
  */
 public class EditTemplate extends EditHtmlSource {
 
+	public EditTemplate() {
+
+		super();
+	}
 }

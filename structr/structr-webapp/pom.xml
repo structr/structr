@@ -32,14 +32,19 @@
     <properties>
         <netbeans.hint.license>structr-gpl30</netbeans.hint.license>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <neo4j.version>1.4.M04</neo4j.version>
-        <netbeans.hint.deploy.server>Tomcat70</netbeans.hint.deploy.server>
+        <neo4j.version>1.4</neo4j.version>
+        <netbeans.hint.deploy.server>Tomcat</netbeans.hint.deploy.server>
     </properties>
 
     <repositories>
         <repository>
             <id>neo4j-public-repository</id>
             <url>http://m2.neo4j.org</url>
+        </repository>
+        <repository>
+            <id>repo.rasea.org</id>
+            <name>Rasea Maven Repository</name>
+            <url>http://repo.rasea.org/maven2/</url>
         </repository>
     </repositories>
 
@@ -115,7 +120,7 @@
         <dependency>
             <groupId>org.tuckey</groupId>
             <artifactId>urlrewritefilter</artifactId>
-            <version>3.1.0</version>
+            <version>3.2.0</version>
             <type>jar</type>
             <optional>false</optional>
         </dependency>

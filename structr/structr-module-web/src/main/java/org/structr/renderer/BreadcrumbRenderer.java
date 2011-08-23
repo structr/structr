@@ -1,7 +1,9 @@
 package org.structr.renderer;
 
 import java.util.List;
+import org.structr.common.CurrentRequest;
 import org.structr.common.RenderMode;
+import org.structr.common.SecurityContext;
 import org.structr.common.StructrOutputStream;
 import org.structr.core.NodeRenderer;
 import org.structr.core.entity.AbstractNode;
@@ -16,8 +18,8 @@ public class BreadcrumbRenderer implements NodeRenderer<Breadcrumb>
 	@Override
 	public void renderNode(StructrOutputStream out, Breadcrumb currentNode, AbstractNode startNode, String editUrl, Long editNodeId, RenderMode renderMode)
 	{
-		if(currentNode.isVisible())
-		{
+		SecurityContext securityContext = CurrentRequest.getSecurityContext();
+		if(securityContext.isVisible(currentNode)) {
 
 			renderBreadcrumbItems(out, startNode, currentNode);
 
@@ -32,6 +34,7 @@ public class BreadcrumbRenderer implements NodeRenderer<Breadcrumb>
 	 */
 	private void renderBreadcrumbItems(final StructrOutputStream out, final AbstractNode startNode, final AbstractNode currentNode)
 	{
+		SecurityContext securityContext = CurrentRequest.getSecurityContext();
 		List<AbstractNode> ancestors = startNode.getAncestorNodes();
 		String cssClass = "";
 		int currentPos = 0;
@@ -55,8 +58,8 @@ public class BreadcrumbRenderer implements NodeRenderer<Breadcrumb>
 				cssClass += " current";
 			}
 
-			if(breadcrumbItem.isVisible())
-			{
+			if(securityContext.isVisible(breadcrumbItem)) {
+
 				String relativeNodePath = breadcrumbItem.getNodePath(startNode).replace("&", "%26");
 
 				if(!(cssClass.isEmpty()))

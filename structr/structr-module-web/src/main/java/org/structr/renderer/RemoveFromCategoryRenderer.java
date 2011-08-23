@@ -6,6 +6,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.CurrentRequest;
+import org.structr.common.CurrentSession;
 import org.structr.common.RenderMode;
 import org.structr.common.StructrOutputStream;
 import org.structr.core.NodeRenderer;
@@ -81,7 +82,7 @@ public class RemoveFromCategoryRenderer implements NodeRenderer<RemoveFromCatego
 			return;
 		}
 
-		User user = CurrentRequest.getCurrentUser();
+		User user = CurrentSession.getUser();
 		if(user != null)
 		{
 			user.removeFromCategory(categoryName, objectId);

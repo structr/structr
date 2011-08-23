@@ -54,7 +54,7 @@ import org.structr.core.node.TransactionCommand;
 public class LogService extends RunnableNodeService {
 
     private static final Logger logger = Logger.getLogger(LogService.class.getName());
-    private static final ConcurrentHashMap<User, LogNodeList<Activity>> loggerCache = new ConcurrentHashMap<User, LogNodeList<Activity>>();
+    private static final ConcurrentHashMap<User, LogNodeList<Activity>> loggerCache = new ConcurrentHashMap<User, LogNodeList<Activity>>(10, 0.9f, 8);
     private static final ConcurrentLinkedQueue queue = new ConcurrentLinkedQueue();
     private static final long DefaultInterval = TimeUnit.SECONDS.toMillis(10);
     private static final int DefaultThreshold = 10;
@@ -311,6 +311,11 @@ public class LogService extends RunnableNodeService {
             this.interrupt();
 
         } catch (Throwable t) { /* ignore */ }
+    }
+
+    @Override
+    public boolean runOnStartup() {
+        return(true);
     }
     // </editor-fold>
 }

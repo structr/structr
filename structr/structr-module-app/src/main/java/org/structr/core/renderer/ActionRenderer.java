@@ -30,7 +30,11 @@ public class ActionRenderer implements NodeRenderer<AbstractNode>
 				ActionNode actionNode = (ActionNode)n;
 				actionNode.initialize();
 
-				executionSuccessful &= actionNode.doAction(out, startNode, editUrl, editNodeId);
+				if(!actionNode.doAction(out, startNode, editUrl, editNodeId)) {
+					
+					executionSuccessful = false;
+					break;
+				}
 			}
 		}
 
@@ -41,7 +45,7 @@ public class ActionRenderer implements NodeRenderer<AbstractNode>
 			AbstractNode successTarget = getSuccessTarget(currentNode);
 			if(successTarget != null)
 			{
-				CurrentRequest.redirect(successTarget);
+				CurrentRequest.redirect(currentNode, successTarget);
 			}
 
 		} else
@@ -51,7 +55,7 @@ public class ActionRenderer implements NodeRenderer<AbstractNode>
 			AbstractNode failureTarget = getFailureTarget(currentNode);
 			if(failureTarget != null)
 			{
-				CurrentRequest.redirect(failureTarget);
+				CurrentRequest.redirect(currentNode, failureTarget);
 			}
 		}
 	}

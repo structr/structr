@@ -124,9 +124,9 @@ public class FindNodeCommand extends NodeServiceCommand {
                 Node node = graphDb.getNodeById(id);
                 result = nodeFactory.createNode(node);
 
-            } catch (Exception ex) {
+            } catch (NumberFormatException ex) {
                 // failed :(
-                logger.log(Level.WARNING, "Node with id {0} not found in database! Reason: {1}", new Object[]{argument, ex.getMessage()});
+                logger.log(Level.FINE, "Could not parse {0} to number", argument);
 
                 String path = (String) argument;
                 Node rootNode = graphDb.getReferenceNode();
@@ -257,20 +257,20 @@ public class FindNodeCommand extends NodeServiceCommand {
 
         return result;
     }
-
-    /**
-     * Round value by converting it to long
-     * 
-     * @param value a (@see Number)
-     * @return
-     */
-    private long longValue(final Object value) {
-        // return rounded value
-        if (value != null && value instanceof Number) {
-            return ((Number) value).longValue();
-        } else {
-            return -1L;
-        }
-    }
+//
+//    /**
+//     * Round value by converting it to long
+//     *
+//     * @param value a (@see Number)
+//     * @return
+//     */
+//    private long longValue(final Object value) {
+//        // return rounded value
+//        if (value != null && value instanceof Number) {
+//            return ((Number) value).longValue();
+//        } else {
+//            return -1L;
+//        }
+//    }
     // </editor-fold>
 }
