@@ -1,6 +1,8 @@
 package org.structr.common.renderer;
 
+import org.structr.common.CurrentRequest;
 import org.structr.common.RenderMode;
+import org.structr.common.SecurityContext;
 import org.structr.common.StructrOutputStream;
 import org.structr.core.NodeRenderer;
 import org.structr.core.entity.AbstractNode;
@@ -26,8 +28,9 @@ public class LinkRenderer implements NodeRenderer<Link>
 
 		} else
 		{
-			if(currentNode.isVisible())
-			{
+			SecurityContext securityContext = CurrentRequest.getSecurityContext();
+			if(securityContext.isVisible(currentNode)) {
+
 				structrNode.renderNode(out, currentNode, editUrl, editNodeId);
 			}
 		}

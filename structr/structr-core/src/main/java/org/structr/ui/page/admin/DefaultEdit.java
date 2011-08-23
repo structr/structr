@@ -38,6 +38,7 @@ import org.apache.click.control.HiddenField;
 import org.apache.click.control.Option;
 import org.apache.click.control.PageLink;
 import org.apache.click.control.Panel;
+import org.apache.click.control.PasswordField;
 import org.apache.click.control.Select;
 import org.apache.click.control.Submit;
 import org.apache.click.control.Table;
@@ -52,7 +53,14 @@ import org.apache.click.extras.control.PickList;
 import org.apache.click.util.Bindable;
 import org.apache.click.util.HtmlStringBuffer;
 import org.neo4j.graphdb.RelationshipType;
+import org.structr.common.AbstractComponent;
+import org.structr.common.CurrentRequest;
+import org.structr.common.Permission;
 import org.structr.common.RelType;
+import org.structr.common.RenderMode;
+import org.structr.common.SecurityContext;
+import org.structr.common.StructrOutputStream;
+import org.structr.common.renderer.HtmlComponentRenderer;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.cloud.CloudService;
@@ -68,10 +76,10 @@ import org.structr.core.entity.Folder;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.NodeType;
 import org.structr.core.entity.StructrRelationship;
-import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.Template;
 import org.structr.core.entity.User;
 import org.structr.core.module.GetEntitiesCommand;
+import org.structr.core.module.GetEntityClassCommand;
 import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.DeleteRelationshipCommand;
 import org.structr.core.node.FindGroupCommand;
@@ -124,7 +132,10 @@ public class DefaultEdit extends Nodes {
     protected Panel editVisibilityPanel;
     protected Panel cloudPanel;
     protected Panel consolePanel;
+    protected Panel helpPanel;
     protected TextField remoteHost;
+    protected TextField userNameInput;
+    protected PasswordField passwordInput;
     protected LongField remoteSourceNode;
     protected IntegerField remoteTcpPort;
     protected IntegerField remoteUdpPort;
@@ -136,6 +147,8 @@ public class DefaultEdit extends Nodes {
     protected TextField consoleCommand;
     @Bindable
     protected String consoleOutput;
+    @Bindable
+    protected String helpOutput;
 
     // use template for backend pages
     @Override
@@ -152,6 +165,7 @@ public class DefaultEdit extends Nodes {
 
         super.onInit();
 
+	SecurityContext securityContext = CurrentRequest.getSecurityContext();
         FieldSet nodePropertiesFields = new FieldSet("Node Properties");
         nodePropertiesFields.setColumns(3);
 
@@ -221,7 +235,7 @@ public class DefaultEdit extends Nodes {
         editVisibilityForm.add(new HiddenField(NODE_ID_KEY, nodeId != null ? nodeId : ""));
         editVisibilityForm.add(new HiddenField(RENDER_MODE_KEY, renderMode != null ? renderMode : ""));
         editVisibilityForm.setActionURL(editVisibilityForm.getActionURL().concat("#visibility-tab"));
-        if (editVisibilityAllowed) {
+        if (securityContext.isAllowed(node, Permission.EditProperty)) {
             visibilityFields.add(new Submit("saveVisibility", " Save Visibility ", this, "onSaveVisibility"));
             visibilityFields.add(new Submit("saveVisibilityDirectChildren", " Save Visibility (including direct children) ", this, "onSaveVisibilityIncludingDirectChildren"));
             visibilityFields.add(new Submit("saveVisibilityAllChildren", " Save Visibility (including all children) ", this, "onSaveVisibilityIncludingAllChildren"));
@@ -236,7 +250,7 @@ public class DefaultEdit extends Nodes {
         editPropertiesForm.add(new HiddenField(NODE_ID_KEY, nodeId != null ? nodeId : ""));
         editPropertiesForm.add(new HiddenField(RENDER_MODE_KEY, renderMode != null ? renderMode : ""));
         editPropertiesForm.setActionURL(editPropertiesForm.getActionURL().concat("#properties-tab"));
-        if (editPropertiesAllowed) {
+        if (securityContext.isAllowed(node, Permission.EditProperty)) {
             nodePropertiesFields.add(new Submit("saveProperties", " Save Properties ", this, "onSaveProperties"));
 //            editPropertiesForm.add(new Submit("savePropertiesAndReturn", " Save and Return ", this, "onSaveAndReturn"));
             nodePropertiesFields.add(new Submit("cancel", " Cancel ", this, "onCancel"));
@@ -361,7 +375,7 @@ public class DefaultEdit extends Nodes {
         // ------------------ child nodes end --------------------------------
 
         // ------------------ incoming relationships start ---------------------
-        if (removeRelationshipAllowed) {
+        if (securityContext.isAllowed(node, Permission.DeleteRelationship)) {
 
             deleteRelationshipLink.setImageSrc("/images/delete.png");
             deleteRelationshipLink.setTitle("Delete relationship");
@@ -510,7 +524,7 @@ public class DefaultEdit extends Nodes {
 
         // ------------------ security begin ---------------------
 
-        if (accessControlAllowed) {
+        if (securityContext.isAllowed(node, Permission.AccessControl)) {
 
             typeColumn = new Column(AbstractNode.TYPE_KEY);
 
@@ -615,12 +629,16 @@ public class DefaultEdit extends Nodes {
         FieldSet pushFields = new FieldSet("Transmit Nodes");
         remoteSourceNode = new LongField("remoteSourceNode", "Remote Node ID");
         remoteHost = new TextField("remoteHost", "Remote Host");
+	userNameInput = new TextField("userName", "User Name");
+	passwordInput = new PasswordField("password", "Password");
         remoteTcpPort = new IntegerField("remoteTcpPort", "Remote TCP Port");
         remoteUdpPort = new IntegerField("remoteUdp", "Remote UDP Port");
         cloudPushPull.add(new Option("push", "Push nodes to remote destination"));
         cloudPushPull.add(new Option("pull", "Pull nodes from remote destination"));
         pushFields.add(remoteSourceNode);
         pushFields.add(remoteHost);
+	pushFields.add(userNameInput);
+	pushFields.add(passwordInput);
         pushFields.add(remoteTcpPort);
         pushFields.add(remoteUdpPort);
         pushFields.add(cloudPushPull);
@@ -686,7 +704,13 @@ public class DefaultEdit extends Nodes {
         readConsoleOutput();
         // ------------------ console end ---------------------
 
-        if (!(editPropertiesAllowed)) {
+	helpPanel = new Panel("helpPanel", "/panel/help-panel.htm");
+        addControl(helpPanel);
+
+        createHelpOutput();
+        // ------------------ console end ---------------------
+
+        if (!(securityContext.isAllowed(node, Permission.EditProperty))) {
 
             // make all property fields read-only
             List<Field> propertyFields = editPropertiesForm.getFieldList();
@@ -1041,6 +1065,7 @@ public class DefaultEdit extends Nodes {
      */
     public boolean onSetPermissions() {
 
+	final SecurityContext securityContext = CurrentRequest.getSecurityContext();
         final Map<String, String> parameters = new HashMap<String, String>();
 
         if (securityForm.isValid()) {
@@ -1077,7 +1102,7 @@ public class DefaultEdit extends Nodes {
                             for (AbstractNode s : result) {
 
                                 // superuser can always change access control
-                                if (user instanceof SuperUser || s.accessControlAllowed()) {
+                                if (securityContext.isAllowed(node, Permission.AccessControl)) {
                                     nodes.add(s);
                                 }
 
@@ -1282,6 +1307,8 @@ public class DefaultEdit extends Nodes {
     public boolean onTransmitNodes() {
 
         final String remoteHostValue = remoteHost.getValue();
+	final String userNameValue = userNameInput.getValue();
+	final String passwordValue = passwordInput.getValue();
         final Long targetNodeValue = remoteSourceNode.getLong();
         final Integer tcpPort = remoteTcpPort.getInteger();
         final Integer udpPort = remoteUdpPort.getInteger();
@@ -1297,7 +1324,7 @@ public class DefaultEdit extends Nodes {
                 if ("push".equals(pushPull)) {
 
                     Command transmitCommand = Services.command(PushNodes.class);
-                    transmitCommand.execute(user, node, targetNodeValue, remoteHostValue, tcpPort, udpPort, rec);
+                    transmitCommand.execute(userNameValue, passwordValue, node, targetNodeValue, remoteHostValue, tcpPort, udpPort, rec);
 
                 } else if ("pull".equals(pushPull)) {
 
@@ -1385,7 +1412,7 @@ public class DefaultEdit extends Nodes {
                 }
             }
             welcome.append("</p>");
-            welcome.append("<p>Typing the command without any parameters will show a short help text for each command.</p>");
+            welcome.append("<p>Use 'help <command>' to show a short help text for each command.</p>");
             welcome.append("<p>&nbsp;</p>");
 
             ret = new LinkedList<String>();
@@ -1396,4 +1423,46 @@ public class DefaultEdit extends Nodes {
 
         return (ret);
     }
+
+	private void createHelpOutput() {
+
+		String helpTarget = CurrentRequest.getRequest().getParameter("helpTarget");
+		AbstractNode helpNode = null;
+
+		if(helpTarget != null && helpTarget.length() > 0) {
+
+			Class nodeClass = (Class)Services.command(GetEntityClassCommand.class).execute(helpTarget);
+			if(nodeClass != null) {
+
+				try {
+
+					helpNode = (AbstractNode)nodeClass.newInstance();
+
+				} catch(Throwable t) {}
+			}
+
+		} else {
+			
+			helpNode = this.node;
+		}
+		
+		if (helpNode != null) {
+
+			HtmlComponentRenderer htmlComponentRenderer = new HtmlComponentRenderer();
+			StructrOutputStream out = new StructrOutputStream();
+			AbstractComponent content = helpNode.getHelpContent();
+
+			if(content != null) {
+				
+				htmlComponentRenderer.renderNode(out, content, helpNode, "", editNodeId, RenderMode.Direct);
+				
+				// create help output
+				helpOutput = out.toString();
+				
+			} else {
+				
+				helpOutput = "No help available for this node type.";
+			}
+		}
+	}
 }

@@ -74,6 +74,13 @@ public class ArbitraryNode extends AbstractNode {
 	}
 
 	@Override
+	public Iterable<AbstractNode> getDataNodes() {
+
+		// ArbitraryNode nodes should not return their child nodes
+		return null;
+	}
+
+	@Override
 	public Iterable<String> getPropertyKeys() {
 
 		if (typeNode == null) {

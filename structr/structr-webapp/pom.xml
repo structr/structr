@@ -6,13 +6,13 @@
     <parent>
         <groupId>org.structr</groupId>
         <artifactId>structr</artifactId>
-        <version>0.4.M01</version>
+        <version>0.4</version>
     </parent>
 
     <groupId>org.structr</groupId>
     <artifactId>structr-webapp</artifactId>
     <packaging>war</packaging>
-    <version>0.4.M01</version>
+    <version>0.4</version>
     <name>structr-webapp</name>
     <url>http://structr.org</url>
     <build>
@@ -32,8 +32,8 @@
     <properties>
         <netbeans.hint.license>structr-gpl30</netbeans.hint.license>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <neo4j.version>1.4.M04</neo4j.version>
-        <netbeans.hint.deploy.server>Tomcat70</netbeans.hint.deploy.server>
+        <neo4j.version>1.4</neo4j.version>
+        <netbeans.hint.deploy.server>Tomcat</netbeans.hint.deploy.server>
     </properties>
 
     <repositories>
@@ -41,23 +41,28 @@
             <id>neo4j-public-repository</id>
             <url>http://m2.neo4j.org</url>
         </repository>
+        <repository>
+            <id>repo.rasea.org</id>
+            <name>Rasea Maven Repository</name>
+            <url>http://repo.rasea.org/maven2/</url>
+        </repository>
     </repositories>
 
     <dependencies>
         <dependency>
             <groupId>org.structr</groupId>
             <artifactId>structr-core</artifactId>
-            <version>0.4.M01</version>
+            <version>0.4</version>
         </dependency>
         <dependency>
             <groupId>org.structr</groupId>
             <artifactId>structr-module-web</artifactId>
-            <version>0.4.M01</version>
+            <version>0.4</version>
         </dependency>
         <dependency>
             <groupId>org.structr</groupId>
             <artifactId>structr-module-app</artifactId>
-            <version>0.4.M01</version>
+            <version>0.4</version>
         </dependency>
 <!--        <dependency>
             <groupId>javax.servlet</groupId>
@@ -115,7 +120,7 @@
         <dependency>
             <groupId>org.tuckey</groupId>
             <artifactId>urlrewritefilter</artifactId>
-            <version>3.1.0</version>
+            <version>3.2.0</version>
             <type>jar</type>
             <optional>false</optional>
         </dependency>

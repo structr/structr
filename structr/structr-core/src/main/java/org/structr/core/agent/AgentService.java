@@ -42,8 +42,8 @@ import org.structr.core.module.GetAgentsCommand;
 public class AgentService extends Thread implements RunnableService {
 
     private static final Logger logger = Logger.getLogger(AgentService.class.getName());
-    private final Map<Class, List<Agent>> runningAgents = new ConcurrentHashMap<Class, List<Agent>>();
-    private final Map<Class, Class> agentClassCache = new ConcurrentHashMap<Class, Class>();
+    private final Map<Class, List<Agent>> runningAgents = new ConcurrentHashMap<Class, List<Agent>>(10, 0.9f, 8);
+    private final Map<Class, Class> agentClassCache = new ConcurrentHashMap<Class, Class>(10, 0.9f, 8);
     private final Queue<Task> taskQueue = new ConcurrentLinkedQueue<Task>();
     private Set<Class> supportedCommands = null;
     private boolean run = false;
@@ -161,6 +161,11 @@ public class AgentService extends Thread implements RunnableService {
     @Override
     public void stopService() {
         run = false;
+    }
+
+    @Override
+    public boolean runOnStartup() {
+        return(true);
     }
     // </editor-fold>
 

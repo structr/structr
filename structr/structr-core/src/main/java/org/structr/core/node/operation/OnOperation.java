@@ -22,7 +22,7 @@ package org.structr.core.node.operation;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import org.structr.common.CurrentRequest;
+import org.structr.common.CurrentSession;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.FindNodeCommand;
@@ -99,7 +99,7 @@ public class OnOperation implements Transformation {
 
 	private void add(Object obj) {
 
-		Object findNodeResult = Services.command(FindNodeCommand.class).execute(CurrentRequest.getCurrentUser(), currentNode, obj);
+		Object findNodeResult = Services.command(FindNodeCommand.class).execute(CurrentSession.getUser(), currentNode, obj);
 
 		if(findNodeResult != null) {
 

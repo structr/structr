@@ -1188,6 +1188,7 @@ table.file-list td {
     padding: 1em;
     padding-top: 0;
     padding-bottom: 0;
+    vertical-align: top;
 }
 
 table.file-list td.listed-file-name {

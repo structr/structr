@@ -24,6 +24,7 @@ import org.apache.click.control.FieldSet;
 import org.apache.click.control.PasswordField;
 import org.apache.click.control.TextField;
 import org.apache.click.extras.control.EmailField;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Person;
 import org.structr.core.entity.User;
 
@@ -45,11 +46,13 @@ public class EditUser extends DefaultEdit {
         
         FieldSet userFields = new FieldSet("User Information");
 
-        userFields.add(new TextField(User.NAME_KEY, true));
-        userFields.add(new TextField(User.REAL_NAME_KEY));
-        userFields.add(new PasswordField(User.PASSWORD_KEY));
+        userFields.add(new TextField(AbstractNode.NAME_KEY, true));
+        userFields.add(new TextField(User.Key.realName.name()));
+        userFields.add(new PasswordField(User.Key.password.name()));
         userFields.add(new EmailField(Person.EMAIL_1_KEY, "E-Mail"));
-        userFields.add(new Checkbox(User.BLOCKED_KEY));
+        userFields.add(new Checkbox(User.Key.blocked.name()));
+        userFields.add(new Checkbox(User.Key.backendUser.name()));
+        userFields.add(new Checkbox(User.Key.frontendUser.name()));
         
         editPropertiesForm.add(userFields);
 

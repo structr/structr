@@ -21,8 +21,9 @@
 
 package org.structr.common;
 
+import org.apache.commons.lang.StringUtils;
+
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.User;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -46,7 +47,7 @@ import javax.servlet.http.HttpSession;
 //~--- classes ----------------------------------------------------------------
 
 /**
- * Encapsulates structr context information private to a single session
+ * Encapsulates structr context information private to a single request
  *
  * @author Christian Morgner
  */
@@ -58,10 +59,10 @@ public class CurrentRequest {
 
 	//~--- fields ---------------------------------------------------------
 
-	private String currentNodePath               = null;
-	private User currentUser                     = null;
-	private HttpServletRequest internalRequest   = null;
-	private HttpServletResponse internalResponse = null;
+	private String currentNodePath                  = null;
+	private HttpServletRequest internalRequest      = null;
+	private HttpServletResponse internalResponse    = null;
+	private SecurityContext internalSecurityContext = new SecurityContext();
 
 	// ----- private attributes -----
 	private final List<RequestCycleListener> requestCycleListener = new LinkedList<RequestCycleListener>();
@@ -74,18 +75,41 @@ public class CurrentRequest {
 	//~--- methods --------------------------------------------------------
 
 	// ----- static methods -----
-	public static void redirect(final AbstractNode destination) {
+	public static void redirect(final AbstractNode currentNode, final AbstractNode destination) {
 
 		HttpServletResponse response = getResponse();
 		HttpServletRequest request   = getRequest();
 
 		if ((request != null) && (response != null)) {
 
-			String redirectUrl = getAbsoluteNodePath(destination);
+			String redirectUrl = null;
+			String referrer    = request.getHeader("referer");
+			String requestURI  = request.getRequestURI();
+
+			// TODO: Find a better solution for this.
+			// Currently, we check the referrer if it contains the context path.
+			// If yes redirect to the absolute node path which contains the context path
+			if ((currentNode != null) && (!referrer.contains(request.getContextPath()))) {
+
+				redirectUrl = destination.getNodePath(currentNode);
+
+				// Substract request URI path
+				String[] requestUriParts = StringUtils.split(requestURI, "/");
+
+				for (int i = 0; i < requestUriParts.length + 1; i++) {
+					redirectUrl = "../".concat(redirectUrl);
+				}
+
+			} else {
+				redirectUrl = getAbsoluteNodePath(destination);
+			}
 
 			try {
 
 				CurrentSession.setRedirected(true);
+
+				// Use encodeURL here to enable UrlRewriteFilter rule
+				// response.sendRedirect(response.encodeURL(redirectUrl));
 				response.sendRedirect(redirectUrl);
 
 			} catch (IOException ioex) {
@@ -247,6 +271,10 @@ public class CurrentRequest {
 
 	//~--- get methods ----------------------------------------------------
 
+	public static SecurityContext getSecurityContext() {
+		return (getRequestContext().getSecurityContextInternal());
+	}
+
 	public static HttpServletRequest getRequest() {
 		return (getRequestContext().getRequestInternal());
 	}
@@ -272,20 +300,21 @@ public class CurrentRequest {
 		return session;
 	}
 
-	public static User getCurrentUser() {
-
-		CurrentRequest request = getRequestContext();
-
-		if (request != null) {
-
-			logger.log(Level.FINE, "Current user: {0}", request.getCurrentUserInternal());
-
-			return request.getCurrentUserInternal();
-		}
-
-		return (null);
-	}
-
+//      public static User getCurrentUser() {
+//
+//              CurrentRequest request = getRequestContext();
+//
+//              if (request != null) {
+//
+//                      User currentUser = request.getCurrentUserInternal();
+//
+//                      logger.log(Level.FINE, "Current user: {0}", currentUser);
+//
+//                      return currentUser;
+//              }
+//
+//              return (null);
+//      }
 	public static String getCurrentNodePath() {
 
 		CurrentRequest request = getRequestContext();
@@ -314,6 +343,10 @@ public class CurrentRequest {
 		return (null);
 	}
 
+	private SecurityContext getSecurityContextInternal() {
+		return (this.internalSecurityContext);
+	}
+
 	private HttpServletRequest getRequestInternal() {
 		return (this.internalRequest);
 	}
@@ -322,10 +355,9 @@ public class CurrentRequest {
 		return (this.internalResponse);
 	}
 
-	private User getCurrentUserInternal() {
-		return (currentUser);
-	}
-
+//      private User getCurrentUserInternal() {
+//              return (currentUser);
+//      }
 	private String getCurrentNodePathInternal() {
 		return (currentNodePath);
 	}
@@ -369,13 +401,18 @@ public class CurrentRequest {
 		context.setResponseInternal(response);
 	}
 
-	public static void setCurrentUser(final User user) {
+//      public static void setCurrentUser(final User user) {
+//
+//              CurrentRequest request = getRequestContext();
+//
+//              if (request != null) {
+//                      request.setCurrentUserInternal(user);
+//              }
+//      }
+	public static void setAccessMode(AccessMode accessMode) {
 
-		CurrentRequest request = getRequestContext();
-
-		if (request != null) {
-			request.setCurrentUserInternal(user);
-		}
+		// wont return null
+		getSecurityContext().setAccessMode(accessMode);
 	}
 
 	public static void setCurrentNodePath(final String currentNodePath) {
@@ -409,10 +446,9 @@ public class CurrentRequest {
 		attributes.put(key, value);
 	}
 
-	private void setCurrentUserInternal(final User currentUser) {
-		this.currentUser = currentUser;
-	}
-
+//      private void setCurrentUserInternal(final User currentUser) {
+//              this.currentUser = currentUser;
+//      }
 	private void setCurrentNodePathInternal(final String currentNodePath) {
 		this.currentNodePath = currentNodePath;
 	}

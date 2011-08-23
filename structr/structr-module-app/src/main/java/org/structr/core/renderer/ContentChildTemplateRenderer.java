@@ -11,7 +11,7 @@ import org.structr.core.entity.AbstractNode;
  *
  * @author Christian Morgner
  */
-public class ContentChildTemplateRenderer implements NodeRenderer {
+public class ContentChildTemplateRenderer implements NodeRenderer<AbstractNode> {
 
 	@Override
 	public void renderNode(StructrOutputStream out, AbstractNode currentNode, AbstractNode startNode, String editUrl, Long editNodeId, RenderMode renderMode) {
@@ -22,7 +22,7 @@ public class ContentChildTemplateRenderer implements NodeRenderer {
 		List<AbstractNode> children = currentNode.getSortedDirectChildNodes();
 		for(AbstractNode child : children)
 		{
-			AbstractNode.staticReplaceByFreeMarker(templateSource, content, child, editUrl, editNodeId);
+			child.replaceByFreeMarker(templateSource, content, child, editUrl, editNodeId);
 		}
 
 		out.append(content.toString());

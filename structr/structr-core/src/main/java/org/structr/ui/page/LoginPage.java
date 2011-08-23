@@ -110,6 +110,9 @@ public class LoginPage extends Admin {
             returnUrl = loginForm.getFieldValue(RETURN_URL_KEY);
             String passwordValue = loginForm.getFieldValue(PASSWORD_KEY);
 
+             // disable redundant initialization on login (whis is this here?)
+            // Services.initialize();
+
             if (SUPERADMIN_USERNAME_KEY.equals(userValue) && SUPERADMIN_PASSWORD_KEY.equals(passwordValue)) {
 
                 logger.log(Level.INFO, "############# Logged in as superadmin! ############");
@@ -117,18 +120,14 @@ public class LoginPage extends Admin {
                 isSuperUser = true;
 
                 user = new SuperUser();
-                CurrentRequest.setCurrentUser(user) ;
+                CurrentSession.setUser(user) ;
                 //getContext().getRequest().getSession().setAttribute(USERNAME_KEY, userValue);
                 setUsernameInSession(userValue);
-
-                Services.initialize();
 
                 // redirect superuser to maintenance
                 setRedirect("/admin/dashboard.htm");
 
             } else {
-
-                Services.initialize();
 
                 Command findUser = Services.command(FindUserCommand.class);
 
@@ -168,7 +167,7 @@ public class LoginPage extends Admin {
 
                 // username and password are both valid
                 userName = userValue;
-                CurrentRequest.setCurrentUser(user) ;
+                CurrentSession.setUser(user) ;
                 setUsernameInSession(userValue);
                 //getContext().getRequest().getSession().setAttribute(USERNAME_KEY, userValue);
 

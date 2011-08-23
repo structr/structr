@@ -2,8 +2,10 @@ package org.structr.renderer;
 
 import java.util.List;
 import org.neo4j.graphdb.Direction;
+import org.structr.common.CurrentRequest;
 import org.structr.common.RelType;
 import org.structr.common.RenderMode;
+import org.structr.common.SecurityContext;
 import org.structr.common.StructrOutputStream;
 import org.structr.core.Command;
 import org.structr.core.NodeRenderer;
@@ -26,8 +28,9 @@ public class XmlRenderer implements NodeRenderer<Xml>
 	@Override
 	public void renderNode(StructrOutputStream out, Xml currentNode, AbstractNode startNode, String editUrl, Long editNodeId, RenderMode renderMode)
 	{
-		if(currentNode.isVisible())
-		{
+		SecurityContext securityContext = CurrentRequest.getSecurityContext();
+		if(securityContext.isVisible(currentNode)) {
+
 			StringBuilder xml = new StringBuilder(currentNode.getXml());
 
 			// start with first occurrence of key prefix

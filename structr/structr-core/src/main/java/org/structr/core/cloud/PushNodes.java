@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.UnsupportedArgumentError;
@@ -35,10 +36,8 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.File;
 import org.structr.core.entity.StructrRelationship;
 import org.structr.core.entity.SuperUser;
-import org.structr.core.entity.User;
 import org.structr.core.node.FindNodeCommand;
 import org.structr.core.notification.AddNotificationCommand;
-import org.structr.core.notification.Notification;
 import org.structr.core.notification.ProgressBarNotification;
 
 /**
@@ -52,7 +51,8 @@ public class PushNodes extends CloudServiceCommand
 	@Override
 	public Object execute(Object... parameters)
 	{
-		User user = null;
+		String userName = null;
+		String password = null;
 		AbstractNode sourceNode = null;
 		long remoteTargetNodeId = 0L;
 		String remoteHost = null;
@@ -67,57 +67,63 @@ public class PushNodes extends CloudServiceCommand
 			case 0:
 				throw new UnsupportedArgumentError("No arguments supplied");
 
-			case 7:
+			case 8:
 
-				// user
-				if(parameters[0] instanceof User)
+				// username
+				if(parameters[0] instanceof String)
 				{
-					user = (User)parameters[0];
+					userName = (String)parameters[0];
+				}
+
+				// password
+				if(parameters[1] instanceof String)
+				{
+					password = (String)parameters[1];
 				}
 
 				// source node
-				if(parameters[1] instanceof Long)
+				if(parameters[2] instanceof Long)
 				{
-					long id = ((Long)parameters[1]).longValue();
+					long id = ((Long)parameters[2]).longValue();
 					sourceNode = (AbstractNode)findNode.execute(null, id);
 
-				} else if(parameters[1] instanceof AbstractNode)
+				} else if(parameters[2] instanceof AbstractNode)
 				{
-					sourceNode = ((AbstractNode)parameters[1]);
+					sourceNode = ((AbstractNode)parameters[2]);
 
-				} else if(parameters[1] instanceof String)
+				} else if(parameters[2] instanceof String)
 				{
-					long id = Long.parseLong((String)parameters[1]);
+					long id = Long.parseLong((String)parameters[2]);
 					sourceNode = (AbstractNode)findNode.execute(null, id);
 				}
 
 				// target node
-				if(parameters[2] instanceof Long)
+				if(parameters[3] instanceof Long)
 				{
-					remoteTargetNodeId = ((Long)parameters[2]).longValue();
+					remoteTargetNodeId = ((Long)parameters[3]).longValue();
 				}
 
-				if(parameters[3] instanceof String)
+				if(parameters[4] instanceof String)
 				{
-					remoteHost = (String)parameters[3];
-				}
-
-				if(parameters[4] instanceof Integer)
-				{
-					remoteTcpPort = (Integer)parameters[4];
+					remoteHost = (String)parameters[4];
 				}
 
 				if(parameters[5] instanceof Integer)
 				{
-					remoteUdpPort = (Integer)parameters[5];
+					remoteTcpPort = (Integer)parameters[5];
 				}
 
-				if(parameters[6] instanceof Boolean)
+				if(parameters[6] instanceof Integer)
 				{
-					recursive = (Boolean)parameters[6];
+					remoteUdpPort = (Integer)parameters[6];
 				}
 
-				pushNodes(user, sourceNode, remoteTargetNodeId, remoteHost, remoteTcpPort, remoteUdpPort, recursive);
+				if(parameters[7] instanceof Boolean)
+				{
+					recursive = (Boolean)parameters[7];
+				}
+
+				pushNodes(userName, password, sourceNode, remoteTargetNodeId, remoteHost, remoteTcpPort, remoteUdpPort, recursive);
 				break;
 
 			default:
@@ -127,12 +133,9 @@ public class PushNodes extends CloudServiceCommand
 		return null;
 	}
 
-	private void pushNodes(final User user, final AbstractNode sourceNode, final long remoteTargetNodeId, final String remoteHost, final int remoteTcpPort, final int remoteUdpPort, final boolean recursive)
+	private void pushNodes(final String userName, String password, final AbstractNode sourceNode, final long remoteTargetNodeId, final String remoteHost, final int remoteTcpPort, final int remoteUdpPort, final boolean recursive)
 	{
-		final CloudService cloudService = (CloudService)Services.command(GetCloudServiceCommand.class).execute();
 		final SynchronizingListener listener = new SynchronizingListener();
-		final Value count = new Value();
-
 		int chunkSize = CloudService.CHUNK_SIZE;
 		int writeBufferSize = CloudService.BUFFER_SIZE * 4;
 		int objectBufferSize = CloudService.BUFFER_SIZE * 2;
@@ -146,92 +149,98 @@ public class PushNodes extends CloudServiceCommand
 		Kryo kryo = client.getKryo();
 		CloudService.registerClasses(kryo);
 
+		// add GUI notification
+		StringBuilder titleBuffer = new StringBuilder();
+		titleBuffer.append("Transmission to ").append(remoteHost).append(":").append(remoteTcpPort);
+		ProgressBarNotification progressNotification = new ProgressBarNotification(titleBuffer.toString());
+		Services.command(AddNotificationCommand.class).execute(progressNotification);
+		
+		// enable notifications to be passed to UI
+		listener.setNotification(progressNotification);
+		listener.setPassword(password);
+		
 		try
 		{
-			int estimatedSize = 0;	// FIXME!
-
-			PushTransmission transmission = new PushTransmission(remoteHost, remoteTcpPort, remoteUdpPort, count, estimatedSize);
-			cloudService.registerTransmission(transmission);
-
-			StringBuilder titleBuffer = new StringBuilder();
-			titleBuffer.append("Transmission to ").append(remoteHost).append(":").append(remoteTcpPort);
-
-			// create transmission notification
-			ProgressBarNotification progressNotification = new ProgressBarNotification(titleBuffer.toString());
-			Services.command(AddNotificationCommand.class).execute(progressNotification);
 
 			// connect
 			client.connect(10000, remoteHost, remoteTcpPort, remoteUdpPort);
 
 			// mark start of transaction
 			client.sendTCP(CloudService.BEGIN_TRANSACTION);
+			
+			// send authentication container
+			client.sendTCP(new AuthenticationContainer(userName));
 
-			// send type of request
-			client.sendTCP(new PushNodeRequestContainer(remoteTargetNodeId));
+			// wait for authentication container reply from server
+			if(listener.waitForAuthentication()) {
 
-			// send child nodes when recursive sending is requested
-			if(recursive)
-			{
-				List<AbstractNode> nodes = sourceNode.getAllChildrenForRemotePush(new SuperUser()); // FIXME: use real user here
+				// send type of request
+				client.sendTCP(new PushNodeRequestContainer(remoteTargetNodeId));
 
-				// FIXME: were collecting the nodes twice here, the first time is only for counting..
-				progressNotification.setTargetProgress(sourceNode.getRemotePushSize(new SuperUser(), chunkSize));
-
-				for(AbstractNode n : nodes)
+				// send child nodes when recursive sending is requested
+				if(recursive)
 				{
-					if(n instanceof File)
+					List<AbstractNode> nodes = sourceNode.getAllChildrenForRemotePush(new SuperUser()); // FIXME: use real user here
+
+					// FIXME: were collecting the nodes twice here, the first time is only for counting..
+					progressNotification.setTargetProgress(sourceNode.getRemotePushSize(new SuperUser(), chunkSize));
+
+					for(AbstractNode n : nodes)
 					{
-						sendFile(client, listener, (File)n, chunkSize, progressNotification);
-
-					} else
-					{
-						NodeDataContainer container = new NodeDataContainer(n);
-						client.sendTCP(container);
-
-						progressNotification.increaseProgress();
-					}
-				}
-
-				for(AbstractNode n : nodes)
-				{
-					// Collect all relationships whose start and end nodes are contained in the above list
-					List<StructrRelationship> rels = n.getOutgoingRelationships();
-					for(StructrRelationship r : rels)
-					{
-
-						if(nodes.contains(r.getStartNode()) && nodes.contains(r.getEndNode()))
+						if(n instanceof File)
 						{
-							client.sendTCP(new RelationshipDataContainer(r));
+							sendFile(client, listener, (File)n, chunkSize, progressNotification);
+
+						} else
+						{
+							NodeDataContainer container = new NodeDataContainer(n);
+							client.sendTCP(container);
+
 							progressNotification.increaseProgress();
 						}
 					}
-				}
 
-			} else
-			{
-				// send start node
-				if(sourceNode instanceof File)
-				{
-					sendFile(client, listener, (File)sourceNode, chunkSize, progressNotification);
+					for(AbstractNode n : nodes)
+					{
+						// Collect all relationships whose start and end nodes are contained in the above list
+						List<StructrRelationship> rels = n.getOutgoingRelationships();
+						for(StructrRelationship r : rels)
+						{
+
+							if(nodes.contains(r.getStartNode()) && nodes.contains(r.getEndNode()))
+							{
+								client.sendTCP(new RelationshipDataContainer(r));
+								progressNotification.increaseProgress();
+							}
+						}
+					}
 
 				} else
 				{
-					// If not recursive, add only the node itself
-					client.sendTCP(new NodeDataContainer(sourceNode));
-					progressNotification.increaseProgress();
-				}
+					// send start node
+					if(sourceNode instanceof File)
+					{
+						sendFile(client, listener, (File)sourceNode, chunkSize, progressNotification);
 
+					} else
+					{
+						// If not recursive, add only the node itself
+						client.sendTCP(new NodeDataContainer(sourceNode));
+						progressNotification.increaseProgress();
+					}
+
+				}
 			}
 
 			// mark end of transaction
 			client.sendTCP(CloudService.END_TRANSACTION);
 
-			cloudService.unregisterTransmission(transmission);
-
 
 		} catch(IOException ex)
 		{
-			logger.log(Level.SEVERE, "Error while sending nodes to remote instance", ex);
+			progressNotification.setErrorMessage("Transmission failed");
+			
+			logger.log(Level.SEVERE, "Error while sending nodes to remote instance", ex.getMessage());
 		}
 
 	}
@@ -282,9 +291,13 @@ public class PushNodes extends CloudServiceCommand
 
 	private class SynchronizingListener extends Listener
 	{
+		private ProgressBarNotification notification = null;
+		private boolean authenticated = false;
+		private String errorMessage = null;
+		private String password = null;
 		private long lastReceived = 0;
 		private int currentValue = 0;
-
+		
 		@Override
 		public void received(Connection connection, Object object)
 		{
@@ -294,7 +307,45 @@ public class PushNodes extends CloudServiceCommand
 				currentValue = value.intValue();
 
 				lastReceived = System.currentTimeMillis();
+				
+			} else if(object instanceof AuthenticationContainer) {
+
+				EncryptionContext.setPassword(connection.getID(), DigestUtils.sha512Hex(password));
+				authenticated = true;
+
+			} else if(object instanceof String) {
+
+				errorMessage = object.toString();
 			}
+		}
+
+		public void setPassword(String password) {
+
+			this.password = password;
+		}
+
+		public void setAuthenticated(boolean authenticated) {
+
+			this.authenticated = authenticated;
+		}
+		
+		@Override
+		public void disconnected(Connection connection) {
+
+			if(this.notification != null) {
+				
+				if(errorMessage == null) {
+					
+					errorMessage = "Disconnected";
+				}
+				
+				this.notification.setErrorMessage(errorMessage);
+			}
+		}
+		
+		public void setNotification(ProgressBarNotification notification) {
+			
+			this.notification = notification;
 		}
 
 		public void waitFor(int sequenceNumber)
@@ -312,73 +363,24 @@ public class PushNodes extends CloudServiceCommand
 				logger.log(Level.WARNING, "Exception while waiting for sequence number {0}: {1}", new Object[] { sequenceNumber, t } );
 			}
 		}
-	}
 
-	public static class PushTransmission implements CloudTransmission
-	{
-		private String remoteHost = null;
-		private boolean finished = false;
-		private int estimatedSize = 0;
-		private long lifeSpan = 3000;
-		private long startTime = 0;
-		private Value count = null;
-		private int tcpPort = 0;
-		private int udpPort = 0;
-		private int size = 0;
-
-		public PushTransmission(String remoteHost, int tcpPort, int udpPort, Value count, int estimatedSize)
+		public boolean waitForAuthentication()
 		{
-			this.remoteHost = remoteHost;
-			this.tcpPort = tcpPort;
-			this.udpPort = udpPort;
-			this.count = count;
-			this.estimatedSize = estimatedSize;
-		}
+			long authTimer = System.currentTimeMillis();
 
-		@Override
-		public TransmissionType getTransmissionType()
-		{
-			return(TransmissionType.Outgoing);
-		}
+			try
+			{
+				// wait for at most 2 seconds for arrival of correct sequence number
+				while(!authenticated && System.currentTimeMillis() < authTimer + TimeUnit.SECONDS.toMillis(2))
+				{
+					Thread.yield();
+				}
 
-		@Override
-		public int getTransmittedObjectCount()
-		{
-			return(count.value);
-		}
+			} catch(Throwable t)
+			{
+			}
 
-		@Override
-		public int getEstimatedSize()
-		{
-			return(estimatedSize);
+			return(authenticated);
 		}
-
-		@Override
-		public String getRemoteHost()
-		{
-			return(remoteHost);
-		}
-
-		@Override
-		public int getRemoteTcpPort()
-		{
-			return(tcpPort);
-		}
-
-		@Override
-		public int getRemoteUdpPort()
-		{
-			return(udpPort);
-		}
-
-		public void setSize(int size)
-		{
-			this.size = size;
-		}
-	}
-
-	public static class Value
-	{
-		public int value = 0;
 	}
 }

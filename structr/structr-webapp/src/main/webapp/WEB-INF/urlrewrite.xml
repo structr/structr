@@ -6,20 +6,22 @@
 
 <urlrewrite>
 
-    <rule>
-        <from>^/view/(.*)?(.*)$</from>
-        <to type="forward">/view.htm?nodeId=/$1/&amp;$2</to>
-    </rule>
-    <rule>
-        <from>^/edit/(.*)?(.*)$</from>
-        <to type="forward">/edit.htm?nodeId=/$1/&amp;$2</to>
-    </rule>
-<!--
+	<rule>
+		<from>^/view/(.*)?(.*)$</from>
+		<to type="forward">/view.htm?nodeId=/$1/&amp;$2</to>
+	</rule>
+	<rule>
+		<from>^/edit/(.*)?(.*)$</from>
+		<to type="forward">/edit.htm?nodeId=/$1/&amp;$2</to>
+	</rule>
+    <!--
     <outbound-rule>
-        <from>/view.htm\?nodeId=/(.*)&amp;(.*)</from>
-        <to>/view/$1?$2</to>
+        <from>/structr-public-website/view.htm\?nodeId=/(.*)&amp;(.*)</from>
+        <to>/$1?$2</to>
     </outbound-rule>
--->
-
+    <outbound-rule>
+        <from>/structr-public-website/view/(.*)/(.*)</from>
+        <to>/$2</to>
+    </outbound-rule>-->
 
 </urlrewrite>

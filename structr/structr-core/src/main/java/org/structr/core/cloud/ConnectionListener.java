@@ -29,6 +29,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.RelType;
 import org.structr.core.Command;
@@ -39,6 +42,7 @@ import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
 import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.FindNodeCommand;
+import org.structr.core.node.FindUserCommand;
 import org.structr.core.node.NodeFactoryCommand;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
@@ -68,6 +72,9 @@ public class ConnectionListener extends Listener implements CloudTransmission {
 	private int remoteUdpPort = 0;
 	private int estimatedSize = 0;
 
+	// authentication
+	private User targetUser = null;
+	
 	// commands
 	private final Command createRel = Services.command(CreateRelationshipCommand.class);
 	private final Command nodeFactory = Services.command(NodeFactoryCommand.class);
@@ -92,12 +99,12 @@ public class ConnectionListener extends Listener implements CloudTransmission {
 	@Override
 	public void received(Connection connection, Object object) {
 
-		logger.log(Level.INFO, "Received {0} ({1})", new Object[] { object, object.getClass().getName() } );
+		logger.log(Level.FINEST, "Received {0} ({1})", new Object[] { object, object.getClass().getName() } );
 
 		// close connection on first keepalive package when transaction is done
 		if(transactionFinished && object instanceof KeepAlive) {
 
-			logger.log(Level.INFO, "Received first KeepAlive after transaction finished, closing connection.");
+			logger.log(Level.FINE, "Received first KeepAlive after transaction finished, closing connection.");
 			connection.close();
 
 		} else if(object instanceof Integer) {
@@ -127,6 +134,26 @@ public class ConnectionListener extends Listener implements CloudTransmission {
 
 			connection.sendTCP(CloudService.ACK_DATA);
 
+		} else if(object instanceof AuthenticationContainer) {
+			
+			AuthenticationContainer auth = (AuthenticationContainer)object;
+			
+			// try to find target user
+			targetUser = (User)Services.command(FindUserCommand.class).execute(auth.getUserName());
+			if(targetUser == null) {
+				
+				logger.log(Level.WARNING, "User not found, disconnecting");
+			
+				connection.sendTCP("Authentication failed");
+				connection.close();
+
+			} else {
+
+				connection.sendTCP(auth);
+
+				EncryptionContext.setPassword(connection.getID(), targetUser.getEncryptedPassword());
+			}
+			
 		} else if(object instanceof PullNodeRequestContainer) {
 
 			pullRequests.add((PullNodeRequestContainer)object);

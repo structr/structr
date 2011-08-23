@@ -31,7 +31,7 @@ import org.structr.core.entity.AbstractNode;
  *
  * @author Christian Morgner
  */
-public interface NodeRenderer<T extends AbstractNode>
+public interface NodeRenderer<T>
 {
 	/**
 	 * Renders the node <code>currentNode</code> to the output stream

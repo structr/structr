@@ -5,13 +5,13 @@
   <parent>
     <groupId>org.structr</groupId>
     <artifactId>structr</artifactId>
-    <version>0.4.M01</version>
+    <version>0.4</version>
   </parent>
 
   <groupId>org.structr</groupId>
   <artifactId>structr-module-chart</artifactId>
   <packaging>jar</packaging>
-  <version>0.4.M01</version>
+  <version>0.4</version>
   <name>structr-module-chart</name>
   <url>http://maven.apache.org</url>
     <build>

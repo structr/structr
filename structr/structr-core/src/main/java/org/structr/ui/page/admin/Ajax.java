@@ -10,6 +10,8 @@ import org.structr.ui.page.StructrPage;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.Collection;
+import org.structr.common.AccessMode;
+import org.structr.common.CurrentRequest;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -21,6 +23,8 @@ public class Ajax extends StructrPage {
 
 	public Ajax() {
 		super();
+
+		CurrentRequest.setAccessMode(AccessMode.Backend);
 	}
 
 	//~--- methods --------------------------------------------------------

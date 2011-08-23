@@ -1,163 +1,199 @@
 /*
  *  Copyright (C) 2011 Axel Morgner, structr <structr@structr.org>
- * 
+ *
  *  This file is part of structr <http://structr.org>.
- * 
+ *
  *  structr is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
- * 
+ *
  *  structr is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- * 
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+
+
 package org.structr.core.entity;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.io.FileUtils;
+
 import org.structr.common.Path;
 import org.structr.common.RenderMode;
 import org.structr.common.renderer.FileStreamRenderer;
 import org.structr.core.NodeRenderer;
 import org.structr.core.Services;
 
+//~--- JDK imports ------------------------------------------------------------
+
+import java.io.IOException;
+import java.io.InputStream;
+
+import java.net.MalformedURLException;
+import java.net.URL;
+
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+//~--- classes ----------------------------------------------------------------
+
 /**
- * 
+ *
  * @author amorgner
- * 
+ *
  */
 public class File extends AbstractNode {
 
-    private final static String ICON_SRC = "/images/page_white.png";
-    private static final Logger logger = Logger.getLogger(File.class.getName());
-    public final static String URL_KEY = "url";
-    public final static String CONTENT_TYPE_KEY = "contentType";
-    public final static String SIZE_KEY = "size";
-//    public final static String FORMATTED_SIZE_KEY = "formattedSize";
-    public final static String RELATIVE_FILE_PATH_KEY = "relativeFilePath";
+	public final static String CONTENT_TYPE_KEY = "contentType";
+	private final static String ICON_SRC        = "/images/page_white.png";
 
-    @Override
-    public String getIconSrc() {
-        return ICON_SRC;
-    }
+//      public final static String FORMATTED_SIZE_KEY = "formattedSize";
+	public final static String RELATIVE_FILE_PATH_KEY = "relativeFilePath";
+	public final static String SIZE_KEY               = "size";
+	public final static String URL_KEY                = "url";
+	private static final Logger logger                = Logger.getLogger(File.class.getName());
 
-    public String getUrl() {
-        return (String) getProperty(URL_KEY);
-    }
+	//~--- get methods ----------------------------------------------------
 
-    @Override
-    public String getContentType() {
-        return (String) getProperty(CONTENT_TYPE_KEY);
-    }
+	@Override
+	public String getIconSrc() {
+		return ICON_SRC;
+	}
 
-    @Override
-    public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers)
-    {
-	    renderers.put(RenderMode.Direct, new FileStreamRenderer());
-    }
+	public String getUrl() {
+		return (String) getProperty(URL_KEY);
+	}
 
-    public long getSize() {
+	@Override
+	public String getContentType() {
+		return (String) getProperty(CONTENT_TYPE_KEY);
+	}
 
-        String relativeFilePath = getRelativeFilePath();
+	//~--- methods --------------------------------------------------------
 
-        if (relativeFilePath != null) {
+	@Override
+	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers) {
+		renderers.put(RenderMode.Direct, new FileStreamRenderer());
+	}
 
-            String filePath = Services.getFilePath(Path.Files, relativeFilePath);
+	//~--- get methods ----------------------------------------------------
 
-            java.io.File fileOnDisk = new java.io.File(filePath);
-            long fileSize = fileOnDisk.length();
+	public long getSize() {
 
-            logger.log(Level.FINE, "File size of node {0} ({1}): {2}", new Object[]{getId(), filePath, fileSize});
+		String relativeFilePath = getRelativeFilePath();
 
-            return fileSize;
-        }
-        return 0;
-    }
+		if (relativeFilePath != null) {
 
-    public String getFormattedSize() {
-        return FileUtils.byteCountToDisplaySize(getSize());
-    }
+			String filePath         = Services.getFilePath(Path.Files, relativeFilePath);
+			java.io.File fileOnDisk = new java.io.File(filePath);
+			long fileSize           = fileOnDisk.length();
 
-    public String getRelativeFilePath() {
-        return (String) getProperty(RELATIVE_FILE_PATH_KEY);
-    }
+			logger.log(Level.FINE, "File size of node {0} ({1}): {2}", new Object[] { getId(), filePath,
+				fileSize });
 
-    public void setRelativeFilePath(final String filePath) {
-        setProperty(RELATIVE_FILE_PATH_KEY, filePath);
-    }
+			return fileSize;
+		}
 
-    public void setUrl(final String url) {
-        setProperty(URL_KEY, url);
-    }
+		return 0;
+	}
 
-    public void setContentType(final String contentType) {
-        setProperty(CONTENT_TYPE_KEY, contentType);
-    }
+	public String getFormattedSize() {
+		return FileUtils.byteCountToDisplaySize(getSize());
+	}
 
-    public void setSize(final long size) {
-        setProperty(SIZE_KEY, size);
-    }
+	public String getRelativeFilePath() {
+		return (String) getProperty(RELATIVE_FILE_PATH_KEY);
+	}
 
-    public URL getFileLocation() {
-        String urlString = "file://" + Services.getFilesPath() + "/" + getRelativeFilePath();
-        try {
-            return new URL(urlString);
-        } catch (MalformedURLException mue) {
-            logger.log(Level.SEVERE, "Invalid URL: {0}", urlString);
-        }
-        return null;
-    }
+	//~--- set methods ----------------------------------------------------
 
-    public InputStream getInputStream() {
+	public void setRelativeFilePath(final String filePath) {
+		setProperty(RELATIVE_FILE_PATH_KEY, filePath);
+	}
 
-        URL url = null;
-        try {
-            url = getFileLocation();
-            return url.openStream();
-        } catch (IOException e) {
-            logger.log(Level.SEVERE, "Error while reading from {0}", new Object[]{url, e.getMessage()});
-        }
+	public void setUrl(final String url) {
+		setProperty(URL_KEY, url);
+	}
 
-        return null;
+	public void setContentType(final String contentType) {
+		setProperty(CONTENT_TYPE_KEY, contentType);
+	}
 
-    }
+	public void setSize(final long size) {
+		setProperty(SIZE_KEY, size);
+	}
 
-    @Override
-    public void onNodeCreation()
-    {
-    }
+	//~--- get methods ----------------------------------------------------
 
-    @Override
-    public void onNodeInstantiation()
-    {
-    }
+	public URL getFileLocation() {
 
-    @Override
-    public void onNodeDeletion() {
+		String urlString = "file://" + Services.getFilesPath() + "/" + getRelativeFilePath();
 
-	    try
-	    {
-		    java.io.File toDelete = new java.io.File(getFileLocation().toURI());
-		    if(toDelete.exists() && toDelete.isFile())
-		    {
-			    toDelete.delete();
-		    }
+		try {
+			return new URL(urlString);
+		} catch (MalformedURLException mue) {
+			logger.log(Level.SEVERE, "Invalid URL: {0}", urlString);
+		}
 
-	    } catch(Throwable t)
-	    {
-		    logger.log(Level.WARNING, "Exception while trying to delete file {0}: {1}", new Object[] { getFileLocation(), t} );
-	    }
+		return null;
+	}
 
-    }
+	public InputStream getInputStream() {
+
+		URL url        = null;
+		InputStream in = null;
+
+		try {
+
+			url = getFileLocation();
+
+			return url.openStream();
+
+		} catch (IOException e) {
+
+			logger.log(Level.SEVERE, "Error while reading from {0}", new Object[] { url, e.getMessage() });
+
+			if (in != null) {
+
+				try {
+					in.close();
+				} catch (IOException ignore) {}
+			}
+		}
+
+		return null;
+	}
+
+	//~--- methods --------------------------------------------------------
+
+	@Override
+	public void onNodeCreation() {}
+
+	@Override
+	public void onNodeInstantiation() {}
+
+	@Override
+	public void onNodeDeletion() {
+
+		try {
+
+			java.io.File toDelete = new java.io.File(getFileLocation().toURI());
+
+			if (toDelete.exists() && toDelete.isFile()) {
+				toDelete.delete();
+			}
+
+		} catch (Throwable t) {
+
+			logger.log(Level.WARNING, "Exception while trying to delete file {0}: {1}",
+				   new Object[] { getFileLocation(),
+						  t });
+		}
+	}
 }

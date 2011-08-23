@@ -149,7 +149,7 @@ public class JXPathFinder {
         try {
             //JXPathContext context = getContext();
 
-            // convert to set to remove duplicate entries
+            // adapt to set to remove duplicate entries
             Set nodeSet = new HashSet(context.selectNodes(xpath.getXPath()));
 
             ret = nodeFactory.createNodes(nodeSet);
