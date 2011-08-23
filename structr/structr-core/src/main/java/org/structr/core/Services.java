@@ -309,15 +309,24 @@ public class Services {
 
         logger.log(Level.INFO, "Shutting down service layer");
 
+	// FIXME: services need to be stopped in reverse order!
+	
         for (Iterator<Service> it = serviceCache.values().iterator(); it.hasNext();) {
             Service service = it.next();
 
-            if (service instanceof RunnableService) {
-                RunnableService runnableService = (RunnableService) service;
-                runnableService.stopService();
-            }
+	    try {
+		    
+		    if (service instanceof RunnableService) {		    
+			RunnableService runnableService = (RunnableService) service;
+			runnableService.stopService();
+		    }
 
-            service.shutdown();
+		    service.shutdown();
+		    
+	    } catch(Throwable t) {
+		    
+		    logger.log(Level.WARNING, "Failed to shut down {0}: {1}", new Object[] { service.getName(), t.getMessage() } );
+	    }
         }
 
         serviceCache.clear();
