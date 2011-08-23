@@ -100,6 +100,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import org.structr.common.AbstractComponent;
 import org.structr.common.AccessControllable;
+import org.structr.core.node.DeleteRelationshipCommand;
 
 //~--- classes ----------------------------------------------------------------
 
