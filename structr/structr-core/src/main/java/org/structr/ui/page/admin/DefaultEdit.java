@@ -84,6 +84,7 @@ import org.structr.core.node.FindGroupCommand;
 import org.structr.core.node.FindNodeCommand;
 import org.structr.core.node.FindUserCommand;
 import org.structr.core.node.NodeConsoleCommand;
+import org.structr.core.node.SetOwnerCommand;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 import org.structr.core.node.operation.Callback;
@@ -103,6 +104,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
+import org.apache.click.extras.control.SubmitLink;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -128,6 +130,8 @@ public class DefaultEdit extends Nodes {
 	protected ActionLink outgoingRelsControl    = outgoingRelationshipsTable.getControlLink();
 	protected ActionLink deleteRelationshipLink = new ActionLink("Delete Relationship", this,
 							      "onDeleteRelationship");
+	protected SubmitLink setCurrentOwnerRecursivelyLink = new SubmitLink("Set current owner recursively", this,
+								      "onSetCurrentOwnerRecursively");
 	protected FormTable childNodesTable = new FormTable("childNodesTable");
 
 //      protected ActionLink deleteNodeLink = new ActionLink("Delete", this, "onDeleteNode");
@@ -202,6 +206,11 @@ public class DefaultEdit extends Nodes {
 		createdDate.setReadonly(true);
 		nodePropertiesFields.add(createdDate);
 		nodePropertiesFields.add(ownerSelect);
+
+		if (securityContext.isAllowed(node, Permission.AccessControl)) {
+			addControl(setCurrentOwnerRecursivelyLink);
+			nodePropertiesFields.add(setCurrentOwnerRecursivelyLink);
+		}
 
 		DateField lastModifiedDate = new DateField(AbstractNode.LAST_MODIFIED_DATE_KEY);
 
@@ -923,8 +932,7 @@ public class DefaultEdit extends Nodes {
 
 			});
 
-//			User owner = node.getOwnerNode();
-
+//                      User owner = node.getOwnerNode();
 			ownerSelect.setDataProvider(new DataProvider() {
 
 				@Override
@@ -971,6 +979,7 @@ public class DefaultEdit extends Nodes {
 				? returnUrl
 				: ""));
 			deleteRelationshipLink.setParameter(NODE_ID_KEY, nodeId);
+			setCurrentOwnerRecursivelyLink.setParameter(NODE_ID_KEY, nodeId);
 			securityForm.copyFrom(node);
 			securityForm.add(new HiddenField(NODE_ID_KEY, (nodeId != null)
 				? nodeId
@@ -1239,6 +1248,21 @@ public class DefaultEdit extends Nodes {
 	}
 
 	/**
+	 * Make owner of current node owner of all sub nodes
+	 *
+	 * @return
+	 */
+	public boolean onSetCurrentOwnerRecursively() {
+
+		Command setOwner         = Services.command(SetOwnerCommand.class);
+		List<AbstractNode> nodes = node.getAllChildren();
+
+		setOwner.execute(nodes, node.getOwnerNode());
+
+		return redirect();
+	}
+
+	/**
 	 * Save form data
 	 */
 	public boolean onSetPermissions() {
@@ -1252,10 +1276,7 @@ public class DefaultEdit extends Nodes {
 			final String selectedGroupName    = securityForm.getFieldValue(groupSelect.getName());
 			final List<String> selectedValues = allowed.getSelectedValues();
 			final boolean rec                 = recursive.isChecked();
-
-			node = getNodeByIdOrPath(nodeId);
-
-			Command transaction = Services.command(TransactionCommand.class);
+			Command transaction               = Services.command(TransactionCommand.class);
 
 			transaction.execute(new StructrTransaction() {
 
