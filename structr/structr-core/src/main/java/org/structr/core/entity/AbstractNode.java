@@ -39,7 +39,9 @@ import org.neo4j.graphdb.traversal.Evaluation;
 import org.neo4j.graphdb.traversal.Evaluator;
 import org.neo4j.kernel.Traversal;
 
+import org.structr.common.AbstractComponent;
 import org.structr.common.AbstractNodeComparator;
+import org.structr.common.AccessControllable;
 import org.structr.common.CurrentRequest;
 import org.structr.common.CurrentSession;
 import org.structr.common.PathHelper;
@@ -60,10 +62,12 @@ import org.structr.core.Services;
 import org.structr.core.cloud.NodeDataContainer;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;
+import org.structr.core.node.DeleteRelationshipCommand;
 import org.structr.core.node.FindNodeCommand;
 import org.structr.core.node.IndexNodeCommand;
 import org.structr.core.node.NodeFactoryCommand;
 import org.structr.core.node.NodeRelationshipsCommand;
+import org.structr.core.node.SetOwnerCommand;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 import org.structr.core.node.XPath;
@@ -98,9 +102,6 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import org.structr.common.AbstractComponent;
-import org.structr.common.AccessControllable;
-import org.structr.core.node.DeleteRelationshipCommand;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -126,6 +127,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	// private final static String keySuffix = "}";
 	private final static String NODE_KEY_PREFIX               = "%{";
 	private final static String NODE_KEY_SUFFIX               = "}";
+	public final static String OWNER_ID_KEY                   = "ownerId";
 	public final static String OWNER_KEY                      = "owner";
 	public final static String POSITION_KEY                   = "position";
 	public final static String PUBLIC_KEY                     = "public";
@@ -2917,6 +2919,10 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		return null;
 	}
 
+	public Long getOwnerId() {
+		return getOwnerNode().getId();
+	}
+
 	/**
 	 * Return owner
 	 *
@@ -3053,6 +3059,30 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		return (ret);
 	}
 
+	@Override
+	public Date getVisibilityStartDate() {
+		return getDateProperty(VISIBILITY_START_DATE_KEY);
+	}
+
+	@Override
+	public Date getVisibilityEndDate() {
+		return getDateProperty(VISIBILITY_END_DATE_KEY);
+	}
+
+	@Override
+	public Date getCreatedDate() {
+		return getDateProperty(CREATED_DATE_KEY);
+	}
+
+	@Override
+	public Date getLastModifiedDate() {
+		return getDateProperty(LAST_MODIFIED_DATE_KEY);
+	}
+
+	public AbstractComponent getHelpContent() {
+		return (null);
+	}
+
 	public boolean hasTemplate() {
 		return (getTemplate() != null);
 	}
@@ -3156,28 +3186,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		return getHidden();
 	}
 
-	@Override
-	public Date getVisibilityStartDate() {
-		return getDateProperty(VISIBILITY_START_DATE_KEY);
-	}
-
-	@Override
-	public Date getVisibilityEndDate() {
-		return getDateProperty(VISIBILITY_END_DATE_KEY);
-	}
-
-	@Override
-	public Date getCreatedDate() {
-		return getDateProperty(CREATED_DATE_KEY);
-	}
-
-	@Override
-	public Date getLastModifiedDate() {
-		return getDateProperty(LAST_MODIFIED_DATE_KEY);
-	}
-
 	// ----- end interface AccessControllable -----
-
 	public boolean isNotDeleted() {
 		return !getDeleted();
 	}
@@ -3539,10 +3548,17 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		this.user = user;
 	}
 
-	public AbstractComponent getHelpContent() {
-		return(null);
+	public void setOwnerId(final Long value) {
+		setOwnerNode(value);
 	}
-	
+
+	private void setOwnerNode(final Long nodeId) {
+
+		Command setOwner = Services.command(SetOwnerCommand.class);
+
+		setOwner.execute(this, Services.command(FindNodeCommand.class).execute(new SuperUser(), nodeId));
+	}
+
 	//~--- inner classes --------------------------------------------------
 
 	private class DefaultRenderer implements NodeRenderer<AbstractNode> {
