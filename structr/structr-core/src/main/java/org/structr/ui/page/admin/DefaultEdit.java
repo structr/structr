@@ -298,11 +298,11 @@ public class DefaultEdit extends Nodes {
 
 		if (securityContext.isAllowed(node, Permission.EditProperty)) {
 
-			nodePropertiesFields.add(new Submit("saveProperties", " Save Properties ", this,
+			editPropertiesForm.add(new Submit("saveProperties", " Save Properties ", this,
 				"onSaveProperties"));
 
 //                      editPropertiesForm.add(new Submit("savePropertiesAndReturn", " Save and Return ", this, "onSaveAndReturn"));
-			nodePropertiesFields.add(new Submit("cancel", " Cancel ", this, "onCancel"));
+			editPropertiesForm.add(new Submit("cancel", " Cancel ", this, "onCancel"));
 		}
 
 		// editPropertiesForm.add(new Submit("saveAndView", " Save And View ", this, "onSaveAndView"));
