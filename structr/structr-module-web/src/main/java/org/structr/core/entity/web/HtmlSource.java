@@ -18,6 +18,8 @@
  */
 package org.structr.core.entity.web;
 
+import java.util.List;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.PlainText;
 
 /**
@@ -27,16 +29,31 @@ import org.structr.core.entity.PlainText;
  */
 public class HtmlSource extends PlainText {
 
-//    private final static String keyPrefix = "${";
-//    private final static String keySuffix = "}";
-//    private final static String requestKeyPrefix = "$[";
-//    private final static String requestKeySuffix = "]";
-//    private final static String subnodeKeyPrefix = "$(";
-//    private final static String subnodeKeySuffix = ")";
     private final static String ICON_SRC = "/images/html.png";
 
     @Override
     public String getIconSrc() {
         return ICON_SRC;
+    }
+
+    /**
+     * If a node has a Page node as ancestor, return it. If not, return null.
+     *
+     * @return
+     */
+    public Page getAncestorPage() {
+
+
+		List<AbstractNode> ancestors = getAncestorNodes();
+
+		for (AbstractNode n : ancestors) {
+
+			if (n instanceof Page) {
+				return (Page) n;
+			}
+		}
+
+		return null;
+
     }
 }
