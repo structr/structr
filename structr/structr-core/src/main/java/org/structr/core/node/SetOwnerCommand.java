@@ -139,21 +139,6 @@ public class SetOwnerCommand extends NodeServiceCommand {
 
 		createRel.execute(user, node, RelType.OWNS);
 		logger.log(Level.FINEST, "Relationship to owner {0} added", user.getName());
-
-		Principal principal;
-		Group group = user.getGroupNode();
-
-		if (group != null) {
-			principal = group;
-		} else {
-			principal = user;
-		}
-
-		StructrRelationship securityRel = (StructrRelationship) createRel.execute(principal, node,
-							  RelType.SECURITY);
-
-		securityRel.setAllowed(Arrays.asList(StructrRelationship.ALL_PERMISSIONS));
-		logger.log(Level.FINEST, "All permissions given to {0}", principal.getName());
 	}
 
 	private void setOwner(final List<AbstractNode> nodeList, final User user) {
