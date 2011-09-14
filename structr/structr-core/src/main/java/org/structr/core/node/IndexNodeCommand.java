@@ -149,11 +149,12 @@ public class IndexNodeCommand extends NodeServiceCommand {
 
         } else {
 
-            index.remove(node, key, value);
-            logger.log(Level.FINE, "Node {0}: Key {1}, Value {2} removed from index", new Object[]{node.getId(), key, value});
+            //index.remove(node, key, value);
+            index.remove(node, key);
+            logger.log(Level.FINE, "Node {0}: Old value for key {1} removed from index", new Object[]{node.getId(), key});
 
             index.add(node, key, value);
-            logger.log(Level.FINE, "Node {0}: Key {1}, Value {2} added to index", new Object[]{node.getId(), key, value});
+            logger.log(Level.FINE, "Node {0}: New value {2} added to index for key {1}", new Object[]{node.getId(), key, value});
             
         }
 

@@ -28,6 +28,7 @@ import org.structr.core.node.search.Search;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
 import org.structr.core.node.search.SearchAttribute;
 
@@ -68,7 +69,7 @@ public class FindUserCommand extends NodeServiceCommand {
                     //userXPath = "//User";
 //                    break;
                     List<User> users = new LinkedList<User>();
-                    List<AbstractNode> result = (List<AbstractNode>) searchNode.execute(null, null, false, false, Search.andExactType(User.class.getSimpleName()));
+                    List<AbstractNode> result = (List<AbstractNode>) searchNode.execute(new SuperUser(), null, false, false, Search.andExactType(User.class.getSimpleName()));
                     
                     for (AbstractNode n : result) {
                         if (n instanceof User) {
@@ -91,7 +92,7 @@ public class FindUserCommand extends NodeServiceCommand {
                         searchAttrs.add(Search.andExactName(userName));
                         searchAttrs.add(Search.andExactType(User.class.getSimpleName()));
 
-                        List<AbstractNode> usersFound = (List<AbstractNode>) searchNode.execute(null, null, false, false, searchAttrs);
+                        List<AbstractNode> usersFound = (List<AbstractNode>) searchNode.execute(new SuperUser(), null, false, false, searchAttrs);
 
                         if (usersFound != null && usersFound.size() > 0 && usersFound.get(0) instanceof User) {
                             return (User) usersFound.get(0);
@@ -115,7 +116,7 @@ public class FindUserCommand extends NodeServiceCommand {
                         searchAttrs.add(Search.andExactName(userName));
                         searchAttrs.add(Search.andExactType(User.class.getSimpleName()));
 
-                        List<AbstractNode> usersFound = (List<AbstractNode>) searchNode.execute(topNode, null, false, false, searchAttrs);
+                        List<AbstractNode> usersFound = (List<AbstractNode>) searchNode.execute(new SuperUser(), topNode, false, false, searchAttrs);
 
                         if (usersFound != null && usersFound.size() > 0 && usersFound.get(0) instanceof User) {
                             return (User) usersFound.get(0);

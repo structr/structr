@@ -1144,31 +1144,11 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 				root.put("Request", requestModel);
 				root.put("ContextPath", request.getContextPath());
 
-				String searchString    = request.getParameter("search");
-				String searchInContent = request.getParameter("searchInContent");
-				boolean inContent      = (StringUtils.isNotEmpty(searchInContent)
-							  && Boolean.parseBoolean(searchInContent))
-							 ? true
-							 : false;
-
-				// if search string is given, put search results into freemarker model
+				String searchString  = Search.normalize(request.getParameter("search"));
+				
 				if ((searchString != null) &&!(searchString.isEmpty())) {
-
-					List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
-
-					searchAttrs.add(Search.orName(searchString));    // search in name
-
-					if (inContent) {
-						searchAttrs.add(Search.orContent(searchString));    // search in name
-					}
-
-					Command search            = Services.command(SearchNodeCommand.class);
-					List<AbstractNode> result = (List<AbstractNode>) search.execute(null,    // user => null means super user
-						null,     // top node => null means search all
-						false,    // include hidden
-						true,     // public only
-						searchAttrs);
-
+					root.put("SearchString", searchString);
+					List<AbstractNode> result = CurrentRequest.getSearchResult();
 					root.put("SearchResults", result);
 				}
 			}
