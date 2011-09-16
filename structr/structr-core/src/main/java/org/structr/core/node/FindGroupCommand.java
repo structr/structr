@@ -29,7 +29,7 @@ import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Group;
-import org.structr.core.entity.User;
+import org.structr.core.entity.SuperUser;
 import org.structr.core.node.search.SearchAttribute;
 
 /**
@@ -61,7 +61,7 @@ public class FindGroupCommand extends NodeServiceCommand {
 
                 case 0:
                     // Return all groups
-                    return (List<Group>) searchNode.execute(null, null, false, false, Search.andExactType(Group.class.getSimpleName()));
+                    return (List<Group>) searchNode.execute(new SuperUser(), null, false, false, Search.andExactType(Group.class.getSimpleName()));
 
                 case 1:
 
@@ -74,7 +74,7 @@ public class FindGroupCommand extends NodeServiceCommand {
                         searchAttrs.add(Search.andExactName(groupName));
                         searchAttrs.add(Search.andExactType(Group.class.getSimpleName()));
 
-                        List<AbstractNode> groupsFound = (List<AbstractNode>) searchNode.execute(null, null, false, false, searchAttrs);
+                        List<AbstractNode> groupsFound = (List<AbstractNode>) searchNode.execute(new SuperUser(), null, false, false, searchAttrs);
 
                         if (groupsFound != null && groupsFound.size() > 0) {
                             return groupsFound.get(0);

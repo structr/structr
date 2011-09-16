@@ -23,7 +23,12 @@ package org.structr.common;
 
 import org.apache.commons.lang.StringUtils;
 
+import org.structr.core.Command;
+import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.node.search.Search;
+import org.structr.core.node.search.SearchAttribute;
+import org.structr.core.node.search.SearchNodeCommand;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -62,6 +67,7 @@ public class CurrentRequest {
 	private String currentNodePath                  = null;
 	private HttpServletRequest internalRequest      = null;
 	private HttpServletResponse internalResponse    = null;
+	private List<AbstractNode> internalSearchResult = null;
 	private SecurityContext internalSecurityContext = new SecurityContext();
 
 	// ----- private attributes -----
@@ -135,7 +141,9 @@ public class CurrentRequest {
 		CurrentRequest request = getRequestContext();
 
 		if (request != null) {
+
 			request.callOnRequestStart();
+			request.retrieveSearchResult();
 		}
 	}
 
@@ -269,6 +277,52 @@ public class CurrentRequest {
 		}
 	}
 
+	private void retrieveSearchResult() {
+
+		CurrentRequest request = getRequestContext();
+
+		if (request != null) {
+
+			HttpServletRequest requestInternal = request.getRequestInternal();
+			String searchString                = Search.normalize(requestInternal.getParameter("search"));
+			String searchInTitle               = requestInternal.getParameter("searchInTitle");
+			boolean inTitle                    = (StringUtils.isNotEmpty(searchInTitle)
+							      && Boolean.parseBoolean(searchInTitle))
+				? true
+				: false;
+			String searchInContent = requestInternal.getParameter("searchInContent");
+			boolean inContent      = (StringUtils.isNotEmpty(searchInContent)
+						  && Boolean.parseBoolean(searchInContent))
+						 ? true
+						 : false;
+
+			// if search string is given, put search results into freemarker model
+			if ((searchString != null) &&!(searchString.isEmpty())) {
+
+				List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
+
+				searchAttrs.add(Search.orName(searchString));    // search in name
+
+				if (inTitle) {
+					searchAttrs.add(Search.orTitle(searchString));    // search in title
+				}
+
+				if (inContent) {
+					searchAttrs.add(Search.orContent(searchString));    // search in name
+				}
+
+				Command search            = Services.command(SearchNodeCommand.class);
+				List<AbstractNode> result = (List<AbstractNode>) search.execute(null,    // user => null means super user
+					null,     // top node => null means search all
+					false,    // include deleted
+					true,     // public only
+					searchAttrs);
+
+				request.setSearchResultInternal(result);
+			}
+		}
+	}
+
 	//~--- get methods ----------------------------------------------------
 
 	public static SecurityContext getSecurityContext() {
@@ -343,6 +397,17 @@ public class CurrentRequest {
 		return (null);
 	}
 
+	public static List<AbstractNode> getSearchResult() {
+
+		CurrentRequest request = getRequestContext();
+
+		if (request != null) {
+			return request.getSearchResultInternal();
+		}
+
+		return (null);
+	}
+
 	private SecurityContext getSecurityContextInternal() {
 		return (this.internalSecurityContext);
 	}
@@ -364,6 +429,10 @@ public class CurrentRequest {
 
 	private Object getRequestAttributeInternal(final String key) {
 		return (attributes.get(key));
+	}
+
+	private List<AbstractNode> getSearchResultInternal() {
+		return (this.internalSearchResult);
 	}
 
 	// ----- private static methods -----
@@ -451,5 +520,9 @@ public class CurrentRequest {
 //      }
 	private void setCurrentNodePathInternal(final String currentNodePath) {
 		this.currentNodePath = currentNodePath;
+	}
+
+	public void setSearchResultInternal(final List<AbstractNode> result) {
+		this.internalSearchResult = result;
 	}
 }

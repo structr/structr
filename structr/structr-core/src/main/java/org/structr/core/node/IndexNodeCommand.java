@@ -1,161 +1,196 @@
 /*
  *  Copyright (C) 2011 Axel Morgner, structr <structr@structr.org>
- * 
+ *
  *  This file is part of structr <http://structr.org>.
- * 
+ *
  *  structr is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
- * 
+ *
  *  structr is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- * 
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+
+
 package org.structr.core.node;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.lang.StringUtils;
+
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.index.Index;
+
+import org.structr.core.Command;
+import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.SuperUser;
+
+//~--- JDK imports ------------------------------------------------------------
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+//~--- classes ----------------------------------------------------------------
 
 /**
- * Command for indexing a node's property
+ * Command for indexing nodes
  *
  * @author axel
  */
 public class IndexNodeCommand extends NodeServiceCommand {
 
-    private static final Logger logger = Logger.getLogger(IndexNodeCommand.class.getName());
-    private Index<Node> index;
+	private static final Logger logger = Logger.getLogger(IndexNodeCommand.class.getName());
 
-    @Override
-    public Object execute(Object... parameters) {
+	//~--- fields ---------------------------------------------------------
 
-        GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
-        index = (Index<Node>) arguments.get("index");
+	private Index<Node> index;
 
-        if (graphDb != null) {
-            long id = 0;
-            Node node = null;
-            AbstractNode structrNode = null;
+	//~--- methods --------------------------------------------------------
 
-            String key = null;
+	@Override
+	public Object execute(Object... parameters) {
 
-            switch (parameters.length) {
+		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
 
-                case 1:
+		index = (Index<Node>) arguments.get("index");
 
-                    // index all properties of this node
-                    if (parameters[0] instanceof Long) {
-                        id = ((Long) parameters[0]).longValue();
-                    } else if (parameters[0] instanceof String) {
-                        id = Long.parseLong((String) parameters[0]);
-                    } else if (parameters[0] instanceof AbstractNode) {
-                        structrNode = (AbstractNode) parameters[0];
-                        id = structrNode.getId();
-                    }
+		if (graphDb != null) {
 
-                    node = graphDb.getNodeById(id);
+			long id           = 0;
+			AbstractNode node = null;
+			String key        = null;
+			Command findNode  = Services.command(FindNodeCommand.class);
 
-                    indexNode(node);
+			switch (parameters.length) {
 
-                    break;
+				case 1 :
 
-                case 2:
+					// index all properties of this node
+					if (parameters[0] instanceof Long) {
 
-                    // index a certain property
+						id   = ((Long) parameters[0]).longValue();
+						node = (AbstractNode) findNode.execute(new SuperUser(), id);
 
-                    if (parameters[0] instanceof Long) {
-                        id = ((Long) parameters[0]).longValue();
-                    } else if (parameters[0] instanceof String) {
-                        id = Long.parseLong((String) parameters[0]);
-                    } else if (parameters[0] instanceof AbstractNode) {
-                        structrNode = (AbstractNode) parameters[0];
-                        id = structrNode.getId();
-                    }
+					} else if (parameters[0] instanceof String) {
 
-                    node = graphDb.getNodeById(id);
+						id   = Long.parseLong((String) parameters[0]);
+						node = (AbstractNode) findNode.execute(new SuperUser(), id);
 
-                    if (parameters[1] instanceof String) {
-                        key = (String) parameters[1];
-                    }
+					} else if (parameters[0] instanceof AbstractNode) {
+						node = (AbstractNode) parameters[0];
+					}
 
-                    indexProperty(node, key);
+					indexNode(node);
 
-                    break;
+					break;
 
+				case 2 :
 
-                default:
+					// index a certain property
+					if (parameters[0] instanceof Long) {
 
-                    logger.log(Level.SEVERE, "Wrong number of parameters for the index property command: {0}", parameters);
-                    return null;
+						id   = ((Long) parameters[0]).longValue();
+						node = (AbstractNode) findNode.execute(new SuperUser(), id);
 
-            }
-        }
+					} else if (parameters[0] instanceof String) {
 
-        return null;
+						id   = Long.parseLong((String) parameters[0]);
+						node = (AbstractNode) findNode.execute(new SuperUser(), id);
 
-    }
+					} else if (parameters[0] instanceof AbstractNode) {
 
-    private void indexNode(final Node node) {
+						node = (AbstractNode) parameters[0];
+						id   = node.getId();
+					}
 
-        for (String key : node.getPropertyKeys()) {
-            indexProperty(node, key);
-        }
+					if (parameters[1] instanceof String) {
+						key = (String) parameters[1];
+					}
 
-    }
+					indexProperty(node, key);
 
-    private void indexProperty(final Node node, final String key) {
+					break;
 
+				default :
+					logger.log(Level.SEVERE,
+						   "Wrong number of parameters for the index property command: {0}",
+						   parameters);
 
-        if (key == null) {
-            logger.log(Level.SEVERE, "Node {0} has null key", new Object[]{node.getId()});
-            return;
-        }
+					return null;
+			}
+		}
 
-        boolean emptyKey = StringUtils.isEmpty((String) key);
+		return null;
+	}
 
-        if (emptyKey) {
-            logger.log(Level.SEVERE, "Node {0} has empty, not-null key, removing property", new Object[]{node.getId()});
-            node.removeProperty(key);
-            return;
-        }
+	private void indexNode(final AbstractNode node) {
 
-        if (!(node.hasProperty(key))) {
-            logger.log(Level.FINE, "Node {0} has no key {1}, ignoring", new Object[]{node.getId(), key});
-            return;
-        }
+		for (String key : node.getPropertyKeys()) {
+			indexProperty(node, key);
+		}
+	}
 
-        Object value = node.getProperty(key);
+	private void indexProperty(final AbstractNode node, final String key) {
 
-        boolean emptyValue = (value instanceof String && StringUtils.isEmpty((String) value));
+		if (key == null) {
 
-        if (value == null) {
+			logger.log(Level.SEVERE, "Node {0} has null key", new Object[] { node.getId() });
 
-            logger.log(Level.SEVERE, "Node {0} has null value for key {1}, removing property", new Object[]{node.getId(), key});
-            node.removeProperty(key);
+			return;
+		}
 
-        } else if (emptyValue) {
+		boolean emptyKey = StringUtils.isEmpty((String) key);
 
-            logger.log(Level.WARNING, "Node {0} has empty, non-null value for key {1}", new Object[]{node.getId(), key});
+		if (emptyKey) {
 
-        } else {
+			logger.log(Level.SEVERE, "Node {0} has empty, not-null key, removing property",
+				   new Object[] { node.getId() });
+			node.getNode().removeProperty(key);
 
-            index.remove(node, key, value);
-            logger.log(Level.FINE, "Node {0}: Key {1}, Value {2} removed from index", new Object[]{node.getId(), key, value});
+			return;
+		}
 
-            index.add(node, key, value);
-            logger.log(Level.FINE, "Node {0}: Key {1}, Value {2} added to index", new Object[]{node.getId(), key, value});
-            
-        }
+		if (!(node.getNode().hasProperty(key))) {
 
-    }
+			logger.log(Level.FINE, "Node {0} has no key {1}, ignoring", new Object[] { node.getId(), key });
+
+			return;
+		}
+
+		Object value       = node.getPropertyForIndexing(key);
+		boolean emptyValue = ((value instanceof String) && StringUtils.isEmpty((String) value));
+
+		if (value == null) {
+
+			logger.log(Level.SEVERE, "Node {0} has null value for key {1}, removing property",
+				   new Object[] { node.getId(),
+						  key });
+			node.getNode().removeProperty(key);
+
+		} else if (emptyValue) {
+
+			logger.log(Level.WARNING, "Node {0} has empty, non-null value for key {1}",
+				   new Object[] { node.getId(),
+						  key });
+
+		} else {
+
+			// index.remove(node, key, value);
+			index.remove(node.getNode(), key);
+			logger.log(Level.FINE, "Node {0}: Old value for key {1} removed from index",
+				   new Object[] { node.getId(),
+						  key });
+			index.add(node.getNode(), key, value);
+			logger.log(Level.FINE, "Node {0}: New value {2} added to index for key {1}",
+				   new Object[] { node.getId(),
+						  key, value });
+		}
+	}
 }

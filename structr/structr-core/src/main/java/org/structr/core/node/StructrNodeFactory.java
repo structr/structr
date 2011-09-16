@@ -23,6 +23,9 @@ package org.structr.core.node;
 
 import org.neo4j.graphdb.Node;
 
+import org.structr.common.CurrentRequest;
+import org.structr.common.Permission;
+import org.structr.common.SecurityContext;
 import org.structr.core.Adapter;
 import org.structr.core.Services;
 import org.structr.core.cloud.FileNodeDataContainer;
@@ -40,9 +43,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.CurrentRequest;
-import org.structr.common.Permission;
-import org.structr.common.SecurityContext;
+import org.structr.core.entity.SuperUser;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -114,16 +115,18 @@ public class StructrNodeFactory<T extends AbstractNode> implements Adapter<Node,
 		final boolean includeDeleted, final boolean publicOnly) {
 
 		SecurityContext securityContext = CurrentRequest.getSecurityContext();
-		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
+		List<AbstractNode> nodes        = new LinkedList<AbstractNode>();
 
 		if ((input != null) && input.iterator().hasNext()) {
 
 			for (Node node : input) {
 
-				AbstractNode n = createNode(node);
+				AbstractNode n                  = createNode(node);
+				boolean readableByUser          = (user instanceof SuperUser || securityContext.isAllowed(n, Permission.Read));
+				boolean publicUserAndPublicNode = ((user == null) && n.isPublic());
 
-				if (((user == null) || securityContext.isAllowed(n, Permission.Read)) && (includeDeleted ||!(n.isDeleted()))
-					&& (!publicOnly || n.isPublic())) {
+				if ((readableByUser || publicUserAndPublicNode) && (includeDeleted ||!n.isDeleted())
+					&& (n.isPublic() ||!publicOnly)) {
 					nodes.add(n);
 				}
 			}
@@ -145,7 +148,7 @@ public class StructrNodeFactory<T extends AbstractNode> implements Adapter<Node,
 	 */
 	public List<AbstractNode> createNodes(final Iterable<Node> input, final User user,
 		final boolean includeDeleted) {
-		return createNodes(input, null, includeDeleted, false);
+		return createNodes(input, user, includeDeleted, false);
 	}
 
 	/**
@@ -158,12 +161,11 @@ public class StructrNodeFactory<T extends AbstractNode> implements Adapter<Node,
 	 * @return
 	 */
 	public List<AbstractNode> createNodes(final Iterable<Node> input, final boolean includeDeleted) {
-		return createNodes(input, null, includeDeleted);
+		return createNodes(input, new SuperUser(), includeDeleted);
 	}
 
 	/**
 	 * Create structr nodes from all given underlying database nodes
-	 * including nodes with 'deleted' flag
 	 *
 	 * @param input
 	 * @return
