@@ -1724,6 +1724,18 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		return (getProperty(propertyKey.name()));
 	}
 
+	/**
+	 * Return property value which is used for indexing.
+	 *
+	 * This is useful f.e. to filter markup from HTML to index only text
+	 *
+	 * @param key
+	 * @return
+	 */
+	public Object getPropertyForIndexing(final String key) {
+		return getProperty(key);
+	}
+
 	public Object getProperty(final String key) {
 
 		if (isDirty) {
