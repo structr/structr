@@ -176,9 +176,10 @@ public class IndexNodeCommand extends NodeServiceCommand {
 
 		} else if (emptyValue) {
 
-			logger.log(Level.WARNING, "Node {0} has empty, non-null value for key {1}",
+			logger.log(Level.SEVERE, "Node {0} has empty, non-null value for key {1}, removing property",
 				   new Object[] { node.getId(),
 						  key });
+			node.getNode().removeProperty(key);
 
 		} else {
 
