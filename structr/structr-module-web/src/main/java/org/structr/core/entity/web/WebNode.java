@@ -36,6 +36,8 @@ import org.structr.core.node.NodeFactoryCommand;
 
 //~--- JDK imports ------------------------------------------------------------
 
+import java.text.Normalizer;
+
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -72,6 +74,27 @@ public class WebNode extends ArbitraryNode {
 	}
 
 	//~--- get methods ----------------------------------------------------
+
+	/**
+	 * Use normalized string for indexing of name and title.
+	 *
+	 * @param key
+	 * @return
+	 */
+	@Override
+	public Object getPropertyForIndexing(final String key) {
+
+		if (AbstractNode.NAME_KEY.equals(key) || AbstractNode.TITLE_KEY.equals(key)) {
+
+			String name           = (String) getStringProperty(key);
+			String normalizedName = Normalizer.normalize(name, Normalizer.Form.NFC);
+
+			return name.concat(" ").concat(normalizedName);
+
+		} else {
+			return getProperty(key);
+		}
+	}
 
 	/**
 	 * Traverse over all child nodes to find a home page
