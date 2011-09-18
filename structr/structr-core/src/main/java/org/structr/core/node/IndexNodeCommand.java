@@ -23,7 +23,6 @@ package org.structr.core.node;
 
 import org.apache.commons.lang.StringUtils;
 
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.index.Index;
 
@@ -34,6 +33,7 @@ import org.structr.core.entity.SuperUser;
 
 //~--- JDK imports ------------------------------------------------------------
 
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -57,77 +57,96 @@ public class IndexNodeCommand extends NodeServiceCommand {
 	@Override
 	public Object execute(Object... parameters) {
 
-		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
-
 		index = (Index<Node>) arguments.get("index");
 
-		if (graphDb != null) {
+		long id           = 0;
+		AbstractNode node = null;
+		String key        = null;
 
-			long id           = 0;
-			AbstractNode node = null;
-			String key        = null;
-			Command findNode  = Services.command(FindNodeCommand.class);
+		switch (parameters.length) {
 
-			switch (parameters.length) {
+			case 1 :
 
-				case 1 :
+				// index all properties of this node
+				if (parameters[0] instanceof Long) {
 
-					// index all properties of this node
-					if (parameters[0] instanceof Long) {
+					id = ((Long) parameters[0]).longValue();
 
-						id   = ((Long) parameters[0]).longValue();
-						node = (AbstractNode) findNode.execute(new SuperUser(), id);
+					Command findNode = Services.command(FindNodeCommand.class);
 
-					} else if (parameters[0] instanceof String) {
-
-						id   = Long.parseLong((String) parameters[0]);
-						node = (AbstractNode) findNode.execute(new SuperUser(), id);
-
-					} else if (parameters[0] instanceof AbstractNode) {
-						node = (AbstractNode) parameters[0];
-					}
-
+					node = (AbstractNode) findNode.execute(new SuperUser(), id);
 					indexNode(node);
 
-					break;
+				} else if (parameters[0] instanceof String) {
 
-				case 2 :
+					id = Long.parseLong((String) parameters[0]);
 
-					// index a certain property
-					if (parameters[0] instanceof Long) {
+					Command findNode = Services.command(FindNodeCommand.class);
 
-						id   = ((Long) parameters[0]).longValue();
-						node = (AbstractNode) findNode.execute(new SuperUser(), id);
+					node = (AbstractNode) findNode.execute(new SuperUser(), id);
+					indexNode(node);
 
-					} else if (parameters[0] instanceof String) {
+				} else if (parameters[0] instanceof AbstractNode) {
 
-						id   = Long.parseLong((String) parameters[0]);
-						node = (AbstractNode) findNode.execute(new SuperUser(), id);
+					node = (AbstractNode) parameters[0];
+					indexNode(node);
 
-					} else if (parameters[0] instanceof AbstractNode) {
+				} else if (parameters[0] instanceof List) {
+					indexNodes((List<AbstractNode>) parameters[0]);
+				}
 
-						node = (AbstractNode) parameters[0];
-						id   = node.getId();
-					}
 
-					if (parameters[1] instanceof String) {
-						key = (String) parameters[1];
-					}
+				break;
 
-					indexProperty(node, key);
+			case 2 :
 
-					break;
+				// index a certain property
+				if (parameters[0] instanceof Long) {
 
-				default :
-					logger.log(Level.SEVERE,
-						   "Wrong number of parameters for the index property command: {0}",
-						   parameters);
+					id = ((Long) parameters[0]).longValue();
 
-					return null;
-			}
+					Command findNode = Services.command(FindNodeCommand.class);
+
+					node = (AbstractNode) findNode.execute(new SuperUser(), id);
+
+				} else if (parameters[0] instanceof String) {
+
+					id = Long.parseLong((String) parameters[0]);
+
+					Command findNode = Services.command(FindNodeCommand.class);
+
+					node = (AbstractNode) findNode.execute(new SuperUser(), id);
+
+				} else if (parameters[0] instanceof AbstractNode) {
+
+					node = (AbstractNode) parameters[0];
+					//id   = node.getId();
+				}
+
+				if (parameters[1] instanceof String) {
+					key = (String) parameters[1];
+				}
+
+				indexProperty(node, key);
+
+				break;
+
+			default :
+				logger.log(Level.SEVERE,
+					   "Wrong number of parameters for the index property command: {0}",
+					   parameters);
+
+				return null;
 		}
 
 		return null;
+	}
+
+	private void indexNodes(final List<AbstractNode> nodes) {
+
+		for (AbstractNode node : nodes) {
+			indexNode(node);
+		}
 	}
 
 	private void indexNode(final AbstractNode node) {
@@ -139,9 +158,12 @@ public class IndexNodeCommand extends NodeServiceCommand {
 
 	private void indexProperty(final AbstractNode node, final String key) {
 
+		Node dbNode = node.getNode();
+		long id = node.getId();
+
 		if (key == null) {
 
-			logger.log(Level.SEVERE, "Node {0} has null key", new Object[] { node.getId() });
+			logger.log(Level.SEVERE, "Node {0} has null key", new Object[] { id });
 
 			return;
 		}
@@ -151,18 +173,19 @@ public class IndexNodeCommand extends NodeServiceCommand {
 		if (emptyKey) {
 
 			logger.log(Level.SEVERE, "Node {0} has empty, not-null key, removing property",
-				   new Object[] { node.getId() });
-			node.getNode().removeProperty(key);
+				   new Object[] { id });
+			dbNode.removeProperty(key);
 
 			return;
 		}
 
 		if (!(node.getNode().hasProperty(key))) {
 
-			logger.log(Level.FINE, "Node {0} has no key {1}, ignoring", new Object[] { node.getId(), key });
+			logger.log(Level.FINE, "Node {0} has no key {1}, ignoring", new Object[] { id, key });
 
 			return;
 		}
+
 
 		Object value       = node.getPropertyForIndexing(key);
 		boolean emptyValue = ((value instanceof String) && StringUtils.isEmpty((String) value));
@@ -170,27 +193,27 @@ public class IndexNodeCommand extends NodeServiceCommand {
 		if (value == null) {
 
 			logger.log(Level.SEVERE, "Node {0} has null value for key {1}, removing property",
-				   new Object[] { node.getId(),
+				   new Object[] { id,
 						  key });
-			node.getNode().removeProperty(key);
+			dbNode.removeProperty(key);
 
 		} else if (emptyValue) {
 
 			logger.log(Level.SEVERE, "Node {0} has empty, non-null value for key {1}, removing property",
-				   new Object[] { node.getId(),
+				   new Object[] { id,
 						  key });
-			node.getNode().removeProperty(key);
+			dbNode.removeProperty(key);
 
 		} else {
 
 			// index.remove(node, key, value);
-			index.remove(node.getNode(), key);
+			index.remove(dbNode, key);
 			logger.log(Level.FINE, "Node {0}: Old value for key {1} removed from index",
-				   new Object[] { node.getId(),
+				   new Object[] { id,
 						  key });
-			index.add(node.getNode(), key, value);
+			index.add(dbNode, key, value);
 			logger.log(Level.FINE, "Node {0}: New value {2} added to index for key {1}",
-				   new Object[] { node.getId(),
+				   new Object[] { id,
 						  key, value });
 		}
 	}

@@ -49,7 +49,7 @@ import java.util.logging.Logger;
  *
  * @author axel
  */
-public class WebNode extends ArbitraryNode {
+public class WebNode extends AbstractNode {
 
 	public final static String SESSION_BLOCKED = "sessionBlocked";
 	public final static String USERNAME_KEY    = "username";
@@ -73,6 +73,9 @@ public class WebNode extends ArbitraryNode {
 		return true;
 	}
 
+	@Override
+	public void onNodeDeletion() {}
+
 	//~--- get methods ----------------------------------------------------
 
 	/**
@@ -86,14 +89,21 @@ public class WebNode extends ArbitraryNode {
 
 		if (AbstractNode.NAME_KEY.equals(key) || AbstractNode.TITLE_KEY.equals(key)) {
 
-			String name           = (String) getStringProperty(key);
-			String normalizedName = Normalizer.normalize(name, Normalizer.Form.NFC);
+			String name = (String) getStringProperty(key);
 
-			return name.concat(" ").concat(normalizedName);
+			if (name != null) {
 
-		} else {
-			return getProperty(key);
+				String normalizedName = Normalizer.normalize(name, Normalizer.Form.NFD);
+
+				normalizedName = normalizedName.replaceAll("[^\\p{ASCII}]", "");
+
+				if ((normalizedName != null) &&!(name.equals(normalizedName))) {
+					return name.concat(" ").concat(normalizedName);
+				}
+			}
 		}
+
+		return getProperty(key);
 	}
 
 	/**
