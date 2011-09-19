@@ -23,6 +23,9 @@ package org.structr.core.node;
 
 import org.neo4j.graphdb.Node;
 
+import org.structr.common.CurrentRequest;
+import org.structr.common.Permission;
+import org.structr.common.SecurityContext;
 import org.structr.core.Adapter;
 import org.structr.core.Services;
 import org.structr.core.cloud.FileNodeDataContainer;
@@ -30,6 +33,7 @@ import org.structr.core.cloud.NodeDataContainer;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.ArbitraryNode;
 import org.structr.core.entity.File;
+import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
 import org.structr.core.module.GetEntityClassCommand;
 
@@ -40,9 +44,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.CurrentRequest;
-import org.structr.common.Permission;
-import org.structr.common.SecurityContext;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -114,16 +115,20 @@ public class StructrNodeFactory<T extends AbstractNode> implements Adapter<Node,
 		final boolean includeDeleted, final boolean publicOnly) {
 
 		SecurityContext securityContext = CurrentRequest.getSecurityContext();
-		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
+		List<AbstractNode> nodes        = new LinkedList<AbstractNode>();
 
 		if ((input != null) && input.iterator().hasNext()) {
 
 			for (Node node : input) {
 
-				AbstractNode n = createNode(node);
+				AbstractNode n                  = createNode(node);
+				boolean publicUserAndPublicNode = ((user == null) && n.isPublic());
+				boolean readableByUser          = (publicUserAndPublicNode
+								   || ((user != null) && (user instanceof SuperUser))
+								   || securityContext.isAllowed(n, Permission.Read));
 
-				if (((user == null) || securityContext.isAllowed(n, Permission.Read)) && (includeDeleted ||!(n.isDeleted()))
-					&& (!publicOnly || n.isPublic())) {
+				if (readableByUser && (includeDeleted ||!n.isDeleted())
+					&& (n.isPublic() ||!publicOnly)) {
 					nodes.add(n);
 				}
 			}
@@ -145,31 +150,78 @@ public class StructrNodeFactory<T extends AbstractNode> implements Adapter<Node,
 	 */
 	public List<AbstractNode> createNodes(final Iterable<Node> input, final User user,
 		final boolean includeDeleted) {
-		return createNodes(input, null, includeDeleted, false);
+
+		SecurityContext securityContext = CurrentRequest.getSecurityContext();
+		List<AbstractNode> nodes        = new LinkedList<AbstractNode>();
+
+		if ((input != null) && input.iterator().hasNext()) {
+
+			for (Node node : input) {
+
+				AbstractNode n         = createNode(node);
+				boolean readableByUser = ((user instanceof SuperUser)
+							  || securityContext.isAllowed(n, Permission.Read));
+				boolean publicUserAndPublicNode = ((user == null) && n.isPublic());
+
+				if ((readableByUser || publicUserAndPublicNode) && (includeDeleted ||!n.isDeleted())) {
+					nodes.add(n);
+				}
+			}
+		}
+
+		return nodes;
 	}
 
-	/**
-	 * Create structr nodes from the underlying database nodes
-	 *
-	 * If includeDeleted is true, include nodes with 'deleted' flag
-	 *
-	 * @param input
-	 * @param includeDeleted
-	 * @return
-	 */
-	public List<AbstractNode> createNodes(final Iterable<Node> input, final boolean includeDeleted) {
-		return createNodes(input, null, includeDeleted);
-	}
+//
+//      /**
+//       * Create structr nodes from the underlying database nodes
+//       *
+//       * If includeDeleted is true, include nodes with 'deleted' flag
+//       *
+//       * @param input
+//       * @param includeDeleted
+//       * @return
+//       */
+//      public List<AbstractNode> createNodes(final Iterable<Node> input, final boolean includeDeleted) {
+//
+//              List<AbstractNode> nodes = new LinkedList<AbstractNode>();
+//
+//              if ((input != null) && input.iterator().hasNext()) {
+//
+//                      for (Node node : input) {
+//
+//                              AbstractNode n = createNode(node);
+//
+//                              if (includeDeleted ||!n.isDeleted()) {
+//                                      nodes.add(n);
+//                              }
+//                      }
+//              }
+//
+//              return nodes;
+//      }
 
 	/**
 	 * Create structr nodes from all given underlying database nodes
-	 * including nodes with 'deleted' flag
 	 *
 	 * @param input
 	 * @return
 	 */
 	public List<AbstractNode> createNodes(final Iterable<Node> input) {
-		return createNodes(input, true);
+
+		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
+
+		if ((input != null) && input.iterator().hasNext()) {
+
+			for (Node node : input) {
+
+				AbstractNode n = createNode(node);
+
+				nodes.add(n);
+			}
+		}
+
+		return nodes;
 	}
 
 //      @Override
