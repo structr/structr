@@ -92,6 +92,15 @@
 		<servlet-name>ClickServlet</servlet-name>
 		<url-pattern>*.htm</url-pattern>
 	</servlet-mapping>
+	<servlet>
+		<servlet-name>CoreServlet</servlet-name>
+		<servlet-class>org.structr.core.servlet.CoreServlet</servlet-class>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>CoreServlet</servlet-name>
+		<url-pattern>/api/*</url-pattern>
+	</servlet-mapping>
     <!--  custom context parameter start -->
 	<context-param>
 		<description>structr config file path</description>
