@@ -85,7 +85,7 @@ public class RelationshipConstraint extends ResourceConstraint {
 
 	@Override
 	public boolean supportsNesting() {
-		return false;
+		return true;
 	}
 
 	@Override
