@@ -25,6 +25,7 @@ import org.neo4j.graphdb.*;
 import org.structr.common.PropertyKey;
 import org.structr.common.RelType;
 import org.structr.core.Command;
+import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.DeleteRelationshipCommand;
@@ -38,7 +39,7 @@ import org.structr.core.node.TransactionCommand;
  * @author amorgner
  *
  */
-public class StructrRelationship {
+public class StructrRelationship implements GraphObject {
 
     public final static String ALLOWED_KEY = "allowed";
     public final static String DENIED_KEY = "denied";
@@ -304,4 +305,35 @@ public class StructrRelationship {
 
 	return(new Long(dbRelationship.getId()).hashCode());
     }
+
+    // ----- interface GraphObject -----
+	@Override
+	public Iterable<String> getPropertyKeys() {
+		return getProperties().keySet();
+	}
+
+	@Override
+	public Map<RelationshipType, Long> getRelationshipInfo(Direction direction) {
+		return null;
+	}
+
+	@Override
+	public List<StructrRelationship> getRelationships(RelationshipType type, Direction dir) {
+		return null;
+	}
+
+	@Override
+	public String getType() {
+		return this.getRelType().name();
+	}
+
+	@Override
+	public Long getStartNodeId() {
+		return this.getStartNode().getId();
+	}
+
+	@Override
+	public Long getEndNodeId() {
+		return this.getEndNode().getId();
+	}
 }

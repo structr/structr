@@ -38,7 +38,7 @@ import org.structr.core.resource.filter.Filter;
  * 
  * @author Christian Morgner
  */
-public class TypeConstraint extends ResourceConstraint<AbstractNode> {
+public class TypeConstraint extends ResourceConstraint {
 
 	private static final Logger logger = Logger.getLogger(TypeConstraint.class.getName());
 
@@ -55,7 +55,7 @@ public class TypeConstraint extends ResourceConstraint<AbstractNode> {
 	}
 
 	@Override
-	public Result<AbstractNode> processParentResult(Result<AbstractNode> result, HttpServletRequest request) throws PathException {
+	public Result processParentResult(Result result, HttpServletRequest request) throws PathException {
 
 		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 		User user = new SuperUser();
@@ -67,7 +67,7 @@ public class TypeConstraint extends ResourceConstraint<AbstractNode> {
 
 			searchAttributes.add(new TextualSearchAttribute("type", type, SearchOperator.OR));
 
-			List<AbstractNode> results = (List<AbstractNode>)Services.command(SearchNodeCommand.class).execute(
+			List results = (List)Services.command(SearchNodeCommand.class).execute(
 				user,
 				topNode,
 				includeDeleted,

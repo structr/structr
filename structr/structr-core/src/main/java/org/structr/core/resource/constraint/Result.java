@@ -7,16 +7,16 @@ package org.structr.core.resource.constraint;
 
 import java.util.LinkedList;
 import java.util.List;
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.GraphObject;
 
 /**
  * Encapsulates the result of a query operation.
  *
  * @author Christian Morgner
  */
-public class Result<T extends AbstractNode> {
+public class Result {
 
-	private List<T> results = null;
+	private List<GraphObject> results = null;
 
 	private String searchString = null;
 	private String queryTime = null;
@@ -28,16 +28,17 @@ public class Result<T extends AbstractNode> {
 	private Integer pageSize = null;
 	private Integer page = null;
 
-	public Result(T singleResult) {
-		this.results = new LinkedList<T>();
+	public Result(GraphObject singleResult) {
+		this.results = new LinkedList<GraphObject>();
 		this.results.add(singleResult);
+
 	}
 
-	public Result(List<T> listResult) {
+	public Result(List<GraphObject> listResult) {
 		this.results = listResult;
 	}
 
-	public List<T> getResults() {
+	public List<GraphObject> getResults() {
 		return results;
 	}
 

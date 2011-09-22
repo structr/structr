@@ -9,14 +9,14 @@ import java.util.Comparator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.GraphObject;
 import org.structr.core.resource.PathException;
 
 /**
  *
  * @author Christian Morgner
  */
-public class SortConstraint extends ResourceConstraint<AbstractNode> {
+public class SortConstraint extends ResourceConstraint {
 
 	private static final Logger logger = Logger.getLogger(SortConstraint.class.getName());
 
@@ -34,16 +34,16 @@ public class SortConstraint extends ResourceConstraint<AbstractNode> {
 	}
 	
 	@Override
-	public Result<AbstractNode> processParentResult(Result<AbstractNode> result, HttpServletRequest request) throws PathException {
+	public Result processParentResult(Result result, HttpServletRequest request) throws PathException {
 
-		Comparator<AbstractNode> comparator = null;
+		Comparator<GraphObject> comparator = null;
 
 		try {
 			if("desc".equals(sortOrder)) {
 
-				comparator = new Comparator<AbstractNode>() {
+				comparator = new Comparator<GraphObject>() {
 					@Override
-					public int compare(AbstractNode n1, AbstractNode n2) {
+					public int compare(GraphObject n1, GraphObject n2) {
 						Comparable c1 = (Comparable)n1.getProperty(sortKey);
 						Comparable c2 = (Comparable)n2.getProperty(sortKey);
 						return(c2.compareTo(c1));
@@ -52,9 +52,9 @@ public class SortConstraint extends ResourceConstraint<AbstractNode> {
 
 			} else {
 
-				comparator = new Comparator<AbstractNode>() {
+				comparator = new Comparator<GraphObject>() {
 					@Override
-					public int compare(AbstractNode n1, AbstractNode n2) {
+					public int compare(GraphObject n1, GraphObject n2) {
 						Comparable c1 = (Comparable)n1.getProperty(sortKey);
 						Comparable c2 = (Comparable)n2.getProperty(sortKey);
 						return(c1.compareTo(c2));

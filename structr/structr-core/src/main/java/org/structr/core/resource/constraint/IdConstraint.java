@@ -4,13 +4,11 @@
  */
 package org.structr.core.resource.constraint;
 
-import java.util.List;
 import javax.servlet.http.HttpServletRequest;
+import org.structr.core.GraphObject;
 import org.structr.core.Services;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.node.FindNodeCommand;
-import org.structr.core.resource.IllegalPathException;
 import org.structr.core.resource.PathException;
 
 /**
@@ -20,7 +18,7 @@ import org.structr.core.resource.PathException;
  * 
  * @author Christian Morgner
  */
-public class IdConstraint extends ResourceConstraint<AbstractNode> {
+public class IdConstraint extends ResourceConstraint {
 	
 	private long id = -1;
 	
@@ -38,11 +36,9 @@ public class IdConstraint extends ResourceConstraint<AbstractNode> {
 	}
 
 	@Override
-	public Result<AbstractNode> processParentResult(Result<AbstractNode> result, HttpServletRequest request) throws PathException {
+	public Result processParentResult(Result result, HttpServletRequest request) throws PathException {
 
-		return new Result(
-			(AbstractNode)Services.command(FindNodeCommand.class).execute(new SuperUser(), id)
-		);
+		return new Result((GraphObject)Services.command(FindNodeCommand.class).execute(new SuperUser(), id));
 	}
 
 	@Override

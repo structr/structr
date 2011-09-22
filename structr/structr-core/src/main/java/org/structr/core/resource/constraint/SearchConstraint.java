@@ -8,6 +8,7 @@ package org.structr.core.resource.constraint;
 import java.util.LinkedList;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
+import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SuperUser;
@@ -27,7 +28,7 @@ import org.structr.core.resource.PathException;
  *
  * @author Christian Morgner
  */
-public class SearchConstraint extends ResourceConstraint<AbstractNode> {
+public class SearchConstraint extends ResourceConstraint {
 
 	private String searchString = null;
 
@@ -41,10 +42,10 @@ public class SearchConstraint extends ResourceConstraint<AbstractNode> {
 	}
 
 	@Override
-	public Result<AbstractNode> processParentResult(Result<AbstractNode> result, HttpServletRequest request) throws PathException {
+	public Result processParentResult(Result result, HttpServletRequest request) throws PathException {
 
 		// build search results
-		List<AbstractNode> searchResults = getSearchResults(searchString);
+		List<GraphObject> searchResults = getSearchResults(searchString);
 
 		// remove search results that are not in given list
 		searchResults.retainAll(result.getResults());
@@ -69,7 +70,7 @@ public class SearchConstraint extends ResourceConstraint<AbstractNode> {
 	}
 
 	// ----- private methods -----
-	private List<AbstractNode> getSearchResults(String searchString) throws PathException {
+	private List<GraphObject> getSearchResults(String searchString) throws PathException {
 
 		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 		User user = new SuperUser();
@@ -101,7 +102,7 @@ public class SearchConstraint extends ResourceConstraint<AbstractNode> {
 			nameGroup.add(new TextualSearchAttribute("shortName",	searchString, SearchOperator.OR));
 			searchAttributes.add(nameGroup);
 
-			return (List<AbstractNode>)Services.command(SearchNodeCommand.class).execute(
+			return (List<GraphObject>)Services.command(SearchNodeCommand.class).execute(
 				user,
 				topNode,
 				includeDeleted,

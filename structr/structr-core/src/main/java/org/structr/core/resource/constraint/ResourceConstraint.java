@@ -19,14 +19,14 @@ import org.structr.core.resource.PathException;
  * 
  * @author Christian Morgner
  */
-public abstract class ResourceConstraint<T extends AbstractNode> {
+public abstract class ResourceConstraint {
 
 	private static final Logger logger = Logger.getLogger(ResourceConstraint.class.getName());
 
 	private ResourceConstraint parent = null;
 	private ResourceConstraint child = null;
 
-	public abstract Result processParentResult(Result<T> result, HttpServletRequest request) throws PathException;
+	public abstract Result processParentResult(Result result, HttpServletRequest request) throws PathException;
 	public abstract boolean supportsMethod(String method);
 	public abstract boolean supportsNesting();
 
@@ -35,7 +35,7 @@ public abstract class ResourceConstraint<T extends AbstractNode> {
 	public ResourceConstraint() {
 	}
 
-	public final Result<T> getResult(Result<T> parentResult, HttpServletRequest request) throws PathException
+	public final Result getResult(Result parentResult, HttpServletRequest request) throws PathException
 	{
 		if(!supportsMethod(request.getMethod())) {
 

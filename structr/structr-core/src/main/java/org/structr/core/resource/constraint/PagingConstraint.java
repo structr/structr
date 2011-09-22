@@ -9,14 +9,14 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.GraphObject;
 import org.structr.core.resource.PathException;
 
 /**
  *
  * @author Christian Morgner
  */
-public class PagingConstraint extends ResourceConstraint<AbstractNode> {
+public class PagingConstraint extends ResourceConstraint {
 
 	private static final Logger logger = Logger.getLogger(PagingConstraint.class.getName());
 
@@ -35,7 +35,7 @@ public class PagingConstraint extends ResourceConstraint<AbstractNode> {
 	}
 
 	@Override
-	public Result<AbstractNode> processParentResult(Result<AbstractNode> result, HttpServletRequest request) throws PathException {
+	public Result processParentResult(Result result, HttpServletRequest request) throws PathException {
 
 		/*
 		 * page 1: 0 -> pageSize-1
@@ -44,7 +44,7 @@ public class PagingConstraint extends ResourceConstraint<AbstractNode> {
 		 * page n: ((n-1) * pageSize) -> (n * pageSize) - 1
 		 */
 
-		List<AbstractNode> list = result.getResults();
+		List<GraphObject> list = result.getResults();
 
 		resultCount = list.size();
 

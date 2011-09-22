@@ -21,10 +21,8 @@ package org.structr.core.servlet;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
 import java.io.IOException;
 import java.io.Writer;
-import java.lang.reflect.Type;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.LinkedHashMap;
@@ -41,11 +39,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.structr.common.AccessMode;
 import org.structr.common.CurrentRequest;
+import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.resource.AbstractNodeGSONAdapter;
+import org.structr.core.resource.adapter.AbstractNodeGSONAdapter;
 import org.structr.core.resource.IllegalPathException;
 import org.structr.core.resource.PathException;
+import org.structr.core.resource.adapter.GraphObjectGSONAdapter;
 import org.structr.core.resource.constraint.IdConstraint;
+import org.structr.core.resource.constraint.RelationshipConstraint;
 import org.structr.core.resource.constraint.PagingConstraint;
 import org.structr.core.resource.constraint.ResourceConstraint;
 import org.structr.core.resource.constraint.Result;
@@ -79,6 +80,7 @@ public class CoreServlet extends HttpServlet {
 		this.gson = new GsonBuilder()
 			.setPrettyPrinting()
 			.registerTypeAdapter(AbstractNode.class, new AbstractNodeGSONAdapter())
+			.registerTypeAdapter(GraphObject.class, new GraphObjectGSONAdapter())
 			.create();
 
 
@@ -86,14 +88,16 @@ public class CoreServlet extends HttpServlet {
 
 		// Important for optimization: use pre-built
 		// matcher from compiled patterns here.
-		constraints.put(Pattern.compile("[0-9]+").matcher(""),		IdConstraint.class);	// this matches the ID constraint first
+		constraints.put(Pattern.compile("[0-9]+").matcher(""),		IdConstraint.class);			// this matches the ID constraint first
 
+		constraints.put(Pattern.compile("out").matcher(""),		RelationshipConstraint.class);		// outgoing relationship
+		constraints.put(Pattern.compile("in").matcher(""),		RelationshipConstraint.class);		// incoming relationship
 
 		// The pattern for a generic type match. This
 		// pattern should be inserted at the very end
 		// of the chain because it matches everything
 		// that is a lowercase string without numbers
-		constraints.put(Pattern.compile("[a-z]+").matcher(""),		TypeConstraint.class);	// any type match
+		constraints.put(Pattern.compile("[a-z]+").matcher(""),		TypeConstraint.class);			// any type match
 	}
 
 	@Override
@@ -113,7 +117,7 @@ public class CoreServlet extends HttpServlet {
 		try {
 
 			double queryTimeStart = System.nanoTime();
-			Result<AbstractNode> result = getResults(request);
+			Result result = getResults(request);
 			double queryTimeEnd = System.nanoTime();
 
 			if(result != null) {
@@ -126,8 +130,7 @@ public class CoreServlet extends HttpServlet {
 
 				// GSON serialization
 				double serializationTimeStart = System.nanoTime();
-				Type type = new TypeToken<Result<AbstractNode>>() {}.getType();
-				gson.toJson(result, type, writer);
+				gson.toJson(result, writer);
 				double serializationTimeEnd = System.nanoTime();
 
 				writer.flush();
@@ -175,10 +178,10 @@ public class CoreServlet extends HttpServlet {
 	}
 
 	// ---- public static methods -----
-	private Result<AbstractNode> getResults(HttpServletRequest request) throws PathException {
+	private Result getResults(HttpServletRequest request) throws PathException {
 
 		RootResourceConstraint rootConstraint = new RootResourceConstraint();
-		ResourceConstraint<AbstractNode> currentConstraint = rootConstraint;
+		ResourceConstraint currentConstraint = rootConstraint;
 		PagingConstraint pagingConstraint = null;
 		String sortOrder = null;
 		String sortKey = null;
@@ -266,7 +269,7 @@ public class CoreServlet extends HttpServlet {
 			}
 		}
 
-		Result<AbstractNode> results = rootConstraint.getNestedResults(request);
+		Result results = rootConstraint.getNestedResults(request);
 
 		// set information from paging constraint
 		if(pagingConstraint != null) {
