@@ -25,7 +25,10 @@ import com.google.gson.reflect.TypeToken;
 import java.io.IOException;
 import java.io.Writer;
 import java.lang.reflect.Type;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
@@ -97,19 +100,30 @@ public class CoreServlet extends HttpServlet {
 
 		try {
 
+			double queryTimeStart = System.nanoTime();
 			Result<AbstractNode> result = getResults(request);
+			double queryTimeEnd = System.nanoTime();
+
 			if(result != null) {
+
+				DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+				result.setQueryTime(decimalFormat.format((queryTimeEnd - queryTimeStart) / 1000000000.0));
 
 				response.setContentType("application/json; charset=utf-8");
 				Writer writer = response.getWriter();
 
+				// GSON serialization
+				double serializationTimeStart = System.nanoTime();
 				Type type = new TypeToken<Result<AbstractNode>>() {}.getType();
 				gson.toJson(result, type, writer);
+				double serializationTimeEnd = System.nanoTime();
 
 				writer.flush();
 				writer.close();
 
 				response.setStatus(HttpServletResponse.SC_OK);
+
+				logger.log(Level.INFO, "GSON serialization took {0} seconds", decimalFormat.format((serializationTimeEnd - serializationTimeStart) / 1000000000.0));
 
 			} else {
 

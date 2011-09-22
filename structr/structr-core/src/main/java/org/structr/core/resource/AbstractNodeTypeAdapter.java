@@ -20,6 +20,7 @@
 package org.structr.core.resource;
 
 import com.google.gson.InstanceCreator;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
@@ -31,6 +32,7 @@ import com.google.gson.JsonSerializer;
 import java.lang.reflect.Type;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.DummyNode;
+import org.structr.core.entity.StructrRelationship;
 
 /**
  * Controls serialization and deserialization of structr nodes.
@@ -49,18 +51,54 @@ public class AbstractNodeTypeAdapter implements InstanceCreator<AbstractNode>, J
 
 		JsonObject jsonObject = new JsonObject();
 
-		// first: property keys
+		// 1: id
+		jsonObject.add("id", new JsonPrimitive(src.getId()));
+
+		// 2: property keys
+		JsonArray properties = new JsonArray();
 		for(String key : src.getPropertyKeys()) {
 
 			Object value = src.getProperty(key);
 			if(value != null) {
-				jsonObject.add(key, new JsonPrimitive(value.toString()));
+
+				JsonObject property = new JsonObject();
+				String type = "unknown";
+
+				property.add("key", new JsonPrimitive(key));
+				property.add("value", new JsonPrimitive(value.toString()));
+				property.add("type", new JsonPrimitive(type));
+
+				properties.add(property);
 			}
 		}
+		jsonObject.add("properties", properties);
 
-		// second: outgoing relationships
+		// 3: outgoing relationships
+		JsonArray outRels = new JsonArray();
+		for(StructrRelationship outRel : src.getOutgoingRelationships()) {
 
-		// third: incoming relationships
+			JsonObject rel = new JsonObject();
+			rel.add("id", new JsonPrimitive(outRel.getId()));
+			rel.add("type", new JsonPrimitive(outRel.getRelType().name()));
+			rel.add("endNodeId", new JsonPrimitive(outRel.getEndNode().getId()));
+
+			outRels.add(rel);
+		}
+		jsonObject.add("outgoingRelationships", outRels);
+
+		// 4: incoming relationships
+		JsonArray inRels = new JsonArray();
+		for(StructrRelationship inRel : src.getIncomingRelationships()) {
+
+			JsonObject rel = new JsonObject();
+			rel.add("id", new JsonPrimitive(inRel.getId()));
+			rel.add("type", new JsonPrimitive(inRel.getRelType().name()));
+			rel.add("startNodeId", new JsonPrimitive(inRel.getStartNode().getId()));
+
+			inRels.add(rel);
+
+		}
+		jsonObject.add("incomingRelationships", inRels);
 
 		return jsonObject;
 	}
@@ -70,5 +108,4 @@ public class AbstractNodeTypeAdapter implements InstanceCreator<AbstractNode>, J
 
 		return null;
 	}
-
 }

@@ -10,8 +10,7 @@ import java.util.List;
 import org.structr.core.entity.AbstractNode;
 
 /**
- * Encapsulates the result of a ResourceConstraint. This can be either a
- * single element or a List of elements.
+ * Encapsulates the result of a query operation.
  *
  * @author Christian Morgner
  */
@@ -31,6 +30,10 @@ public class Result<T extends AbstractNode> {
 
 	public List<T> getResults() {
 		return results;
+	}
+
+	public void setQueryTime(String queryTime) {
+		this.queryTime = queryTime;
 	}
 
 	public String getQueryTime() {
