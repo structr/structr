@@ -72,8 +72,6 @@ import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 import org.structr.core.node.XPath;
 import org.structr.core.node.search.Search;
-import org.structr.core.node.search.SearchAttribute;
-import org.structr.core.node.search.SearchNodeCommand;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -102,6 +100,7 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import org.structr.core.node.NodeRelationshipStatisticsCommand;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -2211,6 +2210,16 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 		return (List<StructrRelationship>) Services.command(NodeRelationshipsCommand.class).execute(this, type,
 			dir);
+	}
+
+	/**
+	 * Return statistical information on all relationships of this node
+	 *
+	 * @return number of relationships
+	 */
+	public Map<RelationshipType, Long> relationshipInfo(Direction dir) {
+
+		return (Map<RelationshipType, Long>) Services.command(NodeRelationshipStatisticsCommand.class).execute(this, dir);
 	}
 
 //

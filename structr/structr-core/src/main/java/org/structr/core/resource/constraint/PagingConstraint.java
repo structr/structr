@@ -20,8 +20,8 @@ public class PagingConstraint extends ResourceConstraint<AbstractNode> {
 
 	private static final Logger logger = Logger.getLogger(PagingConstraint.class.getName());
 
+	private int resultCount = 0;
 	private int pageSize = 0;
-	private int listSize = 0;
 	private int page = 0;
 
 	public PagingConstraint(int page, int pageSize) {
@@ -46,17 +46,14 @@ public class PagingConstraint extends ResourceConstraint<AbstractNode> {
 
 		List<AbstractNode> list = result.getResults();
 
-		listSize = list.size();
-		int fromIndex = Math.min(listSize, Math.max(0, (getPage()-1) * getPageSize()));
-		int toIndex = Math.min(listSize, getPage()*getPageSize());
+		resultCount = list.size();
+
+		int fromIndex = Math.min(resultCount, Math.max(0, (getPage()-1) * getPageSize()));
+		int toIndex = Math.min(resultCount, getPage()*getPageSize());
 
 		logger.log(Level.FINEST, "returning results from {0} to {1}, page {2}, pageSize {3}", new Object[] { fromIndex, toIndex-1, getPage(), getPageSize()} );
 
 		return new Result(list.subList(fromIndex, toIndex));
-	}
-
-	public int getListSize() {
-		return listSize;
 	}
 
 	@Override
@@ -87,5 +84,13 @@ public class PagingConstraint extends ResourceConstraint<AbstractNode> {
 
 	public void setPage(int page) {
 		this.page = page;
+	}
+
+	public int getResultCount() {
+		return resultCount;
+	}
+
+	public int getPageCount() {
+		return (int)Math.rint(Math.ceil((double)getResultCount() / (double)getPageSize()));
 	}
 }

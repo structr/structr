@@ -42,7 +42,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.structr.common.AccessMode;
 import org.structr.common.CurrentRequest;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.resource.AbstractNodeTypeAdapter;
+import org.structr.core.resource.AbstractNodeGSONAdapter;
 import org.structr.core.resource.IllegalPathException;
 import org.structr.core.resource.PathException;
 import org.structr.core.resource.constraint.IdConstraint;
@@ -51,6 +51,7 @@ import org.structr.core.resource.constraint.ResourceConstraint;
 import org.structr.core.resource.constraint.Result;
 import org.structr.core.resource.constraint.RootResourceConstraint;
 import org.structr.core.resource.constraint.SortConstraint;
+import org.structr.core.resource.constraint.TypeConstraint;
 
 /**
  *
@@ -68,20 +69,31 @@ public class CoreServlet extends HttpServlet {
 	private static final int	DEFAULT_VALUE_PAGE_SIZE =		20;
 	private static final String	DEFAULT_VALUE_SORT_ORDER =		"asc";
 
-	private Map<Pattern, Class> constraints = null;
+	private Map<Matcher, Class> constraints = null;
 	private Gson gson = null;
 
 	@Override
 	public void init() {
 
-		this.constraints = new LinkedHashMap<Pattern, Class>();
+		this.constraints = new LinkedHashMap<Matcher, Class>();
 		this.gson = new GsonBuilder()
 			.setPrettyPrinting()
-			.registerTypeAdapter(AbstractNode.class, new AbstractNodeTypeAdapter())
+			.registerTypeAdapter(AbstractNode.class, new AbstractNodeGSONAdapter())
 			.create();
 
-		// initialize constraints
-		constraints.put(Pattern.compile("[0-9]+"), IdConstraint.class);
+
+		// ----- initialize constraints -----
+
+		// Important for optimization: use pre-built
+		// matcher from compiled patterns here.
+		constraints.put(Pattern.compile("[0-9]+").matcher(""),		IdConstraint.class);	// this matches the ID constraint first
+
+
+		// The pattern for a generic type match. This
+		// pattern should be inserted at the very end
+		// of the chain because it matches everything
+		// that is a lowercase string without numbers
+		constraints.put(Pattern.compile("[a-z]+").matcher(""),		TypeConstraint.class);	// any type match
 	}
 
 	@Override
@@ -165,15 +177,11 @@ public class CoreServlet extends HttpServlet {
 	// ---- public static methods -----
 	private Result<AbstractNode> getResults(HttpServletRequest request) throws PathException {
 
-		RootResourceConstraint rootConstraint = createConstraintsFromRequest(request);
-
-		return rootConstraint.getNestedResults(request);
-	}
-
-	private RootResourceConstraint createConstraintsFromRequest(HttpServletRequest request) throws PathException {
-
 		RootResourceConstraint rootConstraint = new RootResourceConstraint();
 		ResourceConstraint<AbstractNode> currentConstraint = rootConstraint;
+		PagingConstraint pagingConstraint = null;
+		String sortOrder = null;
+		String sortKey = null;
 
 		// fetch request path
 		String path = request.getPathInfo();
@@ -188,13 +196,13 @@ public class CoreServlet extends HttpServlet {
 				if(part.length() > 0) {
 
 					// look for matching pattern
-					for(Entry<Pattern, Class> entry : constraints.entrySet()) {
+					for(Entry<Matcher, Class> entry : constraints.entrySet()) {
 
-						Pattern pattern = entry.getKey();
+						Matcher matcher = entry.getKey();
 						Class type = entry.getValue();
 
 						// try a regexp match
-						Matcher matcher = pattern.matcher(pathParts[i]);
+						matcher.reset(pathParts[i]);
 						if(matcher.matches()) {
 
 							try {
@@ -203,7 +211,7 @@ public class CoreServlet extends HttpServlet {
 								if(constraint.acceptUriPart(part)) {
 
 									logger.log(Level.INFO, "{0} matched, adding constraint of type {1} for part {2}", new Object[] {
-										pattern.pattern(),
+										matcher.pattern(),
 										type.getName(),
 										part
 									});
@@ -226,10 +234,10 @@ public class CoreServlet extends HttpServlet {
 			}
 
 			// sort results
-			String sortKey = request.getParameter(REQUEST_PARAMETER_SORT_KEY);
+			sortKey = request.getParameter(REQUEST_PARAMETER_SORT_KEY);
 			if(sortKey != null) {
 
-				String sortOrder = request.getParameter(REQUEST_PARAMETER_SORT_ORDER);
+				sortOrder = request.getParameter(REQUEST_PARAMETER_SORT_ORDER);
 				if(sortOrder == null) {
 					sortOrder = DEFAULT_VALUE_SORT_ORDER;
 				}
@@ -247,7 +255,7 @@ public class CoreServlet extends HttpServlet {
 				int pageSize = parseInt(pageSizeParameter, DEFAULT_VALUE_PAGE_SIZE);
 				int page = parseInt(pageParameter, 1);
 
-				PagingConstraint pagingConstraint = new PagingConstraint(page, pageSize);
+				pagingConstraint = new PagingConstraint(page, pageSize);
 
 				if(pageSize <= 0) {
 					throw new IllegalPathException();
@@ -258,7 +266,26 @@ public class CoreServlet extends HttpServlet {
 			}
 		}
 
-		return rootConstraint;
+		Result<AbstractNode> results = rootConstraint.getNestedResults(request);
+
+		// set information from paging constraint
+		if(pagingConstraint != null) {
+
+			results.setPage(pagingConstraint.getPage());
+			results.setPageSize(pagingConstraint.getPageSize());
+			results.setPageCount(pagingConstraint.getPageCount());
+			results.setResultCount(pagingConstraint.getResultCount());
+
+		} else {
+
+			results.setResultCount(results.getResults().size());
+		}
+
+		// set information from sort constraint
+		results.setSortOrder(sortOrder);
+		results.setSortKey(sortKey);
+
+		return results;
 	}
 
 	/**

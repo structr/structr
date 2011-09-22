@@ -18,7 +18,14 @@ import org.neo4j.kernel.Traversal;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.SuperUser;
+import org.structr.core.entity.User;
 import org.structr.core.node.NodeFactoryCommand;
+import org.structr.core.node.search.SearchAttribute;
+import org.structr.core.node.search.SearchNodeCommand;
+import org.structr.core.node.search.SearchOperator;
+import org.structr.core.node.search.TextualSearchAttribute;
+import org.structr.core.resource.NoResultsException;
 import org.structr.core.resource.PathException;
 import org.structr.core.resource.filter.Filter;
 
@@ -50,21 +57,31 @@ public class TypeConstraint extends ResourceConstraint<AbstractNode> {
 	@Override
 	public Result<AbstractNode> processParentResult(Result<AbstractNode> result, HttpServletRequest request) throws PathException {
 
-		/*
-		// "no parent result" means we are the first element in the URI
-		Folder indexNode = NodeLocator.getIndexNodeForType(type);
+		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+		User user = new SuperUser();
+		AbstractNode topNode = null;
+		boolean includeDeleted = false;
+		boolean publicOnly = false;
 
-		// run traversal
-		List<AbstractNode> nodeList = getTraversalResults(
-			indexNode.getNode(),
-			org.structr.common.RelType.HAS_CHILD,
-			Direction.OUTGOING
-		);
+		if(type != null) {
 
-		return new Result(this, nodeList);
-		*/
+			searchAttributes.add(new TextualSearchAttribute("type", type, SearchOperator.OR));
 
-		return null;
+			List<AbstractNode> results = (List<AbstractNode>)Services.command(SearchNodeCommand.class).execute(
+				user,
+				topNode,
+				includeDeleted,
+				publicOnly,
+				searchAttributes
+			);
+
+			if(!results.isEmpty()) {
+
+				return new Result(results);
+			}
+		}
+
+		throw new NoResultsException();
 	}
 
 	@Override

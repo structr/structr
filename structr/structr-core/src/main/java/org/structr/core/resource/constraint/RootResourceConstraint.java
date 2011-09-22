@@ -4,7 +4,6 @@
  */
 package org.structr.core.resource.constraint;
 
-import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.resource.PathException;
