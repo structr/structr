@@ -23,8 +23,8 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
-import org.neo4j.graphdb.Direction;
 import org.structr.core.GraphObject;
+import org.structr.core.entity.StructrRelationship;
 import org.structr.core.resource.IllegalPathException;
 import org.structr.core.resource.PathException;
 
@@ -32,10 +32,10 @@ import org.structr.core.resource.PathException;
  *
  * @author Christian Morgner
  */
-public class RelationshipConstraint extends ResourceConstraint {
+public class RelationshipNodeConstraint extends ResourceConstraint {
 
-	private static final Logger logger = Logger.getLogger(RelationshipConstraint.class.getName());
-	private Direction direction = null;
+	private static final Logger logger = Logger.getLogger(RelationshipNodeConstraint.class.getName());
+	private boolean startNode = false;
 
 	@Override
 	public Result processParentResult(Result result, HttpServletRequest request) throws PathException {
@@ -49,13 +49,17 @@ public class RelationshipConstraint extends ResourceConstraint {
 					// we can only operate on a single element here
 					GraphObject obj = list.get(0);
 
-					// omit type information to work around Java's
-					// stupid generics implementation that is not
-					// able to detect polymorphic generic types
-					List relationships = obj.getRelationships(null, direction);
-					if(relationships != null) {
+					if(obj instanceof StructrRelationship) {
 
-						return new Result(relationships);
+						StructrRelationship rel = (StructrRelationship)obj;
+						if(startNode) {
+
+							return new Result(rel.getStartNode());
+							
+						} else {
+
+							return new Result(rel.getEndNode());
+						}
 					}
 				}
 
@@ -76,19 +80,12 @@ public class RelationshipConstraint extends ResourceConstraint {
 	@Override
 	public boolean acceptUriPart(String part) {
 
-		if("in".equals(part.toLowerCase())) {
-
-			direction = Direction.INCOMING;
-			return true;
-
-		} else if("out".equals(part.toLowerCase())) {
-
-			direction = Direction.OUTGOING;
-			return true;
-
+		// only "start" selects the start node, everything else means end node
+		if("start".equals(part.toLowerCase())) {
+			startNode = true;
 		}
 
-		return false;
+		return true;
 	}
 
 }

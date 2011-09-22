@@ -48,6 +48,7 @@ import org.structr.core.resource.adapter.GraphObjectGSONAdapter;
 import org.structr.core.resource.constraint.IdConstraint;
 import org.structr.core.resource.constraint.RelationshipConstraint;
 import org.structr.core.resource.constraint.PagingConstraint;
+import org.structr.core.resource.constraint.RelationshipNodeConstraint;
 import org.structr.core.resource.constraint.ResourceConstraint;
 import org.structr.core.resource.constraint.Result;
 import org.structr.core.resource.constraint.RootResourceConstraint;
@@ -83,21 +84,22 @@ public class CoreServlet extends HttpServlet {
 			.registerTypeAdapter(GraphObject.class, new GraphObjectGSONAdapter())
 			.create();
 
+		// Important for optimization: use pre-built matchers from compiled patterns here.
 
 		// ----- initialize constraints -----
-
-		// Important for optimization: use pre-built
-		// matcher from compiled patterns here.
 		constraints.put(Pattern.compile("[0-9]+").matcher(""),		IdConstraint.class);			// this matches the ID constraint first
 
+		// relationships
 		constraints.put(Pattern.compile("out").matcher(""),		RelationshipConstraint.class);		// outgoing relationship
 		constraints.put(Pattern.compile("in").matcher(""),		RelationshipConstraint.class);		// incoming relationship
 
-		// The pattern for a generic type match. This
-		// pattern should be inserted at the very end
-		// of the chain because it matches everything
-		// that is a lowercase string without numbers
-		constraints.put(Pattern.compile("[a-z]+").matcher(""),		TypeConstraint.class);			// any type match
+		// start & end node
+		constraints.put(Pattern.compile("start").matcher(""),		RelationshipNodeConstraint.class);	// start node
+		constraints.put(Pattern.compile("end").matcher(""),		RelationshipNodeConstraint.class);	// end node
+
+		// The pattern for a generic type match. This pattern should be inserted at the very end
+		// of the chain because it matches everything that is a lowercase string without numbers
+		constraints.put(Pattern.compile("[a-z_]+").matcher(""),		TypeConstraint.class);			// any type match
 	}
 
 	@Override

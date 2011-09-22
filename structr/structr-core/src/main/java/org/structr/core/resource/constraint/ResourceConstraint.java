@@ -27,9 +27,6 @@ public abstract class ResourceConstraint {
 	private ResourceConstraint child = null;
 
 	public abstract Result processParentResult(Result result, HttpServletRequest request) throws PathException;
-	public abstract boolean supportsMethod(String method);
-	public abstract boolean supportsNesting();
-
 	public abstract boolean acceptUriPart(String part);
 
 	public ResourceConstraint() {
@@ -37,13 +34,6 @@ public abstract class ResourceConstraint {
 
 	public final Result getResult(Result parentResult, HttpServletRequest request) throws PathException
 	{
-		if(!supportsMethod(request.getMethod())) {
-
-			logger.log(Level.INFO, "{0} forbidden", request.getMethod());
-
-			throw new NotAllowedException();
-		}
-
 		return processParentResult(parentResult, request);
 	}
 
@@ -69,12 +59,6 @@ public abstract class ResourceConstraint {
 	}
 	
 	public final void setChild(ResourceConstraint child) throws PathException {
-
-		// does not accept children => illegal path
-		if(!supportsNesting()) {
-			throw new IllegalPathException();
-		}
-
 		this.child = child;
 		child.setParent(this);
 	}

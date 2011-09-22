@@ -75,6 +75,7 @@ public class StructrRelationship implements GraphObject {
         this.dbRelationship = dbRelationship;
     }
 
+    @Override
     public long getId() {
         return getInternalId();
     }
@@ -101,6 +102,7 @@ public class StructrRelationship implements GraphObject {
         return dbRelationship.getProperty(propertyKey.name(), null);
     }
 
+    @Override
     public Object getProperty(final String key) {
         return dbRelationship.getProperty(key, null);
     }

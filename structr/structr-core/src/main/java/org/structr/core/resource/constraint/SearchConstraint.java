@@ -53,22 +53,6 @@ public class SearchConstraint extends ResourceConstraint {
 		return result;
 	}
 
-	@Override
-	public boolean supportsMethod(String method) {
-
-		// only support GET
-		if("GET".equals(method)) {
-			return true;
-		}
-
-		return false;
-	}
-
-	@Override
-	public boolean supportsNesting() {
-		return true;
-	}
-
 	// ----- private methods -----
 	private List<GraphObject> getSearchResults(String searchString) throws PathException {
 

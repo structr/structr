@@ -54,29 +54,34 @@ public class GraphObjectGSONAdapter implements InstanceCreator<GraphObject>, Jso
 
 		JsonObject jsonObject = new JsonObject();
 
-		// 1: id
+		// id
 		jsonObject.add("id", new JsonPrimitive(src.getId()));
 
-		// 2: property keys
+		String type = src.getType();
+		if(type != null) {
+			jsonObject.add("type", new JsonPrimitive(type));
+		}
+
+		// property keys
 		JsonArray properties = new JsonArray();
 		for(String key : src.getPropertyKeys()) {
 
 			Object value = src.getProperty(key);
 			if(value != null) {
 
-				String type = value.getClass().getSimpleName();
+				String valueType = value.getClass().getSimpleName();
 				JsonObject property = new JsonObject();
 
 				property.add("key", new JsonPrimitive(key));
 				property.add("value", new JsonPrimitive(value.toString()));
-				property.add("type", new JsonPrimitive(type));
+				property.add("type", new JsonPrimitive(valueType));
 
 				properties.add(property);
 			}
 		}
 		jsonObject.add("properties", properties);
 
-		// 3: outgoing relationships
+		// outgoing relationships
 		Map<RelationshipType, Long> outRelStatistics = src.getRelationshipInfo(Direction.OUTGOING);
 		if(outRelStatistics != null) {
 			
@@ -84,19 +89,19 @@ public class GraphObjectGSONAdapter implements InstanceCreator<GraphObject>, Jso
 
 			for(Entry<RelationshipType, Long> entry : outRelStatistics.entrySet()) {
 
-				RelationshipType type = entry.getKey();
+				RelationshipType relType = entry.getKey();
 				Long count = entry.getValue();
 
 				JsonObject outRelEntry = new JsonObject();
-				outRelEntry.add("type", new JsonPrimitive(type.name()));
+				outRelEntry.add("type", new JsonPrimitive(relType.name()));
 				outRelEntry.add("count", new JsonPrimitive(count));
 
 				outRels.add(outRelEntry);
 			}
-			jsonObject.add("outgoingRelationships", outRels);
+			jsonObject.add("out", outRels);
 		}
 
-		// 4: incoming relationships
+		// incoming relationships
 		Map<RelationshipType, Long> inRelStatistics = src.getRelationshipInfo(Direction.INCOMING);
 		if(inRelStatistics != null) {
 
@@ -104,17 +109,17 @@ public class GraphObjectGSONAdapter implements InstanceCreator<GraphObject>, Jso
 
 			for(Entry<RelationshipType, Long> entry : inRelStatistics.entrySet()) {
 
-				RelationshipType type = entry.getKey();
+				RelationshipType relType = entry.getKey();
 				Long count = entry.getValue();
 
 				JsonObject inRelEntry = new JsonObject();
-				inRelEntry.add("type", new JsonPrimitive(type.name()));
+				inRelEntry.add("type", new JsonPrimitive(relType.name()));
 				inRelEntry.add("count", new JsonPrimitive(count));
 
 				inRels.add(inRelEntry);
 
 			}
-			jsonObject.add("incomingRelationships", inRels);
+			jsonObject.add("in", inRels);
 		}
 
 		// start node id (for relationships)

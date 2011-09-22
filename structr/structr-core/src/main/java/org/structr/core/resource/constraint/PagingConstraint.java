@@ -56,20 +56,6 @@ public class PagingConstraint extends ResourceConstraint {
 		return new Result(list.subList(fromIndex, toIndex));
 	}
 
-	@Override
-	public boolean supportsMethod(String method) {
-		if("GET".equals(method)) {
-			return true;
-		}
-
-		return false;
-	}
-
-	@Override
-	public boolean supportsNesting() {
-		return true;
-	}
-
 	public int getPageSize() {
 		return pageSize;
 	}

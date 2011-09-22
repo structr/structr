@@ -40,14 +40,4 @@ public class IdConstraint extends ResourceConstraint {
 
 		return new Result((GraphObject)Services.command(FindNodeCommand.class).execute(new SuperUser(), id));
 	}
-
-	@Override
-	public boolean supportsMethod(String method) {
-		return true;
-	}
-
-	@Override
-	public boolean supportsNesting() {
-		return true;
-	}
 }
