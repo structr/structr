@@ -1,28 +1,37 @@
 /*
  *  Copyright (C) 2011 Axel Morgner, structr <structr@structr.org>
- * 
+ *
  *  This file is part of structr <http://structr.org>.
- * 
+ *
  *  structr is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
- * 
+ *
  *  structr is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- * 
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+
+
 package org.structr.core.node;
 
-import java.util.List;
+import org.apache.commons.lang.StringUtils;
+
 import org.structr.core.RunnableService;
 import org.structr.core.Service;
 import org.structr.core.Services;
+
+//~--- JDK imports ------------------------------------------------------------
+
+import java.util.List;
+
+//~--- classes ----------------------------------------------------------------
 
 /**
  * A runnable service which runs in depends on NodeService
@@ -33,46 +42,48 @@ import org.structr.core.Services;
  */
 public abstract class RunnableNodeService extends Thread implements RunnableService {
 
-    public RunnableNodeService() {
-    }
+	public RunnableNodeService() {}
 
-    public RunnableNodeService(final String name) {
-        super(name);
-    }
+	public RunnableNodeService(final String name) {
+		super(name);
+	}
 
-    /**
-     * Register this service at the NodeService after starting
-     */
-    @Override
-    public void start() {
+	//~--- methods --------------------------------------------------------
 
-        super.start();
+	/**
+	 * Register this service at the NodeService after starting
+	 */
+	@Override
+	public void start() {
 
-        List<Service> serviceList = Services.getServices();
-        for (Service s : serviceList) {
-            if (s instanceof NodeService) {
-                ((NodeService) s).registerService(this);
-            }
-        }
+		super.start();
 
-    }
+		List<Service> serviceList = Services.getServices();
 
-    /*
-     * Unregister this service from the NodeService before interrupting
-     * the thread
-     */
-    @Override
-    public void interrupt() {
+		for (Service s : serviceList) {
 
-        List<Service> serviceList = Services.getServices();
-        for (Service s : serviceList) {
-            if (s instanceof NodeService) {
-                ((NodeService) s).unregisterService(this);
-            }
-        }
+			if (s instanceof NodeService) {
+				((NodeService) s).registerService(this);
+			}
+		}
+	}
 
-        super.interrupt();
+	/*
+	 * Unregister this service from the NodeService before interrupting
+	 * the thread
+	 */
+	@Override
+	public void interrupt() {
 
-    }
+		List<Service> serviceList = Services.getServices();
 
+		for (Service s : serviceList) {
+
+			if (s instanceof NodeService) {
+				((NodeService) s).unregisterService(this);
+			}
+		}
+
+		super.interrupt();
+	}
 }

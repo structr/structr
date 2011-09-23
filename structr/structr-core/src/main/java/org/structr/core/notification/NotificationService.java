@@ -53,125 +53,119 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  */
 public class NotificationService implements SingletonService {
 
-    public static final Map<String, Queue<Notification>> globalNotificationMap =
-        Collections.synchronizedMap(new HashMap<String, Queue<Notification>>());
-    public static final Queue<Notification> globalNotifications = new ConcurrentLinkedQueue<Notification>();
+	public static final Map<String, Queue<Notification>> globalNotificationMap =
+		Collections.synchronizedMap(new HashMap<String, Queue<Notification>>());
+	public static final Queue<Notification> globalNotifications = new ConcurrentLinkedQueue<Notification>();
 
-    //~--- get methods --------------------------------------------------------
+	//~--- methods --------------------------------------------------------
 
-    public List<Notification> getNotifications(String sessionId) {
+	public boolean addNotification(Notification notification) {
+		return (addNotification(null, notification));
+	}
 
-        List<Notification> ret            = new LinkedList<Notification>();
-        Queue<Notification> notifications = getNotificationsInternal(sessionId);
+	public boolean addNotification(String sessionId, Notification notification) {
 
-        if (notifications != null) {
-            ret.addAll(notifications);
-        }
+		if (sessionId != null) {
 
-        getGlobalNotifications();
+			Queue<Notification> notifications = getNotificationsInternal(sessionId);
+			boolean ret                       = false;
 
-        if (globalNotifications != null) {
-            ret.addAll(globalNotifications);
-        }
+			if (notifications == null) {
 
-        return (ret);
-    }
+				notifications = new ConcurrentLinkedQueue<Notification>();
 
-    //~--- methods ------------------------------------------------------------
+				synchronized (globalNotificationMap) {
+					globalNotificationMap.put(sessionId, notifications);
+				}
+			}
 
-    public boolean addNotification(Notification notification) {
-        return (addNotification(null, notification));
-    }
+			synchronized (notifications) {
 
-    public boolean addNotification(String sessionId, Notification notification) {
+				// store in list
+				ret = notifications.add(notification);
+			}
 
-        if (sessionId != null) {
+			return (ret);
 
-            Queue<Notification> notifications = getNotificationsInternal(sessionId);
-            boolean ret                       = false;
+		} else {
 
-            if (notifications == null) {
+			globalNotifications.add(notification);
 
-                notifications = new ConcurrentLinkedQueue<Notification>();
+			return (true);
+		}
+	}
 
-                synchronized (globalNotificationMap) {
-                    globalNotificationMap.put(sessionId, notifications);
-                }
-            }
+	// ----- interface SingletonService -----
+	@Override
+	public void injectArguments(Command command) {
+		command.setArgument("service", this);
+	}
 
-            synchronized (notifications) {
+	@Override
+	public void initialize(Map<String, Object> context) {}
 
-                // store in list
-                ret = notifications.add(notification);
-            }
+	@Override
+	public void shutdown() {}
 
-            return (ret);
+	//~--- get methods ----------------------------------------------------
 
-        } else {
+	public List<Notification> getNotifications(String sessionId) {
 
-            globalNotifications.add(notification);
+		List<Notification> ret            = new LinkedList<Notification>();
+		Queue<Notification> notifications = getNotificationsInternal(sessionId);
 
-            return (true);
-        }
-    }
+		if (notifications != null) {
+			ret.addAll(notifications);
+		}
 
-    //~--- get methods --------------------------------------------------------
+		getGlobalNotifications();
 
-    private Queue<Notification> getNotificationsInternal(String sessionId) {
+		if (globalNotifications != null) {
+			ret.addAll(globalNotifications);
+		}
 
-        Queue<Notification> ret = null;
+		return (ret);
+	}
 
-        synchronized (globalNotificationMap) {
+	private Queue<Notification> getNotificationsInternal(String sessionId) {
 
-            ret = globalNotificationMap.get(sessionId);
+		Queue<Notification> ret = null;
 
-            if (ret != null) {
+		synchronized (globalNotificationMap) {
 
-                Notification head = ret.peek();
+			ret = globalNotificationMap.get(sessionId);
 
-                if ((head != null) && head.isExpired()) {
-                    ret.remove();
-                }
-            }
-        }
+			if (ret != null) {
 
-        return (ret);
-    }
+				Notification head = ret.peek();
 
-    private Queue<Notification> getGlobalNotifications() {
+				if ((head != null) && head.isExpired()) {
+					ret.remove();
+				}
+			}
+		}
 
-        Notification head = globalNotifications.peek();
+		return (ret);
+	}
 
-        if ((head != null) && head.isExpired()) {
-            globalNotifications.remove();
-        }
+	private Queue<Notification> getGlobalNotifications() {
 
-        return (globalNotifications);
-    }
+		Notification head = globalNotifications.peek();
 
-    //~--- methods ------------------------------------------------------------
+		if ((head != null) && head.isExpired()) {
+			globalNotifications.remove();
+		}
 
-    // ----- interface SingletonService -----
-    @Override
-    public void injectArguments(Command command) {
-        command.setArgument("service", this);
-    }
+		return (globalNotifications);
+	}
 
-    @Override
-    public void initialize(Map<String, Object> context) {}
+	@Override
+	public String getName() {
+		return (this.getClass().getSimpleName());
+	}
 
-    @Override
-    public void shutdown() {}
-
-    //~--- get methods --------------------------------------------------------
-
-    @Override
-    public boolean isRunning() {
-        return (true);
-    }
-
-    @Override
-    public String getName() {
-        return ("structr notification service");
-    }
+	@Override
+	public boolean isRunning() {
+		return (true);
+	}
 }
