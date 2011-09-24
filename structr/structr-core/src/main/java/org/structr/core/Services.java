@@ -185,7 +185,7 @@ public class Services {
 
 		configFilePath     = getConfigValue(context, Services.CONFIG_FILE_PATH, "/opt/structr/structr.conf");
 		configuredServices = getConfigValue(context, Services.CONFIGURED_SERVICES,
-			"NodeService AgentService CloudService CacheService LogService NotificationService");
+			"ModuleService NodeService AgentService CloudService CacheService LogService NotificationService");
 		appTitle          = getConfigValue(context, Services.APPLICATION_TITLE, "structr");
 		tmpPath           = getConfigValue(context, Services.TMP_PATH, "/tmp");
 		basePath          = getConfigValue(context, Services.BASE_PATH, "/opt/structr");
