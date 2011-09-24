@@ -26,6 +26,7 @@ import java.io.Writer;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -71,35 +72,35 @@ public class CoreServlet extends HttpServlet {
 	private static final int	DEFAULT_VALUE_PAGE_SIZE =		20;
 	private static final String	DEFAULT_VALUE_SORT_ORDER =		"asc";
 
-	private Map<Matcher, Class> constraints = null;
+	private GraphObjectGSONAdapter gsonAdapter = null;
+	private Map<Pattern, Class> constraints = null;
 	private Gson gson = null;
 
 	@Override
 	public void init() {
 
-		this.constraints = new LinkedHashMap<Matcher, Class>();
+		this.gsonAdapter = new GraphObjectGSONAdapter();
+		this.constraints = new LinkedHashMap<Pattern, Class>();
 		this.gson = new GsonBuilder()
 			.setPrettyPrinting()
 			.registerTypeAdapter(AbstractNode.class, new AbstractNodeGSONAdapter())
-			.registerTypeAdapter(GraphObject.class, new GraphObjectGSONAdapter())
+			.registerTypeAdapter(GraphObject.class, gsonAdapter)
 			.create();
 
-		// Important for optimization: use pre-built matchers from compiled patterns here.
-
 		// ----- initialize constraints -----
-		constraints.put(Pattern.compile("[0-9]+").matcher(""),		IdConstraint.class);			// this matches the ID constraint first
+		constraints.put(Pattern.compile("[0-9]+"),	IdConstraint.class);			// this matches the ID constraint first
 
 		// relationships
-		constraints.put(Pattern.compile("out").matcher(""),		RelationshipConstraint.class);		// outgoing relationship
-		constraints.put(Pattern.compile("in").matcher(""),		RelationshipConstraint.class);		// incoming relationship
+		constraints.put(Pattern.compile("out"),		RelationshipConstraint.class);		// outgoing relationship
+		constraints.put(Pattern.compile("in"),		RelationshipConstraint.class);		// incoming relationship
 
 		// start & end node
-		constraints.put(Pattern.compile("start").matcher(""),		RelationshipNodeConstraint.class);	// start node
-		constraints.put(Pattern.compile("end").matcher(""),		RelationshipNodeConstraint.class);	// end node
+		constraints.put(Pattern.compile("start"),	RelationshipNodeConstraint.class);	// start node
+		constraints.put(Pattern.compile("end"),		RelationshipNodeConstraint.class);	// end node
 
 		// The pattern for a generic type match. This pattern should be inserted at the very end
 		// of the chain because it matches everything that is a lowercase string without numbers
-		constraints.put(Pattern.compile("[a-z_]+").matcher(""),		TypeConstraint.class);			// any type match
+		constraints.put(Pattern.compile("[a-z_]+"),	TypeConstraint.class);			// any type match
 	}
 
 	@Override
@@ -130,17 +131,38 @@ public class CoreServlet extends HttpServlet {
 				response.setContentType("application/json; charset=utf-8");
 				Writer writer = response.getWriter();
 
+				// the following output formats can be used
+				// gsonAdapter.setOutputMode(GraphObjectGSONAdapter.OutputMode.FlatNameValue);
+				// gsonAdapter.setOutputMode(GraphObjectGSONAdapter.OutputMode.NestedKeyValue);
+				// gsonAdapter.setOutputMode(GraphObjectGSONAdapter.OutputMode.NestedKeyValueType);
+
+				int mode = parseInt(request.getParameter("mode"), 0);
+				switch(mode) {
+
+					case 0:
+						gsonAdapter.setOutputMode(GraphObjectGSONAdapter.OutputMode.NestedKeyValueType);
+						break;
+
+					case 1:
+						gsonAdapter.setOutputMode(GraphObjectGSONAdapter.OutputMode.NestedKeyValue);
+						break;
+
+					case 2:
+						gsonAdapter.setOutputMode(GraphObjectGSONAdapter.OutputMode.FlatNameValue);
+						break;
+				}
+
 				// GSON serialization
-				double serializationTimeStart = System.nanoTime();
+//				double serializationTimeStart = System.nanoTime();
 				gson.toJson(result, writer);
-				double serializationTimeEnd = System.nanoTime();
+//				double serializationTimeEnd = System.nanoTime();
 
 				writer.flush();
 				writer.close();
 
 				response.setStatus(HttpServletResponse.SC_OK);
 
-				logger.log(Level.INFO, "GSON serialization took {0} seconds", decimalFormat.format((serializationTimeEnd - serializationTimeStart) / 1000000000.0));
+//				logger.log(Level.INFO, "GSON serialization took {0} seconds", decimalFormat.format((serializationTimeEnd - serializationTimeStart) / 1000000000.0));
 
 			} else {
 
@@ -150,6 +172,10 @@ public class CoreServlet extends HttpServlet {
 		} catch(PathException pex) {
 
 			response.setStatus(pex.getStatus());
+
+		} catch(Throwable t) {
+
+			logger.log(Level.WARNING, "Exception", t);
 		}
 
 	}
@@ -179,7 +205,7 @@ public class CoreServlet extends HttpServlet {
 
 	}
 
-	// ---- public static methods -----
+	// ---- private methods -----
 	private Result getResults(HttpServletRequest request) throws PathException {
 
 		RootResourceConstraint rootConstraint = new RootResourceConstraint();
@@ -192,51 +218,8 @@ public class CoreServlet extends HttpServlet {
 		String path = request.getPathInfo();
 		if(path != null) {
 
-			// split request path into URI parts
-			String[] pathParts = path.split("[/]+");
-			for(int i=0; i<pathParts.length; i++) {
-
-				// eliminate empty strings
-				String part = pathParts[i].trim();
-				if(part.length() > 0) {
-
-					// look for matching pattern
-					for(Entry<Matcher, Class> entry : constraints.entrySet()) {
-
-						Matcher matcher = entry.getKey();
-						Class type = entry.getValue();
-
-						// try a regexp match
-						matcher.reset(pathParts[i]);
-						if(matcher.matches()) {
-
-							try {
-								// instantiate resource constraint
-								ResourceConstraint constraint = (ResourceConstraint)type.newInstance();
-								if(constraint.acceptUriPart(part)) {
-
-									logger.log(Level.INFO, "{0} matched, adding constraint of type {1} for part {2}", new Object[] {
-										matcher.pattern(),
-										type.getName(),
-										part
-									});
-
-									// nest constraint and go on
-									currentConstraint.setChild(constraint);
-									currentConstraint = constraint;
-
-									// first match wins, so choose priority wisely ;)
-									break;
-								}
-
-							} catch(Throwable t) {
-
-								logger.log(Level.WARNING, "Error instantiating constraint class", t);
-							}
-						}
-					}
-				}
-			}
+			// parse path into constraint chain
+			currentConstraint = parsePath(path, rootConstraint);
 
 			// sort results
 			sortKey = request.getParameter(REQUEST_PARAMETER_SORT_KEY);
@@ -271,26 +254,89 @@ public class CoreServlet extends HttpServlet {
 			}
 		}
 
+		// fetch results
 		Result results = rootConstraint.getNestedResults(request);
 
-		// set information from paging constraint
-		if(pagingConstraint != null) {
+		if(results != null) {
 
-			results.setPage(pagingConstraint.getPage());
-			results.setPageSize(pagingConstraint.getPageSize());
-			results.setPageCount(pagingConstraint.getPageCount());
-			results.setResultCount(pagingConstraint.getResultCount());
+			// set information from paging constraint
+			if(pagingConstraint != null) {
 
-		} else {
+				results.setPage(pagingConstraint.getPage());
+				results.setPageSize(pagingConstraint.getPageSize());
+				results.setPageCount(pagingConstraint.getPageCount());
+				results.setResultCount(pagingConstraint.getResultCount());
 
-			results.setResultCount(results.getResults().size());
+			} else {
+
+				List<GraphObject> resultList = results.getResults();
+				if(resultList != null) {
+					results.setResultCount(resultList.size());
+				} else {
+					logger.log(Level.WARNING, "Got empty result set!");
+				}
+			}
+
+			// set information from sort constraint
+			results.setSortOrder(sortOrder);
+			results.setSortKey(sortKey);
 		}
 
-		// set information from sort constraint
-		results.setSortOrder(sortOrder);
-		results.setSortKey(sortKey);
-
+		// finally: return results
 		return results;
+	}
+
+	private ResourceConstraint parsePath(String path, ResourceConstraint rootConstraint) {
+
+		ResourceConstraint currentConstraint = rootConstraint;
+
+		// split request path into URI parts
+		String[] pathParts = path.split("[/]+");
+		for(int i=0; i<pathParts.length; i++) {
+
+			// eliminate empty strings
+			String part = pathParts[i].trim();
+			if(part.length() > 0) {
+
+				// look for matching pattern
+				for(Entry<Pattern, Class> entry : constraints.entrySet()) {
+
+					Pattern pattern = entry.getKey();
+					Matcher matcher = pattern.matcher(pathParts[i]);
+
+					if(matcher.matches()) {
+
+						try {
+							Class type = entry.getValue();
+
+							// instantiate resource constraint
+							ResourceConstraint constraint = (ResourceConstraint)type.newInstance();
+							if(constraint.acceptUriPart(part)) {
+
+								logger.log(Level.FINEST, "{0} matched, adding constraint of type {1} for part {2}", new Object[] {
+									matcher.pattern(),
+									type.getName(),
+									part
+								});
+
+								// nest constraint and go on
+								currentConstraint.setChild(constraint);
+								currentConstraint = constraint;
+
+								// first match wins, so choose priority wisely ;)
+								break;
+							}
+
+						} catch(Throwable t) {
+
+							logger.log(Level.WARNING, "Error instantiating constraint class", t);
+						}
+					}
+				}
+			}
+		}
+
+		return currentConstraint;
 	}
 
 	/**
