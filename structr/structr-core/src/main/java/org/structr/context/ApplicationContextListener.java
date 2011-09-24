@@ -31,7 +31,6 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionListener;
-import org.structr.core.cloud.StartCloudService;
 import org.structr.ui.page.StructrPage;
 
 /**
@@ -58,6 +57,9 @@ public class ApplicationContextListener implements ServletContextListener, HttpS
             // load config file
             Properties properties = new Properties();
             properties.load(new FileInputStream(configFilePath));
+
+	    String configuredServices = properties.getProperty(Services.CONFIGURED_SERVICES);
+            logger.log(Level.INFO, "Config file configured services: {0}", configuredServices);
 
             String appTitle = properties.getProperty(Services.APPLICATION_TITLE);
             logger.log(Level.INFO, "Config file application title: {0}", appTitle);
@@ -92,7 +94,11 @@ public class ApplicationContextListener implements ServletContextListener, HttpS
             String superuserPassword = properties.getProperty(Services.SUPERUSER_PASSWORD);
             logger.log(Level.INFO, "Config file superuser password: {0}", superuserPassword);
 
-            if (appTitle != null) {
+	    if (configuredServices != null) {
+                context.put(Services.CONFIGURED_SERVICES, configuredServices);
+            }
+
+	    if (appTitle != null) {
                 context.put(Services.APPLICATION_TITLE, appTitle);
             }
 

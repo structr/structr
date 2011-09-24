@@ -207,4 +207,5 @@ public class CloudService extends RunnableNodeService {
 		kryo.register(float[].class, new EncryptingCompressor(new ArraySerializer(kryo)));
 		kryo.register(double[].class, new EncryptingCompressor(new ArraySerializer(kryo)));
 	}
+
 }
