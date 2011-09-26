@@ -95,7 +95,6 @@ public class IndexNodeCommand extends NodeServiceCommand {
 					indexNodes((List<AbstractNode>) parameters[0]);
 				}
 
-
 				break;
 
 			case 2 :
@@ -120,7 +119,8 @@ public class IndexNodeCommand extends NodeServiceCommand {
 				} else if (parameters[0] instanceof AbstractNode) {
 
 					node = (AbstractNode) parameters[0];
-					//id   = node.getId();
+
+					// id   = node.getId();
 				}
 
 				if (parameters[1] instanceof String) {
@@ -159,7 +159,7 @@ public class IndexNodeCommand extends NodeServiceCommand {
 	private void indexProperty(final AbstractNode node, final String key) {
 
 		Node dbNode = node.getNode();
-		long id = node.getId();
+		long id     = node.getId();
 
 		if (key == null) {
 
@@ -186,9 +186,9 @@ public class IndexNodeCommand extends NodeServiceCommand {
 			return;
 		}
 
-
-		Object value       = node.getPropertyForIndexing(key);
-		boolean emptyValue = ((value instanceof String) && StringUtils.isEmpty((String) value));
+		Object value            = node.getProperty(key);
+		Object valueForIndexing = node.getPropertyForIndexing(key);
+		boolean emptyValue      = ((value instanceof String) && StringUtils.isEmpty((String) value));
 
 		if (value == null) {
 
@@ -208,13 +208,11 @@ public class IndexNodeCommand extends NodeServiceCommand {
 
 			// index.remove(node, key, value);
 			index.remove(dbNode, key);
-			logger.log(Level.FINE, "Node {0}: Old value for key {1} removed from index",
-				   new Object[] { id,
-						  key });
-			index.add(dbNode, key, value);
-			logger.log(Level.FINE, "Node {0}: New value {2} added to index for key {1}",
-				   new Object[] { id,
-						  key, value });
+			logger.log(Level.FINE, "Node {0}: Old value for key {1} removed from index", new Object[] { id,
+				key });
+			index.add(dbNode, key, valueForIndexing);
+			logger.log(Level.FINE, "Node {0}: New value {2} added to index for key {1}", new Object[] { id,
+				key, value });
 		}
 	}
 }
