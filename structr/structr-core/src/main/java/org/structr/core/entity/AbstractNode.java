@@ -72,8 +72,6 @@ import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 import org.structr.core.node.XPath;
 import org.structr.core.node.search.Search;
-import org.structr.core.node.search.SearchAttribute;
-import org.structr.core.node.search.SearchNodeCommand;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -102,6 +100,8 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import org.structr.core.GraphObject;
+import org.structr.core.node.NodeRelationshipStatisticsCommand;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -111,7 +111,7 @@ import javax.servlet.http.HttpSession;
  * @author amorgner
  *
  */
-public abstract class AbstractNode implements Comparable<AbstractNode>, RenderController, AccessControllable {
+public abstract class AbstractNode implements Comparable<AbstractNode>, RenderController, AccessControllable, GraphObject {
 
 	public final static String CATEGORIES_KEY         = "categories";
 	public final static String CREATED_BY_KEY         = "createdBy";
@@ -1438,6 +1438,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * Get type from underlying db node If no type property was found, return
 	 * info
 	 */
+	@Override
 	public String getType() {
 		return (String) getProperty(TYPE_KEY);
 	}
@@ -2207,10 +2208,22 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 *
 	 * @return list with relationships
 	 */
+	@Override
 	public List<StructrRelationship> getRelationships(RelationshipType type, Direction dir) {
 
 		return (List<StructrRelationship>) Services.command(NodeRelationshipsCommand.class).execute(this, type,
 			dir);
+	}
+
+	/**
+	 * Return statistical information on all relationships of this node
+	 *
+	 * @return number of relationships
+	 */
+	@Override
+	public Map<RelationshipType, Long> getRelationshipInfo(Direction dir) {
+
+		return (Map<RelationshipType, Long>) Services.command(NodeRelationshipStatisticsCommand.class).execute(this, dir);
 	}
 
 //
@@ -3234,6 +3247,17 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		SecurityContext securityContext = CurrentRequest.getSecurityContext();
 
 		return securityContext.isVisible(this);
+	}
+
+	//~--- interface GraphObject -----------------------------------------
+	@Override
+	public Long getStartNodeId() {
+		return null;
+	}
+
+	@Override
+	public Long getEndNodeId() {
+		return null;
 	}
 
 	//~--- set methods ----------------------------------------------------

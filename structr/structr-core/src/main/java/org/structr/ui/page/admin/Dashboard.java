@@ -297,15 +297,21 @@ public class Dashboard extends Admin {
 
                 List<Map.Entry<String, Object>> params = new LinkedList<Map.Entry<String, Object>>();
 
+                params.add(new AbstractMap.SimpleEntry<String, Object>("Configured Services", Services.getConfiguredServices()));
                 params.add(new AbstractMap.SimpleEntry<String, Object>("Configuration File Path", Services.getConfigFilePath()));
                 params.add(new AbstractMap.SimpleEntry<String, Object>("Application Title", Services.getApplicationTitle()));
+		params.add(new AbstractMap.SimpleEntry<String, Object>("Temp Path", Services.getTmpPath()));
+		params.add(new AbstractMap.SimpleEntry<String, Object>("Base Path", Services.getBasePath()));
                 params.add(new AbstractMap.SimpleEntry<String, Object>("Database Path", Services.getDatabasePath()));
                 params.add(new AbstractMap.SimpleEntry<String, Object>("Files Path", Services.getFilesPath()));
                 params.add(new AbstractMap.SimpleEntry<String, Object>("Modules Path", Services.getModulesPath()));
+		params.add(new AbstractMap.SimpleEntry<String, Object>("Server IP", Services.getServerIP()));
                 params.add(new AbstractMap.SimpleEntry<String, Object>("TCP Port", Services.getTcpPort()));
                 params.add(new AbstractMap.SimpleEntry<String, Object>("UDP Port", Services.getUdpPort()));
                 params.add(new AbstractMap.SimpleEntry<String, Object>("SMTP Host", Services.getSmtpHost()));
                 params.add(new AbstractMap.SimpleEntry<String, Object>("SMTP Port", Services.getSmtpPort()));
+		params.add(new AbstractMap.SimpleEntry<String, Object>("Superuser Username", Services.getSuperuserUsername()));
+		params.add(new AbstractMap.SimpleEntry<String, Object>("Superuser Password", Services.getSuperuserPassword()));
 
                 return params;
 

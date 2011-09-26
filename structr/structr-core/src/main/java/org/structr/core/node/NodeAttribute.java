@@ -63,4 +63,18 @@ public class NodeAttribute {
     public void setValue(Object value) {
         this.value = value;
     }
+
+    @Override
+    public String toString() {
+
+	    StringBuilder buf = new StringBuilder();
+
+	    buf.append("NodeAttribute('");
+	    buf.append(key);
+	    buf.append("', '");
+	    buf.append(value);
+	    buf.append("')");
+
+	    return buf.toString();
+    }
 }
