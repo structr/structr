@@ -21,11 +21,15 @@ package org.structr.core.servlet;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Writer;
+import java.lang.reflect.Type;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -40,12 +44,21 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.structr.common.AccessMode;
 import org.structr.common.CurrentRequest;
+import org.structr.core.Command;
 import org.structr.core.GraphObject;
+import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.SuperUser;
+import org.structr.core.node.CreateNodeCommand;
+import org.structr.core.node.NodeAttribute;
+import org.structr.core.node.StructrTransaction;
+import org.structr.core.node.TransactionCommand;
 import org.structr.core.resource.adapter.AbstractNodeGSONAdapter;
 import org.structr.core.resource.IllegalPathException;
 import org.structr.core.resource.PathException;
 import org.structr.core.resource.adapter.GraphObjectGSONAdapter;
+import org.structr.core.resource.adapter.GraphObjectGSONAdapter.PropertyFormat;
+import org.structr.core.resource.adapter.NodeAttributeGSONAdapter;
 import org.structr.core.resource.constraint.IdConstraint;
 import org.structr.core.resource.constraint.RelationshipConstraint;
 import org.structr.core.resource.constraint.PagingConstraint;
@@ -55,14 +68,15 @@ import org.structr.core.resource.constraint.Result;
 import org.structr.core.resource.constraint.RootResourceConstraint;
 import org.structr.core.resource.constraint.SortConstraint;
 import org.structr.core.resource.constraint.TypeConstraint;
+import org.structr.core.resource.wrapper.NodeAttributeWrapper;
 
 /**
  *
  * @author Christian Morgner
  */
-public class CoreServlet extends HttpServlet {
+public class JsonRestServlet extends HttpServlet {
 
-	private static final Logger logger = Logger.getLogger(CoreServlet.class.getName());
+	private static final Logger logger = Logger.getLogger(JsonRestServlet.class.getName());
 
 	private static final String	REQUEST_PARAMETER_SORT_KEY =		"sort";
 	private static final String	REQUEST_PARAMETER_SORT_ORDER =		"order";
@@ -72,19 +86,24 @@ public class CoreServlet extends HttpServlet {
 	private static final int	DEFAULT_VALUE_PAGE_SIZE =		20;
 	private static final String	DEFAULT_VALUE_SORT_ORDER =		"asc";
 
-	private GraphObjectGSONAdapter gsonAdapter = null;
+	private static final String	SERVLET_PARAMETER_PROPERTY_FORMAT =	"PropertyFormat";
+
+	private NodeAttributeGSONAdapter nodeAttributeAdapter = null;
+	private GraphObjectGSONAdapter graphObjectAdapter = null;
 	private Map<Pattern, Class> constraints = null;
 	private Gson gson = null;
 
 	@Override
 	public void init() {
 
-		this.gsonAdapter = new GraphObjectGSONAdapter();
+		this.graphObjectAdapter = new GraphObjectGSONAdapter();
+		this.nodeAttributeAdapter = new NodeAttributeGSONAdapter();
 		this.constraints = new LinkedHashMap<Pattern, Class>();
 		this.gson = new GsonBuilder()
 			.setPrettyPrinting()
 			.registerTypeAdapter(AbstractNode.class, new AbstractNodeGSONAdapter())
-			.registerTypeAdapter(GraphObject.class, gsonAdapter)
+			.registerTypeAdapter(NodeAttributeWrapper.class, nodeAttributeAdapter)
+			.registerTypeAdapter(GraphObject.class, graphObjectAdapter)
 			.create();
 
 		// ----- initialize constraints -----
@@ -101,17 +120,84 @@ public class CoreServlet extends HttpServlet {
 		// The pattern for a generic type match. This pattern should be inserted at the very end
 		// of the chain because it matches everything that is a lowercase string without numbers
 		constraints.put(Pattern.compile("[a-z_]+"),	TypeConstraint.class);			// any type match
+
+		
+		// ----- set property format from init parameters -----
+		String propertyFormat = this.getInitParameter(SERVLET_PARAMETER_PROPERTY_FORMAT);
+		if(propertyFormat != null) {
+
+			try {
+				PropertyFormat format = PropertyFormat.valueOf(propertyFormat);
+				graphObjectAdapter.setDefaultPropertyFormat(format);
+
+				logger.log(Level.INFO, "Setting property format to {0}", propertyFormat);
+
+			} catch(Throwable t) {
+
+				graphObjectAdapter.setDefaultPropertyFormat(PropertyFormat.NestedKeyValue);
+				logger.log(Level.WARNING, "Cannot use property format {0}, unknown format.", propertyFormat);
+			}
+		}
 	}
 
 	@Override
 	public void destroy() {
 	}
 
+	// <editor-fold defaultstate="collapsed" desc="DELETE">
 	@Override
 	protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-	}
+		CurrentRequest.setAccessMode(AccessMode.Frontend);
 
+		try {
+
+			// obtain results and try to delete
+			Result result = getResults(request);
+			if(result != null) {
+
+				final List<GraphObject> results = result.getResults();
+				if(results != null) {
+
+					Boolean success = (Boolean)Services.command(TransactionCommand.class).execute(new StructrTransaction() {
+
+						@Override
+						public Object execute() throws Throwable {
+
+							boolean success = true;
+							for(GraphObject obj : results) {
+
+								success &= obj.delete();
+							}
+
+							return success;
+						}
+
+					});
+
+					// return success
+					if(success.booleanValue()) {
+						response.setStatus(HttpServletResponse.SC_OK);
+						return;
+					}
+				}
+			}
+
+			// return bad request on error
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+
+		} catch(PathException pex) {
+
+			response.setStatus(pex.getStatus());
+
+		} catch(Throwable t) {
+
+			logger.log(Level.WARNING, "Exception", t);
+		}
+	}
+	// </editor-fold>
+
+	// <editor-fold defaultstate="collapsed" desc="GET">
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
@@ -130,27 +216,6 @@ public class CoreServlet extends HttpServlet {
 
 				response.setContentType("application/json; charset=utf-8");
 				Writer writer = response.getWriter();
-
-				// the following output formats can be used
-				// gsonAdapter.setOutputMode(GraphObjectGSONAdapter.OutputMode.FlatNameValue);
-				// gsonAdapter.setOutputMode(GraphObjectGSONAdapter.OutputMode.NestedKeyValue);
-				// gsonAdapter.setOutputMode(GraphObjectGSONAdapter.OutputMode.NestedKeyValueType);
-
-				int mode = parseInt(request.getParameter("mode"), 0);
-				switch(mode) {
-
-					case 0:
-						gsonAdapter.setOutputMode(GraphObjectGSONAdapter.OutputMode.NestedKeyValueType);
-						break;
-
-					case 1:
-						gsonAdapter.setOutputMode(GraphObjectGSONAdapter.OutputMode.NestedKeyValue);
-						break;
-
-					case 2:
-						gsonAdapter.setOutputMode(GraphObjectGSONAdapter.OutputMode.FlatNameValue);
-						break;
-				}
 
 				// GSON serialization
 //				double serializationTimeStart = System.nanoTime();
@@ -177,33 +242,132 @@ public class CoreServlet extends HttpServlet {
 
 			logger.log(Level.WARNING, "Exception", t);
 		}
-
 	}
+	// </editor-fold>
 
+	// <editor-fold defaultstate="collapsed" desc="HEAD">
 	@Override
 	protected void doHead(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
 	}
+	// </editor-fold>
 
+	// <editor-fold defaultstate="collapsed" desc="OPTIONS">
 	@Override
 	protected void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
 	}
+	// </editor-fold>
 
+	// <editor-fold defaultstate="collapsed" desc="POST">
 	@Override
-	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	protected void doPost(final HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
+		if(request.getPathInfo().endsWith("/node")) {
+
+			AbstractNode node = (AbstractNode)Services.command(TransactionCommand.class).execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws Throwable {
+
+					Command createNodeCommand = Services.command(CreateNodeCommand.class);
+					AbstractNode newNode = null;
+
+					List<NodeAttributeWrapper> wrappers = parseRequestBody(request);
+					for(NodeAttributeWrapper wrapper : wrappers) {
+
+						// each wrapper is a new node to create,
+						// as it can contain several attributes
+						newNode = (AbstractNode)createNodeCommand.execute(new SuperUser(), wrapper.getAttributes());
+					}
+
+					return newNode;
+				}
+			});
+
+			// FIXME: set correct location header
+			response.setHeader("Location", request.getContextPath() + "/" + node.getId());
+			response.setStatus(HttpServletResponse.SC_CREATED);
+
+
+		} else
+		if(request.getPathInfo().endsWith("/rel")) {
+
+			throw new UnsupportedOperationException("Not supported yet.");
+		}
 	}
+	// </editor-fold>
 
+	// <editor-fold defaultstate="collapsed" desc="PUT">
 	@Override
 	protected void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-	}
+		CurrentRequest.setAccessMode(AccessMode.Frontend);
 
+		// FIXME: this is just a first prototype!
+
+		try {
+
+			// obtain results and try to delete
+			Result result = getResults(request);
+			if(result != null) {
+
+				final List<NodeAttributeWrapper> wrappers = parseRequestBody(request);
+				final List<GraphObject> results = result.getResults();
+				if(results != null) {
+
+					Boolean success = (Boolean)Services.command(TransactionCommand.class).execute(new StructrTransaction() {
+
+						@Override
+						public Object execute() throws Throwable {
+
+							boolean success = true;
+							for(GraphObject obj : results) {
+
+								// set attributes
+								for(NodeAttributeWrapper wrapper : wrappers) {
+
+									// update
+									for(NodeAttribute attr : wrapper.getAttributes()) {
+										obj.setProperty(attr.getKey(), attr.getValue());
+									}
+								}
+							}
+
+							return success;
+						}
+
+					});
+
+					// return success
+					if(success.booleanValue()) {
+						response.setStatus(HttpServletResponse.SC_OK);
+						return;
+					}
+				}
+			}
+
+			// return bad request on error
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+
+		} catch(PathException pex) {
+
+			response.setStatus(pex.getStatus());
+
+		} catch(Throwable t) {
+
+			logger.log(Level.WARNING, "Exception", t);
+		}
+
+	}
+	// </editor-fold>
+
+	// <editor-fold defaultstate="collapsed" desc="TRACE">
 	@Override
 	protected void doTrace(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
 	}
+	// </editor-fold>
 
 	// ---- private methods -----
 	private Result getResults(HttpServletRequest request) throws PathException {
@@ -361,5 +525,36 @@ public class CoreServlet extends HttpServlet {
 		}
 
 		return defaultValue;
+	}
+
+	private List<NodeAttributeWrapper> parseRequestBody(HttpServletRequest request) throws IOException {
+
+		List<NodeAttributeWrapper> wrappers = new LinkedList<NodeAttributeWrapper>();
+		Type listType = new TypeToken<List<NodeAttributeWrapper>>() {}.getType();
+		BufferedReader reader = new BufferedReader(request.getReader());
+
+		try {
+			if(reader.markSupported()) {
+				reader.mark(request.getContentLength());
+			}
+
+			// try list (i.e. JsonArray) first
+			wrappers.addAll((List<NodeAttributeWrapper>)gson.fromJson(reader, listType));
+
+		} catch(Throwable t) {
+
+			// reset reader
+			if(reader.markSupported()) {
+				reader.reset();
+			}
+
+			// try single element afterwards
+			NodeAttributeWrapper wrapper = gson.fromJson(reader, NodeAttributeWrapper.class);
+			if(wrapper != null) {
+				wrappers.add(wrapper);
+			}
+		}
+
+		return wrappers;
 	}
 }

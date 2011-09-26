@@ -44,20 +44,25 @@ import org.structr.core.entity.DummyNode;
  */
 public class GraphObjectGSONAdapter implements InstanceCreator<GraphObject>, JsonSerializer<GraphObject>, JsonDeserializer<GraphObject> {
 
-	private ThreadLocal<OutputMode> threadLocalOutputMode = new ThreadLocal<OutputMode>();
+	private ThreadLocal<PropertyFormat> threadLocalPropertyFormat = new ThreadLocal<PropertyFormat>();
+	private PropertyFormat defaultPropertyFormat = PropertyFormat.NestedKeyValueType;
 
-	public enum OutputMode {
+	public enum PropertyFormat {
 		NestedKeyValue,			// "properties" : [ { "key" : "name", "value" : "Test" }, ... ]
 		NestedKeyValueType,		// "properties" : [ { "key" : "name", "value" : "Test", "type" : "String" }, ... ]
 		FlatNameValue			// { "name" : "Test" }
 	}
 
-	public void setOutputMode(OutputMode outputMode) {
-		this.threadLocalOutputMode.set(outputMode);
+	public void setDefaultPropertyFormat(PropertyFormat propertyFormat) {
+		this.defaultPropertyFormat = propertyFormat;
 	}
 
-	public OutputMode getOutputMode() {
-		return this.threadLocalOutputMode.get();
+	public void setPropertyFormat(PropertyFormat propertyFormat) {
+		this.threadLocalPropertyFormat.set(propertyFormat);
+	}
+
+	public PropertyFormat getPropertyFormat() {
+		return this.threadLocalPropertyFormat.get();
 	}
 
 	@Override
@@ -67,15 +72,11 @@ public class GraphObjectGSONAdapter implements InstanceCreator<GraphObject>, Jso
 
 	@Override
 	public JsonElement serialize(GraphObject src, Type typeOfSrc, JsonSerializationContext context) {
-
-		OutputMode outputMode = threadLocalOutputMode.get();
-		if(outputMode == null) {
-			outputMode = OutputMode.NestedKeyValueType;
-		}
-
+		
+		PropertyFormat propertyFormat = getLocalPropertyFormat();
 		JsonElement serializedOutput = null;
 
-		switch(threadLocalOutputMode.get()) {
+		switch(propertyFormat) {
 
 			case NestedKeyValueType:
 				serializedOutput = serializeNestedKeyValueType(src, typeOfSrc, context, true);
@@ -267,5 +268,15 @@ public class GraphObjectGSONAdapter implements InstanceCreator<GraphObject>, Jso
 		*/
 		
 		return jsonObject;
+	}
+
+	private PropertyFormat getLocalPropertyFormat() {
+
+		PropertyFormat propertyFormat = threadLocalPropertyFormat.get();
+		if(propertyFormat == null) {
+			propertyFormat = defaultPropertyFormat;
+		}
+
+		return propertyFormat;
 	}
 }

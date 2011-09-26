@@ -3260,6 +3260,11 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		return null;
 	}
 
+	@Override
+	public boolean delete() {
+		return false;
+	}
+
 	//~--- set methods ----------------------------------------------------
 
 	/**

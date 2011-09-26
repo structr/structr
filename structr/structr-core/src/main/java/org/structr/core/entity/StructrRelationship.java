@@ -338,4 +338,9 @@ public class StructrRelationship implements GraphObject {
 	public Long getEndNodeId() {
 		return this.getEndNode().getId();
 	}
+
+	@Override
+	public boolean delete() {
+		return false;
+	}
 }
