@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2011 Axel Morgner, structr <structr@structr.org>
+ *  Copyright (C) 2011 Axel Morgner
  *
  *  This file is part of structr <http://structr.org>.
  *
@@ -19,18 +19,25 @@
 
 
 
-package org.structr.core.entity.app;
+package org.structr.core.entity;
 
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.CustomTypeNode;
+import org.structr.common.RenderMode;
+import org.structr.core.NodeRenderer;
+
+//~--- JDK imports ------------------------------------------------------------
+
+import java.util.Map;
 
 //~--- classes ----------------------------------------------------------------
 
 /**
  *
- * @author Christian Morgner
+ * @author axel
  */
-public class DataNode extends CustomTypeNode {
+public class GenericNode extends AbstractNode {
+
+	@Override
+	public void initializeRenderers(Map<RenderMode, NodeRenderer> rendererMap) {}
 
 	@Override
 	public void onNodeCreation() {}
@@ -38,29 +45,13 @@ public class DataNode extends CustomTypeNode {
 	@Override
 	public void onNodeInstantiation() {}
 
+	@Override
+	public void onNodeDeletion() {}
+
 	//~--- get methods ----------------------------------------------------
 
 	@Override
-	public Object getProperty(String key) {
-		return (super.getProperty(key));
-	}
-
-	@Override
 	public String getIconSrc() {
-		return ("/images/database.png");
-	}
-
-	@Override
-	public Iterable<AbstractNode> getDataNodes() {
-
-		// DataNode nodes should not return their child nodes
-		return null;
-	}
-
-	//~--- set methods ----------------------------------------------------
-
-	@Override
-	public void setProperty(String key, Object value) {
-		super.setProperty(key, value);
+		return "/images/error.png";
 	}
 }
