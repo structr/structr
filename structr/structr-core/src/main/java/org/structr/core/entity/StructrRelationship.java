@@ -341,6 +341,7 @@ public class StructrRelationship implements GraphObject {
 
 	@Override
 	public boolean delete() {
-		return false;
+		dbRelationship.delete();
+		return true;
 	}
 }

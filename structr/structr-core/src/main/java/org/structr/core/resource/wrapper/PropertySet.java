@@ -27,11 +27,11 @@ import org.structr.core.node.NodeAttribute;
  *
  * @author Christian Morgner
  */
-public class NodeAttributeWrapper {
+public class PropertySet {
 
 	private List<NodeAttribute> attributes = null;
 
-	public NodeAttributeWrapper() {
+	public PropertySet() {
 		this.attributes = new LinkedList<NodeAttribute>();
 	}
 
