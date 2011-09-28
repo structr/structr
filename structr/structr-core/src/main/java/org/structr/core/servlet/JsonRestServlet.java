@@ -21,15 +21,13 @@ package org.structr.core.servlet;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
-import java.io.BufferedReader;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonSyntaxException;
 import java.io.IOException;
 import java.io.Writer;
-import java.lang.reflect.Type;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -55,10 +53,11 @@ import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 import org.structr.core.resource.adapter.AbstractNodeGSONAdapter;
 import org.structr.core.resource.IllegalPathException;
+import org.structr.core.resource.NotFoundException;
 import org.structr.core.resource.PathException;
 import org.structr.core.resource.adapter.GraphObjectGSONAdapter;
 import org.structr.core.resource.adapter.GraphObjectGSONAdapter.PropertyFormat;
-import org.structr.core.resource.adapter.NodeAttributeGSONAdapter;
+import org.structr.core.resource.adapter.PropertySetGSONAdapter;
 import org.structr.core.resource.constraint.IdConstraint;
 import org.structr.core.resource.constraint.RelationshipConstraint;
 import org.structr.core.resource.constraint.PagingConstraint;
@@ -68,7 +67,7 @@ import org.structr.core.resource.constraint.Result;
 import org.structr.core.resource.constraint.RootResourceConstraint;
 import org.structr.core.resource.constraint.SortConstraint;
 import org.structr.core.resource.constraint.TypeConstraint;
-import org.structr.core.resource.wrapper.NodeAttributeWrapper;
+import org.structr.core.resource.wrapper.PropertySet;
 
 /**
  *
@@ -88,7 +87,7 @@ public class JsonRestServlet extends HttpServlet {
 
 	private static final String	SERVLET_PARAMETER_PROPERTY_FORMAT =	"PropertyFormat";
 
-	private NodeAttributeGSONAdapter nodeAttributeAdapter = null;
+	private PropertySetGSONAdapter nodeAttributeAdapter = null;
 	private GraphObjectGSONAdapter graphObjectAdapter = null;
 	private Map<Pattern, Class> constraints = null;
 	private Gson gson = null;
@@ -97,12 +96,12 @@ public class JsonRestServlet extends HttpServlet {
 	public void init() {
 
 		this.graphObjectAdapter = new GraphObjectGSONAdapter();
-		this.nodeAttributeAdapter = new NodeAttributeGSONAdapter();
+		this.nodeAttributeAdapter = new PropertySetGSONAdapter();
 		this.constraints = new LinkedHashMap<Pattern, Class>();
 		this.gson = new GsonBuilder()
 			.setPrettyPrinting()
 			.registerTypeAdapter(AbstractNode.class, new AbstractNodeGSONAdapter())
-			.registerTypeAdapter(NodeAttributeWrapper.class, nodeAttributeAdapter)
+			.registerTypeAdapter(PropertySet.class, nodeAttributeAdapter)
 			.registerTypeAdapter(GraphObject.class, graphObjectAdapter)
 			.create();
 
@@ -157,7 +156,7 @@ public class JsonRestServlet extends HttpServlet {
 			if(result != null) {
 
 				final List<GraphObject> results = result.getResults();
-				if(results != null) {
+				if(results != null && !results.isEmpty()) {
 
 					Boolean success = (Boolean)Services.command(TransactionCommand.class).execute(new StructrTransaction() {
 
@@ -170,6 +169,12 @@ public class JsonRestServlet extends HttpServlet {
 								success &= obj.delete();
 							}
 
+							// roll back transaction if not all deletions were successful
+							if(!success) {
+								// throwable will cause transaction to be rolled back
+								throw new IllegalStateException("Deletion failed, roll back transaction");
+							}
+
 							return success;
 						}
 
@@ -180,19 +185,23 @@ public class JsonRestServlet extends HttpServlet {
 						response.setStatus(HttpServletResponse.SC_OK);
 						return;
 					}
+
+				} else {
+					throw new NotFoundException();
 				}
 			}
 
 			// return bad request on error
+			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+
+		} catch(PathException pathException) {
+			response.setStatus(pathException.getStatus());
+		} catch(JsonSyntaxException jsex) {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-
-		} catch(PathException pex) {
-
-			response.setStatus(pex.getStatus());
-
+		} catch(JsonParseException jpex) {
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 		} catch(Throwable t) {
-
-			logger.log(Level.WARNING, "Exception", t);
+			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 		}
 	}
 	// </editor-fold>
@@ -234,13 +243,14 @@ public class JsonRestServlet extends HttpServlet {
 				response.setStatus(HttpServletResponse.SC_NO_CONTENT);
 			}
 
-		} catch(PathException pex) {
-
-			response.setStatus(pex.getStatus());
-
+		} catch(PathException pathException) {
+			response.setStatus(pathException.getStatus());
+		} catch(JsonSyntaxException jsex) {
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+		} catch(JsonParseException jpex) {
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 		} catch(Throwable t) {
-
-			logger.log(Level.WARNING, "Exception", t);
+			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 		}
 	}
 	// </editor-fold>
@@ -263,37 +273,51 @@ public class JsonRestServlet extends HttpServlet {
 	@Override
 	protected void doPost(final HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-		if(request.getPathInfo().endsWith("/node")) {
+		try {
+			if(request.getPathInfo().endsWith("/node")) {
 
-			AbstractNode node = (AbstractNode)Services.command(TransactionCommand.class).execute(new StructrTransaction() {
+				// parse property set from json input
+				final PropertySet propertySet = gson.fromJson(request.getReader(), PropertySet.class);
 
-				@Override
-				public Object execute() throws Throwable {
+				// create new node
+				AbstractNode newNode = (AbstractNode)Services.command(TransactionCommand.class).execute(new StructrTransaction() {
 
-					Command createNodeCommand = Services.command(CreateNodeCommand.class);
-					AbstractNode newNode = null;
+					@Override
+					public Object execute() throws Throwable {
 
-					List<NodeAttributeWrapper> wrappers = parseRequestBody(request);
-					for(NodeAttributeWrapper wrapper : wrappers) {
-
-						// each wrapper is a new node to create,
-						// as it can contain several attributes
-						newNode = (AbstractNode)createNodeCommand.execute(new SuperUser(), wrapper.getAttributes());
+						Command createNodeCommand = Services.command(CreateNodeCommand.class);
+						return (AbstractNode)createNodeCommand.execute(new SuperUser(), propertySet.getAttributes());
 					}
+				});
 
-					return newNode;
-				}
-			});
+				// build "Location" header field for response
+				StringBuilder uriBuilder = new StringBuilder(40);
+				// FIXME: use correct URI here! (how can we know?)
+				uriBuilder.append("/api/");
+				uriBuilder.append(newNode.getId());
 
-			// FIXME: set correct location header
-			response.setHeader("Location", request.getContextPath() + "/" + node.getId());
-			response.setStatus(HttpServletResponse.SC_CREATED);
+				// set response code
+				response.setHeader("Location", uriBuilder.toString());
+				response.setStatus(HttpServletResponse.SC_CREATED);
 
+			} else
+			if(request.getPathInfo().endsWith("/rel")) {
 
-		} else
-		if(request.getPathInfo().endsWith("/rel")) {
+				throw new IllegalPathException();
 
-			throw new UnsupportedOperationException("Not supported yet.");
+			} else {
+				
+				throw new IllegalPathException();
+			}
+
+		} catch(PathException pathException) {
+			response.setStatus(pathException.getStatus());
+		} catch(JsonSyntaxException jsex) {
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+		} catch(JsonParseException jpex) {
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+		} catch(Throwable t) {
+			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 		}
 	}
 	// </editor-fold>
@@ -304,59 +328,50 @@ public class JsonRestServlet extends HttpServlet {
 
 		CurrentRequest.setAccessMode(AccessMode.Frontend);
 
-		// FIXME: this is just a first prototype!
-
 		try {
-
-			// obtain results and try to delete
+			// obtain results and try to update
 			Result result = getResults(request);
 			if(result != null) {
 
-				final List<NodeAttributeWrapper> wrappers = parseRequestBody(request);
+				final PropertySet propertySet = gson.fromJson(request.getReader(), PropertySet.class);
 				final List<GraphObject> results = result.getResults();
-				if(results != null) {
+				if(results != null && !results.isEmpty()) {
 
-					Boolean success = (Boolean)Services.command(TransactionCommand.class).execute(new StructrTransaction() {
+					// modify results in a single transaction
+					Services.command(TransactionCommand.class).execute(new StructrTransaction() {
 
 						@Override
 						public Object execute() throws Throwable {
 
-							boolean success = true;
 							for(GraphObject obj : results) {
-
-								// set attributes
-								for(NodeAttributeWrapper wrapper : wrappers) {
-
-									// update
-									for(NodeAttribute attr : wrapper.getAttributes()) {
-										obj.setProperty(attr.getKey(), attr.getValue());
-									}
+								for(NodeAttribute attr : propertySet.getAttributes()) {
+									obj.setProperty(attr.getKey(), attr.getValue());
 								}
 							}
 
-							return success;
+							return null;
 						}
 
 					});
-
-					// return success
-					if(success.booleanValue()) {
-						response.setStatus(HttpServletResponse.SC_OK);
-						return;
-					}
+				} else {
+					throw new NotFoundException();
 				}
+
+			} else {
+				throw new NotFoundException();
 			}
 
 			// return bad request on error
+			response.setStatus(HttpServletResponse.SC_OK);
+
+		} catch(PathException pathException) {
+			response.setStatus(pathException.getStatus());
+		} catch(JsonSyntaxException jsex) {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-
-		} catch(PathException pex) {
-
-			response.setStatus(pex.getStatus());
-
+		} catch(JsonParseException jpex) {
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 		} catch(Throwable t) {
-
-			logger.log(Level.WARNING, "Exception", t);
+			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 		}
 
 	}
@@ -420,7 +435,6 @@ public class JsonRestServlet extends HttpServlet {
 
 		// fetch results
 		Result results = rootConstraint.getNestedResults(request);
-
 		if(results != null) {
 
 			// set information from paging constraint
@@ -525,36 +539,5 @@ public class JsonRestServlet extends HttpServlet {
 		}
 
 		return defaultValue;
-	}
-
-	private List<NodeAttributeWrapper> parseRequestBody(HttpServletRequest request) throws IOException {
-
-		List<NodeAttributeWrapper> wrappers = new LinkedList<NodeAttributeWrapper>();
-		Type listType = new TypeToken<List<NodeAttributeWrapper>>() {}.getType();
-		BufferedReader reader = new BufferedReader(request.getReader());
-
-		try {
-			if(reader.markSupported()) {
-				reader.mark(request.getContentLength());
-			}
-
-			// try list (i.e. JsonArray) first
-			wrappers.addAll((List<NodeAttributeWrapper>)gson.fromJson(reader, listType));
-
-		} catch(Throwable t) {
-
-			// reset reader
-			if(reader.markSupported()) {
-				reader.reset();
-			}
-
-			// try single element afterwards
-			NodeAttributeWrapper wrapper = gson.fromJson(reader, NodeAttributeWrapper.class);
-			if(wrapper != null) {
-				wrappers.add(wrapper);
-			}
-		}
-
-		return wrappers;
 	}
 }

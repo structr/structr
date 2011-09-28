@@ -20,6 +20,7 @@
 package org.structr.core.resource.adapter;
 
 import com.google.gson.InstanceCreator;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
@@ -31,17 +32,18 @@ import java.lang.reflect.Type;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.node.NodeAttribute;
-import org.structr.core.resource.wrapper.NodeAttributeWrapper;
+import org.structr.core.resource.IllegalPathException;
+import org.structr.core.resource.PathException;
+import org.structr.core.resource.wrapper.PropertySet;
 
 /**
  * Controls serialization and deserialization of structr nodes.
  *
  * @author Christian Morgner
  */
-public class NodeAttributeGSONAdapter implements InstanceCreator<NodeAttributeWrapper>, JsonSerializer<NodeAttributeWrapper>, JsonDeserializer<NodeAttributeWrapper> {
+public class PropertySetGSONAdapter implements InstanceCreator<PropertySet>, JsonSerializer<PropertySet>, JsonDeserializer<PropertySet> {
 
-	private static final Logger logger = Logger.getLogger(NodeAttributeGSONAdapter.class.getName());
+	private static final Logger logger = Logger.getLogger(PropertySetGSONAdapter.class.getName());
 	
 	private ThreadLocal<PropertyFormat> threadLocalPropertyFormat = new ThreadLocal<PropertyFormat>();
 	private PropertyFormat defaultPropertyFormat = PropertyFormat.NestedKeyValueType;
@@ -65,21 +67,21 @@ public class NodeAttributeGSONAdapter implements InstanceCreator<NodeAttributeWr
 	}
 
 	@Override
-	public NodeAttributeWrapper createInstance(Type type) {
-		return new NodeAttributeWrapper();
+	public PropertySet createInstance(Type type) {
+		return new PropertySet();
 	}
 
 	@Override
-	public JsonElement serialize(NodeAttributeWrapper src, Type typeOfSrc, JsonSerializationContext context) {
+	public JsonElement serialize(PropertySet src, Type typeOfSrc, JsonSerializationContext context) {
 
 		return null;
 	}
 
 	@Override
-	public NodeAttributeWrapper deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+	public PropertySet deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
 
 		PropertyFormat propertyFormat = getLocalPropertyFormat();
-		NodeAttributeWrapper wrapper = null;
+		PropertySet wrapper = null;
 
 		switch(propertyFormat) {
 
@@ -100,27 +102,23 @@ public class NodeAttributeGSONAdapter implements InstanceCreator<NodeAttributeWr
 	}
 
 	// ----- private methods -----
-	private NodeAttributeWrapper deserializeNestedKeyValueType(JsonElement json, Type typeOfT, JsonDeserializationContext context, boolean includeTypeInOutput) {
+	private PropertySet deserializeNestedKeyValueType(JsonElement json, Type typeOfT, JsonDeserializationContext context, boolean includeTypeInOutput) {
 
-		NodeAttributeWrapper wrapper = new NodeAttributeWrapper();
-		if(json.isJsonObject()) {
+		PropertySet wrapper = new PropertySet();
+		if(json.isJsonArray()) {
 
-			JsonObject obj = json.getAsJsonObject();
-			for(Entry<String, JsonElement> entry : obj.entrySet()) {
-
-				String key = entry.getKey();
-				JsonElement elem = entry.getValue();
-
-				wrapper.add(key, elem.getAsString());
+			JsonArray array = json.getAsJsonArray();
+			for(JsonElement elem : array) {
+				convertJsonElement(elem, wrapper);
 			}
 		}
 
 		return wrapper;
 	}
 
-	private NodeAttributeWrapper deserializeFlatNameValue(JsonElement json, Type typeOfT, JsonDeserializationContext context) {
+	private PropertySet deserializeFlatNameValue(JsonElement json, Type typeOfT, JsonDeserializationContext context) {
 
-		NodeAttributeWrapper wrapper = new NodeAttributeWrapper();
+		PropertySet wrapper = new PropertySet();
 		if(json.isJsonObject()) {
 
 			JsonObject obj = json.getAsJsonObject();
@@ -131,10 +129,6 @@ public class NodeAttributeGSONAdapter implements InstanceCreator<NodeAttributeWr
 
 				wrapper.add(key, elem.getAsString());
 			}
-
-		} else {
-
-			logger.log(Level.INFO, "other type..");
 		}
 
 		return wrapper;
@@ -148,5 +142,57 @@ public class NodeAttributeGSONAdapter implements InstanceCreator<NodeAttributeWr
 		}
 
 		return propertyFormat;
+	}
+
+	private void convertJsonElement(JsonElement elem, PropertySet wrapper) {
+
+		String key = null;
+		Object value = null;
+		String type = "String";
+
+		if(elem.isJsonObject()) {
+
+			JsonObject obj = elem.getAsJsonObject();
+
+			// set type (defaults to String)
+			if(obj.has("type")) {
+				type = obj.get("type").getAsString();
+				logger.log(Level.INFO, "type: {0}", type);
+			}
+
+			if(obj.has("key")) {
+				key = obj.get("key").getAsString();
+				logger.log(Level.INFO, "key: {0}", key);
+			}
+			
+			if(obj.has("value")) {
+				
+				JsonElement valueElement = obj.get("value");
+				value = getTypedValue(valueElement, type);
+				logger.log(Level.INFO, "value: {0}", value);
+			}
+		}
+
+		if(key != null && value != null) {
+			wrapper.add(key, value, type);
+		}
+	}
+
+	private Object getTypedValue(JsonElement valueElement, String type) {
+
+		Object value = null;
+
+		if(type.equals("String"))	value = valueElement.getAsString(); else
+		if(type.equals("Integer"))	value = valueElement.getAsInt(); else
+		if(type.equals("Long"))		value = valueElement.getAsLong(); else
+		if(type.equals("Double"))	value = valueElement.getAsDouble(); else
+		if(type.equals("Float"))	value = valueElement.getAsFloat(); else
+		if(type.equals("Byte"))		value = valueElement.getAsByte(); else
+		if(type.equals("Short"))	value = valueElement.getAsShort(); else
+		if(type.equals("Character"))	value = valueElement.getAsCharacter(); else
+		if(type.equals("BigDecimal"))	value = valueElement.getAsBigDecimal(); else
+		if(type.equals("BigInteger"))	value = valueElement.getAsBigInteger();
+
+		return value;
 	}
 }
