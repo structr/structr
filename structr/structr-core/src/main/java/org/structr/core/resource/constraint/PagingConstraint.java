@@ -13,6 +13,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.resource.PathException;
 
 /**
+ * Implements paging.
  *
  * @author Christian Morgner
  */

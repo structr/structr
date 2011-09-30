@@ -24,10 +24,17 @@ import java.util.List;
 import org.structr.core.node.NodeAttribute;
 
 /**
+ * Wrapper class for JSON input via {@see JsonRestServlet}.
  *
  * @author Christian Morgner
  */
 public class PropertySet {
+
+	public enum PropertyFormat {
+		NestedKeyValue,			// "properties" : [ { "key" : "name", "value" : "Test" }, ... ]
+		NestedKeyValueType,		// "properties" : [ { "key" : "name", "value" : "Test", "type" : "String" }, ... ]
+		FlatNameValue			// { "name" : "Test" }
+	}
 
 	private List<NodeAttribute> attributes = null;
 
@@ -35,16 +42,34 @@ public class PropertySet {
 		this.attributes = new LinkedList<NodeAttribute>();
 	}
 
+	/**
+	 * Add a key-value-pair of type String to this property set.
+	 *
+	 * @param key the key
+	 * @param value the value
+	 */
 	public void add(String key, Object value) {
 
 		add(key, value, "String");
 	}
 
+	/**
+	 * Add a key-value-pair of given type to this property set.
+	 *
+	 * @param key the key
+	 * @param value the value
+	 * @param type the type
+	 */
 	public void add(String key, Object value, String type) {
 
 		attributes.add(new NodeAttribute(key, value));
 	}
 
+	/**
+	 * Return the list of attributes in this property set.
+	 *
+	 * @return the list of attributes
+	 */
 	public List<NodeAttribute> getAttributes() {
 		return attributes;
 	}

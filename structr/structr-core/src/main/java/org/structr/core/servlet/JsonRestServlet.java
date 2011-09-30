@@ -51,12 +51,10 @@ import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.NodeAttribute;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
-import org.structr.core.resource.adapter.AbstractNodeGSONAdapter;
 import org.structr.core.resource.IllegalPathException;
 import org.structr.core.resource.NotFoundException;
 import org.structr.core.resource.PathException;
 import org.structr.core.resource.adapter.GraphObjectGSONAdapter;
-import org.structr.core.resource.adapter.GraphObjectGSONAdapter.PropertyFormat;
 import org.structr.core.resource.adapter.PropertySetGSONAdapter;
 import org.structr.core.resource.constraint.IdConstraint;
 import org.structr.core.resource.constraint.RelationshipConstraint;
@@ -68,8 +66,12 @@ import org.structr.core.resource.constraint.RootResourceConstraint;
 import org.structr.core.resource.constraint.SortConstraint;
 import org.structr.core.resource.constraint.TypeConstraint;
 import org.structr.core.resource.wrapper.PropertySet;
+import org.structr.core.resource.wrapper.PropertySet.PropertyFormat;
 
 /**
+ * Implements the structr REST API. The input and output format of the JSON
+ * serialisation can be configured with the servlet init parameter "PropertyFormat".
+ * ({@see PropertyFormat}).
  *
  * @author Christian Morgner
  */
@@ -87,22 +89,34 @@ public class JsonRestServlet extends HttpServlet {
 
 	private static final String	SERVLET_PARAMETER_PROPERTY_FORMAT =	"PropertyFormat";
 
-	private PropertySetGSONAdapter nodeAttributeAdapter = null;
-	private GraphObjectGSONAdapter graphObjectAdapter = null;
 	private Map<Pattern, Class> constraints = null;
 	private Gson gson = null;
 
 	@Override
 	public void init() {
 
-		this.graphObjectAdapter = new GraphObjectGSONAdapter();
-		this.nodeAttributeAdapter = new PropertySetGSONAdapter();
+		// ----- set property format from init parameters -----
+		String propertyFormatParameter = this.getInitParameter(SERVLET_PARAMETER_PROPERTY_FORMAT);
+		PropertyFormat propertyFormat = PropertyFormat.NestedKeyValueType;
+
+		if(propertyFormatParameter != null) {
+
+			try {
+				propertyFormat = PropertyFormat.valueOf(propertyFormatParameter);
+				logger.log(Level.INFO, "Setting property format to {0}", propertyFormatParameter);
+
+			} catch(Throwable t) {
+
+				logger.log(Level.WARNING, "Cannot use property format {0}, unknown format.", propertyFormatParameter);
+			}
+		}
+
+		// initialize GSON renderer
 		this.constraints = new LinkedHashMap<Pattern, Class>();
 		this.gson = new GsonBuilder()
 			.setPrettyPrinting()
-			.registerTypeAdapter(AbstractNode.class, new AbstractNodeGSONAdapter())
-			.registerTypeAdapter(PropertySet.class, nodeAttributeAdapter)
-			.registerTypeAdapter(GraphObject.class, graphObjectAdapter)
+			.registerTypeAdapter(PropertySet.class, new PropertySetGSONAdapter(propertyFormat))
+			.registerTypeAdapter(GraphObject.class, new GraphObjectGSONAdapter(propertyFormat))
 			.create();
 
 		// ----- initialize constraints -----
@@ -119,24 +133,6 @@ public class JsonRestServlet extends HttpServlet {
 		// The pattern for a generic type match. This pattern should be inserted at the very end
 		// of the chain because it matches everything that is a lowercase string without numbers
 		constraints.put(Pattern.compile("[a-z_]+"),	TypeConstraint.class);			// any type match
-
-		
-		// ----- set property format from init parameters -----
-		String propertyFormat = this.getInitParameter(SERVLET_PARAMETER_PROPERTY_FORMAT);
-		if(propertyFormat != null) {
-
-			try {
-				PropertyFormat format = PropertyFormat.valueOf(propertyFormat);
-				graphObjectAdapter.setDefaultPropertyFormat(format);
-
-				logger.log(Level.INFO, "Setting property format to {0}", propertyFormat);
-
-			} catch(Throwable t) {
-
-				graphObjectAdapter.setDefaultPropertyFormat(PropertyFormat.NestedKeyValue);
-				logger.log(Level.WARNING, "Cannot use property format {0}, unknown format.", propertyFormat);
-			}
-		}
 	}
 
 	@Override

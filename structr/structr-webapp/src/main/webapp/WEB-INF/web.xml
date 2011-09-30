@@ -106,20 +106,6 @@
 		<url-pattern>/structr/api/*</url-pattern>
 	</servlet-mapping>
 
-	<servlet>
-		<servlet-name>SplinkRestServlet</servlet-name>
-		<servlet-class>org.structr.core.servlet.JsonRestServlet</servlet-class>
-		<load-on-startup>1</load-on-startup>
-		<init-param>
-			<param-name>PropertyFormat</param-name>
-			<param-value>FlatNameValue</param-value>
-		</init-param>
-	</servlet>
-	<servlet-mapping>
-		<servlet-name>SplinkRestServlet</servlet-name>
-		<url-pattern>/splink/api/*</url-pattern>
-	</servlet-mapping>
-
     <!--  custom context parameter start -->
 	<context-param>
 		<description>structr config file path</description>

@@ -32,38 +32,24 @@ import java.lang.reflect.Type;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.resource.IllegalPathException;
-import org.structr.core.resource.PathException;
 import org.structr.core.resource.wrapper.PropertySet;
+import org.structr.core.resource.wrapper.PropertySet.PropertyFormat;
 
 /**
- * Controls serialization and deserialization of structr nodes.
+ * Controls deserialization of property sets.
  *
  * @author Christian Morgner
  */
 public class PropertySetGSONAdapter implements InstanceCreator<PropertySet>, JsonSerializer<PropertySet>, JsonDeserializer<PropertySet> {
 
 	private static final Logger logger = Logger.getLogger(PropertySetGSONAdapter.class.getName());
-	
-	private ThreadLocal<PropertyFormat> threadLocalPropertyFormat = new ThreadLocal<PropertyFormat>();
-	private PropertyFormat defaultPropertyFormat = PropertyFormat.NestedKeyValueType;
+	private PropertyFormat propertyFormat = null;
 
-	public enum PropertyFormat {
-		NestedKeyValue,			// "properties" : [ { "key" : "name", "value" : "Test" }, ... ]
-		NestedKeyValueType,		// "properties" : [ { "key" : "name", "value" : "Test", "type" : "String" }, ... ]
-		FlatNameValue			// { "name" : "Test" }
+	public PropertySetGSONAdapter() {
 	}
 
-	public void setDefaultPropertyFormat(PropertyFormat propertyFormat) {
-		this.defaultPropertyFormat = propertyFormat;
-	}
-
-	public void setPropertyFormat(PropertyFormat propertyFormat) {
-		this.threadLocalPropertyFormat.set(propertyFormat);
-	}
-
-	public PropertyFormat getPropertyFormat() {
-		return this.threadLocalPropertyFormat.get();
+	public PropertySetGSONAdapter(PropertyFormat propertyFormat) {
+		this.propertyFormat = propertyFormat;
 	}
 
 	@Override
@@ -80,7 +66,6 @@ public class PropertySetGSONAdapter implements InstanceCreator<PropertySet>, Jso
 	@Override
 	public PropertySet deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
 
-		PropertyFormat propertyFormat = getLocalPropertyFormat();
 		PropertySet wrapper = null;
 
 		switch(propertyFormat) {
@@ -132,16 +117,6 @@ public class PropertySetGSONAdapter implements InstanceCreator<PropertySet>, Jso
 		}
 
 		return wrapper;
-	}
-
-	private PropertyFormat getLocalPropertyFormat() {
-
-		PropertyFormat propertyFormat = threadLocalPropertyFormat.get();
-		if(propertyFormat == null) {
-			propertyFormat = defaultPropertyFormat;
-		}
-
-		return propertyFormat;
 	}
 
 	private void convertJsonElement(JsonElement elem, PropertySet wrapper) {

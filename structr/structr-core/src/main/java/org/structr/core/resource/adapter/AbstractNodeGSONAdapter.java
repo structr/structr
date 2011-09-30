@@ -36,7 +36,6 @@ import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.DummyNode;
-import org.structr.core.entity.StructrRelationship;
 
 /**
  * Controls serialization and deserialization of structr nodes.

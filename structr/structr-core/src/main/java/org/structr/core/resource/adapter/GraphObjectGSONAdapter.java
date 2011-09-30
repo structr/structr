@@ -36,33 +36,23 @@ import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.DummyNode;
+import org.structr.core.resource.wrapper.PropertySet.PropertyFormat;
 
 /**
- * Controls serialization and deserialization of structr nodes.
+ * Controls serialization and deserialization of graph objects (nodes
+ * and relationships).
  *
  * @author Christian Morgner
  */
 public class GraphObjectGSONAdapter implements InstanceCreator<GraphObject>, JsonSerializer<GraphObject>, JsonDeserializer<GraphObject> {
 
-	private ThreadLocal<PropertyFormat> threadLocalPropertyFormat = new ThreadLocal<PropertyFormat>();
-	private PropertyFormat defaultPropertyFormat = PropertyFormat.NestedKeyValueType;
+	private PropertyFormat propertyFormat = null;
 
-	public enum PropertyFormat {
-		NestedKeyValue,			// "properties" : [ { "key" : "name", "value" : "Test" }, ... ]
-		NestedKeyValueType,		// "properties" : [ { "key" : "name", "value" : "Test", "type" : "String" }, ... ]
-		FlatNameValue			// { "name" : "Test" }
+	public GraphObjectGSONAdapter() {
 	}
 
-	public void setDefaultPropertyFormat(PropertyFormat propertyFormat) {
-		this.defaultPropertyFormat = propertyFormat;
-	}
-
-	public void setPropertyFormat(PropertyFormat propertyFormat) {
-		this.threadLocalPropertyFormat.set(propertyFormat);
-	}
-
-	public PropertyFormat getPropertyFormat() {
-		return this.threadLocalPropertyFormat.get();
+	public GraphObjectGSONAdapter(PropertyFormat propertyFormat) {
+		this.propertyFormat = propertyFormat;
 	}
 
 	@Override
@@ -73,7 +63,6 @@ public class GraphObjectGSONAdapter implements InstanceCreator<GraphObject>, Jso
 	@Override
 	public JsonElement serialize(GraphObject src, Type typeOfSrc, JsonSerializationContext context) {
 		
-		PropertyFormat propertyFormat = getLocalPropertyFormat();
 		JsonElement serializedOutput = null;
 
 		switch(propertyFormat) {
@@ -268,15 +257,5 @@ public class GraphObjectGSONAdapter implements InstanceCreator<GraphObject>, Jso
 		*/
 		
 		return jsonObject;
-	}
-
-	private PropertyFormat getLocalPropertyFormat() {
-
-		PropertyFormat propertyFormat = threadLocalPropertyFormat.get();
-		if(propertyFormat == null) {
-			propertyFormat = defaultPropertyFormat;
-		}
-
-		return propertyFormat;
 	}
 }

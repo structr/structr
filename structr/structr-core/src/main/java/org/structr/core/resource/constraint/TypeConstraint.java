@@ -148,7 +148,7 @@ public class TypeConstraint extends ResourceConstraint {
 
 		).traverse(node).nodes();
 
-		// collect results and convert nodes into splink nodes
+		// collect results and convert nodes into structr nodes
 		Command nodeFactory = Services.command(NodeFactoryCommand.class);
 		List<AbstractNode> nodeList = new LinkedList<AbstractNode>();
 		for(Node n : nodes) {
