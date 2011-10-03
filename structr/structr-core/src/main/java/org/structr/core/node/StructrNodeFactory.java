@@ -31,7 +31,7 @@ import org.structr.core.Services;
 import org.structr.core.cloud.FileNodeDataContainer;
 import org.structr.core.cloud.NodeDataContainer;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.ArbitraryNode;
+import org.structr.core.entity.CustomTypeNode;
 import org.structr.core.entity.File;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.entity.GenericNode;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -89,7 +90,7 @@ public class StructrNodeFactory<T extends AbstractNode> implements Adapter<Node,
 		}
 
 		if (newNode == null) {
-			newNode = new ArbitraryNode();
+			newNode = new GenericNode();
 		}
 
 		newNode.init(node);
@@ -259,7 +260,7 @@ public class StructrNodeFactory<T extends AbstractNode> implements Adapter<Node,
 		}
 
 		if (newNode == null) {
-			newNode = new ArbitraryNode();
+			newNode = new GenericNode();
 		}
 
 		newNode.init(data);

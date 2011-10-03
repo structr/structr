@@ -37,7 +37,7 @@ import org.structr.core.node.FindNodeCommand;
  * @author amorgner
  * 
  */
-public class ArbitraryNode extends AbstractNode {
+public class CustomTypeNode extends AbstractNode {
 
 	private final static String ICON_SRC = "/images/error.png";
 	public final static String ICON_SRC_KEY = "iconSrc";
@@ -76,7 +76,7 @@ public class ArbitraryNode extends AbstractNode {
 	@Override
 	public Iterable<AbstractNode> getDataNodes() {
 
-		// ArbitraryNode nodes should not return their child nodes
+		// CustomTypeNode nodes should not return their child nodes
 		return null;
 	}
 

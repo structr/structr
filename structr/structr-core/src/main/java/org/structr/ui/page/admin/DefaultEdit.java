@@ -68,7 +68,7 @@ import org.structr.core.cloud.PullNode;
 import org.structr.core.cloud.PushNodes;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractNode.Title;
-import org.structr.core.entity.ArbitraryNode;
+import org.structr.core.entity.CustomTypeNode;
 import org.structr.core.entity.Folder;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Image;
@@ -146,7 +146,7 @@ public class DefaultEdit extends Nodes {
 	protected Checkbox recursive      = new Checkbox("recursive");
 	protected Select ownerSelect      = new Select(AbstractNode.OWNER_ID_KEY, "Owner");
 	protected Select groupSelect      = new Select("selectGroup", "Group");
-	protected Select customTypeSelect = new Select(ArbitraryNode.TYPE_NODE_ID_KEY, "Custom Type");
+	protected Select customTypeSelect = new Select(CustomTypeNode.TYPE_NODE_ID_KEY, "Custom Type");
 	protected Checkbox cloudRecursive = new Checkbox("cloudRecursive", "Recursive");
 	protected Select cloudPushPull    = new Select("cloudPushPull", "Push / Pull");
 	protected PickList allowed        = new PickList(StructrRelationship.ALLOWED_KEY, "Allowed");
@@ -853,9 +853,9 @@ public class DefaultEdit extends Nodes {
 
 			});
 
-			if (node instanceof ArbitraryNode) {
+			if (node instanceof CustomTypeNode) {
 
-				final NodeType typeNode = ((ArbitraryNode) node).getTypeNode();
+				final NodeType typeNode = ((CustomTypeNode) node).getTypeNode();
 
 				customTypeSelect.setDataProvider(new DataProvider() {
 

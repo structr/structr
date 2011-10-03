@@ -101,6 +101,7 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import org.structr.core.GraphObject;
+import org.structr.core.node.DeleteNodeCommand;
 import org.structr.core.node.NodeRelationshipStatisticsCommand;
 
 //~--- classes ----------------------------------------------------------------
@@ -3258,6 +3259,14 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	@Override
 	public Long getEndNodeId() {
 		return null;
+	}
+
+	@Override
+	public boolean delete() {
+
+		dbNode.delete();
+
+		return true;
 	}
 
 	//~--- set methods ----------------------------------------------------

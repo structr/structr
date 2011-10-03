@@ -73,19 +73,4 @@ public class SortConstraint extends ResourceConstraint {
 		
 		return result;
 	}
-
-	@Override
-	public boolean supportsMethod(String method) {
-		
-		if("GET".equals(method)) {
-			return true;
-		}
-		
-		return false;
-	}
-
-	@Override
-	public boolean supportsNesting() {
-		return true;
-	}
 }

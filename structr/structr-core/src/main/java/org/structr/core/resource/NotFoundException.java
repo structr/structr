@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2011 Axel Morgner, structr <structr@structr.org>
+ *  Copyright (C) 2011 Axel Morgner
  * 
  *  This file is part of structr <http://structr.org>.
  * 
@@ -16,11 +16,17 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.ui.page.admin;
+
+package org.structr.core.resource;
+
+import javax.servlet.http.HttpServletResponse;
 
 /**
  *
- * @author axel
+ * @author Christian Morgner
  */
-public class EditDataNode extends EditCustomTypeNode {
+public class NotFoundException extends PathException {
+	public NotFoundException() {
+		super(HttpServletResponse.SC_NOT_FOUND);
+	}
 }

@@ -31,7 +31,6 @@ import org.structr.core.Command;
 import org.structr.core.NodeRenderer;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.ArbitraryNode;
 import org.structr.core.node.NodeFactoryCommand;
 import org.structr.core.node.search.Search;
 

@@ -13,6 +13,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.resource.PathException;
 
 /**
+ * Implements paging.
  *
  * @author Christian Morgner
  */
@@ -54,20 +55,6 @@ public class PagingConstraint extends ResourceConstraint {
 		logger.log(Level.FINEST, "returning results from {0} to {1}, page {2}, pageSize {3}", new Object[] { fromIndex, toIndex-1, getPage(), getPageSize()} );
 
 		return new Result(list.subList(fromIndex, toIndex));
-	}
-
-	@Override
-	public boolean supportsMethod(String method) {
-		if("GET".equals(method)) {
-			return true;
-		}
-
-		return false;
-	}
-
-	@Override
-	public boolean supportsNesting() {
-		return true;
 	}
 
 	public int getPageSize() {

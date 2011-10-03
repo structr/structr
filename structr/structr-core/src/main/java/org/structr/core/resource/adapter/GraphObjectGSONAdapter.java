@@ -36,13 +36,24 @@ import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.DummyNode;
+import org.structr.core.resource.wrapper.PropertySet.PropertyFormat;
 
 /**
- * Controls serialization and deserialization of structr nodes.
+ * Controls serialization and deserialization of graph objects (nodes
+ * and relationships).
  *
  * @author Christian Morgner
  */
 public class GraphObjectGSONAdapter implements InstanceCreator<GraphObject>, JsonSerializer<GraphObject>, JsonDeserializer<GraphObject> {
+
+	private PropertyFormat propertyFormat = null;
+
+	public GraphObjectGSONAdapter() {
+	}
+
+	public GraphObjectGSONAdapter(PropertyFormat propertyFormat) {
+		this.propertyFormat = propertyFormat;
+	}
 
 	@Override
 	public GraphObject createInstance(Type type) {
@@ -51,52 +62,89 @@ public class GraphObjectGSONAdapter implements InstanceCreator<GraphObject>, Jso
 
 	@Override
 	public JsonElement serialize(GraphObject src, Type typeOfSrc, JsonSerializationContext context) {
+		
+		JsonElement serializedOutput = null;
+
+		switch(propertyFormat) {
+
+			case NestedKeyValueType:
+				serializedOutput = serializeNestedKeyValueType(src, typeOfSrc, context, true);
+				break;
+
+			case NestedKeyValue:
+				serializedOutput = serializeNestedKeyValueType(src, typeOfSrc, context, false);
+				break;
+
+			case FlatNameValue:
+				serializedOutput = serializeFlatNameValue(src, typeOfSrc, context);
+				break;
+		}
+
+		return serializedOutput;
+	}
+
+	@Override
+	public GraphObject deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+
+		return null;
+	}
+
+	// ----- private methods -----
+	private JsonElement serializeNestedKeyValueType(GraphObject src, Type typeOfSrc, JsonSerializationContext context, boolean includeTypeInOutput) {
 
 		JsonObject jsonObject = new JsonObject();
 
-		// 1: id
+		// id
 		jsonObject.add("id", new JsonPrimitive(src.getId()));
 
-		// 2: property keys
+		String type = src.getType();
+		if(type != null) {
+			jsonObject.add("type", new JsonPrimitive(type));
+		}
+
+		// property keys
 		JsonArray properties = new JsonArray();
 		for(String key : src.getPropertyKeys()) {
 
 			Object value = src.getProperty(key);
 			if(value != null) {
 
-				String type = value.getClass().getSimpleName();
 				JsonObject property = new JsonObject();
-
 				property.add("key", new JsonPrimitive(key));
 				property.add("value", new JsonPrimitive(value.toString()));
-				property.add("type", new JsonPrimitive(type));
+
+				// include type?
+				if(includeTypeInOutput) {
+					String valueType = value.getClass().getSimpleName();
+					property.add("type", new JsonPrimitive(valueType));
+				}
 
 				properties.add(property);
 			}
 		}
 		jsonObject.add("properties", properties);
 
-		// 3: outgoing relationships
+		// outgoing relationships
 		Map<RelationshipType, Long> outRelStatistics = src.getRelationshipInfo(Direction.OUTGOING);
 		if(outRelStatistics != null) {
-			
+
 			JsonArray outRels = new JsonArray();
 
 			for(Entry<RelationshipType, Long> entry : outRelStatistics.entrySet()) {
 
-				RelationshipType type = entry.getKey();
+				RelationshipType relType = entry.getKey();
 				Long count = entry.getValue();
 
 				JsonObject outRelEntry = new JsonObject();
-				outRelEntry.add("type", new JsonPrimitive(type.name()));
+				outRelEntry.add("type", new JsonPrimitive(relType.name()));
 				outRelEntry.add("count", new JsonPrimitive(count));
 
 				outRels.add(outRelEntry);
 			}
-			jsonObject.add("outgoingRelationships", outRels);
+			jsonObject.add("out", outRels);
 		}
 
-		// 4: incoming relationships
+		// incoming relationships
 		Map<RelationshipType, Long> inRelStatistics = src.getRelationshipInfo(Direction.INCOMING);
 		if(inRelStatistics != null) {
 
@@ -104,17 +152,17 @@ public class GraphObjectGSONAdapter implements InstanceCreator<GraphObject>, Jso
 
 			for(Entry<RelationshipType, Long> entry : inRelStatistics.entrySet()) {
 
-				RelationshipType type = entry.getKey();
+				RelationshipType relType = entry.getKey();
 				Long count = entry.getValue();
 
 				JsonObject inRelEntry = new JsonObject();
-				inRelEntry.add("type", new JsonPrimitive(type.name()));
+				inRelEntry.add("type", new JsonPrimitive(relType.name()));
 				inRelEntry.add("count", new JsonPrimitive(count));
 
 				inRels.add(inRelEntry);
 
 			}
-			jsonObject.add("incomingRelationships", inRels);
+			jsonObject.add("in", inRels);
 		}
 
 		// start node id (for relationships)
@@ -132,9 +180,82 @@ public class GraphObjectGSONAdapter implements InstanceCreator<GraphObject>, Jso
 		return jsonObject;
 	}
 
-	@Override
-	public GraphObject deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+	private JsonElement serializeFlatNameValue(GraphObject src, Type typeOfSrc, JsonSerializationContext context) {
 
-		return null;
+		JsonObject jsonObject = new JsonObject();
+
+		// id
+		jsonObject.add("id", new JsonPrimitive(src.getId()));
+
+		String type = src.getType();
+		if(type != null) {
+			jsonObject.add("type", new JsonPrimitive(type));
+		}
+
+		// property keys
+		for(String key : src.getPropertyKeys()) {
+
+			Object value = src.getProperty(key);
+			if(value != null) {
+				jsonObject.add(key, new JsonPrimitive(value.toString()));
+			}
+		}
+
+		/*
+		// outgoing relationships
+		Map<RelationshipType, Long> outRelStatistics = src.getRelationshipInfo(Direction.OUTGOING);
+		if(outRelStatistics != null) {
+
+			JsonArray outRels = new JsonArray();
+
+			for(Entry<RelationshipType, Long> entry : outRelStatistics.entrySet()) {
+
+				RelationshipType relType = entry.getKey();
+				Long count = entry.getValue();
+
+				JsonObject outRelEntry = new JsonObject();
+				outRelEntry.add("type", new JsonPrimitive(relType.name()));
+				outRelEntry.add("count", new JsonPrimitive(count));
+
+				outRels.add(outRelEntry);
+			}
+			jsonObject.add("out", outRels);
+		}
+
+		// incoming relationships
+		Map<RelationshipType, Long> inRelStatistics = src.getRelationshipInfo(Direction.INCOMING);
+		if(inRelStatistics != null) {
+
+			JsonArray inRels = new JsonArray();
+
+			for(Entry<RelationshipType, Long> entry : inRelStatistics.entrySet()) {
+
+				RelationshipType relType = entry.getKey();
+				Long count = entry.getValue();
+
+				JsonObject inRelEntry = new JsonObject();
+				inRelEntry.add("type", new JsonPrimitive(relType.name()));
+				inRelEntry.add("count", new JsonPrimitive(count));
+
+				inRels.add(inRelEntry);
+
+			}
+			jsonObject.add("in", inRels);
+		}
+
+		// start node id (for relationships)
+		Long startNodeId = src.getStartNodeId();
+		if(startNodeId != null) {
+			jsonObject.add("startNodeId", new JsonPrimitive(startNodeId));
+		}
+
+		// end node id (for relationships)
+		Long endNodeId = src.getEndNodeId();
+		if(endNodeId != null) {
+			jsonObject.add("endNodeId", new JsonPrimitive(endNodeId));
+		}
+		*/
+		
+		return jsonObject;
 	}
 }

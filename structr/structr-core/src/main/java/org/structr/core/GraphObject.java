@@ -37,6 +37,7 @@ public interface GraphObject {
 	public long getId();
 	public Object getProperty(String key);
 	public Iterable<String> getPropertyKeys();
+	public void setProperty(String key, Object value);
 
 	// ----- rels only -----
 	public String getType();
@@ -46,5 +47,8 @@ public interface GraphObject {
 	// ----- nodes only -----
 	public Map<RelationshipType, Long> getRelationshipInfo(Direction direction);
 	public List<StructrRelationship> getRelationships(RelationshipType type, Direction dir);
+
+	// ----- editing methods -----
+	public boolean delete();
 
 }

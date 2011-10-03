@@ -44,7 +44,7 @@ import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.core.Command;
 import org.structr.core.Services;
-import org.structr.core.entity.ArbitraryNode;
+import org.structr.core.entity.CustomTypeNode;
 import org.structr.core.entity.NodeType;
 import org.structr.core.entity.NodeType.InputField;
 import org.structr.core.node.StructrTransaction;
@@ -54,15 +54,15 @@ import org.structr.core.node.TransactionCommand;
  *
  * @author amorgner
  */
-public class EditArbitraryNode extends DefaultEdit {
+public class EditCustomTypeNode extends DefaultEdit {
 
-	private static final Logger logger = Logger.getLogger(EditArbitraryNode.class.getName());
+	private static final Logger logger = Logger.getLogger(EditCustomTypeNode.class.getName());
 	
 	protected Form dynamicPropertiesForm = new Form("dynamicPropertiesForm");
 	private Set<String> keys;
 	private NodeType typeNode;
 
-	public EditArbitraryNode() {
+	public EditCustomTypeNode() {
 
 		super();
 
@@ -74,7 +74,7 @@ public class EditArbitraryNode extends DefaultEdit {
 		super.onInit();
 
 		SecurityContext securityContext = CurrentRequest.getSecurityContext();
-		ArbitraryNode arbitraryNode = null;
+		CustomTypeNode customTypeNode = null;
 
 		if (node != null) {
 
@@ -83,17 +83,17 @@ public class EditArbitraryNode extends DefaultEdit {
 				"/view".concat(
 				node.getNodePath().replace("&", "%26")));
 
-			if (node instanceof ArbitraryNode) {
-				arbitraryNode = (ArbitraryNode) node;
+			if (node instanceof CustomTypeNode) {
+				customTypeNode = (CustomTypeNode) node;
 			}
 
 		}
 
-		if (arbitraryNode == null) {
+		if (customTypeNode == null) {
 			return;
 		}
 
-		typeNode = arbitraryNode.getTypeNode();
+		typeNode = customTypeNode.getTypeNode();
 		if (typeNode == null) {
 			return;
 		}

@@ -93,14 +93,19 @@
 		<url-pattern>*.htm</url-pattern>
 	</servlet-mapping>
 	<servlet>
-		<servlet-name>CoreServlet</servlet-name>
-		<servlet-class>org.structr.core.servlet.CoreServlet</servlet-class>
+		<servlet-name>StructrRestServlet</servlet-name>
+		<servlet-class>org.structr.core.servlet.JsonRestServlet</servlet-class>
 		<load-on-startup>1</load-on-startup>
+		<init-param>
+			<param-name>PropertyFormat</param-name>
+			<param-value>NestedKeyValueType</param-value>
+		</init-param>
 	</servlet>
 	<servlet-mapping>
-		<servlet-name>CoreServlet</servlet-name>
-		<url-pattern>/api/*</url-pattern>
+		<servlet-name>StructrRestServlet</servlet-name>
+		<url-pattern>/structr/api/*</url-pattern>
 	</servlet-mapping>
+
     <!--  custom context parameter start -->
 	<context-param>
 		<description>structr config file path</description>

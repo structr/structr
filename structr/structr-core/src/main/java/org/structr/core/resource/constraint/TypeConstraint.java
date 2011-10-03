@@ -4,6 +4,7 @@
  */
 package org.structr.core.resource.constraint;
 
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -16,6 +17,7 @@ import org.neo4j.graphdb.traversal.Evaluation;
 import org.neo4j.graphdb.traversal.Evaluator;
 import org.neo4j.kernel.Traversal;
 import org.structr.core.Command;
+import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SuperUser;
@@ -57,41 +59,45 @@ public class TypeConstraint extends ResourceConstraint {
 	@Override
 	public Result processParentResult(Result result, HttpServletRequest request) throws PathException {
 
-		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
-		User user = new SuperUser();
-		AbstractNode topNode = null;
-		boolean includeDeleted = false;
-		boolean publicOnly = false;
+		if(result == null) {
 
-		if(type != null) {
+			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+			User user = new SuperUser();
+			AbstractNode topNode = null;
+			boolean includeDeleted = false;
+			boolean publicOnly = false;
 
-			searchAttributes.add(new TextualSearchAttribute("type", type, SearchOperator.OR));
+			if(type != null) {
 
-			List results = (List)Services.command(SearchNodeCommand.class).execute(
-				user,
-				topNode,
-				includeDeleted,
-				publicOnly,
-				searchAttributes
-			);
+				searchAttributes.add(new TextualSearchAttribute("type", type, SearchOperator.OR));
 
-			if(!results.isEmpty()) {
+				List results = (List)Services.command(SearchNodeCommand.class).execute(
+					user,
+					topNode,
+					includeDeleted,
+					publicOnly,
+					searchAttributes
+				);
 
-				return new Result(results);
+				if(!results.isEmpty()) {
+
+					return new Result(results);
+				}
 			}
+
+		} else {
+
+			// TypeConstraint acts as a type filter here
+			for(Iterator<GraphObject> it = result.getResults().iterator(); it.hasNext();) {
+				if(!type.equalsIgnoreCase(it.next().getType())) {
+					it.remove();
+				}
+			}
+
+			return result;
 		}
 
 		throw new NoResultsException();
-	}
-
-	@Override
-	public boolean supportsMethod(String method) {
-		return true;
-	}
-
-	@Override
-	public boolean supportsNesting() {
-		return true;
 	}
 
 	public void addFilter(Filter filter) {
@@ -142,7 +148,7 @@ public class TypeConstraint extends ResourceConstraint {
 
 		).traverse(node).nodes();
 
-		// collect results and convert nodes into splink nodes
+		// collect results and convert nodes into structr nodes
 		Command nodeFactory = Services.command(NodeFactoryCommand.class);
 		List<AbstractNode> nodeList = new LinkedList<AbstractNode>();
 		for(Node n : nodes) {

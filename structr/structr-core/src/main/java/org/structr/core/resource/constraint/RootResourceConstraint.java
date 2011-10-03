@@ -41,14 +41,4 @@ public class RootResourceConstraint extends ResourceConstraint {
 	public Result processParentResult(Result result, HttpServletRequest request) throws PathException {
 		return null;
 	}
-
-	@Override
-	public boolean supportsMethod(String method) {
-		return true;
-	}
-
-	@Override
-	public boolean supportsNesting() {
-		return true;
-	}
 }

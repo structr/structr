@@ -26,7 +26,6 @@ import org.apache.click.control.*;
 import org.apache.click.dataprovider.*;
 import org.apache.click.util.*;
 import org.structr.core.Services;
-import org.structr.core.entity.ArbitraryNode;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.module.GetEntitiesCommand;
 

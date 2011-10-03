@@ -38,16 +38,11 @@ public class IdConstraint extends ResourceConstraint {
 	@Override
 	public Result processParentResult(Result result, HttpServletRequest request) throws PathException {
 
-		return new Result((GraphObject)Services.command(FindNodeCommand.class).execute(new SuperUser(), id));
-	}
+		GraphObject obj = (GraphObject)Services.command(FindNodeCommand.class).execute(new SuperUser(), id);
+		if(obj != null) {
+			return new Result(obj);
+		}
 
-	@Override
-	public boolean supportsMethod(String method) {
-		return true;
-	}
-
-	@Override
-	public boolean supportsNesting() {
-		return true;
+		return null;
 	}
 }
