@@ -1,30 +1,30 @@
 /*
  *  Copyright (C) 2011 Axel Morgner, structr <structr@structr.org>
- * 
+ *
  *  This file is part of structr <http://structr.org>.
- * 
+ *
  *  structr is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
- * 
+ *
  *  structr is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- * 
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+
+
 package org.structr.core.entity.geo;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
 import org.neo4j.gis.spatial.GeometryEncoder;
 import org.neo4j.gis.spatial.Layer;
 import org.neo4j.gis.spatial.Search;
@@ -34,10 +34,21 @@ import org.neo4j.gis.spatial.SpatialIndexReader;
 import org.neo4j.gis.spatial.query.SearchIntersectWindow;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
+
+import org.structr.common.PropertyKey;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.web.WebNode;
 import org.structr.core.node.GraphDatabaseCommand;
+
+//~--- JDK imports ------------------------------------------------------------
+
+import java.util.LinkedList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+//~--- classes ----------------------------------------------------------------
 
 /**
  *
@@ -45,270 +56,354 @@ import org.structr.core.node.GraphDatabaseCommand;
  */
 public class GeoObject extends WebNode {
 
-    private final static String ICON_SRC = "/images/world.png";
-    private static final Logger logger = Logger.getLogger(GeoObject.class.getName());
-    public final static String LONGITUDE_KEY = "longitude";
-    public final static String LATITUDE_KEY = "latitude";
-    protected Layer layer;
-    protected SpatialIndexReader spatialIndex;
-    protected GeometryEncoder enc;
-    protected Envelope env;
+	public static final String AUTO_ENVELOPE_KEY  = "autoEnvelope";
+	public static final String ENVELOPE_MAX_X_KEY = "envelopeMaxX";
+	public static final String ENVELOPE_MAX_Y_KEY = "envelopeMaxY";
+	public static final String ENVELOPE_MIN_X_KEY = "envelopeMinX";
+	public static final String ENVELOPE_MIN_Y_KEY = "envelopeMinY";
+	private final static String ICON_SRC          = "/images/world.png";
+	public final static String LATITUDE_KEY       = "latitude";
+	public final static String LONGITUDE_KEY      = "longitude";
+	private static final Logger logger            = Logger.getLogger(GeoObject.class.getName());
 
-    @Override
-    public String getIconSrc() {
-        return ICON_SRC;
-    }
+	//~--- fields ---------------------------------------------------------
 
-    /**
-     * Initialize the envelope of the feature which corresponds with this node
-     * in the layer with the given name. The matching is done based on a comparison
-     * of this node's name with the given name attribute.
-     *
-     * @param layerName
-     * @param nameAttribute
-     * @param featureName
-     * @return
-     */
-    public void initEnvelope(final String layerName, final String nameAttribute, final String featureName) {
+	protected GeometryEncoder enc;
+	protected Envelope env;
+	protected Layer layer;
+	protected SpatialIndexReader spatialIndex;
 
-        env = getEnvelope(layerName, nameAttribute, featureName);
+	//~--- constant enums -------------------------------------------------
 
-    }
+	public enum Key implements PropertyKey{ geoContainerClass; }
 
-    protected Envelope getEnvelope(final String layerName, final String nameAttribute, final String featureName) {
+	//~--- methods --------------------------------------------------------
 
-        Envelope result = null;
+	/**
+	 * Initialize the envelope of the feature which corresponds with this node
+	 * in the layer with the given name. The matching is done based on a comparison
+	 * of this node's name with the given name attribute.
+	 *
+	 * @param layerName
+	 * @param nameAttribute
+	 * @param featureName
+	 * @return
+	 */
+	public void initEnvelope(final String layerName, final String nameAttribute, final String featureName) {
+		env = getEnvelope(layerName, nameAttribute, featureName);
+	}
 
-        Command graphDbCommand = Services.command(GraphDatabaseCommand.class);
-        GraphDatabaseService graphDb = (GraphDatabaseService) graphDbCommand.execute();
+	//~--- get methods ----------------------------------------------------
 
+	@Override
+	public String getIconSrc() {
+		return ICON_SRC;
+	}
 
-        // find geometry node
-        SpatialDatabaseService spatialService = new SpatialDatabaseService(graphDb);
-        layer = spatialService.getLayer(layerName);
-        spatialIndex = layer.getIndex();
-        enc = layer.getGeometryEncoder();
+	protected Envelope getEnvelope(final String layerName, final String nameAttribute, final String featureName) {
 
-        for (Node g : layer.getDataset().getAllGeometryNodes()) {
+		Envelope result              = null;
+		Command graphDbCommand       = Services.command(GraphDatabaseCommand.class);
+		GraphDatabaseService graphDb = (GraphDatabaseService) graphDbCommand.execute();
 
-            // TODO: handle country names that differ slightly
-            if (enc.hasAttribute(g, nameAttribute) && enc.getAttribute(g, nameAttribute).equals(featureName)) {
+		// find geometry node
+		SpatialDatabaseService spatialService = new SpatialDatabaseService(graphDb);
 
-                // bounding box of this country
-                result = enc.decodeEnvelope(g);
-                return result;
-            }
-        }
-        logger.log(Level.WARNING, "No envelope found.");
-        return null;
-    }
+		layer        = spatialService.getLayer(layerName);
+		spatialIndex = layer.getIndex();
+		enc          = layer.getGeometryEncoder();
 
-    private Coordinate getCentre() {
-        if (env != null) {
-            return env.centre();
-        } else {
-            logger.log(Level.SEVERE, "Envelope not initialized");
-        }
-        return null;
-    }
+		for (Node g : layer.getDataset().getAllGeometryNodes()) {
 
-    public double getCenterX() {
-        Coordinate centre = getCentre();
-        if (centre != null) {
-            return centre.x;
-        } else {
-            logger.log(Level.SEVERE, "Envelope not initialized");
-        }
-        return 0.0;
-    }
+			// TODO: handle country names that differ slightly
+			if (enc.hasAttribute(g, nameAttribute)
+				&& enc.getAttribute(g, nameAttribute).equals(featureName)) {
 
-    public double getCenterY() {
-        Coordinate centre = getCentre();
-        if (centre != null) {
-            return centre.y;
-        } else {
-            logger.log(Level.SEVERE, "Geo object has no centroid");
-        }
-        return 0.0;
-    }
+				// bounding box of this country
+				result = enc.decodeEnvelope(g);
 
-    public double getMinX() {
-        if (env != null) {
-            return env.getMinX();
-        } else {
-            logger.log(Level.SEVERE, "Envelope not initialized");
-        }
-        return 0.0;
-    }
+				return result;
+			}
+		}
 
-    public double getMinY() {
-        if (env != null) {
-            return env.getMinY();
-        } else {
-            logger.log(Level.SEVERE, "Envelope not initialized");
-        }
-        return 0.0;
-    }
+		logger.log(Level.WARNING,
+			   "No envelope found.");
 
-    public double getMaxX() {
-        if (env != null) {
-            return env.getMaxX();
-        } else {
-            logger.log(Level.SEVERE, "Envelope not initialized");
-        }
-        return 0.0;
-    }
+		return null;
+	}
 
-    public double getMaxY() {
-        if (env != null) {
-            return env.getMaxY();
-        } else {
-            logger.log(Level.SEVERE, "Envelope not initialized");
-        }
-        return 0.0;
-    }
+	private Coordinate getCentre() {
 
-    /**
-     * Return an array with the property values of the given key of any feature
-     * in the given layer which intersects with this geodata object
-     *
-     * @param layerName
-     * @param propertyKey
-     * @return
-     */
-    public String[] getIntersectingFeatures(final String layerName, final String propertyKey, final String featureName) {
+		if (env != null) {
+			return env.centre();
+		} else {
 
-        Envelope localEnv = null;
-        if (layerName.equals(layer.getName())) {
-            // reuse envelope
-            localEnv = env;
-        } else {
-            localEnv = getEnvelope(layerName, propertyKey, featureName);
-        }
+			logger.log(Level.SEVERE,
+				   "Envelope not initialized");
+		}
 
-        if (localEnv != null) {
+		return null;
+	}
 
-            // search within this bounding box
-            Search searchQuery = new SearchIntersectWindow(localEnv);
-            spatialIndex.executeSearch(searchQuery);
-            List<SpatialDatabaseRecord> results = searchQuery.getResults();
+	public double getCenterX() {
 
-            List<String> result = new LinkedList<String>();
+		Coordinate centre = getCentre();
 
-            for (SpatialDatabaseRecord r : results) {
-                String value = (String) r.getProperty(propertyKey);
-                result.add(value);
-            }
-            return (String[]) result.toArray(new String[result.size()]);
+		if (centre != null) {
+			return centre.x;
+		} else {
 
-        } else {
-            logger.log(Level.SEVERE, "No envelope found");
-        }
-        return null;
-    }
+			logger.log(Level.SEVERE,
+				   "Envelope not initialized");
+		}
 
-    /**
-     * Return an array with the property values of the given key of any feature
-     * in the given layer which intersects with this geodata object
-     *
-     * @param layerName
-     * @param propertyKey
-     * @return
-     */
-    public Geometry[] getIntersectingGeometries(final String layerName, final String propertyKey) {
+		return 0.0;
+	}
 
-        Envelope localEnv = null;
-        if (layerName.equals(layer.getName())) {
-            // reuse envelope
-            localEnv = env;
-        } else {
-            localEnv = getEnvelope(layerName, propertyKey, getName());
-        }
+	public double getCenterY() {
 
-        if (localEnv != null) {
+		Coordinate centre = getCentre();
 
-            // search within this bounding box
-            Search searchQuery = new SearchIntersectWindow(localEnv);
-            spatialIndex.executeSearch(searchQuery);
-            List<SpatialDatabaseRecord> results = searchQuery.getResults();
+		if (centre != null) {
+			return centre.y;
+		} else {
 
-            List<Geometry> result = new LinkedList<Geometry>();
+			logger.log(Level.SEVERE,
+				   "Geo object has no centroid");
+		}
 
-            for (SpatialDatabaseRecord r : results) {
-                result.add(r.getGeometry());
-            }
-            return (Geometry[]) result.toArray(new Geometry[result.size()]);
+		return 0.0;
+	}
 
-        } else {
-            logger.log(Level.SEVERE, "No envelope found");
-        }
-        return null;
-    }
+	public double getMinX() {
 
-    public Double getLongitude() {
-        return getDoubleProperty(LONGITUDE_KEY);
-    }
+		if (env != null) {
+			return env.getMinX();
+		} else {
 
-    public Double getLatitude() {
-        return getDoubleProperty(LATITUDE_KEY);
-    }
+			logger.log(Level.SEVERE,
+				   "Envelope not initialized");
+		}
 
-    public void setLongitude(Double longitude) {
-        setProperty(LONGITUDE_KEY, longitude);
-    }
+		return 0.0;
+	}
 
-    public void setLatitude(Double latitude) {
-        setProperty(LATITUDE_KEY, latitude);
-    }
+	public double getMinY() {
 
-    public Coordinate getCoordinates() {
-        return new Coordinate(getLongitude(), getLatitude());
-    }
-    
-    public static final String ENVELOPE_MIN_X_KEY = "envelopeMinX";
-    public static final String ENVELOPE_MAX_X_KEY = "envelopeMaxX";
-    public static final String ENVELOPE_MIN_Y_KEY = "envelopeMinY";
-    public static final String ENVELOPE_MAX_Y_KEY = "envelopeMaxY";
-    public static final String AUTO_ENVELOPE_KEY = "autoEnvelope";
+		if (env != null) {
+			return env.getMinY();
+		} else {
 
-    public double getEnvelopeMinX() {
-        return getDoubleProperty(ENVELOPE_MIN_X_KEY);
-    }
+			logger.log(Level.SEVERE,
+				   "Envelope not initialized");
+		}
 
-    public double getEnvelopeMinY() {
-        return getDoubleProperty(ENVELOPE_MIN_Y_KEY);
-    }
+		return 0.0;
+	}
 
-    public double getEnvelopeMaxX() {
-        return getDoubleProperty(ENVELOPE_MAX_X_KEY);
-    }
+	public double getMaxX() {
 
-    public double getEnvelopeMaxY() {
-        return getDoubleProperty(ENVELOPE_MAX_Y_KEY);
-    }
+		if (env != null) {
+			return env.getMaxX();
+		} else {
 
-    public boolean getAutoEnvelope() {
-        return getBooleanProperty(AUTO_ENVELOPE_KEY);
-    }
-    
-    public void setEnvelopeMinX(final double value) {
-        setProperty(ENVELOPE_MIN_X_KEY, value);
-    }
+			logger.log(Level.SEVERE,
+				   "Envelope not initialized");
+		}
 
-    public void setEnvelopeMinY(final double value) {
-        setProperty(ENVELOPE_MIN_Y_KEY, value);
-    }
+		return 0.0;
+	}
 
-    public void setEnvelopeMaxX(final double value) {
-        setProperty(ENVELOPE_MAX_X_KEY, value);
-    }
+	public double getMaxY() {
 
-    public void setEnvelopeMaxY(final double value) {
-        setProperty(ENVELOPE_MAX_Y_KEY, value);
-    }
+		if (env != null) {
+			return env.getMaxY();
+		} else {
 
-    public void setAutoEnvelope(final boolean value) {
-        setProperty(AUTO_ENVELOPE_KEY, value);
-    }
+			logger.log(Level.SEVERE,
+				   "Envelope not initialized");
+		}
 
+		return 0.0;
+	}
+
+	/**
+	 * Return an array with the property values of the given key of any feature
+	 * in the given layer which intersects with this geodata object
+	 *
+	 * @param layerName
+	 * @param propertyKey
+	 * @return
+	 */
+	public String[] getIntersectingFeatures(final String layerName, final String propertyKey,
+		final String featureName) {
+
+		Envelope localEnv = null;
+
+		if (layerName.equals(layer.getName())) {
+
+			// reuse envelope
+			localEnv = env;
+		} else {
+			localEnv = getEnvelope(layerName, propertyKey, featureName);
+		}
+
+		if (localEnv != null) {
+
+			// search within this bounding box
+			Search searchQuery = new SearchIntersectWindow(localEnv);
+
+			spatialIndex.executeSearch(searchQuery);
+
+			List<SpatialDatabaseRecord> results = searchQuery.getResults();
+			List<String> result                 = new LinkedList<String>();
+
+			for (SpatialDatabaseRecord r : results) {
+
+				String value = (String) r.getProperty(propertyKey);
+
+				result.add(value);
+			}
+
+			return (String[]) result.toArray(new String[result.size()]);
+		} else {
+
+			logger.log(Level.SEVERE,
+				   "No envelope found");
+		}
+
+		return null;
+	}
+
+	/**
+	 * Return an array with the property values of the given key of any feature
+	 * in the given layer which intersects with this geodata object
+	 *
+	 * @param layerName
+	 * @param propertyKey
+	 * @return
+	 */
+	public Geometry[] getIntersectingGeometries(final String layerName, final String propertyKey) {
+
+		Envelope localEnv = null;
+
+		if (layerName.equals(layer.getName())) {
+
+			// reuse envelope
+			localEnv = env;
+		} else {
+			localEnv = getEnvelope(layerName, propertyKey, getName());
+		}
+
+		if (localEnv != null) {
+
+			// search within this bounding box
+			Search searchQuery = new SearchIntersectWindow(localEnv);
+
+			spatialIndex.executeSearch(searchQuery);
+
+			List<SpatialDatabaseRecord> results = searchQuery.getResults();
+			List<Geometry> result               = new LinkedList<Geometry>();
+
+			for (SpatialDatabaseRecord r : results) {
+				result.add(r.getGeometry());
+			}
+
+			return (Geometry[]) result.toArray(new Geometry[result.size()]);
+		} else {
+
+			logger.log(Level.SEVERE,
+				   "No envelope found");
+		}
+
+		return null;
+	}
+
+	public Double getLongitude() {
+		return getDoubleProperty(LONGITUDE_KEY);
+	}
+
+	public Double getLatitude() {
+		return getDoubleProperty(LATITUDE_KEY);
+	}
+
+	public Coordinate getCoordinates() {
+
+		return new Coordinate(getLongitude(),
+				      getLatitude());
+	}
+
+	public double getEnvelopeMinX() {
+		return getDoubleProperty(ENVELOPE_MIN_X_KEY);
+	}
+
+	public double getEnvelopeMinY() {
+		return getDoubleProperty(ENVELOPE_MIN_Y_KEY);
+	}
+
+	public double getEnvelopeMaxX() {
+		return getDoubleProperty(ENVELOPE_MAX_X_KEY);
+	}
+
+	public double getEnvelopeMaxY() {
+		return getDoubleProperty(ENVELOPE_MAX_Y_KEY);
+	}
+
+	public boolean getAutoEnvelope() {
+		return getBooleanProperty(AUTO_ENVELOPE_KEY);
+	}
+
+	public String getGeoContainerClass() {
+		return getStringProperty(Key.geoContainerClass.name());
+	}
+
+	//~--- set methods ----------------------------------------------------
+
+	public void setLongitude(Double longitude) {
+
+		setProperty(LONGITUDE_KEY,
+			    longitude);
+	}
+
+	public void setLatitude(Double latitude) {
+
+		setProperty(LATITUDE_KEY,
+			    latitude);
+	}
+
+	public void setEnvelopeMinX(final double value) {
+
+		setProperty(ENVELOPE_MIN_X_KEY,
+			    value);
+	}
+
+	public void setEnvelopeMinY(final double value) {
+
+		setProperty(ENVELOPE_MIN_Y_KEY,
+			    value);
+	}
+
+	public void setEnvelopeMaxX(final double value) {
+
+		setProperty(ENVELOPE_MAX_X_KEY,
+			    value);
+	}
+
+	public void setEnvelopeMaxY(final double value) {
+
+		setProperty(ENVELOPE_MAX_Y_KEY,
+			    value);
+	}
+
+	public void setAutoEnvelope(final boolean value) {
+
+		setProperty(AUTO_ENVELOPE_KEY,
+			    value);
+	}
+
+	public void setGeoContainerClass(final String className) {
+
+		setProperty(Key.geoContainerClass.name(),
+			    className);
+	}
 }

@@ -29,6 +29,8 @@ import org.structr.core.entity.PlainText;
 
 //~--- JDK imports ------------------------------------------------------------
 
+import java.text.Normalizer;
+
 import java.util.LinkedList;
 import java.util.List;
 
@@ -42,135 +44,153 @@ public abstract class Search {
 
 	public static SearchAttribute orType(final String searchString) {
 
-		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.TYPE_KEY, searchString,
-					       SearchOperator.OR);
+		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.TYPE_KEY,
+			searchString,
+			SearchOperator.OR);
 
 		return attr;
 	}
 
 	public static SearchAttribute andType(final String searchString) {
 
-		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.TYPE_KEY, searchString,
-					       SearchOperator.AND);
+		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.TYPE_KEY,
+			searchString,
+			SearchOperator.AND);
 
 		return attr;
 	}
 
 	public static SearchAttribute orName(final String searchString) {
 
-		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.NAME_KEY, searchString,
-					       SearchOperator.OR);
+		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.NAME_KEY,
+			searchString,
+			SearchOperator.OR);
 
 		return attr;
 	}
 
 	public static SearchAttribute andName(final String searchString) {
 
-		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.NAME_KEY, searchString,
-					       SearchOperator.AND);
+		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.NAME_KEY,
+			searchString,
+			SearchOperator.AND);
 
 		return attr;
 	}
 
 	public static SearchAttribute andTitle(final String searchString) {
 
-		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.TITLE_KEY, searchString,
-					       SearchOperator.AND);
+		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.TITLE_KEY,
+			searchString,
+			SearchOperator.AND);
 
 		return attr;
 	}
 
 	public static SearchAttribute orTitle(final String searchString) {
 
-		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.TITLE_KEY, searchString,
-					       SearchOperator.OR);
+		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.TITLE_KEY,
+			searchString,
+			SearchOperator.OR);
 
 		return attr;
 	}
 
 	public static SearchAttribute andContent(final String searchString) {
 
-		SearchAttribute attr = new TextualSearchAttribute(PlainText.CONTENT_KEY, searchString,
-					       SearchOperator.AND);
+		SearchAttribute attr = new TextualSearchAttribute(PlainText.CONTENT_KEY,
+			searchString,
+			SearchOperator.AND);
 
 		return attr;
 	}
 
 	public static SearchAttribute orContent(final String searchString) {
 
-		SearchAttribute attr = new TextualSearchAttribute(PlainText.CONTENT_KEY, searchString,
-					       SearchOperator.OR);
+		SearchAttribute attr = new TextualSearchAttribute(PlainText.CONTENT_KEY,
+			searchString,
+			SearchOperator.OR);
 
 		return attr;
 	}
 
 	public static SearchAttribute orExactType(final String searchString) {
 
-		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.TYPE_KEY, exactMatch(searchString),
-					       SearchOperator.OR);
+		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.TYPE_KEY,
+			exactMatch(searchString),
+			SearchOperator.OR);
 
 		return attr;
 	}
 
 	public static SearchAttribute andExactType(final String searchString) {
 
-		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.TYPE_KEY, exactMatch(searchString),
-					       SearchOperator.AND);
+		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.TYPE_KEY,
+			exactMatch(searchString),
+			SearchOperator.AND);
 
 		return attr;
 	}
 
 	public static SearchAttribute orExactName(final String searchString) {
 
-		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.NAME_KEY, exactMatch(searchString),
-					       SearchOperator.OR);
+		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.NAME_KEY,
+			exactMatch(searchString),
+			SearchOperator.OR);
 
 		return attr;
 	}
 
 	public static SearchAttribute andExactName(final String searchString) {
 
-		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.NAME_KEY, exactMatch(searchString),
-					       SearchOperator.AND);
+		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.NAME_KEY,
+			exactMatch(searchString),
+			SearchOperator.AND);
 
 		return attr;
 	}
 
 	public static SearchAttribute orExactTitle(final String searchString) {
 
-		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.TITLE_KEY, exactMatch(searchString),
-					       SearchOperator.OR);
+		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.TITLE_KEY,
+			exactMatch(searchString),
+			SearchOperator.OR);
 
 		return attr;
 	}
 
 	public static SearchAttribute andExactTitle(final String searchString) {
 
-		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.TITLE_KEY, exactMatch(searchString),
-					       SearchOperator.AND);
+		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.TITLE_KEY,
+			exactMatch(searchString),
+			SearchOperator.AND);
 
 		return attr;
 	}
 
 	public static SearchAttribute orExactContent(final String searchString) {
 
-		SearchAttribute attr = new TextualSearchAttribute(PlainText.CONTENT_KEY, exactMatch(searchString),
-					       SearchOperator.OR);
+		SearchAttribute attr = new TextualSearchAttribute(PlainText.CONTENT_KEY,
+			exactMatch(searchString),
+			SearchOperator.OR);
 
 		return attr;
 	}
 
 	public static SearchAttribute andExactContent(final String searchString) {
 
-		SearchAttribute attr = new TextualSearchAttribute(PlainText.CONTENT_KEY, exactMatch(searchString),
-					       SearchOperator.AND);
+		SearchAttribute attr = new TextualSearchAttribute(PlainText.CONTENT_KEY,
+			exactMatch(searchString),
+			SearchOperator.AND);
 
 		return attr;
 	}
 
 	public static SearchAttribute andNotHidden() {
 
-		SearchAttribute attr = new BooleanSearchAttribute(AbstractNode.HIDDEN_KEY, true, SearchOperator.NOT);
+		SearchAttribute attr = new BooleanSearchAttribute(AbstractNode.HIDDEN_KEY,
+			true,
+			SearchOperator.NOT);
 
 		return attr;
 	}
@@ -194,22 +214,43 @@ public abstract class Search {
 		return result;
 	}
 
+	/**
+	 * Normalize special characters to ASCII
+	 *
+	 * @param input
+	 * @return
+	 */
 	public static String normalize(final String input) {
 
-//              String output = Normalizer.normalize(input, Form.NFD);
+		String normalized = Normalizer.normalize(input,
+			Normalizer.Form.NFD);
+
+		return normalized.replaceAll("[^\\p{ASCII}]",
+					     "");
+	}
+
+	/**
+	 * Remove dangerous characters from a search string
+	 *
+	 * @param input
+	 * @return
+	 */
+	public static String clean(final String input) {
+
+//              String output = Normalizer.clean(input, Form.NFD);
 		String output = StringUtils.trim(input);
 
 //              String output = input;
-
 		// Remove all kinds of quotation marks
 		output = StringUtils.replace(output, "´", "");
 		output = StringUtils.replace(output, "`", "");
 		output = StringUtils.replace(output, "'", "");
+
 		// output = StringUtils.replace(output, ".", "");
-              output = StringUtils.replace(output, ",", "");
-              output = StringUtils.replace(output, " - ", "");
-              output = StringUtils.replace(output, "- ", "");
-              output = StringUtils.replace(output, " -", "");
+		output = StringUtils.replace(output, ",", "");
+		output = StringUtils.replace(output, " - ", "");
+		output = StringUtils.replace(output, "- ", "");
+		output = StringUtils.replace(output, " -", "");
 		output = StringUtils.replace(output, "=", "");
 		output = StringUtils.replace(output, "<", "");
 		output = StringUtils.replace(output, ">", "");
@@ -218,7 +259,8 @@ public abstract class Search {
 		//
 		// + - && || ! ( ) { } [ ] ^ " ~ * ? : \
 		output = StringUtils.replace(output, "+", "");
-		//output = StringUtils.replace(output, "-", "");
+
+		// output = StringUtils.replace(output, "-", "");
 		output = StringUtils.replace(output, "&&", "");
 		output = StringUtils.replace(output, "||", "");
 		output = StringUtils.replace(output, "!", "");
@@ -229,7 +271,7 @@ public abstract class Search {
 		output = StringUtils.replace(output, "[", "");
 		output = StringUtils.replace(output, "]", "");
 		output = StringUtils.replace(output, "^", "");
-              output = StringUtils.replace(output, "\"", "");
+		output = StringUtils.replace(output, "\"", "");
 		output = StringUtils.replace(output, "~", "");
 		output = StringUtils.replace(output, "*", "");
 		output = StringUtils.replace(output, "?", "");
@@ -257,9 +299,11 @@ public abstract class Search {
 		// always add wildcard character '*' for auto completion
 		searchAttrs.add(Search.andName(string + SearchAttribute.WILDCARD));
 
-		List<AbstractNode> result =
-			(List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(null, null, false,
-				false, searchAttrs);
+		List<AbstractNode> result = (List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(null,
+			null,
+			false,
+			false,
+			searchAttrs);
 
 		if (result != null) {
 

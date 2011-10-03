@@ -399,7 +399,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 		String result = "( ";
 
 		// Clean string
-		stringValue = Search.normalize(stringValue);
+		stringValue = Search.clean(stringValue);
 
 		// Split string into words
 		String[] words = StringUtils.split(stringValue, " ");
@@ -409,7 +409,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 		for (String word : words) {
 
-//                      String cleanWord = Search.normalize(word);
+//                      String cleanWord = Search.clean(word);
 //                      result += " (" + key + ":" + cleanWord + "* OR " + key + ":\"" + cleanWord + "\")" + (i<words.length ? " AND " : " ) ");
 //                      result += " (" + key + ":" + word + "* OR " + key + ":\"" + word + "\")" + (i < words.length ? " AND " : " ) ");
 			result += " (" + key + ":*" + word + "* OR " + key + ":\"" + word + "\")" + ((i < words.length)

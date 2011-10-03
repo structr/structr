@@ -62,7 +62,7 @@ import javax.servlet.http.HttpServletRequest;
 
 /**
  *
- * @author Christian Morgner
+ * @author Axel Morgner, Christian Morgner
  */
 public class MapRenderer implements NodeRenderer<Map> {
 
@@ -76,7 +76,10 @@ public class MapRenderer implements NodeRenderer<Map> {
 			       Long editNodeId, RenderMode renderMode) {
 
 		if ((editNodeId != null) && (currentNode.getId() == editNodeId.longValue())) {
-			currentNode.renderEditFrame(out, editUrl);
+
+			currentNode.renderEditFrame(out,
+						    editUrl);
+
 		} else {
 
 			SecurityContext securityContext = CurrentRequest.getSecurityContext();
@@ -85,42 +88,47 @@ public class MapRenderer implements NodeRenderer<Map> {
 
 				// If Map result is not cached in database
 				if (currentNode.getDontCache() == Boolean.TRUE) {
-					
-					long id = startNode.getId();
 
+					long id                = startNode.getId();
 					ServletContext context =
 						CurrentRequest.getRequest().getSession().getServletContext();
-					
-					
-					java.util.Map<Long,TemporaryValue<String>> mapCache = (java.util.Map<Long,TemporaryValue<String>>) context.getAttribute(MAP_CACHE);
-					
+					java.util.Map<Long, TemporaryValue<String>> mapCache =
+						(java.util.Map<Long,
+							       TemporaryValue<String>>) context.getAttribute(MAP_CACHE);
+
 					if (mapCache == null) {
-						mapCache = new ConcurrentHashMap<Long,TemporaryValue<String>>(1000, 0.9f, 8);
-						context.setAttribute(MAP_CACHE, mapCache);
+
+						mapCache = new ConcurrentHashMap<Long, TemporaryValue<String>>(1000,
+							0.9f,
+							8);
+						context.setAttribute(MAP_CACHE,
+								     mapCache);
 					}
-					
 
 					// Cache and use the start node ID as key!
-					TemporaryValue<String> cachedSVGMap =
-						(TemporaryValue<String>) mapCache.get(id);
+					TemporaryValue<String> cachedSVGMap = (TemporaryValue<String>) mapCache.get(id);
 
 					if (cachedSVGMap == null) {
 
 						// Cache 1 minute
 						// TODO: Make configurable
 						cachedSVGMap = new TemporaryValue<String>(null,
-										  TimeUnit.MINUTES.toMillis(1));
-						
+							TimeUnit.MINUTES.toMillis(1));
+
 						// Update cache
-						mapCache.put(id, cachedSVGMap);
-						//context.setAttribute(MAP_CACHE, mapCache);
+						mapCache.put(id,
+							     cachedSVGMap);
+
+						// context.setAttribute(MAP_CACHE, mapCache);
 					}
 
 					if ((cachedSVGMap.getStoredValue() == null) || cachedSVGMap.isExpired()) {
 
 						StringBuilder content = new StringBuilder(500000);
 
-						renderSVGMap(currentNode, content, startNode);
+						renderSVGMap(currentNode,
+							     content,
+							     startNode);
 						cachedSVGMap.refreshStoredValue(content.toString());
 					}
 
@@ -135,7 +143,9 @@ public class MapRenderer implements NodeRenderer<Map> {
 
 					StringBuilder cache = new StringBuilder();
 
-					renderSVGMap(currentNode, cache, startNode);
+					renderSVGMap(currentNode,
+						     cache,
+						     startNode);
 					currentNode.setSvgContent(cache.toString());
 					out.append(cache);
 
@@ -148,20 +158,10 @@ public class MapRenderer implements NodeRenderer<Map> {
 
 	/**
 	 * Render SVG content directly to output stream
-	 * @Override
-	 * public void renderNode(StructrOutputStream out, final AbstractNode startNode,
-	 * final String editUrl, final Long editNodeId) {
 	 *
-	 * try {
-	 * if (isVisible()) {
-	 * StringBuilder svgString = new StringBuilder();
-	 * renderSVGMap(svgString, startNode);
-	 * out.write(svgString.toString().getBytes());
-	 * }
-	 * } catch (IOException e) {
-	 * logger.log(Level.SEVERE, "Could not write SVG content to output stream: {0}", e.getStackTrace());
-	 * }
-	 * }
+	 * @param currentNode
+	 * @param out
+	 * @param startNode
 	 */
 	private void renderSVGMap(Map currentNode, StringBuilder out, final AbstractNode startNode) {
 
@@ -224,9 +224,10 @@ public class MapRenderer implements NodeRenderer<Map> {
 				// build map layer with style
 				StyleBuilder sb = new StyleBuilder();
 				Symbolizer sym  = sb.createLineSymbolizer(Color.decode(currentNode.getLineColor()),
-							  currentNode.getLineWidth());
+					currentNode.getLineWidth());
 
-				layer = new MapLayer(dataStore.getFeatureSource(), sb.createStyle(sym));
+				layer = new MapLayer(dataStore.getFeatureSource(),
+						     sb.createStyle(sym));
 				layers.add(layer);
 			}
 
@@ -235,7 +236,9 @@ public class MapRenderer implements NodeRenderer<Map> {
 			String layerName               = currentNode.getLayer();
 
 			if (StringUtils.isEmpty(layerName)) {
-				logger.log(Level.SEVERE, "No layer name!");
+
+				logger.log(Level.SEVERE,
+					   "No layer name!");
 			}
 
 			SimpleFeatureSource featureSource = n4jstore.getFeatureSource(layerName);
@@ -258,14 +261,9 @@ public class MapRenderer implements NodeRenderer<Map> {
 
 					Filter filter                             =
 						MapHelper.featureFactory.or(filterList);
-					Query query                               = new Query(layerName, filter);
-//					long t2                                   = System.currentTimeMillis();
+					Query query                               = new Query(layerName,
+						filter);
 					SimpleFeatureCollection featureCollection = featureSource.getFeatures(query);
-//					long t3                                   = System.currentTimeMillis();
-
-//					logger.log(Level.INFO, "getFeatures() for query \"{0}\" took {1} ms",
-//						   new Object[] { query,
-//								  t3 - t2 });
 
 					if ((featureCollection != null) &&!(featureCollection.isEmpty())) {
 
@@ -278,7 +276,10 @@ public class MapRenderer implements NodeRenderer<Map> {
 
 						List<AbstractNode> result = (List<AbstractNode>) Services.command(
 										SearchNodeCommand.class).execute(
-										new SuperUser(), null, false, false,
+										new SuperUser(),
+										null,
+										false,
+										false,
 										Search.andExactName(featureName));
 
 						for (AbstractNode n : result) {
@@ -322,48 +323,44 @@ public class MapRenderer implements NodeRenderer<Map> {
 				}
 
 				if ((eminx != null) && (emaxx != null) && (eminy != null) && (emaxy != null)) {
-					envelope = new ReferencedEnvelope(eminx, emaxx, eminy, emaxy, null);
+
+					envelope = new ReferencedEnvelope(eminx,
+									  emaxx,
+									  eminy,
+									  emaxy,
+									  null);
+
 				} else {
-					logger.log(Level.WARNING, "Manual envelope parameter incomplete");
+
+					logger.log(Level.WARNING,
+						   "Manual envelope parameter incomplete");
 				}
 			}
 
 			// Expand envelope as needed
-			MapHelper.expandEnvelope(envelope, new Double(cx), new Double(cy));
-
-//			long t4 = System.currentTimeMillis();
+			MapHelper.expandEnvelope(envelope,
+						 new Double(cx),
+						 new Double(cy));
 
 			// search all features within this bounding
-			SimpleFeatureCollection features = MapHelper.getIntersectingFeatures(graphDb, envelope,
-								   layerName);
-//			long t5 = System.currentTimeMillis();
-//
-//			logger.log(Level.INFO, "getIntersectingFeatures() for layer \"{0}\" took {1} ms",
-//				   new Object[] { layerName,
-//						  t5 - t4 });
+			SimpleFeatureCollection features = MapHelper.getIntersectingFeatures(graphDb,
+				envelope,
+				layerName);
 
-//
-//                      SimpleFeatureIterator it = features.features();
-//                      while (it.hasNext()) {
-//
-//                          SimpleFeature feature = it.next();
-//
-//                          if (!(feature.getAttribute("NAME").equals(featureName))) {
-//                              feature.setAttribute("NAME", "dummy");
-//                          }
-//
-//                      }
 			// create a style for displaying the polygons
 			Symbolizer polygonSymbolizer = MapHelper.createPolygonSymbolizer(currentNode.getLineColor(),
-							       currentNode.getLineWidth(),
-							       currentNode.getLineOpacity(),
-							       currentNode.getFillColor(),
-							       currentNode.getFillOpacity());
+				currentNode.getLineWidth(),
+				currentNode.getLineOpacity(),
+				currentNode.getFillColor(),
+				currentNode.getFillOpacity());
 			Symbolizer textSymbolizer = MapHelper.createTextSymbolizer(currentNode.getFontName(),
-							    currentNode.getFontSize(), currentNode.getFontColor(),
-							    currentNode.getFontOpacity(), currentNode.getAnchorX(),
-							    currentNode.getAnchorY(), currentNode.getDisplacementX(),
-							    currentNode.getDisplacementY());
+				currentNode.getFontSize(),
+				currentNode.getFontColor(),
+				currentNode.getFontOpacity(),
+				currentNode.getAnchorX(),
+				currentNode.getAnchorY(),
+				currentNode.getDisplacementX(),
+				currentNode.getDisplacementY());
 			Rule rule = MapHelper.styleFactory.createRule();
 
 			rule.symbolizers().add(polygonSymbolizer);
@@ -374,69 +371,60 @@ public class MapRenderer implements NodeRenderer<Map> {
 
 			style.featureTypeStyles().add(fts);
 
-//			long t12 = System.currentTimeMillis();
-
+//                      long t12 = System.currentTimeMillis();
 			// add features and style as a map layer to the list of map layers
-			layers.add(new MapLayer(features, style));
+			layers.add(new MapLayer(features,
+						style));
 
-//			long t13 = System.currentTimeMillis();
+//                      long t13 = System.currentTimeMillis();
 //
-//			logger.log(Level.INFO, "new MapLayer() took {0} ms", new Object[] { t13 - t12 });
-
+//                      logger.log(Level.INFO, "new MapLayer() took {0} ms", new Object[] { t13 - t12 });
 			boolean displayCities = (currentNode.getDisplayCities() == Boolean.TRUE);
 
 			if ((geoNode != null) && "Country".equals(geoNode.getType()) && displayCities) {
 
 				List<AbstractNode> subNodes = geoNode.getLinkedNodes();    // no sorting needed here
 				List<GeoObject> geoObjects  = new LinkedList<GeoObject>();
-				List<GeoObject> cities      = new LinkedList<GeoObject>();
-				List<GeoObject> hotels      = new LinkedList<GeoObject>();
-				List<GeoObject> islands     = new LinkedList<GeoObject>();
 
-//                              List<AbstractNode> result = (List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(user, featureNode, false, false, Search.andExactType("City"));
 				for (AbstractNode node : subNodes) {
 
-					if ("City".equals(node.getType())) {
-						cities.add((GeoObject) node);
-					}
+					if (node instanceof GeoObject) {
 
-					if ("Hotel".equals(node.getType())) {
-						hotels.add((GeoObject) node);
-					}
+						GeoObject geo            = (GeoObject) node;
+						String geoContainerClass = geo.getGeoContainerClass();
 
-					if ("Island".equals(node.getType())) {
-						islands.add((GeoObject) node);
+						if ((geoContainerClass != null)
+							&& geoNode.getType().equals(geoContainerClass)) {
+							geoObjects.add((GeoObject) node);
+						}
 					}
-				}
-
-				// no cities -> show hotels directly
-				if (cities.isEmpty()) {
-					geoObjects.addAll(hotels);
-				} else {
-					geoObjects.addAll(cities);
 				}
 
 				SimpleFeatureCollection collection = MapHelper.createPointsFromGeoObjects(geoObjects);
-				Symbolizer cityTextSym             =
+				Symbolizer subnodeTextSym          =
 					MapHelper.createTextSymbolizer(currentNode.getPointFontName(),
-						currentNode.getPointFontSize(), currentNode.getPointFontColor(),
-						currentNode.getPointFontOpacity(), currentNode.getLabelAnchorX(),
-						currentNode.getLabelAnchorY(), currentNode.getLabelDisplacementX(),
-						currentNode.getLabelDisplacementY());
-				Symbolizer cityPointSym = MapHelper.createPointSymbolizer(currentNode.getPointShape(),
-								  currentNode.getPointDiameter(),
-								  currentNode.getPointStrokeColor(),
-								  currentNode.getPointStrokeLineWidth(),
-								  currentNode.getPointFillColor(),
-								  currentNode.getPointFillOpacity());
+					currentNode.getPointFontSize(),
+					currentNode.getPointFontColor(),
+					currentNode.getPointFontOpacity(),
+					currentNode.getLabelAnchorX(),
+					currentNode.getLabelAnchorY(),
+					currentNode.getLabelDisplacementX(),
+					currentNode.getLabelDisplacementY());
+				Symbolizer subnodePointSym =
+					MapHelper.createPointSymbolizer(currentNode.getPointShape(),
+					currentNode.getPointDiameter(),
+					currentNode.getPointStrokeColor(),
+					currentNode.getPointStrokeLineWidth(),
+					currentNode.getPointFillColor(),
+					currentNode.getPointFillOpacity());
 
 //                              Symbolizer cityPolygonSymbolizer = MapHelper.createPolygonSymbolizer("#000000", 1, 1, "#000000", 1);
 				Rule rule2 = MapHelper.styleFactory.createRule();
 
-				rule2.symbolizers().add(cityTextSym);
+				rule2.symbolizers().add(subnodeTextSym);
 
 //                              rule2.symbolizers().add(cityPolygonSymbolizer);
-				rule2.symbolizers().add(cityPointSym);
+				rule2.symbolizers().add(subnodePointSym);
 
 				FeatureTypeStyle fts2 = MapHelper.styleFactory.createFeatureTypeStyle(new Rule[] {
 								rule2 });
@@ -445,51 +433,43 @@ public class MapRenderer implements NodeRenderer<Map> {
 				style2.featureTypeStyles().add(fts2);
 
 				SimpleFeatureSource source          = DataUtilities.source(collection);
-//				long t6                             = System.currentTimeMillis();
 				SimpleFeatureCollection subFeatures = source.getFeatures();
-//				long t7                             = System.currentTimeMillis();
-//
-//				logger.log(Level.INFO, "Subfeatures: getFeatures() took {0} ms",
-//					   new Object[] { t7 - t6 });
 
-				// Style pointStyle = SLD.createPointStyle("Square", Color.yellow, Color.yellow, 1, 3);
-				// pointStyle.featureTypeStyles().add(fts2);
 				if (!subFeatures.isEmpty()) {
 
 					// add features and style as a map layer to the list of map layers
-					layers.add(new MapLayer(subFeatures, style2));
+					layers.add(new MapLayer(subFeatures,
+								style2));
 				}
 			}
-
-//			long t8 = System.currentTimeMillis();
 
 			// create a map context
 			mapContext = new DefaultMapContext(layers.toArray(new MapLayer[] {}));
 
-//			long t9 = System.currentTimeMillis();
-
-//			logger.log(Level.INFO, "Creating map context took {0} ms", new Object[] { t9 - t8 });
-
-//			long t10 = System.currentTimeMillis();
-
 			// render map to SVG
-			MapHelper.renderSVGDocument(out, mapContext, envelope, cx, cy,
+			MapHelper.renderSVGDocument(out,
+						    mapContext,
+						    envelope,
+						    cx,
+						    cy,
 						    currentNode.getOptimizeFtsRendering(),
 						    currentNode.getLineWidthOptimization());
-
-//			long t11 = System.currentTimeMillis();
-//
-//			logger.log(Level.INFO, "renderSVGDocument took {0} ms", new Object[] { t11 - t10 });
 
 			// clear map content
 			mapContext.dispose();
 
 			long t1 = System.currentTimeMillis();
 
-			logger.log(Level.FINE, "SVG image successfully rendered in {0} ms", (t1 - t0));
+			logger.log(Level.FINE,
+				   "SVG image successfully rendered in {0} ms",
+				   (t1 - t0));
 
 		} catch (Throwable t) {
-			logger.log(Level.SEVERE, "Error while rendering map to SVG", t);
+
+			logger.log(Level.SEVERE,
+				   "Error while rendering map to SVG",
+				   t);
+
 		} finally {
 
 			if (mapContext != null) {

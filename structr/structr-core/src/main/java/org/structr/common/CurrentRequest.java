@@ -284,7 +284,7 @@ public class CurrentRequest {
 		if (request != null) {
 
 			HttpServletRequest requestInternal = request.getRequestInternal();
-			String searchString                = Search.normalize(requestInternal.getParameter("search"));
+			String searchString                = Search.clean(requestInternal.getParameter("search"));
 			String searchInTitle               = requestInternal.getParameter("searchInTitle");
 			boolean inTitle                    = (StringUtils.isNotEmpty(searchInTitle)
 							      && Boolean.parseBoolean(searchInTitle))

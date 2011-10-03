@@ -33,6 +33,7 @@ import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.ArbitraryNode;
 import org.structr.core.node.NodeFactoryCommand;
+import org.structr.core.node.search.Search;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -59,7 +60,9 @@ public class WebNode extends AbstractNode {
 
 	@Override
 	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers) {
-		renderers.put(RenderMode.Default, new ExternalTemplateRenderer(true));
+
+		renderers.put(RenderMode.Default,
+			      new ExternalTemplateRenderer(true));
 	}
 
 	@Override
@@ -93,9 +96,7 @@ public class WebNode extends AbstractNode {
 
 			if (name != null) {
 
-				String normalizedName = Normalizer.normalize(name, Normalizer.Form.NFD);
-
-				normalizedName = normalizedName.replaceAll("[^\\p{ASCII}]", "");
+				String normalizedName = Search.normalize(name);
 
 				if ((normalizedName != null) &&!(name.equals(normalizedName))) {
 					return name.concat(" ").concat(normalizedName);
@@ -120,7 +121,9 @@ public class WebNode extends AbstractNode {
 			}
 		}
 
-		logger.log(Level.FINE, "No home page found for node {0}", this.getId());
+		logger.log(Level.FINE,
+			   "No home page found for node {0}",
+			   this.getId());
 
 		return null;
 	}
@@ -251,7 +254,9 @@ public class WebNode extends AbstractNode {
 	}
 
 	public String getNodeURL(final String contextPath) {
-		return getNodeURL(RenderMode.PUBLIC, contextPath);
+
+		return getNodeURL(RenderMode.PUBLIC,
+				  contextPath);
 	}
 
 	@Override

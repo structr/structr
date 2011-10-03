@@ -1144,7 +1144,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 				root.put("Request", requestModel);
 				root.put("ContextPath", request.getContextPath());
 
-				String searchString  = Search.normalize(request.getParameter("search"));
+				String searchString  = Search.clean(request.getParameter("search"));
 				
 				if ((searchString != null) &&!(searchString.isEmpty())) {
 					root.put("SearchString", searchString);
