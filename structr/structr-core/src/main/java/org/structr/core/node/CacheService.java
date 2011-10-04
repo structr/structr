@@ -73,7 +73,7 @@ public class CacheService implements SingletonService {
 
     @Override
     public String getName() {
-        return CacheService.class.getName();
+        return CacheService.class.getSimpleName();
     }
     // </editor-fold>
 }

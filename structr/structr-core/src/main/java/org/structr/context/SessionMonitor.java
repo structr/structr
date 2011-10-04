@@ -21,7 +21,6 @@
 
 package org.structr.context;
 
-import org.structr.common.CurrentRequest;
 import org.structr.common.CurrentSession;
 import org.structr.common.RelType;
 import org.structr.core.Command;
@@ -32,6 +31,7 @@ import org.structr.core.entity.log.Activity;
 import org.structr.core.entity.log.LogNodeList;
 import org.structr.core.entity.log.PageRequest;
 import org.structr.core.log.LogCommand;
+import org.structr.core.log.LogService;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.NodeAttribute;
@@ -113,6 +113,10 @@ public class SessionMonitor {
 	 */
 	public static void logActivity(final long sessionId, final String action) {
 
+		if (!(Services.isAvailable(LogService.class))) {
+			return;
+		}
+
 		Date now  = new Date();
 		User user = CurrentSession.getUser();
 
@@ -142,6 +146,10 @@ public class SessionMonitor {
 	 * @param action
 	 */
 	public static void logPageRequest(final long sessionId, final String action, final HttpServletRequest request) {
+
+		if (!(Services.isAvailable(LogService.class))) {
+			return;
+		}
 
 		long t0   = System.currentTimeMillis();
 		Date now  = new Date();
@@ -224,7 +232,7 @@ public class SessionMonitor {
 
 	public static long getSessionByUId(final String sessionUid) {
 
-        if ((sessions == null) || sessions.isEmpty()) {
+		if ((sessions == null) || sessions.isEmpty()) {
 			return -1L;
 		}
 

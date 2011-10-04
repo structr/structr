@@ -22,7 +22,7 @@
 package org.structr.core.entity.app;
 
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.ArbitraryNode;
+import org.structr.core.entity.CustomTypeNode;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -30,7 +30,7 @@ import org.structr.core.entity.ArbitraryNode;
  *
  * @author Christian Morgner
  */
-public class DataNode extends ArbitraryNode {
+public class DataNode extends CustomTypeNode {
 
 	@Override
 	public void onNodeCreation() {}

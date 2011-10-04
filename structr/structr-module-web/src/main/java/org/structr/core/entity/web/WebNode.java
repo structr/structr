@@ -31,10 +31,12 @@ import org.structr.core.Command;
 import org.structr.core.NodeRenderer;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.ArbitraryNode;
 import org.structr.core.node.NodeFactoryCommand;
+import org.structr.core.node.search.Search;
 
 //~--- JDK imports ------------------------------------------------------------
+
+import java.text.Normalizer;
 
 import java.util.List;
 import java.util.Map;
@@ -47,7 +49,7 @@ import java.util.logging.Logger;
  *
  * @author axel
  */
-public class WebNode extends ArbitraryNode {
+public class WebNode extends AbstractNode {
 
 	public final static String SESSION_BLOCKED = "sessionBlocked";
 	public final static String USERNAME_KEY    = "username";
@@ -57,7 +59,9 @@ public class WebNode extends ArbitraryNode {
 
 	@Override
 	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers) {
-		renderers.put(RenderMode.Default, new ExternalTemplateRenderer(true));
+
+		renderers.put(RenderMode.Default,
+			      new ExternalTemplateRenderer(true));
 	}
 
 	@Override
@@ -71,7 +75,36 @@ public class WebNode extends ArbitraryNode {
 		return true;
 	}
 
+	@Override
+	public void onNodeDeletion() {}
+
 	//~--- get methods ----------------------------------------------------
+
+	/**
+	 * Use normalized string for indexing of name and title.
+	 *
+	 * @param key
+	 * @return
+	 */
+	@Override
+	public Object getPropertyForIndexing(final String key) {
+
+		if (AbstractNode.NAME_KEY.equals(key) || AbstractNode.TITLE_KEY.equals(key)) {
+
+			String name = (String) getStringProperty(key);
+
+			if (name != null) {
+
+				String normalizedName = Search.normalize(name);
+
+				if ((normalizedName != null) &&!(name.equals(normalizedName))) {
+					return name.concat(" ").concat(normalizedName);
+				}
+			}
+		}
+
+		return getProperty(key);
+	}
 
 	/**
 	 * Traverse over all child nodes to find a home page
@@ -87,7 +120,9 @@ public class WebNode extends ArbitraryNode {
 			}
 		}
 
-		logger.log(Level.FINE, "No home page found for node {0}", this.getId());
+		logger.log(Level.FINE,
+			   "No home page found for node {0}",
+			   this.getId());
 
 		return null;
 	}
@@ -218,7 +253,9 @@ public class WebNode extends ArbitraryNode {
 	}
 
 	public String getNodeURL(final String contextPath) {
-		return getNodeURL(RenderMode.PUBLIC, contextPath);
+
+		return getNodeURL(RenderMode.PUBLIC,
+				  contextPath);
 	}
 
 	@Override

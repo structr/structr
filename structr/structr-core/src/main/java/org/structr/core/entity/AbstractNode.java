@@ -39,7 +39,9 @@ import org.neo4j.graphdb.traversal.Evaluation;
 import org.neo4j.graphdb.traversal.Evaluator;
 import org.neo4j.kernel.Traversal;
 
+import org.structr.common.AbstractComponent;
 import org.structr.common.AbstractNodeComparator;
+import org.structr.common.AccessControllable;
 import org.structr.common.CurrentRequest;
 import org.structr.common.CurrentSession;
 import org.structr.common.PathHelper;
@@ -60,16 +62,16 @@ import org.structr.core.Services;
 import org.structr.core.cloud.NodeDataContainer;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;
+import org.structr.core.node.DeleteRelationshipCommand;
 import org.structr.core.node.FindNodeCommand;
 import org.structr.core.node.IndexNodeCommand;
 import org.structr.core.node.NodeFactoryCommand;
 import org.structr.core.node.NodeRelationshipsCommand;
+import org.structr.core.node.SetOwnerCommand;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 import org.structr.core.node.XPath;
 import org.structr.core.node.search.Search;
-import org.structr.core.node.search.SearchAttribute;
-import org.structr.core.node.search.SearchNodeCommand;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -98,9 +100,9 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import org.structr.common.AbstractComponent;
-import org.structr.common.AccessControllable;
-import org.structr.core.node.DeleteRelationshipCommand;
+import org.structr.core.GraphObject;
+import org.structr.core.node.DeleteNodeCommand;
+import org.structr.core.node.NodeRelationshipStatisticsCommand;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -110,7 +112,7 @@ import org.structr.core.node.DeleteRelationshipCommand;
  * @author amorgner
  *
  */
-public abstract class AbstractNode implements Comparable<AbstractNode>, RenderController, AccessControllable {
+public abstract class AbstractNode implements Comparable<AbstractNode>, RenderController, AccessControllable, GraphObject {
 
 	public final static String CATEGORIES_KEY         = "categories";
 	public final static String CREATED_BY_KEY         = "createdBy";
@@ -126,6 +128,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	// private final static String keySuffix = "}";
 	private final static String NODE_KEY_PREFIX               = "%{";
 	private final static String NODE_KEY_SUFFIX               = "}";
+	public final static String OWNER_ID_KEY                   = "ownerId";
 	public final static String OWNER_KEY                      = "owner";
 	public final static String POSITION_KEY                   = "position";
 	public final static String PUBLIC_KEY                     = "public";
@@ -1142,31 +1145,11 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 				root.put("Request", requestModel);
 				root.put("ContextPath", request.getContextPath());
 
-				String searchString    = request.getParameter("search");
-				String searchInContent = request.getParameter("searchInContent");
-				boolean inContent      = (StringUtils.isNotEmpty(searchInContent)
-							  && Boolean.parseBoolean(searchInContent))
-							 ? true
-							 : false;
-
-				// if search string is given, put search results into freemarker model
+				String searchString  = Search.clean(request.getParameter("search"));
+				
 				if ((searchString != null) &&!(searchString.isEmpty())) {
-
-					List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
-
-					searchAttrs.add(Search.orName(searchString));    // search in name
-
-					if (inContent) {
-						searchAttrs.add(Search.orContent(searchString));    // search in name
-					}
-
-					Command search            = Services.command(SearchNodeCommand.class);
-					List<AbstractNode> result = (List<AbstractNode>) search.execute(null,    // user => null means super user
-						null,     // top node => null means search all
-						false,    // include hidden
-						true,     // public only
-						searchAttrs);
-
+					root.put("SearchString", searchString);
+					List<AbstractNode> result = CurrentRequest.getSearchResult();
 					root.put("SearchResults", result);
 				}
 			}
@@ -1456,6 +1439,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * Get type from underlying db node If no type property was found, return
 	 * info
 	 */
+	@Override
 	public String getType() {
 		return (String) getProperty(TYPE_KEY);
 	}
@@ -1740,6 +1724,18 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 	public Object getProperty(final PropertyKey propertyKey) {
 		return (getProperty(propertyKey.name()));
+	}
+
+	/**
+	 * Return property value which is used for indexing.
+	 *
+	 * This is useful f.e. to filter markup from HTML to index only text
+	 *
+	 * @param key
+	 * @return
+	 */
+	public Object getPropertyForIndexing(final String key) {
+		return getProperty(key);
 	}
 
 	public Object getProperty(final String key) {
@@ -2213,10 +2209,22 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 *
 	 * @return list with relationships
 	 */
+	@Override
 	public List<StructrRelationship> getRelationships(RelationshipType type, Direction dir) {
 
 		return (List<StructrRelationship>) Services.command(NodeRelationshipsCommand.class).execute(this, type,
 			dir);
+	}
+
+	/**
+	 * Return statistical information on all relationships of this node
+	 *
+	 * @return number of relationships
+	 */
+	@Override
+	public Map<RelationshipType, Long> getRelationshipInfo(Direction dir) {
+
+		return (Map<RelationshipType, Long>) Services.command(NodeRelationshipStatisticsCommand.class).execute(this, dir);
 	}
 
 //
@@ -2917,6 +2925,10 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		return null;
 	}
 
+	public Long getOwnerId() {
+		return getOwnerNode().getId();
+	}
+
 	/**
 	 * Return owner
 	 *
@@ -3053,6 +3065,30 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		return (ret);
 	}
 
+	@Override
+	public Date getVisibilityStartDate() {
+		return getDateProperty(VISIBILITY_START_DATE_KEY);
+	}
+
+	@Override
+	public Date getVisibilityEndDate() {
+		return getDateProperty(VISIBILITY_END_DATE_KEY);
+	}
+
+	@Override
+	public Date getCreatedDate() {
+		return getDateProperty(CREATED_DATE_KEY);
+	}
+
+	@Override
+	public Date getLastModifiedDate() {
+		return getDateProperty(LAST_MODIFIED_DATE_KEY);
+	}
+
+	public AbstractComponent getHelpContent() {
+		return (null);
+	}
+
 	public boolean hasTemplate() {
 		return (getTemplate() != null);
 	}
@@ -3156,28 +3192,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		return getHidden();
 	}
 
-	@Override
-	public Date getVisibilityStartDate() {
-		return getDateProperty(VISIBILITY_START_DATE_KEY);
-	}
-
-	@Override
-	public Date getVisibilityEndDate() {
-		return getDateProperty(VISIBILITY_END_DATE_KEY);
-	}
-
-	@Override
-	public Date getCreatedDate() {
-		return getDateProperty(CREATED_DATE_KEY);
-	}
-
-	@Override
-	public Date getLastModifiedDate() {
-		return getDateProperty(LAST_MODIFIED_DATE_KEY);
-	}
-
 	// ----- end interface AccessControllable -----
-
 	public boolean isNotDeleted() {
 		return !getDeleted();
 	}
@@ -3233,6 +3248,25 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		SecurityContext securityContext = CurrentRequest.getSecurityContext();
 
 		return securityContext.isVisible(this);
+	}
+
+	//~--- interface GraphObject -----------------------------------------
+	@Override
+	public Long getStartNodeId() {
+		return null;
+	}
+
+	@Override
+	public Long getEndNodeId() {
+		return null;
+	}
+
+	@Override
+	public boolean delete() {
+
+		dbNode.delete();
+
+		return true;
 	}
 
 	//~--- set methods ----------------------------------------------------
@@ -3539,10 +3573,17 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		this.user = user;
 	}
 
-	public AbstractComponent getHelpContent() {
-		return(null);
+	public void setOwnerId(final Long value) {
+		setOwnerNode(value);
 	}
-	
+
+	private void setOwnerNode(final Long nodeId) {
+
+		Command setOwner = Services.command(SetOwnerCommand.class);
+
+		setOwner.execute(this, Services.command(FindNodeCommand.class).execute(new SuperUser(), nodeId));
+	}
+
 	//~--- inner classes --------------------------------------------------
 
 	private class DefaultRenderer implements NodeRenderer<AbstractNode> {

@@ -22,5 +22,5 @@ package org.structr.ui.page.admin;
  *
  * @author axel
  */
-public class EditDataNode extends EditArbitraryNode {
+public class EditDataNode extends EditCustomTypeNode {
 }
