@@ -4,7 +4,7 @@
     <groupId>org.structr</groupId>
     <artifactId>structr</artifactId>
     <packaging>pom</packaging>
-    <version>0.4</version>
+    <version>0.4.1</version>
     <name>structr</name>
     <url>http://structr.org</url>
 
