@@ -15,6 +15,7 @@
   <version>0.4.2-SNAPSHOT</version>
   <name>structr-module-app</name>
   <url>http://maven.apache.org</url>
+
   <build>
     <plugins>
       <plugin>
@@ -27,22 +28,17 @@
       </plugin>
     </plugins>
   </build>
+
   <dependencies>
     <dependency>
       <groupId>org.structr</groupId>
       <artifactId>structr-core</artifactId>
-      <version>0.4.2-SNAPSHOT</version>
+      <version>${structr.version}</version>
     </dependency>
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>3.8.1</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>structr-core</artifactId>
-      <version>${project.version}</version>
+      <groupId>org.structr</groupId>
+      <artifactId>structr-module-web</artifactId>
+      <version>${structr.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.click</groupId>
@@ -50,18 +46,16 @@
       <version>2.3.0</version>
     </dependency>
     <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>structr-module-web</artifactId>
-      <version>${project.version}</version>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>3.8.1</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
+
   <properties>
     <netbeans.hint.license>structr-gpl30</netbeans.hint.license>
+    <structr.version>0.4.2-SNAPSHOT</structr.version>
   </properties>
+  
 </project>
-
-
-
-
-
-
