@@ -294,10 +294,19 @@ public class JsonRestServlet extends HttpServlet {
 					}
 				});
 
+				// FIXME: might not work under all conditions
 				// build "Location" header field for response
-				StringBuilder uriBuilder = new StringBuilder(40);
-				// FIXME: use correct URI here! (how can we know?)
-				uriBuilder.append("/api/");
+				StringBuilder uriBuilder = new StringBuilder(100);
+				uriBuilder.append(request.getScheme());
+				uriBuilder.append("://");
+				uriBuilder.append(request.getServerName());
+				uriBuilder.append(":");
+				uriBuilder.append(request.getServerPort());
+				uriBuilder.append(request.getContextPath());
+				uriBuilder.append(request.getServletPath());
+				uriBuilder.append("/");
+				uriBuilder.append(newNode.getType().toLowerCase());
+				uriBuilder.append("s/");
 				uriBuilder.append(newNode.getId());
 
 				// set response code
