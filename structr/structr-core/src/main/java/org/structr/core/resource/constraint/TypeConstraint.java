@@ -7,6 +7,7 @@ package org.structr.core.resource.constraint;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.neo4j.graphdb.Direction;
@@ -40,7 +41,7 @@ import org.structr.core.resource.filter.Filter;
  * 
  * @author Christian Morgner
  */
-public class TypeConstraint extends ResourceConstraint {
+public class TypeConstraint implements ResourceConstraint {
 
 	private static final Logger logger = Logger.getLogger(TypeConstraint.class.getName());
 
@@ -51,7 +52,7 @@ public class TypeConstraint extends ResourceConstraint {
 	public boolean acceptUriPart(String part) {
 
 		// todo: check if type exists etc.
-		this.type = part;
+		this.setType(part);
 
 		return true;
 	}
@@ -68,6 +69,11 @@ public class TypeConstraint extends ResourceConstraint {
 			boolean publicOnly = false;
 
 			if(type != null) {
+
+				if(type.endsWith("s")) {
+					logger.log(Level.FINEST, "Removing trailing plural 's' from type {0}", type);
+					type = type.substring(0, type.length() - 1);
+				}
 
 				searchAttributes.add(new TextualSearchAttribute("type", type, SearchOperator.OR));
 
@@ -86,6 +92,8 @@ public class TypeConstraint extends ResourceConstraint {
 			}
 
 		} else {
+
+			logger.log(Level.WARNING, "Received results from predecessor, this query is probably not optimized!");
 
 			// TypeConstraint acts as a type filter here
 			for(Iterator<GraphObject> it = result.getResults().iterator(); it.hasNext();) {
@@ -156,5 +164,24 @@ public class TypeConstraint extends ResourceConstraint {
 		}
 
 		return nodeList;
+	}
+
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
+	}
+
+	@Override
+	public ResourceConstraint tryCombineWith(ResourceConstraint next) {
+
+		ResourceConstraint combinedConstraint = null;
+
+		if(next instanceof IdConstraint)	combinedConstraint = new TypedIdConstraint(type, ((IdConstraint)next).getId()); else
+		if(next instanceof SearchConstraint)	combinedConstraint = new TypedSearchConstraint(type, ((SearchConstraint)next).getSearchString());
+
+		return combinedConstraint;
 	}
 }

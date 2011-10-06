@@ -16,7 +16,7 @@ import org.structr.core.resource.PathException;
  *
  * @author Christian Morgner
  */
-public class SortConstraint extends ResourceConstraint {
+public class SortConstraint implements ResourceConstraint {
 
 	private static final Logger logger = Logger.getLogger(SortConstraint.class.getName());
 
@@ -72,5 +72,10 @@ public class SortConstraint extends ResourceConstraint {
 		}
 		
 		return result;
+	}
+
+	@Override
+	public ResourceConstraint tryCombineWith(ResourceConstraint next) {
+		return null;
 	}
 }

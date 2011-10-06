@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -54,15 +55,15 @@ import org.structr.core.node.TransactionCommand;
 import org.structr.core.resource.IllegalPathException;
 import org.structr.core.resource.NotFoundException;
 import org.structr.core.resource.PathException;
-import org.structr.core.resource.adapter.GraphObjectGSONAdapter;
 import org.structr.core.resource.adapter.PropertySetGSONAdapter;
+import org.structr.core.resource.adapter.ResultGSONAdapter;
 import org.structr.core.resource.constraint.IdConstraint;
 import org.structr.core.resource.constraint.RelationshipConstraint;
 import org.structr.core.resource.constraint.PagingConstraint;
 import org.structr.core.resource.constraint.RelationshipNodeConstraint;
 import org.structr.core.resource.constraint.ResourceConstraint;
 import org.structr.core.resource.constraint.Result;
-import org.structr.core.resource.constraint.RootResourceConstraint;
+import org.structr.core.resource.constraint.SearchConstraint;
 import org.structr.core.resource.constraint.SortConstraint;
 import org.structr.core.resource.constraint.TypeConstraint;
 import org.structr.core.resource.wrapper.PropertySet;
@@ -79,17 +80,18 @@ public class JsonRestServlet extends HttpServlet {
 
 	private static final Logger logger = Logger.getLogger(JsonRestServlet.class.getName());
 
-	private static final String	REQUEST_PARAMETER_SORT_KEY =		"sort";
-	private static final String	REQUEST_PARAMETER_SORT_ORDER =		"order";
-	private static final String	REQUEST_PARAMETER_PAGE_NUMBER =		"page";
-	private static final String	REQUEST_PARAMETER_PAGE_SIZE =		"pageSize";
+	public static final String	REQUEST_PARAMETER_SEARCH_STRING =	"q";
+	public static final String	REQUEST_PARAMETER_SORT_KEY =		"sort";
+	public static final String	REQUEST_PARAMETER_SORT_ORDER =		"order";
+	public static final String	REQUEST_PARAMETER_PAGE_NUMBER =		"page";
+	public static final String	REQUEST_PARAMETER_PAGE_SIZE =		"pageSize";
 
-	private static final int	DEFAULT_VALUE_PAGE_SIZE =		20;
-	private static final String	DEFAULT_VALUE_SORT_ORDER =		"asc";
+	public static final int		DEFAULT_VALUE_PAGE_SIZE =		20;
+	public static final String	DEFAULT_VALUE_SORT_ORDER =		"asc";
 
 	private static final String	SERVLET_PARAMETER_PROPERTY_FORMAT =	"PropertyFormat";
 
-	private Map<Pattern, Class> constraints = null;
+	private Map<Pattern, Class> constraintMap = null;
 	private Gson gson = null;
 
 	@Override
@@ -112,27 +114,31 @@ public class JsonRestServlet extends HttpServlet {
 		}
 
 		// initialize GSON renderer
-		this.constraints = new LinkedHashMap<Pattern, Class>();
+		this.constraintMap = new LinkedHashMap<Pattern, Class>();
 		this.gson = new GsonBuilder()
 			.setPrettyPrinting()
 			.registerTypeAdapter(PropertySet.class, new PropertySetGSONAdapter(propertyFormat))
-			.registerTypeAdapter(GraphObject.class, new GraphObjectGSONAdapter(propertyFormat))
+//			.registerTypeAdapter(GraphObject.class, new GraphObjectGSONAdapter(propertyFormat))
+			.registerTypeAdapter(Result.class, new ResultGSONAdapter(propertyFormat))
 			.create();
 
 		// ----- initialize constraints -----
-		constraints.put(Pattern.compile("[0-9]+"),	IdConstraint.class);			// this matches the ID constraint first
+		constraintMap.put(Pattern.compile("[0-9]+"),		IdConstraint.class);			// this matches the ID constraint first
+
+		// search
+		constraintMap.put(Pattern.compile("search"),		SearchConstraint.class);		// search
 
 		// relationships
-		constraints.put(Pattern.compile("out"),		RelationshipConstraint.class);		// outgoing relationship
-		constraints.put(Pattern.compile("in"),		RelationshipConstraint.class);		// incoming relationship
+		constraintMap.put(Pattern.compile("out"),		RelationshipConstraint.class);		// outgoing relationship
+		constraintMap.put(Pattern.compile("in"),		RelationshipConstraint.class);		// incoming relationship
 
 		// start & end node
-		constraints.put(Pattern.compile("start"),	RelationshipNodeConstraint.class);	// start node
-		constraints.put(Pattern.compile("end"),		RelationshipNodeConstraint.class);	// end node
+		constraintMap.put(Pattern.compile("start"),		RelationshipNodeConstraint.class);	// start node
+		constraintMap.put(Pattern.compile("end"),		RelationshipNodeConstraint.class);	// end node
 
 		// The pattern for a generic type match. This pattern should be inserted at the very end
 		// of the chain because it matches everything that is a lowercase string without numbers
-		constraints.put(Pattern.compile("[a-z_]+"),	TypeConstraint.class);			// any type match
+		constraintMap.put(Pattern.compile("[a-z_]+"),	TypeConstraint.class);				// any type match
 	}
 
 	@Override
@@ -235,6 +241,8 @@ public class JsonRestServlet extends HttpServlet {
 //				logger.log(Level.INFO, "GSON serialization took {0} seconds", decimalFormat.format((serializationTimeEnd - serializationTimeStart) / 1000000000.0));
 
 			} else {
+
+				logger.log(Level.WARNING, "Result was null!");
 
 				response.setStatus(HttpServletResponse.SC_NO_CONTENT);
 			}
@@ -383,18 +391,15 @@ public class JsonRestServlet extends HttpServlet {
 	// ---- private methods -----
 	private Result getResults(HttpServletRequest request) throws PathException {
 
-		RootResourceConstraint rootConstraint = new RootResourceConstraint();
-		ResourceConstraint currentConstraint = rootConstraint;
-		PagingConstraint pagingConstraint = null;
-		String sortOrder = null;
-		String sortKey = null;
-
 		// fetch request path
 		String path = request.getPathInfo();
 		if(path != null) {
 
 			// parse path into constraint chain
-			currentConstraint = parsePath(path, rootConstraint);
+			List<ResourceConstraint> constraintChain = parsePath(path);
+			PagingConstraint pagingConstraint = null;
+			String sortOrder = null;
+			String sortKey = null;
 
 			// sort results
 			sortKey = request.getParameter(REQUEST_PARAMETER_SORT_KEY);
@@ -405,9 +410,7 @@ public class JsonRestServlet extends HttpServlet {
 					sortOrder = DEFAULT_VALUE_SORT_ORDER;
 				}
 
-				SortConstraint sortConstraint = new SortConstraint(sortKey, sortOrder);
-				currentConstraint.setChild(sortConstraint);
-				currentConstraint = sortConstraint;
+				constraintChain.add(new SortConstraint(sortKey, sortOrder));
 			}
 
 			// paging
@@ -424,42 +427,236 @@ public class JsonRestServlet extends HttpServlet {
 					throw new IllegalPathException();
 				}
 
-				currentConstraint.setChild(pagingConstraint);
-				currentConstraint = pagingConstraint;
+				constraintChain.add(pagingConstraint);
+			}
+
+			// fetch results
+			Result results = evaluateConstraints(constraintChain, request);
+			if(results != null) {
+
+				// set information from paging constraint
+				if(pagingConstraint != null) {
+
+					results.setPage(pagingConstraint.getPage());
+					results.setPageSize(pagingConstraint.getPageSize());
+					results.setPageCount(pagingConstraint.getPageCount());
+					results.setResultCount(pagingConstraint.getResultCount());
+
+				} else {
+
+					List<GraphObject> resultList = results.getResults();
+					if(resultList != null) {
+						results.setResultCount(resultList.size());
+					} else {
+						logger.log(Level.WARNING, "Got empty result set!");
+					}
+				}
+
+				// set information from sort constraint
+				results.setSortOrder(sortOrder);
+				results.setSortKey(sortKey);
+
+				// check for "search" parameter and set in result
+				results.setSearchString(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_SEARCH_STRING));
+			}
+
+			// finally: return results
+			return results;
+		}
+
+		// return null if no path was given
+		return null;
+	}
+
+	private List<ResourceConstraint> parsePath(String path) {
+
+		// 1.: split request path into URI parts
+		String[] pathParts = path.split("[/]+");
+
+		// 2.: create container for resource constraints
+		List<ResourceConstraint> constraintChain = new ArrayList<ResourceConstraint>(pathParts.length);
+
+		// 3.: try to assign resource constraints for each URI part
+		for(int i=0; i<pathParts.length; i++) {
+
+			// eliminate empty strings
+			String part = pathParts[i].trim();
+			if(part.length() > 0) {
+
+				// look for matching pattern
+				for(Entry<Pattern, Class> entry : constraintMap.entrySet()) {
+
+					Pattern pattern = entry.getKey();
+					Matcher matcher = pattern.matcher(pathParts[i]);
+
+					if(matcher.matches()) {
+
+						try {
+							Class type = entry.getValue();
+
+							// instantiate resource constraint
+							ResourceConstraint constraint = (ResourceConstraint)type.newInstance();
+							if(constraint.acceptUriPart(part)) {
+
+								logger.log(Level.FINE, "{0} matched, adding constraint of type {1} for part {2}", new Object[] {
+									matcher.pattern(),
+									type.getName(),
+									part
+								});
+
+								// add constraint and go on
+								constraintChain.add(constraint);
+
+								// first match wins, so choose priority wisely ;)
+								break;
+							}
+
+						} catch(Throwable t) {
+
+							logger.log(Level.WARNING, "Error instantiating constraint class", t);
+						}
+					}
+				}
 			}
 		}
 
-		// fetch results
-		Result results = rootConstraint.getNestedResults(request);
-		if(results != null) {
+		// 4.: combine constraints into larger tuples
+		combineResources(constraintChain);
 
-			// set information from paging constraint
-			if(pagingConstraint != null) {
+		return constraintChain;
+	}
 
-				results.setPage(pagingConstraint.getPage());
-				results.setPageSize(pagingConstraint.getPageSize());
-				results.setPageCount(pagingConstraint.getPageCount());
-				results.setResultCount(pagingConstraint.getResultCount());
+	private Result evaluateConstraints(List<ResourceConstraint> constraintChain, HttpServletRequest request) throws PathException {
 
-			} else {
+		Result result = null;
 
-				List<GraphObject> resultList = results.getResults();
-				if(resultList != null) {
-					results.setResultCount(resultList.size());
-				} else {
-					logger.log(Level.WARNING, "Got empty result set!");
+		for(ResourceConstraint constraint : constraintChain) {
+			result = constraint.processParentResult(result, request);
+		}
+
+		return result;
+	}
+
+	private void combineResources(List<ResourceConstraint> constraintChain) {
+
+		int num = constraintChain.size();
+		boolean found = false;
+
+		do {
+			
+			found = false;
+			for(int i=0; i<num; i++) {
+
+				try {
+					ResourceConstraint firstElement = constraintChain.get(i);
+					ResourceConstraint secondElement = constraintChain.get(i+1);
+
+					ResourceConstraint combinedConstraint = firstElement.tryCombineWith(secondElement);
+					if(combinedConstraint != null) {
+
+						logger.log(Level.FINE, "Combined constraint {0}", combinedConstraint.getClass().getSimpleName());
+
+						// remove source constraints
+						constraintChain.remove(firstElement);
+						constraintChain.remove(secondElement);
+
+						// add combined constraint
+						constraintChain.add(combinedConstraint);
+
+						// signal success
+						found = true;
+
+						// skip next constraint
+						i++;
+					}
+
+				} catch(Throwable t) {
+					// catch ArrayIndexOutOfRangeExceptions
 				}
 			}
 
-			// set information from sort constraint
-			results.setSortOrder(sortOrder);
-			results.setSortKey(sortKey);
-		}
+		} while(found);
 
-		// finally: return results
-		return results;
+		logger.log(Level.FINEST, "Final constraint chain {0}", constraintChain);
 	}
 
+	/**
+	 * Tries to parse the given String to an int value, returning
+	 * defaultValue on error.
+	 *
+	 * @param value the source String to parse
+	 * @param defaultValue the default value that will be returned when parsing fails
+	 * @return the parsed value or the given default value when parsing fails
+	 */
+	private int parseInt(String value, int defaultValue) {
+
+		if(value == null) {
+			return defaultValue;
+		}
+
+		try {
+
+			return Integer.parseInt(value);
+
+		} catch(Throwable ignore) {
+		}
+
+		return defaultValue;
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	/*
 	private ResourceConstraint parsePath(String path, ResourceConstraint rootConstraint) {
 
 		ResourceConstraint currentConstraint = rootConstraint;
@@ -473,7 +670,7 @@ public class JsonRestServlet extends HttpServlet {
 			if(part.length() > 0) {
 
 				// look for matching pattern
-				for(Entry<Pattern, Class> entry : constraints.entrySet()) {
+				for(Entry<Pattern, Class> entry : constraintMap.entrySet()) {
 
 					Pattern pattern = entry.getKey();
 					Matcher matcher = pattern.matcher(pathParts[i]);
@@ -512,28 +709,4 @@ public class JsonRestServlet extends HttpServlet {
 
 		return currentConstraint;
 	}
-
-	/**
-	 * Tries to parse the given String to an int value, returning
-	 * defaultValue on error.
-	 *
-	 * @param value the source String to parse
-	 * @param defaultValue the default value that will be returned when parsing fails
-	 * @return the parsed value or the given default value when parsing fails
-	 */
-	private int parseInt(String value, int defaultValue) {
-
-		if(value == null) {
-			return defaultValue;
-		}
-
-		try {
-
-			return Integer.parseInt(value);
-
-		} catch(Throwable ignore) {
-		}
-
-		return defaultValue;
-	}
-}
+	*/

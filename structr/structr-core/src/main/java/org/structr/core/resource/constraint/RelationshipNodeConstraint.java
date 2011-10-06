@@ -32,7 +32,7 @@ import org.structr.core.resource.PathException;
  *
  * @author Christian Morgner
  */
-public class RelationshipNodeConstraint extends ResourceConstraint {
+public class RelationshipNodeConstraint implements ResourceConstraint {
 
 	private static final Logger logger = Logger.getLogger(RelationshipNodeConstraint.class.getName());
 	private boolean startNode = false;
@@ -88,4 +88,8 @@ public class RelationshipNodeConstraint extends ResourceConstraint {
 		return true;
 	}
 
+	@Override
+	public ResourceConstraint tryCombineWith(ResourceConstraint next) {
+		return null;
+	}
 }
