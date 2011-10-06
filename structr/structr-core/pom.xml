@@ -6,13 +6,13 @@
     <parent>
         <groupId>org.structr</groupId>
         <artifactId>structr</artifactId>
-        <version>0.4.1</version>
+        <version>0.4.2-SNAPSHOT</version>
     </parent>
 
     <groupId>org.structr</groupId>
     <artifactId>structr-core</artifactId>
     <packaging>jar</packaging>
-    <version>0.4.1</version>
+    <version>0.4.2-SNAPSHOT</version>
     <name>structr-core</name>
     <url>http://structr.org</url>
 
@@ -29,6 +29,7 @@
     <properties>
         <netbeans.hint.license>structr-gpl30</netbeans.hint.license>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <structr.version>0.4.2-SNAPSHOT</structr.version>
         <neo4j.version>1.4.1</neo4j.version>
         <click.version>2.3.0</click.version>
     </properties>
@@ -56,23 +57,6 @@
             <artifactId>neo4j-lucene-index</artifactId>
             <version>${neo4j.version}</version>
         </dependency>
-<!--        <dependency>
-            <groupId>org.neo4j</groupId>
-            <artifactId>neo4j-index</artifactId>
-            <version>${neo4j.version}</version>
-        </dependency>-->
-<!--    <dependency>
-      <groupId>org.neo4j</groupId>
-      <artifactId>neo4j-shell</artifactId>
-      <version>${neo4j.version}</version>
-    </dependency>-->
-  	<!--dependency>
-  		<groupId>org.neo4j</groupId>
-  		<artifactId>neo4j-remote-graphdb</artifactId>
-  		<version>1.2</version>
-  		<type>jar</type>
-  		<optional>false</optional>
-  	</dependency-->
         <dependency>
             <groupId>org.beanshell</groupId>
             <artifactId>bsh-core</artifactId>
@@ -195,22 +179,6 @@
             <artifactId>jsoup</artifactId>
             <version>1.4.1</version>
         </dependency>
-<!--    <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>servlet-api</artifactId>
-      <version>2.5</version>
-      <type>jar</type>
-      <scope>provided</scope>
-      <optional>false</optional>
-    </dependency>-->
-<!--    <dependency>
-      <groupId>javax.servlet.jsp</groupId>
-      <artifactId>jsp-api</artifactId>
-      <version>2.1</version>
-      <type>jar</type>
-      <scope>provided</scope>
-      <optional>false</optional>
-    </dependency>-->
         <dependency>
             <groupId>org.apache.click</groupId>
             <artifactId>click</artifactId>

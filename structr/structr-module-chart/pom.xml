@@ -6,15 +6,16 @@
     <parent>
         <groupId>org.structr</groupId>
         <artifactId>structr</artifactId>
-        <version>0.4.1</version>
+        <version>0.4.2-SNAPSHOT</version>
     </parent>
 
     <groupId>org.structr</groupId>
     <artifactId>structr-module-chart</artifactId>
     <packaging>jar</packaging>
-    <version>0.4.1</version>
+    <version>0.4.2-SNAPSHOT</version>
     <name>structr-module-chart</name>
     <url>http://maven.apache.org</url>
+    
     <build>
         <plugins>
             <plugin>
@@ -46,6 +47,7 @@
             </plugin>
         </plugins>
     </build>
+
     <dependencies>
         <dependency>
             <groupId>junit</groupId>
@@ -54,9 +56,9 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>${project.groupId}</groupId>
+            <groupId>org.structr</groupId>
             <artifactId>structr-core</artifactId>
-            <version>${project.version}</version>
+            <version>${structr.version}</version>
         </dependency>
         <dependency>
             <groupId>jfree</groupId>
@@ -70,6 +72,12 @@
             <version>1.0.15</version>
         </dependency>
     </dependencies>
+
+    <properties>
+        <netbeans.hint.license>structr-gpl30</netbeans.hint.license>
+        <structr.version>0.4.2-SNAPSHOT</structr.version>
+    </properties>
+
 </project>
 
 

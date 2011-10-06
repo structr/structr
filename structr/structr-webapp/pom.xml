@@ -6,13 +6,13 @@
     <parent>
         <groupId>org.structr</groupId>
         <artifactId>structr</artifactId>
-        <version>0.4.1</version>
+        <version>0.4.2-SNAPSHOT</version>
     </parent>
 
     <groupId>org.structr</groupId>
     <artifactId>structr-webapp</artifactId>
     <packaging>war</packaging>
-    <version>0.4.1</version>
+    <version>0.4.2-SNAPSHOT</version>
     <name>structr-webapp</name>
     <url>http://structr.org</url>
     <build>
@@ -32,6 +32,7 @@
     <properties>
         <netbeans.hint.license>structr-gpl30</netbeans.hint.license>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <structr.version>0.4.2-SNAPSHOT</structr.version>
         <neo4j.version>1.4</neo4j.version>
         <netbeans.hint.deploy.server>Tomcat</netbeans.hint.deploy.server>
     </properties>
@@ -52,34 +53,18 @@
         <dependency>
             <groupId>org.structr</groupId>
             <artifactId>structr-core</artifactId>
-            <version>0.4.1</version>
+            <version>${structr.version}</version>
         </dependency>
         <dependency>
             <groupId>org.structr</groupId>
             <artifactId>structr-module-web</artifactId>
-            <version>0.4.1</version>
+            <version>${structr.version}</version>
         </dependency>
         <dependency>
             <groupId>org.structr</groupId>
             <artifactId>structr-module-app</artifactId>
-            <version>0.4.1</version>
+            <version>${structr.version}</version>
         </dependency>
-<!--        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>servlet-api</artifactId>
-            <version>2.5</version>
-            <type>jar</type>
-            <scope>provided</scope>
-            <optional>false</optional>
-        </dependency>-->
-<!--        <dependency>
-            <groupId>javax.servlet.jsp</groupId>
-            <artifactId>jsp-api</artifactId>
-            <version>2.1</version>
-            <type>jar</type>
-            <scope>provided</scope>
-            <optional>false</optional>
-        </dependency>-->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
