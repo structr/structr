@@ -16,6 +16,14 @@
     <name>structr-core</name>
     <url>http://structr.org</url>
 
+    <properties>
+        <netbeans.hint.license>structr-gpl30</netbeans.hint.license>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <structr.version>0.4.2-SNAPSHOT</structr.version>
+        <neo4j.version>1.4.1</neo4j.version>
+        <click.version>2.3.0</click.version>
+    </properties>
+
     <repositories>
         <repository>
             <id>neo4j-public-repository</id>
@@ -26,13 +34,7 @@
             <url>http://wordrak.github.com/repo/</url>
         </repository>
     </repositories>
-    <properties>
-        <netbeans.hint.license>structr-gpl30</netbeans.hint.license>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <structr.version>0.4.2-SNAPSHOT</structr.version>
-        <neo4j.version>1.4.1</neo4j.version>
-        <click.version>2.3.0</click.version>
-    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.freemarker</groupId>
@@ -143,31 +145,26 @@
             <groupId>com.esotericsoftware</groupId>
             <artifactId>minilog</artifactId>
             <version>1.2</version>
-<!--            <scope>runtime</scope>-->
         </dependency>
         <dependency>
             <groupId>com.esotericsoftware</groupId>
             <artifactId>reflectasm</artifactId>
             <version>1.01</version>
-<!--            <scope>runtime</scope>-->
         </dependency>
         <dependency>
             <groupId>com.esotericsoftware</groupId>
             <artifactId>kryo</artifactId>
             <version>1.04</version>
-<!--            <scope>compile</scope>-->
         </dependency>
         <dependency>
             <groupId>com.esotericsoftware</groupId>
             <artifactId>kryonet</artifactId>
             <version>1.04</version>
-<!--            <scope>compile</scope>-->
         </dependency>
         <dependency>
             <groupId>asm</groupId>
             <artifactId>asm</artifactId>
             <version>3.3.1</version>
-<!--            <scope>runtime</scope>-->
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -183,24 +180,18 @@
             <groupId>org.apache.click</groupId>
             <artifactId>click</artifactId>
             <version>${click.version}</version>
-<!--            <type>jar</type>-->
-<!--            <optional>false</optional>-->
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.click</groupId>
             <artifactId>click-extras</artifactId>
             <version>${click.version}</version>
-<!--            <type>jar</type>-->
-<!--            <optional>false</optional>-->
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.click</groupId>
             <artifactId>click-nodeps</artifactId>
             <version>${click.version}</version>
-<!--            <type>jar</type>-->
-<!--            <optional>false</optional>-->
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -209,6 +200,7 @@
             <version>1.7.1</version>
         </dependency>
     </dependencies>
+    
     <build>
         <plugins>
             <plugin>

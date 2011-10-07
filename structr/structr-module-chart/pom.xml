@@ -15,7 +15,44 @@
     <version>0.4.2-SNAPSHOT</version>
     <name>structr-module-chart</name>
     <url>http://maven.apache.org</url>
-    
+
+    <properties>
+        <netbeans.hint.license>structr-gpl30</netbeans.hint.license>
+        <structr.version>0.4.2-SNAPSHOT</structr.version>
+    </properties>
+
+    <repositories>
+        <repository>
+            <id>structr.org</id>
+            <url>http://maven.structr.org</url>
+        </repository>
+    </repositories>
+
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>3.8.1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.structr</groupId>
+            <artifactId>structr-core</artifactId>
+            <version>${structr.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>jfree</groupId>
+            <artifactId>jfreechart</artifactId>
+            <version>1.0.12</version>
+        </dependency>
+        <dependency>
+            <artifactId>jcommon</artifactId>
+            <groupId>jfree</groupId>
+            <type>jar</type>
+            <version>1.0.15</version>
+        </dependency>
+    </dependencies>
+
     <build>
         <plugins>
             <plugin>
@@ -47,36 +84,6 @@
             </plugin>
         </plugins>
     </build>
-
-    <dependencies>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>3.8.1</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.structr</groupId>
-            <artifactId>structr-core</artifactId>
-            <version>${structr.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>jfree</groupId>
-            <artifactId>jfreechart</artifactId>
-            <version>1.0.12</version>
-        </dependency>
-        <dependency>
-            <artifactId>jcommon</artifactId>
-            <groupId>jfree</groupId>
-            <type>jar</type>
-            <version>1.0.15</version>
-        </dependency>
-    </dependencies>
-
-    <properties>
-        <netbeans.hint.license>structr-gpl30</netbeans.hint.license>
-        <structr.version>0.4.2-SNAPSHOT</structr.version>
-    </properties>
 
 </project>
 
