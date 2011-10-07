@@ -15,6 +15,7 @@
     <version>0.4.2-SNAPSHOT</version>
     <name>structr-webapp</name>
     <url>http://structr.org</url>
+    
     <build>
         <plugins>
             <plugin>
