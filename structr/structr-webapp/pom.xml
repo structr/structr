@@ -39,6 +39,10 @@
 
     <repositories>
         <repository>
+            <id>structr.org</id>
+            <url>http://maven.structr.org</url>
+        </repository>
+        <repository>
             <id>neo4j-public-repository</id>
             <url>http://m2.neo4j.org</url>
         </repository>
