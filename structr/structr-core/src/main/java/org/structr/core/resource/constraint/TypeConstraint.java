@@ -60,6 +60,11 @@ public class TypeConstraint implements ResourceConstraint {
 	@Override
 	public Result processParentResult(Result result, HttpServletRequest request) throws PathException {
 
+		if(type.endsWith("s")) {
+			logger.log(Level.FINEST, "Removing trailing plural 's' from type {0}", type);
+			type = type.substring(0, type.length() - 1);
+		}
+
 		if(result == null) {
 
 			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
@@ -69,11 +74,6 @@ public class TypeConstraint implements ResourceConstraint {
 			boolean publicOnly = false;
 
 			if(type != null) {
-
-				if(type.endsWith("s")) {
-					logger.log(Level.FINEST, "Removing trailing plural 's' from type {0}", type);
-					type = type.substring(0, type.length() - 1);
-				}
 
 				searchAttributes.add(new TextualSearchAttribute("type", type, SearchOperator.OR));
 

@@ -19,12 +19,15 @@
 
 package org.structr.core.resource.constraint;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.neo4j.graphdb.Direction;
 import org.structr.core.GraphObject;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.StructrRelationship;
 import org.structr.core.resource.IllegalPathException;
 import org.structr.core.resource.PathException;
 
@@ -43,20 +46,24 @@ public class RelationshipConstraint implements ResourceConstraint {
 		if(result != null) {
 
 			try {
-				List<GraphObject> list = result.getResults();
-				if(list != null && list.size() == 1) {
+				List<GraphObject> resultList = new LinkedList<GraphObject>();
+				List<GraphObject> source = result.getResults();
 
-					// we can only operate on a single element here
-					GraphObject obj = list.get(0);
+				if(source != null) {
 
-					// omit type information to work around Java's
-					// stupid generics implementation that is not
-					// able to detect polymorphic generic types
-					List relationships = obj.getRelationships(null, direction);
-					if(relationships != null) {
+					for(GraphObject obj : source) {
 
-						return new Result(relationships);
+						if(obj instanceof AbstractNode) {
+
+							List relationships = obj.getRelationships(null, direction);
+							if(relationships != null) {
+
+								resultList.addAll(relationships);
+							}
+						}
 					}
+
+					return new Result(resultList);
 				}
 
 			} catch(Throwable t) {

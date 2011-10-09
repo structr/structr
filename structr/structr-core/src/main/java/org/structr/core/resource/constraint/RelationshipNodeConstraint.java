@@ -19,6 +19,7 @@
 
 package org.structr.core.resource.constraint;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -43,24 +44,28 @@ public class RelationshipNodeConstraint implements ResourceConstraint {
 		if(result != null) {
 
 			try {
-				List<GraphObject> list = result.getResults();
-				if(list != null && list.size() == 1) {
+				List<GraphObject> resultList = new LinkedList<GraphObject>();
+				List<GraphObject> source = result.getResults();
 
-					// we can only operate on a single element here
-					GraphObject obj = list.get(0);
+				if(source != null) {
 
-					if(obj instanceof StructrRelationship) {
+					for(GraphObject obj : source) {
 
-						StructrRelationship rel = (StructrRelationship)obj;
-						if(startNode) {
+						if(obj instanceof StructrRelationship) {
 
-							return new Result(rel.getStartNode());
-							
-						} else {
+							StructrRelationship rel = (StructrRelationship)obj;
+							if(startNode) {
 
-							return new Result(rel.getEndNode());
+								resultList.add(rel.getStartNode());
+
+							} else {
+
+								resultList.add(rel.getEndNode());
+							}
 						}
 					}
+					
+					return new Result(resultList);
 				}
 
 			} catch(Throwable t) {

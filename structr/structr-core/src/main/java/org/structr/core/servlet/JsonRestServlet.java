@@ -28,6 +28,7 @@ import java.io.Writer;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -47,8 +48,11 @@ import org.structr.core.Command;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.StructrRelationship;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.node.CreateNodeCommand;
+import org.structr.core.node.CreateRelationshipCommand;
+import org.structr.core.node.FindNodeCommand;
 import org.structr.core.node.NodeAttribute;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
@@ -316,7 +320,77 @@ public class JsonRestServlet extends HttpServlet {
 			} else
 			if(request.getPathInfo().endsWith("/rel")) {
 
-				throw new IllegalPathException();
+				// parse property set from json input
+				final PropertySet propertySet = gson.fromJson(request.getReader(), PropertySet.class);
+				List<NodeAttribute> attributes = propertySet.getAttributes();
+
+				long startNodeId = -1;
+				long endNodeId = -1;
+				String type = null;
+
+				// fetch relationship attributes and remove them from set
+				for(Iterator<NodeAttribute> it = attributes.iterator(); it.hasNext();) {
+
+					NodeAttribute attr = it.next();
+
+					if("start".equals(attr.getKey())) {
+						try { startNodeId = Long.parseLong(attr.getValue().toString()); } catch(Throwable t) { }
+						it.remove();
+
+					} else if("end".equals(attr.getKey())) {
+						try { endNodeId = Long.parseLong(attr.getValue().toString()); } catch(Throwable t) { }
+						it.remove();
+
+					} else if("type".equals(attr.getKey())) {
+						type = attr.getValue().toString();
+						it.remove();
+					}
+				}
+
+				if(startNodeId != -1 && endNodeId != -1 && type != null) {
+
+					Command findNodeCommand = Services.command(FindNodeCommand.class);
+					AbstractNode startNode = (AbstractNode)findNodeCommand.execute(new SuperUser(), startNodeId);
+					AbstractNode endNode = (AbstractNode)findNodeCommand.execute(new SuperUser(), endNodeId);
+
+					if(startNode != null && endNode != null) {
+
+						StructrRelationship nodeRel = (StructrRelationship)Services.command(CreateRelationshipCommand.class).execute(startNode, endNode, type);
+
+						// set properties from request (excluding start, end and type)
+						for(NodeAttribute attr : attributes) {
+							nodeRel.setProperty(attr.getKey(), attr.getValue());
+						}
+
+						// FIXME: might not work under all conditions
+						// build "Location" header field for response
+						StringBuilder uriBuilder = new StringBuilder(100);
+						uriBuilder.append(request.getScheme());
+						uriBuilder.append("://");
+						uriBuilder.append(request.getServerName());
+						uriBuilder.append(":");
+						uriBuilder.append(request.getServerPort());
+						uriBuilder.append(request.getContextPath());
+						uriBuilder.append(request.getServletPath());
+						uriBuilder.append("/");
+						uriBuilder.append(nodeRel.getType().toLowerCase());
+						uriBuilder.append("s/");
+						uriBuilder.append(nodeRel.getId());
+
+						// set response code
+						response.setHeader("Location", uriBuilder.toString());
+						response.setStatus(HttpServletResponse.SC_CREATED);
+
+					} else {
+
+						throw new NotFoundException();
+					}
+
+				} else {
+
+					// throw 400 Bad Request
+					throw new IllegalPathException();
+				}
 
 			} else {
 				
@@ -331,6 +405,7 @@ public class JsonRestServlet extends HttpServlet {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 		} catch(Throwable t) {
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+			logger.log(Level.WARNING, "Exception", t);
 		}
 	}
 	// </editor-fold>
@@ -570,7 +645,7 @@ public class JsonRestServlet extends HttpServlet {
 						constraintChain.remove(secondElement);
 
 						// add combined constraint
-						constraintChain.add(combinedConstraint);
+						constraintChain.add(i, combinedConstraint);
 
 						// signal success
 						found = true;
@@ -586,7 +661,7 @@ public class JsonRestServlet extends HttpServlet {
 
 		} while(found);
 
-		logger.log(Level.FINEST, "Final constraint chain {0}", constraintChain);
+		logger.log(Level.FINE, "Final constraint chain {0}", constraintChain);
 	}
 
 	/**
