@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
+import org.apache.commons.lang.StringUtils;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -20,7 +21,6 @@ import org.structr.core.node.search.SearchAttributeGroup;
 import org.structr.core.node.search.SearchNodeCommand;
 import org.structr.core.node.search.SearchOperator;
 import org.structr.core.node.search.TextualSearchAttribute;
-import org.structr.core.resource.IllegalPathException;
 import org.structr.core.resource.NoResultsException;
 import org.structr.core.resource.PathException;
 import org.structr.core.servlet.JsonRestServlet;
@@ -32,54 +32,51 @@ import org.structr.core.servlet.JsonRestServlet;
  *
  * @author Christian Morgner
  */
-public class SearchConstraint implements ResourceConstraint {
+public class TypedSearchConstraint implements ResourceConstraint {
 
-	private static final Logger logger = Logger.getLogger(SearchConstraint.class.getName());
+	private static final Logger logger = Logger.getLogger(TypedSearchConstraint.class.getName());
 
 	private String searchString = null;
+	private String type = null;
+
+	public TypedSearchConstraint(String type, String queryString) {
+		this.searchString = queryString;
+		this.type = type;
+	}
 
 	@Override
 	public boolean acceptUriPart(String part) {
-		
-		if("search".equals(part)) {
-			return true;
-		}
-
-		return false;
+		return false;	// we will not accept URI parts directly
 	}
 
 	@Override
 	public Result processParentResult(Result result, HttpServletRequest request) throws PathException {
 
-		searchString = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_SEARCH_STRING);
-		if(searchString != null) {
-
-			// build search results
-			List<GraphObject> searchResults = getSearchResults(searchString);
-
-			// remove search results that are not in given list
-			if(result != null) {
-				logger.log(Level.WARNING, "Received results from predecessor, this query is probably not optimized!");
-				searchResults.retainAll(result.getResults());
-			}
-
-			return new Result(searchResults);
+		// fetch search string from request
+		if(searchString == null) {
+			searchString = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_SEARCH_STRING);
 		}
 
-		throw new IllegalPathException();
+		if(type.endsWith("s")) {
+			logger.log(Level.FINEST, "Removing trailing plural 's' from type {0}", type);
+			type = type.substring(0, type.length() - 1);
+		}
+
+		// build search results
+		List<GraphObject> searchResults = getSearchResults(searchString);
+
+		// remove search results that are not in given list
+		if(result != null) {
+			logger.log(Level.WARNING, "Received results from predecessor, this query is probably not optimized!");
+			searchResults.retainAll(result.getResults());
+		}
+
+		return new Result(searchResults);
 	}
 
 	@Override
 	public ResourceConstraint tryCombineWith(ResourceConstraint next) {
 		return null;
-	}
-
-	public String getSearchString() {
-		return searchString;
-	}
-
-	public void setSearchString(String searchString) {
-		this.searchString = searchString;
 	}
 
 	// ----- private methods -----
@@ -104,9 +101,7 @@ public class SearchConstraint implements ResourceConstraint {
 			}
 
 			SearchAttributeGroup typeGroup = new SearchAttributeGroup(SearchOperator.AND);
-//			typeGroup.add(new TextualSearchAttribute("type", Sport.class.getSimpleName(),		SearchOperator.OR));
-//			typeGroup.add(new TextualSearchAttribute("type", SplinkUser.class.getSimpleName(),	SearchOperator.OR));
-//			typeGroup.add(new TextualSearchAttribute("type", Organization.class.getSimpleName(),	SearchOperator.OR));
+			typeGroup.add(new TextualSearchAttribute("type", StringUtils.capitalize(type), SearchOperator.OR));
 			searchAttributes.add(typeGroup);
 
 			// TODO: configure searchable fields

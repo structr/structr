@@ -17,7 +17,7 @@ import org.structr.core.resource.PathException;
  *
  * @author Christian Morgner
  */
-public class PagingConstraint extends ResourceConstraint {
+public class PagingConstraint implements ResourceConstraint {
 
 	private static final Logger logger = Logger.getLogger(PagingConstraint.class.getName());
 
@@ -55,6 +55,11 @@ public class PagingConstraint extends ResourceConstraint {
 		logger.log(Level.FINEST, "returning results from {0} to {1}, page {2}, pageSize {3}", new Object[] { fromIndex, toIndex-1, getPage(), getPageSize()} );
 
 		return new Result(list.subList(fromIndex, toIndex));
+	}
+
+	@Override
+	public ResourceConstraint tryCombineWith(ResourceConstraint next) {
+		return null;
 	}
 
 	public int getPageSize() {

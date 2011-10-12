@@ -1,4 +1,4 @@
-
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
@@ -6,15 +6,16 @@
     <parent>
         <groupId>org.structr</groupId>
         <artifactId>structr</artifactId>
-        <version>0.4.1</version>
+        <version>0.4.2</version>
     </parent>
 
     <groupId>org.structr</groupId>
     <artifactId>structr-webapp</artifactId>
     <packaging>war</packaging>
-    <version>0.4.1</version>
+    <version>0.4.2</version>
     <name>structr-webapp</name>
     <url>http://structr.org</url>
+    
     <build>
         <plugins>
             <plugin>
@@ -29,14 +30,20 @@
             </plugin>
         </plugins>
     </build>
+    
     <properties>
         <netbeans.hint.license>structr-gpl30</netbeans.hint.license>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <structr.version>0.4.2</structr.version>
         <neo4j.version>1.4</neo4j.version>
         <netbeans.hint.deploy.server>Tomcat</netbeans.hint.deploy.server>
     </properties>
 
     <repositories>
+        <repository>
+            <id>structr.org</id>
+            <url>http://maven.structr.org</url>
+        </repository>
         <repository>
             <id>neo4j-public-repository</id>
             <url>http://m2.neo4j.org</url>
@@ -52,34 +59,18 @@
         <dependency>
             <groupId>org.structr</groupId>
             <artifactId>structr-core</artifactId>
-            <version>0.4.1</version>
+            <version>${structr.version}</version>
         </dependency>
         <dependency>
             <groupId>org.structr</groupId>
             <artifactId>structr-module-web</artifactId>
-            <version>0.4.1</version>
+            <version>${structr.version}</version>
         </dependency>
         <dependency>
             <groupId>org.structr</groupId>
             <artifactId>structr-module-app</artifactId>
-            <version>0.4.1</version>
+            <version>${structr.version}</version>
         </dependency>
-<!--        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>servlet-api</artifactId>
-            <version>2.5</version>
-            <type>jar</type>
-            <scope>provided</scope>
-            <optional>false</optional>
-        </dependency>-->
-<!--        <dependency>
-            <groupId>javax.servlet.jsp</groupId>
-            <artifactId>jsp-api</artifactId>
-            <version>2.1</version>
-            <type>jar</type>
-            <scope>provided</scope>
-            <optional>false</optional>
-        </dependency>-->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -92,24 +83,18 @@
             <groupId>org.apache.click</groupId>
             <artifactId>click</artifactId>
             <version>2.3.0</version>
-<!--            <type>jar</type>-->
-<!--            <optional>false</optional>-->
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.click</groupId>
             <artifactId>click-extras</artifactId>
             <version>2.3.0</version>
-<!--            <type>jar</type>-->
-<!--            <optional>false</optional>-->
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.click</groupId>
             <artifactId>click-nodeps</artifactId>
             <version>2.3.0</version>
-<!--            <type>jar</type>-->
-<!--            <optional>false</optional>-->
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -130,153 +115,35 @@
             <version>2.6.10</version>
         </dependency>
     </dependencies>
-<!--
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>2.3.2</version>
-                <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
-                    <encoding>${project.build.sourceEncoding}</encoding>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-resources-plugin</artifactId>
-                <version>2.5</version>
-                <configuration>
-                    <encoding>${project.build.sourceEncoding}</encoding>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>2.3.1</version>
-                <executions>
-                    <execution>
-                        <id>make-a-jar</id>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-install-plugin</artifactId>
-                <version>2.3.1</version>
-                <executions>
-                    <execution>
-                        <phase>install</phase>
-                        <goals>
-                            <goal>install-file</goal>
-                        </goals>
-                        <configuration>
-                            <packaging>jar</packaging>
-                            <artifactId>${project.artifactId}</artifactId>
-                            <groupId>${project.groupId}</groupId>
-                            <version>${project.version}</version>
-                            <file>
-                    ${project.build.directory}/${project.artifactId}-${project.version}.jar
-                            </file>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-deploy-plugin</artifactId>
-                <version>2.6</version>
-                <executions>
-                    <execution>
-                        <phase>deploy</phase>
-                        <goals>
-                            <goal>deploy-file</goal>
-                        </goals>
-                        <configuration>
-                            <packaging>jar</packaging>
-                            <generatePom>true</generatePom>
-                            <url>${project.distributionManagement.repository.url}</url>
-                            <artifactId>${project.artifactId}</artifactId>
-                            <groupId>${project.groupId}</groupId>
-                            <version>${project.version}</version>
-                            <file>${project.build.directory}/${project.artifactId}-${project.version}.jar</file>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.mortbay.jetty</groupId>
-                <artifactId>jetty-maven-plugin</artifactId>
-                <configuration>
-                    <scanIntervalSeconds>5</scanIntervalSeconds>
-                </configuration>
-            </plugin>
 
-            <plugin>
-                <groupId>net.sf.alchim</groupId>
-                <artifactId>winstone-maven-plugin</artifactId>
-                <version>1.2</version>
-                <dependencies>
-                    <dependency>
-                        <groupId>net.sourceforge.winstone</groupId>
-                        <artifactId>winstone</artifactId>
-                        <version>0.9.10</version>
-                    </dependency>
-                </dependencies>
-                <configuration>
+<licenses>
+    <license>
+      <name>GNU General Public License, Version 3</name>
+      <url>http://www.gnu.org/licenses/gpl-3.0-standalone.html</url>
+      <comments>
+Copyright (C) 2011 Axel Morgner, structr &lt;structr@structr.org&gt;
 
-                    <cmdLineOptions>
-                        <property>
-                            <name>httpPort</name>
-                            <value>8081</value>
-                        </property>
-                        <property>
-                            <name>ajp13Port</name>
-                            <value>8010</value>
-                        </property>
-                        <property>
-                            <name>controlPort</name>
-                            <value>-1</value>
-                        </property>
-                        <property>
-                            <name>directoryListings</name>
-                            <value>false</value>
-                        </property>
-                        <property>
-                            <name>useInvoker</name>
-                            <value>false</value>
-                        </property>
-                    </cmdLineOptions>
-                  </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>embed</goal>
-                        </goals>
-                        <phase>package</phase>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
+ This file is part of structr &lt;http://structr.org&gt;.
 
-        <resources>
-            <resource>
-                <directory>src/main/java</directory>
-                <excludes>
-                    <exclude>**/*.java</exclude>
-                </excludes>
-                <includes>
-                    <include>**/*.properties</include>
-                </includes>
-            </resource>
-        </resources>
+ structr is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
 
-    </build>-->
+ structr is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with structr.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+      </comments>
+    </license>
+  </licenses>
+
+  <scm>
+    <url>https://github.com/structr/structr/tree/master/structr/structr-webapp</url>
+  </scm>
 
 </project>
 

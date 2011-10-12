@@ -1,4 +1,4 @@
-
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
@@ -6,15 +6,23 @@
     <parent>
         <groupId>org.structr</groupId>
         <artifactId>structr</artifactId>
-        <version>0.4.1</version>
+        <version>0.4.2</version>
     </parent>
 
     <groupId>org.structr</groupId>
     <artifactId>structr-core</artifactId>
     <packaging>jar</packaging>
-    <version>0.4.1</version>
+    <version>0.4.2</version>
     <name>structr-core</name>
     <url>http://structr.org</url>
+
+    <properties>
+        <netbeans.hint.license>structr-gpl30</netbeans.hint.license>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <structr.version>0.4.2</structr.version>
+        <neo4j.version>1.4.1</neo4j.version>
+        <click.version>2.3.0</click.version>
+    </properties>
 
     <repositories>
         <repository>
@@ -26,12 +34,7 @@
             <url>http://wordrak.github.com/repo/</url>
         </repository>
     </repositories>
-    <properties>
-        <netbeans.hint.license>structr-gpl30</netbeans.hint.license>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <neo4j.version>1.4.1</neo4j.version>
-        <click.version>2.3.0</click.version>
-    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.freemarker</groupId>
@@ -56,23 +59,6 @@
             <artifactId>neo4j-lucene-index</artifactId>
             <version>${neo4j.version}</version>
         </dependency>
-<!--        <dependency>
-            <groupId>org.neo4j</groupId>
-            <artifactId>neo4j-index</artifactId>
-            <version>${neo4j.version}</version>
-        </dependency>-->
-<!--    <dependency>
-      <groupId>org.neo4j</groupId>
-      <artifactId>neo4j-shell</artifactId>
-      <version>${neo4j.version}</version>
-    </dependency>-->
-  	<!--dependency>
-  		<groupId>org.neo4j</groupId>
-  		<artifactId>neo4j-remote-graphdb</artifactId>
-  		<version>1.2</version>
-  		<type>jar</type>
-  		<optional>false</optional>
-  	</dependency-->
         <dependency>
             <groupId>org.beanshell</groupId>
             <artifactId>bsh-core</artifactId>
@@ -159,31 +145,26 @@
             <groupId>com.esotericsoftware</groupId>
             <artifactId>minilog</artifactId>
             <version>1.2</version>
-<!--            <scope>runtime</scope>-->
         </dependency>
         <dependency>
             <groupId>com.esotericsoftware</groupId>
             <artifactId>reflectasm</artifactId>
             <version>1.01</version>
-<!--            <scope>runtime</scope>-->
         </dependency>
         <dependency>
             <groupId>com.esotericsoftware</groupId>
             <artifactId>kryo</artifactId>
             <version>1.04</version>
-<!--            <scope>compile</scope>-->
         </dependency>
         <dependency>
             <groupId>com.esotericsoftware</groupId>
             <artifactId>kryonet</artifactId>
             <version>1.04</version>
-<!--            <scope>compile</scope>-->
         </dependency>
         <dependency>
             <groupId>asm</groupId>
             <artifactId>asm</artifactId>
             <version>3.3.1</version>
-<!--            <scope>runtime</scope>-->
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -195,44 +176,22 @@
             <artifactId>jsoup</artifactId>
             <version>1.4.1</version>
         </dependency>
-<!--    <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>servlet-api</artifactId>
-      <version>2.5</version>
-      <type>jar</type>
-      <scope>provided</scope>
-      <optional>false</optional>
-    </dependency>-->
-<!--    <dependency>
-      <groupId>javax.servlet.jsp</groupId>
-      <artifactId>jsp-api</artifactId>
-      <version>2.1</version>
-      <type>jar</type>
-      <scope>provided</scope>
-      <optional>false</optional>
-    </dependency>-->
         <dependency>
             <groupId>org.apache.click</groupId>
             <artifactId>click</artifactId>
             <version>${click.version}</version>
-<!--            <type>jar</type>-->
-<!--            <optional>false</optional>-->
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.click</groupId>
             <artifactId>click-extras</artifactId>
             <version>${click.version}</version>
-<!--            <type>jar</type>-->
-<!--            <optional>false</optional>-->
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.click</groupId>
             <artifactId>click-nodeps</artifactId>
             <version>${click.version}</version>
-<!--            <type>jar</type>-->
-<!--            <optional>false</optional>-->
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -241,6 +200,7 @@
             <version>1.7.1</version>
         </dependency>
     </dependencies>
+    
     <build>
         <plugins>
             <plugin>
@@ -278,6 +238,35 @@
             </resource>
         </resources>
     </build>
+
+    <licenses>
+        <license>
+            <name>GNU General Public License, Version 3</name>
+            <url>http://www.gnu.org/licenses/gpl-3.0-standalone.html</url>
+            <comments>
+Copyright (C) 2011 Axel Morgner, structr &lt;structr@structr.org&gt;
+
+ This file is part of structr &lt;http://structr.org&gt;.
+
+ structr is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ structr is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with structr.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+            </comments>
+        </license>
+    </licenses>
+
+    <scm>
+        <url>https://github.com/structr/structr/tree/master/structr/structr-core</url>
+    </scm>
 
 </project>
 
