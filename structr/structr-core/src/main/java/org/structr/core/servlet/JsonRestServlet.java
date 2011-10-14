@@ -44,6 +44,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.structr.common.AccessMode;
 import org.structr.common.CurrentRequest;
+import org.structr.common.PropertyView;
 import org.structr.core.Command;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
@@ -70,6 +71,7 @@ import org.structr.core.resource.constraint.Result;
 import org.structr.core.resource.constraint.SearchConstraint;
 import org.structr.core.resource.constraint.SortConstraint;
 import org.structr.core.resource.constraint.TypeConstraint;
+import org.structr.core.resource.constraint.ViewFilterConstraint;
 import org.structr.core.resource.wrapper.PropertySet;
 import org.structr.core.resource.wrapper.PropertySet.PropertyFormat;
 
@@ -95,6 +97,7 @@ public class JsonRestServlet extends HttpServlet {
 
 	private static final String	SERVLET_PARAMETER_PROPERTY_FORMAT =	"PropertyFormat";
 
+	private ResultGSONAdapter resultGsonAdapter = null;
 	private Map<Pattern, Class> constraintMap = null;
 	private Gson gson = null;
 
@@ -117,32 +120,39 @@ public class JsonRestServlet extends HttpServlet {
 			}
 		}
 
-		// initialize GSON renderer
+		// initialize variables
+		this.resultGsonAdapter = new ResultGSONAdapter(propertyFormat);
 		this.constraintMap = new LinkedHashMap<Pattern, Class>();
 		this.gson = new GsonBuilder()
 			.setPrettyPrinting()
-			.registerTypeAdapter(PropertySet.class, new PropertySetGSONAdapter(propertyFormat))
-//			.registerTypeAdapter(GraphObject.class, new GraphObjectGSONAdapter(propertyFormat))
-			.registerTypeAdapter(Result.class, new ResultGSONAdapter(propertyFormat))
+			.registerTypeAdapter(PropertySet.class,	new PropertySetGSONAdapter(propertyFormat))
+			.registerTypeAdapter(Result.class,	resultGsonAdapter)
 			.create();
 
 		// ----- initialize constraints -----
 		constraintMap.put(Pattern.compile("[0-9]+"),		IdConstraint.class);			// this matches the ID constraint first
 
-		// search
-		constraintMap.put(Pattern.compile("search"),		SearchConstraint.class);		// search
-
 		// relationships
-		constraintMap.put(Pattern.compile("out"),		RelationshipConstraint.class);		// outgoing relationship
 		constraintMap.put(Pattern.compile("in"),		RelationshipConstraint.class);		// incoming relationship
+		constraintMap.put(Pattern.compile("out"),		RelationshipConstraint.class);		// outgoing relationship
 
 		// start & end node
 		constraintMap.put(Pattern.compile("start"),		RelationshipNodeConstraint.class);	// start node
 		constraintMap.put(Pattern.compile("end"),		RelationshipNodeConstraint.class);	// end node
 
+		// search
+		constraintMap.put(Pattern.compile("search"),		SearchConstraint.class);		// search
+
+		// views
+		constraintMap.put(Pattern.compile("public"),		ViewFilterConstraint.class);		// public view (default)
+		constraintMap.put(Pattern.compile("protected"),		ViewFilterConstraint.class);		// protected view
+		constraintMap.put(Pattern.compile("private"),		ViewFilterConstraint.class);		// private view
+		constraintMap.put(Pattern.compile("owner"),		ViewFilterConstraint.class);		// owner view
+		constraintMap.put(Pattern.compile("admin"),		ViewFilterConstraint.class);		// admin view
+
 		// The pattern for a generic type match. This pattern should be inserted at the very end
 		// of the chain because it matches everything that is a lowercase string without numbers
-		constraintMap.put(Pattern.compile("[a-z_]+"),	TypeConstraint.class);				// any type match
+		constraintMap.put(Pattern.compile("[a-z_]+"),		TypeConstraint.class);			// any type match
 	}
 
 	@Override
@@ -232,10 +242,8 @@ public class JsonRestServlet extends HttpServlet {
 				response.setContentType("application/json; charset=utf-8");
 				Writer writer = response.getWriter();
 
-				// GSON serialization
-//				double serializationTimeStart = System.nanoTime();
+				// set public view by default
 				gson.toJson(result, writer);
-//				double serializationTimeEnd = System.nanoTime();
 
 				writer.flush();
 				writer.close();
@@ -274,6 +282,11 @@ public class JsonRestServlet extends HttpServlet {
 	@Override
 	protected void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
+		response.setHeader("Allowed", "GET");
+		response.setContentLength(0);
+		
+		// commit response
+		response.setStatus(HttpServletResponse.SC_OK);
 	}
 	// </editor-fold>
 
@@ -552,7 +565,7 @@ public class JsonRestServlet extends HttpServlet {
 		return null;
 	}
 
-	private List<ResourceConstraint> parsePath(String path) {
+	private List<ResourceConstraint> parsePath(String path) throws PathException {
 
 		// 1.: split request path into URI parts
 		String[] pathParts = path.split("[/]+");
@@ -588,6 +601,9 @@ public class JsonRestServlet extends HttpServlet {
 									part
 								});
 
+								// let the given constraint configureContext its own output
+								constraint.configureContext(resultGsonAdapter);
+
 								// add constraint and go on
 								constraintChain.add(constraint);
 
@@ -612,22 +628,30 @@ public class JsonRestServlet extends HttpServlet {
 
 	private Result evaluateConstraints(List<ResourceConstraint> constraintChain, HttpServletRequest request) throws PathException {
 
-		Result result = null;
+		List<GraphObject> results = null;
 
 		for(ResourceConstraint constraint : constraintChain) {
-			result = constraint.processParentResult(result, request);
+			results = constraint.process(results, request);
 		}
 
-		return result;
+		return new Result(results);
 	}
 
-	private void combineResources(List<ResourceConstraint> constraintChain) {
+	private void combineResources(List<ResourceConstraint> constraintChain) throws PathException {
 
 		int num = constraintChain.size();
 		boolean found = false;
+		int iterations = 0;
 
 		do {
 			
+			StringBuilder chain = new StringBuilder();
+			for(ResourceConstraint constr : constraintChain) {
+				chain.append(constr.getClass().getSimpleName());
+				chain.append(", ");
+			}
+			logger.log(Level.FINEST, "########## Constraint chain after iteration {0}: {1}", new Object[] { iterations, chain.toString() } );
+
 			found = false;
 			for(int i=0; i<num; i++) {
 
@@ -640,6 +664,9 @@ public class JsonRestServlet extends HttpServlet {
 
 						logger.log(Level.FINE, "Combined constraint {0}", combinedConstraint.getClass().getSimpleName());
 
+						// configure context
+						combinedConstraint.configureContext(resultGsonAdapter);
+
 						// remove source constraints
 						constraintChain.remove(firstElement);
 						constraintChain.remove(secondElement);
@@ -649,9 +676,6 @@ public class JsonRestServlet extends HttpServlet {
 
 						// signal success
 						found = true;
-
-						// skip next constraint
-						i++;
 					}
 
 				} catch(Throwable t) {
@@ -659,9 +683,9 @@ public class JsonRestServlet extends HttpServlet {
 				}
 			}
 
-		} while(found);
+			iterations++;
 
-		logger.log(Level.FINE, "Final constraint chain {0}", constraintChain);
+		} while(found);
 	}
 
 	/**

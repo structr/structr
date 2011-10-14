@@ -19,7 +19,6 @@
 
 package org.structr.core.resource.adapter;
 
-import com.google.gson.InstanceCreator;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
@@ -32,6 +31,7 @@ import com.google.gson.JsonSerializer;
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.logging.Logger;
+import org.structr.common.PropertyView;
 import org.structr.core.GraphObject;
 import org.structr.core.resource.constraint.Result;
 import org.structr.core.resource.wrapper.PropertySet.PropertyFormat;
@@ -44,19 +44,22 @@ import org.structr.core.resource.wrapper.PropertySet.PropertyFormat;
 public class ResultGSONAdapter implements JsonSerializer<Result>, JsonDeserializer<Result> {
 
 	private static final Logger logger = Logger.getLogger(ResultGSONAdapter.class.getName());
-	private PropertyFormat propertyFormat = null;
+	private GraphObjectGSONAdapter graphObjectGsonAdapter = null;
 
 	public ResultGSONAdapter() {
 	}
 
 	public ResultGSONAdapter(PropertyFormat propertyFormat) {
-		this.propertyFormat = propertyFormat;
+		this.graphObjectGsonAdapter = new GraphObjectGSONAdapter(propertyFormat);
+	}
+
+	public void setThreadLocalPropertyView(PropertyView propertyView) {
+		this.graphObjectGsonAdapter.setThreadLocalPropertyView(propertyView);
 	}
 
 	@Override
 	public JsonElement serialize(Result src, Type typeOfSrc, JsonSerializationContext context) {
 
-		GraphObjectGSONAdapter adapter = new GraphObjectGSONAdapter(propertyFormat);
 		JsonObject result = new JsonObject();
 
 		// result fields in alphabetical order
@@ -96,14 +99,14 @@ public class ResultGSONAdapter implements JsonSerializer<Result>, JsonDeserializ
 			if(size == 1) {
 
 				// use GraphObject adapter to serialize single result
-				result.add("result", adapter.serialize(results.get(0), GraphObject.class, context));
+				result.add("result", graphObjectGsonAdapter.serialize(results.get(0), GraphObject.class, context));
 
 			} else if(size > 1) {
 
 				// serialize list of results
 				JsonArray resultArray = new JsonArray();
 				for(GraphObject graphObject : results) {
-					resultArray.add(adapter.serialize(graphObject, GraphObject.class, context));
+					resultArray.add(graphObjectGsonAdapter.serialize(graphObject, GraphObject.class, context));
 				}
 
 				result.add("result", resultArray);

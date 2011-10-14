@@ -23,6 +23,7 @@ import org.structr.core.node.search.SearchOperator;
 import org.structr.core.node.search.TextualSearchAttribute;
 import org.structr.core.resource.NoResultsException;
 import org.structr.core.resource.PathException;
+import org.structr.core.resource.adapter.ResultGSONAdapter;
 import org.structr.core.servlet.JsonRestServlet;
 
 /**
@@ -36,12 +37,13 @@ public class TypedSearchConstraint implements ResourceConstraint {
 
 	private static final Logger logger = Logger.getLogger(TypedSearchConstraint.class.getName());
 
+	private TypeConstraint typeConstraint = null;
 	private String searchString = null;
-	private String type = null;
 
-	public TypedSearchConstraint(String type, String queryString) {
+	public TypedSearchConstraint(TypeConstraint typeConstraint, String queryString) {
+
+		this.typeConstraint = typeConstraint;
 		this.searchString = queryString;
-		this.type = type;
 	}
 
 	@Override
@@ -50,28 +52,27 @@ public class TypedSearchConstraint implements ResourceConstraint {
 	}
 
 	@Override
-	public Result processParentResult(Result result, HttpServletRequest request) throws PathException {
+	public List<GraphObject> process(List<GraphObject> results, HttpServletRequest request) throws PathException {
 
 		// fetch search string from request
 		if(searchString == null) {
 			searchString = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_SEARCH_STRING);
 		}
 
-		if(type.endsWith("s")) {
-			logger.log(Level.FINEST, "Removing trailing plural 's' from type {0}", type);
-			type = type.substring(0, type.length() - 1);
-		}
-
 		// build search results
 		List<GraphObject> searchResults = getSearchResults(searchString);
 
 		// remove search results that are not in given list
-		if(result != null) {
+		if(results != null) {
 			logger.log(Level.WARNING, "Received results from predecessor, this query is probably not optimized!");
-			searchResults.retainAll(result.getResults());
+			searchResults.retainAll(results);
 		}
 
-		return new Result(searchResults);
+		return searchResults;
+	}
+
+	@Override
+	public void configureContext(ResultGSONAdapter resultRenderer) {
 	}
 
 	@Override
@@ -101,10 +102,10 @@ public class TypedSearchConstraint implements ResourceConstraint {
 			}
 
 			SearchAttributeGroup typeGroup = new SearchAttributeGroup(SearchOperator.AND);
-			typeGroup.add(new TextualSearchAttribute("type", StringUtils.capitalize(type), SearchOperator.OR));
+			typeGroup.add(new TextualSearchAttribute("type", StringUtils.capitalize(typeConstraint.getType()), SearchOperator.OR));
 			searchAttributes.add(typeGroup);
 
-			// TODO: configure searchable fields
+			// TODO: configureContext searchable fields
 			SearchAttributeGroup nameGroup = new SearchAttributeGroup(SearchOperator.AND);
 			nameGroup.add(new TextualSearchAttribute("name",	searchString, SearchOperator.OR));
 			nameGroup.add(new TextualSearchAttribute("shortName",	searchString, SearchOperator.OR));

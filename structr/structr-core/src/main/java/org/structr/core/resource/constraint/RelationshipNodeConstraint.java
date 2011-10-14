@@ -28,6 +28,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.entity.StructrRelationship;
 import org.structr.core.resource.IllegalPathException;
 import org.structr.core.resource.PathException;
+import org.structr.core.resource.adapter.ResultGSONAdapter;
 
 /**
  *
@@ -39,34 +40,29 @@ public class RelationshipNodeConstraint implements ResourceConstraint {
 	private boolean startNode = false;
 
 	@Override
-	public Result processParentResult(Result result, HttpServletRequest request) throws PathException {
+	public List<GraphObject> process(List<GraphObject> results, HttpServletRequest request) throws PathException {
 
-		if(result != null) {
+		if(results != null) {
 
 			try {
 				List<GraphObject> resultList = new LinkedList<GraphObject>();
-				List<GraphObject> source = result.getResults();
+				for(GraphObject obj : results) {
 
-				if(source != null) {
+					if(obj instanceof StructrRelationship) {
 
-					for(GraphObject obj : source) {
+						StructrRelationship rel = (StructrRelationship)obj;
+						if(startNode) {
 
-						if(obj instanceof StructrRelationship) {
+							resultList.add(rel.getStartNode());
 
-							StructrRelationship rel = (StructrRelationship)obj;
-							if(startNode) {
+						} else {
 
-								resultList.add(rel.getStartNode());
-
-							} else {
-
-								resultList.add(rel.getEndNode());
-							}
+							resultList.add(rel.getEndNode());
 						}
 					}
-					
-					return new Result(resultList);
 				}
+
+				return resultList;
 
 			} catch(Throwable t) {
 
@@ -91,6 +87,10 @@ public class RelationshipNodeConstraint implements ResourceConstraint {
 		}
 
 		return true;
+	}
+
+	@Override
+	public void configureContext(ResultGSONAdapter resultRenderer) {
 	}
 
 	@Override

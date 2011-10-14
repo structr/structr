@@ -11,6 +11,7 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.core.GraphObject;
 import org.structr.core.resource.PathException;
+import org.structr.core.resource.adapter.ResultGSONAdapter;
 
 /**
  * Implements paging.
@@ -36,7 +37,7 @@ public class PagingConstraint implements ResourceConstraint {
 	}
 
 	@Override
-	public Result processParentResult(Result result, HttpServletRequest request) throws PathException {
+	public List<GraphObject> process(List<GraphObject> results, HttpServletRequest request) throws PathException {
 
 		/*
 		 * page 1: 0 -> pageSize-1
@@ -45,16 +46,18 @@ public class PagingConstraint implements ResourceConstraint {
 		 * page n: ((n-1) * pageSize) -> (n * pageSize) - 1
 		 */
 
-		List<GraphObject> list = result.getResults();
-
-		resultCount = list.size();
+		resultCount = results.size();
 
 		int fromIndex = Math.min(resultCount, Math.max(0, (getPage()-1) * getPageSize()));
 		int toIndex = Math.min(resultCount, getPage()*getPageSize());
 
 		logger.log(Level.FINEST, "returning results from {0} to {1}, page {2}, pageSize {3}", new Object[] { fromIndex, toIndex-1, getPage(), getPageSize()} );
 
-		return new Result(list.subList(fromIndex, toIndex));
+		return results.subList(fromIndex, toIndex);
+	}
+
+	@Override
+	public void configureContext(ResultGSONAdapter resultRenderer) {
 	}
 
 	@Override

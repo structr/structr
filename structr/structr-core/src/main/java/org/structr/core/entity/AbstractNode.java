@@ -100,8 +100,8 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import org.structr.common.PropertyView;
 import org.structr.core.GraphObject;
-import org.structr.core.node.DeleteNodeCommand;
 import org.structr.core.node.NodeRelationshipStatisticsCommand;
 
 //~--- classes ----------------------------------------------------------------
@@ -1722,6 +1722,10 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		return dbNode.getPropertyKeys();
 	}
 
+	public Iterable<String> getPropertyKeys(PropertyView propertyView) {
+		return getPropertyKeys();
+	}
+
 	public Object getProperty(final PropertyKey propertyKey) {
 		return (getProperty(propertyKey.name()));
 	}
@@ -1738,6 +1742,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		return getProperty(key);
 	}
 
+	@Override
 	public Object getProperty(final String key) {
 
 		if (isDirty) {

@@ -4,21 +4,18 @@
  */
 package org.structr.core.resource.constraint;
 
-import java.util.logging.Level;
+import java.util.List;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.core.GraphObject;
-import org.structr.core.Services;
-import org.structr.core.entity.SuperUser;
-import org.structr.core.node.FindNodeCommand;
 import org.structr.core.resource.IllegalPathException;
 import org.structr.core.resource.NotFoundException;
 import org.structr.core.resource.PathException;
+import org.structr.core.resource.adapter.ResultGSONAdapter;
 
 /**
- * Represents an exact ID match. An IdConstraint will always result in a
- * single element when it is the last element in an URI. IdConstraints
- * must be tied to a preceding TypeConstraint.
+ * Represents a type-constrained ID match. A TypedIdConstraint will always
+ * result in a single element.
  * 
  * @author Christian Morgner
  */
@@ -26,12 +23,12 @@ public class TypedIdConstraint implements ResourceConstraint {
 
 	private static final Logger logger = Logger.getLogger(TypedIdConstraint.class.getName());
 
-	private String type = null;
-	private long id = -1;
+	private TypeConstraint typeConstraint = null;
+	private IdConstraint idConstraint = null;
 
-	public TypedIdConstraint(String type, long id) {
-		this.type = type;
-		this.id = id;
+	public TypedIdConstraint(IdConstraint idConstraint, TypeConstraint typeConstraint) {
+		this.typeConstraint = typeConstraint;
+		this.idConstraint = idConstraint;
 	}
 
 	@Override
@@ -40,31 +37,48 @@ public class TypedIdConstraint implements ResourceConstraint {
 	}
 
 	@Override
-	public Result processParentResult(Result result, HttpServletRequest request) throws PathException {
+	public List<GraphObject> process(List<GraphObject> results, HttpServletRequest request) throws PathException {
 
-		GraphObject obj = (GraphObject)Services.command(FindNodeCommand.class).execute(new SuperUser(), id);
-		if(obj != null) {
+		results = idConstraint.process(results, request);
+		if(results != null) {
 
-			if(type.endsWith("s")) {
-				logger.log(Level.FINEST, "Removing trailing plural 's' from type {0}", type);
-				type = type.substring(0, type.length() - 1);
+			String type = typeConstraint.getType();
+
+			for(GraphObject obj : results) {
+				if(!type.equalsIgnoreCase(obj.getType())) {
+					throw new IllegalPathException();
+				}
 			}
 
-			if(type.equalsIgnoreCase(obj.getType())) {
-
-				return new Result(obj);
-
-			} else {
-
-				new IllegalPathException();
-			}
+			return results;
 		}
 
 		throw new NotFoundException();
 	}
 
 	@Override
+	public void configureContext(ResultGSONAdapter resultRenderer) {
+	}
+
+	@Override
 	public ResourceConstraint tryCombineWith(ResourceConstraint next) {
+
+		if(next instanceof TypeConstraint) {
+
+			// next constraint is a type constraint
+			// => follow predefined statc relationship
+			//    between the two types
+			return new StaticRelationshipConstraint(this, (TypeConstraint)next);
+		}
+
 		return null;
+	}
+
+	public TypeConstraint getTypeConstraint() {
+		return typeConstraint;
+	}
+
+	public IdConstraint getIdConstraint() {
+		return idConstraint;
 	}
 }

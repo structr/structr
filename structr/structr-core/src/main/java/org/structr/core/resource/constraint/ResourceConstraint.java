@@ -4,8 +4,11 @@
  */
 package org.structr.core.resource.constraint;
 
+import java.util.List;
 import javax.servlet.http.HttpServletRequest;
+import org.structr.core.GraphObject;
 import org.structr.core.resource.PathException;
+import org.structr.core.resource.adapter.ResultGSONAdapter;
 
 /**
  * Base class for all resource constraints. The implementation of this
@@ -15,8 +18,33 @@ import org.structr.core.resource.PathException;
  */
 public interface ResourceConstraint {
 
-	public Result processParentResult(Result result, HttpServletRequest request) throws PathException;
-	public boolean acceptUriPart(String part);
+	/**
+	 *
+	 * @param result
+	 * @param request
+	 * @return
+	 * @throws PathException
+	 */
+	public List<GraphObject> process(List<GraphObject> result, HttpServletRequest request) throws PathException;
 
-	public ResourceConstraint tryCombineWith(ResourceConstraint next);
+	/**
+	 *
+	 * @param part
+	 * @return
+	 */
+	public boolean acceptUriPart(String part);
+	
+	/**
+	 * 
+	 * @param resultRenderer
+	 */
+	public void configureContext(ResultGSONAdapter resultRenderer);
+
+	/**
+	 *
+	 * @param next
+	 * @return
+	 * @throws PathException
+	 */
+	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws PathException;
 }

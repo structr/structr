@@ -10,27 +10,18 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Path;
-import org.neo4j.graphdb.RelationshipType;
-import org.neo4j.graphdb.traversal.Evaluation;
-import org.neo4j.graphdb.traversal.Evaluator;
-import org.neo4j.kernel.Traversal;
-import org.structr.core.Command;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
-import org.structr.core.node.NodeFactoryCommand;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
 import org.structr.core.node.search.SearchOperator;
 import org.structr.core.node.search.TextualSearchAttribute;
 import org.structr.core.resource.NoResultsException;
 import org.structr.core.resource.PathException;
-import org.structr.core.resource.filter.Filter;
+import org.structr.core.resource.adapter.ResultGSONAdapter;
 
 /**
  * Represents a bulk type match. A TypeConstraint will always result in a
@@ -45,7 +36,6 @@ public class TypeConstraint implements ResourceConstraint {
 
 	private static final Logger logger = Logger.getLogger(TypeConstraint.class.getName());
 
-	private List<Filter> filters = new LinkedList<Filter>();
 	private String type = null;
 	
 	@Override
@@ -58,14 +48,9 @@ public class TypeConstraint implements ResourceConstraint {
 	}
 
 	@Override
-	public Result processParentResult(Result result, HttpServletRequest request) throws PathException {
+	public List<GraphObject> process(List<GraphObject> results, HttpServletRequest request) throws PathException {
 
-		if(type.endsWith("s")) {
-			logger.log(Level.FINEST, "Removing trailing plural 's' from type {0}", type);
-			type = type.substring(0, type.length() - 1);
-		}
-
-		if(result == null) {
+		if(results == null) {
 
 			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 			User user = new SuperUser();
@@ -77,7 +62,7 @@ public class TypeConstraint implements ResourceConstraint {
 
 				searchAttributes.add(new TextualSearchAttribute("type", type, SearchOperator.OR));
 
-				List results = (List)Services.command(SearchNodeCommand.class).execute(
+				results = (List<GraphObject>)Services.command(SearchNodeCommand.class).execute(
 					user,
 					topNode,
 					includeDeleted,
@@ -86,8 +71,7 @@ public class TypeConstraint implements ResourceConstraint {
 				);
 
 				if(!results.isEmpty()) {
-
-					return new Result(results);
+					return results;
 				}
 			}
 
@@ -96,17 +80,51 @@ public class TypeConstraint implements ResourceConstraint {
 			logger.log(Level.WARNING, "Received results from predecessor, this query is probably not optimized!");
 
 			// TypeConstraint acts as a type filter here
-			for(Iterator<GraphObject> it = result.getResults().iterator(); it.hasNext();) {
+			for(Iterator<GraphObject> it = results.iterator(); it.hasNext();) {
 				if(!type.equalsIgnoreCase(it.next().getType())) {
 					it.remove();
 				}
 			}
 
-			return result;
+			return results;
 		}
 
 		throw new NoResultsException();
 	}
+
+	@Override
+	public void configureContext(ResultGSONAdapter resultRenderer) {
+	}
+
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		
+		this.type = type;
+
+		if(this.type.endsWith("s")) {
+			logger.log(Level.FINEST, "Removing trailing plural 's' from type {0}", type);
+			this.type = this.type.substring(0, this.type.length() - 1);
+		}
+	}
+
+	@Override
+	public ResourceConstraint tryCombineWith(ResourceConstraint next) {
+
+		ResourceConstraint combinedConstraint = null;
+
+		if(next instanceof IdConstraint)	combinedConstraint = new TypedIdConstraint((IdConstraint)next, this); else
+		if(next instanceof SearchConstraint)	combinedConstraint = new TypedSearchConstraint(this, ((SearchConstraint)next).getSearchString());
+
+		return combinedConstraint;
+	}
+}
+
+
+	/*
+	private List<Filter> filters = new LinkedList<Filter>();
 
 	public void addFilter(Filter filter) {
 		filters.add(filter);
@@ -165,23 +183,4 @@ public class TypeConstraint implements ResourceConstraint {
 
 		return nodeList;
 	}
-
-	public String getType() {
-		return type;
-	}
-
-	public void setType(String type) {
-		this.type = type;
-	}
-
-	@Override
-	public ResourceConstraint tryCombineWith(ResourceConstraint next) {
-
-		ResourceConstraint combinedConstraint = null;
-
-		if(next instanceof IdConstraint)	combinedConstraint = new TypedIdConstraint(type, ((IdConstraint)next).getId()); else
-		if(next instanceof SearchConstraint)	combinedConstraint = new TypedSearchConstraint(type, ((SearchConstraint)next).getSearchString());
-
-		return combinedConstraint;
-	}
-}
+	*/

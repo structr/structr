@@ -44,7 +44,7 @@ public class NodeType extends AbstractNode implements NodeSource
 	public static final String SEPARATOR =				",";
 
 	public enum Definition {
-		
+
 		fieldType, inputType, name, label, size, maxLength, rows, columns, required
 	}
 	

@@ -6,11 +6,13 @@ package org.structr.core.resource.constraint;
 
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.core.GraphObject;
 import org.structr.core.resource.PathException;
+import org.structr.core.resource.adapter.ResultGSONAdapter;
 
 /**
  *
@@ -34,7 +36,7 @@ public class SortConstraint implements ResourceConstraint {
 	}
 	
 	@Override
-	public Result processParentResult(Result result, HttpServletRequest request) throws PathException {
+	public List<GraphObject> process(List<GraphObject> results, HttpServletRequest request) throws PathException {
 
 		Comparator<GraphObject> comparator = null;
 
@@ -63,7 +65,7 @@ public class SortConstraint implements ResourceConstraint {
 			}
 
 			if(comparator != null) {
-				Collections.sort(result.getResults(), comparator);
+				Collections.sort(results, comparator);
 			}
 
 		} catch(Throwable t) {
@@ -71,7 +73,11 @@ public class SortConstraint implements ResourceConstraint {
 			logger.log(Level.WARNING, "Error while sorting result set with {0}", sortKey);
 		}
 		
-		return result;
+		return results;
+	}
+
+	@Override
+	public void configureContext(ResultGSONAdapter resultRenderer) {
 	}
 
 	@Override

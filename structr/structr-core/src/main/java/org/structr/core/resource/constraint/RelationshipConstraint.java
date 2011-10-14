@@ -27,9 +27,9 @@ import javax.servlet.http.HttpServletRequest;
 import org.neo4j.graphdb.Direction;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.StructrRelationship;
 import org.structr.core.resource.IllegalPathException;
 import org.structr.core.resource.PathException;
+import org.structr.core.resource.adapter.ResultGSONAdapter;
 
 /**
  *
@@ -41,30 +41,25 @@ public class RelationshipConstraint implements ResourceConstraint {
 	private Direction direction = null;
 
 	@Override
-	public Result processParentResult(Result result, HttpServletRequest request) throws PathException {
+	public List<GraphObject> process(List<GraphObject> results, HttpServletRequest request) throws PathException {
 
-		if(result != null) {
+		if(results != null) {
 
 			try {
 				List<GraphObject> resultList = new LinkedList<GraphObject>();
-				List<GraphObject> source = result.getResults();
+				for(GraphObject obj : results) {
 
-				if(source != null) {
+					if(obj instanceof AbstractNode) {
 
-					for(GraphObject obj : source) {
+						List relationships = obj.getRelationships(null, direction);
+						if(relationships != null) {
 
-						if(obj instanceof AbstractNode) {
-
-							List relationships = obj.getRelationships(null, direction);
-							if(relationships != null) {
-
-								resultList.addAll(relationships);
-							}
+							resultList.addAll(relationships);
 						}
 					}
-
-					return new Result(resultList);
 				}
+
+				return resultList;
 
 			} catch(Throwable t) {
 
@@ -96,6 +91,10 @@ public class RelationshipConstraint implements ResourceConstraint {
 		}
 
 		return false;
+	}
+
+	@Override
+	public void configureContext(ResultGSONAdapter resultRenderer) {
 	}
 
 	@Override

@@ -23,6 +23,7 @@ import org.structr.core.node.search.TextualSearchAttribute;
 import org.structr.core.resource.IllegalPathException;
 import org.structr.core.resource.NoResultsException;
 import org.structr.core.resource.PathException;
+import org.structr.core.resource.adapter.ResultGSONAdapter;
 import org.structr.core.servlet.JsonRestServlet;
 
 /**
@@ -49,7 +50,11 @@ public class SearchConstraint implements ResourceConstraint {
 	}
 
 	@Override
-	public Result processParentResult(Result result, HttpServletRequest request) throws PathException {
+	public void configureContext(ResultGSONAdapter resultRenderer) {
+	}
+
+	@Override
+	public List<GraphObject> process(List<GraphObject> results, HttpServletRequest request) throws PathException {
 
 		searchString = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_SEARCH_STRING);
 		if(searchString != null) {
@@ -58,12 +63,12 @@ public class SearchConstraint implements ResourceConstraint {
 			List<GraphObject> searchResults = getSearchResults(searchString);
 
 			// remove search results that are not in given list
-			if(result != null) {
+			if(results != null) {
 				logger.log(Level.WARNING, "Received results from predecessor, this query is probably not optimized!");
-				searchResults.retainAll(result.getResults());
+				searchResults.retainAll(results);
 			}
 
-			return new Result(searchResults);
+			return searchResults;
 		}
 
 		throw new IllegalPathException();
@@ -109,7 +114,7 @@ public class SearchConstraint implements ResourceConstraint {
 //			typeGroup.add(new TextualSearchAttribute("type", Organization.class.getSimpleName(),	SearchOperator.OR));
 			searchAttributes.add(typeGroup);
 
-			// TODO: configure searchable fields
+			// TODO: configureContext searchable fields
 			SearchAttributeGroup nameGroup = new SearchAttributeGroup(SearchOperator.AND);
 			nameGroup.add(new TextualSearchAttribute("name",	searchString, SearchOperator.OR));
 			nameGroup.add(new TextualSearchAttribute("shortName",	searchString, SearchOperator.OR));

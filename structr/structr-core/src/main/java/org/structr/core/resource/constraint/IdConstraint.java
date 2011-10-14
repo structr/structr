@@ -4,6 +4,8 @@
  */
 package org.structr.core.resource.constraint;
 
+import java.util.LinkedList;
+import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
@@ -11,6 +13,7 @@ import org.structr.core.entity.SuperUser;
 import org.structr.core.node.FindNodeCommand;
 import org.structr.core.resource.NotFoundException;
 import org.structr.core.resource.PathException;
+import org.structr.core.resource.adapter.ResultGSONAdapter;
 
 /**
  * Represents an exact ID match. An IdConstraint will always result in a
@@ -37,11 +40,22 @@ public class IdConstraint implements ResourceConstraint {
 	}
 
 	@Override
-	public Result processParentResult(Result result, HttpServletRequest request) throws PathException {
+	public void configureContext(ResultGSONAdapter resultRenderer) {
+	}
+
+	@Override
+	public List<GraphObject> process(List<GraphObject> results, HttpServletRequest request) throws PathException {
 
 		GraphObject obj = (GraphObject)Services.command(FindNodeCommand.class).execute(new SuperUser(), getId());
 		if(obj != null) {
-			return new Result(obj);
+			
+			if(results == null) {
+				results = new LinkedList<GraphObject>();
+			}
+
+			results.add(obj);
+
+			return results;
 		}
 
 		throw new NotFoundException();

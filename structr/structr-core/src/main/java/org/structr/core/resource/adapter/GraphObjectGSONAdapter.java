@@ -19,13 +19,9 @@
 
 package org.structr.core.resource.adapter;
 
-import com.google.gson.InstanceCreator;
 import com.google.gson.JsonArray;
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
@@ -34,8 +30,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.RelationshipType;
+import org.structr.common.PropertyView;
 import org.structr.core.GraphObject;
-import org.structr.core.entity.DummyNode;
 import org.structr.core.resource.wrapper.PropertySet.PropertyFormat;
 
 /**
@@ -44,8 +40,9 @@ import org.structr.core.resource.wrapper.PropertySet.PropertyFormat;
  *
  * @author Christian Morgner
  */
-public class GraphObjectGSONAdapter implements InstanceCreator<GraphObject>, JsonSerializer<GraphObject>, JsonDeserializer<GraphObject> {
+public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 
+	private ThreadLocalPropertyView threadLocalPropertyView = new ThreadLocalPropertyView();
 	private PropertyFormat propertyFormat = null;
 
 	public GraphObjectGSONAdapter() {
@@ -55,9 +52,8 @@ public class GraphObjectGSONAdapter implements InstanceCreator<GraphObject>, Jso
 		this.propertyFormat = propertyFormat;
 	}
 
-	@Override
-	public GraphObject createInstance(Type type) {
-		return new DummyNode();
+	public void setThreadLocalPropertyView(PropertyView propertyView) {
+		threadLocalPropertyView.set(propertyView);
 	}
 
 	@Override
@@ -83,12 +79,6 @@ public class GraphObjectGSONAdapter implements InstanceCreator<GraphObject>, Jso
 		return serializedOutput;
 	}
 
-	@Override
-	public GraphObject deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-
-		return null;
-	}
-
 	// ----- private methods -----
 	private JsonElement serializeNestedKeyValueType(GraphObject src, Type typeOfSrc, JsonSerializationContext context, boolean includeTypeInOutput) {
 
@@ -104,7 +94,7 @@ public class GraphObjectGSONAdapter implements InstanceCreator<GraphObject>, Jso
 
 		// property keys
 		JsonArray properties = new JsonArray();
-		for(String key : src.getPropertyKeys()) {
+		for(String key : src.getPropertyKeys(threadLocalPropertyView.get())) {
 
 			Object value = src.getProperty(key);
 			if(value != null) {
@@ -193,69 +183,23 @@ public class GraphObjectGSONAdapter implements InstanceCreator<GraphObject>, Jso
 		}
 
 		// property keys
-		for(String key : src.getPropertyKeys()) {
+		for(String key : src.getPropertyKeys(threadLocalPropertyView.get())) {
 
 			Object value = src.getProperty(key);
 			if(value != null) {
 				jsonObject.add(key, new JsonPrimitive(value.toString()));
 			}
 		}
-
-		/*
-		// outgoing relationships
-		Map<RelationshipType, Long> outRelStatistics = src.getRelationshipInfo(Direction.OUTGOING);
-		if(outRelStatistics != null) {
-
-			JsonArray outRels = new JsonArray();
-
-			for(Entry<RelationshipType, Long> entry : outRelStatistics.entrySet()) {
-
-				RelationshipType relType = entry.getKey();
-				Long count = entry.getValue();
-
-				JsonObject outRelEntry = new JsonObject();
-				outRelEntry.add("type", new JsonPrimitive(relType.name()));
-				outRelEntry.add("count", new JsonPrimitive(count));
-
-				outRels.add(outRelEntry);
-			}
-			jsonObject.add("out", outRels);
-		}
-
-		// incoming relationships
-		Map<RelationshipType, Long> inRelStatistics = src.getRelationshipInfo(Direction.INCOMING);
-		if(inRelStatistics != null) {
-
-			JsonArray inRels = new JsonArray();
-
-			for(Entry<RelationshipType, Long> entry : inRelStatistics.entrySet()) {
-
-				RelationshipType relType = entry.getKey();
-				Long count = entry.getValue();
-
-				JsonObject inRelEntry = new JsonObject();
-				inRelEntry.add("type", new JsonPrimitive(relType.name()));
-				inRelEntry.add("count", new JsonPrimitive(count));
-
-				inRels.add(inRelEntry);
-
-			}
-			jsonObject.add("in", inRels);
-		}
-
-		// start node id (for relationships)
-		Long startNodeId = src.getStartNodeId();
-		if(startNodeId != null) {
-			jsonObject.add("startNodeId", new JsonPrimitive(startNodeId));
-		}
-
-		// end node id (for relationships)
-		Long endNodeId = src.getEndNodeId();
-		if(endNodeId != null) {
-			jsonObject.add("endNodeId", new JsonPrimitive(endNodeId));
-		}
-		*/
 		
 		return jsonObject;
+	}
+
+	// ----- nested classes -----
+	private class ThreadLocalPropertyView extends ThreadLocal<PropertyView> {
+
+		@Override
+		protected PropertyView initialValue() {
+			return PropertyView.Public;
+		}
 	}
 }

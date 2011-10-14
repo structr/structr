@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import org.neo4j.graphdb.*;
 import org.structr.common.PropertyKey;
+import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.core.Command;
 import org.structr.core.GraphObject;
@@ -111,6 +112,7 @@ public class StructrRelationship implements GraphObject {
         dbRelationship.setProperty(propertyKey.name(), value);
     }
 
+    @Override
     public void setProperty(final String key, final Object value) {
         dbRelationship.setProperty(key, value);
     }
@@ -310,7 +312,7 @@ public class StructrRelationship implements GraphObject {
 
     // ----- interface GraphObject -----
 	@Override
-	public Iterable<String> getPropertyKeys() {
+	public Iterable<String> getPropertyKeys(PropertyView propertyView) {
 		return getProperties().keySet();
 	}
 
