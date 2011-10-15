@@ -18,7 +18,7 @@ import org.structr.core.resource.adapter.ResultGSONAdapter;
  *
  * @author Christian Morgner
  */
-public class PagingConstraint implements ResourceConstraint {
+public class PagingConstraint extends ResourceConstraint {
 
 	private static final Logger logger = Logger.getLogger(PagingConstraint.class.getName());
 
@@ -54,10 +54,6 @@ public class PagingConstraint implements ResourceConstraint {
 		logger.log(Level.FINEST, "returning results from {0} to {1}, page {2}, pageSize {3}", new Object[] { fromIndex, toIndex-1, getPage(), getPageSize()} );
 
 		return results.subList(fromIndex, toIndex);
-	}
-
-	@Override
-	public void configureContext(ResultGSONAdapter resultRenderer) {
 	}
 
 	@Override

@@ -7,6 +7,7 @@ package org.structr.core.resource.constraint;
 
 import java.util.LinkedList;
 import java.util.List;
+import org.structr.common.PropertyView;
 import org.structr.core.GraphObject;
 
 /**
@@ -17,6 +18,7 @@ import org.structr.core.GraphObject;
 public class Result {
 
 	private List<GraphObject> results = null;
+	private PropertyView propertyView = null;
 
 	private String searchString = null;
 	private String queryTime = null;
@@ -104,5 +106,13 @@ public class Result {
 
 	public void setPageSize(Integer pageSize) {
 		this.pageSize = pageSize;
+	}
+
+	public PropertyView getPropertyView() {
+		return propertyView;
+	}
+
+	public void setPropertyView(PropertyView propertyView) {
+		this.propertyView = propertyView;
 	}
 }

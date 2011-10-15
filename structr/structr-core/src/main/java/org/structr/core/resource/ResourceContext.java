@@ -23,6 +23,8 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.PropertyView;
@@ -38,7 +40,7 @@ public class ResourceContext {
 
 	private static final Map<String, Map<String, DirectedRelationship>> globalTypeMap = new LinkedHashMap<String, Map<String, DirectedRelationship>>();
 	private static final Map<Class, Map<PropertyView, Set<String>>> globalPropertyKeyMap = new LinkedHashMap<Class, Map<PropertyView, Set<String>>>();
-
+	private static final Logger logger = Logger.getLogger(ResourceContext.class.getName());
 	
 	public static DirectedRelationship getRelation(String sourceType, String destType) {
 		return getTypeMap(sourceType).get(destType);
@@ -62,7 +64,12 @@ public class ResourceContext {
 
 		Set<String> properties = getPropertySet(type, propertyView);
 		for(String property : propertySet) {
-			properties.add(property);
+
+			if("id".equals(property.toLowerCase()) || "type".equals(property.toLowerCase())) {
+				logger.log(Level.SEVERE, "id and type are not allowed in property views, ignoring!");
+			} else {
+				properties.add(property);
+			}
 		}
 	}
 

@@ -19,8 +19,10 @@
 
 package org.structr.core.resource.adapter;
 
+import com.google.gson.FieldNamingPolicy;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
@@ -32,6 +34,7 @@ import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.PropertyView;
 import org.structr.core.GraphObject;
+import org.structr.core.Value;
 import org.structr.core.resource.wrapper.PropertySet.PropertyFormat;
 
 /**
@@ -42,18 +45,12 @@ import org.structr.core.resource.wrapper.PropertySet.PropertyFormat;
  */
 public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 
-	private ThreadLocalPropertyView threadLocalPropertyView = new ThreadLocalPropertyView();
+	private Value<PropertyView> propertyView = null;
 	private PropertyFormat propertyFormat = null;
 
-	public GraphObjectGSONAdapter() {
-	}
-
-	public GraphObjectGSONAdapter(PropertyFormat propertyFormat) {
+	public GraphObjectGSONAdapter(PropertyFormat propertyFormat, Value<PropertyView> propertyView) {
 		this.propertyFormat = propertyFormat;
-	}
-
-	public void setThreadLocalPropertyView(PropertyView propertyView) {
-		threadLocalPropertyView.set(propertyView);
+		this.propertyView = propertyView;
 	}
 
 	@Override
@@ -94,23 +91,25 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 
 		// property keys
 		JsonArray properties = new JsonArray();
-		for(String key : src.getPropertyKeys(threadLocalPropertyView.get())) {
+		for(String key : src.getPropertyKeys(propertyView.get())) {
 
 			Object value = src.getProperty(key);
+			JsonObject property = new JsonObject();
+			property.add("key", new JsonPrimitive(key));
+
 			if(value != null) {
-
-				JsonObject property = new JsonObject();
-				property.add("key", new JsonPrimitive(key));
 				property.add("value", new JsonPrimitive(value.toString()));
-
-				// include type?
-				if(includeTypeInOutput) {
-					String valueType = value.getClass().getSimpleName();
-					property.add("type", new JsonPrimitive(valueType));
-				}
-
-				properties.add(property);
+			} else {
+				property.add("value", new JsonNull());
 			}
+
+			// include type?
+			if(includeTypeInOutput) {
+				String valueType = value.getClass().getSimpleName();
+				property.add("type", new JsonPrimitive(valueType));
+			}
+
+			properties.add(property);
 		}
 		jsonObject.add("properties", properties);
 
@@ -183,23 +182,16 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 		}
 
 		// property keys
-		for(String key : src.getPropertyKeys(threadLocalPropertyView.get())) {
+		for(String key : src.getPropertyKeys(propertyView.get())) {
 
 			Object value = src.getProperty(key);
 			if(value != null) {
 				jsonObject.add(key, new JsonPrimitive(value.toString()));
+			} else {
+				jsonObject.add(key, new JsonNull());
 			}
 		}
 		
 		return jsonObject;
-	}
-
-	// ----- nested classes -----
-	private class ThreadLocalPropertyView extends ThreadLocal<PropertyView> {
-
-		@Override
-		protected PropertyView initialValue() {
-			return PropertyView.Public;
-		}
 	}
 }

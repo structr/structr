@@ -19,7 +19,7 @@ import org.structr.core.resource.adapter.ResultGSONAdapter;
  * 
  * @author Christian Morgner
  */
-public class TypedIdConstraint implements ResourceConstraint {
+public class TypedIdConstraint extends ResourceConstraint {
 
 	private static final Logger logger = Logger.getLogger(TypedIdConstraint.class.getName());
 
@@ -54,10 +54,6 @@ public class TypedIdConstraint implements ResourceConstraint {
 		}
 
 		throw new NotFoundException();
-	}
-
-	@Override
-	public void configureContext(ResultGSONAdapter resultRenderer) {
 	}
 
 	@Override

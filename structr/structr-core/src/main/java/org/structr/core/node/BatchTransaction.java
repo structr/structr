@@ -40,7 +40,17 @@ import org.neo4j.graphdb.Transaction;
  *
  * @author amorgner
  */
-public interface BatchTransaction
+public abstract class BatchTransaction
 {
-	public Object execute(Transaction tx) throws Throwable;
+	private Throwable cause = null;
+
+	public abstract Object execute(Transaction tx) throws Throwable;
+
+	public void setCause(Throwable cause) {
+		this.cause = cause;
+	}
+
+	public Throwable getCause() {
+		return cause;
+	}
 }

@@ -25,5 +25,5 @@ package org.structr.common;
  */
 public enum PropertyView {
 
-	Public, Protected, Private, Owner, Admin
+	Public, Protected, Private, Owner, Admin, All
 }

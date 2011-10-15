@@ -22,7 +22,7 @@ import org.structr.core.resource.adapter.ResultGSONAdapter;
  * 
  * @author Christian Morgner
  */
-public class IdConstraint implements ResourceConstraint {
+public class IdConstraint extends ResourceConstraint {
 	
 	private long id = -1;
 	
@@ -37,10 +37,6 @@ public class IdConstraint implements ResourceConstraint {
 		}
 
 		return false;
-	}
-
-	@Override
-	public void configureContext(ResultGSONAdapter resultRenderer) {
 	}
 
 	@Override

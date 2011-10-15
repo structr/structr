@@ -6,9 +6,10 @@ package org.structr.core.resource.constraint;
 
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
+import org.structr.common.PropertyView;
 import org.structr.core.GraphObject;
+import org.structr.core.Value;
 import org.structr.core.resource.PathException;
-import org.structr.core.resource.adapter.ResultGSONAdapter;
 
 /**
  * Base class for all resource constraints. The implementation of this
@@ -16,7 +17,7 @@ import org.structr.core.resource.adapter.ResultGSONAdapter;
  * 
  * @author Christian Morgner
  */
-public interface ResourceConstraint {
+public abstract class ResourceConstraint {
 
 	/**
 	 *
@@ -25,20 +26,14 @@ public interface ResourceConstraint {
 	 * @return
 	 * @throws PathException
 	 */
-	public List<GraphObject> process(List<GraphObject> result, HttpServletRequest request) throws PathException;
+	public abstract List<GraphObject> process(List<GraphObject> result, HttpServletRequest request) throws PathException;
 
 	/**
 	 *
 	 * @param part
 	 * @return
 	 */
-	public boolean acceptUriPart(String part);
-	
-	/**
-	 * 
-	 * @param resultRenderer
-	 */
-	public void configureContext(ResultGSONAdapter resultRenderer);
+	public abstract boolean acceptUriPart(String part);
 
 	/**
 	 *
@@ -46,5 +41,12 @@ public interface ResourceConstraint {
 	 * @return
 	 * @throws PathException
 	 */
-	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws PathException;
+	public abstract ResourceConstraint tryCombineWith(ResourceConstraint next) throws PathException;
+
+	/**
+	 *
+	 * @param propertyView
+	 */
+	public void configurePropertyView(Value<PropertyView> propertyView) {
+	}
 }
