@@ -179,14 +179,14 @@ public class IndexNodeCommand extends NodeServiceCommand {
 			return;
 		}
 
-		if (!(node.getNode().hasProperty(key))) {
+		if (!(dbNode.hasProperty(key))) {
 
 			logger.log(Level.FINE, "Node {0} has no key {1}, ignoring", new Object[] { id, key });
 
 			return;
 		}
 
-		Object value            = node.getProperty(key);
+		Object value            = dbNode.getProperty(key);
 		Object valueForIndexing = node.getPropertyForIndexing(key);
 		boolean emptyValue      = ((value instanceof String) && StringUtils.isEmpty((String) value));
 

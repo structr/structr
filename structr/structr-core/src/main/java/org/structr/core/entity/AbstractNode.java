@@ -111,6 +111,7 @@ import org.structr.core.Value;
 import org.structr.core.EntityContext;
 import org.structr.core.PropertyConverter;
 import org.structr.core.converter.LongDateConverter;
+import org.structr.core.converter.NodeIdNodeConverter;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -122,6 +123,13 @@ import org.structr.core.converter.LongDateConverter;
  */
 public abstract class AbstractNode
 	implements Comparable<AbstractNode>, RenderController, AccessControllable, GraphObject, Map<String, Object> {
+
+        public static enum Key implements PropertyKey {
+	    name,  type, nodeId, createdBy, createdDate, deleted, hidden, lastModifiedDate,
+	    position, isPublic, title, titles,
+	    visibilityEndDate, visibilityStartDate, visibleToAuthenticatedUsers,
+	    templateId, CATEGORIES_KEY, ownerId, owner;
+        }
 
 	public final static String CATEGORIES_KEY         = "categories";
 	public final static String CREATED_BY_KEY         = "createdBy";
@@ -191,11 +199,14 @@ public abstract class AbstractNode
 	//~--- constructors ---------------------------------------------------
 
 	static {
+		EntityContext.registerPropertySet(AbstractNode.class, PropertyView.All, Key.values());
 
-		EntityContext.registerGlobalPropertyConverter(VISIBILITY_START_DATE_KEY, LongDateConverter.class);
-		EntityContext.registerGlobalPropertyConverter(VISIBILITY_END_DATE_KEY, LongDateConverter.class);
-		EntityContext.registerGlobalPropertyConverter(LAST_MODIFIED_DATE_KEY, LongDateConverter.class);
-		EntityContext.registerGlobalPropertyConverter(CREATED_DATE_KEY, LongDateConverter.class);
+		EntityContext.registerGlobalPropertyConverter(Key.visibilityStartDate.name(), LongDateConverter.class);
+		EntityContext.registerGlobalPropertyConverter(Key.visibilityEndDate.name(), LongDateConverter.class);
+		EntityContext.registerGlobalPropertyConverter(Key.lastModifiedDate.name(), LongDateConverter.class);
+		EntityContext.registerGlobalPropertyConverter(Key.createdDate.name(), LongDateConverter.class);
+
+		EntityContext.registerGlobalPropertyConverter(Key.ownerId.name(), NodeIdNodeConverter.class);
 	}
 
 	public AbstractNode() {
@@ -224,8 +235,6 @@ public abstract class AbstractNode
 	}
 
 	//~--- methods --------------------------------------------------------
-
-	// ----- abstract methods ----
 
 	/**
 	 * Implement this method to specify renderers for the different rendering modes.
@@ -3368,7 +3377,8 @@ public abstract class AbstractNode
 
 	@Override
 	public boolean containsKey(final Object key) {
-		return getProperty((String)key) != null;
+		return EntityContext.getPropertySet(this.getClass(), PropertyView.All).contains((String)key);
+		//return getProperty((String)key) != null;
 	}
 
 	@Override

@@ -19,30 +19,27 @@
 
 package org.structr.core.converter;
 
-import java.util.Date;
 import org.structr.core.PropertyConverter;
+import org.structr.core.Services;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.SuperUser;
+import org.structr.core.node.FindNodeCommand;
 
 /**
- * @author Christian Morgner
+ * Converts between nodeId and node
+ *
+ * @author Axel Morgner
  */
-public class LongDateConverter implements PropertyConverter<Long, Date> {
+public class NodeIdNodeConverter implements PropertyConverter<Long, AbstractNode> {
 
 	@Override
-	public Long convertFrom(Date source) {
-		if(source != null) {
-			return source.getTime();
-		}
-
-		return null;
+	public Long convertFrom(AbstractNode node) {
+		return node.getId();
 	}
 
 	@Override
-	public Date convertTo(Long source) {
-
-		if(source != null) {
-			return new Date(source);
-		}
-
-		return null;
+	public AbstractNode convertTo(Long nodeId) {
+		return (AbstractNode) Services.command(FindNodeCommand.class).execute(new SuperUser(), nodeId);
 	}
+
 }

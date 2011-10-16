@@ -33,7 +33,6 @@ import org.apache.click.control.Submit;
 import org.apache.click.control.TextField;
 import org.apache.click.extras.tree.TreeNode;
 import org.apache.commons.lang.StringUtils;
-import org.structr.common.CurrentRequest;
 import org.structr.common.CurrentSession;
 import org.structr.context.SessionMonitor;
 import org.structr.core.Command;

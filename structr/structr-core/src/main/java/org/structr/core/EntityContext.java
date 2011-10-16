@@ -27,6 +27,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.RelationshipType;
+import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.core.entity.DirectedRelationship;
 
@@ -72,6 +73,19 @@ public class EntityContext {
 				logger.log(Level.SEVERE, "id and type are not allowed in property views, ignoring!");
 			} else {
 				properties.add(property);
+			}
+		}
+	}
+	
+	public static void registerPropertySet(Class type, PropertyView propertyView, PropertyKey... propertySet) {
+
+		Set<String> properties = getPropertySet(type, propertyView);
+		for(PropertyKey property : propertySet) {
+
+			if("id".equals(property.name().toLowerCase()) || "type".equals(property.name().toLowerCase())) {
+				logger.log(Level.SEVERE, "id and type are not allowed in property views, ignoring!");
+			} else {
+				properties.add(property.name());
 			}
 		}
 	}
@@ -198,6 +212,14 @@ public class EntityContext {
 			propertyViewMap = new LinkedHashMap<PropertyView, Set<String>>();
 			globalPropertyKeyMap.put(type, propertyViewMap);
 		}
+
+		// Join all property views of superclasses
+		while (!(type.equals(Object.class))) {
+			Class superclass = type.getSuperclass();
+			Map<PropertyView, Set<String>> superclassPropertyViewMap = globalPropertyKeyMap.get(superclass);
+			propertyViewMap.putAll(superclassPropertyViewMap);
+		}
+
 
 		return propertyViewMap;
 	}

@@ -19,30 +19,21 @@
 
 package org.structr.core.converter;
 
-import java.util.Date;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.structr.core.PropertyConverter;
 
 /**
- * @author Christian Morgner
+ * @author Axel Morgner
  */
-public class LongDateConverter implements PropertyConverter<Long, Date> {
+public class PasswordConverter implements PropertyConverter<String, String> {
 
 	@Override
-	public Long convertFrom(Date source) {
-		if(source != null) {
-			return source.getTime();
-		}
-
-		return null;
+	public String convertFrom(String clearTextPassword) {
+		return DigestUtils.sha512Hex(clearTextPassword);
 	}
 
 	@Override
-	public Date convertTo(Long source) {
-
-		if(source != null) {
-			return new Date(source);
-		}
-
+	public String convertTo(String passwordHash) {
 		return null;
 	}
 }

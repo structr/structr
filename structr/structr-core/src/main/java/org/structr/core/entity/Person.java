@@ -19,6 +19,7 @@
 package org.structr.core.entity;
 
 import java.util.Date;
+import org.structr.common.PropertyKey;
 
 /**
  * 
@@ -26,6 +27,15 @@ import java.util.Date;
  * 
  */
 public class Person extends Principal {
+
+    public static enum Key implements PropertyKey {
+
+	    salutation, firstName, middleNameOrInitial, lastName,
+	    email1, email2, email3, email4,
+	    phoneNumber1, phoneNumber2, phoneNumber3, phoneNumber4, phoneNumber5, phoneNumber6,
+	    faxNumber1, faxNumber2, faxNumber3,
+	    street, zipCode, city, state, country, birthday, gender, newsletter
+    }
 
     public final static String SALUTATION_KEY = "salutation";
     public final static String FIRST_NAME_KEY = "firstName";
@@ -53,7 +63,7 @@ public class Person extends Principal {
     public final static String GENDER_KEY = "gender";
     public final static String NEWSLETTER_KEY = "newsletter";
     private final static String ICON_SRC = "/images/user.png";
-
+    
     @Override
     public String getIconSrc() {
         return ICON_SRC;

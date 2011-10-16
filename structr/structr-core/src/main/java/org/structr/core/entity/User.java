@@ -27,9 +27,12 @@ import java.util.logging.Logger;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.PropertyKey;
+import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.core.Command;
+import org.structr.core.EntityContext;
 import org.structr.core.Services;
+import org.structr.core.converter.PasswordConverter;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.DeleteRelationshipCommand;
@@ -47,9 +50,14 @@ public class User extends Person {
 
     private static final Logger logger = Logger.getLogger(User.class.getName());
 
-    public enum Key implements PropertyKey {
+    public static enum Key implements PropertyKey {
 
 	    realName, password, blocked, sessionId, confirmationKey, backendUser, frontendUser
+    }
+
+    static {
+		EntityContext.registerPropertyConverter(User.class, Key.password.name(), PasswordConverter.class);
+		EntityContext.registerPropertySet(User.class, PropertyView.All, Key.values());
     }
 
     @Override
@@ -91,8 +99,23 @@ public class User extends Person {
     }
 
     public String getEncryptedPassword() {
-        return getStringProperty(Key.password);
+	    boolean dbNodeHasProperty = dbNode.hasProperty(Key.password.name());
+	    if (dbNodeHasProperty) {
+		Object dbValue = dbNode.getProperty(Key.password.name());
+		return (String) dbValue;
+	    } else {
+		    return null;
+	    }
     }
+
+	@Override
+	public Object getPropertyForIndexing(final String key) {
+		if (Key.password.name().equals(key)) {
+			return "";
+		} else {
+			return getProperty(key);
+		}
+	}
 
     /**
      * Intentionally return null.
