@@ -158,6 +158,11 @@ public class PropertySetGSONAdapter implements InstanceCreator<PropertySet>, Jso
 		Object value = null;
 
 		if(type.equals("String"))	value = valueElement.getAsString(); else
+		if(type.equals("Number"))	value = valueElement.getAsNumber(); else
+		if(type.equals("Boolean"))	value = valueElement.getAsBoolean(); else
+		if(type.equals("JsonArray"))	value = valueElement.getAsJsonArray(); else
+		if(type.equals("JsonObject"))	value = valueElement.getAsJsonObject(); else
+		if(type == null || type.equals("null"))		value = valueElement.getAsJsonNull(); else
 		if(type.equals("Integer"))	value = valueElement.getAsInt(); else
 		if(type.equals("Long"))		value = valueElement.getAsLong(); else
 		if(type.equals("Double"))	value = valueElement.getAsDouble(); else
