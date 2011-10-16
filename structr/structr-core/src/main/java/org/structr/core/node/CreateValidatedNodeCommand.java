@@ -37,14 +37,13 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.PropertyView;
 import org.structr.core.PropertyValidator;
 import org.structr.core.Value;
-import org.structr.core.resource.EntityContext;
+import org.structr.core.EntityContext;
 
 //~--- classes ----------------------------------------------------------------
 /**
@@ -131,14 +130,7 @@ public class CreateValidatedNodeCommand extends NodeServiceCommand {
 				throw new IllegalArgumentException(validationErrorBuffer.toString());
 			}
 
-			// FIXME: can be replaced by node.putAll(attrs) later
-			for(Entry<String, Object> entry : attrs.entrySet()) {
-
-				// Don't update index now
-				node.setProperty(entry.getKey(), entry.getValue(), false);
-				logger.log(Level.FINEST, "Set node attribute {0} to {1}", new Object[]{entry.getKey(),
-					    entry.getValue()});
-			}
+			node.putAll(attrs);
 
 			attrs.clear();
 

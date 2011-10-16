@@ -28,7 +28,7 @@ import org.structr.core.entity.DirectedRelationship;
 import org.structr.core.entity.StructrRelationship;
 import org.structr.core.resource.IllegalPathException;
 import org.structr.core.resource.PathException;
-import org.structr.core.resource.EntityContext;
+import org.structr.core.EntityContext;
 import org.structr.core.resource.adapter.ResultGSONAdapter;
 
 /**

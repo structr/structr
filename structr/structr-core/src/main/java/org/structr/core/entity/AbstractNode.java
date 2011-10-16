@@ -108,7 +108,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import org.structr.core.PropertyValidator;
 import org.structr.core.Value;
-import org.structr.core.resource.EntityContext;
+import org.structr.core.EntityContext;
+import org.structr.core.PropertyConverter;
+import org.structr.core.converter.LongDateConverter;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -187,6 +189,14 @@ public abstract class AbstractNode
 	protected User user;
 
 	//~--- constructors ---------------------------------------------------
+
+	static {
+
+		EntityContext.registerGlobalPropertyConverter(VISIBILITY_START_DATE_KEY, LongDateConverter.class);
+		EntityContext.registerGlobalPropertyConverter(VISIBILITY_END_DATE_KEY, LongDateConverter.class);
+		EntityContext.registerGlobalPropertyConverter(LAST_MODIFIED_DATE_KEY, LongDateConverter.class);
+		EntityContext.registerGlobalPropertyConverter(CREATED_DATE_KEY, LongDateConverter.class);
+	}
 
 	public AbstractNode() {
 
@@ -1892,15 +1902,22 @@ public abstract class AbstractNode
 	@Override
 	public Object getProperty(final String key) {
 
+		Object value = null;
+
 		if (isDirty) {
-			return properties.get(key);
+			value = properties.get(key);
 		}
 
 		if ((key != null) && dbNode.hasProperty(key)) {
-			return dbNode.getProperty(key);
-		} else {
-			return null;
+			value = dbNode.getProperty(key);
 		}
+
+		PropertyConverter converter = EntityContext.getPropertyConverter(this.getClass(), key);
+		if(converter != null) {
+			value = converter.convertTo(value);
+		}
+
+		return value;
 	}
 
 	public String getStringProperty(final PropertyKey propertyKey) {
@@ -3150,7 +3167,6 @@ public abstract class AbstractNode
 	 *
 	 * @param key
 	 * @return
-	 */
 	public Object get(final String key) {
 
 		if (key == null) {
@@ -3175,6 +3191,7 @@ public abstract class AbstractNode
 		// nothing found
 		return null;
 	}
+	 */
 
 	public Set<AbstractNode> getRelatedNodes(int maxDepth) {
 
@@ -3784,7 +3801,7 @@ public abstract class AbstractNode
 	 * Set property only if value has changed
 	 *
 	 * @param key
-	 * @param value
+	 * @param convertedValue
 	 */
 	@Override
 	public void setProperty(final String key, final Object value) {
@@ -3832,7 +3849,7 @@ public abstract class AbstractNode
 	 * Update index only if updateIndex is true
 	 *
 	 * @param key
-	 * @param value
+	 * @param convertedValue
 	 * @param updateIndex
 	 */
 	public void setProperty(final String key, final Object value, final boolean updateIndex) {
@@ -3845,26 +3862,34 @@ public abstract class AbstractNode
 			return;
 		}
 
-		// look for validator
 		Class type = this.getClass();
+
+		// TODO: implement converters here?
+		PropertyConverter converter = EntityContext.getPropertyConverter(type, key);
+		final Object convertedValue;
+		if(converter != null) {
+			convertedValue = converter.convertFrom(value);
+		} else {
+			convertedValue = value;
+		}
+
+		// look for validator
 		PropertyValidator validator = EntityContext.getPropertyValidator(type, key);
 		if(validator != null) {
 			logger.log(Level.FINE, "Using validator of type {0} for property {1}", new Object[] { validator.getClass().getSimpleName(), key } );
 			Value parameter = EntityContext.getPropertyValidationParameter(type, key);
 			StringBuilder errorBuffer = new StringBuilder(20);
-			if(!validator.isValid(key, value, parameter, errorBuffer)) {
+			if(!validator.isValid(key, convertedValue, parameter, errorBuffer)) {
 				throw new IllegalArgumentException(errorBuffer.toString());
 			}
 		}
-
-		// TODO: implement converters here?
 
 		if (isDirty) {
 
 			// Don't write directly to database, but store property values
 			// in a map for later use
 			properties.put(key,
-				       value);
+				       convertedValue);
 		} else {
 
 			// Commit value directly to database
@@ -3873,8 +3898,8 @@ public abstract class AbstractNode
 			// don't make any changes if
 			// - old and new value both are null
 			// - old and new value are not null but equal
-			if (((value == null) && (oldValue == null))
-				|| ((value != null) && (oldValue != null) && value.equals(oldValue))) {
+			if (((convertedValue == null) && (oldValue == null))
+				|| ((convertedValue != null) && (oldValue != null) && convertedValue.equals(oldValue))) {
 				return;
 			}
 
@@ -3886,22 +3911,22 @@ public abstract class AbstractNode
 				public Object execute() throws Throwable {
 
 					// save space
-					if (value == null) {
+					if (convertedValue == null) {
 						dbNode.removeProperty(key);
 					} else {
 
 						// Setting last modified date explicetely is not allowed
 						if (!key.equals(AbstractNode.LAST_MODIFIED_DATE_KEY)) {
 
-							if (value instanceof Date) {
+							if (convertedValue instanceof Date) {
 
 								dbNode.setProperty(key,
-										   ((Date) value).getTime());
+										   ((Date) convertedValue).getTime());
 
 							} else {
 
 								dbNode.setProperty(key,
-										   value);
+										   convertedValue);
 
 								// set last modified date if not already happened
 								dbNode.setProperty(AbstractNode.LAST_MODIFIED_DATE_KEY,

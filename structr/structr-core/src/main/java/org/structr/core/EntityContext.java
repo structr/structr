@@ -17,7 +17,7 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.structr.core.resource;
+package org.structr.core;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -28,8 +28,6 @@ import java.util.logging.Logger;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.PropertyView;
-import org.structr.core.PropertyValidator;
-import org.structr.core.Value;
 import org.structr.core.entity.DirectedRelationship;
 
 /**
@@ -40,6 +38,7 @@ import org.structr.core.entity.DirectedRelationship;
  */
 public class EntityContext {
 
+	private static final Map<Class, Map<String, Class<? extends PropertyConverter>>> globalPropertyConverterMap = new LinkedHashMap<Class, Map<String, Class<? extends PropertyConverter>>>();
 	private static final Map<Class, Map<String, Class<? extends PropertyValidator>>> globalValidatorMap = new LinkedHashMap<Class, Map<String, Class<? extends PropertyValidator>>>();
 	private static final Map<String, Map<String, DirectedRelationship>> globalTypeMap = new LinkedHashMap<String, Map<String, DirectedRelationship>>();
 	private static final Map<Class, Map<PropertyView, Set<String>>> globalPropertyKeyMap = new LinkedHashMap<Class, Map<PropertyView, Set<String>>>();
@@ -135,6 +134,40 @@ public class EntityContext {
 		return null;
 	}
 
+	// ----- PropertyConverter methods -----
+	public static void registerPropertyConverter(Class type, String propertyKey, Class<? extends PropertyConverter> PropertyConverterClass) {
+		getPropertyConverterMapForType(type).put(propertyKey, PropertyConverterClass);
+	}
+
+	public static void registerGlobalPropertyConverter(String propertyKey, Class<? extends PropertyConverter> PropertyConverterClass) {
+		getPropertyConverterMapForType(GlobalClassPlaceholder.class).put(propertyKey, PropertyConverterClass);
+	}
+
+	public static PropertyConverter getPropertyConverter(Class type, String propertyKey) {
+
+		Map<String, Class<? extends PropertyConverter>> validatorMap = getPropertyConverterMapForType(type);
+		Class clazz = validatorMap.get(propertyKey);
+		PropertyConverter propertyConverter = null;
+
+		// try global type converter
+		if(clazz == null) {
+			validatorMap = getPropertyConverterMapForType(GlobalClassPlaceholder.class);
+			clazz = validatorMap.get(propertyKey);
+		}
+
+		if(clazz != null) {
+
+			try {
+				propertyConverter = (PropertyConverter)clazz.newInstance();
+
+			} catch(Throwable t) {
+				logger.log(Level.WARNING, "Unable to instantiate property PropertyConverter {0}: {1}", new Object[] { clazz.getName(), t.getMessage() } );
+			}
+		}
+
+		return propertyConverter;
+	}
+
 	// ----- private methods -----
 	private static String convertName(Class type) {
 
@@ -189,5 +222,20 @@ public class EntityContext {
 		}
 
 		return validationParameterMap;
+	}
+
+	private static Map<String, Class<? extends PropertyConverter>> getPropertyConverterMapForType(Class type) {
+
+		Map<String, Class<? extends PropertyConverter>> PropertyConverterMap = globalPropertyConverterMap.get(type);
+		if(PropertyConverterMap == null) {
+			PropertyConverterMap = new LinkedHashMap<String, Class<? extends PropertyConverter>>();
+			globalPropertyConverterMap.put(type, PropertyConverterMap);
+		}
+
+		return PropertyConverterMap;
+	}
+
+	// ----- nested classes -----
+	private class GlobalClassPlaceholder {
 	}
 }
