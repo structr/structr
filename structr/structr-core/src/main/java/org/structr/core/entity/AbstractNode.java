@@ -106,6 +106,9 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import org.structr.core.PropertyValidator;
+import org.structr.core.Value;
+import org.structr.core.resource.EntityContext;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -219,24 +222,33 @@ public abstract class AbstractNode
 	 *
 	 * @param rendererMap the map that hosts renderers for the different rendering modes
 	 */
-	public abstract void initializeRenderers(final Map<RenderMode, NodeRenderer> rendererMap);
+	public void initializeRenderers(final Map<RenderMode, NodeRenderer> rendererMap) {
+		// override me
+	}
 
 	/**
 	 * Called when a node of this type is created in the UI.
 	 */
-	public abstract void onNodeCreation();
+	public void onNodeCreation() {
+		// override me
+	}
 
 	/**
 	 * Called when a node of this type is instatiated. Please note that a
 	 * node can (and will) be instantiated several times during a normal
 	 * rendering turn.
 	 */
-	public abstract void onNodeInstantiation();
+	public void onNodeInstantiation() {
+		// override me
+	}
 
 	/**
 	 * Called when a node of this type is deleted.
 	 */
-	public abstract void onNodeDeletion();
+	public void onNodeDeletion() {
+		// override me
+	}
+
 
 	@Override
 	public boolean renderingAllowed(final RenderContext context) {
@@ -1638,6 +1650,7 @@ public abstract class AbstractNode
 	/**
 	 * Get id from underlying db
 	 */
+	@Override
 	public long getId() {
 
 		if (isDirty) {
@@ -3773,6 +3786,7 @@ public abstract class AbstractNode
 	 * @param key
 	 * @param value
 	 */
+	@Override
 	public void setProperty(final String key, final Object value) {
 
 		setProperty(key,
@@ -3830,6 +3844,20 @@ public abstract class AbstractNode
 
 			return;
 		}
+
+		// look for validator
+		Class type = this.getClass();
+		PropertyValidator validator = EntityContext.getPropertyValidator(type, key);
+		if(validator != null) {
+			logger.log(Level.FINE, "Using validator of type {0} for property {1}", new Object[] { validator.getClass().getSimpleName(), key } );
+			Value parameter = EntityContext.getPropertyValidationParameter(type, key);
+			StringBuilder errorBuffer = new StringBuilder(20);
+			if(!validator.isValid(key, value, parameter, errorBuffer)) {
+				throw new IllegalArgumentException(errorBuffer.toString());
+			}
+		}
+
+		// TODO: implement converters here?
 
 		if (isDirty) {
 

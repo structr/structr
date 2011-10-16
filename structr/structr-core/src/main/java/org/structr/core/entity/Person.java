@@ -267,18 +267,4 @@ public class Person extends Principal {
     public String getGender() {
         return (String) getProperty(GENDER_KEY);
     }
-
-    @Override
-    public void onNodeCreation()
-    {
-    }
-
-    @Override
-    public void onNodeInstantiation()
-    {
-    }
-
-    @Override
-    public void onNodeDeletion() {
-    }
 }

@@ -19,7 +19,6 @@
 package org.structr.core.entity.web;
 
 import java.util.Map;
-import java.util.logging.Logger;
 import org.structr.common.RenderMode;
 import org.structr.core.NodeRenderer;
 import org.structr.renderer.LogoutRenderer;
@@ -29,30 +28,26 @@ import org.structr.renderer.LogoutRenderer;
  *
  * @author axel
  */
-public class Logout extends WebNode
-{
+public class Logout extends WebNode {
+
 	/** Page to forward to after logout */
 	public static final String FORWARD_PAGE_KEY = "forwardPage";
 
-	public String getForwardPage()
-	{
+	public String getForwardPage() {
 		return getStringProperty(FORWARD_PAGE_KEY);
 	}
 
-	public void setForwardPage(final String value)
-	{
+	public void setForwardPage(final String value) {
 		setProperty(FORWARD_PAGE_KEY, value);
 	}
 
 	@Override
-	public String getIconSrc()
-	{
+	public String getIconSrc() {
 		return ("/images/door_out.png");
 	}
 
 	@Override
-	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers)
-	{
+	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers) {
 		renderers.put(RenderMode.Default, new LogoutRenderer());
 	}
 }

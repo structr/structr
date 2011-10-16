@@ -71,26 +71,6 @@ public class NodeType extends AbstractNode implements NodeSource
 	}
 
 	@Override
-	public void onNodeCreation()
-	{
-	}
-
-	@Override
-	public void onNodeInstantiation()
-	{
-	}
-
-	@Override
-	public void initializeRenderers(final Map<RenderMode, NodeRenderer> rendererMap)
-	{
-	}
-
-	@Override
-	public void onNodeDeletion()
-	{
-	}
-
-	@Override
 	public AbstractNode loadNode()
 	{
 		return(this);

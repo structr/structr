@@ -18,11 +18,6 @@
  */
 package org.structr.core.entity;
 
-import java.util.Map;
-import org.structr.common.RenderMode;
-import org.structr.common.renderer.ContentTemplateRenderer;
-import org.structr.core.NodeRenderer;
-
 /**
  * 
  * @author amorgner
@@ -63,25 +58,5 @@ public class PlainText extends AbstractNode {
 
     public void setSize(final String size) {
         setProperty(SIZE_KEY, size);
-    }
-
-    @Override
-    public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers)
-    {
-	    renderers.put(RenderMode.Default, new ContentTemplateRenderer());
-    }
-
-    @Override
-    public void onNodeCreation()
-    {
-    }
-
-    @Override
-    public void onNodeInstantiation()
-    {
-    }
-
-    @Override
-    public void onNodeDeletion() {
     }
 }

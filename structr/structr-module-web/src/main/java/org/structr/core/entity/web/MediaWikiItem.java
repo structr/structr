@@ -61,21 +61,6 @@ public class MediaWikiItem extends AbstractNode {
 		initialize();
 	}
 
-	//~--- methods --------------------------------------------------------
-
-	// ----- AbstractNode -----
-	@Override
-	public void initializeRenderers(Map<RenderMode, NodeRenderer> rendererMap) {}
-
-	@Override
-	public void onNodeCreation() {}
-
-	@Override
-	public void onNodeInstantiation() {}
-
-	@Override
-	public void onNodeDeletion() {}
-
 	// ----- private methods -----
 	private void initialize() {
 

@@ -21,13 +21,10 @@ package org.structr.core.entity;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.RelType;
-import org.structr.common.RenderMode;
 import org.structr.core.Command;
-import org.structr.core.NodeRenderer;
 import org.structr.core.Services;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;
@@ -45,14 +42,6 @@ public abstract class ApplicationNode extends AbstractNode
 	private static final Logger logger = Logger.getLogger(ApplicationNode.class.getName());
 	
 	public abstract void buildTestCase();
-
-	@Override
-	public void onNodeCreation()
-	{
-		// we cannot use this method to trigger the application unfolding, because
-		// the create node dialog starts with an EmptyNode and determines its type
-		// later.
-	}
 
 	@Override
 	public void onNodeInstantiation()
@@ -76,19 +65,10 @@ public abstract class ApplicationNode extends AbstractNode
 		}
 	}
 
-    @Override
-    public void onNodeDeletion() {
-    }
-
 	@Override
 	public String getIconSrc()
 	{
 		return("/images/bricks.png");
-	}
-
-	@Override
-	public void initializeRenderers(final Map<RenderMode, NodeRenderer> rendererMap)
-	{
 	}
 
 	// ----- protected methods -----

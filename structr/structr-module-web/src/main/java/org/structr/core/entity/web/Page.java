@@ -16,9 +16,6 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
-
 package org.structr.core.entity.web;
 
 import org.structr.common.RenderMode;
@@ -31,7 +28,6 @@ import org.structr.core.NodeRenderer;
 import java.util.*;
 
 //~--- classes ----------------------------------------------------------------
-
 /**
  *
  * @author amorgner
@@ -47,24 +43,23 @@ public class Page extends WebNode {
 	@Override
 	public boolean renderingAllowed(final RenderContext context) {
 
-		switch (context) {
+		switch(context) {
 
-			case AsSubnode :
+			case AsSubnode:
 				return false;
 
-			case AsTopNode :
+			case AsTopNode:
 				return true;
 
-			case AsSoleNode :
+			case AsSoleNode:
 				return true;
 
-			default :
+			default:
 				return true;
 		}
 	}
 
 	//~--- get methods ----------------------------------------------------
-
 	@Override
 	public String getIconSrc() {
 		return ("/images/page.png");

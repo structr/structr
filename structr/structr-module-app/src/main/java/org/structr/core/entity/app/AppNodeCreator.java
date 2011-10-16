@@ -159,21 +159,6 @@ public class AppNodeCreator extends ActionNode implements NodeSource
 		setProperty(TARGET_TYPE_KEY, targetType);
 	}
 
-	@Override
-	public void onNodeCreation()
-	{
-	}
-
-	@Override
-	public void onNodeInstantiation()
-	{
-		currentNode = new SessionValue<AbstractNode>(createUniqueIdentifier("currentNode"));
-	}
-
-    @Override
-    public void onNodeDeletion() {
-    }
-
 	// ----- interface NodeSource -----
 	@Override
 	public AbstractNode loadNode()

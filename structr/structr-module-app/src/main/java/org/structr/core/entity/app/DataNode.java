@@ -32,12 +32,6 @@ import org.structr.core.entity.CustomTypeNode;
  */
 public class DataNode extends CustomTypeNode {
 
-	@Override
-	public void onNodeCreation() {}
-
-	@Override
-	public void onNodeInstantiation() {}
-
 	//~--- get methods ----------------------------------------------------
 
 	@Override

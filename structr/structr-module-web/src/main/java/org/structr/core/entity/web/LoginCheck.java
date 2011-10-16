@@ -33,157 +33,149 @@ import org.structr.renderer.LoginCheckRenderer;
  */
 public class LoginCheck extends WebNode {
 
-    private final static String ICON_SRC = "/images/door_in.png";
+	private final static String ICON_SRC = "/images/door_in.png";
 
-    @Override
-    public String getIconSrc() {
-        return ICON_SRC;
-    }
+	@Override
+	public String getIconSrc() {
+		return ICON_SRC;
+	}
+	public final static String SUBMIT_BUTTON_NAME_KEY = "submitButtonName";
+	public final static String ANTI_ROBOT_FIELD_NAME_KEY = "antiRobotFieldName";
+	/** Name of username field */
+	public final static String USERNAME_FIELD_NAME_KEY = "usernameFieldName";
+	/** Name of password field */
+	public final static String PASSWORD_FIELD_NAME_KEY = "passwordFieldName";
+	/** Absolute number of login errors (wrong inputs) for a session. Each wrong or missing input field is counted. */
+	public final static String MAX_ERRORS_KEY = "maxRetries";
+	/** Number of unsuccessful login attempts before retry delay becomes active */
+	public final static String DELAY_THRESHOLD_KEY = "delayThreshold";
+	/** Time to wait for retry after an unsuccessful login attempt */
+	public final static String DELAY_TIME_KEY = "delayTime";
 
-    public final static String SUBMIT_BUTTON_NAME_KEY = "submitButtonName";
-    public final static String ANTI_ROBOT_FIELD_NAME_KEY = "antiRobotFieldName";
+	/**
+	 * Return name of anti robot field
+	 *
+	 * @return
+	 */
+	public String getAntiRobotFieldName() {
+		return getStringProperty(ANTI_ROBOT_FIELD_NAME_KEY);
+	}
 
-    /** Name of username field */
-    public final static String USERNAME_FIELD_NAME_KEY = "usernameFieldName";
+	/**
+	 * Set name of anti robot field
+	 *
+	 * @param value
+	 */
+	public void setAntiRobotFieldName(final String value) {
+		setProperty(ANTI_ROBOT_FIELD_NAME_KEY, value);
+	}
 
-    /** Name of password field */
-    public final static String PASSWORD_FIELD_NAME_KEY = "passwordFieldName";
+	/**
+	 * Return name of submit button
+	 *
+	 * @return
+	 */
+	public String getSubmitButtonName() {
+		return getStringProperty(SUBMIT_BUTTON_NAME_KEY);
+	}
 
-    /** Absolute number of login errors (wrong inputs) for a session. Each wrong or missing input field is counted. */
-    public final static String MAX_ERRORS_KEY = "maxRetries";
+	/**
+	 * Set name of submit button
+	 *
+	 * @param value
+	 */
+	public void setSubmitButtonName(final String value) {
+		setProperty(SUBMIT_BUTTON_NAME_KEY, value);
+	}
 
-    /** Number of unsuccessful login attempts before retry delay becomes active */
-    public final static String DELAY_THRESHOLD_KEY = "delayThreshold";
+	/**
+	 * Return name of username field
+	 *
+	 * @return
+	 */
+	public String getUsernameFieldName() {
+		return getStringProperty(USERNAME_FIELD_NAME_KEY);
+	}
 
-    /** Time to wait for retry after an unsuccessful login attempt */
-    public final static String DELAY_TIME_KEY = "delayTime";
+	/**
+	 * Return name of password field
+	 *
+	 * @return
+	 */
+	public String getPasswordFieldName() {
+		return getStringProperty(PASSWORD_FIELD_NAME_KEY);
+	}
 
-    /**
-     * Return name of anti robot field
-     *
-     * @return
-     */
-    public String getAntiRobotFieldName() {
-        return getStringProperty(ANTI_ROBOT_FIELD_NAME_KEY);
-    }
+	/**
+	 * Return number of unsuccessful login attempts for a session
+	 *
+	 * If number is exceeded, login is blocked for this session.
+	 */
+	public int getMaxErrors() {
+		return getIntProperty(MAX_ERRORS_KEY);
+	}
 
-    /**
-     * Set name of anti robot field
-     *
-     * @param value
-     */
-    public void setAntiRobotFieldName(final String value) {
-        setProperty(ANTI_ROBOT_FIELD_NAME_KEY, value);
-    }
+	/**
+	 * Return number of unsuccessful login attempts before retry delay becomes active
+	 */
+	public int getDelayThreshold() {
+		return getIntProperty(DELAY_THRESHOLD_KEY);
+	}
 
-    /**
-     * Return name of submit button
-     *
-     * @return
-     */
-    public String getSubmitButtonName() {
-        return getStringProperty(SUBMIT_BUTTON_NAME_KEY);
-    }
+	/**
+	 * Return time (in seconds) to wait for retry after an unsuccessful login attempt
+	 */
+	public int getDelayTime() {
+		return getIntProperty(DELAY_TIME_KEY);
+	}
 
-    /**
-     * Set name of submit button
-     *
-     * @param value
-     */
-    public void setSubmitButtonName(final String value) {
-        setProperty(SUBMIT_BUTTON_NAME_KEY, value);
-    }
+	/**
+	 * Set name of username field
+	 *
+	 * @param value
+	 */
+	public void setUsernameFieldName(final String value) {
+		setProperty(USERNAME_FIELD_NAME_KEY, value);
+	}
 
-    /**
-     * Return name of username field
-     *
-     * @return
-     */
-    public String getUsernameFieldName() {
-        return getStringProperty(USERNAME_FIELD_NAME_KEY);
-    }
+	/**
+	 * Set name of password field
+	 *
+	 * @param value
+	 */
+	public void setPasswordFieldName(final String value) {
+		setProperty(USERNAME_FIELD_NAME_KEY, value);
+	}
 
-    /**
-     * Return name of password field
-     *
-     * @return
-     */
-    public String getPasswordFieldName() {
-        return getStringProperty(PASSWORD_FIELD_NAME_KEY);
-    }
+	/**
+	 * Set number of unsuccessful login attempts for a session.
+	 *
+	 * @param value
+	 */
+	public void setMaxErrors(final int value) {
+		setProperty(MAX_ERRORS_KEY, value);
+	}
 
-    /**
-     * Return number of unsuccessful login attempts for a session
-     * 
-     * If number is exceeded, login is blocked for this session.
-     */
-    public int getMaxErrors() {
-        return getIntProperty(MAX_ERRORS_KEY);
-    }
+	/**
+	 * Set number of unsuccessful login attempts before retry delay becomes active
+	 *
+	 * @param value
+	 */
+	public void setDelayThreshold(final int value) {
+		setProperty(DELAY_THRESHOLD_KEY, value);
+	}
 
-    /**
-     * Return number of unsuccessful login attempts before retry delay becomes active
-     */
-    public int getDelayThreshold() {
-        return getIntProperty(DELAY_THRESHOLD_KEY);
-    }
+	/**
+	 * Set time (in seconds) to wait for retry after an unsuccessful login attempt
+	 *
+	 * @param value
+	 */
+	public void setDelayTime(final int value) {
+		setProperty(DELAY_TIME_KEY, value);
+	}
 
-    /**
-     * Return time (in seconds) to wait for retry after an unsuccessful login attempt
-     */
-    public int getDelayTime() {
-        return getIntProperty(DELAY_TIME_KEY);
-    }
-
-    /**
-     * Set name of username field
-     *
-     * @param value
-     */
-    public void setUsernameFieldName(final String value) {
-        setProperty(USERNAME_FIELD_NAME_KEY, value);
-    }
-
-    /**
-     * Set name of password field
-     *
-     * @param value
-     */
-    public void setPasswordFieldName(final String value) {
-        setProperty(USERNAME_FIELD_NAME_KEY, value);
-    }
-
-    /**
-     * Set number of unsuccessful login attempts for a session.
-     *
-     * @param value
-     */
-    public void setMaxErrors(final int value) {
-        setProperty(MAX_ERRORS_KEY, value);
-    }
-
-    /**
-     * Set number of unsuccessful login attempts before retry delay becomes active
-     *
-     * @param value
-     */
-    public void setDelayThreshold(final int value) {
-        setProperty(DELAY_THRESHOLD_KEY, value);
-    }
-
-    /**
-     * Set time (in seconds) to wait for retry after an unsuccessful login attempt
-     * 
-     * @param value
-     */
-    public void setDelayTime(final int value) {
-        setProperty(DELAY_TIME_KEY, value);
-    }
-
-
-    @Override
-    public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers)
-    {
-	    renderers.put(RenderMode.Default, new LoginCheckRenderer());
-    }
+	@Override
+	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers) {
+		renderers.put(RenderMode.Default, new LoginCheckRenderer());
+	}
 }

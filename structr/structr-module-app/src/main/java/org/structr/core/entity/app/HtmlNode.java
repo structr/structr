@@ -24,20 +24,6 @@ public abstract class HtmlNode extends AbstractNode
 	}
 
 	@Override
-	public void onNodeCreation()
-	{
-	}
-
-	@Override
-	public void onNodeInstantiation()
-	{
-	}
-
-    @Override
-    public void onNodeDeletion() {
-    }
-
-	@Override
 	public void initializeRenderers(final Map<RenderMode, NodeRenderer> rendererMap)
 	{
 		rendererMap.put(RenderMode.Default, new HtmlRenderer());

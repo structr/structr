@@ -124,20 +124,6 @@ public class AppRelationshipCreator extends ActionNode
 		return ("/images/brick_link.png");
 	}
 
-	@Override
-	public void onNodeCreation()
-	{
-	}
-
-	@Override
-	public void onNodeInstantiation()
-	{
-	}
-
-    @Override
-    public void onNodeDeletion() {
-    }
-
 	// ----- private methods -----
 	private AbstractNode getNodeFromNamedSource(String name)
 	{

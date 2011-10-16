@@ -28,19 +28,17 @@ import org.structr.renderer.RowColumnRenderer;
  * @author amorgner
  * 
  */
-public class Row extends HtmlText
-{
+public class Row extends HtmlText {
+
 	private final static String ICON_SRC = "/images/layout_row.png";
 
 	@Override
-	public final String getIconSrc()
-	{
+	public final String getIconSrc() {
 		return ICON_SRC;
 	}
 
-    @Override
-    public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers)
-    {
-	    renderers.put(RenderMode.Default, new RowColumnRenderer("row"));
-    }
+	@Override
+	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers) {
+		renderers.put(RenderMode.Default, new RowColumnRenderer("row"));
+	}
 }

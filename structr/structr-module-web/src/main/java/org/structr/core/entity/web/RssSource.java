@@ -23,8 +23,6 @@ package org.structr.core.entity.web;
 
 import org.structr.common.CurrentRequest;
 import org.structr.common.PropertyKey;
-import org.structr.common.RenderMode;
-import org.structr.core.NodeRenderer;
 import org.structr.core.TemporaryValue;
 import org.structr.core.entity.AbstractNode;
 
@@ -37,7 +35,6 @@ import java.net.URL;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import javax.servlet.ServletContext;
@@ -58,24 +55,6 @@ public class RssSource extends AbstractNode {
 	//~--- constant enums -------------------------------------------------
 
 	public enum Key implements PropertyKey{ sourceUrl }
-
-	//~--- methods --------------------------------------------------------
-
-	// ----- AbstractNode -----
-	@Override
-	public void initializeRenderers(Map<RenderMode, NodeRenderer> rendererMap) {
-
-		// not visible directly
-	}
-
-	@Override
-	public void onNodeCreation() {}
-
-	@Override
-	public void onNodeInstantiation() {}
-
-	@Override
-	public void onNodeDeletion() {}
 
 	//~--- get methods ----------------------------------------------------
 

@@ -28,19 +28,17 @@ import org.structr.renderer.DomainRenderer;
  * @author amorgner
  * 
  */
-public class Domain extends WebNode
-{
+public class Domain extends WebNode {
+
 	private final static String ICON_SRC = "/images/page_world.png";
 
 	@Override
-	public String getIconSrc()
-	{
+	public String getIconSrc() {
 		return ICON_SRC;
 	}
 
 	@Override
-	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers)
-	{
+	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers) {
 		renderers.put(RenderMode.Default, new DomainRenderer());
 	}
 }

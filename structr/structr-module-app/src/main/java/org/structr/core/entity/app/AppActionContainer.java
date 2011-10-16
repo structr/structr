@@ -43,18 +43,4 @@ public class AppActionContainer extends AbstractNode
 		renderers.put(RenderMode.Default, new NullRenderer());
 		renderers.put(RenderMode.Direct, new ActionRenderer());
 	}
-
-	@Override
-	public void onNodeCreation()
-	{
-	}
-
-	@Override
-	public void onNodeInstantiation()
-	{
-	}
-
-    @Override
-    public void onNodeDeletion() {
-    }
 }

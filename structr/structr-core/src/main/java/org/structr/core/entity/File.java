@@ -171,13 +171,6 @@ public class File extends AbstractNode {
 	}
 
 	//~--- methods --------------------------------------------------------
-
-	@Override
-	public void onNodeCreation() {}
-
-	@Override
-	public void onNodeInstantiation() {}
-
 	@Override
 	public void onNodeDeletion() {
 

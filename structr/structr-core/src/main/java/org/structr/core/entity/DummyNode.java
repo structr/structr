@@ -18,10 +18,7 @@
  */
 package org.structr.core.entity;
 
-import java.util.Map;
 import org.neo4j.graphdb.Node;
-import org.structr.common.RenderMode;
-import org.structr.core.NodeRenderer;
 
 /**
  * Dummy node with no connection to database node
@@ -54,24 +51,5 @@ public class DummyNode extends AbstractNode {
     @Override
     public Object getProperty(final String key) {
         return null;
-    }
-
-    @Override
-    public void initializeRenderers(Map<RenderMode, NodeRenderer> rendererMap)
-    {
-    }
-
-    @Override
-    public void onNodeCreation()
-    {
-    }
-
-    @Override
-    public void onNodeInstantiation()
-    {
-    }
-
-    @Override
-    public void onNodeDeletion() {
     }
 }

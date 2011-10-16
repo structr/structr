@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2011 Axel Morgner, structr <structr@structr.org>
+ *  Copyright (C) 2011 Axel Morgner
  * 
  *  This file is part of structr <http://structr.org>.
  * 
@@ -16,31 +16,32 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.entity.app;
 
-import java.util.Map;
-import org.structr.common.RenderMode;
-import org.structr.core.NodeRenderer;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.renderer.NodeViewRenderer;
+package org.structr.core.validator;
+
+import org.structr.core.PropertyValidator;
+import org.structr.core.Value;
 
 /**
- * AppNodeView loads the node with the ID found in the request parameter specified
- * by the ID_SOURCE_KEY property of this node.
+ * A simple type validator.
  *
  * @author Christian Morgner
  */
-public class AppNodeView extends AbstractNode
-{
-	@Override
-	public String getIconSrc()
-	{
-		return ("/images/magnifier.png");
-	}
+public class TypeValidator implements PropertyValidator<Class> {
 
 	@Override
-	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers)
-	{
-		renderers.put(RenderMode.Default, new NodeViewRenderer());
+	public boolean isValid(String key, Object value, Value<Class> parameter, StringBuilder errorMessage) {
+
+		if(value != null && parameter.get().isAssignableFrom(value.getClass())) {
+			return true;
+		}
+
+		errorMessage.append("Property '");
+		errorMessage.append(key);
+		errorMessage.append("' must be of type '");
+		errorMessage.append(parameter.get().getName());
+		errorMessage.append("'");
+
+		return false;
 	}
 }

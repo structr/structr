@@ -98,18 +98,6 @@ public class CustomTypeNode extends AbstractNode {
 		renderers.put(RenderMode.Default, new ExternalTemplateRenderer(false));
 	}
 
-	@Override
-	public void onNodeCreation() {
-	}
-
-	@Override
-	public void onNodeInstantiation() {
-	}
-
-	@Override
-	public void onNodeDeletion() {
-	}
-
 	public Long getTypeNodeId() {
 		NodeType n = getTypeNode();
 		return (n != null ? n.getId() : null);

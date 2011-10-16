@@ -39,12 +39,4 @@ public class AppList extends AppNodeView {
     {
 	    renderers.put(RenderMode.Default, new NodeListRenderer());
     }
-
-    @Override
-    public void onNodeCreation() {
-    }
-
-    @Override
-    public void onNodeInstantiation() {
-    }
 }

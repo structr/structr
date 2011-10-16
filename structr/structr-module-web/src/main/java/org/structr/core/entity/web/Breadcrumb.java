@@ -31,16 +31,15 @@ import org.structr.renderer.BreadcrumbRenderer;
  */
 public class Breadcrumb extends WebNode {
 
-    private final static String ICON_SRC = "/images/control_equalizer.png";
+	private final static String ICON_SRC = "/images/control_equalizer.png";
 
-    @Override
-    public String getIconSrc() {
-        return ICON_SRC;
-    }
+	@Override
+	public String getIconSrc() {
+		return ICON_SRC;
+	}
 
-    @Override
-    public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers)
-    {
-	    renderers.put(RenderMode.Default, new BreadcrumbRenderer());
-    }
+	@Override
+	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers) {
+		renderers.put(RenderMode.Default, new BreadcrumbRenderer());
+	}
 }

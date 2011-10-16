@@ -36,8 +36,6 @@ import org.structr.core.node.search.Search;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.text.Normalizer;
-
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -65,18 +63,9 @@ public class WebNode extends AbstractNode {
 	}
 
 	@Override
-	public void onNodeCreation() {}
-
-	@Override
-	public void onNodeInstantiation() {}
-
-	@Override
 	public boolean renderingAllowed(final RenderContext context) {
 		return true;
 	}
-
-	@Override
-	public void onNodeDeletion() {}
 
 	//~--- get methods ----------------------------------------------------
 

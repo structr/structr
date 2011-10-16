@@ -31,11 +31,10 @@ import org.structr.renderer.RemoveFromCategoryRenderer;
  * 
  * @author axel
  */
-public class RemoveFromCategory extends WebNode
-{
+public class RemoveFromCategory extends WebNode {
+
 	@Override
-	public String getIconSrc()
-	{
+	public String getIconSrc() {
 		return ("/images/tag_blue_add.png");
 	}
 	/** Name of category parameter */
@@ -46,8 +45,7 @@ public class RemoveFromCategory extends WebNode
 	 *
 	 * @return
 	 */
-	public String getCategoryParameterName()
-	{
+	public String getCategoryParameterName() {
 		return getStringProperty(CATEGORY_PARAMETER_NAME_KEY);
 	}
 
@@ -56,14 +54,12 @@ public class RemoveFromCategory extends WebNode
 	 *
 	 * @param value
 	 */
-	public void setCategoryParameterName(final String value)
-	{
+	public void setCategoryParameterName(final String value) {
 		setProperty(CATEGORY_PARAMETER_NAME_KEY, value);
 	}
 
 	@Override
-	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers)
-	{
+	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers) {
 		renderers.put(RenderMode.Default, new RemoveFromCategoryRenderer());
 	}
 }

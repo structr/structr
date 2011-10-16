@@ -28,7 +28,7 @@ import org.structr.core.entity.DirectedRelationship;
 import org.structr.core.entity.StructrRelationship;
 import org.structr.core.resource.IllegalPathException;
 import org.structr.core.resource.PathException;
-import org.structr.core.resource.ResourceContext;
+import org.structr.core.resource.EntityContext;
 import org.structr.core.resource.adapter.ResultGSONAdapter;
 
 /**
@@ -56,7 +56,7 @@ public class StaticRelationshipConstraint extends ResourceConstraint {
 			String targetType = typeConstraint.getType();
 
 			// fetch static relationship definition
-			DirectedRelationship staticRel = ResourceContext.getRelation(sourceType, targetType);
+			DirectedRelationship staticRel = EntityContext.getRelation(sourceType, targetType);
 			if(staticRel != null) {
 
 				LinkedList<GraphObject> transformedResults = new LinkedList<GraphObject>();

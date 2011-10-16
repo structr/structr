@@ -123,11 +123,6 @@ public abstract class ActionNode extends AbstractNode
 		return (null);
 	}
 
-	@Override
-	public void initializeRenderers(final Map<RenderMode, NodeRenderer> rendererMap)
-	{
-	}
-
 	// ----- protected methods -----
 	protected void setErrorValue(String slotName, Object errorValue)
 	{

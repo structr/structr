@@ -75,18 +75,4 @@ public class Link extends AbstractNode {
     {
 	    renderers.put(RenderMode.Default, new LinkRenderer());
     }
-
-    @Override
-    public void onNodeCreation()
-    {
-    }
-
-    @Override
-    public void onNodeInstantiation()
-    {
-    }
-
-    @Override
-    public void onNodeDeletion() {
-    }
 }

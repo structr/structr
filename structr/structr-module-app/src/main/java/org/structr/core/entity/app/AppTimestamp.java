@@ -20,9 +20,6 @@
 package org.structr.core.entity.app;
 
 import java.text.SimpleDateFormat;
-import java.util.Map;
-import org.structr.common.RenderMode;
-import org.structr.core.NodeRenderer;
 import org.structr.core.entity.AbstractNode;
 
 /**
@@ -37,25 +34,6 @@ public class AppTimestamp extends AbstractNode implements InteractiveNode
 	public String getIconSrc()
 	{
 		return("/images/time.png");
-	}
-
-	@Override
-	public void onNodeCreation()
-	{
-	}
-
-	@Override
-	public void onNodeInstantiation()
-	{
-	}
-
-    @Override
-    public void onNodeDeletion() {
-    }
-
-	@Override
-	public void initializeRenderers(final Map<RenderMode, NodeRenderer> rendererMap)
-	{
 	}
 
 	// ----- interface InteractiveNode -----

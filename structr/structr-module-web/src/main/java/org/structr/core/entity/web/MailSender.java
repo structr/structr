@@ -34,8 +34,8 @@ import org.structr.renderer.MailSenderRenderer;
  *
  * @author axel
  */
-public class MailSender extends Form
-{
+public class MailSender extends Form {
+
 	/** Template for mail subject line */
 	public final static String MAIL_SUBJECT_TEMPLATE_KEY = "mailSubjectTemplate";
 	/** Template for mail body */
@@ -54,8 +54,7 @@ public class MailSender extends Form
 	public final static String FROM_NAME_TEMPLATE_KEY = "fromNameTemplate";
 
 	@Override
-	public String getIconSrc()
-	{
+	public String getIconSrc() {
 		return ("/images/email_go.png");
 	}
 
@@ -64,8 +63,7 @@ public class MailSender extends Form
 	 *
 	 * @return
 	 */
-	public String getMailSubjectTemplate()
-	{
+	public String getMailSubjectTemplate() {
 		return getStringProperty(MAIL_SUBJECT_TEMPLATE_KEY);
 	}
 
@@ -74,8 +72,7 @@ public class MailSender extends Form
 	 *
 	 * @param value
 	 */
-	public void setMailSubjectTemplate(final String value)
-	{
+	public void setMailSubjectTemplate(final String value) {
 		setProperty(MAIL_SUBJECT_TEMPLATE_KEY, value);
 	}
 
@@ -84,8 +81,7 @@ public class MailSender extends Form
 	 *
 	 * @return
 	 */
-	public String getHtmlBodyTemplate()
-	{
+	public String getHtmlBodyTemplate() {
 		return getStringProperty(HTML_BODY_TEMPLATE_KEY);
 	}
 
@@ -94,8 +90,7 @@ public class MailSender extends Form
 	 *
 	 * @param value
 	 */
-	public void setHtmlBodyTemplate(final String value)
-	{
+	public void setHtmlBodyTemplate(final String value) {
 		setProperty(HTML_BODY_TEMPLATE_KEY, value);
 	}
 
@@ -104,8 +99,7 @@ public class MailSender extends Form
 	 *
 	 * @return
 	 */
-	public String getToAddressTemplate()
-	{
+	public String getToAddressTemplate() {
 		return getStringProperty(TO_ADDRESS_TEMPLATE_KEY);
 	}
 
@@ -114,8 +108,7 @@ public class MailSender extends Form
 	 *
 	 * @param value
 	 */
-	public void setToAddressTemplate(final String value)
-	{
+	public void setToAddressTemplate(final String value) {
 		setProperty(TO_ADDRESS_TEMPLATE_KEY, value);
 	}
 
@@ -124,8 +117,7 @@ public class MailSender extends Form
 	 *
 	 * @return
 	 */
-	public String getFromAddressTemplate()
-	{
+	public String getFromAddressTemplate() {
 		return getStringProperty(FROM_ADDRESS_TEMPLATE_KEY);
 	}
 
@@ -134,8 +126,7 @@ public class MailSender extends Form
 	 *
 	 * @param value
 	 */
-	public void setFromAddressTemplate(final String value)
-	{
+	public void setFromAddressTemplate(final String value) {
 		setProperty(FROM_ADDRESS_TEMPLATE_KEY, value);
 	}
 
@@ -144,8 +135,7 @@ public class MailSender extends Form
 	 *
 	 * @return
 	 */
-	public String getToNameTemplate()
-	{
+	public String getToNameTemplate() {
 		return getStringProperty(TO_NAME_TEMPLATE_KEY);
 	}
 
@@ -154,8 +144,7 @@ public class MailSender extends Form
 	 *
 	 * @param value
 	 */
-	public void setToNameTemplate(final String value)
-	{
+	public void setToNameTemplate(final String value) {
 		setProperty(TO_NAME_TEMPLATE_KEY, value);
 	}
 
@@ -164,8 +153,7 @@ public class MailSender extends Form
 	 *
 	 * @return
 	 */
-	public String getFromNameTemplate()
-	{
+	public String getFromNameTemplate() {
 		return getStringProperty(FROM_NAME_TEMPLATE_KEY);
 	}
 
@@ -174,8 +162,7 @@ public class MailSender extends Form
 	 *
 	 * @param value
 	 */
-	public void setFromNameTemplate(final String value)
-	{
+	public void setFromNameTemplate(final String value) {
 		setProperty(FROM_NAME_TEMPLATE_KEY, value);
 	}
 
@@ -184,8 +171,7 @@ public class MailSender extends Form
 	 *
 	 * @return
 	 */
-	public String getCcAddressTemplate()
-	{
+	public String getCcAddressTemplate() {
 		return getStringProperty(CC_ADDRESS_TEMPLATE_KEY);
 	}
 
@@ -194,8 +180,7 @@ public class MailSender extends Form
 	 *
 	 * @param value
 	 */
-	public void setCcAddressTemplate(final String value)
-	{
+	public void setCcAddressTemplate(final String value) {
 		setProperty(CC_ADDRESS_TEMPLATE_KEY, value);
 	}
 
@@ -204,8 +189,7 @@ public class MailSender extends Form
 	 *
 	 * @return
 	 */
-	public String getBccAddressTemplate()
-	{
+	public String getBccAddressTemplate() {
 		return getStringProperty(BCC_ADDRESS_TEMPLATE_KEY);
 	}
 
@@ -214,14 +198,12 @@ public class MailSender extends Form
 	 *
 	 * @param value
 	 */
-	public void setBccAddressTemplate(final String value)
-	{
+	public void setBccAddressTemplate(final String value) {
 		setProperty(BCC_ADDRESS_TEMPLATE_KEY, value);
 	}
 
 	@Override
-	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers)
-	{
+	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers) {
 		renderers.put(RenderMode.Default, new MailSenderRenderer());
 	}
 }

@@ -53,8 +53,8 @@ import org.structr.core.Value;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.StructrRelationship;
 import org.structr.core.entity.SuperUser;
-import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;
+import org.structr.core.node.CreateValidatedNodeCommand;
 import org.structr.core.node.FindNodeCommand;
 import org.structr.core.node.NodeAttribute;
 import org.structr.core.node.StructrTransaction;
@@ -295,90 +295,17 @@ public class JsonRestServlet extends HttpServlet {
 			// parse property set from json input
 			final PropertySet propertySet = gson.fromJson(request.getReader(), PropertySet.class);
 			final List<NodeAttribute> attributes = propertySet.getAttributes();
-			String type = null;
-			long id = -1;
+			GraphObject newGraphObject = null;
 
 			String path = request.getPathInfo();
 			if(path.endsWith("/node")) {
 
-				// create transaction closure
-				StructrTransaction transaction = new StructrTransaction() {
-
-					@Override
-					public Object execute() throws Throwable {
-
-						return (AbstractNode)Services.command(CreateNodeCommand.class).execute(new SuperUser(), attributes);
-					}
-				};
-
-				// execute transaction: create new node
-				AbstractNode newNode = (AbstractNode)Services.command(TransactionCommand.class).execute(transaction);
-				if(newNode != null) {
-
-					type = newNode.getType();
-					id = newNode.getId();
-
-				} else {
-
-					// re-throw transaction cause
-					if(transaction.getCause() != null) {
-						throw transaction.getCause();
-					}
-				}
+				newGraphObject = handleNodeCreation(attributes);
 
 			} else
 			if(path.endsWith("/rel")) {
 
-				long startNodeId = -1;
-				long endNodeId = -1;
-
-				// fetch relationship attributes and remove them from set
-				for(Iterator<NodeAttribute> it = attributes.iterator(); it.hasNext();) {
-
-					NodeAttribute attr = it.next();
-
-					if("start".equals(attr.getKey())) {
-						try { startNodeId = Long.parseLong(attr.getValue().toString()); } catch(Throwable t) { }
-						it.remove();
-
-					} else if("end".equals(attr.getKey())) {
-						try { endNodeId = Long.parseLong(attr.getValue().toString()); } catch(Throwable t) { }
-						it.remove();
-
-					} else if("type".equals(attr.getKey())) {
-						type = attr.getValue().toString();
-						it.remove();
-					}
-				}
-
-				if(startNodeId != -1 && endNodeId != -1 && type != null) {
-
-					Command findNodeCommand = Services.command(FindNodeCommand.class);
-					AbstractNode startNode = (AbstractNode)findNodeCommand.execute(new SuperUser(), startNodeId);
-					AbstractNode endNode = (AbstractNode)findNodeCommand.execute(new SuperUser(), endNodeId);
-
-					if(startNode != null && endNode != null) {
-
-						StructrRelationship nodeRel = (StructrRelationship)Services.command(CreateRelationshipCommand.class).execute(startNode, endNode, type);
-
-						// set properties from request (excluding start, end and type)
-						for(NodeAttribute attr : attributes) {
-							nodeRel.setProperty(attr.getKey(), attr.getValue());
-						}
-
-						type = nodeRel.getType();
-						id = nodeRel.getId();
-
-					} else {
-
-						throw new NotFoundException();
-					}
-
-				} else {
-
-					// throw 400 Bad Request
-					throw new IllegalPathException();
-				}
+				newGraphObject = handleRelationshipCreation(attributes);
 
 			} else {
 
@@ -390,35 +317,13 @@ public class JsonRestServlet extends HttpServlet {
 					if(constr instanceof TypeConstraint) {
 
 						TypeConstraint typeConstraint = (TypeConstraint)constr;
-						type = typeConstraint.getType();
+						String type = typeConstraint.getType();
 
 						// add type to attribute set (will override type information from JSON input!)
 						attributes.add(new NodeAttribute(AbstractNode.TYPE_KEY, StringUtils.capitalize(type)));
 
-						// create transaction closure
-						StructrTransaction transaction = new StructrTransaction() {
-
-							@Override
-							public Object execute() throws Throwable {
-
-								return (AbstractNode)Services.command(CreateNodeCommand.class).execute(new SuperUser(), attributes);
-							}
-						};
-
-						// execute transaction: create new node
-						AbstractNode newNode = (AbstractNode)Services.command(TransactionCommand.class).execute(transaction);
-						if(newNode != null) {
-
-							type = newNode.getType();
-							id = newNode.getId();
-
-						} else {
-
-							// re-throw transaction cause
-							if(transaction.getCause() != null) {
-								throw transaction.getCause();
-							}
-						}
+						// create new object
+						newGraphObject = handleNodeCreation(attributes);
 
 					} else {
 
@@ -433,9 +338,9 @@ public class JsonRestServlet extends HttpServlet {
 			}
 
 			// set response code
-			if(type != null && id > -1) {
+			if(newGraphObject != null) {
 
-				response.setHeader("Location", buildLocationURI(request, type, id));
+				response.setHeader("Location", buildLocationURI(request, newGraphObject.getType(), newGraphObject.getId()));
 				response.setStatus(HttpServletResponse.SC_CREATED);
 
 			} else {
@@ -443,11 +348,11 @@ public class JsonRestServlet extends HttpServlet {
 				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			}
 
-		} catch(IllegalStateException illegalStateException) {
+		} catch(IllegalArgumentException illegalArgumentException) {
 
 			// illegal state exception, return error
 			StringBuilder errorBuffer = new StringBuilder(100);
-			errorBuffer.append(illegalStateException.getMessage());
+			errorBuffer.append(illegalArgumentException.getMessage());
 
 			// send response
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -484,8 +389,7 @@ public class JsonRestServlet extends HttpServlet {
 				final List<GraphObject> results = result.getResults();
 				if(results != null && !results.isEmpty()) {
 
-					// modify results in a single transaction
-					Services.command(TransactionCommand.class).execute(new StructrTransaction() {
+					StructrTransaction transaction = new StructrTransaction() {
 
 						@Override
 						public Object execute() throws Throwable {
@@ -499,7 +403,15 @@ public class JsonRestServlet extends HttpServlet {
 							return null;
 						}
 
-					});
+					};
+
+					// modify results in a single transaction
+					Services.command(TransactionCommand.class).execute(transaction);
+
+					// if there was an exception, throw it again
+					if(transaction.getCause() != null) {
+						throw transaction.getCause();
+					}
 
 				} else {
 
@@ -512,6 +424,20 @@ public class JsonRestServlet extends HttpServlet {
 
 			// return bad request on error
 			response.setStatus(HttpServletResponse.SC_OK);
+
+
+		} catch(IllegalArgumentException illegalArgumentException) {
+
+			// illegal state exception, return error
+			StringBuilder errorBuffer = new StringBuilder(100);
+			errorBuffer.append(illegalArgumentException.getMessage());
+
+			// send response
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+			response.setContentLength(errorBuffer.length());
+			response.getWriter().append(errorBuffer.toString());
+			response.getWriter().flush();
+			response.getWriter().close();
 
 		} catch(PathException pathException) {
 			response.setStatus(pathException.getStatus());
@@ -787,6 +713,86 @@ public class JsonRestServlet extends HttpServlet {
 		uriBuilder.append(id);
 
 		return uriBuilder.toString();
+	}
+
+	private GraphObject handleNodeCreation(final List<NodeAttribute> attributes) throws Throwable {
+
+		// create transaction closure
+		StructrTransaction transaction = new StructrTransaction() {
+
+			@Override
+			public Object execute() throws Throwable {
+
+				return (AbstractNode)Services.command(CreateValidatedNodeCommand.class).execute(new SuperUser(), attributes);
+			}
+		};
+
+		// execute transaction: create new node
+		AbstractNode newNode = (AbstractNode)Services.command(TransactionCommand.class).execute(transaction);
+		if(newNode == null) {
+
+			// re-throw transaction exception cause
+			if(transaction.getCause() != null) {
+				throw transaction.getCause();
+			}
+		}
+
+		return newNode;
+	}
+
+	private GraphObject handleRelationshipCreation(final List<NodeAttribute> attributes) throws Throwable {
+
+		GraphObject newRelationship = null;
+		long startNodeId = -1;
+		long endNodeId = -1;
+		String type = null;
+
+		// fetch relationship attributes and remove them from set
+		for(Iterator<NodeAttribute> it = attributes.iterator(); it.hasNext();) {
+
+			NodeAttribute attr = it.next();
+
+			if("start".equals(attr.getKey())) {
+				try { startNodeId = Long.parseLong(attr.getValue().toString()); } catch(Throwable t) { }
+				it.remove();
+
+			} else if("end".equals(attr.getKey())) {
+				try { endNodeId = Long.parseLong(attr.getValue().toString()); } catch(Throwable t) { }
+				it.remove();
+
+			} else if("type".equals(attr.getKey())) {
+				type = attr.getValue().toString();
+				it.remove();
+			}
+		}
+
+		if(startNodeId != -1 && endNodeId != -1 && type != null) {
+
+			Command findNodeCommand = Services.command(FindNodeCommand.class);
+			AbstractNode startNode = (AbstractNode)findNodeCommand.execute(new SuperUser(), startNodeId);
+			AbstractNode endNode = (AbstractNode)findNodeCommand.execute(new SuperUser(), endNodeId);
+
+			if(startNode != null && endNode != null) {
+
+				newRelationship = (StructrRelationship)Services.command(CreateRelationshipCommand.class).execute(startNode, endNode, type);
+
+				// set properties from request (excluding start, end and type)
+				for(NodeAttribute attr : attributes) {
+					newRelationship.setProperty(attr.getKey(), attr.getValue());
+				}
+
+			} else {
+
+				throw new NotFoundException();
+			}
+
+		} else {
+
+			// throw 400 Bad Request
+			throw new IllegalPathException();
+		}
+
+		return newRelationship;
 	}
 
 	/**

@@ -61,18 +61,4 @@ public class AppButton extends HtmlNode
 	{
 		return("/images/");
 	}
-
-	@Override
-	public void onNodeCreation()
-	{
-	}
-
-	@Override
-	public void onNodeInstantiation()
-	{
-	}
-
-    @Override
-    public void onNodeDeletion() {
-    }
 }

@@ -19,7 +19,6 @@
 package org.structr.core.entity.app;
 
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.CurrentRequest;
 import org.structr.common.CurrentSession;
@@ -55,21 +54,6 @@ public class AppNodeLoader extends AbstractNode implements NodeSource
 	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers)
 	{
 		renderers.put(RenderMode.Default, new NodeLoaderRenderer());
-	}
-
-	@Override
-	public void onNodeCreation()
-	{
-	}
-
-	@Override
-	public void onNodeInstantiation()
-	{
-	}
-
-	@Override
-	public void onNodeDeletion()
-	{
 	}
 
 	public Object getValue()

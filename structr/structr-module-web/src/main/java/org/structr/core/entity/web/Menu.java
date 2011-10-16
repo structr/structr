@@ -29,41 +29,35 @@ import org.structr.renderer.MenuRenderer;
  * @author amorgner
  * 
  */
-public class Menu extends MenuItem
-{
+public class Menu extends MenuItem {
+
 	private final static String ICON_SRC = "/images/tree.png";
 	private final static int maxDepthDefault = 3;
 
 	@Override
-	public String getIconSrc()
-	{
+	public String getIconSrc() {
 		return ICON_SRC;
 	}
 	public final static String MAX_DEPTH_KEY = "maxDepth";
 
-	public int getMaxDepth()
-	{
+	public int getMaxDepth() {
 		Object depth = getProperty(MAX_DEPTH_KEY);
 
 		// The first time, set default max depth
-		if(depth == null)
-		{
+		if(depth == null) {
 			setMaxDepth(maxDepthDefault);
 			return maxDepthDefault;
-		} else
-		{
+		} else {
 			return getIntProperty(MAX_DEPTH_KEY);
 		}
 	}
 
-	public void setMaxDepth(final int maxDepth)
-	{
+	public void setMaxDepth(final int maxDepth) {
 		setProperty(MAX_DEPTH_KEY, maxDepth);
 	}
 
 	@Override
-	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers)
-	{
+	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers) {
 		renderers.put(RenderMode.Default, new MenuRenderer());
 	}
 }

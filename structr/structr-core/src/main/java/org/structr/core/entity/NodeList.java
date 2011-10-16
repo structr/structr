@@ -93,25 +93,6 @@ public class NodeList<T extends AbstractNode> extends AbstractNode implements It
         return ICON_SRC;
     }
 
-    @Override
-    public void initializeRenderers(Map<RenderMode, NodeRenderer> rendererMap)
-    {
-    }
-
-    @Override
-    public void onNodeCreation()
-    {
-    }
-
-    @Override
-    public void onNodeInstantiation()
-    {
-    }
-
-    @Override
-    public void onNodeDeletion() {
-    }
-
     /**
      * Returns the first node of this list, or null if this list is empty.
      *

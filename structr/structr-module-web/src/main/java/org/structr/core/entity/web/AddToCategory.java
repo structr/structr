@@ -31,20 +31,18 @@ import org.structr.renderer.AddToCategoryRenderer;
  *
  * @author axel
  */
-public class AddToCategory extends WebNode
-{
+public class AddToCategory extends WebNode {
+
 	private final static String ICON_SRC = "/images/tag_blue_add.png";
 	public final static String CATEGORY_PARAMETER_NAME_KEY = "categoryParameterName";
 
 	@Override
-	public String getIconSrc()
-	{
+	public String getIconSrc() {
 		return ICON_SRC;
 	}
 
 	@Override
-	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers)
-	{
+	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers) {
 		renderers.put(RenderMode.Default, new AddToCategoryRenderer());
 	}
 
@@ -53,8 +51,7 @@ public class AddToCategory extends WebNode
 	 *
 	 * @return
 	 */
-	public String getCategoryParameterName()
-	{
+	public String getCategoryParameterName() {
 		return getStringProperty(CATEGORY_PARAMETER_NAME_KEY);
 	}
 
@@ -63,8 +60,7 @@ public class AddToCategory extends WebNode
 	 *
 	 * @param value
 	 */
-	public void setCategoryParameterName(final String value)
-	{
+	public void setCategoryParameterName(final String value) {
 		setProperty(CATEGORY_PARAMETER_NAME_KEY, value);
 	}
 }

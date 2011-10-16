@@ -33,62 +33,59 @@ import org.structr.renderer.LoginFormRenderer;
  */
 public class LoginForm extends Form {
 
-    public final static String defaultUsernameFieldName = "loginForm_username";
-    public final static String defaultPasswordFieldName = "loginForm_password";
-    public final static String defaultSubmitButtonName = "loginForm_submit";
-    public final static String defaultAntiRobotFieldName = "loginForm_antiRobot";
-    /** Name of username field */
-    public final static String USERNAME_FIELD_NAME_KEY = "usernameFieldName";
-    /** Name of password field */
-    public final static String PASSWORD_FIELD_NAME_KEY = "passwordFieldName";
+	public final static String defaultUsernameFieldName = "loginForm_username";
+	public final static String defaultPasswordFieldName = "loginForm_password";
+	public final static String defaultSubmitButtonName = "loginForm_submit";
+	public final static String defaultAntiRobotFieldName = "loginForm_antiRobot";
+	/** Name of username field */
+	public final static String USERNAME_FIELD_NAME_KEY = "usernameFieldName";
+	/** Name of password field */
+	public final static String PASSWORD_FIELD_NAME_KEY = "passwordFieldName";
+	private final static String ICON_SRC = "/images/form.png";
 
-    private final static String ICON_SRC = "/images/form.png";
+	@Override
+	public String getIconSrc() {
+		return ICON_SRC;
+	}
 
-    @Override
-    public String getIconSrc() {
-        return ICON_SRC;
-    }
+	/**
+	 * Return name of username field
+	 *
+	 * @return
+	 */
+	public String getUsernameFieldName() {
+		return getStringProperty(USERNAME_FIELD_NAME_KEY);
+	}
 
-    /**
-     * Return name of username field
-     *
-     * @return
-     */
-    public String getUsernameFieldName() {
-        return getStringProperty(USERNAME_FIELD_NAME_KEY);
-    }
+	/**
+	 * Return name of password field
+	 *
+	 * @return
+	 */
+	public String getPasswordFieldName() {
+		return getStringProperty(PASSWORD_FIELD_NAME_KEY);
+	}
 
-    /**
-     * Return name of password field
-     *
-     * @return
-     */
-    public String getPasswordFieldName() {
-        return getStringProperty(PASSWORD_FIELD_NAME_KEY);
-    }
+	/**
+	 * Set name of username field
+	 *
+	 * @param value
+	 */
+	public void setUsernameFieldName(final String value) {
+		setProperty(USERNAME_FIELD_NAME_KEY, value);
+	}
 
+	/**
+	 * Set name of password field
+	 *
+	 * @param value
+	 */
+	public void setPasswordFieldName(final String value) {
+		setProperty(PASSWORD_FIELD_NAME_KEY, value);
+	}
 
-    /**
-     * Set name of username field
-     *
-     * @param value
-     */
-    public void setUsernameFieldName(final String value) {
-        setProperty(USERNAME_FIELD_NAME_KEY, value);
-    }
-
-    /**
-     * Set name of password field
-     *
-     * @param value
-     */
-    public void setPasswordFieldName(final String value) {
-        setProperty(PASSWORD_FIELD_NAME_KEY, value);
-    }
-
-    @Override
-    public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers)
-    {
-	    renderers.put(RenderMode.Default, new LoginFormRenderer());
-    }
+	@Override
+	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers) {
+		renderers.put(RenderMode.Default, new LoginFormRenderer());
+	}
 }

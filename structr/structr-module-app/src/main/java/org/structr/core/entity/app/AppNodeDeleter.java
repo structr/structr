@@ -54,18 +54,4 @@ public class AppNodeDeleter extends ActionNode
 	{
 		return ("/images/brick_delete.png");
 	}
-
-	@Override
-	public void onNodeCreation()
-	{
-	}
-
-	@Override
-	public void onNodeInstantiation()
-	{
-	}
-
-    @Override
-    public void onNodeDeletion() {
-    }
 }

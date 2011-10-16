@@ -237,15 +237,6 @@ public class AppLogin extends ActionNode {
 		}
 	}
 
-	@Override
-	public void onNodeCreation() {}
-
-	@Override
-	public void onNodeInstantiation() {}
-
-	@Override
-	public void onNodeDeletion() {}
-
 	//~--- get methods ----------------------------------------------------
 
 	@Override

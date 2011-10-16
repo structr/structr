@@ -42,21 +42,7 @@ public class Map extends AbstractNode
 		return ICON_SRC;
 	}
 
-	@Override
-	public void onNodeCreation()
-	{
-	}
-
-	@Override
-	public void onNodeInstantiation()
-	{
-	}
-
-    @Override
-    public void onNodeDeletion() {
-    }
-
-// <editor-fold defaultstate="collapsed" desc="getter and setter methods">
+	// <editor-fold defaultstate="collapsed" desc="getter and setter methods">
 // getter and setter methods
 //    public String getContentType() {
 //        return (String) getProperty(CONTENT_TYPE_KEY);
@@ -489,7 +475,7 @@ public class Map extends AbstractNode
 	// </editor-fold>
 
 	// Attributes
-// <editor-fold defaultstate="collapsed" desc="Attributes">
+	// <editor-fold defaultstate="collapsed" desc="Attributes">
 	private final static String ICON_SRC = "/images/map.png";
 	private static final Logger logger = Logger.getLogger(Map.class.getName());
 	public final static String defaultFeatureParamName = "name";

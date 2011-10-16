@@ -23,8 +23,6 @@ package org.structr.core.entity.web;
 
 import org.apache.commons.lang.StringUtils;
 
-import org.structr.common.RenderMode;
-import org.structr.core.NodeRenderer;
 import org.structr.core.entity.AbstractNode;
 
 import org.w3c.dom.Node;
@@ -59,21 +57,6 @@ public class RssItem extends AbstractNode {
 		values.put(NAME_KEY, "item" + index);
 		initialize();
 	}
-
-	//~--- methods --------------------------------------------------------
-
-	// ----- AbstractNode -----
-	@Override
-	public void initializeRenderers(Map<RenderMode, NodeRenderer> rendererMap) {}
-
-	@Override
-	public void onNodeCreation() {}
-
-	@Override
-	public void onNodeInstantiation() {}
-
-	@Override
-	public void onNodeDeletion() {}
 
 	// ----- private methods -----
 	private void initialize() {

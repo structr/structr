@@ -20,11 +20,8 @@
 package org.structr.core.entity;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import org.structr.common.RelType;
-import org.structr.common.RenderMode;
-import org.structr.core.NodeRenderer;
 import org.structr.core.Predicate;
 import org.structr.core.node.FilterSourceCollector;
 import org.structr.core.node.IterableFilter;
@@ -49,23 +46,7 @@ public abstract class FilterNode extends AbstractNode {
 
 	// ----- AbstractNode -----
 	@Override
-	public void initializeRenderers(Map<RenderMode, NodeRenderer> rendererMap) {
-	}
-
-	@Override
 	public String getIconSrc() {
 		return("/images/flag_blue.png");
-	}
-
-	@Override
-	public void onNodeCreation() {
-	}
-
-	@Override
-	public void onNodeInstantiation() {
-	}
-
-	@Override
-	public void onNodeDeletion() {
 	}
 }
