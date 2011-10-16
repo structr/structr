@@ -33,7 +33,7 @@ import org.structr.core.servlet.JsonRestServlet;
  *
  * @author Christian Morgner
  */
-public class TypedSearchConstraint implements ResourceConstraint {
+public class TypedSearchConstraint extends ResourceConstraint {
 
 	private static final Logger logger = Logger.getLogger(TypedSearchConstraint.class.getName());
 
@@ -69,10 +69,6 @@ public class TypedSearchConstraint implements ResourceConstraint {
 		}
 
 		return searchResults;
-	}
-
-	@Override
-	public void configureContext(ResultGSONAdapter resultRenderer) {
 	}
 
 	@Override

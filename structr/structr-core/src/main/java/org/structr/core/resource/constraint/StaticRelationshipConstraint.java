@@ -35,7 +35,7 @@ import org.structr.core.resource.adapter.ResultGSONAdapter;
  *
  * @author Christian Morgner
  */
-public class StaticRelationshipConstraint implements ResourceConstraint {
+public class StaticRelationshipConstraint extends ResourceConstraint {
 
 	TypedIdConstraint typedIdConstraint = null;
 	TypeConstraint typeConstraint = null;
@@ -89,10 +89,6 @@ public class StaticRelationshipConstraint implements ResourceConstraint {
 	@Override
 	public boolean acceptUriPart(String part) {
 		return false;
-	}
-
-	@Override
-	public void configureContext(ResultGSONAdapter resultRenderer) {
 	}
 
 	@Override

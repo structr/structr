@@ -42,12 +42,14 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.lang.StringUtils;
 import org.structr.common.AccessMode;
 import org.structr.common.CurrentRequest;
 import org.structr.common.PropertyView;
 import org.structr.core.Command;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
+import org.structr.core.Value;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.StructrRelationship;
 import org.structr.core.entity.SuperUser;
@@ -97,35 +99,31 @@ public class JsonRestServlet extends HttpServlet {
 
 	private static final String	SERVLET_PARAMETER_PROPERTY_FORMAT =	"PropertyFormat";
 
-	private ResultGSONAdapter resultGsonAdapter = null;
-	private Map<Pattern, Class> constraintMap = null;
-	private Gson gson = null;
+	private PropertySetGSONAdapter	propertySetAdapter =			null;
+	private Map<Pattern, Class>	constraintMap =				null;
+	private Value<PropertyView>	propertyView =				null;
+	private ResultGSONAdapter	resultGsonAdapter =			null;
+	private Gson			gson =					null;
 
 	@Override
 	public void init() {
 
-		// ----- set property format from init parameters -----
-		String propertyFormatParameter = this.getInitParameter(SERVLET_PARAMETER_PROPERTY_FORMAT);
-		PropertyFormat propertyFormat = PropertyFormat.NestedKeyValueType;
-
-		if(propertyFormatParameter != null) {
-
-			try {
-				propertyFormat = PropertyFormat.valueOf(propertyFormatParameter);
-				logger.log(Level.INFO, "Setting property format to {0}", propertyFormatParameter);
-
-			} catch(Throwable t) {
-
-				logger.log(Level.WARNING, "Cannot use property format {0}, unknown format.", propertyFormatParameter);
-			}
-		}
+		// init parameters
+		PropertyFormat propertyFormat =		initializePropertyFormat();
 
 		// initialize variables
-		this.resultGsonAdapter = new ResultGSONAdapter(propertyFormat);
-		this.constraintMap = new LinkedHashMap<Pattern, Class>();
+		this.constraintMap =			new LinkedHashMap<Pattern, Class>();
+		this.propertyView =			new ThreadLocalPropertyView();
+
+		// initialize adapters
+		this.resultGsonAdapter =		new ResultGSONAdapter(propertyFormat, propertyView);
+		this.propertySetAdapter =		new PropertySetGSONAdapter(propertyFormat);
+
+		// create GSON serializer
 		this.gson = new GsonBuilder()
 			.setPrettyPrinting()
-			.registerTypeAdapter(PropertySet.class,	new PropertySetGSONAdapter(propertyFormat))
+			.serializeNulls()
+			.registerTypeAdapter(PropertySet.class,	propertySetAdapter)
 			.registerTypeAdapter(Result.class,	resultGsonAdapter)
 			.create();
 
@@ -139,9 +137,6 @@ public class JsonRestServlet extends HttpServlet {
 		// start & end node
 		constraintMap.put(Pattern.compile("start"),		RelationshipNodeConstraint.class);	// start node
 		constraintMap.put(Pattern.compile("end"),		RelationshipNodeConstraint.class);	// end node
-
-		// search
-		constraintMap.put(Pattern.compile("search"),		SearchConstraint.class);		// search
 
 		// views
 		constraintMap.put(Pattern.compile("public"),		ViewFilterConstraint.class);		// public view (default)
@@ -230,6 +225,9 @@ public class JsonRestServlet extends HttpServlet {
 
 		try {
 
+			// set default value for property view
+			propertyView.set(PropertyView.Public);
+
 			double queryTimeStart = System.nanoTime();
 			Result result = getResults(request);
 			double queryTimeEnd = System.nanoTime();
@@ -242,15 +240,12 @@ public class JsonRestServlet extends HttpServlet {
 				response.setContentType("application/json; charset=utf-8");
 				Writer writer = response.getWriter();
 
-				// set public view by default
 				gson.toJson(result, writer);
-
+				
 				writer.flush();
 				writer.close();
 
 				response.setStatus(HttpServletResponse.SC_OK);
-
-//				logger.log(Level.INFO, "GSON serialization took {0} seconds", decimalFormat.format((serializationTimeEnd - serializationTimeStart) / 1000000000.0));
 
 			} else {
 
@@ -266,6 +261,7 @@ public class JsonRestServlet extends HttpServlet {
 		} catch(JsonParseException jpex) {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 		} catch(Throwable t) {
+			logger.log(Level.WARNING, "Exception in GET", t);
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -295,51 +291,46 @@ public class JsonRestServlet extends HttpServlet {
 	protected void doPost(final HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
 		try {
-			if(request.getPathInfo().endsWith("/node")) {
 
-				// parse property set from json input
-				final PropertySet propertySet = gson.fromJson(request.getReader(), PropertySet.class);
+			// parse property set from json input
+			final PropertySet propertySet = gson.fromJson(request.getReader(), PropertySet.class);
+			final List<NodeAttribute> attributes = propertySet.getAttributes();
+			String type = null;
+			long id = -1;
 
-				// create new node
-				AbstractNode newNode = (AbstractNode)Services.command(TransactionCommand.class).execute(new StructrTransaction() {
+			String path = request.getPathInfo();
+			if(path.endsWith("/node")) {
+
+				// create transaction closure
+				StructrTransaction transaction = new StructrTransaction() {
 
 					@Override
 					public Object execute() throws Throwable {
 
-						Command createNodeCommand = Services.command(CreateNodeCommand.class);
-						return (AbstractNode)createNodeCommand.execute(new SuperUser(), propertySet.getAttributes());
+						return (AbstractNode)Services.command(CreateNodeCommand.class).execute(new SuperUser(), attributes);
 					}
-				});
+				};
 
-				// FIXME: might not work under all conditions
-				// build "Location" header field for response
-				StringBuilder uriBuilder = new StringBuilder(100);
-				uriBuilder.append(request.getScheme());
-				uriBuilder.append("://");
-				uriBuilder.append(request.getServerName());
-				uriBuilder.append(":");
-				uriBuilder.append(request.getServerPort());
-				uriBuilder.append(request.getContextPath());
-				uriBuilder.append(request.getServletPath());
-				uriBuilder.append("/");
-				uriBuilder.append(newNode.getType().toLowerCase());
-				uriBuilder.append("s/");
-				uriBuilder.append(newNode.getId());
+				// execute transaction: create new node
+				AbstractNode newNode = (AbstractNode)Services.command(TransactionCommand.class).execute(transaction);
+				if(newNode != null) {
 
-				// set response code
-				response.setHeader("Location", uriBuilder.toString());
-				response.setStatus(HttpServletResponse.SC_CREATED);
+					type = newNode.getType();
+					id = newNode.getId();
+
+				} else {
+
+					// re-throw transaction cause
+					if(transaction.getCause() != null) {
+						throw transaction.getCause();
+					}
+				}
 
 			} else
-			if(request.getPathInfo().endsWith("/rel")) {
-
-				// parse property set from json input
-				final PropertySet propertySet = gson.fromJson(request.getReader(), PropertySet.class);
-				List<NodeAttribute> attributes = propertySet.getAttributes();
+			if(path.endsWith("/rel")) {
 
 				long startNodeId = -1;
 				long endNodeId = -1;
-				String type = null;
 
 				// fetch relationship attributes and remove them from set
 				for(Iterator<NodeAttribute> it = attributes.iterator(); it.hasNext();) {
@@ -375,24 +366,8 @@ public class JsonRestServlet extends HttpServlet {
 							nodeRel.setProperty(attr.getKey(), attr.getValue());
 						}
 
-						// FIXME: might not work under all conditions
-						// build "Location" header field for response
-						StringBuilder uriBuilder = new StringBuilder(100);
-						uriBuilder.append(request.getScheme());
-						uriBuilder.append("://");
-						uriBuilder.append(request.getServerName());
-						uriBuilder.append(":");
-						uriBuilder.append(request.getServerPort());
-						uriBuilder.append(request.getContextPath());
-						uriBuilder.append(request.getServletPath());
-						uriBuilder.append("/");
-						uriBuilder.append(nodeRel.getType().toLowerCase());
-						uriBuilder.append("s/");
-						uriBuilder.append(nodeRel.getId());
-
-						// set response code
-						response.setHeader("Location", uriBuilder.toString());
-						response.setStatus(HttpServletResponse.SC_CREATED);
+						type = nodeRel.getType();
+						id = nodeRel.getId();
 
 					} else {
 
@@ -406,9 +381,80 @@ public class JsonRestServlet extends HttpServlet {
 				}
 
 			} else {
-				
-				throw new IllegalPathException();
+
+				// try type constraint
+				List<ResourceConstraint> constraintChain = parsePath(path);
+				if(constraintChain.size() == 1) {
+
+					ResourceConstraint constr = constraintChain.get(0);
+					if(constr instanceof TypeConstraint) {
+
+						TypeConstraint typeConstraint = (TypeConstraint)constr;
+						type = typeConstraint.getType();
+
+						// add type to attribute set (will override type information from JSON input!)
+						attributes.add(new NodeAttribute(AbstractNode.TYPE_KEY, StringUtils.capitalize(type)));
+
+						// create transaction closure
+						StructrTransaction transaction = new StructrTransaction() {
+
+							@Override
+							public Object execute() throws Throwable {
+
+								return (AbstractNode)Services.command(CreateNodeCommand.class).execute(new SuperUser(), attributes);
+							}
+						};
+
+						// execute transaction: create new node
+						AbstractNode newNode = (AbstractNode)Services.command(TransactionCommand.class).execute(transaction);
+						if(newNode != null) {
+
+							type = newNode.getType();
+							id = newNode.getId();
+
+						} else {
+
+							// re-throw transaction cause
+							if(transaction.getCause() != null) {
+								throw transaction.getCause();
+							}
+						}
+
+					} else {
+
+						throw new IllegalPathException();
+					}
+
+				} else {
+
+					throw new IllegalPathException();
+				}
+
 			}
+
+			// set response code
+			if(type != null && id > -1) {
+
+				response.setHeader("Location", buildLocationURI(request, type, id));
+				response.setStatus(HttpServletResponse.SC_CREATED);
+
+			} else {
+
+				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+			}
+
+		} catch(IllegalStateException illegalStateException) {
+
+			// illegal state exception, return error
+			StringBuilder errorBuffer = new StringBuilder(100);
+			errorBuffer.append(illegalStateException.getMessage());
+
+			// send response
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+			response.setContentLength(errorBuffer.length());
+			response.getWriter().append(errorBuffer.toString());
+			response.getWriter().flush();
+			response.getWriter().close();
 
 		} catch(PathException pathException) {
 			response.setStatus(pathException.getStatus());
@@ -454,7 +500,9 @@ public class JsonRestServlet extends HttpServlet {
 						}
 
 					});
+
 				} else {
+
 					throw new NotFoundException();
 				}
 
@@ -485,32 +533,29 @@ public class JsonRestServlet extends HttpServlet {
 	}
 	// </editor-fold>
 
-	// ---- private methods -----
+	// <editor-fold defaultstate="collapsed" desc="private methods">
 	private Result getResults(HttpServletRequest request) throws PathException {
+
+		PagingConstraint pagingConstraint = null;
 
 		// fetch request path
 		String path = request.getPathInfo();
 		if(path != null) {
 
-			// parse path into constraint chain
+
+			// 1: parse path into constraint chain
 			List<ResourceConstraint> constraintChain = parsePath(path);
-			PagingConstraint pagingConstraint = null;
-			String sortOrder = null;
-			String sortKey = null;
 
-			// sort results
-			sortKey = request.getParameter(REQUEST_PARAMETER_SORT_KEY);
-			if(sortKey != null) {
+			// 2: add constraints that can be optimized here
+			addOptimizableConstraints(request, constraintChain);
 
-				sortOrder = request.getParameter(REQUEST_PARAMETER_SORT_ORDER);
-				if(sortOrder == null) {
-					sortOrder = DEFAULT_VALUE_SORT_ORDER;
-				}
+			// 3: combine constraints (moved here to allow search to be optimized)
+			optimizeConstraintChain(constraintChain);
 
-				constraintChain.add(new SortConstraint(sortKey, sortOrder));
-			}
+			// 4: add constraints that cannot be optimized here
+			addNonOptimizableConstraints(request, constraintChain);
 
-			// paging
+			// 5: add paging
 			String pageSizeParameter = request.getParameter(REQUEST_PARAMETER_PAGE_SIZE);
 			if(pageSizeParameter != null) {
 
@@ -527,7 +572,7 @@ public class JsonRestServlet extends HttpServlet {
 				constraintChain.add(pagingConstraint);
 			}
 
-			// fetch results
+			// 6: fetch results
 			Result results = evaluateConstraints(constraintChain, request);
 			if(results != null) {
 
@@ -549,11 +594,8 @@ public class JsonRestServlet extends HttpServlet {
 					}
 				}
 
-				// set information from sort constraint
-				results.setSortOrder(sortOrder);
-				results.setSortKey(sortKey);
-
-				// check for "search" parameter and set in result
+				results.setSortOrder(request.getParameter(REQUEST_PARAMETER_SORT_ORDER));
+				results.setSortKey(request.getParameter(REQUEST_PARAMETER_SORT_KEY));
 				results.setSearchString(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_SEARCH_STRING));
 			}
 
@@ -601,8 +643,8 @@ public class JsonRestServlet extends HttpServlet {
 									part
 								});
 
-								// let the given constraint configureContext its own output
-								constraint.configureContext(resultGsonAdapter);
+								// allow constraint to modify context
+								constraint.configurePropertyView(propertyView);
 
 								// add constraint and go on
 								constraintChain.add(constraint);
@@ -615,13 +657,11 @@ public class JsonRestServlet extends HttpServlet {
 
 							logger.log(Level.WARNING, "Error instantiating constraint class", t);
 						}
+
 					}
 				}
 			}
 		}
-
-		// 4.: combine constraints into larger tuples
-		combineResources(constraintChain);
 
 		return constraintChain;
 	}
@@ -637,7 +677,7 @@ public class JsonRestServlet extends HttpServlet {
 		return new Result(results);
 	}
 
-	private void combineResources(List<ResourceConstraint> constraintChain) throws PathException {
+	private void optimizeConstraintChain(List<ResourceConstraint> constraintChain) throws PathException {
 
 		int num = constraintChain.size();
 		boolean found = false;
@@ -664,9 +704,6 @@ public class JsonRestServlet extends HttpServlet {
 
 						logger.log(Level.FINE, "Combined constraint {0}", combinedConstraint.getClass().getSimpleName());
 
-						// configure context
-						combinedConstraint.configureContext(resultGsonAdapter);
-
 						// remove source constraints
 						constraintChain.remove(firstElement);
 						constraintChain.remove(secondElement);
@@ -686,6 +723,70 @@ public class JsonRestServlet extends HttpServlet {
 			iterations++;
 
 		} while(found);
+	}
+
+	private void addOptimizableConstraints(HttpServletRequest request, List<ResourceConstraint> constraintChain) throws PathException {
+
+		// search requested?
+		String searchString = request.getParameter(REQUEST_PARAMETER_SEARCH_STRING);
+		if(searchString != null) {
+			constraintChain.add(new SearchConstraint());
+		}
+
+	}
+
+	private void addNonOptimizableConstraints(HttpServletRequest request, List<ResourceConstraint> constraintChain) throws PathException {
+
+		// sort results
+		String sortKey = request.getParameter(REQUEST_PARAMETER_SORT_KEY);
+		if(sortKey != null) {
+
+			String sortOrder = request.getParameter(REQUEST_PARAMETER_SORT_ORDER);
+			if(sortOrder == null) {
+				sortOrder = DEFAULT_VALUE_SORT_ORDER;
+			}
+
+			constraintChain.add(new SortConstraint(sortKey, sortOrder));
+		}
+	}
+
+	private PropertyFormat initializePropertyFormat() {
+
+		// ----- set property format from init parameters -----
+		String propertyFormatParameter = this.getInitParameter(SERVLET_PARAMETER_PROPERTY_FORMAT);
+		PropertyFormat propertyFormat = PropertyFormat.NestedKeyValueType;
+
+		if(propertyFormatParameter != null) {
+
+			try {
+				propertyFormat = PropertyFormat.valueOf(propertyFormatParameter);
+				logger.log(Level.INFO, "Setting property format to {0}", propertyFormatParameter);
+
+			} catch(Throwable t) {
+
+				logger.log(Level.WARNING, "Cannot use property format {0}, unknown format.", propertyFormatParameter);
+			}
+		}
+
+		return propertyFormat;
+	}
+
+	private String buildLocationURI(HttpServletRequest request, String type, long id) {
+
+		StringBuilder uriBuilder = new StringBuilder(100);
+		uriBuilder.append(request.getScheme());
+		uriBuilder.append("://");
+		uriBuilder.append(request.getServerName());
+		uriBuilder.append(":");
+		uriBuilder.append(request.getServerPort());
+		uriBuilder.append(request.getContextPath());
+		uriBuilder.append(request.getServletPath());
+		uriBuilder.append("/");
+		uriBuilder.append(type.toLowerCase());
+		uriBuilder.append("s/");
+		uriBuilder.append(id);
+
+		return uriBuilder.toString();
 	}
 
 	/**
@@ -711,6 +812,17 @@ public class JsonRestServlet extends HttpServlet {
 
 		return defaultValue;
 	}
+	// </editor-fold>
+
+	// <editor-fold defaultstate="collapsed" desc="nested classes">
+	private class ThreadLocalPropertyView extends ThreadLocal<PropertyView> implements Value<PropertyView> {
+
+		@Override
+		protected PropertyView initialValue() {
+			return PropertyView.Public;
+		}
+	}
+	// </editor-fold>
 }
 
 

@@ -34,7 +34,7 @@ import org.structr.core.resource.adapter.ResultGSONAdapter;
  *
  * @author Christian Morgner
  */
-public class RelationshipNodeConstraint implements ResourceConstraint {
+public class RelationshipNodeConstraint extends ResourceConstraint {
 
 	private static final Logger logger = Logger.getLogger(RelationshipNodeConstraint.class.getName());
 	private boolean startNode = false;
@@ -87,10 +87,6 @@ public class RelationshipNodeConstraint implements ResourceConstraint {
 		}
 
 		return true;
-	}
-
-	@Override
-	public void configureContext(ResultGSONAdapter resultRenderer) {
 	}
 
 	@Override

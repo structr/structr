@@ -18,7 +18,7 @@ import org.structr.core.resource.adapter.ResultGSONAdapter;
  *
  * @author Christian Morgner
  */
-public class SortConstraint implements ResourceConstraint {
+public class SortConstraint extends ResourceConstraint {
 
 	private static final Logger logger = Logger.getLogger(SortConstraint.class.getName());
 
@@ -74,10 +74,6 @@ public class SortConstraint implements ResourceConstraint {
 		}
 		
 		return results;
-	}
-
-	@Override
-	public void configureContext(ResultGSONAdapter resultRenderer) {
 	}
 
 	@Override

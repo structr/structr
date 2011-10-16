@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2011 Axel Morgner, structr <structr@structr.org>
+ *  Copyright (C) 2011 Axel Morgner
  * 
  *  This file is part of structr <http://structr.org>.
  * 
@@ -17,23 +17,14 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.structr.core.node;
+package org.structr.core;
 
 /**
  *
- * @author cmorgner
+ * @author Christian Morgner
  */
-public abstract class StructrTransaction
-{
-	private Throwable cause = null;
+public interface Value<T> {
 
-	public abstract Object execute() throws Throwable;
-
-	public void setCause(Throwable cause) {
-		this.cause = cause;
-	}
-
-	public Throwable getCause() {
-		return cause;
-	}
+	public void set(T value);
+	public T get();
 }

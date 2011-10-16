@@ -21,7 +21,6 @@ import org.structr.core.node.search.SearchOperator;
 import org.structr.core.node.search.TextualSearchAttribute;
 import org.structr.core.resource.NoResultsException;
 import org.structr.core.resource.PathException;
-import org.structr.core.resource.adapter.ResultGSONAdapter;
 
 /**
  * Represents a bulk type match. A TypeConstraint will always result in a
@@ -32,7 +31,7 @@ import org.structr.core.resource.adapter.ResultGSONAdapter;
  * 
  * @author Christian Morgner
  */
-public class TypeConstraint implements ResourceConstraint {
+public class TypeConstraint extends ResourceConstraint {
 
 	private static final Logger logger = Logger.getLogger(TypeConstraint.class.getName());
 
@@ -92,10 +91,6 @@ public class TypeConstraint implements ResourceConstraint {
 		throw new NoResultsException();
 	}
 
-	@Override
-	public void configureContext(ResultGSONAdapter resultRenderer) {
-	}
-
 	public String getType() {
 		return type;
 	}
@@ -104,6 +99,10 @@ public class TypeConstraint implements ResourceConstraint {
 		
 		this.type = type;
 
+		if(this.type.endsWith("ies")) {
+			logger.log(Level.FINEST, "Replacing trailing 'ies' with 'y' for type {0}", type);
+			this.type = this.type.substring(0, this.type.length() - 3).concat("y");
+		} else
 		if(this.type.endsWith("s")) {
 			logger.log(Level.FINEST, "Removing trailing plural 's' from type {0}", type);
 			this.type = this.type.substring(0, this.type.length() - 1);

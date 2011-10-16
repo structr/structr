@@ -27,54 +27,51 @@ import org.neo4j.graphdb.Transaction;
  */
 public class TransactionCommand extends NodeServiceCommand {
 
-    @Override
-    public Object execute(Object... parameters) {
+	@Override
+	public Object execute(Object... parameters) {
 
-        Object ret = null;
-        GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
+		Object ret = null;
+		GraphDatabaseService graphDb = (GraphDatabaseService)arguments.get("graphDb");
 
-        if (parameters.length > 0 && parameters[0] instanceof StructrTransaction) {
+		if(parameters.length > 0 && parameters[0] instanceof StructrTransaction) {
 
-            StructrTransaction transaction = (StructrTransaction) parameters[0];
-	    if(graphDb != null) {
-		    Transaction tx = graphDb.beginTx();
-		    try {
-			ret = transaction.execute();
+			StructrTransaction transaction = (StructrTransaction)parameters[0];
+			if(graphDb != null) {
+				Transaction tx = graphDb.beginTx();
+				try {
+					ret = transaction.execute();
+					tx.success();
 
-			tx.success();
+				} catch(Throwable t) {
 
-		    } catch (Throwable t) {
-			t.printStackTrace();
+					//t.printStackTrace();
+					transaction.setCause(t);
+					tx.failure();
 
-			tx.failure();
+				} finally {
+					tx.finish();
+				}
+			}
 
-		    } finally {
-			tx.finish();
-		    }
-	    }
+		} else if(parameters.length > 0 && parameters[0] instanceof BatchTransaction) {
 
-        } else if (parameters.length > 0 && parameters[0] instanceof BatchTransaction) {
+			BatchTransaction transaction = (BatchTransaction)parameters[0];
+			Transaction tx = graphDb.beginTx();
+			try {
+				ret = transaction.execute(tx);
+				tx.success();
 
-            BatchTransaction transaction = (BatchTransaction) parameters[0];
-            Transaction tx = graphDb.beginTx();
-            try {
-                ret = transaction.execute(tx);
+			} catch(Throwable t) {
+				// t.printStackTrace();
+				transaction.setCause(t);
+				tx.failure();
 
-                tx.success();
+			} finally {
+				tx.finish();
+			}
 
-            } catch (Throwable t) {
-                t.printStackTrace();
+		}
 
-                tx.failure();
-
-            } finally {
-                tx.finish();
-            }
-
-        }
-
-        return ret;
-    }
-
-
+		return ret;
+	}
 }

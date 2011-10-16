@@ -19,6 +19,7 @@
 
 package org.structr.core.resource.adapter;
 
+import com.google.gson.FieldNamingPolicy;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
@@ -33,6 +34,7 @@ import java.util.List;
 import java.util.logging.Logger;
 import org.structr.common.PropertyView;
 import org.structr.core.GraphObject;
+import org.structr.core.Value;
 import org.structr.core.resource.constraint.Result;
 import org.structr.core.resource.wrapper.PropertySet.PropertyFormat;
 
@@ -46,15 +48,8 @@ public class ResultGSONAdapter implements JsonSerializer<Result>, JsonDeserializ
 	private static final Logger logger = Logger.getLogger(ResultGSONAdapter.class.getName());
 	private GraphObjectGSONAdapter graphObjectGsonAdapter = null;
 
-	public ResultGSONAdapter() {
-	}
-
-	public ResultGSONAdapter(PropertyFormat propertyFormat) {
-		this.graphObjectGsonAdapter = new GraphObjectGSONAdapter(propertyFormat);
-	}
-
-	public void setThreadLocalPropertyView(PropertyView propertyView) {
-		this.graphObjectGsonAdapter.setThreadLocalPropertyView(propertyView);
+	public ResultGSONAdapter(PropertyFormat propertyFormat, Value<PropertyView> propertyView) {
+		this.graphObjectGsonAdapter = new GraphObjectGSONAdapter(propertyFormat, propertyView);
 	}
 
 	@Override

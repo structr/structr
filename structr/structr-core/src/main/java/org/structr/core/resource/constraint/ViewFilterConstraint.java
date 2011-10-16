@@ -24,14 +24,14 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.PropertyView;
 import org.structr.core.GraphObject;
+import org.structr.core.Value;
 import org.structr.core.resource.PathException;
-import org.structr.core.resource.adapter.ResultGSONAdapter;
 
 /**
  *
  * @author Christian Morgner
  */
-public class ViewFilterConstraint implements ResourceConstraint {
+public class ViewFilterConstraint extends ResourceConstraint {
 
 	private PropertyView propertyView = null;
 
@@ -58,12 +58,12 @@ public class ViewFilterConstraint implements ResourceConstraint {
 	}
 
 	@Override
-	public void configureContext(ResultGSONAdapter resultRenderer) {
-		resultRenderer.setThreadLocalPropertyView(propertyView);
+	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws PathException {
+		return null;
 	}
 
 	@Override
-	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws PathException {
-		return null;
+	public void configurePropertyView(Value<PropertyView> propertyView) {
+		propertyView.set(this.propertyView);
 	}
 }
