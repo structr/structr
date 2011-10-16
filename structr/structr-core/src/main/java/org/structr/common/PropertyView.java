@@ -20,6 +20,13 @@
 package org.structr.common;
 
 /**
+ * Enumeration to define different views on a node's properties.
+ * 
+ * Depending on the value, you get a different set of properties for
+ * a node.
+ *
+ * F.e. in Public mode, only the properties suitable for public users should
+ * be returned.
  *
  * @author Christian Morgner
  */
