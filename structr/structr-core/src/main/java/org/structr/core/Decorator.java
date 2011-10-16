@@ -24,7 +24,7 @@ package org.structr.core;
  *
  * @author Christian Morgner
  */
-public interface Decorator<T>
+public interface Decorator<AbstractNode>
 {
-	public void decorate(T t);
+	public void decorate(AbstractNode t);
 }

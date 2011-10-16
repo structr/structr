@@ -1,18 +1,18 @@
 /*
  *  Copyright (C) 2011 Axel Morgner, structr <structr@structr.org>
- * 
+ *
  *  This file is part of structr <http://structr.org>.
- * 
+ *
  *  structr is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
- * 
+ *
  *  structr is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- * 
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -68,12 +68,13 @@ import org.structr.core.node.TransactionCommand;
  *
  * @author Christian Morgner
  */
-public class NodeList<T extends AbstractNode> extends AbstractNode implements List<T>, Decorable<T>, Evaluable {
+public class NodeList<T extends AbstractNode> extends AbstractNode implements Iterable<AbstractNode>, Decorable<AbstractNode>, Evaluable {
+//public class NodeList<T extends AbstractNode> extends AbstractNode implements List<AbstractNode>, Decorable<AbstractNode>, Evaluable {
 
     private static final Logger logger = Logger.getLogger(NodeList.class.getName());
     private static final String PARENT_KEY = "parent";
     private static final String ICON_SRC = "/images/application_view_list.png";
-    private Set<Decorator<T>> decorators = new LinkedHashSet<Decorator<T>>();
+    private Set<Decorator<AbstractNode>> decorators = new LinkedHashSet<Decorator<AbstractNode>>();
     private Command transaction = Services.command(TransactionCommand.class);
     private Command factory = Services.command(NodeFactoryCommand.class);
     private Set<Evaluator> evaluators = new LinkedHashSet<Evaluator>();
@@ -116,12 +117,12 @@ public class NodeList<T extends AbstractNode> extends AbstractNode implements Li
      *
      * @return the first node of this list, or null
      */
-    public T getFirstNode()
+    public AbstractNode getFirstNode()
     {
 	    Node node = getFirstRawNode();
 	    if(node != null)
 	    {
-		return ((T) factory.execute(node));
+		return ((AbstractNode) factory.execute(node));
 	    }
 
 	    return(null);
@@ -142,8 +143,8 @@ public class NodeList<T extends AbstractNode> extends AbstractNode implements Li
      *
      * @return the last node of this list, or null
      */
-    public T getLastNode() {
-        return ((T) factory.execute(getLastRawNode()));
+    public AbstractNode getLastNode() {
+        return ((AbstractNode) factory.execute(getLastRawNode()));
     }
 
     /**
@@ -207,27 +208,27 @@ public class NodeList<T extends AbstractNode> extends AbstractNode implements Li
 
         return (!hasElements);
     }
-
-    /**
-     * Indicates whether this list contains the given element. This method can take time
-     * proportional to the number of elements in the list.
-     *
-     * @param o
-     * @return
-     */
-    @Override
-    public boolean contains(Object o) {
-        T n = (T) o;
-
-        for (T node : getNodes()) {
-            if (node.equals(n)) {
-                return (true);
-            }
-        }
-
-        return (false);
-
-    }
+//
+//    /**
+//     * Indicates whether this list contains the given element. This method can take time
+//     * proportional to the number of elements in the list.
+//     *
+//     * @param o
+//     * @return
+//     */
+//    @Override
+//    public boolean contains(Object o) {
+//       AbstractNode n = (AbstractNode) o;
+//
+//        for (AbstractNode node : getNodes()) {
+//            if (node.equals(n)) {
+//                return (true);
+//            }
+//        }
+//
+//        return (false);
+//
+//    }
 
     /**
      * Returns an iterator over the elements of this list (according to the current set
@@ -236,33 +237,33 @@ public class NodeList<T extends AbstractNode> extends AbstractNode implements Li
      * @return the iterator
      */
     @Override
-    public Iterator<T> iterator() {
+    public Iterator<AbstractNode> iterator() {
         return (getNodes().iterator());
     }
 
-    /**
-     * Returns an array containing all the elements in this list according to the
-     * current set of evaluators.
-     *
-     * @return the array
-     */
-    @Override
-    public Object[] toArray() {
-        return (getNodeList().toArray());
-    }
-
-    /**
-     * Returns an array containing all the elements in this list according to the
-     * current set of evaluators.
-     *
-     * @param <T>
-     * @param a
-     * @return
-     */
-    @Override
-    public <T> T[] toArray(T[] a) {
-        return (getNodeList().toArray(a));
-    }
+//    /**
+//     * Returns an array containing all the elements in this list according to the
+//     * current set of evaluators.
+//     *
+//     * @return the array
+//     */
+//    @Override
+//    public Object[] toArray() {
+//        return (getNodeList().toArray());
+//    }
+//
+//    /**
+//     * Returns an array containing all the elements in this list according to the
+//     * current set of evaluators.
+//     *
+//     * @param <T>
+//     * @param a
+//     * @return
+//     */
+//    @Override
+//    public <AbstractList> AbstractList[] toArray(AbstractList[] a) {
+//        return (getNodeList().toArray(a));
+//    }
 
     /**
      * Applies all decorators that are set on this list and adds the node
@@ -281,14 +282,14 @@ public class NodeList<T extends AbstractNode> extends AbstractNode implements Li
      * @param toRemove the node to add
      * @return true if this collection changed as a result of this call
      */
-    @Override
-    public boolean add(final T toAdd) {
+//    @Override
+    public boolean add(final AbstractNode toAdd) {
         Boolean returnValue = (Boolean) transaction.execute(new StructrTransaction() {
 
             @Override
             public Object execute() throws Throwable {
                 // apply decorators (if any)
-                for (Decorator<T> decorator : decorators) {
+                for (Decorator<AbstractNode> decorator : decorators) {
                     decorator.decorate(toAdd);
                 }
 
@@ -299,36 +300,35 @@ public class NodeList<T extends AbstractNode> extends AbstractNode implements Li
         return (returnValue.booleanValue());
     }
 
-    /**
-     * Removes the given node from this list.
-     *
-     * @param toRemove
-     * @return true if this list contained the given element
-     */
-    @Override
-    public boolean remove(final Object node) {
-        Boolean returnValue = (Boolean) transaction.execute(new StructrTransaction() {
-
-            @Override
-            public Object execute() throws Throwable {
-                return (removeNodeFromList((Node) node));
-            }
-        });
-
-        return (returnValue.booleanValue());
-    }
-
-    /**
-     * Indicates whether this list contains all of the elements in the
-     * given collection.
-     *
-     * @param nodes
-     * @return true or false
-     */
-    @Override
-    public boolean containsAll(Collection<?> c) {
-        return (getNodeList().containsAll(c));
-    }
+////    /**
+////     * Removes the given node from this list.
+////     *
+////     * @param toRemove
+////     * @return true if this list contained the given element
+////     */
+////    public boolean remove(final Object node) {
+////        Boolean returnValue = (Boolean) transaction.execute(new StructrTransaction() {
+////
+////            @Override
+////            public Object execute() throws Throwable {
+////                return (removeNodeFromList((Node) node));
+////            }
+////        });
+////
+////        return (returnValue.booleanValue());
+////    }
+//
+//    /**
+//     * Indicates whether this list contains all of the elements in the
+//     * given collection.
+//     *
+//     * @param nodes
+//     * @return true or false
+//     */
+//    @Override
+//    public boolean containsAll(Collection<?> c) {
+//        return (getNodeList().containsAll(c));
+//    }
 
     /**
      * Adds all the elements in the given collection to this list, applying
@@ -337,15 +337,15 @@ public class NodeList<T extends AbstractNode> extends AbstractNode implements Li
      * @param nodes
      * @return
      */
-    @Override
-    public boolean addAll(final Collection<? extends T> nodes) {
+//    @Override
+    public boolean addAll(final Collection<? extends AbstractNode> nodes) {
         Boolean returnValue = (Boolean) transaction.execute(new StructrTransaction() {
 
             @Override
             public Object execute() throws Throwable {
                 boolean ret = false;
 
-                for (T node : nodes) {
+                for (AbstractNode node : nodes) {
                     ret |= appendNodeToList(node.getNode());
                 }
 
@@ -356,94 +356,94 @@ public class NodeList<T extends AbstractNode> extends AbstractNode implements Li
         return (returnValue.booleanValue());
     }
 
-    /**
-     * Inserts all the elements in the given collection at the given index, applying
-     * any decorator that is set on this list before addition, respecting any evaluator
-     * that is currently set on this list.
-     *
-     * @param index
-     * @param nodes
-     * @return
-     */
-    @Override
-    public boolean addAll(final int index, final Collection<? extends T> nodes) {
-        Boolean returnValue = (Boolean) transaction.execute(new StructrTransaction() {
-
-            @Override
-            public Object execute() throws Throwable {
-                Node startNode = getNodeAt(index);
-                Node nextNode = null;
-                boolean ret = false;
-
-                for (T toInsert : nodes) {
-                    nextNode = getRelatedNode(startNode, RelType.NEXT_LIST_ENTRY, Direction.OUTGOING);
-
-                    ret |= insertNodeBefore(nextNode, toInsert.getNode());
-                }
-
-                return (ret);
-            }
-        });
-
-        return (returnValue.booleanValue());
-    }
-
-    /**
-     * Removes all elements in the given collection from this list.
-     *
-     * @param nodes
-     * @return
-     */
-    @Override
-    public boolean removeAll(final Collection<?> nodes) {
-        Boolean returnValue = (Boolean) transaction.execute(new StructrTransaction() {
-
-            @Override
-            public Object execute() throws Throwable {
-                boolean ret = false;
-
-                for (Object obj : nodes) {
-                    // provoke ClassCastException according to List interface specification
-                    T structrNode = (T) obj;
-                    Node node = structrNode.getNode();
-
-                    ret |= removeNodeFromList(node);
-                }
-
-                return (ret);
-            }
-        });
-
-        return (returnValue.booleanValue());
-    }
-
-    /**
-     * Retains only the elements in this list that are contained in the given
-     * collection.
-     *
-     * @param nodes
-     * @return
-     */
-    @Override
-    public boolean retainAll(final Collection<?> nodes) {
-        Boolean returnValue = (Boolean) transaction.execute(new StructrTransaction() {
-
-            @Override
-            public Object execute() throws Throwable {
-                boolean ret = false;
-
-                for (T node : getNodes()) {
-                    if (!nodes.contains(node)) {
-                        ret |= removeNodeFromList(node.getNode());
-                    }
-                }
-
-                return (ret);
-            }
-        });
-
-        return (returnValue.booleanValue());
-    }
+//    /**
+//     * Inserts all the elements in the given collection at the given index, applying
+//     * any decorator that is set on this list before addition, respecting any evaluator
+//     * that is currently set on this list.
+//     *
+//     * @param index
+//     * @param nodes
+//     * @return
+//     */
+//    @Override
+//    public boolean addAll(final int index, final Collection<? extends AbstractNode> nodes) {
+//        Boolean returnValue = (Boolean) transaction.execute(new StructrTransaction() {
+//
+//            @Override
+//            public Object execute() throws Throwable {
+//                Node startNode = getNodeAt(index);
+//                Node nextNode = null;
+//                boolean ret = false;
+//
+//                for (AbstractNode toInsert : nodes) {
+//                    nextNode = getRelatedNode(startNode, RelType.NEXT_LIST_ENTRY, Direction.OUTGOING);
+//
+//                    ret |= insertNodeBefore(nextNode, toInsert.getNode());
+//                }
+//
+//                return (ret);
+//            }
+//        });
+//
+//        return (returnValue.booleanValue());
+//    }
+//
+//    /**
+//     * Removes all elements in the given collection from this list.
+//     *
+//     * @param nodes
+//     * @return
+//     */
+//    @Override
+//    public boolean removeAll(final Collection<?> nodes) {
+//        Boolean returnValue = (Boolean) transaction.execute(new StructrTransaction() {
+//
+//            @Override
+//            public Object execute() throws Throwable {
+//                boolean ret = false;
+//
+//                for (Object obj : nodes) {
+//                    // provoke ClassCastException according to List interface specification
+//                    T structrNode = (T) obj;
+//                    Node node = structrNode.getNode();
+//
+//                    ret |= removeNodeFromList(node);
+//                }
+//
+//                return (ret);
+//            }
+//        });
+//
+//        return (returnValue.booleanValue());
+//    }
+//
+//    /**
+//     * Retains only the elements in this list that are contained in the given
+//     * collection.
+//     *
+//     * @param nodes
+//     * @return
+//     */
+//    @Override
+//    public boolean retainAll(final Collection<?> nodes) {
+//        Boolean returnValue = (Boolean) transaction.execute(new StructrTransaction() {
+//
+//            @Override
+//            public Object execute() throws Throwable {
+//                boolean ret = false;
+//
+//                for (AbstractNode node : getNodes()) {
+//                    if (!nodes.contains(node)) {
+//                        ret |= removeNodeFromList(node.getNode());
+//                    }
+//                }
+//
+//                return (ret);
+//            }
+//        });
+//
+//        return (returnValue.booleanValue());
+//    }
 
     /**
      * Clears this list. Due to the fact that this method has to remove all
@@ -464,55 +464,55 @@ public class NodeList<T extends AbstractNode> extends AbstractNode implements Li
             }
         });
     }
-
-    /**
-     * Returns the element at the given index, or null if no element exists,
-     * with respect to the evaluators that are currently set on this list.
-     *
-     * @param index
-     * @return
-     */
-    @Override
-    public T get(int index) {
-        if (index < 0 || index >= size()) {
-            throw new ArrayIndexOutOfBoundsException();
-        }
-
-        Node node = getNodeAt(index);
-
-        if (node != null) {
-            return ((T) factory.execute(node));
-        }
-
-        return (null);
-    }
-
-    /**
-     * Replaces the element at the given position with the given element, with
-     * respect to the evaluators that are currently set on this list.
-     *
-     * @param index
-     * @param toAdd
-     * @return
-     */
-    @Override
-    public T set(final int index, final T toSet) {
-        transaction.execute(new StructrTransaction() {
-
-            @Override
-            public Object execute() throws Throwable {
-                Node node = getNodeAt(index);
-                if (node != null) {
-                    insertNodeBefore(node, toSet.getNode());
-                    removeNodeFromList(node);
-                }
-
-                return (null);
-            }
-        });
-
-        return (toSet);
-    }
+//
+//    /**
+//     * Returns the element at the given index, or null if no element exists,
+//     * with respect to the evaluators that are currently set on this list.
+//     *
+//     * @param index
+//     * @return
+//     */
+//    @Override
+//    public T get(int index) {
+//        if (index < 0 || index >= size()) {
+//            throw new ArrayIndexOutOfBoundsException();
+//        }
+//
+//        Node node = getNodeAt(index);
+//
+//        if (node != null) {
+//            return ((T) factory.execute(node));
+//        }
+//
+//        return (null);
+//    }
+//
+//    /**
+//     * Replaces the element at the given position with the given element, with
+//     * respect to the evaluators that are currently set on this list.
+//     *
+//     * @param index
+//     * @param toAdd
+//     * @return
+//     */
+//    @Override
+//    public AbstractNode set(final int index, final AbstractNode toSet) {
+//        transaction.execute(new StructrTransaction() {
+//
+//            @Override
+//            public Object execute() throws Throwable {
+//                Node node = getNodeAt(index);
+//                if (node != null) {
+//                    insertNodeBefore(node, toSet.getNode());
+//                    removeNodeFromList(node);
+//                }
+//
+//                return (null);
+//            }
+//        });
+//
+//        return (toSet);
+//    }
 
     /**
      * Inserts the given element at the given position (with respect to the
@@ -521,8 +521,8 @@ public class NodeList<T extends AbstractNode> extends AbstractNode implements Li
      * @param index
      * @param toAdd
      */
-    @Override
-    public void add(final int index, final T toAdd) {
+    //@Override
+    public void add(final int index, final AbstractNode toAdd) {
         final int size = this.size();
 
         if (index < 0 || index > size) {
@@ -534,7 +534,7 @@ public class NodeList<T extends AbstractNode> extends AbstractNode implements Li
             @Override
             public Object execute() throws Throwable {
                 // apply decorators (if any)
-                for (Decorator<T> decorator : decorators) {
+                for (Decorator<AbstractNode> decorator : decorators) {
                     decorator.decorate(toAdd);
                 }
 
@@ -550,110 +550,110 @@ public class NodeList<T extends AbstractNode> extends AbstractNode implements Li
         });
     }
 
-    /**
-     * Removes the element at the given position (with respect to the evaluators
-     * that are currently set on this list.)
-     *
-     * @param index
-     * @return
-     */
-    @Override
-    public T remove(int index) {
-        final Node node = getNodeAt(index);
-
-        if (node != null) {
-            transaction.execute(new StructrTransaction() {
-
-                @Override
-                public Object execute() throws Throwable {
-                    return (removeNodeFromList(node));
-                }
-            });
-        }
-
-        return ((T) factory.execute(node));
-    }
-
-    /**
-     * Returns the position of the given element in this list
-     * @param o
-     * @return
-     */
-    @Override
-    public int indexOf(Object o) {
-        T node = (T) o;
-
-        return (indexOf(node.getNode()));
-    }
-
-    /**
-     * Returns the last position of the given element in this list, with
-     * respect to the evaluators that are currently set on this list.
-     *
-     * (implementation note: keep LAST pointer!)
-     *
-     * @param o
-     * @return
-     */
-    @Override
-    public int lastIndexOf(Object o) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    /**
-     * Returns a ListIterator containing all elements in this list, with
-     * respect to the evaluators that are currently set.
-     *
-     * @return
-     */
-    @Override
-    public ListIterator<T> listIterator() {
-        return getNodeList().listIterator();
-        //throw new UnsupportedOperationException("Bi-directional iteration is not yet supported by this class.");
-    }
-
-    /**
-     * Returns a ListIterator containing all elements in this list, starting
-     * from the given index, with respect to the evaluators that are currently
-     * set on this list.
-     *
-     * @param index
-     * @return
-     */
-    @Override
-    public ListIterator<T> listIterator(int index) {
-        return getNodeList().listIterator(index);
-        //throw new UnsupportedOperationException("Bi-directional iteration is not yet supported by this class.");
-    }
-
-    /**
-     * Returns a sublist of this list, starting at (including) fromIndex,
-     * ending at (not including) toIndex, with respect to the evaluators that are
-     * currently set on this list.
-     *
-     * @param fromIndex
-     * @param toIndex
-     * @return
-     */
-    @Override
-    public List<T> subList(int fromIndex, int toIndex) {
-        //return a new NodeList instance with the given bounds
-        Node startNode = getNodeAt(fromIndex);
-        NodeList ret = new NodeList(toIndex - fromIndex);
-
-        ret.init(startNode);
-
-        return (ret);
-    }
+//    /**
+//     * Removes the element at the given position (with respect to the evaluators
+//     * that are currently set on this list.)
+//     *
+//     * @param index
+//     * @return
+//     */
+//    @Override
+//    public T remove(int index) {
+//        final Node node = getNodeAt(index);
+//
+//        if (node != null) {
+//            transaction.execute(new StructrTransaction() {
+//
+//                @Override
+//                public Object execute() throws Throwable {
+//                    return (removeNodeFromList(node));
+//                }
+//            });
+//        }
+//
+//        return ((T) factory.execute(node));
+//    }
+//
+//    /**
+//     * Returns the position of the given element in this list
+//     * @param o
+//     * @return
+//     */
+//    @Override
+//    public int indexOf(Object o) {
+//        T node = (T) o;
+//
+//        return (indexOf(node.getNode()));
+//    }
+//
+//    /**
+//     * Returns the last position of the given element in this list, with
+//     * respect to the evaluators that are currently set on this list.
+//     *
+//     * (implementation note: keep LAST pointer!)
+//     *
+//     * @param o
+//     * @return
+//     */
+//    @Override
+//    public int lastIndexOf(Object o) {
+//        throw new UnsupportedOperationException("Not supported yet.");
+//    }
+//
+//    /**
+//     * Returns a ListIterator containing all elements in this list, with
+//     * respect to the evaluators that are currently set.
+//     *
+//     * @return
+//     */
+//    @Override
+//    public ListIterator<AbstractNode> listIterator() {
+//        return getNodeList().listIterator();
+//        //throw new UnsupportedOperationException("Bi-directional iteration is not yet supported by this class.");
+//    }
+//
+//    /**
+//     * Returns a ListIterator containing all elements in this list, starting
+//     * from the given index, with respect to the evaluators that are currently
+//     * set on this list.
+//     *
+//     * @param index
+//     * @return
+//     */
+//    @Override
+//    public ListIterator<AbstractNode> listIterator(int index) {
+//        return getNodeList().listIterator(index);
+//        //throw new UnsupportedOperationException("Bi-directional iteration is not yet supported by this class.");
+//    }
+//
+//    /**
+//     * Returns a sublist of this list, starting at (including) fromIndex,
+//     * ending at (not including) toIndex, with respect to the evaluators that are
+//     * currently set on this list.
+//     *
+//     * @param fromIndex
+//     * @param toIndex
+//     * @return
+//     */
+//    @Override
+//    public List<AbstractNode> subList(int fromIndex, int toIndex) {
+//        //return a new NodeList instance with the given bounds
+//        Node startNode = getNodeAt(fromIndex);
+//        NodeList ret = new NodeList(toIndex - fromIndex);
+//
+//        ret.init(startNode);
+//
+//        return (ret);
+//    }
 
     // ----- interface Decorable<T>
     @Override
-    public void addDecorator(Decorator<T> d) {
+    public void addDecorator(Decorator<AbstractNode> d) {
         decorators.add(d);
     }
 
     @Override
-    public void removeDecorator(Decorator<T> d) {
+    public void removeDecorator(Decorator<AbstractNode> d) {
         decorators.remove(d);
     }
 
@@ -669,17 +669,17 @@ public class NodeList<T extends AbstractNode> extends AbstractNode implements Li
     }
 
     // ----- private methods -----
-    private List<T> getNodeList() {
-        List<T> ret = new LinkedList<T>();
-        for (T node : getNodes()) {
+    private List<AbstractNode> getNodeList() {
+        List<AbstractNode> ret = new LinkedList<AbstractNode>();
+        for (AbstractNode node : getNodes()) {
             ret.add(node);
         }
 
         return (ret);
     }
 
-    private Iterable<T> getNodes() {
-        return (new IterableAdapter<Node, T>(
+    private Iterable<AbstractNode> getNodes() {
+        return (new IterableAdapter<Node, AbstractNode>(
                 getRawNodes(),
                 new StructrNodeFactory()));
     }
@@ -935,7 +935,7 @@ public class NodeList<T extends AbstractNode> extends AbstractNode implements Li
                     }
                 }
             }
-            
+
             // TODO: find out if EXCLUDE_AND_CONTINUE is the right choice here!
             return (Evaluation.EXCLUDE_AND_CONTINUE);
         }

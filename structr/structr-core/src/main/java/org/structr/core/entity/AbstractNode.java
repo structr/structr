@@ -85,13 +85,16 @@ import java.lang.reflect.Method;
 
 import java.text.ParseException;
 
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -113,7 +116,7 @@ import javax.servlet.http.HttpSession;
  *
  */
 public abstract class AbstractNode
-	implements Comparable<AbstractNode>, RenderController, AccessControllable, GraphObject {
+	implements Comparable<AbstractNode>, RenderController, AccessControllable, GraphObject, Map<String, Object> {
 
 	public final static String CATEGORIES_KEY         = "categories";
 	public final static String CREATED_BY_KEY         = "createdBy";
@@ -1831,12 +1834,12 @@ public abstract class AbstractNode
 	}
 
 	/**
-	 * Return all property keys of the underlying database node
+	 * Return all property keys
 	 *
 	 * @return
 	 */
 	public Iterable<String> getPropertyKeys() {
-		return dbNode.getPropertyKeys();
+		return getDatabasePropertyKeys();
 	}
 
 	/**
@@ -3325,6 +3328,100 @@ public abstract class AbstractNode
 					Direction.OUTGOING) || hasRelationship(RelType.LINK,
 			Direction.OUTGOING));
 	}
+
+	// ----- interface Map -----
+	@Override
+	public void clear() {
+		// TODO: Decide whether to implement clear at all
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public boolean containsKey(final Object key) {
+		return getProperty((String)key) != null;
+	}
+
+	@Override
+	public boolean containsValue(final Object value) {
+
+		for (Map.Entry<String, Object> entry : entrySet()) {
+			Object dataValue = entry.getValue();
+			return (dataValue != null && dataValue.equals(value));
+		}
+
+		return false;
+	}
+
+	@Override
+	public Set<Entry<String, Object>> entrySet() {
+
+		Set<Entry<String, Object>> entries = new HashSet<Entry<String, Object>>();
+
+		for (String key : keySet()) {
+			Object value = get(key);
+			entries.add(new AbstractMap.SimpleEntry(key, value));
+		}
+		return entries;
+	}
+
+	@Override
+	public Object get(final Object key) {
+		return getProperty((String)key);
+	}
+
+	@Override
+	public boolean isEmpty() {
+		return entrySet().isEmpty();
+	}
+
+	@Override
+	public Set<String> keySet() {
+
+		Set<String> keys = new HashSet<String>();
+		for (String key : getPropertyKeys()) {
+			keys.add(key);
+		}
+		return keys;
+	}
+
+	@Override
+	public Object put(final String key, final Object value) {
+		Object oldValue = get((String)key);
+		setProperty((String)key, value);
+		return oldValue;
+	}
+
+	@Override
+	public void putAll(final Map<? extends String, ? extends Object> m) {
+		for (Map.Entry<String, Object> entry : entrySet()) {
+			String key = entry.getKey();
+			Object value = entry.getValue();
+			put(key, value);
+		}
+	}
+
+	@Override
+	public Object remove(final Object key) {
+		Object oldValue = get((String)key);
+		setProperty((String)key, null);
+		return oldValue;
+	}
+
+	@Override
+	public int size() {
+		return keySet().size();
+	}
+
+	@Override
+	public Collection<Object> values() {
+		Collection<Object> values = new ArrayList<Object>();
+		for (Map.Entry<String, Object> entry : entrySet()) {
+			Object dataValue = entry.getValue();
+			values.add(dataValue);
+		}
+		return values;
+	}
+
 
 	// ----- interface AccessControllable -----
 	@Override
