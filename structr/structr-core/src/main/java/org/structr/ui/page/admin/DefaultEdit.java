@@ -136,16 +136,16 @@ public class DefaultEdit extends Nodes {
 	protected FormTable childNodesTable = new FormTable("childNodesTable");
 
 //      protected ActionLink deleteNodeLink = new ActionLink("Delete", this, "onDeleteNode");
-	protected Table titlesTable       = new Table(AbstractNode.TITLES_KEY);
+	protected Table titlesTable       = new Table(AbstractNode.Key.titles.name());
 	protected FormTable securityTable = new FormTable("Security");
 	protected Form securityForm       = new Form("securityForm");
 	protected Form consoleForm        = new Form("consoleForm");
 	protected Form cloudForm          = new Form("cloudForm");
 	protected Select userSelect       = new Select("selectUser", "User");
-	protected Select typeSelect       = new Select(AbstractNode.TYPE_KEY, "Type");
-	protected Select templateSelect   = new Select(AbstractNode.TEMPLATE_ID_KEY, "Template");
+	protected Select typeSelect       = new Select(AbstractNode.Key.type.name(), "Type");
+	protected Select templateSelect   = new Select(AbstractNode.Key.templateId.name(), "Template");
 	protected Checkbox recursive      = new Checkbox("recursive");
-	protected Select ownerSelect      = new Select(AbstractNode.OWNER_ID_KEY, "Owner");
+	protected Select ownerSelect      = new Select(AbstractNode.Key.ownerId.name(), "Owner");
 	protected Select groupSelect      = new Select("selectGroup", "Group");
 	protected Select customTypeSelect = new Select(CustomTypeNode.Key.typeNodeId.name(), "Custom Type");
 	protected Checkbox cloudRecursive = new Checkbox("cloudRecursive", "Recursive");
@@ -190,17 +190,17 @@ public class DefaultEdit extends Nodes {
 		nodePropertiesFields.setColumns(2);
 
 		// add common fields
-		nodePropertiesFields.add(new TextField(AbstractNode.NAME_KEY, true));
-		nodePropertiesFields.add(new TextField(AbstractNode.TITLE_KEY, false));
+		nodePropertiesFields.add(new TextField(AbstractNode.Key.name.name(), true));
+		nodePropertiesFields.add(new TextField(AbstractNode.Key.title.name(), false));
 		nodePropertiesFields.add(typeSelect);
-		nodePropertiesFields.add(new IntegerField(AbstractNode.POSITION_KEY));
+		nodePropertiesFields.add(new IntegerField(AbstractNode.Key.position.name()));
 
-		TextField createdBy = new TextField(AbstractNode.CREATED_BY_KEY);
+		TextField createdBy = new TextField(AbstractNode.Key.createdBy.name());
 
 		createdBy.setReadonly(true);
 		nodePropertiesFields.add(createdBy);
 
-		DateField createdDate = new DateField(AbstractNode.CREATED_DATE_KEY);
+		DateField createdDate = new DateField(AbstractNode.Key.createdDate.name());
 
 		createdDate.setFormatPattern(dateFormat.toPattern());
 		createdDate.setShowTime(true);
@@ -213,13 +213,13 @@ public class DefaultEdit extends Nodes {
 			nodePropertiesFields.add(setCurrentOwnerRecursivelyLink);
 		}
 
-		DateField lastModifiedDate = new DateField(AbstractNode.LAST_MODIFIED_DATE_KEY);
+		DateField lastModifiedDate = new DateField(AbstractNode.Key.lastModifiedDate.name());
 
 		lastModifiedDate.setFormatPattern(dateFormat.toPattern());
 		lastModifiedDate.setShowTime(true);
 		lastModifiedDate.setReadonly(true);
 		nodePropertiesFields.add(lastModifiedDate);
-		titlesTable.addColumn(new Column(AbstractNode.TITLE_KEY, "Title"));
+		titlesTable.addColumn(new Column(AbstractNode.Key.title.name(), "Title"));
 		titlesTable.addColumn(new Column(Title.LOCALE_KEY, "Locale"));
 		titlesTable.setClass(TABLE_CLASS);
 		nodePropertiesFields.add(titlesTable);
@@ -240,27 +240,27 @@ public class DefaultEdit extends Nodes {
 
 		visibilityFields.setColumns(1);
 
-		DateField visibilityStartDate = new DateField(AbstractNode.VISIBILITY_START_DATE_KEY);
+		DateField visibilityStartDate = new DateField(AbstractNode.Key.visibilityStartDate.name());
 
 		visibilityStartDate.setFormatPattern(dateFormat.toPattern());
 		visibilityStartDate.setShowTime(true);
 		visibilityFields.add(visibilityStartDate);
 
-		DateField visibilityEndDate = new DateField(AbstractNode.VISIBILITY_END_DATE_KEY);
+		DateField visibilityEndDate = new DateField(AbstractNode.Key.visibilityEndDate.name());
 
 		visibilityEndDate.setFormatPattern(dateFormat.toPattern());
 		visibilityEndDate.setShowTime(true);
 		visibilityFields.add(visibilityEndDate);
 
-		Checkbox hidden = new Checkbox(AbstractNode.HIDDEN_KEY, "Completely hidden in frontend for anyone");
+		Checkbox hidden = new Checkbox(AbstractNode.Key.hidden.name(), "Completely hidden in frontend for anyone");
 
 		visibilityFields.add(hidden);
 
-		Checkbox publicCheckbox = new Checkbox(AbstractNode.PUBLIC_KEY, "Visible to public users");
+		Checkbox publicCheckbox = new Checkbox(AbstractNode.Key.isPublic.name(), "Visible to public users");
 
 		visibilityFields.add(publicCheckbox);
 
-		Checkbox forAuthenticatedUsersCheckbox = new Checkbox(AbstractNode.VISIBLE_TO_AUTHENTICATED_USERS_KEY,
+		Checkbox forAuthenticatedUsersCheckbox = new Checkbox(AbstractNode.Key.visibleToAuthenticatedUsers.name(),
 								 "Visible to authenticated users");
 
 		visibilityFields.add(forAuthenticatedUsersCheckbox);
@@ -322,7 +322,7 @@ public class DefaultEdit extends Nodes {
 
 			actionColumnNodes.setTextAlign("center");
 			actionColumnNodes.setDecorator(new LinkDecorator(childNodesTable, new PageLink(),
-				AbstractNode.NODE_ID_KEY) {
+				AbstractNode.Key.nodeId.name()) {
 
 				@Override
 				protected void renderActionLink(HtmlStringBuffer buffer, AbstractLink link,
@@ -330,7 +330,7 @@ public class DefaultEdit extends Nodes {
 
 					AbstractNode n = (AbstractNode) row;
 
-					link = new PageLink(AbstractNode.NODE_ID_KEY, getEditPageClass(n)) {
+					link = new PageLink(AbstractNode.Key.nodeId.name(), getEditPageClass(n)) {
 
 						@Override
 						public String getHref() {
@@ -343,8 +343,8 @@ public class DefaultEdit extends Nodes {
 				}
 
 			});
-			typeColumn = new Column(AbstractNode.TYPE_KEY);
-			iconDec    = new LinkDecorator(childNodesTable, new PageLink(), AbstractNode.NODE_ID_KEY) {
+			typeColumn = new Column(AbstractNode.Key.type.name());
+			iconDec    = new LinkDecorator(childNodesTable, new PageLink(), AbstractNode.Key.nodeId.name()) {
 
 				@Override
 				protected void renderActionLink(HtmlStringBuffer buffer, AbstractLink link,
@@ -352,7 +352,7 @@ public class DefaultEdit extends Nodes {
 
 					AbstractNode n = (AbstractNode) row;
 
-					link = new PageLink(AbstractNode.NODE_ID_KEY, getEditPageClass(n));
+					link = new PageLink(AbstractNode.Key.nodeId.name(), getEditPageClass(n));
 					link.setParameter(NODE_ID_KEY, n.getId());
 
 					boolean hasThumbnail = false;
@@ -383,7 +383,7 @@ public class DefaultEdit extends Nodes {
 			};
 			typeColumn.setDecorator(iconDec);
 			childNodesTable.addColumn(typeColumn);
-			nameColumn = new Column(AbstractNode.NAME_KEY);
+			nameColumn = new Column(AbstractNode.Key.name.name());
 			nameDec    = new LinkDecorator(childNodesTable, viewRelLink, "id") {
 
 				@Override
@@ -406,19 +406,19 @@ public class DefaultEdit extends Nodes {
 			};
 			nameColumn.setDecorator(nameDec);
 			childNodesTable.addColumn(nameColumn);
-			childNodesTable.addColumn(new Column(AbstractNode.LAST_MODIFIED_DATE_KEY));
-			childNodesTable.addColumn(new Column(AbstractNode.OWNER_KEY));
-			childNodesTable.addColumn(new Column(AbstractNode.CREATED_BY_KEY));
-			childNodesTable.addColumn(new Column(AbstractNode.CREATED_DATE_KEY));
-			childNodesTable.addColumn(new Column(AbstractNode.POSITION_KEY));
-			childNodesTable.addColumn(new Column(AbstractNode.PUBLIC_KEY));
-			childNodesTable.addColumn(new Column(AbstractNode.DELETED_KEY));
-			childNodesTable.addColumn(new Column(AbstractNode.HIDDEN_KEY));
+			childNodesTable.addColumn(new Column(AbstractNode.Key.lastModifiedDate.name()));
+			childNodesTable.addColumn(new Column(AbstractNode.Key.owner.name()));
+			childNodesTable.addColumn(new Column(AbstractNode.Key.createdBy.name()));
+			childNodesTable.addColumn(new Column(AbstractNode.Key.createdDate.name()));
+			childNodesTable.addColumn(new Column(AbstractNode.Key.position.name()));
+			childNodesTable.addColumn(new Column(AbstractNode.Key.isPublic.name()));
+			childNodesTable.addColumn(new Column(AbstractNode.Key.deleted.name()));
+			childNodesTable.addColumn(new Column(AbstractNode.Key.hidden.name()));
 			childNodesTable.addColumn(actionColumnNodes);
 			childNodesTable.setSortable(true);
 			childNodesTable.setShowBanner(true);
 			childNodesTable.setPageSize(DEFAULT_PAGESIZE);
-			childNodesTable.getControlLink().setParameter(AbstractNode.NODE_ID_KEY, getNodeId());
+			childNodesTable.getControlLink().setParameter(AbstractNode.Key.nodeId.name(), getNodeId());
 			childNodesTable.setClass(TABLE_CLASS);
 			addControl(childNodesTable);
 			editChildNodesPanel = new Panel("editChildNodesPanel", "/panel/edit-child-nodes-panel.htm");
@@ -444,7 +444,7 @@ public class DefaultEdit extends Nodes {
 			actionColumnIn.setDecorator(new LinkDecorator(incomingRelationshipsTable, linksIn,
 				RELATIONSHIP_ID_KEY));
 			actionColumnIn.setSortable(false);
-			typeColumn  = new Column(AbstractNode.TYPE_KEY);
+			typeColumn  = new Column(AbstractNode.Key.type.name());
 			viewRelLink = new PageLink("view", DefaultEdit.class);
 
 //                      viewRelLink = new PageLink("view", DefaultView.class);
@@ -466,7 +466,7 @@ public class DefaultEdit extends Nodes {
 			};
 			typeColumn.setDecorator(iconDec);
 			incomingRelationshipsTable.addColumn(typeColumn);
-			nameColumn = new Column(AbstractNode.NAME_KEY);
+			nameColumn = new Column(AbstractNode.Key.name.name());
 			nameDec    = new LinkDecorator(incomingRelationshipsTable, viewRelLink, "id") {
 
 				@Override
@@ -497,7 +497,7 @@ public class DefaultEdit extends Nodes {
 			incomingRelationshipsTable.addColumn(new Column(REL_ATTRS_KEY));
 			incomingRelationshipsTable.addColumn(actionColumnIn);
 			incomingRelationshipsTable.setPageSize(DEFAULT_PAGESIZE);
-			incomingRelationshipsTable.getControlLink().setParameter(AbstractNode.NODE_ID_KEY, getNodeId());
+			incomingRelationshipsTable.getControlLink().setParameter(AbstractNode.Key.nodeId.name(), getNodeId());
 			incomingRelationshipsTable.setClass(TABLE_CLASS);
 			addControl(incomingRelationshipsTable);
 
@@ -512,7 +512,7 @@ public class DefaultEdit extends Nodes {
 			actionColumnOut.setDecorator(new LinkDecorator(outgoingRelationshipsTable, linksOut,
 				RELATIONSHIP_ID_KEY));
 			actionColumnOut.setSortable(false);
-			typeColumn = new Column(AbstractNode.TYPE_KEY);
+			typeColumn = new Column(AbstractNode.Key.type.name());
 			iconDec    = new LinkDecorator(outgoingRelationshipsTable, viewRelLink, "id") {
 
 				@Override
@@ -530,7 +530,7 @@ public class DefaultEdit extends Nodes {
 			};
 			typeColumn.setDecorator(iconDec);
 			outgoingRelationshipsTable.addColumn(typeColumn);
-			nameColumn = new Column(AbstractNode.NAME_KEY);
+			nameColumn = new Column(AbstractNode.Key.name.name());
 			nameDec    = new LinkDecorator(outgoingRelationshipsTable, viewRelLink, "id") {
 
 				@Override
@@ -561,7 +561,7 @@ public class DefaultEdit extends Nodes {
 			outgoingRelationshipsTable.addColumn(new Column(REL_ATTRS_KEY));
 			outgoingRelationshipsTable.addColumn(actionColumnOut);
 			outgoingRelationshipsTable.setPageSize(DEFAULT_PAGESIZE);
-			outgoingRelationshipsTable.getControlLink().setParameter(AbstractNode.NODE_ID_KEY, getNodeId());
+			outgoingRelationshipsTable.getControlLink().setParameter(AbstractNode.Key.nodeId.name(), getNodeId());
 			outgoingRelationshipsTable.setClass(TABLE_CLASS);
 			addControl(outgoingRelationshipsTable);
 			editRelationshipsPanel = new Panel("editRelationshipsPanel",
@@ -573,7 +573,7 @@ public class DefaultEdit extends Nodes {
 		// ------------------ security begin ---------------------
 		if (securityContext.isAllowed(node, Permission.AccessControl)) {
 
-			typeColumn = new Column(AbstractNode.TYPE_KEY);
+			typeColumn = new Column(AbstractNode.Key.type.name());
 			iconDec    = new LinkDecorator(securityTable, viewRelLink, "id") {
 
 				@Override
@@ -598,7 +598,7 @@ public class DefaultEdit extends Nodes {
 			};
 			typeColumn.setDecorator(iconDec);
 			securityTable.addColumn(typeColumn);
-			nameColumn = new Column(AbstractNode.NAME_KEY);
+			nameColumn = new Column(AbstractNode.Key.name.name());
 			nameDec    = new LinkDecorator(securityTable, viewRelLink, "id") {
 
 				@Override
@@ -826,7 +826,7 @@ public class DefaultEdit extends Nodes {
 						List<TextualSearchAttribute> searchAttrs =
 							new LinkedList<TextualSearchAttribute>();
 
-						searchAttrs.add(new TextualSearchAttribute(AbstractNode.TYPE_KEY,
+						searchAttrs.add(new TextualSearchAttribute(AbstractNode.Key.type.name(),
 							Template.class.getSimpleName(), SearchOperator.OR));
 						nodes = (List<AbstractNode>) Services.command(
 							SearchNodeCommand.class).execute(
@@ -875,7 +875,7 @@ public class DefaultEdit extends Nodes {
 
 							searchAttrs.add(
 							    new TextualSearchAttribute(
-								AbstractNode.TYPE_KEY, NodeType.class.getSimpleName(),
+								AbstractNode.Key.type.name(), NodeType.class.getSimpleName(),
 								SearchOperator.OR));
 							nodes = (List<AbstractNode>) Services.command(
 								SearchNodeCommand.class).execute(

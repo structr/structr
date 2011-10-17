@@ -558,7 +558,7 @@ public class StructrPage extends Page {
 
 			PageLink returnLink = new PageLink("Return Link", getClass());
 
-			returnLink.setParameter(AbstractNode.NODE_ID_KEY, node.getId());
+			returnLink.setParameter(AbstractNode.Key.nodeId.name(), node.getId());
 
 			return returnLink;
 

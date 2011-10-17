@@ -53,8 +53,8 @@ public class RssItem extends AbstractNode {
 		this.source = node;
 
 		// synthesize type
-		values.put(TYPE_KEY, "RssItem");
-		values.put(NAME_KEY, "item" + index);
+		values.put(AbstractNode.Key.type.name(), "RssItem");
+		values.put(AbstractNode.Key.name.name(), "item" + index);
 		initialize();
 	}
 

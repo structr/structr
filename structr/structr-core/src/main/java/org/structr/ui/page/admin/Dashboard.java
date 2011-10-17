@@ -131,11 +131,11 @@ public class Dashboard extends Admin {
     public Dashboard() {
 
         super();
-        activitiesTable.addColumn(new Column(Activity.OWNER_KEY, "User"));
-        activitiesTable.addColumn(new Column(Activity.NODE_ID_KEY));
-        activitiesTable.addColumn(new Column(Activity.NAME_KEY));
+        activitiesTable.addColumn(new Column(Activity.Key.owner.name(), "User"));
+        activitiesTable.addColumn(new Column(Activity.Key.nodeId.name()));
+        activitiesTable.addColumn(new Column(Activity.Key.name.name()));
         activitiesTable.addColumn(new Column(Activity.SESSION_ID_KEY));
-        activitiesTable.addColumn(new Column(Activity.TYPE_KEY));
+        activitiesTable.addColumn(new Column(Activity.Key.type.name()));
         Column startTimestampColumn = new Column(Activity.START_TIMESTAMP_KEY, "Start");
         startTimestampColumn.setFormat("{0,date,medium} {0,time,medium}");
         activitiesTable.addColumn(startTimestampColumn);
@@ -229,7 +229,7 @@ public class Dashboard extends Admin {
     @Override
     public void onRender() {
 
-        rootNodeLink.setParameter(AbstractNode.NODE_ID_KEY, "0");
+        rootNodeLink.setParameter(AbstractNode.Key.nodeId.name(), "0");
 
         if (allNodes == null) {
             return;
@@ -517,8 +517,8 @@ public class Dashboard extends Admin {
 
                 // create a new user node
                 User adminUser = (User) createNode.execute(
-                        new NodeAttribute(AbstractNode.TYPE_KEY, User.class.getSimpleName()),
-                        new NodeAttribute(AbstractNode.NAME_KEY, "admin"),
+                        new NodeAttribute(AbstractNode.Key.type.name(), User.class.getSimpleName()),
+                        new NodeAttribute(AbstractNode.Key.name.name(), "admin"),
                         new SuperUser());
 
                 AbstractNode rootNode = getRootNode();

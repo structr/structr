@@ -501,8 +501,8 @@ public class RegistrationCheckRenderer implements NodeRenderer<RegistrationCheck
 				searchAttrs.clear();
 
 				User newUser = (User)create.execute(assignedUser,
-					new NodeAttribute(AbstractNode.NAME_KEY, username),
-					new NodeAttribute(AbstractNode.TYPE_KEY, User.class.getSimpleName()),
+					new NodeAttribute(AbstractNode.Key.name.name(), username),
+					new NodeAttribute(AbstractNode.Key.type.name(), User.class.getSimpleName()),
 					new NodeAttribute(Person.Key.firstName.name(), firstName),
 					new NodeAttribute(Person.Key.firstName.name(), lastName),
 					new NodeAttribute(User.Key.realName.name(), (firstName + " " + lastName)),
@@ -544,8 +544,8 @@ public class RegistrationCheckRenderer implements NodeRenderer<RegistrationCheck
 				if(publicUserDirectory == null)
 				{
 					publicUserDirectory = (Folder)create.execute(assignedUser,
-						new NodeAttribute(AbstractNode.NAME_KEY, publicUserDirectoryName),
-						new NodeAttribute(AbstractNode.TYPE_KEY, Folder.class.getSimpleName()));
+						new NodeAttribute(AbstractNode.Key.name.name(), publicUserDirectoryName),
+						new NodeAttribute(AbstractNode.Key.type.name(), Folder.class.getSimpleName()));
 
 					// Link to registration node
 					link.execute(registrationCheckNode, publicUserDirectory, RelType.HAS_CHILD);

@@ -72,7 +72,7 @@ public class EditMenuItem extends DefaultEdit {
                     nodes = linkTargetNode.getSiblingNodes();
                 } else {
                     List<TextualSearchAttribute> searchAttrs = new LinkedList<TextualSearchAttribute>();
-                    searchAttrs.add(new TextualSearchAttribute(AbstractNode.TYPE_KEY, Page.class.getSimpleName(), SearchOperator.OR));
+                    searchAttrs.add(new TextualSearchAttribute(AbstractNode.Key.type.name(), Page.class.getSimpleName(), SearchOperator.OR));
                     nodes = (List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(user, null, false, false, searchAttrs);
                 }
                 if (nodes != null) {
@@ -140,7 +140,7 @@ public class EditMenuItem extends DefaultEdit {
 //
 //                // create a new template node
 //                AbstractNode newTemplate = (AbstractNode) createNode.execute(
-//                        new NodeAttribute(AbstractNode.TYPE_KEY, Template.class.getSimpleName()),
+//                        new NodeAttribute(AbstractNode.Key.type.name(), Template.class.getSimpleName()),
 //                        new NodeAttribute(Template.NAME_KEY, "New Name"),
 //                        user);
 //

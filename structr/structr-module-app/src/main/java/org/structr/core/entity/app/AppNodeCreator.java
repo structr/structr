@@ -203,7 +203,7 @@ public class AppNodeCreator extends ActionNode implements NodeSource
 			{
 				List<NodeAttribute> attributes = new LinkedList<NodeAttribute>();
 
-				attributes.add(new NodeAttribute(TYPE_KEY, type));
+				attributes.add(new NodeAttribute(AbstractNode.Key.type.name(), type));
 				
 				// attributes.add(new NodeAttribute(PUBLIC_KEY, "true"));
 

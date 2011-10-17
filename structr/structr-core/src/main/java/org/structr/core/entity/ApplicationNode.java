@@ -81,8 +81,8 @@ public abstract class ApplicationNode extends AbstractNode
 	{
 		Command createNodeCommand = Services.command(CreateNodeCommand.class);
 		List<NodeAttribute> attrs = new LinkedList<NodeAttribute>();
-		attrs.add(new NodeAttribute(TYPE_KEY, nodeType));
-		attrs.add(new NodeAttribute(NAME_KEY, name));
+		attrs.add(new NodeAttribute(Key.type.name(), nodeType));
+		attrs.add(new NodeAttribute(Key.name.name(), name));
 
 		AbstractNode ret = (AbstractNode)createNodeCommand.execute(attrs);
 

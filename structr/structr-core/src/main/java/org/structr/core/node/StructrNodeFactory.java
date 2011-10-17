@@ -31,7 +31,6 @@ import org.structr.core.Services;
 import org.structr.core.cloud.FileNodeDataContainer;
 import org.structr.core.cloud.NodeDataContainer;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.CustomTypeNode;
 import org.structr.core.entity.File;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
@@ -68,8 +67,8 @@ public class StructrNodeFactory<T extends AbstractNode> implements Adapter<Node,
 
 	public AbstractNode createNode(final Node node) {
 
-		String nodeType = node.hasProperty(AbstractNode.TYPE_KEY)
-				  ? (String) node.getProperty(AbstractNode.TYPE_KEY)
+		String nodeType = node.hasProperty(AbstractNode.Key.type.name())
+				  ? (String) node.getProperty(AbstractNode.Key.type.name())
 				  : "";
 
 		return createNode(node, nodeType);
@@ -244,8 +243,8 @@ public class StructrNodeFactory<T extends AbstractNode> implements Adapter<Node,
 		}
 
 		Map properties       = data.getProperties();
-		String nodeType      = properties.containsKey(AbstractNode.TYPE_KEY)
-				       ? (String) properties.get(AbstractNode.TYPE_KEY)
+		String nodeType      = properties.containsKey(AbstractNode.Key.type.name())
+				       ? (String) properties.get(AbstractNode.Key.type.name())
 				       : null;
 		Class nodeClass      = (Class) Services.command(GetEntityClassCommand.class).execute(nodeType);
 		AbstractNode newNode = null;

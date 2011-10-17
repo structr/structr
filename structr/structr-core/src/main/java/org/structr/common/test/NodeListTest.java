@@ -71,7 +71,7 @@ public class NodeListTest
 				public Object execute() throws Throwable
 				{
 					Node node = graphDb.createNode();
-					node.setProperty(AbstractNode.TYPE_KEY, "NodeList");
+					node.setProperty(AbstractNode.Key.type.name(), "NodeList");
 					graphDb.getReferenceNode().createRelationshipTo(node, RelType.HAS_CHILD);
 
 					return(factory.execute(node));
@@ -133,7 +133,7 @@ public class NodeListTest
 								{
 									AbstractNode node = new PlainText();
 									node.init(graphDb.createNode());
-									node.setProperty(AbstractNode.TYPE_KEY, "PlainText");
+									node.setProperty(AbstractNode.Key.type.name(), "PlainText");
 									nodes.add(node);
 								}
 
@@ -156,7 +156,7 @@ public class NodeListTest
 							public Object execute() throws Throwable
 							{
 								node.init(graphDb.createNode());
-								node.setProperty(AbstractNode.TYPE_KEY, "PlainText");
+								node.setProperty(AbstractNode.Key.type.name(), "PlainText");
 
 								return(null);
 							}

@@ -56,8 +56,8 @@ public class MediaWikiItem extends AbstractNode {
 		this.source = node;
 
 		// synthesize type
-		values.put(TYPE_KEY, "MediaWikiItem");
-		values.put(NAME_KEY, "item" + index);
+		values.put(AbstractNode.Key.type.name(), "MediaWikiItem");
+		values.put(AbstractNode.Key.name.name(), "item" + index);
 		initialize();
 	}
 

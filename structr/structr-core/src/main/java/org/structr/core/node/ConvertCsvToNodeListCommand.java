@@ -26,14 +26,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.RelType;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.UnsupportedArgumentError;
 import org.structr.core.entity.CsvFile;
-import org.structr.core.entity.File;
 import org.structr.core.entity.NodeList;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SuperUser;
@@ -149,8 +147,8 @@ public class ConvertCsvToNodeListCommand extends NodeServiceCommand {
 
                     // If the node list node doesn't exist, create one
                     NodeList<AbstractNode> result = (NodeList) createNode.execute(userCopy,
-                            new NodeAttribute(AbstractNode.TYPE_KEY, NodeList.class.getSimpleName()),
-                            new NodeAttribute(AbstractNode.NAME_KEY, sourceNodeCopy.getName() + " List"));
+                            new NodeAttribute(AbstractNode.Key.type.name(), NodeList.class.getSimpleName()),
+                            new NodeAttribute(AbstractNode.Key.name.name(), sourceNodeCopy.getName() + " List"));
 
                     createRel.execute(sourceNodeCopy, result, RelType.HAS_CHILD);
                     return result;
@@ -171,7 +169,7 @@ public class ConvertCsvToNodeListCommand extends NodeServiceCommand {
                 if (line != null) {
                     // create a new list for each item
                     List<NodeAttribute> nodeAttributes = new LinkedList<NodeAttribute>();
-                    nodeAttributes.add(new NodeAttribute(AbstractNode.TYPE_KEY, targetClassName));
+                    nodeAttributes.add(new NodeAttribute(AbstractNode.Key.type.name(), targetClassName));
 
                     for (int i = 0; i < col; i++) {
                         String csvValue = line[i];
@@ -210,7 +208,7 @@ public class ConvertCsvToNodeListCommand extends NodeServiceCommand {
             /*
             final List<NodeAttribute> attrList = new LinkedList<NodeAttribute>();
 
-            NodeAttribute typeAttr = new NodeAttribute(AbstractNode.TYPE_KEY, targetClass.getSimpleName());
+            NodeAttribute typeAttr = new NodeAttribute(AbstractNode.Key.type.name(), targetClass.getSimpleName());
             attrList.add(typeAttr);
 
             String[] line = null;

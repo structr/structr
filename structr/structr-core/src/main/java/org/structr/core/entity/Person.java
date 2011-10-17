@@ -62,12 +62,12 @@ public class Person extends Principal {
     public void setLastName(final String lastName) {
         setProperty(Key.lastName.name(), lastName);
         String firstName = getFirstName() != null && !(getFirstName().isEmpty()) ? getFirstName() : "";
-        setProperty(NAME_KEY, lastName + ", " + firstName);
+        setProperty(AbstractNode.Key.name.name(), lastName + ", " + firstName);
     }
 
     @Override
     public void setName(final String name) {
-        setProperty(NAME_KEY, name);
+        setProperty(AbstractNode.Key.name.name(), name);
     }
 
     public String getLastName() {

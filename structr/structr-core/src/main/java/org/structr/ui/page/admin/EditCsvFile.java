@@ -44,7 +44,7 @@ public class EditCsvFile extends EditFile {
     protected Submit createNodeListSubmit = new Submit("Create Node List", this, "onCreateNodeList");
     protected Form editContentForm = new Form("editContentForm");
     protected FieldSet conversionFields = new FieldSet("File Conversion");
-    protected Select nodeTypeField = new Select(AbstractNode.TYPE_KEY, "Select Node Type", true);
+    protected Select nodeTypeField = new Select(AbstractNode.Key.type.name(), "Select Node Type", true);
 
     protected CsvFile csvNode;
 
@@ -73,7 +73,7 @@ public class EditCsvFile extends EditFile {
 
         if (node != null) {
 
-            editContentForm.add(new HiddenField(AbstractNode.NODE_ID_KEY, getNodeId()));
+            editContentForm.add(new HiddenField(AbstractNode.Key.nodeId.name(), getNodeId()));
             csvNode = (CsvFile) node;
         }
 

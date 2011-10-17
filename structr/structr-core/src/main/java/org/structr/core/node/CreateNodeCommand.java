@@ -99,7 +99,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 
 			for (NodeAttribute attr : attrs) {
 
-				if (AbstractNode.TYPE_KEY.equals(attr.getKey())) {
+				if (AbstractNode.Key.type.name().equals(attr.getKey())) {
 					nodeType = (String) attr.getValue();
 				}
 			}
@@ -137,12 +137,12 @@ public class CreateNodeCommand extends NodeServiceCommand {
 
 				securityRel.setAllowed(Arrays.asList(StructrRelationship.ALL_PERMISSIONS));
 				logger.log(Level.FINEST, "All permissions given to {0}", principal.getName());
-				node.setProperty(AbstractNode.CREATED_BY_KEY,
+				node.setProperty(AbstractNode.Key.createdBy.name(),
 						 user.getRealName() + " (" + user.getName() + ")", false);
 			}
 
-			node.setProperty(AbstractNode.CREATED_DATE_KEY, now, false);
-			node.setProperty(AbstractNode.LAST_MODIFIED_DATE_KEY, now, false);
+			node.setProperty(AbstractNode.Key.createdDate.name(), now, false);
+			node.setProperty(AbstractNode.Key.lastModifiedDate.name(), now, false);
 
 			if (updateIndex) {
 

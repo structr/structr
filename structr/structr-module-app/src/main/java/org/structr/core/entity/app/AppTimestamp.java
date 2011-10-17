@@ -70,7 +70,7 @@ public class AppTimestamp extends AbstractNode implements InteractiveNode
 	@Override
 	public String getMappedName()
 	{
-		return(getStringProperty(NAME_KEY));
+		return(getStringProperty(AbstractNode.Key.name.name()));
 	}
 
 	@Override

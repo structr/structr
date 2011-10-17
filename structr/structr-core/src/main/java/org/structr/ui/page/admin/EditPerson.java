@@ -68,7 +68,7 @@ public class EditPerson extends DefaultEdit {
 
         // make the name field read only,
         // value is settable via getFirstName/getLastName methods only
-        Field nameField = editPropertiesForm.getField(AbstractNode.NAME_KEY);
+        Field nameField = editPropertiesForm.getField(AbstractNode.Key.name.name());
         nameField.setReadonly(true);
     }
 }

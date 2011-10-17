@@ -48,7 +48,7 @@ public class EditNodeList extends DefaultEdit {
         nodeListTable.setShowBanner(true);
         nodeListTable.setPageSize(DEFAULT_PAGESIZE);
         nodeListTable.setClass(TABLE_CLASS);
-        //nodeListTable.setSortedColumn(AbstractNode.NODE_ID_KEY);
+        //nodeListTable.setSortedColumn(AbstractNode.Key.nodeId.name());
         nodeListTable.setHoverRows(true);
         addControl(nodeListTable);
 
@@ -63,7 +63,7 @@ public class EditNodeList extends DefaultEdit {
 
         if (node != null) {
 
-            nodeListTable.getControlLink().setParameter(AbstractNode.NODE_ID_KEY, getNodeId());
+            nodeListTable.getControlLink().setParameter(AbstractNode.Key.nodeId.name(), getNodeId());
 
             nodeList = (NodeList<AbstractNode>) node;
 

@@ -131,7 +131,7 @@ public class EditMap extends EditGeoObject {
         super.onInit();
 
         if (node != null) {
-            clearCacheLink.setParameter(AbstractNode.NODE_ID_KEY, getNodeId());
+            clearCacheLink.setParameter(AbstractNode.Key.nodeId.name(), getNodeId());
             map = (Map) node;
         }
 

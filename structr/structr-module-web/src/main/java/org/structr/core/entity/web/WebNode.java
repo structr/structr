@@ -78,7 +78,7 @@ public class WebNode extends AbstractNode {
 	@Override
 	public Object getPropertyForIndexing(final String key) {
 
-		if (AbstractNode.NAME_KEY.equals(key) || AbstractNode.TITLE_KEY.equals(key)) {
+		if (AbstractNode.Key.name.name().equals(key) || AbstractNode.Key.title.name().equals(key)) {
 
 			String name = (String) getStringProperty(key);
 

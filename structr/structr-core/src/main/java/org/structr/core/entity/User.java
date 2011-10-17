@@ -405,8 +405,8 @@ public class User extends Person {
 
                     // Category with given name not found, create one!
                     cat = (Category) Services.command(CreateNodeCommand.class).execute(user,
-                            new NodeAttribute(AbstractNode.NAME_KEY, categoryName),
-                            new NodeAttribute(AbstractNode.TYPE_KEY, Category.class.getSimpleName()),
+                            new NodeAttribute(AbstractNode.Key.name.name(), categoryName),
+                            new NodeAttribute(AbstractNode.Key.type.name(), Category.class.getSimpleName()),
                             true);
 
                     // Link category to user
