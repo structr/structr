@@ -985,10 +985,10 @@ public class Nodes extends Admin {
 							newNode.setProperty(AbstractNode.CREATED_DATE_KEY, now);
 							newNode.setProperty(AbstractNode.LAST_MODIFIED_DATE_KEY, now);
 
-							newNode.setProperty(File.CONTENT_TYPE_KEY, mimeType);
-							newNode.setProperty(File.SIZE_KEY, String.valueOf(size));
-							newNode.setProperty(File.URL_KEY, fileUrl);
-							newNode.setProperty(File.RELATIVE_FILE_PATH_KEY, relativeFilePath);
+							newNode.setProperty(File.Key.contentType.name(), mimeType);
+							newNode.setProperty(File.Key.size.name(), String.valueOf(size));
+							newNode.setProperty(File.Key.url.name(), fileUrl);
+							newNode.setProperty(File.Key.relativeFilePath.name(), relativeFilePath);
 
 							AbstractNode parentNode = node;
 							createRel.execute(parentNode, newNode, RelType.HAS_CHILD);

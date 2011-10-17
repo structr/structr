@@ -421,10 +421,10 @@ public class Report extends Nodes {
                     newNode.setProperty(AbstractNode.CREATED_DATE_KEY, now);
                     newNode.setProperty(AbstractNode.LAST_MODIFIED_DATE_KEY, now);
 
-                    newNode.setProperty(org.structr.core.entity.File.CONTENT_TYPE_KEY, "text/csv");
-                    newNode.setProperty(org.structr.core.entity.File.SIZE_KEY, String.valueOf(reportFile.length()));
-                    newNode.setProperty(org.structr.core.entity.File.URL_KEY, fileUrl);
-                    newNode.setProperty(org.structr.core.entity.File.RELATIVE_FILE_PATH_KEY, relativeFilePath);
+                    newNode.setProperty(org.structr.core.entity.File.Key.contentType.name(), "text/csv");
+                    newNode.setProperty(org.structr.core.entity.File.Key.size.name(), String.valueOf(reportFile.length()));
+                    newNode.setProperty(org.structr.core.entity.File.Key.url.name(), fileUrl);
+                    newNode.setProperty(org.structr.core.entity.File.Key.relativeFilePath.name(), relativeFilePath);
 
                     // connect report to user node
                     AbstractNode parentNode = user;

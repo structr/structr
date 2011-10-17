@@ -52,6 +52,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.PropertyKey;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -62,9 +63,11 @@ import java.util.logging.Logger;
  */
 public class Image extends File {
 
-	public final static String HEIGHT_KEY = "height";
+	public enum Key implements PropertyKey {
+		height, width;
+	}
+	
 	private final static String ICON_SRC  = "/images/image.png";
-	public final static String WIDTH_KEY  = "width";
 	private static final Logger logger    = Logger.getLogger(Image.class.getName());
 
 	//~--- fields ---------------------------------------------------------
@@ -113,11 +116,11 @@ public class Image extends File {
 	}
 
 	public Integer getWidth() {
-		return getIntProperty(WIDTH_KEY);
+		return getIntProperty(Key.width.name());
 	}
 
 	public Integer getHeight() {
-		return getIntProperty(HEIGHT_KEY);
+		return getIntProperty(Key.height.name());
 	}
 
 //
@@ -280,8 +283,8 @@ public class Image extends File {
 
 				for (StructrRelationship r : thumbnailRelationships) {
 
-					Integer w = (Integer) r.getProperty(Image.WIDTH_KEY);
-					Integer h = (Integer) r.getProperty(Image.HEIGHT_KEY);
+					Integer w = (Integer) r.getProperty(Key.width.name());
+					Integer h = (Integer) r.getProperty(Key.height.name());
 
 					if ((w != null) && (h != null)) {
 
@@ -326,7 +329,7 @@ public class Image extends File {
 //                              Command findNode = Services.command(FindNodeCommand.class);
 				NodeAttribute typeAttr = new NodeAttribute(AbstractNode.TYPE_KEY,
 								 Image.class.getSimpleName());
-				NodeAttribute contentTypeAttr = new NodeAttribute(Image.CONTENT_TYPE_KEY,
+				NodeAttribute contentTypeAttr = new NodeAttribute(File.Key.contentType.name(),
 									"image/" + Thumbnail.FORMAT);
 				NodeAttribute isHiddenAttr = new NodeAttribute(AbstractNode.HIDDEN_KEY,
 								     originalImage.getHidden());
@@ -384,8 +387,8 @@ public class Image extends File {
 						Integer tnWidth  = thumbnailData.getWidth();
 						Integer tnHeight = thumbnailData.getHeight();
 
-						thumbnailRelationship.setProperty(Image.WIDTH_KEY, tnWidth);
-						thumbnailRelationship.setProperty(Image.HEIGHT_KEY, tnHeight);
+						thumbnailRelationship.setProperty(Key.width.name(), tnWidth);
+						thumbnailRelationship.setProperty(Key.height.name(), tnHeight);
 
 						// set local file url
 						thumbnail.setRelativeFilePath(relativeFilePath);
@@ -429,11 +432,11 @@ public class Image extends File {
 	//~--- set methods ----------------------------------------------------
 
 	public void setWidth(Integer width) {
-		setProperty(WIDTH_KEY, width);
+		setProperty(Key.width.name(), width);
 	}
 
 	public void setHeight(Integer height) {
-		setProperty(HEIGHT_KEY, height);
+		setProperty(Key.height.name(), height);
 	}
 
 	/** Copy public flag to all thumbnails */

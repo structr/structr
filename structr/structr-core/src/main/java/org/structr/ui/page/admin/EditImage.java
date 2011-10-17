@@ -38,8 +38,8 @@ public class EditImage extends EditFile {
     protected String externalPreviewViewUrl;
     @Bindable
     protected String localPreviewViewUrl;
-    protected LongField widthField = new LongField(Image.WIDTH_KEY);
-    protected LongField heightField = new LongField(Image.HEIGHT_KEY);
+    protected LongField widthField = new LongField(Image.Key.width.name());
+    protected LongField heightField = new LongField(Image.Key.height.name());
 
     public EditImage() {
 

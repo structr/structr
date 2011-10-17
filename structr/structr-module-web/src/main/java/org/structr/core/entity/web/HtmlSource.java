@@ -73,7 +73,7 @@ public class HtmlSource extends PlainText {
 
 		Object value = getProperty(key);
 
-		if (PlainText.CONTENT_KEY.equals(key)) {
+		if (PlainText.Key.content.name().equals(key)) {
 
 			String stringValue = (String) value;
 			Document htmlDoc   = Jsoup.parse(stringValue);

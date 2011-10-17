@@ -168,7 +168,7 @@ public class ExtractFileCommand extends NodeServiceCommand {
 
                                             // Detect content type from filename (extension)
                                             String contentType = getContentTypeFromFilename(ae.getName());
-                                            attrs.add(new NodeAttribute(File.CONTENT_TYPE_KEY, contentType));
+                                            attrs.add(new NodeAttribute(File.Key.contentType.name(), contentType));
 
                                             if (contentType != null && contentType.startsWith("image")) {
                                                 // If it seems to be an image, use Image type
@@ -222,7 +222,7 @@ public class ExtractFileCommand extends NodeServiceCommand {
 
                                     // create plain file (no sub directory)
                                     NodeAttribute typeAttr = new NodeAttribute(AbstractNode.TYPE_KEY, "File");
-                                    NodeAttribute sizeAttr = new NodeAttribute(File.SIZE_KEY, size);
+                                    NodeAttribute sizeAttr = new NodeAttribute(File.Key.size.name(), size);
                                     NodeAttribute nameAttr = new NodeAttribute(AbstractNode.NAME_KEY, name);
 
                                     AbstractNode fileNode = (AbstractNode) createNode.execute(nameAttr, typeAttr, sizeAttr, user);
@@ -299,7 +299,7 @@ public class ExtractFileCommand extends NodeServiceCommand {
             logger.log(Level.WARNING, "Exception while writing file: {0}", e.getMessage());
         }
 
-        fileNode.setProperty(File.RELATIVE_FILE_PATH_KEY, path);
+        fileNode.setProperty(File.Key.relativeFilePath.name(), path);
 
     }
 

@@ -40,6 +40,7 @@ import java.net.URL;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.PropertyKey;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -50,13 +51,11 @@ import java.util.logging.Logger;
  */
 public class File extends AbstractNode {
 
-	public final static String CONTENT_TYPE_KEY = "contentType";
+	public enum Key implements PropertyKey {
+		contentType, relativeFilePath, size, url;
+	}
+	
 	private final static String ICON_SRC        = "/images/page_white.png";
-
-//      public final static String FORMATTED_SIZE_KEY = "formattedSize";
-	public final static String RELATIVE_FILE_PATH_KEY = "relativeFilePath";
-	public final static String SIZE_KEY               = "size";
-	public final static String URL_KEY                = "url";
 	private static final Logger logger                = Logger.getLogger(File.class.getName());
 
 	//~--- get methods ----------------------------------------------------
@@ -67,12 +66,12 @@ public class File extends AbstractNode {
 	}
 
 	public String getUrl() {
-		return (String) getProperty(URL_KEY);
+		return getStringProperty(Key.url.name());
 	}
 
 	@Override
 	public String getContentType() {
-		return (String) getProperty(CONTENT_TYPE_KEY);
+		return getStringProperty(Key.contentType.name());
 	}
 
 	//~--- methods --------------------------------------------------------
@@ -108,25 +107,25 @@ public class File extends AbstractNode {
 	}
 
 	public String getRelativeFilePath() {
-		return (String) getProperty(RELATIVE_FILE_PATH_KEY);
+		return getStringProperty(Key.relativeFilePath.name());
 	}
 
 	//~--- set methods ----------------------------------------------------
 
 	public void setRelativeFilePath(final String filePath) {
-		setProperty(RELATIVE_FILE_PATH_KEY, filePath);
+		setProperty(Key.relativeFilePath.name(), filePath);
 	}
 
 	public void setUrl(final String url) {
-		setProperty(URL_KEY, url);
+		setProperty(Key.url.name(), url);
 	}
 
 	public void setContentType(final String contentType) {
-		setProperty(CONTENT_TYPE_KEY, contentType);
+		setProperty(Key.contentType.name(), contentType);
 	}
 
 	public void setSize(final long size) {
-		setProperty(SIZE_KEY, size);
+		setProperty(Key.size.name(), size);
 	}
 
 	//~--- get methods ----------------------------------------------------

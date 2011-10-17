@@ -20,7 +20,6 @@ package org.structr.core.entity;
 
 import java.util.Map;
 import org.structr.common.RenderMode;
-import org.structr.common.renderer.FileStreamRenderer;
 import org.structr.common.renderer.LinkRenderer;
 import org.structr.core.NodeRenderer;
 

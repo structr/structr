@@ -50,7 +50,7 @@ public class User extends Person {
 
     private static final Logger logger = Logger.getLogger(User.class.getName());
 
-    public static enum Key implements PropertyKey {
+    public enum Key implements PropertyKey {
 
 	    realName, password, blocked, sessionId, confirmationKey, backendUser, frontendUser
     }

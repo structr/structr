@@ -23,8 +23,6 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.Direction;
@@ -36,12 +34,11 @@ import org.neo4j.graphdb.traversal.Evaluator;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.graphdb.traversal.Traverser;
 import org.neo4j.kernel.Traversal;
+import org.structr.common.PropertyKey;
 import org.structr.common.RelType;
-import org.structr.common.RenderMode;
 import org.structr.core.Command;
 import org.structr.core.Decorable;
 import org.structr.core.Decorator;
-import org.structr.core.NodeRenderer;
 import org.structr.core.Services;
 import org.structr.core.node.Evaluable;
 import org.structr.core.node.IterableAdapter;
@@ -71,8 +68,11 @@ import org.structr.core.node.TransactionCommand;
 public class NodeList<T extends AbstractNode> extends AbstractNode implements Iterable<AbstractNode>, Decorable<AbstractNode>, Evaluable {
 //public class NodeList<T extends AbstractNode> extends AbstractNode implements List<AbstractNode>, Decorable<AbstractNode>, Evaluable {
 
+	public enum Key implements PropertyKey {
+		parent;
+	}
+	
     private static final Logger logger = Logger.getLogger(NodeList.class.getName());
-    private static final String PARENT_KEY = "parent";
     private static final String ICON_SRC = "/images/application_view_list.png";
     private Set<Decorator<AbstractNode>> decorators = new LinkedHashSet<Decorator<AbstractNode>>();
     private Command transaction = Services.command(TransactionCommand.class);
@@ -815,8 +815,8 @@ public class NodeList<T extends AbstractNode> extends AbstractNode implements It
         if (startNode != null) {
             Iterable<Relationship> rels = startNode.getRelationships(relationshipType, direction);
             for (Relationship rel : rels) {
-                if (rel.hasProperty(PARENT_KEY)) {
-                    Object parent = rel.getProperty(PARENT_KEY);
+                if (rel.hasProperty(Key.parent.name())) {
+                    Object parent = rel.getProperty(Key.parent.name());
 
                     if (parent instanceof Long && ((Long) parent).equals(getNodeId())) {
                         if (direction.equals(Direction.INCOMING)) {
@@ -871,8 +871,8 @@ public class NodeList<T extends AbstractNode> extends AbstractNode implements It
         boolean ret = false;
 
         for (Relationship rel : rels) {
-            if (rel.hasProperty(PARENT_KEY)) {
-                Object parent = rel.getProperty(PARENT_KEY);
+            if (rel.hasProperty(Key.parent.name())) {
+                Object parent = rel.getProperty(Key.parent.name());
 
                 if (parent instanceof Long && ((Long) parent).equals(getNodeId())) {
                     rel.delete();
@@ -888,7 +888,7 @@ public class NodeList<T extends AbstractNode> extends AbstractNode implements It
     private boolean createRelationship(Node startNode, Node endNode, RelType relationshipType) {
         if (!startNode.equals(endNode)) {
             Relationship rel = startNode.createRelationshipTo(endNode, relationshipType);
-            rel.setProperty(PARENT_KEY, new Long(getNodeId()));
+            rel.setProperty(Key.parent.name(), new Long(getNodeId()));
 
             return (true);
         }
@@ -908,8 +908,8 @@ public class NodeList<T extends AbstractNode> extends AbstractNode implements It
 
             if (rels != null) {
                 for (Relationship rel : rels) {
-                    if (rel != null && rel.hasProperty(PARENT_KEY)) {
-                        Object parent = rel.getProperty(PARENT_KEY);
+                    if (rel != null && rel.hasProperty(Key.parent.name())) {
+                        Object parent = rel.getProperty(Key.parent.name());
                         if (parent instanceof Long && ((Long) parent).equals(getNodeId())) {
                             return (Evaluation.INCLUDE_AND_CONTINUE);
                         }

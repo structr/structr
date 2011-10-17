@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import org.neo4j.graphdb.Direction;
+import org.structr.common.PropertyKey;
 import org.structr.common.RelType;
 import org.structr.common.RenderMode;
 import org.structr.common.renderer.ExternalTemplateRenderer;
@@ -40,8 +41,11 @@ import org.structr.core.node.FindNodeCommand;
 public class CustomTypeNode extends AbstractNode {
 
 	private final static String ICON_SRC = "/images/error.png";
-	public final static String ICON_SRC_KEY = "iconSrc";
-	public final static String TYPE_NODE_ID_KEY = "typeNodeId";
+	
+	public enum Key implements PropertyKey {
+		iconSrc, typeNodeId;
+	}
+	
 	private NodeType typeNode;
 
 	@Override
@@ -63,7 +67,7 @@ public class CustomTypeNode extends AbstractNode {
 
 		Object iconSrc = null;
 		if (typeNode != null) {
-			iconSrc = typeNode.getProperty(ICON_SRC_KEY);
+			iconSrc = typeNode.getProperty(Key.iconSrc.name());
 		}
 
 		if (iconSrc != null && iconSrc instanceof String) {

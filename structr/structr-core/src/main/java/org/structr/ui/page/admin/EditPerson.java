@@ -40,27 +40,22 @@ public class EditPerson extends DefaultEdit {
 
 
         personFields.setColumns(2);
-        personFields.add(new TextField(Person.SALUTATION_KEY));
-        personFields.add(new TextField(Person.FIRST_NAME_KEY));
-        personFields.add(new TextField(Person.MIDDLE_NAME_OR_INITIAL_KEY, "Middle Name or Initial"));
-        personFields.add(new TextField(Person.LAST_NAME_KEY));
+        personFields.add(new TextField(Person.Key.salutation.name()));
+        personFields.add(new TextField(Person.Key.firstName.name()));
+	
+        personFields.add(new TextField(Person.Key.middleNameOrInitial.name(), "Middle Name or Initial"));
+        personFields.add(new TextField(Person.Key.lastName.name()));
 
-        personFields.add(new EmailField(Person.EMAIL_1_KEY, "E-mail"));
-//        personFields.add(new EmailField(Person.EMAIL_2_KEY));
-//        personFields.add(new EmailField(Person.EMAIL_3_KEY));
-//        personFields.add(new EmailField(Person.EMAIL_4_KEY));
+        personFields.add(new EmailField(Person.Key.email1.name(), "E-mail"));
+        personFields.add(new EmailField(Person.Key.email2.name(), "2nd E-mail"));
 
-        personFields.add(new TelephoneField(Person.PHONE_NUMBER_1_KEY, "Phone"));
-        personFields.add(new TelephoneField(Person.PHONE_NUMBER_2_KEY, "2nd Phone"));
-//        personFields.add(new TelephoneField(Person.PHONE_NUMBER_3_KEY));
-//        personFields.add(new TelephoneField(Person.PHONE_NUMBER_4_KEY));
-//        personFields.add(new TelephoneField(Person.PHONE_NUMBER_5_KEY));
-//        personFields.add(new TelephoneField(Person.PHONE_NUMBER_6_KEY));
+        personFields.add(new TelephoneField(Person.Key.phoneNumber1.name(), "Phone"));
+        personFields.add(new TelephoneField(Person.Key.phoneNumber2.name(), "2nd Phone"));
 
-        personFields.add(new TelephoneField(Person.FAX_NUMBER_1_KEY, "Fax"));
-//        personFields.add(new TelephoneField(Person.FAX_NUMBER_2_KEY));
-//        personFields.add(new TelephoneField(Person.FAX_NUMBER_3_KEY));
-        editPropertiesForm.add(personFields);
+        personFields.add(new TelephoneField(Person.Key.faxNumber1.name(), "Fax"));
+        personFields.add(new TelephoneField(Person.Key.faxNumber2.name(), "2nd Fax"));
+
+	editPropertiesForm.add(personFields);
 
 
 

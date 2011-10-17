@@ -18,6 +18,8 @@
  */
 package org.structr.core.entity;
 
+import org.structr.common.PropertyKey;
+
 /**
  * 
  * @author amorgner
@@ -25,38 +27,39 @@ package org.structr.core.entity;
  */
 public class PlainText extends AbstractNode {
 
+	public enum Key implements PropertyKey {
+		content, contentType, size;
+	}
+	
     private final static String ICON_SRC = "/images/page_white_text.png";
 
     @Override
     public String getIconSrc() {
         return ICON_SRC;
     }
-    public final static String CONTENT_KEY = "content";
-    public final static String CONTENT_TYPE_KEY = "contentType";
-    public final static String SIZE_KEY = "size";
 
     public String getContent() {
-        return (String) getProperty(CONTENT_KEY);
+        return getStringProperty(Key.content.name());
     }
 
     public void setContent(final String content) {
-        setProperty(CONTENT_KEY, content);
+        setProperty(Key.content.name(), content);
     }
 
     @Override
     public String getContentType() {
-        return (String) getProperty(CONTENT_TYPE_KEY);
+        return getStringProperty(Key.contentType.name());
     }
 
     public void setContentType(final String contentType) {
-        setProperty(CONTENT_TYPE_KEY, contentType);
+        setProperty(Key.contentType.name(), contentType);
     }
 
     public String getSize() {
-        return (String) getProperty(SIZE_KEY);
+        return getStringProperty(Key.size.name());
     }
 
     public void setSize(final String size) {
-        setProperty(SIZE_KEY, size);
+        setProperty(Key.size.name(), size);
     }
 }

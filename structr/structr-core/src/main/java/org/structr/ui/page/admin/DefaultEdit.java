@@ -146,7 +146,7 @@ public class DefaultEdit extends Nodes {
 	protected Checkbox recursive      = new Checkbox("recursive");
 	protected Select ownerSelect      = new Select(AbstractNode.OWNER_ID_KEY, "Owner");
 	protected Select groupSelect      = new Select("selectGroup", "Group");
-	protected Select customTypeSelect = new Select(CustomTypeNode.TYPE_NODE_ID_KEY, "Custom Type");
+	protected Select customTypeSelect = new Select(CustomTypeNode.Key.typeNodeId.name(), "Custom Type");
 	protected Checkbox cloudRecursive = new Checkbox("cloudRecursive", "Recursive");
 	protected Select cloudPushPull    = new Select("cloudPushPull", "Push / Pull");
 	protected PickList allowed        = new PickList(StructrRelationship.ALLOWED_KEY, "Allowed");

@@ -25,7 +25,6 @@ import org.structr.core.entity.Person;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
 import org.structr.core.entity.web.RegistrationCheck;
-import org.structr.core.entity.web.RegistrationForm;
 import org.structr.core.entity.web.WebNode;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;
@@ -504,19 +503,19 @@ public class RegistrationCheckRenderer implements NodeRenderer<RegistrationCheck
 				User newUser = (User)create.execute(assignedUser,
 					new NodeAttribute(AbstractNode.NAME_KEY, username),
 					new NodeAttribute(AbstractNode.TYPE_KEY, User.class.getSimpleName()),
-					new NodeAttribute(Person.FIRST_NAME_KEY, firstName),
-					new NodeAttribute(Person.LAST_NAME_KEY, lastName),
+					new NodeAttribute(Person.Key.firstName.name(), firstName),
+					new NodeAttribute(Person.Key.firstName.name(), lastName),
 					new NodeAttribute(User.Key.realName.name(), (firstName + " " + lastName)),
-					new NodeAttribute(Person.STREET_KEY, street),
-					new NodeAttribute(Person.ZIP_CODE_KEY, zipCode),
-					new NodeAttribute(Person.CITY_KEY, city),
-					new NodeAttribute(Person.STATE_KEY, state),
-					new NodeAttribute(Person.COUNTRY_KEY, country),
-					new NodeAttribute(Person.GENDER_KEY, gender),
-					new NodeAttribute(Person.BIRTHDAY_KEY, birthdayDate),
-					new NodeAttribute(Person.EMAIL_1_KEY, email),
-					new NodeAttribute(Person.NEWSLETTER_KEY, StringUtils.isNotEmpty(newsletter)),
-					new NodeAttribute(User.Key.realName.name(), true),
+					new NodeAttribute(Person.Key.street.name(), street),
+					new NodeAttribute(Person.Key.zipCode.name(), zipCode),
+					new NodeAttribute(Person.Key.city.name(), city),
+					new NodeAttribute(Person.Key.state.name(), state),
+					new NodeAttribute(Person.Key.country.name(), country),
+					new NodeAttribute(Person.Key.gender.name(), gender),
+					new NodeAttribute(Person.Key.birthday.name(), birthdayDate),
+					new NodeAttribute(Person.Key.email1.name(), email),
+					new NodeAttribute(Person.Key.newsletter.name(), StringUtils.isNotEmpty(newsletter)),
+					new NodeAttribute(User.Key.frontendUser.name(), true),
 					new NodeAttribute(User.Key.confirmationKey.name(), confirmationKeyForMail));
 
 				// Use method for password to be hashed

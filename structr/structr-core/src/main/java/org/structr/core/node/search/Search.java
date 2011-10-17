@@ -98,7 +98,7 @@ public abstract class Search {
 
 	public static SearchAttribute andContent(final String searchString) {
 
-		SearchAttribute attr = new TextualSearchAttribute(PlainText.CONTENT_KEY,
+		SearchAttribute attr = new TextualSearchAttribute(PlainText.Key.contentType.name(),
 			searchString,
 			SearchOperator.AND);
 
@@ -107,7 +107,7 @@ public abstract class Search {
 
 	public static SearchAttribute orContent(final String searchString) {
 
-		SearchAttribute attr = new TextualSearchAttribute(PlainText.CONTENT_KEY,
+		SearchAttribute attr = new TextualSearchAttribute(PlainText.Key.contentType.name(),
 			searchString,
 			SearchOperator.OR);
 
@@ -170,7 +170,7 @@ public abstract class Search {
 
 	public static SearchAttribute orExactContent(final String searchString) {
 
-		SearchAttribute attr = new TextualSearchAttribute(PlainText.CONTENT_KEY,
+		SearchAttribute attr = new TextualSearchAttribute(PlainText.Key.contentType.name(),
 			exactMatch(searchString),
 			SearchOperator.OR);
 
@@ -179,7 +179,7 @@ public abstract class Search {
 
 	public static SearchAttribute andExactContent(final String searchString) {
 
-		SearchAttribute attr = new TextualSearchAttribute(PlainText.CONTENT_KEY,
+		SearchAttribute attr = new TextualSearchAttribute(PlainText.Key.contentType.name(),
 			exactMatch(searchString),
 			SearchOperator.AND);
 
