@@ -29,6 +29,7 @@ public class PasswordConverter implements PropertyConverter<String, String> {
 
 	@Override
 	public String convertFrom(String clearTextPassword) {
+		if (clearTextPassword == null) return null;
 		return DigestUtils.sha512Hex(clearTextPassword);
 	}
 

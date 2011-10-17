@@ -34,11 +34,13 @@ public class NodeIdNodeConverter implements PropertyConverter<Long, AbstractNode
 
 	@Override
 	public Long convertFrom(AbstractNode node) {
+		if (node == null) return null;
 		return node.getId();
 	}
 
 	@Override
 	public AbstractNode convertTo(Long nodeId) {
+		if (nodeId == null) return null;
 		return (AbstractNode) Services.command(FindNodeCommand.class).execute(new SuperUser(), nodeId);
 	}
 
