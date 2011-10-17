@@ -21,6 +21,7 @@ package org.structr.core.converter;
 
 import org.structr.core.PropertyConverter;
 import org.structr.core.Services;
+import org.structr.core.Value;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.node.FindNodeCommand;
@@ -33,15 +34,14 @@ import org.structr.core.node.FindNodeCommand;
 public class NodeIdNodeConverter implements PropertyConverter<Long, AbstractNode> {
 
 	@Override
-	public Long convertFrom(AbstractNode node) {
+	public Long convertFrom(AbstractNode node, Value value) {
 		if (node == null) return null;
 		return node.getId();
 	}
 
 	@Override
-	public AbstractNode convertTo(Long nodeId) {
+	public AbstractNode convertTo(Long nodeId, Value value) {
 		if (nodeId == null) return null;
 		return (AbstractNode) Services.command(FindNodeCommand.class).execute(new SuperUser(), nodeId);
 	}
-
 }

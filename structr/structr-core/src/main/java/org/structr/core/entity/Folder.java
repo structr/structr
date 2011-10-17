@@ -26,6 +26,8 @@ import org.structr.common.renderer.RenderContext;
 //~--- JDK imports ------------------------------------------------------------
 
 import org.structr.common.AbstractComponent;
+import org.structr.common.PropertyView;
+import org.structr.core.EntityContext;
 import org.structr.help.Container;
 import org.structr.help.Content;
 import org.structr.help.Paragraph;
@@ -41,6 +43,10 @@ public class Folder extends AbstractNode {
 
 	private final static String ICON_SRC = "/images/folder.png";
 
+	static {
+		EntityContext.registerPropertySet(Folder.class, PropertyView.All);
+	}
+	
 	//~--- methods --------------------------------------------------------
 
 	@Override

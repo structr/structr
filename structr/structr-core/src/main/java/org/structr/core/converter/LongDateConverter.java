@@ -21,6 +21,7 @@ package org.structr.core.converter;
 
 import java.util.Date;
 import org.structr.core.PropertyConverter;
+import org.structr.core.Value;
 
 /**
  * @author Christian Morgner
@@ -28,7 +29,7 @@ import org.structr.core.PropertyConverter;
 public class LongDateConverter implements PropertyConverter<Long, Date> {
 
 	@Override
-	public Long convertFrom(Date source) {
+	public Long convertFrom(Date source, Value value) {
 		if(source != null) {
 			return source.getTime();
 		}
@@ -37,7 +38,7 @@ public class LongDateConverter implements PropertyConverter<Long, Date> {
 	}
 
 	@Override
-	public Date convertTo(Long source) {
+	public Date convertTo(Long source, Value value) {
 
 		if(source != null) {
 			return new Date(source);

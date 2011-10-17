@@ -20,12 +20,29 @@
 package org.structr.core;
 
 /**
- * 
+ * A generic converter interface that can be used to convert
+ * values from one type to another. Please note that implementations
+ * of this interface MUST be able to handle null values.
  *
  * @author Christian Morgner
  */
 public interface PropertyConverter<S, T> {
 
-	public S convertFrom(T source);
-	public T convertTo(S source);
+	/**
+	 * Converts from destination type to source type. Caution: source
+	 * will be null if there is no value in the database.
+	 * 
+	 * @param source
+	 * @return 
+	 */
+	public S convertFrom(T source, Value value);
+	
+	/**
+	 * Converts from source type to destination type. Caution: source
+	 * will be null if there is no value in the database.
+	 * 
+	 * @param source
+	 * @return 
+	 */
+	public T convertTo(S source, Value value);
 }

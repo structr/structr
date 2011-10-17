@@ -112,6 +112,7 @@ import org.structr.core.EntityContext;
 import org.structr.core.PropertyConverter;
 import org.structr.core.converter.LongDateConverter;
 import org.structr.core.converter.NodeIdNodeConverter;
+import org.structr.core.converter.TestConverter;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -201,12 +202,14 @@ public abstract class AbstractNode
 	static {
 		EntityContext.registerPropertySet(AbstractNode.class, PropertyView.All, Key.values());
 
-		EntityContext.registerGlobalPropertyConverter(Key.visibilityStartDate.name(), LongDateConverter.class);
-		EntityContext.registerGlobalPropertyConverter(Key.visibilityEndDate.name(), LongDateConverter.class);
-		EntityContext.registerGlobalPropertyConverter(Key.lastModifiedDate.name(), LongDateConverter.class);
-		EntityContext.registerGlobalPropertyConverter(Key.createdDate.name(), LongDateConverter.class);
+		EntityContext.registerPropertyConverter(AbstractNode.class, Key.visibilityStartDate.name(), LongDateConverter.class);
+		EntityContext.registerPropertyConverter(AbstractNode.class, Key.visibilityEndDate.name(), LongDateConverter.class);
+		EntityContext.registerPropertyConverter(AbstractNode.class, Key.lastModifiedDate.name(), LongDateConverter.class);
+		EntityContext.registerPropertyConverter(AbstractNode.class, Key.createdDate.name(), LongDateConverter.class);
 
-		EntityContext.registerGlobalPropertyConverter(Key.ownerId.name(), NodeIdNodeConverter.class);
+		EntityContext.registerPropertyConverter(AbstractNode.class, Key.ownerId.name(), NodeIdNodeConverter.class);
+		
+		EntityContext.registerPropertyConverter(AbstractNode.class, Key.name.name(), TestConverter.class);
 	}
 
 	public AbstractNode() {
@@ -1911,6 +1914,7 @@ public abstract class AbstractNode
 	@Override
 	public Object getProperty(final String key) {
 
+		Class type = this.getClass();
 		Object value = null;
 
 		if (isDirty) {
@@ -1921,9 +1925,10 @@ public abstract class AbstractNode
 			value = dbNode.getProperty(key);
 		}
 
-		PropertyConverter converter = EntityContext.getPropertyConverter(this.getClass(), key);
+		PropertyConverter converter = EntityContext.getPropertyConverter(type, key);
 		if(converter != null) {
-			value = converter.convertTo(value);
+			Value conversionValue = EntityContext.getPropertyConversionParameter(type, key);
+			value = converter.convertTo(value, conversionValue);
 		}
 
 		return value;
@@ -3426,7 +3431,7 @@ public abstract class AbstractNode
 	public Set<String> keySet() {
 
 		Set<String> keys = new HashSet<String>();
-		for (String key : getPropertyKeys()) {
+		for (String key : getPropertyKeys(PropertyView.All)) {
 			keys.add(key);
 		}
 		return keys;
@@ -3435,8 +3440,8 @@ public abstract class AbstractNode
 	@Override
 	public Object put(final String key, final Object value) {
 		
-		Object oldValue = getProperty((String)key);
-		setProperty((String)key, value);
+		Object oldValue = get(key);
+		setProperty(key, value);
 		return oldValue;
 	}
 
@@ -3888,7 +3893,8 @@ public abstract class AbstractNode
 		PropertyConverter converter = EntityContext.getPropertyConverter(type, key);
 		final Object convertedValue;
 		if(converter != null) {
-			convertedValue = converter.convertFrom(value);
+			Value conversionValue = EntityContext.getPropertyConversionParameter(type, key);
+			convertedValue = converter.convertFrom(value, conversionValue);
 		} else {
 			convertedValue = value;
 		}
@@ -3922,8 +3928,6 @@ public abstract class AbstractNode
 				|| ((convertedValue != null) && (oldValue != null) && convertedValue.equals(oldValue))) {
 				return;
 			}
-
-			logger.log(Level.INFO, "################################### Setting {0} to {1}, starting transaction", new Object[] { key, convertedValue } );
 
 			StructrTransaction transaction = new StructrTransaction() {
 

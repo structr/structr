@@ -44,7 +44,8 @@ public class EntityContext {
 	private static final Map<Class, Map<String, Class<? extends PropertyValidator>>> globalValidatorMap = new LinkedHashMap<Class, Map<String, Class<? extends PropertyValidator>>>();
 	private static final Map<String, Map<String, DirectedRelationship>> globalTypeMap = new LinkedHashMap<String, Map<String, DirectedRelationship>>();
 	private static final Map<Class, Map<PropertyView, Set<String>>> globalPropertyKeyMap = new LinkedHashMap<Class, Map<PropertyView, Set<String>>>();
-	private static final Map<Class, Map<String, Value>> globalValidatonParameterMap = new LinkedHashMap<Class, Map<String, Value>>();
+	private static final Map<Class, Map<String, Value>> globalValidationParameterMap = new LinkedHashMap<Class, Map<String, Value>>();
+	private static final Map<Class, Map<String, Value>> globalConversionParameterMap = new LinkedHashMap<Class, Map<String, Value>>();
 
 	private static final Logger logger = Logger.getLogger(EntityContext.class.getName());
 
@@ -72,16 +73,13 @@ public class EntityContext {
 			properties.add(property.name());
 		}
 
-//		logger.log(Level.INFO, "############################## Adding class {0} properties {1}", new Object[]{ type.getSimpleName(), properties } );
-		
+		// include property sets from superclass
 		Class superClass = type.getSuperclass();
 		while(superClass != null && !superClass.equals(Object.class)) {
 			
 			Set<String> superProperties = getPropertySet(superClass, propertyView);
 			properties.addAll(superProperties);
 
-//			logger.log(Level.INFO, "############################## Adding superclass {0} properties {1}", new Object[]{ superClass.getSimpleName(), superProperties } );
-			
 			// one level up :)
 			superClass = superClass.getSuperclass();
 		}
@@ -118,9 +116,21 @@ public class EntityContext {
 
 	public static PropertyValidator getPropertyValidator(Class type, String propertyKey) {
 
-		Map<String, Class<? extends PropertyValidator>> validatorMap = getPropertyValidatorMapForType(type);
-		Class clazz = validatorMap.get(propertyKey);
+		Map<String, Class<? extends PropertyValidator>> validatorMap = null;
 		PropertyValidator validator = null;
+		Class localType = type;
+		Class clazz = null;
+		
+		// try all superclasses
+		while(clazz == null && !localType.equals(Object.class)) {
+			validatorMap = getPropertyValidatorMapForType(localType);
+			clazz = validatorMap.get(propertyKey);
+			
+//			logger.log(Level.INFO, "Validator class {0} found for type {1}", new Object[] { clazz != null ? clazz.getSimpleName() : "null", localType } );
+
+			// one level up :)
+			localType = localType.getSuperclass();
+		}
 
 		if(clazz != null) {
 
@@ -137,35 +147,51 @@ public class EntityContext {
 
 	public static Value getPropertyValidationParameter(Class type, String propertyKey) {
 
-		Map<String, Value> validationParameterMap = getPropertyValidatonParameterMapForType(type);
-		if(validationParameterMap != null) {
-			return validationParameterMap.get(propertyKey);
+		Map<String, Value> validationParameterMap = null;
+		Class localType = type;
+		Value value = null;
+		
+		while(value == null && !localType.equals(Object.class)) {
+			validationParameterMap = getPropertyValidatonParameterMapForType(localType);
+			value = validationParameterMap.get(propertyKey);
+			
+//			logger.log(Level.INFO, "Validation parameter value {0} found for type {1}", new Object[] { value != null ? value.getClass().getSimpleName() : "null", localType } );
+			
+			localType = localType.getSuperclass();
 		}
 
-		return null;
+		return value;
 	}
 
 	// ----- PropertyConverter methods -----
-	public static void registerPropertyConverter(Class type, String propertyKey, Class<? extends PropertyConverter> PropertyConverterClass) {
-		getPropertyConverterMapForType(type).put(propertyKey, PropertyConverterClass);
+	public static void registerPropertyConverter(Class type, String propertyKey, Class<? extends PropertyConverter> propertyConverterClass) {
+		registerPropertyConverter(type, propertyKey, propertyConverterClass, null);
 	}
-
-	public static void registerGlobalPropertyConverter(String propertyKey, Class<? extends PropertyConverter> PropertyConverterClass) {
-		getPropertyConverterMapForType(GlobalClassPlaceholder.class).put(propertyKey, PropertyConverterClass);
+	
+	public static void registerPropertyConverter(Class type, String propertyKey, Class<? extends PropertyConverter> propertyConverterClass, Value value) {
+		getPropertyConverterMapForType(type).put(propertyKey, propertyConverterClass);
+		
+		if(value != null) {
+			getPropertyConversionParameterMapForType(type).put(propertyKey, value);
+		}
 	}
 
 	public static PropertyConverter getPropertyConverter(Class type, String propertyKey) {
 
-		Map<String, Class<? extends PropertyConverter>> validatorMap = getPropertyConverterMapForType(type);
-		Class clazz = validatorMap.get(propertyKey);
+		Map<String, Class<? extends PropertyConverter>> converterMap = null;
 		PropertyConverter propertyConverter = null;
-
-		// try global type converter
-		if(clazz == null) {
-			validatorMap = getPropertyConverterMapForType(GlobalClassPlaceholder.class);
-			clazz = validatorMap.get(propertyKey);
+		Class localType = type;
+		Class clazz = null;
+		
+		while(clazz == null && !localType.equals(Object.class)) {
+			converterMap = getPropertyConverterMapForType(localType);
+			clazz = converterMap.get(propertyKey);
+			
+//			logger.log(Level.INFO, "Converter class {0} found for type {1}", new Object[] { clazz != null ? clazz.getSimpleName() : "null", localType } );
+			
+			localType = localType.getSuperclass();
 		}
-
+		
 		if(clazz != null) {
 
 			try {
@@ -177,6 +203,24 @@ public class EntityContext {
 		}
 
 		return propertyConverter;
+	}
+
+	public static Value getPropertyConversionParameter(Class type, String propertyKey) {
+
+		Map<String, Value> conversionParameterMap = null;
+		Class localType = type;
+		Value value = null;
+		
+		while(value == null && !localType.equals(Object.class)) {
+			conversionParameterMap = getPropertyConversionParameterMapForType(localType);
+			value = conversionParameterMap.get(propertyKey);
+			
+//			logger.log(Level.INFO, "Conversion parameter value {0} found for type {1}", new Object[] { value != null ? value.getClass().getSimpleName() : "null", localType } );
+			
+			localType = localType.getSuperclass();
+		}
+
+		return value;
 	}
 
 	// ----- private methods -----
@@ -226,10 +270,10 @@ public class EntityContext {
 
 	private static Map<String, Value> getPropertyValidatonParameterMapForType(Class type) {
 
-		Map<String, Value> validationParameterMap = globalValidatonParameterMap.get(type);
+		Map<String, Value> validationParameterMap = globalValidationParameterMap.get(type);
 		if(validationParameterMap == null) {
 			validationParameterMap = new LinkedHashMap<String, Value>();
-			globalValidatonParameterMap.put(type, validationParameterMap);
+			globalValidationParameterMap.put(type, validationParameterMap);
 		}
 
 		return validationParameterMap;
@@ -246,7 +290,14 @@ public class EntityContext {
 		return PropertyConverterMap;
 	}
 
-	// ----- nested classes -----
-	private class GlobalClassPlaceholder {
+	private static Map<String, Value> getPropertyConversionParameterMapForType(Class type) {
+
+		Map<String, Value> conversionParameterMap = globalConversionParameterMap.get(type);
+		if(conversionParameterMap == null) {
+			conversionParameterMap = new LinkedHashMap<String, Value>();
+			globalConversionParameterMap.put(type, conversionParameterMap);
+		}
+
+		return conversionParameterMap;
 	}
 }
