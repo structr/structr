@@ -40,6 +40,11 @@ public class Person extends Principal {
 
     static {
 		EntityContext.registerPropertySet(Person.class, PropertyView.All, Key.values());
+
+		// public properties
+		EntityContext.registerPropertySet(User.class, PropertyView.Public,
+			Key.salutation, Key.firstName, Key.middleNameOrInitial, Key.lastName
+		);
     }
 
     private final static String ICON_SRC = "/images/user.png";

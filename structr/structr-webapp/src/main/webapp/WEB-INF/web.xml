@@ -94,11 +94,15 @@
 	</servlet-mapping>
 	<servlet>
 		<servlet-name>StructrRestServlet</servlet-name>
-		<servlet-class>org.structr.core.servlet.JsonRestServlet</servlet-class>
+		<servlet-class>org.structr.rest.servlet.JsonRestServlet</servlet-class>
 		<load-on-startup>1</load-on-startup>
 		<init-param>
 			<param-name>PropertyFormat</param-name>
 			<param-value>NestedKeyValueType</param-value>
+		</init-param>
+		<init-param>
+			<param-name>ConstraintProvider</param-name>
+			<param-value>org.structr.rest.constraint.StructrConstraintProvider</param-value>
 		</init-param>
 	</servlet>
 	<servlet-mapping>

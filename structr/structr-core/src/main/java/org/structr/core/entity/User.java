@@ -58,6 +58,9 @@ public class User extends Person {
     static {
 		EntityContext.registerPropertyConverter(User.class, Key.password.name(), PasswordConverter.class);
 		EntityContext.registerPropertySet(User.class, PropertyView.All, Key.values());
+		EntityContext.registerPropertySet(User.class, PropertyView.Public,
+			Key.realName
+		);
     }
 
     @Override

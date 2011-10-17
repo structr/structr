@@ -40,10 +40,10 @@ import org.structr.core.entity.DirectedRelationship;
  */
 public class EntityContext {
 
-	private static final Map<Class, Map<String, Class<? extends PropertyConverter>>> globalPropertyConverterMap = new LinkedHashMap<Class, Map<String, Class<? extends PropertyConverter>>>();
 	private static final Map<Class, Map<String, Class<? extends PropertyValidator>>> globalValidatorMap = new LinkedHashMap<Class, Map<String, Class<? extends PropertyValidator>>>();
+	private static final Map<Class, Map<String, Class<? extends PropertyConverter>>> globalPropertyConverterMap = new LinkedHashMap<Class, Map<String, Class<? extends PropertyConverter>>>();
 	private static final Map<String, Map<String, DirectedRelationship>> globalTypeMap = new LinkedHashMap<String, Map<String, DirectedRelationship>>();
-	private static final Map<Class, Map<PropertyView, Set<String>>> globalPropertyKeyMap = new LinkedHashMap<Class, Map<PropertyView, Set<String>>>();
+	private static final Map<Class, Map<PropertyView, Set<String>>> globalStringMap = new LinkedHashMap<Class, Map<PropertyView, Set<String>>>();
 	private static final Map<Class, Map<String, Value>> globalValidationParameterMap = new LinkedHashMap<Class, Map<String, Value>>();
 	private static final Map<Class, Map<String, Value>> globalConversionParameterMap = new LinkedHashMap<Class, Map<String, Value>>();
 
@@ -99,8 +99,16 @@ public class EntityContext {
 	}
 
 	// ----- validator methods -----
+	public static void registerPropertyValidator(Class type, PropertyKey propertyKey, Class<? extends PropertyValidator> validatorClass) {
+		registerPropertyValidator(type, propertyKey.name(), validatorClass);
+	}
+
 	public static void registerPropertyValidator(Class type, String propertyKey, Class<? extends PropertyValidator> validatorClass) {
 		registerPropertyValidator(type, propertyKey, validatorClass, null);
+	}
+
+	public static void registerPropertyValidator(Class type, PropertyKey propertyKey, Class<? extends PropertyValidator> validatorClass, Value parameter) {
+		registerPropertyValidator(type, propertyKey.name(), validatorClass, parameter);
 	}
 
 	public static void registerPropertyValidator(Class type, String propertyKey, Class<? extends PropertyValidator> validatorClass, Value parameter) {
@@ -164,6 +172,10 @@ public class EntityContext {
 	}
 
 	// ----- PropertyConverter methods -----
+	public static void registerPropertyConverter(Class type, PropertyKey propertyKey, Class<? extends PropertyConverter> propertyConverterClass) {
+		registerPropertyConverter(type, propertyKey.name(), propertyConverterClass);
+	}
+
 	public static void registerPropertyConverter(Class type, String propertyKey, Class<? extends PropertyConverter> propertyConverterClass) {
 		registerPropertyConverter(type, propertyKey, propertyConverterClass, null);
 	}
@@ -248,10 +260,10 @@ public class EntityContext {
 
 	private static Map<PropertyView, Set<String>> getPropertyViewMapForType(Class type) {
 
-		Map<PropertyView, Set<String>> propertyViewMap = globalPropertyKeyMap.get(type);
+		Map<PropertyView, Set<String>> propertyViewMap = globalStringMap.get(type);
 		if(propertyViewMap == null) {
 			propertyViewMap = new EnumMap<PropertyView, Set<String>>(PropertyView.class);
-			globalPropertyKeyMap.put(type, propertyViewMap);
+			globalStringMap.put(type, propertyViewMap);
 		}
 
 		return propertyViewMap;

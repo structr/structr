@@ -201,12 +201,12 @@ public abstract class AbstractNode
 	static {
 		EntityContext.registerPropertySet(AbstractNode.class, PropertyView.All, Key.values());
 
-		EntityContext.registerPropertyConverter(AbstractNode.class, Key.visibilityStartDate.name(), LongDateConverter.class);
-		EntityContext.registerPropertyConverter(AbstractNode.class, Key.visibilityEndDate.name(), LongDateConverter.class);
-		EntityContext.registerPropertyConverter(AbstractNode.class, Key.lastModifiedDate.name(), LongDateConverter.class);
-		EntityContext.registerPropertyConverter(AbstractNode.class, Key.createdDate.name(), LongDateConverter.class);
+		EntityContext.registerPropertyConverter(AbstractNode.class, Key.visibilityStartDate,	LongDateConverter.class);
+		EntityContext.registerPropertyConverter(AbstractNode.class, Key.visibilityEndDate,	LongDateConverter.class);
+		EntityContext.registerPropertyConverter(AbstractNode.class, Key.lastModifiedDate,	LongDateConverter.class);
+		EntityContext.registerPropertyConverter(AbstractNode.class, Key.createdDate,		LongDateConverter.class);
 
-		EntityContext.registerPropertyConverter(AbstractNode.class, Key.ownerId.name(), NodeIdNodeConverter.class);
+		EntityContext.registerPropertyConverter(AbstractNode.class, Key.ownerId,		NodeIdNodeConverter.class);
 	}
 
 	public AbstractNode() {
@@ -1866,11 +1866,16 @@ public abstract class AbstractNode
 	}
 
 	/**
-	 * Return all property keys
+	 * Return all property keys. 
 	 *
 	 * @return
 	 */
 	public Iterable<String> getPropertyKeys() {
+
+		// FIXME: should this method return keys for properties that
+		// exist in the database, or return ALL properties that are
+		// allowed in this node?
+		
 		return getDatabasePropertyKeys();
 	}
 
@@ -1889,7 +1894,7 @@ public abstract class AbstractNode
 	 */
 	@Override
 	public Iterable<String> getPropertyKeys(final PropertyView propertyView) {
-		return getPropertyKeys();
+		return EntityContext.getPropertySet(this.getClass(), propertyView);
 	}
 
 	public Object getProperty(final PropertyKey propertyKey) {
