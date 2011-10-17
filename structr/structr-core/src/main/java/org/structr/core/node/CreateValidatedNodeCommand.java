@@ -100,13 +100,15 @@ public class CreateValidatedNodeCommand extends NodeServiceCommand {
 			}
 
 			// Determine node type
-			Object typeObject = attrs.get("type");
+			Object typeObject = attrs.get(AbstractNode.Key.type.name());
 			String nodeType = typeObject != null ? typeObject.toString() : "GenericNode";
 
 			// Create node with type
 			node = nodeFactory.createNode(graphDb.createNode(), nodeType);
-			logger.log(Level.FINE, "Node {0} created", node.getId());
 			Class nodeClass = node.getClass();
+
+
+			logger.log(Level.INFO, "New node with type {0} and ID {1} created", new Object[] { nodeClass.getSimpleName(), node.getId() } );
 
 			// validate given properties based on PropertyView.All
 			Set<String> propertySet = EntityContext.getPropertySet(nodeClass, PropertyView.All);
@@ -114,7 +116,7 @@ public class CreateValidatedNodeCommand extends NodeServiceCommand {
 			boolean nodeIsValid = true;
 
 			for(String property : propertySet) {
-				
+
 				PropertyValidator validator = EntityContext.getPropertyValidator(nodeClass, property);
 				if(validator != null) {
 					Value parameter = EntityContext.getPropertyValidationParameter(nodeClass, property);

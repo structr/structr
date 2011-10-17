@@ -144,6 +144,7 @@ public class JsonRestServlet extends HttpServlet {
 		constraintMap.put(Pattern.compile("private"),		ViewFilterConstraint.class);		// private view
 		constraintMap.put(Pattern.compile("owner"),		ViewFilterConstraint.class);		// owner view
 		constraintMap.put(Pattern.compile("admin"),		ViewFilterConstraint.class);		// admin view
+		constraintMap.put(Pattern.compile("all"),		ViewFilterConstraint.class);		// all view
 
 		// The pattern for a generic type match. This pattern should be inserted at the very end
 		// of the chain because it matches everything that is a lowercase string without numbers
@@ -320,7 +321,7 @@ public class JsonRestServlet extends HttpServlet {
 						String type = typeConstraint.getType();
 
 						// add type to attribute set (will override type information from JSON input!)
-						attributes.add(new NodeAttribute(AbstractNode.TYPE_KEY, StringUtils.capitalize(type)));
+						attributes.add(new NodeAttribute(AbstractNode.Key.type.name(), StringUtils.capitalize(type)));
 
 						// create new object
 						newGraphObject = handleNodeCreation(attributes);
@@ -708,8 +709,12 @@ public class JsonRestServlet extends HttpServlet {
 		uriBuilder.append(request.getContextPath());
 		uriBuilder.append(request.getServletPath());
 		uriBuilder.append("/");
-		uriBuilder.append(type.toLowerCase());
-		uriBuilder.append("s/");
+
+		if(type != null) {
+			uriBuilder.append(type.toLowerCase());
+			uriBuilder.append("s/");
+		}
+		
 		uriBuilder.append(id);
 
 		return uriBuilder.toString();

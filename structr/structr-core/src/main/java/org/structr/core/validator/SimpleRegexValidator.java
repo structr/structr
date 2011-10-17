@@ -33,7 +33,7 @@ public class SimpleRegexValidator implements PropertyValidator<String> {
 	@Override
 	public boolean isValid(String key, Object value, Value<String> parameter, StringBuilder errorMessage) {
 
-		if(Pattern.compile(parameter.get()).matcher(value.toString()).matches()) {
+		if(value != null && Pattern.compile(parameter.get()).matcher(value.toString()).matches()) {
 			return true;
 		}
 		

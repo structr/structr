@@ -112,7 +112,6 @@ import org.structr.core.EntityContext;
 import org.structr.core.PropertyConverter;
 import org.structr.core.converter.LongDateConverter;
 import org.structr.core.converter.NodeIdNodeConverter;
-import org.structr.core.converter.TestConverter;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -208,8 +207,6 @@ public abstract class AbstractNode
 		EntityContext.registerPropertyConverter(AbstractNode.class, Key.createdDate.name(), LongDateConverter.class);
 
 		EntityContext.registerPropertyConverter(AbstractNode.class, Key.ownerId.name(), NodeIdNodeConverter.class);
-		
-		EntityContext.registerPropertyConverter(AbstractNode.class, Key.name.name(), TestConverter.class);
 	}
 
 	public AbstractNode() {
@@ -3448,7 +3445,7 @@ public abstract class AbstractNode
 	@Override
 	public void putAll(final Map<? extends String, ? extends Object> m) {
 
-		for (Map.Entry<String, Object> entry : entrySet()) {
+		for (Map.Entry<? extends String, ? extends Object> entry : m.entrySet()) {
 			String key = entry.getKey();
 			Object value = entry.getValue();
 			put(key, value);
