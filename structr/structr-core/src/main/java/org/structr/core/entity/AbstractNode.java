@@ -3435,7 +3435,7 @@ public abstract class AbstractNode
 	@Override
 	public Object put(final String key, final Object value) {
 		
-		Object oldValue = get((String)key);
+		Object oldValue = getProperty((String)key);
 		setProperty((String)key, value);
 		return oldValue;
 	}
