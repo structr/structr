@@ -21,12 +21,19 @@
 
 package org.structr.core.entity;
 
+import org.structr.common.PropertyView;
+import org.structr.core.EntityContext;
+
 /**
  *
  * @author axel
  */
 public class GenericNode extends AbstractNode {
 
+	static {
+		EntityContext.registerPropertySet(GenericNode.class, PropertyView.All);
+	}
+	
 	@Override
 	public String getIconSrc() {
 		return "/images/error.png";

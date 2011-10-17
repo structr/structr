@@ -21,6 +21,7 @@ package org.structr.core.converter;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.structr.core.PropertyConverter;
+import org.structr.core.Value;
 
 /**
  * @author Axel Morgner
@@ -28,13 +29,13 @@ import org.structr.core.PropertyConverter;
 public class PasswordConverter implements PropertyConverter<String, String> {
 
 	@Override
-	public String convertFrom(String clearTextPassword) {
+	public String convertFrom(String clearTextPassword, Value value) {
 		if (clearTextPassword == null) return null;
 		return DigestUtils.sha512Hex(clearTextPassword);
 	}
 
 	@Override
-	public String convertTo(String passwordHash) {
+	public String convertTo(String passwordHash, Value value) {
 		return null;
 	}
 }

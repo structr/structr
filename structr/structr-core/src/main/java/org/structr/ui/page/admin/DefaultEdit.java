@@ -103,6 +103,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.click.extras.control.SubmitLink;
 
@@ -1166,8 +1167,7 @@ public class DefaultEdit extends Nodes {
 	protected void save() {
 
 		final Command transactionCommand = Services.command(TransactionCommand.class);
-
-		transactionCommand.execute(new StructrTransaction() {
+		StructrTransaction transaction = new StructrTransaction() {
 
 			@Override
 			public Object execute() throws Throwable {
@@ -1190,7 +1190,14 @@ public class DefaultEdit extends Nodes {
 				return (null);
 			}
 
-		});
+		};
+		
+		transactionCommand.execute(transaction);
+		
+		if(transaction.getCause() != null) {
+			okMsg = transaction.getCause().getMessage();
+			logger.log(Level.WARNING, "Exception while storing properties", transaction.getCause());
+		}
 	}
 
 	/**
@@ -1387,9 +1394,8 @@ public class DefaultEdit extends Nodes {
 
 		if (editVisibilityForm.isValid()) {
 
-			final Command transactionCommand = Services.command(TransactionCommand.class);
-
-			transactionCommand.execute(new StructrTransaction() {
+			final TransactionCommand transactionCommand = (TransactionCommand)Services.command(TransactionCommand.class);
+			StructrTransaction transaction = new StructrTransaction() {
 
 				@Override
 				public Object execute() throws Throwable {
@@ -1410,8 +1416,15 @@ public class DefaultEdit extends Nodes {
 					return (null);
 				}
 
-			});
-			okMsg = "Node visibility parameter successfully saved.";
+			};
+			
+			transactionCommand.execute(transaction);
+			
+			if(transaction.getCause() != null) {
+				okMsg = transaction.getCause().getMessage();
+			} else {
+				okMsg = "Node visibility parameter successfully saved.";
+			}
 
 			Map<String, String> parameters = new HashMap<String, String>();
 

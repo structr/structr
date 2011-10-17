@@ -44,7 +44,7 @@ public class TransactionCommand extends NodeServiceCommand {
 
 				} catch(Throwable t) {
 
-					//t.printStackTrace();
+					t.printStackTrace();
 					transaction.setCause(t);
 					tx.failure();
 
@@ -62,7 +62,8 @@ public class TransactionCommand extends NodeServiceCommand {
 				tx.success();
 
 			} catch(Throwable t) {
-				// t.printStackTrace();
+				
+				t.printStackTrace();
 				transaction.setCause(t);
 				tx.failure();
 
