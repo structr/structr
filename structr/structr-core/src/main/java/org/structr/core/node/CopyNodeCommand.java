@@ -100,7 +100,7 @@ public class CopyNodeCommand extends NodeServiceCommand {
             for (String key : node.getPropertyKeys()) {
 
                 // don't copy creation date
-                if (!(key.equals(AbstractNode.CREATED_DATE_KEY))) {
+                if (!(key.equals(AbstractNode.Key.createdDate.name()))) {
                     newNode.setProperty(key, node.getProperty(key));
                 }
             }

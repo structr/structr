@@ -132,37 +132,37 @@ public abstract class AbstractNode
 	    templateId, categories, ownerId, owner;
         }
 
-	public final static String CATEGORIES_KEY         = "categories";
-	public final static String CREATED_BY_KEY         = "createdBy";
-	public final static String CREATED_DATE_KEY       = "createdDate";
-	public final static String DELETED_KEY            = "deleted";
-	public final static String HIDDEN_KEY             = "hidden";
-	public final static String LAST_MODIFIED_DATE_KEY = "lastModifiedDate";
-	public final static String NAME_KEY               = "name";
-	public final static String NODE_ID_KEY            = "nodeId";
+//	public final static String CATEGORIES_KEY         = "categories";
+//	public final static String CREATED_BY_KEY         = "createdBy";
+//	public final static String CREATED_DATE_KEY       = "createdDate";
+//	public final static String DELETED_KEY            = "deleted";
+//	public final static String HIDDEN_KEY             = "hidden";
+//	public final static String LAST_MODIFIED_DATE_KEY = "lastModifiedDate";
+//	public final static String NAME_KEY               = "name";
+//	public final static String NODE_ID_KEY            = "nodeId";
 
 //      public final static String ACL_KEY = "acl";
 	// private final static String keyPrefix = "${";
 	// private final static String keySuffix = "}";
 	private final static String NODE_KEY_PREFIX               = "%{";
 	private final static String NODE_KEY_SUFFIX               = "}";
-	public final static String OWNER_ID_KEY                   = "ownerId";
-	public final static String OWNER_KEY                      = "owner";
-	public final static String POSITION_KEY                   = "position";
-	public final static String PUBLIC_KEY                     = "public";
+//	public final static String OWNER_ID_KEY                   = "ownerId";
+//	public final static String OWNER_KEY                      = "owner";
+//	public final static String POSITION_KEY                   = "position";
+//	public final static String PUBLIC_KEY                     = "public";
 	private final static String SUBNODES_AND_LINKED_NODES_KEY = "#";
 	private final static String SUBNODES_KEY                  = "*";
-	public final static String TEMPLATE_ID_KEY                = "templateId";
+//	public final static String TEMPLATE_ID_KEY                = "templateId";
 
 //      public final static String LOCALE_KEY = "locale";
-	public final static String TITLES_KEY = "titles";
-	public final static String TITLE_KEY  = "title";
+//	public final static String TITLES_KEY = "titles";
+//	public final static String TITLE_KEY  = "title";
 
 	// keys for basic properties (any node should have at least all of the following properties)
-	public final static String TYPE_KEY                           = "type";
-	public final static String VISIBILITY_END_DATE_KEY            = "visibilityEndDate";
-	public final static String VISIBILITY_START_DATE_KEY          = "visibilityStartDate";
-	public final static String VISIBLE_TO_AUTHENTICATED_USERS_KEY = "visibleToAuthenticatedUsers";
+//	public final static String TYPE_KEY                           = "type";
+//	public final static String VISIBILITY_END_DATE_KEY            = "visibilityEndDate";
+//	public final static String VISIBILITY_START_DATE_KEY          = "visibilityStartDate";
+//	public final static String VISIBLE_TO_AUTHENTICATED_USERS_KEY = "visibleToAuthenticatedUsers";
 	private static final Logger logger                            = Logger.getLogger(AbstractNode.class.getName());
 	private static final boolean updateIndexDefault               = true;
 
@@ -1586,7 +1586,7 @@ public abstract class AbstractNode
 	 */
 	@Override
 	public String getType() {
-		return (String) getProperty(TYPE_KEY);
+		return (String) getProperty(Key.type.name());
 	}
 
 	/**
@@ -1608,7 +1608,7 @@ public abstract class AbstractNode
 	 */
 	public String getName() {
 
-		Object nameProperty = getProperty(NAME_KEY);
+		Object nameProperty = getProperty(Key.name.name());
 
 		if (nameProperty != null) {
 			return (String) nameProperty;
@@ -1621,7 +1621,7 @@ public abstract class AbstractNode
 	 * Get categories
 	 */
 	public String[] getCategories() {
-		return (String[]) getProperty(CATEGORIES_KEY);
+		return (String[]) getProperty(Key.categories.name());
 	}
 
 	/**
@@ -1641,11 +1641,11 @@ public abstract class AbstractNode
 
 //              logger.log(Level.FINE, "Title without locale requested.");
 //              return getTitle(new Locale("en"));
-		return getStringProperty(TITLE_KEY);
+		return getStringProperty(Key.title.name());
 	}
 
 	public static String getTitleKey(final Locale locale) {
-		return TITLE_KEY + "_" + locale;
+		return Key.title.name() + "_" + locale;
 	}
 
 	/**
@@ -1746,12 +1746,12 @@ public abstract class AbstractNode
 	}
 
 	public String getCreatedBy() {
-		return (String) getProperty(CREATED_BY_KEY);
+		return (String) getProperty(Key.createdBy.name());
 	}
 
 	public Long getPosition() {
 
-		Object p = getProperty(POSITION_KEY);
+		Object p = getProperty(Key.position.name());
 		Long pos;
 
 		if (p != null) {
@@ -1810,19 +1810,19 @@ public abstract class AbstractNode
 	}
 
 	public boolean getPublic() {
-		return getBooleanProperty(PUBLIC_KEY);
+		return getBooleanProperty(Key.isPublic.name());
 	}
 
 	public boolean getVisibleToAuthenticatedUsers() {
-		return getBooleanProperty(VISIBLE_TO_AUTHENTICATED_USERS_KEY);
+		return getBooleanProperty(Key.visibleToAuthenticatedUsers.name());
 	}
 
 	public boolean getHidden() {
-		return getBooleanProperty(HIDDEN_KEY);
+		return getBooleanProperty(Key.hidden.name());
 	}
 
 	public boolean getDeleted() {
-		return getBooleanProperty(DELETED_KEY);
+		return getBooleanProperty(Key.deleted.name());
 	}
 
 	/**
@@ -3310,22 +3310,22 @@ public abstract class AbstractNode
 
 	@Override
 	public Date getVisibilityStartDate() {
-		return getDateProperty(VISIBILITY_START_DATE_KEY);
+		return getDateProperty(Key.visibilityStartDate.name());
 	}
 
 	@Override
 	public Date getVisibilityEndDate() {
-		return getDateProperty(VISIBILITY_END_DATE_KEY);
+		return getDateProperty(Key.visibilityEndDate.name());
 	}
 
 	@Override
 	public Date getCreatedDate() {
-		return getDateProperty(CREATED_DATE_KEY);
+		return getDateProperty(Key.createdDate.name());
 	}
 
 	@Override
 	public Date getLastModifiedDate() {
-		return getDateProperty(LAST_MODIFIED_DATE_KEY);
+		return getDateProperty(Key.lastModifiedDate.name());
 	}
 
 	public AbstractComponent getHelpContent() {
@@ -3534,12 +3534,12 @@ public abstract class AbstractNode
 
 	@Override
 	public boolean isPublic() {
-		return getBooleanProperty(PUBLIC_KEY);
+		return getBooleanProperty(Key.isPublic.name());
 	}
 
 	@Override
 	public boolean isVisibleToAuthenticatedUsers() {
-		return getBooleanProperty(VISIBLE_TO_AUTHENTICATED_USERS_KEY);
+		return getBooleanProperty(Key.visibleToAuthenticatedUsers.name());
 	}
 
 	@Override
@@ -3589,7 +3589,7 @@ public abstract class AbstractNode
 				Node node = path.endNode();
 
 				// check for type property with value "Trash"
-				if (node.hasProperty(TYPE_KEY) && node.getProperty(TYPE_KEY).equals("Trash")) {
+				if (node.hasProperty(Key.type.name()) && node.getProperty(Key.type.name()).equals("Trash")) {
 
 					// only include Trash nodes in result set
 					return (Evaluation.INCLUDE_AND_PRUNE);
@@ -3709,85 +3709,85 @@ public abstract class AbstractNode
 
 	public void setCreatedBy(final String createdBy) {
 
-		setProperty(CREATED_BY_KEY,
+		setProperty(Key.createdBy.name(),
 			    createdBy);
 	}
 
 	public void setCreatedDate(final Date date) {
 
-		setProperty(CREATED_DATE_KEY,
+		setProperty(Key.createdDate.name(),
 			    date);
 	}
 
 	public void setLastModifiedDate(final Date date) {
 
-		setProperty(LAST_MODIFIED_DATE_KEY,
+		setProperty(Key.lastModifiedDate.name(),
 			    date);
 	}
 
 	public void setVisibilityStartDate(final Date date) {
 
-		setProperty(VISIBILITY_START_DATE_KEY,
+		setProperty(Key.visibilityStartDate.name(),
 			    date);
 	}
 
 	public void setVisibilityEndDate(final Date date) {
 
-		setProperty(VISIBILITY_END_DATE_KEY,
+		setProperty(Key.visibilityEndDate.name(),
 			    date);
 	}
 
 	public void setPosition(final Long position) {
 
-		setProperty(POSITION_KEY,
+		setProperty(Key.position.name(),
 			    position);
 	}
 
 	public void setPublic(final boolean publicFlag) {
 
-		setProperty(PUBLIC_KEY,
+		setProperty(Key.isPublic.name(),
 			    publicFlag);
 	}
 
 	public void setVisibleToAuthenticatedUsers(final boolean flag) {
 
-		setProperty(VISIBLE_TO_AUTHENTICATED_USERS_KEY,
+		setProperty(Key.visibleToAuthenticatedUsers.name(),
 			    flag);
 	}
 
 	public void setHidden(final boolean hidden) {
 
-		setProperty(HIDDEN_KEY,
+		setProperty(Key.hidden.name(),
 			    hidden);
 	}
 
 	public void setDeleted(final boolean deleted) {
 
-		setProperty(DELETED_KEY,
+		setProperty(Key.deleted.name(),
 			    deleted);
 	}
 
 	public void setType(final String type) {
 
-		setProperty(TYPE_KEY,
+		setProperty(Key.type.name(),
 			    type);
 	}
 
 	public void setName(final String name) {
 
-		setProperty(NAME_KEY,
+		setProperty(Key.name.name(),
 			    name);
 	}
 
 	public void setCategories(final String[] categories) {
 
-		setProperty(CATEGORIES_KEY,
+		setProperty(Key.categories.name(),
 			    categories);
 	}
 
 	public void setTitle(final String title) {
 
-		setProperty(TITLE_KEY,
+		setProperty(Key.title.name(),
 			    title);
 	}
 
@@ -3798,7 +3798,7 @@ public abstract class AbstractNode
 	 */
 	public void setTitles(final String[] titles) {
 
-		setProperty(TITLES_KEY,
+		setProperty(Key.titles.name(),
 			    titles);
 	}
 
@@ -3940,7 +3940,7 @@ public abstract class AbstractNode
 					} else {
 
 						// Setting last modified date explicetely is not allowed
-						if (!key.equals(AbstractNode.LAST_MODIFIED_DATE_KEY)) {
+						if (!key.equals(Key.lastModifiedDate.name())) {
 
 							if (convertedValue instanceof Date) {
 
@@ -3953,7 +3953,7 @@ public abstract class AbstractNode
 										   convertedValue);
 
 								// set last modified date if not already happened
-								dbNode.setProperty(AbstractNode.LAST_MODIFIED_DATE_KEY,
+								dbNode.setProperty(Key.lastModifiedDate.name(),
 										   (new Date()).getTime());
 							}
 

@@ -44,7 +44,7 @@ public abstract class Search {
 
 	public static SearchAttribute orType(final String searchString) {
 
-		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.TYPE_KEY,
+		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.Key.type.name(),
 			searchString,
 			SearchOperator.OR);
 
@@ -53,7 +53,7 @@ public abstract class Search {
 
 	public static SearchAttribute andType(final String searchString) {
 
-		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.TYPE_KEY,
+		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.Key.type.name(),
 			searchString,
 			SearchOperator.AND);
 
@@ -62,7 +62,7 @@ public abstract class Search {
 
 	public static SearchAttribute orName(final String searchString) {
 
-		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.NAME_KEY,
+		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.Key.name.name(),
 			searchString,
 			SearchOperator.OR);
 
@@ -71,7 +71,7 @@ public abstract class Search {
 
 	public static SearchAttribute andName(final String searchString) {
 
-		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.NAME_KEY,
+		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.Key.name.name(),
 			searchString,
 			SearchOperator.AND);
 
@@ -80,7 +80,7 @@ public abstract class Search {
 
 	public static SearchAttribute andTitle(final String searchString) {
 
-		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.TITLE_KEY,
+		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.Key.title.name(),
 			searchString,
 			SearchOperator.AND);
 
@@ -89,7 +89,7 @@ public abstract class Search {
 
 	public static SearchAttribute orTitle(final String searchString) {
 
-		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.TITLE_KEY,
+		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.Key.title.name(),
 			searchString,
 			SearchOperator.OR);
 
@@ -116,7 +116,7 @@ public abstract class Search {
 
 	public static SearchAttribute orExactType(final String searchString) {
 
-		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.TYPE_KEY,
+		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.Key.type.name(),
 			exactMatch(searchString),
 			SearchOperator.OR);
 
@@ -125,7 +125,7 @@ public abstract class Search {
 
 	public static SearchAttribute andExactType(final String searchString) {
 
-		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.TYPE_KEY,
+		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.Key.type.name(),
 			exactMatch(searchString),
 			SearchOperator.AND);
 
@@ -134,7 +134,7 @@ public abstract class Search {
 
 	public static SearchAttribute orExactName(final String searchString) {
 
-		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.NAME_KEY,
+		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.Key.name.name(),
 			exactMatch(searchString),
 			SearchOperator.OR);
 
@@ -143,7 +143,7 @@ public abstract class Search {
 
 	public static SearchAttribute andExactName(final String searchString) {
 
-		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.NAME_KEY,
+		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.Key.name.name(),
 			exactMatch(searchString),
 			SearchOperator.AND);
 
@@ -152,7 +152,7 @@ public abstract class Search {
 
 	public static SearchAttribute orExactTitle(final String searchString) {
 
-		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.TITLE_KEY,
+		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.Key.title.name(),
 			exactMatch(searchString),
 			SearchOperator.OR);
 
@@ -161,7 +161,7 @@ public abstract class Search {
 
 	public static SearchAttribute andExactTitle(final String searchString) {
 
-		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.TITLE_KEY,
+		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.Key.title.name(),
 			exactMatch(searchString),
 			SearchOperator.AND);
 
@@ -188,7 +188,7 @@ public abstract class Search {
 
 	public static SearchAttribute andNotHidden() {
 
-		SearchAttribute attr = new BooleanSearchAttribute(AbstractNode.HIDDEN_KEY,
+		SearchAttribute attr = new BooleanSearchAttribute(AbstractNode.Key.hidden.name(),
 			true,
 			SearchOperator.NOT);
 

@@ -288,9 +288,9 @@ public class LogService extends RunnableNodeService {
 					LogNodeList<Activity> newLogNodeList =
 						(LogNodeList<Activity>) createNode.execute(
 						    new NodeAttribute(
-							AbstractNode.TYPE_KEY,
+							AbstractNode.Key.type.name(),
 							LogNodeList.class.getSimpleName()), new NodeAttribute(
-							    AbstractNode.NAME_KEY, user.getName() + "'s Activity Log"));
+							    AbstractNode.Key.name.name(), user.getName() + "'s Activity Log"));
 
 //                                      newLogNodeList = new LogNodeList<Activity>();
 //                                      newLogNodeList.init(s);
@@ -361,9 +361,9 @@ public class LogService extends RunnableNodeService {
 
 					newGlobalLogNodeList = (LogNodeList<Activity>) createNode.execute(
 						new NodeAttribute(
-						    AbstractNode.TYPE_KEY,
+						    AbstractNode.Key.type.name(),
 						    LogNodeList.class.getSimpleName()), new NodeAttribute(
-							AbstractNode.NAME_KEY, "Global Activity Log"));
+							AbstractNode.Key.name.name(), "Global Activity Log"));
 
 					// load reference node and link new node to it..
 					createRel.execute(rootNode, newGlobalLogNodeList, RelType.HAS_CHILD);

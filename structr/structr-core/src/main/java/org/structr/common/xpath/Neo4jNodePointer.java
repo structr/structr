@@ -81,9 +81,9 @@ public class Neo4jNodePointer extends NodePointer {
 
     @Override
     public QName getName() {
-        if (node.hasProperty(AbstractNode.TYPE_KEY)) {
+        if (node.hasProperty(AbstractNode.Key.type.name())) {
 
-            String name = (String) node.getProperty(AbstractNode.TYPE_KEY);
+            String name = (String) node.getProperty(AbstractNode.Key.type.name());
 
             // do some encoding
 //            name = XPathEncoder.encode(name);

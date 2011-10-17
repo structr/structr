@@ -224,12 +224,12 @@ public class SaveImagesFromFlashUrl extends NodeServiceCommand {
 
                             // Create new image node
                             Image newImageNode = (Image) Services.command(CreateNodeCommand.class).execute(user,
-                                    new NodeAttribute(AbstractNode.TYPE_KEY, Image.class.getSimpleName()),
-                                    new NodeAttribute(AbstractNode.NAME_KEY, name),
+                                    new NodeAttribute(AbstractNode.Key.type.name(), Image.class.getSimpleName()),
+                                    new NodeAttribute(AbstractNode.Key.name.name(), name),
                                     new NodeAttribute(Image.Key.width.name(), width),
                                     new NodeAttribute(Image.Key.height.name(), height),
                                     new NodeAttribute(org.structr.core.entity.File.Key.contentType.name(), contentType),
-                                    new NodeAttribute(AbstractNode.VISIBLE_TO_AUTHENTICATED_USERS_KEY, true),
+                                    new NodeAttribute(AbstractNode.Key.visibleToAuthenticatedUsers.name(), true),
                                     true);  // Update index
 
                             // Establish HAS_CHILD relationship from parent node

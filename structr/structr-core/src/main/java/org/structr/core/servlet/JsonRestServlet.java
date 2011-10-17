@@ -320,7 +320,7 @@ public class JsonRestServlet extends HttpServlet {
 						String type = typeConstraint.getType();
 
 						// add type to attribute set (will override type information from JSON input!)
-						attributes.add(new NodeAttribute(AbstractNode.TYPE_KEY, StringUtils.capitalize(type)));
+						attributes.add(new NodeAttribute(AbstractNode.Key.type.name(), StringUtils.capitalize(type)));
 
 						// create new object
 						newGraphObject = handleNodeCreation(attributes);

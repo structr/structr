@@ -123,11 +123,11 @@ public class SessionMonitor {
 		// Create a "dirty" activity node
 		Activity activity = new Activity();
 
-		activity.setProperty(AbstractNode.TYPE_KEY, Activity.class.getSimpleName());
+		activity.setProperty(AbstractNode.Key.type.name(), Activity.class.getSimpleName());
 
 		if (user != null) {
 
-			activity.setProperty(AbstractNode.NAME_KEY,
+			activity.setProperty(AbstractNode.Key.name.name(),
 					     "User: " + user.getName() + ", Action: " + action + ", Date: " + now);
 		}
 
@@ -158,8 +158,8 @@ public class SessionMonitor {
 		// Create a "dirty" page request node
 		PageRequest pageRequest = new PageRequest();
 
-		pageRequest.setProperty(AbstractNode.TYPE_KEY, PageRequest.class.getSimpleName());
-		pageRequest.setProperty(AbstractNode.NAME_KEY, action + ", Date: " + now);
+		pageRequest.setProperty(AbstractNode.Key.type.name(), PageRequest.class.getSimpleName());
+		pageRequest.setProperty(AbstractNode.Key.name.name(), action + ", Date: " + now);
 
 		StringBuilder text = new StringBuilder();
 
@@ -394,8 +394,8 @@ public class SessionMonitor {
 			Command createRel  = Services.command(CreateRelationshipCommand.class);
 
 			activityList = (LogNodeList<Activity>) createNode.execute(user,
-				new NodeAttribute(AbstractNode.TYPE_KEY, LogNodeList.class.getSimpleName()),
-				new NodeAttribute(AbstractNode.NAME_KEY, user.getName() + "'s Activity Log"));
+				new NodeAttribute(AbstractNode.Key.type.name(), LogNodeList.class.getSimpleName()),
+				new NodeAttribute(AbstractNode.Key.name.name(), user.getName() + "'s Activity Log"));
 
 //                      activityList = new LogNodeList<Activity>();
 //                      activityList.init(s);

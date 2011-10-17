@@ -78,7 +78,7 @@ public class SearchResults extends Nodes {
     @Bindable
     protected Select searchOpSelect = new Select(SEARCH_OPERATOR_KEY, "Boolean Search Operator");
     @Bindable
-    protected Select typeSearch = new Select(AbstractNode.TYPE_KEY, "Name");
+    protected Select typeSearch = new Select(AbstractNode.Key.type.name(), "Name");
     @Bindable
     protected Checkbox inNameCheckbox = new Checkbox(SEARCH_IN_NAME_KEY, "Name");
     @Bindable
@@ -86,7 +86,7 @@ public class SearchResults extends Nodes {
     @Bindable
     protected Checkbox inContentCheckbox = new Checkbox(SEARCH_IN_CONTENT_KEY, "Content");
     @Bindable
-    protected TextField creatorSearch = new TextField(AbstractNode.CREATED_BY_KEY, "Created By");
+    protected TextField creatorSearch = new TextField(AbstractNode.Key.createdBy.name(), "Created By");
     //@Bindable
     //protected TextField contentSearch = new TextField(PlainText.CONTENT_KEY, "Content");
     protected FieldSet searchFields = new FieldSet("Textual Search");
@@ -115,13 +115,13 @@ public class SearchResults extends Nodes {
 
         Column actionColumnNodes = new Column("Actions");
         actionColumnNodes.setTextAlign("center");
-        actionColumnNodes.setDecorator(new LinkDecorator(searchResultsTable, new PageLink(), AbstractNode.NODE_ID_KEY) {
+        actionColumnNodes.setDecorator(new LinkDecorator(searchResultsTable, new PageLink(), AbstractNode.Key.nodeId.name()) {
 
             @Override
             protected void renderActionLink(HtmlStringBuffer buffer, AbstractLink link, Context context, Object row, Object value) {
 
                 AbstractNode n = (AbstractNode) row;
-                link = new PageLink(AbstractNode.NODE_ID_KEY, getEditPageClass(n)) {
+                link = new PageLink(AbstractNode.Key.nodeId.name(), getEditPageClass(n)) {
 
                     @Override
                     public String getHref() {
@@ -162,15 +162,15 @@ public class SearchResults extends Nodes {
             }
         });
 
-        Column typeColumn = new Column(AbstractNode.TYPE_KEY);
+        Column typeColumn = new Column(AbstractNode.Key.type.name());
 
-        LinkDecorator iconDec = new LinkDecorator(searchResultsTable, new PageLink(), AbstractNode.NODE_ID_KEY) {
+        LinkDecorator iconDec = new LinkDecorator(searchResultsTable, new PageLink(), AbstractNode.Key.nodeId.name()) {
 
             @Override
             protected void renderActionLink(HtmlStringBuffer buffer, AbstractLink link, Context context, Object row, Object value) {
 
                 AbstractNode n = (AbstractNode) row;
-                link = new PageLink(AbstractNode.NODE_ID_KEY, getEditPageClass(n));
+                link = new PageLink(AbstractNode.Key.nodeId.name(), getEditPageClass(n));
                 link.setParameter(NODE_ID_KEY, n.getId());
                 link.setImageSrc(n.getIconSrc());
 
@@ -181,7 +181,7 @@ public class SearchResults extends Nodes {
         typeColumn.setDecorator(iconDec);
         searchResultsTable.addColumn(typeColumn);
 
-        Column nameColumn = new Column(AbstractNode.NAME_KEY);
+        Column nameColumn = new Column(AbstractNode.Key.name.name());
         LinkDecorator nameDec = new LinkDecorator(searchResultsTable, new PageLink(), "id") {
 
             @Override
@@ -232,17 +232,17 @@ public class SearchResults extends Nodes {
         };
         nameColumn.setDecorator(nameDec);
         searchResultsTable.addColumn(nameColumn);
-        searchResultsTable.addColumn(new Column(AbstractNode.LAST_MODIFIED_DATE_KEY));
-        searchResultsTable.addColumn(new Column(AbstractNode.OWNER_KEY));
-        searchResultsTable.addColumn(new Column(AbstractNode.CREATED_BY_KEY));
-        searchResultsTable.addColumn(new Column(AbstractNode.CREATED_DATE_KEY));
-        searchResultsTable.addColumn(new Column(AbstractNode.POSITION_KEY));
-        searchResultsTable.addColumn(new Column(AbstractNode.PUBLIC_KEY));
+        searchResultsTable.addColumn(new Column(AbstractNode.Key.lastModifiedDate.name()));
+        searchResultsTable.addColumn(new Column(AbstractNode.Key.owner.name()));
+        searchResultsTable.addColumn(new Column(AbstractNode.Key.createdBy.name()));
+        searchResultsTable.addColumn(new Column(AbstractNode.Key.createdDate.name()));
+        searchResultsTable.addColumn(new Column(AbstractNode.Key.position.name()));
+        searchResultsTable.addColumn(new Column(AbstractNode.Key.isPublic.name()));
         searchResultsTable.addColumn(actionColumnNodes);
         searchResultsTable.setSortable(true);
         searchResultsTable.setShowBanner(true);
         searchResultsTable.setPageSize(DEFAULT_PAGESIZE);
-        searchResultsTable.getControlLink().setParameter(AbstractNode.NODE_ID_KEY, getNodeId());
+        searchResultsTable.getControlLink().setParameter(AbstractNode.Key.nodeId.name(), getNodeId());
         searchResultsTable.setClass(TABLE_CLASS);
 
     }
@@ -254,7 +254,7 @@ public class SearchResults extends Nodes {
         restoreState();
         populateSearchResultsTable();
         
-        //advancedSearchForm.add(new HiddenField(AbstractNode.NODE_ID_KEY, getNodeId()));*
+        //advancedSearchForm.add(new HiddenField(AbstractNode.Key.nodeId.name(), getNodeId()));*
     }
 
     public boolean onReset() {
@@ -320,7 +320,7 @@ public class SearchResults extends Nodes {
 
     public void populateSearchResultsTable() {
         if (searchResults != null && !(searchResults.isEmpty())) {
-            searchResultsTable.getControlLink().setParameter(AbstractNode.NODE_ID_KEY, getNodeId());
+            searchResultsTable.getControlLink().setParameter(AbstractNode.Key.nodeId.name(), getNodeId());
             searchResultsTable.setDataProvider(new DataProvider() {
 
                 @Override

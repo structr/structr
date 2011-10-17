@@ -144,7 +144,7 @@ public class Report extends Nodes {
         reportTable.setSortable(true);
         reportTable.setShowBanner(true);
         reportTable.setPageSize(DEFAULT_PAGESIZE);
-//        reportTable.getControlLink().setParameter(AbstractNode.NODE_ID_KEY, getNodeId());
+//        reportTable.getControlLink().setParameter(AbstractNode.Key.nodeId.name(), getNodeId());
         reportTable.setClass(TABLE_CLASS);
 
         populateTypeSelectField();
@@ -276,7 +276,7 @@ public class Report extends Nodes {
 
     public void populateReportResultsTable() {
         if (reportResults != null && !(reportResults.isEmpty())) {
-            //reportTable.getControlLink().setParameter(AbstractNode.NODE_ID_KEY, getNodeId());
+            //reportTable.getControlLink().setParameter(AbstractNode.Key.nodeId.name(), getNodeId());
             reportTable.setDataProvider(new DataProvider() {
 
                 @Override
@@ -407,7 +407,7 @@ public class Report extends Nodes {
                     Command createRel = Services.command(CreateRelationshipCommand.class);
 
                     // create node with appropriate type
-                    AbstractNode newNode = (AbstractNode) createNode.execute(new NodeAttribute(AbstractNode.TYPE_KEY, File.class.getSimpleName()), user);
+                    AbstractNode newNode = (AbstractNode) createNode.execute(new NodeAttribute(AbstractNode.Key.type.name(), File.class.getSimpleName()), user);
 
 
                     String relativeFilePath = newNode.getId() + "_" + System.currentTimeMillis();
@@ -417,9 +417,9 @@ public class Report extends Nodes {
                     FileUtils.moveFile(reportFile, new File(targetPath));
 
                     Date now = new Date();
-                    newNode.setProperty(AbstractNode.NAME_KEY, reportFileName);
-                    newNode.setProperty(AbstractNode.CREATED_DATE_KEY, now);
-                    newNode.setProperty(AbstractNode.LAST_MODIFIED_DATE_KEY, now);
+                    newNode.setProperty(AbstractNode.Key.name.name(), reportFileName);
+                    newNode.setProperty(AbstractNode.Key.createdDate.name(), now);
+                    newNode.setProperty(AbstractNode.Key.lastModifiedDate.name(), now);
 
                     newNode.setProperty(org.structr.core.entity.File.Key.contentType.name(), "text/csv");
                     newNode.setProperty(org.structr.core.entity.File.Key.size.name(), String.valueOf(reportFile.length()));
@@ -479,7 +479,7 @@ public class Report extends Nodes {
                         fieldName = (String) f.get(o);
 
                         // Type is already there
-                        if (AbstractNode.TYPE_KEY.equals(fieldName)) {
+                        if (AbstractNode.Key.type.name().equals(fieldName)) {
                             continue;
                         }
 

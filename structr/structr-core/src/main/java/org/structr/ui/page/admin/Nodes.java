@@ -220,7 +220,7 @@ public class Nodes extends Admin {
 
 		if(securityContext.isAllowed(node, Permission.CreateNode)) {
 
-			Select nodeTypeField = new Select(AbstractNode.TYPE_KEY, "Select Node Type", false);
+			Select nodeTypeField = new Select(AbstractNode.Key.type.name(), "Select Node Type", false);
 			nodeTypeField.add(new Option("", "--- Select Node Type ---"));
 
 			List<String> nodeTypes = new LinkedList<String>(((Map<String, Class>)Services.command(GetEntitiesCommand.class).execute()).keySet());
@@ -235,7 +235,7 @@ public class Nodes extends Admin {
 			newNodeForm.add(nodeTypeField);
 			newNodeForm.add(new TextField("name", true));
 
-			newNodeForm.add(new LongField(AbstractNode.POSITION_KEY, false));
+			newNodeForm.add(new LongField(AbstractNode.Key.position.name(), false));
 			newNodeForm.add(new HiddenField(NODE_ID_KEY, nodeId != null ? nodeId : ""));
 			newNodeForm.add(new TextField(TARGET_NODE_ID_KEY, true));
 			newNodeForm.add(new HiddenField(RENDER_MODE_KEY, renderMode != null ? renderMode : ""));
@@ -963,7 +963,7 @@ public class Nodes extends Admin {
 							}
 
 							// create node with appropriate type
-							AbstractNode newNode = (AbstractNode)createNode.execute(new NodeAttribute(AbstractNode.TYPE_KEY, mimeProperty), user);
+							AbstractNode newNode = (AbstractNode)createNode.execute(new NodeAttribute(AbstractNode.Key.type.name(), mimeProperty), user);
 
 							// determine properties
 							String relativeFilePath = newNode.getId() + "_" + System.currentTimeMillis();
@@ -981,9 +981,9 @@ public class Nodes extends Admin {
 							}
 
 							Date now = new Date();
-							newNode.setProperty(AbstractNode.NAME_KEY, name);
-							newNode.setProperty(AbstractNode.CREATED_DATE_KEY, now);
-							newNode.setProperty(AbstractNode.LAST_MODIFIED_DATE_KEY, now);
+							newNode.setProperty(AbstractNode.Key.name.name(), name);
+							newNode.setProperty(AbstractNode.Key.createdDate.name(), now);
+							newNode.setProperty(AbstractNode.Key.lastModifiedDate.name(), now);
 
 							newNode.setProperty(File.Key.contentType.name(), mimeType);
 							newNode.setProperty(File.Key.size.name(), String.valueOf(size));

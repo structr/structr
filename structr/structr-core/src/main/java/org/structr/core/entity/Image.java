@@ -160,7 +160,7 @@ public class Image extends File {
 //                  Command createRel = Services.command(CreateRelationshipCommand.class);
 //                  Command findNode = Services.command(FindNodeCommand.class);
 //
-//                  NodeAttribute typeAttr = new NodeAttribute(AbstractNode.TYPE_KEY, Image.class.getSimpleName());
+//                  NodeAttribute typeAttr = new NodeAttribute(AbstractNode.Key.type.name(), Image.class.getSimpleName());
 //                  NodeAttribute nameAttr = new NodeAttribute(Image.NAME_KEY, originalImage.getName() + "_thumb");
 //
 //                  // create new node
@@ -327,16 +327,16 @@ public class Image extends File {
 				Command createRel  = Services.command(CreateRelationshipCommand.class);
 
 //                              Command findNode = Services.command(FindNodeCommand.class);
-				NodeAttribute typeAttr = new NodeAttribute(AbstractNode.TYPE_KEY,
+				NodeAttribute typeAttr = new NodeAttribute(AbstractNode.Key.type.name(),
 								 Image.class.getSimpleName());
 				NodeAttribute contentTypeAttr = new NodeAttribute(File.Key.contentType.name(),
 									"image/" + Thumbnail.FORMAT);
-				NodeAttribute isHiddenAttr = new NodeAttribute(AbstractNode.HIDDEN_KEY,
+				NodeAttribute isHiddenAttr = new NodeAttribute(AbstractNode.Key.hidden.name(),
 								     originalImage.getHidden());
-				NodeAttribute isPublicAttr = new NodeAttribute(AbstractNode.PUBLIC_KEY,
+				NodeAttribute isPublicAttr = new NodeAttribute(AbstractNode.Key.isPublic.name(),
 								     originalImage.getPublic());
 				NodeAttribute isVisibleForAuthenticatedUsersAttr =
-					new NodeAttribute(AbstractNode.VISIBLE_TO_AUTHENTICATED_USERS_KEY,
+					new NodeAttribute(AbstractNode.Key.visibleToAuthenticatedUsers.name(),
 							  originalImage.getVisibleToAuthenticatedUsers());
 				Thumbnail thumbnailData = ImageHelper.createThumbnail(originalImage, maxWidth,
 								  maxHeight, cropToFit);
@@ -446,7 +446,7 @@ public class Image extends File {
 		super.setPublic(publicFlag);
 
 		for (Image thumbnail : getThumbnails()) {
-			thumbnail.setProperty(PUBLIC_KEY, publicFlag);
+			thumbnail.setProperty(AbstractNode.Key.isPublic.name(), publicFlag);
 		}
 	}
 
@@ -457,7 +457,7 @@ public class Image extends File {
 		super.setVisibleToAuthenticatedUsers(flag);
 
 		for (Image thumbnail : getThumbnails()) {
-			thumbnail.setProperty(VISIBLE_TO_AUTHENTICATED_USERS_KEY, flag);
+			thumbnail.setProperty(AbstractNode.Key.visibleToAuthenticatedUsers.name(), flag);
 		}
 	}
 
@@ -468,7 +468,7 @@ public class Image extends File {
 		super.setHidden(hidden);
 
 		for (Image thumbnail : getThumbnails()) {
-			thumbnail.setProperty(HIDDEN_KEY, hidden);
+			thumbnail.setProperty(AbstractNode.Key.hidden.name(), hidden);
 		}
 	}
 
@@ -479,7 +479,7 @@ public class Image extends File {
 		super.setDeleted(deleted);
 
 		for (Image thumbnail : getThumbnails()) {
-			thumbnail.setProperty(DELETED_KEY, deleted);
+			thumbnail.setProperty(AbstractNode.Key.deleted.name(), deleted);
 		}
 	}
 
@@ -490,7 +490,7 @@ public class Image extends File {
 		super.setVisibilityStartDate(date);
 
 		for (Image thumbnail : getThumbnails()) {
-			thumbnail.setProperty(VISIBILITY_START_DATE_KEY, date);
+			thumbnail.setProperty(AbstractNode.Key.visibilityStartDate.name(), date);
 		}
 	}
 
@@ -501,7 +501,7 @@ public class Image extends File {
 		super.setVisibilityEndDate(date);
 
 		for (Image thumbnail : getThumbnails()) {
-			thumbnail.setProperty(VISIBILITY_END_DATE_KEY, date);
+			thumbnail.setProperty(AbstractNode.Key.visibilityEndDate.name(), date);
 		}
 	}
 }

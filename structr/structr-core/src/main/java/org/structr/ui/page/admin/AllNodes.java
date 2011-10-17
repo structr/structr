@@ -48,14 +48,14 @@ public class AllNodes extends Admin {
         super();
 //        maintenancePanel = new Panel("maintenancePanel", "/panel/maintenance-panel.htm");
 
-        allNodesTable.addColumn(new Column(AbstractNode.NODE_ID_KEY));
-        allNodesTable.addColumn(new Column(AbstractNode.NAME_KEY));
-        allNodesTable.addColumn(new Column(AbstractNode.TYPE_KEY));
-        allNodesTable.addColumn(new Column(AbstractNode.POSITION_KEY));
-        allNodesTable.addColumn(new Column(AbstractNode.PUBLIC_KEY));
-        allNodesTable.addColumn(new Column(AbstractNode.OWNER_KEY));
-        allNodesTable.addColumn(new Column(AbstractNode.CREATED_BY_KEY));
-        allNodesTable.addColumn(new Column(AbstractNode.CREATED_DATE_KEY));
+        allNodesTable.addColumn(new Column(AbstractNode.Key.nodeId.name()));
+        allNodesTable.addColumn(new Column(AbstractNode.Key.name.name()));
+        allNodesTable.addColumn(new Column(AbstractNode.Key.type.name()));
+        allNodesTable.addColumn(new Column(AbstractNode.Key.position.name()));
+        allNodesTable.addColumn(new Column(AbstractNode.Key.isPublic.name()));
+        allNodesTable.addColumn(new Column(AbstractNode.Key.owner.name()));
+        allNodesTable.addColumn(new Column(AbstractNode.Key.createdBy.name()));
+        allNodesTable.addColumn(new Column(AbstractNode.Key.createdDate.name()));
         allNodesTable.addColumn(new Column("allProperties"));
         allNodesTable.setSortable(true);
         allNodesTable.setPageSize(15);
