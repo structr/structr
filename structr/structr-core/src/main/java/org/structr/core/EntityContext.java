@@ -75,6 +75,13 @@ public class EntityContext {
 				properties.add(property);
 			}
 		}
+
+		// Join all property views of superclasses
+		if (!(type.getCanonicalName().equals(Object.class.getCanonicalName()))) {
+			Class superType = type.getSuperclass();
+
+			registerPropertySet(superType, propertyView, propertySet);
+		}
 	}
 	
 	public static void registerPropertySet(Class type, PropertyView propertyView, PropertyKey... propertySet) {
@@ -88,6 +95,14 @@ public class EntityContext {
 				properties.add(property.name());
 			}
 		}
+
+		// Join all property views of superclasses
+		if (!(type.getCanonicalName().equals(Object.class.getCanonicalName()))) {
+			Class superType = type.getSuperclass();
+
+			registerPropertySet(superType, propertyView, propertySet);
+		}
+
 	}
 
 	public static Set<String> getPropertySet(Class type, PropertyView propertyView) {
@@ -212,14 +227,6 @@ public class EntityContext {
 			propertyViewMap = new LinkedHashMap<PropertyView, Set<String>>();
 			globalPropertyKeyMap.put(type, propertyViewMap);
 		}
-
-		// Join all property views of superclasses
-		while (!(type.equals(Object.class))) {
-			Class superclass = type.getSuperclass();
-			Map<PropertyView, Set<String>> superclassPropertyViewMap = globalPropertyKeyMap.get(superclass);
-			propertyViewMap.putAll(superclassPropertyViewMap);
-		}
-
 
 		return propertyViewMap;
 	}

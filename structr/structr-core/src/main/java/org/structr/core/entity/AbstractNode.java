@@ -116,7 +116,7 @@ import org.structr.core.converter.NodeIdNodeConverter;
 //~--- classes ----------------------------------------------------------------
 
 /**
- * The base class for alle node types in structr.
+ * The base class for all node types in structr.
  *
  * @author amorgner
  *
