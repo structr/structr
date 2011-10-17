@@ -128,7 +128,7 @@ public abstract class AbstractNode
 	    name,  type, nodeId, createdBy, createdDate, deleted, hidden, lastModifiedDate,
 	    position, isPublic, title, titles,
 	    visibilityEndDate, visibilityStartDate, visibleToAuthenticatedUsers,
-	    templateId, CATEGORIES_KEY, ownerId, owner;
+	    templateId, categories, ownerId, owner;
         }
 
 	public final static String CATEGORIES_KEY         = "categories";
@@ -3176,6 +3176,7 @@ public abstract class AbstractNode
 	 *
 	 * @param key
 	 * @return
+	 */
 	public Object get(final String key) {
 
 		if (key == null) {
@@ -3200,7 +3201,6 @@ public abstract class AbstractNode
 		// nothing found
 		return null;
 	}
-	 */
 
 	public Set<AbstractNode> getRelatedNodes(int maxDepth) {
 
@@ -3377,12 +3377,20 @@ public abstract class AbstractNode
 
 	@Override
 	public boolean containsKey(final Object key) {
-		return EntityContext.getPropertySet(this.getClass(), PropertyView.All).contains((String)key);
+		
+		boolean ret = EntityContext.getPropertySet(this.getClass(), PropertyView.All).contains((String)key);
+		
+		logger.log(Level.INFO, "Returning {0} for key {1}", new Object[]{ ret, key });
+		
+		return ret;
+			
 		//return getProperty((String)key) != null;
 	}
 
 	@Override
 	public boolean containsValue(final Object value) {
+
+		logger.log(Level.INFO, "Checking for {0}", value);
 
 		for (Map.Entry<String, Object> entry : entrySet()) {
 			Object dataValue = entry.getValue();
@@ -3426,6 +3434,7 @@ public abstract class AbstractNode
 
 	@Override
 	public Object put(final String key, final Object value) {
+		
 		Object oldValue = get((String)key);
 		setProperty((String)key, value);
 		return oldValue;
@@ -3433,6 +3442,7 @@ public abstract class AbstractNode
 
 	@Override
 	public void putAll(final Map<? extends String, ? extends Object> m) {
+
 		for (Map.Entry<String, Object> entry : entrySet()) {
 			String key = entry.getKey();
 			Object value = entry.getValue();
@@ -3913,9 +3923,9 @@ public abstract class AbstractNode
 				return;
 			}
 
-			Command transactionCommand = Services.command(TransactionCommand.class);
+			logger.log(Level.INFO, "################################### Setting {0} to {1}, starting transaction", new Object[] { key, convertedValue } );
 
-			transactionCommand.execute(new StructrTransaction() {
+			StructrTransaction transaction = new StructrTransaction() {
 
 				@Override
 				public Object execute() throws Throwable {
@@ -3961,7 +3971,15 @@ public abstract class AbstractNode
 					return null;
 				}
 
-			});
+			};
+			
+			// execute transaction	
+			Services.command(TransactionCommand.class).execute(transaction);
+			
+			// debug
+			if(transaction.getCause() != null) {
+				logger.log(Level.WARNING, "Error while setting property", transaction.getCause());
+			}
 		}
 	}
 

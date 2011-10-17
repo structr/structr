@@ -20,6 +20,8 @@ package org.structr.core.entity;
 
 import java.util.Date;
 import org.structr.common.PropertyKey;
+import org.structr.common.PropertyView;
+import org.structr.core.EntityContext;
 
 /**
  * 
@@ -35,6 +37,10 @@ public class Person extends Principal {
 	    phoneNumber1, phoneNumber2, phoneNumber3, phoneNumber4, phoneNumber5, phoneNumber6,
 	    faxNumber1, faxNumber2, faxNumber3,
 	    street, zipCode, city, state, country, birthday, gender, newsletter
+    }
+
+    static {
+		EntityContext.registerPropertySet(Person.class, PropertyView.All, Key.values());
     }
 
     public final static String SALUTATION_KEY = "salutation";

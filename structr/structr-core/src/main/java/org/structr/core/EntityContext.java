@@ -19,6 +19,7 @@
 
 package org.structr.core;
 
+import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -64,45 +65,26 @@ public class EntityContext {
 	}
 
 	// ----- property set methods -----
-	public static void registerPropertySet(Class type, PropertyView propertyView, String... propertySet) {
-
-		Set<String> properties = getPropertySet(type, propertyView);
-		for(String property : propertySet) {
-
-			if("id".equals(property.toLowerCase()) || "type".equals(property.toLowerCase())) {
-				logger.log(Level.SEVERE, "id and type are not allowed in property views, ignoring!");
-			} else {
-				properties.add(property);
-			}
-		}
-
-		// Join all property views of superclasses
-		if (!(type.getCanonicalName().equals(Object.class.getCanonicalName()))) {
-			Class superType = type.getSuperclass();
-
-			registerPropertySet(superType, propertyView, propertySet);
-		}
-	}
-	
 	public static void registerPropertySet(Class type, PropertyView propertyView, PropertyKey... propertySet) {
 
 		Set<String> properties = getPropertySet(type, propertyView);
 		for(PropertyKey property : propertySet) {
-
-			if("id".equals(property.name().toLowerCase()) || "type".equals(property.name().toLowerCase())) {
-				logger.log(Level.SEVERE, "id and type are not allowed in property views, ignoring!");
-			} else {
-				properties.add(property.name());
-			}
+			properties.add(property.name());
 		}
 
-		// Join all property views of superclasses
-		if (!(type.getCanonicalName().equals(Object.class.getCanonicalName()))) {
-			Class superType = type.getSuperclass();
+//		logger.log(Level.INFO, "############################## Adding class {0} properties {1}", new Object[]{ type.getSimpleName(), properties } );
+		
+		Class superClass = type.getSuperclass();
+		while(superClass != null && !superClass.equals(Object.class)) {
+			
+			Set<String> superProperties = getPropertySet(superClass, propertyView);
+			properties.addAll(superProperties);
 
-			registerPropertySet(superType, propertyView, propertySet);
+//			logger.log(Level.INFO, "############################## Adding superclass {0} properties {1}", new Object[]{ superClass.getSimpleName(), superProperties } );
+			
+			// one level up :)
+			superClass = superClass.getSuperclass();
 		}
-
 	}
 
 	public static Set<String> getPropertySet(Class type, PropertyView propertyView) {
@@ -224,7 +206,7 @@ public class EntityContext {
 
 		Map<PropertyView, Set<String>> propertyViewMap = globalPropertyKeyMap.get(type);
 		if(propertyViewMap == null) {
-			propertyViewMap = new LinkedHashMap<PropertyView, Set<String>>();
+			propertyViewMap = new EnumMap<PropertyView, Set<String>>(PropertyView.class);
 			globalPropertyKeyMap.put(type, propertyViewMap);
 		}
 
