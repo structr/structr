@@ -23,13 +23,6 @@ package org.structr.core.entity.app;
 
 import org.apache.commons.lang.StringUtils;
 
-<<<<<<< HEAD
-import org.structr.common.SessionValue;
-import org.structr.common.StructrOutputStream;
-=======
-import org.structr.common.AbstractComponent;
-import org.structr.common.CurrentRequest;
-import org.structr.common.CurrentSession;
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.SessionValue;
@@ -37,21 +30,10 @@ import org.structr.common.StructrOutputStream;
 import org.structr.context.SessionMonitor;
 import org.structr.core.EntityContext;
 import org.structr.core.Services;
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.app.slots.NullSlot;
 import org.structr.core.entity.app.slots.StringSlot;
-<<<<<<< HEAD
-=======
 import org.structr.core.node.FindUserCommand;
-import org.structr.help.Container;
-import org.structr.help.Content;
-import org.structr.help.HelpLink;
-import org.structr.help.ListItem;
-import org.structr.help.Paragraph;
-import org.structr.help.Subtitle;
-import org.structr.help.UnorderedList;
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -62,9 +44,10 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 
 import javax.servlet.http.HttpSession;
-<<<<<<< HEAD
+import org.apache.commons.codec.digest.DigestUtils;
 import org.structr.common.AbstractComponent;
 import org.structr.core.auth.AuthenticationException;
+import org.structr.core.entity.User;
 import org.structr.help.Container;
 import org.structr.help.Content;
 import org.structr.help.HelpLink;
@@ -72,8 +55,6 @@ import org.structr.help.ListItem;
 import org.structr.help.Paragraph;
 import org.structr.help.Subtitle;
 import org.structr.help.UnorderedList;
-=======
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
 
 //~--- classes ----------------------------------------------------------------
 
@@ -121,6 +102,9 @@ public class AppLogin extends ActionNode {
 	public boolean doAction(final StructrOutputStream out, final AbstractNode startNode, final String editUrl,
 				final Long editNodeId) {
 
+
+		HttpServletRequest request = out.getRequest();
+
 		if (out.getSecurityContext().getUser() != null) {
 			return (true);
 		}
@@ -134,15 +118,9 @@ public class AppLogin extends ActionNode {
 			return (false);
 		}
 
-<<<<<<< HEAD
-		String username    = (String) getValue(out.getRequest(), USERNAME_FIELD_NAME);
-		String password    = (String) getValue(out.getRequest(), PASSWORD_FIELD_NAME);
-		String antiRobot   = (String) getValue(out.getRequest(), ANTI_ROBOT_FIELD_NAME);
-=======
-		String username  = (String) getValue(Key.username.name());
-		String password  = (String) getValue(Key.password.name());
-		String antiRobot = (String) getValue(Key.antiRobot.name());
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
+		String username  = (String) getValue(request, Key.username.name());
+		String password  = (String) getValue(request, Key.password.name());
+		String antiRobot = (String) getValue(request, Key.antiRobot.name());
 
 		if (StringUtils.isNotEmpty(antiRobot)) {
 
@@ -152,27 +130,18 @@ public class AppLogin extends ActionNode {
 
 		if (StringUtils.isEmpty(username)) {
 
-<<<<<<< HEAD
-			setErrorValue(out.getRequest(), USERNAME_FIELD_NAME, "You must enter a username");
-=======
-			setErrorValue(Key.username.name(),
-				      "You must enter a username");
-			countLoginFailure(getMaxErrors(),
+			setErrorValue(request, Key.username.name(), "You must enter a username");
+			countLoginFailure(request, request.getSession(), getMaxErrors(),
 					  getDelayThreshold(),
 					  getDelayTime());
 
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
 			return (false);
 		}
 
 		if (StringUtils.isEmpty(password)) {
 
-<<<<<<< HEAD
-			setErrorValue(out.getRequest(), PASSWORD_FIELD_NAME, "You must enter a password");
-=======
-			setErrorValue(Key.password.name(),
-				      "You must enter a password");
-			countLoginFailure(getMaxErrors(),
+			setErrorValue(request, Key.password.name(), "You must enter a password");
+			countLoginFailure(request, request.getSession(), getMaxErrors(),
 					  getDelayThreshold(),
 					  getDelayTime());
 
@@ -181,36 +150,33 @@ public class AppLogin extends ActionNode {
 
 		// Session is not blocked, and we have a username and a password
 		// First, check if we have a user with this name
-		User loginUser = (User) Services.command(FindUserCommand.class).execute(username);
+		User loginUser = (User) Services.command(out.getSecurityContext(), FindUserCommand.class).execute(username);
 
 		// No matter what reason to deny login, always show the same error message to
 		// avoid giving hints
-		getErrorMessageValue().set(LOGIN_FAILURE_TEXT);
+		getErrorMessageValue().set(request, LOGIN_FAILURE_TEXT);
 
 		if (loginUser == null) {
 
 			logger.log(Level.INFO,
 				   "No user found for name {0}",
 				   loginUser);
-			countLoginFailure(getMaxErrors(),
+			countLoginFailure(request, request.getSession(), getMaxErrors(),
 					  getDelayThreshold(),
 					  getDelayTime());
 
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
 			return (false);
 		}
 
 
-<<<<<<< HEAD
 		try {
 			out.getSecurityContext().doLogin(username, password);
 
 		} catch(AuthenticationException aex) {
-=======
 			logger.log(Level.INFO,
 				   "User {0} is blocked",
 				   loginUser);
-			countLoginFailure(getMaxErrors(),
+			countLoginFailure(request, request.getSession(), getMaxErrors(),
 					  getDelayThreshold(),
 					  getDelayTime());
 
@@ -225,39 +191,25 @@ public class AppLogin extends ActionNode {
 			logger.log(Level.INFO,
 				   "Wrong password for user {0}",
 				   loginUser);
-			countLoginFailure(getMaxErrors(),
+			countLoginFailure(request, request.getSession(), getMaxErrors(),
 					  getDelayThreshold(),
 					  getDelayTime());
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
 
-			getErrorMessageValue().set(out.getRequest(), LOGIN_FAILURE_TEXT);
-			countLoginFailure(out.getRequest(), out.getRequest().getSession(), getMaxErrors(), getDelayThreshold(), getDelayTime());
+			getErrorMessageValue().set(request, LOGIN_FAILURE_TEXT);
+			countLoginFailure(request, request.getSession(), getMaxErrors(), getDelayThreshold(), getDelayTime());
 			return false;
 		}
 
-<<<<<<< HEAD
-=======
-		// Username and password are both valid
-		CurrentSession.setGlobalUsername(loginUser.getName());
-
-		// Set user object in session
-		CurrentSession.setUser(loginUser);
-
 		// Register user with internal session management
-		long sessionId = SessionMonitor.registerUserSession(CurrentSession.getSession());
+		long sessionId = SessionMonitor.registerUserSession(securityContext, request.getSession());
 
-		SessionMonitor.logActivity(sessionId,
+		SessionMonitor.logActivity(out.getSecurityContext(), sessionId,
 					   "Login");
 
-		// Mark this session with the internal session id
-		CurrentSession.setAttribute(SessionMonitor.SESSION_ID,
-					    sessionId);
-
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
 		// Clear all blocking stuff
-		getSessionBlockedValue().set(out.getRequest(), false);
-		getLoginAttemptsValue().set(out.getRequest(), 0);
-		getErrorMessageValue().set(out.getRequest(), null);
+		getSessionBlockedValue().set(request, false);
+		getLoginAttemptsValue().set(request, 0);
+		getErrorMessageValue().set(request, null);
 
 		// set success message
 		getOkMessageValue().set(out.getRequest(), "Login successful.");
@@ -267,30 +219,20 @@ public class AppLogin extends ActionNode {
 	}
 
 	// ----- private methods -----
-<<<<<<< HEAD
-	private void countLoginFailure(HttpServletRequest request, HttpSession session, int maxRetries, int delayThreshold, int delayTime) {
-=======
-	private void countLoginFailure(int maxErrors, int delayThreshold, int delayTime) {
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
+	private void countLoginFailure(HttpServletRequest request, HttpSession session, int maxErrors, int delayThreshold, int delayTime) {
 
 		Integer retries     = getLoginAttemptsValue().get(request);
 
 		if ((retries != null) && (retries > maxErrors)) {
 
-<<<<<<< HEAD
 			logger.log(Level.SEVERE, "More than {0} login failures, session {1} is blocked",
-				   new Object[] { maxRetries,
+				   new Object[] { maxErrors,
 						  session.getId() });
 			getSessionBlockedValue().set(request, true);
 			getErrorMessageValue().set(request,
-=======
-			logger.log(Level.SEVERE,
-				   "More than {0} login failures, session {1} is blocked",
-				   new Object[] { maxErrors, session.getId() });
-			getSessionBlockedValue().set(true);
-			getErrorMessageValue().set(
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
 			    "Too many unsuccessful login attempts, your session is blocked for login!");
+
+			getSessionBlockedValue().set(request, true);
 
 		} else if ((retries != null) && (retries > delayThreshold)) {
 
@@ -327,7 +269,7 @@ public class AppLogin extends ActionNode {
 
 	@Override
 	public String getIconSrc() {
-		return ("/images/door_in.png");
+		return "/images/door_in.png";
 	}
 
 	@Override
