@@ -712,7 +712,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		}
 
 		// Then check per-user permissions
-		return hasPermission(StructrRelationship.READ_KEY,
+		return hasPermission(StructrRelationship.Key.read.name(),
 				     user);
 	}
 
@@ -723,7 +723,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 */
 	public boolean showTreeAllowed() {
 
-		return hasPermission(StructrRelationship.SHOW_TREE_KEY,
+		return hasPermission(StructrRelationship.Key.showTree.name(),
 				     user);
 	}
 
@@ -734,7 +734,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 */
 	public boolean writeAllowed() {
 
-		return hasPermission(StructrRelationship.WRITE_KEY,
+		return hasPermission(StructrRelationship.Key.showTree.name(),
 				     user);
 	}
 
@@ -745,7 +745,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 */
 	public boolean createSubnodeAllowed() {
 
-		return hasPermission(StructrRelationship.CREATE_SUBNODE_KEY,
+		return hasPermission(StructrRelationship.Key.createNode.name(),
 				     user);
 	}
 
@@ -756,7 +756,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 */
 	public boolean deleteNodeAllowed() {
 
-		return hasPermission(StructrRelationship.DELETE_NODE_KEY,
+		return hasPermission(StructrRelationship.Key.deleteNode.name(),
 				     user);
 	}
 
@@ -767,7 +767,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 */
 	public boolean addRelationshipAllowed() {
 
-		return hasPermission(StructrRelationship.ADD_RELATIONSHIP_KEY,
+		return hasPermission(StructrRelationship.Key.addRelationship.name(),
 				     user);
 	}
 
@@ -778,7 +778,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 */
 	public boolean editPropertiesAllowed() {
 
-		return hasPermission(StructrRelationship.EDIT_PROPERTIES_KEY,
+		return hasPermission(StructrRelationship.Key.editProperties.name(),
 				     user);
 	}
 
@@ -789,7 +789,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 */
 	public boolean removeRelationshipAllowed() {
 
-		return hasPermission(StructrRelationship.REMOVE_RELATIONSHIP_KEY,
+		return hasPermission(StructrRelationship.Key.removeRelationship.name(),
 				     user);
 	}
 
@@ -824,7 +824,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 		r = getSecurityRelationship(user);
 
-		if ((r != null) && r.isAllowed(StructrRelationship.ACCESS_CONTROL_KEY)) {
+		if ((r != null) && r.isAllowed(StructrRelationship.Key.accessControl.name())) {
 			return true;
 		}
 

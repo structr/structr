@@ -535,7 +535,7 @@ public class Dashboard extends Admin {
                 okMsg = "New " + adminUser.getType() + " node " + adminUser.getName() + " has been created with password " + password;
 
                 StructrRelationship securityRel = (StructrRelationship) createRel.execute(adminUser, rootNode, RelType.SECURITY);
-                securityRel.setAllowed(Arrays.asList(StructrRelationship.ALL_PERMISSIONS));
+                securityRel.setAllowed(StructrRelationship.Key.values());
 
                 return adminUser;
             }
