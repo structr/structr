@@ -109,6 +109,7 @@ import org.structr.core.PropertyValidator;
 import org.structr.core.Value;
 import org.structr.core.EntityContext;
 import org.structr.core.PropertyConverter;
+import org.structr.core.PropertyConverter;
 import org.structr.core.converter.LongDateConverter;
 import org.structr.core.converter.NodeIdNodeConverter;
 
@@ -120,48 +121,64 @@ import org.structr.core.converter.NodeIdNodeConverter;
  * @author amorgner
  *
  */
-public abstract class AbstractNode implements Comparable<AbstractNode>, RenderController, AccessControllable, GraphObject, Map<String, Object> {
+public abstract class AbstractNode implements Comparable<AbstractNode>, RenderController, AccessControllable, GraphObject {
 
-        public static enum Key implements PropertyKey {
-	    name,  type, nodeId, createdBy, createdDate, deleted, hidden, lastModifiedDate,
-	    position, isPublic, title, titles,
-	    visibilityEndDate, visibilityStartDate, visibleToAuthenticatedUsers,
-	    templateId, categories, ownerId, owner;
-        }
-
-//	public final static String CATEGORIES_KEY         = "categories";
-//	public final static String CREATED_BY_KEY         = "createdBy";
-//	public final static String CREATED_DATE_KEY       = "createdDate";
-//	public final static String DELETED_KEY            = "deleted";
-//	public final static String HIDDEN_KEY             = "hidden";
-//	public final static String LAST_MODIFIED_DATE_KEY = "lastModifiedDate";
-//	public final static String NAME_KEY               = "name";
-//	public final static String NODE_ID_KEY            = "nodeId";
-
+//      public final static String CATEGORIES_KEY         = "categories";
+//      public final static String CREATED_BY_KEY         = "createdBy";
+//      public final static String CREATED_DATE_KEY       = "createdDate";
+//      public final static String DELETED_KEY            = "deleted";
+//      public final static String HIDDEN_KEY             = "hidden";
+//      public final static String LAST_MODIFIED_DATE_KEY = "lastModifiedDate";
+//      public final static String NAME_KEY               = "name";
+//      public final static String NODE_ID_KEY            = "nodeId";
 //      public final static String ACL_KEY = "acl";
 	// private final static String keyPrefix = "${";
 	// private final static String keySuffix = "}";
-	private final static String NODE_KEY_PREFIX               = "%{";
-	private final static String NODE_KEY_SUFFIX               = "}";
-//	public final static String OWNER_ID_KEY                   = "ownerId";
-//	public final static String OWNER_KEY                      = "owner";
-//	public final static String POSITION_KEY                   = "position";
-//	public final static String PUBLIC_KEY                     = "public";
+	private final static String NODE_KEY_PREFIX = "%{";
+	private final static String NODE_KEY_SUFFIX = "}";
+
+//      public final static String OWNER_ID_KEY                   = "ownerId";
+//      public final static String OWNER_KEY                      = "owner";
+//      public final static String POSITION_KEY                   = "position";
+//      public final static String PUBLIC_KEY                     = "public";
 	private final static String SUBNODES_AND_LINKED_NODES_KEY = "#";
 	private final static String SUBNODES_KEY                  = "*";
-//	public final static String TEMPLATE_ID_KEY                = "templateId";
 
+//      public final static String TEMPLATE_ID_KEY                = "templateId";
 //      public final static String LOCALE_KEY = "locale";
-//	public final static String TITLES_KEY = "titles";
-//	public final static String TITLE_KEY  = "title";
-
+//      public final static String TITLES_KEY = "titles";
+//      public final static String TITLE_KEY  = "title";
 	// keys for basic properties (any node should have at least all of the following properties)
-//	public final static String TYPE_KEY                           = "type";
-//	public final static String VISIBILITY_END_DATE_KEY            = "visibilityEndDate";
-//	public final static String VISIBILITY_START_DATE_KEY          = "visibilityStartDate";
-//	public final static String VISIBLE_TO_AUTHENTICATED_USERS_KEY = "visibleToAuthenticatedUsers";
-	private static final Logger logger                            = Logger.getLogger(AbstractNode.class.getName());
-	private static final boolean updateIndexDefault               = true;
+//      public final static String TYPE_KEY                           = "type";
+//      public final static String VISIBILITY_END_DATE_KEY            = "visibilityEndDate";
+//      public final static String VISIBILITY_START_DATE_KEY          = "visibilityStartDate";
+//      public final static String VISIBLE_TO_AUTHENTICATED_USERS_KEY = "visibleToAuthenticatedUsers";
+	private static final Logger logger              = Logger.getLogger(AbstractNode.class.getName());
+	private static final boolean updateIndexDefault = true;
+
+	//~--- static initializers --------------------------------------------
+
+	static {
+
+		EntityContext.registerPropertySet(AbstractNode.class,
+						  PropertyView.All,
+						  Key.values());
+		EntityContext.registerPropertyConverter(AbstractNode.class,
+			Key.visibilityStartDate,
+			LongDateConverter.class);
+		EntityContext.registerPropertyConverter(AbstractNode.class,
+			Key.visibilityEndDate,
+			LongDateConverter.class);
+		EntityContext.registerPropertyConverter(AbstractNode.class,
+			Key.lastModifiedDate,
+			LongDateConverter.class);
+		EntityContext.registerPropertyConverter(AbstractNode.class,
+			Key.createdDate,
+			LongDateConverter.class);
+		EntityContext.registerPropertyConverter(AbstractNode.class,
+			Key.ownerId,
+			NodeIdNodeConverter.class);
+	}
 
 	//~--- fields ---------------------------------------------------------
 
@@ -196,18 +213,14 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 	protected SecurityContext securityContext =			null;
 
-	//~--- constructors ---------------------------------------------------
+	public static enum Key implements PropertyKey {
 
-	static {
-		EntityContext.registerPropertySet(AbstractNode.class, PropertyView.All, Key.values());
-
-		EntityContext.registerPropertyConverter(AbstractNode.class, Key.visibilityStartDate,	LongDateConverter.class);
-		EntityContext.registerPropertyConverter(AbstractNode.class, Key.visibilityEndDate,	LongDateConverter.class);
-		EntityContext.registerPropertyConverter(AbstractNode.class, Key.lastModifiedDate,	LongDateConverter.class);
-		EntityContext.registerPropertyConverter(AbstractNode.class, Key.createdDate,		LongDateConverter.class);
-
-		EntityContext.registerPropertyConverter(AbstractNode.class, Key.ownerId,		NodeIdNodeConverter.class);
+		name, type, nodeId, createdBy, createdDate, deleted, hidden, lastModifiedDate, position, isPublic,
+		title, titles, visibilityEndDate, visibilityStartDate, visibleToAuthenticatedUsers, templateId,
+		categories, ownerId, owner;
 	}
+
+	//~--- constructors ---------------------------------------------------
 
 	public AbstractNode() {
 
@@ -243,6 +256,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * @param rendererMap the map that hosts renderers for the different rendering modes
 	 */
 	public void initializeRenderers(final Map<RenderMode, NodeRenderer> rendererMap) {
+
 		// override me
 	}
 
@@ -250,6 +264,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * Called when a node of this type is created in the UI.
 	 */
 	public void onNodeCreation() {
+
 		// override me
 	}
 
@@ -259,6 +274,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * rendering turn.
 	 */
 	public void onNodeInstantiation() {
+
 		// override me
 	}
 
@@ -266,9 +282,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * Called when a node of this type is deleted.
 	 */
 	public void onNodeDeletion() {
+
 		// override me
 	}
-
 
 	@Override
 	public boolean renderingAllowed(final RenderContext context) {
@@ -712,7 +728,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		}
 
 		// Then check per-user permissions
-		return hasPermission(StructrRelationship.READ_KEY,
+		return hasPermission(StructrRelationship.Permission.read.name(),
 				     user);
 	}
 
@@ -723,7 +739,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 */
 	public boolean showTreeAllowed() {
 
-		return hasPermission(StructrRelationship.SHOW_TREE_KEY,
+		return hasPermission(StructrRelationship.Permission.showTree.name(),
 				     user);
 	}
 
@@ -734,7 +750,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 */
 	public boolean writeAllowed() {
 
-		return hasPermission(StructrRelationship.WRITE_KEY,
+		return hasPermission(StructrRelationship.Permission.write.name(),
 				     user);
 	}
 
@@ -745,7 +761,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 */
 	public boolean createSubnodeAllowed() {
 
-		return hasPermission(StructrRelationship.CREATE_SUBNODE_KEY,
+		return hasPermission(StructrRelationship.Permission.createNode.name(),
 				     user);
 	}
 
@@ -756,7 +772,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 */
 	public boolean deleteNodeAllowed() {
 
-		return hasPermission(StructrRelationship.DELETE_NODE_KEY,
+		return hasPermission(StructrRelationship.Permission.deleteNode.name(),
 				     user);
 	}
 
@@ -767,7 +783,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 */
 	public boolean addRelationshipAllowed() {
 
-		return hasPermission(StructrRelationship.ADD_RELATIONSHIP_KEY,
+		return hasPermission(StructrRelationship.Permission.addRelationship.name(),
 				     user);
 	}
 
@@ -778,7 +794,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 */
 	public boolean editPropertiesAllowed() {
 
-		return hasPermission(StructrRelationship.EDIT_PROPERTIES_KEY,
+		return hasPermission(StructrRelationship.Permission.editProperties.name(),
 				     user);
 	}
 
@@ -789,7 +805,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 */
 	public boolean removeRelationshipAllowed() {
 
-		return hasPermission(StructrRelationship.REMOVE_RELATIONSHIP_KEY,
+		return hasPermission(StructrRelationship.Permission.removeRelationship.name(),
 				     user);
 	}
 
@@ -824,7 +840,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 		r = getSecurityRelationship(user);
 
-		if ((r != null) && r.isAllowed(StructrRelationship.ACCESS_CONTROL_KEY)) {
+		if ((r != null) && r.isAllowed(StructrRelationship.Permission.accessControl.name())) {
 			return true;
 		}
 
@@ -1411,12 +1427,12 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	// ----- protected methods -----
 	protected String createUniqueIdentifier(String prefix) {
 
-		StringBuilder ret = new StringBuilder(100);
+		StringBuilder identifier = new StringBuilder(100);
 
-		ret.append(prefix);
-		ret.append(getIdString());
+		identifier.append(prefix);
+		identifier.append(getIdString());
 
-		return (ret.toString());
+		return identifier.toString();
 	}
 
 	/**
@@ -1863,21 +1879,21 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * @return
 	 */
 	public final Iterable<String> getDatabasePropertyKeys() {
+
+		if (dbNode == null) {
+			return null;
+		}
+
 		return dbNode.getPropertyKeys();
 	}
 
 	/**
-	 * Return all property keys. 
+	 * Return all property keys.
 	 *
 	 * @return
 	 */
 	public Iterable<String> getPropertyKeys() {
-
-		// FIXME: should this method return keys for properties that
-		// exist in the database, or return ALL properties that are
-		// allowed in this node?
-		
-		return getDatabasePropertyKeys();
+		return getPropertyKeys(PropertyView.All);
 	}
 
 	/**
@@ -1895,7 +1911,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 */
 	@Override
 	public Iterable<String> getPropertyKeys(final PropertyView propertyView) {
-		return EntityContext.getPropertySet(this.getClass(), propertyView);
+
+		return EntityContext.getPropertySet(this.getClass(),
+			propertyView);
 	}
 
 	public Object getProperty(final PropertyKey propertyKey) {
@@ -1917,7 +1935,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	@Override
 	public Object getProperty(final String key) {
 
-		Class type = this.getClass();
+		Class type   = this.getClass();
 		Object value = null;
 
 		if (isDirty) {
@@ -1925,7 +1943,28 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		}
 
 		if ((key != null) && dbNode.hasProperty(key)) {
+
 			value = dbNode.getProperty(key);
+
+			// Temporary hook for format conversion introduced with 0.4.3-SNAPSHOT:
+			// public -> isPublic (due to usage of enum Key public instead of public static final String PUBLIC = "public"
+			// TODO: remove this hook if you can be absolutely sure that no old repository is in use anymore!
+			if (key.equals("public")) {
+
+				final Object val               = value;
+				new StructrTransaction() {
+
+					@Override
+					public Object execute() throws Throwable {
+
+						dbNode.setProperty(Key.isPublic.name(),
+								   val);
+						dbNode.removeProperty(key);
+
+						return null;
+					}
+				};
+			}
 		}
 
 		PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
@@ -3287,7 +3326,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	protected AbstractNode getNodeFromLoader(HttpServletRequest request) {
 
 		List<StructrRelationship> rels = getIncomingDataRelationships();
-		AbstractNode ret               = null;
+		AbstractNode node               = null;
 
 		for (StructrRelationship rel : rels) {
 
@@ -3297,14 +3336,13 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 			if (startNode instanceof NodeSource) {
 
 				NodeSource source = (NodeSource) startNode;
-
-				ret = source.loadNode(request);
+				node = source.loadNode(request);
 
 				break;
 			}
 		}
 
-		return (ret);
+		return node;
 	}
 
 	@Override
@@ -3371,102 +3409,6 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 					Direction.OUTGOING) || hasRelationship(RelType.LINK,
 			Direction.OUTGOING));
 	}
-
-	// ----- interface Map -----
-	@Override
-	public void clear() {
-		// TODO: Decide whether to implement clear at all
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public boolean containsKey(final Object key) {
-		return EntityContext.getPropertySet(this.getClass(), PropertyView.All).contains((String)key);
-	}
-
-	@Override
-	public boolean containsValue(final Object value) {
-
-		for (Map.Entry<String, Object> entry : entrySet()) {
-			Object dataValue = entry.getValue();
-			return (dataValue != null && dataValue.equals(value));
-		}
-
-		return false;
-	}
-
-	@Override
-	public Set<Entry<String, Object>> entrySet() {
-
-		Set<Entry<String, Object>> entries = new HashSet<Entry<String, Object>>();
-
-		for (String key : keySet()) {
-			Object value = get(key);
-			entries.add(new AbstractMap.SimpleEntry(key, value));
-		}
-		return entries;
-	}
-
-	@Override
-	public Object get(final Object key) {
-		return getProperty((String)key);
-	}
-
-	@Override
-	public boolean isEmpty() {
-		return entrySet().isEmpty();
-	}
-
-	@Override
-	public Set<String> keySet() {
-
-		Set<String> keys = new HashSet<String>();
-		for (String key : getPropertyKeys(PropertyView.All)) {
-			keys.add(key);
-		}
-		return keys;
-	}
-
-	@Override
-	public Object put(final String key, final Object value) {
-		
-		Object oldValue = get(key);
-		setProperty(key, value);
-		return oldValue;
-	}
-
-	@Override
-	public void putAll(final Map<? extends String, ? extends Object> m) {
-
-		for (Map.Entry<? extends String, ? extends Object> entry : m.entrySet()) {
-			String key = entry.getKey();
-			Object value = entry.getValue();
-			put(key, value);
-		}
-	}
-
-	@Override
-	public Object remove(final Object key) {
-		Object oldValue = get((String)key);
-		setProperty((String)key, null);
-		return oldValue;
-	}
-
-	@Override
-	public int size() {
-		return keySet().size();
-	}
-
-	@Override
-	public Collection<Object> values() {
-		Collection<Object> values = new ArrayList<Object>();
-		for (Map.Entry<String, Object> entry : entrySet()) {
-			Object dataValue = entry.getValue();
-			values.add(dataValue);
-		}
-		return values;
-	}
-
 
 	// ----- interface AccessControllable -----
 	@Override
@@ -3579,7 +3521,8 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 				Node node = path.endNode();
 
 				// check for type property with value "Trash"
-				if (node.hasProperty(Key.type.name()) && node.getProperty(Key.type.name()).equals("Trash")) {
+				if (node.hasProperty(Key.type.name())
+					&& node.getProperty(Key.type.name()).equals("Trash")) {
 
 					// only include Trash nodes in result set
 					return (Evaluation.INCLUDE_AND_PRUNE);
@@ -3879,9 +3822,14 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		// TODO: implement converters here?
 		PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
 		final Object convertedValue;
-		if(converter != null) {
-			Value conversionValue = EntityContext.getPropertyConversionParameter(type, key);
+
+		if (converter != null) {
+
+			Value conversionValue = EntityContext.getPropertyConversionParameter(type,
+				key);
+
 			convertedValue = converter.convertFrom(value, conversionValue);
+
 		} else {
 			convertedValue = value;
 		}
@@ -3892,7 +3840,8 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 			logger.log(Level.FINE, "Using validator of type {0} for property {1}", new Object[] { validator.getClass().getSimpleName(), key } );
 			Value parameter = EntityContext.getPropertyValidationParameter(type, key);
 			StringBuilder errorBuffer = new StringBuilder(20);
-			if(!validator.isValid(key, convertedValue, parameter, errorBuffer)) {
+
+			if (!validator.isValid(key, convertedValue, parameter, errorBuffer)) {
 				throw new IllegalArgumentException(errorBuffer.toString());
 			}
 		}
@@ -3912,7 +3861,8 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 			// - old and new value both are null
 			// - old and new value are not null but equal
 			if (((convertedValue == null) && (oldValue == null))
-				|| ((convertedValue != null) && (oldValue != null) && convertedValue.equals(oldValue))) {
+				|| ((convertedValue != null) && (oldValue != null)
+				    && convertedValue.equals(oldValue))) {
 				return;
 			}
 
@@ -3961,15 +3911,17 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 					return null;
 				}
-
 			};
 			
 			// execute transaction	
 			Services.command(securityContext, TransactionCommand.class).execute(transaction);
-			
+
 			// debug
-			if(transaction.getCause() != null) {
-				logger.log(Level.WARNING, "Error while setting property", transaction.getCause());
+			if (transaction.getCause() != null) {
+
+				logger.log(Level.WARNING,
+					   "Error while setting property",
+					   transaction.getCause());
 			}
 		}
 	}

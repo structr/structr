@@ -58,7 +58,7 @@ public class RegistrationFormRenderer extends FormRenderer implements NodeRender
 			return;
 		}
 
-		String usernameFromSession = (String)session.getAttribute(WebNode.USERNAME_KEY);
+		String usernameFromSession = (String)session.getAttribute(WebNode.Key.username.name());
 //            String usernameFromSession = CurrentSession.getGlobalUsername();
 		Boolean alreadyLoggedIn = usernameFromSession != null;
 
@@ -68,7 +68,7 @@ public class RegistrationFormRenderer extends FormRenderer implements NodeRender
 			return;
 		}
 
-		Boolean sessionBlocked = (Boolean)session.getAttribute(WebNode.SESSION_BLOCKED);
+		Boolean sessionBlocked = (Boolean)session.getAttribute(WebNode.Key.sessionBlocked.name());
 
 		if(Boolean.TRUE.equals(sessionBlocked))
 		{

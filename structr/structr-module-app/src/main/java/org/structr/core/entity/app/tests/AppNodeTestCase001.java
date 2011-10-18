@@ -227,4 +227,9 @@ public class AppNodeTestCase001 extends ApplicationNode
 
 		return(ret.toString());
 	}
+
+	@Override
+	public String getIconSrc() {
+		return null;
+	}
 }

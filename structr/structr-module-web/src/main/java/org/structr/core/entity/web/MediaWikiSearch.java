@@ -22,6 +22,8 @@
 package org.structr.core.entity.web;
 
 import org.structr.common.PropertyKey;
+import org.structr.common.PropertyView;
+import org.structr.core.EntityContext;
 import org.structr.core.TemporaryValue;
 import org.structr.core.entity.AbstractNode;
 
@@ -51,6 +53,15 @@ import org.structr.common.RequestHelper;
 public class MediaWikiSearch extends AbstractNode {
 
 	private static final String CACHED_WIKI_CONTENT = "cached_wiki_content";
+
+	//~--- static initializers --------------------------------------------
+
+	static {
+
+		EntityContext.registerPropertySet(MediaWikiSearch.class,
+						  PropertyView.All,
+						  Key.values());
+	}
 
 	//~--- constant enums -------------------------------------------------
 
@@ -93,7 +104,7 @@ public class MediaWikiSearch extends AbstractNode {
 
 	@Override
 	public String getIconSrc() {
-		return ("/images/lightbulb.png");
+		return "/images/lightbulb.png";
 	}
 
 	// ----- private methods ----
@@ -110,7 +121,7 @@ public class MediaWikiSearch extends AbstractNode {
 				nodePath = nodePath.substring(0, nodePath.length() - 1);
 			}
 
-			search = nodePath.substring(nodePath.lastIndexOf("/")+1);
+			search = nodePath.substring(nodePath.lastIndexOf("/") + 1);
 		}
 
 		if ((source != null) && (search != null)) {
@@ -127,7 +138,9 @@ public class MediaWikiSearch extends AbstractNode {
 				int len                 = items.getLength();
 
 				for (int i = 0; i < len; i++) {
-					nodeList.add(new MediaWikiItem(i, items.item(i)));
+
+					nodeList.add(new MediaWikiItem(i,
+								       items.item(i)));
 				}
 
 			} catch (Throwable t) {

@@ -23,7 +23,6 @@ import org.apache.click.control.FieldSet;
 import org.apache.click.extras.control.DoubleField;
 import org.apache.click.util.Bindable;
 import org.structr.core.entity.geo.GeoObject;
-import org.structr.ui.page.admin.DefaultEdit;
 
 /**
  *
@@ -39,8 +38,8 @@ public class EditGeoObject extends DefaultEdit {
         super();
 
         geoFields.setColumns(2);
-        geoFields.add(new DoubleField(GeoObject.LONGITUDE_KEY));
-        geoFields.add(new DoubleField(GeoObject.LATITUDE_KEY));
+        geoFields.add(new DoubleField(GeoObject.Key.longitude.name()));
+        geoFields.add(new DoubleField(GeoObject.Key.latitude.name()));
         editPropertiesForm.add(geoFields);
     }
 

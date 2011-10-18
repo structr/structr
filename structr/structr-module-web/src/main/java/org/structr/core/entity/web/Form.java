@@ -20,6 +20,9 @@
 package org.structr.core.entity.web;
 
 import java.util.List;
+import org.structr.common.PropertyKey;
+import org.structr.common.PropertyView;
+import org.structr.core.EntityContext;
 
 /**
  * Abstract base class for all web forms
@@ -28,28 +31,25 @@ import java.util.List;
  */
 public abstract class Form extends WebNode {
 
-    /** Form action */
-    public final static String ACTION_KEY = "action";
-    /** Form label */
-    public final static String LABEL_KEY = "label";
-    /** CSS Class of form table */
-    public final static String CSS_CLASS_KEY = "cssClass";
-    /** Name of submit button (must not be empty to process form) */
-    public final static String SUBMIT_BUTTON_NAME_KEY = "submitButtonName";
-    /** Name of anti robot field (must be empty to process form) */
-    public final static String ANTI_ROBOT_FIELD_NAME_KEY = "antiRobotFieldName";
-    /** List with parameter names */
-    public final static String PARAMETER_NAMES_KEY = "parameterNames";
-    /** List with mandatory parameter names */
-    public final static String MANDATORY_PARAMETER_NAMES_KEY = "mandatoryParameterNames";
-    /** List with strings to be removed from parameter values */
-    public final static String STRIP_FROM_VALUES_KEY = "stripFromValues";
 
-    private final static String ICON_SRC = "/images/form.png";
+	static {
+
+		EntityContext.registerPropertySet(Form.class,
+						  PropertyView.All,
+						  Key.values());
+	}
+
+	public enum Key implements PropertyKey {
+		action, label, cssClass, submitButtonName,
+		antiRobotFieldName, parameterNames, mandatoryParameterNames,
+		stripFromValues;
+	}
+
+
 
     @Override
     public String getIconSrc() {
-        return ICON_SRC;
+        return "/images/form.png";
     }
 
 
@@ -59,11 +59,11 @@ public abstract class Form extends WebNode {
      * @return
      */
     public String getParameterNames() {
-        return getStringArrayPropertyAsString(PARAMETER_NAMES_KEY);
+        return getStringArrayPropertyAsString(Key.parameterNames.name());
     }
 
     public List<String> getParameterNamesAsList() {
-        return getStringListProperty(PARAMETER_NAMES_KEY);
+        return getStringListProperty(Key.parameterNames.name());
     }
 
     /**
@@ -72,7 +72,7 @@ public abstract class Form extends WebNode {
      * @param stringList
      */
     public void setParameterNames(final String value) {
-        setPropertyAsStringArray(PARAMETER_NAMES_KEY, value);
+        setPropertyAsStringArray(Key.parameterNames.name(), value);
     }
 
     /**
@@ -81,11 +81,11 @@ public abstract class Form extends WebNode {
      * @return
      */
     public String getMandatoryParameterNames() {
-        return getStringArrayPropertyAsString(MANDATORY_PARAMETER_NAMES_KEY);
+        return getStringArrayPropertyAsString(Key.mandatoryParameterNames.name());
     }
 
     public List<String> getMandatoryParameterNamesAsList() {
-        return getStringListProperty(MANDATORY_PARAMETER_NAMES_KEY);
+        return getStringListProperty(Key.mandatoryParameterNames.name());
     }
 
     /**
@@ -94,7 +94,7 @@ public abstract class Form extends WebNode {
      * @param stringList
      */
     public void setMandatoryParameterNames(final String value) {
-        setPropertyAsStringArray(MANDATORY_PARAMETER_NAMES_KEY, value);
+        setPropertyAsStringArray(Key.mandatoryParameterNames.name(), value);
     }
 
     /**
@@ -103,11 +103,11 @@ public abstract class Form extends WebNode {
      * @return
      */
     public String getStripFromValues() {
-        return getStringArrayPropertyAsString(STRIP_FROM_VALUES_KEY);
+        return getStringArrayPropertyAsString(Key.stripFromValues.name());
     }
 
     public List<String> getStripFromValuesAsList() {
-        return getStringListProperty(STRIP_FROM_VALUES_KEY);
+        return getStringListProperty(Key.stripFromValues.name());
     }
 
     /**
@@ -116,7 +116,7 @@ public abstract class Form extends WebNode {
      * @param stringList
      */
     public void setStripFromValues(final String value) {
-        setPropertyAsStringArray(STRIP_FROM_VALUES_KEY, value);
+        setPropertyAsStringArray(Key.stripFromValues.name(), value);
     }
 
     /**
@@ -125,7 +125,7 @@ public abstract class Form extends WebNode {
      * @return
      */
     public String getAntiRobotFieldName() {
-        return getStringProperty(ANTI_ROBOT_FIELD_NAME_KEY);
+        return getStringProperty(Key.antiRobotFieldName.name());
     }
 
     /**
@@ -134,7 +134,7 @@ public abstract class Form extends WebNode {
      * @param value
      */
     public void setAntiRobotFieldName(final String value) {
-        setProperty(ANTI_ROBOT_FIELD_NAME_KEY, value);
+        setProperty(Key.antiRobotFieldName.name(), value);
     }
 
     /**
@@ -143,7 +143,7 @@ public abstract class Form extends WebNode {
      * @return
      */
     public String getSubmitButtonName() {
-        return getStringProperty(SUBMIT_BUTTON_NAME_KEY);
+        return getStringProperty(Key.submitButtonName.name());
     }
 
     /**
@@ -152,7 +152,7 @@ public abstract class Form extends WebNode {
      * @param value
      */
     public void setSubmitButtonName(final String value) {
-        setProperty(SUBMIT_BUTTON_NAME_KEY, value);
+        setProperty(Key.submitButtonName.name(), value);
     }
 
     /**
@@ -161,7 +161,7 @@ public abstract class Form extends WebNode {
      * @return
      */
     public String getCssClass() {
-        return getStringProperty(CSS_CLASS_KEY);
+        return getStringProperty(Key.cssClass.name());
     }
 
     /**
@@ -170,7 +170,7 @@ public abstract class Form extends WebNode {
      * @return
      */
     public void setCssClass(final String value) {
-        setProperty(CSS_CLASS_KEY, value);
+        setProperty(Key.cssClass.name(), value);
     }
 
     /**
@@ -179,7 +179,7 @@ public abstract class Form extends WebNode {
      * @return
      */
     public String getAction() {
-        return getStringProperty(ACTION_KEY);
+        return getStringProperty(Key.action.name());
     }
 
     /**
@@ -188,7 +188,7 @@ public abstract class Form extends WebNode {
      * @param value
      */
     public void setAction(final String value) {
-        setProperty(ACTION_KEY, value);
+        setProperty(Key.action.name(), value);
     }
 
     /**
@@ -197,7 +197,7 @@ public abstract class Form extends WebNode {
      * @return
      */
     public String getLabel() {
-        return getStringProperty(LABEL_KEY);
+        return getStringProperty(Key.label.name());
     }
 
     /**
@@ -206,6 +206,6 @@ public abstract class Form extends WebNode {
      * @param value
      */
     public void setLabel(final String value) {
-        setProperty(LABEL_KEY, value);
+        setProperty(Key.label.name(), value);
     }
 }

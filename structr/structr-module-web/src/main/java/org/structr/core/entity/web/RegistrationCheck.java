@@ -18,11 +18,11 @@
  */
 package org.structr.core.entity.web;
 
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
+import org.structr.common.PropertyKey;
+import org.structr.common.PropertyView;
 import org.structr.common.RenderMode;
+import org.structr.core.EntityContext;
 import org.structr.core.NodeRenderer;
 import org.structr.renderer.RegistrationCheckRenderer;
 
@@ -45,21 +45,24 @@ import org.structr.renderer.RegistrationCheckRenderer;
  */
 public class RegistrationCheck extends LoginCheck {
 
-	private final static String ICON_SRC = "/images/application_key.png";
+	static {
+
+		EntityContext.registerPropertySet(RegistrationCheck.class,
+						  PropertyView.All,
+						  Key.values());
+	}
+
+	public enum Key implements PropertyKey {
+		publicUserDirectoryName, senderAddress, senderName, inlineCss,
+		assignedUsername, confirmationKeyFieldName, confirmPasswordFieldName,
+		agreedToTermsOfUseFieldName, newsletterFieldName;
+
+	}
 
 	@Override
 	public String getIconSrc() {
-		return ICON_SRC;
+		return "/images/application_key.png";
 	}
-	public final static String PUBLIC_USER_DIRECTORY_NAME_KEY = "publicUserDirectoryName";
-	public final static String SENDER_ADDRESS_KEY = "senderAddress";
-	public final static String SENDER_NAME_KEY = "senderName";
-	public final static String INLINE_CSS_KEY = "inlineCss";
-	public final static String ASSIGNED_USERNAME_KEY = "assignedUsername";
-	public final static String CONFIRMATION_KEY_FIELD_NAME_KEY = "confirmationKeyFieldName";
-	public final static String CONFIRM_PASSWORD_FIELD_NAME_KEY = "confirmPasswordFieldName";
-	public final static String AGREED_TO_TERMS_OF_USE_FIELD_NAME_KEY = "agreedToTermsOfUseFieldName";
-	public final static String NEWSLETTER_FIELD_NAME_KEY = "newsletterFieldName";
 
 	/**
 	 * Return name of confirmation key field
@@ -67,7 +70,7 @@ public class RegistrationCheck extends LoginCheck {
 	 * @return
 	 */
 	public String getConfirmationKeyFieldName() {
-		return getStringProperty(CONFIRMATION_KEY_FIELD_NAME_KEY);
+		return getStringProperty(Key.confirmationKeyFieldName.name());
 	}
 
 	/**
@@ -76,7 +79,7 @@ public class RegistrationCheck extends LoginCheck {
 	 * @param value
 	 */
 	public void setConfirmationKeyFieldName(final String value) {
-		setProperty(CONFIRMATION_KEY_FIELD_NAME_KEY, value);
+		setProperty(Key.confirmationKeyFieldName.name(), value);
 	}
 
 	/**
@@ -85,7 +88,7 @@ public class RegistrationCheck extends LoginCheck {
 	 * @return
 	 */
 	public String getConfirmPasswordFieldName() {
-		return getStringProperty(CONFIRM_PASSWORD_FIELD_NAME_KEY);
+		return getStringProperty(Key.confirmPasswordFieldName.name());
 	}
 
 	/**
@@ -94,7 +97,7 @@ public class RegistrationCheck extends LoginCheck {
 	 * @param value
 	 */
 	public void setConfirmPasswordFieldName(final String value) {
-		setProperty(CONFIRM_PASSWORD_FIELD_NAME_KEY, value);
+		setProperty(Key.confirmPasswordFieldName.name(), value);
 	}
 
 	/**
@@ -103,7 +106,7 @@ public class RegistrationCheck extends LoginCheck {
 	 * @return
 	 */
 	public String getFirstNameFieldName() {
-		return getStringProperty(RegistrationForm.FIRST_NAME_FIELD_NAME_KEY);
+		return getStringProperty(RegistrationForm.Key.firstNameFieldName.name());
 	}
 
 	/**
@@ -112,7 +115,7 @@ public class RegistrationCheck extends LoginCheck {
 	 * @param value
 	 */
 	public void setFirstNameFieldName(final String value) {
-		setProperty(RegistrationForm.FIRST_NAME_FIELD_NAME_KEY, value);
+		setProperty(RegistrationForm.Key.firstNameFieldName.name(), value);
 	}
 
 	/**
@@ -121,7 +124,7 @@ public class RegistrationCheck extends LoginCheck {
 	 * @return
 	 */
 	public String getLastNameFieldName() {
-		return getStringProperty(RegistrationForm.LAST_NAME_FIELD_NAME_KEY);
+		return getStringProperty(RegistrationForm.Key.lastNameFieldName.name());
 	}
 
 	/**
@@ -130,7 +133,7 @@ public class RegistrationCheck extends LoginCheck {
 	 * @param value
 	 */
 	public void setLastNameFieldName(final String value) {
-		setProperty(RegistrationForm.LAST_NAME_FIELD_NAME_KEY, value);
+		setProperty(RegistrationForm.Key.lastNameFieldName.name(), value);
 	}
 
 	/**
@@ -139,7 +142,7 @@ public class RegistrationCheck extends LoginCheck {
 	 * @return
 	 */
 	public String getEmailFieldName() {
-		return getStringProperty(RegistrationForm.EMAIL_FIELD_NAME_KEY);
+		return getStringProperty(RegistrationForm.Key.emailFieldName.name());
 	}
 
 	/**
@@ -148,7 +151,7 @@ public class RegistrationCheck extends LoginCheck {
 	 * @param value
 	 */
 	public void setEmailFieldName(final String value) {
-		setProperty(RegistrationForm.EMAIL_FIELD_NAME_KEY, value);
+		setProperty(RegistrationForm.Key.emailFieldName.name(), value);
 	}
 
 	/**
@@ -157,7 +160,7 @@ public class RegistrationCheck extends LoginCheck {
 	 * @return
 	 */
 	public String getConfirmEmailFieldName() {
-		return getStringProperty(RegistrationForm.CONFIRM_EMAIL_FIELD_NAME_KEY);
+		return getStringProperty(RegistrationForm.Key.confirmEmailFieldName.name());
 	}
 
 	/**
@@ -166,7 +169,7 @@ public class RegistrationCheck extends LoginCheck {
 	 * @param value
 	 */
 	public void setConfirmEmailFieldName(final String value) {
-		setProperty(RegistrationForm.CONFIRM_EMAIL_FIELD_NAME_KEY, value);
+		setProperty(RegistrationForm.Key.confirmEmailFieldName.name(), value);
 	}
 
 	/**
@@ -175,7 +178,7 @@ public class RegistrationCheck extends LoginCheck {
 	 * @return
 	 */
 	public String getZipCodeFieldName() {
-		return getStringProperty(RegistrationForm.ZIP_CODE_FIELD_NAME_KEY);
+		return getStringProperty(RegistrationForm.Key.zipCodeFieldName.name());
 	}
 
 	/**
@@ -184,7 +187,7 @@ public class RegistrationCheck extends LoginCheck {
 	 * @param value
 	 */
 	public void setZipCodeFieldName(final String value) {
-		setProperty(RegistrationForm.ZIP_CODE_FIELD_NAME_KEY, value);
+		setProperty(RegistrationForm.Key.zipCodeFieldName.name(), value);
 	}
 
 	/**
@@ -193,7 +196,7 @@ public class RegistrationCheck extends LoginCheck {
 	 * @return
 	 */
 	public String getCityFieldName() {
-		return getStringProperty(RegistrationForm.CITY_FIELD_NAME_KEY);
+		return getStringProperty(RegistrationForm.Key.cityFieldName.name());
 	}
 
 	/**
@@ -202,7 +205,7 @@ public class RegistrationCheck extends LoginCheck {
 	 * @param value
 	 */
 	public void setCityFieldName(final String value) {
-		setProperty(RegistrationForm.CITY_FIELD_NAME_KEY, value);
+		setProperty(RegistrationForm.Key.cityFieldName.name(), value);
 	}
 
 	/**
@@ -211,7 +214,7 @@ public class RegistrationCheck extends LoginCheck {
 	 * @return
 	 */
 	public String getStreetFieldName() {
-		return getStringProperty(RegistrationForm.STREET_FIELD_NAME_KEY);
+		return getStringProperty(RegistrationForm.Key.streetFieldName.name());
 	}
 
 	/**
@@ -220,7 +223,7 @@ public class RegistrationCheck extends LoginCheck {
 	 * @param value
 	 */
 	public void setStreetFieldName(final String value) {
-		setProperty(RegistrationForm.STREET_FIELD_NAME_KEY, value);
+		setProperty(RegistrationForm.Key.streetFieldName.name(), value);
 	}
 
 	/**
@@ -229,7 +232,7 @@ public class RegistrationCheck extends LoginCheck {
 	 * @return
 	 */
 	public String getStateFieldName() {
-		return getStringProperty(RegistrationForm.STATE_FIELD_NAME_KEY);
+		return getStringProperty(RegistrationForm.Key.stateFieldName.name());
 	}
 
 	/**
@@ -238,7 +241,7 @@ public class RegistrationCheck extends LoginCheck {
 	 * @param value
 	 */
 	public void setStateFieldName(final String value) {
-		setProperty(RegistrationForm.STATE_FIELD_NAME_KEY, value);
+		setProperty(RegistrationForm.Key.stateFieldName.name(), value);
 	}
 
 	/**
@@ -247,7 +250,7 @@ public class RegistrationCheck extends LoginCheck {
 	 * @return
 	 */
 	public String getCountryFieldName() {
-		return getStringProperty(RegistrationForm.COUNTRY_FIELD_NAME_KEY);
+		return getStringProperty(RegistrationForm.Key.countryFieldName.name());
 	}
 
 	/**
@@ -256,7 +259,7 @@ public class RegistrationCheck extends LoginCheck {
 	 * @param value
 	 */
 	public void setCountryFieldName(final String value) {
-		setProperty(RegistrationForm.COUNTRY_FIELD_NAME_KEY, value);
+		setProperty(RegistrationForm.Key.countryFieldName.name(), value);
 	}
 
 	/**
@@ -265,7 +268,7 @@ public class RegistrationCheck extends LoginCheck {
 	 * @return
 	 */
 	public String getBirthdayFieldName() {
-		return getStringProperty(RegistrationForm.BIRTHDAY_FIELD_NAME_KEY);
+		return getStringProperty(RegistrationForm.Key.birthdayFieldName.name());
 	}
 
 	/**
@@ -274,7 +277,7 @@ public class RegistrationCheck extends LoginCheck {
 	 * @param value
 	 */
 	public void setBirthdayFieldName(final String value) {
-		setProperty(RegistrationForm.BIRTHDAY_FIELD_NAME_KEY, value);
+		setProperty(RegistrationForm.Key.birthdayFieldName.name(), value);
 	}
 
 	/**
@@ -283,7 +286,7 @@ public class RegistrationCheck extends LoginCheck {
 	 * @return
 	 */
 	public String getGenderFieldName() {
-		return getStringProperty(RegistrationForm.GENDER_FIELD_NAME_KEY);
+		return getStringProperty(RegistrationForm.Key.genderFieldName.name());
 	}
 
 	/**
@@ -292,7 +295,7 @@ public class RegistrationCheck extends LoginCheck {
 	 * @param value
 	 */
 	public void setGenderFieldName(final String value) {
-		setProperty(RegistrationForm.GENDER_FIELD_NAME_KEY, value);
+		setProperty(RegistrationForm.Key.genderFieldName.name(), value);
 	}
 
 	/**
@@ -301,7 +304,7 @@ public class RegistrationCheck extends LoginCheck {
 	 * @return
 	 */
 	public String getAgreedToTermsOfUseFieldName() {
-		return getStringProperty(AGREED_TO_TERMS_OF_USE_FIELD_NAME_KEY);
+		return getStringProperty(Key.agreedToTermsOfUseFieldName.name());
 	}
 
 	/**
@@ -310,7 +313,7 @@ public class RegistrationCheck extends LoginCheck {
 	 * @param value
 	 */
 	public void setAgreedToTermsOfUseFieldName(final String value) {
-		setProperty(AGREED_TO_TERMS_OF_USE_FIELD_NAME_KEY, value);
+		setProperty(Key.agreedToTermsOfUseFieldName.name(), value);
 	}
 
 	/**
@@ -319,7 +322,7 @@ public class RegistrationCheck extends LoginCheck {
 	 * @return
 	 */
 	public String getNewsletterFieldName() {
-		return getStringProperty(NEWSLETTER_FIELD_NAME_KEY);
+		return getStringProperty(Key.newsletterFieldName.name());
 	}
 
 	/**
@@ -328,7 +331,7 @@ public class RegistrationCheck extends LoginCheck {
 	 * @param value
 	 */
 	public void setNewsletterFieldName(final String value) {
-		setProperty(NEWSLETTER_FIELD_NAME_KEY, value);
+		setProperty(Key.newsletterFieldName.name(), value);
 	}
 
 	/**
@@ -337,7 +340,7 @@ public class RegistrationCheck extends LoginCheck {
 	 * @return
 	 */
 	public String getSenderAddress() {
-		return getStringProperty(SENDER_ADDRESS_KEY);
+		return getStringProperty(Key.senderAddress.name());
 	}
 
 	/**
@@ -346,7 +349,7 @@ public class RegistrationCheck extends LoginCheck {
 	 * @param value
 	 */
 	public void setSenderAddress(final String value) {
-		setProperty(SENDER_ADDRESS_KEY, value);
+		setProperty(Key.senderAddress.name(), value);
 	}
 
 	/**
@@ -355,7 +358,7 @@ public class RegistrationCheck extends LoginCheck {
 	 * @return
 	 */
 	public String getSenderName() {
-		return getStringProperty(SENDER_NAME_KEY);
+		return getStringProperty(Key.senderName.name());
 	}
 
 	/**
@@ -364,7 +367,7 @@ public class RegistrationCheck extends LoginCheck {
 	 * @param value
 	 */
 	public void setSenderName(final String value) {
-		setProperty(SENDER_NAME_KEY, value);
+		setProperty(Key.senderName.name(), value);
 	}
 
 	/**
@@ -373,7 +376,7 @@ public class RegistrationCheck extends LoginCheck {
 	 * @return
 	 */
 	public String getPublicUserDirectoryName() {
-		return getStringProperty(PUBLIC_USER_DIRECTORY_NAME_KEY);
+		return getStringProperty(Key.publicUserDirectoryName.name());
 	}
 
 	/**
@@ -382,7 +385,7 @@ public class RegistrationCheck extends LoginCheck {
 	 * @param value
 	 */
 	public void setPublicUserDirectoryName(final String value) {
-		setProperty(PUBLIC_USER_DIRECTORY_NAME_KEY, value);
+		setProperty(Key.publicUserDirectoryName.name(), value);
 	}
 
 	/**
@@ -391,7 +394,7 @@ public class RegistrationCheck extends LoginCheck {
 	 * @return
 	 */
 	public String getInlineCss() {
-		return getStringProperty(INLINE_CSS_KEY);
+		return getStringProperty(Key.inlineCss.name());
 	}
 
 	/**
@@ -400,7 +403,7 @@ public class RegistrationCheck extends LoginCheck {
 	 * @param value
 	 */
 	public void setInlineCss(final String value) {
-		setProperty(INLINE_CSS_KEY, value);
+		setProperty(Key.inlineCss.name(), value);
 	}
 
 	/**
@@ -409,7 +412,7 @@ public class RegistrationCheck extends LoginCheck {
 	 * @return
 	 */
 	public String getAssignedUsername() {
-		return getStringProperty(ASSIGNED_USERNAME_KEY);
+		return getStringProperty(Key.assignedUsername.name());
 	}
 
 	/**
@@ -418,7 +421,7 @@ public class RegistrationCheck extends LoginCheck {
 	 * @param value
 	 */
 	public void setAssignedUsername(final String value) {
-		setProperty(ASSIGNED_USERNAME_KEY, value);
+		setProperty(Key.assignedUsername.name(), value);
 	}
 
 	@Override

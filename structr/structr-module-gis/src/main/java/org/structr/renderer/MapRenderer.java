@@ -357,10 +357,10 @@ public class MapRenderer implements NodeRenderer<Map> {
 				currentNode.getFontSize(),
 				currentNode.getFontColor(),
 				currentNode.getFontOpacity(),
-				currentNode.getAnchorX(),
-				currentNode.getAnchorY(),
-				currentNode.getDisplacementX(),
-				currentNode.getDisplacementY());
+				currentNode.getLabelAnchorX(),
+				currentNode.getLabelAnchorY(),
+				currentNode.getLabelDisplacementX(),
+				currentNode.getLabelDisplacementY());
 			Rule rule = MapHelper.styleFactory.createRule();
 
 			rule.symbolizers().add(polygonSymbolizer);

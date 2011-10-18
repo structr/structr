@@ -24,8 +24,11 @@ package org.structr.core.entity;
 import org.apache.commons.io.FileUtils;
 
 import org.structr.common.Path;
+import org.structr.common.PropertyKey;
+import org.structr.common.PropertyView;
 import org.structr.common.RenderMode;
 import org.structr.common.renderer.FileStreamRenderer;
+import org.structr.core.EntityContext;
 import org.structr.core.NodeRenderer;
 import org.structr.core.Services;
 
@@ -40,7 +43,6 @@ import java.net.URL;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.PropertyKey;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -51,18 +53,54 @@ import org.structr.common.PropertyKey;
  */
 public class File extends AbstractNode {
 
-	public enum Key implements PropertyKey {
-		contentType, relativeFilePath, size, url;
+	private static final Logger logger = Logger.getLogger(File.class.getName());
+
+	//~--- static initializers --------------------------------------------
+
+	static {
+
+		EntityContext.registerPropertySet(File.class,
+						  PropertyView.All,
+						  Key.values());
 	}
-	
-	private final static String ICON_SRC        = "/images/page_white.png";
-	private static final Logger logger                = Logger.getLogger(File.class.getName());
+
+	//~--- constant enums -------------------------------------------------
+
+	public enum Key implements PropertyKey{ contentType, relativeFilePath, size, url; }
+
+	//~--- methods --------------------------------------------------------
+
+	@Override
+	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers) {
+
+		renderers.put(RenderMode.Direct,
+			      new FileStreamRenderer());
+	}
+
+	@Override
+	public void onNodeDeletion() {
+
+		try {
+
+			java.io.File toDelete = new java.io.File(getFileLocation().toURI());
+
+			if (toDelete.exists() && toDelete.isFile()) {
+				toDelete.delete();
+			}
+
+		} catch (Throwable t) {
+
+			logger.log(Level.WARNING,
+				   "Exception while trying to delete file {0}: {1}",
+				   new Object[] { getFileLocation(), t });
+		}
+	}
 
 	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public String getIconSrc() {
-		return ICON_SRC;
+		return "/images/page_white.png";
 	}
 
 	public String getUrl() {
@@ -74,27 +112,20 @@ public class File extends AbstractNode {
 		return getStringProperty(Key.contentType.name());
 	}
 
-	//~--- methods --------------------------------------------------------
-
-	@Override
-	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers) {
-		renderers.put(RenderMode.Direct, new FileStreamRenderer());
-	}
-
-	//~--- get methods ----------------------------------------------------
-
 	public long getSize() {
 
 		String relativeFilePath = getRelativeFilePath();
 
 		if (relativeFilePath != null) {
 
-			String filePath         = Services.getFilePath(Path.Files, relativeFilePath);
+			String filePath         = Services.getFilePath(Path.Files,
+				relativeFilePath);
 			java.io.File fileOnDisk = new java.io.File(filePath);
 			long fileSize           = fileOnDisk.length();
 
-			logger.log(Level.FINE, "File size of node {0} ({1}): {2}", new Object[] { getId(), filePath,
-				fileSize });
+			logger.log(Level.FINE,
+				   "File size of node {0} ({1}): {2}",
+				   new Object[] { getId(), filePath, fileSize });
 
 			return fileSize;
 		}
@@ -110,26 +141,6 @@ public class File extends AbstractNode {
 		return getStringProperty(Key.relativeFilePath.name());
 	}
 
-	//~--- set methods ----------------------------------------------------
-
-	public void setRelativeFilePath(final String filePath) {
-		setProperty(Key.relativeFilePath.name(), filePath);
-	}
-
-	public void setUrl(final String url) {
-		setProperty(Key.url.name(), url);
-	}
-
-	public void setContentType(final String contentType) {
-		setProperty(Key.contentType.name(), contentType);
-	}
-
-	public void setSize(final long size) {
-		setProperty(Key.size.name(), size);
-	}
-
-	//~--- get methods ----------------------------------------------------
-
 	public URL getFileLocation() {
 
 		String urlString = "file://" + Services.getFilesPath() + "/" + getRelativeFilePath();
@@ -137,7 +148,10 @@ public class File extends AbstractNode {
 		try {
 			return new URL(urlString);
 		} catch (MalformedURLException mue) {
-			logger.log(Level.SEVERE, "Invalid URL: {0}", urlString);
+
+			logger.log(Level.SEVERE,
+				   "Invalid URL: {0}",
+				   urlString);
 		}
 
 		return null;
@@ -156,7 +170,9 @@ public class File extends AbstractNode {
 
 		} catch (IOException e) {
 
-			logger.log(Level.SEVERE, "Error while reading from {0}", new Object[] { url, e.getMessage() });
+			logger.log(Level.SEVERE,
+				   "Error while reading from {0}",
+				   new Object[] { url, e.getMessage() });
 
 			if (in != null) {
 
@@ -169,23 +185,29 @@ public class File extends AbstractNode {
 		return null;
 	}
 
-	//~--- methods --------------------------------------------------------
-	@Override
-	public void onNodeDeletion() {
+	//~--- set methods ----------------------------------------------------
 
-		try {
+	public void setRelativeFilePath(final String filePath) {
 
-			java.io.File toDelete = new java.io.File(getFileLocation().toURI());
+		setProperty(Key.relativeFilePath.name(),
+			    filePath);
+	}
 
-			if (toDelete.exists() && toDelete.isFile()) {
-				toDelete.delete();
-			}
+	public void setUrl(final String url) {
 
-		} catch (Throwable t) {
+		setProperty(Key.url.name(),
+			    url);
+	}
 
-			logger.log(Level.WARNING, "Exception while trying to delete file {0}: {1}",
-				   new Object[] { getFileLocation(),
-						  t });
-		}
+	public void setContentType(final String contentType) {
+
+		setProperty(Key.contentType.name(),
+			    contentType);
+	}
+
+	public void setSize(final long size) {
+
+		setProperty(Key.size.name(),
+			    size);
 	}
 }

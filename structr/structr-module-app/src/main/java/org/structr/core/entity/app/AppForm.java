@@ -23,6 +23,7 @@ import org.neo4j.graphdb.Direction;
 
 import org.structr.common.RelType;
 import org.structr.common.StructrOutputStream;
+import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.StructrRelationship;
 import org.structr.core.renderer.HtmlRenderer;
@@ -30,6 +31,7 @@ import org.structr.core.renderer.HtmlRenderer;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.List;
+import org.structr.common.PropertyView;
 import org.structr.common.RequestHelper;
 
 //~--- classes ----------------------------------------------------------------
@@ -40,6 +42,15 @@ import org.structr.common.RequestHelper;
  * @author Christian Morgner
  */
 public class AppForm extends HtmlNode {
+
+	static {
+
+		EntityContext.registerPropertySet(AppForm.class,
+						  PropertyView.All,
+						  Key.values());
+	}
+
+	//~--- methods --------------------------------------------------------
 
 	@Override
 	public void doBeforeRendering(final HtmlRenderer renderer, final StructrOutputStream out,
@@ -59,10 +70,12 @@ public class AppForm extends HtmlNode {
 				actionUrl = RequestHelper.getAbsoluteNodePath(out.getRequest(), submit);
 			}
 
-			renderer.addAttribute("action", actionUrl);
+			renderer.addAttribute("action",
+					      actionUrl);
 		}
 
-		renderer.addAttribute("method", "post");
+		renderer.addAttribute("method",
+				      "post");
 	}
 
 	@Override
@@ -70,15 +83,20 @@ public class AppForm extends HtmlNode {
 				  final AbstractNode startNode, final String editUrl, final Long editNodeId) {
 
 		for (AbstractNode node : getSortedDirectChildNodes()) {
-			node.renderNode(out, startNode, editUrl, editNodeId);
+
+			node.renderNode(out,
+					startNode,
+					editUrl,
+					editNodeId);
 		}
 	}
 
 	// ----- private methods -----
 	private AppActionContainer findSubmit() {
 
-		AppActionContainer ret         = null;
-		List<StructrRelationship> rels = getRelationships(RelType.SUBMIT, Direction.OUTGOING);
+		AppActionContainer appActionContainer = null;
+		List<StructrRelationship> rels        = getRelationships(RelType.SUBMIT,
+			Direction.OUTGOING);
 
 		if ((rels != null) && (rels.size() > 0)) {
 
@@ -86,12 +104,12 @@ public class AppForm extends HtmlNode {
 			AbstractNode node       = rel.getEndNode();
 
 			if ((node != null) && (node instanceof AppActionContainer)) {
-				ret = (AppActionContainer) node;
+				appActionContainer = (AppActionContainer) node;
 			}
 		}
 
 		// not found, try children
-		if (ret == null) {
+		if (appActionContainer == null) {
 
 			// try direct children
 			List<AbstractNode> children = getDirectChildNodes();
@@ -100,26 +118,26 @@ public class AppForm extends HtmlNode {
 
 				if (child instanceof AppActionContainer) {
 
-					ret = (AppActionContainer) child;
+					appActionContainer = (AppActionContainer) child;
 
 					break;
 				}
 			}
 		}
 
-		return (ret);
+		return appActionContainer;
 	}
 
 	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public String getIconSrc() {
-		return ("/images/form.png");
+		return "/images/form.png";
 	}
 
 	@Override
 	public boolean hasContent(final HtmlRenderer renderer, final StructrOutputStream out,
 				  final AbstractNode startNode, final String editUrl, final Long editNodeId) {
-		return (hasChildren());
+		return hasChildren();
 	}
 }

@@ -30,7 +30,7 @@ public class EditMenu extends DefaultEdit {
 
     public EditMenu() {
 
-        editPropertiesForm.add(new IntegerField(Menu.MAX_DEPTH_KEY, "Max. Menu Depth"));
+        editPropertiesForm.add(new IntegerField(Menu.Key.maxDepth.name(), "Max. Menu Depth"));
 
     }
 

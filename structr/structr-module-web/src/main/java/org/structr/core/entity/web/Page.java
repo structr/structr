@@ -16,11 +16,16 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+
+
 package org.structr.core.entity.web;
 
+import org.structr.common.PropertyView;
 import org.structr.common.RenderMode;
 import org.structr.common.renderer.ExternalTemplateRenderer;
 import org.structr.common.renderer.RenderContext;
+import org.structr.core.EntityContext;
 import org.structr.core.NodeRenderer;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -28,6 +33,7 @@ import org.structr.core.NodeRenderer;
 import java.util.*;
 
 //~--- classes ----------------------------------------------------------------
+
 /**
  *
  * @author amorgner
@@ -35,33 +41,45 @@ import java.util.*;
  */
 public class Page extends WebNode {
 
+	static {
+
+		EntityContext.registerPropertySet(Page.class,
+						  PropertyView.All,
+						  Key.values());
+	}
+
+	//~--- methods --------------------------------------------------------
+
 	@Override
 	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers) {
-		renderers.put(RenderMode.Default, new ExternalTemplateRenderer(true));
+
+		renderers.put(RenderMode.Default,
+			      new ExternalTemplateRenderer(true));
 	}
 
 	@Override
 	public boolean renderingAllowed(final RenderContext context) {
 
-		switch(context) {
+		switch (context) {
 
-			case AsSubnode:
+			case AsSubnode :
 				return false;
 
-			case AsTopNode:
+			case AsTopNode :
 				return true;
 
-			case AsSoleNode:
+			case AsSoleNode :
 				return true;
 
-			default:
+			default :
 				return true;
 		}
 	}
 
 	//~--- get methods ----------------------------------------------------
+
 	@Override
 	public String getIconSrc() {
-		return ("/images/page.png");
+		return "/images/page.png";
 	}
 }

@@ -76,9 +76,9 @@ public class SecurityContextTest extends TestCase {
 		ACCESS_CONTROL_KEY;
 		*/
 
-		AccessControllable publicNode =		new MockAccessControllable( true, false,  true, StructrRelationship.READ_KEY);
-		AccessControllable privateNode =	new MockAccessControllable(false,  true,  true, StructrRelationship.READ_KEY);
-		AccessControllable publicHiddenNode =	new MockAccessControllable( true,  true,  true, StructrRelationship.READ_KEY);
+		AccessControllable publicNode =		new MockAccessControllable( true, false,  true, StructrRelationship.Permission.read.name());
+		AccessControllable privateNode =	new MockAccessControllable(false,  true,  true, StructrRelationship.Permission.read.name());
+		AccessControllable publicHiddenNode =	new MockAccessControllable( true,  true,  true, StructrRelationship.Permission.read.name());
 
 
 		assertTrue(frontendUserSecurityContext.isVisible(publicNode));

@@ -23,8 +23,8 @@ package org.structr.core.entity.web;
 
 import org.apache.commons.lang.StringUtils;
 
-import org.structr.common.RenderMode;
-import org.structr.core.NodeRenderer;
+import org.structr.common.PropertyView;
+import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
 
 import org.w3c.dom.Node;
@@ -39,10 +39,19 @@ import java.util.Map;
 
 /**
  * Wraps an entry of a MediaWiki wiki into a node
- * 
+ *
  * @author Axel Morgner
  */
 public class MediaWikiItem extends AbstractNode {
+
+	static {
+
+		EntityContext.registerPropertySet(MediaWikiItem.class,
+						  PropertyView.All,
+						  Key.values());
+	}
+
+	//~--- fields ---------------------------------------------------------
 
 	private Node source                = null;
 	private Map<String, Object> values = new LinkedHashMap<String, Object>();
@@ -56,10 +65,14 @@ public class MediaWikiItem extends AbstractNode {
 		this.source = node;
 
 		// synthesize type
-		values.put(AbstractNode.Key.type.name(), "MediaWikiItem");
-		values.put(AbstractNode.Key.name.name(), "item" + index);
+		values.put(AbstractNode.Key.type.name(),
+			   "MediaWikiItem");
+		values.put(AbstractNode.Key.name.name(),
+			   "item" + index);
 		initialize();
 	}
+
+	//~--- methods --------------------------------------------------------
 
 	// ----- private methods -----
 	private void initialize() {
@@ -91,14 +104,18 @@ public class MediaWikiItem extends AbstractNode {
 							if (namespaceMap == null) {
 
 								namespaceMap = new LinkedHashMap<String, Object>();
-								values.put(namespace, namespaceMap);
+								values.put(namespace,
+									   namespaceMap);
 							}
 
-							namespaceMap.put(relativeName, value);
+							namespaceMap.put(relativeName,
+									 value);
 						}
 
 					} else {
-						values.put(name, value);
+
+						values.put(name,
+							   value);
 					}
 				}
 			}
@@ -119,7 +136,7 @@ public class MediaWikiItem extends AbstractNode {
 
 	@Override
 	public String getIconSrc() {
-		return ("/images/page_white_text_width.png");
+		return "/images/page_white_text_width.png";
 	}
 
 	private String getValue(Node child) {

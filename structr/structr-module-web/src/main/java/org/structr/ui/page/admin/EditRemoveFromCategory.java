@@ -35,7 +35,7 @@ public class EditRemoveFromCategory extends DefaultEdit {
         super();
 
         FieldSet formFields = new FieldSet("Form Parameter");
-        formFields.add(new TextField(RemoveFromCategory.CATEGORY_PARAMETER_NAME_KEY, "Category Parameter", 30));
+        formFields.add(new TextField(RemoveFromCategory.Key.categoryParameterName.name(), "Category Parameter", 30));
         editPropertiesForm.add(formFields);
 
     }
