@@ -37,6 +37,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -132,7 +133,9 @@ public class CreateValidatedNodeCommand extends NodeServiceCommand {
 				throw new IllegalArgumentException(validationErrorBuffer.toString());
 			}
 
-			node.putAll(attrs);
+			for(Entry<String, Object> attr : attrs.entrySet()) {
+				node.setProperty(attr.getKey(), attr.getValue());
+			}
 
 			attrs.clear();
 
