@@ -20,6 +20,7 @@
 package org.structr.core.notification;
 
 import java.text.DecimalFormat;
+import org.structr.common.SecurityContext;
 
 /**
  * A notification that displays a progress bar in the admin UI. Notifications
@@ -49,9 +50,9 @@ public class ProgressBarNotification extends DefaultNotification {
 	 *
 	 * @param title the title to display
 	 */
-	public ProgressBarNotification(String title)
+	public ProgressBarNotification(SecurityContext securityContext, String title)
 	{
-		this(title, 0, false);
+		this(securityContext, title, 0, false);
 	}
 
 	/**
@@ -61,9 +62,9 @@ public class ProgressBarNotification extends DefaultNotification {
 	 * @param title the title to display
 	 * @param targetProgress the target progress threshold
 	 */
-	public ProgressBarNotification(String title, int targetProgress)
+	public ProgressBarNotification(SecurityContext securityContext, String title, int targetProgress)
 	{
-		this(title, targetProgress, false);
+		this(securityContext, title, targetProgress, false);
 	}
 
 	/**
@@ -76,9 +77,9 @@ public class ProgressBarNotification extends DefaultNotification {
 	 * @param targetProgress the target progress threshold
 	 * @param showAbsoluteValues whether to show absolute values or percentage
 	 */
-	public ProgressBarNotification(String title, int targetProgress, boolean showAbsoluteValues)
+	public ProgressBarNotification(SecurityContext securityContext, String title, int targetProgress, boolean showAbsoluteValues)
 	{
-		super(title, "");
+		super(securityContext, title, "");
 
 		this.targetProgress = targetProgress;
 		this.creationTime = 0L;

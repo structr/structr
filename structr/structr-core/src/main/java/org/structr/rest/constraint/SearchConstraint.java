@@ -117,7 +117,7 @@ public class SearchConstraint extends ResourceConstraint {
 			searchAttributes.add(nameGroup);
 
 			return (List<GraphObject>)Services.command(SearchNodeCommand.class).execute(
-				user,
+				securityContext,
 				topNode,
 				includeDeleted,
 				publicOnly,

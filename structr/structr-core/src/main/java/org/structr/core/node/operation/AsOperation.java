@@ -20,6 +20,7 @@
 package org.structr.core.node.operation;
 
 import java.util.Collection;
+import org.structr.common.SecurityContext;
 import org.structr.core.entity.AbstractNode;
 
 /**
@@ -28,6 +29,7 @@ import org.structr.core.entity.AbstractNode;
  */
 public class AsOperation implements Transformation {
 
+	private SecurityContext securityContext = null;
 	private String nodeType = "Folder";
 
 	@Override
@@ -84,4 +86,8 @@ public class AsOperation implements Transformation {
 		}
 	}
 
+	@Override
+	public void setSecurityContext(SecurityContext securityContext) {
+		this.securityContext = securityContext;
+	}
 }

@@ -17,13 +17,10 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 package org.structr.core.entity.app;
 
 import org.neo4j.graphdb.Direction;
 
-import org.structr.common.CurrentRequest;
 import org.structr.common.RelType;
 import org.structr.common.StructrOutputStream;
 import org.structr.core.entity.AbstractNode;
@@ -33,6 +30,7 @@ import org.structr.core.renderer.HtmlRenderer;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.List;
+import org.structr.common.RequestHelper;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -58,7 +56,7 @@ public class AppForm extends HtmlNode {
 			if (startNode != null) {
 				actionUrl = submit.getNodePath(startNode.getContextNode());
 			} else {
-				actionUrl = CurrentRequest.getAbsoluteNodePath(submit);
+				actionUrl = RequestHelper.getAbsoluteNodePath(out.getRequest(), submit);
 			}
 
 			renderer.addAttribute("action", actionUrl);

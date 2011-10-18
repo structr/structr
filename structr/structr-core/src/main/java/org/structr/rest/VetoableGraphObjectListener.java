@@ -17,18 +17,23 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.structr.rest.constraint;
+package org.structr.rest;
 
-import java.util.Map;
-import java.util.regex.Pattern;
-import org.structr.rest.constraint.ResourceConstraint;
+import javax.servlet.http.HttpServletRequest;
+import org.structr.core.GraphObject;
 
 /**
- * A provider interface that allows external modules to
- * inject resource constraint classes into the JsonRestServlet.
+ * An interface that allows you to be notified when a
+ * GraphObject is modified in the context of a REST call, with
+ * the option to forbid the modification.
+ * In order to use this interface, you must register your
+ * implementation as an init parameter to the JsonRestServlet
+ * declaration in your web.xml file.
  *
  * @author Christian Morgner
  */
-public interface ResourceConstraintProvider {
-	public Map<Pattern, Class<? extends ResourceConstraint>> getConstraints();
+public interface VetoableGraphObjectListener {
+
+	public boolean mayDelete(GraphObject graphObject, HttpServletRequest request);
+	public boolean mayModify(GraphObject graphObject, HttpServletRequest request);
 }

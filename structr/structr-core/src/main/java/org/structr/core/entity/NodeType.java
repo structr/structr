@@ -22,9 +22,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
-import org.structr.common.RenderMode;
-import org.structr.core.NodeRenderer;
 import org.structr.core.NodeSource;
 
 /**
@@ -71,7 +70,7 @@ public class NodeType extends AbstractNode implements NodeSource
 	}
 
 	@Override
-	public AbstractNode loadNode()
+	public AbstractNode loadNode(HttpServletRequest request)
 	{
 		return(this);
 	}

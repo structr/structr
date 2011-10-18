@@ -20,6 +20,7 @@
 package org.structr.core.entity.app;
 
 import java.text.SimpleDateFormat;
+import javax.servlet.http.HttpServletRequest;
 import org.structr.core.entity.AbstractNode;
 
 /**
@@ -44,7 +45,7 @@ public class AppTimestamp extends AbstractNode implements InteractiveNode
 	}
 
 	@Override
-	public Object getValue()
+	public Object getValue(HttpServletRequest request)
 	{
 		String format = getStringProperty(FORMAT_KEY);
 		if(format == null)
@@ -57,9 +58,9 @@ public class AppTimestamp extends AbstractNode implements InteractiveNode
 	}
 
 	@Override
-	public String getStringValue()
+	public String getStringValue(HttpServletRequest request)
 	{
-		return(getValue().toString());
+		return(getValue(request).toString());
 	}
 
 	@Override
@@ -74,7 +75,7 @@ public class AppTimestamp extends AbstractNode implements InteractiveNode
 	}
 
 	@Override
-	public void setErrorValue(Object errorValue)
+	public void setErrorValue(HttpServletRequest request, Object errorValue)
 	{
 	}
 }

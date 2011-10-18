@@ -3,7 +3,6 @@ package org.structr.renderer;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import org.apache.commons.lang.StringUtils;
-import org.structr.common.CurrentRequest;
 import org.structr.common.RenderMode;
 import org.structr.common.StructrOutputStream;
 import org.structr.core.NodeRenderer;
@@ -45,7 +44,7 @@ public class RegistrationFormRenderer extends FormRenderer implements NodeRender
 	@Override
 	public void renderNode(StructrOutputStream out, RegistrationForm currentNode, AbstractNode startNode, String editUrl, Long editNodeId, RenderMode renderMode)
 	{
-		HttpServletRequest request = CurrentRequest.getRequest();
+		HttpServletRequest request = out.getRequest();
 
 		if(request == null)
 		{

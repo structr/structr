@@ -1,5 +1,7 @@
 package org.structr.core.notification;
 
+import org.structr.common.SecurityContext;
+
 /**
  * The default error notification with error icon.
  *
@@ -7,14 +9,14 @@ package org.structr.core.notification;
  */
 public class ErrorNotification extends DefaultNotification {
 
-    public ErrorNotification(String text)
+    public ErrorNotification(SecurityContext securityContext, String text)
     {
-	this(text, 3000);
+	this(securityContext, text, 3000);
     }
 
-    public ErrorNotification(String text, long lifespan)
+    public ErrorNotification(SecurityContext securityContext, String text, long lifespan)
     {
-	super(null, text, lifespan);
+	super(securityContext, null, text, lifespan);
     }
 
     @Override

@@ -22,7 +22,7 @@ package org.structr.core.node.operation;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import org.structr.common.CurrentSession;
+import org.structr.common.SecurityContext;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -44,6 +44,7 @@ public class LinkOperation implements PrimaryOperation, NodeRelationshipOperatio
 	private List<NodeAttribute> attributes = new LinkedList<NodeAttribute>();
 	private List<String> relationships = new LinkedList<String>();
 	private List<Callback> callbacks = new LinkedList<Callback>();
+	private SecurityContext securityContext = null;
 	private AbstractNode currentNode = null;
 	private AbstractNode startNode = null;
 	private AbstractNode endNode = null;
@@ -190,7 +191,7 @@ public class LinkOperation implements PrimaryOperation, NodeRelationshipOperatio
 
 		} else {
 
-			Object findNodeReturnValue = findNodeCommand.execute(CurrentSession.getUser(), currentNode, parameter);
+			Object findNodeReturnValue = findNodeCommand.execute(securityContext.getUser(), currentNode, parameter);
 			if(findNodeReturnValue instanceof Collection) {
 
 				throw new InvalidParameterException("LINK does not support wildcards");
@@ -207,5 +208,10 @@ public class LinkOperation implements PrimaryOperation, NodeRelationshipOperatio
 		}
 
 		return(ret);
+	}
+
+	@Override
+	public void setSecurityContext(SecurityContext securityContext) {
+		this.securityContext = securityContext;
 	}
 }

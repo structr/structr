@@ -11,7 +11,6 @@ import org.structr.ui.page.StructrPage;
 
 import java.util.Collection;
 import org.structr.common.AccessMode;
-import org.structr.common.CurrentRequest;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -24,7 +23,7 @@ public class Ajax extends StructrPage {
 	public Ajax() {
 		super();
 
-		CurrentRequest.setAccessMode(AccessMode.Backend);
+		securityContext.setAccessMode(AccessMode.Backend);
 	}
 
 	//~--- methods --------------------------------------------------------

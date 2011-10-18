@@ -23,7 +23,7 @@ public class NodeLoaderRenderer implements NodeRenderer<AppNodeLoader>
 		String loaderSourceParameter = currentNode.getStringProperty(AppNodeLoader.ID_SOURCE_KEY);
 		if(loaderSourceParameter != null)
 		{
-			Object value = currentNode.getValue();
+			Object value = currentNode.getValue(out.getRequest());
 			if(value != null)
 			{
 				out.append("<input type='hidden' name='");

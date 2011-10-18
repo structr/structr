@@ -20,6 +20,7 @@
 package org.structr.core.node;
 
 import java.util.Iterator;
+import javax.servlet.http.HttpServletRequest;
 import org.structr.core.entity.AbstractNode;
 
 /**
@@ -31,9 +32,11 @@ import org.structr.core.entity.AbstractNode;
 public class FilterSourceCollector implements Iterable<AbstractNode> {
 
 	private Iterator<AbstractNode> iterator = null;
+	HttpServletRequest request = null;
 
-	public FilterSourceCollector(Iterable<AbstractNode> source) {
+	public FilterSourceCollector(HttpServletRequest request, Iterable<AbstractNode> source) {
 
+		this.request = request;
 		this.iterator = source.iterator();
 	}
 
@@ -57,7 +60,7 @@ public class FilterSourceCollector implements Iterable<AbstractNode> {
 					{
 						if(iterator.hasNext()) {
 
-							Iterable<AbstractNode> nextDataNodes = iterator.next().getDataNodes();
+							Iterable<AbstractNode> nextDataNodes = iterator.next().getDataNodes(request);
 							if(nextDataNodes != null) {
 
 								currentIterator = nextDataNodes.iterator();
@@ -71,7 +74,7 @@ public class FilterSourceCollector implements Iterable<AbstractNode> {
 
 					if(iterator.hasNext()) {
 
-						Iterable<AbstractNode> nextDataNodes = iterator.next().getDataNodes();
+						Iterable<AbstractNode> nextDataNodes = iterator.next().getDataNodes(request);
 						if(nextDataNodes != null) {
 
 							currentIterator = nextDataNodes.iterator();

@@ -19,12 +19,14 @@
 
 package org.structr.common;
 
+import javax.servlet.http.HttpServletRequest;
+
 /**
  *
  * @author chrisi
  */
 public interface RequestCycleListener
 {
-	public void onRequestStart();
-	public void onRequestEnd();
+	public void onRequestStart(HttpServletRequest request);
+	public void onRequestEnd(HttpServletRequest request);
 }

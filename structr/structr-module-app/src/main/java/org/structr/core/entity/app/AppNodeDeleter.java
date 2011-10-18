@@ -33,7 +33,7 @@ public class AppNodeDeleter extends ActionNode
 	@Override
 	public boolean doAction(final StructrOutputStream out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
 	{
-		AbstractNode toDelete = getNodeFromLoader();
+		AbstractNode toDelete = getNodeFromLoader(out.getRequest());
 		if(toDelete != null)
 		{
 			// FIXME: is this the right way to delete a node?

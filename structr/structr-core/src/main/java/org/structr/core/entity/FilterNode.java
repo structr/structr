@@ -21,6 +21,7 @@ package org.structr.core.entity;
 
 import java.util.List;
 import java.util.Set;
+import javax.servlet.http.HttpServletRequest;
 import org.structr.common.RelType;
 import org.structr.core.Predicate;
 import org.structr.core.node.FilterSourceCollector;
@@ -37,11 +38,11 @@ public abstract class FilterNode extends AbstractNode {
 
 	// ----- Filterable -----
 	@Override
-	public Iterable<AbstractNode> getDataNodes() {
+	public Iterable<AbstractNode> getDataNodes(HttpServletRequest request) {
 
 		List<AbstractNode> dataNodes = this.getDirectChildren(RelType.DATA);
 
-		return (new IterableFilter<AbstractNode>(new FilterSourceCollector(dataNodes), getFilterPredicates()));
+		return (new IterableFilter<AbstractNode>(new FilterSourceCollector(request, dataNodes), getFilterPredicates()));
 	}
 
 	// ----- AbstractNode -----

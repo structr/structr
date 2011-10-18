@@ -20,7 +20,6 @@ package org.structr.ui.page.admin;
 
 import org.apache.click.Page;
 import org.structr.common.AccessMode;
-import org.structr.common.CurrentRequest;
 import org.structr.ui.page.StructrPage;
 
 /**
@@ -42,7 +41,7 @@ public class Edit extends StructrPage {
 	public Edit() {
 		super();
 
-		CurrentRequest.setAccessMode(AccessMode.Backend);
+		securityContext.setAccessMode(AccessMode.Backend);
 
 	}
 

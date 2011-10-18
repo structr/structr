@@ -10,7 +10,6 @@ import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.renderer.category.CategoryItemRenderer;
 import org.jfree.data.category.DefaultCategoryDataset;
 import org.structr.chart.entity.CategoryChart;
-import org.structr.common.CurrentRequest;
 import org.structr.common.RenderMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.StructrOutputStream;
@@ -26,7 +25,7 @@ public class BarChartRenderer extends ChartRenderer implements NodeRenderer<Cate
 {
 	public void renderNode(StructrOutputStream out, CategoryChart currentNode, AbstractNode startNode, String editUrl, Long editNodeId, RenderMode renderMode)
 	{
-		SecurityContext securityContext = CurrentRequest.getSecurityContext();
+		SecurityContext securityContext = out.getSecurityContext();
 		if(securityContext.isVisible(currentNode)) {
 
 			DefaultCategoryDataset dataSet = new DefaultCategoryDataset();

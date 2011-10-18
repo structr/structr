@@ -52,7 +52,6 @@ import org.apache.click.util.HtmlStringBuffer;
 import org.neo4j.graphdb.RelationshipType;
 
 import org.structr.common.AbstractComponent;
-import org.structr.common.CurrentRequest;
 import org.structr.common.Permission;
 import org.structr.common.RelType;
 import org.structr.common.RenderMode;
@@ -184,7 +183,6 @@ public class DefaultEdit extends Nodes {
 
 		super.onInit();
 
-		SecurityContext securityContext = CurrentRequest.getSecurityContext();
 		FieldSet nodePropertiesFields   = new FieldSet("Node Properties");
 
 		nodePropertiesFields.setColumns(2);
@@ -751,6 +749,7 @@ public class DefaultEdit extends Nodes {
 
 		// ------------------ cloud end ---------------------
 		// console
+		User user = securityContext.getUser();
 		String prompt = ((user != null)
 				 ? user.getName()
 				 : "anonymous") + "@structr" + (isSuperUser
@@ -818,6 +817,7 @@ public class DefaultEdit extends Nodes {
 
 					List<Option> options     = new LinkedList<Option>();
 					List<AbstractNode> nodes = null;
+					User user                = securityContext.getUser();
 
 					if (templateNode != null) {
 						nodes = templateNode.getSiblingNodes();
@@ -830,7 +830,7 @@ public class DefaultEdit extends Nodes {
 							Template.class.getSimpleName(), SearchOperator.OR));
 						nodes = (List<AbstractNode>) Services.command(
 							SearchNodeCommand.class).execute(
-							user, null, false, false, searchAttrs);
+							securityContext, null, false, false, searchAttrs);
 					}
 
 					if (nodes != null) {
@@ -865,6 +865,7 @@ public class DefaultEdit extends Nodes {
 
 						List<Option> options     = new LinkedList<Option>();
 						List<AbstractNode> nodes = null;
+						User user                = securityContext.getUser();
 
 						if (typeNode != null) {
 							nodes = typeNode.getSiblingNodes();
@@ -879,7 +880,7 @@ public class DefaultEdit extends Nodes {
 								SearchOperator.OR));
 							nodes = (List<AbstractNode>) Services.command(
 								SearchNodeCommand.class).execute(
-								user, null, false, false, searchAttrs);
+								securityContext, null, false, false, searchAttrs);
 						}
 
 						if (nodes != null) {
@@ -1274,7 +1275,6 @@ public class DefaultEdit extends Nodes {
 	 */
 	public boolean onSetPermissions() {
 
-		final SecurityContext securityContext = CurrentRequest.getSecurityContext();
 		final Map<String, String> parameters  = new HashMap<String, String>();
 
 		if (securityForm.isValid()) {
@@ -1294,6 +1294,7 @@ public class DefaultEdit extends Nodes {
 					Command findGroup   = Services.command(FindGroupCommand.class);
 					User selectedUser   = (User) findUser.execute(selectedUserName);
 					Group selectedGroup = (Group) findGroup.execute(selectedGroupName);
+					User user           = securityContext.getUser();
 
 					if ((selectedUser != null) || (selectedGroup != null)) {
 
@@ -1555,6 +1556,7 @@ public class DefaultEdit extends Nodes {
 				} else if ("pull".equals(pushPull)) {
 
 					Command transmitCommand = Services.command(PullNode.class);
+					User user               = securityContext.getUser();
 
 					transmitCommand.execute(user, targetNodeValue, node, remoteHostValue, tcpPort,
 								udpPort, rec);
@@ -1583,7 +1585,7 @@ public class DefaultEdit extends Nodes {
 			}
 		};
 
-		consoleLines.add(Services.command(NodeConsoleCommand.class).execute(node, consoleCommand.getValue(),
+		consoleLines.add(Services.command(NodeConsoleCommand.class).execute(securityContext, node, consoleCommand.getValue(),
 						  callback).toString());
 
 		if (consoleLines.size() > 20) {
@@ -1623,7 +1625,7 @@ public class DefaultEdit extends Nodes {
 
 	private void createHelpOutput() {
 
-		String helpTarget     = CurrentRequest.getRequest().getParameter("helpTarget");
+		String helpTarget     = getContext().getRequest().getParameter("helpTarget");
 		AbstractNode helpNode = null;
 
 		if ((helpTarget != null) && (helpTarget.length() > 0)) {
@@ -1643,8 +1645,9 @@ public class DefaultEdit extends Nodes {
 
 		if (helpNode != null) {
 
+			Context context                             = getContext();
 			HtmlComponentRenderer htmlComponentRenderer = new HtmlComponentRenderer();
-			StructrOutputStream out                     = new StructrOutputStream();
+			StructrOutputStream out                     = new StructrOutputStream(context.getRequest(), context.getResponse(), securityContext);
 			AbstractComponent content                   = helpNode.getHelpContent();
 
 			if (content != null) {

@@ -42,7 +42,7 @@ public class SecurityContextTest extends TestCase {
 		super.setUp();
 
 		// initialize security contexts
-		this.frontendUserSecurityContext = new SecurityContext();
+		this.frontendUserSecurityContext = SecurityContext.getSuperUserInstance();
 	}
 
 	@Override

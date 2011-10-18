@@ -62,7 +62,7 @@ public class TypeConstraint extends ResourceConstraint {
 				searchAttributes.add(new TextualSearchAttribute("type", type, SearchOperator.OR));
 
 				results = (List<GraphObject>)Services.command(SearchNodeCommand.class).execute(
-					user,
+					securityContext,
 					topNode,
 					includeDeleted,
 					publicOnly,

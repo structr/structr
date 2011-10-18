@@ -42,8 +42,6 @@ import org.neo4j.kernel.Traversal;
 import org.structr.common.AbstractComponent;
 import org.structr.common.AbstractNodeComparator;
 import org.structr.common.AccessControllable;
-import org.structr.common.CurrentRequest;
-import org.structr.common.CurrentSession;
 import org.structr.common.PathHelper;
 import org.structr.common.Permission;
 import org.structr.common.PropertyKey;
@@ -106,6 +104,7 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import org.structr.common.RequestHelper;
 import org.structr.core.PropertyValidator;
 import org.structr.core.Value;
 import org.structr.core.EntityContext;
@@ -121,8 +120,7 @@ import org.structr.core.converter.NodeIdNodeConverter;
  * @author amorgner
  *
  */
-public abstract class AbstractNode
-	implements Comparable<AbstractNode>, RenderController, AccessControllable, GraphObject, Map<String, Object> {
+public abstract class AbstractNode implements Comparable<AbstractNode>, RenderController, AccessControllable, GraphObject, Map<String, Object> {
 
         public static enum Key implements PropertyKey {
 	    name,  type, nodeId, createdBy, createdDate, deleted, hidden, lastModifiedDate,
@@ -196,6 +194,8 @@ public abstract class AbstractNode
 	protected Template template;
 	protected User user;
 
+	protected SecurityContext securityContext =			null;
+
 	//~--- constructors ---------------------------------------------------
 
 	static {
@@ -221,14 +221,15 @@ public abstract class AbstractNode
 		isDirty         = true;
 	}
 
-	public AbstractNode(final Node dbNode) {
-		init(dbNode);
+	public AbstractNode(SecurityContext securityContext, final Node dbNode) {
+		init(securityContext, dbNode);
 	}
 
-	public AbstractNode(final NodeDataContainer data) {
+	public AbstractNode(final SecurityContext securityContext, final NodeDataContainer data) {
 
 		if (data != null) {
 
+			this.securityContext = securityContext;
 			this.properties = data.getProperties();
 			isDirty         = true;
 		}
@@ -274,28 +275,31 @@ public abstract class AbstractNode
 		return true;
 	}
 
-	public void init(final Node dbNode) {
+	public void init(final SecurityContext securityContext, final Node dbNode) {
 
-		this.dbNode = dbNode;
-		isDirty     = false;
-		setAccessingUser(CurrentSession.getUser());
+		this.dbNode =		dbNode;
+		this.isDirty =		false;
+		this.securityContext =	securityContext;
+
 		logger.log(Level.FINE,
 			   "User set to {0}",
 			   user);
 	}
 
-	private void init(final AbstractNode node) {
+	private void init(final SecurityContext securityContext, final AbstractNode node) {
 
-		this.dbNode = node.dbNode;
-		isDirty     = false;
+		this.dbNode =		node.dbNode;
+		this.isDirty     =	false;
+		this.securityContext =	securityContext;
 	}
 
-	public void init(final NodeDataContainer data) {
+	public void init(final SecurityContext securityContext, final NodeDataContainer data) {
 
 		if (data != null) {
 
-			this.properties = data.getProperties();
-			isDirty         = true;
+			this.properties =	data.getProperties();
+			this.isDirty =		true;
+			this.securityContext =	securityContext;
 		}
 	}
 
@@ -647,7 +651,7 @@ public abstract class AbstractNode
 				Command createNode = Services.command(CreateNodeCommand.class);
 				AbstractNode s     = (AbstractNode) createNode.execute(user);
 
-				init(s);
+				init(securityContext, s);
 
 				Set<String> keys = properties.keySet();
 
@@ -674,7 +678,7 @@ public abstract class AbstractNode
 	 *
 	 * @return the output
 	 */
-	public String evaluate() {
+	public String evaluate(HttpServletRequest request) {
 		return ("");
 	}
 
@@ -910,7 +914,7 @@ public abstract class AbstractNode
 			}
 
 			// StringBuilder replacement = new StringBuilder();
-			StructrOutputStream replacement = new StructrOutputStream();
+			StructrOutputStream replacement = new StructrOutputStream(securityContext);
 
 			if ((callingNode != null) && key.equals(SUBNODES_KEY)) {
 
@@ -1208,7 +1212,7 @@ public abstract class AbstractNode
 //              start = content.indexOf(keyPrefix, start + replaceBy.length() + 1);
 //          }
 //      }
-	public void replaceByFreeMarker(final String templateString, Writer out, final AbstractNode startNode,
+	public void replaceByFreeMarker(HttpServletRequest request, final String templateString, Writer out, final AbstractNode startNode,
 					final String editUrl, final Long editNodeId) {
 
 		Configuration cfg = new Configuration();
@@ -1244,8 +1248,6 @@ public abstract class AbstractNode
 					 callingNode);
 			}
 
-			HttpServletRequest request = CurrentRequest.getRequest();
-
 			if (request != null) {
 
 				// root.put("Request", new freemarker.template.SimpleHash(request.getParameterMap().));
@@ -1264,7 +1266,7 @@ public abstract class AbstractNode
 					root.put("SearchString",
 						 searchString);
 
-					List<AbstractNode> result = CurrentRequest.getSearchResult();
+					List<AbstractNode> result = RequestHelper.retrieveSearchResult(securityContext, request);
 
 					root.put("SearchResults",
 						 result);
@@ -1286,8 +1288,7 @@ public abstract class AbstractNode
 				 new PathHelper());
 
 			// Add error and ok message if present
-			HttpSession session = CurrentRequest.getSession();
-
+			HttpSession session = securityContext.getSession();
 			if (session != null) {
 
 				if (session.getAttribute("errorMessage") != null) {
@@ -2527,7 +2528,6 @@ public abstract class AbstractNode
 	 */
 	public List<AbstractNode> getSiblingNodes() {
 
-		SecurityContext securityContext = CurrentRequest.getSecurityContext();
 		List<AbstractNode> nodes        = new LinkedList<AbstractNode>();
 		AbstractNode parentNode         = getParentNode();
 
@@ -2589,7 +2589,6 @@ public abstract class AbstractNode
 	 */
 	public List<AbstractNode> getParentNodes() {
 
-		SecurityContext securityContext = CurrentRequest.getSecurityContext();
 		List<AbstractNode> nodes        = new LinkedList<AbstractNode>();
 		Command nodeFactory             = Services.command(NodeFactoryCommand.class);
 		List<StructrRelationship> rels  = getIncomingChildRelationships();
@@ -2682,7 +2681,7 @@ public abstract class AbstractNode
 		return outgoingRelationships;
 	}
 
-	public Iterable<AbstractNode> getDataNodes() {
+	public Iterable<AbstractNode> getDataNodes(HttpServletRequest request) {
 
 		// this is the default implementation
 		return getDirectChildNodes();
@@ -2904,7 +2903,6 @@ public abstract class AbstractNode
 	public List<AbstractNode> getDirectChildren(final RelationshipType relType, final String nodeType) {
 
 		List<StructrRelationship> rels  = this.getOutgoingRelationships(relType);
-		SecurityContext securityContext = CurrentRequest.getSecurityContext();
 		List<AbstractNode> nodes        = new LinkedList<AbstractNode>();
 
 		for (StructrRelationship r : rels) {
@@ -3099,7 +3097,6 @@ public abstract class AbstractNode
 	 */
 	protected List<AbstractNode> getAllChildren(final String nodeType) {
 
-		SecurityContext securityContext = CurrentRequest.getSecurityContext();
 		List<AbstractNode> nodes        = new LinkedList<AbstractNode>();
 		Command findNode                = Services.command(FindNodeCommand.class);
 		List<AbstractNode> result       = (List<AbstractNode>) findNode.execute(user,
@@ -3287,7 +3284,7 @@ public abstract class AbstractNode
 		return (rels);
 	}
 
-	protected AbstractNode getNodeFromLoader() {
+	protected AbstractNode getNodeFromLoader(HttpServletRequest request) {
 
 		List<StructrRelationship> rels = getIncomingDataRelationships();
 		AbstractNode ret               = null;
@@ -3301,7 +3298,7 @@ public abstract class AbstractNode
 
 				NodeSource source = (NodeSource) startNode;
 
-				ret = source.loadNode();
+				ret = source.loadNode(request);
 
 				break;
 			}
@@ -3606,9 +3603,6 @@ public abstract class AbstractNode
 	}
 
 	public boolean isVisible() {
-
-		SecurityContext securityContext = CurrentRequest.getSecurityContext();
-
 		return securityContext.isVisible(this);
 	}
 
@@ -4019,7 +4013,7 @@ public abstract class AbstractNode
 		public void renderNode(StructrOutputStream out, AbstractNode currentNode, AbstractNode startNode,
 				       String editUrl, Long editNodeId, RenderMode renderMode) {
 
-			SecurityContext securityContext = CurrentRequest.getSecurityContext();
+			SecurityContext securityContext = out.getSecurityContext();
 
 			if (securityContext.isVisible(currentNode)) {
 				out.append(currentNode.getName());

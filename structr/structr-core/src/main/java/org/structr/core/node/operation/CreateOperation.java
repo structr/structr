@@ -22,8 +22,8 @@ package org.structr.core.node.operation;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import org.structr.common.CurrentSession;
 import org.structr.common.RelType;
+import org.structr.common.SecurityContext;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -42,6 +42,7 @@ public class CreateOperation implements PrimaryOperation, NodeTypeOperation, Nod
 
 	private List<NodeAttribute> nodeAttributes = new LinkedList<NodeAttribute>();
 	private List<String> nodeNames = new LinkedList<String>();
+	private SecurityContext securityContext = null;
 	private String nodeType = "Folder";
 	private long nodeParent = 0;
 
@@ -61,7 +62,7 @@ public class CreateOperation implements PrimaryOperation, NodeTypeOperation, Nod
 	@Override
 	public boolean executeOperation(final StringBuilder stdOut) throws NodeCommandException {
 
-		final AbstractNode parent = (AbstractNode)Services.command(FindNodeCommand.class).execute(CurrentSession.getUser(), nodeParent);
+		final AbstractNode parent = (AbstractNode)Services.command(FindNodeCommand.class).execute(securityContext.getUser(), nodeParent);
 		boolean ret = false;
 
 		if(parent != null) {
@@ -79,7 +80,7 @@ public class CreateOperation implements PrimaryOperation, NodeTypeOperation, Nod
 					for(String nodeName : nodeNames) {
 
 						AbstractNode newNode = (AbstractNode)createNodeCommand.execute(
-						    CurrentSession.getUser(),
+						    securityContext.getUser(),
 						    nodeAttributes
 						);
 						
@@ -187,5 +188,10 @@ public class CreateOperation implements PrimaryOperation, NodeTypeOperation, Nod
 	public void setProperty(String key, Object value) {
 
 		nodeAttributes.add(new NodeAttribute(key, value));
+	}
+
+	@Override
+	public void setSecurityContext(SecurityContext securityContext) {
+		this.securityContext = securityContext;
 	}
 }

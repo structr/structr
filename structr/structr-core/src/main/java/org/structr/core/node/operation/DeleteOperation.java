@@ -22,7 +22,7 @@ package org.structr.core.node.operation;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import org.structr.common.CurrentSession;
+import org.structr.common.SecurityContext;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -38,6 +38,7 @@ public class DeleteOperation implements PrimaryOperation {
 	private Command deleteCommand = Services.command(DeleteNodeCommand.class);
 	private List<Callback> callbacks = new LinkedList<Callback>();
 	private List<String> parameters = new LinkedList<String>();
+	private SecurityContext securityContext = null;
 	private AbstractNode currentNode = null;
 	private boolean recursive = false;
 
@@ -55,7 +56,7 @@ public class DeleteOperation implements PrimaryOperation {
 
 			} else {
 
-				Object findNodeResult = Services.command(FindNodeCommand.class).execute(CurrentSession.getUser(), currentNode, param);
+				Object findNodeResult = Services.command(FindNodeCommand.class).execute(securityContext.getUser(), currentNode, param);
 				if(findNodeResult != null) {
 
 					if(findNodeResult instanceof Collection) {
@@ -73,7 +74,7 @@ public class DeleteOperation implements PrimaryOperation {
 					try
 					{
 						// execute delete node command and call callbacks
-						deleteCommand.execute(node, currentNode, recursive, CurrentSession.getUser());
+						deleteCommand.execute(node, currentNode, recursive, securityContext.getUser());
 
 						if(deleteCommand.getExitCode().equals(Command.exitCode.FAILURE)) {
 							stdOut.append(deleteCommand.getErrorMessage());
@@ -175,5 +176,10 @@ public class DeleteOperation implements PrimaryOperation {
 
 			parameters.add(parameter.toString());
 		}
+	}
+
+	@Override
+	public void setSecurityContext(SecurityContext securityContext) {
+		this.securityContext = securityContext;
 	}
 }

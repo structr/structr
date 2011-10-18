@@ -5,8 +5,6 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import org.apache.commons.lang.StringUtils;
-import org.structr.common.CurrentRequest;
-import org.structr.common.CurrentSession;
 import org.structr.common.RenderMode;
 import org.structr.common.StructrOutputStream;
 import org.structr.core.NodeRenderer;
@@ -27,7 +25,7 @@ public class AddToCategoryRenderer implements NodeRenderer<AddToCategory>
 	@Override
 	public void renderNode(StructrOutputStream out, AddToCategory currentNode, AbstractNode startNode, String editUrl, Long editNodeId, RenderMode renderMode)
 	{
-		HttpServletRequest request = CurrentRequest.getRequest();
+		HttpServletRequest request = out.getRequest();
 
 		if(request == null)
 		{
@@ -86,7 +84,7 @@ public class AddToCategoryRenderer implements NodeRenderer<AddToCategory>
 		for(String id : ids)
 		{
 
-			User user = CurrentSession.getUser();
+			User user = out.getSecurityContext().getUser();
 			AbstractNode addedObject = user.addToCategory(categoryName, id);
 
 			if(addedObject != null)

@@ -30,6 +30,7 @@ import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -44,8 +45,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.AccessMode;
-import org.structr.common.CurrentRequest;
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
 import org.structr.core.Command;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
@@ -62,19 +63,16 @@ import org.structr.core.node.TransactionCommand;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.exception.PathException;
-import org.structr.rest.constraint.ResourceConstraintProvider;
+import org.structr.rest.ResourceConstraintProvider;
+import org.structr.rest.VetoableGraphObjectListener;
 import org.structr.rest.adapter.PropertySetGSONAdapter;
 import org.structr.rest.adapter.ResultGSONAdapter;
-import org.structr.rest.constraint.IdConstraint;
-import org.structr.rest.constraint.RelationshipConstraint;
 import org.structr.rest.constraint.PagingConstraint;
-import org.structr.rest.constraint.RelationshipNodeConstraint;
 import org.structr.rest.constraint.ResourceConstraint;
 import org.structr.rest.constraint.Result;
 import org.structr.rest.constraint.SearchConstraint;
 import org.structr.rest.constraint.SortConstraint;
 import org.structr.rest.constraint.TypeConstraint;
-import org.structr.rest.constraint.ViewFilterConstraint;
 import org.structr.rest.wrapper.PropertySet;
 import org.structr.rest.wrapper.PropertySet.PropertyFormat;
 
@@ -89,23 +87,25 @@ public class JsonRestServlet extends HttpServlet {
 
 	private static final Logger logger = Logger.getLogger(JsonRestServlet.class.getName());
 
-	public static final String	REQUEST_PARAMETER_SEARCH_STRING =	"q";
-	public static final String	REQUEST_PARAMETER_SORT_KEY =		"sort";
-	public static final String	REQUEST_PARAMETER_SORT_ORDER =		"order";
-	public static final String	REQUEST_PARAMETER_PAGE_NUMBER =		"page";
-	public static final String	REQUEST_PARAMETER_PAGE_SIZE =		"pageSize";
+	public static final String			REQUEST_PARAMETER_SEARCH_STRING =		"q";
+	public static final String			REQUEST_PARAMETER_SORT_KEY =			"sort";
+	public static final String			REQUEST_PARAMETER_SORT_ORDER =			"order";
+	public static final String			REQUEST_PARAMETER_PAGE_NUMBER =			"page";
+	public static final String			REQUEST_PARAMETER_PAGE_SIZE =			"pageSize";
 
-	public static final int		DEFAULT_VALUE_PAGE_SIZE =		20;
-	public static final String	DEFAULT_VALUE_SORT_ORDER =		"asc";
+	public static final int				DEFAULT_VALUE_PAGE_SIZE =			20;
+	public static final String			DEFAULT_VALUE_SORT_ORDER =			"asc";
 
-	private static final String	SERVLET_PARAMETER_PROPERTY_FORMAT =	"PropertyFormat";
-	private static final String	SERVLET_PARAMETER_CONSTRAINT_PROVIDER =	"ConstraintProvider";
+	private static final String			SERVLET_PARAMETER_PROPERTY_FORMAT =		"PropertyFormat";
+	private static final String			SERVLET_PARAMETER_CONSTRAINT_PROVIDER =		"ConstraintProvider";
+	private static final String			SERVLET_PARAMETER_MODIFICATION_LISTENER =	"ModificationListener";
 
-	private PropertySetGSONAdapter	propertySetAdapter =			null;
-	private Map<Pattern, Class>	constraintMap =				null;
-	private Value<PropertyView>	propertyView =				null;
-	private ResultGSONAdapter	resultGsonAdapter =			null;
-	private Gson			gson =					null;
+	private List<VetoableGraphObjectListener>	graphObjectListeners =				null;
+	private PropertySetGSONAdapter			propertySetAdapter =				null;
+	private Map<Pattern, Class>			constraintMap =					null;
+	private Value<PropertyView>			propertyView =					null;
+	private ResultGSONAdapter			resultGsonAdapter =				null;
+	private Gson					gson =						null;
 
 	@Override
 	public void init() {
@@ -114,6 +114,7 @@ public class JsonRestServlet extends HttpServlet {
 		PropertyFormat propertyFormat =		initializePropertyFormat();
 
 		// initialize variables
+		this.graphObjectListeners =		new LinkedList<VetoableGraphObjectListener>();
 		this.constraintMap =			new LinkedHashMap<Pattern, Class>();
 		this.propertyView =			new ThreadLocalPropertyView();
 
@@ -129,7 +130,7 @@ public class JsonRestServlet extends HttpServlet {
 			.registerTypeAdapter(Result.class,	resultGsonAdapter)
 			.create();
 
-		// external resource constraints
+		// external resource constraint initialization
 		String externalProviderName = this.getInitParameter(SERVLET_PARAMETER_CONSTRAINT_PROVIDER);
 		if(externalProviderName != null) {
 
@@ -151,6 +152,29 @@ public class JsonRestServlet extends HttpServlet {
 				}
 			}
 		}
+
+		// modification listener intializiation
+		String externalListenerName = this.getInitParameter(SERVLET_PARAMETER_MODIFICATION_LISTENER);
+		if(externalListenerName != null) {
+
+			String[] parts = externalListenerName.split("[, ]+");
+			for(String part : parts) {
+
+				try {
+
+					logger.log(Level.INFO, "Injecting listener {0}", part);
+
+					Class listenerClass = Class.forName(part);
+					VetoableGraphObjectListener listener = (VetoableGraphObjectListener)listenerClass.newInstance();
+
+					graphObjectListeners.add(listener);
+
+
+				} catch(Throwable t) {
+					logger.log(Level.WARNING, "Unable to instantiate listener", t);
+				}
+			}
+		}
 	}
 
 	@Override
@@ -159,14 +183,14 @@ public class JsonRestServlet extends HttpServlet {
 
 	// <editor-fold defaultstate="collapsed" desc="DELETE">
 	@Override
-	protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-
-		CurrentRequest.setAccessMode(AccessMode.Frontend);
+	protected void doDelete(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
 		try {
 
+			SecurityContext securityContext = getSecurityContext(request);
+			
 			// obtain results and try to delete
-			Result result = getResults(request);
+			Result result = getResults(securityContext, request);
 			if(result != null) {
 
 				final List<GraphObject> results = result.getResults();
@@ -180,7 +204,9 @@ public class JsonRestServlet extends HttpServlet {
 							boolean success = true;
 							for(GraphObject obj : results) {
 
-								success &= obj.delete();
+								if(mayDelete(obj, request)) {
+									success &= obj.delete();
+								}
 							}
 
 							// roll back transaction if not all deletions were successful
@@ -222,17 +248,17 @@ public class JsonRestServlet extends HttpServlet {
 
 	// <editor-fold defaultstate="collapsed" desc="GET">
 	@Override
-	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-
-		CurrentRequest.setAccessMode(AccessMode.Frontend);
+	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
 		try {
+
+			SecurityContext securityContext = getSecurityContext(request);
 
 			// set default value for property view
 			propertyView.set(PropertyView.Public);
 
 			double queryTimeStart = System.nanoTime();
-			Result result = getResults(request);
+			Result result = getResults(securityContext, request);
 			double queryTimeEnd = System.nanoTime();
 
 			if(result != null) {
@@ -274,12 +300,15 @@ public class JsonRestServlet extends HttpServlet {
 	@Override
 	protected void doHead(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
+		SecurityContext securityContext = getSecurityContext(request);
 	}
 	// </editor-fold>
 
 	// <editor-fold defaultstate="collapsed" desc="OPTIONS">
 	@Override
 	protected void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+		SecurityContext securityContext = getSecurityContext(request);
 
 		response.setHeader("Allowed", "GET");
 		response.setContentLength(0);
@@ -294,6 +323,8 @@ public class JsonRestServlet extends HttpServlet {
 	protected void doPost(final HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
 		try {
+
+			SecurityContext securityContext = getSecurityContext(request);
 
 			// parse property set from json input
 			final PropertySet propertySet = gson.fromJson(request.getReader(), PropertySet.class);
@@ -313,7 +344,7 @@ public class JsonRestServlet extends HttpServlet {
 			} else {
 
 				// try type constraint
-				List<ResourceConstraint> constraintChain = parsePath(path);
+				List<ResourceConstraint> constraintChain = parsePath(securityContext, path);
 				if(constraintChain.size() == 1) {
 
 					ResourceConstraint constr = constraintChain.get(0);
@@ -379,13 +410,14 @@ public class JsonRestServlet extends HttpServlet {
 
 	// <editor-fold defaultstate="collapsed" desc="PUT">
 	@Override
-	protected void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-
-		CurrentRequest.setAccessMode(AccessMode.Frontend);
+	protected void doPut(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
 		try {
+
+			SecurityContext securityContext = getSecurityContext(request);
+
 			// obtain results and try to update
-			Result result = getResults(request);
+			Result result = getResults(securityContext, request);
 			if(result != null) {
 
 				final PropertySet propertySet = gson.fromJson(request.getReader(), PropertySet.class);
@@ -398,8 +430,12 @@ public class JsonRestServlet extends HttpServlet {
 						public Object execute() throws Throwable {
 
 							for(GraphObject obj : results) {
-								for(NodeAttribute attr : propertySet.getAttributes()) {
-									obj.setProperty(attr.getKey(), attr.getValue());
+
+								if(mayModify(obj, request)) {
+
+									for(NodeAttribute attr : propertySet.getAttributes()) {
+										obj.setProperty(attr.getKey(), attr.getValue());
+									}
 								}
 							}
 
@@ -463,7 +499,7 @@ public class JsonRestServlet extends HttpServlet {
 	// </editor-fold>
 
 	// <editor-fold defaultstate="collapsed" desc="private methods">
-	private Result getResults(HttpServletRequest request) throws PathException {
+	private Result getResults(SecurityContext securityContext, HttpServletRequest request) throws PathException {
 
 		PagingConstraint pagingConstraint = null;
 
@@ -473,7 +509,7 @@ public class JsonRestServlet extends HttpServlet {
 
 
 			// 1: parse path into constraint chain
-			List<ResourceConstraint> constraintChain = parsePath(path);
+			List<ResourceConstraint> constraintChain = parsePath(securityContext, path);
 
 			// 2: add constraints that can be optimized here
 			addOptimizableConstraints(request, constraintChain);
@@ -536,7 +572,7 @@ public class JsonRestServlet extends HttpServlet {
 		return null;
 	}
 
-	private List<ResourceConstraint> parsePath(String path) throws PathException {
+	private List<ResourceConstraint> parsePath(SecurityContext securityContext, String path) throws PathException {
 
 		// 1.: split request path into URI parts
 		String[] pathParts = path.split("[/]+");
@@ -574,6 +610,7 @@ public class JsonRestServlet extends HttpServlet {
 
 								// allow constraint to modify context
 								constraint.configurePropertyView(propertyView);
+								constraint.setSecurityContext(securityContext);
 
 								// add constraint and go on
 								constraintChain.add(constraint);
@@ -800,6 +837,34 @@ public class JsonRestServlet extends HttpServlet {
 		}
 
 		return newRelationship;
+	}
+
+	private boolean mayModify(GraphObject object, HttpServletRequest request) {
+
+		boolean mayModify = true;
+
+		// only allow modification if all listeners answer with "yes"
+		for(VetoableGraphObjectListener listener : graphObjectListeners) {
+			mayModify &= listener.mayModify(object, request);
+		}
+
+		return mayModify;
+	}
+
+	private boolean mayDelete(GraphObject object, HttpServletRequest request) {
+
+		boolean mayDelete = true;
+
+		// only allow deletion if all listeners answer with "yes"
+		for(VetoableGraphObjectListener listener : graphObjectListeners) {
+			mayDelete &= listener.mayDelete(object, request);
+		}
+
+		return mayDelete;
+	}
+
+	private SecurityContext getSecurityContext(HttpServletRequest request) {
+		return SecurityContext.getInstance(this.getServletConfig(), request, AccessMode.Backend);
 	}
 
 	/**

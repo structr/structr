@@ -21,8 +21,8 @@ package org.structr.core.validator;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.SecurityContext;
 import org.structr.core.PropertyValidator;
 import org.structr.core.Services;
 import org.structr.core.Value;
@@ -71,7 +71,7 @@ public class TypeAndPropertyUniquenessValidator implements PropertyValidator<Str
 			attributes.add(new TextualSearchAttribute(AbstractNode.Key.type.name(), type, SearchOperator.AND));
 			attributes.add(new TextualSearchAttribute(key, stringValue, SearchOperator.AND));
 
-			List<AbstractNode> resultList = (List<AbstractNode>)Services.command(SearchNodeCommand.class).execute(user, topNode, includeDeleted, publicOnly, attributes);
+			List<AbstractNode> resultList = (List<AbstractNode>)Services.command(SearchNodeCommand.class).execute(SecurityContext.getSuperUserInstance(), topNode, includeDeleted, publicOnly, attributes);
 			if(!resultList.isEmpty()) {
 
 				errorBuffer.append("A node with value '");

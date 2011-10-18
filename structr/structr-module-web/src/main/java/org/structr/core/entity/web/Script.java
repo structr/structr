@@ -24,7 +24,6 @@ import java.io.StringWriter;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import org.structr.common.CurrentRequest;
 import org.structr.common.RenderMode;
 import org.structr.core.NodeRenderer;
 import org.structr.core.entity.AbstractNode;
@@ -73,13 +72,12 @@ public class Script extends AbstractNode {
     }
 
     @Override
-    public String evaluate() {
+    public String evaluate(HttpServletRequest request) {
         StringBuilder ret = new StringBuilder();
 
         try {
 //            JXPathFinder nodeFinder = new JXPathFinder(this);
-            HttpServletRequest request = CurrentRequest.getRequest();
-            HttpSession session = CurrentRequest.getSession();
+            HttpSession session = request.getSession();
 
             Interpreter interpreter = new Interpreter();
             interpreter.set("_buffer", ret);

@@ -28,6 +28,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.kernel.Traversal;
 import org.structr.common.RelType;
+import org.structr.common.SecurityContext;
 import org.structr.core.UnsupportedArgumentError;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.User;
@@ -49,7 +50,7 @@ public class GetAncestors extends NodeServiceCommand {
 
         if (graphDb != null) {
 
-            User user = null;
+            SecurityContext context = null;
 
             if (graphDb != null) {
                 switch (parameters.length) {
@@ -57,10 +58,10 @@ public class GetAncestors extends NodeServiceCommand {
                         throw new UnsupportedArgumentError("No arguments supplied");
 
                     case 2:
-                        if (parameters[0] instanceof User) {
-                            user = (User) parameters[0];
+                        if (parameters[0] instanceof SecurityContext) {
+                            context = (SecurityContext) parameters[0];
                         }
-                        return getAncestors(graphDb, nodeFactory, user, parameters[1]);
+                        return getAncestors(context, graphDb, nodeFactory, parameters[1]);
 
                     default:
                         
@@ -72,7 +73,7 @@ public class GetAncestors extends NodeServiceCommand {
         return Collections.emptyList();
     }
 
-    private List<AbstractNode> getAncestors(GraphDatabaseService graphDb, StructrNodeFactory nodeFactory, User user, Object argument) {
+    private List<AbstractNode> getAncestors(SecurityContext securityContext, GraphDatabaseService graphDb, StructrNodeFactory nodeFactory, Object argument) {
 
         Node node = null;
         
@@ -105,6 +106,6 @@ public class GetAncestors extends NodeServiceCommand {
 
         Iterable<Node> nodes = Traversal.description().relationships(RelType.HAS_CHILD, Direction.INCOMING).traverse(node).nodes();
 
-        return nodeFactory.createNodes(nodes, user, false);
+        return nodeFactory.createNodes(securityContext, nodes, false);
     }
 }

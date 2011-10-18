@@ -47,6 +47,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.SecurityContext;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -87,10 +88,17 @@ public class SearchNodeCommand extends NodeServiceCommand {
 			return Collections.emptyList();
 		}
 
-		User user = null;
+		SecurityContext securityContext = null;
 
+		if (parameters[0] instanceof SecurityContext) {
+			securityContext = (SecurityContext) parameters[0];
+		}
+
+		User user = null;
 		if (parameters[0] instanceof User) {
 			user = (User) parameters[0];
+		} else if(securityContext != null) {
+			user = securityContext.getUser();
 		}
 
 		// FIXME: filtering by top node is experimental
@@ -127,7 +135,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 			}
 		}
 
-		return search(user, topNode, includeDeleted, publicOnly, searchAttrs);
+		return search(securityContext, topNode, includeDeleted, publicOnly, searchAttrs);
 	}
 
 	/**
@@ -140,7 +148,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 	 * @param searchAttrs		List with search attributes
 	 * @return
 	 */
-	private List<AbstractNode> search(final User user, final AbstractNode topNode, final boolean includeDeleted,
+	private List<AbstractNode> search(final SecurityContext securityContext, final AbstractNode topNode, final boolean includeDeleted,
 					 final boolean publicOnly, final List<SearchAttribute> searchAttrs) {
 
 		GraphDatabaseService graphDb   = (GraphDatabaseService) arguments.get("graphDb");
@@ -235,7 +243,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 							  hits.size() });
 
 //                              IndexHits hits = index.query(new QueryContext(query.toString()));//.sort("name"));
-				intermediateResult = nodeFactory.createNodes(hits, user, includeDeleted, publicOnly);
+				intermediateResult = nodeFactory.createNodes(securityContext, hits, includeDeleted, publicOnly);
 
 //                              hits.close();
 				long t2 = System.currentTimeMillis();

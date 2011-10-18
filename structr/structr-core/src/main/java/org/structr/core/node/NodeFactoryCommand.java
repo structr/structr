@@ -60,7 +60,7 @@ public class NodeFactoryCommand extends NodeServiceCommand {
                             logger.log(Level.WARNING, "Unknown parameter of type {0}", o.getClass().getName());
                             return null;
                         }
-                        collection.add(nodeFactory.createNode(node));
+                        collection.add(nodeFactory.createNode(securityContext, node));
                     }
 
                     ret = collection;
@@ -80,14 +80,14 @@ public class NodeFactoryCommand extends NodeServiceCommand {
                     } else if (parameters[0] instanceof NodeDataContainer) {
 
                         NodeDataContainer nodeData = (NodeDataContainer) parameters[0];
-                        return nodeFactory.createNode(nodeData);
+                        return nodeFactory.createNode(securityContext, nodeData);
 
                     } else {
 
                         logger.log(Level.WARNING, "Unknown parameter of type {0}", parameters[0].getClass().getName());
                         return null;
                     }
-                    ret = nodeFactory.createNode(node);
+                    ret = nodeFactory.createNode(securityContext, node);
 
                 }
             } else {

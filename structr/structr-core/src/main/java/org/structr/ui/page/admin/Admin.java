@@ -38,14 +38,12 @@ import org.apache.click.extras.tree.Tree;
 import org.apache.click.extras.tree.TreeNode;
 import org.apache.commons.lang.ArrayUtils;
 import org.structr.common.AccessMode;
-import org.structr.common.CurrentRequest;
-import org.structr.common.CurrentSession;
 import org.structr.core.node.search.Search;
-import org.structr.context.SessionMonitor;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Link;
 import org.structr.core.entity.SuperUser;
+import org.structr.core.entity.User;
 import org.structr.core.node.GetAllNodes;
 import org.structr.ui.page.LoginPage;
 import org.structr.ui.page.StructrPage;
@@ -103,6 +101,7 @@ public class Admin extends StructrPage {
     protected final SimpleDateFormat dateFormat = new SimpleDateFormat();
     protected List<AbstractNode> allNodes;
 
+
 //    protected final SimpleDateFormat dateFormat =
 //            (SimpleDateFormat) DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, locale);
 
@@ -111,9 +110,10 @@ public class Admin extends StructrPage {
         super();
         title = "STRUCTR Admin Console";
 
-	CurrentRequest.setAccessMode(AccessMode.Backend);
+	// initialize security context with backend mode
+	securityContext.setAccessMode(AccessMode.Backend);
 
-        homeLink.setParameter("nodeId", "0");
+	homeLink.setParameter("nodeId", "0");
         addControl(homeLink);
 
         addControl(usersLink);
@@ -136,7 +136,7 @@ public class Admin extends StructrPage {
 
             @Override
             public List<String> getAutoCompleteList(final String criteria) {
-                return Search.getNodeNamesLike(criteria);
+                return Search.getNodeNamesLike(securityContext, criteria);
             }
         });
 
@@ -163,14 +163,7 @@ public class Admin extends StructrPage {
      */
     public boolean onLogout() {
 
-        SessionMonitor.logActivity(sessionId, "Logout");
-
-        setUsernameInSession(null);
-        //CurrentRequest.setCurrentUser(null);
-        CurrentSession.getSession().invalidate();
-        //getContext().getRequest().getSession().invalidate();
-        userName = null;
-
+        securityContext.doLogout();
 
 //        if (returnUrl != null) {
 //            setRedirect(returnUrl);
@@ -192,7 +185,7 @@ public class Admin extends StructrPage {
      */
     protected void resetExpandedTreeNodes() {
 
-        CurrentSession.setAttribute(EXPANDED_NODES_KEY, null);
+        getContext().getSession().setAttribute(EXPANDED_NODES_KEY, null);
     }
 
     /**
@@ -200,6 +193,7 @@ public class Admin extends StructrPage {
      */
     protected void storeExpandedNodesInUserProfile(long[] expandedNodesArray) {
 
+	User user = securityContext.getUser();
         if (user != null && !(user instanceof SuperUser)) {
             user.setProperty(EXPANDED_NODES_KEY, expandedNodesArray);
         }
@@ -230,6 +224,7 @@ public class Admin extends StructrPage {
      * Store last visited node in the user profile
      */
     protected void storeLastVisitedNodeInUserProfile() {
+	User user = securityContext.getUser();
         if (user != null && !(user instanceof SuperUser)) {
             user.setProperty(LAST_VISITED_NODE_KEY, nodeId);
         }
@@ -241,6 +236,7 @@ public class Admin extends StructrPage {
     protected long[] getExpandedNodesFromUserProfile() {
 
         long[] expandedNodesArray = null;
+	User user = securityContext.getUser();
 
         if (user != null && !(user instanceof SuperUser)) {
             try {

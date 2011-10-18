@@ -19,6 +19,7 @@
 package org.structr.core.entity.app;
 
 import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
 import org.structr.common.RenderMode;
 import org.structr.common.renderer.ExternalTemplateRenderer;
 import org.structr.core.NodeRenderer;
@@ -42,19 +43,19 @@ public class SubmitButton extends FormField
 	}
 
 	@Override
-	public String getErrorMessage()
+	public String getErrorMessage(HttpServletRequest request)
 	{
 		return (null);
 	}
 
 	@Override
-	public Object getErrorValue()
+	public Object getErrorValue(HttpServletRequest request)
 	{
 		return (null);
 	}
 
 	@Override
-	public void setErrorValue(Object errorValue)
+	public void setErrorValue(HttpServletRequest request, Object errorValue)
 	{
 	}
 }

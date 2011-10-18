@@ -36,6 +36,7 @@ import org.apache.commons.jxpath.ri.JXPathContextReferenceImpl;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.structr.common.NodePositionComparator;
+import org.structr.common.SecurityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.User;
 import org.structr.core.node.GraphDatabaseCommand;
@@ -112,8 +113,8 @@ public class JXPathFinder {
      * @return a list of nodes resulting from xpath, sorted by their position attribute
      * @throws JXPathException
      */
-    public List<AbstractNode> findNodes(XPath xpath, StructrNodeFactory nodeFactory) throws JXPathException {
-        return findNodes(xpath, new NodePositionComparator(), nodeFactory);
+    public List<AbstractNode> findNodes(SecurityContext securityContext, XPath xpath, StructrNodeFactory nodeFactory) throws JXPathException {
+        return findNodes(securityContext, xpath, new NodePositionComparator(), nodeFactory);
     }
 
     /**
@@ -124,11 +125,11 @@ public class JXPathFinder {
      * @return a list of nodes resulting from xpath, sorted by their position attribute
      * @throws JXPathException
      */
-    public List<AbstractNode> findNodes(String path, StructrNodeFactory nodeFactory) throws JXPathException {
+    public List<AbstractNode> findNodes(SecurityContext securityContext, String path, StructrNodeFactory nodeFactory) throws JXPathException {
         XPath xpath = new XPath();
         // converts a path into an XPath expression
         xpath.setPath(path);
-        return findNodes(xpath, nodeFactory);
+        return findNodes(securityContext, xpath, nodeFactory);
     }
 
     /**
@@ -140,7 +141,7 @@ public class JXPathFinder {
      * @return a list of nodes resulting from xpath, sorted by comparator
      * @throws JXPathException
      */
-    public List<AbstractNode> findNodes(XPath xpath, Comparator<AbstractNode> comparator, StructrNodeFactory nodeFactory) throws JXPathException {
+    public List<AbstractNode> findNodes(SecurityContext securityContext, XPath xpath, Comparator<AbstractNode> comparator, StructrNodeFactory nodeFactory) throws JXPathException {
         List<AbstractNode> ret = null;
 
         long t0 = System.currentTimeMillis();
@@ -152,7 +153,7 @@ public class JXPathFinder {
             // adapt to set to remove duplicate entries
             Set nodeSet = new HashSet(context.selectNodes(xpath.getXPath()));
 
-            ret = nodeFactory.createNodes(nodeSet);
+            ret = nodeFactory.createNodes(securityContext, nodeSet);
 
         } catch (Throwable t) {
 

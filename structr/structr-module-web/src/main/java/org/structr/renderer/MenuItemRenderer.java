@@ -2,7 +2,6 @@ package org.structr.renderer;
 
 import java.util.LinkedList;
 import java.util.List;
-import org.structr.common.CurrentRequest;
 import org.structr.common.SecurityContext;
 import org.structr.common.StructrOutputStream;
 import org.structr.core.entity.AbstractNode;
@@ -24,7 +23,7 @@ public abstract class MenuItemRenderer
 	 */
 	protected void renderMenuItems(final StructrOutputStream out, final AbstractNode currentNode, final AbstractNode startNode, final AbstractNode currentMenuNode, int currentDepth, int currentPos, int numberOfSubnodes, int maxDepth)
 	{
-		SecurityContext securityContext = CurrentRequest.getSecurityContext();
+		SecurityContext securityContext = out.getSecurityContext();
 		AbstractNode menuItemNode = currentMenuNode;
 
 		if(currentDepth > maxDepth)

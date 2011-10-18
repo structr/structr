@@ -19,6 +19,7 @@
 
 package org.structr.rest.constraint;
 
+import org.structr.rest.ResourceConstraintProvider;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.regex.Pattern;

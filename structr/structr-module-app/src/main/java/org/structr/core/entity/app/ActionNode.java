@@ -25,9 +25,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.RenderMode;
+import javax.servlet.http.HttpServletRequest;
 import org.structr.common.StructrOutputStream;
-import org.structr.core.NodeRenderer;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.StructrRelationship;
 
@@ -52,7 +51,7 @@ public abstract class ActionNode extends AbstractNode
 
 	public abstract boolean doAction(StructrOutputStream out, final AbstractNode startNode, final String editUrl, final Long editNodeId);
 
-	public void initialize()
+	public void initialize(HttpServletRequest request)
 	{
 		List<InteractiveNode> dataSources = getInteractiveSourceNodes();
 		Map<String, Slot> slots = getInputSlots();
@@ -69,7 +68,7 @@ public abstract class ActionNode extends AbstractNode
 					if(slot.getParameterType().equals(source.getParameterType()))
 					{
 						slot.setSource(source);
-						Object value = source.getValue();
+						Object value = source.getValue(request);
 
 						logger.log(Level.INFO,
 							"sourceName: {0}, mappedName: {1}, value: {2}",
@@ -98,7 +97,7 @@ public abstract class ActionNode extends AbstractNode
 		}
 	}
 
-	public Object getValue(String name)
+	public Object getValue(HttpServletRequest request, String name)
 	{
 		Slot slot = getInputSlots().get(name);
 		if(slot != null)
@@ -106,7 +105,7 @@ public abstract class ActionNode extends AbstractNode
 			InteractiveNode source = slot.getSource();
 			if(source != null)
 			{
-				return (source.getValue());
+				return (source.getValue(request));
 
 			} else
 			{
@@ -124,7 +123,7 @@ public abstract class ActionNode extends AbstractNode
 	}
 
 	// ----- protected methods -----
-	protected void setErrorValue(String slotName, Object errorValue)
+	protected void setErrorValue(HttpServletRequest request, String slotName, Object errorValue)
 	{
 		Slot slot = getInputSlots().get(slotName);
 		if(slot != null)
@@ -132,7 +131,7 @@ public abstract class ActionNode extends AbstractNode
 			InteractiveNode source = slot.getSource();
 			if(source != null)
 			{
-				source.setErrorValue(errorValue);
+				source.setErrorValue(request, errorValue);
 			}
 		}
 	}

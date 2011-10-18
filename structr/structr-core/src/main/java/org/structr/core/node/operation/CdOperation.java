@@ -22,7 +22,7 @@ package org.structr.core.node.operation;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import org.structr.common.CurrentSession;
+import org.structr.common.SecurityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.FindNodeCommand;
@@ -34,6 +34,7 @@ import org.structr.core.node.FindNodeCommand;
 public class CdOperation implements PrimaryOperation {
 
 	private List<Callback> callbacks = new LinkedList<Callback>();
+	private SecurityContext securityContext = null;
 	private AbstractNode currentNode = null;
 	private String target = null;
 
@@ -43,7 +44,7 @@ public class CdOperation implements PrimaryOperation {
 		if(target != null) {
 
 			AbstractNode newLocation = (AbstractNode)Services.command(FindNodeCommand.class).execute(
-			    CurrentSession.getUser(),
+			    securityContext.getUser(),
 			    currentNode,
 			    target
 			   );
@@ -121,5 +122,10 @@ public class CdOperation implements PrimaryOperation {
 
 		}
 
+	}
+
+	@Override
+	public void setSecurityContext(SecurityContext securityContext) {
+		this.securityContext = securityContext;
 	}
 }

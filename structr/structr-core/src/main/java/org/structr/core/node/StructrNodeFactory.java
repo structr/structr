@@ -23,7 +23,6 @@ package org.structr.core.node;
 
 import org.neo4j.graphdb.Node;
 
-import org.structr.common.CurrentRequest;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.core.Adapter;
@@ -57,24 +56,28 @@ import org.structr.core.entity.GenericNode;
 public class StructrNodeFactory<T extends AbstractNode> implements Adapter<Node, T> {
 
 	private static final Logger logger = Logger.getLogger(StructrNodeFactory.class.getName());
-
+	private SecurityContext securityContext = null;
 	//~--- constructors ---------------------------------------------------
 
 	// private Map<String, Class> nodeTypeCache = new ConcurrentHashMap<String, Class>();
 	public StructrNodeFactory() {}
 
+	public StructrNodeFactory(SecurityContext securityContext) {
+		this.securityContext = securityContext;
+	}
+
 	//~--- methods --------------------------------------------------------
 
-	public AbstractNode createNode(final Node node) {
+	public AbstractNode createNode(SecurityContext securityContext, final Node node) {
 
 		String nodeType = node.hasProperty(AbstractNode.Key.type.name())
 				  ? (String) node.getProperty(AbstractNode.Key.type.name())
 				  : "";
 
-		return createNode(node, nodeType);
+		return createNode(securityContext, node, nodeType);
 	}
 
-	public AbstractNode createNode(final Node node, final String nodeType) {
+	public AbstractNode createNode(final SecurityContext securityContext, final Node node, final String nodeType) {
 
 		Class nodeClass      = (Class) Services.command(GetEntityClassCommand.class).execute(nodeType);
 		AbstractNode newNode = null;
@@ -92,7 +95,7 @@ public class StructrNodeFactory<T extends AbstractNode> implements Adapter<Node,
 			newNode = new GenericNode();
 		}
 
-		newNode.init(node);
+		newNode.init(securityContext, node);
 		newNode.onNodeInstantiation();
 
 		return newNode;
@@ -111,17 +114,19 @@ public class StructrNodeFactory<T extends AbstractNode> implements Adapter<Node,
 	 * @param publicOnly
 	 * @return
 	 */
-	public List<AbstractNode> createNodes(final Iterable<Node> input, final User user,
+	public List<AbstractNode> createNodes(final SecurityContext securityContext, final Iterable<Node> input,
 		final boolean includeDeleted, final boolean publicOnly) {
 
-		SecurityContext securityContext = CurrentRequest.getSecurityContext();
 		List<AbstractNode> nodes        = new LinkedList<AbstractNode>();
+		User user                       = securityContext.getUser();
+
+		// FIXME: user is redundant here
 
 		if ((input != null) && input.iterator().hasNext()) {
 
 			for (Node node : input) {
 
-				AbstractNode n                  = createNode(node);
+				AbstractNode n                  = createNode(securityContext, node);
 				boolean publicUserAndPublicNode = ((user == null) && n.isPublic());
 				boolean readableByUser          = (publicUserAndPublicNode
 								   || ((user != null) && (user instanceof SuperUser))
@@ -148,17 +153,16 @@ public class StructrNodeFactory<T extends AbstractNode> implements Adapter<Node,
 	 * @param includeDeleted
 	 * @return
 	 */
-	public List<AbstractNode> createNodes(final Iterable<Node> input, final User user,
-		final boolean includeDeleted) {
+	public List<AbstractNode> createNodes(final SecurityContext securityContext, final Iterable<Node> input, final boolean includeDeleted) {
 
-		SecurityContext securityContext = CurrentRequest.getSecurityContext();
 		List<AbstractNode> nodes        = new LinkedList<AbstractNode>();
+		User user                       = securityContext.getUser();
 
 		if ((input != null) && input.iterator().hasNext()) {
 
 			for (Node node : input) {
 
-				AbstractNode n         = createNode(node);
+				AbstractNode n         = createNode(securityContext, node);
 				boolean readableByUser = ((user instanceof SuperUser)
 							  || securityContext.isAllowed(n, Permission.Read));
 				boolean publicUserAndPublicNode = ((user == null) && n.isPublic());
@@ -207,7 +211,7 @@ public class StructrNodeFactory<T extends AbstractNode> implements Adapter<Node,
 	 * @param input
 	 * @return
 	 */
-	public List<AbstractNode> createNodes(final Iterable<Node> input) {
+	public List<AbstractNode> createNodes(final SecurityContext securityContext, final Iterable<Node> input) {
 
 		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
 
@@ -215,7 +219,7 @@ public class StructrNodeFactory<T extends AbstractNode> implements Adapter<Node,
 
 			for (Node node : input) {
 
-				AbstractNode n = createNode(node);
+				AbstractNode n = createNode(securityContext, node);
 
 				nodes.add(n);
 			}
@@ -230,10 +234,10 @@ public class StructrNodeFactory<T extends AbstractNode> implements Adapter<Node,
 //      }
 	@Override
 	public T adapt(Node s) {
-		return ((T) createNode(s));
+		return ((T) createNode(securityContext, s));
 	}
 
-	public AbstractNode createNode(final NodeDataContainer data) {
+	public AbstractNode createNode(final SecurityContext securityContext, final NodeDataContainer data) {
 
 		if (data == null) {
 
@@ -262,7 +266,7 @@ public class StructrNodeFactory<T extends AbstractNode> implements Adapter<Node,
 			newNode = new GenericNode();
 		}
 
-		newNode.init(data);
+		newNode.init(securityContext, data);
 		newNode.commit(null);
 		newNode.onNodeInstantiation();
 

@@ -53,11 +53,6 @@ public class SessionValue<T>
 	@Override
 	public int hashCode()
 	{
-		if(get() != null)
-		{
-			return(get().hashCode());
-		}
-
 		return(key.hashCode());
 	}
 
@@ -76,10 +71,8 @@ public class SessionValue<T>
 		return(key);
 	}
 
-	public T get()
+	public T get(HttpServletRequest request)
 	{
-		HttpServletRequest request = CurrentRequest.getRequest();
-
 		if(request != null)
 		{
 			HttpSession session = request.getSession();
@@ -98,10 +91,8 @@ public class SessionValue<T>
 		return(defaultValue);
 	}
 
-	public void set(T value)
+	public void set(HttpServletRequest request, T value)
 	{
-		HttpServletRequest request = CurrentRequest.getRequest();
-
 		if(request != null)
 		{
 			HttpSession session = request.getSession();

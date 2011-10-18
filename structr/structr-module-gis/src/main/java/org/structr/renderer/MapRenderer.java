@@ -25,7 +25,6 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.filter.Filter;
 
-import org.structr.common.CurrentRequest;
 import org.structr.common.MapHelper;
 import org.structr.common.RenderMode;
 import org.structr.common.SecurityContext;
@@ -35,7 +34,6 @@ import org.structr.core.NodeRenderer;
 import org.structr.core.Services;
 import org.structr.core.TemporaryValue;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.geo.GeoObject;
 import org.structr.core.entity.geo.Map;
 import org.structr.core.node.GraphDatabaseCommand;
@@ -82,8 +80,7 @@ public class MapRenderer implements NodeRenderer<Map> {
 
 		} else {
 
-			SecurityContext securityContext = CurrentRequest.getSecurityContext();
-
+			SecurityContext securityContext = out.getSecurityContext();
 			if (securityContext.isVisible(currentNode)) {
 
 				// If Map result is not cached in database
@@ -91,7 +88,7 @@ public class MapRenderer implements NodeRenderer<Map> {
 
 					long id                = startNode.getId();
 					ServletContext context =
-						CurrentRequest.getRequest().getSession().getServletContext();
+						securityContext.getSession().getServletContext();
 					java.util.Map<Long, TemporaryValue<String>> mapCache =
 						(java.util.Map<Long,
 							       TemporaryValue<String>>) context.getAttribute(MAP_CACHE);
@@ -126,7 +123,9 @@ public class MapRenderer implements NodeRenderer<Map> {
 
 						StringBuilder content = new StringBuilder(500000);
 
-						renderSVGMap(currentNode,
+						renderSVGMap(securityContext,
+						             out.getRequest(),
+							     currentNode,
 							     content,
 							     startNode);
 						cachedSVGMap.refreshStoredValue(content.toString());
@@ -143,7 +142,9 @@ public class MapRenderer implements NodeRenderer<Map> {
 
 					StringBuilder cache = new StringBuilder();
 
-					renderSVGMap(currentNode,
+					renderSVGMap(securityContext,
+					             out.getRequest(),
+						     currentNode,
 						     cache,
 						     startNode);
 					currentNode.setSvgContent(cache.toString());
@@ -163,7 +164,7 @@ public class MapRenderer implements NodeRenderer<Map> {
 	 * @param out
 	 * @param startNode
 	 */
-	private void renderSVGMap(Map currentNode, StringBuilder out, final AbstractNode startNode) {
+	private void renderSVGMap(SecurityContext securityContext, HttpServletRequest request, Map currentNode, StringBuilder out, final AbstractNode startNode) {
 
 		Command graphDbCommand       = Services.command(GraphDatabaseCommand.class);
 		GraphDatabaseService graphDb = (GraphDatabaseService) graphDbCommand.execute();
@@ -189,7 +190,6 @@ public class MapRenderer implements NodeRenderer<Map> {
 
 				} else {
 
-					HttpServletRequest request  = CurrentRequest.getRequest();
 					String featureNameParamName = currentNode.getFeatureNameParamName();
 
 					if (featureNameParamName == null) {
@@ -276,7 +276,7 @@ public class MapRenderer implements NodeRenderer<Map> {
 
 						List<AbstractNode> result = (List<AbstractNode>) Services.command(
 										SearchNodeCommand.class).execute(
-										new SuperUser(),
+										securityContext,
 										null,
 										false,
 										false,

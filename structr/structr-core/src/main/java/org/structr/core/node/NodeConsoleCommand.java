@@ -17,11 +17,8 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 package org.structr.core.node;
 
-import org.structr.common.CurrentSession;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
@@ -60,6 +57,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.logging.Logger;
+import org.structr.common.SecurityContext;
 import org.structr.core.node.operation.HelpOperation;
 import org.structr.core.node.operation.ShowOperation;
 
@@ -107,28 +105,33 @@ public class NodeConsoleCommand extends NodeServiceCommand {
 	@Override
 	public Object execute(Object... parameters) {
 
-		StringBuilder ret        = new StringBuilder(200);
-		AbstractNode currentNode = null;
-		Callback callback        = null;
-		String commandLine       = null;
+		StringBuilder ret =			new StringBuilder(200);
+		AbstractNode currentNode =		null;
+		Callback callback =			null;
+		String commandLine =			null;
+		SecurityContext securityContext=	null;
 
-		if (parameters.length == 3) {
+		if (parameters.length == 4) {
 
-			if (parameters[0] instanceof AbstractNode) {
-				currentNode = (AbstractNode) parameters[0];
+			if (parameters[0] instanceof SecurityContext) {
+				securityContext = (SecurityContext) parameters[0];
 			}
 
-			if (parameters[1] instanceof String) {
-				commandLine = (String) parameters[1];
+			if (parameters[1] instanceof AbstractNode) {
+				currentNode = (AbstractNode) parameters[1];
 			}
 
-			if (parameters[2] instanceof Callback) {
-				callback = (Callback) parameters[2];
+			if (parameters[2] instanceof String) {
+				commandLine = (String) parameters[2];
+			}
+
+			if (parameters[3] instanceof Callback) {
+				callback = (Callback) parameters[3];
 			}
 
 			if (commandLine != null) {
 
-				User user         = CurrentSession.getUser();
+				User user = securityContext.getUser();
 				boolean superUser = (user != null) && (user instanceof SuperUser);
 
 				ret.append("<p>");
@@ -169,8 +172,7 @@ public class NodeConsoleCommand extends NodeServiceCommand {
 						for (int currentPosition = 0; currentPosition < commands.length;
 							currentPosition++) {
 
-							Operation operation = getOperation(commands[currentPosition]);
-
+							Operation operation = getOperation(securityContext, commands[currentPosition]);
 							if (operation != null) {
 
 								if (currentNode != null) {
@@ -469,7 +471,7 @@ public class NodeConsoleCommand extends NodeServiceCommand {
 
 	//~--- get methods ----------------------------------------------------
 
-	private Operation getOperation(Object name) throws InvalidOperationException {
+	private Operation getOperation(SecurityContext securityContext, Object name) throws InvalidOperationException {
 
 		if (name instanceof Collection) {
 			throw new InvalidOperationException("Invalid operation");
@@ -482,6 +484,8 @@ public class NodeConsoleCommand extends NodeServiceCommand {
 
 				try {
 					ret = clazz.newInstance();
+					ret.setSecurityContext(securityContext);
+
 				} catch (Throwable t) {}
 			}
 

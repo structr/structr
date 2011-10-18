@@ -20,9 +20,9 @@ package org.structr.core.entity.app;
 
 import java.util.Map;
 import java.util.logging.Logger;
-import org.structr.common.CurrentRequest;
-import org.structr.common.CurrentSession;
+import javax.servlet.http.HttpServletRequest;
 import org.structr.common.RenderMode;
+import org.structr.common.RequestHelper;
 import org.structr.common.SessionValue;
 import org.structr.core.NodeRenderer;
 import org.structr.core.NodeSource;
@@ -56,19 +56,19 @@ public class AppNodeLoader extends AbstractNode implements NodeSource
 		renderers.put(RenderMode.Default, new NodeLoaderRenderer());
 	}
 
-	public Object getValue()
+	public Object getValue(HttpServletRequest request)
 	{
 		String loaderSourceParameter = (String)getProperty(ID_SOURCE_KEY);
-		Object value = CurrentRequest.getRequest().getParameter(loaderSourceParameter);
+		Object value = request.getParameter(loaderSourceParameter);
 
-		if(CurrentSession.isRedirected())
+		if(RequestHelper.isRedirected(request))
 		{
-			value = getLastValue().get();
+			value = getLastValue().get(request);
 
 		} else
 		{
 			// otherwise, clear value in session
-			getLastValue().set(value);
+			getLastValue().set(request, value);
 		}
 
 		return (value);
@@ -86,9 +86,9 @@ public class AppNodeLoader extends AbstractNode implements NodeSource
 
 	// ----- interface NodeSource -----
 	@Override
-	public AbstractNode loadNode()
+	public AbstractNode loadNode(HttpServletRequest request)
 	{
-		Object loaderValue = getValue();
+		Object loaderValue = getValue(request);
 		if(loaderValue != null)
 		{
 			return ((AbstractNode)Services.command(FindNodeCommand.class).execute(null, this, loaderValue));

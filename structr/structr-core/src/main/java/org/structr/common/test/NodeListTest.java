@@ -27,6 +27,7 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.structr.common.RelType;
+import org.structr.common.SecurityContext;
 import org.structr.common.StandaloneTestHelper;
 import org.structr.core.Command;
 import org.structr.core.Services;
@@ -49,6 +50,7 @@ public class NodeListTest
 		StandaloneTestHelper.prepareStandaloneTest("/tmp/structr-test/");
 
 		final GraphDatabaseService graphDb = (GraphDatabaseService)Services.command(GraphDatabaseCommand.class).execute();
+		final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
 		final Command factory = Services.command(NodeFactoryCommand.class);
 		NodeList<AbstractNode> nodeList = null;
 
@@ -132,7 +134,7 @@ public class NodeListTest
 								for(int i=0; i<finalCount; i++)
 								{
 									AbstractNode node = new PlainText();
-									node.init(graphDb.createNode());
+									node.init(securityContext, graphDb.createNode());
 									node.setProperty(AbstractNode.Key.type.name(), "PlainText");
 									nodes.add(node);
 								}
@@ -155,7 +157,7 @@ public class NodeListTest
 							@Override
 							public Object execute() throws Throwable
 							{
-								node.init(graphDb.createNode());
+								node.init(securityContext, graphDb.createNode());
 								node.setProperty(AbstractNode.Key.type.name(), "PlainText");
 
 								return(null);

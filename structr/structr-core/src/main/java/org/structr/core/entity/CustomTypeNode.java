@@ -21,6 +21,7 @@ package org.structr.core.entity;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.PropertyKey;
 import org.structr.common.RelType;
@@ -78,7 +79,7 @@ public class CustomTypeNode extends AbstractNode {
 	}
 
 	@Override
-	public Iterable<AbstractNode> getDataNodes() {
+	public Iterable<AbstractNode> getDataNodes(HttpServletRequest request) {
 
 		// CustomTypeNode nodes should not return their child nodes
 		return null;

@@ -12,17 +12,16 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DateUtils;
 import org.jsoup.Jsoup;
-import org.structr.common.CurrentRequest;
 import org.structr.common.MailHelper;
 import org.structr.common.RelType;
 import org.structr.common.RenderMode;
+import org.structr.common.SecurityContext;
 import org.structr.common.StructrOutputStream;
 import org.structr.core.Command;
 import org.structr.core.NodeRenderer;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Person;
-import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
 import org.structr.core.entity.web.RegistrationCheck;
 import org.structr.core.entity.web.WebNode;
@@ -86,7 +85,8 @@ public class RegistrationCheckRenderer implements NodeRenderer<RegistrationCheck
 	@Override
 	public void renderNode(StructrOutputStream out, RegistrationCheck currentNode, AbstractNode startNode, String editUrl, Long editNodeId, RenderMode renderMode)
 	{
-		HttpServletRequest request = CurrentRequest.getRequest();
+		final SecurityContext securityContext = out.getSecurityContext();
+		final HttpServletRequest request = out.getRequest();
 
 		if(request == null)
 		{
@@ -491,7 +491,7 @@ public class RegistrationCheckRenderer implements NodeRenderer<RegistrationCheck
 				searchAttrs.add(Search.andExactName(assignedUsername));
 				searchAttrs.add(Search.andExactType(User.class.getSimpleName()));
 
-				List<User> userList = (List<User>)search.execute(new SuperUser(), null, false, false, searchAttrs);
+				List<User> userList = (List<User>)search.execute(securityContext, null, false, false, searchAttrs);
 				if(!(userList.isEmpty()))
 				{
 					assignedUser = userList.get(0);

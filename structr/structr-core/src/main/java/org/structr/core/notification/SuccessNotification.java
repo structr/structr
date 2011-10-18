@@ -1,5 +1,7 @@
 package org.structr.core.notification;
 
+import org.structr.common.SecurityContext;
+
 /**
  * The default success notification with success icon.
  *
@@ -7,14 +9,14 @@ package org.structr.core.notification;
  */
 public class SuccessNotification extends DefaultNotification {
 
-    public SuccessNotification(String text)
+    public SuccessNotification(SecurityContext securityContext, String text)
     {
-	this(text, 3000);
+	this(securityContext, text, 3000);
     }
 
-    public SuccessNotification(String text, long lifespan)
+    public SuccessNotification(SecurityContext securityContext, String text, long lifespan)
     {
-	super(null, text, lifespan);
+	super(securityContext, null, text, lifespan);
     }
 
     @Override

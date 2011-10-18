@@ -33,6 +33,7 @@ import java.text.Normalizer;
 
 import java.util.LinkedList;
 import java.util.List;
+import org.structr.common.SecurityContext;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -291,7 +292,7 @@ public abstract class Search {
 	 * @param string
 	 * @return
 	 */
-	public static List<String> getNodeNamesLike(final String string) {
+	public static List<String> getNodeNamesLike(SecurityContext securityContext, final String string) {
 
 		List<String> names                = new LinkedList<String>();
 		List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
@@ -299,7 +300,8 @@ public abstract class Search {
 		// always add wildcard character '*' for auto completion
 		searchAttrs.add(Search.andName(string + SearchAttribute.WILDCARD));
 
-		List<AbstractNode> result = (List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(null,
+		List<AbstractNode> result = (List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(
+			securityContext,
 			null,
 			false,
 			false,

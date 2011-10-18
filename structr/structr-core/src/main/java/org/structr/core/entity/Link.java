@@ -20,6 +20,7 @@ package org.structr.core.entity;
 
 import java.util.Map;
 import org.structr.common.RenderMode;
+import org.structr.common.SecurityContext;
 import org.structr.common.renderer.LinkRenderer;
 import org.structr.core.NodeRenderer;
 
@@ -44,8 +45,8 @@ public class Link extends AbstractNode {
      *
      * @param node
      */
-    public void init(AbstractNode node) {
-        super.init(node.dbNode);
+    public void init(SecurityContext securityContext, AbstractNode node) {
+        super.init(securityContext, node.dbNode);
         setStructrNode(node);
     }
 

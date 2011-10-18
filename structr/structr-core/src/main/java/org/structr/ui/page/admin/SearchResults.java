@@ -345,7 +345,7 @@ public class SearchResults extends Nodes {
             searchAttrs.add(Search.andName(searchText));
 
             searchResults = (List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(
-                    user, // filter by user
+                    securityContext, // filter by user
                     null, // top node
                     false, // include deleted
                     false, // only public
@@ -381,7 +381,7 @@ public class SearchResults extends Nodes {
                 searchAttrs.add(Search.orContent(searchText));
             }
 
-            searchResults = (List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(user, null, false, false, searchAttrs);
+            searchResults = (List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(securityContext, null, false, false, searchAttrs);
             populateSearchResultsTable();
             saveState();
 

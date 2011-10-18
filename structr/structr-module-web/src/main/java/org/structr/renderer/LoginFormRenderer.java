@@ -3,13 +3,11 @@ package org.structr.renderer;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import org.apache.commons.lang.StringUtils;
-import org.structr.common.CurrentRequest;
 import org.structr.common.RenderMode;
 import org.structr.common.StructrOutputStream;
 import org.structr.core.NodeRenderer;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.web.LoginForm;
-import org.structr.core.entity.web.RegistrationForm;
 import org.structr.core.entity.web.WebNode;
 
 /**
@@ -21,7 +19,7 @@ public class LoginFormRenderer extends FormRenderer implements NodeRenderer<Logi
 	@Override
 	public void renderNode(StructrOutputStream out, LoginForm currentNode, AbstractNode startNode, String editUrl, Long editNodeId, RenderMode renderMode)
 	{
-		HttpServletRequest request = CurrentRequest.getRequest();
+		HttpServletRequest request = out.getRequest();
 
 		if(request == null)
 		{

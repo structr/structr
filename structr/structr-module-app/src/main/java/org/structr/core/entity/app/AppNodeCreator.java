@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.servlet.http.HttpServletRequest;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.RelType;
 import org.structr.common.SessionValue;
@@ -58,7 +59,7 @@ public class AppNodeCreator extends ActionNode implements NodeSource
 	private static final String CREATOR_ICON_SRC =		"/images/brick_add.png";
 	private static final String TARGET_TYPE_KEY =		"targetType";
 
-	private SessionValue<AbstractNode> currentNode = null;
+	private SessionValue<AbstractNode> currentNode = new SessionValue<AbstractNode>("sdfjawerhq38rhqerfkeföq3");
 
 	@Override
 	public boolean doAction(final StructrOutputStream out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
@@ -79,20 +80,20 @@ public class AppNodeCreator extends ActionNode implements NodeSource
 		{
 			List<InteractiveNode> dataSource = getInteractiveSourceNodes();
 			attributes.add(new NodeAttribute("type", targetType));
-			AbstractNode storeNode = getNodeFromLoader();
+			AbstractNode storeNode = getNodeFromLoader(out.getRequest());
 			boolean error = false;
 
 			// add attributes from data sources
 			for(InteractiveNode src : dataSource)
 			{
-				Object value = src.getValue();
+				Object value = src.getValue(out.getRequest());
 				if(value != null && value.toString().length() > 0)
 				{
 					attributes.add(new NodeAttribute(src.getMappedName(), value));
 
 				} else
 				{
-					setErrorValue(src.getName(), "Please enter a value for ".concat(src.getName()));
+					setErrorValue(out.getRequest(), src.getName(), "Please enter a value for ".concat(src.getName()));
 					error = true;
 				}
 			}
@@ -122,7 +123,7 @@ public class AppNodeCreator extends ActionNode implements NodeSource
 
 			logger.log(Level.INFO, "Saving newly created node {0}", storeNode);
 
-			currentNode.set(storeNode);
+			currentNode.set(out.getRequest(), storeNode);
 		}
 
 		return(ret);
@@ -161,11 +162,11 @@ public class AppNodeCreator extends ActionNode implements NodeSource
 
 	// ----- interface NodeSource -----
 	@Override
-	public AbstractNode loadNode()
+	public AbstractNode loadNode(HttpServletRequest request)
 	{
-		logger.log(Level.INFO, "Returning newly created node {0}", currentNode.get());
+		logger.log(Level.INFO, "Returning newly created node {0}", currentNode.get(request));
 		
-		return(currentNode.get());
+		return(currentNode.get(request));
 	}
 
 	// ----- private methods -----

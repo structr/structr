@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
+import org.structr.common.SecurityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.StructrRelationship;
 
@@ -38,6 +38,7 @@ public class ShowOperation implements PrimaryOperation, NodeListOperation {
 
 	private List<AbstractNode> nodeList = new LinkedList<AbstractNode>();
 	private List<Callback> callbacks = new LinkedList<Callback>();
+	private SecurityContext securityContext = null;
 	private ShowMode mode = ShowMode.None;
 
 	private enum ShowMode {
@@ -241,5 +242,10 @@ public class ShowOperation implements PrimaryOperation, NodeListOperation {
 			stdOut.append("</td>");
 			stdOut.append("</tr>");
 		}
+	}
+
+	@Override
+	public void setSecurityContext(SecurityContext securityContext) {
+		this.securityContext = securityContext;
 	}
 }

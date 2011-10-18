@@ -18,6 +18,7 @@
  */
 package org.structr.core.entity.app;
 
+import javax.servlet.http.HttpServletRequest;
 import org.structr.core.entity.AbstractNode;
 
 /**
@@ -31,11 +32,11 @@ public abstract class FormField extends AbstractNode {
 	public static final String HINT_KEY = "hint";
 	public static final String HELP_TEXT_KEY = "helpText";
 
-	public abstract String getErrorMessage();
+	public abstract String getErrorMessage(HttpServletRequest request);
 
-	public abstract Object getErrorValue();
+	public abstract Object getErrorValue(HttpServletRequest request);
 
-	public abstract void setErrorValue(Object errorValue);
+	public abstract void setErrorValue(HttpServletRequest request, Object errorValue);
 
 	public String getLabel() {
 		return getStringProperty(LABEL_KEY);

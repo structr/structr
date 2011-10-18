@@ -22,7 +22,7 @@ public class MailSenderRenderer extends FormRenderer implements NodeRenderer<Mai
 	@Override
 	public void renderNode(StructrOutputStream out, MailSender currentNode, AbstractNode startNode, String editUrl, Long editNodeId, RenderMode renderMode)
 	{
-		readParameters(currentNode);
+		readParameters(out.getRequest(), currentNode);
 		if(!validateParameters(currentNode))
 		{
 			return;

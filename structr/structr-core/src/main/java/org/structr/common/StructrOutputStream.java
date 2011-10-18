@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
@@ -31,8 +32,10 @@ import javax.servlet.http.HttpServletResponse;
 public final class StructrOutputStream extends OutputStream {
 
     private static final Logger logger = Logger.getLogger(StructrOutputStream.class.getName());
+    private SecurityContext securityContext = null;
     private HttpServletResponse response = null;
     private StringBuilder stringBuilder = null;
+    private HttpServletRequest request = null;
     private boolean contentTypeSet = false;
     private String encoding = "utf-8";
 
@@ -41,7 +44,8 @@ public final class StructrOutputStream extends OutputStream {
      * initial buffer of 1024 bytes. Using this constructor puts this
      * StructrOutputStream in buffer mode.
      */
-    public StructrOutputStream() {
+    public StructrOutputStream(SecurityContext securityContext) {
+	this.securityContext = securityContext;
         stringBuilder = new StringBuilder(1024);
     }
 
@@ -52,7 +56,8 @@ public final class StructrOutputStream extends OutputStream {
      *
      * @param toWrtap the StringBuilder to wrap
      */
-    public StructrOutputStream(StringBuilder toWrap) {
+    public StructrOutputStream(SecurityContext securityContext, StringBuilder toWrap) {
+	this.securityContext = securityContext;
         stringBuilder = toWrap;
     }
 
@@ -63,8 +68,10 @@ public final class StructrOutputStream extends OutputStream {
      *
      * @param outputStream the output stream to wrap
      */
-    public StructrOutputStream(HttpServletResponse response) {
+    public StructrOutputStream(HttpServletRequest request, HttpServletResponse response, SecurityContext securityContext) {
+	this.request = request;
         this.response = response;
+	this. securityContext = securityContext;
     }
 
     public StructrOutputStream append(Object o) {
@@ -149,5 +156,25 @@ public final class StructrOutputStream extends OutputStream {
      */
     public void setEncoding(final String encoding) {
         this.encoding = encoding;
+    }
+
+//    public void setSecurityContext(SecurityContext context) {
+//	this.securityContext = context;
+//    }
+
+    public SecurityContext getSecurityContext() {
+	return this.securityContext;
+    }
+
+//    public void setRequest(HttpServletRequest request) {
+//	this.request = request;
+//    }
+
+    public HttpServletRequest getRequest() {
+	return this.request;
+    }
+
+    public HttpServletResponse getResponse() {
+	return this.response;
     }
 }

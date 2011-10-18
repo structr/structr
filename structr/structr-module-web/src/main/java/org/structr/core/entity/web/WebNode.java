@@ -23,7 +23,6 @@ package org.structr.core.entity.web;
 
 import org.apache.commons.lang.StringUtils;
 
-import org.structr.common.CurrentRequest;
 import org.structr.common.RenderMode;
 import org.structr.common.renderer.ExternalTemplateRenderer;
 import org.structr.common.renderer.RenderContext;
@@ -40,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.servlet.http.HttpServletRequest;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -183,7 +183,7 @@ public class WebNode extends AbstractNode {
 	 * @param contextPath
 	 * @return
 	 */
-	public String getNodeURL(final Enum renderMode, final String contextPath) {
+	public String getNodeURL(HttpServletRequest request, final Enum renderMode, final String contextPath) {
 
 		String domain = "";
 		String site   = "";
@@ -220,7 +220,7 @@ public class WebNode extends AbstractNode {
 //                              }
 			}
 
-			String scheme = CurrentRequest.getRequest().getScheme();
+			String scheme = request.getScheme();
 
 			return scheme + "://" + site + (StringUtils.isNotEmpty(site)
 							? "."
@@ -241,9 +241,9 @@ public class WebNode extends AbstractNode {
 		}
 	}
 
-	public String getNodeURL(final String contextPath) {
+	public String getNodeURL(HttpServletRequest request, final String contextPath) {
 
-		return getNodeURL(RenderMode.PUBLIC,
+		return getNodeURL(request, RenderMode.PUBLIC,
 				  contextPath);
 	}
 

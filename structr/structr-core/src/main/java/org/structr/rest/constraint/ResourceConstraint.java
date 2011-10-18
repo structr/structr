@@ -5,8 +5,10 @@
 package org.structr.rest.constraint;
 
 import java.util.List;
+import javax.servlet.ServletConfig;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Value;
 import org.structr.rest.exception.PathException;
@@ -18,6 +20,8 @@ import org.structr.rest.exception.PathException;
  * @author Christian Morgner
  */
 public abstract class ResourceConstraint {
+
+	protected SecurityContext securityContext = null;
 
 	/**
 	 *
@@ -48,5 +52,9 @@ public abstract class ResourceConstraint {
 	 * @param propertyView
 	 */
 	public void configurePropertyView(Value<PropertyView> propertyView) {
+	}
+
+	public void setSecurityContext(SecurityContext securityContext) {
+		this.securityContext = securityContext;
 	}
 }

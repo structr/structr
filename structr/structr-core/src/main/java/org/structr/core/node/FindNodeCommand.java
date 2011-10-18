@@ -102,7 +102,7 @@ public class FindNodeCommand extends NodeServiceCommand {
         Object result = null;
 
         if (argument instanceof Node) {
-            result = nodeFactory.createNode((Node) argument);
+            result = nodeFactory.createNode(securityContext, (Node) argument);
 
         } else if (argument instanceof Long) {
             // single long value: find node by id
@@ -111,7 +111,7 @@ public class FindNodeCommand extends NodeServiceCommand {
             Node node = null;
             try {
                 node = graphDb.getNodeById(id);
-                result = nodeFactory.createNode(node);
+                result = nodeFactory.createNode(securityContext, node);
             } catch (NotFoundException nfe) {
                 logger.log(Level.WARNING, "Node with id {0} not found in database!", id);
             }
@@ -122,7 +122,7 @@ public class FindNodeCommand extends NodeServiceCommand {
                 long id = Long.parseLong((String) argument);
 
                 Node node = graphDb.getNodeById(id);
-                result = nodeFactory.createNode(node);
+                result = nodeFactory.createNode(securityContext, node);
 
             } catch (NumberFormatException ex) {
                 // failed :(
@@ -132,9 +132,9 @@ public class FindNodeCommand extends NodeServiceCommand {
                 Node rootNode = graphDb.getReferenceNode();
 
                 if (path.endsWith("*")) {
-                    result = TreeHelper.getNodesByPath(nodeFactory.createNode(rootNode), path, true);
+                    result = TreeHelper.getNodesByPath(nodeFactory.createNode(securityContext, rootNode), path, true);
                 } else {
-                    result = TreeHelper.getNodeByPath(nodeFactory.createNode(rootNode), path, true);
+                    result = TreeHelper.getNodeByPath(nodeFactory.createNode(securityContext, rootNode), path, true);
                 }
 
 
@@ -162,9 +162,9 @@ public class FindNodeCommand extends NodeServiceCommand {
             String path = xpath.getXPath();
 
             if (path.endsWith("*")) {
-                result = TreeHelper.getNodesByPath(nodeFactory.createNode(rootNode), path, true);
+                result = TreeHelper.getNodesByPath(nodeFactory.createNode(securityContext, rootNode), path, true);
             } else {
-                result = TreeHelper.getNodeByPath(nodeFactory.createNode(rootNode), path, true);
+                result = TreeHelper.getNodeByPath(nodeFactory.createNode(securityContext, rootNode), path, true);
             }
 
             //result = nodeFinder.findNodes(xpath, nodeFactory);
@@ -174,7 +174,7 @@ public class FindNodeCommand extends NodeServiceCommand {
 
             // return reference node
             Node node = graphDb.getReferenceNode();
-            result = nodeFactory.createNode(node);
+            result = nodeFactory.createNode(securityContext, node);
 
         } else if (argument instanceof NodeAttribute) {
             // single node attribute: find node by attribute..
@@ -192,7 +192,7 @@ public class FindNodeCommand extends NodeServiceCommand {
             }
 
             // complete node tree
-            result = nodeFactory.createNodes(Traversal.description().breadthFirst().relationships(RelType.HAS_CHILD, Direction.OUTGOING).traverse(s).nodes());
+            result = nodeFactory.createNodes(securityContext, Traversal.description().breadthFirst().relationships(RelType.HAS_CHILD, Direction.OUTGOING).traverse(s).nodes());
 
         }
 
@@ -221,7 +221,7 @@ public class FindNodeCommand extends NodeServiceCommand {
                 long id = Long.parseLong(path);
 
                 Node node = graphDb.getNodeById(id);
-                return nodeFactory.createNode(node);
+                return nodeFactory.createNode(securityContext, node);
 
             } catch (Exception ex) {
                 // string is not an ID
@@ -229,7 +229,7 @@ public class FindNodeCommand extends NodeServiceCommand {
             }
             
             if (path.startsWith("/")) {
-                currentNode = nodeFactory.createNode(graphDb.getReferenceNode());
+                currentNode = nodeFactory.createNode(securityContext, graphDb.getReferenceNode());
             }
 
             if (path.endsWith("*")) {

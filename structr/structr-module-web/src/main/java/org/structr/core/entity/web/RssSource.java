@@ -21,7 +21,6 @@
 
 package org.structr.core.entity.web;
 
-import org.structr.common.CurrentRequest;
 import org.structr.common.PropertyKey;
 import org.structr.core.TemporaryValue;
 import org.structr.core.entity.AbstractNode;
@@ -38,6 +37,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -59,10 +59,10 @@ public class RssSource extends AbstractNode {
 	//~--- get methods ----------------------------------------------------
 
 	@Override
-	public Iterable<AbstractNode> getDataNodes() {
+	public Iterable<AbstractNode> getDataNodes(HttpServletRequest request) {
 
 		// content is cached in servlet context
-		ServletContext context = CurrentRequest.getRequest().getSession().getServletContext();
+		ServletContext context = securityContext.getSession().getServletContext();
 		List<AbstractNode> ret = null;
 
 		// TODO: synchronization

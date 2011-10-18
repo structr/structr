@@ -195,7 +195,8 @@ public class ApplicationContextListener implements ServletContextListener, HttpS
 
             if (sessionId != null) {
 
-                SessionMonitor.logActivity(sessionId, "Logout");
+		// no security context present
+                SessionMonitor.logActivity(null, sessionId, "Logout");
 
                 // Remove session from internal session management
                 SessionMonitor.unregisterUserSession(sessionId, session.getServletContext());

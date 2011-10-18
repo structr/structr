@@ -19,6 +19,8 @@
 
 package org.structr.core.entity.app;
 
+import javax.servlet.http.HttpServletRequest;
+
 /**
  *
  *
@@ -35,8 +37,8 @@ public interface InteractiveNode
 	 *
 	 * @return the parsed value or null of an error occurred
 	 */
-	public Object getValue();
-        public String getStringValue();
+	public Object getValue(HttpServletRequest request);
+        public String getStringValue(HttpServletRequest request);
 
 	public void setMappedName(String mappedName);
 	public String getMappedName();
@@ -47,5 +49,5 @@ public interface InteractiveNode
 	 * 
 	 * @param errorValue
 	 */
-	public void setErrorValue(Object errorValue);
+	public void setErrorValue(HttpServletRequest request, Object errorValue);
 }

@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.structr.common.SecurityContext;
 import org.structr.core.node.search.Search;
 import org.structr.core.Command;
 import org.structr.core.Services;
@@ -69,7 +70,7 @@ public class FindUserCommand extends NodeServiceCommand {
                     //userXPath = "//User";
 //                    break;
                     List<User> users = new LinkedList<User>();
-                    List<AbstractNode> result = (List<AbstractNode>) searchNode.execute(new SuperUser(), null, false, false, Search.andExactType(User.class.getSimpleName()));
+                    List<AbstractNode> result = (List<AbstractNode>) searchNode.execute(SecurityContext.getSuperUserInstance(), null, false, false, Search.andExactType(User.class.getSimpleName()));
                     
                     for (AbstractNode n : result) {
                         if (n instanceof User) {

@@ -21,20 +21,13 @@
 
 package org.structr.core.entity.app;
 
-import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 
-import org.structr.common.CurrentRequest;
-import org.structr.common.CurrentSession;
 import org.structr.common.SessionValue;
 import org.structr.common.StructrOutputStream;
-import org.structr.context.SessionMonitor;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.User;
 import org.structr.core.entity.app.slots.NullSlot;
 import org.structr.core.entity.app.slots.StringSlot;
-import org.structr.core.node.FindUserCommand;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -42,9 +35,11 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.servlet.http.HttpServletRequest;
 
 import javax.servlet.http.HttpSession;
 import org.structr.common.AbstractComponent;
+import org.structr.core.auth.AuthenticationException;
 import org.structr.help.Container;
 import org.structr.help.Content;
 import org.structr.help.HelpLink;
@@ -90,25 +85,22 @@ public class AppLogin extends ActionNode {
 	public boolean doAction(final StructrOutputStream out, final AbstractNode startNode, final String editUrl,
 				final Long editNodeId) {
 
-		String usernameFromSession = CurrentSession.getGlobalUsername();
-		Boolean alreadyLoggedIn    = usernameFromSession != null;
-
-		if (alreadyLoggedIn) {
+		if (out.getSecurityContext().getUser() != null) {
 			return (true);
 		}
 
-		Boolean sessionBlocked = getSessionBlockedValue().get();
+		Boolean sessionBlocked = getSessionBlockedValue().get(out.getRequest());
 
 		if (Boolean.TRUE.equals(sessionBlocked)) {
 
-			getErrorMessageValue().set("Too many login attempts, session is blocked for login");
+			getErrorMessageValue().set(out.getRequest(), "Too many login attempts, session is blocked for login");
 
 			return (false);
 		}
 
-		String username    = (String) getValue(USERNAME_FIELD_NAME);
-		String password    = (String) getValue(PASSWORD_FIELD_NAME);
-		String antiRobot   = (String) getValue(ANTI_ROBOT_FIELD_NAME);
+		String username    = (String) getValue(out.getRequest(), USERNAME_FIELD_NAME);
+		String password    = (String) getValue(out.getRequest(), PASSWORD_FIELD_NAME);
+		String antiRobot   = (String) getValue(out.getRequest(), ANTI_ROBOT_FIELD_NAME);
 
 		if (StringUtils.isNotEmpty(antiRobot)) {
 
@@ -118,95 +110,51 @@ public class AppLogin extends ActionNode {
 
 		if (StringUtils.isEmpty(username)) {
 
-			setErrorValue(USERNAME_FIELD_NAME, "You must enter a username");
-			countLoginFailure(getMaxErrors(), getDelayThreshold(), getDelayTime());
-
+			setErrorValue(out.getRequest(), USERNAME_FIELD_NAME, "You must enter a username");
 			return (false);
 		}
 
 		if (StringUtils.isEmpty(password)) {
 
-			setErrorValue(PASSWORD_FIELD_NAME, "You must enter a password");
-			countLoginFailure(getMaxErrors(), getDelayThreshold(), getDelayTime());
-
+			setErrorValue(out.getRequest(), PASSWORD_FIELD_NAME, "You must enter a password");
 			return (false);
 		}
 
-		// Session is not blocked, and we have a username and a password
-		// First, check if we have a user with this name
-		User loginUser = (User) Services.command(FindUserCommand.class).execute(username);
 
-		// No matter what reason to deny login, always show the same error message to
-		// avoid giving hints
-		getErrorMessageValue().set(LOGIN_FAILURE_TEXT);
+		try {
+			out.getSecurityContext().doLogin(username, password);
 
-		if (loginUser == null) {
+		} catch(AuthenticationException aex) {
 
-			logger.log(Level.INFO, "No user found for name {0}", loginUser);
-			countLoginFailure(getMaxErrors(), getDelayThreshold(), getDelayTime());
-
-			return (false);
+			getErrorMessageValue().set(out.getRequest(), LOGIN_FAILURE_TEXT);
+			countLoginFailure(out.getRequest(), out.getRequest().getSession(), getMaxErrors(), getDelayThreshold(), getDelayTime());
+			return false;
 		}
-
-		// From here, we have a valid user
-		if (loginUser.isBlocked()) {
-
-			logger.log(Level.INFO, "User {0} is blocked", loginUser);
-			countLoginFailure(getMaxErrors(), getDelayThreshold(), getDelayTime());
-
-			return (false);
-		}
-
-		// Check password
-		String encryptedPasswordValue = DigestUtils.sha512Hex(password);
-
-		if (!encryptedPasswordValue.equals(loginUser.getEncryptedPassword())) {
-
-			logger.log(Level.INFO, "Wrong password for user {0}", loginUser);
-			countLoginFailure(getMaxErrors(), getDelayThreshold(), getDelayTime());
-
-			return (false);
-		}
-
-		// Username and password are both valid
-		CurrentSession.setGlobalUsername(loginUser.getName());
-		
-		// Set user object in session
-		CurrentSession.setUser(loginUser);
-
-		// Register user with internal session management
-		long sessionId = SessionMonitor.registerUserSession(CurrentSession.getSession());
-
-		SessionMonitor.logActivity(sessionId, "Login");
-
-		// Mark this session with the internal session id
-		CurrentSession.setAttribute(SessionMonitor.SESSION_ID, sessionId);
 
 		// Clear all blocking stuff
-		getSessionBlockedValue().set(false);
-		getLoginAttemptsValue().set(0);
-		getErrorMessageValue().set(null);
+		getSessionBlockedValue().set(out.getRequest(), false);
+		getLoginAttemptsValue().set(out.getRequest(), 0);
+		getErrorMessageValue().set(out.getRequest(), null);
 
 		// set success message
-		getOkMessageValue().set("Login successful.");
+		getOkMessageValue().set(out.getRequest(), "Login successful.");
 
 		// finally, return success
 		return (true);
 	}
 
 	// ----- private methods -----
-	private void countLoginFailure(int maxRetries, int delayThreshold, int delayTime) {
+	private void countLoginFailure(HttpServletRequest request, HttpSession session, int maxRetries, int delayThreshold, int delayTime) {
 
-		HttpSession session = CurrentRequest.getSession();
-		Integer retries     = getLoginAttemptsValue().get();
+		Integer retries     = getLoginAttemptsValue().get(request);
 
 		if ((retries != null) && (retries > maxRetries)) {
 
 			logger.log(Level.SEVERE, "More than {0} login failures, session {1} is blocked",
 				   new Object[] { maxRetries,
 						  session.getId() });
-			getSessionBlockedValue().set(true);
-			getErrorMessageValue().set(
+			getSessionBlockedValue().set(request, true);
+			getErrorMessageValue().set(request,
 			    "Too many unsuccessful login attempts, your session is blocked for login!");
 
 		} else if ((retries != null) && (retries > delayThreshold)) {
@@ -228,12 +176,12 @@ public class AppLogin extends ActionNode {
 			errorBuffer.append(" unsuccessful login attempts, execution was delayed by ");
 			errorBuffer.append(delayTime);
 			errorBuffer.append(" seconds.");
-			getErrorMessageValue().set(errorBuffer.toString());
+			getErrorMessageValue().set(request, errorBuffer.toString());
 
 		} else if (retries != null) {
-			getLoginAttemptsValue().set(getLoginAttemptsValue().get() + 1);
+			getLoginAttemptsValue().set(request, getLoginAttemptsValue().get(request) + 1);
 		} else {
-			getLoginAttemptsValue().set(1);
+			getLoginAttemptsValue().set(request, 1);
 		}
 	}
 

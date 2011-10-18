@@ -87,6 +87,10 @@
 		<servlet-name>ClickServlet</servlet-name>
 		<servlet-class>org.apache.click.ClickServlet</servlet-class>
 		<load-on-startup>1</load-on-startup>
+		<init-param>
+			<param-name>Authenticator</param-name>
+			<param-value>org.structr.core.auth.StructrAuthenticator</param-value>
+		</init-param>
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>ClickServlet</servlet-name>
@@ -103,6 +107,10 @@
 		<init-param>
 			<param-name>ConstraintProvider</param-name>
 			<param-value>org.structr.rest.constraint.StructrConstraintProvider</param-value>
+		</init-param>
+		<init-param>
+			<param-name>Authenticator</param-name>
+			<param-value>org.structr.rest.auth.RestAuthenticator</param-value>
 		</init-param>
 	</servlet>
 	<servlet-mapping>

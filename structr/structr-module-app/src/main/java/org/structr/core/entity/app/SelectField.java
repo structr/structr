@@ -23,9 +23,8 @@ import org.structr.common.SessionValue;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
-import org.structr.common.CurrentRequest;
-import org.structr.common.CurrentSession;
 import org.structr.common.RenderMode;
+import org.structr.common.RequestHelper;
 import org.structr.common.renderer.ExternalTemplateRenderer;
 import org.structr.core.NodeRenderer;
 
@@ -58,22 +57,21 @@ public class SelectField extends FormField implements InteractiveNode
 
 	// ----- interface InteractiveNode -----
 	@Override
-	public String getValue()
+	public String getValue(HttpServletRequest request)
 	{
-		HttpServletRequest request = CurrentRequest.getRequest();
 		String valueFromLastRequest = null;
 		String name = getName();
 		String ret = null;
 
 		// only return value from last request if we were redirected before
-		if(CurrentSession.isRedirected())
+		if(RequestHelper.isRedirected(request))
 		{
-			valueFromLastRequest = getLastValue().get();
+			valueFromLastRequest = getLastValue().get(request);
 
 		} else
 		{
 			// otherwise, clear value in session
-			getLastValue().set(null);
+			getLastValue().set(request, null);
 		}
 
 		if(request == null)
@@ -96,7 +94,7 @@ public class SelectField extends FormField implements InteractiveNode
 				} else
 				{
 					// store value in session, in case we get a redirect afterwards
-					getLastValue().set(ret);
+					getLastValue().set(request, ret);
 					return ret;
 				}
 
@@ -112,9 +110,9 @@ public class SelectField extends FormField implements InteractiveNode
 	}
 
 	@Override
-	public String getStringValue()
+	public String getStringValue(HttpServletRequest request)
 	{
-		Object value = getValue();
+		Object value = getValue(request);
 		return (value != null ? value.toString() : null);
 	}
 
@@ -142,21 +140,21 @@ public class SelectField extends FormField implements InteractiveNode
 	}
 
 	@Override
-	public void setErrorValue(Object errorValue)
+	public void setErrorValue(HttpServletRequest request, Object errorValue)
 	{
-		getErrorMessageValue().set(errorValue);
+		getErrorMessageValue().set(request, errorValue);
 	}
 
 	@Override
-	public Object getErrorValue()
+	public Object getErrorValue(HttpServletRequest request)
 	{
-		return (getErrorMessageValue().get());
+		return (getErrorMessageValue().get(request));
 	}
 
 	@Override
-	public String getErrorMessage()
+	public String getErrorMessage(HttpServletRequest request)
 	{
-		Object errorValue = getErrorValue();
+		Object errorValue = getErrorValue(request);
 		if(errorValue != null)
 		{
 			return (errorValue.toString());

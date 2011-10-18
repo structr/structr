@@ -36,6 +36,7 @@ import org.neo4j.graphdb.traversal.Traverser;
 import org.neo4j.kernel.Traversal;
 import org.structr.common.PropertyKey;
 import org.structr.common.RelType;
+import org.structr.common.SecurityContext;
 import org.structr.core.Command;
 import org.structr.core.Decorable;
 import org.structr.core.Decorator;
@@ -662,7 +663,7 @@ public class NodeList<T extends AbstractNode> extends AbstractNode implements It
     private Iterable<AbstractNode> getNodes() {
         return (new IterableAdapter<Node, AbstractNode>(
                 getRawNodes(),
-                new StructrNodeFactory()));
+                new StructrNodeFactory(securityContext)));
     }
 
     private Iterable<Node> getRawNodes() {

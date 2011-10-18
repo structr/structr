@@ -21,6 +21,7 @@
 
 package org.structr.core.entity.app;
 
+import javax.servlet.http.HttpServletRequest;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.CustomTypeNode;
 
@@ -45,7 +46,7 @@ public class DataNode extends CustomTypeNode {
 	}
 
 	@Override
-	public Iterable<AbstractNode> getDataNodes() {
+	public Iterable<AbstractNode> getDataNodes(HttpServletRequest request) {
 
 		// DataNode nodes should not return their child nodes
 		return null;

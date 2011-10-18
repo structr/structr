@@ -1,14 +1,13 @@
 package org.structr.core.renderer;
 
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.AbstractNodeComparator;
-import org.structr.common.CurrentRequest;
 import org.structr.common.RelType;
 import org.structr.common.RenderMode;
 import org.structr.common.SecurityContext;
@@ -41,7 +40,7 @@ public class NodeListRenderer extends NodeViewRenderer
 	@Override
 	public void renderNode(StructrOutputStream out, AbstractNode currentNode, AbstractNode startNode, String editUrl, Long editNodeId, RenderMode renderMode)
 	{
-		SecurityContext securityContext = CurrentRequest.getSecurityContext();
+		SecurityContext securityContext = out.getSecurityContext();
 		if(securityContext.isVisible(currentNode)) {
 
 			if(currentNode.hasTemplate())
@@ -51,14 +50,14 @@ public class NodeListRenderer extends NodeViewRenderer
 
 				if(StringUtils.isNotBlank(html))
 				{
-					init(currentNode);
+					init(out.getRequest(), currentNode);
 
 					List<AbstractNode> nodesToRender = new LinkedList<AbstractNode>();
 
 					// iterate over children following the DATA relationship and collect all nodes
 					for(AbstractNode container : currentNode.getDirectChildren(RelType.DATA))
 					{
-						collectDataNodes(container, nodesToRender, 0, 255);
+						collectDataNodes(out.getRequest(), container, nodesToRender, 0, 255);
 					}
 
 					//Collections.sort(nodesToRender, new AbstractNodeComparator(AbstractNode.toGetter(sortKey), sortOrder));
@@ -97,11 +96,11 @@ public class NodeListRenderer extends NodeViewRenderer
 	}
 
 	// ----- private methods -----
-	private void collectDataNodes(AbstractNode rootNode, List<AbstractNode> nodesToRender, int depth, int maxDepth) {
+	private void collectDataNodes(HttpServletRequest request, AbstractNode rootNode, List<AbstractNode> nodesToRender, int depth, int maxDepth) {
 		
 		if(rootNode != null && depth < maxDepth) {
 			
-			Iterable<AbstractNode> iterable = rootNode.getDataNodes();
+			Iterable<AbstractNode> iterable = rootNode.getDataNodes(request);
 			if(iterable != null) {
 				
 				Iterator<AbstractNode> iter = iterable.iterator();
@@ -110,7 +109,7 @@ public class NodeListRenderer extends NodeViewRenderer
 					for(AbstractNode dataNode : iterable) {
 
 						// recurse deeper
-						collectDataNodes(dataNode, nodesToRender, depth+1, maxDepth);
+						collectDataNodes(request, dataNode, nodesToRender, depth+1, maxDepth);
 					}
 					
 				} else {
@@ -131,12 +130,12 @@ public class NodeListRenderer extends NodeViewRenderer
 		}
 	}
 	
-	private void init(AbstractNode node)
+	private void init(HttpServletRequest request, AbstractNode node)
 	{
 
-		sortKey = getStringParameterValue(node, SORT_KEY_PARAMETER_NAME_KEY, sortKeyParameterName, sortKey);
-		sortOrder = getStringParameterValue(node, SORT_ORDER_PARAMETER_NAME_KEY, sortOrderParameterName, sortOrder);
-		pageNo = getIntParameterValue(node, PAGE_NO_PARAMETER_NAME_KEY, pageNoParameterName, pageNo);
+		sortKey = getStringParameterValue(request, node, SORT_KEY_PARAMETER_NAME_KEY, sortKeyParameterName, sortKey);
+		sortOrder = getStringParameterValue(request, node, SORT_ORDER_PARAMETER_NAME_KEY, sortOrderParameterName, sortOrder);
+		pageNo = getIntParameterValue(request, node, PAGE_NO_PARAMETER_NAME_KEY, pageNoParameterName, pageNo);
 		if(pageNo < 1)
 		{
 			pageNo = 1;
@@ -146,7 +145,7 @@ public class NodeListRenderer extends NodeViewRenderer
 			pageSize = 1;
 		}
 
-		pageSize = getIntParameterValue(node, PAGE_SIZE_PARAMETER_NAME_KEY, pageSizeParameterName, pageSize);
+		pageSize = getIntParameterValue(request, node, PAGE_SIZE_PARAMETER_NAME_KEY, pageSizeParameterName, pageSize);
 
 		lastPage = Math.abs(getSize(node) / pageSize);
 		if(getSize(node) % pageSize > 0)
@@ -155,7 +154,7 @@ public class NodeListRenderer extends NodeViewRenderer
 		}
 	}
 
-	private String getStringParameterValue(final AbstractNode node, final String namePropertyKey, final String defaultParameterName, final String defaultValue)
+	private String getStringParameterValue(HttpServletRequest request, final AbstractNode node, final String namePropertyKey, final String defaultParameterName, final String defaultValue)
 	{
 		String nameValue = defaultParameterName;
 		String propertyValue = node.getStringProperty(namePropertyKey);
@@ -166,7 +165,7 @@ public class NodeListRenderer extends NodeViewRenderer
 		String value = defaultValue;
 		if(StringUtils.isNotEmpty(nameValue))
 		{
-			String parameterValue = CurrentRequest.getRequest().getParameter(nameValue);
+			String parameterValue = request.getParameter(nameValue);
 			if(StringUtils.isNotEmpty(parameterValue))
 			{
 				value = parameterValue;
@@ -175,7 +174,7 @@ public class NodeListRenderer extends NodeViewRenderer
 		return value;
 	}
 
-	private int getIntParameterValue(final AbstractNode node, final String namePropertyKey, final String defaultParameterName, final int defaultValue)
+	private int getIntParameterValue(HttpServletRequest request, final AbstractNode node, final String namePropertyKey, final String defaultParameterName, final int defaultValue)
 	{
 		String nameValue = defaultParameterName;
 		String propertyValue = node.getStringProperty(namePropertyKey);
@@ -186,7 +185,7 @@ public class NodeListRenderer extends NodeViewRenderer
 		int value = defaultValue;
 		if(StringUtils.isNotEmpty(nameValue))
 		{
-			String parameterValue = CurrentRequest.getRequest().getParameter(nameValue);
+			String parameterValue = request.getParameter(nameValue);
 			if(StringUtils.isNotEmpty(parameterValue))
 			{
 				value = Integer.parseInt(parameterValue);
@@ -195,11 +194,11 @@ public class NodeListRenderer extends NodeViewRenderer
 		return value;
 	}
 
-	public int getLastPageNo(AbstractNode node)
+	public int getLastPageNo(HttpServletRequest request, AbstractNode node)
 	{
 		if(lastPage == -1)
 		{
-			init(node);
+			init(request, node);
 		}
 		return lastPage;
 	}
@@ -217,10 +216,10 @@ public class NodeListRenderer extends NodeViewRenderer
 		return size;
 	}
 
-	private String getPager(AbstractNode node)
+	private String getPager(HttpServletRequest request, AbstractNode node)
 	{
 		StringBuilder out = new StringBuilder();
-		init(node);
+		init(request, node);
 
 		out.append("<ul>");
 

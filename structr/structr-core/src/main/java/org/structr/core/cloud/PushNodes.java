@@ -152,7 +152,7 @@ public class PushNodes extends CloudServiceCommand
 		// add GUI notification
 		StringBuilder titleBuffer = new StringBuilder();
 		titleBuffer.append("Transmission to ").append(remoteHost).append(":").append(remoteTcpPort);
-		ProgressBarNotification progressNotification = new ProgressBarNotification(titleBuffer.toString());
+		ProgressBarNotification progressNotification = new ProgressBarNotification(securityContext, titleBuffer.toString());
 		Services.command(AddNotificationCommand.class).execute(progressNotification);
 		
 		// enable notifications to be passed to UI

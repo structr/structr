@@ -52,6 +52,7 @@ import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.CustomTypeNode;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.User;
 import org.structr.core.module.GetEntitiesCommand;
 import org.structr.core.module.GetEntityClassCommand;
 import org.structr.core.node.CreateNodeCommand;
@@ -185,7 +186,7 @@ public class Report extends Nodes {
         if (reportForm.isValid()) {
             // Always filter by type
             searchAttributes.add(Search.andExactType(resultType));
-            searchResults = (List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(user, null, false, false, searchAttributes);
+            searchResults = (List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(securityContext, null, false, false, searchAttributes);
             populateReportResultsTable();
             saveState();
         }
@@ -296,7 +297,7 @@ public class Report extends Nodes {
 
             // Always filter by type
             searchAttributes.add(Search.andExactType(resultType));
-            reportResults = (List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(user, null, false, false, searchAttributes);
+            reportResults = (List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(securityContext, null, false, false, searchAttributes);
             populateReportResultsTable();
             saveState();
 
@@ -405,6 +406,7 @@ public class Report extends Nodes {
                     // Save report in database
                     Command createNode = Services.command(CreateNodeCommand.class);
                     Command createRel = Services.command(CreateRelationshipCommand.class);
+		    User user = securityContext.getUser();
 
                     // create node with appropriate type
                     AbstractNode newNode = (AbstractNode) createNode.execute(new NodeAttribute(AbstractNode.Key.type.name(), File.class.getSimpleName()), user);

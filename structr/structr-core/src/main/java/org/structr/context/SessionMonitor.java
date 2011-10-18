@@ -21,7 +21,6 @@
 
 package org.structr.context;
 
-import org.structr.common.CurrentSession;
 import org.structr.common.RelType;
 import org.structr.core.Command;
 import org.structr.core.Services;
@@ -49,6 +48,7 @@ import java.util.logging.Logger;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import org.structr.common.SecurityContext;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -76,9 +76,9 @@ public class SessionMonitor {
 	/**
 	 * Register user in servlet context
 	 */
-	public static long registerUserSession(final HttpSession session) {
+	public static long registerUserSession(final SecurityContext securityContext, final HttpSession session) {
 
-		User user = CurrentSession.getUser();
+		User user = securityContext.getUser();
 
 		init(session.getServletContext());
 
@@ -108,17 +108,18 @@ public class SessionMonitor {
 	/**
 	 * Append an activity to the activity list
 	 *
+	 * @param securityContext the current security context, can be null
 	 * @param sessionId
 	 * @param action
 	 */
-	public static void logActivity(final long sessionId, final String action) {
+	public static void logActivity(final SecurityContext securityContext, final long sessionId, final String action) {
 
 		if (!(Services.isAvailable(LogService.class))) {
 			return;
 		}
 
+		User user = securityContext != null ? securityContext.getUser() : null;
 		Date now  = new Date();
-		User user = CurrentSession.getUser();
 
 		// Create a "dirty" activity node
 		Activity activity = new Activity();
@@ -145,7 +146,7 @@ public class SessionMonitor {
 	 * @param sessionId
 	 * @param action
 	 */
-	public static void logPageRequest(final long sessionId, final String action, final HttpServletRequest request) {
+	public static void logPageRequest(final SecurityContext securityContext, final long sessionId, final String action, final HttpServletRequest request) {
 
 		if (!(Services.isAvailable(LogService.class))) {
 			return;
@@ -153,7 +154,7 @@ public class SessionMonitor {
 
 		long t0   = System.currentTimeMillis();
 		Date now  = new Date();
-		User user = CurrentSession.getUser();
+		User user = securityContext.getUser();
 
 		// Create a "dirty" page request node
 		PageRequest pageRequest = new PageRequest();

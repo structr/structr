@@ -32,6 +32,7 @@ import org.structr.core.agent.ConversionTask;
 import org.structr.core.agent.ProcessTaskCommand;
 import org.structr.core.entity.CsvFile;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.User;
 import org.structr.core.module.GetEntitiesCommand;
 import org.structr.core.module.GetEntityClassCommand;
 
@@ -94,6 +95,7 @@ public class EditCsvFile extends EditFile {
                 return true;
             }
 
+	    User user = securityContext.getUser();
             Class nodeClass = (Class) Services.command(GetEntityClassCommand.class).execute(className);
             Services.command(ProcessTaskCommand.class).execute(new ConversionTask(user, csvNode, nodeClass));
 //            Services.command(ConvertCsvToNodeListCommand.class).execute(user, csvNode, nodeClass);

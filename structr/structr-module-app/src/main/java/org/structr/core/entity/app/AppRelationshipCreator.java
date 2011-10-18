@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.servlet.http.HttpServletRequest;
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
@@ -47,8 +48,8 @@ public class AppRelationshipCreator extends ActionNode
 	public boolean doAction(final StructrOutputStream out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
 	{
 		String relType = getStringProperty(TARGET_REL_TYPE);
-		AbstractNode relStartNode = getNodeFromNamedSource("startNode");
-		AbstractNode relEndNode = getNodeFromNamedSource("endNode");
+		AbstractNode relStartNode = getNodeFromNamedSource(out.getRequest(), "startNode");
+		AbstractNode relEndNode = getNodeFromNamedSource(out.getRequest(), "endNode");
 
 		if(relType == null)
 		{
@@ -125,7 +126,7 @@ public class AppRelationshipCreator extends ActionNode
 	}
 
 	// ----- private methods -----
-	private AbstractNode getNodeFromNamedSource(String name)
+	private AbstractNode getNodeFromNamedSource(HttpServletRequest request, String name)
 	{
 		List<StructrRelationship> rels = getIncomingDataRelationships();
 		AbstractNode ret = null;
@@ -141,7 +142,7 @@ public class AppRelationshipCreator extends ActionNode
 					if(name.equals(targetSlot))
 					{
 						NodeSource source = (NodeSource)node;
-						ret = source.loadNode();
+						ret = source.loadNode(request);
 						break;
 					}
 				}

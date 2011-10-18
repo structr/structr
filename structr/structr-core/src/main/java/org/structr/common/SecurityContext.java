@@ -21,6 +21,7 @@
 
 package org.structr.common;
 
+import org.structr.core.auth.AuthenticationException;
 import org.structr.core.entity.StructrRelationship;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
@@ -30,12 +31,19 @@ import org.structr.core.entity.User;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.servlet.ServletConfig;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+import org.structr.core.Services;
+import org.structr.core.auth.Authenticator;
+import org.structr.core.auth.AuthenticatorCommand;
 
 //~--- classes ----------------------------------------------------------------
 
 /**
  * Encapsulates the current user and access path and provides methods
- * to query permission flags for a given node.
+ * to query permission flags for a given node. This is the place where
+ * HttpServletRequest and Authenticator get together.
  *
  *
  * @author Christian Morgner
@@ -47,15 +55,57 @@ public class SecurityContext {
 	//~--- fields ---------------------------------------------------------
 
 	private AccessMode accessMode = AccessMode.Frontend;
+	private Authenticator authenticator = null;
+	private HttpServletRequest request = null;
 
 	//~--- constructors ---------------------------------------------------
 
-	public SecurityContext() {}
+	private SecurityContext(ServletConfig config, HttpServletRequest request, AccessMode accessMode) {
+		this.accessMode = accessMode;
+		this.request = request;
+
+		this.authenticator = (Authenticator)Services.command(AuthenticatorCommand.class).execute(config);
+
+	}
+
+	public User doLogin(String userName, String password) throws AuthenticationException {
+		return authenticator.doLogin(request, userName, password);
+	}
+
+	public void doLogout() {
+		authenticator.doLogout(request);
+	}
 
 	//~--- get methods ----------------------------------------------------
 
-	private User getUser() {
-		return CurrentSession.getUser();
+	public static SecurityContext getSuperUserInstance() {
+		return null;
+		// FIXME
+	}
+
+	public static SecurityContext getInstance(ServletConfig config, HttpServletRequest request, AccessMode accessMode) {
+		return new SecurityContext(config, request, accessMode);
+	}
+
+	public HttpSession getSession() {
+		return request.getSession();
+	}
+
+	public User getUser() {
+		return authenticator.getUser(request);
+	}
+
+	public String getUserName() {
+		User user = getUser();
+		if(user != null) {
+			return user.getName();
+		}
+
+		return null;
+	}
+
+	public void setAccessMode(AccessMode accessMode) {
+		this.accessMode = accessMode;
 	}
 
 	public AccessMode getAccessMode() {
@@ -327,11 +377,5 @@ public class SecurityContext {
 			default :
 				return false;
 		}
-	}
-
-	//~--- set methods ----------------------------------------------------
-
-	public void setAccessMode(AccessMode accessMode) {
-		this.accessMode = accessMode;
 	}
 }

@@ -104,7 +104,7 @@ public class CreateValidatedNodeCommand extends NodeServiceCommand {
 			String nodeType = typeObject != null ? typeObject.toString() : "GenericNode";
 
 			// Create node with type
-			node = nodeFactory.createNode(graphDb.createNode(), nodeType);
+			node = nodeFactory.createNode(securityContext, graphDb.createNode(), nodeType);
 			Class nodeClass = node.getClass();
 
 

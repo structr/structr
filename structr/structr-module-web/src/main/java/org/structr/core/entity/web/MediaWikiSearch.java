@@ -21,7 +21,6 @@
 
 package org.structr.core.entity.web;
 
-import org.structr.common.CurrentRequest;
 import org.structr.common.PropertyKey;
 import org.structr.core.TemporaryValue;
 import org.structr.core.entity.AbstractNode;
@@ -37,9 +36,11 @@ import java.util.LinkedList;
 import java.util.List;
 
 import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import org.structr.common.RequestHelper;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -58,10 +59,10 @@ public class MediaWikiSearch extends AbstractNode {
 	//~--- get methods ----------------------------------------------------
 
 	@Override
-	public Iterable<AbstractNode> getDataNodes() {
+	public Iterable<AbstractNode> getDataNodes(HttpServletRequest request) {
 
 		// content is cached in servlet context
-		ServletContext context       = CurrentRequest.getRequest().getSession().getServletContext();
+		ServletContext context       = securityContext.getSession().getServletContext();
 		List<AbstractNode> dataNodes = null;
 
 		// TODO: synchronization
@@ -78,7 +79,7 @@ public class MediaWikiSearch extends AbstractNode {
 //                      }
 //
 //                      if ((value.getStoredValue() == null) || value.isExpired()) {
-			dataNodes = getContentFromSource();
+			dataNodes = getContentFromSource(request);
 
 //                      value.refreshStoredValue(ret);
 //
@@ -96,11 +97,11 @@ public class MediaWikiSearch extends AbstractNode {
 	}
 
 	// ----- private methods ----
-	private LinkedList<AbstractNode> getContentFromSource() {
+	private LinkedList<AbstractNode> getContentFromSource(HttpServletRequest request) {
 
 		LinkedList<AbstractNode> nodeList = new LinkedList<AbstractNode>();
 		String source                     = getStringProperty(Key.baseUrl);
-		String nodePath                   = CurrentRequest.getCurrentNodePath();
+		String nodePath                   = RequestHelper.getCurrentNodePath(request);
 		String search                     = null;
 
 		if (nodePath != null) {

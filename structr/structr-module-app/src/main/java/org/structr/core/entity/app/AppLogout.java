@@ -20,7 +20,6 @@ package org.structr.core.entity.app;
 
 import java.util.Map;
 import javax.servlet.http.HttpSession;
-import org.structr.common.CurrentRequest;
 import org.structr.common.StructrOutputStream;
 import org.structr.core.entity.AbstractNode;
 
@@ -41,7 +40,7 @@ public class AppLogout extends ActionNode
 	@Override
 	public boolean doAction(final StructrOutputStream out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
 	{
-		HttpSession session = CurrentRequest.getSession();
+		HttpSession session = out.getSecurityContext().getSession();
 		if(session != null)
 		{
 			session.invalidate();

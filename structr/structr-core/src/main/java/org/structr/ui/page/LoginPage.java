@@ -24,7 +24,6 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.click.Page;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.click.control.Form;
 import org.apache.click.control.HiddenField;
 import org.apache.click.control.Panel;
@@ -33,15 +32,14 @@ import org.apache.click.control.Submit;
 import org.apache.click.control.TextField;
 import org.apache.click.extras.tree.TreeNode;
 import org.apache.commons.lang.StringUtils;
-import org.structr.common.CurrentSession;
 import org.structr.context.SessionMonitor;
 import org.structr.core.Command;
 import org.structr.core.Services;
+import org.structr.core.auth.AuthenticationException;
+import org.structr.core.auth.StructrAuthenticator;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
 import org.structr.core.node.FindNodeCommand;
-import org.structr.core.node.FindUserCommand;
 import org.structr.ui.page.admin.Admin;
 
 /**
@@ -50,185 +48,145 @@ import org.structr.ui.page.admin.Admin;
  */
 public class LoginPage extends Admin {
 
-    private static final Logger logger = Logger.getLogger(LoginPage.class.getName());
-    //private final static String DOMAIN_KEY = "domain";
-    private final static String PASSWORD_KEY = "password";
-    protected Panel loginPanel = new Panel("loginPanel", "/panel/login-panel.htm");
-    protected Form loginForm = new Form("loginForm");
+	private static final Logger logger = Logger.getLogger(LoginPage.class.getName());
+	//private final static String DOMAIN_KEY = "domain";
+	private final static String PASSWORD_KEY = "password";
+	protected Panel loginPanel = new Panel("loginPanel", "/panel/login-panel.htm");
+	protected Form loginForm = new Form("loginForm");
 
-    // use template for backend pages
-    @Override
-    public String getTemplate() {
-        return "/login.htm";
-    }
+	// use template for backend pages
+	@Override
+	public String getTemplate() {
+		return "/login.htm";
+	}
 
-    public LoginPage() {
+	public LoginPage() {
 
-        super();
+		super();
 
-        title = "Login";
+		title = "Login";
 
-        //loginForm.add(new TextField(DOMAIN_KEY, true));
-        loginForm.add(new TextField(USERNAME_KEY, "Username", 20, true));
-        loginForm.add(new PasswordField(PASSWORD_KEY, "Password", 20, true));
-        loginForm.add(new Submit("login", "Login Now!", this, "onLogin"));
-        addControl(loginForm);
-        addControl(loginPanel);
+		//loginForm.add(new TextField(DOMAIN_KEY, true));
+		loginForm.add(new TextField(StructrAuthenticator.USERNAME_KEY, "Username", 20, true));
+		loginForm.add(new PasswordField(PASSWORD_KEY, "Password", 20, true));
+		loginForm.add(new Submit("login", "Login Now!", this, "onLogin"));
+		addControl(loginForm);
+		addControl(loginPanel);
 
-    }
+	}
 
-    @Override
-    public void onInit() {
-        super.onInit();
-        loginForm.add(new HiddenField(RETURN_URL_KEY, returnUrl != null ? returnUrl : ""));
+	@Override
+	public void onInit() {
+		super.onInit();
+		loginForm.add(new HiddenField(RETURN_URL_KEY, returnUrl != null ? returnUrl : ""));
 
-    }
+	}
 
-    /**
-     * @see Page#onSecurityCheck()
-     */
-    @Override
-    public boolean onSecurityCheck() {
-        //userName = (String) getContext().getRequest().getSession().getAttribute(USERNAME_KEY);
-        userName = getUsernameFromSession();
+	/**
+	 * @see Page#onSecurityCheck()
+	 */
+	@Override
+	public boolean onSecurityCheck() {
+		//userName = (String) getContext().getRequest().getSession().getAttribute(USERNAME_KEY);
+		String userName = securityContext.getUserName();
 
-        if (userName != null) {
-            initFirstPage();
-            return false;
-        } else {
-            return true;
-        }
-    }
+		if(userName != null) {
+			initFirstPage();
+			return false;
+		} else {
+			return true;
+		}
+	}
 
-    public boolean onLogin() {
+	public boolean onLogin() {
 
-        if (loginForm.isValid()) {
+		if(loginForm.isValid()) {
 
-            //String domainValue = loginForm.getFieldValue(DOMAIN_KEY);
-            String userValue = loginForm.getFieldValue(USERNAME_KEY);
-            returnUrl = loginForm.getFieldValue(RETURN_URL_KEY);
-            String passwordValue = loginForm.getFieldValue(PASSWORD_KEY);
+			//String domainValue = loginForm.getFieldValue(DOMAIN_KEY);
+			String userValue = loginForm.getFieldValue(StructrAuthenticator.USERNAME_KEY);
+			returnUrl = loginForm.getFieldValue(RETURN_URL_KEY);
+			String passwordValue = loginForm.getFieldValue(PASSWORD_KEY);
 
-             // disable redundant initialization on login (whis is this here?)
-            // Services.initialize();
+			try {
 
-            if (SUPERADMIN_USERNAME_KEY.equals(userValue) && SUPERADMIN_PASSWORD_KEY.equals(passwordValue)) {
+				securityContext.doLogin(userValue, passwordValue);
+				if(SUPERADMIN_USERNAME_KEY.equals(userValue) && SUPERADMIN_PASSWORD_KEY.equals(passwordValue)) {
 
-                logger.log(Level.INFO, "############# Logged in as superadmin! ############");
-                userName = SUPERADMIN_USERNAME_KEY;
-                isSuperUser = true;
+					logger.log(Level.INFO, "############# Logged in as superadmin! ############");
+					isSuperUser = true;
 
-                user = new SuperUser();
-                CurrentSession.setUser(user) ;
-                //getContext().getRequest().getSession().setAttribute(USERNAME_KEY, userValue);
-                setUsernameInSession(userValue);
+					// redirect superuser to maintenance
+					setRedirect("/admin/dashboard.htm");
 
-                // redirect superuser to maintenance
-                setRedirect("/admin/dashboard.htm");
+				} else {
 
-            } else {
+					initFirstPage();
 
-                Command findUser = Services.command(FindUserCommand.class);
+				}
 
-                user = (User) findUser.execute(userValue);//, domainValue);
+			} catch(AuthenticationException aex) {
 
-//                if (domainValue == null) {
-//                    logger.log(Level.INFO, "No domain at login");
-//                    errorMsg = "No domain";
-//                    return true;
-//                }
+				// TODO: do logging here instead of on authenticator
+				return true;
+			}
 
-                if (user == null) {
-                    logger.log(Level.INFO, "No user found for name {0}", user);
-                    errorMsg = "Wrong username or password, or user is blocked. Check caps lock. Note: Username is case sensitive!";
-                    return true;
-                }
+			// Register user with internal session management
+			sessionId = SessionMonitor.registerUserSession(securityContext, getContext().getSession());
+			SessionMonitor.logActivity(securityContext, sessionId, "Login");
 
-                if (user.isBlocked()) {
-                    logger.log(Level.INFO, "User {0} is blocked", user);
-                    errorMsg = "Wrong username or password, or user is blocked. Check caps lock. Note: Username is case sensitive!";
-                    return true;
-                }
+			// Mark this session with the internal session id
+			//getContext().getRequest().getSession().setAttribute(SessionMonitor.SESSION_ID, sessionId);
+			getContext().getSession().setAttribute(SessionMonitor.SESSION_ID, sessionId);
 
-                if (passwordValue == null) {
-                    logger.log(Level.INFO, "Password for user {0} is null", user);
-                    errorMsg = "You should enter a password.";
-                    return true;
-                }
+			return false;
 
-                String encryptedPasswordValue = DigestUtils.sha512Hex(passwordValue);
+		}
 
-                if (!encryptedPasswordValue.equals(user.getEncryptedPassword())) {
-                    logger.log(Level.INFO, "Wrong password for user {0}", user);
-                    errorMsg = "Wrong username or password, or user is blocked. Check caps lock. Note: Username is case sensitive!";
-                    return true;
-                }
+		return true;
+	}
 
-                // username and password are both valid
-                userName = userValue;
-                CurrentSession.setUser(user) ;
-                setUsernameInSession(userValue);
-                //getContext().getRequest().getSession().setAttribute(USERNAME_KEY, userValue);
+	private void initFirstPage() {
 
-                initFirstPage();
+		User user = securityContext.getUser();
+		
+		// if a return URL is present, use it
+		if(returnUrl != null && StringUtils.isNotBlank(returnUrl)) {
 
-            }
-            
-            // Register user with internal session management
-            sessionId = SessionMonitor.registerUserSession(getContext().getSession());
-            SessionMonitor.logActivity(sessionId, "Login");
+			setRedirect(returnUrl);
 
-            // Mark this session with the internal session id
-            //getContext().getRequest().getSession().setAttribute(SessionMonitor.SESSION_ID, sessionId);
-            CurrentSession.setAttribute(SessionMonitor.SESSION_ID, sessionId);
+		} else {
 
-            return false;
+			String startNodeId = getNodeId();
+			if(startNodeId == null) {
+				startNodeId = restoreLastVisitedNodeFromUserProfile();
+				nodeId = startNodeId;
+			}
 
-        }
+			Map<String, String> parameters = new HashMap<String, String>();
+			parameters.put(NODE_ID_KEY, String.valueOf(getNodeId()));
 
-        return true;
-    }
+			// default after login is edit mode
+			Class<? extends Page> editPage = getEditPageClass(getNodeByIdOrPath(nodeId));
+			setRedirect(editPage, parameters);
+		}
 
-    private void initFirstPage() {
+		long[] expandedNodesArray = getExpandedNodesFromUserProfile();
+		if(expandedNodesArray != null && expandedNodesArray.length > 0) {
 
-        // if a return URL is present, use it
-        if (returnUrl != null && StringUtils.isNotBlank(returnUrl)) {
+			openNodes = new LinkedList<TreeNode>();
 
-            setRedirect(returnUrl);
+			Command findNode = Services.command(FindNodeCommand.class);
+			for(Long s : expandedNodesArray) {
 
-        } else {
+				AbstractNode n = (AbstractNode)findNode.execute(user, s);
+				if(n != null) {
+					//openNodes.add(new TreeNode(String.valueOf(n.getId())));
+					openNodes.add(new TreeNode(n, String.valueOf(n.getId())));
+				}
 
-            String startNodeId = getNodeId();
-            if (startNodeId == null) {
-                startNodeId = restoreLastVisitedNodeFromUserProfile();
-                nodeId = startNodeId;
-            }
-
-            Map<String, String> parameters = new HashMap<String, String>();
-            parameters.put(NODE_ID_KEY, String.valueOf(getNodeId()));
-
-            // default after login is edit mode
-            Class<? extends Page> editPage = getEditPageClass(getNodeByIdOrPath(nodeId));
-            setRedirect(editPage, parameters);
-        }
-
-        long[] expandedNodesArray = getExpandedNodesFromUserProfile();
-        if (expandedNodesArray != null && expandedNodesArray.length > 0) {
-
-            openNodes = new LinkedList<TreeNode>();
-
-            Command findNode = Services.command(FindNodeCommand.class);
-            for (Long s : expandedNodesArray) {
-
-                AbstractNode n = (AbstractNode) findNode.execute(user, s);
-                if (n != null) {
-                    //openNodes.add(new TreeNode(String.valueOf(n.getId())));
-                    openNodes.add(new TreeNode(n, String.valueOf(n.getId())));
-                }
-
-            }
-            // fill session
-            CurrentSession.setAttribute(EXPANDED_NODES_KEY, openNodes);
-        }
-    }
+			}
+			// fill session
+			getContext().getSession().setAttribute(EXPANDED_NODES_KEY, openNodes);
+		}
+	}
 }

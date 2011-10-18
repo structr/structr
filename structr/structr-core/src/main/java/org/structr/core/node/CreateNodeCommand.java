@@ -105,7 +105,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 			}
 
 			// Create node with type
-			node = nodeFactory.createNode(graphDb.createNode(), nodeType);
+			node = nodeFactory.createNode(securityContext, graphDb.createNode(), nodeType);
 			logger.log(Level.FINE, "Node {0} created", node.getId());
 
 			for (NodeAttribute attr : attrs) {

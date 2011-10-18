@@ -1,6 +1,5 @@
 package org.structr.common.renderer;
 
-import org.structr.common.CurrentRequest;
 import org.structr.common.RenderMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.StructrOutputStream;
@@ -27,7 +26,7 @@ public class ImageSourceRenderer implements NodeRenderer<Image>
 		}
 
 		// FIXME: title shoud be rendered dependent of locale
-		SecurityContext securityContext = CurrentRequest.getSecurityContext();
+		SecurityContext securityContext = out.getSecurityContext();
 		if(securityContext.isVisible(currentNode)) {
 
 			String title = currentNode.getTitle();

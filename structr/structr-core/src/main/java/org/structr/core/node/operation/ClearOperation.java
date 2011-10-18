@@ -19,7 +19,7 @@
 
 package org.structr.core.node.operation;
 
-import org.structr.common.CurrentSession;
+import org.structr.common.SecurityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.NodeConsoleCommand;
 
@@ -29,10 +29,12 @@ import org.structr.core.node.NodeConsoleCommand;
  */
 public class ClearOperation implements PrimaryOperation {
 
+	private SecurityContext securityContext = null;
+
 	@Override
 	public boolean executeOperation(StringBuilder stdOut) throws NodeCommandException {
 
-		CurrentSession.getSession().removeAttribute(NodeConsoleCommand.CONSOLE_BUFFER_KEY);
+		securityContext.getSession().removeAttribute(NodeConsoleCommand.CONSOLE_BUFFER_KEY);
 
 		return(true);
 	}
@@ -83,5 +85,10 @@ public class ClearOperation implements PrimaryOperation {
 	public void addParameter(Object parameter) throws InvalidParameterException {
 
 		throw new InvalidParameterException("CLEAR does not take parameters");
+	}
+
+	@Override
+	public void setSecurityContext(SecurityContext securityContext) {
+		this.securityContext = securityContext;
 	}
 }
