@@ -39,7 +39,7 @@ public class LogoutRenderer implements NodeRenderer<Logout>
 			return;
 		}
 
-		String usernameFromSession = (String)session.getAttribute(WebNode.USERNAME_KEY);
+		String usernameFromSession = (String)session.getAttribute(WebNode.Key.username.name());
 //            String usernameFromSession = CurrentSession.getGlobalUsername();
 		Boolean alreadyLoggedIn = usernameFromSession != null;
 
@@ -65,7 +65,7 @@ public class LogoutRenderer implements NodeRenderer<Logout>
 
 		// Clear username in session
 		CurrentSession.setGlobalUsername(null);
-		session.setAttribute(WebNode.USERNAME_KEY, null);
+		session.setAttribute(WebNode.Key.username.name(), null);
 
 		// Invalidate (destroy) session
 		session.invalidate();

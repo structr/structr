@@ -24,6 +24,8 @@ package org.structr.core.entity;
 import org.structr.common.PropertyView;
 import org.structr.core.EntityContext;
 
+//~--- classes ----------------------------------------------------------------
+
 /**
  *
  * @author axel
@@ -31,9 +33,14 @@ import org.structr.core.EntityContext;
 public class GenericNode extends AbstractNode {
 
 	static {
-		EntityContext.registerPropertySet(GenericNode.class, PropertyView.All);
+
+		EntityContext.registerPropertySet(GenericNode.class,
+						  PropertyView.All,
+						  Key.values());
 	}
-	
+
+	//~--- get methods ----------------------------------------------------
+
 	@Override
 	public String getIconSrc() {
 		return "/images/error.png";

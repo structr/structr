@@ -223,7 +223,7 @@ public class SecurityContext {
 			// frontend user
 			if (user.isFrontendUser()) {
 
-				return node.hasPermission(StructrRelationship.READ_KEY, user);
+				return node.hasPermission(StructrRelationship.Permission.read.name(), user);
 			}
 		}
 
@@ -269,38 +269,38 @@ public class SecurityContext {
 
 				r = node.getSecurityRelationship(user);
 
-				if ((r != null) && r.isAllowed(StructrRelationship.ACCESS_CONTROL_KEY)) {
+				if ((r != null) && r.isAllowed(StructrRelationship.Permission.accessControl.name())) {
 					return true;
 				}
 
 				return false;
 
 			case CreateNode :
-				return node.hasPermission(StructrRelationship.CREATE_SUBNODE_KEY, user);
+				return node.hasPermission(StructrRelationship.Permission.createNode.name(), user);
 
 			case CreateRelationship :
-				return node.hasPermission(StructrRelationship.ADD_RELATIONSHIP_KEY, user);
+				return node.hasPermission(StructrRelationship.Permission.addRelationship.name(), user);
 
 			case DeleteNode :
-				return node.hasPermission(StructrRelationship.DELETE_NODE_KEY, user);
+				return node.hasPermission(StructrRelationship.Permission.deleteNode.name(), user);
 
 			case DeleteRelationship :
-				return node.hasPermission(StructrRelationship.REMOVE_RELATIONSHIP_KEY, user);
+				return node.hasPermission(StructrRelationship.Permission.removeRelationship.name(), user);
 
 			case EditProperty :
-				return node.hasPermission(StructrRelationship.EDIT_PROPERTIES_KEY, user);
+				return node.hasPermission(StructrRelationship.Permission.editProperties.name(), user);
 
 			case Execute :
-				return node.hasPermission(StructrRelationship.EXECUTE_KEY, user);
+				return node.hasPermission(StructrRelationship.Permission.execute.name(), user);
 
 			case Read :
-				return node.hasPermission(StructrRelationship.READ_KEY, user);
+				return node.hasPermission(StructrRelationship.Permission.read.name(), user);
 
 			case ShowTree :
-				return node.hasPermission(StructrRelationship.SHOW_TREE_KEY, user);
+				return node.hasPermission(StructrRelationship.Permission.showTree.name(), user);
 
 			case Write :
-				return node.hasPermission(StructrRelationship.WRITE_KEY, user);
+				return node.hasPermission(StructrRelationship.Permission.write.name(), user);
 		}
 
 		return (false);

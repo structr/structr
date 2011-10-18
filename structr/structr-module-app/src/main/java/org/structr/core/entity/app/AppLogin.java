@@ -24,17 +24,28 @@ package org.structr.core.entity.app;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 
+import org.structr.common.AbstractComponent;
 import org.structr.common.CurrentRequest;
 import org.structr.common.CurrentSession;
+import org.structr.common.PropertyKey;
+import org.structr.common.PropertyView;
 import org.structr.common.SessionValue;
 import org.structr.common.StructrOutputStream;
 import org.structr.context.SessionMonitor;
+import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.User;
 import org.structr.core.entity.app.slots.NullSlot;
 import org.structr.core.entity.app.slots.StringSlot;
 import org.structr.core.node.FindUserCommand;
+import org.structr.help.Container;
+import org.structr.help.Content;
+import org.structr.help.HelpLink;
+import org.structr.help.ListItem;
+import org.structr.help.Paragraph;
+import org.structr.help.Subtitle;
+import org.structr.help.UnorderedList;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -44,14 +55,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpSession;
-import org.structr.common.AbstractComponent;
-import org.structr.help.Container;
-import org.structr.help.Content;
-import org.structr.help.HelpLink;
-import org.structr.help.ListItem;
-import org.structr.help.Paragraph;
-import org.structr.help.Subtitle;
-import org.structr.help.UnorderedList;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -61,18 +64,21 @@ import org.structr.help.UnorderedList;
  */
 public class AppLogin extends ActionNode {
 
-	private final static String ANTI_ROBOT_FIELD_NAME = "antiRobot";
-	private final static String DELAY_THRESHOLD_KEY   = "delayThreshold";
-	private final static String DELAY_TIME_KEY        = "delayTime";
-	protected final static int DefaultDelayThreshold  = 100;
-	protected final static int DefaultDelayTime       = 3;
-	protected final static int DefaultMaxErrors       = 1000;
-	private final static String LOGIN_FAILURE_TEXT    =
+	protected final static int DefaultDelayThreshold = 100;
+	protected final static int DefaultDelayTime      = 3;
+	protected final static int DefaultMaxErrors      = 1000;
+	private final static String LOGIN_FAILURE_TEXT   =
 		"Wrong username or password, or user is blocked. Check caps lock. Note: Username is case sensitive!";
-	private final static String MAX_ERRORS_KEY     = "maxRetries";
-	public final static String PASSWORD_FIELD_NAME = "password";
-	public final static String USERNAME_FIELD_NAME = "username";
-	private static final Logger logger             = Logger.getLogger(AppLogin.class.getName());
+	private static final Logger logger = Logger.getLogger(AppLogin.class.getName());
+
+	//~--- static initializers --------------------------------------------
+
+	static {
+
+		EntityContext.registerPropertySet(AppLogin.class,
+						  PropertyView.All,
+						  Key.values());
+	}
 
 	//~--- fields ---------------------------------------------------------
 
@@ -83,6 +89,12 @@ public class AppLogin extends ActionNode {
 	// non-final variables
 	private SessionValue<Boolean> sessionBlockedValue = null;
 	private SessionValue<String> userNameValue        = null;
+
+	//~--- constant enums -------------------------------------------------
+
+	public enum Key implements PropertyKey {
+		username, password, antiRobot, delayThreshold, delayTime, maxErrors;
+	}
 
 	//~--- methods --------------------------------------------------------
 
@@ -106,9 +118,9 @@ public class AppLogin extends ActionNode {
 			return (false);
 		}
 
-		String username    = (String) getValue(USERNAME_FIELD_NAME);
-		String password    = (String) getValue(PASSWORD_FIELD_NAME);
-		String antiRobot   = (String) getValue(ANTI_ROBOT_FIELD_NAME);
+		String username  = (String) getValue(Key.username.name());
+		String password  = (String) getValue(Key.password.name());
+		String antiRobot = (String) getValue(Key.antiRobot.name());
 
 		if (StringUtils.isNotEmpty(antiRobot)) {
 
@@ -118,16 +130,22 @@ public class AppLogin extends ActionNode {
 
 		if (StringUtils.isEmpty(username)) {
 
-			setErrorValue(USERNAME_FIELD_NAME, "You must enter a username");
-			countLoginFailure(getMaxErrors(), getDelayThreshold(), getDelayTime());
+			setErrorValue(Key.username.name(),
+				      "You must enter a username");
+			countLoginFailure(getMaxErrors(),
+					  getDelayThreshold(),
+					  getDelayTime());
 
 			return (false);
 		}
 
 		if (StringUtils.isEmpty(password)) {
 
-			setErrorValue(PASSWORD_FIELD_NAME, "You must enter a password");
-			countLoginFailure(getMaxErrors(), getDelayThreshold(), getDelayTime());
+			setErrorValue(Key.password.name(),
+				      "You must enter a password");
+			countLoginFailure(getMaxErrors(),
+					  getDelayThreshold(),
+					  getDelayTime());
 
 			return (false);
 		}
@@ -142,8 +160,12 @@ public class AppLogin extends ActionNode {
 
 		if (loginUser == null) {
 
-			logger.log(Level.INFO, "No user found for name {0}", loginUser);
-			countLoginFailure(getMaxErrors(), getDelayThreshold(), getDelayTime());
+			logger.log(Level.INFO,
+				   "No user found for name {0}",
+				   loginUser);
+			countLoginFailure(getMaxErrors(),
+					  getDelayThreshold(),
+					  getDelayTime());
 
 			return (false);
 		}
@@ -151,8 +173,12 @@ public class AppLogin extends ActionNode {
 		// From here, we have a valid user
 		if (loginUser.isBlocked()) {
 
-			logger.log(Level.INFO, "User {0} is blocked", loginUser);
-			countLoginFailure(getMaxErrors(), getDelayThreshold(), getDelayTime());
+			logger.log(Level.INFO,
+				   "User {0} is blocked",
+				   loginUser);
+			countLoginFailure(getMaxErrors(),
+					  getDelayThreshold(),
+					  getDelayTime());
 
 			return (false);
 		}
@@ -162,25 +188,31 @@ public class AppLogin extends ActionNode {
 
 		if (!encryptedPasswordValue.equals(loginUser.getEncryptedPassword())) {
 
-			logger.log(Level.INFO, "Wrong password for user {0}", loginUser);
-			countLoginFailure(getMaxErrors(), getDelayThreshold(), getDelayTime());
+			logger.log(Level.INFO,
+				   "Wrong password for user {0}",
+				   loginUser);
+			countLoginFailure(getMaxErrors(),
+					  getDelayThreshold(),
+					  getDelayTime());
 
 			return (false);
 		}
 
 		// Username and password are both valid
 		CurrentSession.setGlobalUsername(loginUser.getName());
-		
+
 		// Set user object in session
 		CurrentSession.setUser(loginUser);
 
 		// Register user with internal session management
 		long sessionId = SessionMonitor.registerUserSession(CurrentSession.getSession());
 
-		SessionMonitor.logActivity(sessionId, "Login");
+		SessionMonitor.logActivity(sessionId,
+					   "Login");
 
 		// Mark this session with the internal session id
-		CurrentSession.setAttribute(SessionMonitor.SESSION_ID, sessionId);
+		CurrentSession.setAttribute(SessionMonitor.SESSION_ID,
+					    sessionId);
 
 		// Clear all blocking stuff
 		getSessionBlockedValue().set(false);
@@ -195,36 +227,39 @@ public class AppLogin extends ActionNode {
 	}
 
 	// ----- private methods -----
-	private void countLoginFailure(int maxRetries, int delayThreshold, int delayTime) {
+	private void countLoginFailure(int maxErrors, int delayThreshold, int delayTime) {
 
 		HttpSession session = CurrentRequest.getSession();
 		Integer retries     = getLoginAttemptsValue().get();
 
-		if ((retries != null) && (retries > maxRetries)) {
+		if ((retries != null) && (retries > maxErrors)) {
 
-			logger.log(Level.SEVERE, "More than {0} login failures, session {1} is blocked",
-				   new Object[] { maxRetries,
-						  session.getId() });
+			logger.log(Level.SEVERE,
+				   "More than {0} login failures, session {1} is blocked",
+				   new Object[] { maxErrors, session.getId() });
 			getSessionBlockedValue().set(true);
 			getErrorMessageValue().set(
 			    "Too many unsuccessful login attempts, your session is blocked for login!");
 
 		} else if ((retries != null) && (retries > delayThreshold)) {
 
-			logger.log(Level.INFO, "More than {0} login failures, execution delayed by {1} seconds",
-				   new Object[] { maxRetries,
-						  delayTime });
+			logger.log(Level.INFO,
+				   "More than {0} login failures, execution delayed by {1} seconds",
+				   new Object[] { maxErrors, delayTime });
 
 			try {
 				Thread.sleep(delayTime * 1000);
 			} catch (InterruptedException ex) {
-				logger.log(Level.SEVERE, null, ex);
+
+				logger.log(Level.SEVERE,
+					   null,
+					   ex);
 			}
 
 			StringBuilder errorBuffer = new StringBuilder(200);
 
 			errorBuffer.append("You had more than ");
-			errorBuffer.append(maxRetries);
+			errorBuffer.append(maxErrors);
 			errorBuffer.append(" unsuccessful login attempts, execution was delayed by ");
 			errorBuffer.append(delayTime);
 			errorBuffer.append(" seconds.");
@@ -249,9 +284,12 @@ public class AppLogin extends ActionNode {
 
 		Map<String, Slot> ret = new LinkedHashMap<String, Slot>();
 
-		ret.put(USERNAME_FIELD_NAME, new StringSlot());
-		ret.put(PASSWORD_FIELD_NAME, new StringSlot());
-		ret.put(ANTI_ROBOT_FIELD_NAME, new NullSlot(String.class));
+		ret.put(Key.username.name(),
+			new StringSlot());
+		ret.put(Key.password.name(),
+			new StringSlot());
+		ret.put(Key.antiRobot.name(),
+			new NullSlot(String.class));
 
 		return (ret);
 	}
@@ -264,24 +302,36 @@ public class AppLogin extends ActionNode {
 	 * If number is exceeded, login is blocked for this session.
 	 */
 	public int getMaxErrors() {
-		Integer maxErrors = getIntProperty(MAX_ERRORS_KEY);
-		return maxErrors == null ? DefaultMaxErrors : maxErrors;
+
+		Integer maxErrors = getIntProperty(Key.maxErrors.name());
+
+		return (maxErrors == null)
+		       ? DefaultMaxErrors
+		       : maxErrors;
 	}
 
 	/**
 	 * Return number of unsuccessful login attempts before retry delay becomes active
 	 */
 	public int getDelayThreshold() {
-		Integer delayThreshold = getIntProperty(DELAY_THRESHOLD_KEY);
-		return delayThreshold == null ? DefaultDelayThreshold : delayThreshold;
+
+		Integer delayThreshold = getIntProperty(Key.delayThreshold.name());
+
+		return (delayThreshold == null)
+		       ? DefaultDelayThreshold
+		       : delayThreshold;
 	}
 
 	/**
 	 * Return time (in seconds) to wait for retry after an unsuccessful login attempt
 	 */
 	public int getDelayTime() {
-		Integer delayTime = getIntProperty(DELAY_TIME_KEY);
-		return delayTime == null ? DefaultDelayTime : delayTime;
+
+		Integer delayTime = getIntProperty(Key.delayTime.name());
+
+		return (delayTime == null)
+		       ? DefaultDelayTime
+		       : delayTime;
 	}
 
 	private SessionValue<String> getUserNameValue() {
@@ -298,7 +348,8 @@ public class AppLogin extends ActionNode {
 		if (loginAttemptsValue == null) {
 
 			// create new session value with default 0
-			loginAttemptsValue = new SessionValue<Integer>(createUniqueIdentifier("loginAttempts"), 0);
+			loginAttemptsValue = new SessionValue<Integer>(createUniqueIdentifier("loginAttempts"),
+				0);
 		}
 
 		return (loginAttemptsValue);
@@ -321,7 +372,8 @@ public class AppLogin extends ActionNode {
 		if (errorMessageValue == null) {
 
 			// create new session value with default ""
-			errorMessageValue = new SessionValue<String>("errorMessage", "");
+			errorMessageValue = new SessionValue<String>("errorMessage",
+				"");
 		}
 
 		return (errorMessageValue);
@@ -332,7 +384,8 @@ public class AppLogin extends ActionNode {
 		if (okMessageValue == null) {
 
 			// create new session value with default ""
-			okMessageValue = new SessionValue<String>("okMessage", "");
+			okMessageValue = new SessionValue<String>("okMessage",
+				"");
 		}
 
 		return (okMessageValue);
@@ -343,18 +396,16 @@ public class AppLogin extends ActionNode {
 
 		AbstractComponent root = new Container();
 
-		root.add(new Paragraph().add(new Content(
-		    "This is a Login node. It can only be activated when used as a child of ",
-		    new HelpLink("AppActionContainer")
-		   )));
-
+		root.add(
+		    new Paragraph().add(
+			    new Content("This is a Login node. It can only be activated when used as a child of ",
+					new HelpLink("AppActionContainer"))));
 		root.add(new Subtitle().add(new Content("Slots")));
-		root.add(new UnorderedList()
-		    .add(new ListItem().add(new Content("username")))
-		    .add(new ListItem().add(new Content("password")))
-		    .add(new ListItem().add(new Content("antiRobot")))
-		);
+		root.add(
+		    new UnorderedList().add(new ListItem().add(new Content(Key.username.name()))).add(
+			    new ListItem().add(new Content(Key.password.name()))).add(
+			    new ListItem().add(new Content(Key.antiRobot.name()))));
 
-		return(root);
+		return (root);
 	}
 }

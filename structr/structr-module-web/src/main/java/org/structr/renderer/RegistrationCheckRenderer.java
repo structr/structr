@@ -100,7 +100,7 @@ public class RegistrationCheckRenderer implements NodeRenderer<RegistrationCheck
 			return;
 		}
 
-		String usernameFromSession = (String)session.getAttribute(RegistrationCheck.USERNAME_KEY);
+		String usernameFromSession = (String)session.getAttribute(WebNode.Key.username.name());
 //            String usernameFromSession = CurrentSession.getGlobalUsername();
 		Boolean alreadyLoggedIn = usernameFromSession != null;
 
@@ -109,7 +109,7 @@ public class RegistrationCheckRenderer implements NodeRenderer<RegistrationCheck
 			return;
 		}
 
-		Boolean sessionBlocked = (Boolean)session.getAttribute(RegistrationCheck.SESSION_BLOCKED);
+		Boolean sessionBlocked = (Boolean)session.getAttribute(WebNode.Key.sessionBlocked.name());
 
 		if(Boolean.TRUE.equals(sessionBlocked))
 		{
@@ -567,7 +567,7 @@ public class RegistrationCheckRenderer implements NodeRenderer<RegistrationCheck
 			});
 
 		// Clear all blocking stuff
-		session.removeAttribute(WebNode.SESSION_BLOCKED);
+		session.removeAttribute(WebNode.Key.sessionBlocked.name());
 		session.removeAttribute(NUMBER_OF_REGISTRATION_ATTEMPTS);
 
 		out.append("<div class=\"okMsg\">").append("An e-mail has been sent to you to validate the given e-mail address. Please click on the link in the e-mail to complete registration.").append("</div>");
@@ -600,7 +600,7 @@ public class RegistrationCheckRenderer implements NodeRenderer<RegistrationCheck
 				{
 					maxRetries, session.getId()
 				});
-			session.setAttribute(WebNode.SESSION_BLOCKED, true);
+			session.setAttribute(WebNode.Key.sessionBlocked.name(), true);
 			String message = "<div class=\"errorMsg\">Too many unsuccessful registration attempts, your session is blocked for registration!</div>";
 			errors.add(message);
 

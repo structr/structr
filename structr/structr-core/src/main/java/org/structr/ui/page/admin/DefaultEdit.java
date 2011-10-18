@@ -150,7 +150,7 @@ public class DefaultEdit extends Nodes {
 	protected Select customTypeSelect = new Select(CustomTypeNode.Key.typeNodeId.name(), "Custom Type");
 	protected Checkbox cloudRecursive = new Checkbox("cloudRecursive", "Recursive");
 	protected Select cloudPushPull    = new Select("cloudPushPull", "Push / Pull");
-	protected PickList allowed        = new PickList(StructrRelationship.ALLOWED_KEY, "Allowed");
+	protected PickList allowed        = new PickList(StructrRelationship.Permission.allowed.name(), "Allowed");
 	protected Panel cloudPanel;
 	protected TextField consoleCommand;
 	@Bindable
@@ -622,7 +622,7 @@ public class DefaultEdit extends Nodes {
 			};
 			nameColumn.setDecorator(nameDec);
 			securityTable.addColumn(nameColumn);
-			securityTable.addColumn(new Column(StructrRelationship.ALLOWED_KEY));
+			securityTable.addColumn(new Column(StructrRelationship.Permission.allowed.name()));
 			securityTable.setClass(TABLE_CLASS);
 			securityForm.add(securityTable);
 
@@ -633,41 +633,41 @@ public class DefaultEdit extends Nodes {
 			setPermissionFields.add(recursive);
 
 			List<Option> optionList = new LinkedList<Option>();
-			Option readOption       = new Option(StructrRelationship.READ_KEY, "Read");
+			Option readOption       = new Option(StructrRelationship.Permission.read.name(), "Read");
 
 			optionList.add(readOption);
 
-			Option showTreeOption = new Option(StructrRelationship.SHOW_TREE_KEY, "Show Tree");
+			Option showTreeOption = new Option(StructrRelationship.Permission.showTree.name(), "Show Tree");
 
 			optionList.add(showTreeOption);
 
-			Option editPropsOption = new Option(StructrRelationship.EDIT_PROPERTIES_KEY, "Edit Properties");
+			Option editPropsOption = new Option(StructrRelationship.Permission.editProperties.name(), "Edit Properties");
 
 			optionList.add(editPropsOption);
 
-			Option addRelOption = new Option(StructrRelationship.ADD_RELATIONSHIP_KEY, "Add Relationship");
+			Option addRelOption = new Option(StructrRelationship.Permission.addRelationship.name(), "Add Relationship");
 
 			optionList.add(addRelOption);
 
-			Option removeRelOption = new Option(StructrRelationship.REMOVE_RELATIONSHIP_KEY,
+			Option removeRelOption = new Option(StructrRelationship.Permission.removeRelationship.name(),
 							 "Remove Relationship");
 
 			optionList.add(removeRelOption);
 
-			Option deleteNodeOption = new Option(StructrRelationship.DELETE_NODE_KEY, "Delete Node");
+			Option deleteNodeOption = new Option(StructrRelationship.Permission.deleteNode.name(), "Delete Node");
 
 			optionList.add(deleteNodeOption);
 
-			Option createSubnodeOption = new Option(StructrRelationship.CREATE_SUBNODE_KEY,
+			Option createSubnodeOption = new Option(StructrRelationship.Permission.createNode.name(),
 							     "Create Subnode");
 
 			optionList.add(createSubnodeOption);
 
-			Option executeOption = new Option(StructrRelationship.EXECUTE_KEY, "Execute");
+			Option executeOption = new Option(StructrRelationship.Permission.execute.name(), "Execute");
 
 			optionList.add(executeOption);
 
-			Option accessControlOption = new Option(StructrRelationship.ACCESS_CONTROL_KEY,
+			Option accessControlOption = new Option(StructrRelationship.Permission.accessControl.name(),
 							     "Access Control");
 
 			optionList.add(accessControlOption);

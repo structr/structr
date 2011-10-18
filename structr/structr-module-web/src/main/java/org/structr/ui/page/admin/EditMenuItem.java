@@ -41,7 +41,7 @@ import org.structr.core.node.search.SearchNodeCommand;
 public class EditMenuItem extends DefaultEdit {
 
     protected MenuItem menuItem;
-    protected Select linkTargetSelect = new Select(MenuItem.LINK_TARGET_KEY);
+    protected Select linkTargetSelect = new Select(MenuItem.Key.linkTarget.name());
 
 
     public EditMenuItem() {

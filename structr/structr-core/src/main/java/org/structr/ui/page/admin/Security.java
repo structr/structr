@@ -55,17 +55,17 @@ public class Security extends Nodes {
 
         securityForm.add(userSelect);
 
-        PickList allowed = new PickList(StructrRelationship.ALLOWED_KEY, "Actions");
+        PickList allowed = new PickList(StructrRelationship.Permission.allowed.name(), "Actions");
         allowed.setHeaderLabel("Denied", "Allowed");
 
         List<Option> optionList = new LinkedList<Option>();
-        Option readOption = new Option(StructrRelationship.READ_KEY, "Read");
+        Option readOption = new Option(StructrRelationship.Permission.read.name(), "Read");
         optionList.add(readOption);
 
-        Option writeOption = new Option(StructrRelationship.WRITE_KEY, "Write");
+        Option writeOption = new Option(StructrRelationship.Permission.write.name(), "Write");
         optionList.add(writeOption);
         
-        Option executeOption = new Option(StructrRelationship.EXECUTE_KEY, "Execute");
+        Option executeOption = new Option(StructrRelationship.Permission.execute.name(), "Execute");
         optionList.add(executeOption);
 
         allowed.addAll(optionList);

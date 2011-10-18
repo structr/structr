@@ -1,67 +1,81 @@
 /*
  *  Copyright (C) 2011 Axel Morgner, structr <structr@structr.org>
- * 
+ *
  *  This file is part of structr <http://structr.org>.
- * 
+ *
  *  structr is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
- * 
+ *
  *  structr is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- * 
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+
+
 package org.structr.core.entity.web;
 
-import java.util.Map;
+import org.structr.common.PropertyKey;
+import org.structr.common.PropertyView;
 import org.structr.common.RenderMode;
+import org.structr.core.EntityContext;
 import org.structr.core.NodeRenderer;
 import org.structr.renderer.RegistrationFormRenderer;
 
+//~--- JDK imports ------------------------------------------------------------
+
+import java.util.Map;
+
+//~--- classes ----------------------------------------------------------------
+
 /**
- * Render a login form.
+ * Render a registration form.
  *
- * Username and password field names have to match with a corresponding
- * LoginCheck node to make login work.
+ * Field names have to match with a corresponding
+ * RegistrationCheck node to make it work.
  *
  * @author axel
  */
 public class RegistrationForm extends Form {
 
-	private final static String ICON_SRC = "/images/form.png";
-	public final static String PUBLIC_USER_DIRECTORY_NAME_KEY = "publicUserDirectoryName";
-	public final static String SENDER_ADDRESS_KEY = "senderAddress";
-	public final static String SENDER_NAME_KEY = "senderName";
-	public final static String INLINE_CSS_KEY = "inlineCss";
-	public final static String ASSIGNED_USERNAME_KEY = "assignedUsername";
-	public final static String CONFIRMATION_KEY_FIELD_NAME_KEY = "confirmationKeyFieldName";
-	public final static String CONFIRM_PASSWORD_FIELD_NAME_KEY = "confirmPasswordFieldName";
-	public final static String FIRST_NAME_FIELD_NAME_KEY = "firstNameFieldName";
-	public final static String LAST_NAME_FIELD_NAME_KEY = "lastNameFieldName";
-	public final static String EMAIL_FIELD_NAME_KEY = "emailFieldName";
-	public final static String CONFIRM_EMAIL_FIELD_NAME_KEY = "confirmEmailFieldName";
-	public final static String ZIP_CODE_FIELD_NAME_KEY = "zipCodeFieldName";
-	public final static String CITY_FIELD_NAME_KEY = "cityFieldName";
-	public final static String STREET_FIELD_NAME_KEY = "streetFieldName";
-	public final static String STATE_FIELD_NAME_KEY = "stateFieldName";
-	public final static String COUNTRY_FIELD_NAME_KEY = "countryFieldName";
-	public final static String BIRTHDAY_FIELD_NAME_KEY = "birthdayFieldName";
-	public final static String GENDER_FIELD_NAME_KEY = "genderFieldName";
-	public final static String AGREED_TO_TERMS_OF_USE_FIELD_NAME_KEY = "agreedToTermsOfUseFieldName";
-	public final static String NEWSLETTER_FIELD_NAME_KEY = "newsletterFieldName";
-	/** Name of username field */
-	public final static String USERNAME_FIELD_NAME_KEY = "usernameFieldName";
-	/** Name of password field */
-	public final static String PASSWORD_FIELD_NAME_KEY = "passwordFieldName";
+	static {
+
+		EntityContext.registerPropertySet(RegistrationForm.class,
+						  PropertyView.All,
+						  Key.values());
+	}
+
+	//~--- constant enums -------------------------------------------------
+
+	public enum Key implements PropertyKey {
+
+		publicUserDirectoryName, senderAddress, senderName, inlineCss, assignedUsername,
+		confirmationKeyFieldName, confirmPasswordFieldName, agreedToTermsOfUseFieldName, newsletterFieldName,
+		firstNameFieldName, lastNameFieldName, emailFieldName, confirmEmailFieldName, zipCodeFieldName,
+		cityFieldName, streetFieldName, stateFieldName, countryFieldName, birthdayFieldName, genderFieldName,
+		usernameFieldName, passwordFieldName;
+	}
+
+	//~--- methods --------------------------------------------------------
+
+	@Override
+	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers) {
+
+		renderers.put(RenderMode.Default,
+			      new RegistrationFormRenderer());
+	}
+
+	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public String getIconSrc() {
-		return ICON_SRC;
+		return "/images/form.png";
 	}
 
 	/**
@@ -70,7 +84,7 @@ public class RegistrationForm extends Form {
 	 * @return
 	 */
 	public String getUsernameFieldName() {
-		return getStringProperty(USERNAME_FIELD_NAME_KEY);
+		return getStringProperty(Key.usernameFieldName.name());
 	}
 
 	/**
@@ -79,7 +93,7 @@ public class RegistrationForm extends Form {
 	 * @return
 	 */
 	public String getPasswordFieldName() {
-		return getStringProperty(PASSWORD_FIELD_NAME_KEY);
+		return getStringProperty(Key.passwordFieldName.name());
 	}
 
 	/**
@@ -88,34 +102,7 @@ public class RegistrationForm extends Form {
 	 * @return
 	 */
 	public String getConfirmPasswordFieldName() {
-		return getStringProperty(CONFIRM_PASSWORD_FIELD_NAME_KEY);
-	}
-
-	/**
-	 * Set name of username field
-	 *
-	 * @param value
-	 */
-	public void setUsernameFieldName(final String value) {
-		setProperty(USERNAME_FIELD_NAME_KEY, value);
-	}
-
-	/**
-	 * Set name of password field
-	 *
-	 * @param value
-	 */
-	public void setPasswordFieldName(final String value) {
-		setProperty(USERNAME_FIELD_NAME_KEY, value);
-	}
-
-	/**
-	 * Set name of confirm password field
-	 *
-	 * @param value
-	 */
-	public void setConfirmPasswordFieldName(final String value) {
-		setProperty(CONFIRM_PASSWORD_FIELD_NAME_KEY, value);
+		return getStringProperty(Key.confirmPasswordFieldName.name());
 	}
 
 	/**
@@ -124,16 +111,7 @@ public class RegistrationForm extends Form {
 	 * @return
 	 */
 	public String getConfirmationKeyFieldName() {
-		return getStringProperty(CONFIRMATION_KEY_FIELD_NAME_KEY);
-	}
-
-	/**
-	 * Set name of confirmation key field
-	 *
-	 * @param value
-	 */
-	public void setConfirmationKeyFieldName(final String value) {
-		setProperty(CONFIRMATION_KEY_FIELD_NAME_KEY, value);
+		return getStringProperty(Key.confirmationKeyFieldName.name());
 	}
 
 	/**
@@ -142,16 +120,7 @@ public class RegistrationForm extends Form {
 	 * @return
 	 */
 	public String getFirstNameFieldName() {
-		return getStringProperty(FIRST_NAME_FIELD_NAME_KEY);
-	}
-
-	/**
-	 * Set name of username field
-	 *
-	 * @param value
-	 */
-	public void setFirstNameFieldName(final String value) {
-		setProperty(FIRST_NAME_FIELD_NAME_KEY, value);
+		return getStringProperty(Key.firstNameFieldName.name());
 	}
 
 	/**
@@ -160,16 +129,7 @@ public class RegistrationForm extends Form {
 	 * @return
 	 */
 	public String getLastNameFieldName() {
-		return getStringProperty(LAST_NAME_FIELD_NAME_KEY);
-	}
-
-	/**
-	 * Set name of last name field
-	 *
-	 * @param value
-	 */
-	public void setLastNameFieldName(final String value) {
-		setProperty(LAST_NAME_FIELD_NAME_KEY, value);
+		return getStringProperty(Key.lastNameFieldName.name());
 	}
 
 	/**
@@ -178,16 +138,7 @@ public class RegistrationForm extends Form {
 	 * @return
 	 */
 	public String getEmailFieldName() {
-		return getStringProperty(EMAIL_FIELD_NAME_KEY);
-	}
-
-	/**
-	 * Set name of email field
-	 *
-	 * @param value
-	 */
-	public void setEmailFieldName(final String value) {
-		setProperty(EMAIL_FIELD_NAME_KEY, value);
+		return getStringProperty(Key.emailFieldName.name());
 	}
 
 	/**
@@ -196,16 +147,7 @@ public class RegistrationForm extends Form {
 	 * @return
 	 */
 	public String getConfirmEmailFieldName() {
-		return getStringProperty(CONFIRM_EMAIL_FIELD_NAME_KEY);
-	}
-
-	/**
-	 * Set name of confirm email field
-	 *
-	 * @param value
-	 */
-	public void setConfirmEmailFieldName(final String value) {
-		setProperty(CONFIRM_EMAIL_FIELD_NAME_KEY, value);
+		return getStringProperty(Key.confirmEmailFieldName.name());
 	}
 
 	/**
@@ -214,16 +156,7 @@ public class RegistrationForm extends Form {
 	 * @return
 	 */
 	public String getZipCodeFieldName() {
-		return getStringProperty(ZIP_CODE_FIELD_NAME_KEY);
-	}
-
-	/**
-	 * Set name of zip code field
-	 *
-	 * @param value
-	 */
-	public void setZipCodeFieldName(final String value) {
-		setProperty(ZIP_CODE_FIELD_NAME_KEY, value);
+		return getStringProperty(Key.zipCodeFieldName.name());
 	}
 
 	/**
@@ -232,16 +165,7 @@ public class RegistrationForm extends Form {
 	 * @return
 	 */
 	public String getCityFieldName() {
-		return getStringProperty(CITY_FIELD_NAME_KEY);
-	}
-
-	/**
-	 * Set name of city field
-	 *
-	 * @param value
-	 */
-	public void setCityFieldName(final String value) {
-		setProperty(CITY_FIELD_NAME_KEY, value);
+		return getStringProperty(Key.cityFieldName.name());
 	}
 
 	/**
@@ -250,16 +174,7 @@ public class RegistrationForm extends Form {
 	 * @return
 	 */
 	public String getStreetFieldName() {
-		return getStringProperty(STREET_FIELD_NAME_KEY);
-	}
-
-	/**
-	 * Set name of street field
-	 *
-	 * @param value
-	 */
-	public void setStreetFieldName(final String value) {
-		setProperty(STREET_FIELD_NAME_KEY, value);
+		return getStringProperty(Key.streetFieldName.name());
 	}
 
 	/**
@@ -268,16 +183,7 @@ public class RegistrationForm extends Form {
 	 * @return
 	 */
 	public String getStateFieldName() {
-		return getStringProperty(STATE_FIELD_NAME_KEY);
-	}
-
-	/**
-	 * Set name of state field
-	 *
-	 * @param value
-	 */
-	public void setStateFieldName(final String value) {
-		setProperty(STATE_FIELD_NAME_KEY, value);
+		return getStringProperty(Key.stateFieldName.name());
 	}
 
 	/**
@@ -286,16 +192,7 @@ public class RegistrationForm extends Form {
 	 * @return
 	 */
 	public String getCountryFieldName() {
-		return getStringProperty(COUNTRY_FIELD_NAME_KEY);
-	}
-
-	/**
-	 * Set name of country field
-	 *
-	 * @param value
-	 */
-	public void setCountryFieldName(final String value) {
-		setProperty(COUNTRY_FIELD_NAME_KEY, value);
+		return getStringProperty(Key.countryFieldName.name());
 	}
 
 	/**
@@ -304,16 +201,7 @@ public class RegistrationForm extends Form {
 	 * @return
 	 */
 	public String getBirthdayFieldName() {
-		return getStringProperty(BIRTHDAY_FIELD_NAME_KEY);
-	}
-
-	/**
-	 * Set name of birthday field
-	 *
-	 * @param value
-	 */
-	public void setBirthdayFieldName(final String value) {
-		setProperty(BIRTHDAY_FIELD_NAME_KEY, value);
+		return getStringProperty(Key.birthdayFieldName.name());
 	}
 
 	/**
@@ -322,16 +210,7 @@ public class RegistrationForm extends Form {
 	 * @return
 	 */
 	public String getGenderFieldName() {
-		return getStringProperty(GENDER_FIELD_NAME_KEY);
-	}
-
-	/**
-	 * Set name of gender field
-	 *
-	 * @param value
-	 */
-	public void setGenderFieldName(final String value) {
-		setProperty(GENDER_FIELD_NAME_KEY, value);
+		return getStringProperty(Key.genderFieldName.name());
 	}
 
 	/**
@@ -340,16 +219,7 @@ public class RegistrationForm extends Form {
 	 * @return
 	 */
 	public String getAgreedToTermsOfUseFieldName() {
-		return getStringProperty(AGREED_TO_TERMS_OF_USE_FIELD_NAME_KEY);
-	}
-
-	/**
-	 * Set name of agreed to terms of use field
-	 *
-	 * @param value
-	 */
-	public void setAgreedToTermsOfUseFieldName(final String value) {
-		setProperty(AGREED_TO_TERMS_OF_USE_FIELD_NAME_KEY, value);
+		return getStringProperty(Key.agreedToTermsOfUseFieldName.name());
 	}
 
 	/**
@@ -358,16 +228,7 @@ public class RegistrationForm extends Form {
 	 * @return
 	 */
 	public String getNewsletterFieldName() {
-		return getStringProperty(NEWSLETTER_FIELD_NAME_KEY);
-	}
-
-	/**
-	 * Set name of newsletter field
-	 *
-	 * @param value
-	 */
-	public void setNewsletterFieldName(final String value) {
-		setProperty(NEWSLETTER_FIELD_NAME_KEY, value);
+		return getStringProperty(Key.newsletterFieldName.name());
 	}
 
 	/**
@@ -376,16 +237,7 @@ public class RegistrationForm extends Form {
 	 * @return
 	 */
 	public String getSenderAddress() {
-		return getStringProperty(SENDER_ADDRESS_KEY);
-	}
-
-	/**
-	 * Set name of sender address field
-	 *
-	 * @param value
-	 */
-	public void setSenderAddress(final String value) {
-		setProperty(SENDER_ADDRESS_KEY, value);
+		return getStringProperty(Key.senderAddress.name());
 	}
 
 	/**
@@ -394,16 +246,7 @@ public class RegistrationForm extends Form {
 	 * @return
 	 */
 	public String getSenderName() {
-		return getStringProperty(SENDER_NAME_KEY);
-	}
-
-	/**
-	 * Set name of sender name field
-	 *
-	 * @param value
-	 */
-	public void setSenderName(final String value) {
-		setProperty(SENDER_NAME_KEY, value);
+		return getStringProperty(Key.senderName.name());
 	}
 
 	/**
@@ -412,16 +255,7 @@ public class RegistrationForm extends Form {
 	 * @return
 	 */
 	public String getPublicUserDirectoryName() {
-		return getStringProperty(PUBLIC_USER_DIRECTORY_NAME_KEY);
-	}
-
-	/**
-	 * Set name of public user directory
-	 *
-	 * @param value
-	 */
-	public void setPublicUserDirectoryName(final String value) {
-		setProperty(PUBLIC_USER_DIRECTORY_NAME_KEY, value);
+		return getStringProperty(Key.publicUserDirectoryName.name());
 	}
 
 	/**
@@ -430,16 +264,7 @@ public class RegistrationForm extends Form {
 	 * @return
 	 */
 	public String getInlineCss() {
-		return getStringProperty(INLINE_CSS_KEY);
-	}
-
-	/**
-	 * Set inline CSS
-	 *
-	 * @param value
-	 */
-	public void setInlineCss(final String value) {
-		setProperty(INLINE_CSS_KEY, value);
+		return getStringProperty(Key.inlineCss.name());
 	}
 
 	/**
@@ -448,7 +273,240 @@ public class RegistrationForm extends Form {
 	 * @return
 	 */
 	public String getAssignedUsername() {
-		return getStringProperty(ASSIGNED_USERNAME_KEY);
+		return getStringProperty(Key.assignedUsername.name());
+	}
+
+	//~--- set methods ----------------------------------------------------
+
+	/**
+	 * Set name of username field
+	 *
+	 * @param value
+	 */
+	public void setUsernameFieldName(final String value) {
+
+		setProperty(Key.usernameFieldName.name(),
+			    value);
+	}
+
+	/**
+	 * Set name of password field
+	 *
+	 * @param value
+	 */
+	public void setPasswordFieldName(final String value) {
+
+		setProperty(Key.passwordFieldName.name(),
+			    value);
+	}
+
+	/**
+	 * Set name of confirm password field
+	 *
+	 * @param value
+	 */
+	public void setConfirmPasswordFieldName(final String value) {
+
+		setProperty(Key.confirmPasswordFieldName.name(),
+			    value);
+	}
+
+	/**
+	 * Set name of confirmation key field
+	 *
+	 * @param value
+	 */
+	public void setConfirmationKeyFieldName(final String value) {
+
+		setProperty(Key.confirmationKeyFieldName.name(),
+			    value);
+	}
+
+	/**
+	 * Set name of username field
+	 *
+	 * @param value
+	 */
+	public void setFirstNameFieldName(final String value) {
+
+		setProperty(Key.firstNameFieldName.name(),
+			    value);
+	}
+
+	/**
+	 * Set name of last name field
+	 *
+	 * @param value
+	 */
+	public void setLastNameFieldName(final String value) {
+
+		setProperty(Key.lastNameFieldName.name(),
+			    value);
+	}
+
+	/**
+	 * Set name of email field
+	 *
+	 * @param value
+	 */
+	public void setEmailFieldName(final String value) {
+
+		setProperty(Key.emailFieldName.name(),
+			    value);
+	}
+
+	/**
+	 * Set name of confirm email field
+	 *
+	 * @param value
+	 */
+	public void setConfirmEmailFieldName(final String value) {
+
+		setProperty(Key.confirmEmailFieldName.name(),
+			    value);
+	}
+
+	/**
+	 * Set name of zip code field
+	 *
+	 * @param value
+	 */
+	public void setZipCodeFieldName(final String value) {
+
+		setProperty(Key.zipCodeFieldName.name(),
+			    value);
+	}
+
+	/**
+	 * Set name of city field
+	 *
+	 * @param value
+	 */
+	public void setCityFieldName(final String value) {
+
+		setProperty(Key.cityFieldName.name(),
+			    value);
+	}
+
+	/**
+	 * Set name of street field
+	 *
+	 * @param value
+	 */
+	public void setStreetFieldName(final String value) {
+
+		setProperty(Key.streetFieldName.name(),
+			    value);
+	}
+
+	/**
+	 * Set name of state field
+	 *
+	 * @param value
+	 */
+	public void setStateFieldName(final String value) {
+
+		setProperty(Key.stateFieldName.name(),
+			    value);
+	}
+
+	/**
+	 * Set name of country field
+	 *
+	 * @param value
+	 */
+	public void setCountryFieldName(final String value) {
+
+		setProperty(Key.countryFieldName.name(),
+			    value);
+	}
+
+	/**
+	 * Set name of birthday field
+	 *
+	 * @param value
+	 */
+	public void setBirthdayFieldName(final String value) {
+
+		setProperty(Key.birthdayFieldName.name(),
+			    value);
+	}
+
+	/**
+	 * Set name of gender field
+	 *
+	 * @param value
+	 */
+	public void setGenderFieldName(final String value) {
+
+		setProperty(Key.genderFieldName.name(),
+			    value);
+	}
+
+	/**
+	 * Set name of agreed to terms of use field
+	 *
+	 * @param value
+	 */
+	public void setAgreedToTermsOfUseFieldName(final String value) {
+
+		setProperty(Key.agreedToTermsOfUseFieldName.name(),
+			    value);
+	}
+
+	/**
+	 * Set name of newsletter field
+	 *
+	 * @param value
+	 */
+	public void setNewsletterFieldName(final String value) {
+
+		setProperty(Key.newsletterFieldName.name(),
+			    value);
+	}
+
+	/**
+	 * Set name of sender address field
+	 *
+	 * @param value
+	 */
+	public void setSenderAddress(final String value) {
+
+		setProperty(Key.senderAddress.name(),
+			    value);
+	}
+
+	/**
+	 * Set name of sender name field
+	 *
+	 * @param value
+	 */
+	public void setSenderName(final String value) {
+
+		setProperty(Key.senderName.name(),
+			    value);
+	}
+
+	/**
+	 * Set name of public user directory
+	 *
+	 * @param value
+	 */
+	public void setPublicUserDirectoryName(final String value) {
+
+		setProperty(Key.publicUserDirectoryName.name(),
+			    value);
+	}
+
+	/**
+	 * Set inline CSS
+	 *
+	 * @param value
+	 */
+	public void setInlineCss(final String value) {
+
+		setProperty(Key.inlineCss.name(),
+			    value);
 	}
 
 	/**
@@ -457,11 +515,8 @@ public class RegistrationForm extends Form {
 	 * @param value
 	 */
 	public void setAssignedUsername(final String value) {
-		setProperty(ASSIGNED_USERNAME_KEY, value);
-	}
 
-	@Override
-	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers) {
-		renderers.put(RenderMode.Default, new RegistrationFormRenderer());
+		setProperty(Key.assignedUsername.name(),
+			    value);
 	}
 }

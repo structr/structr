@@ -21,6 +21,11 @@
 
 package org.structr.core.entity.web;
 
+import org.structr.common.PropertyView;
+import org.structr.core.EntityContext;
+
+//~--- classes ----------------------------------------------------------------
+
 /**
  *
  * @author amorgner
@@ -28,12 +33,17 @@ package org.structr.core.entity.web;
  */
 public class HtmlText extends HtmlSource {
 
-	private final static String ICON_SRC = "/images/html_orange.png";
+	static {
+
+		EntityContext.registerPropertySet(HtmlText.class,
+						  PropertyView.All,
+						  Key.values());
+	}
 
 	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public String getIconSrc() {
-		return ICON_SRC;
+		return "/images/html_orange.png";
 	}
 }

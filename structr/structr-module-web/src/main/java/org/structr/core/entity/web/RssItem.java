@@ -53,10 +53,14 @@ public class RssItem extends AbstractNode {
 		this.source = node;
 
 		// synthesize type
-		values.put(AbstractNode.Key.type.name(), "RssItem");
-		values.put(AbstractNode.Key.name.name(), "item" + index);
+		values.put(AbstractNode.Key.type.name(),
+			   "RssItem");
+		values.put(AbstractNode.Key.name.name(),
+			   "item" + index);
 		initialize();
 	}
+
+	//~--- methods --------------------------------------------------------
 
 	// ----- private methods -----
 	private void initialize() {
@@ -88,14 +92,18 @@ public class RssItem extends AbstractNode {
 							if (namespaceMap == null) {
 
 								namespaceMap = new LinkedHashMap<String, Object>();
-								values.put(namespace, namespaceMap);
+								values.put(namespace,
+									   namespaceMap);
 							}
 
-							namespaceMap.put(relativeName, value);
+							namespaceMap.put(relativeName,
+									 value);
 						}
 
 					} else {
-						values.put(name, value);
+
+						values.put(name,
+							   value);
 					}
 				}
 			}
@@ -116,7 +124,7 @@ public class RssItem extends AbstractNode {
 
 	@Override
 	public String getIconSrc() {
-		return ("/images/feed.png");
+		return "/images/feed.png";
 	}
 
 	private String getValue(Node child) {

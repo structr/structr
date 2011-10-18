@@ -24,10 +24,13 @@ package org.structr.core.entity.web;
 import org.apache.commons.lang.StringUtils;
 
 import org.structr.common.CurrentRequest;
+import org.structr.common.PropertyKey;
+import org.structr.common.PropertyView;
 import org.structr.common.RenderMode;
 import org.structr.common.renderer.ExternalTemplateRenderer;
 import org.structr.common.renderer.RenderContext;
 import org.structr.core.Command;
+import org.structr.core.EntityContext;
 import org.structr.core.NodeRenderer;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -49,9 +52,20 @@ import java.util.logging.Logger;
  */
 public class WebNode extends AbstractNode {
 
-	public final static String SESSION_BLOCKED = "sessionBlocked";
-	public final static String USERNAME_KEY    = "username";
-	private static final Logger logger         = Logger.getLogger(AbstractNode.class.getName());
+	private static final Logger logger = Logger.getLogger(AbstractNode.class.getName());
+
+	//~--- static initializers --------------------------------------------
+
+	static {
+
+		EntityContext.registerPropertySet(WebNode.class,
+						  PropertyView.All,
+						  Key.values());
+	}
+
+	//~--- constant enums -------------------------------------------------
+
+	public enum Key implements PropertyKey{ sessionBlocked, username; }
 
 	//~--- methods --------------------------------------------------------
 

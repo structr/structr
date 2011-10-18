@@ -41,7 +41,7 @@ public class AddToCategoryRenderer implements NodeRenderer<AddToCategory>
 			return;
 		}
 
-		String usernameFromSession = (String)session.getAttribute(WebNode.USERNAME_KEY);
+		String usernameFromSession = (String)session.getAttribute(WebNode.Key.username.name());
 //            String usernameFromSession = CurrentSession.getGlobalUsername();
 		Boolean loggedIn = usernameFromSession != null;
 
@@ -52,7 +52,7 @@ public class AddToCategoryRenderer implements NodeRenderer<AddToCategory>
 			return;
 		}
 
-		Boolean sessionBlocked = (Boolean)session.getAttribute(WebNode.SESSION_BLOCKED);
+		Boolean sessionBlocked = (Boolean)session.getAttribute(WebNode.Key.sessionBlocked.name());
 
 		if(Boolean.TRUE.equals(sessionBlocked))
 		{

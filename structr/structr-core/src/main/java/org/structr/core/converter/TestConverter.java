@@ -5,7 +5,7 @@ import org.structr.core.Value;
 
 /**
  *
- * @author Christian Morgner, SoftService GmbH
+ * @author Christian Morgner
  */
 
 

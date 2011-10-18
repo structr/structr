@@ -55,7 +55,7 @@ public class LoginCheckRenderer implements NodeRenderer<LoginCheck>
 			return;
 		}
 
-		String usernameFromSession = (String)session.getAttribute(WebNode.USERNAME_KEY);
+		String usernameFromSession = (String)session.getAttribute(WebNode.Key.username.name());
 //            String usernameFromSession = CurrentSession.getGlobalUsername();
 		Boolean alreadyLoggedIn = usernameFromSession != null;
 
@@ -65,7 +65,7 @@ public class LoginCheckRenderer implements NodeRenderer<LoginCheck>
 			return;
 		}
 
-		Boolean sessionBlocked = (Boolean)session.getAttribute(WebNode.SESSION_BLOCKED);
+		Boolean sessionBlocked = (Boolean)session.getAttribute(WebNode.Key.sessionBlocked.name());
 
 		if(Boolean.TRUE.equals(sessionBlocked))
 		{
@@ -153,7 +153,7 @@ public class LoginCheckRenderer implements NodeRenderer<LoginCheck>
 		}
 
 		// Username and password are both valid
-		session.setAttribute(WebNode.USERNAME_KEY, loginUser.getName());
+		session.setAttribute(WebNode.Key.username.name(), loginUser.getName());
 //            CurrentSession.setGlobalUsername(loginUser.getName());
 
 		// Register user with internal session management
@@ -164,7 +164,7 @@ public class LoginCheckRenderer implements NodeRenderer<LoginCheck>
 		session.setAttribute(SessionMonitor.SESSION_ID, sessionId);
 
 		// Clear all blocking stuff
-		session.removeAttribute(WebNode.SESSION_BLOCKED);
+		session.removeAttribute(WebNode.Key.sessionBlocked.name());
 		session.removeAttribute(NUMBER_OF_LOGIN_ATTEMPTS);
 
 		out.append("<div class=\"okMsg\">").append("Login successful. Welcome ").append(loginUser.getRealName()).append("!").append("</div>");
@@ -182,7 +182,7 @@ public class LoginCheckRenderer implements NodeRenderer<LoginCheck>
 				{
 					maxRetries, session.getId()
 				});
-			session.setAttribute(WebNode.SESSION_BLOCKED, true);
+			session.setAttribute(WebNode.Key.sessionBlocked.name(), true);
 			out.append("<div class=\"errorMsg\">").append("Too many unsuccessful login attempts, your session is blocked for login!").append("</div>");
 			return;
 

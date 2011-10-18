@@ -35,7 +35,7 @@ public class EditAddToCategory extends DefaultEdit {
         super();
 
         FieldSet formFields = new FieldSet("Form Parameter");
-        formFields.add(new TextField(AddToCategory.CATEGORY_PARAMETER_NAME_KEY, "Category Parameter", 30));
+        formFields.add(new TextField(AddToCategory.Key.categoryParameterName.name(), "Category Parameter", 30));
         editPropertiesForm.add(formFields);
 
     }

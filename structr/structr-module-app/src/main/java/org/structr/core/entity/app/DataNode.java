@@ -21,6 +21,8 @@
 
 package org.structr.core.entity.app;
 
+import org.structr.common.PropertyView;
+import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.CustomTypeNode;
 
@@ -32,6 +34,13 @@ import org.structr.core.entity.CustomTypeNode;
  */
 public class DataNode extends CustomTypeNode {
 
+	static {
+
+		EntityContext.registerPropertySet(DataNode.class,
+						  PropertyView.All,
+						  Key.values());
+	}
+
 	//~--- get methods ----------------------------------------------------
 
 	@Override
@@ -41,7 +50,7 @@ public class DataNode extends CustomTypeNode {
 
 	@Override
 	public String getIconSrc() {
-		return ("/images/database.png");
+		return "/images/database.png";
 	}
 
 	@Override
@@ -55,6 +64,8 @@ public class DataNode extends CustomTypeNode {
 
 	@Override
 	public void setProperty(String key, Object value) {
-		super.setProperty(key, value);
+
+		super.setProperty(key,
+				  value);
 	}
 }

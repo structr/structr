@@ -29,11 +29,11 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
 
 import org.structr.common.PropertyKey;
+import org.structr.common.PropertyView;
+import org.structr.core.EntityContext;
 import org.structr.core.entity.PlainText;
 
 //~--- JDK imports ------------------------------------------------------------
-
-import java.io.InputStream;
 
 import java.util.logging.Logger;
 
@@ -51,6 +51,15 @@ public class MediaWikiWrapper extends PlainText {
 
 	private static final Logger logger = Logger.getLogger(MediaWikiWrapper.class.getName());
 
+	//~--- static initializers --------------------------------------------
+
+	static {
+
+		EntityContext.registerPropertySet(MediaWikiWrapper.class,
+						  PropertyView.All,
+						  Key.values());
+	}
+
 	//~--- constant enums -------------------------------------------------
 
 	// private static final String CACHED_MEDIAWIKI_CONTENT = "cached_mediawiki_content";
@@ -67,7 +76,7 @@ public class MediaWikiWrapper extends PlainText {
 	@Override
 	public String getContent() {
 
-		String source        = getStringProperty(Key.source);
+		String source = getStringProperty(Key.source);
 
 		try {
 

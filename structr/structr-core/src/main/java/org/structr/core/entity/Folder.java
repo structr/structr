@@ -21,12 +21,9 @@
 
 package org.structr.core.entity;
 
-import org.structr.common.renderer.RenderContext;
-
-//~--- JDK imports ------------------------------------------------------------
-
 import org.structr.common.AbstractComponent;
 import org.structr.common.PropertyView;
+import org.structr.common.renderer.RenderContext;
 import org.structr.core.EntityContext;
 import org.structr.help.Container;
 import org.structr.help.Content;
@@ -41,12 +38,13 @@ import org.structr.help.Paragraph;
  */
 public class Folder extends AbstractNode {
 
-	private final static String ICON_SRC = "/images/folder.png";
-
 	static {
-		EntityContext.registerPropertySet(Folder.class, PropertyView.All);
+
+		EntityContext.registerPropertySet(Folder.class,
+						  PropertyView.All,
+						  Key.values());
 	}
-	
+
 	//~--- methods --------------------------------------------------------
 
 	@Override
@@ -58,16 +56,16 @@ public class Folder extends AbstractNode {
 
 	@Override
 	public String getIconSrc() {
-		return ICON_SRC;
+		return "/images/folder.png";
 	}
-	
+
 	@Override
 	public AbstractComponent getHelpContent() {
-		
+
 		AbstractComponent root = new Container();
-		
+
 		root.add(new Paragraph().add(new Content("This is a Folder node.")));
-		
-		return(root);
+
+		return (root);
 	}
 }

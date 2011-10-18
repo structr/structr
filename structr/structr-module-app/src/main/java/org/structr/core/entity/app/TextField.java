@@ -1,143 +1,173 @@
 /*
  *  Copyright (C) 2011 Axel Morgner, structr <structr@structr.org>
- * 
+ *
  *  This file is part of structr <http://structr.org>.
- * 
+ *
  *  structr is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
- * 
+ *
  *  structr is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- * 
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+
+
 package org.structr.core.entity.app;
 
-import org.structr.core.NodeSource;
-import java.util.List;
-import java.util.Map;
-import org.structr.common.SessionValue;
-import java.util.logging.Logger;
-import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
-import org.structr.common.RequestCycleListener;
+
 import org.structr.common.CurrentRequest;
 import org.structr.common.CurrentSession;
+import org.structr.common.PropertyKey;
+import org.structr.common.PropertyView;
 import org.structr.common.RenderMode;
+import org.structr.common.RequestCycleListener;
+import org.structr.common.SessionValue;
 import org.structr.common.renderer.ExternalTemplateRenderer;
+import org.structr.core.EntityContext;
 import org.structr.core.NodeRenderer;
+import org.structr.core.NodeSource;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.StructrRelationship;
+
+//~--- JDK imports ------------------------------------------------------------
+
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Logger;
+
+import javax.servlet.http.HttpServletRequest;
+
+//~--- classes ----------------------------------------------------------------
 
 /**
  *
  * @author Christian Morgner
  */
-public class TextField extends FormField implements InteractiveNode, RequestCycleListener
-{
+public class TextField extends FormField implements InteractiveNode, RequestCycleListener {
+
 	private static final Logger logger = Logger.getLogger(TextField.class.getName());
-	private static final String SOURCE_SLOT_NAME_KEY =		"sourceSlotName";
 
-	protected SessionValue<Object> errorSessionValue = null;
-	protected SessionValue<Object> sessionValue = null;
-	private String mappedName = null;
+	//~--- static initializers --------------------------------------------
 
-	@Override
-	public String getIconSrc()
-	{
-		return "/images/textfield.png";
+	static {
+
+		EntityContext.registerPropertySet(SubmitButton.class,
+						  PropertyView.All,
+						  Key.values());
 	}
 
+	//~--- fields ---------------------------------------------------------
+
+	protected SessionValue<Object> errorSessionValue = null;
+	private String mappedName                        = null;
+	protected SessionValue<Object> sessionValue      = null;
+
+	//~--- constant enums -------------------------------------------------
+
+	public enum Key implements PropertyKey{ sourceSlotName; }
+
+	//~--- methods --------------------------------------------------------
+
 	@Override
-	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers)
-	{
-		renderers.put(RenderMode.Default, new ExternalTemplateRenderer(false));
+	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers) {
+
+		renderers.put(RenderMode.Default,
+			      new ExternalTemplateRenderer(false));
+	}
+
+	// ----- interface RequestCycleListener -----
+	@Override
+	public void onRequestStart() {}
+
+	@Override
+	public void onRequestEnd() {
+		getErrorMessageValue().set(null);
+	}
+
+	//~--- get methods ----------------------------------------------------
+
+	@Override
+	public String getIconSrc() {
+		return "/images/textfield.png";
 	}
 
 	// ----- interface InteractiveNode -----
 	@Override
-	public Object getValue()
-	{
+	public Object getValue() {
+
 		HttpServletRequest request = CurrentRequest.getRequest();
-		Object value = getValueFromSource();
-		String name = getName();
-		String ret = null;
+		Object value               = getValueFromSource();
+		String name                = getName();
+		String ret                 = null;
 
 		// only return value from last request if we were redirected before
-		if(CurrentSession.isRedirected())
-		{
+		if (CurrentSession.isRedirected()) {
 			value = getLastValue().get();
+		} else {
 
-		} else
-		{
 			// otherwise, clear value in session
 			getLastValue().set(null);
 		}
 
-		if(request == null)
-		{
+		if (request == null) {
 			return value;
 		}
 
-		if(request != null)
-		{
+		if (request != null) {
+
 			ret = request.getParameter(name);
-			if(ret != null)
-			{
+
+			if (ret != null) {
 
 				// Parameter is there
-				if(ret.length() == 0)
-				{
+				if (ret.length() == 0) {
+
 					// Empty value
 					return null;
+				} else {
 
-				} else
-				{
 					// store value in session, in case we get a redirect afterwards
 					getLastValue().set(ret);
+
 					return ret;
 				}
+			} else {
 
-			} else
-			{
 				// Parameter is not in request
 				return value;
 			}
-
 		}
 
 		return null;
 	}
 
 	@Override
-	public String getStringValue()
-	{
+	public String getStringValue() {
+
 		Object value = getValue();
-		return (value != null ? value.toString() : null);
+
+		return ((value != null)
+			? value.toString()
+			: null);
 	}
 
 	@Override
-	public Class getParameterType()
-	{
+	public Class getParameterType() {
 		return (String.class);
 	}
 
 	@Override
-	public void setMappedName(String mappedName)
-	{
-		this.mappedName = mappedName;
-	}
+	public String getMappedName() {
 
-	@Override
-	public String getMappedName()
-	{
-		if(StringUtils.isNotBlank(mappedName))
-		{
+		if (StringUtils.isNotBlank(mappedName)) {
 			return (mappedName);
 		}
 
@@ -145,60 +175,39 @@ public class TextField extends FormField implements InteractiveNode, RequestCycl
 	}
 
 	@Override
-	public void setErrorValue(Object errorValue)
-	{
-		getErrorMessageValue().set(errorValue);
+	public Object getErrorValue() {
+		return (getErrorMessageValue().get());
 	}
 
 	@Override
-	public Object getErrorValue()
-	{
-		return(getErrorMessageValue().get());
-	}
+	public String getErrorMessage() {
 
-	@Override
-	public String getErrorMessage()
-	{
 		Object errorValue = getErrorValue();
-		if(errorValue != null)
-		{
-			return(errorValue.toString());
+
+		if (errorValue != null) {
+			return (errorValue.toString());
 		}
 
-		return(null);
-	}
-
-	// ----- interface RequestCycleListener -----
-	@Override
-	public void onRequestStart()
-	{
-	}
-
-	@Override
-	public void onRequestEnd()
-	{
-		getErrorMessageValue().set(null);
+		return (null);
 	}
 
 	// ----- private methods -----
-	private SessionValue<Object> getErrorMessageValue()
-	{
-		if(errorSessionValue == null)
-		{
+	private SessionValue<Object> getErrorMessageValue() {
+
+		if (errorSessionValue == null) {
 			errorSessionValue = new SessionValue<Object>(createUniqueIdentifier("errorMessage"));
 		}
 
-		return(errorSessionValue);
+		return (errorSessionValue);
 	}
 
-	private SessionValue<Object> getLastValue()
-	{
-		if(sessionValue == null)
-		{
+	private SessionValue<Object> getLastValue() {
+
+		if (sessionValue == null) {
 			sessionValue = new SessionValue<Object>(createUniqueIdentifier("lastValue"));
 		}
 
-		return(sessionValue);
+		return (sessionValue);
 	}
 
 	/**
@@ -207,43 +216,57 @@ public class TextField extends FormField implements InteractiveNode, RequestCycl
 	 *
 	 * @return the value or null
 	 */
-	private Object getValueFromSource()
-	{
+	private Object getValueFromSource() {
+
 		List<StructrRelationship> rels = getIncomingDataRelationships();
-		String sourceName = this.getName();
-		Object ret = null;
+		String sourceName              = this.getName();
+		Object ret                     = null;
 
 		// follow INCOMING DATA relationships to found data source for this input field
-		for(StructrRelationship rel : rels)
-		{
+		for (StructrRelationship rel : rels) {
+
 			// first one wins
 			AbstractNode startNode = rel.getStartNode();
-			if(startNode instanceof NodeSource)
-			{
+
+			if (startNode instanceof NodeSource) {
+
 				// source name mapping present? use input field name otherwise
-				if(rel.getRelationship().hasProperty(SOURCE_SLOT_NAME_KEY))
-				{
-					sourceName = (String)rel.getRelationship().getProperty(SOURCE_SLOT_NAME_KEY);
+				if (rel.getRelationship().hasProperty(Key.sourceSlotName.name())) {
+
+					sourceName =
+						(String) rel.getRelationship().getProperty(Key.sourceSlotName.name());
 				}
 
-				NodeSource source = (NodeSource)startNode;
-				if(source != null)
-				{
+				NodeSource source = (NodeSource) startNode;
+
+				if (source != null) {
+
 					AbstractNode loadedNode = source.loadNode();
-					if(loadedNode != null)
-					{
+
+					if (loadedNode != null) {
 						ret = loadedNode.getProperty(sourceName);
 					}
 				}
 			}
 
 			// if a value is found, return it, otherwise try the next data source
-			if(ret != null)
-			{
+			if (ret != null) {
 				break;
 			}
 		}
 
-		return(ret);
+		return (ret);
+	}
+
+	//~--- set methods ----------------------------------------------------
+
+	@Override
+	public void setMappedName(String mappedName) {
+		this.mappedName = mappedName;
+	}
+
+	@Override
+	public void setErrorValue(Object errorValue) {
+		getErrorMessageValue().set(errorValue);
 	}
 }
