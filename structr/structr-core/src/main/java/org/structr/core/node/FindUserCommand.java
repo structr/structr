@@ -56,8 +56,8 @@ public class FindUserCommand extends NodeServiceCommand {
         GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
         //IndexService index = (LuceneFulltextIndexService) arguments.get("index");
 
-//        Command findNode = Services.command(FindNodeCommand.class);
-        Command searchNode = Services.command(SearchNodeCommand.class);
+//        Command findNode = Services.command(securityContext, FindNodeCommand.class);
+        Command searchNode = Services.command(securityContext, SearchNodeCommand.class);
 
 //        String userXPath = null;
 

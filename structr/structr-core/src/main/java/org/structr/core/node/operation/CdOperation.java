@@ -43,7 +43,7 @@ public class CdOperation implements PrimaryOperation {
 
 		if(target != null) {
 
-			AbstractNode newLocation = (AbstractNode)Services.command(FindNodeCommand.class).execute(
+			AbstractNode newLocation = (AbstractNode)Services.command(securityContext, FindNodeCommand.class).execute(
 			    securityContext.getUser(),
 			    currentNode,
 			    target

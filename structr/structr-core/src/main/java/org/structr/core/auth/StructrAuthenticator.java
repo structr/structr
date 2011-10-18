@@ -48,7 +48,6 @@ public class StructrAuthenticator implements Authenticator {
 
 	private SecurityContext securityContext =		null;
 
-
 	@Override
 	public User doLogin(HttpServletRequest request, String userName, String password) throws AuthenticationException {
 
@@ -62,7 +61,7 @@ public class StructrAuthenticator implements Authenticator {
 
 		} else {
 
-			Command findUser = Services.command(FindUserCommand.class);
+			Command findUser = Services.command(securityContext, FindUserCommand.class);
 			user = (User)findUser.execute(userName);
 
 			if(user == null) {

@@ -42,7 +42,7 @@ public class IdConstraint extends ResourceConstraint {
 	@Override
 	public List<GraphObject> process(List<GraphObject> results, HttpServletRequest request) throws PathException {
 
-		GraphObject obj = (GraphObject)Services.command(FindNodeCommand.class).execute(new SuperUser(), getId());
+		GraphObject obj = (GraphObject)Services.command(securityContext, FindNodeCommand.class).execute(new SuperUser(), getId());
 		if(obj != null) {
 			
 			if(results == null) {

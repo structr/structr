@@ -424,7 +424,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	public void createTemplateRelationship(final Template template) {
 
 		// create a relationship to the given template node
-		Command createRel = Services.command(CreateRelationshipCommand.class);
+		Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
 
 		createRel.execute(this,
 				  template,
@@ -641,14 +641,14 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 		// Create an outer transaction to combine any inner neo4j transactions
 		// to one single transaction
-		Command transactionCommand = Services.command(TransactionCommand.class);
+		Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
 
 		transactionCommand.execute(new StructrTransaction() {
 
 			@Override
 			public Object execute() throws Throwable {
 
-				Command createNode = Services.command(CreateNodeCommand.class);
+				Command createNode = Services.command(securityContext, CreateNodeCommand.class);
 				AbstractNode s     = (AbstractNode) createNode.execute(user);
 
 				init(securityContext, s);
@@ -839,7 +839,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * @param editUrl
 	 * @param editNodeId
 	 */
-	public void replaceBySubnodes(StringBuilder content, final AbstractNode startNode, final String editUrl,
+	public void replaceBySubnodes(HttpServletRequest request, StringBuilder content, final AbstractNode startNode, final String editUrl,
 				      final Long editNodeId) {
 
 		List<AbstractNode> subnodes               = null;
@@ -865,7 +865,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 			subnodes               = getSortedDirectChildNodes();
 		}
 
-		Command findNode = Services.command(FindNodeCommand.class);
+		Command findNode = Services.command(securityContext, FindNodeCommand.class);
 		int start        = content.indexOf(NODE_KEY_PREFIX);
 
 		while (start > -1) {
@@ -914,7 +914,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 			}
 
 			// StringBuilder replacement = new StringBuilder();
-			StructrOutputStream replacement = new StructrOutputStream(securityContext);
+			StructrOutputStream replacement = new StructrOutputStream(request, securityContext);
 
 			if ((callingNode != null) && key.equals(SUBNODES_KEY)) {
 
@@ -1189,7 +1189,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 ////              } else {
 ////
 ////                  // use XPath notation
-////                  Command findNode = Services.command(FindNodeCommand.class);
+////                  Command findNode = Services.command(securityContext, FindNodeCommand.class);
 ////
 ////                  // search relative to calling node
 ////                  //List<AbstractNode> nodes = (List<AbstractNode>) findNode.execute(user, callingNode, new XPath(key));
@@ -1360,7 +1360,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 //
 //                                      if ((searchString != null) &&!(searchString.isEmpty())) {
 //
-//                                              Command search            = Services.command(SearchNodeCommand.class);
+//                                              Command search            = Services.command(securityContext, SearchNodeCommand.class);
 //                                              List<AbstractNode> result = (List<AbstractNode>) search.execute(null,    // user => null means super user
 //                                                      null,                            // top node => null means search all
 //                                                      false,                           // include hidden
@@ -1928,7 +1928,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 			value = dbNode.getProperty(key);
 		}
 
-		PropertyConverter converter = EntityContext.getPropertyConverter(type, key);
+		PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
 		if(converter != null) {
 			Value conversionValue = EntityContext.getPropertyConversionParameter(type, key);
 			value = converter.convertTo(value, conversionValue);
@@ -2280,7 +2280,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	/*
 	 * public String getNodePath(final AbstractNode node, final Enum renderMode) {
 	 *
-	 * Command nodeFactory = Services.command(NodeFactoryCommand.class);
+	 * Command nodeFactory = Services.command(securityContext, NodeFactoryCommand.class);
 	 * AbstractNode n = (AbstractNode) nodeFactory.execute(node);
 	 * return n.getNodePath();
 	 * }
@@ -2299,7 +2299,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		AbstractNode node = this;
 
 		// create bean node
-//              Command nodeFactory = Services.command(NodeFactoryCommand.class);
+//              Command nodeFactory = Services.command(securityContext, NodeFactoryCommand.class);
 //              AbstractNode n = (AbstractNode) nodeFactory.execute(node);
 		// stop at root node
 		while ((node != null) && (node.getId() > 0)) {
@@ -2333,7 +2333,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		AbstractNode node = this;
 
 		// create bean node
-//              Command nodeFactory = Services.command(NodeFactoryCommand.class);
+//              Command nodeFactory = Services.command(securityContext, NodeFactoryCommand.class);
 //              AbstractNode n = (AbstractNode) nodeFactory.execute(node);
 		// stop at root node
 		while ((node != null) && (node.getId() > 0)) {
@@ -2405,7 +2405,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	@Override
 	public List<StructrRelationship> getRelationships(RelationshipType type, Direction dir) {
 
-		return (List<StructrRelationship>) Services.command(NodeRelationshipsCommand.class).execute(this,
+		return (List<StructrRelationship>) Services.command(securityContext, NodeRelationshipsCommand.class).execute(this,
 			type,
 			dir);
 	}
@@ -2419,7 +2419,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	public Map<RelationshipType, Long> getRelationshipInfo(Direction dir) {
 
 		return (Map<RelationshipType,
-			    Long>) Services.command(NodeRelationshipStatisticsCommand.class).execute(this,
+			    Long>) Services.command(securityContext, NodeRelationshipStatisticsCommand.class).execute(this,
 			dir);
 	}
 
@@ -2533,8 +2533,8 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 		if (parentNode != null) {
 
-			Command nodeFactory            = Services.command(NodeFactoryCommand.class);
-			Command relsCommand            = Services.command(NodeRelationshipsCommand.class);
+			Command nodeFactory            = Services.command(securityContext, NodeFactoryCommand.class);
+			Command relsCommand            = Services.command(securityContext, NodeRelationshipsCommand.class);
 			List<StructrRelationship> rels = (List<StructrRelationship>) relsCommand.execute(parentNode,
 				RelType.HAS_CHILD,
 				Direction.OUTGOING);
@@ -2590,7 +2590,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	public List<AbstractNode> getParentNodes() {
 
 		List<AbstractNode> nodes        = new LinkedList<AbstractNode>();
-		Command nodeFactory             = Services.command(NodeFactoryCommand.class);
+		Command nodeFactory             = Services.command(securityContext, NodeFactoryCommand.class);
 		List<StructrRelationship> rels  = getIncomingChildRelationships();
 
 		for (StructrRelationship r : rels) {
@@ -2615,7 +2615,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	public List<AbstractNode> getParentNodesIgnorePermissions() {
 
 		List<AbstractNode> nodes       = new LinkedList<AbstractNode>();
-		Command nodeFactory            = Services.command(NodeFactoryCommand.class);
+		Command nodeFactory            = Services.command(securityContext, NodeFactoryCommand.class);
 		List<StructrRelationship> rels = getIncomingChildRelationships();
 
 		for (StructrRelationship r : rels) {
@@ -2812,7 +2812,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	public List<AbstractNode> getAllChildrenForRemotePush(User remoteUser) {
 
 		// FIXME: add handling for remote user here
-		Command findNode = Services.command(FindNodeCommand.class);
+		Command findNode = Services.command(securityContext, FindNodeCommand.class);
 
 		return ((List<AbstractNode>) findNode.execute(remoteUser,
 			this));
@@ -2820,7 +2820,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 	public int getRemotePushSize(User remoteUser, int chunkSize) {
 
-		Command findNode        = Services.command(FindNodeCommand.class);
+		Command findNode        = Services.command(securityContext, FindNodeCommand.class);
 		List<AbstractNode> list = ((List<AbstractNode>) findNode.execute(remoteUser,
 			this));
 		int size                = 0;
@@ -3098,7 +3098,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	protected List<AbstractNode> getAllChildren(final String nodeType) {
 
 		List<AbstractNode> nodes        = new LinkedList<AbstractNode>();
-		Command findNode                = Services.command(FindNodeCommand.class);
+		Command findNode                = Services.command(securityContext, FindNodeCommand.class);
 		List<AbstractNode> result       = (List<AbstractNode>) findNode.execute(user,
 			this);
 
@@ -3381,20 +3381,11 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 	@Override
 	public boolean containsKey(final Object key) {
-		
-		boolean ret = EntityContext.getPropertySet(this.getClass(), PropertyView.All).contains((String)key);
-		
-		logger.log(Level.INFO, "Returning {0} for key {1}", new Object[]{ ret, key });
-		
-		return ret;
-			
-		//return getProperty((String)key) != null;
+		return EntityContext.getPropertySet(this.getClass(), PropertyView.All).contains((String)key);
 	}
 
 	@Override
 	public boolean containsValue(final Object value) {
-
-		logger.log(Level.INFO, "Checking for {0}", value);
 
 		for (Map.Entry<String, Object> entry : entrySet()) {
 			Object dataValue = entry.getValue();
@@ -3680,13 +3671,13 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	public void setTemplateId(final Long value) {
 
 		// find template node
-		Command findNode      = Services.command(FindNodeCommand.class);
+		Command findNode      = Services.command(securityContext, FindNodeCommand.class);
 		Template templateNode = (Template) findNode.execute(new SuperUser(),
 			value);
 
 		// delete existing template relationships
 		List<StructrRelationship> templateRels = this.getOutgoingRelationships(RelType.USE_TEMPLATE);
-		Command delRel                         = Services.command(DeleteRelationshipCommand.class);
+		Command delRel                         = Services.command(securityContext, DeleteRelationshipCommand.class);
 
 		if (templateRels != null) {
 
@@ -3696,7 +3687,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		}
 
 		// create new link target relationship
-		Command createRel = Services.command(CreateRelationshipCommand.class);
+		Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
 
 		createRel.execute(this,
 				  templateNode,
@@ -3886,7 +3877,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		Class type = this.getClass();
 
 		// TODO: implement converters here?
-		PropertyConverter converter = EntityContext.getPropertyConverter(type, key);
+		PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
 		final Object convertedValue;
 		if(converter != null) {
 			Value conversionValue = EntityContext.getPropertyConversionParameter(type, key);
@@ -3896,7 +3887,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		}
 
 		// look for validator
-		PropertyValidator validator = EntityContext.getPropertyValidator(type, key);
+		PropertyValidator validator = EntityContext.getPropertyValidator(securityContext, type, key);
 		if(validator != null) {
 			logger.log(Level.FINE, "Using validator of type {0} for property {1}", new Object[] { validator.getClass().getSimpleName(), key } );
 			Value parameter = EntityContext.getPropertyValidationParameter(type, key);
@@ -3964,7 +3955,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 					// TODO: Implement something really fast to keep the index automatically in sync
 					if (updateIndex && dbNode.hasProperty(key)) {
 
-						Services.command(IndexNodeCommand.class).execute(getId(),
+						Services.command(securityContext, IndexNodeCommand.class).execute(getId(),
 							key);
 					}
 
@@ -3974,7 +3965,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 			};
 			
 			// execute transaction	
-			Services.command(TransactionCommand.class).execute(transaction);
+			Services.command(securityContext, TransactionCommand.class).execute(transaction);
 			
 			// debug
 			if(transaction.getCause() != null) {
@@ -3999,10 +3990,10 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 	private void setOwnerNode(final Long nodeId) {
 
-		Command setOwner = Services.command(SetOwnerCommand.class);
+		Command setOwner = Services.command(securityContext, SetOwnerCommand.class);
 
 		setOwner.execute(this,
-				 Services.command(FindNodeCommand.class).execute(new SuperUser(), nodeId));
+				 Services.command(securityContext, FindNodeCommand.class).execute(new SuperUser(), nodeId));
 	}
 
 	//~--- inner classes --------------------------------------------------

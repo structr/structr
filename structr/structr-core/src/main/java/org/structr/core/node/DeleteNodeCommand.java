@@ -56,7 +56,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
         Boolean recursive = false;
         User user = null;
 
-        Command findNode = Services.command(FindNodeCommand.class);
+        Command findNode = Services.command(securityContext, FindNodeCommand.class);
 
         switch (parameters.length) {
 
@@ -181,7 +181,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
         final Node node = graphDb.getNodeById(structrNode.getId());
 
 
-        final Command transactionCommand = Services.command(TransactionCommand.class);
+        final Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
         AbstractNode newParentNode = (AbstractNode) transactionCommand.execute(new StructrTransaction() {
 
             @Override
@@ -189,7 +189,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
                 AbstractNode newParentNode = null;
 
-                Command findNode = Services.command(FindNodeCommand.class);
+                Command findNode = Services.command(securityContext, FindNodeCommand.class);
                 if (parentNode == null) {
 
                     if (recursive) {

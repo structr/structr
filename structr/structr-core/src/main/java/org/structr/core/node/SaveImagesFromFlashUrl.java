@@ -223,7 +223,7 @@ public class SaveImagesFromFlashUrl extends NodeServiceCommand {
                             String name = flashObjectName + "_" + id + "_" + width + "x" + height + fileExtension;
 
                             // Create new image node
-                            Image newImageNode = (Image) Services.command(CreateNodeCommand.class).execute(user,
+                            Image newImageNode = (Image) Services.command(securityContext, CreateNodeCommand.class).execute(user,
                                     new NodeAttribute(AbstractNode.Key.type.name(), Image.class.getSimpleName()),
                                     new NodeAttribute(AbstractNode.Key.name.name(), name),
                                     new NodeAttribute(Image.Key.width.name(), width),
@@ -233,7 +233,7 @@ public class SaveImagesFromFlashUrl extends NodeServiceCommand {
                                     true);  // Update index
 
                             // Establish HAS_CHILD relationship from parent node
-                            Services.command(CreateRelationshipCommand.class).execute(parentNode, newImageNode, RelType.HAS_CHILD);
+                            Services.command(securityContext, CreateRelationshipCommand.class).execute(parentNode, newImageNode, RelType.HAS_CHILD);
 
                             String relativeFilePath = newImageNode.getId() + "_" + System.currentTimeMillis();
 

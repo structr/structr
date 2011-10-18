@@ -25,6 +25,7 @@ import org.neo4j.graphdb.*;
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
+import org.structr.common.SecurityContext;
 import org.structr.core.Command;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
@@ -61,17 +62,21 @@ public class StructrRelationship implements GraphObject {
 		ADD_RELATIONSHIP_KEY, REMOVE_RELATIONSHIP_KEY,
 		EDIT_PROPERTIES_KEY, ACCESS_CONTROL_KEY
 	};
+
+	protected SecurityContext securityContext = null;
+
 	// reference to database relationship
 	protected Relationship dbRelationship;
 
 	public StructrRelationship() {
 	}
 
-	public StructrRelationship(Relationship dbRelationship) {
-		init(dbRelationship);
+	public StructrRelationship(SecurityContext securityContext, Relationship dbRelationship) {
+		init(securityContext, dbRelationship);
 	}
 
-	public void init(final Relationship dbRelationship) {
+	public void init(final SecurityContext securityContext, final Relationship dbRelationship) {
+		this.securityContext = securityContext;
 		this.dbRelationship = dbRelationship;
 	}
 
@@ -126,12 +131,12 @@ public class StructrRelationship implements GraphObject {
 	}
 
 	public AbstractNode getEndNode() {
-		Command nodeFactory = Services.command(NodeFactoryCommand.class);
+		Command nodeFactory = Services.command(securityContext, NodeFactoryCommand.class);
 		return (AbstractNode) nodeFactory.execute(dbRelationship.getEndNode());
 	}
 
 	public AbstractNode getStartNode() {
-		Command nodeFactory = Services.command(NodeFactoryCommand.class);
+		Command nodeFactory = Services.command(securityContext, NodeFactoryCommand.class);
 		return (AbstractNode) nodeFactory.execute(dbRelationship.getStartNode());
 	}
 
@@ -152,16 +157,16 @@ public class StructrRelationship implements GraphObject {
 	 *
 	 */
 	public void setEndNodeId(final User user, final long endNodeId) {
-		Command transaction = Services.command(TransactionCommand.class);
+		Command transaction = Services.command(securityContext, TransactionCommand.class);
 
 		transaction.execute(new StructrTransaction() {
 
 			@Override
 			public Object execute() throws Throwable {
-				Command findNode = Services.command(FindNodeCommand.class);
-				Command deleteRel = Services.command(DeleteRelationshipCommand.class);
-				Command createRel = Services.command(CreateRelationshipCommand.class);
-				Command nodeFactory = Services.command(NodeFactoryCommand.class);
+				Command findNode = Services.command(securityContext, FindNodeCommand.class);
+				Command deleteRel = Services.command(securityContext, DeleteRelationshipCommand.class);
+				Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
+				Command nodeFactory = Services.command(securityContext, NodeFactoryCommand.class);
 
 				AbstractNode startNode = (AbstractNode) nodeFactory.execute(getStartNode());
 				AbstractNode newEndNode = (AbstractNode) findNode.execute(user, endNodeId);
@@ -188,15 +193,15 @@ public class StructrRelationship implements GraphObject {
 	 */
 	public void setType(final String type) {
 		if (type != null) {
-			Command transacted = Services.command(TransactionCommand.class);
+			Command transacted = Services.command(securityContext, TransactionCommand.class);
 
 			transacted.execute(new StructrTransaction() {
 
 				@Override
 				public Object execute() throws Throwable {
-					Command deleteRel = Services.command(DeleteRelationshipCommand.class);
-					Command createRel = Services.command(CreateRelationshipCommand.class);
-					Command nodeFactory = Services.command(NodeFactoryCommand.class);
+					Command deleteRel = Services.command(securityContext, DeleteRelationshipCommand.class);
+					Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
+					Command nodeFactory = Services.command(securityContext, NodeFactoryCommand.class);
 
 					AbstractNode startNode = (AbstractNode) nodeFactory.execute(getStartNode());
 					AbstractNode endNode = (AbstractNode) nodeFactory.execute(getEndNode());

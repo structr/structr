@@ -66,14 +66,14 @@ public class LinkOperation implements PrimaryOperation, NodeRelationshipOperatio
 
 		if(parameterState.equals(ParameterState.EndNodeSet)) {
 
-			Command createRelationshipCommand = Services.command(CreateRelationshipCommand.class);
+			Command createRelationshipCommand = Services.command(securityContext, CreateRelationshipCommand.class);
 			for(String rel : relationships) {
 
 				final StructrRelationship newRel = (StructrRelationship)createRelationshipCommand.execute(startNode, endNode, rel);
 
 				if(newRel != null) {
 
-					Services.command(TransactionCommand.class).execute(new StructrTransaction() {
+					Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
 						@Override
 						public Object execute() throws Throwable {
@@ -182,7 +182,7 @@ public class LinkOperation implements PrimaryOperation, NodeRelationshipOperatio
 	// ----- private methods -----
 	private AbstractNode getNode(Object parameter) throws InvalidParameterException {
 
-		Command findNodeCommand = Services.command(FindNodeCommand.class);
+		Command findNodeCommand = Services.command(securityContext, FindNodeCommand.class);
 		AbstractNode ret = null;
 
 		if(parameter instanceof Collection) {

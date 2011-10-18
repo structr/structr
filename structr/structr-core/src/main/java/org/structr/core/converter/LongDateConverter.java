@@ -26,7 +26,7 @@ import org.structr.core.Value;
 /**
  * @author Christian Morgner
  */
-public class LongDateConverter implements PropertyConverter<Long, Date> {
+public class LongDateConverter extends PropertyConverter<Long, Date> {
 
 	@Override
 	public Long convertFrom(Date source, Value value) {

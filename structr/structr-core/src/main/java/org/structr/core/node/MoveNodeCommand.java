@@ -42,7 +42,7 @@ public class MoveNodeCommand extends NodeServiceCommand {
     @Override
     public Object execute(Object... parameters) {
 
-        Command findNode = Services.command(FindNodeCommand.class);
+        Command findNode = Services.command(securityContext, FindNodeCommand.class);
 
         AbstractNode node = null;
         AbstractNode newParentNode = null;

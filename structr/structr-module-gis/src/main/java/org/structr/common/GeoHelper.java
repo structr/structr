@@ -52,12 +52,12 @@ public class GeoHelper {
 
 	synchronized public static Set<AbstractNode> findClosestNodes(final GeoObject node, final double radius) {
 
+		SecurityContext securityContext = SecurityContext.getSuperUserInstance();
 		Set<AbstractNode> result     = new HashSet<AbstractNode>();
-		GraphDatabaseService graphDb =
-			(GraphDatabaseService) Services.command(GraphDatabaseCommand.class).execute();
+		GraphDatabaseService graphDb = (GraphDatabaseService) Services.command(securityContext, GraphDatabaseCommand.class).execute();
 		final SpatialDatabaseService db     = new SpatialDatabaseService(graphDb);
 		SimplePointLayer layer              = (SimplePointLayer) db.getLayer("Hotels");
-		Command findNode                    = Services.command(FindNodeCommand.class);
+		Command findNode                    = Services.command(securityContext, FindNodeCommand.class);
 		Coordinate myPosition               = node.getCoordinates();
 		List<SpatialDatabaseRecord> results = layer.findClosestPointsTo(myPosition, radius);
 

@@ -63,6 +63,7 @@ import org.apache.click.util.HtmlStringBuffer;
 import org.apache.click.util.PropertyUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.structr.common.SecurityContext;
 import org.structr.core.Services;
 import org.structr.core.module.ExtendConfigCommand;
 import org.w3c.dom.Document;
@@ -248,7 +249,8 @@ public class StructrConfigService implements ConfigService, EntityResolver {
             Document document = ClickUtils.buildDocument(inputStream, this);
 
 	    // extend configuration
-	    Services.command(ExtendConfigCommand.class).execute(document);
+	    SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+	    Services.command(securityContext, ExtendConfigCommand.class).execute(document);
 
             Element rootElm = document.getDocumentElement();
 

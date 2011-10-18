@@ -186,7 +186,7 @@ public class Report extends Nodes {
         if (reportForm.isValid()) {
             // Always filter by type
             searchAttributes.add(Search.andExactType(resultType));
-            searchResults = (List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(securityContext, null, false, false, searchAttributes);
+            searchResults = (List<AbstractNode>) Services.command(securityContext, SearchNodeCommand.class).execute(securityContext, null, false, false, searchAttributes);
             populateReportResultsTable();
             saveState();
         }
@@ -297,7 +297,7 @@ public class Report extends Nodes {
 
             // Always filter by type
             searchAttributes.add(Search.andExactType(resultType));
-            reportResults = (List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(securityContext, null, false, false, searchAttributes);
+            reportResults = (List<AbstractNode>) Services.command(securityContext, SearchNodeCommand.class).execute(securityContext, null, false, false, searchAttributes);
             populateReportResultsTable();
             saveState();
 
@@ -397,15 +397,15 @@ public class Report extends Nodes {
             csvw.close();
 
             AbstractNode s = null;
-            Command transaction = Services.command(TransactionCommand.class);
+            Command transaction = Services.command(securityContext, TransactionCommand.class);
 
             s = (AbstractNode) transaction.execute(new StructrTransaction() {
 
                 @Override
                 public Object execute() throws Throwable {
                     // Save report in database
-                    Command createNode = Services.command(CreateNodeCommand.class);
-                    Command createRel = Services.command(CreateRelationshipCommand.class);
+                    Command createNode = Services.command(securityContext, CreateNodeCommand.class);
+                    Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
 		    User user = securityContext.getUser();
 
                     // create node with appropriate type
@@ -456,7 +456,7 @@ public class Report extends Nodes {
 
         // Get the corresponding entity class
         //Class<AbstractNode> c = Services.getEntityClass(resultType);
-        Class<AbstractNode> c = (Class<AbstractNode>) Services.command(GetEntityClassCommand.class).execute(resultType);
+        Class<AbstractNode> c = (Class<AbstractNode>) Services.command(securityContext, GetEntityClassCommand.class).execute(resultType);
 
         if (c != null) {
 
@@ -534,7 +534,7 @@ public class Report extends Nodes {
         resultTypeSelect.add(new Option("", "--- Select Node Type ---"));
         resultTypeSelect.setAttribute("onchange", "form.submit();");
 
-        List<String> nodeTypes = new LinkedList<String>(((Map<String, Class>) Services.command(GetEntitiesCommand.class).execute()).keySet());
+        List<String> nodeTypes = new LinkedList<String>(((Map<String, Class>) Services.command(securityContext, GetEntitiesCommand.class).execute()).keySet());
         Collections.sort(nodeTypes);
 
         for (String className : nodeTypes) {

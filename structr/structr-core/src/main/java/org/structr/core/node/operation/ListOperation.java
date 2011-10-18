@@ -142,7 +142,7 @@ public class ListOperation implements PrimaryOperation {
 
 	private void add(Object obj) {
 
-		Object findNodeResult = Services.command(FindNodeCommand.class).execute(securityContext.getUser(), currentNode, obj);
+		Object findNodeResult = Services.command(securityContext, FindNodeCommand.class).execute(securityContext.getUser(), currentNode, obj);
 
 		if(findNodeResult != null) {
 

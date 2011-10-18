@@ -27,6 +27,7 @@ import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.structr.common.RelType;
+import org.structr.common.SecurityContext;
 import org.structr.common.StandaloneTestHelper;
 import org.structr.core.Command;
 import org.structr.core.Services;
@@ -52,8 +53,10 @@ public class AncestorTraverserTest {
 
 		StandaloneTestHelper.prepareStandaloneTest("/tmp/structr-test/");
 
+		final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+
 		// fetch neo4j service
-		GraphDatabaseService db = (GraphDatabaseService)Services.command(GraphDatabaseCommand.class).execute();
+		GraphDatabaseService db = (GraphDatabaseService)Services.command(securityContext, GraphDatabaseCommand.class).execute();
 
 		// define number of nodes & depth
 		final int num = 1000;
@@ -62,17 +65,17 @@ public class AncestorTraverserTest {
 		// test for existing relationships and create test structure
 		if(!db.getReferenceNode().hasRelationship(Direction.OUTGOING)) {
 
-			Services.command(TransactionCommand.class).execute(new StructrTransaction() {
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
 				@Override
 				public Object execute() throws Throwable {
 
 					// create chain of nodes
-					Command linkNodes = Services.command(CreateRelationshipCommand.class);
-					Command createNode = Services.command(CreateNodeCommand.class);
+					Command linkNodes = Services.command(securityContext, CreateRelationshipCommand.class);
+					Command createNode = Services.command(securityContext, CreateNodeCommand.class);
 
 					// get root node
-					AbstractNode rootNode = (AbstractNode)Services.command(FindNodeCommand.class).execute(null, 0L);
+					AbstractNode rootNode = (AbstractNode)Services.command(securityContext, FindNodeCommand.class).execute(null, 0L);
 
 					// create chain of n nodes
 					for(int i=0; i<num; i++) {
@@ -101,7 +104,7 @@ public class AncestorTraverserTest {
 		}
 
 		// create list of structr nodes
-		Command factory = Services.command(NodeFactoryCommand.class);
+		Command factory = Services.command(securityContext, NodeFactoryCommand.class);
 		List<AbstractNode> allNodes = new LinkedList<AbstractNode>();
 		for(Node node : db.getAllNodes()) {
 

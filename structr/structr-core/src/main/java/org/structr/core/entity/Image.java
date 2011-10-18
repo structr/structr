@@ -86,8 +86,8 @@ public class Image extends File {
 
 	synchronized public void removeThumbnails() {
 
-		Command deleteRelationship = Services.command(DeleteRelationshipCommand.class);
-		Command deleteNode         = Services.command(DeleteNodeCommand.class);
+		Command deleteRelationship = Services.command(securityContext, DeleteRelationshipCommand.class);
+		Command deleteNode         = Services.command(securityContext, DeleteNodeCommand.class);
 
 		for (StructrRelationship s : getThumbnailRelationships()) {
 
@@ -150,15 +150,15 @@ public class Image extends File {
 //          // No thumbnail exists, or thumbnail is too old, so let's create a new one
 //          logger.log(Level.INFO, "Creating thumbnail for {0}", getName());
 //
-//          Command transactionCommand = Services.command(TransactionCommand.class);
+//          Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
 //          thumbnail = (Image) transactionCommand.execute(new StructrTransaction() {
 //
 //              @Override
 //              public Object execute() throws Throwable {
 //
-//                  Command createNode = Services.command(CreateNodeCommand.class);
-//                  Command createRel = Services.command(CreateRelationshipCommand.class);
-//                  Command findNode = Services.command(FindNodeCommand.class);
+//                  Command createNode = Services.command(securityContext, CreateNodeCommand.class);
+//                  Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
+//                  Command findNode = Services.command(securityContext, FindNodeCommand.class);
 //
 //                  NodeAttribute typeAttr = new NodeAttribute(AbstractNode.Key.type.name(), Image.class.getSimpleName());
 //                  NodeAttribute nameAttr = new NodeAttribute(Image.NAME_KEY, originalImage.getName() + "_thumb");
@@ -316,17 +316,17 @@ public class Image extends File {
 		// No thumbnail exists, or thumbnail is too old, so let's create a new one
 		logger.log(Level.INFO, "Creating thumbnail for {0}", getName());
 
-		Command transactionCommand = Services.command(TransactionCommand.class);
+		Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
 
 		thumbnail = (Image) transactionCommand.execute(new StructrTransaction() {
 
 			@Override
 			public Object execute() throws Throwable {
 
-				Command createNode = Services.command(CreateNodeCommand.class);
-				Command createRel  = Services.command(CreateRelationshipCommand.class);
+				Command createNode = Services.command(securityContext, CreateNodeCommand.class);
+				Command createRel  = Services.command(securityContext, CreateRelationshipCommand.class);
 
-//                              Command findNode = Services.command(FindNodeCommand.class);
+//                              Command findNode = Services.command(securityContext, FindNodeCommand.class);
 				NodeAttribute typeAttr = new NodeAttribute(AbstractNode.Key.type.name(),
 								 Image.class.getSimpleName());
 				NodeAttribute contentTypeAttr = new NodeAttribute(File.Key.contentType.name(),

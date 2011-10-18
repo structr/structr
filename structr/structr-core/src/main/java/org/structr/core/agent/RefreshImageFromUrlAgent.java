@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.SecurityContext;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.Image;
@@ -69,7 +70,9 @@ public class RefreshImageFromUrlAgent extends Agent {
 
     private void refreshImageFromUrl(final Set<AbstractNode> nodes) {
 
-        Command transactionCommand = Services.command(TransactionCommand.class);
+	// FIXME: superuser security context
+	final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+        Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
         transactionCommand.execute(new StructrTransaction() {
 
             @Override
@@ -82,11 +85,11 @@ public class RefreshImageFromUrlAgent extends Agent {
                     if (node instanceof Image) {
 
                         Image image = (Image) node;
-                        Services.command(SaveImageFromUrl.class).execute(image);
+                        Services.command(securityContext, SaveImageFromUrl.class).execute(image);
                         images.add(image);
 
                     }
-                    Services.command(ExtractAndSetImageDimensionsAndFormat.class).execute(images);
+                    Services.command(securityContext, ExtractAndSetImageDimensionsAndFormat.class).execute(images);
                 }
 
                 return null;

@@ -32,7 +32,7 @@ public class Ajax extends StructrPage {
 
 		StringBuilder output                   = new StringBuilder(200);
 		int zIndex                             = 999;
-		Collection<Notification> notifications = (Collection<Notification>) Services.command(
+		Collection<Notification> notifications = (Collection<Notification>) Services.command(securityContext, 
 							     GetNotificationsCommand.class).execute(
 							     getContext().getSession().getId());
 

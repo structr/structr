@@ -183,7 +183,7 @@ public class RegistrationCheckRenderer implements NodeRenderer<RegistrationCheck
 		if(StringUtils.isNotEmpty(confirmationKey) && StringUtils.isNotEmpty(username))
 		{
 
-			loginUser = (User)Services.command(FindUserCommand.class).execute(username);
+			loginUser = (User)Services.command(securityContext, FindUserCommand.class).execute(username);
 
 			if(loginUser == null)
 			{
@@ -219,12 +219,12 @@ public class RegistrationCheckRenderer implements NodeRenderer<RegistrationCheck
 //                String message = "<div class=\"errorMsg\">Plesae choose a username!</div>";
 //                registerFailure(out, message, session, maxRetries, delayThreshold, delayTime);
 //            } else {
-//                loginUser = (User) Services.command(FindUserCommand.class).execute(username);
+//                loginUser = (User) Services.command(securityContext, FindUserCommand.class).execute(username);
 //            }
 
 		if(StringUtils.isNotEmpty(username))
 		{
-			loginUser = (User)Services.command(FindUserCommand.class).execute(username);
+			loginUser = (User)Services.command(securityContext, FindUserCommand.class).execute(username);
 		}
 
 		if(loginUser != null)
@@ -262,7 +262,7 @@ public class RegistrationCheckRenderer implements NodeRenderer<RegistrationCheck
 				errorsOnMandatoryFields.append("input[name=").append(usernameFieldName).append("] { background-color: #ffc }");
 			} else
 			{
-				loginUser = (User)Services.command(FindUserCommand.class).execute(username);
+				loginUser = (User)Services.command(securityContext, FindUserCommand.class).execute(username);
 
 				if(loginUser != null)
 				{
@@ -474,15 +474,15 @@ public class RegistrationCheckRenderer implements NodeRenderer<RegistrationCheck
 		final Date birthdayDate = parsedDate;
 
 		// Create new user (will reserve username)
-		User newUser = (User)Services.command(TransactionCommand.class).execute(new StructrTransaction()
+		User newUser = (User)Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction()
 		{
 			@Override
 			public Object execute()
 			{
 
-				Command create = Services.command(CreateNodeCommand.class);
-				Command link = Services.command(CreateRelationshipCommand.class);
-				Command search = Services.command(SearchNodeCommand.class);
+				Command create = Services.command(securityContext, CreateNodeCommand.class);
+				Command link = Services.command(securityContext, CreateRelationshipCommand.class);
+				Command search = Services.command(securityContext, SearchNodeCommand.class);
 
 				List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
 
@@ -555,7 +555,7 @@ public class RegistrationCheckRenderer implements NodeRenderer<RegistrationCheck
 				link.execute(publicUserDirectory, newUser, RelType.HAS_CHILD);
 
 				// Index user to be findable
-				Services.command(IndexNodeCommand.class).execute(newUser);
+				Services.command(securityContext, IndexNodeCommand.class).execute(newUser);
 
 				return newUser;
 			}

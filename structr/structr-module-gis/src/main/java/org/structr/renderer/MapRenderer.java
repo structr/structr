@@ -166,7 +166,7 @@ public class MapRenderer implements NodeRenderer<Map> {
 	 */
 	private void renderSVGMap(SecurityContext securityContext, HttpServletRequest request, Map currentNode, StringBuilder out, final AbstractNode startNode) {
 
-		Command graphDbCommand       = Services.command(GraphDatabaseCommand.class);
+		Command graphDbCommand       = Services.command(securityContext, GraphDatabaseCommand.class);
 		GraphDatabaseService graphDb = (GraphDatabaseService) graphDbCommand.execute();
 		MapContext mapContext        = null;
 
@@ -274,7 +274,7 @@ public class MapRenderer implements NodeRenderer<Map> {
 
 					if (geoNode == null) {
 
-						List<AbstractNode> result = (List<AbstractNode>) Services.command(
+						List<AbstractNode> result = (List<AbstractNode>) Services.command(securityContext, 
 										SearchNodeCommand.class).execute(
 										securityContext,
 										null,

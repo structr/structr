@@ -50,7 +50,7 @@ public class PullNode extends CloudServiceCommand
 		int remoteUdpPort = 0;
 		boolean recursive = false;
 
-		Command findNode = Services.command(FindNodeCommand.class);
+		Command findNode = Services.command(securityContext, FindNodeCommand.class);
 
 		switch(parameters.length)
 		{

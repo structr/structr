@@ -27,7 +27,7 @@ import org.structr.core.Value;
  *
  * @author Christian Morgner
  */
-public class SimpleMaxlengthValidator implements PropertyValidator<Integer> {
+public class SimpleMaxlengthValidator extends PropertyValidator<Integer> {
 
 	@Override
 	public boolean isValid(String key, Object value, Value<Integer> parameter, StringBuilder errorMessage) {

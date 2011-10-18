@@ -64,27 +64,34 @@ public class SecurityContext {
 		this.accessMode = accessMode;
 		this.request = request;
 
-		this.authenticator = (Authenticator)Services.command(AuthenticatorCommand.class).execute(config);
+		// the authenticator does not have a security context
+		this.authenticator = (Authenticator)Services.command(null, AuthenticatorCommand.class).execute(config);
 
 	}
 
 	public User doLogin(String userName, String password) throws AuthenticationException {
+		authenticator.setSecurityContext(this);
 		return authenticator.doLogin(request, userName, password);
 	}
 
 	public void doLogout() {
+		authenticator.setSecurityContext(this);
 		authenticator.doLogout(request);
 	}
 
 	//~--- get methods ----------------------------------------------------
 
 	public static SecurityContext getSuperUserInstance() {
-		return null;
-		// FIXME
+		return new SuperUserSecurityContext();
 	}
 
 	public static SecurityContext getInstance(ServletConfig config, HttpServletRequest request, AccessMode accessMode) {
 		return new SecurityContext(config, request, accessMode);
+	}
+
+	public boolean isSuperUser() {
+		User user = getUser();
+		return (user != null && user instanceof SuperUser);
 	}
 
 	public HttpSession getSession() {
@@ -92,6 +99,7 @@ public class SecurityContext {
 	}
 
 	public User getUser() {
+		authenticator.setSecurityContext(this);
 		return authenticator.getUser(request);
 	}
 
@@ -376,6 +384,39 @@ public class SecurityContext {
 
 			default :
 				return false;
+		}
+	}
+
+	// ----- nested classes -----
+	private static class SuperUserSecurityContext extends SecurityContext {
+
+		public SuperUserSecurityContext() {
+			super(null, null, null);
+		}
+
+		@Override
+		public HttpSession getSession() {
+			throw new IllegalStateException("Trying to access session in SuperUserSecurityContext!");
+		}
+
+		@Override
+		public User getUser() {
+			return new SuperUser();
+		}
+
+		@Override
+		public AccessMode getAccessMode() {
+			return(AccessMode.Backend);
+		}
+
+		@Override
+		public boolean isAllowed(AccessControllable node, Permission permission) {
+			return true;
+		}
+
+		@Override
+		public boolean isVisible(AccessControllable node) {
+			return true;
 		}
 	}
 }

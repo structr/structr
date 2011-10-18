@@ -19,6 +19,8 @@
 
 package org.structr.core;
 
+import org.structr.common.SecurityContext;
+
 /**
  * A generic converter interface that can be used to convert
  * values from one type to another. Please note that implementations
@@ -26,7 +28,9 @@ package org.structr.core;
  *
  * @author Christian Morgner
  */
-public interface PropertyConverter<S, T> {
+public abstract class PropertyConverter<S, T> {
+
+	protected SecurityContext securityContext = null;
 
 	/**
 	 * Converts from destination type to source type. Caution: source
@@ -35,7 +39,7 @@ public interface PropertyConverter<S, T> {
 	 * @param source
 	 * @return 
 	 */
-	public S convertFrom(T source, Value value);
+	public abstract S convertFrom(T source, Value value);
 	
 	/**
 	 * Converts from source type to destination type. Caution: source
@@ -44,5 +48,10 @@ public interface PropertyConverter<S, T> {
 	 * @param source
 	 * @return 
 	 */
-	public T convertTo(S source, Value value);
+	public abstract T convertTo(S source, Value value);
+
+	
+	public void setSecurityContext(SecurityContext securityContext) {
+		this.securityContext = securityContext;
+	}
 }

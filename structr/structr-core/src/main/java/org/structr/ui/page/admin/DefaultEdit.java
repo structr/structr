@@ -55,7 +55,6 @@ import org.structr.common.AbstractComponent;
 import org.structr.common.Permission;
 import org.structr.common.RelType;
 import org.structr.common.RenderMode;
-import org.structr.common.SecurityContext;
 import org.structr.common.StructrOutputStream;
 import org.structr.common.renderer.HtmlComponentRenderer;
 import org.structr.core.Command;
@@ -722,7 +721,7 @@ public class DefaultEdit extends Nodes {
 			public List<CloudTransmission> getData() {
 
 				CloudService cloudService =
-					(CloudService) Services.command(GetCloudServiceCommand.class).execute();
+					(CloudService) Services.command(securityContext, GetCloudServiceCommand.class).execute();
 
 				if (cloudService != null) {
 					return (cloudService.getActiveTransmissions());
@@ -752,7 +751,7 @@ public class DefaultEdit extends Nodes {
 		User user = securityContext.getUser();
 		String prompt = ((user != null)
 				 ? user.getName()
-				 : "anonymous") + "@structr" + (isSuperUser
+				 : "anonymous") + "@structr" + (securityContext.isSuperUser()
 			? "# "
 			: "$ ");
 
@@ -828,7 +827,7 @@ public class DefaultEdit extends Nodes {
 
 						searchAttrs.add(new TextualSearchAttribute(AbstractNode.Key.type.name(),
 							Template.class.getSimpleName(), SearchOperator.OR));
-						nodes = (List<AbstractNode>) Services.command(
+						nodes = (List<AbstractNode>) Services.command(securityContext, 
 							SearchNodeCommand.class).execute(
 							securityContext, null, false, false, searchAttrs);
 					}
@@ -878,7 +877,7 @@ public class DefaultEdit extends Nodes {
 							    new TextualSearchAttribute(
 								AbstractNode.Key.type.name(), NodeType.class.getSimpleName(),
 								SearchOperator.OR));
-							nodes = (List<AbstractNode>) Services.command(
+							nodes = (List<AbstractNode>) Services.command(securityContext, 
 								SearchNodeCommand.class).execute(
 								securityContext, null, false, false, searchAttrs);
 						}
@@ -917,7 +916,7 @@ public class DefaultEdit extends Nodes {
 					List<String> nodeTypes =
 						new LinkedList<String>(
 						    ((Map<String,
-							  Class>) Services.command(
+							  Class>) Services.command(securityContext, 
 								  GetEntitiesCommand.class).execute()).keySet());
 
 					Collections.sort(nodeTypes);
@@ -1167,7 +1166,7 @@ public class DefaultEdit extends Nodes {
 	 */
 	protected void save() {
 
-		final Command transactionCommand = Services.command(TransactionCommand.class);
+		final Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
 		StructrTransaction transaction = new StructrTransaction() {
 
 			@Override
@@ -1206,7 +1205,7 @@ public class DefaultEdit extends Nodes {
 	 */
 	public boolean onDeleteRelationship() {
 
-		final Command transaction            = Services.command(TransactionCommand.class);
+		final Command transaction            = Services.command(securityContext, TransactionCommand.class);
 		String localNodeId                   = deleteRelationshipLink.getParameter(NODE_ID_KEY);
 		final String relationshipId          = deleteRelationshipLink.getValue();
 		final Map<String, String> parameters = new HashMap<String, String>();
@@ -1220,7 +1219,7 @@ public class DefaultEdit extends Nodes {
 				@Override
 				public Object execute() throws Throwable {
 
-					Command deleteRelationship = Services.command(DeleteRelationshipCommand.class);
+					Command deleteRelationship = Services.command(securityContext, DeleteRelationshipCommand.class);
 
 					deleteRelationship.execute(id);
 					transaction.setErrorMessage(deleteRelationship.getErrorMessage());
@@ -1262,7 +1261,7 @@ public class DefaultEdit extends Nodes {
 	 */
 	public boolean onSetCurrentOwnerRecursively() {
 
-		Command setOwner         = Services.command(SetOwnerCommand.class);
+		Command setOwner         = Services.command(securityContext, SetOwnerCommand.class);
 		List<AbstractNode> nodes = node.getAllChildren();
 
 		setOwner.execute(nodes, node.getOwnerNode());
@@ -1283,15 +1282,15 @@ public class DefaultEdit extends Nodes {
 			final String selectedGroupName    = securityForm.getFieldValue(groupSelect.getName());
 			final List<String> selectedValues = allowed.getSelectedValues();
 			final boolean rec                 = recursive.isChecked();
-			Command transaction               = Services.command(TransactionCommand.class);
+			Command transaction               = Services.command(securityContext, TransactionCommand.class);
 
 			transaction.execute(new StructrTransaction() {
 
 				@Override
 				public Object execute() throws Throwable {
 
-					Command findUser    = Services.command(FindUserCommand.class);
-					Command findGroup   = Services.command(FindGroupCommand.class);
+					Command findUser    = Services.command(securityContext, FindUserCommand.class);
+					Command findGroup   = Services.command(securityContext, FindGroupCommand.class);
 					User selectedUser   = (User) findUser.execute(selectedUserName);
 					Group selectedGroup = (Group) findGroup.execute(selectedGroupName);
 					User user           = securityContext.getUser();
@@ -1303,7 +1302,7 @@ public class DefaultEdit extends Nodes {
 						if (rec) {
 
 							Command findNode          =
-								Services.command(FindNodeCommand.class);
+								Services.command(securityContext, FindNodeCommand.class);
 							List<AbstractNode> result =
 								(List<AbstractNode>) findNode.execute(user, node);
 
@@ -1322,8 +1321,8 @@ public class DefaultEdit extends Nodes {
 							nodes.add(node);
 						}
 
-						Command createRel = Services.command(CreateRelationshipCommand.class);
-						Command deleteRel = Services.command(DeleteRelationshipCommand.class);
+						Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
+						Command deleteRel = Services.command(securityContext, DeleteRelationshipCommand.class);
 
 						for (AbstractNode n : nodes) {
 
@@ -1395,7 +1394,7 @@ public class DefaultEdit extends Nodes {
 
 		if (editVisibilityForm.isValid()) {
 
-			final TransactionCommand transactionCommand = (TransactionCommand)Services.command(TransactionCommand.class);
+			final TransactionCommand transactionCommand = (TransactionCommand)Services.command(securityContext, TransactionCommand.class);
 			StructrTransaction transaction = new StructrTransaction() {
 
 				@Override
@@ -1446,7 +1445,7 @@ public class DefaultEdit extends Nodes {
 
 		if (editVisibilityForm.isValid()) {
 
-			final Command transactionCommand = Services.command(TransactionCommand.class);
+			final Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
 
 			transactionCommand.execute(new StructrTransaction() {
 
@@ -1491,7 +1490,7 @@ public class DefaultEdit extends Nodes {
 
 		if (editVisibilityForm.isValid()) {
 
-			final Command transactionCommand = Services.command(TransactionCommand.class);
+			final Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
 
 			transactionCommand.execute(new StructrTransaction() {
 
@@ -1548,14 +1547,14 @@ public class DefaultEdit extends Nodes {
 
 				if ("push".equals(pushPull)) {
 
-					Command transmitCommand = Services.command(PushNodes.class);
+					Command transmitCommand = Services.command(securityContext, PushNodes.class);
 
 					transmitCommand.execute(userNameValue, passwordValue, node, targetNodeValue,
 								remoteHostValue, tcpPort, udpPort, rec);
 
 				} else if ("pull".equals(pushPull)) {
 
-					Command transmitCommand = Services.command(PullNode.class);
+					Command transmitCommand = Services.command(securityContext, PullNode.class);
 					User user               = securityContext.getUser();
 
 					transmitCommand.execute(user, targetNodeValue, node, remoteHostValue, tcpPort,
@@ -1585,7 +1584,7 @@ public class DefaultEdit extends Nodes {
 			}
 		};
 
-		consoleLines.add(Services.command(NodeConsoleCommand.class).execute(securityContext, node, consoleCommand.getValue(),
+		consoleLines.add(Services.command(securityContext, NodeConsoleCommand.class).execute(securityContext, node, consoleCommand.getValue(),
 						  callback).toString());
 
 		if (consoleLines.size() > 20) {
@@ -1630,7 +1629,7 @@ public class DefaultEdit extends Nodes {
 
 		if ((helpTarget != null) && (helpTarget.length() > 0)) {
 
-			Class nodeClass = (Class) Services.command(GetEntityClassCommand.class).execute(helpTarget);
+			Class nodeClass = (Class) Services.command(securityContext, GetEntityClassCommand.class).execute(helpTarget);
 
 			if (nodeClass != null) {
 
@@ -1647,7 +1646,7 @@ public class DefaultEdit extends Nodes {
 
 			Context context                             = getContext();
 			HtmlComponentRenderer htmlComponentRenderer = new HtmlComponentRenderer();
-			StructrOutputStream out                     = new StructrOutputStream(context.getRequest(), context.getResponse(), securityContext);
+			StructrOutputStream out                     = new StructrOutputStream(getContext().getRequest(), securityContext);
 			AbstractComponent content                   = helpNode.getHelpContent();
 
 			if (content != null) {

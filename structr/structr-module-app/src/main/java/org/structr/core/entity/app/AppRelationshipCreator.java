@@ -82,7 +82,7 @@ public class AppRelationshipCreator extends ActionNode
 		final Node toNode = relEndNode.getNode();
 		final RelationshipType newRelType = DynamicRelationshipType.withName(relType);
 
-		Services.command(TransactionCommand.class).execute(new StructrTransaction()
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction()
 		{
 			@Override
 			public Object execute() throws Throwable
@@ -101,7 +101,7 @@ public class AppRelationshipCreator extends ActionNode
 		});
 
 		/*
-		Services.command(CreateRelationshipCommand.class).execute(relStartNode, relEndNode, relType);
+		Services.command(securityContext, CreateRelationshipCommand.class).execute(relStartNode, relEndNode, relType);
 		 */
 		return (true);
 	}

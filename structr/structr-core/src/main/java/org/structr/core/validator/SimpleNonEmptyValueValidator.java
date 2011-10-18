@@ -27,7 +27,7 @@ import org.structr.core.Value;
  *
  * @author Christian Morgner
  */
-public class SimpleNonEmptyValueValidator implements PropertyValidator {
+public class SimpleNonEmptyValueValidator extends PropertyValidator {
 
 	@Override
 	public boolean isValid(String key, Object value, Value parameter, StringBuilder errorMessage) {

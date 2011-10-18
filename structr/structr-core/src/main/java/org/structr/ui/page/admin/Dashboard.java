@@ -211,7 +211,7 @@ public class Dashboard extends Admin {
     public boolean onSecurityCheck() {
 
         //userName = getContext().getRequest().getRemoteUser();
-        if (!isSuperUser) {
+        if (!securityContext.isSuperUser()) {
             logger.log(Level.INFO, "Access to admin dashboard denied.");
             setForward("/not-authorized.html");
             return false;
@@ -243,7 +243,7 @@ public class Dashboard extends Admin {
 
                 List<Activity> result = new LinkedList<Activity>();
 
-                LogNodeList<AbstractNode> globalLog = (LogNodeList<AbstractNode>) Services.command(GetGlobalLogCommand.class).execute();
+                LogNodeList<AbstractNode> globalLog = (LogNodeList<AbstractNode>) Services.command(securityContext, GetGlobalLogCommand.class).execute();
 
                 if (globalLog != null) {
 
@@ -271,7 +271,7 @@ public class Dashboard extends Admin {
 //            public List<Task> getData() {
 //
 //                List<Task> taskList = new LinkedList<Task>();
-//                Queue<Task> queue = (Queue<Task>) Services.command(ListTasksCommand.class).execute();
+//                Queue<Task> queue = (Queue<Task>) Services.command(securityContext, ListTasksCommand.class).execute();
 //
 //                for (Task t : queue) {
 //                    taskList.add(t);
@@ -326,7 +326,7 @@ public class Dashboard extends Admin {
                 List<Map.Entry<String, Object>> params = new LinkedList<Map.Entry<String, Object>>();
 
                 //params.add(new HashMap.Entry<String, Object>("Number of Nodes", numberOfNodes));
-//                Command findNode = Services.command(FindNodeCommand.class);
+//                Command findNode = Services.command(securityContext, FindNodeCommand.class);
 
                 for (AbstractNode s : allNodes) {
 
@@ -354,7 +354,7 @@ public class Dashboard extends Admin {
             @Override
             public Set<String> getData() {
 
-                Command listModules = Services.command(ListModulesCommand.class);
+                Command listModules = Services.command(securityContext, ListModulesCommand.class);
                 return (Set<String>) listModules.execute();
 
             }
@@ -367,7 +367,7 @@ public class Dashboard extends Admin {
 
                 SortedSet<NodeClassEntry> nodeClassList = new TreeSet<NodeClassEntry>();
 
-                Map<String, Class> entities = (Map<String, Class>) Services.command(GetEntitiesCommand.class).execute();
+                Map<String, Class> entities = (Map<String, Class>) Services.command(securityContext, GetEntitiesCommand.class).execute();
 
                 for (Entry<String, Class> entry : entities.entrySet()) {
                     String n = entry.getKey();
@@ -487,7 +487,7 @@ public class Dashboard extends Admin {
 
         try {
             // reload modules
-            Services.command(ReloadModulesCommand.class).execute();
+            Services.command(securityContext, ReloadModulesCommand.class).execute();
 
             // create new config service
             StructrConfigService newConfigService = new StructrConfigService();
@@ -506,14 +506,14 @@ public class Dashboard extends Admin {
 
     public boolean onCreateAdminUser() {
 
-        Command transactionCommand = Services.command(TransactionCommand.class);
+        Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
         transactionCommand.execute(new StructrTransaction() {
 
             @Override
             public Object execute() throws Throwable {
 
-                Command createNode = Services.command(CreateNodeCommand.class);
-                Command createRel = Services.command(CreateRelationshipCommand.class);
+                Command createNode = Services.command(securityContext, CreateNodeCommand.class);
+                Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
 
                 // create a new user node
                 User adminUser = (User) createNode.execute(
@@ -553,7 +553,7 @@ public class Dashboard extends Admin {
      */
     public boolean onRemoveThumbnails() {
 
-        Long numberOfRemovedThumbnails = (Long) Services.command(TransactionCommand.class).execute(new StructrTransaction() {
+        Long numberOfRemovedThumbnails = (Long) Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
             @Override
             public Object execute() throws Throwable {
@@ -561,7 +561,7 @@ public class Dashboard extends Admin {
                 Long numberOfThumbnails = 0L;
 
                 // Find all image nodes
-                //List<Image> images = (List<Image>) Services.command(SearchNodeCommand.class).execute(null, null, true, false, Search.andExactType(Image.class.getSimpleName()));
+                //List<Image> images = (List<Image>) Services.command(securityContext, SearchNodeCommand.class).execute(null, null, true, false, Search.andExactType(Image.class.getSimpleName()));
                 List<Image> images = new LinkedList<Image>();
 
                 for (AbstractNode s : getAllNodes()) {
@@ -570,8 +570,8 @@ public class Dashboard extends Admin {
                     }
                 }
 
-                Command deleteNode = Services.command(DeleteNodeCommand.class);
-                Command deleteRel = Services.command(DeleteRelationshipCommand.class);
+                Command deleteNode = Services.command(securityContext, DeleteNodeCommand.class);
+                Command deleteRel = Services.command(securityContext, DeleteRelationshipCommand.class);
 
                 // Loop through all images
                 for (Image image : images) {
@@ -609,7 +609,7 @@ public class Dashboard extends Admin {
      * @return
      */
     public boolean onSetImageDimensions() {
-        Command processTask = Services.command(ProcessTaskCommand.class);
+        Command processTask = Services.command(securityContext, ProcessTaskCommand.class);
         processTask.execute(new UpdateImageMetadataTask());
         return redirect();
     }
@@ -620,7 +620,7 @@ public class Dashboard extends Admin {
      * @return
      */
     public boolean onRebuildIndex() {
-        Command processTask = Services.command(ProcessTaskCommand.class);
+        Command processTask = Services.command(securityContext, ProcessTaskCommand.class);
         processTask.execute(new RebuildIndexTask());
         return redirect();
     }
@@ -641,7 +641,7 @@ public class Dashboard extends Admin {
      * @return
      */
     public boolean onCleanUpFiles() {
-        Command processTask = Services.command(ProcessTaskCommand.class);
+        Command processTask = Services.command(securityContext, ProcessTaskCommand.class);
         processTask.execute(new CleanUpFilesTask());
         return redirect();
     }
@@ -652,7 +652,7 @@ public class Dashboard extends Admin {
      * @return
      */
     public boolean onClearLogs() {
-        Command processTask = Services.command(ProcessTaskCommand.class);
+        Command processTask = Services.command(securityContext, ProcessTaskCommand.class);
         processTask.execute(new ClearLogsTask());
         return redirect();
     }

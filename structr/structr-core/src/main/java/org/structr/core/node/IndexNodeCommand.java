@@ -72,7 +72,7 @@ public class IndexNodeCommand extends NodeServiceCommand {
 
 					id = ((Long) parameters[0]).longValue();
 
-					Command findNode = Services.command(FindNodeCommand.class);
+					Command findNode = Services.command(securityContext, FindNodeCommand.class);
 
 					node = (AbstractNode) findNode.execute(new SuperUser(), id);
 					indexNode(node);
@@ -81,7 +81,7 @@ public class IndexNodeCommand extends NodeServiceCommand {
 
 					id = Long.parseLong((String) parameters[0]);
 
-					Command findNode = Services.command(FindNodeCommand.class);
+					Command findNode = Services.command(securityContext, FindNodeCommand.class);
 
 					node = (AbstractNode) findNode.execute(new SuperUser(), id);
 					indexNode(node);
@@ -104,7 +104,7 @@ public class IndexNodeCommand extends NodeServiceCommand {
 
 					id = ((Long) parameters[0]).longValue();
 
-					Command findNode = Services.command(FindNodeCommand.class);
+					Command findNode = Services.command(securityContext, FindNodeCommand.class);
 
 					node = (AbstractNode) findNode.execute(new SuperUser(), id);
 
@@ -112,7 +112,7 @@ public class IndexNodeCommand extends NodeServiceCommand {
 
 					id = Long.parseLong((String) parameters[0]);
 
-					Command findNode = Services.command(FindNodeCommand.class);
+					Command findNode = Services.command(securityContext, FindNodeCommand.class);
 
 					node = (AbstractNode) findNode.execute(new SuperUser(), id);
 

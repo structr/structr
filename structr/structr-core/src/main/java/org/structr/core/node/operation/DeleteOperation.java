@@ -35,7 +35,6 @@ import org.structr.core.node.FindNodeCommand;
  */
 public class DeleteOperation implements PrimaryOperation {
 
-	private Command deleteCommand = Services.command(DeleteNodeCommand.class);
 	private List<Callback> callbacks = new LinkedList<Callback>();
 	private List<String> parameters = new LinkedList<String>();
 	private SecurityContext securityContext = null;
@@ -45,6 +44,7 @@ public class DeleteOperation implements PrimaryOperation {
 	@Override
 	public boolean executeOperation(StringBuilder stdOut) throws NodeCommandException {
 
+		Command deleteCommand = Services.command(securityContext, DeleteNodeCommand.class);
 		List<AbstractNode> toDelete = new LinkedList<AbstractNode>();
 		AbstractNode newParentNode = currentNode;
 
@@ -56,7 +56,7 @@ public class DeleteOperation implements PrimaryOperation {
 
 			} else {
 
-				Object findNodeResult = Services.command(FindNodeCommand.class).execute(securityContext.getUser(), currentNode, param);
+				Object findNodeResult = Services.command(securityContext, FindNodeCommand.class).execute(securityContext.getUser(), currentNode, param);
 				if(findNodeResult != null) {
 
 					if(findNodeResult instanceof Collection) {

@@ -137,7 +137,7 @@ public class RequestHelper {
 					searchAttrs.add(Search.orContent(searchString));    // search in name
 				}
 
-				Command search            = Services.command(SearchNodeCommand.class);
+				Command search            = Services.command(securityContext, SearchNodeCommand.class);
 				List<AbstractNode> result = (List<AbstractNode>) search.execute(
 					securityContext,
 					null,     // top node => null means search all

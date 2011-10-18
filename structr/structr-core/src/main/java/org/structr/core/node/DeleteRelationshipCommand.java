@@ -93,7 +93,7 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
             final Relationship relToDelete = rel;
 
 
-            final Command transactionCommand = Services.command(TransactionCommand.class);
+            final Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
             transactionCommand.execute(new StructrTransaction() {
 
                 @Override

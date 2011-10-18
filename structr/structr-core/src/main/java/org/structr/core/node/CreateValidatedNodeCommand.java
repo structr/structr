@@ -74,7 +74,7 @@ public class CreateValidatedNodeCommand extends NodeServiceCommand {
 		if(graphDb != null) {
 
 			Date now = new Date();
-			Command createRel = Services.command(CreateRelationshipCommand.class);
+			Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
 			Map<String, Object> attrs = new HashMap<String, Object>();
 
 			// initialize node from parameters...
@@ -117,7 +117,7 @@ public class CreateValidatedNodeCommand extends NodeServiceCommand {
 
 			for(String property : propertySet) {
 
-				PropertyValidator validator = EntityContext.getPropertyValidator(nodeClass, property);
+				PropertyValidator validator = EntityContext.getPropertyValidator(securityContext, nodeClass, property);
 				if(validator != null) {
 					Value parameter = EntityContext.getPropertyValidationParameter(nodeClass, property);
 					Object value = attrs.get(property);
@@ -165,7 +165,7 @@ public class CreateValidatedNodeCommand extends NodeServiceCommand {
 			if(updateIndex) {
 
 				// index the database node we just created
-				Services.command(IndexNodeCommand.class).execute(node);
+				Services.command(securityContext, IndexNodeCommand.class).execute(node);
 				logger.log(Level.FINE, "Node {0} indexed.", node.getId());
 			}
 		}

@@ -53,12 +53,14 @@ public class JXPathFinder {
     private AbstractNode currentNode = null;
     private static final Logger logger = Logger.getLogger(JXPathFinder.class.getName());
     private JXPathContext context = null;
+    private SecurityContext securityContext = null;
 
-    public JXPathFinder(final AbstractNode currentNode, final User user) {
+    public JXPathFinder(final SecurityContext securityContext, final AbstractNode currentNode, final User user) {
         this.currentNode = currentNode;
+	this.securityContext = securityContext;
         //this.db = currentNode.getNode().getGraphDatabase();
 
-        Command graphDbCommand = Services.command(GraphDatabaseCommand.class);
+        Command graphDbCommand = Services.command(securityContext, GraphDatabaseCommand.class);
         this.db = (GraphDatabaseService) graphDbCommand.execute();
 
         if (context == null) {
@@ -92,7 +94,7 @@ public class JXPathFinder {
 
         try {
             Node node = db.getNodeById(id);
-            ret = createStructrNode(node);
+            ret = createStructrNode(securityContext, node);
 
         } catch (Throwable t) {
 
@@ -208,8 +210,8 @@ public class JXPathFinder {
      * @param node the node
      * @return the AbstractNode
      */
-    private Node createStructrNode(Node node) {
-        Command nodeFactory = Services.command(NodeFactoryCommand.class);
+    private Node createStructrNode(final SecurityContext securityContext, Node node) {
+        Command nodeFactory = Services.command(securityContext, NodeFactoryCommand.class);
         return (Node) nodeFactory.execute(node);
     }
 //

@@ -61,7 +61,7 @@ public class TypeConstraint extends ResourceConstraint {
 
 				searchAttributes.add(new TextualSearchAttribute("type", type, SearchOperator.OR));
 
-				results = (List<GraphObject>)Services.command(SearchNodeCommand.class).execute(
+				results = (List<GraphObject>)Services.command(securityContext, SearchNodeCommand.class).execute(
 					securityContext,
 					topNode,
 					includeDeleted,
@@ -174,7 +174,7 @@ public class TypeConstraint extends ResourceConstraint {
 		).traverse(node).nodes();
 
 		// collect results and convert nodes into structr nodes
-		Command nodeFactory = Services.command(NodeFactoryCommand.class);
+		Command nodeFactory = Services.command(securityContext, NodeFactoryCommand.class);
 		List<AbstractNode> nodeList = new LinkedList<AbstractNode>();
 		for(Node n : nodes) {
 			nodeList.add((AbstractNode)nodeFactory.execute(n));

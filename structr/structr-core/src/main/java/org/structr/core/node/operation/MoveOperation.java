@@ -57,12 +57,12 @@ public class MoveOperation implements PrimaryOperation {
 
 		if(parameterState.equals(ParameterState.DestinationNodeSet)) {
 
-			Services.command(TransactionCommand.class).execute(new StructrTransaction() {
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
 				@Override
 				public Object execute() throws Throwable {
 
-					Command moveCommand = Services.command(MoveNodeCommand.class);
+					Command moveCommand = Services.command(securityContext, MoveNodeCommand.class);
 					moveCommand.execute(sourceNode, destinationNode);
 
 					return(null);
@@ -137,7 +137,7 @@ public class MoveOperation implements PrimaryOperation {
 	// ----- private methods -----
 	private AbstractNode getNode(Object parameter) throws InvalidParameterException {
 
-		Command findNodeCommand = Services.command(FindNodeCommand.class);
+		Command findNodeCommand = Services.command(securityContext, FindNodeCommand.class);
 		AbstractNode ret = null;
 
 		if(parameter instanceof Collection) {

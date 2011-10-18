@@ -30,6 +30,7 @@ import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
 import org.structr.core.entity.DirectedRelationship;
 
 /**
@@ -122,7 +123,7 @@ public class EntityContext {
 		}
 	}
 
-	public static PropertyValidator getPropertyValidator(Class type, String propertyKey) {
+	public static PropertyValidator getPropertyValidator(final SecurityContext securityContext, Class type, String propertyKey) {
 
 		Map<String, Class<? extends PropertyValidator>> validatorMap = null;
 		PropertyValidator validator = null;
@@ -144,6 +145,7 @@ public class EntityContext {
 
 			try {
 				validator = (PropertyValidator)clazz.newInstance();
+				validator.setSecurityContext(securityContext);
 
 			} catch(Throwable t) {
 				logger.log(Level.WARNING, "Unable to instantiate validator {0}: {1}", new Object[] { clazz.getName(), t.getMessage() } );
@@ -188,7 +190,7 @@ public class EntityContext {
 		}
 	}
 
-	public static PropertyConverter getPropertyConverter(Class type, String propertyKey) {
+	public static PropertyConverter getPropertyConverter(final SecurityContext securityContext, Class type, String propertyKey) {
 
 		Map<String, Class<? extends PropertyConverter>> converterMap = null;
 		PropertyConverter propertyConverter = null;
@@ -208,6 +210,7 @@ public class EntityContext {
 
 			try {
 				propertyConverter = (PropertyConverter)clazz.newInstance();
+				propertyConverter.setSecurityContext(securityContext);
 
 			} catch(Throwable t) {
 				logger.log(Level.WARNING, "Unable to instantiate property PropertyConverter {0}: {1}", new Object[] { clazz.getName(), t.getMessage() } );

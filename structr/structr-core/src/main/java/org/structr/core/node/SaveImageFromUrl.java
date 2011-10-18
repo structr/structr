@@ -102,14 +102,14 @@ public class SaveImageFromUrl extends NodeServiceCommand {
         } else if (user != null && urlString != null && parentNode != null) {
 
             // Create new image node first
-            Image newImageNode = (Image) Services.command(CreateNodeCommand.class).execute(user,
+            Image newImageNode = (Image) Services.command(securityContext, CreateNodeCommand.class).execute(user,
                     new NodeAttribute(AbstractNode.Key.type.name(), Image.class.getSimpleName()),
                     new NodeAttribute(org.structr.core.entity.File.Key.url.name(), urlString),
                     new NodeAttribute(AbstractNode.Key.visibleToAuthenticatedUsers.name(), true),
 		    new NodeAttribute(AbstractNode.Key.isPublic.name(), true),
                     true);  // Update index
 
-            Services.command(CreateRelationshipCommand.class).execute(parentNode, newImageNode, RelType.HAS_CHILD);
+            Services.command(securityContext, CreateRelationshipCommand.class).execute(parentNode, newImageNode, RelType.HAS_CHILD);
 
             // Then save image from URL
             refreshImageFromUrl(newImageNode);

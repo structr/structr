@@ -28,7 +28,7 @@ import org.structr.core.Value;
  *
  * @author Christian Morgner
  */
-public class SimpleRegexValidator implements PropertyValidator<String> {
+public class SimpleRegexValidator extends PropertyValidator<String> {
 
 	@Override
 	public boolean isValid(String key, Object value, Value<String> parameter, StringBuilder errorMessage) {

@@ -279,7 +279,7 @@ public class EditCustomTypeNode extends DefaultEdit {
 	 */
 	protected void saveDynamicNodeProperties() {
 
-		final Command transactionCommand = Services.command(TransactionCommand.class);
+		final Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
 		transactionCommand.execute(new StructrTransaction() {
 
 			@Override

@@ -136,8 +136,6 @@ public class StructrPage extends Page {
 	protected Long editNodeId;
 //	protected boolean editPropertiesAllowed;
 //	protected boolean editVisibilityAllowed;
-	@Bindable
-	protected boolean isSuperUser;
 
 	/** current node */
 	@Bindable
@@ -182,7 +180,7 @@ public class StructrPage extends Page {
 		contextPath = getContext().getRequest().getContextPath();
 		FILES_PATH  = Services.getFilesPath();
 
-		// Command graphDbCommand = Services.command(GraphDatabaseCommand.class);
+		// Command graphDbCommand = Services.command(securityContext, GraphDatabaseCommand.class);
 		// graphDb = (GraphDatabaseService)graphDbCommand.execute();
 		// userName = getContext().getRequest().getRemoteUser();
 		// userName = (String) getContext().getRequest().getSession().getAttribute(USERNAME_KEY);
@@ -191,11 +189,6 @@ public class StructrPage extends Page {
 
 			sessionId = (Long) getContext().getRequest().getSession().getAttribute(SessionMonitor.SESSION_ID);
 			SessionMonitor.logPageRequest(securityContext, sessionId, "Page Request", getContext().getRequest());
-		}
-
-		String userName = securityContext.getUserName();
-		if ((userName != null) && userName.equals(SUPERADMIN_USERNAME_KEY)) {
-			isSuperUser = true;
 		}
 
 //              pageListTable.addColumn(new Column("canonicalName"));
@@ -410,7 +403,7 @@ public class StructrPage extends Page {
 	 */
 	protected AbstractNode getNodeById(final Long requestedId) {
 
-		Command findNode = Services.command(FindNodeCommand.class);
+		Command findNode = Services.command(securityContext, FindNodeCommand.class);
 		AbstractNode ret = null;
 
 		ret = (AbstractNode) findNode.execute(securityContext.getUser(), requestedId);
@@ -504,7 +497,7 @@ public class StructrPage extends Page {
 
 	protected AbstractNode getRootNode() {
 
-		Command findNode = Services.command(FindNodeCommand.class);
+		Command findNode = Services.command(securityContext, FindNodeCommand.class);
 		User user = securityContext.getUser();
 		
 		if ((user != null) &&!(user instanceof SuperUser)) {
@@ -538,7 +531,7 @@ public class StructrPage extends Page {
 			return new SuperUser();
 		}
 
-		return (User) Services.command(FindUserCommand.class).execute(userName);
+		return (User) Services.command(securityContext, FindUserCommand.class).execute(userName);
 		 * 
 		 */
 	}
@@ -577,7 +570,7 @@ public class StructrPage extends Page {
 	 */
 	protected List<User> getAllUsers() {
 
-		Command findUser = Services.command(FindUserCommand.class);
+		Command findUser = Services.command(securityContext, FindUserCommand.class);
 
 		return ((List<User>) findUser.execute());
 	}
@@ -589,7 +582,7 @@ public class StructrPage extends Page {
 	 */
 	protected List<Group> getAllGroups() {
 
-		Command findGroup = Services.command(FindGroupCommand.class);
+		Command findGroup = Services.command(securityContext, FindGroupCommand.class);
 
 		return ((List<Group>) findGroup.execute());
 	}

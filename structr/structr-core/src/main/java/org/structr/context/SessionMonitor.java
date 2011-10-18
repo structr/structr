@@ -137,7 +137,7 @@ public class SessionMonitor {
 		activity.setProperty(Activity.END_TIMESTAMP_KEY, now);
 		activity.setUser(user);
 		getSession(sessionId).setLastActivity(activity);
-		Services.command(LogCommand.class).execute(activity);
+		Services.command(securityContext, LogCommand.class).execute(activity);
 	}
 
 	/**
@@ -195,7 +195,7 @@ public class SessionMonitor {
 		text.append("}");
 		pageRequest.setActivityText(text.toString());
 		getSession(sessionId).setLastActivity(pageRequest);
-		Services.command(LogCommand.class).execute(pageRequest);
+		Services.command(securityContext, LogCommand.class).execute(pageRequest);
 
 		long t1 = System.currentTimeMillis();
 
@@ -390,9 +390,12 @@ public class SessionMonitor {
 				}
 			}
 
+			// FIXME: superuser-Instance ok here?
+			final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+
 			// Create a new activity list as child node of the respective user
-			Command createNode = Services.command(CreateNodeCommand.class);
-			Command createRel  = Services.command(CreateRelationshipCommand.class);
+			Command createNode = Services.command(securityContext, CreateNodeCommand.class);
+			Command createRel  = Services.command(securityContext, CreateRelationshipCommand.class);
 
 			activityList = (LogNodeList<Activity>) createNode.execute(user,
 				new NodeAttribute(AbstractNode.Key.type.name(), LogNodeList.class.getSimpleName()),

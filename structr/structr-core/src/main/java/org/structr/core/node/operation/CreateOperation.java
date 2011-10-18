@@ -62,18 +62,18 @@ public class CreateOperation implements PrimaryOperation, NodeTypeOperation, Nod
 	@Override
 	public boolean executeOperation(final StringBuilder stdOut) throws NodeCommandException {
 
-		final AbstractNode parent = (AbstractNode)Services.command(FindNodeCommand.class).execute(securityContext.getUser(), nodeParent);
+		final AbstractNode parent = (AbstractNode)Services.command(securityContext, FindNodeCommand.class).execute(securityContext.getUser(), nodeParent);
 		boolean ret = false;
 
 		if(parent != null) {
 
-			Boolean retValue = (Boolean)Services.command(TransactionCommand.class).execute(new StructrTransaction() {
+			Boolean retValue = (Boolean)Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
 				@Override
 				public Object execute() throws Throwable {
 
-					Command createRelCommand = Services.command(CreateRelationshipCommand.class);
-					Command createNodeCommand = Services.command(CreateNodeCommand.class);
+					Command createRelCommand = Services.command(securityContext, CreateRelationshipCommand.class);
+					Command createNodeCommand = Services.command(securityContext, CreateNodeCommand.class);
 					List<Long> newNodeIds = new LinkedList<Long>();
 					int count = 0;
 

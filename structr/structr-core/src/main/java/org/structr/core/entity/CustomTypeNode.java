@@ -131,12 +131,12 @@ public class CustomTypeNode extends AbstractNode {
 	public void setTypeNodeId(final Long value) {
 
 		// find type node
-		Command findNode = Services.command(FindNodeCommand.class);
+		Command findNode = Services.command(securityContext, FindNodeCommand.class);
 		NodeType newTypeNode = (NodeType) findNode.execute(new SuperUser(), value);
 
 		// delete existing type node relationships
 		List<StructrRelationship> templateRels = this.getOutgoingRelationships(RelType.TYPE);
-		Command delRel = Services.command(DeleteRelationshipCommand.class);
+		Command delRel = Services.command(securityContext, DeleteRelationshipCommand.class);
 		if (templateRels != null) {
 			for (StructrRelationship r : templateRels) {
 				delRel.execute(r);
@@ -144,7 +144,7 @@ public class CustomTypeNode extends AbstractNode {
 		}
 
 		// create new link target relationship
-		Command createRel = Services.command(CreateRelationshipCommand.class);
+		Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
 		createRel.execute(this, newTypeNode, RelType.TYPE);
 	}
 }

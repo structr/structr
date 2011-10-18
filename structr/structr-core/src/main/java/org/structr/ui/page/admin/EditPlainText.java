@@ -168,7 +168,7 @@ public class EditPlainText extends DefaultEdit {
      */
     private void saveContent() {
 
-        Services.command(TransactionCommand.class).execute(new StructrTransaction() {
+        Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
             @Override
             public Object execute() throws Throwable {
@@ -187,7 +187,7 @@ public class EditPlainText extends DefaultEdit {
 //
 //    @Override
 //    public boolean onSaveAndView() {
-//        Command transactionCommand = Services.command(TransactionCommand.class);
+//        Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
 //        transactionCommand.execute(new StructrTransaction() {
 //
 //            @Override

@@ -19,13 +19,17 @@
 
 package org.structr.core;
 
+import org.structr.common.SecurityContext;
+
 /**
  * A validator that can be used to do validation checks on
  * node properties.
  *
  * @author Christian Morgner
  */
-public interface PropertyValidator<T> {
+public abstract class PropertyValidator<T> {
+
+	protected SecurityContext securityContext = null;
 
 	/**
 	 * Indicates whether the given value is valid for the given property
@@ -36,5 +40,9 @@ public interface PropertyValidator<T> {
 	 * @param parameter
 	 * @return
 	 */
-	public boolean isValid(String key, Object value, Value<T> parameter, StringBuilder errorBuffer);
+	public abstract boolean isValid(String key, Object value, Value<T> parameter, StringBuilder errorBuffer);
+
+	public void setSecurityContext(SecurityContext securityContext) {
+		this.securityContext = securityContext;
+	}
 }

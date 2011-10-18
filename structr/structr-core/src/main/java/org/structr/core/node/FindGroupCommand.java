@@ -53,7 +53,7 @@ public class FindGroupCommand extends NodeServiceCommand {
     public Object execute(Object... parameters) {
 
         GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
-        Command searchNode = Services.command(SearchNodeCommand.class);
+        Command searchNode = Services.command(securityContext, SearchNodeCommand.class);
 
         if (graphDb != null) {
 

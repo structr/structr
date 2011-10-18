@@ -21,6 +21,7 @@ package org.structr.core.agent;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.SecurityContext;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -68,9 +69,11 @@ public class ClearLogsAgent extends Agent {
 
     private long clearLog() {
 
-        final Command deleteNode = Services.command(DeleteNodeCommand.class);
+	// FIXME: superuser security context
+	final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+        final Command deleteNode = Services.command(securityContext, DeleteNodeCommand.class);
 
-        Command transactionCommand = Services.command(TransactionCommand.class);
+        Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
         Long numberOfLogNodes = (Long) transactionCommand.execute(new StructrTransaction() {
 
             @Override
@@ -78,7 +81,7 @@ public class ClearLogsAgent extends Agent {
 
                 long count = 0;
 
-                List<AbstractNode> allNodes = (List<AbstractNode>) Services.command(GetAllNodes.class).execute();
+                List<AbstractNode> allNodes = (List<AbstractNode>) Services.command(securityContext, GetAllNodes.class).execute();
                 for (AbstractNode s : allNodes) {
                     if (s instanceof Activity) {
 

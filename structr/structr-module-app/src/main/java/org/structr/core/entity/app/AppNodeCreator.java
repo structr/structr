@@ -197,7 +197,7 @@ public class AppNodeCreator extends ActionNode implements NodeSource
 
 	private AbstractNode createNewNode(final AbstractNode parentNode, final String type)
 	{
-		AbstractNode ret = (AbstractNode)Services.command(TransactionCommand.class).execute(new StructrTransaction()
+		AbstractNode ret = (AbstractNode)Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction()
 		{
 			@Override
 			public Object execute() throws Throwable
@@ -208,12 +208,12 @@ public class AppNodeCreator extends ActionNode implements NodeSource
 				
 				// attributes.add(new NodeAttribute(PUBLIC_KEY, "true"));
 
-				AbstractNode newNode = (AbstractNode)Services.command(CreateNodeCommand.class).execute(attributes);
+				AbstractNode newNode = (AbstractNode)Services.command(securityContext, CreateNodeCommand.class).execute(attributes);
 				if(newNode != null)
 				{
 					if(parentNode != null)
 					{
-						Command createRelationship = Services.command(CreateRelationshipCommand.class);
+						Command createRelationship = Services.command(securityContext, CreateRelationshipCommand.class);
 						createRelationship.execute(parentNode, newNode, RelType.HAS_CHILD);
 					}
 

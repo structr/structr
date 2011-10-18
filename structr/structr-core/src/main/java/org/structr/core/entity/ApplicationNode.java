@@ -49,7 +49,7 @@ public abstract class ApplicationNode extends AbstractNode
 		if(!getNode().hasRelationship(Direction.OUTGOING))
 		{
 			// build application here
-			Services.command(TransactionCommand.class).execute(new StructrTransaction()
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction()
 			{
 				@Override
 				public Object execute() throws Throwable
@@ -79,7 +79,7 @@ public abstract class ApplicationNode extends AbstractNode
 
 	protected AbstractNode createNode(AbstractNode parent, String nodeType, String name, Template template)
 	{
-		Command createNodeCommand = Services.command(CreateNodeCommand.class);
+		Command createNodeCommand = Services.command(securityContext, CreateNodeCommand.class);
 		List<NodeAttribute> attrs = new LinkedList<NodeAttribute>();
 		attrs.add(new NodeAttribute(Key.type.name(), nodeType));
 		attrs.add(new NodeAttribute(Key.name.name(), name));
@@ -101,6 +101,6 @@ public abstract class ApplicationNode extends AbstractNode
 
 	protected StructrRelationship linkNodes(AbstractNode startNode, AbstractNode endNode, RelType relType)
 	{
-		return((StructrRelationship)Services.command(CreateRelationshipCommand.class).execute(startNode, endNode, relType));
+		return((StructrRelationship)Services.command(securityContext, CreateRelationshipCommand.class).execute(startNode, endNode, relType));
 	}
 }

@@ -44,7 +44,7 @@ public class SearchUserCommand extends NodeServiceCommand {
         GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
         Index<Node> index = (Index<Node>) arguments.get("index");
 
-        Command findNode = Services.command(FindNodeCommand.class);
+        Command findNode = Services.command(securityContext, FindNodeCommand.class);
 
         if (graphDb != null) {
 

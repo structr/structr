@@ -5,11 +5,10 @@ import org.structr.core.Value;
 
 /**
  *
- * @author Christian Morgner, SoftService GmbH
+ * @author Christian Morgner
  */
 
-
-public class TestConverter implements PropertyConverter {
+public class TestConverter extends PropertyConverter {
 
 	@Override
 	public Object convertFrom(Object source, Value value) {

@@ -44,7 +44,7 @@ public class CopyNodeCommand extends NodeServiceCommand {
         AbstractNode targetNode = null;
         User user = null;
 
-        Command findNode = Services.command(FindNodeCommand.class);
+        Command findNode = Services.command(securityContext, FindNodeCommand.class);
 
         switch (parameters.length) {
             case 3:
@@ -91,8 +91,8 @@ public class CopyNodeCommand extends NodeServiceCommand {
 
         if (node != null) {
 
-            Command createNode = Services.command(CreateNodeCommand.class);
-            Command createRel = Services.command(CreateRelationshipCommand.class);
+            Command createNode = Services.command(securityContext, CreateNodeCommand.class);
+            Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
 
             AbstractNode newNode = (AbstractNode) createNode.execute(user);
 

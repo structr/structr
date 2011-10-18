@@ -90,7 +90,7 @@ public class InOperation implements Transformation {
 
 			} catch(Throwable t) {
 
-				AbstractNode findNode = (AbstractNode)Services.command(FindNodeCommand.class).execute(securityContext.getUser(), parameter);
+				AbstractNode findNode = (AbstractNode)Services.command(securityContext, FindNodeCommand.class).execute(securityContext.getUser(), parameter);
 				if(findNode != null) {
 
 					parentNodeId = findNode.getId();

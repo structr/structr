@@ -44,7 +44,8 @@ public final class StructrOutputStream extends OutputStream {
      * initial buffer of 1024 bytes. Using this constructor puts this
      * StructrOutputStream in buffer mode.
      */
-    public StructrOutputStream(SecurityContext securityContext) {
+    public StructrOutputStream(HttpServletRequest request, SecurityContext securityContext) {
+	this.request = request;
 	this.securityContext = securityContext;
         stringBuilder = new StringBuilder(1024);
     }
@@ -56,7 +57,8 @@ public final class StructrOutputStream extends OutputStream {
      *
      * @param toWrtap the StringBuilder to wrap
      */
-    public StructrOutputStream(SecurityContext securityContext, StringBuilder toWrap) {
+    public StructrOutputStream(HttpServletRequest request, SecurityContext securityContext, StringBuilder toWrap) {
+	this.request = request;
 	this.securityContext = securityContext;
         stringBuilder = toWrap;
     }

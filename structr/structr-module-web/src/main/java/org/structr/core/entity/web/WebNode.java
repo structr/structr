@@ -192,7 +192,7 @@ public class WebNode extends AbstractNode {
 		if (RenderMode.PUBLIC.equals(renderMode)) {
 
 			// create bean node
-			Command nodeFactory = Services.command(NodeFactoryCommand.class);
+			Command nodeFactory = Services.command(securityContext, NodeFactoryCommand.class);
 			AbstractNode node   = (AbstractNode) nodeFactory.execute(this);
 
 			// stop at root node

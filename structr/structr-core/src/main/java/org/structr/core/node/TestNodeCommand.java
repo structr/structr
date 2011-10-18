@@ -41,7 +41,7 @@ public class TestNodeCommand extends NodeServiceCommand
 		final GraphDatabaseService graphDb = (GraphDatabaseService)arguments.get("graphDb");
 		final StructrNodeFactory nodeFactory = (StructrNodeFactory)arguments.get("nodeFactory");
 
-		Command transactionCommand = Services.command(TransactionCommand.class);
+		Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
 		return(transactionCommand.execute(new StructrTransaction()
 		{
 			@Override

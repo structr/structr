@@ -32,7 +32,7 @@ public class ContentTemplateRenderer implements NodeRenderer<PlainText>
 				StringBuilder content2 = new StringBuilder(content.toString());
 
 				// finally, replace %{subnodeKey} by rendered content of subnodes with this name
-				currentNode.replaceBySubnodes(content2, startNode, editUrl, editNodeId);
+				currentNode.replaceBySubnodes(out.getRequest(), content2, startNode, editUrl, editNodeId);
 				out.append(content2.toString());
 
 /*

@@ -37,7 +37,7 @@ public class AppNodeDeleter extends ActionNode
 		if(toDelete != null)
 		{
 			// FIXME: is this the right way to delete a node?
-			Services.command(DeleteNodeCommand.class).execute(toDelete, null);
+			Services.command(securityContext, DeleteNodeCommand.class).execute(toDelete, null);
 		}
 
 		return (true);

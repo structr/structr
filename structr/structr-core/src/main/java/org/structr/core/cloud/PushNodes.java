@@ -60,7 +60,7 @@ public class PushNodes extends CloudServiceCommand
 		int remoteUdpPort = 0;
 		boolean recursive = false;
 
-		Command findNode = Services.command(FindNodeCommand.class);
+		Command findNode = Services.command(securityContext, FindNodeCommand.class);
 
 		switch(parameters.length)
 		{
@@ -153,7 +153,7 @@ public class PushNodes extends CloudServiceCommand
 		StringBuilder titleBuffer = new StringBuilder();
 		titleBuffer.append("Transmission to ").append(remoteHost).append(":").append(remoteTcpPort);
 		ProgressBarNotification progressNotification = new ProgressBarNotification(securityContext, titleBuffer.toString());
-		Services.command(AddNotificationCommand.class).execute(progressNotification);
+		Services.command(securityContext, AddNotificationCommand.class).execute(progressNotification);
 		
 		// enable notifications to be passed to UI
 		listener.setNotification(progressNotification);

@@ -300,7 +300,7 @@ public abstract class Search {
 		// always add wildcard character '*' for auto completion
 		searchAttrs.add(Search.andName(string + SearchAttribute.WILDCARD));
 
-		List<AbstractNode> result = (List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(
+		List<AbstractNode> result = (List<AbstractNode>) Services.command(securityContext, SearchNodeCommand.class).execute(
 			securityContext,
 			null,
 			false,

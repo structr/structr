@@ -110,10 +110,9 @@ public class LoginPage extends Admin {
 			try {
 
 				securityContext.doLogin(userValue, passwordValue);
-				if(SUPERADMIN_USERNAME_KEY.equals(userValue) && SUPERADMIN_PASSWORD_KEY.equals(passwordValue)) {
 
+				if(SUPERADMIN_USERNAME_KEY.equals(userValue) && SUPERADMIN_PASSWORD_KEY.equals(passwordValue)) {
 					logger.log(Level.INFO, "############# Logged in as superadmin! ############");
-					isSuperUser = true;
 
 					// redirect superuser to maintenance
 					setRedirect("/admin/dashboard.htm");
@@ -175,7 +174,7 @@ public class LoginPage extends Admin {
 
 			openNodes = new LinkedList<TreeNode>();
 
-			Command findNode = Services.command(FindNodeCommand.class);
+			Command findNode = Services.command(securityContext, FindNodeCommand.class);
 			for(Long s : expandedNodesArray) {
 
 				AbstractNode n = (AbstractNode)findNode.execute(user, s);

@@ -26,7 +26,7 @@ import org.structr.core.Value;
 /**
  * @author Axel Morgner
  */
-public class PasswordConverter implements PropertyConverter<String, String> {
+public class PasswordConverter extends PropertyConverter<String, String> {
 
 	@Override
 	public String convertFrom(String clearTextPassword, Value value) {

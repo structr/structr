@@ -38,7 +38,7 @@ import org.structr.core.node.search.TextualSearchAttribute;
  *
  * @author Christian Morgner
  */
-public class TypeAndPropertyUniquenessValidator implements PropertyValidator<String> {
+public class TypeAndPropertyUniquenessValidator extends PropertyValidator<String> {
 
 	private static final Logger logger = Logger.getLogger(TypeAndPropertyUniquenessValidator.class.getName());
 
@@ -71,7 +71,7 @@ public class TypeAndPropertyUniquenessValidator implements PropertyValidator<Str
 			attributes.add(new TextualSearchAttribute(AbstractNode.Key.type.name(), type, SearchOperator.AND));
 			attributes.add(new TextualSearchAttribute(key, stringValue, SearchOperator.AND));
 
-			List<AbstractNode> resultList = (List<AbstractNode>)Services.command(SearchNodeCommand.class).execute(SecurityContext.getSuperUserInstance(), topNode, includeDeleted, publicOnly, attributes);
+			List<AbstractNode> resultList = (List<AbstractNode>)Services.command(securityContext, SearchNodeCommand.class).execute(SecurityContext.getSuperUserInstance(), topNode, includeDeleted, publicOnly, attributes);
 			if(!resultList.isEmpty()) {
 
 				errorBuffer.append("A node with value '");

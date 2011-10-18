@@ -103,7 +103,7 @@ public class GeoObject extends WebNode {
 	protected Envelope getEnvelope(final String layerName, final String nameAttribute, final String featureName) {
 
 		Envelope result              = null;
-		Command graphDbCommand       = Services.command(GraphDatabaseCommand.class);
+		Command graphDbCommand       = Services.command(securityContext, GraphDatabaseCommand.class);
 		GraphDatabaseService graphDb = (GraphDatabaseService) graphDbCommand.execute();
 
 		// find geometry node

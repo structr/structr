@@ -73,7 +73,7 @@ public class EditMenuItem extends DefaultEdit {
                 } else {
                     List<TextualSearchAttribute> searchAttrs = new LinkedList<TextualSearchAttribute>();
                     searchAttrs.add(new TextualSearchAttribute(AbstractNode.Key.type.name(), Page.class.getSimpleName(), SearchOperator.OR));
-                    nodes = (List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(securityContext, null, false, false, searchAttrs);
+                    nodes = (List<AbstractNode>) Services.command(securityContext, SearchNodeCommand.class).execute(securityContext, null, false, false, searchAttrs);
                 }
                 if (nodes != null) {
                     Collections.sort(nodes);
@@ -99,7 +99,7 @@ public class EditMenuItem extends DefaultEdit {
 //
 //        super.onRender();
 //
-//        Command transactionCommand = Services.command(TransactionCommand.class);
+//        Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
 //        transactionCommand.execute(new StructrTransaction() {
 //
 //            @Override
@@ -128,15 +128,15 @@ public class EditMenuItem extends DefaultEdit {
 //     */
 //    public boolean onAddTemplate() {
 //
-//        Command transactionCommand = Services.command(TransactionCommand.class);
+//        Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
 //        AbstractNode s = null;
 //        s = (AbstractNode) transactionCommand.execute(new StructrTransaction() {
 //
 //            @Override
 //            public Object execute() throws Throwable {
 //
-//                Command createNode = Services.command(CreateNodeCommand.class);
-//                Command linkNode = Services.command(CreateRelationshipCommand.class);
+//                Command createNode = Services.command(securityContext, CreateNodeCommand.class);
+//                Command linkNode = Services.command(securityContext, CreateRelationshipCommand.class);
 //
 //                // create a new template node
 //                AbstractNode newTemplate = (AbstractNode) createNode.execute(

@@ -24,6 +24,7 @@ import java.util.logging.Logger;
 import org.apache.commons.lang.StringUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.NotFoundException;
+import org.structr.common.SecurityContext;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.node.GraphDatabaseCommand;
@@ -68,7 +69,10 @@ public class CleanUpFilesAgent extends Agent {
         File filesFolder = new File(Services.getFilesPath());
         File[] files = filesFolder.listFiles();
 
-        Command graphDbCommand = Services.command(GraphDatabaseCommand.class);
+	// FIXME: superuser security context
+	final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+
+	Command graphDbCommand = Services.command(securityContext, GraphDatabaseCommand.class);
         GraphDatabaseService graphDb = (GraphDatabaseService) graphDbCommand.execute();
 
         long count = 0;

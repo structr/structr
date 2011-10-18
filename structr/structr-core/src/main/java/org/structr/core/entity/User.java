@@ -316,7 +316,7 @@ public class User extends Person {
             return;
         }
 
-        final AbstractNode object = (AbstractNode) Services.command(FindNodeCommand.class).execute(user, objectId);
+        final AbstractNode object = (AbstractNode) Services.command(securityContext, FindNodeCommand.class).execute(user, objectId);
         if (object == null) {
             logger.log(Level.SEVERE, "Object not found!");
             return;
@@ -349,12 +349,12 @@ public class User extends Person {
 
         if (relationshipToRemove != null) {
             final StructrRelationship relToDel = relationshipToRemove;
-            Services.command(TransactionCommand.class).execute(new StructrTransaction() {
+            Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
                 @Override
                 public Object execute() {
                     // Delete relationship
-                    Services.command(DeleteRelationshipCommand.class).execute(relToDel);
+                    Services.command(securityContext, DeleteRelationshipCommand.class).execute(relToDel);
                     return null;
                 }
             });
@@ -378,7 +378,7 @@ public class User extends Person {
             return null;
         }
 
-        final AbstractNode object = (AbstractNode) Services.command(FindNodeCommand.class).execute(user, objectId);
+        final AbstractNode object = (AbstractNode) Services.command(securityContext, FindNodeCommand.class).execute(user, objectId);
         if (object == null) {
             logger.log(Level.SEVERE, "Object not found!");
             return null;
@@ -395,9 +395,9 @@ public class User extends Person {
 
         final Category category = cat;
 
-        final Command createRel = Services.command(CreateRelationshipCommand.class);
+        final Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
 
-        Services.command(TransactionCommand.class).execute(new StructrTransaction() {
+        Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
             Category cat = null;
 
@@ -407,7 +407,7 @@ public class User extends Person {
                 if (category == null) {
 
                     // Category with given name not found, create one!
-                    cat = (Category) Services.command(CreateNodeCommand.class).execute(user,
+                    cat = (Category) Services.command(securityContext, CreateNodeCommand.class).execute(user,
                             new NodeAttribute(AbstractNode.Key.name.name(), categoryName),
                             new NodeAttribute(AbstractNode.Key.type.name(), Category.class.getSimpleName()),
                             true);

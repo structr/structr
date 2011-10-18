@@ -122,7 +122,7 @@ public class EditScript extends DefaultEdit {
 
         super.onRender();
 
-//        Command transactionCommand = Services.command(TransactionCommand.class);
+//        Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
 //        transactionCommand.execute(new StructrTransaction() {
 //
 //            @Override
@@ -153,7 +153,7 @@ public class EditScript extends DefaultEdit {
 
     @Override
     public boolean onSaveProperties() {
-        Command transactionCommand = Services.command(TransactionCommand.class);
+        Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
         transactionCommand.execute(new StructrTransaction() {
 
             @Override
@@ -179,7 +179,7 @@ public class EditScript extends DefaultEdit {
 //
 //    @Override
 //    public boolean onSaveAndView() {
-//        Command transactionCommand = Services.command(TransactionCommand.class);
+//        Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
 //        transactionCommand.execute(new StructrTransaction() {
 //
 //            @Override

@@ -47,12 +47,12 @@ import java.util.logging.Logger;
  *
  * <b>Usage:</b>
  * <pre>
- * Command setOwner = Services.command(SetOwnerCommand.class);
+ * Command setOwner = Services.command(securityContext, SetOwnerCommand.class);
  * setOwner.execute(node, user);
  *
  * or
  *
- * Command setOwner = Services.command(SetOwnerCommand.class);
+ * Command setOwner = Services.command(securityContext, SetOwnerCommand.class);
  * setOwner.execute(nodeList, user);
  *
  * </pre>
@@ -68,7 +68,7 @@ public class SetOwnerCommand extends NodeServiceCommand {
 	@Override
 	public Object execute(Object... parameters) {
 
-		Command findNode            = Services.command(FindNodeCommand.class);
+		Command findNode            = Services.command(securityContext, FindNodeCommand.class);
 		AbstractNode node           = null;
 		List<AbstractNode> nodeList = null;
 		User user                   = null;
@@ -123,7 +123,7 @@ public class SetOwnerCommand extends NodeServiceCommand {
 
 	private void setOwner(final AbstractNode node, final User user) {
 
-		Command delRel = Services.command(DeleteRelationshipCommand.class);
+		Command delRel = Services.command(securityContext, DeleteRelationshipCommand.class);
 
 		// Remove any existing OWNS relationships
 		for (StructrRelationship s : node.getRelationships(RelType.OWNS, Direction.INCOMING)) {
@@ -135,7 +135,7 @@ public class SetOwnerCommand extends NodeServiceCommand {
 		}
 
 		// Create new relationship to user and grant permissions to user or group
-		Command createRel = Services.command(CreateRelationshipCommand.class);
+		Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
 
 		createRel.execute(user, node, RelType.OWNS);
 		logger.log(Level.FINEST, "Relationship to owner {0} added", user.getName());
@@ -144,7 +144,7 @@ public class SetOwnerCommand extends NodeServiceCommand {
 	private void setOwner(final List<AbstractNode> nodeList, final User user) {
 
 		// Create outer transaction to bundle inner transactions
-		final Command transactionCommand = Services.command(TransactionCommand.class);
+		final Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
 
 		transactionCommand.execute(new StructrTransaction() {
 

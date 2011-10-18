@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.RenderMode;
+import org.structr.common.SecurityContext;
 import org.structr.common.StructrOutputStream;
 import org.structr.core.NodeRenderer;
 import org.structr.core.Services;
@@ -28,7 +29,7 @@ public class NodeViewRenderer implements NodeRenderer<AbstractNode>
 	@Override
 	public void renderNode(StructrOutputStream out, AbstractNode currentNode, AbstractNode startNode, String editUrl, Long editNodeId, RenderMode renderMode)
 	{
-		AbstractNode sourceNode = loadNode(out.getRequest(), currentNode);
+		AbstractNode sourceNode = loadNode(out.getSecurityContext(), out.getRequest(), currentNode);
 		if(sourceNode != null)
 		{
 			doRendering(out, currentNode, sourceNode, editUrl, editNodeId);
@@ -77,14 +78,14 @@ public class NodeViewRenderer implements NodeRenderer<AbstractNode>
 	}
 
 	// ----- private methods -----
-	private AbstractNode loadNode(HttpServletRequest request, AbstractNode node)
+	private AbstractNode loadNode(SecurityContext securityContext, HttpServletRequest request, AbstractNode node)
 	{
 		String idSourceParameter = node.getStringProperty(ID_SOURCE_KEY);
 		String idSource = request.getParameter(idSourceParameter);
 
 		logger.log(Level.INFO, "Got idSourceParameter {0}, parameter {1}, loading node..", new Object[] { idSourceParameter, idSource } );
 
-		return ((AbstractNode)Services.command(FindNodeCommand.class).execute(null, node, idSource));
+		return ((AbstractNode)Services.command(securityContext, FindNodeCommand.class).execute(null, node, idSource));
 	}
 
 	private String getTemplateFromNode(final AbstractNode node)

@@ -31,7 +31,7 @@ import org.structr.core.node.FindNodeCommand;
  *
  * @author Axel Morgner
  */
-public class NodeIdNodeConverter implements PropertyConverter<Long, AbstractNode> {
+public class NodeIdNodeConverter extends PropertyConverter<Long, AbstractNode> {
 
 	@Override
 	public Long convertFrom(AbstractNode node, Value value) {
@@ -42,6 +42,6 @@ public class NodeIdNodeConverter implements PropertyConverter<Long, AbstractNode
 	@Override
 	public AbstractNode convertTo(Long nodeId, Value value) {
 		if (nodeId == null) return null;
-		return (AbstractNode) Services.command(FindNodeCommand.class).execute(new SuperUser(), nodeId);
+		return (AbstractNode) Services.command(securityContext, FindNodeCommand.class).execute(new SuperUser(), nodeId);
 	}
 }

@@ -196,7 +196,7 @@ public class JsonRestServlet extends HttpServlet {
 				final List<GraphObject> results = result.getResults();
 				if(results != null && !results.isEmpty()) {
 
-					Boolean success = (Boolean)Services.command(TransactionCommand.class).execute(new StructrTransaction() {
+					Boolean success = (Boolean)Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
 						@Override
 						public Object execute() throws Throwable {
@@ -334,12 +334,12 @@ public class JsonRestServlet extends HttpServlet {
 			String path = request.getPathInfo();
 			if(path.endsWith("/node")) {
 
-				newGraphObject = handleNodeCreation(attributes);
+				newGraphObject = handleNodeCreation(securityContext, attributes);
 
 			} else
 			if(path.endsWith("/rel")) {
 
-				newGraphObject = handleRelationshipCreation(attributes);
+				newGraphObject = handleRelationshipCreation(securityContext, attributes);
 
 			} else {
 
@@ -357,7 +357,7 @@ public class JsonRestServlet extends HttpServlet {
 						attributes.add(new NodeAttribute(AbstractNode.Key.type.name(), StringUtils.capitalize(type)));
 
 						// create new object
-						newGraphObject = handleNodeCreation(attributes);
+						newGraphObject = handleNodeCreation(securityContext, attributes);
 
 					} else {
 
@@ -445,7 +445,7 @@ public class JsonRestServlet extends HttpServlet {
 					};
 
 					// modify results in a single transaction
-					Services.command(TransactionCommand.class).execute(transaction);
+					Services.command(securityContext, TransactionCommand.class).execute(transaction);
 
 					// if there was an exception, throw it again
 					if(transaction.getCause() != null) {
@@ -759,7 +759,7 @@ public class JsonRestServlet extends HttpServlet {
 		return uriBuilder.toString();
 	}
 
-	private GraphObject handleNodeCreation(final List<NodeAttribute> attributes) throws Throwable {
+	private GraphObject handleNodeCreation(final SecurityContext securityContext, final List<NodeAttribute> attributes) throws Throwable {
 
 		// create transaction closure
 		StructrTransaction transaction = new StructrTransaction() {
@@ -767,12 +767,12 @@ public class JsonRestServlet extends HttpServlet {
 			@Override
 			public Object execute() throws Throwable {
 
-				return (AbstractNode)Services.command(CreateValidatedNodeCommand.class).execute(new SuperUser(), attributes);
+				return (AbstractNode)Services.command(securityContext, CreateValidatedNodeCommand.class).execute(new SuperUser(), attributes);
 			}
 		};
 
 		// execute transaction: create new node
-		AbstractNode newNode = (AbstractNode)Services.command(TransactionCommand.class).execute(transaction);
+		AbstractNode newNode = (AbstractNode)Services.command(securityContext, TransactionCommand.class).execute(transaction);
 		if(newNode == null) {
 
 			// re-throw transaction exception cause
@@ -784,7 +784,7 @@ public class JsonRestServlet extends HttpServlet {
 		return newNode;
 	}
 
-	private GraphObject handleRelationshipCreation(final List<NodeAttribute> attributes) throws Throwable {
+	private GraphObject handleRelationshipCreation(final SecurityContext securityContext, final List<NodeAttribute> attributes) throws Throwable {
 
 		GraphObject newRelationship = null;
 		long startNodeId = -1;
@@ -812,13 +812,13 @@ public class JsonRestServlet extends HttpServlet {
 
 		if(startNodeId != -1 && endNodeId != -1 && type != null) {
 
-			Command findNodeCommand = Services.command(FindNodeCommand.class);
+			Command findNodeCommand = Services.command(securityContext, FindNodeCommand.class);
 			AbstractNode startNode = (AbstractNode)findNodeCommand.execute(new SuperUser(), startNodeId);
 			AbstractNode endNode = (AbstractNode)findNodeCommand.execute(new SuperUser(), endNodeId);
 
 			if(startNode != null && endNode != null) {
 
-				newRelationship = (StructrRelationship)Services.command(CreateRelationshipCommand.class).execute(startNode, endNode, type);
+				newRelationship = (StructrRelationship)Services.command(securityContext, CreateRelationshipCommand.class).execute(startNode, endNode, type);
 
 				// set properties from request (excluding start, end and type)
 				for(NodeAttribute attr : attributes) {

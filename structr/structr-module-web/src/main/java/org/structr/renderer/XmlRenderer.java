@@ -54,8 +54,8 @@ public class XmlRenderer implements NodeRenderer<Xml>
 				} else
 				{
 
-					Command nodeFactory = Services.command(NodeFactoryCommand.class);
-					Command relsCommand = Services.command(NodeRelationshipsCommand.class);
+					Command nodeFactory = Services.command(securityContext, NodeFactoryCommand.class);
+					Command relsCommand = Services.command(securityContext, NodeRelationshipsCommand.class);
 
 					List<StructrRelationship> rels = (List<StructrRelationship>)relsCommand.execute(this, RelType.HAS_CHILD, Direction.OUTGOING);
 					for(StructrRelationship r : rels)

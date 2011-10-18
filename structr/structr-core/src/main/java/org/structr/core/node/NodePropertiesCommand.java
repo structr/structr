@@ -52,7 +52,7 @@ public class NodePropertiesCommand extends NodeServiceCommand {
 
                     for (String key : node.getPropertyKeys()) {
                         // use constructor which gets value from database
-                        Property p = new Property(node, key);
+                        Property p = new Property(securityContext, node, key);
                         ret.add(p);
                     }
                 }

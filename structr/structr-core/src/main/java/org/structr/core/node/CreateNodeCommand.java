@@ -73,7 +73,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 		if (graphDb != null) {
 
 			Date now                  = new Date();
-			Command createRel         = Services.command(CreateRelationshipCommand.class);
+			Command createRel         = Services.command(securityContext, CreateRelationshipCommand.class);
 			List<NodeAttribute> attrs = new LinkedList<NodeAttribute>();
 
 			// initialize node from parameters...
@@ -147,7 +147,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 			if (updateIndex) {
 
 				// index the database node we just created
-				Services.command(IndexNodeCommand.class).execute(node);
+				Services.command(securityContext, IndexNodeCommand.class).execute(node);
 				logger.log(Level.FINE, "Node {0} indexed.", node.getId());
 			}
 		}

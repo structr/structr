@@ -79,7 +79,7 @@ public class StructrNodeFactory<T extends AbstractNode> implements Adapter<Node,
 
 	public AbstractNode createNode(final SecurityContext securityContext, final Node node, final String nodeType) {
 
-		Class nodeClass      = (Class) Services.command(GetEntityClassCommand.class).execute(nodeType);
+		Class nodeClass      = (Class) Services.command(securityContext, GetEntityClassCommand.class).execute(nodeType);
 		AbstractNode newNode = null;
 
 		if (nodeClass != null) {
@@ -250,7 +250,7 @@ public class StructrNodeFactory<T extends AbstractNode> implements Adapter<Node,
 		String nodeType      = properties.containsKey(AbstractNode.Key.type.name())
 				       ? (String) properties.get(AbstractNode.Key.type.name())
 				       : null;
-		Class nodeClass      = (Class) Services.command(GetEntityClassCommand.class).execute(nodeType);
+		Class nodeClass      = (Class) Services.command(securityContext, GetEntityClassCommand.class).execute(nodeType);
 		AbstractNode newNode = null;
 
 		if (nodeClass != null) {

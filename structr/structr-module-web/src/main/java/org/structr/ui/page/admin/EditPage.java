@@ -73,7 +73,7 @@ public class EditPage extends DefaultEdit {
 			localViewUrl = request.getContextPath().concat("/view".concat(page.getNodePath().replace("&", "%26"))).concat(previewParameters(request));
 
 			// render node's default view
-			StructrOutputStream out = new StructrOutputStream(securityContext);
+			StructrOutputStream out = new StructrOutputStream(context.getRequest(), securityContext);
 
 			node.renderNode(out, page, null, null);
 			rendition = out.toString();

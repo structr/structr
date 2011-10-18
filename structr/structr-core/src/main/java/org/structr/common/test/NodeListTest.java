@@ -49,9 +49,9 @@ public class NodeListTest
 	{
 		StandaloneTestHelper.prepareStandaloneTest("/tmp/structr-test/");
 
-		final GraphDatabaseService graphDb = (GraphDatabaseService)Services.command(GraphDatabaseCommand.class).execute();
 		final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
-		final Command factory = Services.command(NodeFactoryCommand.class);
+		final GraphDatabaseService graphDb = (GraphDatabaseService)Services.command(securityContext, GraphDatabaseCommand.class).execute();
+		final Command factory = Services.command(securityContext, NodeFactoryCommand.class);
 		NodeList<AbstractNode> nodeList = null;
 
 		for(Node node : graphDb.getAllNodes())
@@ -67,7 +67,7 @@ public class NodeListTest
 
 		if(nodeList == null)
 		{
-			nodeList = (NodeList)Services.command(TransactionCommand.class).execute(new StructrTransaction()
+			nodeList = (NodeList)Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction()
 			{
 				@Override
 				public Object execute() throws Throwable
@@ -126,7 +126,7 @@ public class NodeListTest
 
 						final int finalCount = count;
 
-						Services.command(TransactionCommand.class).execute(new StructrTransaction()
+						Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction()
 						{
 							@Override
 							public Object execute() throws Throwable
@@ -152,7 +152,7 @@ public class NodeListTest
 					{
 						final AbstractNode node = new PlainText();
 
-						Services.command(TransactionCommand.class).execute(new StructrTransaction()
+						Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction()
 						{
 							@Override
 							public Object execute() throws Throwable

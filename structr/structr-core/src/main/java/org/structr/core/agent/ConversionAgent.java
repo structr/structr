@@ -20,6 +20,7 @@ package org.structr.core.agent;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.SecurityContext;
 import org.structr.core.Services;
 import org.structr.core.UnsupportedArgumentError;
 import org.structr.core.entity.CsvFile;
@@ -61,12 +62,15 @@ public class ConversionAgent extends Agent {
 
     private void convert(final User user, final AbstractNode sourceNode, final Class targetClass) {
 
-        if (sourceNode == null) {
+	// FIXME: superuser security context
+	final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+
+	if (sourceNode == null) {
             throw new UnsupportedArgumentError("Source node is null!");
         }
 
         if (sourceNode instanceof CsvFile) {
-            Services.command(ConvertCsvToNodeListCommand.class).execute(user, sourceNode, targetClass);
+            Services.command(securityContext, ConvertCsvToNodeListCommand.class).execute(user, sourceNode, targetClass);
         } else {
             throw new UnsupportedArgumentError("Source node type " + sourceNode.getType() + " not supported. This agent can convert only CSV files.");
         }

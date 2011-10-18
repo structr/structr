@@ -76,8 +76,8 @@ public class NodeList<T extends AbstractNode> extends AbstractNode implements It
     private static final Logger logger = Logger.getLogger(NodeList.class.getName());
     private static final String ICON_SRC = "/images/application_view_list.png";
     private Set<Decorator<AbstractNode>> decorators = new LinkedHashSet<Decorator<AbstractNode>>();
-    private Command transaction = Services.command(TransactionCommand.class);
-    private Command factory = Services.command(NodeFactoryCommand.class);
+    private Command transaction = Services.command(securityContext, TransactionCommand.class);
+    private Command factory = Services.command(securityContext, NodeFactoryCommand.class);
     private Set<Evaluator> evaluators = new LinkedHashSet<Evaluator>();
     private int maxLength = -1;
 
