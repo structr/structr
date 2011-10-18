@@ -281,7 +281,7 @@ public class SecurityContext {
 			// frontend user
 			if (user.isFrontendUser()) {
 
-				return node.hasPermission(StructrRelationship.Permission.read.name(), user);
+				return node.hasPermission(StructrRelationship.Key.read.name(), user);
 			}
 		}
 
@@ -334,31 +334,31 @@ public class SecurityContext {
 				return false;
 
 			case CreateNode :
-				return node.hasPermission(StructrRelationship.Permission.createNode.name(), user);
+				return node.hasPermission(StructrRelationship.Key.createNode.name(), user);
 
 			case CreateRelationship :
-				return node.hasPermission(StructrRelationship.Permission.addRelationship.name(), user);
+				return node.hasPermission(StructrRelationship.Key.addRelationship.name(), user);
 
 			case DeleteNode :
-				return node.hasPermission(StructrRelationship.Permission.deleteNode.name(), user);
+				return node.hasPermission(StructrRelationship.Key.deleteNode.name(), user);
 
 			case DeleteRelationship :
-				return node.hasPermission(StructrRelationship.Permission.removeRelationship.name(), user);
+				return node.hasPermission(StructrRelationship.Key.removeRelationship.name(), user);
 
 			case EditProperty :
-				return node.hasPermission(StructrRelationship.Permission.editProperties.name(), user);
+				return node.hasPermission(StructrRelationship.Key.editProperties.name(), user);
 
 			case Execute :
-				return node.hasPermission(StructrRelationship.Permission.execute.name(), user);
+				return node.hasPermission(StructrRelationship.Key.execute.name(), user);
 
 			case Read :
-				return node.hasPermission(StructrRelationship.Permission.read.name(), user);
+				return node.hasPermission(StructrRelationship.Key.read.name(), user);
 
 			case ShowTree :
-				return node.hasPermission(StructrRelationship.Permission.showTree.name(), user);
+				return node.hasPermission(StructrRelationship.Key.showTree.name(), user);
 
 			case Write :
-				return node.hasPermission(StructrRelationship.Permission.write.name(), user);
+				return node.hasPermission(StructrRelationship.Key.write.name(), user);
 		}
 
 		return (false);

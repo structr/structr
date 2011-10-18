@@ -135,7 +135,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 				StructrRelationship securityRel = (StructrRelationship) createRel.execute(principal,
 									  node, RelType.SECURITY);
 
-				securityRel.setAllowed(StructrRelationship.Permission.values());
+				securityRel.setAllowed(StructrRelationship.Key.values());
 				logger.log(Level.FINEST, "All permissions given to {0}", principal.getName());
 				node.setProperty(AbstractNode.Key.createdBy.name(),
 						 user.getRealName() + " (" + user.getName() + ")", false);
