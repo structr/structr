@@ -1956,11 +1956,11 @@ public abstract class AbstractNode
 		// Temporary hook for format conversion introduced with 0.4.3-SNAPSHOT:
 		// public -> isPublic (due to usage of enum Permission public instead of public static final String PUBLIC = "public"
 		// TODO: remove this hook if you can be absolutely sure that no old repository is in use anymore!
-		if (key.equals(Key.isPublic.name())) {
+		if (key.equals(Key.isPublic.name()) && dbNode.hasProperty("public")) {
 
-			final Object oldValue = getProperty("public");
-
-			new StructrTransaction() {
+			final Object oldValue = dbNode.getProperty("public");
+			
+			StructrTransaction transaction = new StructrTransaction() {
 
 				@Override
 				public Object execute() throws Throwable {
@@ -1972,6 +1972,19 @@ public abstract class AbstractNode
 					return null;
 				}
 			};
+			
+			// execute transaction
+			Services.command(securityContext,
+					 TransactionCommand.class).execute(transaction);
+
+			// debug
+			if (transaction.getCause() != null) {
+
+				logger.log(Level.WARNING,
+					   "Error while setting property",
+					   transaction.getCause());
+			}
+
 		}
 
 		if ((key != null) && dbNode.hasProperty(key)) {
