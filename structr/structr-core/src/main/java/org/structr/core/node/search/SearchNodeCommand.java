@@ -88,11 +88,11 @@ public class SearchNodeCommand extends NodeServiceCommand {
 			return Collections.emptyList();
 		}
 
-		SecurityContext securityContext = null;
-
-		if (parameters[0] instanceof SecurityContext) {
-			securityContext = (SecurityContext) parameters[0];
-		}
+//		SecurityContext securityContext = null;
+//
+//		if (parameters[0] instanceof SecurityContext) {
+//			securityContext = (SecurityContext) parameters[0];
+//		}
 
 		User user = null;
 		if (parameters[0] instanceof User) {
