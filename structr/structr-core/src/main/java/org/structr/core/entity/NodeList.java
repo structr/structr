@@ -79,10 +79,7 @@ import java.util.Set;
 public class NodeList<T extends AbstractNode> extends AbstractNode
 	implements Iterable<AbstractNode>, Decorable<AbstractNode>, Evaluable {
 
-	//private static final Logger logger   = Logger.getLogger(NodeList.class.getName());
-
-	//~--- static initializers --------------------------------------------
-
+	// private static final Logger logger   = Logger.getLogger(NodeList.class.getName());
 	static {
 
 		EntityContext.registerPropertySet(NodeList.class,
@@ -93,9 +90,9 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 	//~--- fields ---------------------------------------------------------
 
 	private Set<Decorator<AbstractNode>> decorators = new LinkedHashSet<Decorator<AbstractNode>>();
+	private Command factory                         = null;
 	private int maxLength                           = -1;
 	private Command transaction                     = null;
-	private Command factory                         = null;
 	private Set<Evaluator> evaluators               = new LinkedHashSet<Evaluator>();
 
 	//~--- constant enums -------------------------------------------------
@@ -110,9 +107,10 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 	}
 
 	public NodeList(int maxLength) {
-		this.maxLength = maxLength;
+
+		this.maxLength   = maxLength;
 		this.transaction = Services.command(securityContext, TransactionCommand.class);
-		this.factory = Services.command(securityContext, NodeFactoryCommand.class);;
+		this.factory     = Services.command(securityContext, NodeFactoryCommand.class);;
 	}
 
 	//~--- methods --------------------------------------------------------
@@ -210,35 +208,38 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 		return (returnValue.booleanValue());
 	}
 
-//      //    /**
-//      //     * Removes the given node from this list.
-//      //     *
-//      //     * @param toRemove
-//      //     * @return true if this list contained the given element
-//      //     */
-//      //    public boolean remove(final Object node) {
-//      //        Boolean returnValue = (Boolean) transaction.execute(new StructrTransaction() {
-//      //
-//      //            @Override
-//      //            public Object execute() throws Throwable {
-//      //                return (removeNodeFromList((Node) node));
-//      //            }
-//      //        });
-//      //
-//      //        return (returnValue.booleanValue());
-//      //    }
-//
-//          /**
-//           * Indicates whether this list contains all of the elements in the
-//           * given collection.
-//           *
-//           * @param nodes
-//           * @return true or false
-//           */
-//          @Override
-//          public boolean containsAll(Collection<?> c) {
-//              return (getNodeList().containsAll(c));
-//          }
+	/**
+	 * Removes the given node from this list.
+	 *
+	 * @param toRemove
+	 * @return true if this list contained the given element
+	 */
+	public boolean remove(final Object node) {
+
+		Boolean returnValue = (Boolean) transaction.execute(new StructrTransaction() {
+
+			@Override
+			public Object execute() throws Throwable {
+				return (removeNodeFromList((Node) node));
+			}
+
+		});
+
+		return (returnValue.booleanValue());
+	}
+
+	//
+//      /**
+//       * Indicates whether this list contains all of the elements in the
+//       * given collection.
+//       *
+//       * @param nodes
+//       * @return true or false
+//       */
+//      @Override
+//      public boolean containsAll(Collection<?> c) {
+//          return (getNodeList().containsAll(c));
+//      }
 
 	/**
 	 * Adds all the elements in the given collection to this list, applying
@@ -247,7 +248,7 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 	 * @param nodes
 	 * @return
 	 */
-//          @Override
+//      @Override
 	public boolean addAll(final Collection<? extends AbstractNode> nodes) {
 
 		Boolean returnValue = (Boolean) transaction.execute(new StructrTransaction() {
@@ -437,7 +438,6 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 	 * @param index
 	 * @param toAdd
 	 */
-
 	// @Override
 	public void add(final int index, final AbstractNode toAdd) {
 
@@ -995,7 +995,6 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 //          return (false);
 //
 //      }
-
 	private boolean isMember(Node node) {
 
 		return (getRelatedNode(node,
