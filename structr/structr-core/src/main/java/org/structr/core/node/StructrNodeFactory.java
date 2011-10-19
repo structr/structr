@@ -104,12 +104,12 @@ public class StructrNodeFactory<T extends AbstractNode> implements Adapter<Node,
 	/**
 	 * Create structr nodes from the underlying database nodes
 	 *
-	 * If user is given, include only nodes which are readable by given user
+	 * Include only nodes which are readable in the given security context.
 	 * If includeDeleted is true, include nodes with 'deleted' flag
 	 * If publicOnly is true, filter by 'public' flag
 	 *
+	 * @param securityContext
 	 * @param input
-	 * @param user
 	 * @param includeDeleted
 	 * @param publicOnly
 	 * @return
@@ -118,19 +118,13 @@ public class StructrNodeFactory<T extends AbstractNode> implements Adapter<Node,
 		final boolean includeDeleted, final boolean publicOnly) {
 
 		List<AbstractNode> nodes        = new LinkedList<AbstractNode>();
-		User user                       = securityContext.getUser();
-
-		// FIXME: user is redundant here
 
 		if ((input != null) && input.iterator().hasNext()) {
 
 			for (Node node : input) {
 
 				AbstractNode n                  = createNode(securityContext, node);
-				boolean publicUserAndPublicNode = ((user == null) && n.isPublic());
-				boolean readableByUser          = (publicUserAndPublicNode
-								   || ((user != null) && (user instanceof SuperUser))
-								   || securityContext.isAllowed(n, Permission.Read));
+				boolean readableByUser          = securityContext.isAllowed(n, Permission.Read);
 
 				if (readableByUser && (includeDeleted ||!n.isDeleted())
 					&& (n.isPublic() ||!publicOnly)) {
@@ -145,7 +139,7 @@ public class StructrNodeFactory<T extends AbstractNode> implements Adapter<Node,
 	/**
 	 * Create structr nodes from the underlying database nodes
 	 *
-	 * If user is given, include only nodes which are readable by given user
+	 * Include only nodes which are readable in the given security context.
 	 * If includeDeleted is true, include nodes with 'deleted' flag
 	 *
 	 * @param input

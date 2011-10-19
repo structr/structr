@@ -73,7 +73,7 @@ public class EditMenuItem extends DefaultEdit {
                 } else {
                     List<TextualSearchAttribute> searchAttrs = new LinkedList<TextualSearchAttribute>();
                     searchAttrs.add(new TextualSearchAttribute(AbstractNode.Key.type.name(), Page.class.getSimpleName(), SearchOperator.OR));
-                    nodes = (List<AbstractNode>) Services.command(securityContext, SearchNodeCommand.class).execute(securityContext, null, false, false, searchAttrs);
+                    nodes = (List<AbstractNode>) Services.command(securityContext, SearchNodeCommand.class).execute(null, false, false, searchAttrs);
                 }
                 if (nodes != null) {
                     Collections.sort(nodes);

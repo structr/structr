@@ -276,7 +276,6 @@ public class MapRenderer implements NodeRenderer<Map> {
 
 						List<AbstractNode> result = (List<AbstractNode>) Services.command(securityContext, 
 										SearchNodeCommand.class).execute(
-										securityContext,
 										null,
 										false,
 										false,

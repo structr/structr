@@ -108,7 +108,6 @@ public class TypedSearchConstraint extends ResourceConstraint {
 			searchAttributes.add(nameGroup);
 
 			return (List<GraphObject>)Services.command(securityContext, SearchNodeCommand.class).execute(
-				securityContext,
 				topNode,
 				includeDeleted,
 				publicOnly,

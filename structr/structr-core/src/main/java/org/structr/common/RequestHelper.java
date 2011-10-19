@@ -139,7 +139,6 @@ public class RequestHelper {
 
 				Command search            = Services.command(securityContext, SearchNodeCommand.class);
 				List<AbstractNode> result = (List<AbstractNode>) search.execute(
-					securityContext,
 					null,     // top node => null means search all
 					false,    // don't include deleted
 					true,     // retrieve only public nodes

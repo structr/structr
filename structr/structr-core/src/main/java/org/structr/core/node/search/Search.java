@@ -99,7 +99,7 @@ public abstract class Search {
 
 	public static SearchAttribute andContent(final String searchString) {
 
-		SearchAttribute attr = new TextualSearchAttribute(PlainText.Key.contentType.name(),
+		SearchAttribute attr = new TextualSearchAttribute(PlainText.Key.content.name(),
 			searchString,
 			SearchOperator.AND);
 
@@ -108,7 +108,7 @@ public abstract class Search {
 
 	public static SearchAttribute orContent(final String searchString) {
 
-		SearchAttribute attr = new TextualSearchAttribute(PlainText.Key.contentType.name(),
+		SearchAttribute attr = new TextualSearchAttribute(PlainText.Key.content.name(),
 			searchString,
 			SearchOperator.OR);
 
@@ -171,7 +171,7 @@ public abstract class Search {
 
 	public static SearchAttribute orExactContent(final String searchString) {
 
-		SearchAttribute attr = new TextualSearchAttribute(PlainText.Key.contentType.name(),
+		SearchAttribute attr = new TextualSearchAttribute(PlainText.Key.content.name(),
 			exactMatch(searchString),
 			SearchOperator.OR);
 
@@ -180,7 +180,7 @@ public abstract class Search {
 
 	public static SearchAttribute andExactContent(final String searchString) {
 
-		SearchAttribute attr = new TextualSearchAttribute(PlainText.Key.contentType.name(),
+		SearchAttribute attr = new TextualSearchAttribute(PlainText.Key.content.name(),
 			exactMatch(searchString),
 			SearchOperator.AND);
 
@@ -301,7 +301,6 @@ public abstract class Search {
 		searchAttrs.add(Search.andName(string + SearchAttribute.WILDCARD));
 
 		List<AbstractNode> result = (List<AbstractNode>) Services.command(securityContext, SearchNodeCommand.class).execute(
-			securityContext,
 			null,
 			false,
 			false,

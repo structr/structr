@@ -87,7 +87,6 @@ public class SearchConstraint extends ResourceConstraint {
 	private List<GraphObject> getSearchResults(String searchString) throws PathException {
 
 		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
-		User user = new SuperUser();
 		AbstractNode topNode = null;
 		boolean includeDeleted = false;
 		boolean publicOnly = false;
@@ -117,7 +116,6 @@ public class SearchConstraint extends ResourceConstraint {
 			searchAttributes.add(nameGroup);
 
 			return (List<GraphObject>)Services.command(securityContext, SearchNodeCommand.class).execute(
-				securityContext,
 				topNode,
 				includeDeleted,
 				publicOnly,

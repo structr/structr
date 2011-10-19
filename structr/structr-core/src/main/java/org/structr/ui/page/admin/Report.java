@@ -186,7 +186,7 @@ public class Report extends Nodes {
         if (reportForm.isValid()) {
             // Always filter by type
             searchAttributes.add(Search.andExactType(resultType));
-            searchResults = (List<AbstractNode>) Services.command(securityContext, SearchNodeCommand.class).execute(securityContext, null, false, false, searchAttributes);
+            searchResults = (List<AbstractNode>) Services.command(securityContext, SearchNodeCommand.class).execute(null, false, false, searchAttributes);
             populateReportResultsTable();
             saveState();
         }
@@ -297,7 +297,7 @@ public class Report extends Nodes {
 
             // Always filter by type
             searchAttributes.add(Search.andExactType(resultType));
-            reportResults = (List<AbstractNode>) Services.command(securityContext, SearchNodeCommand.class).execute(securityContext, null, false, false, searchAttributes);
+            reportResults = (List<AbstractNode>) Services.command(securityContext, SearchNodeCommand.class).execute(null, false, false, searchAttributes);
             populateReportResultsTable();
             saveState();
 

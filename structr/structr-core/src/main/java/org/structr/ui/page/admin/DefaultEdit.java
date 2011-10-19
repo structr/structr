@@ -748,7 +748,6 @@ public class DefaultEdit extends Nodes {
 
 		// ------------------ cloud end ---------------------
 		// console
-		User user = securityContext.getUser();
 		String prompt = ((user != null)
 				 ? user.getName()
 				 : "anonymous") + "@structr" + (securityContext.isSuperUser()
@@ -816,7 +815,6 @@ public class DefaultEdit extends Nodes {
 
 					List<Option> options     = new LinkedList<Option>();
 					List<AbstractNode> nodes = null;
-					User user                = securityContext.getUser();
 
 					if (templateNode != null) {
 						nodes = templateNode.getSiblingNodes();
@@ -829,7 +827,7 @@ public class DefaultEdit extends Nodes {
 							Template.class.getSimpleName(), SearchOperator.OR));
 						nodes = (List<AbstractNode>) Services.command(securityContext, 
 							SearchNodeCommand.class).execute(
-							securityContext, null, false, false, searchAttrs);
+							null, false, false, searchAttrs);
 					}
 
 					if (nodes != null) {
@@ -864,7 +862,6 @@ public class DefaultEdit extends Nodes {
 
 						List<Option> options     = new LinkedList<Option>();
 						List<AbstractNode> nodes = null;
-						User user                = securityContext.getUser();
 
 						if (typeNode != null) {
 							nodes = typeNode.getSiblingNodes();
@@ -879,7 +876,7 @@ public class DefaultEdit extends Nodes {
 								SearchOperator.OR));
 							nodes = (List<AbstractNode>) Services.command(securityContext, 
 								SearchNodeCommand.class).execute(
-								securityContext, null, false, false, searchAttrs);
+								null, false, false, searchAttrs);
 						}
 
 						if (nodes != null) {
@@ -947,9 +944,9 @@ public class DefaultEdit extends Nodes {
 						Collections.sort(users);
 						options.add(Option.EMPTY_OPTION);
 
-						for (User u : users) {
+						for (User user : users) {
 
-							Option opt = new Option(u.getId(), u.getName());
+							Option opt = new Option(user.getId(), user.getName());
 
 							options.add(opt);
 						}

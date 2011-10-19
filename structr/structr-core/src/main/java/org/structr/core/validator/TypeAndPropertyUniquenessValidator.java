@@ -62,7 +62,7 @@ public class TypeAndPropertyUniquenessValidator extends PropertyValidator<String
 
 			String type = parameter.get();
 			String stringValue = (String)value;
-			User user = new SuperUser();
+//			User user = new SuperUser();
 			AbstractNode topNode = null;
 			Boolean includeDeleted = false;
 			Boolean publicOnly = false;
@@ -71,7 +71,7 @@ public class TypeAndPropertyUniquenessValidator extends PropertyValidator<String
 			attributes.add(new TextualSearchAttribute(AbstractNode.Key.type.name(), type, SearchOperator.AND));
 			attributes.add(new TextualSearchAttribute(key, stringValue, SearchOperator.AND));
 
-			List<AbstractNode> resultList = (List<AbstractNode>)Services.command(securityContext, SearchNodeCommand.class).execute(SecurityContext.getSuperUserInstance(), topNode, includeDeleted, publicOnly, attributes);
+			List<AbstractNode> resultList = (List<AbstractNode>)Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(topNode, includeDeleted, publicOnly, attributes);
 			if(!resultList.isEmpty()) {
 
 				errorBuffer.append("A node with value '");

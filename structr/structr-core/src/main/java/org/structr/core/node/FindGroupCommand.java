@@ -53,7 +53,7 @@ public class FindGroupCommand extends NodeServiceCommand {
     public Object execute(Object... parameters) {
 
         GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
-        Command searchNode = Services.command(securityContext, SearchNodeCommand.class);
+        Command searchNode = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class);
 
         if (graphDb != null) {
 
@@ -61,7 +61,7 @@ public class FindGroupCommand extends NodeServiceCommand {
 
                 case 0:
                     // Return all groups
-                    return (List<Group>) searchNode.execute(SecurityContext.getSuperUserInstance(), null, false, false, Search.andExactType(Group.class.getSimpleName()));
+                    return (List<Group>) searchNode.execute(null, false, false, Search.andExactType(Group.class.getSimpleName()));
 
                 case 1:
 
@@ -74,7 +74,7 @@ public class FindGroupCommand extends NodeServiceCommand {
                         searchAttrs.add(Search.andExactName(groupName));
                         searchAttrs.add(Search.andExactType(Group.class.getSimpleName()));
 
-                        List<AbstractNode> groupsFound = (List<AbstractNode>) searchNode.execute(SecurityContext.getSuperUserInstance(), null, false, false, searchAttrs);
+                        List<AbstractNode> groupsFound = (List<AbstractNode>) searchNode.execute(null, false, false, searchAttrs);
 
                         if (groupsFound != null && groupsFound.size() > 0) {
                             return groupsFound.get(0);
@@ -98,7 +98,7 @@ public class FindGroupCommand extends NodeServiceCommand {
                         searchAttrs.add(Search.andExactName(groupName));
                         searchAttrs.add(Search.andExactType(Group.class.getSimpleName()));
 
-                        List<AbstractNode> groupsFound = (List<AbstractNode>) searchNode.execute(topNode, null, false, false, searchAttrs);
+                        List<AbstractNode> groupsFound = (List<AbstractNode>) searchNode.execute(topNode, false, false, searchAttrs);
 
                         if (groupsFound != null && groupsFound.size() > 0) {
                             return groupsFound.get(0);

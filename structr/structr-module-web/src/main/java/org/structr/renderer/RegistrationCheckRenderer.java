@@ -32,9 +32,11 @@ import org.structr.core.node.IndexNodeCommand;
 import org.structr.core.node.NodeAttribute;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
+import org.structr.core.node.search.BooleanSearchAttribute;
 import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
+import org.structr.core.node.search.SearchOperator;
 
 /**
  *
@@ -491,7 +493,7 @@ public class RegistrationCheckRenderer implements NodeRenderer<RegistrationCheck
 				searchAttrs.add(Search.andExactName(assignedUsername));
 				searchAttrs.add(Search.andExactType(User.class.getSimpleName()));
 
-				List<User> userList = (List<User>)search.execute(securityContext, null, false, false, searchAttrs);
+				List<User> userList = (List<User>)search.execute(null, false, false, searchAttrs);
 				if(!(userList.isEmpty()))
 				{
 					assignedUser = userList.get(0);
@@ -523,10 +525,11 @@ public class RegistrationCheckRenderer implements NodeRenderer<RegistrationCheck
 
 				searchAttrs.add(Search.andExactName(publicUserDirectoryName));
 				searchAttrs.add(Search.andExactType(Folder.class.getSimpleName()));
-
+				searchAttrs.add(new BooleanSearchAttribute(AbstractNode.Key.isPublic.name(), Boolean.TRUE, SearchOperator.AND));
+				
 				// Look for existing public user directory
 				List<Folder> folders = (List<Folder>)search.execute(
-					null, registrationCheckNode, false, false, searchAttrs);
+					registrationCheckNode, false, false, searchAttrs);
 
 				Folder publicUserDirectory = null;
 

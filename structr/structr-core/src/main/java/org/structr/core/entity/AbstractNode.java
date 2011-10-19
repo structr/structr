@@ -1311,7 +1311,7 @@ public abstract class AbstractNode
 
 			// Add path helper / finder
 			root.put("path",
-				 new PathHelper());
+				 new PathHelper(securityContext));
 
 			// Add error and ok message if present
 			HttpSession session = securityContext.getSession();
@@ -1324,7 +1324,7 @@ public abstract class AbstractNode
 						 session.getAttribute("errorMessage"));
 				}
 
-				if (session.getAttribute("okMessage") != null) {
+				if (session.getAttribute("okMessage") != null) {	
 
 					root.put("OkMessage",
 						 session.getAttribute("okMessage"));
@@ -1352,89 +1352,6 @@ public abstract class AbstractNode
 		}
 	}
 
-//
-//      public static void staticReplaceByFreeMarker(final String templateString, Writer out, final AbstractNode startNode,
-//              final String editUrl, final Long editNodeId) {
-//
-//              Configuration cfg = new Configuration();
-//
-//              // TODO: enable access to content tree, see below (Content variable)
-//              // cfg.setSharedVariable("Tree", new StructrTemplateNodeModel(this));
-//              try {
-//
-//                      AbstractNode callingNode = null;
-//
-//                      if (templateString != null) {
-//
-//                              Map root = new HashMap();
-//
-//                              root.put("StartNode", startNode);
-//
-//                              if (callingNode != null) {
-//                                      root.put(callingNode.getType(), callingNode);
-//                              }
-//
-//                              HttpServletRequest request = CurrentRequest.getRequest();
-//
-//                              if (request != null) {
-//
-//                                      // root.put("Request", new freemarker.template.SimpleHash(request.getParameterMap().));
-//                                      root.put("Request",
-//                                               new freemarker.ext.servlet.HttpRequestParametersHashModel(request));
-//
-//                                      // if search string is given, put search results into freemarker model
-//                                      String searchString = request.getParameter("search");
-//
-//                                      if ((searchString != null) &&!(searchString.isEmpty())) {
-//
-//                                              Command search            = Services.command(securityContext, SearchNodeCommand.class);
-//                                              List<AbstractNode> result = (List<AbstractNode>) search.execute(null,    // user => null means super user
-//                                                      null,                            // top node => null means search all
-//                                                      false,                           // include hidden
-//                                                      true,                            // public only
-//                                                      Search.orName(searchString));    // search in name
-//
-//                                              root.put("SearchResults", result);
-//                                      }
-//                              }
-//
-//                              // if (user != null) {
-//                              root.put("User", CurrentSession.getUser());
-//
-//                              // }
-//                              // Add a generic helper
-//                              root.put("Helper", new TemplateHelper());
-//
-//                              // Add error and ok message if present
-//                              HttpSession session = CurrentRequest.getSession();
-//
-//                              if (session != null) {
-//
-//                                      if (session.getAttribute("errorMessage") != null) {
-//                                              root.put("ErrorMessage", session.getAttribute("errorMessage"));
-//                                      }
-//
-//                                      if (session.getAttribute("errorMessage") != null) {
-//                                              root.put("OkMessage", session.getAttribute("okMessage"));
-//                                      }
-//                              }
-//
-//                              freemarker.template.Template t = new freemarker.template.Template(startNode.getName(),
-//                                                                       new StringReader(templateString), cfg);
-//
-//                              t.process(root, out);
-//
-//                      } else {
-//
-//                              // if no template is given, just copy the input
-//                              out.write(templateString);
-//                              out.flush();
-//                      }
-//
-//              } catch (Throwable t) {
-//                      logger.log(Level.WARNING, "Error: {0}", t.getMessage());
-//              }
-//      }
 	// ----- protected methods -----
 	protected String createUniqueIdentifier(String prefix) {
 
