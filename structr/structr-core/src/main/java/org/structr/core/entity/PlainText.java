@@ -23,7 +23,14 @@ package org.structr.core.entity;
 
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
+import org.structr.common.RenderMode;
+import org.structr.common.renderer.ContentTemplateRenderer;
 import org.structr.core.EntityContext;
+import org.structr.core.NodeRenderer;
+
+//~--- JDK imports ------------------------------------------------------------
+
+import java.util.Map;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -44,6 +51,15 @@ public class PlainText extends AbstractNode {
 	//~--- constant enums -------------------------------------------------
 
 	public enum Key implements PropertyKey{ content, contentType, size; }
+
+	//~--- methods --------------------------------------------------------
+
+	@Override
+	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers) {
+
+		renderers.put(RenderMode.Default,
+			      new ContentTemplateRenderer());
+	}
 
 	//~--- get methods ----------------------------------------------------
 
