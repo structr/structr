@@ -22,20 +22,13 @@
 package org.structr.core.entity.app;
 
 import org.apache.commons.lang.StringUtils;
-<<<<<<< HEAD
-import org.structr.common.RequestCycleListener;
-import org.structr.common.RenderMode;
 import org.structr.common.RequestHelper;
-=======
 
-import org.structr.common.CurrentRequest;
-import org.structr.common.CurrentSession;
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RenderMode;
 import org.structr.common.RequestCycleListener;
 import org.structr.common.SessionValue;
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
 import org.structr.common.renderer.ExternalTemplateRenderer;
 import org.structr.core.EntityContext;
 import org.structr.core.NodeRenderer;
@@ -76,6 +69,7 @@ public class TextField extends FormField implements InteractiveNode, RequestCycl
 	private String mappedName                        = null;
 	protected SessionValue<Object> sessionValue      = null;
 
+
 	//~--- constant enums -------------------------------------------------
 
 	public enum Key implements PropertyKey{ sourceSlotName; }
@@ -91,11 +85,11 @@ public class TextField extends FormField implements InteractiveNode, RequestCycl
 
 	// ----- interface RequestCycleListener -----
 	@Override
-	public void onRequestStart() {}
+	public void onRequestStart(HttpServletRequest request) {}
 
 	@Override
-	public void onRequestEnd() {
-		getErrorMessageValue().set(null);
+	public void onRequestEnd(HttpServletRequest request) {
+		getErrorMessageValue().set(request, null);
 	}
 
 	//~--- get methods ----------------------------------------------------
@@ -107,7 +101,6 @@ public class TextField extends FormField implements InteractiveNode, RequestCycl
 
 	// ----- interface InteractiveNode -----
 	@Override
-<<<<<<< HEAD
 	public Object getValue(HttpServletRequest request)
 	{
 		Object value = getValueFromSource(request);
@@ -118,19 +111,6 @@ public class TextField extends FormField implements InteractiveNode, RequestCycl
 		if(RequestHelper.isRedirected(request))
 		{
 			value = getLastValue().get(request);
-=======
-	public Object getValue() {
-
-		HttpServletRequest request = CurrentRequest.getRequest();
-		Object value               = getValueFromSource();
-		String name                = getName();
-		String ret                 = null;
-
-		// only return value from last request if we were redirected before
-		if (CurrentSession.isRedirected()) {
-			value = getLastValue().get();
-		} else {
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
 
 			// otherwise, clear value in session
 			getLastValue().set(request, null);
@@ -154,12 +134,7 @@ public class TextField extends FormField implements InteractiveNode, RequestCycl
 				} else {
 
 					// store value in session, in case we get a redirect afterwards
-<<<<<<< HEAD
 					getLastValue().set(request, ret);
-=======
-					getLastValue().set(ret);
-
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
 					return ret;
 				}
 			} else {
@@ -173,20 +148,10 @@ public class TextField extends FormField implements InteractiveNode, RequestCycl
 	}
 
 	@Override
-<<<<<<< HEAD
 	public String getStringValue(HttpServletRequest request)
 	{
 		Object value = getValue(request);
 		return (value != null ? value.toString() : null);
-=======
-	public String getStringValue() {
-
-		Object value = getValue();
-
-		return ((value != null)
-			? value.toString()
-			: null);
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
 	}
 
 	@Override
@@ -205,7 +170,6 @@ public class TextField extends FormField implements InteractiveNode, RequestCycl
 	}
 
 	@Override
-<<<<<<< HEAD
 	public void setErrorValue(HttpServletRequest request, Object errorValue)
 	{
 		getErrorMessageValue().set(request, errorValue);
@@ -229,33 +193,7 @@ public class TextField extends FormField implements InteractiveNode, RequestCycl
 		return(null);
 	}
 
-	// ----- interface RequestCycleListener -----
-	@Override
-	public void onRequestStart(HttpServletRequest request)
-	{
-	}
 
-	@Override
-	public void onRequestEnd(HttpServletRequest request)
-	{
-		getErrorMessageValue().set(request, null);
-=======
-	public Object getErrorValue() {
-		return (getErrorMessageValue().get());
-	}
-
-	@Override
-	public String getErrorMessage() {
-
-		Object errorValue = getErrorValue();
-
-		if (errorValue != null) {
-			return (errorValue.toString());
-		}
-
-		return (null);
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
-	}
 
 	// ----- private methods -----
 	private SessionValue<Object> getErrorMessageValue() {
@@ -282,13 +220,8 @@ public class TextField extends FormField implements InteractiveNode, RequestCycl
 	 *
 	 * @return the value or null
 	 */
-<<<<<<< HEAD
 	private Object getValueFromSource(HttpServletRequest request)
 	{
-=======
-	private Object getValueFromSource() {
-
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
 		List<StructrRelationship> rels = getIncomingDataRelationships();
 		String sourceName              = this.getName();
 		Object ret                     = null;
@@ -308,22 +241,13 @@ public class TextField extends FormField implements InteractiveNode, RequestCycl
 						(String) rel.getRelationship().getProperty(Key.sourceSlotName.name());
 				}
 
-<<<<<<< HEAD
-				NodeSource source = (NodeSource)startNode;
-				if(source != null)
-				{
-					AbstractNode loadedNode = source.loadNode(request);
-					if(loadedNode != null)
-					{
-=======
 				NodeSource source = (NodeSource) startNode;
 
 				if (source != null) {
 
-					AbstractNode loadedNode = source.loadNode();
+					AbstractNode loadedNode = source.loadNode(request);
 
 					if (loadedNode != null) {
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
 						ret = loadedNode.getProperty(sourceName);
 					}
 				}
@@ -345,8 +269,4 @@ public class TextField extends FormField implements InteractiveNode, RequestCycl
 		this.mappedName = mappedName;
 	}
 
-	@Override
-	public void setErrorValue(Object errorValue) {
-		getErrorMessageValue().set(errorValue);
-	}
 }

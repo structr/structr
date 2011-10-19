@@ -18,6 +18,10 @@
  */
 package org.structr.core.entity;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.neo4j.graphdb.*;
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
@@ -40,7 +44,7 @@ import org.structr.core.node.TransactionCommand;
  */
 public class StructrRelationship implements GraphObject {
 
-	public enum Key implements PropertyKey {
+	public enum Permission implements PropertyKey {
 		allowed, denied, read, showTree, write, execute,
 		createNode, deleteNode, editProperties, addRelationship,
 		removeRelationship, accessControl;
@@ -71,12 +75,7 @@ public class StructrRelationship implements GraphObject {
 	// reference to database relationship
 	protected Relationship dbRelationship;
 
-	//~--- constant enums -------------------------------------------------
-
-	public enum Permission implements PropertyKey {
-
-		allowed, denied, read, showTree, write, execute, createNode, deleteNode, editProperties,
-		addRelationship, removeRelationship, accessControl;
+	public StructrRelationship() {
 	}
 
 	public StructrRelationship(SecurityContext securityContext, Relationship dbRelationship) {
@@ -105,25 +104,28 @@ public class StructrRelationship implements GraphObject {
 		Map<String, Object> properties = new HashMap<String, Object>();
 
 		for (String key : dbRelationship.getPropertyKeys()) {
-
-			properties.put(key,
-				       dbRelationship.getProperty(key));
+			properties.put(key, dbRelationship.getProperty(key));
 		}
 
 		return properties;
 	}
 
 	public Object getProperty(final PropertyKey propertyKey) {
-
-		return dbRelationship.getProperty(propertyKey.name(),
-						  null);
+		return dbRelationship.getProperty(propertyKey.name(), null);
 	}
 
 	@Override
 	public Object getProperty(final String key) {
+		return dbRelationship.getProperty(key, null);
+	}
 
-		return dbRelationship.getProperty(key,
-						  null);
+	public void setProperty(final PropertyKey propertyKey, final Object value) {
+		dbRelationship.setProperty(propertyKey.name(), value);
+	}
+
+	@Override
+	public void setProperty(final String key, final Object value) {
+		dbRelationship.setProperty(key, value);
 	}
 
 	/**
@@ -173,18 +175,18 @@ public class StructrRelationship implements GraphObject {
 				Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
 				Command nodeFactory = Services.command(securityContext, NodeFactoryCommand.class);
 
-		if (dbRelationship.hasProperty(StructrRelationship.Permission.allowed.name())) {
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
+				AbstractNode startNode = (AbstractNode) nodeFactory.execute(getStartNode());
+				AbstractNode newEndNode = (AbstractNode) findNode.execute(user, endNodeId);
 
-			String result              = "";
-			String[] allowedProperties =
-				(String[]) dbRelationship.getProperty(StructrRelationship.Permission.allowed.name());
+				if (newEndNode != null) {
+					RelationshipType type = dbRelationship.getType();
 
-			if (allowedProperties != null) {
-
-				for (String p : allowedProperties) {
-					result += p + "\n";
+					deleteRel.execute(dbRelationship);
+					dbRelationship = ((StructrRelationship) createRel.execute(type, startNode, newEndNode)).getRelationship();
 				}
+
+				return (null);
+			}
 		});
 	}
 
@@ -208,8 +210,6 @@ public class StructrRelationship implements GraphObject {
 					Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
 					Command nodeFactory = Services.command(securityContext, NodeFactoryCommand.class);
 
-<<<<<<< HEAD
-=======
 					AbstractNode startNode = (AbstractNode) nodeFactory.execute(getStartNode());
 					AbstractNode endNode = (AbstractNode) nodeFactory.execute(getEndNode());
 
@@ -224,18 +224,17 @@ public class StructrRelationship implements GraphObject {
 
 	public String getAllowed() {
 
-		if (dbRelationship.hasProperty(StructrRelationship.Key.allowed.name())) {
+		if (dbRelationship.hasProperty(StructrRelationship.Permission.allowed.name())) {
 
 			String result = "";
 
-			String[] allowedProperties = (String[]) dbRelationship.getProperty(StructrRelationship.Key.allowed.name());
+			String[] allowedProperties = (String[]) dbRelationship.getProperty(StructrRelationship.Permission.allowed.name());
 
 			if (allowedProperties != null) {
 				for (String p : allowedProperties) {
 					result += p + "\n";
 				}
 			}
->>>>>>> fd5e7ce12fac2b6c7534d528d95c4fe42773db85
 			return result;
 
 		} else {
@@ -243,18 +242,9 @@ public class StructrRelationship implements GraphObject {
 		}
 	}
 
-<<<<<<< HEAD
-	public String getDenied() {
-
-		if (dbRelationship.hasProperty(StructrRelationship.Permission.denied.name())) {
-
-			String result             = "";
-			String[] deniedProperties =
-				(String[]) dbRelationship.getProperty(StructrRelationship.Permission.denied.name());
-=======
 	public void setAllowed(final List<String> allowed) {
 		String[] allowedActions = (String[]) allowed.toArray(new String[allowed.size()]);
-		dbRelationship.setProperty(StructrRelationship.Key.allowed.name(), allowedActions);
+		dbRelationship.setProperty(StructrRelationship.Permission.allowed.name(), allowedActions);
 	}
 
 	public void setAllowed(final PropertyKey[] allowed) {
@@ -267,15 +257,13 @@ public class StructrRelationship implements GraphObject {
 
 	public String getDenied() {
 
-		if (dbRelationship.hasProperty(StructrRelationship.Key.denied.name())) {
+		if (dbRelationship.hasProperty(StructrRelationship.Permission.denied.name())) {
 
 			String result = "";
 
-			String[] deniedProperties = (String[]) dbRelationship.getProperty(StructrRelationship.Key.denied.name());
->>>>>>> fd5e7ce12fac2b6c7534d528d95c4fe42773db85
+			String[] deniedProperties = (String[]) dbRelationship.getProperty(StructrRelationship.Permission.denied.name());
 
 			if (deniedProperties != null) {
-
 				for (String p : deniedProperties) {
 					result += p + "\n";
 				}
@@ -287,7 +275,58 @@ public class StructrRelationship implements GraphObject {
 		}
 	}
 
-<<<<<<< HEAD
+	public void setDenied(final List<String> denied) {
+		if (dbRelationship.hasProperty(StructrRelationship.Permission.denied.name())) {
+			dbRelationship.setProperty(StructrRelationship.Permission.denied.name(), denied);
+		}
+	}
+
+	public boolean isAllowed(final String action) {
+		if (dbRelationship.hasProperty(StructrRelationship.Permission.allowed.name())) {
+			String[] allowedProperties = (String[]) dbRelationship.getProperty(StructrRelationship.Permission.allowed.name());
+
+			if (allowedProperties != null) {
+				for (String p : allowedProperties) {
+					if (p.equals(action)) {
+						return true;
+					}
+				}
+			}
+
+		}
+		return false;
+	}
+
+	public boolean isDenied(final String action) {
+		if (dbRelationship.hasProperty(StructrRelationship.Permission.denied.name())) {
+			String[] deniedProperties = (String[]) dbRelationship.getProperty(StructrRelationship.Permission.denied.name());
+
+			if (deniedProperties != null) {
+				for (String p : deniedProperties) {
+					if (p.equals(action)) {
+						return true;
+					}
+				}
+			}
+
+		}
+		return false;
+	}
+
+	@Override
+	public boolean equals(final Object o) {
+		return (new Integer(this.hashCode()).equals(new Integer(o.hashCode())));
+	}
+
+	@Override
+	public int hashCode() {
+		if (this.dbRelationship == null) {
+			return (super.hashCode());
+		}
+
+		return (new Long(dbRelationship.getId()).hashCode());
+	}
+
 	// ----- interface GraphObject -----
 	@Override
 	public Iterable<String> getPropertyKeys(PropertyView propertyView) {
@@ -303,129 +342,25 @@ public class StructrRelationship implements GraphObject {
 	public List<StructrRelationship> getRelationships(RelationshipType type, Direction dir) {
 		return null;
 	}
+
+	@Override
+	public String getType() {
+		return this.getRelType().name();
 	}
 
 	@Override
 	public Long getStartNodeId() {
 		return this.getStartNode().getId();
 	}
-	}
 
-	public boolean isAllowed(final String action) {
-=======
-	public void setDenied(final List<String> denied) {
-		if (dbRelationship.hasProperty(StructrRelationship.Key.denied.name())) {
-			dbRelationship.setProperty(StructrRelationship.Key.denied.name(), denied);
-		}
-	}
-
-	public boolean isAllowed(final String action) {
-		if (dbRelationship.hasProperty(StructrRelationship.Key.allowed.name())) {
-			String[] allowedProperties = (String[]) dbRelationship.getProperty(StructrRelationship.Key.allowed.name());
->>>>>>> fd5e7ce12fac2b6c7534d528d95c4fe42773db85
-
-			if (allowedProperties != null) {
-				for (String p : allowedProperties) {
-					if (p.equals(action)) {
-						return true;
-					}
-				}
-			}
-		}
-		return false;
-	}
-
-	public boolean isDenied(final String action) {
-<<<<<<< HEAD
-=======
-		if (dbRelationship.hasProperty(StructrRelationship.Key.denied.name())) {
-			String[] deniedProperties = (String[]) dbRelationship.getProperty(StructrRelationship.Key.denied.name());
->>>>>>> fd5e7ce12fac2b6c7534d528d95c4fe42773db85
-
-			if (deniedProperties != null) {
-				for (String p : deniedProperties) {
-					if (p.equals(action)) {
-						return true;
-					}
-				}
-			}
-		}
-		return false;
+	@Override
+	public Long getEndNodeId() {
+		return this.getEndNode().getId();
 	}
 
 	@Override
-	public void setProperty(final String key, final Object value) {
-
-		dbRelationship.setProperty(key,
-					   value);
+	public boolean delete() {
+		dbRelationship.delete();
+		return true;
 	}
-
-			@Override
-			public Object execute() throws Throwable {
-
-				Command findNode        = Services.command(FindNodeCommand.class);
-				Command deleteRel       = Services.command(DeleteRelationshipCommand.class);
-				Command createRel       = Services.command(CreateRelationshipCommand.class);
-				Command nodeFactory     = Services.command(NodeFactoryCommand.class);
-				AbstractNode startNode  = (AbstractNode) nodeFactory.execute(getStartNode());
-				AbstractNode newEndNode = (AbstractNode) findNode.execute(user,
-					endNodeId);
-
-				if (newEndNode != null) {
-
-					RelationshipType type = dbRelationship.getType();
-
-					deleteRel.execute(dbRelationship);
-					dbRelationship = ((StructrRelationship) createRel.execute(type, startNode,
-						newEndNode)).getRelationship();
-				}
-
-				return (null);
-			}
-
-		});
-	}
-
-				@Override
-				public Object execute() throws Throwable {
-
-					Command deleteRel      = Services.command(DeleteRelationshipCommand.class);
-					Command createRel      = Services.command(CreateRelationshipCommand.class);
-					Command nodeFactory    = Services.command(NodeFactoryCommand.class);
-					AbstractNode startNode = (AbstractNode) nodeFactory.execute(getStartNode());
-					AbstractNode endNode   = (AbstractNode) nodeFactory.execute(getEndNode());
-
-					deleteRel.execute(dbRelationship);
-					dbRelationship = ((StructrRelationship) createRel.execute(type, startNode,
-						endNode)).getRelationship();
-
-					return (null);
-				}
-
-			});
-		}
-
-	public void setAllowed(final StructrRelationship.Permission[] allowed) {
-
-		List<String> actions = new ArrayList<String>();
-
-		for (Permission p : allowed) {
-			actions.add(p.name());
-		}
-
-		setAllowed(actions);
-	}
-
-	public void setAllowed(final String[] allowed) {
-
-		dbRelationship.setProperty(StructrRelationship.Permission.allowed.name(),
-					   allowed);
-	}
-
-	public void setAllowed(final List<String> allowed) {
-
-		String[] allowedActions = (String[]) allowed.toArray(new String[allowed.size()]);
-
-		setAllowed(allowedActions);
-	}
-		}
+}

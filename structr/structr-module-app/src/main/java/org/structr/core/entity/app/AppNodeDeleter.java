@@ -50,26 +50,17 @@ public class AppNodeDeleter extends ActionNode {
 	//~--- methods --------------------------------------------------------
 
 	@Override
-<<<<<<< HEAD
-	public boolean doAction(final StructrOutputStream out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
-	{
-		AbstractNode toDelete = getNodeFromLoader(out.getRequest());
-		if(toDelete != null)
-		{
-			// FIXME: is this the right way to delete a node?
-			Services.command(securityContext, DeleteNodeCommand.class).execute(toDelete, null);
-=======
 	public boolean doAction(final StructrOutputStream out, final AbstractNode startNode, final String editUrl,
 				final Long editNodeId) {
 
-		AbstractNode toDelete = getNodeFromLoader();
+		AbstractNode toDelete = getNodeFromLoader(out.getRequest());
 
 		if (toDelete != null) {
 
 			// FIXME: is this the right way to delete a node?
-			Services.command(DeleteNodeCommand.class).execute(toDelete,
+			Services.command(securityContext,
+					 DeleteNodeCommand.class).execute(toDelete,
 				null);
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
 		}
 
 		return (true);

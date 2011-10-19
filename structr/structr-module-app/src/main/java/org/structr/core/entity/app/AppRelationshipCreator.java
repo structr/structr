@@ -21,15 +21,6 @@
 
 package org.structr.core.entity.app;
 
-<<<<<<< HEAD
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.servlet.http.HttpServletRequest;
-=======
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
@@ -48,10 +39,17 @@ import org.structr.core.node.TransactionCommand;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.LinkedHashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.List;
 import java.util.Map;
+import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.logging.Logger;
+
+import javax.servlet.http.HttpServletRequest;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -79,20 +77,14 @@ public class AppRelationshipCreator extends ActionNode {
 	//~--- methods --------------------------------------------------------
 
 	@Override
-<<<<<<< HEAD
-	public boolean doAction(final StructrOutputStream out, final AbstractNode startNode, final String editUrl, final Long editNodeId)
-	{
-		String relType = getStringProperty(TARGET_REL_TYPE);
-		AbstractNode relStartNode = getNodeFromNamedSource(out.getRequest(), "startNode");
-		AbstractNode relEndNode = getNodeFromNamedSource(out.getRequest(), "endNode");
-=======
 	public boolean doAction(final StructrOutputStream out, final AbstractNode startNode, final String editUrl,
 				final Long editNodeId) {
 
 		String relType            = getStringProperty(Key.targetRelType.name());
-		AbstractNode relStartNode = getNodeFromNamedSource("startNode");
-		AbstractNode relEndNode   = getNodeFromNamedSource("endNode");
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
+		AbstractNode relStartNode = getNodeFromNamedSource(out.getRequest(),
+			"startNode");
+		AbstractNode relEndNode   = getNodeFromNamedSource(out.getRequest(),
+			"endNode");
 
 		if (relType == null) {
 
@@ -135,13 +127,9 @@ public class AppRelationshipCreator extends ActionNode {
 		final Node toNode                 = relEndNode.getNode();
 		final RelationshipType newRelType = DynamicRelationshipType.withName(relType);
 
-<<<<<<< HEAD
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction()
-		{
-=======
-		Services.command(TransactionCommand.class).execute(new StructrTransaction() {
+		Services.command(securityContext,
+				 TransactionCommand.class).execute(new StructrTransaction() {
 
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
 			@Override
 			public Object execute() throws Throwable {
 
@@ -163,11 +151,11 @@ public class AppRelationshipCreator extends ActionNode {
 		});
 
 		/*
-<<<<<<< HEAD
-		Services.command(securityContext, CreateRelationshipCommand.class).execute(relStartNode, relEndNode, relType);
-=======
+		 * <<<<<<< HEAD
+		 * Services.command(securityContext, CreateRelationshipCommand.class).execute(relStartNode, relEndNode, relType);
+		 * =======
 		 * Services.command(CreateRelationshipCommand.class).execute(relStartNode, relEndNode, relType);
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
+		 * >>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
 		 */
 		return (true);
 	}
@@ -192,30 +180,14 @@ public class AppRelationshipCreator extends ActionNode {
 	}
 
 	// ----- private methods -----
-<<<<<<< HEAD
-	private AbstractNode getNodeFromNamedSource(HttpServletRequest request, String name)
-	{
-=======
-	private AbstractNode getNodeFromNamedSource(String name) {
+	private AbstractNode getNodeFromNamedSource(HttpServletRequest request, String name) {
 
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
 		List<StructrRelationship> rels = getIncomingDataRelationships();
 		AbstractNode ret               = null;
 
 		for (StructrRelationship rel : rels) {
 
 			AbstractNode node = rel.getStartNode();
-<<<<<<< HEAD
-			if(node instanceof NodeSource)
-			{
-				if(rel.getRelationship().hasProperty(TARGET_SLOT_NAME_KEY))
-				{
-					String targetSlot = (String)rel.getRelationship().getProperty(TARGET_SLOT_NAME_KEY);
-					if(name.equals(targetSlot))
-					{
-						NodeSource source = (NodeSource)node;
-						ret = source.loadNode(request);
-=======
 
 			if (node instanceof NodeSource) {
 
@@ -228,9 +200,8 @@ public class AppRelationshipCreator extends ActionNode {
 
 						NodeSource source = (NodeSource) node;
 
-						ret = source.loadNode();
+						ret = source.loadNode(request);
 
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
 						break;
 					}
 				}

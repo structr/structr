@@ -23,6 +23,8 @@ package org.structr.core.entity.app;
 
 import javax.servlet.http.HttpServletRequest;
 
+//~--- interfaces -------------------------------------------------------------
+
 /**
  *
  *
@@ -40,14 +42,9 @@ public interface InteractiveNode {
 	 *
 	 * @return the parsed value or null of an error occurred
 	 */
-<<<<<<< HEAD
 	public Object getValue(HttpServletRequest request);
-        public String getStringValue(HttpServletRequest request);
-=======
-	public Object getValue();
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
 
-	public String getStringValue();
+	public String getStringValue(HttpServletRequest request);
 
 	public String getMappedName();
 

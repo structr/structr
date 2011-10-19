@@ -36,15 +36,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-<<<<<<< HEAD
+
 import javax.servlet.http.HttpServletRequest;
-import org.structr.common.StructrOutputStream;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.StructrRelationship;
-=======
 
 //~--- classes ----------------------------------------------------------------
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
 
 /**
  *
@@ -76,13 +71,8 @@ public abstract class ActionNode extends AbstractNode {
 	public abstract boolean doAction(StructrOutputStream out, final AbstractNode startNode, final String editUrl,
 					 final Long editNodeId);
 
-	public void initialize() {
+	public void initialize(HttpServletRequest request) {
 
-<<<<<<< HEAD
-	public void initialize(HttpServletRequest request)
-	{
-=======
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
 		List<InteractiveNode> dataSources = getInteractiveSourceNodes();
 		Map<String, Slot> slots           = getInputSlots();
 
@@ -99,12 +89,8 @@ public abstract class ActionNode extends AbstractNode {
 					if (slot.getParameterType().equals(source.getParameterType())) {
 
 						slot.setSource(source);
-<<<<<<< HEAD
-						Object value = source.getValue(request);
-=======
 
-						Object value = source.getValue();
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
+						Object value = source.getValue(request);
 
 						logger.log(Level.INFO,
 							   "sourceName: {0}, mappedName: {1}, value: {2}",
@@ -129,10 +115,6 @@ public abstract class ActionNode extends AbstractNode {
 		}
 	}
 
-<<<<<<< HEAD
-	public Object getValue(HttpServletRequest request, String name)
-	{
-=======
 	//~--- get methods ----------------------------------------------------
 
 	/**
@@ -142,24 +124,17 @@ public abstract class ActionNode extends AbstractNode {
 	 */
 	public abstract Map<String, Slot> getSlots();
 
-	public Object getValue(String name) {
+	public Object getValue(HttpServletRequest request, String name) {
 
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
 		Slot slot = getInputSlots().get(name);
 
 		if (slot != null) {
 
 			InteractiveNode source = slot.getSource();
-<<<<<<< HEAD
-			if(source != null)
-			{
-				return (source.getValue(request));
-=======
 
 			if (source != null) {
-				return (source.getValue());
+				return (source.getValue(request));
 			} else {
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
 
 				logger.log(Level.WARNING,
 					   "source for {0} was null",
@@ -181,23 +156,7 @@ public abstract class ActionNode extends AbstractNode {
 		return (null);
 	}
 
-<<<<<<< HEAD
-	// ----- protected methods -----
-	protected void setErrorValue(HttpServletRequest request, String slotName, Object errorValue)
-	{
-		Slot slot = getInputSlots().get(slotName);
-		if(slot != null)
-		{
-			InteractiveNode source = slot.getSource();
-			if(source != null)
-			{
-				source.setErrorValue(request, errorValue);
-			}
-		}
-	}
-=======
 	protected List<InteractiveNode> getInteractiveSourceNodes() {
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
 
 		List<StructrRelationship> rels = getIncomingDataRelationships();
 		List<InteractiveNode> nodes    = new LinkedList<InteractiveNode>();
@@ -245,7 +204,7 @@ public abstract class ActionNode extends AbstractNode {
 	//~--- set methods ----------------------------------------------------
 
 	// ----- protected methods -----
-	protected void setErrorValue(String slotName, Object errorValue) {
+	protected void setErrorValue(HttpServletRequest request, String slotName, Object errorValue) {
 
 		Slot slot = getInputSlots().get(slotName);
 
@@ -254,7 +213,9 @@ public abstract class ActionNode extends AbstractNode {
 			InteractiveNode source = slot.getSource();
 
 			if (source != null) {
-				source.setErrorValue(errorValue);
+
+				source.setErrorValue(request,
+						     errorValue);
 			}
 		}
 	}

@@ -21,19 +21,17 @@
 
 package org.structr.core.entity.app;
 
-<<<<<<< HEAD
-import java.text.SimpleDateFormat;
-import javax.servlet.http.HttpServletRequest;
-=======
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.core.EntityContext;
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
 import org.structr.core.entity.AbstractNode;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.text.SimpleDateFormat;
+import java.text.SimpleDateFormat;
+
+import javax.servlet.http.HttpServletRequest;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -68,19 +66,11 @@ public class AppTimestamp extends AbstractNode implements InteractiveNode {
 	}
 
 	@Override
-<<<<<<< HEAD
-	public Object getValue(HttpServletRequest request)
-	{
-		String format = getStringProperty(FORMAT_KEY);
-		if(format == null)
-		{
-=======
-	public Object getValue() {
+	public Object getValue(HttpServletRequest request) {
 
 		String format = getStringProperty(Key.format.name());
 
 		if (format == null) {
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
 			format = "dd.MM.yyyy HH:mm";
 		}
 
@@ -90,14 +80,8 @@ public class AppTimestamp extends AbstractNode implements InteractiveNode {
 	}
 
 	@Override
-<<<<<<< HEAD
-	public String getStringValue(HttpServletRequest request)
-	{
-		return(getValue(request).toString());
-=======
-	public String getStringValue() {
-		return (getValue().toString());
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
+	public String getStringValue(HttpServletRequest request) {
+		return (getValue(request).toString());
 	}
 
 	@Override
@@ -111,11 +95,5 @@ public class AppTimestamp extends AbstractNode implements InteractiveNode {
 	public void setMappedName(String mappedName) {}
 
 	@Override
-<<<<<<< HEAD
-	public void setErrorValue(HttpServletRequest request, Object errorValue)
-	{
-	}
-=======
-	public void setErrorValue(Object errorValue) {}
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
+	public void setErrorValue(HttpServletRequest request, Object errorValue) {}
 }

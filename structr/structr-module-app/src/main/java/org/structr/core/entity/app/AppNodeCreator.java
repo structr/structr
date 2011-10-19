@@ -21,17 +21,6 @@
 
 package org.structr.core.entity.app;
 
-<<<<<<< HEAD
-import org.structr.core.NodeSource;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.servlet.http.HttpServletRequest;
-=======
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
 import org.neo4j.graphdb.Direction;
 
 import org.structr.common.PropertyKey;
@@ -41,6 +30,7 @@ import org.structr.common.SessionValue;
 import org.structr.common.StructrOutputStream;
 import org.structr.core.Command;
 import org.structr.core.EntityContext;
+import org.structr.core.NodeSource;
 import org.structr.core.NodeSource;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -55,11 +45,19 @@ import org.structr.core.node.TransactionCommand;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.HashMap;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.List;
+import java.util.Map;
 import java.util.Map;
 import java.util.logging.Level;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.logging.Logger;
+
+import javax.servlet.http.HttpServletRequest;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -118,34 +116,17 @@ public class AppNodeCreator extends ActionNode implements NodeSource {
 		{
 
 			List<InteractiveNode> dataSource = getInteractiveSourceNodes();
-<<<<<<< HEAD
-			attributes.add(new NodeAttribute("type", targetType));
-			AbstractNode storeNode = getNodeFromLoader(out.getRequest());
-			boolean error = false;
-
-			// add attributes from data sources
-			for(InteractiveNode src : dataSource)
-			{
-				Object value = src.getValue(out.getRequest());
-				if(value != null && value.toString().length() > 0)
-				{
-					attributes.add(new NodeAttribute(src.getMappedName(), value));
-
-				} else
-				{
-					setErrorValue(out.getRequest(), src.getName(), "Please enter a value for ".concat(src.getName()));
-=======
 
 			attributes.add(new NodeAttribute("type",
 							 targetType));
 
-			AbstractNode storeNode = getNodeFromLoader();
+			AbstractNode storeNode = getNodeFromLoader(out.getRequest());
 			boolean error          = false;
 
 			// add attributes from data sources
 			for (InteractiveNode src : dataSource) {
 
-				Object value = src.getValue();
+				Object value = src.getValue(out.getRequest());
 
 				if ((value != null) && (value.toString().length() > 0)) {
 
@@ -154,9 +135,9 @@ public class AppNodeCreator extends ActionNode implements NodeSource {
 
 				} else {
 
-					setErrorValue(src.getName(),
+					setErrorValue(out.getRequest(),
+						      src.getName(),
 						      "Please enter a value for ".concat(src.getName()));
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
 					error = true;
 				}
 			}
@@ -179,44 +160,29 @@ public class AppNodeCreator extends ActionNode implements NodeSource {
 				success = false;
 			}
 
-<<<<<<< HEAD
-			logger.log(Level.INFO, "Saving newly created node {0}", storeNode);
-
-			currentNode.set(out.getRequest(), storeNode);
-=======
 			logger.log(Level.INFO,
 				   "Saving newly created node {0}",
 				   storeNode);
-			currentNode.set(storeNode);
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
+			currentNode.set(out.getRequest(),
+					storeNode);
 		}
 
 		return (success);
 	}
 
 	// ----- interface NodeSource -----
+	// ----- interface NodeSource -----
 	@Override
-	public AbstractNode loadNode() {
+	public AbstractNode loadNode(HttpServletRequest request) {
 
 		logger.log(Level.INFO,
 			   "Returning newly created node {0}",
-			   currentNode.get());
+			   currentNode.get(request));
 
-		return (currentNode.get());
+		return (currentNode.get(request));
 	}
 
-<<<<<<< HEAD
-	// ----- interface NodeSource -----
-	@Override
-	public AbstractNode loadNode(HttpServletRequest request)
-	{
-		logger.log(Level.INFO, "Returning newly created node {0}", currentNode.get(request));
-		
-		return(currentNode.get(request));
-	}
-=======
 	private boolean storeNodeAttributes(final AbstractNode node, final List<NodeAttribute> attributes) {
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
 
 		for (NodeAttribute attr : attributes) {
 
@@ -229,16 +195,9 @@ public class AppNodeCreator extends ActionNode implements NodeSource {
 
 	private AbstractNode createNewNode(final AbstractNode parentNode, final String type) {
 
-		AbstractNode ret =
-			(AbstractNode) Services.command(TransactionCommand.class).execute(new StructrTransaction() {
+		AbstractNode ret = (AbstractNode) Services.command(securityContext,
+			TransactionCommand.class).execute(new StructrTransaction() {
 
-<<<<<<< HEAD
-	private AbstractNode createNewNode(final AbstractNode parentNode, final String type)
-	{
-		AbstractNode ret = (AbstractNode)Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction()
-		{
-=======
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
 			@Override
 			public Object execute() throws Throwable {
 
@@ -248,29 +207,19 @@ public class AppNodeCreator extends ActionNode implements NodeSource {
 								 type));
 
 				// attributes.add(new NodeAttribute(PUBLIC_KEY, "true"));
-				AbstractNode newNode =
-					(AbstractNode) Services.command(CreateNodeCommand.class).execute(attributes);
+				AbstractNode newNode = (AbstractNode) Services.command(securityContext,
+					CreateNodeCommand.class).execute(attributes);
 
 				if (newNode != null) {
 
 					if (parentNode != null) {
 
-						Command createRelationship =
-							Services.command(CreateRelationshipCommand.class);
+						Command createRelationship = Services.command(securityContext,
+							CreateRelationshipCommand.class);
 
-<<<<<<< HEAD
-				AbstractNode newNode = (AbstractNode)Services.command(securityContext, CreateNodeCommand.class).execute(attributes);
-				if(newNode != null)
-				{
-					if(parentNode != null)
-					{
-						Command createRelationship = Services.command(securityContext, CreateRelationshipCommand.class);
-						createRelationship.execute(parentNode, newNode, RelType.HAS_CHILD);
-=======
 						createRelationship.execute(parentNode,
 									   newNode,
 									   RelType.HAS_CHILD);
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
 					}
 
 					return (newNode);

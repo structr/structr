@@ -21,12 +21,7 @@
 
 package org.structr.core.entity.app;
 
-<<<<<<< HEAD
-import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
-=======
 import org.structr.common.PropertyView;
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
 import org.structr.common.RenderMode;
 import org.structr.common.renderer.ExternalTemplateRenderer;
 import org.structr.core.EntityContext;
@@ -35,6 +30,9 @@ import org.structr.core.NodeRenderer;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.Map;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -63,39 +61,22 @@ public class SubmitButton extends FormField {
 	//~--- get methods ----------------------------------------------------
 
 	@Override
-<<<<<<< HEAD
-	public String getErrorMessage(HttpServletRequest request)
-	{
+	public String getErrorMessage(HttpServletRequest request) {
 		return (null);
 	}
 
 	@Override
-	public Object getErrorValue(HttpServletRequest request)
-	{
+	public Object getErrorValue(HttpServletRequest request) {
 		return (null);
 	}
 
 	@Override
-	public void setErrorValue(HttpServletRequest request, Object errorValue)
-	{
-=======
 	public String getIconSrc() {
 		return "/images/tag.png";
-	}
-
-	@Override
-	public String getErrorMessage() {
-		return null;
-	}
-
-	@Override
-	public Object getErrorValue() {
-		return null;
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
 	}
 
 	//~--- set methods ----------------------------------------------------
 
 	@Override
-	public void setErrorValue(Object errorValue) {}
+	public void setErrorValue(HttpServletRequest request, Object errorValue) {}
 }

@@ -21,12 +21,9 @@
 
 package org.structr.core.entity.app;
 
-<<<<<<< HEAD
 import javax.servlet.http.HttpServletRequest;
-=======
 import org.structr.common.PropertyView;
 import org.structr.core.EntityContext;
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.CustomTypeNode;
 

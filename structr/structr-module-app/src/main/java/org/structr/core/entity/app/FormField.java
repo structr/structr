@@ -21,14 +21,14 @@
 
 package org.structr.core.entity.app;
 
-<<<<<<< HEAD
-import javax.servlet.http.HttpServletRequest;
-=======
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.core.EntityContext;
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
 import org.structr.core.entity.AbstractNode;
+
+//~--- JDK imports ------------------------------------------------------------
+
+import javax.servlet.http.HttpServletRequest;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -55,11 +55,6 @@ public abstract class FormField extends AbstractNode {
 
 	public abstract Object getErrorValue(HttpServletRequest request);
 
-<<<<<<< HEAD
-	public abstract void setErrorValue(HttpServletRequest request, Object errorValue);
-
-=======
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
 	public String getLabel() {
 		return getStringProperty(Key.label.name());
 	}
@@ -78,7 +73,7 @@ public abstract class FormField extends AbstractNode {
 
 	//~--- set methods ----------------------------------------------------
 
-	public abstract void setErrorValue(Object errorValue);
+	public abstract void setErrorValue(HttpServletRequest request, Object errorValue);
 
 	public void setLabel(final String value) {
 

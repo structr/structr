@@ -21,16 +21,9 @@
 
 package org.structr.core.entity.app;
 
-<<<<<<< HEAD
-import java.util.Map;
-import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
-=======
-import org.structr.common.CurrentRequest;
-import org.structr.common.CurrentSession;
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
 import org.structr.common.RenderMode;
 import org.structr.common.RequestHelper;
 import org.structr.common.SessionValue;
@@ -84,32 +77,7 @@ public class AppNodeLoader extends AbstractNode implements NodeSource {
 			      new NodeLoaderRenderer());
 	}
 
-	// ----- interface NodeSource -----
-	@Override
-	public AbstractNode loadNode() {
 
-		Object loaderValue = getValue();
-
-		if (loaderValue != null) {
-
-			return ((AbstractNode) Services.command(FindNodeCommand.class).execute(null,
-				this,
-				loaderValue));
-		}
-
-		return (null);
-	}
-
-<<<<<<< HEAD
-	public Object getValue(HttpServletRequest request)
-	{
-		String loaderSourceParameter = (String)getProperty(ID_SOURCE_KEY);
-		Object value = request.getParameter(loaderSourceParameter);
-
-		if(RequestHelper.isRedirected(request))
-		{
-			value = getLastValue().get(request);
-=======
 	//~--- get methods ----------------------------------------------------
 
 	@Override
@@ -117,15 +85,14 @@ public class AppNodeLoader extends AbstractNode implements NodeSource {
 		return "/images/brick_edit.png";
 	}
 
-	public Object getValue() {
+	public Object getValue(HttpServletRequest request)
+	{
+		String loaderSourceParameter = (String)getProperty(Key.idSource.name());
+		Object value = request.getParameter(loaderSourceParameter);
 
-		String loaderSourceParameter = (String) getProperty(Key.idSource.name());
-		Object value                 = CurrentRequest.getRequest().getParameter(loaderSourceParameter);
-
-		if (CurrentSession.isRedirected()) {
-			value = getLastValue().get();
-		} else {
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
+		if(RequestHelper.isRedirected(request))
+		{
+			value = getLastValue().get(request);
 
 			// otherwise, clear value in session
 			getLastValue().set(request, value);
@@ -142,7 +109,6 @@ public class AppNodeLoader extends AbstractNode implements NodeSource {
 
 		return (sessionValue);
 	}
-<<<<<<< HEAD
 
 	// ----- interface NodeSource -----
 	@Override
@@ -156,6 +122,4 @@ public class AppNodeLoader extends AbstractNode implements NodeSource {
 
 		return(null);
 	}
-=======
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
 }

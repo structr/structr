@@ -22,17 +22,11 @@
 package org.structr.core.entity.app;
 
 import org.apache.commons.lang.StringUtils;
-<<<<<<< HEAD
-import org.structr.common.RenderMode;
 import org.structr.common.RequestHelper;
-=======
 
-import org.structr.common.CurrentRequest;
-import org.structr.common.CurrentSession;
 import org.structr.common.PropertyView;
 import org.structr.common.RenderMode;
 import org.structr.common.SessionValue;
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
 import org.structr.common.renderer.ExternalTemplateRenderer;
 import org.structr.core.EntityContext;
 import org.structr.core.NodeRenderer;
@@ -91,28 +85,16 @@ public class SelectField extends FormField implements InteractiveNode {
 
 	// ----- interface InteractiveNode -----
 	@Override
-<<<<<<< HEAD
 	public String getValue(HttpServletRequest request)
 	{
-=======
-	public String getValue() {
-
-		HttpServletRequest request  = CurrentRequest.getRequest();
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
 		String valueFromLastRequest = null;
 		String name                 = getName();
 		String ret                  = null;
 
 		// only return value from last request if we were redirected before
-<<<<<<< HEAD
 		if(RequestHelper.isRedirected(request))
 		{
 			valueFromLastRequest = getLastValue().get(request);
-=======
-		if (CurrentSession.isRedirected()) {
-			valueFromLastRequest = getLastValue().get();
-		} else {
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
 
 			// otherwise, clear value in session
 			getLastValue().set(request, null);
@@ -136,12 +118,7 @@ public class SelectField extends FormField implements InteractiveNode {
 				} else {
 
 					// store value in session, in case we get a redirect afterwards
-<<<<<<< HEAD
 					getLastValue().set(request, ret);
-=======
-					getLastValue().set(ret);
-
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
 					return ret;
 				}
 			} else {
@@ -155,20 +132,10 @@ public class SelectField extends FormField implements InteractiveNode {
 	}
 
 	@Override
-<<<<<<< HEAD
 	public String getStringValue(HttpServletRequest request)
 	{
 		Object value = getValue(request);
 		return (value != null ? value.toString() : null);
-=======
-	public String getStringValue() {
-
-		Object value = getValue();
-
-		return ((value != null)
-			? value.toString()
-			: null);
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
 	}
 
 	@Override
@@ -187,7 +154,6 @@ public class SelectField extends FormField implements InteractiveNode {
 	}
 
 	@Override
-<<<<<<< HEAD
 	public void setErrorValue(HttpServletRequest request, Object errorValue)
 	{
 		getErrorMessageValue().set(request, errorValue);
@@ -205,18 +171,6 @@ public class SelectField extends FormField implements InteractiveNode {
 		Object errorValue = getErrorValue(request);
 		if(errorValue != null)
 		{
-=======
-	public Object getErrorValue() {
-		return (getErrorMessageValue().get());
-	}
-
-	@Override
-	public String getErrorMessage() {
-
-		Object errorValue = getErrorValue();
-
-		if (errorValue != null) {
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
 			return (errorValue.toString());
 		}
 
@@ -249,10 +203,6 @@ public class SelectField extends FormField implements InteractiveNode {
 		this.mappedName = mappedName;
 	}
 
-	@Override
-	public void setErrorValue(Object errorValue) {
-		getErrorMessageValue().set(errorValue);
-	}
 
 	// apperently not used
 //      private List<AbstractNode> getDataNodes(final User user) {

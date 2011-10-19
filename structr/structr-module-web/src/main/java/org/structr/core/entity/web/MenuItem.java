@@ -23,12 +23,14 @@ package org.structr.core.entity.web;
 
 import org.neo4j.graphdb.Direction;
 
+import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.renderer.RenderContext;
 import org.structr.core.Command;
 import org.structr.core.EntityContext;
 import org.structr.core.Services;
+import org.structr.core.converter.NodeIdNodeConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.StructrRelationship;
 import org.structr.core.entity.SuperUser;
@@ -40,8 +42,6 @@ import org.structr.core.node.NodeFactoryCommand;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.List;
-import org.structr.common.PropertyKey;
-import org.structr.core.converter.NodeIdNodeConverter;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -52,20 +52,16 @@ import org.structr.core.converter.NodeIdNodeConverter;
  */
 public class MenuItem extends WebNode {
 
-	private final static String ICON_SRC = "/images/page_link.png";
-
-	public enum Key implements PropertyKey { linkedPage, linkTarget; }
-
-	//~--- static initializers --------------------------------------------
-
 	static {
 
 		EntityContext.registerPropertySet(MenuItem.class,
 						  PropertyView.All,
 						  Key.values());
-
-		EntityContext.registerPropertyConverter(MenuItem.class, Key.linkTarget, NodeIdNodeConverter.class);
 	}
+
+	//~--- constant enums -------------------------------------------------
+
+	public enum Key implements PropertyKey{ linkedPage, linkTarget; }
 
 	//~--- methods --------------------------------------------------------
 
@@ -78,7 +74,7 @@ public class MenuItem extends WebNode {
 
 	@Override
 	public String getIconSrc() {
-		return ICON_SRC;
+		return "/images/page_link.png";
 	}
 
 //
@@ -89,19 +85,12 @@ public class MenuItem extends WebNode {
 //      public void setLinkTarget(final String linkTarget) {
 //          setProperty(LINK_TARGET_KEY, linkTarget);
 //      }
-<<<<<<< HEAD
-        public Page getLinkedPage() {
-
-                if (hasRelationship(RelType.PAGE_LINK, Direction.OUTGOING)) {
-
-                        Command nodeFactory = Services.command(securityContext, NodeFactoryCommand.class);
-=======
 	public Page getLinkedPage() {
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
 
 		if (hasRelationship(RelType.PAGE_LINK, Direction.OUTGOING)) {
 
-			Command nodeFactory = Services.command(NodeFactoryCommand.class);
+			Command nodeFactory = Services.command(securityContext,
+				NodeFactoryCommand.class);
 
 			return ((Page) nodeFactory.execute(getRelationships(RelType.PAGE_LINK,
 				Direction.OUTGOING).get(0).getEndNode()));
@@ -120,36 +109,23 @@ public class MenuItem extends WebNode {
 			: null);
 	}
 
-<<<<<<< HEAD
-                // find link target node
-                Command findNode            = Services.command(securityContext, FindNodeCommand.class);
-                AbstractNode linkTargetNode = (AbstractNode) findNode.execute(new SuperUser(), value);
-
-                // delete existing link target relationships
-                List<StructrRelationship> pageLinkRels = getRelationships(RelType.PAGE_LINK, Direction.OUTGOING);
-                Command delRel                         = Services.command(securityContext, DeleteRelationshipCommand.class);
-=======
 	//~--- set methods ----------------------------------------------------
 
 	public void setLinkTarget(final Long value) {
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
 
 		// find link target node
-		Command findNode            = Services.command(FindNodeCommand.class);
+		Command findNode            = Services.command(securityContext,
+			FindNodeCommand.class);
 		AbstractNode linkTargetNode = (AbstractNode) findNode.execute(new SuperUser(),
 			value);
 
 		// delete existing link target relationships
 		List<StructrRelationship> pageLinkRels = getRelationships(RelType.PAGE_LINK,
 			Direction.OUTGOING);
-		Command delRel                         = Services.command(DeleteRelationshipCommand.class);
+		Command delRel                         = Services.command(securityContext,
+			DeleteRelationshipCommand.class);
 
-<<<<<<< HEAD
-                // create new link target relationship
-                Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
-=======
 		if (pageLinkRels != null) {
->>>>>>> 0f55394c125ecab035924262c7b0c1fb27248885
 
 			for (StructrRelationship r : pageLinkRels) {
 				delRel.execute(r);
@@ -157,7 +133,8 @@ public class MenuItem extends WebNode {
 		}
 
 		// create new link target relationship
-		Command createRel = Services.command(CreateRelationshipCommand.class);
+		Command createRel = Services.command(securityContext,
+			CreateRelationshipCommand.class);
 
 		createRel.execute(this,
 				  linkTargetNode,
