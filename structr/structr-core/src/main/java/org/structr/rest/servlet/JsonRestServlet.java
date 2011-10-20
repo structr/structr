@@ -43,8 +43,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.apache.commons.lang.StringUtils;
-import org.structr.common.AccessMode;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.core.Command;
@@ -72,7 +70,6 @@ import org.structr.rest.constraint.ResourceConstraint;
 import org.structr.rest.constraint.Result;
 import org.structr.rest.constraint.SearchConstraint;
 import org.structr.rest.constraint.SortConstraint;
-import org.structr.rest.constraint.TypeConstraint;
 import org.structr.rest.wrapper.PropertySet;
 import org.structr.rest.wrapper.PropertySet.PropertyFormat;
 
@@ -376,6 +373,30 @@ public class JsonRestServlet extends HttpServlet {
 
 		try {
 
+
+			SecurityContext securityContext = getSecurityContext(request);
+
+			final PropertySet propertySet = gson.fromJson(request.getReader(), PropertySet.class);
+
+			// evaluate constraint chain
+			ResourceConstraint resourceConstraint = optimizeConstraintChain(parsePath(securityContext, request));
+
+			// parse property set
+
+			if(propertySet != null) {
+
+				// do action
+				resourceConstraint.doPost(propertySet);
+
+			} else {
+				
+				logger.log(Level.WARNING, "propertySet was null!");
+			}
+
+			// TODO: return 201 Created with location
+			// throw new IllegalPathException();
+
+			/*
 			SecurityContext securityContext = getSecurityContext(request);
 
 			// parse property set from json input
@@ -433,6 +454,7 @@ public class JsonRestServlet extends HttpServlet {
 
 				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			}
+			*/
 
 		} catch(IllegalArgumentException illegalArgumentException) {
 
@@ -574,78 +596,6 @@ public class JsonRestServlet extends HttpServlet {
 	// </editor-fold>
 
 	// <editor-fold defaultstate="collapsed" desc="private methods">
-
-/*
-	private Result getResults(SecurityContext securityContext, HttpServletRequest request) throws PathException {
-
-		PagingConstraint pagingConstraint = null;
-
-		// fetch request path
-		String path = request.getPathInfo();
-		if(path != null) {
-
-			// 1: parse path into constraint chain
-			List<ResourceConstraint> constraintChain = parsePath(securityContext, request);
-
-			// 2: combine constraints
-			optimizeConstraintChain(constraintChain);
-
-			// 4: add constraints that cannot be optimized here
-			addNonOptimizableConstraints(request, constraintChain);
-
-			// 5: add paging
-			String pageSizeParameter = request.getParameter(REQUEST_PARAMETER_PAGE_SIZE);
-			if(pageSizeParameter != null) {
-
-				String pageParameter = request.getParameter(REQUEST_PARAMETER_PAGE_NUMBER);
-				int pageSize = parseInt(pageSizeParameter, DEFAULT_VALUE_PAGE_SIZE);
-				int page = parseInt(pageParameter, 1);
-
-				pagingConstraint = new PagingConstraint(page, pageSize);
-
-				if(pageSize <= 0) {
-					throw new IllegalPathException();
-				}
-
-				constraintChain.add(pagingConstraint);
-			}
-
-			// 6: fetch results
-			Result results = evaluateConstraints(constraintChain, request);
-			if(results != null) {
-
-				// set information from paging constraint
-				if(pagingConstraint != null) {
-
-					results.setPage(pagingConstraint.getPage());
-					results.setPageSize(pagingConstraint.getPageSize());
-					results.setPageCount(pagingConstraint.getPageCount());
-					results.setResultCount(pagingConstraint.getResultCount());
-
-				} else {
-
-					List<GraphObject> resultList = results.getResults();
-					if(resultList != null) {
-						results.setResultCount(resultList.size());
-					} else {
-						logger.log(Level.WARNING, "Got empty result set!");
-					}
-				}
-
-				results.setSortOrder(request.getParameter(REQUEST_PARAMETER_SORT_ORDER));
-				results.setSortKey(request.getParameter(REQUEST_PARAMETER_SORT_KEY));
-				results.setSearchString(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_SEARCH_STRING));
-			}
-
-			// finally: return results
-			return results;
-		}
-
-		// return null if no path was given
-		return null;
-	}
-	*/
-
 	private List<ResourceConstraint> parsePath(SecurityContext securityContext, HttpServletRequest request) throws PathException {
 
 		String path  = request.getPathInfo();

@@ -95,7 +95,7 @@ public class RelationshipNodeConstraint extends WrappingConstraint {
 	}
 
 	@Override
-	public void doPost(PropertySet propertySet) throws PathException {
+	public void doPost(PropertySet propertySet) throws Throwable {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 

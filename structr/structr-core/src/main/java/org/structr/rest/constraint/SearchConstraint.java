@@ -59,7 +59,7 @@ public class SearchConstraint extends ResourceConstraint {
 	}
 
 	@Override
-	public void doPost(PropertySet propertySet) throws PathException {
+	public void doPost(PropertySet propertySet) throws Throwable {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 

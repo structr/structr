@@ -18,11 +18,11 @@ public abstract class PageableConstraint extends FilterableConstraint {
 	@Override
 	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws PathException {
 
-		if(next instanceof SortConstraint) {
-			((SortConstraint)next).wrapConstraint(this);
+		if(next instanceof PagingConstraint) {
+			((PagingConstraint)next).wrapConstraint(this);
 			return next;
 		}
 
-		return null;
+		return super.tryCombineWith(next);
 	}
 }

@@ -28,6 +28,8 @@ public class SortConstraint extends WrappingConstraint {
 	private String sortKey = null;
 	
 	public SortConstraint(String sortKey, String sortOrder) {
+		this.sortKey = sortKey;
+		this.sortOrder = sortOrder;
 	}
 
 	@Override
@@ -91,7 +93,7 @@ public class SortConstraint extends WrappingConstraint {
 	}
 
 	@Override
-	public void doPost(PropertySet propertySet) throws PathException {
+	public void doPost(PropertySet propertySet) throws Throwable {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 

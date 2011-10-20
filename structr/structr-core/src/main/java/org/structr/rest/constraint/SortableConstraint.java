@@ -13,7 +13,7 @@ import org.structr.rest.exception.PathException;
  *
  * @author Christian Morgner
  */
-public abstract class SortableConstraint extends FilterableConstraint {
+public abstract class SortableConstraint extends PageableConstraint {
 
 	@Override
 	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws PathException {

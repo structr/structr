@@ -23,12 +23,18 @@ import java.util.LinkedList;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.RelationshipType;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.DirectedRelationship;
 import org.structr.core.entity.StructrRelationship;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.PathException;
 import org.structr.core.EntityContext;
+import org.structr.core.Services;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.node.CreateRelationshipCommand;
+import org.structr.core.node.StructrTransaction;
+import org.structr.core.node.TransactionCommand;
 import org.structr.rest.wrapper.PropertySet;
 
 /**
@@ -91,8 +97,33 @@ public class StaticRelationshipConstraint extends FilterableConstraint {
 	}
 
 	@Override
-	public void doPost(PropertySet propertySet) throws PathException {
-		throw new UnsupportedOperationException("Not supported yet.");
+	public void doPost(PropertySet propertySet) throws Throwable {
+
+		final AbstractNode sourceNode = typedIdConstraint.getIdConstraint().getNode();
+		final AbstractNode newNode = typeConstraint.createNode(propertySet);
+		final DirectedRelationship rel = EntityContext.getRelation(sourceNode.getClass(), newNode.getClass());
+
+		if(rel != null) {
+
+			final RelationshipType relType = rel.getRelType();
+
+			// create transaction closure
+			StructrTransaction transaction = new StructrTransaction() {
+
+				@Override
+				public Object execute() throws Throwable {
+
+					return Services.command(securityContext, CreateRelationshipCommand.class).execute(sourceNode, newNode, relType);
+				}
+			};
+
+			Services.command(securityContext, TransactionCommand.class).execute(transaction);
+			if(transaction.getCause() != null) {
+				throw transaction.getCause();
+			}
+		}
+
+		throw new IllegalPathException();
 	}
 
 	@Override

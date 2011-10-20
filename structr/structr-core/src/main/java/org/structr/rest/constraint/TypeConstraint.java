@@ -9,9 +9,15 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
+import org.apache.commons.lang.StringUtils;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.SuperUser;
+import org.structr.core.node.CreateValidatedNodeCommand;
+import org.structr.core.node.NodeAttribute;
+import org.structr.core.node.StructrTransaction;
+import org.structr.core.node.TransactionCommand;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
 import org.structr.core.node.search.SearchOperator;
@@ -80,9 +86,13 @@ public class TypeConstraint extends SortableConstraint {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
+
 	@Override
-	public void doPost(PropertySet propertySet) throws PathException {
-		throw new UnsupportedOperationException("Not supported yet.");
+	public void doPost(PropertySet propertySet) throws Throwable {
+
+		AbstractNode newNode = createNode(propertySet);
+
+		// TODO: create return value for new node (201 Created with Location Header)
 	}
 
 	@Override
@@ -116,6 +126,34 @@ public class TypeConstraint extends SortableConstraint {
 			logger.log(Level.INFO, "Removing trailing plural 's' from type {0}", type);
 			this.type = this.type.substring(0, this.type.length() - 1);
 		}
+	}
+
+	public AbstractNode createNode(PropertySet propertySet) throws Throwable {
+
+		final List<NodeAttribute> attributes = propertySet.getAttributes();
+		attributes.add(new NodeAttribute(AbstractNode.Key.type.name(), StringUtils.capitalize(type)));
+
+		// create transaction closure
+		StructrTransaction transaction = new StructrTransaction() {
+
+			@Override
+			public Object execute() throws Throwable {
+
+				return (AbstractNode)Services.command(securityContext, CreateValidatedNodeCommand.class).execute(new SuperUser(), attributes);
+			}
+		};
+
+		// execute transaction: create new node
+		AbstractNode newNode = (AbstractNode)Services.command(securityContext, TransactionCommand.class).execute(transaction);
+		if(newNode == null) {
+
+			// re-throw transaction exception cause
+			if(transaction.getCause() != null) {
+				throw transaction.getCause();
+			}
+		}
+
+		return newNode;
 	}
 
 	@Override

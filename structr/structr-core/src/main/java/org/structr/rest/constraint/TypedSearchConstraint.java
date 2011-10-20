@@ -38,10 +38,10 @@ public class TypedSearchConstraint extends SortableConstraint {
 	private TypeConstraint typeConstraint = null;
 	private String searchString = null;
 
-	public TypedSearchConstraint(TypeConstraint typeConstraint, String queryString) {
+	public TypedSearchConstraint(TypeConstraint typeConstraint, String searchString) {
 
 		this.typeConstraint = typeConstraint;
-		this.searchString = queryString;
+		this.searchString = searchString;
 	}
 
 	@Override
@@ -62,7 +62,7 @@ public class TypedSearchConstraint extends SortableConstraint {
 	}
 
 	@Override
-	public void doPost(PropertySet propertySet) throws PathException {
+	public void doPost(PropertySet propertySet) throws Throwable {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 

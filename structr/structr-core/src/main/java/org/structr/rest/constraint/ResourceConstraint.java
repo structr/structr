@@ -34,7 +34,7 @@ public abstract class ResourceConstraint {
 	 */
 	public abstract List<GraphObject> doGet() throws PathException;
 	public abstract void doDelete() throws PathException;
-	public abstract void doPost(PropertySet propertySet) throws PathException;
+	public abstract void doPost(PropertySet propertySet) throws Throwable;
 	public abstract void doPut(PropertySet propertySet) throws PathException;
 	public abstract void doHead() throws PathException;
 	public abstract void doOptions() throws PathException;

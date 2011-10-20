@@ -9,6 +9,7 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.node.FindNodeCommand;
 import org.structr.rest.exception.NotFoundException;
@@ -33,6 +34,10 @@ public class IdConstraint extends FilterableConstraint {
 	public void setId(long id) {
 		this.id = id;
 	}
+
+	public AbstractNode getNode() {
+		return (AbstractNode)Services.command(securityContext, FindNodeCommand.class).execute(new SuperUser(), getId());
+	}
 	
 	@Override
 	public boolean checkAndConfigure(String part, HttpServletRequest request) {
@@ -50,7 +55,7 @@ public class IdConstraint extends FilterableConstraint {
 	@Override
 	public List<GraphObject> doGet() throws PathException {
 
-		GraphObject obj = (GraphObject)Services.command(securityContext, FindNodeCommand.class).execute(new SuperUser(), getId());
+		GraphObject obj = getNode();
 		if(obj != null) {
 			
 			List<GraphObject> results = new LinkedList<GraphObject>();
@@ -68,7 +73,7 @@ public class IdConstraint extends FilterableConstraint {
 	}
 
 	@Override
-	public void doPost(PropertySet propertySet) throws PathException {
+	public void doPost(PropertySet propertySet) throws Throwable {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
