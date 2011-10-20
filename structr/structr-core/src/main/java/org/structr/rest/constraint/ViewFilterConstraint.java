@@ -25,23 +25,27 @@ import org.apache.commons.lang.StringUtils;
 import org.structr.common.PropertyView;
 import org.structr.core.GraphObject;
 import org.structr.core.Value;
+import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.PathException;
+import org.structr.rest.wrapper.PropertySet;
 
 /**
+ * A resource constraint whose only purpose is to configure the
+ * property view. This constraint must be wrapped around another
+ * resource constraint, otherwise it will throw an IllegalPathException.
  *
  * @author Christian Morgner
  */
-public class ViewFilterConstraint extends ResourceConstraint {
+public class ViewFilterConstraint extends WrappingConstraint {
 
 	private PropertyView propertyView = null;
 
-	@Override
-	public List<GraphObject> process(List<GraphObject> result, HttpServletRequest request) throws PathException {
-		return result;
+	// no-arg constructor for automatic instantiation
+	public ViewFilterConstraint() {
 	}
 
 	@Override
-	public boolean acceptUriPart(String part) {
+	public boolean checkAndConfigure(String part, HttpServletRequest request) {
 
 		try {
 
@@ -55,6 +59,40 @@ public class ViewFilterConstraint extends ResourceConstraint {
 
 		// only accept valid views
 		return false;
+	}
+
+	@Override
+	public List<GraphObject> doGet() throws PathException {
+		if(wrappedConstraint != null) {
+			return wrappedConstraint.doGet();
+		}
+
+		throw new IllegalPathException();
+	}
+
+	@Override
+	public void doDelete() throws PathException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public void doPost(PropertySet propertySet) throws PathException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public void doPut(PropertySet propertySet) throws PathException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public void doHead() throws PathException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public void doOptions() throws PathException {
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override

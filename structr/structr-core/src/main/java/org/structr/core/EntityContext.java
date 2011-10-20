@@ -41,9 +41,9 @@ import org.structr.core.entity.DirectedRelationship;
  */
 public class EntityContext {
 
-	private static final Map<Class, Map<String, Class<? extends PropertyValidator>>> globalValidatorMap = new LinkedHashMap<Class, Map<String, Class<? extends PropertyValidator>>>();
 	private static final Map<Class, Map<String, Class<? extends PropertyConverter>>> globalPropertyConverterMap = new LinkedHashMap<Class, Map<String, Class<? extends PropertyConverter>>>();
-	private static final Map<String, Map<String, DirectedRelationship>> globalTypeMap = new LinkedHashMap<String, Map<String, DirectedRelationship>>();
+	private static final Map<Class, Map<String, Class<? extends PropertyValidator>>> globalValidatorMap = new LinkedHashMap<Class, Map<String, Class<? extends PropertyValidator>>>();
+	private static final Map<String, Map<String, DirectedRelationship>> globalRelationshipMap = new LinkedHashMap<String, Map<String, DirectedRelationship>>();
 	private static final Map<Class, Map<PropertyView, Set<String>>> globalStringMap = new LinkedHashMap<Class, Map<PropertyView, Set<String>>>();
 	private static final Map<Class, Map<String, Value>> globalValidationParameterMap = new LinkedHashMap<Class, Map<String, Value>>();
 	private static final Map<Class, Map<String, Value>> globalConversionParameterMap = new LinkedHashMap<Class, Map<String, Value>>();
@@ -64,6 +64,14 @@ public class EntityContext {
 
 	public static void registerRelation(Class sourceType, Class destType, RelationshipType relType, Direction direction) {
 		registerRelation(convertName(sourceType), convertName(destType), relType, direction);
+	}
+
+	public static Map<String, DirectedRelationship> getRelations(Class sourceType) {
+		return getRelationshipMapForType(convertName(sourceType));
+	}
+
+	public static Map<String, DirectedRelationship> getRelations(String sourceType) {
+		return getRelationshipMapForType(sourceType);
 	}
 
 	// ----- property set methods -----
@@ -252,10 +260,10 @@ public class EntityContext {
 
 	private static Map<String, DirectedRelationship> getRelationshipMapForType(String sourceType) {
 
-		Map<String, DirectedRelationship> typeMap = globalTypeMap.get(sourceType);
+		Map<String, DirectedRelationship> typeMap = globalRelationshipMap.get(sourceType);
 		if(typeMap == null) {
 			typeMap = new LinkedHashMap<String, DirectedRelationship>();
-			globalTypeMap.put(sourceType, typeMap);
+			globalRelationshipMap.put(sourceType, typeMap);
 		}
 
 		return(typeMap);

@@ -188,6 +188,15 @@ public class JsonRestServlet extends HttpServlet {
 		try {
 
 			SecurityContext securityContext = getSecurityContext(request);
+
+			// evaluate constraint chain
+			ResourceConstraint resourceConstraint = optimizeConstraintChain(parsePath(securityContext, request));
+
+			// do action
+			resourceConstraint.doDelete();
+
+			/*
+			SecurityContext securityContext = getSecurityContext(request);
 			
 			// obtain results and try to delete
 			Result result = getResults(securityContext, request);
@@ -233,6 +242,7 @@ public class JsonRestServlet extends HttpServlet {
 
 			// return bad request on error
 			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+			*/
 
 		} catch(PathException pathException) {
 			response.setStatus(pathException.getStatus());
@@ -257,10 +267,13 @@ public class JsonRestServlet extends HttpServlet {
 			// set default value for property view
 			propertyView.set(PropertyView.Public);
 
+			// evaluate constraints and measure query time
 			double queryTimeStart = System.nanoTime();
-			Result result = getResults(securityContext, request);
+			ResourceConstraint resourceConstraint = optimizeConstraintChain(parsePath(securityContext, request));
 			double queryTimeEnd = System.nanoTime();
 
+			// create result set
+			Result result = new Result(resourceConstraint.doGet());
 			if(result != null) {
 
 				DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
@@ -300,7 +313,26 @@ public class JsonRestServlet extends HttpServlet {
 	@Override
 	protected void doHead(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-		SecurityContext securityContext = getSecurityContext(request);
+		try {
+
+			SecurityContext securityContext = getSecurityContext(request);
+
+			// evaluate constraint chain
+			ResourceConstraint resourceConstraint = optimizeConstraintChain(parsePath(securityContext, request));
+
+			// do action
+			resourceConstraint.doHead();
+
+		} catch(PathException pathException) {
+			response.setStatus(pathException.getStatus());
+		} catch(JsonSyntaxException jsex) {
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+		} catch(JsonParseException jpex) {
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+		} catch(Throwable t) {
+			logger.log(Level.WARNING, "Exception in GET", t);
+			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+		}
 	}
 	// </editor-fold>
 
@@ -308,13 +340,33 @@ public class JsonRestServlet extends HttpServlet {
 	@Override
 	protected void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-		SecurityContext securityContext = getSecurityContext(request);
+		try {
 
-		response.setHeader("Allowed", "GET");
-		response.setContentLength(0);
-		
-		// commit response
-		response.setStatus(HttpServletResponse.SC_OK);
+			SecurityContext securityContext = getSecurityContext(request);
+
+			// evaluate constraint chain
+			ResourceConstraint resourceConstraint = optimizeConstraintChain(parsePath(securityContext, request));
+
+			// do action
+			resourceConstraint.doOptions();
+
+			// commit response
+			response.setHeader("Allowed", "GET");
+			response.setContentLength(0);
+
+			// commit response
+			response.setStatus(HttpServletResponse.SC_OK);
+
+		} catch(PathException pathException) {
+			response.setStatus(pathException.getStatus());
+		} catch(JsonSyntaxException jsex) {
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+		} catch(JsonParseException jpex) {
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+		} catch(Throwable t) {
+			logger.log(Level.WARNING, "Exception in GET", t);
+			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+		}
 	}
 	// </editor-fold>
 
@@ -344,7 +396,7 @@ public class JsonRestServlet extends HttpServlet {
 			} else {
 
 				// try type constraint
-				List<ResourceConstraint> constraintChain = parsePath(securityContext, path);
+				List<ResourceConstraint> constraintChain = parsePath(securityContext, request);
 				if(constraintChain.size() == 1) {
 
 					ResourceConstraint constr = constraintChain.get(0);
@@ -416,11 +468,34 @@ public class JsonRestServlet extends HttpServlet {
 
 			SecurityContext securityContext = getSecurityContext(request);
 
+			// evaluate constraint chain
+			ResourceConstraint resourceConstraint = optimizeConstraintChain(parsePath(securityContext, request));
+
+			// parse property set
+			final PropertySet propertySet = gson.fromJson(request.getReader(), PropertySet.class);
+
+			// do action
+			resourceConstraint.doPut(propertySet);
+
+			/*
+			SecurityContext securityContext = getSecurityContext(request);
+
+			// evaluate constraint chain
+			ResourceConstraint resourceConstraint = optimizeConstraintChain(parsePath(securityContext, request));
+
+			// parse property set
+			final PropertySet propertySet = gson.fromJson(request.getReader(), PropertySet.class);
+
+			// do action
+			resourceConstraint.doPut(propertySet);
+
+			/*
+			SecurityContext securityContext = getSecurityContext(request);
+
 			// obtain results and try to update
 			Result result = getResults(securityContext, request);
 			if(result != null) {
 
-				final PropertySet propertySet = gson.fromJson(request.getReader(), PropertySet.class);
 				final List<GraphObject> results = result.getResults();
 				if(results != null && !results.isEmpty()) {
 
@@ -463,7 +538,7 @@ public class JsonRestServlet extends HttpServlet {
 
 			// return bad request on error
 			response.setStatus(HttpServletResponse.SC_OK);
-
+			*/
 
 		} catch(IllegalArgumentException illegalArgumentException) {
 
@@ -494,11 +569,13 @@ public class JsonRestServlet extends HttpServlet {
 	// <editor-fold defaultstate="collapsed" desc="TRACE">
 	@Override
 	protected void doTrace(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-
+		response.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
 	}
 	// </editor-fold>
 
 	// <editor-fold defaultstate="collapsed" desc="private methods">
+
+/*
 	private Result getResults(SecurityContext securityContext, HttpServletRequest request) throws PathException {
 
 		PagingConstraint pagingConstraint = null;
@@ -507,14 +584,10 @@ public class JsonRestServlet extends HttpServlet {
 		String path = request.getPathInfo();
 		if(path != null) {
 
-
 			// 1: parse path into constraint chain
-			List<ResourceConstraint> constraintChain = parsePath(securityContext, path);
+			List<ResourceConstraint> constraintChain = parsePath(securityContext, request);
 
-			// 2: add constraints that can be optimized here
-			addOptimizableConstraints(request, constraintChain);
-
-			// 3: combine constraints (moved here to allow search to be optimized)
+			// 2: combine constraints
 			optimizeConstraintChain(constraintChain);
 
 			// 4: add constraints that cannot be optimized here
@@ -571,8 +644,11 @@ public class JsonRestServlet extends HttpServlet {
 		// return null if no path was given
 		return null;
 	}
+	*/
 
-	private List<ResourceConstraint> parsePath(SecurityContext securityContext, String path) throws PathException {
+	private List<ResourceConstraint> parsePath(SecurityContext securityContext, HttpServletRequest request) throws PathException {
+
+		String path  = request.getPathInfo();
 
 		// 1.: split request path into URI parts
 		String[] pathParts = path.split("[/]+");
@@ -600,7 +676,7 @@ public class JsonRestServlet extends HttpServlet {
 
 							// instantiate resource constraint
 							ResourceConstraint constraint = (ResourceConstraint)type.newInstance();
-							if(constraint.acceptUriPart(part)) {
+							if(constraint.checkAndConfigure(part, request)) {
 
 								logger.log(Level.FINE, "{0} matched, adding constraint of type {1} for part {2}", new Object[] {
 									matcher.pattern(),
@@ -629,21 +705,43 @@ public class JsonRestServlet extends HttpServlet {
 			}
 		}
 
+		// search
+		String searchString = request.getParameter(REQUEST_PARAMETER_SEARCH_STRING);
+		if(searchString != null) {
+			constraintChain.add(new SearchConstraint(searchString));
+		}
+
+		// sorting
+		String sortKey = request.getParameter(REQUEST_PARAMETER_SORT_KEY);
+		if(sortKey != null) {
+
+			String sortOrder = request.getParameter(REQUEST_PARAMETER_SORT_ORDER);
+			if(sortOrder == null) {
+				sortOrder = DEFAULT_VALUE_SORT_ORDER;
+			}
+
+			constraintChain.add(new SortConstraint(sortKey, sortOrder));
+		}
+
+		// paging
+		String pageSizeParameter = request.getParameter(REQUEST_PARAMETER_PAGE_SIZE);
+		if(pageSizeParameter != null) {
+
+			String pageParameter = request.getParameter(REQUEST_PARAMETER_PAGE_NUMBER);
+			int pageSize = parseInt(pageSizeParameter, DEFAULT_VALUE_PAGE_SIZE);
+			int page = parseInt(pageParameter, 1);
+
+			if(pageSize <= 0) {
+				throw new IllegalPathException();
+			}
+
+			constraintChain.add(new PagingConstraint(page, pageSize));
+		}
+
 		return constraintChain;
 	}
 
-	private Result evaluateConstraints(List<ResourceConstraint> constraintChain, HttpServletRequest request) throws PathException {
-
-		List<GraphObject> results = null;
-
-		for(ResourceConstraint constraint : constraintChain) {
-			results = constraint.process(results, request);
-		}
-
-		return new Result(results);
-	}
-
-	private void optimizeConstraintChain(List<ResourceConstraint> constraintChain) throws PathException {
+	private ResourceConstraint optimizeConstraintChain(List<ResourceConstraint> constraintChain) throws PathException {
 
 		int num = constraintChain.size();
 		boolean found = false;
@@ -656,7 +754,7 @@ public class JsonRestServlet extends HttpServlet {
 				chain.append(constr.getClass().getSimpleName());
 				chain.append(", ");
 			}
-			logger.log(Level.FINEST, "########## Constraint chain after iteration {0}: {1}", new Object[] { iterations, chain.toString() } );
+			logger.log(Level.INFO, "########## Constraint chain after iteration {0}: {1}", new Object[] { iterations, chain.toString() } );
 
 			found = false;
 			for(int i=0; i<num; i++) {
@@ -668,7 +766,7 @@ public class JsonRestServlet extends HttpServlet {
 					ResourceConstraint combinedConstraint = firstElement.tryCombineWith(secondElement);
 					if(combinedConstraint != null) {
 
-						logger.log(Level.FINE, "Combined constraint {0}", combinedConstraint.getClass().getSimpleName());
+						logger.log(Level.INFO, "Combined constraint {0}", combinedConstraint.getClass().getSimpleName());
 
 						// remove source constraints
 						constraintChain.remove(firstElement);
@@ -689,31 +787,19 @@ public class JsonRestServlet extends HttpServlet {
 			iterations++;
 
 		} while(found);
-	}
 
-	private void addOptimizableConstraints(HttpServletRequest request, List<ResourceConstraint> constraintChain) throws PathException {
+		StringBuilder chain = new StringBuilder();
+		for(ResourceConstraint constr : constraintChain) {
+			chain.append(constr.getClass().getSimpleName());
+			chain.append(", ");
+		}
+		logger.log(Level.INFO, "########## Final constraint chain {0}", chain.toString() );
 
-		// search requested?
-		String searchString = request.getParameter(REQUEST_PARAMETER_SEARCH_STRING);
-		if(searchString != null) {
-			constraintChain.add(new SearchConstraint());
+		if(constraintChain.size() == 1) {
+			return constraintChain.get(0);
 		}
 
-	}
-
-	private void addNonOptimizableConstraints(HttpServletRequest request, List<ResourceConstraint> constraintChain) throws PathException {
-
-		// sort results
-		String sortKey = request.getParameter(REQUEST_PARAMETER_SORT_KEY);
-		if(sortKey != null) {
-
-			String sortOrder = request.getParameter(REQUEST_PARAMETER_SORT_ORDER);
-			if(sortOrder == null) {
-				sortOrder = DEFAULT_VALUE_SORT_ORDER;
-			}
-
-			constraintChain.add(new SortConstraint(sortKey, sortOrder));
-		}
+		throw new IllegalPathException();
 	}
 
 	private PropertyFormat initializePropertyFormat() {
@@ -864,7 +950,9 @@ public class JsonRestServlet extends HttpServlet {
 	}
 
 	private SecurityContext getSecurityContext(HttpServletRequest request) {
-		return SecurityContext.getInstance(this.getServletConfig(), request, AccessMode.Backend);
+
+		return SecurityContext.getSuperUserInstance();
+		// return SecurityContext.getInstance(this.getServletConfig(), request, AccessMode.Backend);
 	}
 
 	/**
@@ -980,7 +1068,7 @@ public class JsonRestServlet extends HttpServlet {
 
 							// instantiate resource constraint
 							ResourceConstraint constraint = (ResourceConstraint)type.newInstance();
-							if(constraint.acceptUriPart(part)) {
+							if(constraint.checkAndConfigure(part)) {
 
 								logger.log(Level.FINEST, "{0} matched, adding constraint of type {1} for part {2}", new Object[] {
 									matcher.pattern(),

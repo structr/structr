@@ -29,20 +29,39 @@ import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.PathException;
-import org.structr.rest.adapter.ResultGSONAdapter;
+import org.structr.rest.wrapper.PropertySet;
 
 /**
  *
  * @author Christian Morgner
  */
-public class RelationshipConstraint extends ResourceConstraint {
+public class RelationshipConstraint extends WrappingConstraint {
 
 	private static final Logger logger = Logger.getLogger(RelationshipConstraint.class.getName());
 	private Direction direction = null;
 
 	@Override
-	public List<GraphObject> process(List<GraphObject> results, HttpServletRequest request) throws PathException {
+	public boolean checkAndConfigure(String part, HttpServletRequest request) {
 
+		if("in".equals(part.toLowerCase())) {
+
+			direction = Direction.INCOMING;
+			return true;
+
+		} else if("out".equals(part.toLowerCase())) {
+
+			direction = Direction.OUTGOING;
+			return true;
+
+		}
+
+		return false;
+	}
+
+	@Override
+	public List<GraphObject> doGet() throws PathException {
+
+		List<GraphObject> results = wrappedConstraint.doGet();
 		if(results != null) {
 
 			try {
@@ -74,23 +93,29 @@ public class RelationshipConstraint extends ResourceConstraint {
 
 		throw new IllegalPathException();
 	}
+	@Override
+	public void doDelete() throws PathException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
 
 	@Override
-	public boolean acceptUriPart(String part) {
+	public void doPost(PropertySet propertySet) throws PathException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
 
-		if("in".equals(part.toLowerCase())) {
+	@Override
+	public void doPut(PropertySet propertySet) throws PathException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
 
-			direction = Direction.INCOMING;
-			return true;
+	@Override
+	public void doHead() throws PathException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
 
-		} else if("out".equals(part.toLowerCase())) {
-
-			direction = Direction.OUTGOING;
-			return true;
-
-		}
-
-		return false;
+	@Override
+	public void doOptions() throws PathException {
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override

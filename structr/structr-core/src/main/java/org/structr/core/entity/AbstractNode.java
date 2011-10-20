@@ -61,7 +61,6 @@ import org.structr.core.GraphObject;
 import org.structr.core.NodeRenderer;
 import org.structr.core.NodeSource;
 import org.structr.core.PropertyConverter;
-import org.structr.core.PropertyConverter;
 import org.structr.core.PropertyValidator;
 import org.structr.core.Services;
 import org.structr.core.Value;
@@ -91,16 +90,13 @@ import java.lang.reflect.Method;
 
 import java.text.ParseException;
 
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.EnumMap;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -1866,6 +1862,16 @@ public abstract class AbstractNode
 		Class type   = this.getClass();
 		Object value = null;
 
+		// check for static relationships and return related nodes
+		if(EntityContext.getRelations(type).containsKey(key)) {
+
+			// static relationship detected, return related nodes
+			DirectedRelationship rel = EntityContext.getRelations(type).get(key);
+			if(rel != null) {
+				return getTraversalResults(rel.getRelType(), rel.getDirection());
+			}
+		}
+
 		if (isDirty) {
 			value = properties.get(key);
 		}
@@ -2842,6 +2848,49 @@ public abstract class AbstractNode
 		}
 
 		return (size);
+	}
+
+	public List<AbstractNode> getTraversalResults(RelationshipType relType, Direction direction) {
+
+		// use traverser
+		Iterable<Node> nodes = Traversal.description().breadthFirst().relationships(relType, direction).evaluator(
+
+			new Evaluator() {
+
+				@Override
+				public Evaluation evaluate(Path path) {
+
+					int len = path.length();
+					if(len <= 1) {
+
+						if(len == 0) {
+
+							// do not include start node (which is the
+							// index node in this case), but continue
+							// traversal
+							return Evaluation.EXCLUDE_AND_CONTINUE;
+
+						} else {
+
+							return Evaluation.INCLUDE_AND_CONTINUE;
+						}
+					}
+
+					return Evaluation.EXCLUDE_AND_PRUNE;
+				}
+
+			}
+
+		).traverse(this.getNode()).nodes();
+
+		// collect results and convert nodes into structr nodes
+		Command nodeFactory = Services.command(securityContext, NodeFactoryCommand.class);
+		List<AbstractNode> nodeList = new LinkedList<AbstractNode>();
+		for(Node n : nodes) {
+			nodeList.add((AbstractNode)nodeFactory.execute(n));
+		}
+
+		return nodeList;
 	}
 
 	/**

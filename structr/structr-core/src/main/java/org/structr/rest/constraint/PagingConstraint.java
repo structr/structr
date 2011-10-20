@@ -11,14 +11,14 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.core.GraphObject;
 import org.structr.rest.exception.PathException;
-import org.structr.rest.adapter.ResultGSONAdapter;
+import org.structr.rest.wrapper.PropertySet;
 
 /**
  * Implements paging.
  *
  * @author Christian Morgner
  */
-public class PagingConstraint extends ResourceConstraint {
+public class PagingConstraint extends WrappingConstraint {
 
 	private static final Logger logger = Logger.getLogger(PagingConstraint.class.getName());
 
@@ -32,12 +32,12 @@ public class PagingConstraint extends ResourceConstraint {
 	}
 
 	@Override
-	public boolean acceptUriPart(String part) {
+	public boolean checkAndConfigure(String part, HttpServletRequest request) {
 		return false;
 	}
 
 	@Override
-	public List<GraphObject> process(List<GraphObject> results, HttpServletRequest request) throws PathException {
+	public List<GraphObject> doGet() throws PathException {
 
 		/*
 		 * page 1: 0 -> pageSize-1
@@ -46,6 +46,7 @@ public class PagingConstraint extends ResourceConstraint {
 		 * page n: ((n-1) * pageSize) -> (n * pageSize) - 1
 		 */
 
+		List<GraphObject> results = wrappedConstraint.doGet();
 		resultCount = results.size();
 
 		int fromIndex = Math.min(resultCount, Math.max(0, (getPage()-1) * getPageSize()));
@@ -54,6 +55,30 @@ public class PagingConstraint extends ResourceConstraint {
 		logger.log(Level.FINEST, "returning results from {0} to {1}, page {2}, pageSize {3}", new Object[] { fromIndex, toIndex-1, getPage(), getPageSize()} );
 
 		return results.subList(fromIndex, toIndex);
+	}
+	@Override
+	public void doDelete() throws PathException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public void doPost(PropertySet propertySet) throws PathException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public void doPut(PropertySet propertySet) throws PathException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public void doHead() throws PathException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public void doOptions() throws PathException {
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override

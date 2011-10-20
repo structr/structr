@@ -29,13 +29,13 @@ import org.structr.core.entity.StructrRelationship;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.PathException;
 import org.structr.core.EntityContext;
-import org.structr.rest.adapter.ResultGSONAdapter;
+import org.structr.rest.wrapper.PropertySet;
 
 /**
  *
  * @author Christian Morgner
  */
-public class StaticRelationshipConstraint extends ResourceConstraint {
+public class StaticRelationshipConstraint extends FilterableConstraint {
 
 	TypedIdConstraint typedIdConstraint = null;
 	TypeConstraint typeConstraint = null;
@@ -46,9 +46,9 @@ public class StaticRelationshipConstraint extends ResourceConstraint {
 	}
 
 	@Override
-	public List<GraphObject> process(List<GraphObject> results, HttpServletRequest request) throws PathException {
+	public List<GraphObject> doGet() throws PathException {
 
-		results = typedIdConstraint.process(results, request);
+		List<GraphObject> results = typedIdConstraint.doGet();
 		if(results != null) {
 
 			// get source and target type from previous constraints
@@ -85,14 +85,38 @@ public class StaticRelationshipConstraint extends ResourceConstraint {
 
 		throw new IllegalPathException();
 	}
+	@Override
+	public void doDelete() throws PathException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
 
 	@Override
-	public boolean acceptUriPart(String part) {
+	public void doPost(PropertySet propertySet) throws PathException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public void doPut(PropertySet propertySet) throws PathException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public void doHead() throws PathException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public void doOptions() throws PathException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public boolean checkAndConfigure(String part, HttpServletRequest request) {
 		return false;
 	}
 
 	@Override
 	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws PathException {
-		return null;
+		return super.tryCombineWith(next);
 	}
 }

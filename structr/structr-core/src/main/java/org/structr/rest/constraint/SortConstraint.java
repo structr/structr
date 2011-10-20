@@ -11,14 +11,16 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.core.GraphObject;
+import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.PathException;
-import org.structr.rest.adapter.ResultGSONAdapter;
+import org.structr.rest.servlet.JsonRestServlet;
+import org.structr.rest.wrapper.PropertySet;
 
 /**
  *
  * @author Christian Morgner
  */
-public class SortConstraint extends ResourceConstraint {
+public class SortConstraint extends WrappingConstraint {
 
 	private static final Logger logger = Logger.getLogger(SortConstraint.class.getName());
 
@@ -26,54 +28,86 @@ public class SortConstraint extends ResourceConstraint {
 	private String sortKey = null;
 	
 	public SortConstraint(String sortKey, String sortOrder) {
-		this.sortOrder = sortOrder;
-		this.sortKey = sortKey;
 	}
 
 	@Override
-	public boolean acceptUriPart(String part) {
-		return false;
+	public boolean checkAndConfigure(String part, HttpServletRequest request) {
+
+		this.sortKey = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_SORT_KEY);
+		this.sortOrder = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_SORT_ORDER);
+
+		return sortKey != null;
 	}
 	
 	@Override
-	public List<GraphObject> process(List<GraphObject> results, HttpServletRequest request) throws PathException {
+	public List<GraphObject> doGet() throws PathException {
 
-		Comparator<GraphObject> comparator = null;
+		if(wrappedConstraint != null) {
+			
+			List<GraphObject> results = wrappedConstraint.doGet();
+			Comparator<GraphObject> comparator = null;
 
-		try {
-			if("desc".equals(sortOrder)) {
+			try {
+				if("desc".equals(sortOrder)) {
 
-				comparator = new Comparator<GraphObject>() {
-					@Override
-					public int compare(GraphObject n1, GraphObject n2) {
-						Comparable c1 = (Comparable)n1.getProperty(sortKey);
-						Comparable c2 = (Comparable)n2.getProperty(sortKey);
-						return(c2.compareTo(c1));
-					}
-				};
+					comparator = new Comparator<GraphObject>() {
+						@Override
+						public int compare(GraphObject n1, GraphObject n2) {
+							Comparable c1 = (Comparable)n1.getProperty(sortKey);
+							Comparable c2 = (Comparable)n2.getProperty(sortKey);
+							return(c2.compareTo(c1));
+						}
+					};
 
-			} else {
+				} else {
 
-				comparator = new Comparator<GraphObject>() {
-					@Override
-					public int compare(GraphObject n1, GraphObject n2) {
-						Comparable c1 = (Comparable)n1.getProperty(sortKey);
-						Comparable c2 = (Comparable)n2.getProperty(sortKey);
-						return(c1.compareTo(c2));
-					}
-				};
+					comparator = new Comparator<GraphObject>() {
+						@Override
+						public int compare(GraphObject n1, GraphObject n2) {
+							Comparable c1 = (Comparable)n1.getProperty(sortKey);
+							Comparable c2 = (Comparable)n2.getProperty(sortKey);
+							return(c1.compareTo(c2));
+						}
+					};
+				}
+
+				if(comparator != null) {
+					Collections.sort(results, comparator);
+				}
+
+			} catch(Throwable t) {
+
+				logger.log(Level.WARNING, "Error while sorting result set with {0}", sortKey);
 			}
 
-			if(comparator != null) {
-				Collections.sort(results, comparator);
-			}
-
-		} catch(Throwable t) {
-
-			logger.log(Level.WARNING, "Error while sorting result set with {0}", sortKey);
+			return results;
 		}
-		
-		return results;
+
+		throw new IllegalPathException();
+	}
+	@Override
+	public void doDelete() throws PathException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public void doPost(PropertySet propertySet) throws PathException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public void doPut(PropertySet propertySet) throws PathException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public void doHead() throws PathException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public void doOptions() throws PathException {
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override

@@ -7,14 +7,11 @@ package org.structr.rest.constraint;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.SuperUser;
-import org.structr.core.entity.User;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchAttributeGroup;
 import org.structr.core.node.search.SearchNodeCommand;
@@ -23,8 +20,7 @@ import org.structr.core.node.search.TextualSearchAttribute;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NoResultsException;
 import org.structr.rest.exception.PathException;
-import org.structr.rest.adapter.ResultGSONAdapter;
-import org.structr.rest.servlet.JsonRestServlet;
+import org.structr.rest.wrapper.PropertySet;
 
 /**
  * Represents a keyword match using the search term given in the constructor of
@@ -39,35 +35,47 @@ public class SearchConstraint extends ResourceConstraint {
 
 	private String searchString = null;
 
-	@Override
-	public boolean acceptUriPart(String part) {
-		
-		if("search".equals(part)) {
-			return true;
-		}
-
-		return false;
+	public SearchConstraint(String searchString) {
+		this.searchString = searchString;
 	}
 
 	@Override
-	public List<GraphObject> process(List<GraphObject> results, HttpServletRequest request) throws PathException {
+	public boolean checkAndConfigure(String part, HttpServletRequest request) {
+		return false;	// not directly selectable via URI
+	}
 
-		searchString = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_SEARCH_STRING);
+	@Override
+	public List<GraphObject> doGet() throws PathException {
+
 		if(searchString != null) {
-
-			// build search results
-			List<GraphObject> searchResults = getSearchResults(searchString);
-
-			// remove search results that are not in given list
-			if(results != null) {
-				logger.log(Level.WARNING, "Received results from predecessor, this query is probably not optimized!");
-				searchResults.retainAll(results);
-			}
-
-			return searchResults;
+			return getSearchResults(searchString);
 		}
 
 		throw new IllegalPathException();
+	}
+	@Override
+	public void doDelete() throws PathException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public void doPost(PropertySet propertySet) throws PathException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public void doPut(PropertySet propertySet) throws PathException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public void doHead() throws PathException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public void doOptions() throws PathException {
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override

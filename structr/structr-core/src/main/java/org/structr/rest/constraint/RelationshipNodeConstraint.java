@@ -28,20 +28,32 @@ import org.structr.core.GraphObject;
 import org.structr.core.entity.StructrRelationship;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.PathException;
-import org.structr.rest.adapter.ResultGSONAdapter;
+import org.structr.rest.wrapper.PropertySet;
 
 /**
  *
  * @author Christian Morgner
  */
-public class RelationshipNodeConstraint extends ResourceConstraint {
+public class RelationshipNodeConstraint extends WrappingConstraint {
 
 	private static final Logger logger = Logger.getLogger(RelationshipNodeConstraint.class.getName());
 	private boolean startNode = false;
 
 	@Override
-	public List<GraphObject> process(List<GraphObject> results, HttpServletRequest request) throws PathException {
+	public boolean checkAndConfigure(String part, HttpServletRequest request) {
 
+		// only "start" selects the start node, everything else means end node
+		if("start".equals(part.toLowerCase())) {
+			startNode = true;
+		}
+
+		return true;
+	}
+
+	@Override
+	public List<GraphObject> doGet() throws PathException {
+
+		List<GraphObject> results = wrappedConstraint.doGet();
 		if(results != null) {
 
 			try {
@@ -77,16 +89,29 @@ public class RelationshipNodeConstraint extends ResourceConstraint {
 
 		throw new IllegalPathException();
 	}
+	@Override
+	public void doDelete() throws PathException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
 
 	@Override
-	public boolean acceptUriPart(String part) {
+	public void doPost(PropertySet propertySet) throws PathException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
 
-		// only "start" selects the start node, everything else means end node
-		if("start".equals(part.toLowerCase())) {
-			startNode = true;
-		}
+	@Override
+	public void doPut(PropertySet propertySet) throws PathException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
 
-		return true;
+	@Override
+	public void doHead() throws PathException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public void doOptions() throws PathException {
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override

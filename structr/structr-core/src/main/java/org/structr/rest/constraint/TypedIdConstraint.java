@@ -11,7 +11,7 @@ import org.structr.core.GraphObject;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.exception.PathException;
-import org.structr.rest.adapter.ResultGSONAdapter;
+import org.structr.rest.wrapper.PropertySet;
 
 /**
  * Represents a type-constrained ID match. A TypedIdConstraint will always
@@ -19,7 +19,7 @@ import org.structr.rest.adapter.ResultGSONAdapter;
  * 
  * @author Christian Morgner
  */
-public class TypedIdConstraint extends ResourceConstraint {
+public class TypedIdConstraint extends FilterableConstraint {
 
 	private static final Logger logger = Logger.getLogger(TypedIdConstraint.class.getName());
 
@@ -32,14 +32,14 @@ public class TypedIdConstraint extends ResourceConstraint {
 	}
 
 	@Override
-	public boolean acceptUriPart(String part) {
+	public boolean checkAndConfigure(String part, HttpServletRequest request) {
 		return false;	// we will not accept URI parts directly
 	}
 
 	@Override
-	public List<GraphObject> process(List<GraphObject> results, HttpServletRequest request) throws PathException {
+	public List<GraphObject> doGet() throws PathException {
 
-		results = idConstraint.process(results, request);
+		List<GraphObject> results = idConstraint.doGet();
 		if(results != null) {
 
 			String type = typeConstraint.getType();
@@ -57,7 +57,32 @@ public class TypedIdConstraint extends ResourceConstraint {
 	}
 
 	@Override
-	public ResourceConstraint tryCombineWith(ResourceConstraint next) {
+	public void doDelete() throws PathException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public void doPost(PropertySet propertySet) throws PathException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public void doPut(PropertySet propertySet) throws PathException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public void doHead() throws PathException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public void doOptions() throws PathException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws PathException {
 
 		if(next instanceof TypeConstraint) {
 
@@ -67,7 +92,7 @@ public class TypedIdConstraint extends ResourceConstraint {
 			return new StaticRelationshipConstraint(this, (TypeConstraint)next);
 		}
 
-		return null;
+		return super.tryCombineWith(next);
 	}
 
 	public TypeConstraint getTypeConstraint() {

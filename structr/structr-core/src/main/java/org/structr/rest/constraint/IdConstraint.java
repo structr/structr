@@ -13,7 +13,7 @@ import org.structr.core.entity.SuperUser;
 import org.structr.core.node.FindNodeCommand;
 import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.exception.PathException;
-import org.structr.rest.adapter.ResultGSONAdapter;
+import org.structr.rest.wrapper.PropertySet;
 
 /**
  * Represents an exact ID match. An IdConstraint will always result in a
@@ -22,12 +22,20 @@ import org.structr.rest.adapter.ResultGSONAdapter;
  * 
  * @author Christian Morgner
  */
-public class IdConstraint extends ResourceConstraint {
+public class IdConstraint extends FilterableConstraint {
 	
 	private long id = -1;
+
+	public long getId() {
+		return id;
+	}
+
+	public void setId(long id) {
+		this.id = id;
+	}
 	
 	@Override
-	public boolean acceptUriPart(String part) {
+	public boolean checkAndConfigure(String part, HttpServletRequest request) {
 
 		try {
 			this.setId(Long.parseLong(part));
@@ -40,15 +48,12 @@ public class IdConstraint extends ResourceConstraint {
 	}
 
 	@Override
-	public List<GraphObject> process(List<GraphObject> results, HttpServletRequest request) throws PathException {
+	public List<GraphObject> doGet() throws PathException {
 
 		GraphObject obj = (GraphObject)Services.command(securityContext, FindNodeCommand.class).execute(new SuperUser(), getId());
 		if(obj != null) {
 			
-			if(results == null) {
-				results = new LinkedList<GraphObject>();
-			}
-
+			List<GraphObject> results = new LinkedList<GraphObject>();
 			results.add(obj);
 
 			return results;
@@ -58,15 +63,32 @@ public class IdConstraint extends ResourceConstraint {
 	}
 
 	@Override
-	public ResourceConstraint tryCombineWith(ResourceConstraint next) {
-		return null;
+	public void doDelete() throws PathException {
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
-	public long getId() {
-		return id;
+	@Override
+	public void doPost(PropertySet propertySet) throws PathException {
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
-	public void setId(long id) {
-		this.id = id;
+	@Override
+	public void doPut(PropertySet propertySet) throws PathException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public void doHead() throws PathException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public void doOptions() throws PathException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws PathException {
+		return super.tryCombineWith(next);
 	}
 }

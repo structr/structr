@@ -11,6 +11,7 @@ import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Value;
 import org.structr.rest.exception.PathException;
+import org.structr.rest.wrapper.PropertySet;
 
 /**
  * Base class for all resource constraints. Constraints can be
@@ -31,14 +32,19 @@ public abstract class ResourceConstraint {
 	 * @return
 	 * @throws PathException
 	 */
-	public abstract List<GraphObject> process(List<GraphObject> result, HttpServletRequest request) throws PathException;
+	public abstract List<GraphObject> doGet() throws PathException;
+	public abstract void doDelete() throws PathException;
+	public abstract void doPost(PropertySet propertySet) throws PathException;
+	public abstract void doPut(PropertySet propertySet) throws PathException;
+	public abstract void doHead() throws PathException;
+	public abstract void doOptions() throws PathException;
 
 	/**
 	 *
 	 * @param part
 	 * @return
 	 */
-	public abstract boolean acceptUriPart(String part);
+	public abstract boolean checkAndConfigure(String part, HttpServletRequest request);
 
 	/**
 	 *

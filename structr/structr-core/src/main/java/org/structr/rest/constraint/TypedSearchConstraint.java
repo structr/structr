@@ -7,7 +7,6 @@ package org.structr.rest.constraint;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
@@ -23,8 +22,7 @@ import org.structr.core.node.search.SearchOperator;
 import org.structr.core.node.search.TextualSearchAttribute;
 import org.structr.rest.exception.NoResultsException;
 import org.structr.rest.exception.PathException;
-import org.structr.rest.adapter.ResultGSONAdapter;
-import org.structr.rest.servlet.JsonRestServlet;
+import org.structr.rest.wrapper.PropertySet;
 
 /**
  * Represents a keyword match using the search term given in the constructor of
@@ -33,7 +31,7 @@ import org.structr.rest.servlet.JsonRestServlet;
  *
  * @author Christian Morgner
  */
-public class TypedSearchConstraint extends ResourceConstraint {
+public class TypedSearchConstraint extends SortableConstraint {
 
 	private static final Logger logger = Logger.getLogger(TypedSearchConstraint.class.getName());
 
@@ -47,33 +45,40 @@ public class TypedSearchConstraint extends ResourceConstraint {
 	}
 
 	@Override
-	public boolean acceptUriPart(String part) {
+	public boolean checkAndConfigure(String part, HttpServletRequest request) {
 		return false;	// we will not accept URI parts directly
 	}
 
 	@Override
-	public List<GraphObject> process(List<GraphObject> results, HttpServletRequest request) throws PathException {
-
-		// fetch search string from request
-		if(searchString == null) {
-			searchString = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_SEARCH_STRING);
-		}
+	public List<GraphObject> doGet() throws PathException {
 
 		// build search results
-		List<GraphObject> searchResults = getSearchResults(searchString);
-
-		// remove search results that are not in given list
-		if(results != null) {
-			logger.log(Level.WARNING, "Received results from predecessor, this query is probably not optimized!");
-			searchResults.retainAll(results);
-		}
-
-		return searchResults;
+		return getSearchResults(searchString);
+	}
+	
+	@Override
+	public void doDelete() throws PathException {
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
-	public ResourceConstraint tryCombineWith(ResourceConstraint next) {
-		return null;
+	public void doPost(PropertySet propertySet) throws PathException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public void doPut(PropertySet propertySet) throws PathException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public void doHead() throws PathException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public void doOptions() throws PathException {
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	// ----- private methods -----
