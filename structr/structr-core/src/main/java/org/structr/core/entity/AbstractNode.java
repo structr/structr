@@ -1652,7 +1652,7 @@ public abstract class AbstractNode
 					try {
 
 						Date date = DateUtils.parseDate(((String) propertyValue),
-										new String[] { "yyyy-MM-ddTHH:mm:ssZ",
+										new String[] { "yyyy-MM-dd'T'HH:mm:ssZ",
 							"yyyymmdd", "yyyymm", "yyyy" });
 
 						return date;
