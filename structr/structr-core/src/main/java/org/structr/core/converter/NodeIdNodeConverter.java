@@ -34,13 +34,13 @@ import org.structr.core.node.FindNodeCommand;
 public class NodeIdNodeConverter extends PropertyConverter<Long, AbstractNode> {
 
 	@Override
-	public Long convertFrom(AbstractNode node, Value value) {
+	public Long convertForSetter(AbstractNode node, Value value) {
 		if (node == null) return null;
 		return node.getId();
 	}
 
 	@Override
-	public AbstractNode convertTo(Long nodeId, Value value) {
+	public AbstractNode convertForGetter(Long nodeId, Value value) {
 		if (nodeId == null) return null;
 		return (AbstractNode) Services.command(securityContext, FindNodeCommand.class).execute(new SuperUser(), nodeId);
 	}

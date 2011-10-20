@@ -39,7 +39,7 @@ public abstract class PropertyConverter<S, T> {
 	 * @param source
 	 * @return 
 	 */
-	public abstract S convertFrom(T source, Value value);
+	public abstract S convertForSetter(T source, Value value);
 	
 	/**
 	 * Converts from source type to destination type. Caution: source
@@ -48,7 +48,7 @@ public abstract class PropertyConverter<S, T> {
 	 * @param source
 	 * @return 
 	 */
-	public abstract T convertTo(S source, Value value);
+	public abstract T convertForGetter(S source, Value value);
 
 	
 	public void setSecurityContext(SecurityContext securityContext) {

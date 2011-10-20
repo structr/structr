@@ -1917,7 +1917,7 @@ public abstract class AbstractNode
 			Value conversionValue = EntityContext.getPropertyConversionParameter(type,
 				key);
 
-			value = converter.convertTo(value, conversionValue);
+			value = converter.convertForGetter(value, conversionValue);
 		}
 
 		return value;
@@ -3789,7 +3789,7 @@ public abstract class AbstractNode
 			Value conversionValue = EntityContext.getPropertyConversionParameter(type,
 				key);
 
-			convertedValue = converter.convertFrom(value, conversionValue);
+			convertedValue = converter.convertForSetter(value, conversionValue);
 
 		} else {
 			convertedValue = value;

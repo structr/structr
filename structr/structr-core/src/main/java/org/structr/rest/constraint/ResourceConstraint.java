@@ -5,7 +5,6 @@
 package org.structr.rest.constraint;
 
 import java.util.List;
-import javax.servlet.ServletConfig;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -14,8 +13,10 @@ import org.structr.core.Value;
 import org.structr.rest.exception.PathException;
 
 /**
- * Base class for all resource constraints. The implementation of this
- * class follows the Composite pattern.
+ * Base class for all resource constraints. Constraints can be
+ * combined with succeeding constraints to avoid unneccesary
+ * evaluation.
+ *
  * 
  * @author Christian Morgner
  */

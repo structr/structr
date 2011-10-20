@@ -29,7 +29,7 @@ import org.structr.core.Value;
 public class LongDateConverter extends PropertyConverter<Long, Date> {
 
 	@Override
-	public Long convertFrom(Date source, Value value) {
+	public Long convertForSetter(Date source, Value value) {
 		if(source != null) {
 			return source.getTime();
 		}
@@ -38,7 +38,7 @@ public class LongDateConverter extends PropertyConverter<Long, Date> {
 	}
 
 	@Override
-	public Date convertTo(Long source, Value value) {
+	public Date convertForGetter(Long source, Value value) {
 
 		if(source != null) {
 			return new Date(source);

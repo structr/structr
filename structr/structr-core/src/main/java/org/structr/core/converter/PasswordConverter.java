@@ -29,13 +29,13 @@ import org.structr.core.Value;
 public class PasswordConverter extends PropertyConverter<String, String> {
 
 	@Override
-	public String convertFrom(String clearTextPassword, Value value) {
+	public String convertForSetter(String clearTextPassword, Value value) {
 		if (clearTextPassword == null) return null;
 		return DigestUtils.sha512Hex(clearTextPassword);
 	}
 
 	@Override
-	public String convertTo(String passwordHash, Value value) {
+	public String convertForGetter(String passwordHash, Value value) {
 		return null;
 	}
 }

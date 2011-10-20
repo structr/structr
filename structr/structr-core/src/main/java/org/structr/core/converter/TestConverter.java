@@ -11,12 +11,12 @@ import org.structr.core.Value;
 public class TestConverter extends PropertyConverter {
 
 	@Override
-	public Object convertFrom(Object source, Value value) {
+	public Object convertForSetter(Object source, Value value) {
 		return source;
 	}
 
 	@Override
-	public Object convertTo(Object source, Value value) {
+	public Object convertForGetter(Object source, Value value) {
 		return source;
 	}
 }
