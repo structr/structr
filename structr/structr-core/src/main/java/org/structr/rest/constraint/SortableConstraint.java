@@ -23,6 +23,6 @@ public abstract class SortableConstraint extends FilterableConstraint {
 			return next;
 		}
 
-		return null;
+		return super.tryCombineWith(next);
 	}
 }
