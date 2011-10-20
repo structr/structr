@@ -22,7 +22,7 @@
 		</init-param>
 		<init-param>
 			<param-name>cacheable-paths</param-name>
-			<param-value>/structr-public-website/view/*, /view/*, /images/*, /click/*, /click/tree/*, /click/css/*, /click/tree/images/*, /assets/*, /css/*, /js/*, *.png, *.gif, *.jpg, *.css, *.js</param-value>
+			<param-value>/structr/view/*, /view/*, /images/*, /click/*, /click/tree/*, /click/css/*, /click/tree/images/*, /assets/*, /css/*, /js/*, *.png, *.gif, *.jpg, *.css, *.js</param-value>
 		</init-param>
 	</filter>
 	<filter-mapping>
@@ -122,7 +122,7 @@
 	<context-param>
 		<description>structr config file path</description>
 		<param-name>configfile.path</param-name>
-		<param-value>/opt/structr/structr-public-website/structr.conf</param-value>
+		<param-value>/opt/structr/structr.conf</param-value>
 	</context-param>
     <!--  custom context parameter end -->
 	<welcome-file-list>
