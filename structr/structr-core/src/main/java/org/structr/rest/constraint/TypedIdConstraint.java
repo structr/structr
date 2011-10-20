@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.core.GraphObject;
+import org.structr.rest.RestMethodResult;
 import org.structr.rest.VetoableGraphObjectListener;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
@@ -59,17 +60,17 @@ public class TypedIdConstraint extends FilterableConstraint {
 	}
 
 	@Override
-	public void doPost(PropertySet propertySet, List<VetoableGraphObjectListener> listeners) throws Throwable {
+	public RestMethodResult doPost(PropertySet propertySet, List<VetoableGraphObjectListener> listeners) throws Throwable {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
-	public void doHead() throws Throwable {
+	public RestMethodResult doHead() throws Throwable {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
-	public void doOptions() throws Throwable {
+	public RestMethodResult doOptions() throws Throwable {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 

@@ -22,6 +22,7 @@ import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
 import org.structr.core.node.search.SearchOperator;
 import org.structr.core.node.search.TextualSearchAttribute;
+import org.structr.rest.RestMethodResult;
 import org.structr.rest.VetoableGraphObjectListener;
 import org.structr.rest.exception.NoResultsException;
 import org.structr.rest.exception.PathException;
@@ -83,17 +84,17 @@ public class TypeConstraint extends SortableConstraint {
 	}
 
 	@Override
-	public void doPost(PropertySet propertySet, List<VetoableGraphObjectListener> listeners) throws Throwable {
+	public RestMethodResult doPost(PropertySet propertySet, List<VetoableGraphObjectListener> listeners) throws Throwable {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
-	public void doHead() throws Throwable {
+	public RestMethodResult doHead() throws Throwable {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
-	public void doOptions() throws Throwable {
+	public RestMethodResult doOptions() throws Throwable {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 

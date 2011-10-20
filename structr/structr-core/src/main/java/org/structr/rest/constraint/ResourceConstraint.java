@@ -6,6 +6,7 @@ package org.structr.rest.constraint;
 
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
@@ -14,7 +15,9 @@ import org.structr.core.Value;
 import org.structr.core.node.NodeAttribute;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
+import org.structr.rest.RestMethodResult;
 import org.structr.rest.VetoableGraphObjectListener;
+import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.exception.PathException;
 import org.structr.rest.wrapper.PropertySet;
@@ -32,11 +35,15 @@ public abstract class ResourceConstraint {
 	protected SecurityContext securityContext = null;
 
 	public abstract List<GraphObject> doGet() throws PathException;
-	public abstract void doPost(final PropertySet propertySet, final List<VetoableGraphObjectListener> listeners) throws Throwable;
-	public abstract void doHead() throws Throwable;
-	public abstract void doOptions() throws Throwable;
+	public abstract RestMethodResult doPost(final PropertySet propertySet, final List<VetoableGraphObjectListener> listeners) throws Throwable;
+	public abstract RestMethodResult doHead() throws Throwable;
+	public abstract RestMethodResult doOptions() throws Throwable;
 
-	public final void doPut(final PropertySet propertySet, final List<VetoableGraphObjectListener> listeners) throws Throwable {
+	public abstract boolean checkAndConfigure(String part, HttpServletRequest request);
+	public abstract ResourceConstraint tryCombineWith(ResourceConstraint next) throws PathException;
+
+	// ----- methods -----
+	public final RestMethodResult doPut(final PropertySet propertySet, final List<VetoableGraphObjectListener> listeners) throws Throwable {
 
 		final List<GraphObject> results = doGet();
 		if(results != null && !results.isEmpty()) {
@@ -68,10 +75,14 @@ public abstract class ResourceConstraint {
 			if(transaction.getCause() != null) {
 				throw transaction.getCause();
 			}
+
+			return new RestMethodResult(HttpServletResponse.SC_OK);
 		}
+
+		throw new IllegalPathException();
 	}
 
-	public final void doDelete(final List<VetoableGraphObjectListener> listeners) throws Throwable {
+	public final RestMethodResult doDelete(final List<VetoableGraphObjectListener> listeners) throws Throwable {
 
 		final List<GraphObject> results = doGet();
 		if(results != null && !results.isEmpty()) {
@@ -100,26 +111,13 @@ public abstract class ResourceConstraint {
 
 			});
 
-		} else {
-			throw new NotFoundException();
+			if(success != null && success.booleanValue() == true) {
+				return new RestMethodResult(HttpServletResponse.SC_OK);
+			}
 		}
-		
+
+		throw new NotFoundException();
 	}
-
-	/**
-	 *
-	 * @param part
-	 * @return
-	 */
-	public abstract boolean checkAndConfigure(String part, HttpServletRequest request);
-
-	/**
-	 *
-	 * @param next
-	 * @return
-	 * @throws PathException
-	 */
-	public abstract ResourceConstraint tryCombineWith(ResourceConstraint next) throws PathException;
 
 	/**
 	 *
@@ -132,7 +130,7 @@ public abstract class ResourceConstraint {
 		this.securityContext = securityContext;
 	}
 
-
+	// ----- protected methods -----
 	protected boolean mayModify(List<VetoableGraphObjectListener> listeners, GraphObject object) {
 
 		boolean mayModify = true;
@@ -155,5 +153,27 @@ public abstract class ResourceConstraint {
 		}
 
 		return mayDelete;
+	}
+
+	protected String buildCreatedURI(HttpServletRequest request, String type, long id) {
+
+		StringBuilder uriBuilder = new StringBuilder(100);
+		uriBuilder.append(request.getScheme());
+		uriBuilder.append("://");
+		uriBuilder.append(request.getServerName());
+		uriBuilder.append(":");
+		uriBuilder.append(request.getServerPort());
+		uriBuilder.append(request.getContextPath());
+		uriBuilder.append(request.getServletPath());
+		uriBuilder.append("/");
+
+		if(type != null) {
+			uriBuilder.append(type.toLowerCase());
+			uriBuilder.append("s/");
+		}
+
+		uriBuilder.append(id);
+
+		return uriBuilder.toString();
 	}
 }

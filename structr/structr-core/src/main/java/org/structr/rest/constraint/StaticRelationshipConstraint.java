@@ -22,6 +22,7 @@ package org.structr.rest.constraint;
 import java.util.LinkedList;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.core.GraphObject;
@@ -35,6 +36,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
+import org.structr.rest.RestMethodResult;
 import org.structr.rest.VetoableGraphObjectListener;
 import org.structr.rest.wrapper.PropertySet;
 
@@ -95,13 +97,13 @@ public class StaticRelationshipConstraint extends FilterableConstraint {
 	}
 
 	@Override
-	public void doPost(PropertySet propertySet, List<VetoableGraphObjectListener> listeners) throws Throwable {
+	public RestMethodResult doPost(PropertySet propertySet, List<VetoableGraphObjectListener> listeners) throws Throwable {
 
 		final AbstractNode sourceNode = typedIdConstraint.getIdConstraint().getNode();
 		final AbstractNode newNode = typeConstraint.createNode(propertySet);
 		final DirectedRelationship rel = EntityContext.getRelation(sourceNode.getClass(), newNode.getClass());
 
-		if(rel != null) {
+		if(sourceNode != null && newNode != null && rel != null) {
 
 			final RelationshipType relType = rel.getRelType();
 
@@ -119,18 +121,23 @@ public class StaticRelationshipConstraint extends FilterableConstraint {
 			if(transaction.getCause() != null) {
 				throw transaction.getCause();
 			}
+
+			// TODO: set location header
+			RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_CREATED);
+			// FIXME: result.addHeader("Location", buildCreatedURI(request, newNode.getType(), newNode.getId()));
+			return result;
 		}
 
 		throw new IllegalPathException();
 	}
 
 	@Override
-	public void doHead() throws Throwable {
+	public RestMethodResult doHead() throws Throwable {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
-	public void doOptions() throws Throwable {
+	public RestMethodResult doOptions() throws Throwable {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 

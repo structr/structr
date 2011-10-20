@@ -20,6 +20,7 @@
 package org.structr.rest.constraint;
 
 import java.util.List;
+import org.structr.rest.RestMethodResult;
 import org.structr.rest.VetoableGraphObjectListener;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.wrapper.PropertySet;
@@ -35,9 +36,30 @@ public abstract class WrappingConstraint extends ResourceConstraint {
 	protected ResourceConstraint wrappedConstraint = null;
 
 	@Override
-	public void doPost(PropertySet propertySet, List<VetoableGraphObjectListener> listeners) throws Throwable {
+	public RestMethodResult doPost(PropertySet propertySet, List<VetoableGraphObjectListener> listeners) throws Throwable {
+
 		if(wrappedConstraint != null) {
-			wrappedConstraint.doPost(propertySet, listeners);
+			return wrappedConstraint.doPost(propertySet, listeners);
+		}
+
+		throw new IllegalPathException();
+	}
+
+	@Override
+	public RestMethodResult doHead() throws Throwable {
+
+		if(wrappedConstraint != null) {
+			return wrappedConstraint.doHead();
+		}
+
+		throw new IllegalPathException();
+	}
+
+	@Override
+	public RestMethodResult doOptions() throws Throwable {
+
+		if(wrappedConstraint != null) {
+			return wrappedConstraint.doOptions();
 		}
 
 		throw new IllegalPathException();

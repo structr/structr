@@ -25,6 +25,7 @@ import org.apache.commons.lang.StringUtils;
 import org.structr.common.PropertyView;
 import org.structr.core.GraphObject;
 import org.structr.core.Value;
+import org.structr.rest.RestMethodResult;
 import org.structr.rest.VetoableGraphObjectListener;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.PathException;
@@ -72,21 +73,21 @@ public class ViewFilterConstraint extends WrappingConstraint {
 	}
 
 	@Override
-	public void doPost(PropertySet propertySet, List<VetoableGraphObjectListener> listeners) throws Throwable {
+	public RestMethodResult doPost(PropertySet propertySet, List<VetoableGraphObjectListener> listeners) throws Throwable {
 		if(wrappedConstraint != null) {
-			wrappedConstraint.doPost(propertySet, listeners);
+			return wrappedConstraint.doPost(propertySet, listeners);
 		}
 
 		throw new IllegalPathException();
 	}
 
 	@Override
-	public void doHead() throws Throwable {
+	public RestMethodResult doHead() throws Throwable {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
-	public void doOptions() throws Throwable {
+	public RestMethodResult doOptions() throws Throwable {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 

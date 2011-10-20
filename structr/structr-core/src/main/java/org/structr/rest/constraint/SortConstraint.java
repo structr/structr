@@ -12,11 +12,9 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
-import org.structr.rest.VetoableGraphObjectListener;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.PathException;
 import org.structr.rest.servlet.JsonRestServlet;
-import org.structr.rest.wrapper.PropertySet;
 
 /**
  *
@@ -89,25 +87,6 @@ public class SortConstraint extends WrappingConstraint {
 		}
 
 		throw new IllegalPathException();
-	}
-
-	@Override
-	public void doPost(PropertySet propertySet, List<VetoableGraphObjectListener> listeners) throws Throwable {
-		if(wrappedConstraint != null) {
-			wrappedConstraint.doPost(propertySet, listeners);
-		}
-
-		throw new IllegalPathException();
-	}
-
-	@Override
-	public void doHead() throws Throwable {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
-	public void doOptions() throws Throwable {
-		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override

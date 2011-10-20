@@ -7,12 +7,15 @@ package org.structr.rest.constraint;
 import java.util.LinkedList;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.node.FindNodeCommand;
+import org.structr.rest.RestMethodResult;
 import org.structr.rest.VetoableGraphObjectListener;
+import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.exception.PathException;
 import org.structr.rest.wrapper.PropertySet;
@@ -69,17 +72,19 @@ public class IdConstraint extends FilterableConstraint {
 	}
 
 	@Override
-	public void doPost(PropertySet propertySet, List<VetoableGraphObjectListener> listeners) throws Throwable {
+	public RestMethodResult doPost(PropertySet propertySet, List<VetoableGraphObjectListener> listeners) throws Throwable {
+
+		// POST cannot be done on a single ID
+		throw new IllegalPathException();
+	}
+
+	@Override
+	public RestMethodResult doHead() throws Throwable {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
-	public void doHead() throws Throwable {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
-	public void doOptions() throws Throwable {
+	public RestMethodResult doOptions() throws Throwable {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 

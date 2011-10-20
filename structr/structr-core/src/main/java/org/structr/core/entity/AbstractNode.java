@@ -55,7 +55,6 @@ import org.structr.common.TemplateHelper;
 import org.structr.common.renderer.DefaultEditRenderer;
 import org.structr.common.renderer.RenderContext;
 import org.structr.common.renderer.RenderController;
-import org.structr.core.Command;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.NodeRenderer;
@@ -108,6 +107,8 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import org.structr.core.Command;
+import org.structr.core.node.StructrNodeFactory;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -552,7 +553,12 @@ public abstract class AbstractNode
 					}
 
 				} else {
-					displayValue = value.toString();
+
+					if(!(value.equals(this))) {
+						displayValue = value.toString();
+					} else {
+						displayValue = "this";
+					}
 				}
 
 				props.add("\"" + key + "\"" + " : " + "\"" + displayValue + "\"");
@@ -1863,12 +1869,13 @@ public abstract class AbstractNode
 		Object value = null;
 
 		// check for static relationships and return related nodes
-		if(EntityContext.getRelations(type).containsKey(key)) {
+		String singularType = (key.endsWith("ies") ? key.substring(0, key.length()-3) : (key.endsWith("s") ? key.substring(0, key.length()-1) : key));
+		if(EntityContext.getRelations(type).containsKey(singularType)) {
 
 			// static relationship detected, return related nodes
-			DirectedRelationship rel = EntityContext.getRelations(type).get(key);
+			DirectedRelationship rel = EntityContext.getRelations(type).get(singularType);
 			if(rel != null) {
-				return getTraversalResults(rel.getRelType(), rel.getDirection());
+				return getTraversalResults(rel.getRelType(), rel.getDirection(), StringUtils.capitalize(singularType));
 			}
 		}
 
@@ -2850,7 +2857,7 @@ public abstract class AbstractNode
 		return (size);
 	}
 
-	public List<AbstractNode> getTraversalResults(RelationshipType relType, Direction direction) {
+	public List<AbstractNode> getTraversalResults(RelationshipType relType, Direction direction, String type) {
 
 		// use traverser
 		Iterable<Node> nodes = Traversal.description().breadthFirst().relationships(relType, direction).evaluator(
@@ -2883,11 +2890,12 @@ public abstract class AbstractNode
 
 		).traverse(this.getNode()).nodes();
 
+
 		// collect results and convert nodes into structr nodes
-		Command nodeFactory = Services.command(securityContext, NodeFactoryCommand.class);
+		StructrNodeFactory nodeFactory = new StructrNodeFactory<AbstractNode>(securityContext);
 		List<AbstractNode> nodeList = new LinkedList<AbstractNode>();
 		for(Node n : nodes) {
-			nodeList.add((AbstractNode)nodeFactory.execute(n));
+			nodeList.add(nodeFactory.createNode(securityContext, n, type));
 		}
 
 		return nodeList;

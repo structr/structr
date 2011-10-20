@@ -62,6 +62,7 @@ import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.exception.PathException;
 import org.structr.rest.ResourceConstraintProvider;
+import org.structr.rest.RestMethodResult;
 import org.structr.rest.VetoableGraphObjectListener;
 import org.structr.rest.adapter.PropertySetGSONAdapter;
 import org.structr.rest.adapter.ResultGSONAdapter;
@@ -187,13 +188,18 @@ public class JsonRestServlet extends HttpServlet {
 			SecurityContext securityContext = getSecurityContext(request);
 
 			// evaluate constraint chain
-			ResourceConstraint resourceConstraint = optimizeConstraintChain(parsePath(securityContext, request));
+			List<ResourceConstraint> chain = parsePath(securityContext, request);
+			ResourceConstraint resourceConstraint = optimizeConstraintChain(chain);
 
 			// do action
-			resourceConstraint.doDelete(graphObjectListeners);
+			RestMethodResult result = resourceConstraint.doDelete(graphObjectListeners);
+			result.commitResponse(response);
 
-			// TODO: return code
 
+		} catch(IllegalArgumentException illegalArgumentException) {
+
+			handleValidationError(illegalArgumentException, response);
+			
 		} catch(PathException pathException) {
 			response.setStatus(pathException.getStatus());
 		} catch(JsonSyntaxException jsex) {
@@ -219,7 +225,8 @@ public class JsonRestServlet extends HttpServlet {
 
 			// evaluate constraints and measure query time
 			double queryTimeStart = System.nanoTime();
-			ResourceConstraint resourceConstraint = optimizeConstraintChain(parsePath(securityContext, request));
+			List<ResourceConstraint> chain = parsePath(securityContext, request);
+			ResourceConstraint resourceConstraint = optimizeConstraintChain(chain);
 			double queryTimeEnd = System.nanoTime();
 
 			// create result set
@@ -246,6 +253,11 @@ public class JsonRestServlet extends HttpServlet {
 				response.setStatus(HttpServletResponse.SC_NO_CONTENT);
 			}
 
+
+		} catch(IllegalArgumentException illegalArgumentException) {
+
+			handleValidationError(illegalArgumentException, response);
+
 		} catch(PathException pathException) {
 			response.setStatus(pathException.getStatus());
 		} catch(JsonSyntaxException jsex) {
@@ -267,11 +279,16 @@ public class JsonRestServlet extends HttpServlet {
 
 			SecurityContext securityContext = getSecurityContext(request);
 
-			// evaluate constraint chain
-			ResourceConstraint resourceConstraint = optimizeConstraintChain(parsePath(securityContext, request));
+			List<ResourceConstraint> chain = parsePath(securityContext, request);
+			ResourceConstraint resourceConstraint = optimizeConstraintChain(chain);
 
-			// do action
-			resourceConstraint.doHead();
+			RestMethodResult result = resourceConstraint.doHead();
+			result.commitResponse(response);
+
+
+		} catch(IllegalArgumentException illegalArgumentException) {
+
+			handleValidationError(illegalArgumentException, response);
 
 		} catch(PathException pathException) {
 			response.setStatus(pathException.getStatus());
@@ -280,7 +297,7 @@ public class JsonRestServlet extends HttpServlet {
 		} catch(JsonParseException jpex) {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 		} catch(Throwable t) {
-			logger.log(Level.WARNING, "Exception in GET", t);
+			logger.log(Level.WARNING, "Exception in HEAD", t);
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -294,18 +311,16 @@ public class JsonRestServlet extends HttpServlet {
 
 			SecurityContext securityContext = getSecurityContext(request);
 
-			// evaluate constraint chain
-			ResourceConstraint resourceConstraint = optimizeConstraintChain(parsePath(securityContext, request));
+			List<ResourceConstraint> chain = parsePath(securityContext, request);
+			ResourceConstraint resourceConstraint = optimizeConstraintChain(chain);
 
-			// do action
-			resourceConstraint.doOptions();
+			RestMethodResult result = resourceConstraint.doOptions();
+			result.commitResponse(response);
 
-			// commit response
-			response.setHeader("Allowed", "GET");
-			response.setContentLength(0);
 
-			// commit response
-			response.setStatus(HttpServletResponse.SC_OK);
+		} catch(IllegalArgumentException illegalArgumentException) {
+
+			handleValidationError(illegalArgumentException, response);
 
 		} catch(PathException pathException) {
 			response.setStatus(pathException.getStatus());
@@ -314,7 +329,7 @@ public class JsonRestServlet extends HttpServlet {
 		} catch(JsonParseException jpex) {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 		} catch(Throwable t) {
-			logger.log(Level.WARNING, "Exception in GET", t);
+			logger.log(Level.WARNING, "Exception in OPTIONS", t);
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -326,101 +341,21 @@ public class JsonRestServlet extends HttpServlet {
 
 		try {
 
-
-			SecurityContext securityContext = getSecurityContext(request);
-
 			final PropertySet propertySet = gson.fromJson(request.getReader(), PropertySet.class);
+			SecurityContext securityContext = getSecurityContext(request);
 
 			// evaluate constraint chain
-			ResourceConstraint resourceConstraint = optimizeConstraintChain(parsePath(securityContext, request));
+			List<ResourceConstraint> chain = parsePath(securityContext, request);
+			ResourceConstraint resourceConstraint = optimizeConstraintChain(chain);
 
-			// parse property set
+			// do action
+			RestMethodResult result = resourceConstraint.doPost(propertySet, graphObjectListeners);
+			result.commitResponse(response);
 
-			if(propertySet != null) {
-
-				// do action
-				resourceConstraint.doPost(propertySet, graphObjectListeners);
-
-			} else {
-				
-				logger.log(Level.WARNING, "propertySet was null!");
-			}
-
-			// TODO: return 201 Created with location
-			// throw new IllegalPathException();
-
-			/*
-			SecurityContext securityContext = getSecurityContext(request);
-
-			// parse property set from json input
-			final PropertySet propertySet = gson.fromJson(request.getReader(), PropertySet.class);
-			final List<NodeAttribute> attributes = propertySet.getAttributes();
-			GraphObject newGraphObject = null;
-
-			String path = request.getPathInfo();
-			if(path.endsWith("/node")) {
-
-				newGraphObject = handleNodeCreation(securityContext, attributes);
-
-			} else
-			if(path.endsWith("/rel")) {
-
-				newGraphObject = handleRelationshipCreation(securityContext, attributes);
-
-			} else {
-
-				// try type constraint
-				List<ResourceConstraint> constraintChain = parsePath(securityContext, request);
-				if(constraintChain.size() == 1) {
-
-					ResourceConstraint constr = constraintChain.get(0);
-					if(constr instanceof TypeConstraint) {
-
-						TypeConstraint typeConstraint = (TypeConstraint)constr;
-						String type = typeConstraint.getType();
-
-						// add type to attribute set (will override type information from JSON input!)
-						attributes.add(new NodeAttribute(AbstractNode.Key.type.name(), StringUtils.capitalize(type)));
-
-						// create new object
-						newGraphObject = handleNodeCreation(securityContext, attributes);
-
-					} else {
-
-						throw new IllegalPathException();
-					}
-
-				} else {
-
-					throw new IllegalPathException();
-				}
-
-			}
-
-			// set response code
-			if(newGraphObject != null) {
-
-				response.setHeader("Location", buildLocationURI(request, newGraphObject.getType(), newGraphObject.getId()));
-				response.setStatus(HttpServletResponse.SC_CREATED);
-
-			} else {
-
-				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-			}
-			*/
-
+			
 		} catch(IllegalArgumentException illegalArgumentException) {
 
-			// illegal state exception, return error
-			StringBuilder errorBuffer = new StringBuilder(100);
-			errorBuffer.append(illegalArgumentException.getMessage());
-
-			// send response
-			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-			response.setContentLength(errorBuffer.length());
-			response.getWriter().append(errorBuffer.toString());
-			response.getWriter().flush();
-			response.getWriter().close();
+			handleValidationError(illegalArgumentException, response);
 
 		} catch(PathException pathException) {
 			response.setStatus(pathException.getStatus());
@@ -429,8 +364,8 @@ public class JsonRestServlet extends HttpServlet {
 		} catch(JsonParseException jpex) {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 		} catch(Throwable t) {
+			logger.log(Level.WARNING, "Exception in POST", t);
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			logger.log(Level.WARNING, "Exception", t);
 		}
 	}
 	// </editor-fold>
@@ -441,29 +376,22 @@ public class JsonRestServlet extends HttpServlet {
 
 		try {
 
+
+			final PropertySet propertySet = gson.fromJson(request.getReader(), PropertySet.class);
 			SecurityContext securityContext = getSecurityContext(request);
 
 			// evaluate constraint chain
-			ResourceConstraint resourceConstraint = optimizeConstraintChain(parsePath(securityContext, request));
-
-			// parse property set
-			final PropertySet propertySet = gson.fromJson(request.getReader(), PropertySet.class);
+			List<ResourceConstraint> chain = parsePath(securityContext, request);
+			ResourceConstraint resourceConstraint = optimizeConstraintChain(chain);
 
 			// do action
-			resourceConstraint.doPut(propertySet, graphObjectListeners);
+			RestMethodResult result = resourceConstraint.doPut(propertySet, graphObjectListeners);
+			result.commitResponse(response);
+
 
 		} catch(IllegalArgumentException illegalArgumentException) {
 
-			// illegal state exception, return error
-			StringBuilder errorBuffer = new StringBuilder(100);
-			errorBuffer.append(illegalArgumentException.getMessage());
-
-			// send response
-			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-			response.setContentLength(errorBuffer.length());
-			response.getWriter().append(errorBuffer.toString());
-			response.getWriter().flush();
-			response.getWriter().close();
+			handleValidationError(illegalArgumentException, response);
 
 		} catch(PathException pathException) {
 			response.setStatus(pathException.getStatus());
@@ -472,6 +400,7 @@ public class JsonRestServlet extends HttpServlet {
 		} catch(JsonParseException jpex) {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 		} catch(Throwable t) {
+			logger.log(Level.WARNING, "Exception in PUT", t);
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 		}
 
@@ -663,106 +592,25 @@ public class JsonRestServlet extends HttpServlet {
 		return propertyFormat;
 	}
 
-	private String buildLocationURI(HttpServletRequest request, String type, long id) {
+	private void handleValidationError(IllegalArgumentException illegalArgumentException, HttpServletResponse response) {
 
-		StringBuilder uriBuilder = new StringBuilder(100);
-		uriBuilder.append(request.getScheme());
-		uriBuilder.append("://");
-		uriBuilder.append(request.getServerName());
-		uriBuilder.append(":");
-		uriBuilder.append(request.getServerPort());
-		uriBuilder.append(request.getContextPath());
-		uriBuilder.append(request.getServletPath());
-		uriBuilder.append("/");
+		// illegal state exception, return error
+		StringBuilder errorBuffer = new StringBuilder(100);
+		errorBuffer.append(illegalArgumentException.getMessage());
 
-		if(type != null) {
-			uriBuilder.append(type.toLowerCase());
-			uriBuilder.append("s/");
+		// send response
+		response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+		response.setContentLength(errorBuffer.length());
+
+		try {
+			response.getWriter().append(errorBuffer.toString());
+			response.getWriter().flush();
+			response.getWriter().close();
+
+		} catch(Throwable t) {
+
+			logger.log(Level.WARNING, "Unable to commit response", t);
 		}
-		
-		uriBuilder.append(id);
-
-		return uriBuilder.toString();
-	}
-
-	private GraphObject handleNodeCreation(final SecurityContext securityContext, final List<NodeAttribute> attributes) throws Throwable {
-
-		// create transaction closure
-		StructrTransaction transaction = new StructrTransaction() {
-
-			@Override
-			public Object execute() throws Throwable {
-
-				return (AbstractNode)Services.command(securityContext, CreateValidatedNodeCommand.class).execute(new SuperUser(), attributes);
-			}
-		};
-
-		// execute transaction: create new node
-		AbstractNode newNode = (AbstractNode)Services.command(securityContext, TransactionCommand.class).execute(transaction);
-		if(newNode == null) {
-
-			// re-throw transaction exception cause
-			if(transaction.getCause() != null) {
-				throw transaction.getCause();
-			}
-		}
-
-		return newNode;
-	}
-
-	private GraphObject handleRelationshipCreation(final SecurityContext securityContext, final List<NodeAttribute> attributes) throws Throwable {
-
-		GraphObject newRelationship = null;
-		long startNodeId = -1;
-		long endNodeId = -1;
-		String type = null;
-
-		// fetch relationship attributes and remove them from set
-		for(Iterator<NodeAttribute> it = attributes.iterator(); it.hasNext();) {
-
-			NodeAttribute attr = it.next();
-
-			if("start".equals(attr.getKey())) {
-				try { startNodeId = Long.parseLong(attr.getValue().toString()); } catch(Throwable t) { }
-				it.remove();
-
-			} else if("end".equals(attr.getKey())) {
-				try { endNodeId = Long.parseLong(attr.getValue().toString()); } catch(Throwable t) { }
-				it.remove();
-
-			} else if("type".equals(attr.getKey())) {
-				type = attr.getValue().toString();
-				it.remove();
-			}
-		}
-
-		if(startNodeId != -1 && endNodeId != -1 && type != null) {
-
-			Command findNodeCommand = Services.command(securityContext, FindNodeCommand.class);
-			AbstractNode startNode = (AbstractNode)findNodeCommand.execute(new SuperUser(), startNodeId);
-			AbstractNode endNode = (AbstractNode)findNodeCommand.execute(new SuperUser(), endNodeId);
-
-			if(startNode != null && endNode != null) {
-
-				newRelationship = (StructrRelationship)Services.command(securityContext, CreateRelationshipCommand.class).execute(startNode, endNode, type);
-
-				// set properties from request (excluding start, end and type)
-				for(NodeAttribute attr : attributes) {
-					newRelationship.setProperty(attr.getKey(), attr.getValue());
-				}
-
-			} else {
-
-				throw new NotFoundException();
-			}
-
-		} else {
-
-			// throw 400 Bad Request
-			throw new IllegalPathException();
-		}
-
-		return newRelationship;
 	}
 
 	private SecurityContext getSecurityContext(HttpServletRequest request) {

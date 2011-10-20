@@ -27,6 +27,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.neo4j.graphdb.Direction;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
+import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.PathException;
 
@@ -91,16 +92,6 @@ public class RelationshipConstraint extends WrappingConstraint {
 		}
 
 		throw new IllegalPathException();
-	}
-
-	@Override
-	public void doHead() throws Throwable {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
-	public void doOptions() throws Throwable {
-		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override

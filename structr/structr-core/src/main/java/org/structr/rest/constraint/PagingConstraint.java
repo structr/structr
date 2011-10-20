@@ -11,10 +11,7 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
-import org.structr.rest.VetoableGraphObjectListener;
-import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.PathException;
-import org.structr.rest.wrapper.PropertySet;
 
 /**
  * Implements paging.
@@ -59,25 +56,6 @@ public class PagingConstraint extends WrappingConstraint {
 		logger.log(Level.FINEST, "returning results from {0} to {1}, page {2}, pageSize {3}", new Object[] { fromIndex, toIndex-1, getPage(), getPageSize()} );
 
 		return results.subList(fromIndex, toIndex);
-	}
-
-	@Override
-	public void doPost(PropertySet propertySet, List<VetoableGraphObjectListener> listeners) throws Throwable {
-		if(wrappedConstraint != null) {
-			wrappedConstraint.doPost(propertySet, listeners);
-		}
-
-		throw new IllegalPathException();
-	}
-
-	@Override
-	public void doHead() throws Throwable {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
-	public void doOptions() throws Throwable {
-		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
