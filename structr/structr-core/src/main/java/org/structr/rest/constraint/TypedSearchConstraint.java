@@ -20,6 +20,7 @@ import org.structr.core.node.search.SearchAttributeGroup;
 import org.structr.core.node.search.SearchNodeCommand;
 import org.structr.core.node.search.SearchOperator;
 import org.structr.core.node.search.TextualSearchAttribute;
+import org.structr.rest.VetoableGraphObjectListener;
 import org.structr.rest.exception.NoResultsException;
 import org.structr.rest.exception.PathException;
 import org.structr.rest.wrapper.PropertySet;
@@ -39,7 +40,7 @@ public class TypedSearchConstraint extends SortableConstraint {
 	private String searchString = null;
 
 	public TypedSearchConstraint(TypeConstraint typeConstraint, String searchString) {
-
+		this.securityContext = typeConstraint.securityContext;
 		this.typeConstraint = typeConstraint;
 		this.searchString = searchString;
 	}
@@ -55,29 +56,19 @@ public class TypedSearchConstraint extends SortableConstraint {
 		// build search results
 		return getSearchResults(searchString);
 	}
-	
+
 	@Override
-	public void doDelete() throws PathException {
+	public void doPost(PropertySet propertySet, List<VetoableGraphObjectListener> listeners) throws Throwable {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
-	public void doPost(PropertySet propertySet) throws Throwable {
+	public void doHead() throws Throwable {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
-	public void doPut(PropertySet propertySet) throws PathException {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
-	public void doHead() throws PathException {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
-	public void doOptions() throws PathException {
+	public void doOptions() throws Throwable {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 

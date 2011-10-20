@@ -29,7 +29,6 @@ import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.PathException;
-import org.structr.rest.wrapper.PropertySet;
 
 /**
  *
@@ -93,28 +92,14 @@ public class RelationshipConstraint extends WrappingConstraint {
 
 		throw new IllegalPathException();
 	}
+
 	@Override
-	public void doDelete() throws PathException {
+	public void doHead() throws Throwable {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
-	public void doPost(PropertySet propertySet) throws Throwable {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
-	public void doPut(PropertySet propertySet) throws PathException {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
-	public void doHead() throws PathException {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
-	public void doOptions() throws PathException {
+	public void doOptions() throws Throwable {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 

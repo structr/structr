@@ -9,7 +9,10 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
+import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
+import org.structr.rest.VetoableGraphObjectListener;
+import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.PathException;
 import org.structr.rest.wrapper.PropertySet;
 
@@ -26,7 +29,8 @@ public class PagingConstraint extends WrappingConstraint {
 	private int pageSize = 0;
 	private int page = 0;
 
-	public PagingConstraint(int page, int pageSize) {
+	public PagingConstraint(SecurityContext securityContext, int page, int pageSize) {
+		this.securityContext = securityContext;
 		this.page = page;
 		this.pageSize = pageSize;
 	}
@@ -56,28 +60,23 @@ public class PagingConstraint extends WrappingConstraint {
 
 		return results.subList(fromIndex, toIndex);
 	}
+
 	@Override
-	public void doDelete() throws PathException {
+	public void doPost(PropertySet propertySet, List<VetoableGraphObjectListener> listeners) throws Throwable {
+		if(wrappedConstraint != null) {
+			wrappedConstraint.doPost(propertySet, listeners);
+		}
+
+		throw new IllegalPathException();
+	}
+
+	@Override
+	public void doHead() throws Throwable {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
-	public void doPost(PropertySet propertySet) throws Throwable {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
-	public void doPut(PropertySet propertySet) throws PathException {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
-	public void doHead() throws PathException {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
-	public void doOptions() throws PathException {
+	public void doOptions() throws Throwable {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 

@@ -9,6 +9,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
+import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -17,6 +18,7 @@ import org.structr.core.node.search.SearchAttributeGroup;
 import org.structr.core.node.search.SearchNodeCommand;
 import org.structr.core.node.search.SearchOperator;
 import org.structr.core.node.search.TextualSearchAttribute;
+import org.structr.rest.VetoableGraphObjectListener;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NoResultsException;
 import org.structr.rest.exception.PathException;
@@ -35,7 +37,8 @@ public class SearchConstraint extends ResourceConstraint {
 
 	private String searchString = null;
 
-	public SearchConstraint(String searchString) {
+	public SearchConstraint(SecurityContext securityContext, String searchString) {
+		this.securityContext = securityContext;
 		this.searchString = searchString;
 	}
 
@@ -53,28 +56,19 @@ public class SearchConstraint extends ResourceConstraint {
 
 		throw new IllegalPathException();
 	}
+
 	@Override
-	public void doDelete() throws PathException {
+	public void doPost(PropertySet propertySet, List<VetoableGraphObjectListener> listeners) throws Throwable {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
-	public void doPost(PropertySet propertySet) throws Throwable {
+	public void doHead() throws Throwable {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
-	public void doPut(PropertySet propertySet) throws PathException {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
-	public void doHead() throws PathException {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
-	public void doOptions() throws PathException {
+	public void doOptions() throws Throwable {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 

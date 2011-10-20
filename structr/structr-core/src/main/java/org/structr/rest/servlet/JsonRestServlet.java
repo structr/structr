@@ -190,56 +190,9 @@ public class JsonRestServlet extends HttpServlet {
 			ResourceConstraint resourceConstraint = optimizeConstraintChain(parsePath(securityContext, request));
 
 			// do action
-			resourceConstraint.doDelete();
+			resourceConstraint.doDelete(graphObjectListeners);
 
-			/*
-			SecurityContext securityContext = getSecurityContext(request);
-			
-			// obtain results and try to delete
-			Result result = getResults(securityContext, request);
-			if(result != null) {
-
-				final List<GraphObject> results = result.getResults();
-				if(results != null && !results.isEmpty()) {
-
-					Boolean success = (Boolean)Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-						@Override
-						public Object execute() throws Throwable {
-
-							boolean success = true;
-							for(GraphObject obj : results) {
-
-								if(mayDelete(obj, request)) {
-									success &= obj.delete();
-								}
-							}
-
-							// roll back transaction if not all deletions were successful
-							if(!success) {
-								// throwable will cause transaction to be rolled back
-								throw new IllegalStateException("Deletion failed, roll back transaction");
-							}
-
-							return success;
-						}
-
-					});
-
-					// return success
-					if(success.booleanValue()) {
-						response.setStatus(HttpServletResponse.SC_OK);
-						return;
-					}
-
-				} else {
-					throw new NotFoundException();
-				}
-			}
-
-			// return bad request on error
-			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-			*/
+			// TODO: return code
 
 		} catch(PathException pathException) {
 			response.setStatus(pathException.getStatus());
@@ -386,7 +339,7 @@ public class JsonRestServlet extends HttpServlet {
 			if(propertySet != null) {
 
 				// do action
-				resourceConstraint.doPost(propertySet);
+				resourceConstraint.doPost(propertySet, graphObjectListeners);
 
 			} else {
 				
@@ -497,70 +450,7 @@ public class JsonRestServlet extends HttpServlet {
 			final PropertySet propertySet = gson.fromJson(request.getReader(), PropertySet.class);
 
 			// do action
-			resourceConstraint.doPut(propertySet);
-
-			/*
-			SecurityContext securityContext = getSecurityContext(request);
-
-			// evaluate constraint chain
-			ResourceConstraint resourceConstraint = optimizeConstraintChain(parsePath(securityContext, request));
-
-			// parse property set
-			final PropertySet propertySet = gson.fromJson(request.getReader(), PropertySet.class);
-
-			// do action
-			resourceConstraint.doPut(propertySet);
-
-			/*
-			SecurityContext securityContext = getSecurityContext(request);
-
-			// obtain results and try to update
-			Result result = getResults(securityContext, request);
-			if(result != null) {
-
-				final List<GraphObject> results = result.getResults();
-				if(results != null && !results.isEmpty()) {
-
-					StructrTransaction transaction = new StructrTransaction() {
-
-						@Override
-						public Object execute() throws Throwable {
-
-							for(GraphObject obj : results) {
-
-								if(mayModify(obj, request)) {
-
-									for(NodeAttribute attr : propertySet.getAttributes()) {
-										obj.setProperty(attr.getKey(), attr.getValue());
-									}
-								}
-							}
-
-							return null;
-						}
-
-					};
-
-					// modify results in a single transaction
-					Services.command(securityContext, TransactionCommand.class).execute(transaction);
-
-					// if there was an exception, throw it again
-					if(transaction.getCause() != null) {
-						throw transaction.getCause();
-					}
-
-				} else {
-
-					throw new NotFoundException();
-				}
-
-			} else {
-				throw new NotFoundException();
-			}
-
-			// return bad request on error
-			response.setStatus(HttpServletResponse.SC_OK);
-			*/
+			resourceConstraint.doPut(propertySet, graphObjectListeners);
 
 		} catch(IllegalArgumentException illegalArgumentException) {
 
@@ -658,7 +548,7 @@ public class JsonRestServlet extends HttpServlet {
 		// search
 		String searchString = request.getParameter(REQUEST_PARAMETER_SEARCH_STRING);
 		if(searchString != null) {
-			constraintChain.add(new SearchConstraint(searchString));
+			constraintChain.add(new SearchConstraint(securityContext, searchString));
 		}
 
 		// sorting
@@ -670,7 +560,7 @@ public class JsonRestServlet extends HttpServlet {
 				sortOrder = DEFAULT_VALUE_SORT_ORDER;
 			}
 
-			constraintChain.add(new SortConstraint(sortKey, sortOrder));
+			constraintChain.add(new SortConstraint(securityContext, sortKey, sortOrder));
 		}
 
 		// paging
@@ -685,7 +575,7 @@ public class JsonRestServlet extends HttpServlet {
 				throw new IllegalPathException();
 			}
 
-			constraintChain.add(new PagingConstraint(page, pageSize));
+			constraintChain.add(new PagingConstraint(securityContext, page, pageSize));
 		}
 
 		return constraintChain;
@@ -873,30 +763,6 @@ public class JsonRestServlet extends HttpServlet {
 		}
 
 		return newRelationship;
-	}
-
-	private boolean mayModify(GraphObject object, HttpServletRequest request) {
-
-		boolean mayModify = true;
-
-		// only allow modification if all listeners answer with "yes"
-		for(VetoableGraphObjectListener listener : graphObjectListeners) {
-			mayModify &= listener.mayModify(object, request);
-		}
-
-		return mayModify;
-	}
-
-	private boolean mayDelete(GraphObject object, HttpServletRequest request) {
-
-		boolean mayDelete = true;
-
-		// only allow deletion if all listeners answer with "yes"
-		for(VetoableGraphObjectListener listener : graphObjectListeners) {
-			mayDelete &= listener.mayDelete(object, request);
-		}
-
-		return mayDelete;
 	}
 
 	private SecurityContext getSecurityContext(HttpServletRequest request) {

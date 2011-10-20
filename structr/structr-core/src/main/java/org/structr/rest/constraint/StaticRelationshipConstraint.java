@@ -35,6 +35,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
+import org.structr.rest.VetoableGraphObjectListener;
 import org.structr.rest.wrapper.PropertySet;
 
 /**
@@ -47,6 +48,7 @@ public class StaticRelationshipConstraint extends FilterableConstraint {
 	TypeConstraint typeConstraint = null;
 
 	public StaticRelationshipConstraint(TypedIdConstraint typedIdConstraint, TypeConstraint typeConstraint) {
+		this.securityContext = typeConstraint.securityContext;
 		this.typedIdConstraint = typedIdConstraint;
 		this.typeConstraint = typeConstraint;
 	}
@@ -91,13 +93,9 @@ public class StaticRelationshipConstraint extends FilterableConstraint {
 
 		throw new IllegalPathException();
 	}
-	@Override
-	public void doDelete() throws PathException {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
 
 	@Override
-	public void doPost(PropertySet propertySet) throws Throwable {
+	public void doPost(PropertySet propertySet, List<VetoableGraphObjectListener> listeners) throws Throwable {
 
 		final AbstractNode sourceNode = typedIdConstraint.getIdConstraint().getNode();
 		final AbstractNode newNode = typeConstraint.createNode(propertySet);
@@ -127,17 +125,12 @@ public class StaticRelationshipConstraint extends FilterableConstraint {
 	}
 
 	@Override
-	public void doPut(PropertySet propertySet) throws PathException {
+	public void doHead() throws Throwable {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
-	public void doHead() throws PathException {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
-	public void doOptions() throws PathException {
+	public void doOptions() throws Throwable {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 

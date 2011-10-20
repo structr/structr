@@ -19,6 +19,11 @@
 
 package org.structr.rest.constraint;
 
+import java.util.List;
+import org.structr.rest.VetoableGraphObjectListener;
+import org.structr.rest.exception.IllegalPathException;
+import org.structr.rest.wrapper.PropertySet;
+
 /**
  * A resource constraint that implements the generic ability to
  * wrap another constraint.
@@ -28,6 +33,15 @@ package org.structr.rest.constraint;
 public abstract class WrappingConstraint extends ResourceConstraint {
 
 	protected ResourceConstraint wrappedConstraint = null;
+
+	@Override
+	public void doPost(PropertySet propertySet, List<VetoableGraphObjectListener> listeners) throws Throwable {
+		if(wrappedConstraint != null) {
+			wrappedConstraint.doPost(propertySet, listeners);
+		}
+
+		throw new IllegalPathException();
+	}
 
 	protected void wrapConstraint(ResourceConstraint wrappedConstraint) {
 		this.wrappedConstraint = wrappedConstraint;

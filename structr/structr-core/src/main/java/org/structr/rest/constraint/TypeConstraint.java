@@ -22,6 +22,7 @@ import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
 import org.structr.core.node.search.SearchOperator;
 import org.structr.core.node.search.TextualSearchAttribute;
+import org.structr.rest.VetoableGraphObjectListener;
 import org.structr.rest.exception.NoResultsException;
 import org.structr.rest.exception.PathException;
 import org.structr.rest.wrapper.PropertySet;
@@ -82,31 +83,17 @@ public class TypeConstraint extends SortableConstraint {
 	}
 
 	@Override
-	public void doDelete() throws PathException {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-
-	@Override
-	public void doPost(PropertySet propertySet) throws Throwable {
-
-		AbstractNode newNode = createNode(propertySet);
-
-		// TODO: create return value for new node (201 Created with Location Header)
-	}
-
-	@Override
-	public void doPut(PropertySet propertySet) throws PathException {
+	public void doPost(PropertySet propertySet, List<VetoableGraphObjectListener> listeners) throws Throwable {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
-	public void doHead() throws PathException {
+	public void doHead() throws Throwable {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
-	public void doOptions() throws PathException {
+	public void doOptions() throws Throwable {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 

@@ -26,6 +26,7 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.StructrRelationship;
+import org.structr.rest.VetoableGraphObjectListener;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.PathException;
 import org.structr.rest.wrapper.PropertySet;
@@ -89,28 +90,23 @@ public class RelationshipNodeConstraint extends WrappingConstraint {
 
 		throw new IllegalPathException();
 	}
+
 	@Override
-	public void doDelete() throws PathException {
+	public void doPost(PropertySet propertySet, List<VetoableGraphObjectListener> listeners) throws Throwable {
+		if(wrappedConstraint != null) {
+			wrappedConstraint.doPost(propertySet, listeners);
+		}
+
+		throw new IllegalPathException();
+	}
+
+	@Override
+	public void doHead() throws Throwable {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
-	public void doPost(PropertySet propertySet) throws Throwable {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
-	public void doPut(PropertySet propertySet) throws PathException {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
-	public void doHead() throws PathException {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
-	public void doOptions() throws PathException {
+	public void doOptions() throws Throwable {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 

@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.core.GraphObject;
+import org.structr.rest.VetoableGraphObjectListener;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.exception.PathException;
@@ -27,6 +28,7 @@ public class TypedIdConstraint extends FilterableConstraint {
 	private IdConstraint idConstraint = null;
 
 	public TypedIdConstraint(IdConstraint idConstraint, TypeConstraint typeConstraint) {
+		this.securityContext = idConstraint.securityContext;
 		this.typeConstraint = typeConstraint;
 		this.idConstraint = idConstraint;
 	}
@@ -57,27 +59,17 @@ public class TypedIdConstraint extends FilterableConstraint {
 	}
 
 	@Override
-	public void doDelete() throws PathException {
+	public void doPost(PropertySet propertySet, List<VetoableGraphObjectListener> listeners) throws Throwable {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
-	public void doPost(PropertySet propertySet) throws Throwable {
+	public void doHead() throws Throwable {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
-	public void doPut(PropertySet propertySet) throws PathException {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
-	public void doHead() throws PathException {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
-	public void doOptions() throws PathException {
+	public void doOptions() throws Throwable {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 

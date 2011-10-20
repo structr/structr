@@ -19,7 +19,7 @@
 
 package org.structr.rest;
 
-import javax.servlet.http.HttpServletRequest;
+import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 
 /**
@@ -34,6 +34,6 @@ import org.structr.core.GraphObject;
  */
 public interface VetoableGraphObjectListener {
 
-	public boolean mayDelete(GraphObject graphObject, HttpServletRequest request);
-	public boolean mayModify(GraphObject graphObject, HttpServletRequest request);
+	public boolean mayDelete(GraphObject graphObject, SecurityContext securityContext);
+	public boolean mayModify(GraphObject graphObject, SecurityContext securityContext);
 }
