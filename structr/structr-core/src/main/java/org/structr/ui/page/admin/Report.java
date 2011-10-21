@@ -28,6 +28,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.click.Context;
@@ -46,9 +47,11 @@ import org.apache.click.dataprovider.DataProvider;
 import org.apache.click.util.ClickUtils;
 import org.apache.click.util.PropertyUtils;
 import org.apache.commons.io.FileUtils;
+import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.core.node.search.SearchOperator;
 import org.structr.core.Command;
+import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.CustomTypeNode;
 import org.structr.core.entity.AbstractNode;
@@ -461,7 +464,8 @@ public class Report extends Nodes {
         if (c != null) {
 
             // Get all the node property fields
-            java.lang.reflect.Field[] fields = c.getFields();
+            //java.lang.reflect.Field[] fields = c.getFields();
+	    Set<String> fields = EntityContext.getPropertySet(c, PropertyView.All);
             //reportFields.setColumns(fields.length);
 
             AbstractNode o = new CustomTypeNode();
@@ -474,11 +478,12 @@ public class Report extends Nodes {
             }
 
             if (fields != null) {
-                for (java.lang.reflect.Field f : fields) {
-                    String fieldName = null;
-                    try {
+//                for (java.lang.reflect.Field f : fields) {
+                for (String fieldName : fields) {
+                    //String fieldName = null;
+                    //try {
 
-                        fieldName = (String) f.get(o);
+                        //fieldName = (String) f.get(o);
 
                         // Type is already there
                         if (AbstractNode.Key.type.name().equals(fieldName)) {
@@ -518,9 +523,9 @@ public class Report extends Nodes {
 
                         reportForm.add(propertyFields);
 
-                    } catch (Throwable t) {
-                        logger.log(Level.SEVERE, null, t);
-                    }
+//                    } catch (Throwable t) {
+//                        logger.log(Level.SEVERE, null, t);
+//                    }
 
 
 

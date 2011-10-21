@@ -132,9 +132,9 @@ public class SessionMonitor {
 					     "User: " + user.getName() + ", Action: " + action + ", Date: " + now);
 		}
 
-		activity.setProperty(Activity.SESSION_ID_KEY, sessionId);
-		activity.setProperty(Activity.START_TIMESTAMP_KEY, now);
-		activity.setProperty(Activity.END_TIMESTAMP_KEY, now);
+		activity.setProperty(Activity.Key.sessionId.name(), sessionId);
+		activity.setProperty(Activity.Key.startTimestamp.name(), now);
+		activity.setProperty(Activity.Key.endTimestamp.name(), now);
 		activity.setUser(user);
 		getSession(sessionId).setLastActivity(activity);
 		Services.command(securityContext, LogCommand.class).execute(activity);
@@ -188,9 +188,9 @@ public class SessionMonitor {
 			text.append("\"remoteHost\": \"").append(request.getRemoteHost()).append("\"");
 		}
 
-		pageRequest.setProperty(Activity.SESSION_ID_KEY, sessionId);
-		pageRequest.setProperty(Activity.START_TIMESTAMP_KEY, now);
-		pageRequest.setProperty(Activity.END_TIMESTAMP_KEY, now);
+		pageRequest.setProperty(Activity.Key.sessionId.name(), sessionId);
+		pageRequest.setProperty(Activity.Key.startTimestamp.name(), now);
+		pageRequest.setProperty(Activity.Key.endTimestamp.name(), now);
 		pageRequest.setUser(user);
 		text.append("}");
 		pageRequest.setActivityText(text.toString());

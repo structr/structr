@@ -174,26 +174,26 @@ public class Dashboard extends Admin {
 	public Dashboard() {
 
 		super();
-		activitiesTable.addColumn(new Column(Activity.Key.owner.name(),
+		activitiesTable.addColumn(new Column(AbstractNode.Key.owner.name(),
 			"User"));
-		activitiesTable.addColumn(new Column(Activity.Key.nodeId.name()));
-		activitiesTable.addColumn(new Column(Activity.Key.name.name()));
-		activitiesTable.addColumn(new Column(Activity.SESSION_ID_KEY));
-		activitiesTable.addColumn(new Column(Activity.Key.type.name()));
+		activitiesTable.addColumn(new Column(AbstractNode.Key.nodeId.name()));
+		activitiesTable.addColumn(new Column(AbstractNode.Key.name.name()));
+		activitiesTable.addColumn(new Column(Activity.Key.sessionId.name()));
+		activitiesTable.addColumn(new Column(AbstractNode.Key.type.name()));
 
-		Column startTimestampColumn = new Column(Activity.START_TIMESTAMP_KEY,
+		Column startTimestampColumn = new Column(Activity.Key.startTimestamp.name(),
 			"Start");
 
 		startTimestampColumn.setFormat("{0,date,medium} {0,time,medium}");
 		activitiesTable.addColumn(startTimestampColumn);
 
-		Column endTimestampColumn = new Column(Activity.END_TIMESTAMP_KEY,
+		Column endTimestampColumn = new Column(Activity.Key.endTimestamp.name(),
 			"End");
 
 		endTimestampColumn.setFormat("{0,date,medium} {0,time,medium}");
 		activitiesTable.addColumn(endTimestampColumn);
-		activitiesTable.addColumn(new Column(Activity.ACTIVITY_TEXT_KEY));
-		activitiesTable.setSortedColumn(Activity.START_TIMESTAMP_KEY);
+		activitiesTable.addColumn(new Column(Activity.Key.activityText.name()));
+		activitiesTable.setSortedColumn(Activity.Key.startTimestamp.name());
 		activitiesTable.setSortable(true);
 		activitiesTable.setSortedAscending(false);
 		activitiesTable.setPageSize(15);

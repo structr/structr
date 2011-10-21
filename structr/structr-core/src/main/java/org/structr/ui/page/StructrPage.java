@@ -54,8 +54,6 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.servlet.http.HttpSession;
-
 //~--- classes ----------------------------------------------------------------
 
 /**
@@ -138,6 +136,7 @@ public class StructrPage extends Page {
 	protected Long editNodeId;
 	protected boolean editPropertiesAllowed;
 	protected boolean editVisibilityAllowed;
+	@Bindable
 	protected boolean isSuperUser;
 
 	/** current node */
@@ -187,9 +186,10 @@ public class StructrPage extends Page {
 		// userName = (String) getContext().getRequest().getSession().getAttribute(USERNAME_KEY);
 		if (securityContext.getUser() != null) {
 
-			user      = securityContext.getUser();
-			userName  = securityContext.getUserName();
-			sessionId =
+			user        = securityContext.getUser();
+			userName    = securityContext.getUserName();
+			isSuperUser = securityContext.isSuperUser();
+			sessionId   =
 				(Long) getContext().getRequest().getSession().getAttribute(SessionMonitor.SESSION_ID);
 			SessionMonitor.logPageRequest(securityContext,
 						      sessionId,
@@ -215,7 +215,6 @@ public class StructrPage extends Page {
 		super.onInit();
 
 //              CurrentRequest.setCurrentNodePath(nodeId);
-
 		// Catch both, id and path
 		node = getNodeByIdOrPath(nodeId);
 

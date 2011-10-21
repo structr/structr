@@ -152,6 +152,10 @@ public class ShowOperation implements PrimaryOperation, NodeListOperation {
 
 			for(Entry<String, Object> entry : properties.entrySet()) {
 
+				Object value = entry.getValue();
+				
+				if (value == null) value = "null";
+				
 				stdOut.append("<tr>");
 
 				if(firstRow) {
@@ -169,7 +173,7 @@ public class ShowOperation implements PrimaryOperation, NodeListOperation {
 				stdOut.append(entry.getKey());
 				stdOut.append("</td>");
 				stdOut.append("<td class=\"listed-file-id\">");
-				stdOut.append(entry.getValue().toString());
+				stdOut.append(value.toString());
 				stdOut.append("</td>");
 				stdOut.append("</tr>");
 			}

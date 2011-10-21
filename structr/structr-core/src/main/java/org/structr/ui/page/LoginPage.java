@@ -125,7 +125,7 @@ public class LoginPage extends Admin {
 
 			} catch(AuthenticationException aex) {
 
-				// TODO: do logging here instead of on authenticator
+				errorMsg = aex.getMessage();
 				return true;
 			}
 
