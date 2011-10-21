@@ -150,4 +150,12 @@ public class StaticRelationshipConstraint extends FilterableConstraint {
 	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws PathException {
 		return super.tryCombineWith(next);
 	}
+
+	public TypedIdConstraint getTypedIdConstraint() {
+		return typedIdConstraint;
+	}
+
+	public TypeConstraint getTypeConstraint() {
+		return typeConstraint;
+	}
 }

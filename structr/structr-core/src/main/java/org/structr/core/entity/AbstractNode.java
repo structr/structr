@@ -485,6 +485,7 @@ public abstract class AbstractNode
 	@Override
 	public String toString() {
 
+		/*
 		StringBuilder out = new StringBuilder();
 
 		out.append(getName()).append(" [").append(getId()).append("]: ");
@@ -554,10 +555,10 @@ public abstract class AbstractNode
 
 				} else {
 
-					if(!(value.equals(this))) {
+					if(!(value instanceof AbstractNode)) {
 						displayValue = value.toString();
 					} else {
-						displayValue = "this";
+						displayValue = "AbstractNode";
 					}
 				}
 
@@ -568,6 +569,9 @@ public abstract class AbstractNode
 		out.append("{ ").append(StringUtils.join(props.toArray(), " , ")).append(" }");
 
 		return out.toString();
+		 */
+
+		return "AbstractNode";
 	}
 
 	/**
@@ -2857,7 +2861,7 @@ public abstract class AbstractNode
 		return (size);
 	}
 
-	public List<AbstractNode> getTraversalResults(RelationshipType relType, Direction direction, String type) {
+	public Set<AbstractNode> getTraversalResults(RelationshipType relType, Direction direction, String type) {
 
 		// use traverser
 		Iterable<Node> nodes = Traversal.description().breadthFirst().relationships(relType, direction).evaluator(
@@ -2893,7 +2897,7 @@ public abstract class AbstractNode
 
 		// collect results and convert nodes into structr nodes
 		StructrNodeFactory nodeFactory = new StructrNodeFactory<AbstractNode>(securityContext);
-		List<AbstractNode> nodeList = new LinkedList<AbstractNode>();
+		Set<AbstractNode> nodeList = new LinkedHashSet<AbstractNode>();
 		for(Node n : nodes) {
 			nodeList.add(nodeFactory.createNode(securityContext, n, type));
 		}

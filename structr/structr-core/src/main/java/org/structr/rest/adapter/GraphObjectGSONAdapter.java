@@ -27,7 +27,7 @@ import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import java.lang.reflect.Type;
-import java.util.List;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
 import org.neo4j.graphdb.Direction;
@@ -102,9 +102,9 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 
 			Object value = src.getProperty(key);
 
-			if(value instanceof List) {
+			if(value instanceof Collection) {
 
-				List<GraphObject> values = (List<GraphObject>)value;
+				Collection<GraphObject> values = (Collection<GraphObject>)value;
 				JsonArray property = new JsonArray();
 
 				for(GraphObject obj : values) {
@@ -225,10 +225,10 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 			Object value = src.getProperty(key);
 			if(value != null) {
 
-				if(value instanceof List) {
+				if(value instanceof Collection) {
 
 					JsonArray property = new JsonArray();
-					List<GraphObject> values = (List<GraphObject>)value;
+					Collection<GraphObject> values = (Collection<GraphObject>)value;
 					for(GraphObject obj : values) {
 						JsonElement recursiveSerializedValue = this.serializeFlatNameValue(obj, typeOfSrc, context, localPropertyView, depth+1);
 						if(recursiveSerializedValue != null) {

@@ -534,8 +534,14 @@ public class JsonRestServlet extends HttpServlet {
 						found = true;
 					}
 
+				} catch(PathException p) {
+
+					// re-throw any PathException on the way
+					throw p;
+					
 				} catch(Throwable t) {
-					// catch ArrayIndexOutOfRangeExceptions
+
+					// logger.log(Level.WARNING, "Exception while combining constraints", t);
 				}
 			}
 

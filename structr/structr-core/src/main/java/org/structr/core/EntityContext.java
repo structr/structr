@@ -52,10 +52,7 @@ public class EntityContext {
 
 	// ----- static relationship methods -----
 	public static DirectedRelationship getRelation(String sourceType, String destType) {
-
-		// FIXME: using Strings here breaks the type saftey, should use Class instead
-		//        but incompatible with REST TypeConstraint!
-		return getRelationshipMapForType(sourceType).get(destType);
+		return getRelationshipMapForType(sourceType.toLowerCase()).get(destType.toLowerCase());
 	}
 
 	public static DirectedRelationship getRelation(Class sourceType, Class destType) {
