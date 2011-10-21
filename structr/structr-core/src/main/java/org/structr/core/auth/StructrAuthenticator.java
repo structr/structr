@@ -109,7 +109,6 @@ public class StructrAuthenticator implements Authenticator {
 				}
 
 				String encryptedPasswordValue = DigestUtils.sha512Hex(password);
-
 				if (!encryptedPasswordValue.equals(user.getEncryptedPassword())) {
 
 					logger.log(Level.INFO,

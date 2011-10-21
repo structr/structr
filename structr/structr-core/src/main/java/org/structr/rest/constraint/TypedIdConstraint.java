@@ -4,10 +4,12 @@
  */
 package org.structr.rest.constraint;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.core.GraphObject;
+import org.structr.core.entity.AbstractNode;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.VetoableGraphObjectListener;
 import org.structr.rest.exception.IllegalPathException;
@@ -42,17 +44,12 @@ public class TypedIdConstraint extends FilterableConstraint {
 	@Override
 	public List<GraphObject> doGet() throws PathException {
 
-		List<GraphObject> results = idConstraint.doGet();
-		if(results != null) {
+		List<GraphObject> results = new LinkedList<GraphObject>();
+		AbstractNode node = getTypesafeNode();
+		
+		if(node != null) {
 
-			String type = typeConstraint.getType();
-
-			for(GraphObject obj : results) {
-				if(!type.equalsIgnoreCase(obj.getType())) {
-					throw new IllegalPathException();
-				}
-			}
-
+			results.add(node);
 			return results;
 		}
 
@@ -74,6 +71,26 @@ public class TypedIdConstraint extends FilterableConstraint {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
+	public AbstractNode getTypesafeNode() throws PathException {
+		
+		AbstractNode node = idConstraint.getNode();
+		String type = typeConstraint.getType();
+		
+		if(type.equals(node.getType())) {
+			return node;
+		}
+		
+		throw new IllegalPathException();
+	}
+	
+	public TypeConstraint getTypeConstraint() {
+		return typeConstraint;
+	}
+
+	public IdConstraint getIdConstraint() {
+		return idConstraint;
+	}
+
 	@Override
 	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws PathException {
 
@@ -83,16 +100,21 @@ public class TypedIdConstraint extends FilterableConstraint {
 			// => follow predefined statc relationship
 			//    between the two types
 			return new StaticRelationshipConstraint(this, (TypeConstraint)next);
+			
+		} else if(next instanceof TypedIdConstraint) {
+			
+			// TODO:
+			TypedIdConstraint constr1 = this;
+			TypedIdConstraint constr2 = (TypedIdConstraint)next;
+			
+			AbstractNode node1 = constr1.getTypesafeNode();
+			AbstractNode node2 = constr2.getTypesafeNode();
+			
+			// TODO: verify relationship of correct type between the two nodes
+			// 
+			
 		}
 
 		return super.tryCombineWith(next);
-	}
-
-	public TypeConstraint getTypeConstraint() {
-		return typeConstraint;
-	}
-
-	public IdConstraint getIdConstraint() {
-		return idConstraint;
 	}
 }
