@@ -6,19 +6,13 @@ package org.structr.rest.constraint;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.RelationshipType;
-import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.DirectedRelationship;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.VetoableGraphObjectListener;
-import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.exception.PathException;
 import org.structr.rest.wrapper.PropertySet;
@@ -48,7 +42,7 @@ public class TypedIdConstraint extends FilterableConstraint {
 	}
 
 	@Override
-	public List<GraphObject> doGet() throws PathException {
+	public List<GraphObject> doGet(List<VetoableGraphObjectListener> listeners) throws PathException {
 
 		List<GraphObject> results = new LinkedList<GraphObject>();
 		AbstractNode node = getTypesafeNode();
@@ -81,8 +75,8 @@ public class TypedIdConstraint extends FilterableConstraint {
 		
 		AbstractNode node = idConstraint.getNode();
 		String type = typeConstraint.getType();
-		
-		if(type.equalsIgnoreCase(node.getType())) {
+
+		if(node != null && type.equalsIgnoreCase(node.getType())) {
 			return node;
 		}
 
@@ -111,50 +105,12 @@ public class TypedIdConstraint extends FilterableConstraint {
 
 		} else if(next instanceof TypedIdConstraint) {
 
-			return handleNestedIdConstraint((TypedIdConstraint)next);
+			RelationshipFollowingConstraint constraint = new RelationshipFollowingConstraint(securityContext, this);
+			constraint.addTypedIdConstraint((TypedIdConstraint)next);
 
-		} else if(next instanceof StaticRelationshipConstraint) {
-
-			return handleNestedIdConstraint(((StaticRelationshipConstraint)next).getTypedIdConstraint());
+			return constraint;
 		}
 
 		return super.tryCombineWith(next);
-	}
-
-	// ----- private methods -----
-	private ResourceConstraint handleNestedIdConstraint(TypedIdConstraint next) throws PathException {
-
-		AbstractNode node1 = this.getTypesafeNode();
-		AbstractNode node2 = next.getTypesafeNode();
-
-		String type1 = node1.getType();
-		String type2 = node2.getType();
-
-		// TODO: verify relationship of correct type between the two nodes
-		DirectedRelationship rel = EntityContext.getRelation(type1, type2);
-		if(rel != null) {
-
-			RelationshipType relType = rel.getRelType();
-			Direction direction = rel.getDirection();
-
-			// use hash code for fast identification
-			Set<AbstractNode> relatedNodes = node1.getTraversalResults(relType, direction, type2);
-			if(relatedNodes.contains(node2)) {
-
-				// if a relationship exists, this constraint combination
-				// is valid and we can remove the preceding constraint
-				// from the list. (thus we return next)
-
-				// this is the place where a nested path can be constructed
-				// constr2.addPathElement(....);
-
-				return next;
-			}
-		}
-
-		logger.log(Level.WARNING, "No relationship found between {0} and {1}, throwing 404", new Object[] { node1.getId(), node2.getId() } );
-
-		throw new NotFoundException();
-
 	}
 }

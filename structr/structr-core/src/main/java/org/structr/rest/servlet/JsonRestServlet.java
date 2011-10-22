@@ -53,6 +53,7 @@ import org.structr.rest.VetoableGraphObjectListener;
 import org.structr.rest.adapter.PropertySetGSONAdapter;
 import org.structr.rest.adapter.ResultGSONAdapter;
 import org.structr.rest.constraint.PagingConstraint;
+import org.structr.rest.constraint.RelationshipFollowingConstraint;
 import org.structr.rest.constraint.ResourceConstraint;
 import org.structr.rest.constraint.Result;
 import org.structr.rest.constraint.SearchConstraint;
@@ -216,7 +217,7 @@ public class JsonRestServlet extends HttpServlet {
 			double queryTimeEnd = System.nanoTime();
 
 			// create result set
-			Result result = new Result(resourceConstraint.doGet());
+			Result result = new Result(resourceConstraint.doGet(graphObjectListeners));
 			if(result != null) {
 
 				DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
@@ -532,6 +533,11 @@ public class JsonRestServlet extends HttpServlet {
 
 						// signal success
 						found = true;
+
+						// 
+						if(combinedConstraint instanceof RelationshipFollowingConstraint) {
+							break;
+						}
 					}
 
 				} catch(PathException p) {

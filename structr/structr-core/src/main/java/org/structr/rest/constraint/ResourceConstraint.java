@@ -34,18 +34,19 @@ public abstract class ResourceConstraint {
 
 	protected SecurityContext securityContext = null;
 
-	public abstract List<GraphObject> doGet() throws PathException;
+	public abstract boolean checkAndConfigure(String part, HttpServletRequest request);
+
+	public abstract List<GraphObject> doGet(List<VetoableGraphObjectListener> listeners) throws PathException;
 	public abstract RestMethodResult doPost(final PropertySet propertySet, final List<VetoableGraphObjectListener> listeners) throws Throwable;
 	public abstract RestMethodResult doHead() throws Throwable;
 	public abstract RestMethodResult doOptions() throws Throwable;
 
-	public abstract boolean checkAndConfigure(String part, HttpServletRequest request);
 	public abstract ResourceConstraint tryCombineWith(ResourceConstraint next) throws PathException;
 
 	// ----- methods -----
 	public final RestMethodResult doPut(final PropertySet propertySet, final List<VetoableGraphObjectListener> listeners) throws Throwable {
 
-		final List<GraphObject> results = doGet();
+		final List<GraphObject> results = doGet(listeners);
 		if(results != null && !results.isEmpty()) {
 
 			StructrTransaction transaction = new StructrTransaction() {
@@ -84,7 +85,7 @@ public abstract class ResourceConstraint {
 
 	public final RestMethodResult doDelete(final List<VetoableGraphObjectListener> listeners) throws Throwable {
 
-		final List<GraphObject> results = doGet();
+		final List<GraphObject> results = doGet(listeners);
 		if(results != null && !results.isEmpty()) {
 
 			Boolean success = (Boolean)Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
@@ -153,6 +154,12 @@ public abstract class ResourceConstraint {
 		}
 
 		return mayDelete;
+	}
+
+	protected void notifyOfTraversal(List<VetoableGraphObjectListener> listeners, List<GraphObject> traversedNodes) {
+		for(VetoableGraphObjectListener listener : listeners) {
+			listener.notifyOfTraversal(traversedNodes, securityContext);
+		}
 	}
 
 	protected String buildCreatedURI(HttpServletRequest request, String type, long id) {

@@ -56,9 +56,9 @@ public class StaticRelationshipConstraint extends FilterableConstraint {
 	}
 
 	@Override
-	public List<GraphObject> doGet() throws PathException {
+	public List<GraphObject> doGet(List<VetoableGraphObjectListener> listeners) throws PathException {
 
-		List<GraphObject> results = typedIdConstraint.doGet();
+		List<GraphObject> results = typedIdConstraint.doGet(listeners);
 		if(results != null) {
 
 			// get source and target type from previous constraints
@@ -72,16 +72,15 @@ public class StaticRelationshipConstraint extends FilterableConstraint {
 				LinkedList<GraphObject> transformedResults = new LinkedList<GraphObject>();
 				for(GraphObject obj : results) {
 
+					List<StructrRelationship> rels = obj.getRelationships(staticRel.getRelType(), staticRel.getDirection());
 					if(staticRel.getDirection().equals(Direction.INCOMING)) {
 
-						List<StructrRelationship> rels = obj.getRelationships(staticRel.getRelType(), staticRel.getDirection());
 						for(StructrRelationship rel : rels) {
 							transformedResults.add(rel.getStartNode());
 						}
 
 					} else {
 
-						List<StructrRelationship> rels = obj.getRelationships(staticRel.getRelType(), staticRel.getDirection());
 						for(StructrRelationship rel : rels) {
 							transformedResults.add(rel.getEndNode());
 						}
@@ -106,14 +105,18 @@ public class StaticRelationshipConstraint extends FilterableConstraint {
 		if(sourceNode != null && newNode != null && rel != null) {
 
 			final RelationshipType relType = rel.getRelType();
+			final Direction direction = rel.getDirection();
 
 			// create transaction closure
 			StructrTransaction transaction = new StructrTransaction() {
 
 				@Override
 				public Object execute() throws Throwable {
-
-					return Services.command(securityContext, CreateRelationshipCommand.class).execute(sourceNode, newNode, relType);
+					if(direction.equals(Direction.OUTGOING)) {
+						return Services.command(securityContext, CreateRelationshipCommand.class).execute(sourceNode, newNode, relType);
+					} else {
+						return Services.command(securityContext, CreateRelationshipCommand.class).execute(newNode, sourceNode, relType);
+					}
 				}
 			};
 

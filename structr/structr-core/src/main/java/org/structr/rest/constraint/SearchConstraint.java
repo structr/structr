@@ -49,7 +49,7 @@ public class SearchConstraint extends ResourceConstraint {
 	}
 
 	@Override
-	public List<GraphObject> doGet() throws PathException {
+	public List<GraphObject> doGet(List<VetoableGraphObjectListener> listeners) throws PathException {
 
 		if(searchString != null) {
 			return getSearchResults(searchString);

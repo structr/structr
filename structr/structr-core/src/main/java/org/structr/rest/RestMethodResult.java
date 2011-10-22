@@ -41,6 +41,7 @@ public class RestMethodResult {
 
 	public RestMethodResult(int responseCode) {
 		headers = new LinkedHashMap<String, String>();
+		this.responseCode = responseCode;
 	}
 
 	public void addHeader(String key, String value) {

@@ -56,7 +56,7 @@ public class IdConstraint extends FilterableConstraint {
 	}
 
 	@Override
-	public List<GraphObject> doGet() throws PathException {
+	public List<GraphObject> doGet(List<VetoableGraphObjectListener> listeners) throws PathException {
 
 		GraphObject obj = getNode();
 		if(obj != null) {

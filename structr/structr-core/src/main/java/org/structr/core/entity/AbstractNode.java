@@ -1873,7 +1873,7 @@ public abstract class AbstractNode
 		Object value = null;
 
 		// check for static relationships and return related nodes
-		String singularType = (key.endsWith("ies") ? key.substring(0, key.length()-3) : (key.endsWith("s") ? key.substring(0, key.length()-1) : key));
+		String singularType = (key.endsWith("ies") ? key.substring(0, key.length()-3).concat("y") : (key.endsWith("s") ? key.substring(0, key.length()-1) : key));
 		if(EntityContext.getRelations(type).containsKey(singularType)) {
 
 			// static relationship detected, return related nodes
@@ -2861,7 +2861,7 @@ public abstract class AbstractNode
 		return (size);
 	}
 
-	public Set<AbstractNode> getTraversalResults(RelationshipType relType, Direction direction, String type) {
+	public Set<AbstractNode> getTraversalResults(final RelationshipType relType, final Direction direction, final String type) {
 
 		// use traverser
 		Iterable<Node> nodes = Traversal.description().breadthFirst().relationships(relType, direction).evaluator(
@@ -2883,7 +2883,14 @@ public abstract class AbstractNode
 
 						} else {
 
-							return Evaluation.INCLUDE_AND_CONTINUE;
+							Node currentNode = path.endNode();
+							if(currentNode.hasProperty(AbstractNode.Key.type.name())) {
+
+								String nodeType = (String)currentNode.getProperty(AbstractNode.Key.type.name());
+								if(type.equals(nodeType)) {
+									return Evaluation.INCLUDE_AND_CONTINUE;
+								}
+							}
 						}
 					}
 
@@ -2893,7 +2900,6 @@ public abstract class AbstractNode
 			}
 
 		).traverse(this.getNode()).nodes();
-
 
 		// collect results and convert nodes into structr nodes
 		StructrNodeFactory nodeFactory = new StructrNodeFactory<AbstractNode>(securityContext);
@@ -3837,9 +3843,12 @@ public abstract class AbstractNode
 			return;
 		}
 
+
+		// TODO: add setProperty function for entities here!
+
+
 		Class type = this.getClass();
 
-		// TODO: implement converters here?
 		PropertyConverter converter = EntityContext.getPropertyConverter(securityContext,
 			type,
 			key);

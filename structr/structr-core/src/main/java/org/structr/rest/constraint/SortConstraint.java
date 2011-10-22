@@ -12,6 +12,7 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
+import org.structr.rest.VetoableGraphObjectListener;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.PathException;
 import org.structr.rest.servlet.JsonRestServlet;
@@ -43,11 +44,11 @@ public class SortConstraint extends WrappingConstraint {
 	}
 	
 	@Override
-	public List<GraphObject> doGet() throws PathException {
+	public List<GraphObject> doGet(List<VetoableGraphObjectListener> listeners) throws PathException {
 
 		if(wrappedConstraint != null) {
 			
-			List<GraphObject> results = wrappedConstraint.doGet();
+			List<GraphObject> results = wrappedConstraint.doGet(listeners);
 			Comparator<GraphObject> comparator = null;
 
 			try {

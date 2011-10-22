@@ -53,9 +53,9 @@ public class RelationshipNodeConstraint extends WrappingConstraint {
 	}
 
 	@Override
-	public List<GraphObject> doGet() throws PathException {
+	public List<GraphObject> doGet(List<VetoableGraphObjectListener> listeners) throws PathException {
 
-		List<GraphObject> results = wrappedConstraint.doGet();
+		List<GraphObject> results = wrappedConstraint.doGet(listeners);
 		if(results != null) {
 
 			try {

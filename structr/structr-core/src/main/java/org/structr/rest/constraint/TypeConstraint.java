@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang.StringUtils;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
@@ -53,7 +54,7 @@ public class TypeConstraint extends SortableConstraint {
 	}
 
 	@Override
-	public List<GraphObject> doGet() throws PathException {
+	public List<GraphObject> doGet(List<VetoableGraphObjectListener> listeners) throws PathException {
 
 		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 		AbstractNode topNode = null;
@@ -85,7 +86,13 @@ public class TypeConstraint extends SortableConstraint {
 
 	@Override
 	public RestMethodResult doPost(PropertySet propertySet, List<VetoableGraphObjectListener> listeners) throws Throwable {
-		throw new UnsupportedOperationException("Not supported yet.");
+
+		createNode(propertySet);
+
+		// TODO: set location header
+		RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_CREATED);
+		// FIXME: result.addHeader("Location", buildCreatedURI(request, newNode.getType(), newNode.getId()));
+		return result;
 	}
 
 	@Override

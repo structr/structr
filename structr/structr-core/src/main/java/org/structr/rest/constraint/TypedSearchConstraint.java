@@ -52,7 +52,7 @@ public class TypedSearchConstraint extends SortableConstraint {
 	}
 
 	@Override
-	public List<GraphObject> doGet() throws PathException {
+	public List<GraphObject> doGet(List<VetoableGraphObjectListener> listeners) throws PathException {
 
 		// build search results
 		return getSearchResults(searchString);
