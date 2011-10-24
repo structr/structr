@@ -45,6 +45,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.core.Value;
+import org.structr.core.node.NodeAttribute;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.PathException;
 import org.structr.rest.ResourceConstraintProvider;
@@ -335,8 +336,14 @@ public class JsonRestServlet extends HttpServlet {
 			List<ResourceConstraint> chain = parsePath(securityContext, request);
 			ResourceConstraint resourceConstraint = optimizeConstraintChain(chain);
 
+			// create Map with properties
+			Map<String, Object> properties = new LinkedHashMap<String, Object>();
+			for(NodeAttribute attr : propertySet.getAttributes()) {
+				properties.put(attr.getKey(), attr.getValue());
+			}
+
 			// do action
-			RestMethodResult result = resourceConstraint.doPost(propertySet, graphObjectListeners);
+			RestMethodResult result = resourceConstraint.doPost(properties, graphObjectListeners);
 			result.commitResponse(response);
 
 			
@@ -363,7 +370,6 @@ public class JsonRestServlet extends HttpServlet {
 
 		try {
 
-
 			final PropertySet propertySet = gson.fromJson(request.getReader(), PropertySet.class);
 			SecurityContext securityContext = getSecurityContext(request);
 
@@ -371,8 +377,14 @@ public class JsonRestServlet extends HttpServlet {
 			List<ResourceConstraint> chain = parsePath(securityContext, request);
 			ResourceConstraint resourceConstraint = optimizeConstraintChain(chain);
 
+			// create Map with properties
+			Map<String, Object> properties = new LinkedHashMap<String, Object>();
+			for(NodeAttribute attr : propertySet.getAttributes()) {
+				properties.put(attr.getKey(), attr.getValue());
+			}
+
 			// do action
-			RestMethodResult result = resourceConstraint.doPut(propertySet, graphObjectListeners);
+			RestMethodResult result = resourceConstraint.doPut(properties, graphObjectListeners);
 			result.commitResponse(response);
 
 

@@ -21,6 +21,7 @@ package org.structr.rest.constraint;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.neo4j.graphdb.Direction;
@@ -38,7 +39,6 @@ import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.VetoableGraphObjectListener;
-import org.structr.rest.wrapper.PropertySet;
 
 /**
  *
@@ -96,7 +96,7 @@ public class StaticRelationshipConstraint extends FilterableConstraint {
 	}
 
 	@Override
-	public RestMethodResult doPost(PropertySet propertySet, List<VetoableGraphObjectListener> listeners) throws Throwable {
+	public RestMethodResult doPost(Map<String, Object> propertySet, List<VetoableGraphObjectListener> listeners) throws Throwable {
 
 		final AbstractNode sourceNode = typedIdConstraint.getIdConstraint().getNode();
 		final AbstractNode newNode = typeConstraint.createNode(propertySet);

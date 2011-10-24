@@ -55,7 +55,6 @@ import org.structr.common.TemplateHelper;
 import org.structr.common.renderer.DefaultEditRenderer;
 import org.structr.common.renderer.RenderContext;
 import org.structr.common.renderer.RenderController;
-import org.structr.core.Command;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.NodeRenderer;
@@ -76,7 +75,6 @@ import org.structr.core.node.NodeFactoryCommand;
 import org.structr.core.node.NodeRelationshipStatisticsCommand;
 import org.structr.core.node.NodeRelationshipsCommand;
 import org.structr.core.node.SetOwnerCommand;
-import org.structr.core.node.StructrNodeFactory;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 import org.structr.core.node.XPath;
@@ -109,6 +107,7 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import org.structr.core.Command;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -214,9 +213,9 @@ public abstract class AbstractNode
 
 	public static enum Key implements PropertyKey {
 
-		name, type, nodeId, createdBy, createdDate, deleted, hidden, lastModifiedDate, position,
-		visibleToPublicUsers, title, titles, visibilityEndDate, visibilityStartDate,
-		visibleToAuthenticatedUsers, templateId, categories, ownerId, owner;
+		name, type, nodeId, createdBy, createdDate, deleted, hidden, lastModifiedDate, position, visibleToPublicUsers,
+		title, titles, visibilityEndDate, visibilityStartDate, visibleToAuthenticatedUsers, templateId,
+		categories, ownerId, owner;
 	}
 
 	//~--- constructors ---------------------------------------------------
@@ -486,90 +485,91 @@ public abstract class AbstractNode
 	public String toString() {
 
 		/*
-		 * StringBuilder out = new StringBuilder();
-		 *
-		 * out.append(getName()).append(" [").append(getId()).append("]: ");
-		 *
-		 * List<String> props = new LinkedList<String>();
-		 *
-		 * for (String key : getPropertyKeys()) {
-		 *
-		 *       Object value = getProperty(key);
-		 *
-		 *       if (value != null) {
-		 *
-		 *               String displayValue = "";
-		 *
-		 *               if (value.getClass().isPrimitive()) {
-		 *                       displayValue = value.toString();
-		 *               } else if (value.getClass().isArray()) {
-		 *
-		 *                       if (value instanceof byte[]) {
-		 *                               displayValue = new String((byte[]) value);
-		 *                       } else if (value instanceof char[]) {
-		 *                               displayValue = new String((char[]) value);
-		 *                       } else if (value instanceof double[]) {
-		 *
-		 *                               Double[] values = ArrayUtils.toObject((double[]) value);
-		 *
-		 *                               displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
-		 *
-		 *                       } else if (value instanceof float[]) {
-		 *
-		 *                               Float[] values = ArrayUtils.toObject((float[]) value);
-		 *
-		 *                               displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
-		 *
-		 *                       } else if (value instanceof short[]) {
-		 *
-		 *                               Short[] values = ArrayUtils.toObject((short[]) value);
-		 *
-		 *                               displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
-		 *
-		 *                       } else if (value instanceof long[]) {
-		 *
-		 *                               Long[] values = ArrayUtils.toObject((long[]) value);
-		 *
-		 *                               displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
-		 *
-		 *                       } else if (value instanceof int[]) {
-		 *
-		 *                               Integer[] values = ArrayUtils.toObject((int[]) value);
-		 *
-		 *                               displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
-		 *
-		 *                       } else if (value instanceof boolean[]) {
-		 *
-		 *                               Boolean[] values = (Boolean[]) value;
-		 *
-		 *                               displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
-		 *
-		 *                       } else if (value instanceof byte[]) {
-		 *                               displayValue = new String((byte[]) value);
-		 *                       } else {
-		 *
-		 *                               Object[] values = (Object[]) value;
-		 *
-		 *                               displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
-		 *                       }
-		 *
-		 *               } else {
-		 *
-		 *                       if(!(value instanceof AbstractNode)) {
-		 *                               displayValue = value.toString();
-		 *                       } else {
-		 *                               displayValue = "AbstractNode";
-		 *                       }
-		 *               }
-		 *
-		 *               props.add("\"" + key + "\"" + " : " + "\"" + displayValue + "\"");
-		 *       }
-		 * }
-		 *
-		 * out.append("{ ").append(StringUtils.join(props.toArray(), " , ")).append(" }");
-		 *
-		 * return out.toString();
+		StringBuilder out = new StringBuilder();
+
+		out.append(getName()).append(" [").append(getId()).append("]: ");
+
+		List<String> props = new LinkedList<String>();
+
+		for (String key : getPropertyKeys()) {
+
+			Object value = getProperty(key);
+
+			if (value != null) {
+
+				String displayValue = "";
+
+				if (value.getClass().isPrimitive()) {
+					displayValue = value.toString();
+				} else if (value.getClass().isArray()) {
+
+					if (value instanceof byte[]) {
+						displayValue = new String((byte[]) value);
+					} else if (value instanceof char[]) {
+						displayValue = new String((char[]) value);
+					} else if (value instanceof double[]) {
+
+						Double[] values = ArrayUtils.toObject((double[]) value);
+
+						displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
+
+					} else if (value instanceof float[]) {
+
+						Float[] values = ArrayUtils.toObject((float[]) value);
+
+						displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
+
+					} else if (value instanceof short[]) {
+
+						Short[] values = ArrayUtils.toObject((short[]) value);
+
+						displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
+
+					} else if (value instanceof long[]) {
+
+						Long[] values = ArrayUtils.toObject((long[]) value);
+
+						displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
+
+					} else if (value instanceof int[]) {
+
+						Integer[] values = ArrayUtils.toObject((int[]) value);
+
+						displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
+
+					} else if (value instanceof boolean[]) {
+
+						Boolean[] values = (Boolean[]) value;
+
+						displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
+
+					} else if (value instanceof byte[]) {
+						displayValue = new String((byte[]) value);
+					} else {
+
+						Object[] values = (Object[]) value;
+
+						displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
+					}
+
+				} else {
+
+					if(!(value instanceof AbstractNode)) {
+						displayValue = value.toString();
+					} else {
+						displayValue = "AbstractNode";
+					}
+				}
+
+				props.add("\"" + key + "\"" + " : " + "\"" + displayValue + "\"");
+			}
+		}
+
+		out.append("{ ").append(StringUtils.join(props.toArray(), " , ")).append(" }");
+
+		return out.toString();
 		 */
+
 		return "AbstractNode";
 	}
 
@@ -1868,30 +1868,38 @@ public abstract class AbstractNode
 	@Override
 	public Object getProperty(final String key) {
 
-		Class type   = this.getClass();
-		Object value = null;
+		boolean idRequested     = false;
+		Object value            = null;
+		Class type              = this.getClass();
+
+		// ----- BEGIN automatic property resolution -----
 
 		// check for static relationships and return related nodes
-		String singularType = (key.endsWith("ies")
-				       ? key.substring(0,
-			key.length() - 3).concat("y")
-				       : (key.endsWith("s")
-					  ? key.substring(0,
-			key.length() - 1)
-					  : key));
+		String singularType = getSingularTypeName(key);
+		if(key.endsWith("Id")) {
 
-		if (EntityContext.getRelations(type).containsKey(singularType)) {
+			// remove "Id" from the end of the value and set "id requested"-flag
+			singularType = singularType.substring(0, singularType.length() - 2);
+			idRequested = true;
+		}
+
+		if(singularType != null && EntityContext.getRelations(type).containsKey(singularType)) {
 
 			// static relationship detected, return related nodes
+			// (we omit null check here because containsKey ensures that rel is not null)
 			DirectedRelationship rel = EntityContext.getRelations(type).get(singularType);
-
-			if (rel != null) {
-
-				return getTraversalResults(rel.getRelType(),
-							   rel.getDirection(),
-							   StringUtils.capitalize(singularType));
+			if(idRequested) {
+				AbstractNode node = rel.getRelatedNode(securityContext, this, singularType);
+				if(node != null) {
+					return node.getId();
+				} else {
+					// TODO: handle "not found"..
+				}
+			} else {
+				return rel.getRelatedNodes(securityContext, this, singularType);
 			}
 		}
+		// ----- END automatic property resolution -----
 
 		if (isDirty) {
 			value = properties.get(key);
@@ -1900,12 +1908,10 @@ public abstract class AbstractNode
 		// Temporary hook for format conversion introduced with 0.4.3-SNAPSHOT:
 		// public -> visibleToPublicUsers (due to usage of enum Permission public instead of public static final String PUBLIC = "public"
 		// TODO: remove this hook if you can be absolutely sure that no old repository is in use anymore!
-		if (key.equals(Key.visibleToPublicUsers.name())
-			&& (dbNode.hasProperty("public") || dbNode.hasProperty("isPublic"))) {
+		if (key.equals(Key.visibleToPublicUsers.name()) && dbNode.hasProperty("public")) {
 
-			final Object oldValue          = dbNode.hasProperty("public")
-							 ? dbNode.getProperty("public")
-							 : dbNode.getProperty("isPublic");
+			final Object oldValue = dbNode.getProperty("public");
+
 			StructrTransaction transaction = new StructrTransaction() {
 
 				@Override
@@ -1913,14 +1919,7 @@ public abstract class AbstractNode
 
 					dbNode.setProperty(Key.visibleToPublicUsers.name(),
 							   oldValue);
-
-					if (dbNode.hasProperty("public")) {
-						dbNode.removeProperty("public");
-					}
-
-					if (dbNode.hasProperty("isPublic")) {
-						dbNode.removeProperty("isPublic");
-					}
+					dbNode.removeProperty("public");
 
 					return null;
 				}
@@ -1937,6 +1936,7 @@ public abstract class AbstractNode
 					   "Error while setting property",
 					   transaction.getCause());
 			}
+
 		}
 
 		if ((key != null) && dbNode.hasProperty(key)) {
@@ -2879,58 +2879,6 @@ public abstract class AbstractNode
 		return (size);
 	}
 
-	public Set<AbstractNode> getTraversalResults(final RelationshipType relType, final Direction direction,
-		final String type) {
-
-		// use traverser
-		Iterable<Node> nodes = Traversal.description().breadthFirst().relationships(relType,
-			direction).evaluator(new Evaluator() {
-
-			@Override
-			public Evaluation evaluate(Path path) {
-
-				int len = path.length();
-
-				if (len <= 1) {
-
-					if (len == 0) {
-
-						// do not include start node (which is the
-						// index node in this case), but continue
-						// traversal
-						return Evaluation.EXCLUDE_AND_CONTINUE;
-					} else {
-
-						Node currentNode = path.endNode();
-
-						if (currentNode.hasProperty(AbstractNode.Key.type.name())) {
-
-							String nodeType = (String) currentNode.getProperty(
-									      AbstractNode.Key.type.name());
-
-							if (type.equals(nodeType)) {
-								return Evaluation.INCLUDE_AND_CONTINUE;
-							}
-						}
-					}
-				}
-
-				return Evaluation.EXCLUDE_AND_PRUNE;
-			}
-
-		}).traverse(this.getNode()).nodes();
-
-		// collect results and convert nodes into structr nodes
-		StructrNodeFactory nodeFactory = new StructrNodeFactory<AbstractNode>(securityContext);
-		Set<AbstractNode> nodeList     = new LinkedHashSet<AbstractNode>();
-
-		for (Node n : nodes) {
-			nodeList.add(nodeFactory.createNode(securityContext, n, type));
-		}
-
-		return nodeList;
-	}
-
 	/**
 	 * Return unordered list of all direct child nodes (no recursion)
 	 * with given relationship type
@@ -3719,10 +3667,10 @@ public abstract class AbstractNode
 			    position);
 	}
 
-	public void setVisibleToPublicUsers(final boolean flag) {
+	public void setVisibleToPublicUsers(final boolean publicFlag) {
 
 		setProperty(Key.visibleToPublicUsers.name(),
-			    flag);
+			    publicFlag);
 	}
 
 	public void setVisibleToAuthenticatedUsers(final boolean flag) {
@@ -3855,6 +3803,8 @@ public abstract class AbstractNode
 	 */
 	public void setProperty(final String key, final Object value, final boolean updateIndex) {
 
+		Class type      = this.getClass();
+
 		if (key == null) {
 
 			logger.log(Level.SEVERE,
@@ -3863,8 +3813,24 @@ public abstract class AbstractNode
 			return;
 		}
 
-		// TODO: add setProperty function for entities here!
-		Class type                  = this.getClass();
+		String singularType = getSingularTypeName(key);
+		if(key.endsWith("Id")) {
+			singularType = singularType.substring(0, singularType.length() - 2);
+		}
+
+		// check for static relationships and connect node
+		if(EntityContext.getRelations(type).containsKey(singularType)) {
+
+			// static relationship detected, create relationship
+			DirectedRelationship rel = EntityContext.getRelations(type).get(singularType);
+			if(rel != null) {
+
+				// FIXME: return here, or do something else?
+				rel.createRelationship(securityContext, this, value);
+				return;
+			}
+		}
+
 		PropertyConverter converter = EntityContext.getPropertyConverter(securityContext,
 			type,
 			key);
@@ -4005,6 +3971,10 @@ public abstract class AbstractNode
 		setOwner.execute(this,
 				 Services.command(securityContext, FindNodeCommand.class).execute(new SuperUser(),
 						  nodeId));
+	}
+
+	private String getSingularTypeName(String key) {
+		return (key.endsWith("ies") ? key.substring(0, key.length()-3).concat("y") : (key.endsWith("s") ? key.substring(0, key.length()-1) : key));
 	}
 
 	//~--- inner classes --------------------------------------------------

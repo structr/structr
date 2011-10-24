@@ -21,6 +21,7 @@ package org.structr.rest.constraint;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
@@ -30,7 +31,6 @@ import org.structr.rest.RestMethodResult;
 import org.structr.rest.VetoableGraphObjectListener;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.PathException;
-import org.structr.rest.wrapper.PropertySet;
 
 /**
  *
@@ -93,7 +93,7 @@ public class RelationshipNodeConstraint extends WrappingConstraint {
 	}
 
 	@Override
-	public RestMethodResult doPost(PropertySet propertySet, List<VetoableGraphObjectListener> listeners) throws Throwable {
+	public RestMethodResult doPost(Map<String, Object> propertySet, List<VetoableGraphObjectListener> listeners) throws Throwable {
 		if(wrappedConstraint != null) {
 			return wrappedConstraint.doPost(propertySet, listeners);
 		}

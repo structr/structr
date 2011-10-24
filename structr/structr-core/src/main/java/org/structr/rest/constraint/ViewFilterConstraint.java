@@ -20,6 +20,7 @@
 package org.structr.rest.constraint;
 
 import java.util.List;
+import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.PropertyView;
@@ -29,7 +30,6 @@ import org.structr.rest.RestMethodResult;
 import org.structr.rest.VetoableGraphObjectListener;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.PathException;
-import org.structr.rest.wrapper.PropertySet;
 
 /**
  * A resource constraint whose only purpose is to configure the
@@ -73,7 +73,7 @@ public class ViewFilterConstraint extends WrappingConstraint {
 	}
 
 	@Override
-	public RestMethodResult doPost(PropertySet propertySet, List<VetoableGraphObjectListener> listeners) throws Throwable {
+	public RestMethodResult doPost(Map<String, Object> propertySet, List<VetoableGraphObjectListener> listeners) throws Throwable {
 		if(wrappedConstraint != null) {
 			return wrappedConstraint.doPost(propertySet, listeners);
 		}

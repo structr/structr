@@ -6,6 +6,7 @@ package org.structr.rest.constraint;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
@@ -15,7 +16,6 @@ import org.structr.rest.RestMethodResult;
 import org.structr.rest.VetoableGraphObjectListener;
 import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.exception.PathException;
-import org.structr.rest.wrapper.PropertySet;
 
 /**
  * Represents a type-constrained ID match. A TypedIdConstraint will always
@@ -57,7 +57,7 @@ public class TypedIdConstraint extends FilterableConstraint {
 	}
 
 	@Override
-	public RestMethodResult doPost(PropertySet propertySet, List<VetoableGraphObjectListener> listeners) throws Throwable {
+	public RestMethodResult doPost(Map<String, Object> propertySet, List<VetoableGraphObjectListener> listeners) throws Throwable {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
@@ -80,7 +80,6 @@ public class TypedIdConstraint extends FilterableConstraint {
 			return node;
 		}
 
-		logger.log(Level.WARNING, "Path rejected because of type mismatch. Expected {0}, encountered {1}", new Object[] { type, node.getType() } );
 		
 		throw new NotFoundException();
 	}

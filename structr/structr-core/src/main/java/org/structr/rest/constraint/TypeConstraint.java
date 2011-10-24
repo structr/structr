@@ -6,6 +6,7 @@ package org.structr.rest.constraint;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
@@ -16,7 +17,6 @@ import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.node.CreateValidatedNodeCommand;
-import org.structr.core.node.NodeAttribute;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 import org.structr.core.node.search.SearchAttribute;
@@ -27,7 +27,6 @@ import org.structr.rest.RestMethodResult;
 import org.structr.rest.VetoableGraphObjectListener;
 import org.structr.rest.exception.NoResultsException;
 import org.structr.rest.exception.PathException;
-import org.structr.rest.wrapper.PropertySet;
 
 /**
  * Represents a bulk type match. A TypeConstraint will always result in a
@@ -85,7 +84,7 @@ public class TypeConstraint extends SortableConstraint {
 	}
 
 	@Override
-	public RestMethodResult doPost(PropertySet propertySet, List<VetoableGraphObjectListener> listeners) throws Throwable {
+	public RestMethodResult doPost(Map<String, Object> propertySet, List<VetoableGraphObjectListener> listeners) throws Throwable {
 
 		createNode(propertySet);
 
@@ -123,10 +122,9 @@ public class TypeConstraint extends SortableConstraint {
 		}
 	}
 
-	public AbstractNode createNode(PropertySet propertySet) throws Throwable {
+	public AbstractNode createNode(final Map<String, Object> propertySet) throws Throwable {
 
-		final List<NodeAttribute> attributes = propertySet.getAttributes();
-		attributes.add(new NodeAttribute(AbstractNode.Key.type.name(), StringUtils.capitalize(type)));
+		propertySet.put(AbstractNode.Key.type.name(), StringUtils.capitalize(type));
 
 		// create transaction closure
 		StructrTransaction transaction = new StructrTransaction() {
@@ -134,7 +132,7 @@ public class TypeConstraint extends SortableConstraint {
 			@Override
 			public Object execute() throws Throwable {
 
-				return (AbstractNode)Services.command(securityContext, CreateValidatedNodeCommand.class).execute(new SuperUser(), attributes);
+				return (AbstractNode)Services.command(securityContext, CreateValidatedNodeCommand.class).execute(new SuperUser(), propertySet);
 			}
 		};
 

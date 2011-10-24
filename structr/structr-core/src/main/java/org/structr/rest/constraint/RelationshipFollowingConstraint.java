@@ -172,7 +172,7 @@ public class RelationshipFollowingConstraint extends ResourceConstraint implemen
 	}
 
 	@Override
-	public RestMethodResult doPost(PropertySet propertySet, List<VetoableGraphObjectListener> listeners) throws Throwable {
+	public RestMethodResult doPost(Map<String, Object> propertySet, List<VetoableGraphObjectListener> listeners) throws Throwable {
 		return lastConstraint.doPost(propertySet, listeners);
 	}
 
