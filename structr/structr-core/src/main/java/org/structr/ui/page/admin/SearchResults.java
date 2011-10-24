@@ -237,7 +237,7 @@ public class SearchResults extends Nodes {
         searchResultsTable.addColumn(new Column(AbstractNode.Key.createdBy.name()));
         searchResultsTable.addColumn(new Column(AbstractNode.Key.createdDate.name()));
         searchResultsTable.addColumn(new Column(AbstractNode.Key.position.name()));
-        searchResultsTable.addColumn(new Column(AbstractNode.Key.isPublic.name()));
+        searchResultsTable.addColumn(new Column(AbstractNode.Key.visibleToPublicUsers.name()));
         searchResultsTable.addColumn(actionColumnNodes);
         searchResultsTable.setSortable(true);
         searchResultsTable.setShowBanner(true);

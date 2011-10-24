@@ -34,7 +34,6 @@ import org.neo4j.kernel.Traversal;
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
-import org.structr.common.SecurityContext;
 import org.structr.core.Command;
 import org.structr.core.Decorable;
 import org.structr.core.Decorator;

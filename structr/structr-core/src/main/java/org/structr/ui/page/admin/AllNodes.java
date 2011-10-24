@@ -52,7 +52,7 @@ public class AllNodes extends Admin {
         allNodesTable.addColumn(new Column(AbstractNode.Key.name.name()));
         allNodesTable.addColumn(new Column(AbstractNode.Key.type.name()));
         allNodesTable.addColumn(new Column(AbstractNode.Key.position.name()));
-        allNodesTable.addColumn(new Column(AbstractNode.Key.isPublic.name()));
+        allNodesTable.addColumn(new Column(AbstractNode.Key.visibleToPublicUsers.name()));
         allNodesTable.addColumn(new Column(AbstractNode.Key.owner.name()));
         allNodesTable.addColumn(new Column(AbstractNode.Key.createdBy.name()));
         allNodesTable.addColumn(new Column(AbstractNode.Key.createdDate.name()));

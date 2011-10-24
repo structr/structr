@@ -253,7 +253,7 @@ public class DefaultEdit extends Nodes {
 
 		visibilityFields.add(hidden);
 
-		Checkbox publicCheckbox = new Checkbox(AbstractNode.Key.isPublic.name(), "Visible to public users");
+		Checkbox publicCheckbox = new Checkbox(AbstractNode.Key.visibleToPublicUsers.name(), "Visible to public users");
 
 		visibilityFields.add(publicCheckbox);
 
@@ -408,7 +408,7 @@ public class DefaultEdit extends Nodes {
 			childNodesTable.addColumn(new Column(AbstractNode.Key.createdBy.name()));
 			childNodesTable.addColumn(new Column(AbstractNode.Key.createdDate.name()));
 			childNodesTable.addColumn(new Column(AbstractNode.Key.position.name()));
-			childNodesTable.addColumn(new Column(AbstractNode.Key.isPublic.name()));
+			childNodesTable.addColumn(new Column(AbstractNode.Key.visibleToPublicUsers.name()));
 			childNodesTable.addColumn(new Column(AbstractNode.Key.deleted.name()));
 			childNodesTable.addColumn(new Column(AbstractNode.Key.hidden.name()));
 			childNodesTable.addColumn(actionColumnNodes);

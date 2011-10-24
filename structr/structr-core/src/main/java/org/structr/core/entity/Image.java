@@ -358,8 +358,8 @@ public class Image extends File {
 					"image/" + Thumbnail.FORMAT);
 				NodeAttribute isHiddenAttr = new NodeAttribute(AbstractNode.Key.hidden.name(),
 					originalImage.getHidden());
-				NodeAttribute isPublicAttr = new NodeAttribute(AbstractNode.Key.isPublic.name(),
-					originalImage.getPublic());
+				NodeAttribute isPublicAttr = new NodeAttribute(AbstractNode.Key.visibleToPublicUsers.name(),
+					originalImage.getVisibleToPublicUsers());
 				NodeAttribute isVisibleForAuthenticatedUsersAttr =
 					new NodeAttribute(AbstractNode.Key.visibleToAuthenticatedUsers.name(),
 							  originalImage.getVisibleToAuthenticatedUsers());
@@ -482,13 +482,13 @@ public class Image extends File {
 
 	/** Copy public flag to all thumbnails */
 	@Override
-	public void setPublic(final boolean publicFlag) {
+	public void setVisibleToPublicUsers(final boolean publicFlag) {
 
-		super.setPublic(publicFlag);
+		super.setVisibleToPublicUsers(publicFlag);
 
 		for (Image thumbnail : getThumbnails()) {
 
-			thumbnail.setProperty(AbstractNode.Key.isPublic.name(),
+			thumbnail.setProperty(AbstractNode.Key.visibleToPublicUsers.name(),
 					      publicFlag);
 		}
 	}
