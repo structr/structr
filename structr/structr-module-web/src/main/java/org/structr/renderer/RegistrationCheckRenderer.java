@@ -525,7 +525,7 @@ public class RegistrationCheckRenderer implements NodeRenderer<RegistrationCheck
 
 				searchAttrs.add(Search.andExactName(publicUserDirectoryName));
 				searchAttrs.add(Search.andExactType(Folder.class.getSimpleName()));
-				searchAttrs.add(new BooleanSearchAttribute(AbstractNode.Key.isPublic.name(), Boolean.TRUE, SearchOperator.AND));
+				searchAttrs.add(new BooleanSearchAttribute(AbstractNode.Key.visibleToPublicUsers.name(), Boolean.TRUE, SearchOperator.AND));
 				
 				// Look for existing public user directory
 				List<Folder> folders = (List<Folder>)search.execute(
