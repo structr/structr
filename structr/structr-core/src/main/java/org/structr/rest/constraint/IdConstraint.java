@@ -6,6 +6,7 @@ package org.structr.rest.constraint;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
@@ -17,7 +18,6 @@ import org.structr.rest.VetoableGraphObjectListener;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.exception.PathException;
-import org.structr.rest.wrapper.PropertySet;
 
 /**
  * Represents an exact ID match. An IdConstraint will always result in a
@@ -71,7 +71,7 @@ public class IdConstraint extends FilterableConstraint {
 	}
 
 	@Override
-	public RestMethodResult doPost(PropertySet propertySet, List<VetoableGraphObjectListener> listeners) throws Throwable {
+	public RestMethodResult doPost(Map<String, Object> propertySet, List<VetoableGraphObjectListener> listeners) throws Throwable {
 
 		// POST cannot be done on a single ID
 		throw new IllegalPathException();

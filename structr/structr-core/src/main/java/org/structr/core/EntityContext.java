@@ -32,6 +32,7 @@ import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.core.entity.DirectedRelationship;
+import org.structr.core.entity.DirectedRelationship.Cardinality;
 
 /**
  * A global context for functional mappings between nodes and
@@ -59,8 +60,31 @@ public class EntityContext {
 		return getRelationshipMapForType(convertName(sourceType)).get(convertName(destType));
 	}
 
+	/**
+	 * Defines a static relationship between <code>sourceType</code> and <code>destType</code>
+	 * with the given relationship type, direction and the default cardinality of <code>ManyToMany<code>.
+	 *
+	 * @param sourceType
+	 * @param destType
+	 * @param relType
+	 * @param direction
+	 */
 	public static void registerRelation(Class sourceType, Class destType, RelationshipType relType, Direction direction) {
-		registerRelation(convertName(sourceType), convertName(destType), relType, direction);
+		registerRelation(sourceType, destType, relType, direction, Cardinality.ManyToMany);
+	}
+
+	/**
+	 * Defines a static relationship between <code>sourceType</code> and <code>destType</code>
+	 * with the given relationship type, direction and cardinality.
+	 *
+	 * @param sourceType
+	 * @param destType
+	 * @param relType
+	 * @param direction
+	 * @param cardinality
+	 */
+	public static void registerRelation(Class sourceType, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality) {
+		registerRelation(convertName(sourceType), convertName(destType), relType, direction, cardinality);
 	}
 
 	public static Map<String, DirectedRelationship> getRelations(Class sourceType) {
@@ -249,10 +273,10 @@ public class EntityContext {
 		return(type.getSimpleName().toLowerCase());
 	}
 
-	private static void registerRelation(String sourceType, String destType, RelationshipType relType, Direction direction) {
+	private static void registerRelation(String sourceType, String destType, RelationshipType relType, Direction direction, Cardinality cardinality) {
 
 		Map<String, DirectedRelationship> typeMap = getRelationshipMapForType(sourceType);
-		typeMap.put(destType, new DirectedRelationship(relType, direction));
+		typeMap.put(destType, new DirectedRelationship(relType, direction, cardinality));
 	}
 
 	private static Map<String, DirectedRelationship> getRelationshipMapForType(String sourceType) {

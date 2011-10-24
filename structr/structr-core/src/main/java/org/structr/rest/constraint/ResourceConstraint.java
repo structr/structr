@@ -5,6 +5,8 @@
 package org.structr.rest.constraint;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.structr.common.PropertyView;
@@ -12,7 +14,8 @@ import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.Value;
-import org.structr.core.node.NodeAttribute;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.StructrRelationship;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 import org.structr.rest.RestMethodResult;
@@ -20,7 +23,6 @@ import org.structr.rest.VetoableGraphObjectListener;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.exception.PathException;
-import org.structr.rest.wrapper.PropertySet;
 
 /**
  * Base class for all resource constraints. Constraints can be
@@ -37,14 +39,14 @@ public abstract class ResourceConstraint {
 	public abstract boolean checkAndConfigure(String part, HttpServletRequest request);
 
 	public abstract List<GraphObject> doGet(List<VetoableGraphObjectListener> listeners) throws PathException;
-	public abstract RestMethodResult doPost(final PropertySet propertySet, final List<VetoableGraphObjectListener> listeners) throws Throwable;
+	public abstract RestMethodResult doPost(final Map<String, Object> propertySet, final List<VetoableGraphObjectListener> listeners) throws Throwable;
 	public abstract RestMethodResult doHead() throws Throwable;
 	public abstract RestMethodResult doOptions() throws Throwable;
 
 	public abstract ResourceConstraint tryCombineWith(ResourceConstraint next) throws PathException;
 
 	// ----- methods -----
-	public final RestMethodResult doPut(final PropertySet propertySet, final List<VetoableGraphObjectListener> listeners) throws Throwable {
+	public final RestMethodResult doPut(final Map<String, Object> propertySet, final List<VetoableGraphObjectListener> listeners) throws Throwable {
 
 		final List<GraphObject> results = doGet(listeners);
 		if(results != null && !results.isEmpty()) {
@@ -58,7 +60,7 @@ public abstract class ResourceConstraint {
 
 						if(mayModify(listeners, obj)) {
 
-							for(NodeAttribute attr : propertySet.getAttributes()) {
+							for(Entry<String, Object> attr : propertySet.entrySet()) {
 								obj.setProperty(attr.getKey(), attr.getValue());
 							}
 						}
@@ -97,6 +99,16 @@ public abstract class ResourceConstraint {
 					for(GraphObject obj : results) {
 
 						if(mayDelete(listeners, obj)) {
+
+							// 1: delete relationships
+							if(obj instanceof AbstractNode) {
+								List<StructrRelationship> rels = ((AbstractNode)obj).getRelationships();
+								for(StructrRelationship rel : rels) {
+									success &= rel.delete();
+								}
+							}
+
+							// 2: delete object
 							success &= obj.delete();
 						}
 					}

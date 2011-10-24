@@ -81,7 +81,12 @@ public class CreateValidatedNodeCommand extends NodeServiceCommand {
 			// initialize node from parameters...
 			for(Object o : parameters) {
 
-				if(o instanceof Collection) {
+				if(o instanceof Map) {
+
+					Map<String, Object> map = (Map<String, Object>)o;
+					attrs.putAll(map);
+
+				} else if(o instanceof Collection) {
 
 					Collection<NodeAttribute> c = (Collection)o;
 					for(NodeAttribute attr : c) {

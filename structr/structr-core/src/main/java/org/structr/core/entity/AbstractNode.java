@@ -1869,19 +1869,38 @@ public abstract class AbstractNode
 	@Override
 	public Object getProperty(final String key) {
 
-		Class type   = this.getClass();
-		Object value = null;
+		boolean idRequested     = false;
+		Object value            = null;
+		Class type              = this.getClass();
+
+		// ----- BEGIN automatic property resolution -----
 
 		// check for static relationships and return related nodes
-		String singularType = (key.endsWith("ies") ? key.substring(0, key.length()-3).concat("y") : (key.endsWith("s") ? key.substring(0, key.length()-1) : key));
-		if(EntityContext.getRelations(type).containsKey(singularType)) {
+		String singularType = getSingularTypeName(key);
+		if(key.endsWith("Id")) {
+
+			// remove "Id" from the end of the value and set "id requested"-flag
+			singularType = singularType.substring(0, singularType.length() - 2);
+			idRequested = true;
+		}
+
+		if(singularType != null && EntityContext.getRelations(type).containsKey(singularType)) {
 
 			// static relationship detected, return related nodes
+			// (we omit null check here because containsKey ensures that rel is not null)
 			DirectedRelationship rel = EntityContext.getRelations(type).get(singularType);
-			if(rel != null) {
-				return getTraversalResults(rel.getRelType(), rel.getDirection(), StringUtils.capitalize(singularType));
+			if(idRequested) {
+				AbstractNode node = rel.getRelatedNode(securityContext, this, singularType);
+				if(node != null) {
+					return node.getId();
+				} else {
+					// TODO: handle "not found"..
+				}
+			} else {
+				return rel.getRelatedNodes(securityContext, this, singularType);
 			}
 		}
+		// ----- END automatic property resolution -----
 
 		if (isDirty) {
 			value = properties.get(key);
@@ -2861,56 +2880,6 @@ public abstract class AbstractNode
 		return (size);
 	}
 
-	public Set<AbstractNode> getTraversalResults(final RelationshipType relType, final Direction direction, final String type) {
-
-		// use traverser
-		Iterable<Node> nodes = Traversal.description().breadthFirst().relationships(relType, direction).evaluator(
-
-			new Evaluator() {
-
-				@Override
-				public Evaluation evaluate(Path path) {
-
-					int len = path.length();
-					if(len <= 1) {
-
-						if(len == 0) {
-
-							// do not include start node (which is the
-							// index node in this case), but continue
-							// traversal
-							return Evaluation.EXCLUDE_AND_CONTINUE;
-
-						} else {
-
-							Node currentNode = path.endNode();
-							if(currentNode.hasProperty(AbstractNode.Key.type.name())) {
-
-								String nodeType = (String)currentNode.getProperty(AbstractNode.Key.type.name());
-								if(type.equals(nodeType)) {
-									return Evaluation.INCLUDE_AND_CONTINUE;
-								}
-							}
-						}
-					}
-
-					return Evaluation.EXCLUDE_AND_PRUNE;
-				}
-
-			}
-
-		).traverse(this.getNode()).nodes();
-
-		// collect results and convert nodes into structr nodes
-		StructrNodeFactory nodeFactory = new StructrNodeFactory<AbstractNode>(securityContext);
-		Set<AbstractNode> nodeList = new LinkedHashSet<AbstractNode>();
-		for(Node n : nodes) {
-			nodeList.add(nodeFactory.createNode(securityContext, n, type));
-		}
-
-		return nodeList;
-	}
-
 	/**
 	 * Return unordered list of all direct child nodes (no recursion)
 	 * with given relationship type
@@ -3835,6 +3804,8 @@ public abstract class AbstractNode
 	 */
 	public void setProperty(final String key, final Object value, final boolean updateIndex) {
 
+		Class type      = this.getClass();
+
 		if (key == null) {
 
 			logger.log(Level.SEVERE,
@@ -3843,11 +3814,23 @@ public abstract class AbstractNode
 			return;
 		}
 
+		String singularType = getSingularTypeName(key);
+		if(key.endsWith("Id")) {
+			singularType = singularType.substring(0, singularType.length() - 2);
+		}
 
-		// TODO: add setProperty function for entities here!
+		// check for static relationships and connect node
+		if(EntityContext.getRelations(type).containsKey(singularType)) {
 
+			// static relationship detected, create relationship
+			DirectedRelationship rel = EntityContext.getRelations(type).get(singularType);
+			if(rel != null) {
 
-		Class type = this.getClass();
+				// FIXME: return here, or do something else?
+				rel.createRelationship(securityContext, this, value);
+				return;
+			}
+		}
 
 		PropertyConverter converter = EntityContext.getPropertyConverter(securityContext,
 			type,
@@ -3989,6 +3972,10 @@ public abstract class AbstractNode
 		setOwner.execute(this,
 				 Services.command(securityContext, FindNodeCommand.class).execute(new SuperUser(),
 						  nodeId));
+	}
+
+	private String getSingularTypeName(String key) {
+		return (key.endsWith("ies") ? key.substring(0, key.length()-3).concat("y") : (key.endsWith("s") ? key.substring(0, key.length()-1) : key));
 	}
 
 	//~--- inner classes --------------------------------------------------
