@@ -38,7 +38,7 @@ public abstract class ResourceConstraint {
 
 	public abstract boolean checkAndConfigure(String part, HttpServletRequest request);
 
-	public abstract List<GraphObject> doGet(List<VetoableGraphObjectListener> listeners) throws PathException;
+	public abstract List<? extends GraphObject> doGet(List<VetoableGraphObjectListener> listeners) throws PathException;
 	public abstract RestMethodResult doPost(final Map<String, Object> propertySet, final List<VetoableGraphObjectListener> listeners) throws Throwable;
 	public abstract RestMethodResult doHead() throws Throwable;
 	public abstract RestMethodResult doOptions() throws Throwable;
@@ -48,7 +48,7 @@ public abstract class ResourceConstraint {
 	// ----- methods -----
 	public final RestMethodResult doPut(final Map<String, Object> propertySet, final List<VetoableGraphObjectListener> listeners) throws Throwable {
 
-		final List<GraphObject> results = doGet(listeners);
+		final List<? extends GraphObject> results = doGet(listeners);
 		if(results != null && !results.isEmpty()) {
 
 			StructrTransaction transaction = new StructrTransaction() {
@@ -87,7 +87,7 @@ public abstract class ResourceConstraint {
 
 	public final RestMethodResult doDelete(final List<VetoableGraphObjectListener> listeners) throws Throwable {
 
-		final List<GraphObject> results = doGet(listeners);
+		final List<? extends GraphObject> results = doGet(listeners);
 		if(results != null && !results.isEmpty()) {
 
 			Boolean success = (Boolean)Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {

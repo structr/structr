@@ -5,7 +5,6 @@
 
 package org.structr.rest.constraint;
 
-import java.util.LinkedList;
 import java.util.List;
 import org.structr.common.PropertyView;
 import org.structr.core.GraphObject;
@@ -17,7 +16,7 @@ import org.structr.core.GraphObject;
  */
 public class Result {
 
-	private List<GraphObject> results = null;
+	private List<? extends GraphObject> results = null;
 	private PropertyView propertyView = null;
 
 	private String searchString = null;
@@ -30,17 +29,11 @@ public class Result {
 	private Integer pageSize = null;
 	private Integer page = null;
 
-	public Result(GraphObject singleResult) {
-		this.results = new LinkedList<GraphObject>();
-		this.results.add(singleResult);
-
-	}
-
-	public Result(List<GraphObject> listResult) {
+	public Result(List<? extends GraphObject> listResult) {
 		this.results = listResult;
 	}
 
-	public List<GraphObject> getResults() {
+	public List<? extends GraphObject> getResults() {
 		return results;
 	}
 

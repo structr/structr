@@ -44,6 +44,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.core.GraphObject;
 import org.structr.core.Value;
 import org.structr.core.node.NodeAttribute;
 import org.structr.rest.exception.IllegalPathException;

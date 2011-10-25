@@ -3826,7 +3826,12 @@ public abstract class AbstractNode
 			if(rel != null) {
 
 				// FIXME: return here, or do something else?
-				rel.createRelationship(securityContext, this, value);
+				try {
+					rel.createRelationship(securityContext, this, value);
+					
+				} catch(Throwable t) {
+					logger.log(Level.WARNING, "Exception while setting nested property", t);
+				}
 				return;
 			}
 		}

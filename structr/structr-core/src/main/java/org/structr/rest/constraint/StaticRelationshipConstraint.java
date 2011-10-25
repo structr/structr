@@ -19,24 +19,16 @@
 
 package org.structr.rest.constraint;
 
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.RelationshipType;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.DirectedRelationship;
-import org.structr.core.entity.StructrRelationship;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.PathException;
 import org.structr.core.EntityContext;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.node.CreateRelationshipCommand;
-import org.structr.core.node.StructrTransaction;
-import org.structr.core.node.TransactionCommand;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.VetoableGraphObjectListener;
 
@@ -56,7 +48,7 @@ public class StaticRelationshipConstraint extends FilterableConstraint {
 	}
 
 	@Override
-	public List<GraphObject> doGet(List<VetoableGraphObjectListener> listeners) throws PathException {
+	public List<? extends GraphObject> doGet(List<VetoableGraphObjectListener> listeners) throws PathException {
 
 		List<GraphObject> results = typedIdConstraint.doGet(listeners);
 		if(results != null) {
@@ -69,26 +61,7 @@ public class StaticRelationshipConstraint extends FilterableConstraint {
 			DirectedRelationship staticRel = EntityContext.getRelation(sourceType, targetType);
 			if(staticRel != null) {
 
-				LinkedList<GraphObject> transformedResults = new LinkedList<GraphObject>();
-				for(GraphObject obj : results) {
-
-					List<StructrRelationship> rels = obj.getRelationships(staticRel.getRelType(), staticRel.getDirection());
-					if(staticRel.getDirection().equals(Direction.INCOMING)) {
-
-						for(StructrRelationship rel : rels) {
-							transformedResults.add(rel.getStartNode());
-						}
-
-					} else {
-
-						for(StructrRelationship rel : rels) {
-							transformedResults.add(rel.getEndNode());
-						}
-					}
-				}
-				
-				// return related nodes
-				return transformedResults;
+				return staticRel.getRelatedNodes(securityContext, typedIdConstraint.getTypesafeNode(), targetType);
 			}
 		}
 
@@ -104,27 +77,8 @@ public class StaticRelationshipConstraint extends FilterableConstraint {
 
 		if(sourceNode != null && newNode != null && rel != null) {
 
-			final RelationshipType relType = rel.getRelType();
-			final Direction direction = rel.getDirection();
-
-			// create transaction closure
-			StructrTransaction transaction = new StructrTransaction() {
-
-				@Override
-				public Object execute() throws Throwable {
-					if(direction.equals(Direction.OUTGOING)) {
-						return Services.command(securityContext, CreateRelationshipCommand.class).execute(sourceNode, newNode, relType);
-					} else {
-						return Services.command(securityContext, CreateRelationshipCommand.class).execute(newNode, sourceNode, relType);
-					}
-				}
-			};
-
-			Services.command(securityContext, TransactionCommand.class).execute(transaction);
-			if(transaction.getCause() != null) {
-				throw transaction.getCause();
-			}
-
+			rel.createRelationship(securityContext, sourceNode, newNode);
+			
 			// TODO: set location header
 			RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_CREATED);
 			// FIXME: result.addHeader("Location", buildCreatedURI(request, newNode.getType(), newNode.getId()));

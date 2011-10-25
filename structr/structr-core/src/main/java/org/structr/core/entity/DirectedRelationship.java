@@ -19,9 +19,8 @@
 
 package org.structr.core.entity;
 
-import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 import org.apache.commons.lang.StringUtils;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
@@ -85,7 +84,7 @@ public class DirectedRelationship {
 	}
 
 	// ----- public methods -----
-	public Set<AbstractNode> getRelatedNodes(final SecurityContext securityContext, final AbstractNode node, String type) {
+	public List<AbstractNode> getRelatedNodes(final SecurityContext securityContext, final AbstractNode node, String type) {
 
 		if(cardinality.equals(Cardinality.OneToMany) || cardinality.equals(Cardinality.ManyToMany)) {
 			return getTraversalResults(securityContext, node, StringUtils.capitalize(type));
@@ -98,7 +97,7 @@ public class DirectedRelationship {
 
 		if(cardinality.equals(Cardinality.OneToOne) || cardinality.equals(Cardinality.ManyToOne)) {
 
-			Set<AbstractNode> nodes = getTraversalResults(securityContext, node, StringUtils.capitalize(type));
+			List<AbstractNode> nodes = getTraversalResults(securityContext, node, StringUtils.capitalize(type));
 			if(nodes != null && nodes.iterator().hasNext()) {
 				return nodes.iterator().next();
 			}
@@ -107,7 +106,7 @@ public class DirectedRelationship {
 		return null;
 	}
 
-	public void createRelationship(final SecurityContext securityContext, final AbstractNode sourceNode, final Object value) {
+	public void createRelationship(final SecurityContext securityContext, final AbstractNode sourceNode, final Object value) throws Throwable {
 
 		// create relationship if it does not already exist
 		final Command cmd = Services.command(securityContext, CreateRelationshipCommand.class);
@@ -151,11 +150,13 @@ public class DirectedRelationship {
 		
 		// execute transaction
 		Services.command(securityContext, TransactionCommand.class).execute(transaction);
-
+		if(transaction.getCause() != null) {
+			throw transaction.getCause();
+		}
 	}
 
 	// ----- private methods -----
-	private Set<AbstractNode> getTraversalResults(final SecurityContext securityContext, AbstractNode node, final String type) {
+	private List<AbstractNode> getTraversalResults(final SecurityContext securityContext, AbstractNode node, final String type) {
 
 		// use traverser
 		Iterable<Node> nodes = Traversal.description().breadthFirst().relationships(relType, direction).evaluator(
@@ -197,7 +198,7 @@ public class DirectedRelationship {
 
 		// collect results and convert nodes into structr nodes
 		StructrNodeFactory nodeFactory = new StructrNodeFactory<AbstractNode>(securityContext);
-		Set<AbstractNode> nodeList = new LinkedHashSet<AbstractNode>();
+		List<AbstractNode> nodeList = new LinkedList<AbstractNode>();
 		for(Node n : nodes) {
 			nodeList.add(nodeFactory.createNode(securityContext, n, type));
 		}

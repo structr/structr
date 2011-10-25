@@ -64,7 +64,7 @@ public class ViewFilterConstraint extends WrappingConstraint {
 	}
 
 	@Override
-	public List<GraphObject> doGet(List<VetoableGraphObjectListener> listeners) throws PathException {
+	public List<? extends GraphObject> doGet(List<VetoableGraphObjectListener> listeners) throws PathException {
 		if(wrappedConstraint != null) {
 			return wrappedConstraint.doGet(listeners);
 		}

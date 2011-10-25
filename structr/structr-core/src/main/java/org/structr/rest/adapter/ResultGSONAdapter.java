@@ -19,7 +19,6 @@
 
 package org.structr.rest.adapter;
 
-import com.google.gson.FieldNamingPolicy;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
@@ -58,12 +57,12 @@ public class ResultGSONAdapter implements JsonSerializer<Result>, JsonDeserializ
 		JsonObject result = new JsonObject();
 
 		// result fields in alphabetical order
+		List<? extends GraphObject> results = src.getResults();
 		Integer page = src.getPage();
 		Integer pageCount = src.getPageCount();
 		Integer pageSize = src.getPageSize();
 		String queryTime = src.getQueryTime();
 		Integer resultCount = src.getResultCount();
-		List<GraphObject> results = src.getResults();
 		String searchString = src.getSearchString();
 		String sortKey = src.getSortKey();
 		String sortOrder = src.getSortOrder();

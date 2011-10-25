@@ -39,7 +39,7 @@ public class PagingConstraint extends WrappingConstraint {
 	}
 
 	@Override
-	public List<GraphObject> doGet(List<VetoableGraphObjectListener> listeners) throws PathException {
+	public List<? extends GraphObject> doGet(List<VetoableGraphObjectListener> listeners) throws PathException {
 
 		/*
 		 * page 1: 0 -> pageSize-1
@@ -48,7 +48,7 @@ public class PagingConstraint extends WrappingConstraint {
 		 * page n: ((n-1) * pageSize) -> (n * pageSize) - 1
 		 */
 
-		List<GraphObject> results = wrappedConstraint.doGet(listeners);
+		List<? extends GraphObject> results = wrappedConstraint.doGet(listeners);
 		resultCount = results.size();
 
 		int fromIndex = Math.min(resultCount, Math.max(0, (getPage()-1) * getPageSize()));
