@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
+import org.structr.common.CaseHelper;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
@@ -99,7 +100,8 @@ public class TypedSearchConstraint extends SortableConstraint {
 			}
 
 			SearchAttributeGroup typeGroup = new SearchAttributeGroup(SearchOperator.AND);
-			typeGroup.add(new TextualSearchAttribute("type", StringUtils.capitalize(typeConstraint.getType()), SearchOperator.OR));
+			//typeGroup.add(new TextualSearchAttribute("type", StringUtils.capitalize(typeConstraint.getType()), SearchOperator.OR));
+			typeGroup.add(new TextualSearchAttribute("type", CaseHelper.toCamelCase(typeConstraint.getType()), SearchOperator.OR));
 			searchAttributes.add(typeGroup);
 
 			// TODO: configureContext searchable fields

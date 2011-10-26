@@ -22,7 +22,7 @@ package org.structr.rest.constraint;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
-import org.apache.commons.lang.StringUtils;
+import org.structr.common.CaseHelper;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
@@ -54,7 +54,8 @@ public class ViewFilterConstraint extends WrappingConstraint {
 
 		try {
 
-			propertyView = PropertyView.valueOf(StringUtils.capitalize(part));
+			//propertyView = PropertyView.valueOf(StringUtils.capitalize(part));
+			propertyView = PropertyView.valueOf(CaseHelper.toCamelCase(part));
 			return true;
 
 		} catch(Throwable t) {

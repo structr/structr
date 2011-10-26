@@ -31,6 +31,7 @@ import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.traversal.Evaluation;
 import org.neo4j.graphdb.traversal.Evaluator;
 import org.neo4j.kernel.Traversal;
+import org.structr.common.CaseHelper;
 import org.structr.common.SecurityContext;
 import org.structr.core.Command;
 import org.structr.core.Services;
@@ -92,7 +93,9 @@ public class DirectedRelationship {
 	public List<AbstractNode> getRelatedNodes(final SecurityContext securityContext, final AbstractNode node, String type) {
 
 		if(cardinality.equals(Cardinality.OneToMany) || cardinality.equals(Cardinality.ManyToMany)) {
-			return getTraversalResults(securityContext, node, StringUtils.capitalize(type));
+			//return getTraversalResults(securityContext, node, StringUtils.toCamelCase(type));
+			return getTraversalResults(securityContext, node, CaseHelper.toCamelCase(type));
+			
 
 		} else {
 

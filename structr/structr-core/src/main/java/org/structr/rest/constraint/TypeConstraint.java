@@ -11,7 +11,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.apache.commons.lang.StringUtils;
+import org.structr.common.CaseHelper;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
@@ -19,10 +19,9 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.CreateValidatedNodeCommand;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
+import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
-import org.structr.core.node.search.SearchOperator;
-import org.structr.core.node.search.TextualSearchAttribute;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.VetoableGraphObjectListener;
 import org.structr.rest.exception.NoResultsException;
@@ -64,7 +63,8 @@ public class TypeConstraint extends SortableConstraint {
 
 		if(type != null) {
 
-			searchAttributes.add(new TextualSearchAttribute("type", type, SearchOperator.OR));
+			//searchAttributes.add(new TextualSearchAttribute("type", type, SearchOperator.OR));
+			searchAttributes.add(Search.orExactType(CaseHelper.toCamelCase(type)));
 
 			List<GraphObject> results = (List<GraphObject>)Services.command(securityContext, SearchNodeCommand.class).execute(
 				topNode,
@@ -126,7 +126,8 @@ public class TypeConstraint extends SortableConstraint {
 
 	public AbstractNode createNode(final Map<String, Object> propertySet) throws Throwable {
 
-		propertySet.put(AbstractNode.Key.type.name(), StringUtils.capitalize(type));
+		//propertySet.put(AbstractNode.Key.type.name(), StringUtils.toCamelCase(type));
+		propertySet.put(AbstractNode.Key.type.name(), CaseHelper.toCamelCase(type));
 
 		// create transaction closure
 		StructrTransaction transaction = new StructrTransaction() {
