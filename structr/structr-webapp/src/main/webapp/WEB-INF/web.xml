@@ -115,7 +115,7 @@
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>StructrRestServlet</servlet-name>
-		<url-pattern>/structr/api/*</url-pattern>
+		<url-pattern>/api/*</url-pattern>
 	</servlet-mapping>
 
     <!--  custom context parameter start -->
