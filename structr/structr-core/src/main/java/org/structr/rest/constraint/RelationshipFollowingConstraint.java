@@ -139,22 +139,8 @@ public class RelationshipFollowingConstraint extends FilterableConstraint implem
 	@Override
 	public List<GraphObject> doGet(List<VetoableGraphObjectListener> listeners) throws PathException {
 
-		// the nodes we want to find an existing path for.
-		Node startNode = firstConstraint.getTypesafeNode().getNode();
-		Node endNode = lastConstraint.getTypesafeNode().getNode();
-
-		// set desired path length we want to get
-		pathLength = idSet.size();
-
-		// traversal should return exactly one path
-		Map<Integer, Path> paths = new HashMap<Integer, Path>();
-		for(Iterator<Path> it = traversalDescription.traverse(startNode).iterator(); it.hasNext();) {
-			Path path = it.next();
-			paths.put(path.length(), path);
-		}
-
-		Path path = paths.get(pathLength-1);
-		if(path != null && path.startNode().equals(startNode) && path.endNode().equals(endNode)) {
+		Path path = getValidatedPath();
+		if(path != null) {
 
 			StructrNodeFactory nodeFactory = new StructrNodeFactory<AbstractNode>(securityContext);
 			List<GraphObject> nodeList = new LinkedList<GraphObject>();
@@ -199,7 +185,10 @@ public class RelationshipFollowingConstraint extends FilterableConstraint implem
 
 		} else if(next instanceof TypeConstraint) {
 
-			return new StaticRelationshipConstraint(securityContext, lastConstraint, (TypeConstraint)next);
+			// validate path before combining constraints
+			if(getValidatedPath() != null) {
+				return new StaticRelationshipConstraint(securityContext, lastConstraint, (TypeConstraint)next);
+			}
 		}
 		
 		return super.tryCombineWith(next);
@@ -236,5 +225,30 @@ public class RelationshipFollowingConstraint extends FilterableConstraint implem
 
 		// dead end, stop here
 		return Evaluation.EXCLUDE_AND_PRUNE;
+	}
+
+	// ----- private methods -----
+	private Path getValidatedPath() throws PathException {
+
+		// the nodes we want to find an existing path for.
+		Node startNode = firstConstraint.getTypesafeNode().getNode();
+		Node endNode = lastConstraint.getTypesafeNode().getNode();
+
+		// set desired path length we want to get
+		pathLength = idSet.size();
+
+		// traversal should return exactly one path
+		Map<Integer, Path> paths = new HashMap<Integer, Path>();
+		for(Iterator<Path> it = traversalDescription.traverse(startNode).iterator(); it.hasNext();) {
+			Path path = it.next();
+			paths.put(path.length(), path);
+		}
+
+		Path path = paths.get(pathLength-1);
+		if(path != null && path.startNode().equals(startNode) && path.endNode().equals(endNode)) {
+			return path;
+		}
+
+		return null;
 	}
 }

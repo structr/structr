@@ -455,7 +455,7 @@ public class JsonRestServlet extends HttpServlet {
 							ResourceConstraint constraint = (ResourceConstraint)type.newInstance();
 							if(constraint.checkAndConfigure(part, securityContext, request)) {
 
-								logger.log(Level.FINE, "{0} matched, adding constraint of type {1} for part {2}", new Object[] {
+								logger.log(Level.INFO, "{0} matched, adding constraint of type {1} for part {2}", new Object[] {
 									matcher.pattern(),
 									type.getName(),
 									part
@@ -530,7 +530,7 @@ public class JsonRestServlet extends HttpServlet {
 				chain.append(constr.getClass().getSimpleName());
 				chain.append(", ");
 			}
-			logger.log(Level.FINE, "########## Constraint chain after iteration {0}: {1}", new Object[] { iterations, chain.toString() } );
+			logger.log(Level.INFO, "########## Constraint chain after iteration {0}: {1}", new Object[] { iterations, chain.toString() } );
 
 			found = false;
 			for(int i=0; i<num; i++) {
@@ -542,7 +542,7 @@ public class JsonRestServlet extends HttpServlet {
 					ResourceConstraint combinedConstraint = firstElement.tryCombineWith(secondElement);
 					if(combinedConstraint != null) {
 
-						logger.log(Level.FINE, "Combined constraint {0}", combinedConstraint.getClass().getSimpleName());
+						logger.log(Level.INFO, "Combined constraint {0}", combinedConstraint.getClass().getSimpleName());
 
 						// remove source constraints
 						constraintChain.remove(firstElement);
@@ -580,7 +580,7 @@ public class JsonRestServlet extends HttpServlet {
 			chain.append(constr.getClass().getSimpleName());
 			chain.append(", ");
 		}
-		logger.log(Level.FINE, "########## Final constraint chain {0}", chain.toString() );
+		logger.log(Level.INFO, "########## Final constraint chain {0}", chain.toString() );
 
 		if(constraintChain.size() == 1) {
 			return constraintChain.get(0);
@@ -752,7 +752,7 @@ public class JsonRestServlet extends HttpServlet {
 							ResourceConstraint constraint = (ResourceConstraint)type.newInstance();
 							if(constraint.checkAndConfigure(part)) {
 
-								logger.log(Level.FINEST, "{0} matched, adding constraint of type {1} for part {2}", new Object[] {
+								logger.log(Level.INFOST, "{0} matched, adding constraint of type {1} for part {2}", new Object[] {
 									matcher.pattern(),
 									type.getName(),
 									part
