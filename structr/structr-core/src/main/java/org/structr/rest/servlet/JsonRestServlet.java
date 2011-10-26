@@ -60,6 +60,7 @@ import org.structr.rest.constraint.ResourceConstraint;
 import org.structr.rest.constraint.Result;
 import org.structr.rest.constraint.SearchConstraint;
 import org.structr.rest.constraint.SortConstraint;
+import org.structr.rest.exception.MessageException;
 import org.structr.rest.wrapper.PropertySet;
 import org.structr.rest.wrapper.PropertySet.PropertyFormat;
 
@@ -242,6 +243,13 @@ public class JsonRestServlet extends HttpServlet {
 				response.setStatus(HttpServletResponse.SC_NO_CONTENT);
 			}
 
+		} catch(MessageException msgException) {
+			
+			response.setStatus(msgException.getStatus());
+			response.setContentLength(msgException.getMessage().length());
+			response.getWriter().append(msgException.getMessage());
+			response.getWriter().flush();
+			response.getWriter().close();
 
 		} catch(IllegalArgumentException illegalArgumentException) {
 
