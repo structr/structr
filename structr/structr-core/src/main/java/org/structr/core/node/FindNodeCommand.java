@@ -203,16 +203,15 @@ public class FindNodeCommand extends NodeServiceCommand {
 
         Object result = null;
 
-        // omit first parameter (is user)
-        if (parameters[1] instanceof AbstractNode && (parameters[2] instanceof XPath || parameters[2] instanceof String)) {
+        if (parameters[0] instanceof AbstractNode && (parameters[1] instanceof XPath || parameters[1] instanceof String)) {
             // relative xpath expression
-            AbstractNode currentNode = (AbstractNode) parameters[1];
+            AbstractNode currentNode = (AbstractNode) parameters[0];
 
             String path;
-            if (parameters[2] instanceof XPath) {
-                path = ((XPath) parameters[2]).getXPath();
+            if (parameters[1] instanceof XPath) {
+                path = ((XPath) parameters[1]).getXPath();
             } else {
-                path = (String) parameters[2];
+                path = (String) parameters[1];
             }
 
             try {
