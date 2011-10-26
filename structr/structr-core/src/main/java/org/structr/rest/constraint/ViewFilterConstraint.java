@@ -24,6 +24,7 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Value;
 import org.structr.rest.RestMethodResult;
@@ -47,7 +48,9 @@ public class ViewFilterConstraint extends WrappingConstraint {
 	}
 
 	@Override
-	public boolean checkAndConfigure(String part, HttpServletRequest request) {
+	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) {
+
+		this.securityContext = securityContext;
 
 		try {
 

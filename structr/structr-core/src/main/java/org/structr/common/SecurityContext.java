@@ -200,6 +200,22 @@ public class SecurityContext {
 		return (ret);
 	}
 
+	public StringBuilder getBaseURI() {
+
+		StringBuilder uriBuilder = new StringBuilder(200);
+		
+		uriBuilder.append(request.getScheme());
+		uriBuilder.append("://");
+		uriBuilder.append(request.getServerName());
+		uriBuilder.append(":");
+		uriBuilder.append(request.getServerPort());
+		uriBuilder.append(request.getContextPath());
+		uriBuilder.append(request.getServletPath());
+		uriBuilder.append("/");
+
+		return uriBuilder;
+	}
+
 	// ----- private methods -----
 	private boolean isVisibleInBackend(AccessControllable node) {
 

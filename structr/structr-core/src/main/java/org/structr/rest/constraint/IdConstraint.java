@@ -8,10 +8,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
+import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.SuperUser;
 import org.structr.core.node.FindNodeCommand;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.VetoableGraphObjectListener;
@@ -39,11 +39,13 @@ public class IdConstraint extends FilterableConstraint {
 	}
 
 	public AbstractNode getNode() {
-		return (AbstractNode)Services.command(securityContext, FindNodeCommand.class).execute(new SuperUser(), getId());
+		return (AbstractNode)Services.command(securityContext, FindNodeCommand.class).execute(getId());
 	}
 	
 	@Override
-	public boolean checkAndConfigure(String part, HttpServletRequest request) {
+	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) {
+
+		this.securityContext = securityContext;
 
 		try {
 			this.setId(Long.parseLong(part));
@@ -90,5 +92,10 @@ public class IdConstraint extends FilterableConstraint {
 	@Override
 	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws PathException {
 		return super.tryCombineWith(next);
+	}
+
+	@Override
+	public String getUriPart() {
+		return Long.toString(id);
 	}
 }

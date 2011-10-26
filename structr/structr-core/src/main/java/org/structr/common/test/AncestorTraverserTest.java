@@ -75,7 +75,7 @@ public class AncestorTraverserTest {
 					Command createNode = Services.command(securityContext, CreateNodeCommand.class);
 
 					// get root node
-					AbstractNode rootNode = (AbstractNode)Services.command(securityContext, FindNodeCommand.class).execute(null, 0L);
+					AbstractNode rootNode = (AbstractNode)Services.command(securityContext, FindNodeCommand.class).execute(0L);
 
 					// create chain of n nodes
 					for(int i=0; i<num; i++) {

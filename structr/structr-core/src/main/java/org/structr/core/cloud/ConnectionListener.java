@@ -62,7 +62,7 @@ public class ConnectionListener extends Listener implements CloudTransmission {
 	// the root node
 	// FIXME: superuser security context
 	final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
-	private AbstractNode rootNode = (AbstractNode)Services.command(securityContext, FindNodeCommand.class).execute(new SuperUser(), 0L);
+	private AbstractNode rootNode = (AbstractNode)Services.command(securityContext, FindNodeCommand.class).execute(0L);
 
 	// private fields
 	private boolean transactionFinished = false;
@@ -163,7 +163,7 @@ public class ConnectionListener extends Listener implements CloudTransmission {
 			PushNodeRequestContainer request = (PushNodeRequestContainer)object;
 
 			// set desired root node for push request
-			rootNode = (AbstractNode)Services.command(securityContext, FindNodeCommand.class).execute(new SuperUser(), request.getTargetNodeId());
+			rootNode = (AbstractNode)Services.command(securityContext, FindNodeCommand.class).execute(request.getTargetNodeId());
 
 			connection.sendTCP(CloudService.ACK_DATA);
 
@@ -284,8 +284,8 @@ public class ConnectionListener extends Listener implements CloudTransmission {
 			long targetEndNodeId = targetEndNodeIdValue.longValue();
 
 			// Get new start and end node
-			AbstractNode targetStartNode = (AbstractNode)findNode.execute(new SuperUser(), targetStartNodeId);
-			AbstractNode targetEndNode = (AbstractNode)findNode.execute(new SuperUser(), targetEndNodeId);
+			AbstractNode targetStartNode = (AbstractNode)findNode.execute(targetStartNodeId);
+			AbstractNode targetEndNode = (AbstractNode)findNode.execute(targetEndNodeId);
 			String name = receivedRelationshipData.getName();
 
 			if(targetStartNode != null && targetEndNode != null && StringUtils.isNotEmpty(name)) {

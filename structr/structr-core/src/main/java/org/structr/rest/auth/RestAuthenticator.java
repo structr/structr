@@ -26,6 +26,7 @@ import org.structr.core.Services;
 import org.structr.core.auth.AuthenticationException;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
 import org.structr.core.node.FindNodeCommand;
 import org.structr.rest.servlet.JsonRestServlet;
@@ -37,7 +38,7 @@ import org.structr.rest.servlet.JsonRestServlet;
  */
 public class RestAuthenticator implements Authenticator {
 
-	private SecurityContext securityContext = null;
+	private SecurityContext securityContext = SecurityContext.getSuperUserInstance();
 
 	@Override
 	public User doLogin(HttpServletRequest request, String userName, String password) throws AuthenticationException {
@@ -51,7 +52,8 @@ public class RestAuthenticator implements Authenticator {
 
 	@Override
 	public void setSecurityContext(SecurityContext securityContext) {
-		this.securityContext = securityContext;
+		// do not overwrite superuser context
+		// this.securityContext = securityContext;
 	}
 
 	@Override
@@ -66,7 +68,7 @@ public class RestAuthenticator implements Authenticator {
 
 				long userId = Long.parseLong(userHeader);
 
-				AbstractNode userNode = (AbstractNode)Services.command(securityContext, FindNodeCommand.class).execute(user, userId);
+				AbstractNode userNode = (AbstractNode)Services.command(securityContext, FindNodeCommand.class).execute(userId);
 				if(userNode != null && userNode instanceof User) {
 					user = (User)userNode;
 				}

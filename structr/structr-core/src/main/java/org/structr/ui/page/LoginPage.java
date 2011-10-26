@@ -88,7 +88,7 @@ public class LoginPage extends Admin {
 	@Override
 	public boolean onSecurityCheck() {
 		//userName = (String) getContext().getRequest().getSession().getAttribute(USERNAME_KEY);
-		String userName = securityContext.getUserName();
+		//String userName = securityContext.getUserName();
 
 		if(userName != null) {
 			initFirstPage();
@@ -177,7 +177,7 @@ public class LoginPage extends Admin {
 			Command findNode = Services.command(securityContext, FindNodeCommand.class);
 			for(Long s : expandedNodesArray) {
 
-				AbstractNode n = (AbstractNode)findNode.execute(user, s);
+				AbstractNode n = (AbstractNode)findNode.execute(s);
 				if(n != null) {
 					//openNodes.add(new TreeNode(String.valueOf(n.getId())));
 					openNodes.add(new TreeNode(n, String.valueOf(n.getId())));

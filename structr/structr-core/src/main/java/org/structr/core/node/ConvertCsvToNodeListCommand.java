@@ -72,7 +72,7 @@ public class ConvertCsvToNodeListCommand extends NodeServiceCommand {
 
             if (o instanceof Long) {
                 csvNodeId = (Long) o;
-                sourceNode = (AbstractNode) Services.command(securityContext, FindNodeCommand.class).execute(new SuperUser(), csvNodeId);
+                sourceNode = (AbstractNode) Services.command(securityContext, FindNodeCommand.class).execute(csvNodeId);
 
                 if (sourceNode instanceof CsvFile) {
                     csvFileNode = (CsvFile) sourceNode;

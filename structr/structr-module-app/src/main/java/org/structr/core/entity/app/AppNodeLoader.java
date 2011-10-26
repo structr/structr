@@ -117,7 +117,7 @@ public class AppNodeLoader extends AbstractNode implements NodeSource {
 		Object loaderValue = getValue(request);
 		if(loaderValue != null)
 		{
-			return ((AbstractNode)Services.command(securityContext, FindNodeCommand.class).execute(null, this, loaderValue));
+			return ((AbstractNode)Services.command(securityContext, FindNodeCommand.class).execute(this, loaderValue));
 		}
 
 		return(null);

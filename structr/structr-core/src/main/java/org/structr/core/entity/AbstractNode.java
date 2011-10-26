@@ -929,7 +929,7 @@ public abstract class AbstractNode
 
 				if (StringUtils.isNotEmpty(templateKey)) {
 
-					customTemplate = (Template) findNode.execute(user, this,
+					customTemplate = (Template) findNode.execute(this,
 						new XPath(templateKey));
 				}
 
@@ -975,8 +975,8 @@ public abstract class AbstractNode
 				// if (key.startsWith("/") || key.startsWith("count(")) {
 				// use XPath notation
 				// search relative to calling node
-				// List<AbstractNode> nodes = (List<AbstractNode>) findNode.execute(user, callingNode, new XPath(key));
-				// Object result = findNode.execute(user, this, new XPath(key));
+				// List<AbstractNode> nodes = (List<AbstractNode>) findNode.execute(callingNode, new XPath(key));
+				// Object result = findNode.execute(this, new XPath(key));
 				Object result = findNode.execute(user,
 								 this,
 								 key);
@@ -1222,10 +1222,10 @@ public abstract class AbstractNode
 ////                  Command findNode = Services.command(securityContext, FindNodeCommand.class);
 ////
 ////                  // search relative to calling node
-////                  //List<AbstractNode> nodes = (List<AbstractNode>) findNode.execute(user, callingNode, new XPath(key));
+////                  //List<AbstractNode> nodes = (List<AbstractNode>) findNode.execute(callingNode, new XPath(key));
 ////
 ////                  // get referenced nodes relative to the template
-////                  List<AbstractNode> nodes = (List<AbstractNode>) findNode.execute(user, this, new XPath(key));
+////                  List<AbstractNode> nodes = (List<AbstractNode>) findNode.execute(this, new XPath(key));
 ////
 ////                  if (nodes != null) {
 ////                      for (AbstractNode s : nodes) {
@@ -1889,14 +1889,28 @@ public abstract class AbstractNode
 			// (we omit null check here because containsKey ensures that rel is not null)
 			DirectedRelationship rel = EntityContext.getRelations(type).get(singularType);
 			if(idRequested) {
+
 				AbstractNode node = rel.getRelatedNode(securityContext, this, singularType);
 				if(node != null) {
+
 					return node.getId();
+					
 				} else {
-					// TODO: handle "not found"..
+					logger.log(Level.FINE, "Related node not found for key {0}", key);
 				}
+
 			} else {
-				return rel.getRelatedNodes(securityContext, this, singularType);
+
+				// return collection or single element depending on cardinality of relationship
+				switch(rel.getCardinality()) {
+					case ManyToMany:
+					case OneToMany:
+						return rel.getRelatedNodes(securityContext, this, singularType);
+
+					case OneToOne:
+					case ManyToOne:
+						return rel.getRelatedNode(securityContext, this, singularType);
+				}
 			}
 		}
 		// ----- END automatic property resolution -----
@@ -3974,8 +3988,7 @@ public abstract class AbstractNode
 			SetOwnerCommand.class);
 
 		setOwner.execute(this,
-				 Services.command(securityContext, FindNodeCommand.class).execute(new SuperUser(),
-						  nodeId));
+				 Services.command(securityContext, FindNodeCommand.class).execute(nodeId));
 	}
 
 	private String getSingularTypeName(String key) {

@@ -191,7 +191,7 @@ public class LinkOperation implements PrimaryOperation, NodeRelationshipOperatio
 
 		} else {
 
-			Object findNodeReturnValue = findNodeCommand.execute(securityContext.getUser(), currentNode, parameter);
+			Object findNodeReturnValue = findNodeCommand.execute(currentNode, parameter);
 			if(findNodeReturnValue instanceof Collection) {
 
 				throw new InvalidParameterException("LINK does not support wildcards");

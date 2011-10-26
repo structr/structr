@@ -72,24 +72,22 @@ public class FindNodeCommand extends NodeServiceCommand {
         GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
         StructrNodeFactory nodeFactory = (StructrNodeFactory) arguments.get("nodeFactory");
 
-        User user = null;
-
         if (graphDb != null) {
             switch (parameters.length) {
                 case 0:
                     throw new UnsupportedArgumentError("No arguments supplied");
 
-                case 2:
+                case 1:
                     if (parameters[0] instanceof User) {
-                        user = (User) parameters[0];
+			    throw new IllegalStateException("FindNodeCommand does not accept User instances any more. Please use SecurityContext!");
                     }
-                    return (handleSingleArgument(graphDb, nodeFactory, user, parameters[1]));
+                    return (handleSingleArgument(graphDb, nodeFactory, parameters[0]));
 
                 default:
                     if (parameters[0] instanceof User) {
-                        user = (User) parameters[0];
+			    throw new IllegalStateException("FindNodeCommand does not accept User instances any more. Please use SecurityContext!");
                     }
-                    return (handleMultipleArguments(graphDb, nodeFactory, user, parameters));
+                    return (handleMultipleArguments(graphDb, nodeFactory, parameters));
             }
         }
 
@@ -97,7 +95,7 @@ public class FindNodeCommand extends NodeServiceCommand {
     }
 
     // <editor-fold defaultstate="collapsed" desc="private methods">
-    private Object handleSingleArgument(GraphDatabaseService graphDb, StructrNodeFactory nodeFactory, User user, Object argument) {
+    private Object handleSingleArgument(GraphDatabaseService graphDb, StructrNodeFactory nodeFactory, Object argument) {
 
         Object result = null;
 
@@ -199,7 +197,7 @@ public class FindNodeCommand extends NodeServiceCommand {
         return result;
     }
 
-    private Object handleMultipleArguments(GraphDatabaseService graphDb, StructrNodeFactory nodeFactory, User user, Object[] parameters) {
+    private Object handleMultipleArguments(GraphDatabaseService graphDb, StructrNodeFactory nodeFactory, Object[] parameters) {
         // at this point, we're sure there are at least 2 elements in the array
         // (so, no check here :))
 

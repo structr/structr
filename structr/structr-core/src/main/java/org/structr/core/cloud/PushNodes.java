@@ -85,7 +85,7 @@ public class PushNodes extends CloudServiceCommand
 				if(parameters[2] instanceof Long)
 				{
 					long id = ((Long)parameters[2]).longValue();
-					sourceNode = (AbstractNode)findNode.execute(null, id);
+					sourceNode = (AbstractNode)findNode.execute(id);
 
 				} else if(parameters[2] instanceof AbstractNode)
 				{
@@ -94,7 +94,7 @@ public class PushNodes extends CloudServiceCommand
 				} else if(parameters[2] instanceof String)
 				{
 					long id = Long.parseLong((String)parameters[2]);
-					sourceNode = (AbstractNode)findNode.execute(null, id);
+					sourceNode = (AbstractNode)findNode.execute(id);
 				}
 
 				// target node

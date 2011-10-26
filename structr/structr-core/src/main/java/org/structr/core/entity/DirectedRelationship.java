@@ -21,6 +21,8 @@ package org.structr.core.entity;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.lang.StringUtils;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
@@ -45,6 +47,8 @@ import org.structr.core.node.TransactionCommand;
  */
 public class DirectedRelationship {
 
+	private static final Logger logger = Logger.getLogger(DirectedRelationship.class.getName());
+
 	public enum Cardinality {
 		OneToOne, OneToMany, ManyToOne, ManyToMany
 	}
@@ -55,6 +59,7 @@ public class DirectedRelationship {
 
 	public DirectedRelationship(RelationshipType relType, Direction direction, Cardinality cardinality) {
 
+		this.cardinality = cardinality;
 		this.direction = direction;
 		this.relType = relType;
 	}
@@ -88,6 +93,12 @@ public class DirectedRelationship {
 
 		if(cardinality.equals(Cardinality.OneToMany) || cardinality.equals(Cardinality.ManyToMany)) {
 			return getTraversalResults(securityContext, node, StringUtils.capitalize(type));
+
+		} else {
+
+			logger.log(Level.WARNING, "Requested related nodes with wrong cardinality {0} between {1} and {2}",
+				new Object[] { cardinality.name(), node.getClass().getSimpleName(), type }
+			);
 		}
 
 		return null;
@@ -101,6 +112,12 @@ public class DirectedRelationship {
 			if(nodes != null && nodes.iterator().hasNext()) {
 				return nodes.iterator().next();
 			}
+
+		} else {
+
+			logger.log(Level.WARNING, "Requested related node with wrong cardinality {0} between {1} and {2}",
+				new Object[] { cardinality.name(), node.getClass().getSimpleName(), type }
+			);
 		}
 
 		return null;
@@ -119,7 +136,6 @@ public class DirectedRelationship {
 		} else {
 
 			targetNode = (AbstractNode)Services.command(securityContext, FindNodeCommand.class).execute(
-				securityContext.getUser(),
 				value
 			);
 		}

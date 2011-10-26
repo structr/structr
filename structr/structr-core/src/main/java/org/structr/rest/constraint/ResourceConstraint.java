@@ -36,13 +36,13 @@ public abstract class ResourceConstraint {
 
 	protected SecurityContext securityContext = null;
 
-	public abstract boolean checkAndConfigure(String part, HttpServletRequest request);
+	public abstract boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request);
 
 	public abstract List<? extends GraphObject> doGet(List<VetoableGraphObjectListener> listeners) throws PathException;
 	public abstract RestMethodResult doPost(final Map<String, Object> propertySet, final List<VetoableGraphObjectListener> listeners) throws Throwable;
 	public abstract RestMethodResult doHead() throws Throwable;
 	public abstract RestMethodResult doOptions() throws Throwable;
-
+	public abstract String getUriPart();
 	public abstract ResourceConstraint tryCombineWith(ResourceConstraint next) throws PathException;
 
 	// ----- methods -----
@@ -174,23 +174,12 @@ public abstract class ResourceConstraint {
 		}
 	}
 
-	protected String buildCreatedURI(HttpServletRequest request, String type, long id) {
+	protected String buildLocationHeader(String type, long id) {
 
-		StringBuilder uriBuilder = new StringBuilder(100);
-		uriBuilder.append(request.getScheme());
-		uriBuilder.append("://");
-		uriBuilder.append(request.getServerName());
-		uriBuilder.append(":");
-		uriBuilder.append(request.getServerPort());
-		uriBuilder.append(request.getContextPath());
-		uriBuilder.append(request.getServletPath());
+		StringBuilder uriBuilder = securityContext.getBaseURI();
+
+		uriBuilder.append(getUriPart());
 		uriBuilder.append("/");
-
-		if(type != null) {
-			uriBuilder.append(type.toLowerCase());
-			uriBuilder.append("s/");
-		}
-
 		uriBuilder.append(id);
 
 		return uriBuilder.toString();

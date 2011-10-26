@@ -56,7 +56,7 @@ public class DeleteOperation implements PrimaryOperation {
 
 			} else {
 
-				Object findNodeResult = Services.command(securityContext, FindNodeCommand.class).execute(securityContext.getUser(), currentNode, param);
+				Object findNodeResult = Services.command(securityContext, FindNodeCommand.class).execute(currentNode, param);
 				if(findNodeResult != null) {
 
 					if(findNodeResult instanceof Collection) {

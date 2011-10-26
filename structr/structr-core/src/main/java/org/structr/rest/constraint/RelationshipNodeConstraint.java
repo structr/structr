@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
+import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.StructrRelationship;
 import org.structr.rest.RestMethodResult;
@@ -42,7 +43,9 @@ public class RelationshipNodeConstraint extends WrappingConstraint {
 	private boolean startNode = false;
 
 	@Override
-	public boolean checkAndConfigure(String part, HttpServletRequest request) {
+	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) {
+
+		this.securityContext = securityContext;
 
 		// only "start" selects the start node, everything else means end node
 		if("start".equals(part.toLowerCase())) {

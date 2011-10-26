@@ -34,7 +34,7 @@ public class PagingConstraint extends WrappingConstraint {
 	}
 
 	@Override
-	public boolean checkAndConfigure(String part, HttpServletRequest request) {
+	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) {
 		return false;
 	}
 

@@ -44,7 +44,7 @@ public class SearchConstraint extends ResourceConstraint {
 	}
 
 	@Override
-	public boolean checkAndConfigure(String part, HttpServletRequest request) {
+	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) {
 		return false;	// not directly selectable via URI
 	}
 
@@ -76,6 +76,11 @@ public class SearchConstraint extends ResourceConstraint {
 	@Override
 	public ResourceConstraint tryCombineWith(ResourceConstraint next) {
 		return null;
+	}
+
+	@Override
+	public String getUriPart() {
+		return "";
 	}
 
 	public String getSearchString() {

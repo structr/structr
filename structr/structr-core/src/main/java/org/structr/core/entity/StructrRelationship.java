@@ -176,7 +176,7 @@ public class StructrRelationship implements GraphObject {
 				Command nodeFactory = Services.command(securityContext, NodeFactoryCommand.class);
 
 				AbstractNode startNode = (AbstractNode) nodeFactory.execute(getStartNode());
-				AbstractNode newEndNode = (AbstractNode) findNode.execute(user, endNodeId);
+				AbstractNode newEndNode = (AbstractNode) findNode.execute(endNodeId);
 
 				if (newEndNode != null) {
 					RelationshipType type = dbRelationship.getType();

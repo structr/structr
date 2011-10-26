@@ -42,9 +42,9 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.structr.common.AccessMode;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.core.GraphObject;
 import org.structr.core.Value;
 import org.structr.core.node.NodeAttribute;
 import org.structr.rest.exception.IllegalPathException;
@@ -445,7 +445,7 @@ public class JsonRestServlet extends HttpServlet {
 
 							// instantiate resource constraint
 							ResourceConstraint constraint = (ResourceConstraint)type.newInstance();
-							if(constraint.checkAndConfigure(part, request)) {
+							if(constraint.checkAndConfigure(part, securityContext, request)) {
 
 								logger.log(Level.FINE, "{0} matched, adding constraint of type {1} for part {2}", new Object[] {
 									matcher.pattern(),
@@ -455,7 +455,6 @@ public class JsonRestServlet extends HttpServlet {
 
 								// allow constraint to modify context
 								constraint.configurePropertyView(propertyView);
-								constraint.setSecurityContext(securityContext);
 
 								// add constraint and go on
 								constraintChain.add(constraint);
@@ -523,7 +522,7 @@ public class JsonRestServlet extends HttpServlet {
 				chain.append(constr.getClass().getSimpleName());
 				chain.append(", ");
 			}
-			logger.log(Level.INFO, "########## Constraint chain after iteration {0}: {1}", new Object[] { iterations, chain.toString() } );
+			logger.log(Level.FINE, "########## Constraint chain after iteration {0}: {1}", new Object[] { iterations, chain.toString() } );
 
 			found = false;
 			for(int i=0; i<num; i++) {
@@ -535,7 +534,7 @@ public class JsonRestServlet extends HttpServlet {
 					ResourceConstraint combinedConstraint = firstElement.tryCombineWith(secondElement);
 					if(combinedConstraint != null) {
 
-						logger.log(Level.INFO, "Combined constraint {0}", combinedConstraint.getClass().getSimpleName());
+						logger.log(Level.FINE, "Combined constraint {0}", combinedConstraint.getClass().getSimpleName());
 
 						// remove source constraints
 						constraintChain.remove(firstElement);
@@ -573,7 +572,7 @@ public class JsonRestServlet extends HttpServlet {
 			chain.append(constr.getClass().getSimpleName());
 			chain.append(", ");
 		}
-		logger.log(Level.INFO, "########## Final constraint chain {0}", chain.toString() );
+		logger.log(Level.FINE, "########## Final constraint chain {0}", chain.toString() );
 
 		if(constraintChain.size() == 1) {
 			return constraintChain.get(0);
@@ -626,8 +625,8 @@ public class JsonRestServlet extends HttpServlet {
 
 	private SecurityContext getSecurityContext(HttpServletRequest request) {
 
-		return SecurityContext.getSuperUserInstance();
-		// return SecurityContext.getInstance(this.getServletConfig(), request, AccessMode.Backend);
+		// return SecurityContext.getSuperUserInstance();
+		return SecurityContext.getInstance(this.getServletConfig(), request, AccessMode.Backend);
 	}
 
 	/**

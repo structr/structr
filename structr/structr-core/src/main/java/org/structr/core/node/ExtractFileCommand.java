@@ -73,26 +73,26 @@ public class ExtractFileCommand extends NodeServiceCommand {
 
                 if (parameters[0] instanceof Long) {
                     long id = ((Long) parameters[0]).longValue();
-                    node = (AbstractNode) findNode.execute(user, id);
+                    node = (AbstractNode) findNode.execute(id);
 
                 } else if (parameters[0] instanceof AbstractNode) {
                     node = (AbstractNode) parameters[0];
 
                 } else if (parameters[0] instanceof String) {
                     long id = Long.parseLong((String) parameters[0]);
-                    node = (AbstractNode) findNode.execute(user, id);
+                    node = (AbstractNode) findNode.execute(id);
                 }
 
                 if (parameters[1] instanceof Long) {
                     long id = ((Long) parameters[1]).longValue();
-                    targetNode = (AbstractNode) findNode.execute(user, id);
+                    targetNode = (AbstractNode) findNode.execute(id);
 
                 } else if (parameters[1] instanceof AbstractNode) {
                     targetNode = (AbstractNode) parameters[1];
 
                 } else if (parameters[1] instanceof String) {
                     long id = Long.parseLong((String) parameters[1]);
-                    targetNode = (AbstractNode) findNode.execute(user, id);
+                    targetNode = (AbstractNode) findNode.execute(id);
                 }
 
                 if (parameters[2] instanceof User) {

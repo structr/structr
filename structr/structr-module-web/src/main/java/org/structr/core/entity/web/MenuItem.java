@@ -116,8 +116,7 @@ public class MenuItem extends WebNode {
 		// find link target node
 		Command findNode            = Services.command(securityContext,
 			FindNodeCommand.class);
-		AbstractNode linkTargetNode = (AbstractNode) findNode.execute(new SuperUser(),
-			value);
+		AbstractNode linkTargetNode = (AbstractNode) findNode.execute(value);
 
 		// delete existing link target relationships
 		List<StructrRelationship> pageLinkRels = getRelationships(RelType.PAGE_LINK,

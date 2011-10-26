@@ -75,7 +75,7 @@ public class PullNode extends CloudServiceCommand
 				if(parameters[2] instanceof Long)
 				{
 					long id = ((Long)parameters[2]).longValue();
-					localTargetNode = (AbstractNode)findNode.execute(null, id);
+					localTargetNode = (AbstractNode)findNode.execute(id);
 
 				} else if(parameters[2] instanceof AbstractNode)
 				{
@@ -84,7 +84,7 @@ public class PullNode extends CloudServiceCommand
 				} else if(parameters[2] instanceof String)
 				{
 					long id = Long.parseLong((String)parameters[2]);
-					localTargetNode = (AbstractNode)findNode.execute(null, id);
+					localTargetNode = (AbstractNode)findNode.execute(id);
 				}
 
 				if(parameters[3] instanceof String)

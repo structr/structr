@@ -1301,7 +1301,7 @@ public class DefaultEdit extends Nodes {
 							Command findNode          =
 								Services.command(securityContext, FindNodeCommand.class);
 							List<AbstractNode> result =
-								(List<AbstractNode>) findNode.execute(user, node);
+								(List<AbstractNode>) findNode.execute(node);
 
 							for (AbstractNode s : result) {
 

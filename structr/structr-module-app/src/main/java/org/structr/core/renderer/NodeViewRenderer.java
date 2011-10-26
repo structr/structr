@@ -85,7 +85,7 @@ public class NodeViewRenderer implements NodeRenderer<AbstractNode>
 
 		logger.log(Level.INFO, "Got idSourceParameter {0}, parameter {1}, loading node..", new Object[] { idSourceParameter, idSource } );
 
-		return ((AbstractNode)Services.command(securityContext, FindNodeCommand.class).execute(null, node, idSource));
+		return ((AbstractNode)Services.command(securityContext, FindNodeCommand.class).execute(node, idSource));
 	}
 
 	private String getTemplateFromNode(final AbstractNode node)

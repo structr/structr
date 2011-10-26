@@ -35,6 +35,7 @@ import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.PropertyView;
 import org.structr.core.GraphObject;
 import org.structr.core.Value;
+import org.structr.core.entity.AbstractNode;
 import org.structr.rest.wrapper.PropertySet.PropertyFormat;
 
 /**
@@ -115,6 +116,12 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 				}
 
 				properties.add(property);
+
+			} else if(value instanceof GraphObject) {
+
+				GraphObject graphObject = (GraphObject)value;
+
+				properties.add(this.serializeNestedKeyValueType(graphObject, typeOfSrc, context, includeTypeInOutput, localPropertyView, depth+1));
 
 			} else {
 
@@ -237,6 +244,12 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 					}
 
 					jsonObject.add(key, property);
+
+				} else if(value instanceof GraphObject) {
+
+					GraphObject graphObject = (GraphObject)value;
+					jsonObject.add(key, this.serializeFlatNameValue(graphObject, typeOfSrc, context, localPropertyView, depth+1));
+
 
 				} else {
 

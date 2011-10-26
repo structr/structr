@@ -74,7 +74,7 @@ public class IndexNodeCommand extends NodeServiceCommand {
 
 					Command findNode = Services.command(securityContext, FindNodeCommand.class);
 
-					node = (AbstractNode) findNode.execute(new SuperUser(), id);
+					node = (AbstractNode) findNode.execute(id);
 					indexNode(node);
 
 				} else if (parameters[0] instanceof String) {
@@ -83,7 +83,7 @@ public class IndexNodeCommand extends NodeServiceCommand {
 
 					Command findNode = Services.command(securityContext, FindNodeCommand.class);
 
-					node = (AbstractNode) findNode.execute(new SuperUser(), id);
+					node = (AbstractNode) findNode.execute(id);
 					indexNode(node);
 
 				} else if (parameters[0] instanceof AbstractNode) {
@@ -106,7 +106,7 @@ public class IndexNodeCommand extends NodeServiceCommand {
 
 					Command findNode = Services.command(securityContext, FindNodeCommand.class);
 
-					node = (AbstractNode) findNode.execute(new SuperUser(), id);
+					node = (AbstractNode) findNode.execute(id);
 
 				} else if (parameters[0] instanceof String) {
 
@@ -114,7 +114,7 @@ public class IndexNodeCommand extends NodeServiceCommand {
 
 					Command findNode = Services.command(securityContext, FindNodeCommand.class);
 
-					node = (AbstractNode) findNode.execute(new SuperUser(), id);
+					node = (AbstractNode) findNode.execute(id);
 
 				} else if (parameters[0] instanceof AbstractNode) {
 

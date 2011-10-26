@@ -47,7 +47,7 @@ public class PathHelper {
 		AbstractNode node       = null;
 		Command findNodeCommand = Services.command(securityContext, FindNodeCommand.class);
 
-		node = (AbstractNode) findNodeCommand.execute(null, path);
+		node = (AbstractNode) findNodeCommand.execute(path);
 
 		// check security context
 		if (securityContext.isVisible(node)) {

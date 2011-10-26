@@ -25,6 +25,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.neo4j.graphdb.Direction;
+import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import org.structr.rest.VetoableGraphObjectListener;
@@ -41,7 +42,9 @@ public class RelationshipConstraint extends WrappingConstraint {
 	private Direction direction = null;
 
 	@Override
-	public boolean checkAndConfigure(String part, HttpServletRequest request) {
+	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) {
+
+		this.securityContext = securityContext;
 
 		if("in".equals(part.toLowerCase())) {
 

@@ -48,7 +48,6 @@ import org.structr.rest.VetoableGraphObjectListener;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.exception.PathException;
-import org.structr.rest.wrapper.PropertySet;
 
 /**
  * A constraint that collects TypedIdConstraints and tries
@@ -57,7 +56,7 @@ import org.structr.rest.wrapper.PropertySet;
  *
  * @author Christian Morgner
  */
-public class RelationshipFollowingConstraint extends ResourceConstraint implements Evaluator {
+public class RelationshipFollowingConstraint extends FilterableConstraint implements Evaluator {
 
 	private static final Logger logger = Logger.getLogger(RelationshipFollowingConstraint.class.getName());
 
@@ -65,6 +64,7 @@ public class RelationshipFollowingConstraint extends ResourceConstraint implemen
 	private TraversalDescription traversalDescription = null;
 	private TypedIdConstraint firstConstraint = null;
 	private TypedIdConstraint lastConstraint = null;
+	private List<String> uriParts = null;
 	private Set<Long> idSet = null;
 	private int pathLength = 0;
 
@@ -77,8 +77,9 @@ public class RelationshipFollowingConstraint extends ResourceConstraint implemen
 		);
 		
 		this.visitedRelationships = new LinkedHashSet<DirectedRelationship>();
-		this.securityContext = securityContext;
-		this.idSet = new LinkedHashSet<Long>();
+		this.securityContext      = securityContext;
+		this.idSet                = new LinkedHashSet<Long>();
+		this.uriParts             = new LinkedList<String>();
 
 		// add TypedIdConstraint to list of evaluators
 		traversalDescription = traversalDescription.evaluator(this);
@@ -103,6 +104,8 @@ public class RelationshipFollowingConstraint extends ResourceConstraint implemen
 			// id alread in set, this is an illegal path!
 			throw new IllegalPathException();
 		}
+
+		uriParts.add(typedIdConstraint.getUriPart());
 
 		// find static relationship between the two types
 		String type1 = lastConstraint.getTypeConstraint().getType();
@@ -129,7 +132,7 @@ public class RelationshipFollowingConstraint extends ResourceConstraint implemen
 	}
 
 	@Override
-	public boolean checkAndConfigure(String part, HttpServletRequest request) {
+	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) {
 		return false;
 	}
 
@@ -196,10 +199,22 @@ public class RelationshipFollowingConstraint extends ResourceConstraint implemen
 
 		} else if(next instanceof TypeConstraint) {
 
-			return new StaticRelationshipConstraint(lastConstraint, (TypeConstraint)next);
+			return new StaticRelationshipConstraint(securityContext, lastConstraint, (TypeConstraint)next);
 		}
 		
-		return null;
+		return super.tryCombineWith(next);
+	}
+
+	@Override
+	public String getUriPart() {
+		StringBuilder uri = new StringBuilder();
+
+		for(String part : uriParts) {
+			uri.append(part);
+			uri.append("/");
+		}
+
+		return uri.toString();
 	}
 
 	// ----- interface Evaluator -----

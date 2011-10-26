@@ -62,7 +62,7 @@ public class CreateOperation implements PrimaryOperation, NodeTypeOperation, Nod
 	@Override
 	public boolean executeOperation(final StringBuilder stdOut) throws NodeCommandException {
 
-		final AbstractNode parent = (AbstractNode)Services.command(securityContext, FindNodeCommand.class).execute(securityContext.getUser(), nodeParent);
+		final AbstractNode parent = (AbstractNode)Services.command(securityContext, FindNodeCommand.class).execute(nodeParent);
 		boolean ret = false;
 
 		if(parent != null) {

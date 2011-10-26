@@ -690,7 +690,7 @@ public class Nodes extends Admin {
 					Command createNode = Services.command(securityContext, CreateNodeCommand.class);
 					Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
 
-					AbstractNode parentNode = (AbstractNode)findNode.execute(user, Long.parseLong(targetNodeId));
+					AbstractNode parentNode = (AbstractNode)findNode.execute(Long.parseLong(targetNodeId));
 					AbstractNode newNode = (AbstractNode)createNode.execute(user);
 
 					newNodeForm.copyTo(newNode);
@@ -712,7 +712,7 @@ public class Nodes extends Admin {
 				Services.command(securityContext, AddNotificationCommand.class).execute(new SuccessNotification(securityContext, okMsg));
 
 				Command findNode = Services.command(securityContext, FindNodeCommand.class);
-				AbstractNode n = (AbstractNode)findNode.execute(user, s.getId());
+				AbstractNode n = (AbstractNode)findNode.execute(s.getId());
 
 				Map<String, String> parameters = new HashMap<String, String>();
 				parameters.put(NODE_ID_KEY, String.valueOf(s.getId()));
@@ -758,8 +758,8 @@ public class Nodes extends Admin {
 					Command findNode = Services.command(securityContext, FindNodeCommand.class);
 					Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
 
-					AbstractNode startNode = (AbstractNode)findNode.execute(user, Long.parseLong(sourceNodeId));
-					AbstractNode endNode = (AbstractNode)findNode.execute(user, Long.parseLong(targetNodeId));
+					AbstractNode startNode = (AbstractNode)findNode.execute(Long.parseLong(sourceNodeId));
+					AbstractNode endNode = (AbstractNode)findNode.execute(Long.parseLong(targetNodeId));
 
 					StructrRelationship newRel = (StructrRelationship)createRel.execute(startNode, endNode, relType);
 					newRel.setProperty(TARGET_SLOT_NAME_KEY, targetSlotName);
@@ -873,7 +873,7 @@ public class Nodes extends Admin {
 			}
 
 			Command findNode = Services.command(securityContext, FindNodeCommand.class);
-			final AbstractNode targetNode = (AbstractNode)findNode.execute(user, targetNodeId);
+			final AbstractNode targetNode = (AbstractNode)findNode.execute(targetNodeId);
 
 			final Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
 			transactionCommand.execute(new StructrTransaction() {

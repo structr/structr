@@ -70,7 +70,7 @@ public class GeoHelper {
 				continue;
 			}
 
-			AbstractNode newNode = (AbstractNode) findNode.execute(new SuperUser(), nodeId);
+			AbstractNode newNode = (AbstractNode) findNode.execute(nodeId);
 
 			result.add(newNode);
 		}

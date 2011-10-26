@@ -146,7 +146,7 @@ public class MoveOperation implements PrimaryOperation {
 
 		} else {
 
-			Object findNodeReturnValue = findNodeCommand.execute(securityContext.getUser(), currentNode, parameter);
+			Object findNodeReturnValue = findNodeCommand.execute(currentNode, parameter);
 			if(findNodeReturnValue instanceof Collection) {
 
 				throw new InvalidParameterException("MOVE does not support wildcards");

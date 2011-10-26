@@ -65,6 +65,11 @@ public abstract class WrappingConstraint extends ResourceConstraint {
 		throw new IllegalPathException();
 	}
 
+	@Override
+	public String getUriPart() {
+		return wrappedConstraint.getUriPart();
+	}
+
 	protected void wrapConstraint(ResourceConstraint wrappedConstraint) {
 		this.wrappedConstraint = wrappedConstraint;
 	}

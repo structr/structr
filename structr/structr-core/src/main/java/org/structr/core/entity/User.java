@@ -107,8 +107,7 @@ public class User extends Person {
 		}
 
 		final AbstractNode object = (AbstractNode) Services.command(securityContext,
-			FindNodeCommand.class).execute(user,
-			objectId);
+			FindNodeCommand.class).execute(objectId);
 
 		if (object == null) {
 
@@ -190,8 +189,7 @@ public class User extends Person {
 		}
 
 		final AbstractNode object = (AbstractNode) Services.command(securityContext,
-			FindNodeCommand.class).execute(user,
-			objectId);
+			FindNodeCommand.class).execute(objectId);
 
 		if (object == null) {
 

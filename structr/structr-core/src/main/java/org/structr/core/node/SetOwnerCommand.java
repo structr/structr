@@ -91,7 +91,7 @@ public class SetOwnerCommand extends NodeServiceCommand {
 									   + parameters[0]);
 				}
 
-				node = (AbstractNode) findNode.execute(new SuperUser(), id);
+				node = (AbstractNode) findNode.execute(id);
 
 				if (parameters[1] instanceof User) {
 					user = (User) parameters[1];

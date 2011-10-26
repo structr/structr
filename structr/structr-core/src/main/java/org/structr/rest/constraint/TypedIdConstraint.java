@@ -7,9 +7,9 @@ package org.structr.rest.constraint;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
+import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import org.structr.rest.RestMethodResult;
@@ -27,17 +27,22 @@ public class TypedIdConstraint extends FilterableConstraint {
 
 	private static final Logger logger = Logger.getLogger(TypedIdConstraint.class.getName());
 
-	private TypeConstraint typeConstraint = null;
-	private IdConstraint idConstraint = null;
+	protected TypeConstraint typeConstraint = null;
+	protected IdConstraint idConstraint = null;
 
-	public TypedIdConstraint(IdConstraint idConstraint, TypeConstraint typeConstraint) {
-		this.securityContext = idConstraint.securityContext;
+	protected TypedIdConstraint(SecurityContext securityContext) {
+		this.securityContext = securityContext;
+		// empty protected constructor
+	}
+
+	public TypedIdConstraint(SecurityContext securityContext, IdConstraint idConstraint, TypeConstraint typeConstraint) {
+		this.securityContext = securityContext;
 		this.typeConstraint = typeConstraint;
 		this.idConstraint = idConstraint;
 	}
 
 	@Override
-	public boolean checkAndConfigure(String part, HttpServletRequest request) {
+	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) {
 		return false;	// we will not accept URI parts directly
 	}
 
@@ -100,7 +105,7 @@ public class TypedIdConstraint extends FilterableConstraint {
 			// next constraint is a type constraint
 			// => follow predefined statc relationship
 			//    between the two types
-			return new StaticRelationshipConstraint(this, (TypeConstraint)next);
+			return new StaticRelationshipConstraint(securityContext, this, (TypeConstraint)next);
 
 		} else if(next instanceof TypedIdConstraint) {
 
@@ -111,5 +116,10 @@ public class TypedIdConstraint extends FilterableConstraint {
 		}
 
 		return super.tryCombineWith(next);
+	}
+
+	@Override
+	public String getUriPart() {
+		return typeConstraint.getUriPart().concat("/").concat(idConstraint.getUriPart());
 	}
 }

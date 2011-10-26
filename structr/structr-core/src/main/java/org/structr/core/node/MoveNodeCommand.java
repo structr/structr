@@ -63,7 +63,7 @@ public class MoveNodeCommand extends NodeServiceCommand {
                 } else if (parameters[0] instanceof String) {
                     id = Long.parseLong((String) parameters[0]);
                 }
-                node = (AbstractNode) findNode.execute(new SuperUser(), id);
+                node = (AbstractNode) findNode.execute(id);
 
                 if (parameters[1] instanceof Long) {
                     newParentId = ((Long) parameters[1]).longValue();
@@ -75,7 +75,7 @@ public class MoveNodeCommand extends NodeServiceCommand {
                     newParentId = Long.parseLong((String) parameters[1]);
 
                 }
-                newParentNode = (AbstractNode) findNode.execute(new SuperUser(), newParentId);
+                newParentNode = (AbstractNode) findNode.execute(newParentId);
 
                 break;
 
@@ -90,7 +90,7 @@ public class MoveNodeCommand extends NodeServiceCommand {
                 } else if (parameters[0] instanceof String) {
                     id = Long.parseLong((String) parameters[0]);
                 }
-                node = (AbstractNode) findNode.execute(new SuperUser(), id);
+                node = (AbstractNode) findNode.execute(id);
 
                 if (parameters[1] instanceof Long) {
                     newParentId = ((Long) parameters[1]).longValue();
@@ -102,7 +102,7 @@ public class MoveNodeCommand extends NodeServiceCommand {
                     newParentId = Long.parseLong((String) parameters[1]);
 
                 }
-                newParentNode = (AbstractNode) findNode.execute(new SuperUser(), newParentId);
+                newParentNode = (AbstractNode) findNode.execute(newParentId);
 
                 if (parameters[2] instanceof Boolean) {
                     isLink = (Boolean) parameters[2];

@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.DirectedRelationship;
 import org.structr.rest.exception.IllegalPathException;
@@ -41,8 +42,8 @@ public class StaticRelationshipConstraint extends FilterableConstraint {
 	TypedIdConstraint typedIdConstraint = null;
 	TypeConstraint typeConstraint = null;
 
-	public StaticRelationshipConstraint(TypedIdConstraint typedIdConstraint, TypeConstraint typeConstraint) {
-		this.securityContext = typeConstraint.securityContext;
+	public StaticRelationshipConstraint(SecurityContext securityContext, TypedIdConstraint typedIdConstraint, TypeConstraint typeConstraint) {
+		this.securityContext = securityContext;
 		this.typedIdConstraint = typedIdConstraint;
 		this.typeConstraint = typeConstraint;
 	}
@@ -81,7 +82,7 @@ public class StaticRelationshipConstraint extends FilterableConstraint {
 			
 			// TODO: set location header
 			RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_CREATED);
-			// FIXME: result.addHeader("Location", buildCreatedURI(request, newNode.getType(), newNode.getId()));
+			result.addHeader("Location", buildLocationHeader(newNode.getType(), newNode.getId()));
 			return result;
 		}
 
@@ -99,13 +100,18 @@ public class StaticRelationshipConstraint extends FilterableConstraint {
 	}
 
 	@Override
-	public boolean checkAndConfigure(String part, HttpServletRequest request) {
+	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) {
 		return false;
 	}
 
 	@Override
 	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws PathException {
 		return super.tryCombineWith(next);
+	}
+
+	@Override
+	public String getUriPart() {
+		return typedIdConstraint.getUriPart().concat("/").concat(typeConstraint.getUriPart());
 	}
 
 	public TypedIdConstraint getTypedIdConstraint() {

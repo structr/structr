@@ -428,7 +428,7 @@ public class StructrPage extends Page {
 			FindNodeCommand.class);
 		AbstractNode ret = null;
 
-		ret = (AbstractNode) findNode.execute(securityContext.getUser(), requestedId);
+		ret = (AbstractNode) findNode.execute(requestedId);
 
 		return (ret);
 	}
@@ -533,7 +533,7 @@ public class StructrPage extends Page {
 		if (rootNode == null) {
 
 			// get reference (root) node
-			rootNode = (AbstractNode) findNode.execute(user, new Long(0));
+			rootNode = (AbstractNode) findNode.execute(new Long(0));
 		}
 
 		return rootNode;

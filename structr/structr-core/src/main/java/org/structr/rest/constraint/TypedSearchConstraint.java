@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
+import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -40,14 +41,18 @@ public class TypedSearchConstraint extends SortableConstraint {
 	private TypeConstraint typeConstraint = null;
 	private String searchString = null;
 
-	public TypedSearchConstraint(TypeConstraint typeConstraint, String searchString) {
-		this.securityContext = typeConstraint.securityContext;
+	protected TypedSearchConstraint(SecurityContext securityContext) {
+		this.securityContext = securityContext;
+	}
+
+	public TypedSearchConstraint(SecurityContext securityContext, TypeConstraint typeConstraint, String searchString) {
+		this.securityContext = securityContext;
 		this.typeConstraint = typeConstraint;
 		this.searchString = searchString;
 	}
 
 	@Override
-	public boolean checkAndConfigure(String part, HttpServletRequest request) {
+	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) {
 		return false;	// we will not accept URI parts directly
 	}
 
@@ -77,7 +82,6 @@ public class TypedSearchConstraint extends SortableConstraint {
 	private List<GraphObject> getSearchResults(String searchString) throws PathException {
 
 		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
-		User user = new SuperUser();
 		AbstractNode topNode = null;
 		boolean includeDeleted = false;
 		boolean publicOnly = false;
