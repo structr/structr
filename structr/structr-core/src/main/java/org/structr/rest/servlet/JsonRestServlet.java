@@ -455,7 +455,7 @@ public class JsonRestServlet extends HttpServlet {
 							ResourceConstraint constraint = (ResourceConstraint)type.newInstance();
 							if(constraint.checkAndConfigure(part, securityContext, request)) {
 
-								logger.log(Level.INFO, "{0} matched, adding constraint of type {1} for part {2}", new Object[] {
+								logger.log(Level.FINE, "{0} matched, adding constraint of type {1} for part {2}", new Object[] {
 									matcher.pattern(),
 									type.getName(),
 									part
@@ -530,7 +530,7 @@ public class JsonRestServlet extends HttpServlet {
 				chain.append(constr.getClass().getSimpleName());
 				chain.append(", ");
 			}
-			logger.log(Level.INFO, "########## Constraint chain after iteration {0}: {1}", new Object[] { iterations, chain.toString() } );
+			logger.log(Level.FINE, "########## Constraint chain after iteration {0}: {1}", new Object[] { iterations, chain.toString() } );
 
 			found = false;
 			for(int i=0; i<num; i++) {
@@ -542,7 +542,7 @@ public class JsonRestServlet extends HttpServlet {
 					ResourceConstraint combinedConstraint = firstElement.tryCombineWith(secondElement);
 					if(combinedConstraint != null) {
 
-						logger.log(Level.INFO, "Combined constraint {0}", combinedConstraint.getClass().getSimpleName());
+						logger.log(Level.FINE, "Combined constraint {0}", combinedConstraint.getClass().getSimpleName());
 
 						// remove source constraints
 						constraintChain.remove(firstElement);
@@ -580,7 +580,7 @@ public class JsonRestServlet extends HttpServlet {
 			chain.append(constr.getClass().getSimpleName());
 			chain.append(", ");
 		}
-		logger.log(Level.INFO, "########## Final constraint chain {0}", chain.toString() );
+		logger.log(Level.FINE, "########## Final constraint chain {0}", chain.toString() );
 
 		if(constraintChain.size() == 1) {
 			return constraintChain.get(0);
@@ -672,109 +672,3 @@ public class JsonRestServlet extends HttpServlet {
 	}
 	// </editor-fold>
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	/*
-	private ResourceConstraint parsePath(String path, ResourceConstraint rootConstraint) {
-
-		ResourceConstraint currentConstraint = rootConstraint;
-
-		// split request path into URI parts
-		String[] pathParts = path.split("[/]+");
-		for(int i=0; i<pathParts.length; i++) {
-
-			// eliminate empty strings
-			String part = pathParts[i].trim();
-			if(part.length() > 0) {
-
-				// look for matching pattern
-				for(Entry<Pattern, Class> entry : constraintMap.entrySet()) {
-
-					Pattern pattern = entry.getKey();
-					Matcher matcher = pattern.matcher(pathParts[i]);
-
-					if(matcher.matches()) {
-
-						try {
-							Class type = entry.getValue();
-
-							// instantiate resource constraint
-							ResourceConstraint constraint = (ResourceConstraint)type.newInstance();
-							if(constraint.checkAndConfigure(part)) {
-
-								logger.log(Level.INFOST, "{0} matched, adding constraint of type {1} for part {2}", new Object[] {
-									matcher.pattern(),
-									type.getName(),
-									part
-								});
-
-								// nest constraint and go on
-								currentConstraint.setChild(constraint);
-								currentConstraint = constraint;
-
-								// first match wins, so choose priority wisely ;)
-								break;
-							}
-
-						} catch(Throwable t) {
-
-							logger.log(Level.WARNING, "Error instantiating constraint class", t);
-						}
-					}
-				}
-			}
-		}
-
-		return currentConstraint;
-	}
-	*/

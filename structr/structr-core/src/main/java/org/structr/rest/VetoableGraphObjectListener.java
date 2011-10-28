@@ -20,6 +20,7 @@
 package org.structr.rest;
 
 import java.util.List;
+import org.structr.common.ErrorBuffer;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 
@@ -35,8 +36,9 @@ import org.structr.core.GraphObject;
  */
 public interface VetoableGraphObjectListener {
 
-	public boolean mayDelete(GraphObject graphObject, SecurityContext securityContext);
-	public boolean mayModify(GraphObject graphObject, SecurityContext securityContext);
+	public boolean mayCreate(GraphObject graphObject, SecurityContext securityContext, ErrorBuffer errorBuffer);
+	public boolean mayModify(GraphObject graphObject, SecurityContext securityContext, ErrorBuffer errorBuffer);
+	public boolean mayDelete(GraphObject graphObject, SecurityContext securityContext, ErrorBuffer errorBuffer);
 
 	public void notifyOfTraversal(List<GraphObject> traversedNodes, SecurityContext securityContext);
 }

@@ -19,14 +19,12 @@
 
 package org.structr.rest.auth;
 
-import java.util.logging.Level;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
 import org.structr.core.Services;
 import org.structr.core.auth.AuthenticationException;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
 import org.structr.core.node.FindNodeCommand;
 import org.structr.rest.servlet.JsonRestServlet;

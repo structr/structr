@@ -21,6 +21,7 @@
 
 package org.structr.core.node;
 
+import java.util.Collection;
 import org.neo4j.graphdb.GraphDatabaseService;
 
 import org.structr.common.RelType;
@@ -35,12 +36,13 @@ import org.structr.core.entity.User;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.Arrays;
 import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.ErrorBuffer;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -61,8 +63,8 @@ public class CreateNodeCommand extends NodeServiceCommand {
 		StructrNodeFactory nodeFactory = (StructrNodeFactory) arguments.get("nodeFactory");
 
 //              IndexService index = (LuceneFulltextIndexService) arguments.get("index");
+		User user         = securityContext.getUser();
 		AbstractNode node = null;
-		User user         = null;
 
 		// Default is update index when creating a new node,
 		// so the node is found immediately
@@ -74,46 +76,54 @@ public class CreateNodeCommand extends NodeServiceCommand {
 
 			Date now                  = new Date();
 			Command createRel         = Services.command(securityContext, CreateRelationshipCommand.class);
-			List<NodeAttribute> attrs = new LinkedList<NodeAttribute>();
+			Map<String, Object> attrs = new HashMap<String, Object>();
 
 			// initialize node from parameters...
 			for (Object o : parameters) {
 
-				if (o instanceof List) {
-					attrs.addAll((List) o);
-				} else if (o instanceof NodeAttribute) {
+				if(o instanceof Map) {
 
-					NodeAttribute attr = (NodeAttribute) o;
+					Map<String, Object> map = (Map<String, Object>)o;
+					attrs.putAll(map);
 
-					attrs.add(attr);
+				} else if(o instanceof Collection) {
 
-				} else if (o instanceof User) {
-					user = (User) o;
-				} else if (o instanceof Boolean) {
-					updateIndex = (Boolean) o;
+					Collection<NodeAttribute> c = (Collection)o;
+					for(NodeAttribute attr : c) {
+						attrs.put(attr.getKey(), attr.getValue());
+					}
+
+				} else if(o instanceof NodeAttribute) {
+
+					NodeAttribute attr = (NodeAttribute)o;
+					attrs.put(attr.getKey(), attr.getValue());
+
+				} else if(o instanceof Boolean) {
+					updateIndex = (Boolean)o;
 				}
 			}
 
 			// Determine node type
-			String nodeType = null;
-
-			for (NodeAttribute attr : attrs) {
-
-				if (AbstractNode.Key.type.name().equals(attr.getKey())) {
-					nodeType = (String) attr.getValue();
-				}
-			}
+			Object typeObject = attrs.get(AbstractNode.Key.type.name());
+			String nodeType = typeObject != null ? typeObject.toString() : "GenericNode";
 
 			// Create node with type
 			node = nodeFactory.createNode(securityContext, graphDb.createNode(), nodeType);
 			logger.log(Level.FINE, "Node {0} created", node.getId());
 
-			for (NodeAttribute attr : attrs) {
+			ErrorBuffer errorBuffer = new ErrorBuffer();
+			for(Entry<String, Object> attr : attrs.entrySet()) {
 
-				// Don't update index now
-				node.setProperty(attr.getKey(), attr.getValue(), false);
-				logger.log(Level.FINEST, "Set node attribute {0} to {1}", new Object[] { attr.getKey(),
-					attr.getValue() });
+				try {
+					node.setProperty(attr.getKey(), attr.getValue());
+
+				} catch(Throwable t) {
+					errorBuffer.add(t.getMessage());
+				}
+			}
+
+			if(errorBuffer.hasError()) {
+				throw new IllegalArgumentException(errorBuffer.toString());
 			}
 
 			attrs.clear();

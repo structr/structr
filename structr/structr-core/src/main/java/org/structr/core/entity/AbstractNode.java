@@ -107,6 +107,7 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import org.structr.common.ErrorBuffer;
 import org.structr.core.Command;
 
 //~--- classes ----------------------------------------------------------------
@@ -3841,12 +3842,14 @@ public abstract class AbstractNode
 
 				// FIXME: return here, or do something else?
 				try {
-					rel.createRelationship(securityContext, this, value);
+					rel.createRelationship(securityContext, this, value, singularType);
+
+					return;
 					
 				} catch(Throwable t) {
-					logger.log(Level.WARNING, "Exception while setting nested property", t);
+					// report exception upwards
+					throw new IllegalArgumentException(t.getMessage());
 				}
-				return;
 			}
 		}
 
@@ -3879,7 +3882,8 @@ public abstract class AbstractNode
 
 			Value parameter           = EntityContext.getPropertyValidationParameter(type,
 				key);
-			StringBuilder errorBuffer = new StringBuilder(20);
+
+			ErrorBuffer errorBuffer = new ErrorBuffer();
 
 			if (!validator.isValid(key, convertedValue, parameter, errorBuffer)) {
 				throw new IllegalArgumentException(errorBuffer.toString());

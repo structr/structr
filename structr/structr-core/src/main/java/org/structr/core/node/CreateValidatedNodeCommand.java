@@ -40,6 +40,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.ErrorBuffer;
 import org.structr.common.PropertyView;
 import org.structr.core.PropertyValidator;
 import org.structr.core.Value;
@@ -62,8 +63,8 @@ public class CreateValidatedNodeCommand extends NodeServiceCommand {
 		StructrNodeFactory nodeFactory = (StructrNodeFactory)arguments.get("nodeFactory");
 
 //              IndexService index = (LuceneFulltextIndexService) arguments.get("index");
+		User user = securityContext.getUser();
 		AbstractNode node = null;
-		User user = null;
 
 		// Default is update index when creating a new node,
 		// so the node is found immediately
@@ -97,8 +98,6 @@ public class CreateValidatedNodeCommand extends NodeServiceCommand {
 					NodeAttribute attr = (NodeAttribute)o;
 					attrs.put(attr.getKey(), attr.getValue());
 
-				} else if(o instanceof User) {
-					user = (User)o;
 				} else if(o instanceof Boolean) {
 					updateIndex = (Boolean)o;
 				}
@@ -112,12 +111,9 @@ public class CreateValidatedNodeCommand extends NodeServiceCommand {
 			node = nodeFactory.createNode(securityContext, graphDb.createNode(), nodeType);
 			Class nodeClass = node.getClass();
 
-
-			logger.log(Level.INFO, "New node with type {0} and ID {1} created", new Object[] { nodeClass.getSimpleName(), node.getId() } );
-
 			// validate given properties based on PropertyView.All
 			Set<String> propertySet = EntityContext.getPropertySet(nodeClass, PropertyView.All);
-			StringBuilder validationErrorBuffer = new StringBuilder(20);
+			ErrorBuffer errorBuffer = new ErrorBuffer();
 			boolean nodeIsValid = true;
 
 			for(String property : propertySet) {
@@ -128,13 +124,13 @@ public class CreateValidatedNodeCommand extends NodeServiceCommand {
 					Object value = attrs.get(property);
 
 					// evaluate validator
-					nodeIsValid &= validator.isValid(property, value, parameter, validationErrorBuffer);
+					nodeIsValid &= validator.isValid(property, value, parameter, errorBuffer);
 				}
 			}
 
 			// validation failed, throw exception & fail transaction
 			if(!nodeIsValid) {
-				throw new IllegalArgumentException(validationErrorBuffer.toString());
+				throw new IllegalArgumentException(errorBuffer.toString());
 			}
 
 			for(Entry<String, Object> attr : attrs.entrySet()) {
@@ -182,6 +178,9 @@ public class CreateValidatedNodeCommand extends NodeServiceCommand {
 			// notify node of its creation
 			node.onNodeCreation();
 		}
+
+
+		logger.log(Level.INFO, "New node with type {0} and ID {1} created", new Object[] { node.getType(), node.getId() } );
 
 		return node;
 	}

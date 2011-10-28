@@ -19,6 +19,7 @@
 
 package org.structr.core.validator;
 
+import org.structr.common.ErrorBuffer;
 import org.structr.core.PropertyValidator;
 import org.structr.core.Value;
 
@@ -30,17 +31,13 @@ import org.structr.core.Value;
 public class SimpleMaxlengthValidator extends PropertyValidator<Integer> {
 
 	@Override
-	public boolean isValid(String key, Object value, Value<Integer> parameter, StringBuilder errorMessage) {
+	public boolean isValid(String key, Object value, Value<Integer> parameter, ErrorBuffer errorBuffer) {
 		
 		if(value.toString().length() <= parameter.get()) {
 			return true;
 		}
 
-		errorMessage.append("Property '");
-		errorMessage.append(key);
-		errorMessage.append("' exceeds maxium allowed length of ");
-		errorMessage.append(parameter.get());
-
+		errorBuffer.add("Property '", key, "' exceeds maxium allowed length of ", parameter.get());
 		return false;
 	}
 }

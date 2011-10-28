@@ -19,6 +19,7 @@
 
 package org.structr.core.validator;
 
+import org.structr.common.ErrorBuffer;
 import org.structr.core.PropertyValidator;
 import org.structr.core.Value;
 
@@ -30,17 +31,14 @@ import org.structr.core.Value;
 public class TypeValidator extends PropertyValidator<Class> {
 
 	@Override
-	public boolean isValid(String key, Object value, Value<Class> parameter, StringBuilder errorMessage) {
+	public boolean isValid(String key, Object value, Value<Class> parameter, ErrorBuffer errorBuffer) {
 
 		if(value != null && parameter.get().isAssignableFrom(value.getClass())) {
 			return true;
 		}
 
-		errorMessage.append("Property '");
-		errorMessage.append(key);
-		errorMessage.append("' must be of type '");
-		errorMessage.append(parameter.get().getName());
-		errorMessage.append("'");
+		// set error
+		errorBuffer.add("Property '", key, "' must be of type '", parameter.get().getName(), "'");
 
 		return false;
 	}

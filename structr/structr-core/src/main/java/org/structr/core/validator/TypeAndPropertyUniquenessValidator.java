@@ -22,13 +22,12 @@ package org.structr.core.validator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Logger;
+import org.structr.common.ErrorBuffer;
 import org.structr.common.SecurityContext;
 import org.structr.core.PropertyValidator;
 import org.structr.core.Services;
 import org.structr.core.Value;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.SuperUser;
-import org.structr.core.entity.User;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
 import org.structr.core.node.search.SearchOperator;
@@ -43,14 +42,10 @@ public class TypeAndPropertyUniquenessValidator extends PropertyValidator<String
 	private static final Logger logger = Logger.getLogger(TypeAndPropertyUniquenessValidator.class.getName());
 
 	@Override
-	public boolean isValid(String key, Object value, Value<String> parameter, StringBuilder errorBuffer) {
+	public boolean isValid(String key, Object value, Value<String> parameter, ErrorBuffer errorBuffer) {
 
 		if(value == null || (value != null && value.toString().length() == 0)) {
-
-			errorBuffer.append("Property '");
-			errorBuffer.append(key);
-			errorBuffer.append("' must not be empty.");
-
+			errorBuffer.add("Property '", key, "' must not be empty.");
 			return false;
 		}
 
@@ -74,12 +69,7 @@ public class TypeAndPropertyUniquenessValidator extends PropertyValidator<String
 			List<AbstractNode> resultList = (List<AbstractNode>)Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(topNode, includeDeleted, publicOnly, attributes);
 			if(!resultList.isEmpty()) {
 
-				errorBuffer.append("A node with value '");
-				errorBuffer.append(value);
-				errorBuffer.append("' for property '");
-				errorBuffer.append(key);
-				errorBuffer.append("' already exists.");
-
+				errorBuffer.add("A node with value '", value, "' for property '", key, "' already exists.");
 				return false;
 
 			} else {

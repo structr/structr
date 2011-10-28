@@ -12,11 +12,12 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.structr.common.CaseHelper;
+import org.structr.common.ErrorBuffer;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.node.CreateValidatedNodeCommand;
+import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 import org.structr.core.node.search.Search;
@@ -88,7 +89,7 @@ public class TypeConstraint extends SortableConstraint {
 	@Override
 	public RestMethodResult doPost(Map<String, Object> propertySet, List<VetoableGraphObjectListener> listeners) throws Throwable {
 
-		AbstractNode newNode = createNode(propertySet);
+		AbstractNode newNode = createNode(listeners, propertySet);
 
 		// TODO: set location header
 		RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_CREATED);
@@ -124,7 +125,7 @@ public class TypeConstraint extends SortableConstraint {
 		}
 	}
 
-	public AbstractNode createNode(final Map<String, Object> propertySet) throws Throwable {
+	public AbstractNode createNode(final List<VetoableGraphObjectListener> listeners, final Map<String, Object> propertySet) throws Throwable {
 
 		//propertySet.put(AbstractNode.Key.type.name(), StringUtils.toCamelCase(type));
 		propertySet.put(AbstractNode.Key.type.name(), CaseHelper.toCamelCase(type));
@@ -135,7 +136,14 @@ public class TypeConstraint extends SortableConstraint {
 			@Override
 			public Object execute() throws Throwable {
 
-				return (AbstractNode)Services.command(securityContext, CreateValidatedNodeCommand.class).execute(securityContext.getUser(), propertySet);
+//				AbstractNode newNode = (AbstractNode)Services.command(securityContext, CreateValidatedNodeCommand.class).execute(propertySet);
+				AbstractNode newNode = (AbstractNode)Services.command(securityContext, CreateNodeCommand.class).execute(propertySet);
+				ErrorBuffer errorBuffer = new ErrorBuffer();
+				if(!mayCreate(listeners, newNode, errorBuffer)) {
+					throw new IllegalArgumentException(errorBuffer.toString());
+				}
+
+				return newNode;
 			}
 		};
 

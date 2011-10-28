@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.structr.common.ErrorBuffer;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
@@ -56,13 +57,17 @@ public abstract class ResourceConstraint {
 				@Override
 				public Object execute() throws Throwable {
 
+					ErrorBuffer errorBuffer = new ErrorBuffer();
 					for(GraphObject obj : results) {
 
-						if(mayModify(listeners, obj)) {
+						if(mayModify(listeners, obj, errorBuffer)) {
 
 							for(Entry<String, Object> attr : propertySet.entrySet()) {
 								obj.setProperty(attr.getKey(), attr.getValue());
 							}
+							
+						} else {
+							throw new IllegalArgumentException(errorBuffer.toString());
 						}
 					}
 
@@ -95,10 +100,12 @@ public abstract class ResourceConstraint {
 				@Override
 				public Object execute() throws Throwable {
 
+					ErrorBuffer errorBuffer = new ErrorBuffer();
 					boolean success = true;
+
 					for(GraphObject obj : results) {
 
-						if(mayDelete(listeners, obj)) {
+						if(mayDelete(listeners, obj, errorBuffer)) {
 
 							// 1: delete relationships
 							if(obj instanceof AbstractNode) {
@@ -116,7 +123,7 @@ public abstract class ResourceConstraint {
 					// roll back transaction if not all deletions were successful
 					if(!success) {
 						// throwable will cause transaction to be rolled back
-						throw new IllegalStateException("Deletion failed, roll back transaction");
+						throw new IllegalArgumentException(errorBuffer.toString());
 					}
 
 					return success;
@@ -144,25 +151,37 @@ public abstract class ResourceConstraint {
 	}
 
 	// ----- protected methods -----
-	protected boolean mayModify(List<VetoableGraphObjectListener> listeners, GraphObject object) {
+	protected boolean mayCreate(List<VetoableGraphObjectListener> listeners, GraphObject object, ErrorBuffer errorBuffer) {
+
+		boolean mayCreate = true;
+
+		// only allow modification if all listeners answer with "yes"
+		for(VetoableGraphObjectListener listener : listeners) {
+			mayCreate &= listener.mayCreate(object, securityContext, errorBuffer);
+		}
+
+		return mayCreate;
+	}
+
+	protected boolean mayModify(List<VetoableGraphObjectListener> listeners, GraphObject object, ErrorBuffer errorBuffer) {
 
 		boolean mayModify = true;
 
 		// only allow modification if all listeners answer with "yes"
 		for(VetoableGraphObjectListener listener : listeners) {
-			mayModify &= listener.mayModify(object, securityContext);
+			mayModify &= listener.mayModify(object, securityContext, errorBuffer);
 		}
 
 		return mayModify;
 	}
 
-	protected boolean mayDelete(List<VetoableGraphObjectListener> listeners, GraphObject object) {
+	protected boolean mayDelete(List<VetoableGraphObjectListener> listeners, GraphObject object, ErrorBuffer errorBuffer) {
 
 		boolean mayDelete = true;
 
 		// only allow deletion if all listeners answer with "yes"
 		for(VetoableGraphObjectListener listener : listeners) {
-			mayDelete &= listener.mayDelete(object, securityContext);
+			mayDelete &= listener.mayDelete(object, securityContext, errorBuffer);
 		}
 
 		return mayDelete;

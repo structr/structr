@@ -19,6 +19,7 @@
 
 package org.structr.core;
 
+import org.structr.common.ErrorBuffer;
 import org.structr.common.SecurityContext;
 
 /**
@@ -40,7 +41,7 @@ public abstract class PropertyValidator<T> {
 	 * @param parameter
 	 * @return
 	 */
-	public abstract boolean isValid(String key, Object value, Value<T> parameter, StringBuilder errorBuffer);
+	public abstract boolean isValid(String key, Object value, Value<T> parameter, ErrorBuffer errorBuffer);
 
 	public void setSecurityContext(SecurityContext securityContext) {
 		this.securityContext = securityContext;

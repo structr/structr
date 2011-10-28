@@ -126,11 +126,11 @@ public class DirectedRelationship {
 		return null;
 	}
 
-	public void createRelationship(final SecurityContext securityContext, final AbstractNode sourceNode, final Object value) throws Throwable {
+	public void createRelationship(final SecurityContext securityContext, final AbstractNode sourceNode, final Object value, final String targetType) throws Throwable {
 
 		// create relationship if it does not already exist
 		final Command cmd = Services.command(securityContext, CreateRelationshipCommand.class);
-		final AbstractNode targetNode;
+		AbstractNode targetNode = null;
 
 		if(value instanceof AbstractNode) {
 
@@ -138,39 +138,59 @@ public class DirectedRelationship {
 
 		} else {
 
-			targetNode = (AbstractNode)Services.command(securityContext, FindNodeCommand.class).execute(
-				value
-			);
+			try {
+				targetNode = (AbstractNode)Services.command(securityContext, FindNodeCommand.class).execute(value);
+
+			} catch(Throwable t) {
+
+				targetNode = null;
+			}
 		}
 
-		StructrTransaction transaction = new StructrTransaction() {
+		if(sourceNode != null && targetNode != null) {
 
-			@Override
-			public Object execute() throws Throwable {
+			final AbstractNode finalTargetNode = targetNode;
 
-				// remove relationships
-				if(cardinality.equals(Cardinality.OneToOne) /* || FIXME */ ) {
-					// delete relationships
-					List<StructrRelationship> rels = sourceNode.getRelationships(relType, direction);
-					for(StructrRelationship rel : rels) {
-						rel.delete();
+			StructrTransaction transaction = new StructrTransaction() {
+
+				@Override
+				public Object execute() throws Throwable {
+
+					// remove relationships
+					if(cardinality.equals(Cardinality.OneToOne) /* || FIXME */ ) {
+						// delete relationships
+						List<StructrRelationship> rels = sourceNode.getRelationships(relType, direction);
+						for(StructrRelationship rel : rels) {
+							rel.delete();
+						}
 					}
-				}
 
-				if(direction.equals(Direction.OUTGOING)) {
-					cmd.execute(sourceNode, targetNode, relType);
-				} else {
-					cmd.execute(targetNode, sourceNode, relType);
+					if(direction.equals(Direction.OUTGOING)) {
+						cmd.execute(sourceNode, finalTargetNode, relType);
+					} else {
+						cmd.execute(finalTargetNode, sourceNode, relType);
+					}
+
+					return null;
 				}
-				
-				return null;
+			};
+
+			// execute transaction
+			Services.command(securityContext, TransactionCommand.class).execute(transaction);
+			if(transaction.getCause() != null) {
+				throw transaction.getCause();
 			}
-		};
-		
-		// execute transaction
-		Services.command(securityContext, TransactionCommand.class).execute(transaction);
-		if(transaction.getCause() != null) {
-			throw transaction.getCause();
+
+		} else {
+
+			StringBuilder errorMessage = new StringBuilder(100);
+			
+			errorMessage.append(StringUtils.capitalize(targetType));
+			errorMessage.append(" with id ");
+			errorMessage.append(value);
+			errorMessage.append(" not found.");
+			
+			throw new IllegalArgumentException(errorMessage.toString());
 		}
 	}
 

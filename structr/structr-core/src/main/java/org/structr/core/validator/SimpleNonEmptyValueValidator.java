@@ -19,6 +19,7 @@
 
 package org.structr.core.validator;
 
+import org.structr.common.ErrorBuffer;
 import org.structr.core.PropertyValidator;
 import org.structr.core.Value;
 
@@ -30,16 +31,13 @@ import org.structr.core.Value;
 public class SimpleNonEmptyValueValidator extends PropertyValidator {
 
 	@Override
-	public boolean isValid(String key, Object value, Value parameter, StringBuilder errorMessage) {
+	public boolean isValid(String key, Object value, Value parameter, ErrorBuffer errorBuffer) {
 
 		if(value != null && value.toString().length() > 0) {
 			return true;
 		}
 
-		errorMessage.append("Property '");
-		errorMessage.append(key);
-		errorMessage.append("' must not be empty.");
-
+		errorBuffer.add("Property '", key, "' must not be empty.");
 		return false;
 	}
 }

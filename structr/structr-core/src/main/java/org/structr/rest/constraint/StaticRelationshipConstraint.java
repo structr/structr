@@ -73,12 +73,12 @@ public class StaticRelationshipConstraint extends FilterableConstraint {
 	public RestMethodResult doPost(Map<String, Object> propertySet, List<VetoableGraphObjectListener> listeners) throws Throwable {
 
 		final AbstractNode sourceNode = typedIdConstraint.getIdConstraint().getNode();
-		final AbstractNode newNode = typeConstraint.createNode(propertySet);
+		final AbstractNode newNode = typeConstraint.createNode(listeners, propertySet);
 		final DirectedRelationship rel = EntityContext.getRelation(sourceNode.getClass(), newNode.getClass());
 
 		if(sourceNode != null && newNode != null && rel != null) {
 
-			rel.createRelationship(securityContext, sourceNode, newNode);
+			rel.createRelationship(securityContext, sourceNode, newNode, newNode.getType());
 			
 			// TODO: set location header
 			RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_CREATED);
