@@ -7,6 +7,8 @@ package org.structr.rest.constraint;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.structr.common.ErrorBuffer;
@@ -23,7 +25,6 @@ import org.structr.rest.RestMethodResult;
 import org.structr.rest.VetoableGraphObjectListener;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NoResultsException;
-import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.exception.PathException;
 
 /**
@@ -36,6 +37,8 @@ import org.structr.rest.exception.PathException;
  */
 public abstract class ResourceConstraint {
 
+	private static final Logger logger = Logger.getLogger(ResourceConstraint.class.getName());
+	
 	protected SecurityContext securityContext = null;
 
 	public abstract boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request);
@@ -96,7 +99,7 @@ public abstract class ResourceConstraint {
 		List<? extends GraphObject> results;
 
 		// catch 204, DELETE must return 200 if resource is empty
-		try { results = doGet(listeners); } catch(NoResultsException nre) { results = null; }
+		try { results = doGet(listeners); } catch(NoResultsException nre) { results = null; logger.log(Level.WARNING, "Exception", nre); }
 
 		if(results != null && !results.isEmpty()) {
 

@@ -3847,6 +3847,7 @@ public abstract class AbstractNode
 					return;
 					
 				} catch(Throwable t) {
+
 					// report exception upwards
 					throw new IllegalArgumentException(t.getMessage());
 				}

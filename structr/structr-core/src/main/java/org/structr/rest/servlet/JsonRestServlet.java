@@ -174,6 +174,7 @@ public class JsonRestServlet extends HttpServlet {
 	protected void doDelete(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
 		try {
+			request.setCharacterEncoding("UTF-8");
 
 			SecurityContext securityContext = getSecurityContext(request);
 
@@ -207,6 +208,7 @@ public class JsonRestServlet extends HttpServlet {
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
 		try {
+			request.setCharacterEncoding("UTF-8");
 
 			SecurityContext securityContext = getSecurityContext(request);
 
@@ -273,6 +275,7 @@ public class JsonRestServlet extends HttpServlet {
 	protected void doHead(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
 		try {
+			request.setCharacterEncoding("UTF-8");
 
 			SecurityContext securityContext = getSecurityContext(request);
 
@@ -305,6 +308,7 @@ public class JsonRestServlet extends HttpServlet {
 	protected void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
 		try {
+			request.setCharacterEncoding("UTF-8");
 
 			SecurityContext securityContext = getSecurityContext(request);
 
@@ -337,6 +341,7 @@ public class JsonRestServlet extends HttpServlet {
 	protected void doPost(final HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
 		try {
+			request.setCharacterEncoding("UTF-8");
 
 			final PropertySet propertySet = gson.fromJson(request.getReader(), PropertySet.class);
 			SecurityContext securityContext = getSecurityContext(request);
@@ -378,6 +383,7 @@ public class JsonRestServlet extends HttpServlet {
 	protected void doPut(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
 		try {
+			request.setCharacterEncoding("UTF-8");
 
 			final PropertySet propertySet = gson.fromJson(request.getReader(), PropertySet.class);
 			SecurityContext securityContext = getSecurityContext(request);
