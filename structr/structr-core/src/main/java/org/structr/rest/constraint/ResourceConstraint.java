@@ -22,6 +22,7 @@ import org.structr.core.node.TransactionCommand;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.VetoableGraphObjectListener;
 import org.structr.rest.exception.IllegalPathException;
+import org.structr.rest.exception.NoResultsException;
 import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.exception.PathException;
 
@@ -92,10 +93,16 @@ public abstract class ResourceConstraint {
 
 	public final RestMethodResult doDelete(final List<VetoableGraphObjectListener> listeners) throws Throwable {
 
-		final List<? extends GraphObject> results = doGet(listeners);
+		List<? extends GraphObject> results;
+
+		// catch 204, DELETE must return 200 if resource is empty
+		try { results = doGet(listeners); } catch(NoResultsException nre) { results = null; }
+
 		if(results != null && !results.isEmpty()) {
 
-			Boolean success = (Boolean)Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+			final List<? extends GraphObject> finalResults = results;
+
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
 				@Override
 				public Object execute() throws Throwable {
@@ -103,7 +110,7 @@ public abstract class ResourceConstraint {
 					ErrorBuffer errorBuffer = new ErrorBuffer();
 					boolean success = true;
 
-					for(GraphObject obj : results) {
+					for(GraphObject obj : finalResults) {
 
 						if(mayDelete(listeners, obj, errorBuffer)) {
 
@@ -130,13 +137,9 @@ public abstract class ResourceConstraint {
 				}
 
 			});
-
-			if(success != null && success.booleanValue() == true) {
-				return new RestMethodResult(HttpServletResponse.SC_OK);
-			}
 		}
 
-		throw new NotFoundException();
+		return new RestMethodResult(HttpServletResponse.SC_OK);
 	}
 
 	/**
