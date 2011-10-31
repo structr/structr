@@ -249,6 +249,7 @@ public class JsonRestServlet extends HttpServlet {
 			
 			response.setStatus(msgException.getStatus());
 			response.setContentLength(msgException.getMessage().length());
+			response.setContentType("text/plain; charset=UTF-8");
 			response.getWriter().append(msgException.getMessage());
 			response.getWriter().flush();
 			response.getWriter().close();
@@ -624,6 +625,7 @@ public class JsonRestServlet extends HttpServlet {
 
 		// send response
 		response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+		response.setContentType("text/plain; charset=UTF-8");
 		response.setContentLength(errorBuffer.length());
 
 		try {
