@@ -99,7 +99,7 @@ public abstract class ResourceConstraint {
 		List<? extends GraphObject> results;
 
 		// catch 204, DELETE must return 200 if resource is empty
-		try { results = doGet(listeners); } catch(NoResultsException nre) { results = null; logger.log(Level.WARNING, "Exception", nre); }
+		try { results = doGet(listeners); } catch(NoResultsException nre) { results = null; }
 
 		if(results != null && !results.isEmpty()) {
 

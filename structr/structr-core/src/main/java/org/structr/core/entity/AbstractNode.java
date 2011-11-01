@@ -1954,7 +1954,7 @@ public abstract class AbstractNode
 
 		}
 
-		if ((key != null) && dbNode.hasProperty(key)) {
+		if ((key != null) && dbNode != null && dbNode.hasProperty(key)) {
 			value = dbNode.getProperty(key);
 		}
 

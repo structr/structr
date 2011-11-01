@@ -21,6 +21,7 @@
 
 package org.structr.common;
 
+import java.util.Collections;
 import org.structr.core.Services;
 import org.structr.core.auth.AuthenticationException;
 import org.structr.core.auth.Authenticator;
@@ -32,6 +33,8 @@ import org.structr.core.entity.User;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -56,6 +59,7 @@ public class SecurityContext {
 	//~--- fields ---------------------------------------------------------
 
 	private AccessMode accessMode       = AccessMode.Frontend;
+	private Map<String, Object> attrs   = null;
 	private Authenticator authenticator = null;
 	private HttpServletRequest request  = null;
 
@@ -63,6 +67,7 @@ public class SecurityContext {
 
 	private SecurityContext(ServletConfig config, HttpServletRequest request, AccessMode accessMode) {
 
+		this.attrs      = Collections.synchronizedMap(new LinkedHashMap<String, Object>());
 		this.accessMode = accessMode;
 		this.request    = request;
 
@@ -214,6 +219,14 @@ public class SecurityContext {
 		uriBuilder.append("/");
 
 		return uriBuilder;
+	}
+
+	public Object getAttribute(String key) {
+		return attrs.get(key);
+	}
+
+	public void setAttribute(String key, Object value) {
+		attrs.put(key, value);
 	}
 
 	// ----- private methods -----
