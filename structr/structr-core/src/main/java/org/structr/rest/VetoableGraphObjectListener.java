@@ -37,8 +37,13 @@ import org.structr.core.GraphObject;
 public interface VetoableGraphObjectListener {
 
 	public boolean mayCreate(GraphObject graphObject, SecurityContext securityContext, ErrorBuffer errorBuffer);
-	public boolean mayModify(GraphObject graphObject, SecurityContext securityContext, ErrorBuffer errorBuffer);
-	public boolean mayDelete(GraphObject graphObject, SecurityContext securityContext, ErrorBuffer errorBuffer);
+	public boolean validAfterCreation(GraphObject graphObject, SecurityContext securityContext, ErrorBuffer errorBuffer);
 
-	public void notifyOfTraversal(List<GraphObject> traversedNodes, SecurityContext securityContext);
+	public boolean mayModify(GraphObject graphObject, SecurityContext securityContext, ErrorBuffer errorBuffer);
+	public boolean validAfterModification(GraphObject graphObject, SecurityContext securityContext, ErrorBuffer errorBuffer);
+
+	public boolean mayDelete(GraphObject graphObject, SecurityContext securityContext, ErrorBuffer errorBuffer);
+	public void wasDeleted(GraphObject graphObject, SecurityContext securityContext);
+
+	public void wasVisited(List<GraphObject> traversedNodes, SecurityContext securityContext);
 }

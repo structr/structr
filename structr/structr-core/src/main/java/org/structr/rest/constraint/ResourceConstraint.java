@@ -62,15 +62,32 @@ public abstract class ResourceConstraint {
 				public Object execute() throws Throwable {
 
 					ErrorBuffer errorBuffer = new ErrorBuffer();
+					boolean error = false;
+
 					for(GraphObject obj : results) {
 
 						if(mayModify(listeners, obj, errorBuffer)) {
 
 							for(Entry<String, Object> attr : propertySet.entrySet()) {
-								obj.setProperty(attr.getKey(), attr.getValue());
+
+								try {
+
+									obj.setProperty(attr.getKey(), attr.getValue());
+
+								} catch(Throwable t) {
+
+									errorBuffer.add(t.getMessage());
+									error = true;
+								}
 							}
 							
 						} else {
+							
+							throw new IllegalArgumentException(errorBuffer.toString());
+						}
+
+						// ask listener for modification validation
+						if(!validAfterModification(listeners, obj, errorBuffer) || error) {
 							throw new IllegalArgumentException(errorBuffer.toString());
 						}
 					}
@@ -169,6 +186,17 @@ public abstract class ResourceConstraint {
 		return mayCreate;
 	}
 
+	protected boolean validAFterCreation(List<VetoableGraphObjectListener> listeners, GraphObject object, ErrorBuffer errorBuffer) {
+
+		boolean valid = true;
+
+		for(VetoableGraphObjectListener listener : listeners) {
+			valid &= listener.validAfterCreation(object, securityContext, errorBuffer);
+		}
+
+		return valid;
+	}
+
 	protected boolean mayModify(List<VetoableGraphObjectListener> listeners, GraphObject object, ErrorBuffer errorBuffer) {
 
 		boolean mayModify = true;
@@ -179,6 +207,17 @@ public abstract class ResourceConstraint {
 		}
 
 		return mayModify;
+	}
+
+	protected boolean validAfterModification(List<VetoableGraphObjectListener> listeners, GraphObject object, ErrorBuffer errorBuffer) {
+
+		boolean valid = true;
+
+		for(VetoableGraphObjectListener listener : listeners) {
+			valid &= listener.validAfterModification(object, securityContext, errorBuffer);
+		}
+		
+		return valid;
 	}
 
 	protected boolean mayDelete(List<VetoableGraphObjectListener> listeners, GraphObject object, ErrorBuffer errorBuffer) {
@@ -195,7 +234,7 @@ public abstract class ResourceConstraint {
 
 	protected void notifyOfTraversal(List<VetoableGraphObjectListener> listeners, List<GraphObject> traversedNodes) {
 		for(VetoableGraphObjectListener listener : listeners) {
-			listener.notifyOfTraversal(traversedNodes, securityContext);
+			listener.wasVisited(traversedNodes, securityContext);
 		}
 	}
 

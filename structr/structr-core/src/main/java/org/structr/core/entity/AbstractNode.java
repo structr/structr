@@ -198,6 +198,7 @@ public abstract class AbstractNode
 	protected SecurityContext securityContext                    = null;
 	private Map<Long, StructrRelationship> securityRelationships = null;
 	private boolean renderersInitialized                         = false;
+	private boolean readOnlyPropertiesUnlocked                   = false;
 
 	// reference to database node
 	protected Node dbNode;
@@ -3828,6 +3829,21 @@ public abstract class AbstractNode
 			return;
 		}
 
+		// check for read-only properties
+		if(EntityContext.isReadOnlyProperty(type, key)) {
+
+			if(readOnlyPropertiesUnlocked) {
+
+				// permit write operation once and
+				// lock read-only properties again
+				readOnlyPropertiesUnlocked = false;
+
+			} else {
+
+				throw new IllegalArgumentException("Property '".concat(key).concat("' is read-only."));
+			}
+		}
+
 		String singularType = getSingularTypeName(key);
 		if(key.endsWith("Id")) {
 			singularType = singularType.substring(0, singularType.length() - 2);
@@ -3985,6 +4001,18 @@ public abstract class AbstractNode
 
 	public void setOwnerId(final Long value) {
 		setOwnerNode(value);
+	}
+
+	/**
+	 * Can be used to permit the setting of a read-only
+	 * property once. The lock will be restored automatically
+	 * after the next setProperty operation. This method exists
+	 * to prevent automatic set methods from setting a read-only
+	 * property while allowing a manual set method to override this
+	 * default behaviour.
+	 */
+	public void unlockReadOnlyPropertiesOnce() {
+		this.readOnlyPropertiesUnlocked = true;
 	}
 
 	private void setOwnerNode(final Long nodeId) {

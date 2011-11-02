@@ -48,6 +48,7 @@ public class EntityContext {
 	private static final Map<Class, Map<PropertyView, Set<String>>> globalStringMap = new LinkedHashMap<Class, Map<PropertyView, Set<String>>>();
 	private static final Map<Class, Map<String, Value>> globalValidationParameterMap = new LinkedHashMap<Class, Map<String, Value>>();
 	private static final Map<Class, Map<String, Value>> globalConversionParameterMap = new LinkedHashMap<Class, Map<String, Value>>();
+	private static final Map<Class, Set<String>> globalReadOnlyPropertyMap = new LinkedHashMap<Class, Set<String>>();
 
 	private static final Logger logger = Logger.getLogger(EntityContext.class.getName());
 
@@ -267,6 +268,29 @@ public class EntityContext {
 		return value;
 	}
 
+	// ----- read-only property map -----
+	public static void registerReadOnlyProperty(Class type, String key) {
+
+		getReadOnlyPropertySetForType(type).add(key);
+	}
+
+	public static boolean isReadOnlyProperty(Class type, String key) {
+		
+		boolean isReadOnly = getReadOnlyPropertySetForType(type).contains(key);
+		Class localType = type;
+
+		// try all superclasses
+		while(!isReadOnly && !localType.equals(Object.class)) {
+
+			isReadOnly = getReadOnlyPropertySetForType(localType).contains(key);
+
+			// one level up :)
+			localType = localType.getSuperclass();
+		}
+
+		return isReadOnly;
+	}
+
 	// ----- private methods -----
 	private static String convertName(Class type) {
 
@@ -343,5 +367,16 @@ public class EntityContext {
 		}
 
 		return conversionParameterMap;
+	}
+
+	private static Set<String> getReadOnlyPropertySetForType(Class type) {
+
+		Set<String> readOnlyPropertySet = globalReadOnlyPropertyMap.get(type);
+		if(readOnlyPropertySet == null) {
+			readOnlyPropertySet = new LinkedHashSet<String>();
+			globalReadOnlyPropertyMap.put(type, readOnlyPropertySet);
+		}
+
+		return readOnlyPropertySet;
 	}
 }

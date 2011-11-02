@@ -139,7 +139,8 @@ public class TypeConstraint extends SortableConstraint {
 //				AbstractNode newNode = (AbstractNode)Services.command(securityContext, CreateValidatedNodeCommand.class).execute(propertySet);
 				AbstractNode newNode = (AbstractNode)Services.command(securityContext, CreateNodeCommand.class).execute(propertySet);
 				ErrorBuffer errorBuffer = new ErrorBuffer();
-				if(!mayCreate(listeners, newNode, errorBuffer)) {
+
+				if(!mayCreate(listeners, newNode, errorBuffer) || !validAFterCreation(listeners, newNode, errorBuffer)) {
 					throw new IllegalArgumentException(errorBuffer.toString());
 				}
 
