@@ -20,7 +20,7 @@
         <netbeans.hint.license>structr-gpl30</netbeans.hint.license>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <structr.version>0.4.3-SNAPSHOT</structr.version>
-        <neo4j.version>1.4</neo4j.version>
+        <neo4j.version>1.4.2</neo4j.version>
         <netbeans.hint.deploy.server>Tomcat</netbeans.hint.deploy.server>
     </properties>
 
