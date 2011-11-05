@@ -16,12 +16,13 @@
 
     <modules>
         <module>structr-core</module>
+        <module>structr-web</module>
         <module>structr-module-web</module>
         <module>structr-module-app</module>
         <module>structr-module-chart</module>
         <module>structr-module-gis</module>
         <module>structr-webapp</module>
-    </modules>
+  </modules>
 
     <build>
         <plugins>
