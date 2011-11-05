@@ -38,9 +38,7 @@ import org.structr.web.common.RelType;
  */
 public class Content extends AbstractNode {
 
-	public enum Key implements PropertyKey {
-		content
-	}
+	public enum Key implements PropertyKey{ content, contentType, size; }
 
 	static {
 
@@ -49,6 +47,7 @@ public class Content extends AbstractNode {
 
 		EntityContext.registerRelation(Content.class,	Element.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
 	}
+
 
 	//~--- get methods ----------------------------------------------------
 
