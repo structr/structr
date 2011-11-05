@@ -321,7 +321,7 @@ public class ConnectionListener extends Listener implements CloudTransmission {
 							PullNodeRequestContainer request = it.next();
 
 							// swap source and target nodes since we're dealing with a request from the remote's point of view!
-							AbstractNode sourceNode = (AbstractNode)findNode.execute(new SuperUser(), request.getSourceNodeId());
+							AbstractNode sourceNode = (AbstractNode)findNode.execute(request.getSourceNodeId());
 							boolean recursive = request.isRecursive();
 
 							Command pushNodes = Services.command(securityContext, PushNodes.class);

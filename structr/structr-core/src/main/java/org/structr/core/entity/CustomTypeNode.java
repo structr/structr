@@ -169,7 +169,7 @@ public class CustomTypeNode extends AbstractNode {
 
 		// find type node
 		Command findNode = Services.command(securityContext, FindNodeCommand.class);
-		NodeType newTypeNode = (NodeType) findNode.execute(new SuperUser(), value);
+		NodeType newTypeNode = (NodeType) findNode.execute(value);
 
 		// delete existing type node relationships
 		List<StructrRelationship> templateRels = this.getOutgoingRelationships(RelType.TYPE);

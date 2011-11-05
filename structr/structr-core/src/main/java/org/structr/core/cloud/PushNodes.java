@@ -180,10 +180,10 @@ public class PushNodes extends CloudServiceCommand
 				// send child nodes when recursive sending is requested
 				if(recursive)
 				{
-					List<AbstractNode> nodes = sourceNode.getAllChildrenForRemotePush(new SuperUser()); // FIXME: use real user here
+					List<AbstractNode> nodes = sourceNode.getAllChildrenForRemotePush();
 
 					// FIXME: were collecting the nodes twice here, the first time is only for counting..
-					progressNotification.setTargetProgress(sourceNode.getRemotePushSize(new SuperUser(), chunkSize));
+					progressNotification.setTargetProgress(sourceNode.getRemotePushSize(chunkSize));
 
 					for(AbstractNode n : nodes)
 					{
