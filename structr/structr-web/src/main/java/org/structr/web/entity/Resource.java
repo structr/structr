@@ -21,9 +21,13 @@
 
 package org.structr.web.entity;
 
+import org.neo4j.graphdb.Direction;
+import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.DirectedRelationship.Cardinality;
+import org.structr.web.common.RelType;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -34,11 +38,16 @@ import org.structr.core.entity.AbstractNode;
  */
 public class Resource extends AbstractNode {
 
+	public enum Key implements PropertyKey {
+		elements
+	}
+
 	static {
 
-		EntityContext.registerPropertySet(Resource.class,
-						  PropertyView.All,
-						  Key.values());
+		EntityContext.registerPropertySet(Resource.class,	PropertyView.All,		Key.values());
+		EntityContext.registerPropertySet(Resource.class,	PropertyView.Public,		Key.values());
+
+		EntityContext.registerRelation(Resource.class,	Element.class,	RelType.CONTAINS,	Direction.OUTGOING, Cardinality.ManyToMany);
 	}
 
 	//~--- get methods ----------------------------------------------------
