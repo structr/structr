@@ -21,24 +21,6 @@
 
 package org.structr.core.node.search;
 
-import org.apache.commons.collections.ListUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.lucene.index.Term;
-import org.apache.lucene.search.BooleanClause;
-import org.apache.lucene.search.BooleanQuery;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.TermQuery;
-
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.index.Index;
-import org.neo4j.graphdb.index.IndexHits;
-import org.neo4j.index.lucene.QueryContext;
-
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.User;
-import org.structr.core.node.NodeServiceCommand;
-import org.structr.core.node.StructrNodeFactory;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -47,7 +29,22 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.collections.ListUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.lucene.index.Term;
+import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.TermQuery;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.index.Index;
+import org.neo4j.graphdb.index.IndexHits;
+import org.neo4j.index.lucene.QueryContext;
 import org.structr.common.SecurityContext;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.node.NodeServiceCommand;
+import org.structr.core.node.StructrNodeFactory;
 
 //~--- classes ----------------------------------------------------------------
 
