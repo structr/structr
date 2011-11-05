@@ -21,6 +21,7 @@
 
 package org.structr.web.entity;
 
+import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
@@ -40,6 +41,8 @@ public class Content extends AbstractNode {
 						  PropertyView.All,
 						  Key.values());
 	}
+
+	public enum Key implements PropertyKey{ content, contentType, size; }
 
 	//~--- get methods ----------------------------------------------------
 
