@@ -19,16 +19,15 @@
 
 package org.structr.web.servlet;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -47,17 +46,19 @@ import org.neo4j.kernel.Traversal;
 import org.neo4j.kernel.Uniqueness;
 import org.structr.common.SecurityContext;
 import org.structr.core.Command;
-import org.structr.core.Predicate;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.StructrRelationship;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.FindNodeCommand;
-import org.structr.core.node.IterableFilter;
 import org.structr.core.node.NodeAttribute;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
+import org.structr.core.node.search.SearchAttribute;
+import org.structr.core.node.search.SearchNodeCommand;
+import org.structr.core.node.search.SearchOperator;
+import org.structr.core.node.search.TextualSearchAttribute;
 import org.structr.web.common.RelType;
 import org.structr.web.entity.Content;
 import org.structr.web.entity.Resource;
@@ -101,6 +102,14 @@ public class HtmlServlet extends HttpServlet {
 			return;
 		}
 
+		if(request.getParameter("editor") != null) {
+
+			createEditorStructure();
+
+			response.setStatus(HttpServletResponse.SC_CREATED);
+			return;
+		}
+
 		try {
 			request.setCharacterEncoding("UTF-8");
 
@@ -108,21 +117,48 @@ public class HtmlServlet extends HttpServlet {
 			double start = System.nanoTime();
 
 			// 1: find entry point (Resource)
-			long id = Long.parseLong(request.getParameter("id"));
-			Resource resource = (Resource)Services.command(SecurityContext.getSuperUserInstance(), FindNodeCommand.class).execute(id);
+			Resource resource = null;
 
-			// 2: do a traversal and collect content
-			String content = getContent(resource);
+			String path = request.getPathInfo();
 
-			double end = System.nanoTime();
-			logger.log(Level.INFO, "Content collected in {0} seconds", decimalFormat.format((end - start) / 1000000000.0));
+			logger.log(Level.INFO, "Path info {0}", path);
 
-			// 3: output content
-			response.getWriter().append(content);
-			response.getWriter().flush();
-			response.getWriter().close();
+			String fileName = path.substring(path.lastIndexOf("/") + 1);
+			if(fileName.length() > 0) {
 
-			response.setStatus(HttpServletResponse.SC_OK);
+				logger.log(Level.INFO, "File name {0}", fileName);
+
+				List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
+				searchAttrs.add(new TextualSearchAttribute("name", fileName, SearchOperator.AND));
+
+				List<AbstractNode> results = (List<AbstractNode>)Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(null, false, false, searchAttrs);
+
+				logger.log(Level.INFO, "{0} results", results.size());
+
+				if(!results.isEmpty()) {
+					resource = (Resource)results.get(0);
+				}
+			}
+
+			if(resource != null) {
+
+				// 2: do a traversal and collect content
+				String content = getContent(resource);
+
+				double end = System.nanoTime();
+				logger.log(Level.INFO, "Content collected in {0} seconds", decimalFormat.format((end - start) / 1000000000.0));
+
+				// 3: output content
+				response.getWriter().append(content);
+				response.getWriter().flush();
+				response.getWriter().close();
+
+				response.setStatus(HttpServletResponse.SC_OK);
+
+			} else {
+
+				response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+			}
 
 
 		} catch(Throwable t) {
@@ -229,6 +265,66 @@ public class HtmlServlet extends HttpServlet {
 		});
 	}
 
+	private void createEditorStructure() {
+
+		Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(new StructrTransaction() {
+
+			@Override
+			public Object execute() throws Throwable {
+
+				logger.log(Level.INFO, "Creating test structure..");
+
+				AbstractNode geLibJs = createNode("Resource", "ge_lib.js");
+				AbstractNode geLibContent = createNode("Content", "ge_lib_content", new NodeAttribute("content", readFile("/var/www/editor/ge_lib.js")));
+				linkNodes(geLibJs, geLibContent, geLibJs.getIdString(), 0);
+
+				AbstractNode geObjJs = createNode("Resource", "ge_obj.js");
+				AbstractNode geObjContent = createNode("Content", "ge_obj_content", new NodeAttribute("content", readFile("/var/www/editor/ge_obj.js")));
+				linkNodes(geObjJs, geObjContent, geObjJs.getIdString(), 0);
+
+				AbstractNode graphEditorCss = createNode("Resource", "graph_editor.css");
+				AbstractNode graphEditorCssContent = createNode("Content", "graph_editor_css_content", new NodeAttribute("content", readFile("/var/www/editor/graph_editor.css")));
+				linkNodes(graphEditorCss, graphEditorCssContent, graphEditorCss.getIdString(), 0);
+
+				AbstractNode graphEditorHtml = createNode("Resource", "graph_editor.html");
+				AbstractNode graphEditorHtmlContent = createNode("Content", "graph_editor_html_content", new NodeAttribute("content", readFile("/var/www/editor/graph_editor.html")));
+				linkNodes(graphEditorHtml, graphEditorHtmlContent, graphEditorHtml.getIdString(), 0);
+
+				AbstractNode graphEditorJs = createNode("Resource", "graph_editor.js");
+				AbstractNode graphEditorJsContent = createNode("Content", "graph_editor_js_content", new NodeAttribute("content", readFile("/var/www/editor/graph_editor.js")));
+				linkNodes(graphEditorJs, graphEditorJsContent, graphEditorJs.getIdString(), 0);
+
+				AbstractNode jqueryMousewheelMinJs = createNode("Resource", "jquery.mousewheel.min.js");
+				AbstractNode jqueryMousewheelMinJsContent = createNode("Content", "jquery_mousewheel_min_js_content", new NodeAttribute("content", readFile("/var/www/editor/jquery.mousewheel.min.js")));
+				linkNodes(jqueryMousewheelMinJs, jqueryMousewheelMinJsContent, jqueryMousewheelMinJs.getIdString(), 0);
+
+				return null;
+			}
+		});
+	}
+
+	private String readFile(String path) {
+
+		StringBuilder content = new StringBuilder();
+
+		try {
+			BufferedReader reader = new BufferedReader(new FileReader(path));
+			String line = null;
+			do {
+				line = reader.readLine();
+				if(line != null) {
+					content.append(line);
+					content.append("\n");
+				}
+			} while(line != null);
+
+		} catch(Throwable t) {
+			t.printStackTrace();
+		}
+
+		return content.toString();
+	}
+
 	private AbstractNode createNode(String type, String name, NodeAttribute... attributes) {
 
 		SecurityContext context = SecurityContext.getSuperUserInstance();
@@ -241,7 +337,11 @@ public class HtmlServlet extends HttpServlet {
 			attrs.put(attr.getKey(), attr.getValue());
 		}
 
-		return (AbstractNode)createNodeCommand.execute(attrs);
+		AbstractNode node = (AbstractNode)createNodeCommand.execute(attrs);
+
+		logger.log(Level.INFO, "Created node with name {0} and id {1}", new Object[] { node.getName(), node.getId() } );
+
+		return node;
 	}
 
 	private StructrRelationship linkNodes(AbstractNode startNode, AbstractNode endNode, String resourceId, int index) {
