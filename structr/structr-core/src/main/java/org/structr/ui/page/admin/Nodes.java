@@ -1312,7 +1312,7 @@ public class Nodes extends Admin {
 						if(n.isHidden()) {
 							link.addStyleClass("hidden");
 						}
-						if(n.isPublic()) {
+						if(n.isVisibleToPublicUsers()) {
 							link.addStyleClass("public");
 						}
 						buf.append(link);

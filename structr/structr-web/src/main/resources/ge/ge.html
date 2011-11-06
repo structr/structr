@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+    <title>structr Graph Editor</title>
+    <link rel="stylesheet" type="text/css" media="screen" href="css/ge.css" >
+    <meta name="viewport" content="width=1200, user-scalable=yes, target-densityDpi=device-dpi" />
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js" type="text/javascript"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js"></script>
+    <script src="http://jquery-json.googlecode.com/files/jquery.json-2.3.min.js"></script>
+    <script src="jquery.mousewheel.min.js"></script>
+    <script src="js/ge_obj.js" type="text/javascript"></script>
+    <script src="js/ge_lib.js" type="text/javascript"></script>
+    <script src="js/ge.js" type="text/javascript"></script>
+  </head>
+  <body>
+    <div id="header">
+      <img src="http://structr.org/img/structr-logo.png"/>
+      <input style="float: right" readonly="readonly" type="text" size="3" id="noOfRels" value="0">
+      <input style="float: right" readonly="readonly" type="text" size="3" id="noOfNodes" value="0">
+      <input style="float: right" type="button" onclick="graph.redrawRelationships()" value="Redraw all relationships">
+      <input style="float: right" type="button" onclick="reload(0)" value="Root Node">
+    </div>
+    <div id="main">
+      <div id="editor_box">
+      </div>
+    </div>   
+    <div id="footer">
+    </div>
+  </body>
+</html>

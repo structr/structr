@@ -127,7 +127,7 @@ public class StructrNodeFactory<T extends AbstractNode> implements Adapter<Node,
 				boolean readableByUser          = securityContext.isAllowed(n, Permission.Read);
 
 				if (readableByUser && (includeDeleted ||!n.isDeleted())
-					&& (n.isPublic() ||!publicOnly)) {
+					&& (n.isVisibleToPublicUsers() ||!publicOnly)) {
 					nodes.add(n);
 				}
 			}
@@ -159,7 +159,7 @@ public class StructrNodeFactory<T extends AbstractNode> implements Adapter<Node,
 				AbstractNode n         = createNode(securityContext, node);
 				boolean readableByUser = ((user instanceof SuperUser)
 							  || securityContext.isAllowed(n, Permission.Read));
-				boolean publicUserAndPublicNode = ((user == null) && n.isPublic());
+				boolean publicUserAndPublicNode = ((user == null) && n.isVisibleToPublicUsers());
 
 				if ((readableByUser || publicUserAndPublicNode) && (includeDeleted ||!n.isDeleted())) {
 					nodes.add(n);

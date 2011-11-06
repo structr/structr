@@ -1,0 +1,211 @@
+@charset "UTF-8";
+/** Defaults */
+
+* {
+    outline: none;
+}
+
+html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+}
+body {
+    margin: 0;
+    padding: 0;
+    /*    padding: 0 1em;*/
+    font-family: Arial, sans-serif;
+    font-size: 8pt;
+    color: #222;
+    /*height: auto;*/
+    background: #333;
+    /*                background: #e5e5e5;*/
+}
+
+tt, tt *, pre, pre *, code, code * {
+    font-family: "Liberation Mono", "DejaVu Sans Mono", Consolas, Monaco, "Vera Sans Mono", "Lucida Console", "Courier New", monospace !important;
+}
+
+#header {
+  padding: 12px;
+}
+
+#main {
+  position: absolute;
+  margin: 12px;
+}
+
+#editor_box {
+  padding: 12px;
+  background: #fff;
+  border-radius: 5px;
+}
+
+.large {
+  width: 600px;
+  height: 400px;
+}
+
+.medium {
+  width: 200px;
+  height: 150px;
+}
+
+.small {
+  width: 100px;
+  height: 75px;
+}
+
+.tiny {
+  width: 50px;
+  height: 25px;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+}
+
+.node {
+  position: absolute;
+  border: 1px solid #c5c5c5;
+  background-color: #e5e5e5;
+  border-radius: 5px;
+  box-shadow: 0px 0px 20px #c5c5c5;
+  -webkit-box-shadow: 0px 0px 18px #ccc;
+  -moz-box-shadow: 0px 0px 20px #c5c5c5;
+  /*filter: alpha(opacity=80);
+  -khtml-opacity: 0.8;
+  -moz-opacity: 0.8;
+  opacity: 0.8;*/
+  transition: width .3s;
+  -moz-transition: width .3s, height .3s; /* Firefox 4 */
+  -webkit-transition: width .3s, height .3s; /* Safari and Chrome */
+  -o-transition: width .3s, height .3s; /* Opera */
+}
+
+.node .head h2 {
+  float: left;
+  margin-left: 12px;
+}
+
+.node .head input.save {
+  
+}
+
+.node .head input.hidden {
+  visibility: hidden;
+}
+
+
+.large .head h2 {
+  font-size: 11pt;
+}
+
+.medium .head h2 {
+  font-size: 10pt;
+}
+
+.small .head h2 {
+  font-size: 9pt;
+}
+
+.tiny .head h2 {
+  font-size: 7pt;
+  margin: 4px;
+}
+
+.dot .head h2 {
+  font-size: 5pt;
+}
+
+/*
+.node .head input[type=button] {
+  font-size: 8px;
+  float: right;
+  width: 16px;
+  height: 16px;
+  margin: 6px 6px 6px 0px;
+}*/
+
+.node .body {
+  margin: 12px;
+  float: left;
+  overflow: auto;
+}
+
+.large .body {
+  width: 576px;
+  height: 300px;
+}
+
+.medium .body {
+  width: 176px;
+  height: 100px;
+}
+
+.small .body, .tiny .body, .dot .body {
+  width: 0px;
+  height: 0px;
+}
+
+.medium .body table.props {
+  font-size: 0.8em;
+  width: 176px;
+}
+
+.large .body table.props {
+  width: 576px;
+}
+
+.node .body table.props {
+  border: 1px solid #ccc;
+  border-collapse: collapse;
+  float: left;
+}
+
+.node .body table.props th {
+  background-color: #efefef;
+  border: 1px solid #c0c0c0;
+  padding: 2px;
+}
+
+.node .body table.props td {
+  background-color: #fff;
+  border: 1px solid #c0c0c0;
+  padding: 2px 4px;
+}
+
+.node .foot {
+  margin: 12px;
+  float: left;
+}
+
+.body table.props tr td.value {
+  padding: 4px 4px 4px 5px;
+  margin: 0;
+}
+
+.body table.props tr td.value input {
+  margin: -3px;
+  border: none;
+  font-size: inherit;
+}
+
+.body table.props tr td.value textarea {
+  margin: -3px;
+  border: none;
+  font-size: inherit;
+}
+
+.body table.props tr td.value input.active {
+  margin: -3px;
+  /*border: 1px solid #b5b5b5;
+  background-color: #f5f5f5;*/
+}
+
+.body table.props tr td.value .tick {
+  border: none;
+  position: absolute;
+}
