@@ -21,24 +21,8 @@
 
 package org.structr.web.servlet;
 
-<<<<<<< HEAD
 import java.io.BufferedReader;
-import java.io.FileReader;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-=======
->>>>>>> b4af55bd8bf21c20e8fe6ce3e9e132155cbae873
+import java.io.InputStreamReader;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
@@ -57,7 +41,6 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.StructrRelationship;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;
-import org.structr.core.node.FindNodeCommand;
 import org.structr.core.node.NodeAttribute;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
@@ -74,14 +57,11 @@ import org.structr.web.entity.Resource;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -147,7 +127,6 @@ public class HtmlServlet extends HttpServlet {
 			request.setCharacterEncoding("UTF-8");
 
 			DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
-<<<<<<< HEAD
 			double start = System.nanoTime();
 
 			// 1: find entry point (Resource)
@@ -198,58 +177,6 @@ public class HtmlServlet extends HttpServlet {
 		} catch(Throwable t) {
 
 			logger.log(Level.WARNING, "Exception while processing request", t);
-		}
-	}
-
-	private String getContent(Resource resource) {
-
-		final StringBuilder builder = new StringBuilder();
-
-		TraversalDescription localDesc = desc.expand(new ResourceExpander(resource.getIdString()));
-		localDesc = localDesc.evaluator(new Evaluator() {
-
-				@Override
-				public Evaluation evaluate(Path path) {
-
-					Node node = path.endNode();
-
-					try {
-=======
-			double start                = System.nanoTime();
-			String idString             = request.getParameter("id");
->>>>>>> b4af55bd8bf21c20e8fe6ce3e9e132155cbae873
-
-			if (idString != null) {
-
-				// 1: find entry point (Resource)
-				long id           = Long.parseLong(idString);
-				Resource resource = (Resource) Services.command(SecurityContext.getSuperUserInstance(), FindNodeCommand.class).execute(id);
-
-				if (resource == null) {
-
-					response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-
-					return;
-				}
-
-				// 2: do a traversal and collect content
-				String content = getContent(resource);
-				double end     = System.nanoTime();
-
-				logger.log(Level.INFO, "Content collected in {0} seconds", decimalFormat.format((end - start) / 1000000000.0));
-
-				// 3: output content
-				response.getWriter().append(content);
-			}
-
-			response.getWriter().flush();
-			response.getWriter().close();
-			response.setStatus(HttpServletResponse.SC_OK);
-
-		} catch (Throwable t) {
-
-			logger.log(Level.WARNING, "Exception while processing request", t);
-			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 		}
 	}
 
@@ -316,27 +243,27 @@ public class HtmlServlet extends HttpServlet {
 				logger.log(Level.INFO, "Creating test structure..");
 
 				AbstractNode geLibJs = createNode("Resource", "ge_lib.js");
-				AbstractNode geLibContent = createNode("Content", "ge_lib_content", new NodeAttribute("content", readFile("/var/www/editor/ge_lib.js")));
+				AbstractNode geLibContent = createNode("Content", "ge_lib_content", new NodeAttribute("content", readFile("/ge/js/ge_lib.js")));
 				linkNodes(geLibJs, geLibContent, geLibJs.getIdString(), 0);
 
 				AbstractNode geObjJs = createNode("Resource", "ge_obj.js");
-				AbstractNode geObjContent = createNode("Content", "ge_obj_content", new NodeAttribute("content", readFile("/var/www/editor/ge_obj.js")));
+				AbstractNode geObjContent = createNode("Content", "ge_obj_content", new NodeAttribute("content", readFile("/ge/js/editor/ge_obj.js")));
 				linkNodes(geObjJs, geObjContent, geObjJs.getIdString(), 0);
 
 				AbstractNode graphEditorCss = createNode("Resource", "graph_editor.css");
-				AbstractNode graphEditorCssContent = createNode("Content", "graph_editor_css_content", new NodeAttribute("content", readFile("/var/www/editor/graph_editor.css")));
+				AbstractNode graphEditorCssContent = createNode("Content", "graph_editor_css_content", new NodeAttribute("content", readFile("/ge/css/ge.css")));
 				linkNodes(graphEditorCss, graphEditorCssContent, graphEditorCss.getIdString(), 0);
 
 				AbstractNode graphEditorHtml = createNode("Resource", "graph_editor.html");
-				AbstractNode graphEditorHtmlContent = createNode("Content", "graph_editor_html_content", new NodeAttribute("content", readFile("/var/www/editor/graph_editor.html")));
+				AbstractNode graphEditorHtmlContent = createNode("Content", "graph_editor_html_content", new NodeAttribute("content", readFile("/ge/ge.html")));
 				linkNodes(graphEditorHtml, graphEditorHtmlContent, graphEditorHtml.getIdString(), 0);
 
 				AbstractNode graphEditorJs = createNode("Resource", "graph_editor.js");
-				AbstractNode graphEditorJsContent = createNode("Content", "graph_editor_js_content", new NodeAttribute("content", readFile("/var/www/editor/graph_editor.js")));
+				AbstractNode graphEditorJsContent = createNode("Content", "graph_editor_js_content", new NodeAttribute("content", readFile("/ge/js/ge.js")));
 				linkNodes(graphEditorJs, graphEditorJsContent, graphEditorJs.getIdString(), 0);
 
 				AbstractNode jqueryMousewheelMinJs = createNode("Resource", "jquery.mousewheel.min.js");
-				AbstractNode jqueryMousewheelMinJsContent = createNode("Content", "jquery_mousewheel_min_js_content", new NodeAttribute("content", readFile("/var/www/editor/jquery.mousewheel.min.js")));
+				AbstractNode jqueryMousewheelMinJsContent = createNode("Content", "jquery_mousewheel_min_js_content", new NodeAttribute("content", readFile("/ge/js/jquery.mousewheel.min.js")));
 				linkNodes(jqueryMousewheelMinJs, jqueryMousewheelMinJsContent, jqueryMousewheelMinJs.getIdString(), 0);
 
 				return null;
@@ -349,7 +276,8 @@ public class HtmlServlet extends HttpServlet {
 		StringBuilder content = new StringBuilder();
 
 		try {
-			BufferedReader reader = new BufferedReader(new FileReader(path));
+//			BufferedReader reader = new BufferedReader(new FileReader(path));
+			BufferedReader reader = new BufferedReader(new InputStreamReader(getServletContext().getResourceAsStream(path)));
 			String line = null;
 			do {
 				line = reader.readLine();
@@ -379,15 +307,11 @@ public class HtmlServlet extends HttpServlet {
 			attrs.put(attr.getKey(), attr.getValue());
 		}
 
-<<<<<<< HEAD
 		AbstractNode node = (AbstractNode)createNodeCommand.execute(attrs);
 
 		logger.log(Level.INFO, "Created node with name {0} and id {1}", new Object[] { node.getName(), node.getId() } );
 
 		return node;
-=======
-		return (AbstractNode) createNodeCommand.execute(attrs);
->>>>>>> b4af55bd8bf21c20e8fe6ce3e9e132155cbae873
 	}
 
 	private StructrRelationship linkNodes(AbstractNode startNode, AbstractNode endNode, String resourceId, int index) {
