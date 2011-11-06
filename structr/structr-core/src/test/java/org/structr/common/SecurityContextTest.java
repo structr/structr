@@ -149,7 +149,7 @@ public class SecurityContextTest extends TestCase {
 		}
 
 		@Override
-		public boolean isPublic() {
+		public boolean isVisibleToPublicUsers() {
 			return(publicFlag);
 		}
 

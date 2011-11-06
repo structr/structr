@@ -3094,8 +3094,7 @@ public abstract class AbstractNode
 		List<AbstractNode> nodes  = new LinkedList<AbstractNode>();
 		Command findNode          = Services.command(securityContext,
 			FindNodeCommand.class);
-		List<AbstractNode> result = (List<AbstractNode>) findNode.execute(user,
-			this);
+		List<AbstractNode> result = (List<AbstractNode>) findNode.execute(this);
 
 		for (AbstractNode s : result) {
 
@@ -3433,8 +3432,8 @@ public abstract class AbstractNode
 	}
 
 	@Override
-	public boolean isPublic() {
-		return getBooleanProperty(Key.visibleToPublicUsers.name());
+	public boolean isVisibleToPublicUsers() {
+		return getVisibleToPublicUsers();
 	}
 
 	@Override
@@ -3584,8 +3583,7 @@ public abstract class AbstractNode
 		// find template node
 		Command findNode      = Services.command(securityContext,
 			FindNodeCommand.class);
-		Template templateNode = (Template) findNode.execute(new SuperUser(),
-			value);
+		Template templateNode = (Template) findNode.execute(value);
 
 		// delete existing template relationships
 		List<StructrRelationship> templateRels = this.getOutgoingRelationships(RelType.USE_TEMPLATE);

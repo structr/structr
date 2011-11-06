@@ -312,7 +312,7 @@ public class SecurityContext {
 		visibleByTime = (now.after(visStartDate) && now.before(visEndDate));
 
 		// public nodes are always visible (constrained by time)
-		if (node.isPublic()) {
+		if (node.isVisibleToPublicUsers()) {
 			return visibleByTime;
 		}
 

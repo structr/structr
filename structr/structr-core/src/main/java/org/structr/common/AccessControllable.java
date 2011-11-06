@@ -58,7 +58,7 @@ public interface AccessControllable {
 	public StructrRelationship getSecurityRelationship(final Principal principal);
 
 	// visibility
-	public boolean isPublic();
+	public boolean isVisibleToPublicUsers();
 	public boolean isVisibleToAuthenticatedUsers();
 	public boolean isNotHidden();
 	public boolean isHidden();
