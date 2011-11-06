@@ -257,21 +257,11 @@ public class HtmlServlet extends HttpServlet {
 
 	private static class ResourceExpander implements RelationshipExpander {
 
-		private Set<Predicate<Relationship>> predicates = null;
 		private Direction direction = Direction.OUTGOING;
 		private String resourceId = null;
 
 		public ResourceExpander(final String resourceId) {
-
 			this.resourceId = resourceId;
-			this.predicates = new LinkedHashSet<Predicate<Relationship>>();
-			this.predicates.add(new Predicate<Relationship>() {
-
-				@Override
-				public boolean evaluate(Relationship obj) {
-					return obj.hasProperty(resourceId);
-				}
-			});
 		}
 
 		public void setDirection(Direction direction) {
