@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="http://java.sun.com/xml/ns/javaee"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
+        http://java.sun.com/xml/ns/javaee/web-app_2_4.xsd"
+        version="2.4">
+		
+        <!--  configure structr context listener -->
+	<listener>
+		<listener-class>org.structr.context.ApplicationContextListener</listener-class>
+	</listener>
+
+	<servlet>
+		<servlet-name>StructrRestServlet</servlet-name>
+		<servlet-class>org.structr.rest.servlet.JsonRestServlet</servlet-class>
+		<load-on-startup>1</load-on-startup>
+		<init-param>
+			<param-name>PropertyFormat</param-name>
+			<param-value>FlatNameValue</param-value>
+		</init-param>
+		<init-param>
+			<param-name>ConstraintProvider</param-name>
+			<param-value>org.structr.rest.constraint.StructrConstraintProvider</param-value>
+		</init-param>
+		<init-param>
+			<param-name>Authenticator</param-name>
+			<param-value>org.structr.web.common.HttpAuthenticator</param-value>
+		</init-param>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>StructrRestServlet</servlet-name>
+		<url-pattern>/api/*</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>HtmlServlet</servlet-name>
+		<servlet-class>org.structr.web.servlet.HtmlServlet</servlet-class>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>HtmlServlet</servlet-name>
+		<url-pattern>/*</url-pattern>
+	</servlet-mapping>
+
+    <!--  custom context parameter start -->
+	<context-param>
+		<description>structr config file path</description>
+		<param-name>configfile.path</param-name>
+		<param-value>/opt/structr/structr.conf</param-value>
+	</context-param>
+    <!--  custom context parameter end -->
+</web-app>
