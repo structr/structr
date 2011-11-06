@@ -1,13 +1,10 @@
+
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+* To change this template, choose Tools | Templates
+* and open the template in the editor.
  */
 package org.structr.rest.constraint;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
@@ -19,40 +16,41 @@ import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.exception.PathException;
 
+//~--- JDK imports ------------------------------------------------------------
+
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+
+//~--- classes ----------------------------------------------------------------
+
 /**
  * Represents an exact ID match. An IdConstraint will always result in a
  * single element when it is the last element in an URI. IdConstraints
  * must be tied to a preceding TypeConstraint.
- * 
+ *
  * @author Christian Morgner
  */
 public class IdConstraint extends FilterableConstraint {
-	
+
 	private long id = -1;
 
-	public long getId() {
-		return id;
-	}
+	//~--- methods --------------------------------------------------------
 
-	public void setId(long id) {
-		this.id = id;
-	}
-
-	public AbstractNode getNode() {
-		return (AbstractNode)Services.command(securityContext, FindNodeCommand.class).execute(getId());
-	}
-	
 	@Override
 	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) {
 
 		this.securityContext = securityContext;
 
 		try {
+
 			this.setId(Long.parseLong(part));
+
 			return true;
 
-		} catch(Throwable t) {
-		}
+		} catch (Throwable t) {}
 
 		return false;
 	}
@@ -61,9 +59,11 @@ public class IdConstraint extends FilterableConstraint {
 	public List<? extends GraphObject> doGet(List<VetoableGraphObjectListener> listeners) throws PathException {
 
 		GraphObject obj = getNode();
-		if(obj != null) {
-			
+
+		if (obj != null) {
+
 			List<GraphObject> results = new LinkedList<GraphObject>();
+
 			results.add(obj);
 
 			return results;
@@ -91,11 +91,35 @@ public class IdConstraint extends FilterableConstraint {
 
 	@Override
 	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws PathException {
+
+		if (next instanceof RelationshipConstraint) {
+
+			((RelationshipConstraint) next).wrapConstraint(this);
+
+			return next;
+		}
+
 		return super.tryCombineWith(next);
+	}
+
+	//~--- get methods ----------------------------------------------------
+
+	public long getId() {
+		return id;
+	}
+
+	public AbstractNode getNode() {
+		return (AbstractNode) Services.command(securityContext, FindNodeCommand.class).execute(getId());
 	}
 
 	@Override
 	public String getUriPart() {
 		return Long.toString(id);
+	}
+
+	//~--- set methods ----------------------------------------------------
+
+	public void setId(long id) {
+		this.id = id;
 	}
 }
