@@ -16,7 +16,7 @@
 		<load-on-startup>1</load-on-startup>
 		<init-param>
 			<param-name>PropertyFormat</param-name>
-			<param-value>FlatNameValue</param-value>
+			<param-value>NestedKeyValueType</param-value>
 		</init-param>
 		<init-param>
 			<param-name>ConstraintProvider</param-name>

@@ -571,7 +571,7 @@ public abstract class AbstractNode
 		 *
 		 * return out.toString();
 		 */
-		return "AbstractNode";
+		return dbNode.getProperty(Key.name.name()) + " [" + dbNode.getProperty(Key.type.name()) + ", " + dbNode.getId() + "]";
 	}
 
 	/**

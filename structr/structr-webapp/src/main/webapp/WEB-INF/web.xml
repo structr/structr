@@ -102,7 +102,8 @@
 		<load-on-startup>1</load-on-startup>
 		<init-param>
 			<param-name>PropertyFormat</param-name>
-			<param-value>NestedKeyValueType</param-value>
+			<param-value>FlatNameValue</param-value>
+			<!--param-value>NestedKeyValueType</param-value-->
 		</init-param>
 		<init-param>
 			<param-name>ConstraintProvider</param-name>
@@ -110,12 +111,22 @@
 		</init-param>
 		<init-param>
 			<param-name>Authenticator</param-name>
-			<param-value>org.structr.rest.auth.RestAuthenticator</param-value>
+			<!--param-value>org.structr.rest.auth.RestAuthenticator</param-value-->
+                        <param-value>org.structr.web.common.HttpAuthenticator</param-value>
 		</init-param>
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>StructrRestServlet</servlet-name>
-		<url-pattern>/api/*</url-pattern>
+		<url-pattern>/json/*</url-pattern>
+	</servlet-mapping>
+	<servlet>
+		<servlet-name>HtmlServlet</servlet-name>
+		<servlet-class>org.structr.web.servlet.HtmlServlet</servlet-class>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>HtmlServlet</servlet-name>
+		<url-pattern>/html/*</url-pattern>
 	</servlet-mapping>
 
     <!--  custom context parameter start -->

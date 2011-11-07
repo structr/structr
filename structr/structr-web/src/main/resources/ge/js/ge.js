@@ -1,7 +1,7 @@
 /**************** config parameter **********************************/
-var rootUrl = '/structr/api/';
+var rootUrl = '/structr-web-test/api/';
 var defaultStartNodeId = 0;
-var maxDepth = 1;
+var maxDepth = 2;
 var fps = 10; // relationship display update frequency in Hz
 /********************************************************************/
 

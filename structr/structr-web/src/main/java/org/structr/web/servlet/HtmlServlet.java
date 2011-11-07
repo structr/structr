@@ -22,7 +22,8 @@
 package org.structr.web.servlet;
 
 import java.io.BufferedReader;
-import java.io.InputStreamReader;
+import java.io.File;
+import java.io.FileReader;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
@@ -247,23 +248,23 @@ public class HtmlServlet extends HttpServlet {
 				linkNodes(geLibJs, geLibContent, geLibJs.getIdString(), 0);
 
 				AbstractNode geObjJs = createNode("Resource", "ge_obj.js");
-				AbstractNode geObjContent = createNode("Content", "ge_obj_content", new NodeAttribute("content", readFile("/ge/js/editor/ge_obj.js")));
+				AbstractNode geObjContent = createNode("Content", "ge_obj_content", new NodeAttribute("content", readFile("/ge/js/ge_obj.js")));
 				linkNodes(geObjJs, geObjContent, geObjJs.getIdString(), 0);
 
-				AbstractNode graphEditorCss = createNode("Resource", "graph_editor.css");
+				AbstractNode graphEditorCss = createNode("Resource", "ge.css");
 				AbstractNode graphEditorCssContent = createNode("Content", "graph_editor_css_content", new NodeAttribute("content", readFile("/ge/css/ge.css")));
 				linkNodes(graphEditorCss, graphEditorCssContent, graphEditorCss.getIdString(), 0);
 
-				AbstractNode graphEditorHtml = createNode("Resource", "graph_editor.html");
+				AbstractNode graphEditorHtml = createNode("Resource", "ge.html");
 				AbstractNode graphEditorHtmlContent = createNode("Content", "graph_editor_html_content", new NodeAttribute("content", readFile("/ge/ge.html")));
 				linkNodes(graphEditorHtml, graphEditorHtmlContent, graphEditorHtml.getIdString(), 0);
 
-				AbstractNode graphEditorJs = createNode("Resource", "graph_editor.js");
+				AbstractNode graphEditorJs = createNode("Resource", "ge.js");
 				AbstractNode graphEditorJsContent = createNode("Content", "graph_editor_js_content", new NodeAttribute("content", readFile("/ge/js/ge.js")));
 				linkNodes(graphEditorJs, graphEditorJsContent, graphEditorJs.getIdString(), 0);
 
 				AbstractNode jqueryMousewheelMinJs = createNode("Resource", "jquery.mousewheel.min.js");
-				AbstractNode jqueryMousewheelMinJsContent = createNode("Content", "jquery_mousewheel_min_js_content", new NodeAttribute("content", readFile("/ge/js/jquery.mousewheel.min.js")));
+				AbstractNode jqueryMousewheelMinJsContent = createNode("Content", "jquery_mousewheel_min_js_content", new NodeAttribute("content", readFile("/ge/js/jquery-mousewheel.min.js")));
 				linkNodes(jqueryMousewheelMinJs, jqueryMousewheelMinJsContent, jqueryMousewheelMinJs.getIdString(), 0);
 
 				return null;
@@ -276,8 +277,9 @@ public class HtmlServlet extends HttpServlet {
 		StringBuilder content = new StringBuilder();
 
 		try {
-//			BufferedReader reader = new BufferedReader(new FileReader(path));
-			BufferedReader reader = new BufferedReader(new InputStreamReader(getServletContext().getResourceAsStream(path)));
+			System.out.println(new File(".").getAbsolutePath());
+			BufferedReader reader = new BufferedReader(new FileReader("/home/axel/NetBeansProjects/structr/structr/structr-web/src/main/resources" + path));
+//			BufferedReader reader = new BufferedReader(new InputStreamReader(getServletContext().getResourceAsStream(path)));
 			String line = null;
 			do {
 				line = reader.readLine();
