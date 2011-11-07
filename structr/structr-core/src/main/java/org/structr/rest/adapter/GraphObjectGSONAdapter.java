@@ -262,6 +262,18 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 			}
 		}
 		
+		// start node id (for relationships)
+		Long startNodeId = src.getStartNodeId();
+		if(startNodeId != null) {
+			jsonObject.add("startNodeId", new JsonPrimitive(startNodeId));
+		}
+
+		// end node id (for relationships)
+		Long endNodeId = src.getEndNodeId();
+		if(endNodeId != null) {
+			jsonObject.add("endNodeId", new JsonPrimitive(endNodeId));
+		}
+		
 		return jsonObject;
 	}
 }
