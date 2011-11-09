@@ -38,7 +38,7 @@ public class IdConstraint extends FilterableConstraint {
 		this.id = id;
 	}
 
-	public AbstractNode getNode() {
+	public AbstractNode getNode() throws PathException {
 		return (AbstractNode)Services.command(securityContext, FindNodeCommand.class).execute(getId());
 	}
 	

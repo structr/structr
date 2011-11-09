@@ -178,6 +178,15 @@ public abstract class Search {
 		return attr;
 	}
 
+	public static SearchAttribute andExactUuid(final String searchString) {
+
+		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.Key.uuid.name(),
+			exactMatch(searchString),
+			SearchOperator.AND);
+
+		return attr;
+	}
+
 	public static SearchAttribute andExactContent(final String searchString) {
 
 		SearchAttribute attr = new TextualSearchAttribute(PlainText.Key.content.name(),

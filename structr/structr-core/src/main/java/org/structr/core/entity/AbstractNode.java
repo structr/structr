@@ -215,7 +215,7 @@ public abstract class AbstractNode
 
 	public static enum Key implements PropertyKey {
 
-		name, type, nodeId, createdBy, createdDate, deleted, hidden, lastModifiedDate, position,
+		uuid, name, type, nodeId, createdBy, createdDate, deleted, hidden, lastModifiedDate, position,
 		visibleToPublicUsers, title, titles, visibilityEndDate, visibilityStartDate,
 		visibleToAuthenticatedUsers, templateId, categories, ownerId, owner;
 	}
