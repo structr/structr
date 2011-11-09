@@ -3951,6 +3951,44 @@ public abstract class AbstractNode
 		}
 	}
 
+	@Override
+	public void removeProperty(final String key) {
+
+		if(this.dbNode != null) {
+
+			if (key == null) {
+
+				logger.log(Level.SEVERE,
+					   "Tried to set property with null key (action was denied)");
+
+				return;
+			}
+
+			// check for read-only properties
+			if (EntityContext.isReadOnlyProperty(this.getClass(), key)) {
+
+				if (readOnlyPropertiesUnlocked) {
+
+					// permit write operation once and
+					// lock read-only properties again
+					readOnlyPropertiesUnlocked = false;
+				} else {
+					throw new IllegalArgumentException("Property '".concat(key).concat("' is read-only."));
+				}
+			}
+
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws Throwable {
+
+					dbNode.removeProperty(key);
+					return null;
+				}
+			});
+		}
+	}
+
 	/**
 	 * Sets the currently accessing user, overriding user from request in case
 	 * there is no request..

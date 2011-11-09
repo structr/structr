@@ -42,6 +42,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.lang.StringUtils;
 import org.structr.common.AccessMode;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -61,6 +62,7 @@ import org.structr.rest.constraint.Result;
 import org.structr.rest.constraint.SearchConstraint;
 import org.structr.rest.constraint.SortConstraint;
 import org.structr.rest.exception.MessageException;
+import org.structr.rest.exception.NoResultsException;
 import org.structr.rest.wrapper.PropertySet;
 import org.structr.rest.wrapper.PropertySet.PropertyFormat;
 
@@ -411,8 +413,10 @@ public class JsonRestServlet extends HttpServlet {
 		} catch(PathException pathException) {
 			response.setStatus(pathException.getStatus());
 		} catch(JsonSyntaxException jsex) {
+			logger.log(Level.WARNING, "JsonSyntaxException in PUT", jsex);
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 		} catch(JsonParseException jpex) {
+			logger.log(Level.WARNING, "JsonParseException in PUT", jpex);
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 		} catch(Throwable t) {
 			logger.log(Level.WARNING, "Exception in PUT", t);
@@ -433,6 +437,11 @@ public class JsonRestServlet extends HttpServlet {
 	private List<ResourceConstraint> parsePath(SecurityContext securityContext, HttpServletRequest request) throws PathException {
 
 		String path  = request.getPathInfo();
+
+		// intercept empty path and send 204 No Content
+		if(!StringUtils.isNotBlank(path)) {
+			throw new NoResultsException();
+		}
 
 		// 1.: split request path into URI parts
 		String[] pathParts = path.split("[/]+");

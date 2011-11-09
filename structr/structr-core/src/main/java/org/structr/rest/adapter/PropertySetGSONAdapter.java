@@ -112,7 +112,11 @@ public class PropertySetGSONAdapter implements InstanceCreator<PropertySet>, Jso
 				String key = entry.getKey();
 				JsonElement elem = entry.getValue();
 
-				wrapper.add(key, elem.getAsString());
+				if(elem.isJsonNull()) {
+					wrapper.add(key, null);
+				} else {
+					wrapper.add(key, elem.getAsString());
+				}
 			}
 		}
 
@@ -157,21 +161,21 @@ public class PropertySetGSONAdapter implements InstanceCreator<PropertySet>, Jso
 
 		Object value = null;
 
-		if(type.equals("String"))	value = valueElement.getAsString(); else
-		if(type.equals("Number"))	value = valueElement.getAsNumber(); else
-		if(type.equals("Boolean"))	value = valueElement.getAsBoolean(); else
-		if(type.equals("JsonArray"))	value = valueElement.getAsJsonArray(); else
-		if(type.equals("JsonObject"))	value = valueElement.getAsJsonObject(); else
+		if(type.equals("String"))			value = valueElement.getAsString(); else
+		if(type.equals("Number"))			value =	valueElement.getAsNumber(); else
+		if(type.equals("Boolean"))			value = valueElement.getAsBoolean(); else
+		if(type.equals("JsonArray"))			value = valueElement.getAsJsonArray(); else
+		if(type.equals("JsonObject"))			value = valueElement.getAsJsonObject(); else
 		if(type == null || type.equals("null"))		value = valueElement.getAsJsonNull(); else
-		if(type.equals("Integer"))	value = valueElement.getAsInt(); else
-		if(type.equals("Long"))		value = valueElement.getAsLong(); else
-		if(type.equals("Double"))	value = valueElement.getAsDouble(); else
-		if(type.equals("Float"))	value = valueElement.getAsFloat(); else
-		if(type.equals("Byte"))		value = valueElement.getAsByte(); else
-		if(type.equals("Short"))	value = valueElement.getAsShort(); else
-		if(type.equals("Character"))	value = valueElement.getAsCharacter(); else
-		if(type.equals("BigDecimal"))	value = valueElement.getAsBigDecimal(); else
-		if(type.equals("BigInteger"))	value = valueElement.getAsBigInteger();
+		if(type.equals("Integer"))			value = valueElement.getAsInt(); else
+		if(type.equals("Long"))				value = valueElement.getAsLong(); else
+		if(type.equals("Double"))			value = valueElement.getAsDouble(); else
+		if(type.equals("Float"))			value = valueElement.getAsFloat(); else
+		if(type.equals("Byte"))				value = valueElement.getAsByte(); else
+		if(type.equals("Short"))			value = valueElement.getAsShort(); else
+		if(type.equals("Character"))			value = valueElement.getAsCharacter(); else
+		if(type.equals("BigDecimal"))			value = valueElement.getAsBigDecimal(); else
+		if(type.equals("BigInteger"))			value = valueElement.getAsBigInteger();
 
 		return value;
 	}

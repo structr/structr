@@ -128,6 +128,11 @@ public class StructrRelationship implements GraphObject {
 		dbRelationship.setProperty(key, value);
 	}
 
+	@Override
+	public void removeProperty(final String key) {
+		dbRelationship.removeProperty(key);
+	}
+
 	/**
 	 * Return database relationship
 	 *
