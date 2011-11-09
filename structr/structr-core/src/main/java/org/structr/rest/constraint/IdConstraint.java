@@ -98,4 +98,9 @@ public class IdConstraint extends FilterableConstraint {
 	public String getUriPart() {
 		return Long.toString(id);
 	}
+
+	@Override
+	public boolean isCollectionResource() {
+		return false;
+	}
 }

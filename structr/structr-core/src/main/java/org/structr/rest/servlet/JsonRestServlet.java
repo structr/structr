@@ -224,7 +224,7 @@ public class JsonRestServlet extends HttpServlet {
 			double queryTimeEnd = System.nanoTime();
 
 			// create result set
-			Result result = new Result(resourceConstraint.doGet(graphObjectListeners));
+			Result result = new Result(resourceConstraint.doGet(graphObjectListeners), resourceConstraint.isCollectionResource());
 			if(result != null) {
 
 				DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));

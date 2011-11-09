@@ -1606,8 +1606,9 @@ public abstract class AbstractNode
 
 						Date date = DateUtils.parseDate(((String) propertyValue),
 										new String[] {
-											"yyyy-MM-dd'T'HH:mm:ss'Z'",
-							"yyyymmdd", "yyyymm", "yyyy" });
+											"yyyy-MM-dd'T'HH:mm:ssZ",
+											"yyyy-MM-dd'T'HH:mm:ss",
+											"yyyymmdd", "yyyymm", "yyyy" });
 
 						return date;
 
@@ -1828,11 +1829,11 @@ public abstract class AbstractNode
 			idRequested  = true;
 		}
 
-		if ((singularType != null) && EntityContext.getRelations(type).containsKey(singularType)) {
+		if ((singularType != null) && EntityContext.getRelations(type).containsKey(singularType.toLowerCase())) {
 
 			// static relationship detected, return related nodes
 			// (we omit null check here because containsKey ensures that rel is not null)
-			DirectedRelationship rel = EntityContext.getRelations(type).get(singularType);
+			DirectedRelationship rel = EntityContext.getRelations(type).get(singularType.toLowerCase());
 
 			if (idRequested) {
 
@@ -3808,10 +3809,10 @@ public abstract class AbstractNode
 		}
 
 		// check for static relationships and connect node
-		if (EntityContext.getRelations(type).containsKey(singularType)) {
+		if (EntityContext.getRelations(type).containsKey(singularType.toLowerCase())) {
 
 			// static relationship detected, create relationship
-			DirectedRelationship rel = EntityContext.getRelations(type).get(singularType);
+			DirectedRelationship rel = EntityContext.getRelations(type).get(singularType.toLowerCase());
 
 			if (rel != null) {
 

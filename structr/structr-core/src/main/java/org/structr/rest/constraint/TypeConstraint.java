@@ -174,4 +174,9 @@ public class TypeConstraint extends SortableConstraint {
 	public String getUriPart() {
 		return type;
 	}
+
+	@Override
+	public boolean isCollectionResource() {
+		return true;
+	}
 }

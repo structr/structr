@@ -48,6 +48,7 @@ public abstract class ResourceConstraint {
 	public abstract RestMethodResult doOptions() throws Throwable;
 	public abstract String getUriPart();
 	public abstract ResourceConstraint tryCombineWith(ResourceConstraint next) throws PathException;
+	public abstract boolean isCollectionResource();
 
 	// ----- methods -----
 	public final RestMethodResult doPut(final Map<String, Object> propertySet, final List<VetoableGraphObjectListener> listeners) throws Throwable {

@@ -91,6 +91,11 @@ public class SearchConstraint extends ResourceConstraint {
 		this.searchString = searchString;
 	}
 
+	@Override
+	public boolean isCollectionResource() {
+		return true;
+	}
+
 	// ----- private methods -----
 	private List<GraphObject> getSearchResults(String searchString) throws PathException {
 

@@ -10,14 +10,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
-import org.apache.commons.lang.StringUtils;
 import org.structr.common.CaseHelper;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.SuperUser;
-import org.structr.core.entity.User;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchAttributeGroup;
 import org.structr.core.node.search.SearchNodeCommand;
@@ -77,6 +74,11 @@ public class TypedSearchConstraint extends SortableConstraint {
 	@Override
 	public RestMethodResult doOptions() throws Throwable {
 		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public boolean isCollectionResource() {
+		return true;
 	}
 
 	// ----- private methods -----
