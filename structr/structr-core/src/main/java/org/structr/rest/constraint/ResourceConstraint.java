@@ -7,7 +7,6 @@ package org.structr.rest.constraint;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -49,6 +48,7 @@ public abstract class ResourceConstraint {
 	public abstract RestMethodResult doOptions() throws Throwable;
 	public abstract String getUriPart();
 	public abstract ResourceConstraint tryCombineWith(ResourceConstraint next) throws PathException;
+	public abstract boolean isCollectionResource();
 
 	// ----- methods -----
 	public final RestMethodResult doPut(final Map<String, Object> propertySet, final List<VetoableGraphObjectListener> listeners) throws Throwable {
@@ -72,7 +72,11 @@ public abstract class ResourceConstraint {
 
 								try {
 
-									obj.setProperty(attr.getKey(), attr.getValue());
+									if(attr.getValue() != null) {
+	 									obj.setProperty(attr.getKey(), attr.getValue());
+									} else {
+										obj.removeProperty(attr.getKey());
+									}
 
 								} catch(Throwable t) {
 

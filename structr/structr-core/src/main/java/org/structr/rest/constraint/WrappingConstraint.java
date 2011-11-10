@@ -73,4 +73,9 @@ public abstract class WrappingConstraint extends ResourceConstraint {
 	protected void wrapConstraint(ResourceConstraint wrappedConstraint) {
 		this.wrappedConstraint = wrappedConstraint;
 	}
+
+	@Override
+	public boolean isCollectionResource() {
+		return wrappedConstraint.isCollectionResource();
+	}
 }

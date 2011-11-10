@@ -36,6 +36,7 @@ public class StructrConstraintProvider implements ResourceConstraintProvider {
 
 		Map<Pattern, Class<? extends ResourceConstraint>> constraintMap = new LinkedHashMap<Pattern, Class<? extends ResourceConstraint>>();
 
+		constraintMap.put(Pattern.compile("[a-zA-Z0-9]{32}"),	UuidConstraint.class);			// matches a UUID without dashes
 		constraintMap.put(Pattern.compile("[0-9]+"),		IdConstraint.class);			// this matches the ID constraint first
 
 		constraintMap.put(Pattern.compile("in"),		RelationshipConstraint.class);		// incoming relationship

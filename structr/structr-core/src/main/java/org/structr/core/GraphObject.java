@@ -37,9 +37,11 @@ public interface GraphObject {
 	// ----- common to both types -----
 	public long getId();
 	public String getType();
-	public Object getProperty(String key);
+
 	public Iterable<String> getPropertyKeys(PropertyView propertyView);
 	public void setProperty(String key, Object value);
+	public Object getProperty(String key);
+	public void removeProperty(String key);
 
 	// ----- rels only -----
 	public Long getStartNodeId();

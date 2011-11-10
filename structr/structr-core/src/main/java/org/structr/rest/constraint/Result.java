@@ -17,6 +17,7 @@ import org.structr.core.GraphObject;
 public class Result {
 
 	private List<? extends GraphObject> results = null;
+	private boolean isCollectionResource = false;
 	private PropertyView propertyView = null;
 
 	private String searchString = null;
@@ -29,7 +30,8 @@ public class Result {
 	private Integer pageSize = null;
 	private Integer page = null;
 
-	public Result(List<? extends GraphObject> listResult) {
+	public Result(List<? extends GraphObject> listResult, boolean isCollectionResource) {
+		this.isCollectionResource = isCollectionResource;
 		this.results = listResult;
 	}
 
@@ -107,5 +109,9 @@ public class Result {
 
 	public void setPropertyView(PropertyView propertyView) {
 		this.propertyView = propertyView;
+	}
+
+	public boolean isCollectionResource() {
+		return isCollectionResource;
 	}
 }

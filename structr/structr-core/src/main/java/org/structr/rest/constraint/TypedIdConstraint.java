@@ -127,4 +127,9 @@ public class TypedIdConstraint extends FilterableConstraint {
 	public String getUriPart() {
 		return typeConstraint.getUriPart().concat("/").concat(idConstraint.getUriPart());
 	}
+
+	@Override
+	public boolean isCollectionResource() {
+		return false;
+	}
 }

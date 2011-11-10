@@ -89,13 +89,7 @@ public class ResultGSONAdapter implements JsonSerializer<Result>, JsonDeserializ
 
 		if(results != null) {
 
-			int size = results.size();
-			if(size == 1) {
-
-				// use GraphObject adapter to serialize single result
-				result.add("result", graphObjectGsonAdapter.serialize(results.get(0), GraphObject.class, context));
-
-			} else if(size > 1) {
+			if(src.isCollectionResource()) {
 
 				// serialize list of results
 				JsonArray resultArray = new JsonArray();
@@ -104,6 +98,11 @@ public class ResultGSONAdapter implements JsonSerializer<Result>, JsonDeserializ
 				}
 
 				result.add("result", resultArray);
+
+			} else {
+
+				// use GraphObject adapter to serialize single result
+				result.add("result", graphObjectGsonAdapter.serialize(results.get(0), GraphObject.class, context));
 			}
 		}
 

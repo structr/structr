@@ -121,4 +121,9 @@ public class StaticRelationshipConstraint extends FilterableConstraint {
 	public TypeConstraint getTypeConstraint() {
 		return typeConstraint;
 	}
+
+	@Override
+	public boolean isCollectionResource() {
+		return true;
+	}
 }

@@ -206,6 +206,11 @@ public class RelationshipFollowingConstraint extends FilterableConstraint implem
 		return uri.toString();
 	}
 
+	@Override
+	public boolean isCollectionResource() {
+		return lastConstraint.isCollectionResource();
+	}
+
 	// ----- interface Evaluator -----
 	@Override
 	public Evaluation evaluate(Path path) {

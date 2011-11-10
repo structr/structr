@@ -92,9 +92,10 @@ public class IdConstraint extends FilterableConstraint {
 	@Override
 	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws PathException {
 
-		if(next instanceof RelationshipConstraint) {
+		if (next instanceof RelationshipConstraint) {
 
-			((RelationshipConstraint)next).wrapConstraint(this);
+			((RelationshipConstraint) next).wrapConstraint(this);
+
 			return next;
 		}
 
@@ -103,17 +104,22 @@ public class IdConstraint extends FilterableConstraint {
 
 	//~--- get methods ----------------------------------------------------
 
-	public long getId() {
-		return id;
+	public AbstractNode getNode() throws PathException {
+		return (AbstractNode) Services.command(securityContext, FindNodeCommand.class).execute(getId());
 	}
 
-	public AbstractNode getNode() {
-		return (AbstractNode) Services.command(securityContext, FindNodeCommand.class).execute(getId());
+	public long getId() {
+		return id;
 	}
 
 	@Override
 	public String getUriPart() {
 		return Long.toString(id);
+	}
+
+	@Override
+	public boolean isCollectionResource() {
+		return false;
 	}
 
 	//~--- set methods ----------------------------------------------------
