@@ -21,9 +21,6 @@
 
 package org.structr.web.servlet;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
@@ -54,6 +51,10 @@ import org.structr.web.entity.Content;
 import org.structr.web.entity.Resource;
 
 //~--- JDK imports ------------------------------------------------------------
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -115,11 +116,11 @@ public class HtmlServlet extends HttpServlet {
 			return;
 		}
 
-		if(request.getParameter("editor") != null) {
+		if (request.getParameter("editor") != null) {
 
 			createEditorStructure();
-
 			response.setStatus(HttpServletResponse.SC_CREATED);
+
 			return;
 		}
 
@@ -128,55 +129,57 @@ public class HtmlServlet extends HttpServlet {
 			request.setCharacterEncoding("UTF-8");
 
 			DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
-			double start = System.nanoTime();
+			double start                = System.nanoTime();
 
 			// 1: find entry point (Resource)
 			Resource resource = null;
-
-			String path = request.getPathInfo();
+			String path       = request.getPathInfo();
 
 			logger.log(Level.INFO, "Path info {0}", path);
 
 			String fileName = path.substring(path.lastIndexOf("/") + 1);
-			if(fileName.length() > 0) {
+
+			if (fileName.length() > 0) {
 
 				logger.log(Level.INFO, "File name {0}", fileName);
 
 				List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
+
 				searchAttrs.add(new TextualSearchAttribute("name", fileName, SearchOperator.AND));
 
-				List<AbstractNode> results = (List<AbstractNode>)Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(null, false, false, searchAttrs);
+				List<AbstractNode> results = (List<AbstractNode>) Services.command(SecurityContext.getSuperUserInstance(),
+								     SearchNodeCommand.class).execute(null, false, false, searchAttrs);
 
 				logger.log(Level.INFO, "{0} results", results.size());
 
-				if(!results.isEmpty()) {
-					resource = (Resource)results.get(0);
+				if (!results.isEmpty()) {
+					resource = (Resource) results.get(0);
 				}
 			}
 
-			if(resource != null) {
+			if (resource != null) {
 
 				// 2: do a traversal and collect content
 				String content = getContent(resource);
+				double end     = System.nanoTime();
 
-				double end = System.nanoTime();
 				logger.log(Level.INFO, "Content collected in {0} seconds", decimalFormat.format((end - start) / 1000000000.0));
+
+				String contentType = resource.getContentType();
+				if (contentType != null) {
+					response.setContentType(contentType);
+				}
 
 				// 3: output content
 				response.getWriter().append(content);
 				response.getWriter().flush();
 				response.getWriter().close();
-
 				response.setStatus(HttpServletResponse.SC_OK);
-
 			} else {
-
 				response.setStatus(HttpServletResponse.SC_NOT_FOUND);
 			}
 
-
-		} catch(Throwable t) {
-
+		} catch (Throwable t) {
 			logger.log(Level.WARNING, "Exception while processing request", t);
 		}
 	}
@@ -243,32 +246,43 @@ public class HtmlServlet extends HttpServlet {
 
 				logger.log(Level.INFO, "Creating test structure..");
 
-				AbstractNode geLibJs = createNode("Resource", "ge_lib.js");
+				AbstractNode geLibJs      = createNode("Resource", "ge_lib.js");
 				AbstractNode geLibContent = createNode("Content", "ge_lib_content", new NodeAttribute("content", readFile("/ge/js/ge_lib.js")));
+
 				linkNodes(geLibJs, geLibContent, geLibJs.getIdString(), 0);
 
-				AbstractNode geObjJs = createNode("Resource", "ge_obj.js");
+				AbstractNode geObjJs      = createNode("Resource", "ge_obj.js");
 				AbstractNode geObjContent = createNode("Content", "ge_obj_content", new NodeAttribute("content", readFile("/ge/js/ge_obj.js")));
+
 				linkNodes(geObjJs, geObjContent, geObjJs.getIdString(), 0);
 
-				AbstractNode graphEditorCss = createNode("Resource", "ge.css");
-				AbstractNode graphEditorCssContent = createNode("Content", "graph_editor_css_content", new NodeAttribute("content", readFile("/ge/css/ge.css")));
+				AbstractNode graphEditorCss        = createNode("Resource", "ge.css");
+				AbstractNode graphEditorCssContent = createNode("Content", "graph_editor_css_content",
+									     new NodeAttribute("content", readFile("/ge/css/ge.css")));
+
 				linkNodes(graphEditorCss, graphEditorCssContent, graphEditorCss.getIdString(), 0);
 
-				AbstractNode graphEditorHtml = createNode("Resource", "ge.html");
-				AbstractNode graphEditorHtmlContent = createNode("Content", "graph_editor_html_content", new NodeAttribute("content", readFile("/ge/ge.html")));
+				AbstractNode graphEditorHtml        = createNode("Resource", "ge.html");
+				AbstractNode graphEditorHtmlContent = createNode("Content", "graph_editor_html_content",
+									      new NodeAttribute("content", readFile("/ge/ge.html")));
+
 				linkNodes(graphEditorHtml, graphEditorHtmlContent, graphEditorHtml.getIdString(), 0);
 
-				AbstractNode graphEditorJs = createNode("Resource", "ge.js");
-				AbstractNode graphEditorJsContent = createNode("Content", "graph_editor_js_content", new NodeAttribute("content", readFile("/ge/js/ge.js")));
+				AbstractNode graphEditorJs        = createNode("Resource", "ge.js");
+				AbstractNode graphEditorJsContent = createNode("Content", "graph_editor_js_content",
+									    new NodeAttribute("content", readFile("/ge/js/ge.js")));
+
 				linkNodes(graphEditorJs, graphEditorJsContent, graphEditorJs.getIdString(), 0);
 
-				AbstractNode jqueryMousewheelMinJs = createNode("Resource", "jquery.mousewheel.min.js");
-				AbstractNode jqueryMousewheelMinJsContent = createNode("Content", "jquery_mousewheel_min_js_content", new NodeAttribute("content", readFile("/ge/js/jquery-mousewheel.min.js")));
+				AbstractNode jqueryMousewheelMinJs        = createNode("Resource", "jquery.mousewheel.min.js");
+				AbstractNode jqueryMousewheelMinJsContent = createNode("Content", "jquery_mousewheel_min_js_content",
+										    new NodeAttribute("content", readFile("/ge/js/jquery-mousewheel.min.js")));
+
 				linkNodes(jqueryMousewheelMinJs, jqueryMousewheelMinJsContent, jqueryMousewheelMinJs.getIdString(), 0);
 
 				return null;
 			}
+
 		});
 	}
 
@@ -277,19 +291,28 @@ public class HtmlServlet extends HttpServlet {
 		StringBuilder content = new StringBuilder();
 
 		try {
+
 			System.out.println(new File(".").getAbsolutePath());
-			BufferedReader reader = new BufferedReader(new FileReader("/home/axel/NetBeansProjects/structr/structr/structr-web/src/main/resources" + path));
-//			BufferedReader reader = new BufferedReader(new InputStreamReader(getServletContext().getResourceAsStream(path)));
+
+			BufferedReader reader = new BufferedReader(new FileReader("/home/axel/NetBeansProjects/structr/structr/structr-web/src/main/resources"
+							+ path));
+
+//                      BufferedReader reader = new BufferedReader(new InputStreamReader(getServletContext().getResourceAsStream(path)));
 			String line = null;
+
 			do {
+
 				line = reader.readLine();
-				if(line != null) {
+
+				if (line != null) {
+
 					content.append(line);
 					content.append("\n");
 				}
-			} while(line != null);
 
-		} catch(Throwable t) {
+			} while (line != null);
+
+		} catch (Throwable t) {
 			t.printStackTrace();
 		}
 
@@ -309,9 +332,9 @@ public class HtmlServlet extends HttpServlet {
 			attrs.put(attr.getKey(), attr.getValue());
 		}
 
-		AbstractNode node = (AbstractNode)createNodeCommand.execute(attrs);
+		AbstractNode node = (AbstractNode) createNodeCommand.execute(attrs);
 
-		logger.log(Level.INFO, "Created node with name {0} and id {1}", new Object[] { node.getName(), node.getId() } );
+		logger.log(Level.INFO, "Created node with name {0} and id {1}", new Object[] { node.getName(), node.getId() });
 
 		return node;
 	}
@@ -343,32 +366,39 @@ public class HtmlServlet extends HttpServlet {
 
 				try {
 
-					String type = (String) node.getProperty(AbstractNode.Key.type.name());
+					if (node.hasProperty(AbstractNode.Key.type.name())) {
 
-					if ("Content".equals(type)) {
+						String type = (String) node.getProperty(AbstractNode.Key.type.name());
 
-						// Content node reached, collect content and stop traversal here
-						builder.append(node.getProperty(Content.Key.content.name()));
+						if ("Content".equals(type)) {
 
-						return Evaluation.EXCLUDE_AND_PRUNE;
-					} else {
+							// Content node reached, collect content and stop traversal here
+							builder.append(node.getProperty(Content.Key.content.name()));
 
-						// continue traversal
-						return Evaluation.EXCLUDE_AND_CONTINUE;
+							return Evaluation.EXCLUDE_AND_PRUNE;
+						} else {
+
+							// continue traversal
+							return Evaluation.EXCLUDE_AND_CONTINUE;
+						}
 					}
 
 				} catch (Throwable t) {
 
 					// fail fast, no check
+					logger.log(Level.SEVERE, "While evaluating path " + path, t);
 				}
 
-				return Evaluation.EXCLUDE_AND_PRUNE;
+				return Evaluation.EXCLUDE_AND_CONTINUE;
 			}
 
 		});
 
 		// do traversal to retrieve paths
-		for (Path path : localDesc.traverse(resource.getNode())) {}
+		Iterable<Path> paths = localDesc.traverse(resource.getNode());
+		for (Path path : paths) {
+			logger.log(Level.INFO, "Path: {0}", path.toString());
+		}
 
 		return builder.toString();
 	}
@@ -402,13 +432,27 @@ public class HtmlServlet extends HttpServlet {
 
 				try {
 
-					Integer position = (Integer) rel.getProperty(resourceId);
+					Integer position = null;
 
-					sortedRelationshipMap.put(position, rel);
+					if (rel.hasProperty(resourceId)) {
+
+						Object prop = rel.getProperty(resourceId);
+
+						if (prop instanceof Integer) {
+							position = (Integer) prop;
+						} else if (prop instanceof String) {
+							position = Integer.parseInt((String) prop);
+						} else {
+							throw new java.lang.IllegalArgumentException("Expected Integer or String");
+						}
+
+						sortedRelationshipMap.put(position, rel);
+					}
 
 				} catch (Throwable t) {
 
 					// fail fast, no check
+					logger.log(Level.SEVERE, "While reading property " + resourceId, t);
 				}
 			}
 
