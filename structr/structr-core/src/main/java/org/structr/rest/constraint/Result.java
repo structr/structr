@@ -25,7 +25,7 @@ public class Result {
 	private String sortOrder = null;
 	private String sortKey = null;
 
-	private Integer resultCount = null;
+	//private Integer resultCount = null;
 	private Integer pageCount = null;
 	private Integer pageSize = null;
 	private Integer page = null;
@@ -64,12 +64,12 @@ public class Result {
 	}
 
 	public Integer getResultCount() {
-		return resultCount;
+		return results.size();
 	}
 
-	public void setResultCount(Integer resultCount) {
-		this.resultCount = resultCount;
-	}
+//	public void setResultCount(Integer resultCount) {
+//		this.resultCount = resultCount;
+//	}
 
 	public Integer getPageCount() {
 		return pageCount;
