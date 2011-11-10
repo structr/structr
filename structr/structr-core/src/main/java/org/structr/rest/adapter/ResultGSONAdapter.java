@@ -87,7 +87,11 @@ public class ResultGSONAdapter implements JsonSerializer<Result>, JsonDeserializ
 			result.add("resultCount", new JsonPrimitive(resultCount));
 		}
 
-		if(results != null) {
+		if(results != null && !results.isEmpty()) {
+
+			if (results.size() > 1 && !src.isCollectionResource()){
+				throw new IllegalStateException(src.getClass().getSimpleName() + " is not a collection resource, but result set has size " + results.size());
+			}
 
 			if(src.isCollectionResource()) {
 
