@@ -101,4 +101,9 @@ public class RelationshipConstraint extends WrappingConstraint {
 	public ResourceConstraint tryCombineWith(ResourceConstraint next) {
 		return null;
 	}
+
+	@Override
+	public boolean isCollectionResource() {
+		return true;
+	}
 }

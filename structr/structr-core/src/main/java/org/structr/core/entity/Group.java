@@ -21,8 +21,13 @@
 
 package org.structr.core.entity;
 
+import org.neo4j.graphdb.Direction;
+
+import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
+import org.structr.common.RelType;
 import org.structr.core.EntityContext;
+import org.structr.core.entity.DirectedRelationship.Cardinality;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -33,14 +38,15 @@ import org.structr.core.EntityContext;
  */
 public class Group extends Principal {
 
-	//~--- static initializers --------------------------------------------
-
 	static {
 
-		EntityContext.registerPropertySet(Group.class,
-						  PropertyView.All,
-						  Key.values());
+		EntityContext.registerPropertySet(Group.class, PropertyView.All, Key.values());
+		EntityContext.registerRelation(Group.class, User.class, RelType.HAS_CHILD, Direction.OUTGOING, Cardinality.ManyToMany);
 	}
+
+	//~--- constant enums -------------------------------------------------
+
+	public enum Key implements PropertyKey{ users }
 
 	//~--- get methods ----------------------------------------------------
 
