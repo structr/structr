@@ -21,7 +21,6 @@
 
 package org.structr.core.entity;
 
-import org.apache.commons.codec.digest.DigestUtils;
 
 import org.neo4j.graphdb.Direction;
 
@@ -49,6 +48,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.entity.DirectedRelationship.Cardinality;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -74,6 +74,8 @@ public class User extends Person {
 		EntityContext.registerPropertySet(User.class,
 						  PropertyView.Public,
 						  Key.realName);
+
+		EntityContext.registerRelation(User.class,	Group.class,	RelType.HAS_CHILD,	Direction.INCOMING, Cardinality.ManyToMany);
 	}
 
 	//~--- constant enums -------------------------------------------------
