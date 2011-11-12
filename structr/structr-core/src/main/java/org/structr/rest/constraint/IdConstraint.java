@@ -92,10 +92,10 @@ public class IdConstraint extends FilterableConstraint {
 	@Override
 	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws PathException {
 
-		if (next instanceof RelationshipConstraint) {
+		if(next instanceof RelationshipConstraint) {
 
-			((RelationshipConstraint) next).wrapConstraint(this);
-
+			// make rel constraint wrap this
+			((RelationshipConstraint)next).wrapConstraint(this);
 			return next;
 		}
 

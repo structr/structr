@@ -30,7 +30,7 @@ public class PropertySetNotion extends Notion {
 	public PropertySetNotion(PropertyKey... propertyKeys) {
 		this(
 			new PropertySetSerializationStrategy(propertyKeys),
-			new TypeAndPropertySetDeserializationStrategy()
+			new TypeAndPropertySetDeserializationStrategy(propertyKeys)
 		);
 
 	}

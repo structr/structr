@@ -19,6 +19,8 @@
 
 package org.structr.core.notion;
 
+import java.util.Map;
+import org.structr.common.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 
@@ -28,8 +30,21 @@ import org.structr.core.GraphObject;
  */
 public class TypeAndPropertySetDeserializationStrategy implements DeserializationStrategy {
 
+	private PropertyKey[] propertyKeys = null;
+
+	public TypeAndPropertySetDeserializationStrategy(PropertyKey... propertyKeys) {
+		this.propertyKeys = propertyKeys;
+	}
+
 	@Override
 	public GraphObject deserialize(SecurityContext securityContext, Class type, Object source) {
+
+		if(source instanceof Map) {
+			Map map = (Map)source;
+
+			// TODO: return object with matching properties
+		}
+
 		return null;
 	}
 }
