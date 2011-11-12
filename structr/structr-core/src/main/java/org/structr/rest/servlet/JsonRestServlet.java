@@ -546,7 +546,7 @@ public class JsonRestServlet extends HttpServlet {
 				chain.append(constr.getClass().getSimpleName());
 				chain.append(", ");
 			}
-			logger.log(Level.FINE, "########## Constraint chain after iteration {0}: {1}", new Object[] { iterations, chain.toString() } );
+			logger.log(Level.INFO, "########## Constraint chain after iteration {0}: {1}", new Object[] { iterations, chain.toString() } );
 
 			found = false;
 			for(int i=0; i<num; i++) {
@@ -558,7 +558,7 @@ public class JsonRestServlet extends HttpServlet {
 					ResourceConstraint combinedConstraint = firstElement.tryCombineWith(secondElement);
 					if(combinedConstraint != null) {
 
-						logger.log(Level.FINE, "Combined constraint {0}", combinedConstraint.getClass().getSimpleName());
+						logger.log(Level.INFO, "Combined constraint {0}", combinedConstraint.getClass().getSimpleName());
 
 						// remove source constraints
 						constraintChain.remove(firstElement);
@@ -596,7 +596,7 @@ public class JsonRestServlet extends HttpServlet {
 			chain.append(constr.getClass().getSimpleName());
 			chain.append(", ");
 		}
-		logger.log(Level.FINE, "########## Final constraint chain {0}", chain.toString() );
+		logger.log(Level.INFO, "########## Final constraint chain {0}", chain.toString() );
 
 		if(constraintChain.size() == 1) {
 			return constraintChain.get(0);
