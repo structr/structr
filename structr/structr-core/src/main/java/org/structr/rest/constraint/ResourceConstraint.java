@@ -42,7 +42,7 @@ public abstract class ResourceConstraint {
 
 	public abstract boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request);
 
-	public abstract List<? extends GraphObject> doGet(List<VetoableGraphObjectListener> listeners) throws PathException;
+	public abstract List<? extends GraphObject> doGet(final List<VetoableGraphObjectListener> listeners) throws PathException;
 	public abstract RestMethodResult doPost(final Map<String, Object> propertySet, final List<VetoableGraphObjectListener> listeners) throws Throwable;
 	public abstract RestMethodResult doHead() throws Throwable;
 	public abstract RestMethodResult doOptions() throws Throwable;
@@ -53,8 +53,8 @@ public abstract class ResourceConstraint {
 	// ----- methods -----
 	public final RestMethodResult doPut(final Map<String, Object> propertySet, final List<VetoableGraphObjectListener> listeners) throws Throwable {
 
-		final List<? extends GraphObject> results = doGet(listeners);
-		if(results != null && !results.isEmpty()) {
+		final Iterable<? extends GraphObject> results = doGet(listeners);
+		if(results != null) {
 
 			StructrTransaction transaction = new StructrTransaction() {
 
@@ -117,14 +117,14 @@ public abstract class ResourceConstraint {
 
 	public final RestMethodResult doDelete(final List<VetoableGraphObjectListener> listeners) throws Throwable {
 
-		List<? extends GraphObject> results;
+		Iterable<? extends GraphObject> results;
 
 		// catch 204, DELETE must return 200 if resource is empty
 		try { results = doGet(listeners); } catch(NoResultsException nre) { results = null; }
 
-		if(results != null && !results.isEmpty()) {
+		if(results != null) {
 
-			final List<? extends GraphObject> finalResults = results;
+			final Iterable<? extends GraphObject> finalResults = results;
 
 			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
@@ -190,7 +190,7 @@ public abstract class ResourceConstraint {
 		return mayCreate;
 	}
 
-	protected boolean validAFterCreation(List<VetoableGraphObjectListener> listeners, GraphObject object, ErrorBuffer errorBuffer) {
+	protected boolean validAfterCreation(List<VetoableGraphObjectListener> listeners, GraphObject object, ErrorBuffer errorBuffer) {
 
 		boolean valid = true;
 

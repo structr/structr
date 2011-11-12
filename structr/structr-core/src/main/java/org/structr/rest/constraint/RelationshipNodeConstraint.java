@@ -59,7 +59,7 @@ public class RelationshipNodeConstraint extends WrappingConstraint {
 	public List<? extends GraphObject> doGet(List<VetoableGraphObjectListener> listeners) throws PathException {
 
 		List<? extends GraphObject> results = wrappedConstraint.doGet(listeners);
-		if(results != null) {
+		if(results != null && !results.isEmpty()) {
 
 			try {
 				List<GraphObject> resultList = new LinkedList<GraphObject>();

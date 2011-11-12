@@ -27,7 +27,6 @@ import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import java.lang.reflect.Type;
-import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
 import org.neo4j.graphdb.Direction;
@@ -35,7 +34,6 @@ import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.PropertyView;
 import org.structr.core.GraphObject;
 import org.structr.core.Value;
-import org.structr.core.entity.AbstractNode;
 import org.structr.rest.wrapper.PropertySet.PropertyFormat;
 
 /**
@@ -103,16 +101,31 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 
 			Object value = src.getProperty(key);
 
-			if(value instanceof Collection) {
+			if(value instanceof Iterable) {
 
-				Collection<GraphObject> values = (Collection<GraphObject>)value;
 				JsonArray property = new JsonArray();
 
-				for(GraphObject obj : values) {
-					JsonElement recursiveSerializedValue = this.serializeNestedKeyValueType(obj, typeOfSrc, context, includeTypeInOutput, localPropertyView, depth+1);
-					if(recursiveSerializedValue != null) {
-						property.add(recursiveSerializedValue);
+				for(Object o : (Iterable)value) {
+
+					if(o instanceof GraphObject) {
+						GraphObject obj = (GraphObject)o;
+						JsonElement recursiveSerializedValue = this.serializeNestedKeyValueType(obj, typeOfSrc, context, includeTypeInOutput, localPropertyView, depth+1);
+						if(recursiveSerializedValue != null) {
+							property.add(recursiveSerializedValue);
+						}
+
+					} else if(o instanceof Map) {
+
+						properties.add(serializeMap((Map)o));
+
+					} else {
+
+						// serialize primitive, this is for PropertyNotion
+						properties.add(serializePrimitive(key, o, includeTypeInOutput));
 					}
+
+					// TODO: Unterstützung von Notions mit mehr als einem Property bei der Ausgabe!
+					// => neuer Typ?
 				}
 
 				properties.add(property);
@@ -123,32 +136,13 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 
 				properties.add(this.serializeNestedKeyValueType(graphObject, typeOfSrc, context, includeTypeInOutput, localPropertyView, depth+1));
 
+			} else if(value instanceof Map) {
+
+				properties.add(serializeMap((Map)value));
+
 			} else {
 
-				JsonObject property = new JsonObject();
-				property.add("key", new JsonPrimitive(key));
-
-				if(value != null) {
-
-					property.add("value", new JsonPrimitive(value.toString()));
-
-					// include type?
-					if(includeTypeInOutput) {
-						String valueType = value.getClass().getSimpleName();
-						property.add("type", new JsonPrimitive(valueType));
-					}
-
-				} else {
-
-					property.add("value", new JsonNull());
-
-					// include type?
-					if(includeTypeInOutput) {
-						property.add("type", new JsonNull());
-					}
-				}
-
-				properties.add(property);
+				properties.add(serializePrimitive(key, value, includeTypeInOutput));
 			}
 		}
 		jsonObject.add("properties", properties);
@@ -232,15 +226,29 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 			Object value = src.getProperty(key);
 			if(value != null) {
 
-				if(value instanceof Collection) {
+				if(value instanceof Iterable) {
 
 					JsonArray property = new JsonArray();
-					Collection<GraphObject> values = (Collection<GraphObject>)value;
-					for(GraphObject obj : values) {
-						JsonElement recursiveSerializedValue = this.serializeFlatNameValue(obj, typeOfSrc, context, localPropertyView, depth+1);
-						if(recursiveSerializedValue != null) {
-							property.add(recursiveSerializedValue);
+
+					for(Object o : (Iterable)value) {
+
+						if(o instanceof GraphObject) {
+							GraphObject obj = (GraphObject)o;
+							JsonElement recursiveSerializedValue = this.serializeFlatNameValue(obj, typeOfSrc, context, localPropertyView, depth+1);
+							if(recursiveSerializedValue != null) {
+								property.add(recursiveSerializedValue);
+							}
+
+						} else if(o instanceof Map) {
+
+							property.add(serializeMap((Map)o));
+
+						} else {
+
+							// serialize primitive, this is for PropertyNotion
+							property.add(new JsonPrimitive(o.toString()));
 						}
+
 					}
 
 					jsonObject.add(key, property);
@@ -250,6 +258,9 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 					GraphObject graphObject = (GraphObject)value;
 					jsonObject.add(key, this.serializeFlatNameValue(graphObject, typeOfSrc, context, localPropertyView, depth+1));
 
+				} else if(value instanceof Map) {
+
+					jsonObject.add(key, serializeMap((Map)value));
 
 				} else {
 
@@ -275,5 +286,54 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 		}
 		
 		return jsonObject;
+	}
+
+	private JsonObject serializePrimitive(String key, Object value, boolean includeTypeInOutput) {
+
+		JsonObject property = new JsonObject();
+		property.add("key", new JsonPrimitive(key));
+
+		if(value != null) {
+
+			property.add("value", new JsonPrimitive(value.toString()));
+
+			// include type?
+			if(includeTypeInOutput) {
+				String valueType = value.getClass().getSimpleName();
+				property.add("type", new JsonPrimitive(valueType));
+			}
+
+		} else {
+
+			property.add("value", new JsonNull());
+
+			// include type?
+			if(includeTypeInOutput) {
+				property.add("type", new JsonNull());
+			}
+		}
+
+		return property;
+	}
+
+	private JsonObject serializeMap(Map<String, Object> map) {
+
+		JsonObject object = new JsonObject();
+
+		for(Entry<String, Object> entry : map.entrySet()) {
+
+			String key = entry.getKey();
+			Object value = entry.getValue();
+
+			if(key != null) {
+				if(value != null) {
+					object.add(entry.getKey(), new JsonPrimitive(value.toString()));
+				} else {
+					object.add(entry.getKey(), new JsonNull());
+				}
+			}
+		}
+
+		return object;
 	}
 }
