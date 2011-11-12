@@ -99,6 +99,11 @@ public class RelationshipConstraint extends WrappingConstraint {
 
 	@Override
 	public ResourceConstraint tryCombineWith(ResourceConstraint next) {
+
+		if(next instanceof IdConstraint) {
+			return new RelationshipIdConstraint(securityContext, this, (IdConstraint)next);
+		}
+
 		return null;
 	}
 

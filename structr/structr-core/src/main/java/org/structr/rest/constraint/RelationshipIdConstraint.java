@@ -1,7 +1,22 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ *  Copyright (C) 2011 Axel Morgner
+ * 
+ *  This file is part of structr <http://structr.org>.
+ * 
+ *  structr is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ * 
+ *  structr is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ * 
+ *  You should have received a copy of the GNU General Public License
+ *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.structr.rest.constraint;
 
 import java.util.LinkedList;
@@ -11,33 +26,30 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
-import org.structr.core.entity.AbstractNode;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.VetoableGraphObjectListener;
 import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.exception.PathException;
 
 /**
- * Represents a type-constrained ID match. A TypedIdConstraint will always
- * result in a single element.
- * 
+ *
  * @author Christian Morgner
  */
-public class TypedIdConstraint extends FilterableConstraint {
+public class RelationshipIdConstraint extends FilterableConstraint {
 
 	private static final Logger logger = Logger.getLogger(TypedIdConstraint.class.getName());
 
-	protected TypeConstraint typeConstraint = null;
+	protected RelationshipConstraint relationshipConstraint = null;
 	protected IdConstraint idConstraint = null;
 
-	protected TypedIdConstraint(SecurityContext securityContext) {
+	protected RelationshipIdConstraint(SecurityContext securityContext) {
 		this.securityContext = securityContext;
 		// empty protected constructor
 	}
 
-	public TypedIdConstraint(SecurityContext securityContext, IdConstraint idConstraint, TypeConstraint typeConstraint) {
+	public RelationshipIdConstraint(SecurityContext securityContext, RelationshipConstraint relationshipConstraint, IdConstraint idConstraint) {
 		this.securityContext = securityContext;
-		this.typeConstraint = typeConstraint;
+		this.relationshipConstraint = relationshipConstraint;
 		this.idConstraint = idConstraint;
 	}
 
@@ -49,13 +61,23 @@ public class TypedIdConstraint extends FilterableConstraint {
 	@Override
 	public List<GraphObject> doGet(List<VetoableGraphObjectListener> listeners) throws PathException {
 
-		List<GraphObject> results = new LinkedList<GraphObject>();
-		AbstractNode node = getTypesafeNode();
-		
-		if(node != null) {
+		List<? extends GraphObject> results = relationshipConstraint.doGet(listeners);
+		long desiredId = idConstraint.getId();
+		GraphObject desiredObject = null;
 
-			results.add(node);
-			return results;
+		for(GraphObject obj : results) {
+			if(obj.getId() == desiredId) {
+				desiredObject = obj;
+				break;
+			}
+		}
+
+		// if object was found, return it
+		if(desiredObject != null) {
+			List<GraphObject> resultList = new LinkedList<GraphObject>();
+			resultList.add(desiredObject);
+
+			return resultList;
 		}
 
 		throw new NotFoundException();
@@ -76,21 +98,8 @@ public class TypedIdConstraint extends FilterableConstraint {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
-	public AbstractNode getTypesafeNode() throws PathException {
-		
-		AbstractNode node = idConstraint.getNode();
-		String type = typeConstraint.getType();
-
-		if(node != null && type.equalsIgnoreCase(node.getType())) {
-			return node;
-		}
-
-		
-		throw new NotFoundException();
-	}
-	
-	public TypeConstraint getTypeConstraint() {
-		return typeConstraint;
+	public RelationshipConstraint getRelationshipConstraint() {
+		return relationshipConstraint;
 	}
 
 	public IdConstraint getIdConstraint() {
@@ -99,34 +108,12 @@ public class TypedIdConstraint extends FilterableConstraint {
 
 	@Override
 	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws PathException {
-
-		if(next instanceof TypeConstraint) {
-
-			// next constraint is a type constraint
-			// => follow predefined statc relationship
-			//    between the two types
-			return new StaticRelationshipConstraint(securityContext, this, (TypeConstraint)next);
-
-		} else if(next instanceof TypedIdConstraint) {
-
-			RelationshipFollowingConstraint constraint = new RelationshipFollowingConstraint(securityContext, this);
-			constraint.addTypedIdConstraint((TypedIdConstraint)next);
-
-			return constraint;
-
-		} else if(next instanceof RelationshipConstraint) {
-
-			// make rel constraint wrap this
-			((RelationshipConstraint)next).wrapConstraint(this);
-			return next;
-		}
-
 		return super.tryCombineWith(next);
 	}
 
 	@Override
 	public String getUriPart() {
-		return typeConstraint.getUriPart().concat("/").concat(idConstraint.getUriPart());
+		return relationshipConstraint.getUriPart().concat("/").concat(idConstraint.getUriPart());
 	}
 
 	@Override
