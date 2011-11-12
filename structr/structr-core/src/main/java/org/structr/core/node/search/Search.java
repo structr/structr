@@ -33,6 +33,7 @@ import java.text.Normalizer;
 
 import java.util.LinkedList;
 import java.util.List;
+import org.structr.common.PropertyKey;
 import org.structr.common.SecurityContext;
 
 //~--- classes ----------------------------------------------------------------
@@ -204,6 +205,16 @@ public abstract class Search {
 
 		return attr;
 	}
+
+	public static SearchAttribute andExactPropertyValue(final PropertyKey propertyKey, final String searchString) {
+
+		SearchAttribute attr = new TextualSearchAttribute(propertyKey.name(),
+			exactMatch(searchString),
+			SearchOperator.AND);
+
+		return attr;
+	}
+
 
 	public static String exactMatch(final String searchString) {
 		return ("\"" + searchString + "\"");

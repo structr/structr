@@ -109,6 +109,8 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import org.structr.core.IterableAdapter;
+import org.structr.core.notion.Notion;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -1837,7 +1839,7 @@ public abstract class AbstractNode
 
 			if (idRequested) {
 
-				AbstractNode node = rel.getRelatedNode(securityContext,
+				GraphObject node = rel.getRelatedNode(securityContext,
 					this,
 					singularType);
 
@@ -1852,20 +1854,19 @@ public abstract class AbstractNode
 
 			} else {
 
+				// apply notion (default is "as-is")
+				Notion notion = rel.getNotion();
+
 				// return collection or single element depending on cardinality of relationship
 				switch (rel.getCardinality()) {
 
 					case ManyToMany :
 					case OneToMany :
-						return rel.getRelatedNodes(securityContext,
-									   this,
-									   singularType);
+						return new IterableAdapter(rel.getRelatedNodes(securityContext, this, singularType), notion.getAdapterForGetter(securityContext));
 
 					case OneToOne :
 					case ManyToOne :
-						return rel.getRelatedNode(securityContext,
-									  this,
-									  singularType);
+						return notion.getAdapterForGetter(securityContext).adapt(rel.getRelatedNode(securityContext, this, singularType));
 				}
 			}
 		}
@@ -3813,20 +3814,18 @@ public abstract class AbstractNode
 
 			// static relationship detected, create relationship
 			DirectedRelationship rel = EntityContext.getRelations(type).get(singularType.toLowerCase());
-
 			if (rel != null) {
 
-				// FIXME: return here, or do something else?
 				try {
 
-					rel.createRelationship(securityContext,
-							       this,
-							       value,
-							       singularType);
+					GraphObject graphObject = rel.getNotion().getAdapterForSetter(securityContext).adapt(value);
+					rel.createRelationship(securityContext, this, graphObject, singularType);
 
 					return;
 
 				} catch (Throwable t) {
+
+					logger.log(Level.WARNING, "Exception in setProperty", t);
 
 					// report exception upwards
 					throw new IllegalArgumentException(t.getMessage());

@@ -34,6 +34,7 @@ import org.neo4j.kernel.Traversal;
 import org.structr.common.CaseHelper;
 import org.structr.common.SecurityContext;
 import org.structr.core.Command;
+import org.structr.core.notion.Notion;
 import org.structr.core.Services;
 import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.FindNodeCommand;
@@ -57,12 +58,14 @@ public class DirectedRelationship {
 	private RelationshipType relType =  null;
 	private Cardinality cardinality = null;
 	private Direction direction = null;
+	private Notion notion = null;
 
-	public DirectedRelationship(RelationshipType relType, Direction direction, Cardinality cardinality) {
+	public DirectedRelationship(RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion) {
 
 		this.cardinality = cardinality;
 		this.direction = direction;
 		this.relType = relType;
+		this.notion = notion;
 	}
 
 	public Direction getDirection() {
@@ -87,6 +90,14 @@ public class DirectedRelationship {
 
 	public void setRelType(RelationshipType relType) {
 		this.relType = relType;
+	}
+
+	public Notion getNotion() {
+		return notion;
+	}
+
+	public void setNotion(Notion notion) {
+		this.notion = notion;
 	}
 
 	// ----- public methods -----

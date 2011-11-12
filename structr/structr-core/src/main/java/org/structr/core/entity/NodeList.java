@@ -40,7 +40,7 @@ import org.structr.core.Decorator;
 import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.node.Evaluable;
-import org.structr.core.node.IterableAdapter;
+import org.structr.core.IterableAdapter;
 import org.structr.core.node.NodeFactoryCommand;
 import org.structr.core.node.StructrNodeFactory;
 import org.structr.core.node.StructrTransaction;

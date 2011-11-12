@@ -19,6 +19,8 @@
 
 package org.structr.core;
 
+import org.structr.core.notion.Notion;
+import org.structr.core.notion.ObjectNotion;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -76,7 +78,8 @@ public class EntityContext {
 
 	/**
 	 * Defines a static relationship between <code>sourceType</code> and <code>destType</code>
-	 * with the given relationship type, direction and cardinality.
+	 * with the given relationship type, direction, cardinality and the default notion which
+	 * returns the source object unmodified.
 	 *
 	 * @param sourceType
 	 * @param destType
@@ -85,7 +88,23 @@ public class EntityContext {
 	 * @param cardinality
 	 */
 	public static void registerRelation(Class sourceType, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality) {
-		registerRelation(convertName(sourceType), convertName(destType), relType, direction, cardinality);
+		registerRelation(convertName(sourceType), convertName(destType), relType, direction, cardinality, new ObjectNotion());
+	}
+
+	/**
+	 * Defines a static relationship between <code>sourceType</code> and <code>destType</code>
+	 * with the given relationship type, direction and cardinality.
+	 *
+	 * @param sourceType
+	 * @param destType
+	 * @param relType
+	 * @param direction
+	 * @param cardinality
+	 * @param notion
+	 */
+	public static void registerRelation(Class sourceType, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion) {
+		registerRelation(convertName(sourceType), convertName(destType), relType, direction, cardinality, notion);
+		notion.setType(destType);
 	}
 
 	public static Map<String, DirectedRelationship> getRelations(Class sourceType) {
@@ -297,10 +316,10 @@ public class EntityContext {
 		return(type.getSimpleName().toLowerCase());
 	}
 
-	private static void registerRelation(String sourceType, String destType, RelationshipType relType, Direction direction, Cardinality cardinality) {
+	private static void registerRelation(String sourceType, String destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion) {
 
 		Map<String, DirectedRelationship> typeMap = getRelationshipMapForType(sourceType);
-		typeMap.put(destType, new DirectedRelationship(relType, direction, cardinality));
+		typeMap.put(destType, new DirectedRelationship(relType, direction, cardinality, notion));
 	}
 
 	private static Map<String, DirectedRelationship> getRelationshipMapForType(String sourceType) {

@@ -23,13 +23,17 @@ import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.structr.common.ErrorBuffer;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.DirectedRelationship;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.PathException;
 import org.structr.core.EntityContext;
+import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.node.StructrTransaction;
+import org.structr.core.node.TransactionCommand;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.VetoableGraphObjectListener;
 
@@ -49,7 +53,7 @@ public class StaticRelationshipConstraint extends FilterableConstraint {
 	}
 
 	@Override
-	public List<? extends GraphObject> doGet(List<VetoableGraphObjectListener> listeners) throws PathException {
+	public List<? extends GraphObject> doGet(final List<VetoableGraphObjectListener> listeners) throws PathException {
 
 		List<GraphObject> results = typedIdConstraint.doGet(listeners);
 		if(results != null) {
@@ -61,7 +65,6 @@ public class StaticRelationshipConstraint extends FilterableConstraint {
 			// fetch static relationship definition
 			DirectedRelationship staticRel = EntityContext.getRelation(sourceType, targetType);
 			if(staticRel != null) {
-
 				return staticRel.getRelatedNodes(securityContext, typedIdConstraint.getTypesafeNode(), targetType);
 			}
 		}
@@ -70,23 +73,48 @@ public class StaticRelationshipConstraint extends FilterableConstraint {
 	}
 
 	@Override
-	public RestMethodResult doPost(Map<String, Object> propertySet, List<VetoableGraphObjectListener> listeners) throws Throwable {
+	public RestMethodResult doPost(final Map<String, Object> propertySet, final List<VetoableGraphObjectListener> listeners) throws Throwable {
 
-		final AbstractNode sourceNode = typedIdConstraint.getIdConstraint().getNode();
-		final AbstractNode newNode = typeConstraint.createNode(listeners, propertySet);
-		final DirectedRelationship rel = EntityContext.getRelation(sourceNode.getClass(), newNode.getClass());
+		// create transaction closure
+		StructrTransaction transaction = new StructrTransaction() {
 
-		if(sourceNode != null && newNode != null && rel != null) {
+			@Override
+			public Object execute() throws Throwable {
 
-			rel.createRelationship(securityContext, sourceNode, newNode, newNode.getType());
-			
-			// TODO: set location header
-			RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_CREATED);
-			result.addHeader("Location", buildLocationHeader(newNode.getType(), newNode.getId()));
-			return result;
+				AbstractNode sourceNode = typedIdConstraint.getIdConstraint().getNode();
+				AbstractNode newNode = typeConstraint.createNode(listeners, propertySet);
+				DirectedRelationship rel = EntityContext.getRelation(sourceNode.getClass(), newNode.getClass());
+
+				if(sourceNode != null && newNode != null && rel != null) {
+
+					rel.createRelationship(securityContext, sourceNode, newNode, newNode.getType());
+
+					ErrorBuffer errorBuffer = new ErrorBuffer();
+
+					if(!validAfterCreation(listeners, newNode, errorBuffer)) {
+						throw new IllegalArgumentException(errorBuffer.toString());
+					}
+
+					return newNode;
+				}
+
+				throw new IllegalPathException();
+			}
+		};
+
+		// execute transaction: create new node
+		AbstractNode newNode = (AbstractNode)Services.command(securityContext, TransactionCommand.class).execute(transaction);
+		if(newNode == null) {
+
+			// re-throw transaction exception cause
+			if(transaction.getCause() != null) {
+				throw transaction.getCause();
+			}
 		}
 
-		throw new IllegalPathException();
+		RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_CREATED);
+		result.addHeader("Location", buildLocationHeader(newNode.getType(), newNode.getId()));
+		return result;
 	}
 
 	@Override

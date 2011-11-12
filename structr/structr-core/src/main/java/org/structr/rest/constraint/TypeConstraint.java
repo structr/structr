@@ -55,7 +55,7 @@ public class TypeConstraint extends SortableConstraint {
 	}
 
 	@Override
-	public List<GraphObject> doGet(List<VetoableGraphObjectListener> listeners) throws PathException {
+	public List<GraphObject> doGet(final List<VetoableGraphObjectListener> listeners) throws PathException {
 
 		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 		AbstractNode topNode = null;
@@ -87,11 +87,36 @@ public class TypeConstraint extends SortableConstraint {
 	}
 
 	@Override
-	public RestMethodResult doPost(Map<String, Object> propertySet, List<VetoableGraphObjectListener> listeners) throws Throwable {
+	public RestMethodResult doPost(final Map<String, Object> propertySet, final List<VetoableGraphObjectListener> listeners) throws Throwable {
 
-		AbstractNode newNode = createNode(listeners, propertySet);
+		// create transaction closure
+		StructrTransaction transaction = new StructrTransaction() {
 
-		// TODO: set location header
+			@Override
+			public Object execute() throws Throwable {
+
+				AbstractNode newNode = createNode(listeners, propertySet);
+				ErrorBuffer errorBuffer = new ErrorBuffer();
+
+				if(!validAfterCreation(listeners, newNode, errorBuffer)) {
+					throw new IllegalArgumentException(errorBuffer.toString());
+				}
+
+				return newNode;
+			}
+		};
+
+		// execute transaction: create new node
+		AbstractNode newNode = (AbstractNode)Services.command(securityContext, TransactionCommand.class).execute(transaction);
+		if(newNode == null) {
+
+			// re-throw transaction exception cause
+			if(transaction.getCause() != null) {
+				throw transaction.getCause();
+			}
+		}
+
+		// finally: return 201 Created
 		RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_CREATED);
 		result.addHeader("Location", buildLocationHeader(newNode.getType(), newNode.getId()));
 		return result;
@@ -130,32 +155,11 @@ public class TypeConstraint extends SortableConstraint {
 		//propertySet.put(AbstractNode.Key.type.name(), StringUtils.toCamelCase(type));
 		propertySet.put(AbstractNode.Key.type.name(), CaseHelper.toCamelCase(type));
 
-		// create transaction closure
-		StructrTransaction transaction = new StructrTransaction() {
+		AbstractNode newNode = (AbstractNode)Services.command(securityContext, CreateNodeCommand.class).execute(propertySet);
+		ErrorBuffer errorBuffer = new ErrorBuffer();
 
-			@Override
-			public Object execute() throws Throwable {
-
-//				AbstractNode newNode = (AbstractNode)Services.command(securityContext, CreateValidatedNodeCommand.class).execute(propertySet);
-				AbstractNode newNode = (AbstractNode)Services.command(securityContext, CreateNodeCommand.class).execute(propertySet);
-				ErrorBuffer errorBuffer = new ErrorBuffer();
-
-				if(!mayCreate(listeners, newNode, errorBuffer) || !validAFterCreation(listeners, newNode, errorBuffer)) {
-					throw new IllegalArgumentException(errorBuffer.toString());
-				}
-
-				return newNode;
-			}
-		};
-
-		// execute transaction: create new node
-		AbstractNode newNode = (AbstractNode)Services.command(securityContext, TransactionCommand.class).execute(transaction);
-		if(newNode == null) {
-
-			// re-throw transaction exception cause
-			if(transaction.getCause() != null) {
-				throw transaction.getCause();
-			}
+		if(!mayCreate(listeners, newNode, errorBuffer)) {
+			throw new IllegalArgumentException(errorBuffer.toString());
 		}
 
 		return newNode;
