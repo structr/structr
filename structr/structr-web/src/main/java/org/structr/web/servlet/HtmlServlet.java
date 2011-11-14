@@ -90,6 +90,7 @@ public class HtmlServlet extends HttpServlet {
 	//~--- fields ---------------------------------------------------------
 
 	private TraversalDescription desc = null;
+	private boolean edit;
 
 	//~--- methods --------------------------------------------------------
 
@@ -108,12 +109,15 @@ public class HtmlServlet extends HttpServlet {
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) {
 
+		edit = false;
+
 		if (request.getParameter("create") != null) {
 
 			createTestStructure();
 			response.setStatus(HttpServletResponse.SC_CREATED);
 
 			return;
+
 		}
 
 		if (request.getParameter("editor") != null) {
@@ -122,6 +126,13 @@ public class HtmlServlet extends HttpServlet {
 			response.setStatus(HttpServletResponse.SC_CREATED);
 
 			return;
+
+		}
+
+		if (request.getParameter("edit") != null) {
+
+			edit = true;
+
 		}
 
 		try {
@@ -153,8 +164,11 @@ public class HtmlServlet extends HttpServlet {
 				logger.log(Level.INFO, "{0} results", results.size());
 
 				if (!results.isEmpty()) {
+
 					resource = (Resource) results.get(0);
+
 				}
+
 			}
 
 			if (resource != null) {
@@ -166,8 +180,15 @@ public class HtmlServlet extends HttpServlet {
 				logger.log(Level.INFO, "Content collected in {0} seconds", decimalFormat.format((end - start) / 1000000000.0));
 
 				String contentType = resource.getContentType();
+
 				if (contentType != null) {
+
 					response.setContentType(contentType);
+
+				} else {
+
+					// Default
+					response.setContentType("text/html; charset=utf-8");
 				}
 
 				// 3: output content
@@ -176,7 +197,9 @@ public class HtmlServlet extends HttpServlet {
 				response.getWriter().close();
 				response.setStatus(HttpServletResponse.SC_OK);
 			} else {
+
 				response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+
 			}
 
 		} catch (Throwable t) {
@@ -308,6 +331,7 @@ public class HtmlServlet extends HttpServlet {
 
 					content.append(line);
 					content.append("\n");
+
 				}
 
 			} while (line != null);
@@ -329,7 +353,9 @@ public class HtmlServlet extends HttpServlet {
 		attrs.put(AbstractNode.Key.name.name(), name);
 
 		for (NodeAttribute attr : attributes) {
+
 			attrs.put(attr.getKey(), attr.getValue());
+
 		}
 
 		AbstractNode node = (AbstractNode) createNodeCommand.execute(attrs);
@@ -370,17 +396,45 @@ public class HtmlServlet extends HttpServlet {
 
 						String type = (String) node.getProperty(AbstractNode.Key.type.name());
 
+						if (edit) {
+
+							builder.append("<div class=\"structr-editable-area data-structr-type-").append(type).append(
+							    "\" id=\"structr-id-").append(node.getId()).append("\">");
+
+						}
+
+						Evaluation evaluation;
+
 						if ("Content".equals(type)) {
 
-							// Content node reached, collect content and stop traversal here
-							builder.append(node.getProperty(Content.Key.content.name()));
+							if (node.hasProperty(Content.Key.content.name())) {
 
-							return Evaluation.EXCLUDE_AND_PRUNE;
+								Object content = node.getProperty(Content.Key.content.name());
+
+								if (content != null) {
+
+									// Content node reached, collect content and stop traversal here
+									builder.append(content);
+								}
+
+							}
+
+							evaluation = Evaluation.EXCLUDE_AND_PRUNE;
+
 						} else {
 
 							// continue traversal
-							return Evaluation.EXCLUDE_AND_CONTINUE;
+							evaluation = Evaluation.EXCLUDE_AND_CONTINUE;
 						}
+
+						if (edit) {
+
+							builder.append("</div><!-- .structr-editable-area structr-type-").append(type).append("\" -->");
+
+						}
+
+						return evaluation;
+
 					}
 
 				} catch (Throwable t) {
@@ -396,8 +450,11 @@ public class HtmlServlet extends HttpServlet {
 
 		// do traversal to retrieve paths
 		Iterable<Path> paths = localDesc.traverse(resource.getNode());
+
 		for (Path path : paths) {
+
 			logger.log(Level.INFO, "Path: {0}", path.toString());
+
 		}
 
 		return builder.toString();
@@ -439,14 +496,21 @@ public class HtmlServlet extends HttpServlet {
 						Object prop = rel.getProperty(resourceId);
 
 						if (prop instanceof Integer) {
+
 							position = (Integer) prop;
+
 						} else if (prop instanceof String) {
+
 							position = Integer.parseInt((String) prop);
+
 						} else {
+
 							throw new java.lang.IllegalArgumentException("Expected Integer or String");
+
 						}
 
 						sortedRelationshipMap.put(position, rel);
+
 					}
 
 				} catch (Throwable t) {
@@ -454,6 +518,7 @@ public class HtmlServlet extends HttpServlet {
 					// fail fast, no check
 					logger.log(Level.SEVERE, "While reading property " + resourceId, t);
 				}
+
 			}
 
 			return sortedRelationshipMap.values();
