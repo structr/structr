@@ -60,7 +60,12 @@ public class TransactionCommand extends NodeServiceCommand {
 					buffer.append("FAILURE ");
 
 				} finally {
-					tx.finish();
+
+					try {
+						tx.finish();
+					} catch(Throwable t) {
+						// transaction rolled back
+					}
 
 					buffer.append("FINISHED");
 				}
@@ -85,7 +90,12 @@ public class TransactionCommand extends NodeServiceCommand {
 				buffer.append("FAILURE ");
 
 			} finally {
-				tx.finish();
+
+				try {
+					tx.finish();
+				} catch(Throwable t) {
+					// transaction rolled back
+				}
 
 				buffer.append("FINISHED");
 			}
