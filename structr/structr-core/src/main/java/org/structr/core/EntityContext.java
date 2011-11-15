@@ -48,11 +48,25 @@ public class EntityContext {
 	private static final Map<Class, Map<String, Class<? extends PropertyValidator>>> globalValidatorMap = new LinkedHashMap<Class, Map<String, Class<? extends PropertyValidator>>>();
 	private static final Map<String, Map<String, DirectedRelationship>> globalRelationshipMap = new LinkedHashMap<String, Map<String, DirectedRelationship>>();
 	private static final Map<Class, Map<PropertyView, Set<String>>> globalStringMap = new LinkedHashMap<Class, Map<PropertyView, Set<String>>>();
+	private static final Map<Class, Map<String, PropertyGroup>> globalPropertyGroupMap = new LinkedHashMap<Class, Map<String, PropertyGroup>>();
 	private static final Map<Class, Map<String, Value>> globalValidationParameterMap = new LinkedHashMap<Class, Map<String, Value>>();
 	private static final Map<Class, Map<String, Value>> globalConversionParameterMap = new LinkedHashMap<Class, Map<String, Value>>();
 	private static final Map<Class, Set<String>> globalReadOnlyPropertyMap = new LinkedHashMap<Class, Set<String>>();
 
 	private static final Logger logger = Logger.getLogger(EntityContext.class.getName());
+
+	// ----- property notions -----
+	public static PropertyGroup getPropertyGroup(Class type, PropertyKey key) {
+		return getPropertyGroup(type, key.name());
+	}
+
+	public static PropertyGroup getPropertyGroup(Class type, String key) {
+		return getPropertyGroupMapForType(type).get(key);
+	}
+
+	public static void registerPropertyGroup(Class type, PropertyKey key, PropertyGroup propertyGroup) {
+		getPropertyGroupMapForType(type).put(key.name(), propertyGroup);
+	}
 
 	// ----- static relationship methods -----
 	public static DirectedRelationship getRelation(String sourceType, String destType) {
@@ -397,5 +411,16 @@ public class EntityContext {
 		}
 
 		return readOnlyPropertySet;
+	}
+
+	private static Map<String, PropertyGroup> getPropertyGroupMapForType(Class type) {
+
+		Map<String, PropertyGroup> groupMap = globalPropertyGroupMap.get(type);
+		if(groupMap == null) {
+			groupMap = new LinkedHashMap<String, PropertyGroup>();
+			globalPropertyGroupMap.put(type, groupMap);
+		}
+
+		return groupMap;
 	}
 }
