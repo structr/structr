@@ -57,7 +57,7 @@ public class Person extends Principal {
 
 	public static enum Key implements PropertyKey {
 
-		salutation, firstName, middleNameOrInitial, lastName, email1, email2, phoneNumber1, phoneNumber2,
+		salutation, firstName, middleNameOrInitial, lastName, email, email2, phoneNumber1, phoneNumber2,
 		faxNumber1, faxNumber2, street, zipCode, city, state, country, birthday, gender, newsletter
 	}
 
@@ -84,8 +84,8 @@ public class Person extends Principal {
 		return getStringProperty(Key.middleNameOrInitial.name());
 	}
 
-	public String getEmail1() {
-		return getStringProperty(Key.email1.name());
+	public String getEmail() {
+		return getStringProperty(Key.email.name());
 	}
 
 	public String getEmail2() {
@@ -186,10 +186,10 @@ public class Person extends Principal {
 			    middleNameOrInitial);
 	}
 
-	public void setEmail1(final String email1) {
+	public void setEmail(final String email) {
 
-		setProperty(Key.email1.name(),
-			    email1);
+		setProperty(Key.email.name(),
+			    email);
 	}
 
 	public void setEmail2(final String email2) {

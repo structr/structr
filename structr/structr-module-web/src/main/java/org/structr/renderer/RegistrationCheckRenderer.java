@@ -515,7 +515,7 @@ public class RegistrationCheckRenderer implements NodeRenderer<RegistrationCheck
 					new NodeAttribute(Person.Key.country.name(), country),
 					new NodeAttribute(Person.Key.gender.name(), gender),
 					new NodeAttribute(Person.Key.birthday.name(), birthdayDate),
-					new NodeAttribute(Person.Key.email1.name(), email),
+					new NodeAttribute(Person.Key.email.name(), email),
 					new NodeAttribute(Person.Key.newsletter.name(), StringUtils.isNotEmpty(newsletter)),
 					new NodeAttribute(User.Key.frontendUser.name(), true),
 					new NodeAttribute(User.Key.confirmationKey.name(), confirmationKeyForMail));
