@@ -57,17 +57,17 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 		switch(size) {
 
 			case 0:
-				buf.add(type.getSimpleName(), "' with ", propertyKey.name(), " = '", source, "' not found.");
+				buf.add(type.getSimpleName(), " with ", propertyKey.name(), " = '", source, "' not found.");
 				break;
 
 			case 1:
 				return nodes.get(0);
 
 			default:
-				buf.add(type.getSimpleName(), "' with ", propertyKey.name(), " = '", source, "' is ambiguous.");
+				buf.add(type.getSimpleName(), " with ", propertyKey.name(), " = '", source, "' is ambiguous.");
 
 		}
 
-		throw new IllegalStateException(buf.toString());
+		throw new IllegalArgumentException(buf.toString());
 	}
 }

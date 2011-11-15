@@ -19,6 +19,7 @@
 
 package org.structr.core.notion;
 
+import org.apache.commons.lang.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
@@ -31,6 +32,22 @@ import org.structr.core.node.FindNodeCommand;
 public class IdDeserializationStrategy implements DeserializationStrategy {
 	@Override
 	public GraphObject deserialize(SecurityContext securityContext, Class type, Object source) {
-		return (GraphObject)Services.command(securityContext, FindNodeCommand.class).execute(source);
+
+		try {
+			return (GraphObject)Services.command(securityContext, FindNodeCommand.class).execute(source);
+			
+		} catch(Throwable t) {
+			
+			StringBuilder errorMessage = new StringBuilder(100);
+
+			if(type != null) {
+				errorMessage.append(StringUtils.capitalize(type.getSimpleName()));
+			}
+			errorMessage.append(" with id ");
+			errorMessage.append(source);
+			errorMessage.append(" not found.");
+
+			throw new IllegalArgumentException(errorMessage.toString());
+		}
 	}
 }

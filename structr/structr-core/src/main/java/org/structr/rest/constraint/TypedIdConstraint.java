@@ -119,6 +119,11 @@ public class TypedIdConstraint extends FilterableConstraint {
 			// make rel constraint wrap this
 			((RelationshipConstraint)next).wrapConstraint(this);
 			return next;
+
+		} else if(next instanceof RelationshipIdConstraint) {
+
+			((RelationshipIdConstraint)next).getRelationshipConstraint().wrapConstraint(this);
+			return next;
 		}
 
 		return super.tryCombineWith(next);

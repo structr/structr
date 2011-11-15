@@ -18,6 +18,8 @@
  */
 package org.structr.core.node;
 
+import java.util.logging.Logger;
+import org.apache.commons.lang.StringUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
 
@@ -27,8 +29,13 @@ import org.neo4j.graphdb.Transaction;
  */
 public class TransactionCommand extends NodeServiceCommand {
 
+	private static final Logger logger = Logger.getLogger(TransactionCommand.class.getName());
+
 	@Override
 	public Object execute(Object... parameters) {
+
+		StringBuilder buffer = new StringBuilder();
+		buffer.append("BEGIN   ");
 
 		Object ret = null;
 		GraphDatabaseService graphDb = (GraphDatabaseService)arguments.get("graphDb");
@@ -42,14 +49,20 @@ public class TransactionCommand extends NodeServiceCommand {
 					ret = transaction.execute();
 					tx.success();
 
+					buffer.append("SUCCESS ");
+
 				} catch(Throwable t) {
 
-					t.printStackTrace();
+//					t.printStackTrace();
 					transaction.setCause(t);
 					tx.failure();
 
+					buffer.append("FAILURE ");
+
 				} finally {
 					tx.finish();
+
+					buffer.append("FINISHED");
 				}
 			}
 
@@ -61,17 +74,25 @@ public class TransactionCommand extends NodeServiceCommand {
 				ret = transaction.execute(tx);
 				tx.success();
 
+				buffer.append("SUCCESS ");
+
 			} catch(Throwable t) {
 				
-				t.printStackTrace();
+//				t.printStackTrace();
 				transaction.setCause(t);
 				tx.failure();
 
+				buffer.append("FAILURE ");
+
 			} finally {
 				tx.finish();
+
+				buffer.append("FINISHED");
 			}
 
 		}
+
+		System.out.println("########## " + StringUtils.leftPad(this.hashCode()+"", 10) + " " + buffer.toString());
 
 		return ret;
 	}

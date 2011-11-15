@@ -110,6 +110,7 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import org.structr.core.IterableAdapter;
+import org.structr.core.PropertyGroup;
 import org.structr.core.notion.Notion;
 
 //~--- classes ----------------------------------------------------------------
@@ -1820,10 +1821,15 @@ public abstract class AbstractNode
 		Object value        = null;
 		Class type          = this.getClass();
 
-		// ----- BEGIN automatic property resolution -----
-		// check for static relationships and return related nodes
-		String singularType = getSingularTypeName(key);
+		// ----- BEGIN property group resolution -----
+		PropertyGroup propertyGroup = EntityContext.getPropertyGroup(type, key);
+		if(propertyGroup != null) {
+			return propertyGroup.getGroupedProperties(this);
+		}
+		// ----- END property group resolution -----
 
+		// ----- BEGIN automatic property resolution (check for static relationships and return related nodes) -----
+		String singularType = getSingularTypeName(key);
 		if (key.endsWith("Id")) {
 
 			// remove "Id" from the end of the value and set "id requested"-flag
@@ -3803,8 +3809,15 @@ public abstract class AbstractNode
 			}
 		}
 
-		String singularType = getSingularTypeName(key);
+		// ----- BEGIN property group resolution -----
+		PropertyGroup propertyGroup = EntityContext.getPropertyGroup(type, key);
+		if(propertyGroup != null) {
+			propertyGroup.setGroupedProperties(value, this);
+			return;
+		}
+		// ----- END property group resolution -----
 
+		String singularType = getSingularTypeName(key);
 		if (key.endsWith("Id")) {
 			singularType = singularType.substring(0, singularType.length() - 2);
 		}
@@ -3823,9 +3836,14 @@ public abstract class AbstractNode
 
 					return;
 
+				} catch(IllegalArgumentException iaex) {
+
+					// re-throw exception
+					throw iaex;
+
 				} catch (Throwable t) {
 
-					logger.log(Level.WARNING, "Exception in setProperty", t);
+					// logger.log(Level.WARNING, "Exception in setProperty", t);
 
 					// report exception upwards
 					throw new IllegalArgumentException(t.getMessage());
