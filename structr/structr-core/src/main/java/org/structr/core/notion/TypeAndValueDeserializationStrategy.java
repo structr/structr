@@ -68,6 +68,6 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 
 		}
 
-		throw new IllegalStateException(buf.toString());
+		throw new IllegalArgumentException(buf.toString());
 	}
 }

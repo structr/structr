@@ -7,6 +7,7 @@ package org.structr.rest.constraint;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -71,7 +72,6 @@ public abstract class ResourceConstraint {
 							for(Entry<String, Object> attr : propertySet.entrySet()) {
 
 								try {
-
 									if(attr.getValue() != null) {
 	 									obj.setProperty(attr.getKey(), attr.getValue());
 									} else {

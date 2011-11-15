@@ -3836,9 +3836,14 @@ public abstract class AbstractNode
 
 					return;
 
+				} catch(IllegalArgumentException iaex) {
+
+					// re-throw exception
+					throw iaex;
+
 				} catch (Throwable t) {
 
-					logger.log(Level.WARNING, "Exception in setProperty", t);
+					// logger.log(Level.WARNING, "Exception in setProperty", t);
 
 					// report exception upwards
 					throw new IllegalArgumentException(t.getMessage());

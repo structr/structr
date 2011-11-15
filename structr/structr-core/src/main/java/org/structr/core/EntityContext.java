@@ -102,7 +102,12 @@ public class EntityContext {
 	 * @param cardinality
 	 */
 	public static void registerRelation(Class sourceType, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality) {
-		registerRelation(convertName(sourceType), convertName(destType), relType, direction, cardinality, new ObjectNotion());
+		
+		// need to set type here
+		Notion objectNotion = new ObjectNotion();
+		objectNotion.setType(destType);
+
+		registerRelation(convertName(sourceType), convertName(destType), relType, direction, cardinality, objectNotion);
 	}
 
 	/**
