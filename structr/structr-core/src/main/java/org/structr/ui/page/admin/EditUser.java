@@ -53,7 +53,7 @@ public class EditUser extends DefaultEdit {
 		userFields.add(new TextField(AbstractNode.Key.name.name(), true));
 		userFields.add(new TextField(User.Key.realName.name(), true));
 		userFields.add(new PasswordField(User.Key.password.name()));
-		userFields.add(new EmailField(Person.Key.email1.name(), "E-Mail", true));
+		userFields.add(new EmailField(Person.Key.email.name(), "E-Mail", true));
 		userFields.add(new Checkbox(User.Key.backendUser.name()));
 		userFields.add(new Checkbox(User.Key.frontendUser.name()));
 		userFields.add(new Checkbox(User.Key.blocked.name()));

@@ -46,7 +46,7 @@ public class EditPerson extends DefaultEdit {
         personFields.add(new TextField(Person.Key.middleNameOrInitial.name(), "Middle Name or Initial"));
         personFields.add(new TextField(Person.Key.lastName.name()));
 
-        personFields.add(new EmailField(Person.Key.email1.name(), "E-mail"));
+        personFields.add(new EmailField(Person.Key.email.name(), "E-mail"));
         personFields.add(new EmailField(Person.Key.email2.name(), "2nd E-mail"));
 
         personFields.add(new TelephoneField(Person.Key.phoneNumber1.name(), "Phone"));
