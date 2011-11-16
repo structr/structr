@@ -3793,7 +3793,8 @@ public abstract class AbstractNode
 			logger.log(Level.SEVERE,
 				   "Tried to set property with null key (action was denied)");
 
-			return;
+			throw new IllegalArgumentException("Property key '".concat(key).concat("' is null."));
+
 		}
 
 		// check for read-only properties

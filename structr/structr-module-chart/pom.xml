@@ -6,19 +6,19 @@
     <parent>
         <groupId>org.structr</groupId>
         <artifactId>structr</artifactId>
-        <version>0.4.3-SNAPSHOT</version>
+        <version>0.4.4-SNAPSHOT</version>
     </parent>
 
     <groupId>org.structr</groupId>
     <artifactId>structr-module-chart</artifactId>
     <packaging>jar</packaging>
-    <version>0.4.3-SNAPSHOT</version>
+    <version>0.4.4-SNAPSHOT</version>
     <name>structr-module-chart</name>
     <url>http://maven.apache.org</url>
 
     <properties>
         <netbeans.hint.license>structr-gpl30</netbeans.hint.license>
-        <structr.version>0.4.3-SNAPSHOT</structr.version>
+        <structr.version>0.4.4-SNAPSHOT</structr.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 

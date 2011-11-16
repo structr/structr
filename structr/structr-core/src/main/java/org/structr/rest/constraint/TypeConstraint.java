@@ -38,7 +38,7 @@ import org.structr.rest.exception.PathException;
  * @author Christian Morgner
  */
 public class TypeConstraint extends SortableConstraint {
-
+	
 	private static final Logger logger = Logger.getLogger(TypeConstraint.class.getName());
 
 	protected String type = null;

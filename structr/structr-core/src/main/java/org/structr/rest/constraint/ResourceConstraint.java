@@ -7,7 +7,6 @@ package org.structr.rest.constraint;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -19,6 +18,7 @@ import org.structr.core.Services;
 import org.structr.core.Value;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.StructrRelationship;
+import org.structr.core.node.RemoveNodeFromIndex;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 import org.structr.rest.RestMethodResult;
@@ -138,7 +138,10 @@ public abstract class ResourceConstraint {
 
 						if(mayDelete(listeners, obj, errorBuffer)) {
 
-							// 1: delete relationships
+							// 1: remove node from index
+							Services.command(securityContext, RemoveNodeFromIndex.class).execute(obj);
+
+							// 2: delete relationships
 							if(obj instanceof AbstractNode) {
 								List<StructrRelationship> rels = ((AbstractNode)obj).getRelationships();
 								for(StructrRelationship rel : rels) {
@@ -146,7 +149,7 @@ public abstract class ResourceConstraint {
 								}
 							}
 
-							// 2: delete object
+							// 3: delete object
 							success &= obj.delete();
 						}
 					}

@@ -73,4 +73,12 @@ public class InheritingTypeConstraint extends TypeConstraint {
 		throw new NoResultsException();
 	}
 
+	@Override
+	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws PathException {
+
+		if(next instanceof IdConstraint)	return new InheritingTypedIdConstraint(securityContext, (IdConstraint)next, this); else
+		if(next instanceof SearchConstraint)	return new TypedSearchConstraint(securityContext, this, ((SearchConstraint)next).getSearchString());
+
+		return super.tryCombineWith(next);
+	}
 }
