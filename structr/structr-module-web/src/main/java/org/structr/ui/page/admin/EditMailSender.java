@@ -22,6 +22,7 @@ package org.structr.ui.page.admin;
 import org.apache.click.control.FieldSet;
 import org.apache.click.control.TextArea;
 import org.apache.click.control.TextField;
+import org.structr.core.entity.web.Form;
 import org.structr.core.entity.web.MailSender;
 
 /**
@@ -36,28 +37,28 @@ public class EditMailSender extends DefaultEdit {
         super();
 
         FieldSet formFields = new FieldSet("Form Parameter");
-        formFields.add(new TextArea(MailSender.PARAMETER_NAMES_KEY, "Template parameters", 60, 10));
-        formFields.add(new TextArea(MailSender.MANDATORY_PARAMETER_NAMES_KEY, "Mandatory form fields", 60, 10));
-        formFields.add(new TextArea(MailSender.STRIP_FROM_VALUES_KEY, "Strings to be stripped from parameter values", 60, 10));
-        formFields.add(new TextField(MailSender.ANTI_ROBOT_FIELD_NAME_KEY, "Name of hidden anti-robot field", 30));
-        formFields.add(new TextField(MailSender.SUBMIT_BUTTON_NAME_KEY, "Name of submit button", 30));
+        formFields.add(new TextArea(Form.Key.parameterNames.name(), "Template parameters", 60, 10));
+        formFields.add(new TextArea(Form.Key.mandatoryParameterNames.name(), "Mandatory form fields", 60, 10));
+        formFields.add(new TextArea(Form.Key.stripFromValues.name(), "Strings to be stripped from parameter values", 60, 10));
+        formFields.add(new TextField(Form.Key.antiRobotFieldName.name(), "Name of hidden anti-robot field", 30));
+        formFields.add(new TextField(Form.Key.submitButtonName.name(), "Name of submit button", 30));
 
         editPropertiesForm.add(formFields);
 
 
         FieldSet mailFields = new FieldSet("E-Mail Fields");
 
-        mailFields.add(new TextField(MailSender.TO_ADDRESS_TEMPLATE_KEY, "Template for e-mail 'to address' field", 80));
-        mailFields.add(new TextField(MailSender.TO_NAME_TEMPLATE_KEY, "Template for e-mail 'to name' field", 80));
+        mailFields.add(new TextField(MailSender.Key.toAddressTemplate.name(), "Template for e-mail 'to address' field", 80));
+        mailFields.add(new TextField(MailSender.Key.toNameTemplate.name(), "Template for e-mail 'to name' field", 80));
 
-        mailFields.add(new TextField(MailSender.FROM_ADDRESS_TEMPLATE_KEY, "Template for e-mail 'from address' field", 80));
-        mailFields.add(new TextField(MailSender.FROM_NAME_TEMPLATE_KEY, "Template for e-mail 'from name' field", 80));
+        mailFields.add(new TextField(MailSender.Key.fromAddressTemplate.name(), "Template for e-mail 'from address' field", 80));
+        mailFields.add(new TextField(MailSender.Key.fromNameTemplate.name(), "Template for e-mail 'from name' field", 80));
 
-        mailFields.add(new TextField(MailSender.CC_ADDRESS_TEMPLATE_KEY, "Template for e-mail 'cc address' field", 80));
-        mailFields.add(new TextField(MailSender.BCC_ADDRESS_TEMPLATE_KEY, "Template for e-mail 'bcc name' field", 80));
+        mailFields.add(new TextField(MailSender.Key.ccAddressTemplate.name(), "Template for e-mail 'cc address' field", 80));
+        mailFields.add(new TextField(MailSender.Key.bccAddressTemplate.name(), "Template for e-mail 'bcc name' field", 80));
 
-        mailFields.add(new TextField(MailSender.MAIL_SUBJECT_TEMPLATE_KEY, "Template for e-mail subject line", 100));
-        mailFields.add(new TextArea(MailSender.HTML_BODY_TEMPLATE_KEY, "Template for e-mail body (HTML)", 80, 20));
+        mailFields.add(new TextField(MailSender.Key.mailSubjectTemplate.name(), "Template for e-mail subject line", 100));
+        mailFields.add(new TextArea(MailSender.Key.htmlBodyTemplate.name(), "Template for e-mail body (HTML)", 80, 20));
 
         editPropertiesForm.add(mailFields);
 

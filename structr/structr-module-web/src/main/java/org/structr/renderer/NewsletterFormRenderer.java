@@ -3,7 +3,6 @@ package org.structr.renderer;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import org.apache.commons.lang.StringUtils;
-import org.structr.common.CurrentRequest;
 import org.structr.common.RenderMode;
 import org.structr.common.StructrOutputStream;
 import org.structr.core.NodeRenderer;
@@ -45,7 +44,7 @@ public class NewsletterFormRenderer extends FormRenderer implements NodeRenderer
 	@Override
 	public void renderNode(StructrOutputStream out, NewsletterForm currentNode, AbstractNode startNode, String editUrl, Long editNodeId, RenderMode renderMode)
 	{
-		HttpServletRequest request = CurrentRequest.getRequest();
+		HttpServletRequest request = out.getRequest();
 
 		if(request == null)
 		{
@@ -59,7 +58,7 @@ public class NewsletterFormRenderer extends FormRenderer implements NodeRenderer
 			return;
 		}
 
-		String usernameFromSession = (String)session.getAttribute(WebNode.USERNAME_KEY);
+		String usernameFromSession = (String)session.getAttribute(WebNode.Key.username.name());
 //            String usernameFromSession = CurrentSession.getGlobalUsername();
 		Boolean alreadyLoggedIn = usernameFromSession != null;
 
@@ -69,7 +68,7 @@ public class NewsletterFormRenderer extends FormRenderer implements NodeRenderer
 			return;
 		}
 
-		Boolean sessionBlocked = (Boolean)session.getAttribute(WebNode.SESSION_BLOCKED);
+		Boolean sessionBlocked = (Boolean)session.getAttribute(WebNode.Key.sessionBlocked.name());
 
 		if(Boolean.TRUE.equals(sessionBlocked))
 		{

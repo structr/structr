@@ -20,6 +20,7 @@
 package org.structr.core.node.operation;
 
 import java.util.Collection;
+import org.structr.common.SecurityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.NodeConsoleCommand;
 
@@ -29,6 +30,7 @@ import org.structr.core.node.NodeConsoleCommand;
  */
 public class HelpOperation implements PrimaryOperation {
 
+	private SecurityContext securityContext = null;
 	private String commandToHelp = null;
 
 	@Override
@@ -94,5 +96,10 @@ public class HelpOperation implements PrimaryOperation {
 			commandToHelp = parameter.toString();
 
 		}
+	}
+
+	@Override
+	public void setSecurityContext(SecurityContext securityContext) {
+		this.securityContext = securityContext;
 	}
 }

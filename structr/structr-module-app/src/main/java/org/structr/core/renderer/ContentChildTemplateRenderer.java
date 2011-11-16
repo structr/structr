@@ -22,7 +22,7 @@ public class ContentChildTemplateRenderer implements NodeRenderer<AbstractNode> 
 		List<AbstractNode> children = currentNode.getSortedDirectChildNodes();
 		for(AbstractNode child : children)
 		{
-			child.replaceByFreeMarker(templateSource, content, child, editUrl, editNodeId);
+			child.replaceByFreeMarker(out.getRequest(), templateSource, content, child, editUrl, editNodeId);
 		}
 
 		out.append(content.toString());

@@ -20,6 +20,7 @@ package org.structr.core;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import org.structr.common.SecurityContext;
 
 /**
  * The base class for all types of commands.
@@ -42,6 +43,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public abstract class Command {
 
+    protected SecurityContext securityContext = null;
     protected Map<String, Object> arguments = null;
     protected Command.status status = null;
     protected Command.exitCode exitCode = null;
@@ -136,5 +138,9 @@ public abstract class Command {
         if (errorMessage != null) {
             this.exitStatus.put(ERROR_MESSAGE, errorMessage);
         }
+    }
+
+    public void setSecurityContext(SecurityContext securityContext) {
+	    this.securityContext = securityContext;
     }
 }

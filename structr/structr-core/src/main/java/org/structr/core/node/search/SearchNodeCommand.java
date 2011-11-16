@@ -47,18 +47,16 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.SecurityContext;
 
 //~--- classes ----------------------------------------------------------------
 
 /**
  * <b>Search for nodes by attributes</b>
  * <p>
- * The execute method takes an arbitraty list of parameters, but the first
- * four parameters are
+ * The execute method takes four parameters:
  * <p>
  * <ol>
- * <li>{@see User} user: return nodes only if readable for the user
- *     <p>if null, don't filter by user
  * <li>{@see AbstractNode} top node: search only below this node
  *     <p>if null, search everywhere (top node = root node)
  * <li>boolean include deleted: if true, return deleted nodes as well
@@ -80,67 +78,51 @@ public class SearchNodeCommand extends NodeServiceCommand {
 	@Override
 	public Object execute(Object... parameters) {
 
-		if ((parameters == null) || (parameters.length != 5)) {
+		if ((parameters == null) || (parameters.length != 4)) {
 
-			logger.log(Level.WARNING, "Exactly 5 parameters are required for advanced search.");
+			logger.log(Level.WARNING, "Exactly 4 parameters are required for advanced search.");
 
 			return Collections.emptyList();
 		}
 
-		User user = null;
-
-		if (parameters[0] instanceof User) {
-			user = (User) parameters[0];
-		}
-
-		// FIXME: filtering by top node is experimental
 		AbstractNode topNode = null;
 
-		if (parameters[1] instanceof AbstractNode) {
-			topNode = (AbstractNode) parameters[1];
+		if (parameters[0] instanceof AbstractNode) {
+			topNode = (AbstractNode) parameters[0];
 		}
 
 		boolean includeDeleted = false;
 
-		if (parameters[2] instanceof Boolean) {
-			includeDeleted = (Boolean) parameters[2];
+		if (parameters[1] instanceof Boolean) {
+			includeDeleted = (Boolean) parameters[1];
 		}
 
 		boolean publicOnly = false;
 
-		if (parameters[3] instanceof Boolean) {
-			publicOnly = (Boolean) parameters[3];
+		if (parameters[2] instanceof Boolean) {
+			publicOnly = (Boolean) parameters[2];
 		}
 
 		List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
 
-		if (parameters[4] instanceof List) {
-			searchAttrs = (List<SearchAttribute>) parameters[4];
+		if (parameters[3] instanceof List) {
+			searchAttrs = (List<SearchAttribute>) parameters[3];
 		}
 
-		for (int i = 4; i < parameters.length; i++) {
-
-			Object o = parameters[i];
-
-			if (o instanceof SearchAttribute) {
-				searchAttrs.add((SearchAttribute) o);
-			}
-		}
-
-		return search(user, topNode, includeDeleted, publicOnly, searchAttrs);
+		return search(securityContext, topNode, includeDeleted, publicOnly, searchAttrs);
 	}
 
 	/**
 	 * Return a list of nodes which fit to all search criteria.
 	 *
-	 * @param user			Search as this user; null means public user (anonymous); use an instance of SuperUser to search all nodes
+	 * @param securityContext	Search in this security context
 	 * @param topNode		If set, return only search results below this top node (follows the HAS_CHILD relationship)
 	 * @param includeDeleted	If true, include nodes marked as deleted or contained in a Trash node as well
 	 * @param publicOnly		If true, don't include nodes which are not public
 	 * @param searchAttrs		List with search attributes
 	 * @return
 	 */
-	private List<AbstractNode> search(final User user, final AbstractNode topNode, final boolean includeDeleted,
+	private List<AbstractNode> search(final SecurityContext securityContext, final AbstractNode topNode, final boolean includeDeleted,
 					 final boolean publicOnly, final List<SearchAttribute> searchAttrs) {
 
 		GraphDatabaseService graphDb   = (GraphDatabaseService) arguments.get("graphDb");
@@ -235,7 +217,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 							  hits.size() });
 
 //                              IndexHits hits = index.query(new QueryContext(query.toString()));//.sort("name"));
-				intermediateResult = nodeFactory.createNodes(hits, user, includeDeleted, publicOnly);
+				intermediateResult = nodeFactory.createNodes(securityContext, hits, includeDeleted, publicOnly);
 
 //                              hits.close();
 				long t2 = System.currentTimeMillis();

@@ -36,6 +36,7 @@ import org.apache.commons.jxpath.ri.JXPathContextReferenceImpl;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.structr.common.NodePositionComparator;
+import org.structr.common.SecurityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.User;
 import org.structr.core.node.GraphDatabaseCommand;
@@ -52,12 +53,14 @@ public class JXPathFinder {
     private AbstractNode currentNode = null;
     private static final Logger logger = Logger.getLogger(JXPathFinder.class.getName());
     private JXPathContext context = null;
+    private SecurityContext securityContext = null;
 
-    public JXPathFinder(final AbstractNode currentNode, final User user) {
+    public JXPathFinder(final SecurityContext securityContext, final AbstractNode currentNode, final User user) {
         this.currentNode = currentNode;
+	this.securityContext = securityContext;
         //this.db = currentNode.getNode().getGraphDatabase();
 
-        Command graphDbCommand = Services.command(GraphDatabaseCommand.class);
+        Command graphDbCommand = Services.command(securityContext, GraphDatabaseCommand.class);
         this.db = (GraphDatabaseService) graphDbCommand.execute();
 
         if (context == null) {
@@ -91,7 +94,7 @@ public class JXPathFinder {
 
         try {
             Node node = db.getNodeById(id);
-            ret = createStructrNode(node);
+            ret = createStructrNode(securityContext, node);
 
         } catch (Throwable t) {
 
@@ -112,8 +115,8 @@ public class JXPathFinder {
      * @return a list of nodes resulting from xpath, sorted by their position attribute
      * @throws JXPathException
      */
-    public List<AbstractNode> findNodes(XPath xpath, StructrNodeFactory nodeFactory) throws JXPathException {
-        return findNodes(xpath, new NodePositionComparator(), nodeFactory);
+    public List<AbstractNode> findNodes(SecurityContext securityContext, XPath xpath, StructrNodeFactory nodeFactory) throws JXPathException {
+        return findNodes(securityContext, xpath, new NodePositionComparator(), nodeFactory);
     }
 
     /**
@@ -124,11 +127,11 @@ public class JXPathFinder {
      * @return a list of nodes resulting from xpath, sorted by their position attribute
      * @throws JXPathException
      */
-    public List<AbstractNode> findNodes(String path, StructrNodeFactory nodeFactory) throws JXPathException {
+    public List<AbstractNode> findNodes(SecurityContext securityContext, String path, StructrNodeFactory nodeFactory) throws JXPathException {
         XPath xpath = new XPath();
         // converts a path into an XPath expression
         xpath.setPath(path);
-        return findNodes(xpath, nodeFactory);
+        return findNodes(securityContext, xpath, nodeFactory);
     }
 
     /**
@@ -140,7 +143,7 @@ public class JXPathFinder {
      * @return a list of nodes resulting from xpath, sorted by comparator
      * @throws JXPathException
      */
-    public List<AbstractNode> findNodes(XPath xpath, Comparator<AbstractNode> comparator, StructrNodeFactory nodeFactory) throws JXPathException {
+    public List<AbstractNode> findNodes(SecurityContext securityContext, XPath xpath, Comparator<AbstractNode> comparator, StructrNodeFactory nodeFactory) throws JXPathException {
         List<AbstractNode> ret = null;
 
         long t0 = System.currentTimeMillis();
@@ -152,7 +155,7 @@ public class JXPathFinder {
             // adapt to set to remove duplicate entries
             Set nodeSet = new HashSet(context.selectNodes(xpath.getXPath()));
 
-            ret = nodeFactory.createNodes(nodeSet);
+            ret = nodeFactory.createNodes(securityContext, nodeSet);
 
         } catch (Throwable t) {
 
@@ -207,8 +210,8 @@ public class JXPathFinder {
      * @param node the node
      * @return the AbstractNode
      */
-    private Node createStructrNode(Node node) {
-        Command nodeFactory = Services.command(NodeFactoryCommand.class);
+    private Node createStructrNode(final SecurityContext securityContext, Node node) {
+        Command nodeFactory = Services.command(securityContext, NodeFactoryCommand.class);
         return (Node) nodeFactory.execute(node);
     }
 //

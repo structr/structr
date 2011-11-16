@@ -6,21 +6,21 @@
     <parent>
         <groupId>org.structr</groupId>
         <artifactId>structr</artifactId>
-        <version>0.4.2</version>
+        <version>0.4.3</version>
     </parent>
 
     <groupId>org.structr</groupId>
     <artifactId>structr-core</artifactId>
     <packaging>jar</packaging>
-    <version>0.4.2</version>
+    <version>0.4.3</version>
     <name>structr-core</name>
     <url>http://structr.org</url>
 
     <properties>
         <netbeans.hint.license>structr-gpl30</netbeans.hint.license>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <structr.version>0.4.2</structr.version>
-        <neo4j.version>1.4.1</neo4j.version>
+        <structr.version>0.4.3</structr.version>
+        <neo4j.version>1.4.2</neo4j.version>
         <click.version>2.3.0</click.version>
     </properties>
 
@@ -39,7 +39,7 @@
         <dependency>
             <groupId>org.freemarker</groupId>
             <artifactId>freemarker</artifactId>
-            <version>2.3.16</version>
+            <version>2.3.18</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>

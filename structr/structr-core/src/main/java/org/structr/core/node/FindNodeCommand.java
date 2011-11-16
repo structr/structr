@@ -72,24 +72,22 @@ public class FindNodeCommand extends NodeServiceCommand {
         GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
         StructrNodeFactory nodeFactory = (StructrNodeFactory) arguments.get("nodeFactory");
 
-        User user = null;
-
         if (graphDb != null) {
             switch (parameters.length) {
                 case 0:
                     throw new UnsupportedArgumentError("No arguments supplied");
 
-                case 2:
+                case 1:
                     if (parameters[0] instanceof User) {
-                        user = (User) parameters[0];
+			    throw new IllegalStateException("FindNodeCommand does not accept User instances any more. Please use SecurityContext!");
                     }
-                    return (handleSingleArgument(graphDb, nodeFactory, user, parameters[1]));
+                    return (handleSingleArgument(graphDb, nodeFactory, parameters[0]));
 
                 default:
                     if (parameters[0] instanceof User) {
-                        user = (User) parameters[0];
+			    throw new IllegalStateException("FindNodeCommand does not accept User instances any more. Please use SecurityContext!");
                     }
-                    return (handleMultipleArguments(graphDb, nodeFactory, user, parameters));
+                    return (handleMultipleArguments(graphDb, nodeFactory, parameters));
             }
         }
 
@@ -97,12 +95,12 @@ public class FindNodeCommand extends NodeServiceCommand {
     }
 
     // <editor-fold defaultstate="collapsed" desc="private methods">
-    private Object handleSingleArgument(GraphDatabaseService graphDb, StructrNodeFactory nodeFactory, User user, Object argument) {
+    private Object handleSingleArgument(GraphDatabaseService graphDb, StructrNodeFactory nodeFactory, Object argument) {
 
         Object result = null;
 
         if (argument instanceof Node) {
-            result = nodeFactory.createNode((Node) argument);
+            result = nodeFactory.createNode(securityContext, (Node) argument);
 
         } else if (argument instanceof Long) {
             // single long value: find node by id
@@ -111,7 +109,7 @@ public class FindNodeCommand extends NodeServiceCommand {
             Node node = null;
             try {
                 node = graphDb.getNodeById(id);
-                result = nodeFactory.createNode(node);
+                result = nodeFactory.createNode(securityContext, node);
             } catch (NotFoundException nfe) {
                 logger.log(Level.WARNING, "Node with id {0} not found in database!", id);
             }
@@ -122,7 +120,7 @@ public class FindNodeCommand extends NodeServiceCommand {
                 long id = Long.parseLong((String) argument);
 
                 Node node = graphDb.getNodeById(id);
-                result = nodeFactory.createNode(node);
+                result = nodeFactory.createNode(securityContext, node);
 
             } catch (NumberFormatException ex) {
                 // failed :(
@@ -132,9 +130,9 @@ public class FindNodeCommand extends NodeServiceCommand {
                 Node rootNode = graphDb.getReferenceNode();
 
                 if (path.endsWith("*")) {
-                    result = TreeHelper.getNodesByPath(nodeFactory.createNode(rootNode), path, true);
+                    result = TreeHelper.getNodesByPath(nodeFactory.createNode(securityContext, rootNode), path, true);
                 } else {
-                    result = TreeHelper.getNodeByPath(nodeFactory.createNode(rootNode), path, true);
+                    result = TreeHelper.getNodeByPath(nodeFactory.createNode(securityContext, rootNode), path, true);
                 }
 
 
@@ -162,9 +160,9 @@ public class FindNodeCommand extends NodeServiceCommand {
             String path = xpath.getXPath();
 
             if (path.endsWith("*")) {
-                result = TreeHelper.getNodesByPath(nodeFactory.createNode(rootNode), path, true);
+                result = TreeHelper.getNodesByPath(nodeFactory.createNode(securityContext, rootNode), path, true);
             } else {
-                result = TreeHelper.getNodeByPath(nodeFactory.createNode(rootNode), path, true);
+                result = TreeHelper.getNodeByPath(nodeFactory.createNode(securityContext, rootNode), path, true);
             }
 
             //result = nodeFinder.findNodes(xpath, nodeFactory);
@@ -174,7 +172,7 @@ public class FindNodeCommand extends NodeServiceCommand {
 
             // return reference node
             Node node = graphDb.getReferenceNode();
-            result = nodeFactory.createNode(node);
+            result = nodeFactory.createNode(securityContext, node);
 
         } else if (argument instanceof NodeAttribute) {
             // single node attribute: find node by attribute..
@@ -192,36 +190,35 @@ public class FindNodeCommand extends NodeServiceCommand {
             }
 
             // complete node tree
-            result = nodeFactory.createNodes(Traversal.description().breadthFirst().relationships(RelType.HAS_CHILD, Direction.OUTGOING).traverse(s).nodes());
+            result = nodeFactory.createNodes(securityContext, Traversal.description().breadthFirst().relationships(RelType.HAS_CHILD, Direction.OUTGOING).traverse(s).nodes());
 
         }
 
         return result;
     }
 
-    private Object handleMultipleArguments(GraphDatabaseService graphDb, StructrNodeFactory nodeFactory, User user, Object[] parameters) {
+    private Object handleMultipleArguments(GraphDatabaseService graphDb, StructrNodeFactory nodeFactory, Object[] parameters) {
         // at this point, we're sure there are at least 2 elements in the array
         // (so, no check here :))
 
         Object result = null;
 
-        // omit first parameter (is user)
-        if (parameters[1] instanceof AbstractNode && (parameters[2] instanceof XPath || parameters[2] instanceof String)) {
+        if (parameters[0] instanceof AbstractNode && (parameters[1] instanceof XPath || parameters[1] instanceof String)) {
             // relative xpath expression
-            AbstractNode currentNode = (AbstractNode) parameters[1];
+            AbstractNode currentNode = (AbstractNode) parameters[0];
 
             String path;
-            if (parameters[2] instanceof XPath) {
-                path = ((XPath) parameters[2]).getXPath();
+            if (parameters[1] instanceof XPath) {
+                path = ((XPath) parameters[1]).getXPath();
             } else {
-                path = (String) parameters[2];
+                path = (String) parameters[1];
             }
 
             try {
                 long id = Long.parseLong(path);
 
                 Node node = graphDb.getNodeById(id);
-                return nodeFactory.createNode(node);
+                return nodeFactory.createNode(securityContext, node);
 
             } catch (Exception ex) {
                 // string is not an ID
@@ -229,7 +226,7 @@ public class FindNodeCommand extends NodeServiceCommand {
             }
             
             if (path.startsWith("/")) {
-                currentNode = nodeFactory.createNode(graphDb.getReferenceNode());
+                currentNode = nodeFactory.createNode(securityContext, graphDb.getReferenceNode());
             }
 
             if (path.endsWith("*")) {

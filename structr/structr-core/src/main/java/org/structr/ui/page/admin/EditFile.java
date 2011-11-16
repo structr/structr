@@ -30,10 +30,10 @@ import org.structr.core.entity.File;
  */
 public class EditFile extends DefaultEdit {
 
-    protected TextField contentTypeField = new TextField(File.CONTENT_TYPE_KEY, "Internet Media Type (Content-Type)", 30);
-    protected TextField urlField = new TextField(File.URL_KEY, "URL", 100);
-    protected TextField relativeFilePathField = new TextField(File.RELATIVE_FILE_PATH_KEY, "Local File Path", 100);
-    protected LongField sizeField = new LongField(File.SIZE_KEY, "Size", 10);
+    protected TextField contentTypeField = new TextField(File.Key.contentType.name(), "Internet Media Type (Content-Type)", 30);
+    protected TextField urlField = new TextField(File.Key.url.name(), "URL", 100);
+    protected TextField relativeFilePathField = new TextField(File.Key.relativeFilePath.name(), "Local File Path", 100);
+    protected LongField sizeField = new LongField(File.Key.size.name(), "Size", 10);
 
     public EditFile() {
 

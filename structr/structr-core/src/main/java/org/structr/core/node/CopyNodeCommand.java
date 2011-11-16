@@ -44,33 +44,33 @@ public class CopyNodeCommand extends NodeServiceCommand {
         AbstractNode targetNode = null;
         User user = null;
 
-        Command findNode = Services.command(FindNodeCommand.class);
+        Command findNode = Services.command(securityContext, FindNodeCommand.class);
 
         switch (parameters.length) {
             case 3:
 
                 if (parameters[0] instanceof Long) {
                     long id = ((Long) parameters[0]).longValue();
-                    node = (AbstractNode) findNode.execute(user, id);
+                    node = (AbstractNode) findNode.execute(id);
 
                 } else if (parameters[0] instanceof AbstractNode) {
                     node = (AbstractNode) parameters[0];
 
                 } else if (parameters[0] instanceof String) {
                     long id = Long.parseLong((String) parameters[0]);
-                    node = (AbstractNode) findNode.execute(user, id);
+                    node = (AbstractNode) findNode.execute(id);
                 }
 
                 if (parameters[1] instanceof Long) {
                     long id = ((Long) parameters[1]).longValue();
-                    targetNode = (AbstractNode) findNode.execute(user, id);
+                    targetNode = (AbstractNode) findNode.execute(id);
 
                 } else if (parameters[1] instanceof AbstractNode) {
                     targetNode = (AbstractNode) parameters[1];
 
                 } else if (parameters[1] instanceof String) {
                     long id = Long.parseLong((String) parameters[1]);
-                    targetNode = (AbstractNode) findNode.execute(user, id);
+                    targetNode = (AbstractNode) findNode.execute(id);
                 }
 
                 if (parameters[2] instanceof User) {
@@ -91,8 +91,8 @@ public class CopyNodeCommand extends NodeServiceCommand {
 
         if (node != null) {
 
-            Command createNode = Services.command(CreateNodeCommand.class);
-            Command createRel = Services.command(CreateRelationshipCommand.class);
+            Command createNode = Services.command(securityContext, CreateNodeCommand.class);
+            Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
 
             AbstractNode newNode = (AbstractNode) createNode.execute(user);
 
@@ -100,7 +100,7 @@ public class CopyNodeCommand extends NodeServiceCommand {
             for (String key : node.getPropertyKeys()) {
 
                 // don't copy creation date
-                if (!(key.equals(AbstractNode.CREATED_DATE_KEY))) {
+                if (!(key.equals(AbstractNode.Key.createdDate.name()))) {
                     newNode.setProperty(key, node.getProperty(key));
                 }
             }

@@ -41,7 +41,7 @@ import org.structr.core.node.search.SearchNodeCommand;
 public class EditMenuItem extends DefaultEdit {
 
     protected MenuItem menuItem;
-    protected Select linkTargetSelect = new Select(MenuItem.LINK_TARGET_KEY);
+    protected Select linkTargetSelect = new Select(MenuItem.Key.linkTarget.name());
 
 
     public EditMenuItem() {
@@ -72,8 +72,8 @@ public class EditMenuItem extends DefaultEdit {
                     nodes = linkTargetNode.getSiblingNodes();
                 } else {
                     List<TextualSearchAttribute> searchAttrs = new LinkedList<TextualSearchAttribute>();
-                    searchAttrs.add(new TextualSearchAttribute(AbstractNode.TYPE_KEY, Page.class.getSimpleName(), SearchOperator.OR));
-                    nodes = (List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(user, null, false, false, searchAttrs);
+                    searchAttrs.add(new TextualSearchAttribute(AbstractNode.Key.type.name(), Page.class.getSimpleName(), SearchOperator.OR));
+                    nodes = (List<AbstractNode>) Services.command(securityContext, SearchNodeCommand.class).execute(null, false, false, searchAttrs);
                 }
                 if (nodes != null) {
                     Collections.sort(nodes);
@@ -99,7 +99,7 @@ public class EditMenuItem extends DefaultEdit {
 //
 //        super.onRender();
 //
-//        Command transactionCommand = Services.command(TransactionCommand.class);
+//        Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
 //        transactionCommand.execute(new StructrTransaction() {
 //
 //            @Override
@@ -128,19 +128,19 @@ public class EditMenuItem extends DefaultEdit {
 //     */
 //    public boolean onAddTemplate() {
 //
-//        Command transactionCommand = Services.command(TransactionCommand.class);
+//        Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
 //        AbstractNode s = null;
 //        s = (AbstractNode) transactionCommand.execute(new StructrTransaction() {
 //
 //            @Override
 //            public Object execute() throws Throwable {
 //
-//                Command createNode = Services.command(CreateNodeCommand.class);
-//                Command linkNode = Services.command(CreateRelationshipCommand.class);
+//                Command createNode = Services.command(securityContext, CreateNodeCommand.class);
+//                Command linkNode = Services.command(securityContext, CreateRelationshipCommand.class);
 //
 //                // create a new template node
 //                AbstractNode newTemplate = (AbstractNode) createNode.execute(
-//                        new NodeAttribute(AbstractNode.TYPE_KEY, Template.class.getSimpleName()),
+//                        new NodeAttribute(AbstractNode.Key.type.name(), Template.class.getSimpleName()),
 //                        new NodeAttribute(Template.NAME_KEY, "New Name"),
 //                        user);
 //

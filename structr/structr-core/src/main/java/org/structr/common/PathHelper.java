@@ -36,17 +36,21 @@ import org.structr.core.node.FindNodeCommand;
  */
 public class PathHelper {
 
+	private SecurityContext securityContext;
+	
+	public PathHelper(SecurityContext securityContext) {
+		this.securityContext = securityContext;
+	}
+	
 	public AbstractNode find(String path) {
 
 		AbstractNode node       = null;
-		Command findNodeCommand = Services.command(FindNodeCommand.class);
+		Command findNodeCommand = Services.command(securityContext, FindNodeCommand.class);
 
-		node = (AbstractNode) findNodeCommand.execute(null, path);
+		node = (AbstractNode) findNodeCommand.execute(path);
 
 		// check security context
-		SecurityContext context = CurrentRequest.getSecurityContext();
-
-		if (context.isVisible(node)) {
+		if (securityContext.isVisible(node)) {
 			return (node);
 		}
 

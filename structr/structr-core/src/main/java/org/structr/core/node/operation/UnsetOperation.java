@@ -22,6 +22,7 @@ package org.structr.core.node.operation;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import org.structr.common.SecurityContext;
 import org.structr.core.entity.AbstractNode;
 
 /**
@@ -32,7 +33,8 @@ public class UnsetOperation implements PrimaryOperation, NodeListOperation {
 	
 	private List<AbstractNode> nodeList = new LinkedList<AbstractNode>();
 	private List<String> properties = new LinkedList<String>();
-	
+	private SecurityContext securityContext = null;
+
 	// ----- PrimaryOperation -----
 	@Override
 	public boolean executeOperation(StringBuilder stdOut) throws NodeCommandException {
@@ -104,5 +106,10 @@ public class UnsetOperation implements PrimaryOperation, NodeListOperation {
 	public void addNodeToList(AbstractNode node) {
 
 		nodeList.add(node);
+	}
+
+	@Override
+	public void setSecurityContext(SecurityContext securityContext) {
+		this.securityContext = securityContext;
 	}
 }

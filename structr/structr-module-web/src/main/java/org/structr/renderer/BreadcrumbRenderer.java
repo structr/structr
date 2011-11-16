@@ -1,7 +1,6 @@
 package org.structr.renderer;
 
 import java.util.List;
-import org.structr.common.CurrentRequest;
 import org.structr.common.RenderMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.StructrOutputStream;
@@ -18,7 +17,7 @@ public class BreadcrumbRenderer implements NodeRenderer<Breadcrumb>
 	@Override
 	public void renderNode(StructrOutputStream out, Breadcrumb currentNode, AbstractNode startNode, String editUrl, Long editNodeId, RenderMode renderMode)
 	{
-		SecurityContext securityContext = CurrentRequest.getSecurityContext();
+		SecurityContext securityContext = out.getSecurityContext();
 		if(securityContext.isVisible(currentNode)) {
 
 			renderBreadcrumbItems(out, startNode, currentNode);
@@ -34,7 +33,7 @@ public class BreadcrumbRenderer implements NodeRenderer<Breadcrumb>
 	 */
 	private void renderBreadcrumbItems(final StructrOutputStream out, final AbstractNode startNode, final AbstractNode currentNode)
 	{
-		SecurityContext securityContext = CurrentRequest.getSecurityContext();
+		SecurityContext securityContext = out.getSecurityContext();
 		List<AbstractNode> ancestors = startNode.getAncestorNodes();
 		String cssClass = "";
 		int currentPos = 0;

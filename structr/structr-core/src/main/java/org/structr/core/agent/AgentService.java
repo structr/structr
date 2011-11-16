@@ -40,6 +40,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.SecurityContext;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -254,6 +255,8 @@ public class AgentService extends Thread implements RunnableService {
 
 	private Agent lookupAgent(Task task) {
 
+		// FIXME: superuser security context
+		final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
 		Class taskClass  = task.getClass();
 		Agent agent      = null;
 		Class agentClass = agentClassCache.get(taskClass);
@@ -263,7 +266,7 @@ public class AgentService extends Thread implements RunnableService {
 
 //                      Set<Class> agentClasses = ClasspathEntityLocator.locateEntitiesByType(Agent.class);
 			Map<String, Class> agentClassesMap =
-				(Map<String, Class>) Services.command(GetAgentsCommand.class).execute();
+				(Map<String, Class>) Services.command(securityContext, GetAgentsCommand.class).execute();
 
 			for (String className : agentClassesMap.keySet()) {
 

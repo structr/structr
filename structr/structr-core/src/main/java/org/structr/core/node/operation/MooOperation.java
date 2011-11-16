@@ -19,6 +19,7 @@
 
 package org.structr.core.node.operation;
 
+import org.structr.common.SecurityContext;
 import org.structr.core.entity.AbstractNode;
 
 /**
@@ -26,6 +27,8 @@ import org.structr.core.entity.AbstractNode;
  * @author Christian Morgner
  */
 public class MooOperation implements PrimaryOperation {
+
+	private SecurityContext securityContext = null;
 
 	@Override
 	public boolean executeOperation(StringBuilder stdOut) throws NodeCommandException {
@@ -80,5 +83,10 @@ public class MooOperation implements PrimaryOperation {
 
 	@Override
 	public void addParameter(Object parameter) throws InvalidParameterException {
+	}
+
+	@Override
+	public void setSecurityContext(SecurityContext securityContext) {
+		this.securityContext = securityContext;
 	}
 }

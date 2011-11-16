@@ -21,6 +21,9 @@
 
 package org.structr.core.entity.app;
 
+import javax.servlet.http.HttpServletRequest;
+import org.structr.common.PropertyView;
+import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.CustomTypeNode;
 
@@ -32,11 +35,12 @@ import org.structr.core.entity.CustomTypeNode;
  */
 public class DataNode extends CustomTypeNode {
 
-	@Override
-	public void onNodeCreation() {}
+	static {
 
-	@Override
-	public void onNodeInstantiation() {}
+		EntityContext.registerPropertySet(DataNode.class,
+						  PropertyView.All,
+						  Key.values());
+	}
 
 	//~--- get methods ----------------------------------------------------
 
@@ -47,11 +51,11 @@ public class DataNode extends CustomTypeNode {
 
 	@Override
 	public String getIconSrc() {
-		return ("/images/database.png");
+		return "/images/database.png";
 	}
 
 	@Override
-	public Iterable<AbstractNode> getDataNodes() {
+	public Iterable<AbstractNode> getDataNodes(HttpServletRequest request) {
 
 		// DataNode nodes should not return their child nodes
 		return null;
@@ -61,6 +65,8 @@ public class DataNode extends CustomTypeNode {
 
 	@Override
 	public void setProperty(String key, Object value) {
-		super.setProperty(key, value);
+
+		super.setProperty(key,
+				  value);
 	}
 }

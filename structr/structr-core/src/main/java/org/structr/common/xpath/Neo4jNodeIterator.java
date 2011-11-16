@@ -108,11 +108,11 @@ public class Neo4jNodeIterator implements NodeIterator {
 //            final String shortName = name.getName();
 //            final boolean isWildcard = nameTest.isWildcard();
 //
-//            if (node.hasProperty(AbstractNode.TYPE_KEY)
+//            if (node.hasProperty(AbstractNode.Key.type.name())
 //                            && (isWildcard
 //                            || shortName.equals(
-//                            //                            XPathEncoder.encode((String) node.getProperty(AbstractNode.TYPE_KEY)))));
-//                            (String) node.getProperty(AbstractNode.TYPE_KEY)))) {
+//                            //                            XPathEncoder.encode((String) node.getProperty(AbstractNode.Key.type.name())))));
+//                            (String) node.getProperty(AbstractNode.Key.type.name())))) {
 //
 //                nodes = new Node[1];
 //                nodes[0] = node;
@@ -263,11 +263,11 @@ public class Neo4jNodeIterator implements NodeIterator {
                 public boolean accept(Path path) {
                     Node node = path.endNode();
 
-                    return (node.hasProperty(AbstractNode.TYPE_KEY)
+                    return (node.hasProperty(AbstractNode.Key.type.name())
                             && (isWildcard
                             || shortName.equals(
-                            //                            XPathEncoder.encode((String) node.getProperty(AbstractNode.TYPE_KEY)))));
-                            (String) node.getProperty(AbstractNode.TYPE_KEY))));
+                            //                            XPathEncoder.encode((String) node.getProperty(AbstractNode.Key.type.name())))));
+                            (String) node.getProperty(AbstractNode.Key.type.name()))));
                 }
             };
         }

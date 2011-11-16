@@ -23,7 +23,7 @@ import java.text.DecimalFormat;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import org.structr.common.CurrentSession;
+import org.structr.common.SecurityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.FindNodeCommand;
@@ -35,6 +35,7 @@ import org.structr.core.node.FindNodeCommand;
 public class ListOperation implements PrimaryOperation {
 
 	private List<AbstractNode> nodeList = new LinkedList<AbstractNode>();
+	private SecurityContext securityContext = null;
 	private AbstractNode currentNode = null;
 	private boolean recursive = false;
 
@@ -141,7 +142,7 @@ public class ListOperation implements PrimaryOperation {
 
 	private void add(Object obj) {
 
-		Object findNodeResult = Services.command(FindNodeCommand.class).execute(CurrentSession.getUser(), currentNode, obj);
+		Object findNodeResult = Services.command(securityContext, FindNodeCommand.class).execute(currentNode, obj);
 
 		if(findNodeResult != null) {
 
@@ -198,5 +199,10 @@ public class ListOperation implements PrimaryOperation {
 				}
 			}
 		}
+	}
+
+	@Override
+	public void setSecurityContext(SecurityContext securityContext) {
+		this.securityContext = securityContext;
 	}
 }

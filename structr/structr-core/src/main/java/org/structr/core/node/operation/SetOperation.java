@@ -22,6 +22,7 @@ package org.structr.core.node.operation;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import org.structr.common.SecurityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.NodeAttribute;
 
@@ -34,6 +35,7 @@ public class SetOperation implements PrimaryOperation, NodeListOperation {
 	private List<NodeAttribute> attributes = new LinkedList<NodeAttribute>();
 	private List<AbstractNode> nodeList = new LinkedList<AbstractNode>();
 	private List<Callback> callbacks = new LinkedList<Callback>();
+	private SecurityContext securityContext = null;
 
 	@Override
 	public boolean executeOperation(StringBuilder stdOut) throws NodeCommandException {
@@ -136,5 +138,10 @@ public class SetOperation implements PrimaryOperation, NodeListOperation {
 
 			throw new InvalidParameterException("Invalid parameter " + source.toString());
 		}
+	}
+
+	@Override
+	public void setSecurityContext(SecurityContext securityContext) {
+		this.securityContext = securityContext;
 	}
 }

@@ -24,7 +24,6 @@ package org.structr.ui.page.admin;
 import org.apache.click.control.Panel;
 import org.apache.click.util.ClickUtils;
 
-import org.structr.common.CurrentRequest;
 import org.structr.common.StructrOutputStream;
 import org.structr.core.entity.web.Page;
 
@@ -33,6 +32,7 @@ import org.structr.core.entity.web.Page;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
+import org.apache.click.Context;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -64,15 +64,16 @@ public class EditPage extends DefaultEdit {
 
 		if (node instanceof Page) {
 
+			Context context = getContext();
 			page            = (Page) node;
-			externalViewUrl = page.getNodeURL(contextPath);
+			externalViewUrl = page.getNodeURL(context.getRequest(), contextPath);
+			HttpServletRequest request = context.getRequest();
 
 			// localViewUrl = getContext().getResponse().encodeURL(viewLink.getHref());
-			localViewUrl = getContext().getRequest().getContextPath().concat(
-				"/view".concat(page.getNodePath().replace("&", "%26"))).concat(previewParameters());
+			localViewUrl = request.getContextPath().concat("/view".concat(page.getNodePath().replace("&", "%26"))).concat(previewParameters(request));
 
 			// render node's default view
-			StructrOutputStream out = new StructrOutputStream();
+			StructrOutputStream out = new StructrOutputStream(context.getRequest(), securityContext);
 
 			node.renderNode(out, page, null, null);
 			rendition = out.toString();
@@ -96,10 +97,9 @@ public class EditPage extends DefaultEdit {
 	 * @param url
 	 * @return
 	 */
-	private String previewParameters() {
+	private String previewParameters(HttpServletRequest request) {
 
 		StringBuilder ret                = new StringBuilder();
-		HttpServletRequest request       = CurrentRequest.getRequest();
 		Map<String, Object> parameterMap = request.getParameterMap();
 
 		for (String name : parameterMap.keySet()) {

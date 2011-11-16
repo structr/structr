@@ -1,102 +1,99 @@
 /*
  *  Copyright (C) 2011 Axel Morgner, structr <structr@structr.org>
- * 
+ *
  *  This file is part of structr <http://structr.org>.
- * 
+ *
  *  structr is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
- * 
+ *
  *  structr is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- * 
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+
+
 package org.structr.core.entity.app;
 
-import java.text.SimpleDateFormat;
-import java.util.Map;
-import org.structr.common.RenderMode;
-import org.structr.core.NodeRenderer;
+import org.structr.common.PropertyKey;
+import org.structr.common.PropertyView;
+import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
+
+//~--- JDK imports ------------------------------------------------------------
+
+import java.text.SimpleDateFormat;
+import java.text.SimpleDateFormat;
+
+import javax.servlet.http.HttpServletRequest;
+
+//~--- classes ----------------------------------------------------------------
 
 /**
  *
  * @author Christian Morgner
  */
-public class AppTimestamp extends AbstractNode implements InteractiveNode
-{
-	private static final String FORMAT_KEY =		"format";
+public class AppTimestamp extends AbstractNode implements InteractiveNode {
 
-	@Override
-	public String getIconSrc()
-	{
-		return("/images/time.png");
+	static {
+
+		EntityContext.registerPropertySet(AppTimestamp.class,
+						  PropertyView.All,
+						  Key.values());
 	}
 
-	@Override
-	public void onNodeCreation()
-	{
-	}
+	//~--- constant enums -------------------------------------------------
+
+	public enum Key implements PropertyKey{ format; }
+
+	//~--- get methods ----------------------------------------------------
 
 	@Override
-	public void onNodeInstantiation()
-	{
-	}
-
-    @Override
-    public void onNodeDeletion() {
-    }
-
-	@Override
-	public void initializeRenderers(final Map<RenderMode, NodeRenderer> rendererMap)
-	{
+	public String getIconSrc() {
+		return "/images/time.png";
 	}
 
 	// ----- interface InteractiveNode -----
 	@Override
-	public Class getParameterType()
-	{
-		return(String.class);
+	public Class getParameterType() {
+		return (String.class);
 	}
 
 	@Override
-	public Object getValue()
-	{
-		String format = getStringProperty(FORMAT_KEY);
-		if(format == null)
-		{
+	public Object getValue(HttpServletRequest request) {
+
+		String format = getStringProperty(Key.format.name());
+
+		if (format == null) {
 			format = "dd.MM.yyyy HH:mm";
 		}
 
 		SimpleDateFormat df = new SimpleDateFormat(format);
-		return(df.format(System.currentTimeMillis()));
+
+		return (df.format(System.currentTimeMillis()));
 	}
 
 	@Override
-	public String getStringValue()
-	{
-		return(getValue().toString());
+	public String getStringValue(HttpServletRequest request) {
+		return (getValue(request).toString());
 	}
 
 	@Override
-	public void setMappedName(String mappedName)
-	{
+	public String getMappedName() {
+		return (getStringProperty(AbstractNode.Key.name.name()));
 	}
 
-	@Override
-	public String getMappedName()
-	{
-		return(getStringProperty(NAME_KEY));
-	}
+	//~--- set methods ----------------------------------------------------
 
 	@Override
-	public void setErrorValue(Object errorValue)
-	{
-	}
+	public void setMappedName(String mappedName) {}
+
+	@Override
+	public void setErrorValue(HttpServletRequest request, Object errorValue) {}
 }

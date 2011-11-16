@@ -28,6 +28,7 @@ import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Trash;
+import org.structr.core.entity.User;
 import org.structr.core.node.DeleteNodeCommand;
 import org.structr.core.notification.AddNotificationCommand;
 import org.structr.core.notification.SuccessNotification;
@@ -68,7 +69,8 @@ public class EditTrash extends EditFolder {
 
         if (trash != null) {
 
-            Command deleteNode = Services.command(DeleteNodeCommand.class);
+            Command deleteNode = Services.command(securityContext, DeleteNodeCommand.class);
+	    User user = securityContext.getUser();
 
             List<AbstractNode> children = trash.getDirectChildNodes();
             for (AbstractNode nodeToDelete : children) {
@@ -89,7 +91,7 @@ public class EditTrash extends EditFolder {
         // assemble feedback message
         okMsg = "Trash emptied";
 
-	Services.command(AddNotificationCommand.class).execute(new SuccessNotification(okMsg));
+	Services.command(securityContext, AddNotificationCommand.class).execute(new SuccessNotification(securityContext, okMsg));
 
         Map<String, String> parameters = new HashMap<String, String>();
         parameters.put(NODE_ID_KEY, String.valueOf(getNodeId()));

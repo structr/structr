@@ -20,8 +20,6 @@ package org.structr.ui.page.admin;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.apache.click.control.Form;
 import org.apache.click.control.HiddenField;
@@ -55,11 +53,11 @@ public class EditPlainText extends DefaultEdit {
 
         super();
 
-        editPropertiesForm.add(new TextField(PlainText.CONTENT_TYPE_KEY, "Internet Media Type (Content-Type)", 30));
+        editPropertiesForm.add(new TextField(PlainText.Key.contentType.name(), "Internet Media Type (Content-Type)", 30));
 
         addControl(editPlainTextPanel);
 
-        textArea = new TextArea(PlainText.CONTENT_KEY, false) {
+        textArea = new TextArea(PlainText.Key.content.name(), false) {
 
             // override render method: don't include cols and rows attributes
             @Override
@@ -170,7 +168,7 @@ public class EditPlainText extends DefaultEdit {
      */
     private void saveContent() {
 
-        Services.command(TransactionCommand.class).execute(new StructrTransaction() {
+        Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
             @Override
             public Object execute() throws Throwable {
@@ -189,7 +187,7 @@ public class EditPlainText extends DefaultEdit {
 //
 //    @Override
 //    public boolean onSaveAndView() {
-//        Command transactionCommand = Services.command(TransactionCommand.class);
+//        Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
 //        transactionCommand.execute(new StructrTransaction() {
 //
 //            @Override

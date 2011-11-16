@@ -23,11 +23,11 @@ package org.structr.core.entity.web;
 
 import org.apache.commons.lang.StringUtils;
 
-import org.structr.common.CurrentRequest;
 import org.structr.common.RenderMode;
 import org.structr.common.renderer.ExternalTemplateRenderer;
 import org.structr.common.renderer.RenderContext;
 import org.structr.core.Command;
+import org.structr.core.EntityContext;
 import org.structr.core.NodeRenderer;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -36,12 +36,13 @@ import org.structr.core.node.search.Search;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.text.Normalizer;
-
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.servlet.http.HttpServletRequest;
+import org.structr.common.PropertyKey;
+import org.structr.common.PropertyView;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -51,9 +52,20 @@ import java.util.logging.Logger;
  */
 public class WebNode extends AbstractNode {
 
-	public final static String SESSION_BLOCKED = "sessionBlocked";
-	public final static String USERNAME_KEY    = "username";
-	private static final Logger logger         = Logger.getLogger(AbstractNode.class.getName());
+	private static final Logger logger = Logger.getLogger(AbstractNode.class.getName());
+
+	//~--- static initializers --------------------------------------------
+
+	static {
+
+		EntityContext.registerPropertySet(WebNode.class,
+						  PropertyView.All,
+						  Key.values());
+	}
+
+	//~--- constant enums -------------------------------------------------
+
+	public enum Key implements PropertyKey{ sessionBlocked, username; }
 
 	//~--- methods --------------------------------------------------------
 
@@ -65,18 +77,9 @@ public class WebNode extends AbstractNode {
 	}
 
 	@Override
-	public void onNodeCreation() {}
-
-	@Override
-	public void onNodeInstantiation() {}
-
-	@Override
 	public boolean renderingAllowed(final RenderContext context) {
 		return true;
 	}
-
-	@Override
-	public void onNodeDeletion() {}
 
 	//~--- get methods ----------------------------------------------------
 
@@ -89,7 +92,7 @@ public class WebNode extends AbstractNode {
 	@Override
 	public Object getPropertyForIndexing(final String key) {
 
-		if (AbstractNode.NAME_KEY.equals(key) || AbstractNode.TITLE_KEY.equals(key)) {
+		if (AbstractNode.Key.name.name().equals(key) || AbstractNode.Key.title.name().equals(key)) {
 
 			String name = (String) getStringProperty(key);
 
@@ -194,7 +197,7 @@ public class WebNode extends AbstractNode {
 	 * @param contextPath
 	 * @return
 	 */
-	public String getNodeURL(final Enum renderMode, final String contextPath) {
+	public String getNodeURL(HttpServletRequest request, final Enum renderMode, final String contextPath) {
 
 		String domain = "";
 		String site   = "";
@@ -203,7 +206,7 @@ public class WebNode extends AbstractNode {
 		if (RenderMode.PUBLIC.equals(renderMode)) {
 
 			// create bean node
-			Command nodeFactory = Services.command(NodeFactoryCommand.class);
+			Command nodeFactory = Services.command(securityContext, NodeFactoryCommand.class);
 			AbstractNode node   = (AbstractNode) nodeFactory.execute(this);
 
 			// stop at root node
@@ -231,7 +234,7 @@ public class WebNode extends AbstractNode {
 //                              }
 			}
 
-			String scheme = CurrentRequest.getRequest().getScheme();
+			String scheme = request.getScheme();
 
 			return scheme + "://" + site + (StringUtils.isNotEmpty(site)
 							? "."
@@ -252,9 +255,9 @@ public class WebNode extends AbstractNode {
 		}
 	}
 
-	public String getNodeURL(final String contextPath) {
+	public String getNodeURL(HttpServletRequest request, final String contextPath) {
 
-		return getNodeURL(RenderMode.PUBLIC,
+		return getNodeURL(request, RenderMode.PUBLIC,
 				  contextPath);
 	}
 

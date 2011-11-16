@@ -1,284 +1,272 @@
 /*
  *  Copyright (C) 2011 Axel Morgner, structr <structr@structr.org>
- * 
+ *
  *  This file is part of structr <http://structr.org>.
- * 
+ *
  *  structr is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
- * 
+ *
  *  structr is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- * 
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+
+
 package org.structr.core.entity;
+
+import org.structr.common.PropertyKey;
+import org.structr.common.PropertyView;
+import org.structr.core.EntityContext;
+
+//~--- JDK imports ------------------------------------------------------------
 
 import java.util.Date;
 
+//~--- classes ----------------------------------------------------------------
+
 /**
- * 
+ *
  * @author amorgner
- * 
+ *
  */
 public class Person extends Principal {
 
-    public final static String SALUTATION_KEY = "salutation";
-    public final static String FIRST_NAME_KEY = "firstName";
-    public final static String MIDDLE_NAME_OR_INITIAL_KEY = "middleNameOrInitial";
-    public final static String LAST_NAME_KEY = "lastName";
-    public final static String EMAIL_1_KEY = "email1";
-    public final static String EMAIL_2_KEY = "email2";
-    public final static String EMAIL_3_KEY = "email3";
-    public final static String EMAIL_4_KEY = "email4";
-    public final static String PHONE_NUMBER_1_KEY = "phoneNumber1";
-    public final static String PHONE_NUMBER_2_KEY = "phoneNumber2";
-    public final static String PHONE_NUMBER_3_KEY = "phoneNumber3";
-    public final static String PHONE_NUMBER_4_KEY = "phoneNumber4";
-    public final static String PHONE_NUMBER_5_KEY = "phoneNumber5";
-    public final static String PHONE_NUMBER_6_KEY = "phoneNumber6";
-    public final static String FAX_NUMBER_1_KEY = "faxNumber1";
-    public final static String FAX_NUMBER_2_KEY = "faxNumber2";
-    public final static String FAX_NUMBER_3_KEY = "faxNumber3";
-    public final static String STREET_KEY = "street";
-    public final static String ZIP_CODE_KEY = "zipCode";
-    public final static String CITY_KEY = "city";
-    public final static String STATE_KEY = "state";
-    public final static String COUNTRY_KEY = "country";
-    public final static String BIRTHDAY_KEY = "birthday";
-    public final static String GENDER_KEY = "gender";
-    public final static String NEWSLETTER_KEY = "newsletter";
-    private final static String ICON_SRC = "/images/user.png";
+	static {
 
-    @Override
-    public String getIconSrc() {
-        return ICON_SRC;
-    }
+		EntityContext.registerPropertySet(Person.class,
+						  PropertyView.All,
+						  Key.values());
 
-    public void setFirstName(final String firstName) {
-        setProperty(FIRST_NAME_KEY, firstName);
-        String lastName = getLastName() != null && !(getLastName().isEmpty()) ? getLastName() : "";
-        setProperty(NAME_KEY, lastName + ", " + firstName);
-    }
+		// public properties
+		EntityContext.registerPropertySet(Person.class,
+						  PropertyView.Public,
+						  Key.salutation,
+						  Key.firstName,
+						  Key.middleNameOrInitial,
+						  Key.lastName);
+	}
 
-    public String getFirstName() {
-        return (String) getProperty(FIRST_NAME_KEY);
-    }
+	//~--- constant enums -------------------------------------------------
 
-    public void setLastName(final String lastName) {
-        setProperty(LAST_NAME_KEY, lastName);
-        String firstName = getFirstName() != null && !(getFirstName().isEmpty()) ? getFirstName() : "";
-        setProperty(NAME_KEY, lastName + ", " + firstName);
-    }
+	public static enum Key implements PropertyKey {
 
-    @Override
-    public void setName(final String name) {
-        setProperty(NAME_KEY, name);
-    }
+		salutation, firstName, middleNameOrInitial, lastName, email, email2, phoneNumber1, phoneNumber2,
+		faxNumber1, faxNumber2, street, zipCode, city, state, country, birthday, gender, newsletter
+	}
 
-    public String getLastName() {
-        return (String) getProperty(LAST_NAME_KEY);
-    }
+	//~--- get methods ----------------------------------------------------
 
-    public void setSalutation(final String salutation) {
-        setProperty(SALUTATION_KEY, salutation);
-    }
+	@Override
+	public String getIconSrc() {
+		return "/images/user.png";
+	}
 
-    public String getSalutation() {
-        return (String) getProperty(SALUTATION_KEY);
-    }
+	public String getFirstName() {
+		return getStringProperty(Key.firstName.name());
+	}
 
-    public void setMiddleNameOrInitial(final String middleNameOrInitial) {
-        setProperty(MIDDLE_NAME_OR_INITIAL_KEY, middleNameOrInitial);
-    }
+	public String getLastName() {
+		return getStringProperty(Key.lastName.name());
+	}
 
-    public String getMiddleNameOrInitial() {
-        return (String) getProperty(MIDDLE_NAME_OR_INITIAL_KEY);
-    }
+	public String getSalutation() {
+		return getStringProperty(Key.salutation.name());
+	}
 
-    public void setEmail1(final String email1) {
-        setProperty(EMAIL_1_KEY, email1);
-    }
+	public String getMiddleNameOrInitial() {
+		return getStringProperty(Key.middleNameOrInitial.name());
+	}
 
-    public String getEmail1() {
-        return (String) getProperty(EMAIL_1_KEY);
-    }
+	public String getEmail() {
+		return getStringProperty(Key.email.name());
+	}
 
-    public void setEmail2(final String email2) {
-        setProperty(EMAIL_2_KEY, email2);
-    }
+	public String getEmail2() {
+		return getStringProperty(Key.email2.name());
+	}
 
-    public String getEmail2() {
-        return (String) getProperty(EMAIL_2_KEY);
-    }
+	public String getPhoneNumber1() {
+		return getStringProperty(Key.phoneNumber1.name());
+	}
 
-    public void setEmail3(final String email3) {
-        setProperty(EMAIL_3_KEY, email3);
-    }
+	public String getPhoneNumber2() {
+		return getStringProperty(Key.phoneNumber2.name());
+	}
 
-    public String getEmail3() {
-        return (String) getProperty(EMAIL_3_KEY);
-    }
+	public String getFaxNumber1() {
+		return getStringProperty(Key.faxNumber1.name());
+	}
 
-    public void setEmail4(final String email4) {
-        setProperty(EMAIL_4_KEY, email4);
-    }
+	public String getFaxNumber2() {
+		return getStringProperty(Key.faxNumber2.name());
+	}
 
-    public String getEmail4() {
-        return (String) getProperty(EMAIL_4_KEY);
-    }
+	public String getStreet() {
+		return getStringProperty(Key.street.name());
+	}
 
-    public void setPhoneNumber1(final String value) {
-        setProperty(PHONE_NUMBER_1_KEY, value);
-    }
+	public String getZipCode() {
+		return getStringProperty(Key.zipCode.name());
+	}
 
-    public String getPhoneNumber1() {
-        return (String) getProperty(PHONE_NUMBER_1_KEY);
-    }
+	public String getState() {
+		return getStringProperty(Key.state.name());
+	}
 
-    public void setPhoneNumber2(final String value) {
-        setProperty(PHONE_NUMBER_2_KEY, value);
-    }
+	public String getCountry() {
+		return getStringProperty(Key.country.name());
+	}
 
-    public String getPhoneNumber2() {
-        return (String) getProperty(PHONE_NUMBER_2_KEY);
-    }
+	public String getCity() {
+		return getStringProperty(Key.city.name());
+	}
 
-    public void setPhoneNumber3(final String value) {
-        setProperty(PHONE_NUMBER_3_KEY, value);
-    }
+	public boolean getNewsletter() {
+		return getBooleanProperty(Key.newsletter.name());
+	}
 
-    public String getPhoneNumber3() {
-        return (String) getProperty(PHONE_NUMBER_3_KEY);
-    }
+	public Date getBirthday() {
+		return getDateProperty(Key.birthday.name());
+	}
 
-    public void setPhoneNumber4(final String value) {
-        setProperty(PHONE_NUMBER_4_KEY, value);
-    }
+	public String getGender() {
+		return getStringProperty(Key.gender.name());
+	}
 
-    public String getPhoneNumber4() {
-        return (String) getProperty(PHONE_NUMBER_4_KEY);
-    }
+	//~--- set methods ----------------------------------------------------
 
-    public void setPhoneNumber5(final String value) {
-        setProperty(PHONE_NUMBER_5_KEY, value);
-    }
+	public void setFirstName(final String firstName) {
 
-    public String getPhoneNumber5() {
-        return (String) getProperty(PHONE_NUMBER_5_KEY);
-    }
+		setProperty(Key.firstName.name(),
+			    firstName);
 
-    public void setPhoneNumber6(final String value) {
-        setProperty(PHONE_NUMBER_6_KEY, value);
-    }
+		String lastName = ((getLastName() != null) &&!(getLastName().isEmpty()))
+				  ? getLastName()
+				  : "";
 
-    public String getPhoneNumber6() {
-        return (String) getProperty(PHONE_NUMBER_6_KEY);
-    }
+		setName(lastName + ", " + firstName);
+	}
 
-    public void setFaxNumber1(final String value) {
-        setProperty(FAX_NUMBER_1_KEY, value);
-    }
+	public void setLastName(final String lastName) {
 
-    public String getFaxNumber1() {
-        return (String) getProperty(FAX_NUMBER_1_KEY);
-    }
+		setProperty(Key.lastName.name(),
+			    lastName);
 
-    public void setFaxNumber2(final String value) {
-        setProperty(FAX_NUMBER_2_KEY, value);
-    }
+		String firstName = ((getFirstName() != null) &&!(getFirstName().isEmpty()))
+				   ? getFirstName()
+				   : "";
 
-    public String getFaxNumber2() {
-        return (String) getProperty(FAX_NUMBER_2_KEY);
-    }
+		setProperty(AbstractNode.Key.name.name(),
+			    lastName + ", " + firstName);
+	}
 
-    public void setFaxNumber3(final String value) {
-        setProperty(FAX_NUMBER_3_KEY, value);
-    }
+	@Override
+	public void setName(final String name) {
 
-    public String getFaxNumber3() {
-        return (String) getProperty(FAX_NUMBER_3_KEY);
-    }
+		setProperty(AbstractNode.Key.name.name(),
+			    name);
+	}
 
-    public void setStreet(final String value) {
-        setProperty(STREET_KEY, value);
-    }
+	public void setSalutation(final String salutation) {
 
-    public String getStreet() {
-        return (String) getProperty(STREET_KEY);
-    }
+		setProperty(Key.salutation.name(),
+			    salutation);
+	}
 
-    public void setZipCode(final String value) {
-        setProperty(ZIP_CODE_KEY, value);
-    }
+	public void setMiddleNameOrInitial(final String middleNameOrInitial) {
 
-    public String getZipCode() {
-        return (String) getProperty(ZIP_CODE_KEY);
-    }
+		setProperty(Key.middleNameOrInitial.name(),
+			    middleNameOrInitial);
+	}
 
-    public void setState(final String value) {
-        setProperty(STATE_KEY, value);
-    }
+	public void setEmail(final String email) {
 
-    public String getState() {
-        return (String) getProperty(STATE_KEY);
-    }
+		setProperty(Key.email.name(),
+			    email);
+	}
 
-    public void setCountry(final String value) {
-        setProperty(COUNTRY_KEY, value);
-    }
+	public void setEmail2(final String email2) {
 
-    public String getCountry() {
-        return (String) getProperty(COUNTRY_KEY);
-    }
+		setProperty(Key.email2.name(),
+			    email2);
+	}
 
-    public void setCity(final String value) {
-        setProperty(CITY_KEY, value);
-    }
+	public void setPhoneNumber1(final String value) {
 
-    public String getCity() {
-        return (String) getProperty(CITY_KEY);
-    }
+		setProperty(Key.phoneNumber1.name(),
+			    value);
+	}
 
-    public void setNewsletter(final boolean value) {
-        setProperty(NEWSLETTER_KEY, value);
-    }
+	public void setPhoneNumber2(final String value) {
 
-    public boolean getNewsletter() {
-        return getBooleanProperty(NEWSLETTER_KEY);
-    }
+		setProperty(Key.phoneNumber2.name(),
+			    value);
+	}
 
-    public void setBirthday(final Date value) {
-        setProperty(BIRTHDAY_KEY, value);
-    }
+	public void setFaxNumber1(final String value) {
 
-    public Date getBirthday() {
-        return getDateProperty(BIRTHDAY_KEY);
-    }
+		setProperty(Key.faxNumber1.name(),
+			    value);
+	}
 
-    public void setGender(final String value) {
-        setProperty(GENDER_KEY, value);
-    }
+	public void setFaxNumber2(final String value) {
 
-    public String getGender() {
-        return (String) getProperty(GENDER_KEY);
-    }
+		setProperty(Key.faxNumber2.name(),
+			    value);
+	}
 
-    @Override
-    public void onNodeCreation()
-    {
-    }
+	public void setStreet(final String value) {
 
-    @Override
-    public void onNodeInstantiation()
-    {
-    }
+		setProperty(Key.street.name(),
+			    value);
+	}
 
-    @Override
-    public void onNodeDeletion() {
-    }
+	public void setZipCode(final String value) {
+
+		setProperty(Key.zipCode.name(),
+			    value);
+	}
+
+	public void setState(final String value) {
+
+		setProperty(Key.state.name(),
+			    value);
+	}
+
+	public void setCountry(final String value) {
+
+		setProperty(Key.country.name(),
+			    value);
+	}
+
+	public void setCity(final String value) {
+
+		setProperty(Key.city.name(),
+			    value);
+	}
+
+	public void setNewsletter(final boolean value) {
+
+		setProperty(Key.newsletter.name(),
+			    value);
+	}
+
+	public void setBirthday(final Date value) {
+
+		setProperty(Key.birthday.name(),
+			    value);
+	}
+
+	public void setGender(final String value) {
+
+		setProperty(Key.gender.name(),
+			    value);
+	}
 }

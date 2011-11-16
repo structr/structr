@@ -34,7 +34,7 @@ public class LinkNodeFactoryCommand extends NodeFactoryCommand
                 AbstractNode sNode = (AbstractNode) super.execute(parameters);
 
                 Link linkNode = new Link();
-                linkNode.init(sNode);
+                linkNode.init(securityContext, sNode);
 
 		return linkNode;
 	}

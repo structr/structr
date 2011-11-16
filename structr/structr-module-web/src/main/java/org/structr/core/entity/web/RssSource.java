@@ -21,10 +21,9 @@
 
 package org.structr.core.entity.web;
 
-import org.structr.common.CurrentRequest;
 import org.structr.common.PropertyKey;
-import org.structr.common.RenderMode;
-import org.structr.core.NodeRenderer;
+import org.structr.common.PropertyView;
+import org.structr.core.EntityContext;
 import org.structr.core.TemporaryValue;
 import org.structr.core.entity.AbstractNode;
 
@@ -37,10 +36,10 @@ import java.net.URL;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -55,35 +54,26 @@ public class RssSource extends AbstractNode {
 
 	private static final String CACHED_RSS_CONTENT = "cached_rss_content";
 
+	//~--- static initializers --------------------------------------------
+
+	static {
+
+		EntityContext.registerPropertySet(RssSource.class,
+						  PropertyView.All,
+						  Key.values());
+	}
+
 	//~--- constant enums -------------------------------------------------
 
 	public enum Key implements PropertyKey{ sourceUrl }
 
-	//~--- methods --------------------------------------------------------
-
-	// ----- AbstractNode -----
-	@Override
-	public void initializeRenderers(Map<RenderMode, NodeRenderer> rendererMap) {
-
-		// not visible directly
-	}
-
-	@Override
-	public void onNodeCreation() {}
-
-	@Override
-	public void onNodeInstantiation() {}
-
-	@Override
-	public void onNodeDeletion() {}
-
 	//~--- get methods ----------------------------------------------------
 
 	@Override
-	public Iterable<AbstractNode> getDataNodes() {
+	public Iterable<AbstractNode> getDataNodes(HttpServletRequest request) {
 
 		// content is cached in servlet context
-		ServletContext context = CurrentRequest.getRequest().getSession().getServletContext();
+		ServletContext context = securityContext.getSession().getServletContext();
 		List<AbstractNode> ret = null;
 
 		// TODO: synchronization
@@ -95,8 +85,10 @@ public class RssSource extends AbstractNode {
 
 			if (value == null) {
 
-				value = new TemporaryValue<List<AbstractNode>>(null, TimeUnit.MINUTES.toMillis(10));
-				context.setAttribute(CACHED_RSS_CONTENT.concat(this.getIdString()), value);
+				value = new TemporaryValue<List<AbstractNode>>(null,
+					TimeUnit.MINUTES.toMillis(10));
+				context.setAttribute(CACHED_RSS_CONTENT.concat(this.getIdString()),
+						     value);
 			}
 
 			if ((value.getStoredValue() == null) || value.isExpired()) {
@@ -114,7 +106,7 @@ public class RssSource extends AbstractNode {
 
 	@Override
 	public String getIconSrc() {
-		return ("/images/feed.png");
+		return "/images/feed.png";
 	}
 
 	// ----- private methods ----
@@ -132,7 +124,9 @@ public class RssSource extends AbstractNode {
 			int len                 = items.getLength();
 
 			for (int i = 0; i < len; i++) {
-				nodeList.add(new RssItem(i, items.item(i)));
+
+				nodeList.add(new RssItem(i,
+							 items.item(i)));
 			}
 
 		} catch (Throwable t) {

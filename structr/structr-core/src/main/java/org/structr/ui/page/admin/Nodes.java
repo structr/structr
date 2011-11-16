@@ -44,8 +44,6 @@ import org.apache.click.util.ClickUtils;
 import org.apache.click.util.HtmlStringBuffer;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.lang.StringUtils;
-import org.structr.common.CurrentRequest;
-import org.structr.common.CurrentSession;
 import org.structr.common.Permission;
 import org.structr.core.Command;
 import org.structr.core.Services;
@@ -66,9 +64,9 @@ import org.structr.core.node.NodePropertiesCommand;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 import org.structr.common.RelType;
-import org.structr.common.SecurityContext;
 import org.structr.core.entity.DummyNode;
 import org.structr.core.entity.Property;
+import org.structr.core.entity.User;
 import org.structr.core.module.GetEntitiesCommand;
 import org.structr.core.node.ExtractFileCommand;
 import org.structr.core.notification.AddNotificationCommand;
@@ -211,8 +209,6 @@ public class Nodes extends Admin {
 
 		super.onInit();
 
-		SecurityContext securityContext = CurrentRequest.getSecurityContext();
-
 		if(securityContext.isAllowed(node, Permission.ShowTree)) {
 
 			nodeTreePanel = new Panel("nodeTreePanel", "/panel/node-tree-panel.htm");
@@ -220,10 +216,10 @@ public class Nodes extends Admin {
 
 		if(securityContext.isAllowed(node, Permission.CreateNode)) {
 
-			Select nodeTypeField = new Select(AbstractNode.TYPE_KEY, "Select Node Type", false);
+			Select nodeTypeField = new Select(AbstractNode.Key.type.name(), "Select Node Type", false);
 			nodeTypeField.add(new Option("", "--- Select Node Type ---"));
 
-			List<String> nodeTypes = new LinkedList<String>(((Map<String, Class>)Services.command(GetEntitiesCommand.class).execute()).keySet());
+			List<String> nodeTypes = new LinkedList<String>(((Map<String, Class>)Services.command(securityContext, GetEntitiesCommand.class).execute()).keySet());
 			Collections.sort(nodeTypes);
 
 //            Set<String> nodeTypes = Services.getCachedEntityTypes();
@@ -235,7 +231,7 @@ public class Nodes extends Admin {
 			newNodeForm.add(nodeTypeField);
 			newNodeForm.add(new TextField("name", true));
 
-			newNodeForm.add(new LongField(AbstractNode.POSITION_KEY, false));
+			newNodeForm.add(new LongField(AbstractNode.Key.position.name(), false));
 			newNodeForm.add(new HiddenField(NODE_ID_KEY, nodeId != null ? nodeId : ""));
 			newNodeForm.add(new TextField(TARGET_NODE_ID_KEY, true));
 			newNodeForm.add(new HiddenField(RENDER_MODE_KEY, renderMode != null ? renderMode : ""));
@@ -424,7 +420,6 @@ public class Nodes extends Admin {
 
 		super.onRender();
 
-		SecurityContext securityContext = CurrentRequest.getSecurityContext();
 		if(node != null) {
 			title = node.getName() + " (" + node.getId() + ") [" + Services.getApplicationTitle() + "]";
 		}
@@ -555,7 +550,6 @@ public class Nodes extends Admin {
 	 */
 	private void addItems(TreeNode parentNode, AbstractNode nodeToAdd) {
 
-		SecurityContext securityContext = CurrentRequest.getSecurityContext();
 		AbstractNode p = (AbstractNode)parentNode.getValue();
 
 		// don't add children of link nodes to the tree
@@ -566,8 +560,8 @@ public class Nodes extends Admin {
 			// set of nodes to be ordered by a certain key
 			List<AbstractNode> nodes = new LinkedList<AbstractNode>();
 
-			Command nodeFactory = Services.command(NodeFactoryCommand.class);
-//            Command relCommand = Services.command(NodeRelationshipsCommand.class);
+			Command nodeFactory = Services.command(securityContext, NodeFactoryCommand.class);
+//            Command relCommand = Services.command(securityContext, NodeRelationshipsCommand.class);
 
 			List<StructrRelationship> rels = nodeToAdd.getOutgoingChildRelationships();
 //            List<StructrRelationship> rels = (List<StructrRelationship>) relCommand.execute(nodeToAdd, RelType.HAS_CHILD, Direction.OUTGOING);
@@ -604,7 +598,7 @@ public class Nodes extends Admin {
 
 			}
 
-			nodeFactory = Services.command(LinkNodeFactoryCommand.class);
+			nodeFactory = Services.command(securityContext, LinkNodeFactoryCommand.class);
 
 			rels = nodeToAdd.getOutgoingLinkRelationships();
 //            rels = (List<StructrRelationship>) relCommand.execute(nodeToAdd, RelType.LINK, Direction.OUTGOING);
@@ -679,22 +673,24 @@ public class Nodes extends Admin {
 	 * @return
 	 */
 	public boolean onCreateNode() {
+
+		final User user = securityContext.getUser();
 		AbstractNode s = null;
 
 		final String targetNodeId = StringUtils.isNotEmpty(newNodeForm.getFieldValue(TARGET_NODE_ID_KEY)) ? newNodeForm.getFieldValue(TARGET_NODE_ID_KEY) : getNodeId();
 
 		if(newNodeForm.isValid()) {
-			Command transactionCommand = Services.command(TransactionCommand.class);
+			Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
 
 			s = (AbstractNode)transactionCommand.execute(new StructrTransaction() {
 
 				@Override
 				public Object execute() throws Throwable {
-					Command findNode = Services.command(FindNodeCommand.class);
-					Command createNode = Services.command(CreateNodeCommand.class);
-					Command createRel = Services.command(CreateRelationshipCommand.class);
+					Command findNode = Services.command(securityContext, FindNodeCommand.class);
+					Command createNode = Services.command(securityContext, CreateNodeCommand.class);
+					Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
 
-					AbstractNode parentNode = (AbstractNode)findNode.execute(user, Long.parseLong(targetNodeId));
+					AbstractNode parentNode = (AbstractNode)findNode.execute(Long.parseLong(targetNodeId));
 					AbstractNode newNode = (AbstractNode)createNode.execute(user);
 
 					newNodeForm.copyTo(newNode);
@@ -713,10 +709,10 @@ public class Nodes extends Admin {
 			// avoid NullPointerException when no node was created..
 			if(s != null) {
 				okMsg = "New " + s.getType() + " node " + s.getName() + " has been created.";
-				Services.command(AddNotificationCommand.class).execute(new SuccessNotification(okMsg));
+				Services.command(securityContext, AddNotificationCommand.class).execute(new SuccessNotification(securityContext, okMsg));
 
-				Command findNode = Services.command(FindNodeCommand.class);
-				AbstractNode n = (AbstractNode)findNode.execute(user, s.getId());
+				Command findNode = Services.command(securityContext, FindNodeCommand.class);
+				AbstractNode n = (AbstractNode)findNode.execute(s.getId());
 
 				Map<String, String> parameters = new HashMap<String, String>();
 				parameters.put(NODE_ID_KEY, String.valueOf(s.getId()));
@@ -727,7 +723,7 @@ public class Nodes extends Admin {
 
 			} else {
 				errorMsg = "New node could not be created!";
-				Services.command(AddNotificationCommand.class).execute(new ErrorNotification(errorMsg));
+				Services.command(securityContext, AddNotificationCommand.class).execute(new ErrorNotification(securityContext, errorMsg));
 			}
 
 		}
@@ -752,17 +748,18 @@ public class Nodes extends Admin {
 			final String targetNodeId = newRelationshipForm.getFieldValue(TARGET_NODE_ID_KEY);
 			final String relType = newRelationshipForm.getFieldValue(REL_TYPE_KEY);
 			final String targetSlotName = newRelationshipForm.getFieldValue(TARGET_SLOT_NAME_KEY);
+			final User user = securityContext.getUser();
 
-			Command transactionCommand = Services.command(TransactionCommand.class);
+			Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
 			transactionCommand.execute(new StructrTransaction() {
 
 				@Override
 				public Object execute() throws Throwable {
-					Command findNode = Services.command(FindNodeCommand.class);
-					Command createRel = Services.command(CreateRelationshipCommand.class);
+					Command findNode = Services.command(securityContext, FindNodeCommand.class);
+					Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
 
-					AbstractNode startNode = (AbstractNode)findNode.execute(user, Long.parseLong(sourceNodeId));
-					AbstractNode endNode = (AbstractNode)findNode.execute(user, Long.parseLong(targetNodeId));
+					AbstractNode startNode = (AbstractNode)findNode.execute(Long.parseLong(sourceNodeId));
+					AbstractNode endNode = (AbstractNode)findNode.execute(Long.parseLong(targetNodeId));
 
 					StructrRelationship newRel = (StructrRelationship)createRel.execute(startNode, endNode, relType);
 					newRel.setProperty(TARGET_SLOT_NAME_KEY, targetSlotName);
@@ -772,7 +769,7 @@ public class Nodes extends Admin {
 			});
 
 			okMsg = "New relationship to node " + targetNodeId + " with type " + relType + " has been created.";
-			Services.command(AddNotificationCommand.class).execute(new SuccessNotification(okMsg));
+			Services.command(securityContext, AddNotificationCommand.class).execute(new SuccessNotification(securityContext, okMsg));
 
 			Map<String, String> parameters = new HashMap<String, String>();
 			parameters.put(NODE_ID_KEY, String.valueOf(getNodeId()));
@@ -796,19 +793,19 @@ public class Nodes extends Admin {
 			final boolean isLink = StringUtils.isNotEmpty(moveNodeForm.getFieldValue(PARENT_NODE_ID_KEY));
 			final String sourceNodeId = StringUtils.isNotEmpty(moveNodeForm.getFieldValue(SOURCE_NODE_ID_KEY)) ? moveNodeForm.getFieldValue(SOURCE_NODE_ID_KEY) : getNodeId();
 
-			Command transactionCommand = Services.command(TransactionCommand.class);
+			Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
 			transactionCommand.execute(new StructrTransaction() {
 
 				@Override
 				public Object execute() throws Throwable {
-					Command moveNode = Services.command(MoveNodeCommand.class);
+					Command moveNode = Services.command(securityContext, MoveNodeCommand.class);
 					moveNode.execute(sourceNodeId, targetNodeId, isLink);
 					return (null);
 				}
 			});
 
 			okMsg = "Node moved to " + targetNodeId + ".";
-			Services.command(AddNotificationCommand.class).execute(new SuccessNotification(okMsg));
+			Services.command(securityContext, AddNotificationCommand.class).execute(new SuccessNotification(securityContext, okMsg));
 
 			Map<String, String> parameters = new HashMap<String, String>();
 			parameters.put(NODE_ID_KEY, String.valueOf(getNodeId()));
@@ -830,20 +827,21 @@ public class Nodes extends Admin {
 		if(copyNodeForm.isValid()) {
 			final String targetNodeId = copyNodeForm.getFieldValue(TARGET_NODE_ID_KEY);
 			final String sourceNodeId = StringUtils.isNotEmpty(copyNodeForm.getFieldValue(SOURCE_NODE_ID_KEY)) ? copyNodeForm.getFieldValue(SOURCE_NODE_ID_KEY) : getNodeId();
+			final User user = securityContext.getUser();
 
-			Command transactionCommand = Services.command(TransactionCommand.class);
+			Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
 			transactionCommand.execute(new StructrTransaction() {
 
 				@Override
 				public Object execute() throws Throwable {
-					Command copyNode = Services.command(CopyNodeCommand.class);
+					Command copyNode = Services.command(securityContext, CopyNodeCommand.class);
 					copyNode.execute(sourceNodeId, targetNodeId, user);
 					return (null);
 				}
 			});
 
 			okMsg = "Node copied to " + targetNodeId + ".";
-			Services.command(AddNotificationCommand.class).execute(new SuccessNotification(okMsg));
+			Services.command(securityContext, AddNotificationCommand.class).execute(new SuccessNotification(securityContext, okMsg));
 
 			Map<String, String> parameters = new HashMap<String, String>();
 			parameters.put(NODE_ID_KEY, String.valueOf(getNodeId()));
@@ -865,6 +863,7 @@ public class Nodes extends Admin {
 
 		if(extractNodeForm.isValid()) {
 
+			final User user = securityContext.getUser();
 			Object targetNodeId;
 			String fieldValue = extractNodeForm.getFieldValue(TARGET_NODE_ID_KEY);
 			if(fieldValue != null && !(fieldValue.isEmpty())) {
@@ -873,15 +872,15 @@ public class Nodes extends Admin {
 				targetNodeId = getNodeId();
 			}
 
-			Command findNode = Services.command(FindNodeCommand.class);
-			final AbstractNode targetNode = (AbstractNode)findNode.execute(user, targetNodeId);
+			Command findNode = Services.command(securityContext, FindNodeCommand.class);
+			final AbstractNode targetNode = (AbstractNode)findNode.execute(targetNodeId);
 
-			final Command transactionCommand = Services.command(TransactionCommand.class);
+			final Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
 			transactionCommand.execute(new StructrTransaction() {
 
 				@Override
 				public Object execute() throws Throwable {
-					Command extractFile = Services.command(ExtractFileCommand.class);
+					Command extractFile = Services.command(securityContext, ExtractFileCommand.class);
 					extractFile.execute(getNodeId(), targetNode, user);
 					transactionCommand.setExitCode(extractFile.getExitCode());
 					transactionCommand.setErrorMessage(extractFile.getErrorMessage());
@@ -895,11 +894,11 @@ public class Nodes extends Admin {
 
 			if(transactionCommand.getExitCode().equals(Command.exitCode.FAILURE)) {
 				errorMsg = transactionCommand.getErrorMessage();
-				Services.command(AddNotificationCommand.class).execute(new ErrorNotification(errorMsg));
+				Services.command(securityContext, AddNotificationCommand.class).execute(new ErrorNotification(securityContext, errorMsg));
 				parameters.put(ERROR_MSG_KEY, errorMsg);
 			} else {
 				okMsg = "Node extracted to " + targetNodeId;
-				Services.command(AddNotificationCommand.class).execute(new SuccessNotification(okMsg));
+				Services.command(securityContext, AddNotificationCommand.class).execute(new SuccessNotification(securityContext, okMsg));
 				parameters.put(OK_MSG_KEY, okMsg);
 			}
 
@@ -937,6 +936,7 @@ public class Nodes extends Admin {
 				final FileItem fileFromUpload = fileField.getFileItem();
 				final String name = fileFromUpload.getName();
 				final String mimeType = fileFromUpload.getContentType();
+				final User user = securityContext.getUser();
 
 				if(name != null && !("".equals(name))) {
 					// process uploaded file(s):
@@ -944,14 +944,14 @@ public class Nodes extends Admin {
 					// and write to the configured location
 					// TODO: move to helper class, support multiple files
 
-					Command transaction = Services.command(TransactionCommand.class);
+					Command transaction = Services.command(securityContext, TransactionCommand.class);
 
 					s = (AbstractNode)transaction.execute(new StructrTransaction() {
 
 						@Override
 						public Object execute() throws Throwable {
-							Command createNode = Services.command(CreateNodeCommand.class);
-							Command createRel = Services.command(CreateRelationshipCommand.class);
+							Command createNode = Services.command(securityContext, CreateNodeCommand.class);
+							Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
 
 							String mimeProperty = null;
 
@@ -963,7 +963,7 @@ public class Nodes extends Admin {
 							}
 
 							// create node with appropriate type
-							AbstractNode newNode = (AbstractNode)createNode.execute(new NodeAttribute(AbstractNode.TYPE_KEY, mimeProperty), user);
+							AbstractNode newNode = (AbstractNode)createNode.execute(new NodeAttribute(AbstractNode.Key.type.name(), mimeProperty), user);
 
 							// determine properties
 							String relativeFilePath = newNode.getId() + "_" + System.currentTimeMillis();
@@ -981,14 +981,14 @@ public class Nodes extends Admin {
 							}
 
 							Date now = new Date();
-							newNode.setProperty(AbstractNode.NAME_KEY, name);
-							newNode.setProperty(AbstractNode.CREATED_DATE_KEY, now);
-							newNode.setProperty(AbstractNode.LAST_MODIFIED_DATE_KEY, now);
+							newNode.setProperty(AbstractNode.Key.name.name(), name);
+							newNode.setProperty(AbstractNode.Key.createdDate.name(), now);
+							newNode.setProperty(AbstractNode.Key.lastModifiedDate.name(), now);
 
-							newNode.setProperty(File.CONTENT_TYPE_KEY, mimeType);
-							newNode.setProperty(File.SIZE_KEY, String.valueOf(size));
-							newNode.setProperty(File.URL_KEY, fileUrl);
-							newNode.setProperty(File.RELATIVE_FILE_PATH_KEY, relativeFilePath);
+							newNode.setProperty(File.Key.contentType.name(), mimeType);
+							newNode.setProperty(File.Key.size.name(), String.valueOf(size));
+							newNode.setProperty(File.Key.url.name(), fileUrl);
+							newNode.setProperty(File.Key.relativeFilePath.name(), relativeFilePath);
 
 							AbstractNode parentNode = node;
 							createRel.execute(parentNode, newNode, RelType.HAS_CHILD);
@@ -1010,7 +1010,7 @@ public class Nodes extends Admin {
 
 			// assemble feedback message
 			okMsg = "New " + s.getType() + " node " + s.getName() + " has been created.";
-			Services.command(AddNotificationCommand.class).execute(new SuccessNotification(okMsg));
+			Services.command(securityContext, AddNotificationCommand.class).execute(new SuccessNotification(securityContext, okMsg));
 
 			Map<String, String> parameters = new HashMap<String, String>();
 			parameters.put(NODE_ID_KEY, String.valueOf(getNodeId()));
@@ -1040,17 +1040,18 @@ public class Nodes extends Admin {
 
 			final String parent = deleteNodeForm.getFieldValue(PARENT_NODE_ID_KEY);
 			final String recursive = deleteNodeForm.getFieldValue(RECURSIVE_KEY);
+			final User user = securityContext.getUser();
 
 			AbstractNode parentNode = null;
 
 			try {
 
-				final Command transactionCommand = Services.command(TransactionCommand.class);
+				final Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
 				parentNode = (AbstractNode)transactionCommand.execute(new StructrTransaction() {
 
 					@Override
 					public Object execute() throws Throwable {
-						Command deleteNode = Services.command(DeleteNodeCommand.class);
+						Command deleteNode = Services.command(securityContext, DeleteNodeCommand.class);
 						Object result = deleteNode.execute(getNodeId(), parent, recursive, user);
 						transactionCommand.setExitCode(deleteNode.getExitCode());
 						transactionCommand.setErrorMessage(deleteNode.getErrorMessage());
@@ -1085,7 +1086,7 @@ public class Nodes extends Admin {
 
 				okMsg = null;
 				errorMsg = "Node " + getNodeId() + " could not be deleted. " + e.getMessage();
-				Services.command(AddNotificationCommand.class).execute(new ErrorNotification(errorMsg));
+				Services.command(securityContext, AddNotificationCommand.class).execute(new ErrorNotification(securityContext, errorMsg));
 				return true;
 
 			}
@@ -1161,14 +1162,14 @@ public class Nodes extends Admin {
 	 * @return List<Property>
 	 */
 	public List<Property> getProperties() {
-		return ((List<Property>)Services.command(NodePropertiesCommand.class).execute(node));
+		return ((List<Property>)Services.command(securityContext, NodePropertiesCommand.class).execute(node));
 	}
 
 	/**
 	 * Set a property
 	 */
 	public boolean onSetProperty() {
-		Command transactionCommand = Services.command(TransactionCommand.class);
+		Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
 
 		transactionCommand.execute(new StructrTransaction() {
 
@@ -1180,7 +1181,7 @@ public class Nodes extends Admin {
 		});
 
 		okMsg = "Property successfully set!"; // TODO: localize
-		Services.command(AddNotificationCommand.class).execute(new SuccessNotification(okMsg));
+		Services.command(securityContext, AddNotificationCommand.class).execute(new SuccessNotification(securityContext, okMsg));
 
 		Map<String, String> parameters = new HashMap<String, String>();
 		parameters.put(NODE_ID_KEY, String.valueOf(getNodeId()));
@@ -1196,7 +1197,7 @@ public class Nodes extends Admin {
 	public boolean onUpdateProperties() {
 
 		okMsg = "Property successfully set!"; // TODO: localize
-		Services.command(AddNotificationCommand.class).execute(new SuccessNotification(okMsg));
+		Services.command(securityContext, AddNotificationCommand.class).execute(new SuccessNotification(securityContext, okMsg));
 
 		Map<String, String> parameters = new HashMap<String, String>();
 		parameters.put(NODE_ID_KEY, String.valueOf(getNodeId()));
@@ -1311,7 +1312,7 @@ public class Nodes extends Admin {
 						if(n.isHidden()) {
 							link.addStyleClass("hidden");
 						}
-						if(n.isPublic()) {
+						if(n.isVisibleToPublicUsers()) {
 							link.addStyleClass("public");
 						}
 						buf.append(link);
@@ -1331,7 +1332,7 @@ public class Nodes extends Admin {
 	private void getExpandedTreeNodesFromSession() {
 
 		if(openNodes == null) {
-			openNodes = (List<TreeNode>)CurrentSession.getAttribute(EXPANDED_NODES_KEY);
+			openNodes = (List<TreeNode>)getContext().getSession().getAttribute(EXPANDED_NODES_KEY);
 
 			// return empty list if no open nodes exist in session
 			if(openNodes == null) {
@@ -1345,6 +1346,6 @@ public class Nodes extends Admin {
 	 */
 	private void storeExpandedTreeNodesInSession() {
 
-		CurrentSession.setAttribute(EXPANDED_NODES_KEY, nodeTree.getExpandedNodes(true));
+		getContext().getSession().setAttribute(EXPANDED_NODES_KEY, nodeTree.getExpandedNodes(true));
 	}
 }

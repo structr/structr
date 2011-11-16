@@ -20,6 +20,7 @@ package org.structr.core.entity;
 
 import java.util.Date;
 import org.neo4j.graphdb.*;
+import org.structr.common.SecurityContext;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.node.StructrTransaction;
@@ -32,6 +33,7 @@ import org.structr.core.node.TransactionCommand;
  */
 public class Property {
 
+    private SecurityContext securityContext = null;
     private final Node dbNode;
     private String key;
     private Object value;
@@ -42,10 +44,11 @@ public class Property {
      * @param graphDb
      * @param dbNode
      */
-    public Property(final Node dbNode) {
+    public Property(final SecurityContext securityContext, final Node dbNode) {
         this.dbNode = dbNode;
         this.key = null;
         this.value = null;
+	this.securityContext = securityContext;
     }
 
     /**
@@ -56,10 +59,11 @@ public class Property {
      * @param dbNode
      * @param key
      */
-    public Property(final Node dbNode, final String key) {
+    public Property(final SecurityContext securityContext, final Node dbNode, final String key) {
         this.dbNode = dbNode;
         this.key = key;
         this.value = getValue();
+	this.securityContext = securityContext;
     }
 
     /**
@@ -70,10 +74,11 @@ public class Property {
      * @param key
      * @param value
      */
-    public Property(final Node dbNode, final String key, final String value) {
+    public Property(final SecurityContext securityContext, final Node dbNode, final String key, final String value) {
         this.dbNode = dbNode;
         this.key = key;
         this.value = value;
+	this.securityContext = securityContext;
         setPropertyInBackend();
     }
 
@@ -91,8 +96,8 @@ public class Property {
         Object ret = null;
 
         if (dbNode.hasProperty(key)) {
-            if (key.equals(AbstractNode.CREATED_DATE_KEY) ||
-                    key.equals(AbstractNode.LAST_MODIFIED_DATE_KEY)) {
+            if (key.equals(AbstractNode.Key.createdDate.name()) ||
+                    key.equals(AbstractNode.Key.lastModifiedDate.name())) {
 
                 ret = new Date((Long) dbNode.getProperty(key));
 
@@ -108,15 +113,15 @@ public class Property {
     }
 
     private void setPropertyInBackend() {
-        Command transaction = Services.command(TransactionCommand.class);
 
+        Command transaction = Services.command(securityContext, TransactionCommand.class);
         transaction.execute(new StructrTransaction() {
 
             @Override
             public Object execute() throws Throwable {
 
-                if (key.equals(AbstractNode.CREATED_DATE_KEY) ||
-                    key.equals(AbstractNode.LAST_MODIFIED_DATE_KEY)) {
+                if (key.equals(AbstractNode.Key.createdDate.name()) ||
+                    key.equals(AbstractNode.Key.lastModifiedDate.name())) {
 
                     Date d = (Date) value;
 

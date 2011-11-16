@@ -7,8 +7,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
-import org.structr.common.CurrentRequest;
-import org.structr.core.NodeRenderer;
 import org.structr.core.entity.web.Form;
 
 /**
@@ -73,21 +71,13 @@ public abstract class FormRenderer
 		return true;
 	}
 
-	protected void readParameters(Form node)
+	protected void readParameters(HttpServletRequest request, Form node)
 	{
-
-		HttpServletRequest request = CurrentRequest.getRequest();
 
 		if(request == null)
 		{
 			return;
 		}
-
-//            HttpSession session = request.getSession();
-//
-//            if (session == null) {
-//                return;
-//            }
 
 		List<String> parameterNames = node.getParameterNamesAsList();
 

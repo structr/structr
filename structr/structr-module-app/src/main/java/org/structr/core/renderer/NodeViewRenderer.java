@@ -4,10 +4,11 @@ import java.io.StringWriter;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.servlet.http.HttpServletRequest;
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.RelationshipType;
-import org.structr.common.CurrentRequest;
 import org.structr.common.RenderMode;
+import org.structr.common.SecurityContext;
 import org.structr.common.StructrOutputStream;
 import org.structr.core.NodeRenderer;
 import org.structr.core.Services;
@@ -28,7 +29,7 @@ public class NodeViewRenderer implements NodeRenderer<AbstractNode>
 	@Override
 	public void renderNode(StructrOutputStream out, AbstractNode currentNode, AbstractNode startNode, String editUrl, Long editNodeId, RenderMode renderMode)
 	{
-		AbstractNode sourceNode = loadNode(currentNode);
+		AbstractNode sourceNode = loadNode(out.getSecurityContext(), out.getRequest(), currentNode);
 		if(sourceNode != null)
 		{
 			doRendering(out, currentNode, sourceNode, editUrl, editNodeId);
@@ -51,7 +52,7 @@ public class NodeViewRenderer implements NodeRenderer<AbstractNode>
 		String templateSource = getTemplateFromNode(viewNode);
 		StringWriter content = new StringWriter(100);
 
-		viewNode.replaceByFreeMarker(templateSource, content, dataNode, editUrl, editNodeId);
+		viewNode.replaceByFreeMarker(out.getRequest(), templateSource, content, dataNode, editUrl, editNodeId);
 		out.append(content.toString());
 
 		List<AbstractNode> viewChildren = viewNode.getSortedDirectChildNodes();
@@ -77,14 +78,14 @@ public class NodeViewRenderer implements NodeRenderer<AbstractNode>
 	}
 
 	// ----- private methods -----
-	private AbstractNode loadNode(AbstractNode node)
+	private AbstractNode loadNode(SecurityContext securityContext, HttpServletRequest request, AbstractNode node)
 	{
 		String idSourceParameter = node.getStringProperty(ID_SOURCE_KEY);
-		String idSource = CurrentRequest.getRequest().getParameter(idSourceParameter);
+		String idSource = request.getParameter(idSourceParameter);
 
 		logger.log(Level.INFO, "Got idSourceParameter {0}, parameter {1}, loading node..", new Object[] { idSourceParameter, idSource } );
 
-		return ((AbstractNode)Services.command(FindNodeCommand.class).execute(null, node, idSource));
+		return ((AbstractNode)Services.command(securityContext, FindNodeCommand.class).execute(node, idSource));
 	}
 
 	private String getTemplateFromNode(final AbstractNode node)

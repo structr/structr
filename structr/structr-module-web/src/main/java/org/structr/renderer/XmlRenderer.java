@@ -2,7 +2,6 @@ package org.structr.renderer;
 
 import java.util.List;
 import org.neo4j.graphdb.Direction;
-import org.structr.common.CurrentRequest;
 import org.structr.common.RelType;
 import org.structr.common.RenderMode;
 import org.structr.common.SecurityContext;
@@ -28,7 +27,7 @@ public class XmlRenderer implements NodeRenderer<Xml>
 	@Override
 	public void renderNode(StructrOutputStream out, Xml currentNode, AbstractNode startNode, String editUrl, Long editNodeId, RenderMode renderMode)
 	{
-		SecurityContext securityContext = CurrentRequest.getSecurityContext();
+		SecurityContext securityContext = out.getSecurityContext();
 		if(securityContext.isVisible(currentNode)) {
 
 			StringBuilder xml = new StringBuilder(currentNode.getXml());
@@ -55,8 +54,8 @@ public class XmlRenderer implements NodeRenderer<Xml>
 				} else
 				{
 
-					Command nodeFactory = Services.command(NodeFactoryCommand.class);
-					Command relsCommand = Services.command(NodeRelationshipsCommand.class);
+					Command nodeFactory = Services.command(securityContext, NodeFactoryCommand.class);
+					Command relsCommand = Services.command(securityContext, NodeRelationshipsCommand.class);
 
 					List<StructrRelationship> rels = (List<StructrRelationship>)relsCommand.execute(this, RelType.HAS_CHILD, Direction.OUTGOING);
 					for(StructrRelationship r : rels)

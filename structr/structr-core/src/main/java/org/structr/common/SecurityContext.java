@@ -21,6 +21,11 @@
 
 package org.structr.common;
 
+import java.util.Collections;
+import org.structr.core.Services;
+import org.structr.core.auth.AuthenticationException;
+import org.structr.core.auth.Authenticator;
+import org.structr.core.auth.AuthenticatorCommand;
 import org.structr.core.entity.StructrRelationship;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
@@ -28,14 +33,21 @@ import org.structr.core.entity.User;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.servlet.ServletConfig;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 
 //~--- classes ----------------------------------------------------------------
 
 /**
  * Encapsulates the current user and access path and provides methods
- * to query permission flags for a given node.
+ * to query permission flags for a given node. This is the place where
+ * HttpServletRequest and Authenticator get together.
  *
  *
  * @author Christian Morgner
@@ -46,23 +58,92 @@ public class SecurityContext {
 
 	//~--- fields ---------------------------------------------------------
 
-	private AccessMode accessMode = AccessMode.Frontend;
+	private AccessMode accessMode       = AccessMode.Frontend;
+	private Map<String, Object> attrs   = null;
+	private Authenticator authenticator = null;
+	private HttpServletRequest request  = null;
 
 	//~--- constructors ---------------------------------------------------
 
-	public SecurityContext() {}
+	private SecurityContext(ServletConfig config, HttpServletRequest request, AccessMode accessMode) {
+
+		this.attrs      = Collections.synchronizedMap(new LinkedHashMap<String, Object>());
+		this.accessMode = accessMode;
+		this.request    = request;
+
+		// the authenticator does not have a security context
+		this.authenticator = (Authenticator) Services.command(null, AuthenticatorCommand.class).execute(config);
+	}
+
+	//~--- methods --------------------------------------------------------
+
+	public User doLogin(String userName, String password) throws AuthenticationException {
+
+		authenticator.setSecurityContext(this);
+
+		return authenticator.doLogin(request,
+					     userName,
+					     password);
+	}
+
+	public void doLogout() {
+
+		authenticator.setSecurityContext(this);
+		authenticator.doLogout(request);
+	}
 
 	//~--- get methods ----------------------------------------------------
 
-	private User getUser() {
-		return CurrentSession.getUser();
+	public static SecurityContext getSuperUserInstance() {
+		return new SuperUserSecurityContext();
+	}
+
+	public static SecurityContext getInstance(ServletConfig config, HttpServletRequest request,
+		AccessMode accessMode) {
+
+		return new SecurityContext(config,
+					   request,
+					   accessMode);
+	}
+
+	public HttpSession getSession() {
+		return request.getSession();
+	}
+
+	public User getUser() {
+
+		authenticator.setSecurityContext(this);
+
+		return authenticator.getUser(request);
+	}
+
+	public String getUserName() {
+
+		User user = getUser();
+
+		if (user != null) {
+			return user.getName();
+		}
+
+		return null;
 	}
 
 	public AccessMode getAccessMode() {
-		return(accessMode);
+		return (accessMode);
+	}
+
+	public boolean isSuperUser() {
+
+		User user = getUser();
+
+		return ((user != null) && (user instanceof SuperUser));
 	}
 
 	public boolean isAllowed(AccessControllable node, Permission permission) {
+
+		if (isSuperUser()) {
+			return true;
+		}
 
 		boolean isAllowed = false;
 
@@ -83,7 +164,8 @@ public class SecurityContext {
 
 			User user = getUser();
 
-			logger.log(Level.FINEST, "Returning {0} for user {1}, access mode {2}, node {3}, permission {4}",
+			logger.log(Level.FINEST,
+				   "Returning {0} for user {1}, access mode {2}, node {3}, permission {4}",
 				   new Object[] { isAllowed, (user != null)
 				? user.getName()
 				: "null", accessMode, node, permission });
@@ -113,13 +195,38 @@ public class SecurityContext {
 
 			User user = getUser();
 
-			logger.log(Level.FINEST, "Returning {0} for user {1}, access mode {2}, node {3}",
+			logger.log(Level.FINEST,
+				   "Returning {0} for user {1}, access mode {2}, node {3}",
 				   new Object[] { ret, (user != null)
 						       ? user.getName()
 						       : "null", accessMode, node });
 		}
 
 		return (ret);
+	}
+
+	public StringBuilder getBaseURI() {
+
+		StringBuilder uriBuilder = new StringBuilder(200);
+		
+		uriBuilder.append(request.getScheme());
+		uriBuilder.append("://");
+		uriBuilder.append(request.getServerName());
+		uriBuilder.append(":");
+		uriBuilder.append(request.getServerPort());
+		uriBuilder.append(request.getContextPath());
+		uriBuilder.append(request.getServletPath());
+		uriBuilder.append("/");
+
+		return uriBuilder;
+	}
+
+	public Object getAttribute(String key) {
+		return attrs.get(key);
+	}
+
+	public void setAttribute(String key, Object value) {
+		attrs.put(key, value);
 	}
 
 	// ----- private methods -----
@@ -203,10 +310,9 @@ public class SecurityContext {
 		Date now = new Date();
 
 		visibleByTime = (now.after(visStartDate) && now.before(visEndDate));
-		
-		// public nodes are always visible (constrained by time)
-		if(node.isPublic()) {
 
+		// public nodes are always visible (constrained by time)
+		if (node.isVisibleToPublicUsers()) {
 			return visibleByTime;
 		}
 
@@ -223,7 +329,8 @@ public class SecurityContext {
 			// frontend user
 			if (user.isFrontendUser()) {
 
-				return node.hasPermission(StructrRelationship.READ_KEY, user);
+				return node.hasPermission(StructrRelationship.Permission.read.name(),
+							  user);
 			}
 		}
 
@@ -269,38 +376,47 @@ public class SecurityContext {
 
 				r = node.getSecurityRelationship(user);
 
-				if ((r != null) && r.isAllowed(StructrRelationship.ACCESS_CONTROL_KEY)) {
+				if ((r != null) && r.isAllowed(StructrRelationship.Permission.accessControl.name())) {
 					return true;
 				}
 
 				return false;
 
 			case CreateNode :
-				return node.hasPermission(StructrRelationship.CREATE_SUBNODE_KEY, user);
+				return node.hasPermission(StructrRelationship.Permission.createNode.name(),
+							  user);
 
 			case CreateRelationship :
-				return node.hasPermission(StructrRelationship.ADD_RELATIONSHIP_KEY, user);
+				return node.hasPermission(StructrRelationship.Permission.addRelationship.name(),
+							  user);
 
 			case DeleteNode :
-				return node.hasPermission(StructrRelationship.DELETE_NODE_KEY, user);
+				return node.hasPermission(StructrRelationship.Permission.deleteNode.name(),
+							  user);
 
 			case DeleteRelationship :
-				return node.hasPermission(StructrRelationship.REMOVE_RELATIONSHIP_KEY, user);
+				return node.hasPermission(StructrRelationship.Permission.removeRelationship.name(),
+							  user);
 
 			case EditProperty :
-				return node.hasPermission(StructrRelationship.EDIT_PROPERTIES_KEY, user);
+				return node.hasPermission(StructrRelationship.Permission.editProperties.name(),
+							  user);
 
 			case Execute :
-				return node.hasPermission(StructrRelationship.EXECUTE_KEY, user);
+				return node.hasPermission(StructrRelationship.Permission.execute.name(),
+							  user);
 
 			case Read :
-				return node.hasPermission(StructrRelationship.READ_KEY, user);
+				return node.hasPermission(StructrRelationship.Permission.read.name(),
+							  user);
 
 			case ShowTree :
-				return node.hasPermission(StructrRelationship.SHOW_TREE_KEY, user);
+				return node.hasPermission(StructrRelationship.Permission.showTree.name(),
+							  user);
 
 			case Write :
-				return node.hasPermission(StructrRelationship.WRITE_KEY, user);
+				return node.hasPermission(StructrRelationship.Permission.write.name(),
+							  user);
 		}
 
 		return (false);
@@ -321,9 +437,9 @@ public class SecurityContext {
 		switch (permission) {
 
 			case Read :
-				return isVisibleInFrontend(node); // Read permission in frontend is equivalent to visibility
-				//return node.hasPermission(StructrRelationship.READ_KEY, user);
+				return isVisibleInFrontend(node);    // Read permission in frontend is equivalent to visibility
 
+			// return node.hasPermission(StructrRelationship.READ_KEY, user);
 			default :
 				return false;
 		}
@@ -333,5 +449,50 @@ public class SecurityContext {
 
 	public void setAccessMode(AccessMode accessMode) {
 		this.accessMode = accessMode;
+	}
+
+	//~--- inner classes --------------------------------------------------
+
+	// ----- nested classes -----
+	private static class SuperUserSecurityContext extends SecurityContext {
+
+		public SuperUserSecurityContext() {
+
+			super(null,
+			      null,
+			      null);
+		}
+
+		//~--- get methods --------------------------------------------
+
+		@Override
+		public HttpSession getSession() {
+			throw new IllegalStateException("Trying to access session in SuperUserSecurityContext!");
+		}
+
+		@Override
+		public User getUser() {
+			return new SuperUser();
+		}
+
+		@Override
+		public AccessMode getAccessMode() {
+			return (AccessMode.Backend);
+		}
+
+		@Override
+		public boolean isAllowed(AccessControllable node, Permission permission) {
+			return true;
+		}
+
+		@Override
+		public boolean isVisible(AccessControllable node) {
+			return true;
+		}
+
+		@Override
+		public boolean isSuperUser() {
+			return true;
+		}
 	}
 }

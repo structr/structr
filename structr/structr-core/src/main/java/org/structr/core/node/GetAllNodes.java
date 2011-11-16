@@ -37,7 +37,7 @@ public class GetAllNodes extends NodeServiceCommand {
         StructrNodeFactory nodeFactory = (StructrNodeFactory) arguments.get("nodeFactory");
 
         if (graphDb != null) {
-            return nodeFactory.createNodes(graphDb.getAllNodes());
+            return nodeFactory.createNodes(securityContext, graphDb.getAllNodes());
         }
         
         return Collections.emptyList();

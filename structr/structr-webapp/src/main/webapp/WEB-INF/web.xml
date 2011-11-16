@@ -18,7 +18,7 @@
 		</init-param>
 		<init-param>
 			<param-name>application-version</param-name>
-			<param-value>0.4.2</param-value>
+			<param-value>0.4.3</param-value>
 		</init-param>
 		<init-param>
 			<param-name>cacheable-paths</param-name>
@@ -87,6 +87,10 @@
 		<servlet-name>ClickServlet</servlet-name>
 		<servlet-class>org.apache.click.ClickServlet</servlet-class>
 		<load-on-startup>1</load-on-startup>
+		<init-param>
+			<param-name>Authenticator</param-name>
+			<param-value>org.structr.core.auth.StructrAuthenticator</param-value>
+		</init-param>
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>ClickServlet</servlet-name>
@@ -94,16 +98,24 @@
 	</servlet-mapping>
 	<servlet>
 		<servlet-name>StructrRestServlet</servlet-name>
-		<servlet-class>org.structr.core.servlet.JsonRestServlet</servlet-class>
+		<servlet-class>org.structr.rest.servlet.JsonRestServlet</servlet-class>
 		<load-on-startup>1</load-on-startup>
 		<init-param>
 			<param-name>PropertyFormat</param-name>
 			<param-value>NestedKeyValueType</param-value>
 		</init-param>
+		<init-param>
+			<param-name>ConstraintProvider</param-name>
+			<param-value>org.structr.rest.constraint.StructrConstraintProvider</param-value>
+		</init-param>
+		<init-param>
+			<param-name>Authenticator</param-name>
+			<param-value>org.structr.rest.auth.RestAuthenticator</param-value>
+		</init-param>
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>StructrRestServlet</servlet-name>
-		<url-pattern>/structr/api/*</url-pattern>
+		<url-pattern>/api/*</url-pattern>
 	</servlet-mapping>
 
     <!--  custom context parameter start -->

@@ -72,18 +72,18 @@ public class IndexNodeCommand extends NodeServiceCommand {
 
 					id = ((Long) parameters[0]).longValue();
 
-					Command findNode = Services.command(FindNodeCommand.class);
+					Command findNode = Services.command(securityContext, FindNodeCommand.class);
 
-					node = (AbstractNode) findNode.execute(new SuperUser(), id);
+					node = (AbstractNode) findNode.execute(id);
 					indexNode(node);
 
 				} else if (parameters[0] instanceof String) {
 
 					id = Long.parseLong((String) parameters[0]);
 
-					Command findNode = Services.command(FindNodeCommand.class);
+					Command findNode = Services.command(securityContext, FindNodeCommand.class);
 
-					node = (AbstractNode) findNode.execute(new SuperUser(), id);
+					node = (AbstractNode) findNode.execute(id);
 					indexNode(node);
 
 				} else if (parameters[0] instanceof AbstractNode) {
@@ -104,17 +104,17 @@ public class IndexNodeCommand extends NodeServiceCommand {
 
 					id = ((Long) parameters[0]).longValue();
 
-					Command findNode = Services.command(FindNodeCommand.class);
+					Command findNode = Services.command(securityContext, FindNodeCommand.class);
 
-					node = (AbstractNode) findNode.execute(new SuperUser(), id);
+					node = (AbstractNode) findNode.execute(id);
 
 				} else if (parameters[0] instanceof String) {
 
 					id = Long.parseLong((String) parameters[0]);
 
-					Command findNode = Services.command(FindNodeCommand.class);
+					Command findNode = Services.command(securityContext, FindNodeCommand.class);
 
-					node = (AbstractNode) findNode.execute(new SuperUser(), id);
+					node = (AbstractNode) findNode.execute(id);
 
 				} else if (parameters[0] instanceof AbstractNode) {
 
@@ -179,14 +179,14 @@ public class IndexNodeCommand extends NodeServiceCommand {
 			return;
 		}
 
-		if (!(node.getNode().hasProperty(key))) {
+		if (!(dbNode.hasProperty(key))) {
 
 			logger.log(Level.FINE, "Node {0} has no key {1}, ignoring", new Object[] { id, key });
 
 			return;
 		}
 
-		Object value            = node.getProperty(key);
+		Object value            = dbNode.getProperty(key);
 		Object valueForIndexing = node.getPropertyForIndexing(key);
 		boolean emptyValue      = ((value instanceof String) && StringUtils.isEmpty((String) value));
 

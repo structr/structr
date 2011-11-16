@@ -21,9 +21,11 @@
 
 package org.structr.core.entity.web;
 
+import org.structr.common.PropertyView;
 import org.structr.common.RenderMode;
 import org.structr.common.renderer.ExternalTemplateRenderer;
 import org.structr.common.renderer.RenderContext;
+import org.structr.core.EntityContext;
 import org.structr.core.NodeRenderer;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -39,9 +41,20 @@ import java.util.*;
  */
 public class Page extends WebNode {
 
+	static {
+
+		EntityContext.registerPropertySet(Page.class,
+						  PropertyView.All,
+						  Key.values());
+	}
+
+	//~--- methods --------------------------------------------------------
+
 	@Override
 	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers) {
-		renderers.put(RenderMode.Default, new ExternalTemplateRenderer(true));
+
+		renderers.put(RenderMode.Default,
+			      new ExternalTemplateRenderer(true));
 	}
 
 	@Override
@@ -67,6 +80,6 @@ public class Page extends WebNode {
 
 	@Override
 	public String getIconSrc() {
-		return ("/images/page.png");
+		return "/images/page.png";
 	}
 }

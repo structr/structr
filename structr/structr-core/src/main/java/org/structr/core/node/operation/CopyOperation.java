@@ -22,7 +22,7 @@ package org.structr.core.node.operation;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import org.structr.common.CurrentSession;
+import org.structr.common.SecurityContext;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -40,6 +40,7 @@ public class CopyOperation implements PrimaryOperation {
 	private ParameterState parameterState = ParameterState.NoNodeSet;
 
 	private List<Callback> callbacks = new LinkedList<Callback>();
+	private SecurityContext securityContext = null;
 	private AbstractNode destinationNode = null;
 	private AbstractNode currentNode = null;
 	private AbstractNode sourceNode = null;
@@ -56,13 +57,13 @@ public class CopyOperation implements PrimaryOperation {
 
 		if(parameterState.equals(ParameterState.DestinationNodeSet)) {
 
-			Services.command(TransactionCommand.class).execute(new StructrTransaction() {
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
 				@Override
 				public Object execute() throws Throwable {
 
-					Command moveCommand = Services.command(CopyNodeCommand.class);
-					moveCommand.execute(sourceNode, destinationNode, CurrentSession.getUser());
+					Command moveCommand = Services.command(securityContext, CopyNodeCommand.class);
+					moveCommand.execute(sourceNode, destinationNode, securityContext.getUser());
 
 					return(null);
 				}
@@ -136,7 +137,7 @@ public class CopyOperation implements PrimaryOperation {
 	// ----- private methods -----
 	private AbstractNode getNode(Object parameter) throws InvalidParameterException {
 
-		Command findNodeCommand = Services.command(FindNodeCommand.class);
+		Command findNodeCommand = Services.command(securityContext, FindNodeCommand.class);
 		AbstractNode ret = null;
 
 		if(parameter instanceof Collection) {
@@ -145,7 +146,7 @@ public class CopyOperation implements PrimaryOperation {
 
 		} else {
 
-			Object findNodeReturnValue = findNodeCommand.execute(CurrentSession.getUser(), currentNode, parameter);
+			Object findNodeReturnValue = findNodeCommand.execute(currentNode, parameter);
 			if(findNodeReturnValue instanceof Collection) {
 
 				throw new InvalidParameterException("MOVE does not support wildcards");
@@ -164,4 +165,8 @@ public class CopyOperation implements PrimaryOperation {
 		return(ret);
 	}
 
+	@Override
+	public void setSecurityContext(SecurityContext securityContext) {
+		this.securityContext = securityContext;
+	}
 }

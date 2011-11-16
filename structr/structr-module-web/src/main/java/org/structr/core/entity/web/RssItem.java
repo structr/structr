@@ -23,8 +23,6 @@ package org.structr.core.entity.web;
 
 import org.apache.commons.lang.StringUtils;
 
-import org.structr.common.RenderMode;
-import org.structr.core.NodeRenderer;
 import org.structr.core.entity.AbstractNode;
 
 import org.w3c.dom.Node;
@@ -55,25 +53,14 @@ public class RssItem extends AbstractNode {
 		this.source = node;
 
 		// synthesize type
-		values.put(TYPE_KEY, "RssItem");
-		values.put(NAME_KEY, "item" + index);
+		values.put(AbstractNode.Key.type.name(),
+			   "RssItem");
+		values.put(AbstractNode.Key.name.name(),
+			   "item" + index);
 		initialize();
 	}
 
 	//~--- methods --------------------------------------------------------
-
-	// ----- AbstractNode -----
-	@Override
-	public void initializeRenderers(Map<RenderMode, NodeRenderer> rendererMap) {}
-
-	@Override
-	public void onNodeCreation() {}
-
-	@Override
-	public void onNodeInstantiation() {}
-
-	@Override
-	public void onNodeDeletion() {}
 
 	// ----- private methods -----
 	private void initialize() {
@@ -105,14 +92,18 @@ public class RssItem extends AbstractNode {
 							if (namespaceMap == null) {
 
 								namespaceMap = new LinkedHashMap<String, Object>();
-								values.put(namespace, namespaceMap);
+								values.put(namespace,
+									   namespaceMap);
 							}
 
-							namespaceMap.put(relativeName, value);
+							namespaceMap.put(relativeName,
+									 value);
 						}
 
 					} else {
-						values.put(name, value);
+
+						values.put(name,
+							   value);
 					}
 				}
 			}
@@ -133,7 +124,7 @@ public class RssItem extends AbstractNode {
 
 	@Override
 	public String getIconSrc() {
-		return ("/images/feed.png");
+		return "/images/feed.png";
 	}
 
 	private String getValue(Node child) {

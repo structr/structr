@@ -28,8 +28,9 @@ import org.apache.click.util.Bindable;
 import org.apache.click.util.ClickUtils;
 import org.apache.commons.lang.StringUtils;
 
-import org.structr.common.CurrentRequest;
-import org.structr.common.CurrentSession;
+import org.structr.common.AccessMode;
+import org.structr.common.Permission;
+import org.structr.common.SecurityContext;
 import org.structr.common.TreeHelper;
 import org.structr.context.SessionMonitor;
 import org.structr.core.Command;
@@ -52,8 +53,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import javax.servlet.http.HttpSession;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -98,15 +97,14 @@ public class StructrPage extends Page {
 	protected final static String TARGET_SLOT_NAME_KEY = "targetSlotName";
 
 	// protected final static String SUPERUSER_KEY = "superadmin";
-	protected final static String USERNAME_KEY = "username";
 
 	/** key for currently logged in users */
-	protected final static String USER_LIST_KEY           = "userList";
-	protected final static String VALUE_KEY               = "value";
-	protected static final String WARN_MSG_KEY            = "warnMsg";
-	private static final Logger logger                    = Logger.getLogger(StructrPage.class.getName());
-	protected final static String SUPERADMIN_USERNAME_KEY = Services.getSuperuserUsername();
-	protected final static String SUPERADMIN_PASSWORD_KEY = Services.getSuperuserPassword();
+	protected final static String USER_LIST_KEY        = "userList";
+	protected final static String VALUE_KEY            = "value";
+	protected static final String WARN_MSG_KEY         = "warnMsg";
+	private static final Logger logger                 = Logger.getLogger(StructrPage.class.getName());
+	public final static String SUPERADMIN_USERNAME_KEY = Services.getSuperuserUsername();
+	public final static String SUPERADMIN_PASSWORD_KEY = Services.getSuperuserPassword();
 	@Bindable
 	public static String contextPath;
 
@@ -118,25 +116,26 @@ public class StructrPage extends Page {
 	// @Bindable
 	// protected String infoMsg = "";
 	@Bindable
-	protected String okMsg   = "";
+	protected String okMsg                    = "";
+	protected SecurityContext securityContext = null;
 	@Bindable
-	protected String warnMsg = "";
+	protected String warnMsg                  = "";
 
 	// TODO: move to global configuration
 	protected final String FILES_PATH;
-//	protected boolean accessControlAllowed;
-//	protected boolean addRelationshipAllowed;
+	protected boolean accessControlAllowed;
+	protected boolean addRelationshipAllowed;
 
 	// @Bindable
 	// protected Table pageListTable = new Table();
 	// cached list with all avaliable page classes
 	private List<Class<? extends Page>> configuredPageClasses;
-//	protected boolean createNodeAllowed;
-//	protected boolean deleteNodeAllowed;
+	protected boolean createNodeAllowed;
+	protected boolean deleteNodeAllowed;
 	@Bindable
 	protected Long editNodeId;
-//	protected boolean editPropertiesAllowed;
-//	protected boolean editVisibilityAllowed;
+	protected boolean editPropertiesAllowed;
+	protected boolean editVisibilityAllowed;
 	@Bindable
 	protected boolean isSuperUser;
 
@@ -149,8 +148,8 @@ public class StructrPage extends Page {
 	/** id of parent node (needed for link deletion */
 	@Bindable
 	protected String parentNodeId;
-//	protected boolean readAllowed;
-//	protected boolean removeRelationshipAllowed;
+	protected boolean readAllowed;
+	protected boolean removeRelationshipAllowed;
 	@Bindable
 	protected String renderMode;
 	@Bindable
@@ -160,46 +159,42 @@ public class StructrPage extends Page {
 	@Bindable
 	protected AbstractNode rootNode;
 	protected long sessionId;
-//	protected boolean showTreeAllowed;
+	protected boolean showTreeAllowed;
 	@Bindable
 	protected String title;
 	@Bindable
 	protected User user;
 	@Bindable
 	protected String userName;
-//	protected boolean writeAllowed;
+	protected boolean writeAllowed;
 
 	//~--- constructors ---------------------------------------------------
 
 	public StructrPage() {
 
 		super();
+		securityContext = SecurityContext.getInstance(getContext().getServletConfig(),
+			getContext().getRequest(), AccessMode.Frontend);
 
 		// prepare global structr request context for this request and this thread
-		CurrentRequest.setRequest(getContext().getRequest());
-		CurrentRequest.setResponse(getContext().getResponse());
 		contextPath = getContext().getRequest().getContextPath();
 		FILES_PATH  = Services.getFilesPath();
 
-		// Command graphDbCommand = Services.command(GraphDatabaseCommand.class);
+		// Command graphDbCommand = Services.command(securityContext, GraphDatabaseCommand.class);
 		// graphDb = (GraphDatabaseService)graphDbCommand.execute();
 		// userName = getContext().getRequest().getRemoteUser();
 		// userName = (String) getContext().getRequest().getSession().getAttribute(USERNAME_KEY);
-		userName = getUsernameFromSession();
-        user     = getUserNode();
+		if (securityContext.getUser() != null) {
 
-        if (user != null) {
-
-			CurrentSession.setUser(user);
-
-			// sessionId = (Long) getContext().getRequest().getSession().getAttribute(SessionMonitor.SESSION_ID);
-			sessionId = (Long) CurrentSession.getAttribute(SessionMonitor.SESSION_ID);
-			SessionMonitor.logPageRequest(sessionId, "Page Request", getContext().getRequest());
-		}
-
-
-		if ((userName != null) && userName.equals(SUPERADMIN_USERNAME_KEY)) {
-			isSuperUser = true;
+			user        = securityContext.getUser();
+			userName    = securityContext.getUserName();
+			isSuperUser = securityContext.isSuperUser();
+			sessionId   =
+				(Long) getContext().getRequest().getSession().getAttribute(SessionMonitor.SESSION_ID);
+			SessionMonitor.logPageRequest(securityContext,
+						      sessionId,
+						      "Page Request",
+						      getContext().getRequest());
 		}
 
 //              pageListTable.addColumn(new Column("canonicalName"));
@@ -218,8 +213,8 @@ public class StructrPage extends Page {
 	public void onInit() {
 
 		super.onInit();
-		CurrentRequest.setCurrentNodePath(nodeId);
 
+//              CurrentRequest.setCurrentNodePath(nodeId);
 		// Catch both, id and path
 		node = getNodeByIdOrPath(nodeId);
 
@@ -230,7 +225,6 @@ public class StructrPage extends Page {
 		// Internally, use node ids
 		nodeId = node.getIdString();
 
-		/*
 		if (isSuperUser) {
 
 			readAllowed               = true;
@@ -246,26 +240,26 @@ public class StructrPage extends Page {
 
 		} else if ((user != null) && (node != null)) {
 
-			readAllowed               = node.readAllowed();
-			showTreeAllowed           = node.showTreeAllowed();
-			writeAllowed              = node.writeAllowed();
-			accessControlAllowed      = node.accessControlAllowed();
-			createNodeAllowed         = node.createSubnodeAllowed();
-			deleteNodeAllowed         = node.deleteNodeAllowed();
-			editPropertiesAllowed     = node.editPropertiesAllowed();
-			editVisibilityAllowed     = node.editPropertiesAllowed();    // TODO: add access rights for visibility
-			addRelationshipAllowed    = node.addRelationshipAllowed();
-			removeRelationshipAllowed = node.removeRelationshipAllowed();
+			readAllowed               = securityContext.isAllowed(node, Permission.Read);
+			showTreeAllowed           = securityContext.isAllowed(node, Permission.Read);
+			writeAllowed              = securityContext.isAllowed(node, Permission.Write);
+			accessControlAllowed      = securityContext.isAllowed(node, Permission.AccessControl);
+			createNodeAllowed         = securityContext.isAllowed(node, Permission.CreateNode);
+			deleteNodeAllowed         = securityContext.isAllowed(node, Permission.DeleteNode);
+			editPropertiesAllowed     = securityContext.isAllowed(node, Permission.EditProperty);
+			editVisibilityAllowed     = securityContext.isAllowed(node, Permission.Write);
+			addRelationshipAllowed    = securityContext.isAllowed(node, Permission.CreateRelationship);
+			removeRelationshipAllowed = securityContext.isAllowed(node, Permission.DeleteRelationship);
 		}
-		*/
 
 		// call request cycle listener
-		CurrentRequest.onRequestStart();
+//              CurrentRequest.onRequestStart();
 	}
 
 	@Override
 	public void onDestroy() {
-		CurrentRequest.onRequestEnd();
+
+//              CurrentRequest.onRequestEnd();
 	}
 
 	/**
@@ -274,17 +268,22 @@ public class StructrPage extends Page {
 	@Override
 	public boolean onSecurityCheck() {
 
-		// userName = getContext().getRequest().getRemoteUser();
+		userName = securityContext.getUserName();
+
 		if (userName != null) {
 			return true;
 		} else {
 
 			Map<String, String> parameters = new HashMap<String, String>();
-			PageLink returnLink            = new PageLink("Return Link", getClass());
+			PageLink returnLink            = new PageLink("Return Link",
+				getClass());
 
-			returnLink.setParameter(NODE_ID_KEY, getNodeId());
-			parameters.put(RETURN_URL_KEY, returnLink.getHref());
-			setRedirect(LoginPage.class, parameters);
+			returnLink.setParameter(NODE_ID_KEY,
+						getNodeId());
+			parameters.put(RETURN_URL_KEY,
+				       returnLink.getHref());
+			setRedirect(LoginPage.class,
+				    parameters);
 
 			return false;
 		}
@@ -317,24 +316,31 @@ public class StructrPage extends Page {
 		Map<String, String> parameters = new HashMap<String, String>();
 
 		if (StringUtils.isNotEmpty(okMsg)) {
-			parameters.put(OK_MSG_KEY, okMsg);
+
+			parameters.put(OK_MSG_KEY,
+				       okMsg);
 		}
 
 		if (StringUtils.isNotEmpty(errorMsg)) {
-			parameters.put(ERROR_MSG_KEY, errorMsg);
+
+			parameters.put(ERROR_MSG_KEY,
+				       errorMsg);
 		}
 
 		if (returnUrl != null) {
 
-			setRedirect(returnUrl, parameters);
+			setRedirect(returnUrl,
+				    parameters);
 			setRedirect(getRedirect().concat("#properties-tab"));
 
 		} else {
 
 			// no return url: keep page and
 			// set return url
-			parameters.put(NODE_ID_KEY, getNodeId());
-			setRedirect(getPath(), parameters);
+			parameters.put(NODE_ID_KEY,
+				       getNodeId());
+			setRedirect(getPath(),
+				    parameters);
 		}
 
 		return false;
@@ -365,14 +371,16 @@ public class StructrPage extends Page {
 					if (nodeIdString.startsWith("/")) {
 
 						AbstractNode byPathNode = TreeHelper.getNodeByPath(getRootNode(),
-										  nodeIdString, true);
+							nodeIdString,
+							true);
 
 						if (byPathNode != null) {
 							return byPathNode;
 						}
 
 						// If node not found by path, try to parse the path string as numerical id
-						String byNumber           = StringUtils.remove(nodeIdString, "/");
+						String byNumber           = StringUtils.remove(nodeIdString,
+							"/");
 						AbstractNode byNumberNode = getNodeById(Long.parseLong(byNumber));
 
 						if (byNumberNode != null) {
@@ -384,7 +392,9 @@ public class StructrPage extends Page {
 
 				} catch (NumberFormatException e) {
 
-					logger.log(Level.FINE, "Could not parse {0} to number", nodeIdOrPath);
+					logger.log(Level.FINE,
+						   "Could not parse {0} to number",
+						   nodeIdOrPath);
 
 					return null;
 				}
@@ -393,7 +403,9 @@ public class StructrPage extends Page {
 				return getNodeById((Long) nodeIdOrPath);
 			} else {
 
-				logger.log(Level.WARNING, "Node requested by unknown object: {0}", nodeIdOrPath);
+				logger.log(Level.WARNING,
+					   "Node requested by unknown object: {0}",
+					   nodeIdOrPath);
 
 				return null;
 			}
@@ -412,10 +424,11 @@ public class StructrPage extends Page {
 	 */
 	protected AbstractNode getNodeById(final Long requestedId) {
 
-		Command findNode = Services.command(FindNodeCommand.class);
+		Command findNode = Services.command(securityContext,
+			FindNodeCommand.class);
 		AbstractNode ret = null;
 
-		ret = (AbstractNode) findNode.execute(user, requestedId);
+		ret = (AbstractNode) findNode.execute(requestedId);
 
 		return (ret);
 	}
@@ -445,7 +458,8 @@ public class StructrPage extends Page {
 	 */
 	public Class<? extends Page> getEditPageClass(final AbstractNode n) {
 
-		Class<? extends Page> ret = getPageClass(n, "Edit");
+		Class<? extends Page> ret = getPageClass(n,
+			"Edit");
 
 		if (ret == null) {
 			ret = Edit.class;
@@ -483,7 +497,9 @@ public class StructrPage extends Page {
 				}
 			}
 
-			logger.log(Level.FINE, "No admin GUI page found for {0}", n.getType());
+			logger.log(Level.FINE,
+				   "No admin GUI page found for {0}",
+				   n.getType());
 		}
 
 		return DefaultEdit.class;
@@ -506,7 +522,9 @@ public class StructrPage extends Page {
 
 	protected AbstractNode getRootNode() {
 
-		Command findNode = Services.command(FindNodeCommand.class);
+		Command findNode = Services.command(securityContext,
+			FindNodeCommand.class);
+		User user        = securityContext.getUser();
 
 		if ((user != null) &&!(user instanceof SuperUser)) {
 			rootNode = user.getRootNode();
@@ -515,7 +533,7 @@ public class StructrPage extends Page {
 		if (rootNode == null) {
 
 			// get reference (root) node
-			rootNode = (AbstractNode) findNode.execute(user, new Long(0));
+			rootNode = (AbstractNode) findNode.execute(new Long(0));
 		}
 
 		return rootNode;
@@ -528,16 +546,21 @@ public class StructrPage extends Page {
 	 */
 	protected User getUserNode() {
 
-		// don't try to find a user node if userName is null or is superadmin
-		if (userName == null) {
-			return null;
-		}
+		return securityContext.getUser();
 
-		if (userName.equals(SUPERADMIN_USERNAME_KEY)) {
-			return new SuperUser();
-		}
-
-		return (User) Services.command(FindUserCommand.class).execute(userName);
+		/*
+		 * // don't try to find a user node if userName is null or is superadmin
+		 * if (userName == null) {
+		 *       return null;
+		 * }
+		 *
+		 * if (userName.equals(SUPERADMIN_USERNAME_KEY)) {
+		 *       return new SuperUser();
+		 * }
+		 *
+		 * return (User) Services.command(securityContext, FindUserCommand.class).execute(userName);
+		 *
+		 */
 	}
 
 	/**
@@ -556,9 +579,11 @@ public class StructrPage extends Page {
 
 		if (node != null) {
 
-			PageLink returnLink = new PageLink("Return Link", getClass());
+			PageLink returnLink = new PageLink("Return Link",
+							   getClass());
 
-			returnLink.setParameter(AbstractNode.NODE_ID_KEY, node.getId());
+			returnLink.setParameter(AbstractNode.Key.nodeId.name(),
+						node.getId());
 
 			return returnLink;
 
@@ -574,7 +599,8 @@ public class StructrPage extends Page {
 	 */
 	protected List<User> getAllUsers() {
 
-		Command findUser = Services.command(FindUserCommand.class);
+		Command findUser = Services.command(securityContext,
+			FindUserCommand.class);
 
 		return ((List<User>) findUser.execute());
 	}
@@ -586,37 +612,9 @@ public class StructrPage extends Page {
 	 */
 	protected List<Group> getAllGroups() {
 
-		Command findGroup = Services.command(FindGroupCommand.class);
+		Command findGroup = Services.command(securityContext,
+			FindGroupCommand.class);
 
 		return ((List<Group>) findGroup.execute());
-	}
-
-	/**
-	 * Return user session
-	 *
-	 * @return
-	 */
-	private HttpSession getSession() {
-		return getContext().getSession();
-	}
-
-	/**
-	 * Return username saved in session
-	 *
-	 * @return
-	 */
-	protected String getUsernameFromSession() {
-		return (String) getSession().getAttribute(USERNAME_KEY);
-	}
-
-	//~--- set methods ----------------------------------------------------
-
-	/**
-	 * Save given username in session
-	 *
-	 * @param username
-	 */
-	protected void setUsernameInSession(final String username) {
-		getSession().setAttribute(USERNAME_KEY, username);
 	}
 }

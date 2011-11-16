@@ -39,7 +39,6 @@ import org.apache.click.extras.control.IntegerField;
 import org.apache.click.extras.control.LongField;
 import org.apache.click.extras.control.NumberField;
 import org.apache.click.util.ContainerUtils;
-import org.structr.common.CurrentRequest;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.core.Command;
@@ -73,7 +72,6 @@ public class EditCustomTypeNode extends DefaultEdit {
 
 		super.onInit();
 
-		SecurityContext securityContext = CurrentRequest.getSecurityContext();
 		CustomTypeNode customTypeNode = null;
 
 		if (node != null) {
@@ -281,7 +279,7 @@ public class EditCustomTypeNode extends DefaultEdit {
 	 */
 	protected void saveDynamicNodeProperties() {
 
-		final Command transactionCommand = Services.command(TransactionCommand.class);
+		final Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
 		transactionCommand.execute(new StructrTransaction() {
 
 			@Override

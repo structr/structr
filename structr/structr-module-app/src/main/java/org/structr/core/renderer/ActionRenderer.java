@@ -2,9 +2,9 @@ package org.structr.core.renderer;
 
 import java.util.List;
 import org.neo4j.graphdb.Direction;
-import org.structr.common.CurrentRequest;
 import org.structr.common.RelType;
 import org.structr.common.RenderMode;
+import org.structr.common.RequestHelper;
 import org.structr.common.StructrOutputStream;
 import org.structr.core.NodeRenderer;
 import org.structr.core.entity.AbstractNode;
@@ -28,7 +28,7 @@ public class ActionRenderer implements NodeRenderer<AbstractNode>
 			if(n instanceof ActionNode)
 			{
 				ActionNode actionNode = (ActionNode)n;
-				actionNode.initialize();
+				actionNode.initialize(out.getRequest());
 
 				if(!actionNode.doAction(out, startNode, editUrl, editNodeId)) {
 					
@@ -45,7 +45,7 @@ public class ActionRenderer implements NodeRenderer<AbstractNode>
 			AbstractNode successTarget = getSuccessTarget(currentNode);
 			if(successTarget != null)
 			{
-				CurrentRequest.redirect(currentNode, successTarget);
+				RequestHelper.redirect(out.getRequest(), out.getResponse(), currentNode, successTarget);
 			}
 
 		} else
@@ -55,7 +55,7 @@ public class ActionRenderer implements NodeRenderer<AbstractNode>
 			AbstractNode failureTarget = getFailureTarget(currentNode);
 			if(failureTarget != null)
 			{
-				CurrentRequest.redirect(currentNode, failureTarget);
+				RequestHelper.redirect(out.getRequest(), out.getResponse(), currentNode, failureTarget);
 			}
 		}
 	}

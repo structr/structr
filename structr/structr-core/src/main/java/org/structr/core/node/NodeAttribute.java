@@ -26,55 +26,71 @@ package org.structr.core.node;
  */
 public class NodeAttribute {
 
-    private String key = null;
-    private Object value = null;
+	private String key = null;
+	private Object value = null;
 
-    public NodeAttribute() {}
+	public NodeAttribute() {
+	}
 
-    public NodeAttribute(final String key, final Object value) {
-        this.key = key;
-        this.value = value;
-    }
+	public NodeAttribute(final String key, final Object value) {
+		this.key = key;
+		this.value = value;
+	}
 
-    /**
-     * @return the key
-     */
-    public String getKey() {
-        return key;
-    }
+	/**
+	 * @return the key
+	 */
+	public String getKey() {
+		return key;
+	}
 
-    /**
-     * @param key the key to set
-     */
-    public void setKey(String key) {
-        this.key = key;
-    }
+	/**
+	 * @param key the key to set
+	 */
+	public void setKey(String key) {
+		this.key = key;
+	}
 
-    /**
-     * @return the value
-     */
-    public Object getValue() {
-        return value;
-    }
+	/**
+	 * @return the value
+	 */
+	public Object getValue() {
+		return value;
+	}
 
-    /**
-     * @param value the value to set
-     */
-    public void setValue(Object value) {
-        this.value = value;
-    }
+	/**
+	 * @param value the value to set
+	 */
+	public void setValue(Object value) {
+		this.value = value;
+	}
 
-    @Override
-    public String toString() {
+	@Override
+	public String toString() {
 
-	    StringBuilder buf = new StringBuilder();
+		StringBuilder buf = new StringBuilder();
 
-	    buf.append("NodeAttribute('");
-	    buf.append(key);
-	    buf.append("', '");
-	    buf.append(value);
-	    buf.append("')");
+		buf.append("NodeAttribute('");
+		buf.append(key);
+		buf.append("', '");
+		buf.append(value);
+		buf.append("')");
 
-	    return buf.toString();
-    }
+		return buf.toString();
+	}
+
+	@Override
+	public int hashCode() {
+		return key.hashCode();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+
+		if(obj instanceof NodeAttribute) {
+			return ((NodeAttribute)obj).hashCode() == hashCode();
+		}
+
+		return false;
+	}
 }

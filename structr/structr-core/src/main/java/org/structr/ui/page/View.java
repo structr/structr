@@ -21,13 +21,10 @@
 
 package org.structr.ui.page;
 
-import org.apache.click.Page;
 import org.apache.click.util.Bindable;
 
 import org.structr.common.AccessMode;
-import org.structr.common.CurrentRequest;
 import org.structr.common.Permission;
-import org.structr.common.SecurityContext;
 import org.structr.common.StructrOutputStream;
 import org.structr.core.entity.AbstractNode;
 
@@ -37,6 +34,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletResponse;
+import org.apache.click.Context;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -59,11 +57,14 @@ public class View extends StructrPage {
 
 		super();
 
+		Context context = getContext();
+
 		// create a context path for local links, like e.g.
 		// "/structr-webapp/view.htm?nodeId="
-		contextPath = getContext().getRequest().getContextPath().concat(
-			getContext().getPagePath(View.class).concat("?").concat(NODE_ID_KEY.concat("=")));
-		CurrentRequest.setAccessMode(AccessMode.Frontend);
+		contextPath = context.getRequest().getContextPath().concat(context.getPagePath(View.class).concat("?").concat(NODE_ID_KEY.concat("=")));
+
+		// initialize securityContext with frontend mode
+		securityContext.setAccessMode(AccessMode.Frontend);
 	}
 
 	//~--- methods --------------------------------------------------------
@@ -73,10 +74,6 @@ public class View extends StructrPage {
 	 */
 	@Override
 	public boolean onSecurityCheck() {
-
-//              userName = getContext().getRequest().getRemoteUser();
-		userName = getUsernameFromSession();
-
 		return true;
 	}
 
@@ -89,7 +86,6 @@ public class View extends StructrPage {
 	@Override
 	public void onRender() {
 
-		SecurityContext securityContext = CurrentRequest.getSecurityContext();
 		AbstractNode nodeToRender       = getNodeByIdOrPath(getNodeId());
 
 		if (nodeToRender == null) {
@@ -142,12 +138,12 @@ public class View extends StructrPage {
 			try {
 
 				// create output stream wrapper
-				StructrOutputStream outputStream = new StructrOutputStream(getContext().getResponse());
-
+				StructrOutputStream outputStream = new StructrOutputStream(getContext().getRequest(), getContext().getResponse(), securityContext);
 				nodeToRender.renderNode(outputStream, nodeToRender, editUrl, editNodeId);
 
 				// commit response
 				getContext().getResponse().getOutputStream().flush();
+				
 			} catch (Throwable t) {
 				logger.log(Level.WARNING, "Exception while rendering to output stream: {0}", t);
 			}

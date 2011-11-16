@@ -1,27 +1,38 @@
 /*
  *  Copyright (C) 2011 Axel Morgner, structr <structr@structr.org>
- * 
+ *
  *  This file is part of structr <http://structr.org>.
- * 
+ *
  *  structr is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
- * 
+ *
  *  structr is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- * 
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+
+
 package org.structr.core.entity.web;
 
-import java.util.Map;
+import org.structr.common.PropertyKey;
+import org.structr.common.PropertyView;
 import org.structr.common.RenderMode;
+import org.structr.core.EntityContext;
 import org.structr.core.NodeRenderer;
 import org.structr.renderer.MailSenderRenderer;
+
+//~--- JDK imports ------------------------------------------------------------
+
+import java.util.Map;
+
+//~--- classes ----------------------------------------------------------------
 
 /**
  * Send e-mails containing form data.
@@ -34,29 +45,38 @@ import org.structr.renderer.MailSenderRenderer;
  *
  * @author axel
  */
-public class MailSender extends Form
-{
+public class MailSender extends Form {
+
+	static {
+
+		EntityContext.registerPropertySet(MailSender.class,
+						  PropertyView.All,
+						  Key.values());
+	}
+
+	//~--- constant enums -------------------------------------------------
+
 	/** Template for mail subject line */
-	public final static String MAIL_SUBJECT_TEMPLATE_KEY = "mailSubjectTemplate";
-	/** Template for mail body */
-	public final static String HTML_BODY_TEMPLATE_KEY = "htmlBodyTemplate";
-	/** Template for 'to address' */
-	public final static String TO_ADDRESS_TEMPLATE_KEY = "toAddressTemplate";
-	/** Template for 'from address' */
-	public final static String FROM_ADDRESS_TEMPLATE_KEY = "fromAddressTemplate";
-	/** Template for 'cc address' */
-	public final static String CC_ADDRESS_TEMPLATE_KEY = "ccAddressTemplate";
-	/** Template for 'bcc address' */
-	public final static String BCC_ADDRESS_TEMPLATE_KEY = "bccAddressTemplate";
-	/** Template for 'to name' */
-	public final static String TO_NAME_TEMPLATE_KEY = "toNameTemplate";
-	/** Template for 'from name' */
-	public final static String FROM_NAME_TEMPLATE_KEY = "fromNameTemplate";
+	public enum Key implements PropertyKey {
+
+		mailSubjectTemplate, htmlBodyTemplate, toAddressTemplate, fromAddressTemplate, ccAddressTemplate,
+		bccAddressTemplate, toNameTemplate, fromNameTemplate;
+	}
+
+	//~--- methods --------------------------------------------------------
 
 	@Override
-	public String getIconSrc()
-	{
-		return ("/images/email_go.png");
+	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers) {
+
+		renderers.put(RenderMode.Default,
+			      new MailSenderRenderer());
+	}
+
+	//~--- get methods ----------------------------------------------------
+
+	@Override
+	public String getIconSrc() {
+		return "/images/email_go.png";
 	}
 
 	/**
@@ -64,19 +84,8 @@ public class MailSender extends Form
 	 *
 	 * @return
 	 */
-	public String getMailSubjectTemplate()
-	{
-		return getStringProperty(MAIL_SUBJECT_TEMPLATE_KEY);
-	}
-
-	/**
-	 * Set template for mail subject line
-	 *
-	 * @param value
-	 */
-	public void setMailSubjectTemplate(final String value)
-	{
-		setProperty(MAIL_SUBJECT_TEMPLATE_KEY, value);
+	public String getMailSubjectTemplate() {
+		return getStringProperty(Key.mailSubjectTemplate.name());
 	}
 
 	/**
@@ -84,19 +93,8 @@ public class MailSender extends Form
 	 *
 	 * @return
 	 */
-	public String getHtmlBodyTemplate()
-	{
-		return getStringProperty(HTML_BODY_TEMPLATE_KEY);
-	}
-
-	/**
-	 * Set template for mail body
-	 *
-	 * @param value
-	 */
-	public void setHtmlBodyTemplate(final String value)
-	{
-		setProperty(HTML_BODY_TEMPLATE_KEY, value);
+	public String getHtmlBodyTemplate() {
+		return getStringProperty(Key.htmlBodyTemplate.name());
 	}
 
 	/**
@@ -104,19 +102,8 @@ public class MailSender extends Form
 	 *
 	 * @return
 	 */
-	public String getToAddressTemplate()
-	{
-		return getStringProperty(TO_ADDRESS_TEMPLATE_KEY);
-	}
-
-	/**
-	 * Set template for 'to address'
-	 *
-	 * @param value
-	 */
-	public void setToAddressTemplate(final String value)
-	{
-		setProperty(TO_ADDRESS_TEMPLATE_KEY, value);
+	public String getToAddressTemplate() {
+		return getStringProperty(Key.toAddressTemplate.name());
 	}
 
 	/**
@@ -124,19 +111,8 @@ public class MailSender extends Form
 	 *
 	 * @return
 	 */
-	public String getFromAddressTemplate()
-	{
-		return getStringProperty(FROM_ADDRESS_TEMPLATE_KEY);
-	}
-
-	/**
-	 * Set template for 'from address'
-	 *
-	 * @param value
-	 */
-	public void setFromAddressTemplate(final String value)
-	{
-		setProperty(FROM_ADDRESS_TEMPLATE_KEY, value);
+	public String getFromAddressTemplate() {
+		return getStringProperty(Key.fromAddressTemplate.name());
 	}
 
 	/**
@@ -144,19 +120,8 @@ public class MailSender extends Form
 	 *
 	 * @return
 	 */
-	public String getToNameTemplate()
-	{
-		return getStringProperty(TO_NAME_TEMPLATE_KEY);
-	}
-
-	/**
-	 * Set template for 'to name'
-	 *
-	 * @param value
-	 */
-	public void setToNameTemplate(final String value)
-	{
-		setProperty(TO_NAME_TEMPLATE_KEY, value);
+	public String getToNameTemplate() {
+		return getStringProperty(Key.toNameTemplate.name());
 	}
 
 	/**
@@ -164,19 +129,8 @@ public class MailSender extends Form
 	 *
 	 * @return
 	 */
-	public String getFromNameTemplate()
-	{
-		return getStringProperty(FROM_NAME_TEMPLATE_KEY);
-	}
-
-	/**
-	 * Set template for 'to address'
-	 *
-	 * @param value
-	 */
-	public void setFromNameTemplate(final String value)
-	{
-		setProperty(FROM_NAME_TEMPLATE_KEY, value);
+	public String getFromNameTemplate() {
+		return getStringProperty(Key.fromNameTemplate.name());
 	}
 
 	/**
@@ -184,19 +138,8 @@ public class MailSender extends Form
 	 *
 	 * @return
 	 */
-	public String getCcAddressTemplate()
-	{
-		return getStringProperty(CC_ADDRESS_TEMPLATE_KEY);
-	}
-
-	/**
-	 * Set template for 'cc address'
-	 *
-	 * @param value
-	 */
-	public void setCcAddressTemplate(final String value)
-	{
-		setProperty(CC_ADDRESS_TEMPLATE_KEY, value);
+	public String getCcAddressTemplate() {
+		return getStringProperty(Key.ccAddressTemplate.name());
 	}
 
 	/**
@@ -204,9 +147,87 @@ public class MailSender extends Form
 	 *
 	 * @return
 	 */
-	public String getBccAddressTemplate()
-	{
-		return getStringProperty(BCC_ADDRESS_TEMPLATE_KEY);
+	public String getBccAddressTemplate() {
+		return getStringProperty(Key.bccAddressTemplate.name());
+	}
+
+	//~--- set methods ----------------------------------------------------
+
+	/**
+	 * Set template for mail subject line
+	 *
+	 * @param value
+	 */
+	public void setMailSubjectTemplate(final String value) {
+
+		setProperty(Key.mailSubjectTemplate.name(),
+			    value);
+	}
+
+	/**
+	 * Set template for mail body
+	 *
+	 * @param value
+	 */
+	public void setHtmlBodyTemplate(final String value) {
+
+		setProperty(Key.htmlBodyTemplate.name(),
+			    value);
+	}
+
+	/**
+	 * Set template for 'to address'
+	 *
+	 * @param value
+	 */
+	public void setToAddressTemplate(final String value) {
+
+		setProperty(Key.toAddressTemplate.name(),
+			    value);
+	}
+
+	/**
+	 * Set template for 'from address'
+	 *
+	 * @param value
+	 */
+	public void setFromAddressTemplate(final String value) {
+
+		setProperty(Key.fromAddressTemplate.name(),
+			    value);
+	}
+
+	/**
+	 * Set template for 'to name'
+	 *
+	 * @param value
+	 */
+	public void setToNameTemplate(final String value) {
+
+		setProperty(Key.toNameTemplate.name(),
+			    value);
+	}
+
+	/**
+	 * Set template for 'to address'
+	 *
+	 * @param value
+	 */
+	public void setFromNameTemplate(final String value) {
+
+		setProperty(Key.fromNameTemplate.name(),
+			    value);
+	}
+
+	/**
+	 * Set template for 'cc address'
+	 *
+	 * @param value
+	 */
+	public void setCcAddressTemplate(final String value) {
+
+		setProperty(Key.ccAddressTemplate.name(),
+			    value);
 	}
 
 	/**
@@ -214,14 +235,9 @@ public class MailSender extends Form
 	 *
 	 * @param value
 	 */
-	public void setBccAddressTemplate(final String value)
-	{
-		setProperty(BCC_ADDRESS_TEMPLATE_KEY, value);
-	}
+	public void setBccAddressTemplate(final String value) {
 
-	@Override
-	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers)
-	{
-		renderers.put(RenderMode.Default, new MailSenderRenderer());
+		setProperty(Key.bccAddressTemplate.name(),
+			    value);
 	}
 }

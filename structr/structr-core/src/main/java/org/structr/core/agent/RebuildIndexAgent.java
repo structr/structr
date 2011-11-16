@@ -21,6 +21,7 @@ package org.structr.core.agent;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.SecurityContext;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -66,19 +67,20 @@ public class RebuildIndexAgent extends Agent {
 
     private long rebuildIndex() {
 
-
-        Command transactionCommand = Services.command(TransactionCommand.class);
+	// FIXME: superuser security context
+	final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+        Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
         Long nodes = (Long) transactionCommand.execute(new StructrTransaction() {
 
             @Override
             public Object execute() throws Throwable {
 
-//                GraphDatabaseService graphDb = (GraphDatabaseService) Services.command(GraphDatabaseCommand.class).execute();
+//                GraphDatabaseService graphDb = (GraphDatabaseService) Services.command(securityContext, GraphDatabaseCommand.class).execute();
 
                 long nodes = 0;
 
-                Command indexer = Services.command(IndexNodeCommand.class);
-                List<AbstractNode> allNodes = (List<AbstractNode>) Services.command(GetAllNodes.class).execute();
+                Command indexer = Services.command(securityContext, IndexNodeCommand.class);
+                List<AbstractNode> allNodes = (List<AbstractNode>) Services.command(securityContext, GetAllNodes.class).execute();
                 for (AbstractNode s : allNodes) {
                     indexer.execute(s);
                     nodes++;

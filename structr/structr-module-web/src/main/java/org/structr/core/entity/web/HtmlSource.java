@@ -24,6 +24,8 @@ package org.structr.core.entity.web;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
+import org.structr.common.PropertyView;
+import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.PlainText;
 
@@ -40,13 +42,18 @@ import java.util.List;
  */
 public class HtmlSource extends PlainText {
 
-	private final static String ICON_SRC = "/images/html.png";
+	static {
+
+		EntityContext.registerPropertySet(HtmlSource.class,
+						  PropertyView.All,
+						  Key.values());
+	}
 
 	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public String getIconSrc() {
-		return ICON_SRC;
+		return "/images/html.png";
 	}
 
 	/**
@@ -73,7 +80,7 @@ public class HtmlSource extends PlainText {
 
 		Object value = getProperty(key);
 
-		if (PlainText.CONTENT_KEY.equals(key)) {
+		if (PlainText.Key.content.name().equals(key)) {
 
 			String stringValue = (String) value;
 			Document htmlDoc   = Jsoup.parse(stringValue);

@@ -65,7 +65,7 @@ public class ExtractFileCommand extends NodeServiceCommand {
         AbstractNode targetNode = null;
         User user = null;
 
-        Command findNode = Services.command(FindNodeCommand.class);
+        Command findNode = Services.command(securityContext, FindNodeCommand.class);
 
         switch (parameters.length) {
 
@@ -73,26 +73,26 @@ public class ExtractFileCommand extends NodeServiceCommand {
 
                 if (parameters[0] instanceof Long) {
                     long id = ((Long) parameters[0]).longValue();
-                    node = (AbstractNode) findNode.execute(user, id);
+                    node = (AbstractNode) findNode.execute(id);
 
                 } else if (parameters[0] instanceof AbstractNode) {
                     node = (AbstractNode) parameters[0];
 
                 } else if (parameters[0] instanceof String) {
                     long id = Long.parseLong((String) parameters[0]);
-                    node = (AbstractNode) findNode.execute(user, id);
+                    node = (AbstractNode) findNode.execute(id);
                 }
 
                 if (parameters[1] instanceof Long) {
                     long id = ((Long) parameters[1]).longValue();
-                    targetNode = (AbstractNode) findNode.execute(user, id);
+                    targetNode = (AbstractNode) findNode.execute(id);
 
                 } else if (parameters[1] instanceof AbstractNode) {
                     targetNode = (AbstractNode) parameters[1];
 
                 } else if (parameters[1] instanceof String) {
                     long id = Long.parseLong((String) parameters[1]);
-                    targetNode = (AbstractNode) findNode.execute(user, id);
+                    targetNode = (AbstractNode) findNode.execute(id);
                 }
 
                 if (parameters[2] instanceof User) {
@@ -132,8 +132,8 @@ public class ExtractFileCommand extends NodeServiceCommand {
 
                 if (input != null) {
 
-                    Command createNode = Services.command(CreateNodeCommand.class);
-                    Command createRel = Services.command(CreateRelationshipCommand.class);
+                    Command createNode = Services.command(securityContext, CreateNodeCommand.class);
+                    Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
 
                     Map<String, AbstractNode> createdPaths = new HashMap<String, AbstractNode>();
 
@@ -162,20 +162,20 @@ public class ExtractFileCommand extends NodeServiceCommand {
 
                                         List<NodeAttribute> attrs = new LinkedList<NodeAttribute>();
                                         if (count < pathElements.length - 1) {
-                                            attrs.add(new NodeAttribute(AbstractNode.TYPE_KEY, "Folder"));
+                                            attrs.add(new NodeAttribute(AbstractNode.Key.type.name(), "Folder"));
                                         } else {
                                             // last path element is the file
 
                                             // Detect content type from filename (extension)
                                             String contentType = getContentTypeFromFilename(ae.getName());
-                                            attrs.add(new NodeAttribute(File.CONTENT_TYPE_KEY, contentType));
+                                            attrs.add(new NodeAttribute(File.Key.contentType.name(), contentType));
 
                                             if (contentType != null && contentType.startsWith("image")) {
                                                 // If it seems to be an image, use Image type
-                                                attrs.add(new NodeAttribute(AbstractNode.TYPE_KEY, Image.class.getSimpleName()));
+                                                attrs.add(new NodeAttribute(AbstractNode.Key.type.name(), Image.class.getSimpleName()));
                                             } else {
                                                 // Default is File type
-                                                attrs.add(new NodeAttribute(AbstractNode.TYPE_KEY, File.class.getSimpleName()));
+                                                attrs.add(new NodeAttribute(AbstractNode.Key.type.name(), File.class.getSimpleName()));
                                             }
                                         }
 
@@ -188,7 +188,7 @@ public class ExtractFileCommand extends NodeServiceCommand {
 
                                         if (!(createdPaths.containsKey(path.toString()))) {
 
-                                            attrs.add(new NodeAttribute(AbstractNode.NAME_KEY, p));
+                                            attrs.add(new NodeAttribute(AbstractNode.Key.name.name(), p));
 
                                             // create the node
                                             AbstractNode childNode = (AbstractNode) createNode.execute(attrs, user, true);
@@ -221,9 +221,9 @@ public class ExtractFileCommand extends NodeServiceCommand {
                                 } else {
 
                                     // create plain file (no sub directory)
-                                    NodeAttribute typeAttr = new NodeAttribute(AbstractNode.TYPE_KEY, "File");
-                                    NodeAttribute sizeAttr = new NodeAttribute(File.SIZE_KEY, size);
-                                    NodeAttribute nameAttr = new NodeAttribute(AbstractNode.NAME_KEY, name);
+                                    NodeAttribute typeAttr = new NodeAttribute(AbstractNode.Key.type.name(), "File");
+                                    NodeAttribute sizeAttr = new NodeAttribute(File.Key.size.name(), size);
+                                    NodeAttribute nameAttr = new NodeAttribute(AbstractNode.Key.name.name(), name);
 
                                     AbstractNode fileNode = (AbstractNode) createNode.execute(nameAttr, typeAttr, sizeAttr, user);
                                     createRel.execute(targetNode, fileNode, RelType.HAS_CHILD);
@@ -236,9 +236,9 @@ public class ExtractFileCommand extends NodeServiceCommand {
                             // don't create plain folders (?)
 //                            } else {
 //                                // create folder
-//                                NodeAttribute typeAttr = new NodeAttribute(AbstractNode.TYPE_KEY, "Folder");
+//                                NodeAttribute typeAttr = new NodeAttribute(AbstractNode.Key.type.name(), "Folder");
 //                                NodeAttribute sizeAttr = new NodeAttribute(File.SIZE_KEY, size);
-//                                NodeAttribute nameAttr = new NodeAttribute(AbstractNode.NAME_KEY, name);
+//                                NodeAttribute nameAttr = new NodeAttribute(AbstractNode.Key.name.name(), name);
 //
 //                                AbstractNode folderNode = (AbstractNode) createNode.execute(nameAttr, typeAttr, sizeAttr);
 //
@@ -299,7 +299,7 @@ public class ExtractFileCommand extends NodeServiceCommand {
             logger.log(Level.WARNING, "Exception while writing file: {0}", e.getMessage());
         }
 
-        fileNode.setProperty(File.RELATIVE_FILE_PATH_KEY, path);
+        fileNode.setProperty(File.Key.relativeFilePath.name(), path);
 
     }
 

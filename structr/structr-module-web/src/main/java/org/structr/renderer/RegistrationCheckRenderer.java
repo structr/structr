@@ -12,20 +12,18 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DateUtils;
 import org.jsoup.Jsoup;
-import org.structr.common.CurrentRequest;
 import org.structr.common.MailHelper;
 import org.structr.common.RelType;
 import org.structr.common.RenderMode;
+import org.structr.common.SecurityContext;
 import org.structr.common.StructrOutputStream;
 import org.structr.core.Command;
 import org.structr.core.NodeRenderer;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Person;
-import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
 import org.structr.core.entity.web.RegistrationCheck;
-import org.structr.core.entity.web.RegistrationForm;
 import org.structr.core.entity.web.WebNode;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;
@@ -34,9 +32,11 @@ import org.structr.core.node.IndexNodeCommand;
 import org.structr.core.node.NodeAttribute;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
+import org.structr.core.node.search.BooleanSearchAttribute;
 import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
+import org.structr.core.node.search.SearchOperator;
 
 /**
  *
@@ -87,7 +87,8 @@ public class RegistrationCheckRenderer implements NodeRenderer<RegistrationCheck
 	@Override
 	public void renderNode(StructrOutputStream out, RegistrationCheck currentNode, AbstractNode startNode, String editUrl, Long editNodeId, RenderMode renderMode)
 	{
-		HttpServletRequest request = CurrentRequest.getRequest();
+		final SecurityContext securityContext = out.getSecurityContext();
+		final HttpServletRequest request = out.getRequest();
 
 		if(request == null)
 		{
@@ -101,7 +102,7 @@ public class RegistrationCheckRenderer implements NodeRenderer<RegistrationCheck
 			return;
 		}
 
-		String usernameFromSession = (String)session.getAttribute(RegistrationCheck.USERNAME_KEY);
+		String usernameFromSession = (String)session.getAttribute(WebNode.Key.username.name());
 //            String usernameFromSession = CurrentSession.getGlobalUsername();
 		Boolean alreadyLoggedIn = usernameFromSession != null;
 
@@ -110,7 +111,7 @@ public class RegistrationCheckRenderer implements NodeRenderer<RegistrationCheck
 			return;
 		}
 
-		Boolean sessionBlocked = (Boolean)session.getAttribute(RegistrationCheck.SESSION_BLOCKED);
+		Boolean sessionBlocked = (Boolean)session.getAttribute(WebNode.Key.sessionBlocked.name());
 
 		if(Boolean.TRUE.equals(sessionBlocked))
 		{
@@ -184,7 +185,7 @@ public class RegistrationCheckRenderer implements NodeRenderer<RegistrationCheck
 		if(StringUtils.isNotEmpty(confirmationKey) && StringUtils.isNotEmpty(username))
 		{
 
-			loginUser = (User)Services.command(FindUserCommand.class).execute(username);
+			loginUser = (User)Services.command(securityContext, FindUserCommand.class).execute(username);
 
 			if(loginUser == null)
 			{
@@ -220,12 +221,12 @@ public class RegistrationCheckRenderer implements NodeRenderer<RegistrationCheck
 //                String message = "<div class=\"errorMsg\">Plesae choose a username!</div>";
 //                registerFailure(out, message, session, maxRetries, delayThreshold, delayTime);
 //            } else {
-//                loginUser = (User) Services.command(FindUserCommand.class).execute(username);
+//                loginUser = (User) Services.command(securityContext, FindUserCommand.class).execute(username);
 //            }
 
 		if(StringUtils.isNotEmpty(username))
 		{
-			loginUser = (User)Services.command(FindUserCommand.class).execute(username);
+			loginUser = (User)Services.command(securityContext, FindUserCommand.class).execute(username);
 		}
 
 		if(loginUser != null)
@@ -263,7 +264,7 @@ public class RegistrationCheckRenderer implements NodeRenderer<RegistrationCheck
 				errorsOnMandatoryFields.append("input[name=").append(usernameFieldName).append("] { background-color: #ffc }");
 			} else
 			{
-				loginUser = (User)Services.command(FindUserCommand.class).execute(username);
+				loginUser = (User)Services.command(securityContext, FindUserCommand.class).execute(username);
 
 				if(loginUser != null)
 				{
@@ -475,15 +476,15 @@ public class RegistrationCheckRenderer implements NodeRenderer<RegistrationCheck
 		final Date birthdayDate = parsedDate;
 
 		// Create new user (will reserve username)
-		User newUser = (User)Services.command(TransactionCommand.class).execute(new StructrTransaction()
+		User newUser = (User)Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction()
 		{
 			@Override
 			public Object execute()
 			{
 
-				Command create = Services.command(CreateNodeCommand.class);
-				Command link = Services.command(CreateRelationshipCommand.class);
-				Command search = Services.command(SearchNodeCommand.class);
+				Command create = Services.command(securityContext, CreateNodeCommand.class);
+				Command link = Services.command(securityContext, CreateRelationshipCommand.class);
+				Command search = Services.command(securityContext, SearchNodeCommand.class);
 
 				List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
 
@@ -492,7 +493,7 @@ public class RegistrationCheckRenderer implements NodeRenderer<RegistrationCheck
 				searchAttrs.add(Search.andExactName(assignedUsername));
 				searchAttrs.add(Search.andExactType(User.class.getSimpleName()));
 
-				List<User> userList = (List<User>)search.execute(new SuperUser(), null, false, false, searchAttrs);
+				List<User> userList = (List<User>)search.execute(null, false, false, searchAttrs);
 				if(!(userList.isEmpty()))
 				{
 					assignedUser = userList.get(0);
@@ -502,21 +503,21 @@ public class RegistrationCheckRenderer implements NodeRenderer<RegistrationCheck
 				searchAttrs.clear();
 
 				User newUser = (User)create.execute(assignedUser,
-					new NodeAttribute(AbstractNode.NAME_KEY, username),
-					new NodeAttribute(AbstractNode.TYPE_KEY, User.class.getSimpleName()),
-					new NodeAttribute(Person.FIRST_NAME_KEY, firstName),
-					new NodeAttribute(Person.LAST_NAME_KEY, lastName),
+					new NodeAttribute(AbstractNode.Key.name.name(), username),
+					new NodeAttribute(AbstractNode.Key.type.name(), User.class.getSimpleName()),
+					new NodeAttribute(Person.Key.firstName.name(), firstName),
+					new NodeAttribute(Person.Key.firstName.name(), lastName),
 					new NodeAttribute(User.Key.realName.name(), (firstName + " " + lastName)),
-					new NodeAttribute(Person.STREET_KEY, street),
-					new NodeAttribute(Person.ZIP_CODE_KEY, zipCode),
-					new NodeAttribute(Person.CITY_KEY, city),
-					new NodeAttribute(Person.STATE_KEY, state),
-					new NodeAttribute(Person.COUNTRY_KEY, country),
-					new NodeAttribute(Person.GENDER_KEY, gender),
-					new NodeAttribute(Person.BIRTHDAY_KEY, birthdayDate),
-					new NodeAttribute(Person.EMAIL_1_KEY, email),
-					new NodeAttribute(Person.NEWSLETTER_KEY, StringUtils.isNotEmpty(newsletter)),
-					new NodeAttribute(User.Key.realName.name(), true),
+					new NodeAttribute(Person.Key.street.name(), street),
+					new NodeAttribute(Person.Key.zipCode.name(), zipCode),
+					new NodeAttribute(Person.Key.city.name(), city),
+					new NodeAttribute(Person.Key.state.name(), state),
+					new NodeAttribute(Person.Key.country.name(), country),
+					new NodeAttribute(Person.Key.gender.name(), gender),
+					new NodeAttribute(Person.Key.birthday.name(), birthdayDate),
+					new NodeAttribute(Person.Key.email.name(), email),
+					new NodeAttribute(Person.Key.newsletter.name(), StringUtils.isNotEmpty(newsletter)),
+					new NodeAttribute(User.Key.frontendUser.name(), true),
 					new NodeAttribute(User.Key.confirmationKey.name(), confirmationKeyForMail));
 
 				// Use method for password to be hashed
@@ -524,10 +525,11 @@ public class RegistrationCheckRenderer implements NodeRenderer<RegistrationCheck
 
 				searchAttrs.add(Search.andExactName(publicUserDirectoryName));
 				searchAttrs.add(Search.andExactType(Folder.class.getSimpleName()));
-
+				searchAttrs.add(new BooleanSearchAttribute(AbstractNode.Key.visibleToPublicUsers.name(), Boolean.TRUE, SearchOperator.AND));
+				
 				// Look for existing public user directory
 				List<Folder> folders = (List<Folder>)search.execute(
-					null, registrationCheckNode, false, false, searchAttrs);
+					registrationCheckNode, false, false, searchAttrs);
 
 				Folder publicUserDirectory = null;
 
@@ -545,8 +547,8 @@ public class RegistrationCheckRenderer implements NodeRenderer<RegistrationCheck
 				if(publicUserDirectory == null)
 				{
 					publicUserDirectory = (Folder)create.execute(assignedUser,
-						new NodeAttribute(AbstractNode.NAME_KEY, publicUserDirectoryName),
-						new NodeAttribute(AbstractNode.TYPE_KEY, Folder.class.getSimpleName()));
+						new NodeAttribute(AbstractNode.Key.name.name(), publicUserDirectoryName),
+						new NodeAttribute(AbstractNode.Key.type.name(), Folder.class.getSimpleName()));
 
 					// Link to registration node
 					link.execute(registrationCheckNode, publicUserDirectory, RelType.HAS_CHILD);
@@ -556,7 +558,7 @@ public class RegistrationCheckRenderer implements NodeRenderer<RegistrationCheck
 				link.execute(publicUserDirectory, newUser, RelType.HAS_CHILD);
 
 				// Index user to be findable
-				Services.command(IndexNodeCommand.class).execute(newUser);
+				Services.command(securityContext, IndexNodeCommand.class).execute(newUser);
 
 				return newUser;
 			}
@@ -568,7 +570,7 @@ public class RegistrationCheckRenderer implements NodeRenderer<RegistrationCheck
 			});
 
 		// Clear all blocking stuff
-		session.removeAttribute(WebNode.SESSION_BLOCKED);
+		session.removeAttribute(WebNode.Key.sessionBlocked.name());
 		session.removeAttribute(NUMBER_OF_REGISTRATION_ATTEMPTS);
 
 		out.append("<div class=\"okMsg\">").append("An e-mail has been sent to you to validate the given e-mail address. Please click on the link in the e-mail to complete registration.").append("</div>");
@@ -601,7 +603,7 @@ public class RegistrationCheckRenderer implements NodeRenderer<RegistrationCheck
 				{
 					maxRetries, session.getId()
 				});
-			session.setAttribute(WebNode.SESSION_BLOCKED, true);
+			session.setAttribute(WebNode.Key.sessionBlocked.name(), true);
 			String message = "<div class=\"errorMsg\">Too many unsuccessful registration attempts, your session is blocked for registration!</div>";
 			errors.add(message);
 

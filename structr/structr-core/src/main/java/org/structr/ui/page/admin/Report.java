@@ -28,6 +28,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.click.Context;
@@ -46,12 +47,15 @@ import org.apache.click.dataprovider.DataProvider;
 import org.apache.click.util.ClickUtils;
 import org.apache.click.util.PropertyUtils;
 import org.apache.commons.io.FileUtils;
+import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.core.node.search.SearchOperator;
 import org.structr.core.Command;
+import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.CustomTypeNode;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.User;
 import org.structr.core.module.GetEntitiesCommand;
 import org.structr.core.module.GetEntityClassCommand;
 import org.structr.core.node.CreateNodeCommand;
@@ -144,7 +148,7 @@ public class Report extends Nodes {
         reportTable.setSortable(true);
         reportTable.setShowBanner(true);
         reportTable.setPageSize(DEFAULT_PAGESIZE);
-//        reportTable.getControlLink().setParameter(AbstractNode.NODE_ID_KEY, getNodeId());
+//        reportTable.getControlLink().setParameter(AbstractNode.Key.nodeId.name(), getNodeId());
         reportTable.setClass(TABLE_CLASS);
 
         populateTypeSelectField();
@@ -185,7 +189,7 @@ public class Report extends Nodes {
         if (reportForm.isValid()) {
             // Always filter by type
             searchAttributes.add(Search.andExactType(resultType));
-            searchResults = (List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(user, null, false, false, searchAttributes);
+            searchResults = (List<AbstractNode>) Services.command(securityContext, SearchNodeCommand.class).execute(null, false, false, searchAttributes);
             populateReportResultsTable();
             saveState();
         }
@@ -276,7 +280,7 @@ public class Report extends Nodes {
 
     public void populateReportResultsTable() {
         if (reportResults != null && !(reportResults.isEmpty())) {
-            //reportTable.getControlLink().setParameter(AbstractNode.NODE_ID_KEY, getNodeId());
+            //reportTable.getControlLink().setParameter(AbstractNode.Key.nodeId.name(), getNodeId());
             reportTable.setDataProvider(new DataProvider() {
 
                 @Override
@@ -296,7 +300,7 @@ public class Report extends Nodes {
 
             // Always filter by type
             searchAttributes.add(Search.andExactType(resultType));
-            reportResults = (List<AbstractNode>) Services.command(SearchNodeCommand.class).execute(user, null, false, false, searchAttributes);
+            reportResults = (List<AbstractNode>) Services.command(securityContext, SearchNodeCommand.class).execute(null, false, false, searchAttributes);
             populateReportResultsTable();
             saveState();
 
@@ -396,18 +400,19 @@ public class Report extends Nodes {
             csvw.close();
 
             AbstractNode s = null;
-            Command transaction = Services.command(TransactionCommand.class);
+            Command transaction = Services.command(securityContext, TransactionCommand.class);
 
             s = (AbstractNode) transaction.execute(new StructrTransaction() {
 
                 @Override
                 public Object execute() throws Throwable {
                     // Save report in database
-                    Command createNode = Services.command(CreateNodeCommand.class);
-                    Command createRel = Services.command(CreateRelationshipCommand.class);
+                    Command createNode = Services.command(securityContext, CreateNodeCommand.class);
+                    Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
+		    User user = securityContext.getUser();
 
                     // create node with appropriate type
-                    AbstractNode newNode = (AbstractNode) createNode.execute(new NodeAttribute(AbstractNode.TYPE_KEY, File.class.getSimpleName()), user);
+                    AbstractNode newNode = (AbstractNode) createNode.execute(new NodeAttribute(AbstractNode.Key.type.name(), File.class.getSimpleName()), user);
 
 
                     String relativeFilePath = newNode.getId() + "_" + System.currentTimeMillis();
@@ -417,14 +422,14 @@ public class Report extends Nodes {
                     FileUtils.moveFile(reportFile, new File(targetPath));
 
                     Date now = new Date();
-                    newNode.setProperty(AbstractNode.NAME_KEY, reportFileName);
-                    newNode.setProperty(AbstractNode.CREATED_DATE_KEY, now);
-                    newNode.setProperty(AbstractNode.LAST_MODIFIED_DATE_KEY, now);
+                    newNode.setProperty(AbstractNode.Key.name.name(), reportFileName);
+                    newNode.setProperty(AbstractNode.Key.createdDate.name(), now);
+                    newNode.setProperty(AbstractNode.Key.lastModifiedDate.name(), now);
 
-                    newNode.setProperty(org.structr.core.entity.File.CONTENT_TYPE_KEY, "text/csv");
-                    newNode.setProperty(org.structr.core.entity.File.SIZE_KEY, String.valueOf(reportFile.length()));
-                    newNode.setProperty(org.structr.core.entity.File.URL_KEY, fileUrl);
-                    newNode.setProperty(org.structr.core.entity.File.RELATIVE_FILE_PATH_KEY, relativeFilePath);
+                    newNode.setProperty(org.structr.core.entity.File.Key.contentType.name(), "text/csv");
+                    newNode.setProperty(org.structr.core.entity.File.Key.size.name(), String.valueOf(reportFile.length()));
+                    newNode.setProperty(org.structr.core.entity.File.Key.url.name(), fileUrl);
+                    newNode.setProperty(org.structr.core.entity.File.Key.relativeFilePath.name(), relativeFilePath);
 
                     // connect report to user node
                     AbstractNode parentNode = user;
@@ -454,12 +459,13 @@ public class Report extends Nodes {
 
         // Get the corresponding entity class
         //Class<AbstractNode> c = Services.getEntityClass(resultType);
-        Class<AbstractNode> c = (Class<AbstractNode>) Services.command(GetEntityClassCommand.class).execute(resultType);
+        Class<AbstractNode> c = (Class<AbstractNode>) Services.command(securityContext, GetEntityClassCommand.class).execute(resultType);
 
         if (c != null) {
 
             // Get all the node property fields
-            java.lang.reflect.Field[] fields = c.getFields();
+            //java.lang.reflect.Field[] fields = c.getFields();
+	    Set<String> fields = EntityContext.getPropertySet(c, PropertyView.All);
             //reportFields.setColumns(fields.length);
 
             AbstractNode o = new CustomTypeNode();
@@ -472,14 +478,15 @@ public class Report extends Nodes {
             }
 
             if (fields != null) {
-                for (java.lang.reflect.Field f : fields) {
-                    String fieldName = null;
-                    try {
+//                for (java.lang.reflect.Field f : fields) {
+                for (String fieldName : fields) {
+                    //String fieldName = null;
+                    //try {
 
-                        fieldName = (String) f.get(o);
+                        //fieldName = (String) f.get(o);
 
                         // Type is already there
-                        if (AbstractNode.TYPE_KEY.equals(fieldName)) {
+                        if (AbstractNode.Key.type.name().equals(fieldName)) {
                             continue;
                         }
 
@@ -516,9 +523,9 @@ public class Report extends Nodes {
 
                         reportForm.add(propertyFields);
 
-                    } catch (Throwable t) {
-                        logger.log(Level.SEVERE, null, t);
-                    }
+//                    } catch (Throwable t) {
+//                        logger.log(Level.SEVERE, null, t);
+//                    }
 
 
 
@@ -532,7 +539,7 @@ public class Report extends Nodes {
         resultTypeSelect.add(new Option("", "--- Select Node Type ---"));
         resultTypeSelect.setAttribute("onchange", "form.submit();");
 
-        List<String> nodeTypes = new LinkedList<String>(((Map<String, Class>) Services.command(GetEntitiesCommand.class).execute()).keySet());
+        List<String> nodeTypes = new LinkedList<String>(((Map<String, Class>) Services.command(securityContext, GetEntitiesCommand.class).execute()).keySet());
         Collections.sort(nodeTypes);
 
         for (String className : nodeTypes) {

@@ -39,6 +39,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.SecurityContext;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -118,7 +119,7 @@ public class Services {
 	 * @return the command
 	 * @throws NoSuchCommandException
 	 */
-	public static Command command(Class commandType) {
+	public static Command command(SecurityContext securityContext, Class commandType) {
 
 		logger.log(Level.FINER, "Creating command ", commandType.getName());
 
@@ -128,6 +129,8 @@ public class Services {
 		try {
 
 			command      = (Command) commandType.newInstance();
+			command.setSecurityContext(securityContext);
+
 			serviceClass = command.getServiceClass();
 
 			if ((serviceClass != null) && isConfigured(serviceClass)) {
@@ -202,7 +205,8 @@ public class Services {
 		logger.log(Level.INFO, "Starting services");
 
 		// initialize module service (which can be thought of as the root service)
-		Services.command(InitializeModuleServiceCommand.class).execute();
+		// securityContext can be null here, as the command is a null command
+		Services.command(null, InitializeModuleServiceCommand.class).execute();
 
 		// initialize other services
 		for (Class serviceClass : registeredServiceClasses) {

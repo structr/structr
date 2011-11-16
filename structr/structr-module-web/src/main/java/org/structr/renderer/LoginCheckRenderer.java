@@ -6,12 +6,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
-import org.structr.common.CurrentRequest;
 import org.structr.common.RenderMode;
+import org.structr.common.SecurityContext;
 import org.structr.common.StructrOutputStream;
 import org.structr.context.SessionMonitor;
 import org.structr.core.NodeRenderer;
 import org.structr.core.Services;
+import org.structr.core.auth.AuthenticationException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.User;
 import org.structr.core.entity.web.LoginCheck;
@@ -39,9 +40,8 @@ public class LoginCheckRenderer implements NodeRenderer<LoginCheck>
 	@Override
 	public void renderNode(StructrOutputStream out, LoginCheck currentNode, AbstractNode startNode, String editUrl, Long editNodeId, RenderMode renderMode)
 	{
-		String errorMsg;
-
-		HttpServletRequest request = CurrentRequest.getRequest();
+		SecurityContext securityContext = out.getSecurityContext();
+		HttpServletRequest request = out.getRequest();
 
 		if(request == null)
 		{
@@ -55,7 +55,7 @@ public class LoginCheckRenderer implements NodeRenderer<LoginCheck>
 			return;
 		}
 
-		String usernameFromSession = (String)session.getAttribute(WebNode.USERNAME_KEY);
+		String usernameFromSession = (String)session.getAttribute(WebNode.Key.username.name());
 //            String usernameFromSession = CurrentSession.getGlobalUsername();
 		Boolean alreadyLoggedIn = usernameFromSession != null;
 
@@ -65,7 +65,7 @@ public class LoginCheckRenderer implements NodeRenderer<LoginCheck>
 			return;
 		}
 
-		Boolean sessionBlocked = (Boolean)session.getAttribute(WebNode.SESSION_BLOCKED);
+		Boolean sessionBlocked = (Boolean)session.getAttribute(WebNode.Key.sessionBlocked.name());
 
 		if(Boolean.TRUE.equals(sessionBlocked))
 		{
@@ -113,61 +113,22 @@ public class LoginCheckRenderer implements NodeRenderer<LoginCheck>
 			return;
 		}
 
-		// Session is not blocked, and we have a username and a password
+		try {
+			securityContext.doLogin(username, password);
 
-		// First, check if we have a user with this name
-		User loginUser = (User)Services.command(FindUserCommand.class).execute(username);
+		} catch(AuthenticationException aex) {
 
-		// No matter what reason to deny login, always show the same error message to
-		// avoid giving hints
-		errorMsg = LOGIN_FAILURE_TEXT;
-
-		if(loginUser == null)
-		{
-			logger.log(Level.INFO, "No user found for name {0}", loginUser);
-			out.append("<div class=\"errorMsg\">").append(errorMsg).append("</div>");
+			out.append("<div class=\"errorMsg\">").append(aex.getMessage()).append("</div>");
 			countLoginFailure(out, session, maxRetries, delayThreshold, delayTime);
 			return;
+
 		}
-
-		// From here, we have a valid user
-
-		if(loginUser.isBlocked())
-		{
-			logger.log(Level.INFO, "User {0} is blocked", loginUser);
-			out.append("<div class=\"errorMsg\">").append(errorMsg).append("</div>");
-			countLoginFailure(out, session, maxRetries, delayThreshold, delayTime);
-			return;
-		}
-
-		// Check password
-
-		String encryptedPasswordValue = DigestUtils.sha512Hex(password);
-
-		if(!encryptedPasswordValue.equals(loginUser.getEncryptedPassword()))
-		{
-			logger.log(Level.INFO, "Wrong password for user {0}", loginUser);
-			out.append("<div class=\"errorMsg\">").append(errorMsg).append("</div>");
-			countLoginFailure(out, session, maxRetries, delayThreshold, delayTime);
-			return;
-		}
-
-		// Username and password are both valid
-		session.setAttribute(WebNode.USERNAME_KEY, loginUser.getName());
-//            CurrentSession.setGlobalUsername(loginUser.getName());
-
-		// Register user with internal session management
-		long sessionId = SessionMonitor.registerUserSession(session);
-		SessionMonitor.logActivity(sessionId, "Login");
-
-		// Mark this session with the internal session id
-		session.setAttribute(SessionMonitor.SESSION_ID, sessionId);
 
 		// Clear all blocking stuff
-		session.removeAttribute(WebNode.SESSION_BLOCKED);
+		session.removeAttribute(WebNode.Key.sessionBlocked.name());
 		session.removeAttribute(NUMBER_OF_LOGIN_ATTEMPTS);
 
-		out.append("<div class=\"okMsg\">").append("Login successful. Welcome ").append(loginUser.getRealName()).append("!").append("</div>");
+		out.append("<div class=\"okMsg\">").append("Login successful. Welcome ").append(securityContext.getUser().getRealName()).append("!").append("</div>");
 	}
 
 	private void countLoginFailure(final StructrOutputStream out, final HttpSession session, final int maxRetries, final int delayThreshold, final int delayTime)
@@ -182,7 +143,7 @@ public class LoginCheckRenderer implements NodeRenderer<LoginCheck>
 				{
 					maxRetries, session.getId()
 				});
-			session.setAttribute(WebNode.SESSION_BLOCKED, true);
+			session.setAttribute(WebNode.Key.sessionBlocked.name(), true);
 			out.append("<div class=\"errorMsg\">").append("Too many unsuccessful login attempts, your session is blocked for login!").append("</div>");
 			return;
 

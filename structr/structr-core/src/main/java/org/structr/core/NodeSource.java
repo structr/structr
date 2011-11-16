@@ -19,6 +19,7 @@
 
 package org.structr.core;
 
+import javax.servlet.http.HttpServletRequest;
 import org.structr.core.entity.AbstractNode;
 
 /**
@@ -28,5 +29,5 @@ import org.structr.core.entity.AbstractNode;
  */
 public interface NodeSource
 {
-	public AbstractNode loadNode();
+	public AbstractNode loadNode(HttpServletRequest request);
 }

@@ -36,7 +36,9 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 
 import org.structr.common.PropertyKey;
+import org.structr.common.PropertyView;
 import org.structr.core.Command;
+import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.web.WebNode;
 import org.structr.core.node.GraphDatabaseCommand;
@@ -56,15 +58,16 @@ import java.util.logging.Logger;
  */
 public class GeoObject extends WebNode {
 
-	public static final String AUTO_ENVELOPE_KEY  = "autoEnvelope";
-	public static final String ENVELOPE_MAX_X_KEY = "envelopeMaxX";
-	public static final String ENVELOPE_MAX_Y_KEY = "envelopeMaxY";
-	public static final String ENVELOPE_MIN_X_KEY = "envelopeMinX";
-	public static final String ENVELOPE_MIN_Y_KEY = "envelopeMinY";
-	private final static String ICON_SRC          = "/images/world.png";
-	public final static String LATITUDE_KEY       = "latitude";
-	public final static String LONGITUDE_KEY      = "longitude";
-	private static final Logger logger            = Logger.getLogger(GeoObject.class.getName());
+	private static final Logger logger = Logger.getLogger(GeoObject.class.getName());
+
+	//~--- static initializers --------------------------------------------
+
+	static {
+
+		EntityContext.registerPropertySet(GeoObject.class,
+						  PropertyView.All,
+						  Key.values());
+	}
 
 	//~--- fields ---------------------------------------------------------
 
@@ -75,7 +78,11 @@ public class GeoObject extends WebNode {
 
 	//~--- constant enums -------------------------------------------------
 
-	public enum Key implements PropertyKey{ geoContainerClass; }
+	public enum Key implements PropertyKey {
+
+		autoEnvelope, envelopeMaxX, envelopeMaxY, envelopeMinX, envelopeMinY, latitude, longitude,
+		geoContainerClass;
+	}
 
 	//~--- methods --------------------------------------------------------
 
@@ -97,13 +104,13 @@ public class GeoObject extends WebNode {
 
 	@Override
 	public String getIconSrc() {
-		return ICON_SRC;
+		return "/images/world.png";
 	}
 
 	protected Envelope getEnvelope(final String layerName, final String nameAttribute, final String featureName) {
 
 		Envelope result              = null;
-		Command graphDbCommand       = Services.command(GraphDatabaseCommand.class);
+		Command graphDbCommand       = Services.command(securityContext, GraphDatabaseCommand.class);
 		GraphDatabaseService graphDb = (GraphDatabaseService) graphDbCommand.execute();
 
 		// find geometry node
@@ -320,11 +327,11 @@ public class GeoObject extends WebNode {
 	}
 
 	public Double getLongitude() {
-		return getDoubleProperty(LONGITUDE_KEY);
+		return getDoubleProperty(Key.longitude.name());
 	}
 
 	public Double getLatitude() {
-		return getDoubleProperty(LATITUDE_KEY);
+		return getDoubleProperty(Key.latitude.name());
 	}
 
 	public Coordinate getCoordinates() {
@@ -334,23 +341,23 @@ public class GeoObject extends WebNode {
 	}
 
 	public double getEnvelopeMinX() {
-		return getDoubleProperty(ENVELOPE_MIN_X_KEY);
+		return getDoubleProperty(Key.envelopeMinX.name());
 	}
 
 	public double getEnvelopeMinY() {
-		return getDoubleProperty(ENVELOPE_MIN_Y_KEY);
+		return getDoubleProperty(Key.envelopeMinY.name());
 	}
 
 	public double getEnvelopeMaxX() {
-		return getDoubleProperty(ENVELOPE_MAX_X_KEY);
+		return getDoubleProperty(Key.envelopeMaxX.name());
 	}
 
 	public double getEnvelopeMaxY() {
-		return getDoubleProperty(ENVELOPE_MAX_Y_KEY);
+		return getDoubleProperty(Key.envelopeMaxY.name());
 	}
 
 	public boolean getAutoEnvelope() {
-		return getBooleanProperty(AUTO_ENVELOPE_KEY);
+		return getBooleanProperty(Key.autoEnvelope.name());
 	}
 
 	public String getGeoContainerClass() {
@@ -361,43 +368,43 @@ public class GeoObject extends WebNode {
 
 	public void setLongitude(Double longitude) {
 
-		setProperty(LONGITUDE_KEY,
+		setProperty(Key.longitude.name(),
 			    longitude);
 	}
 
 	public void setLatitude(Double latitude) {
 
-		setProperty(LATITUDE_KEY,
+		setProperty(Key.latitude.name(),
 			    latitude);
 	}
 
 	public void setEnvelopeMinX(final double value) {
 
-		setProperty(ENVELOPE_MIN_X_KEY,
+		setProperty(Key.envelopeMinX.name(),
 			    value);
 	}
 
 	public void setEnvelopeMinY(final double value) {
 
-		setProperty(ENVELOPE_MIN_Y_KEY,
+		setProperty(Key.envelopeMinY.name(),
 			    value);
 	}
 
 	public void setEnvelopeMaxX(final double value) {
 
-		setProperty(ENVELOPE_MAX_X_KEY,
+		setProperty(Key.envelopeMaxX.name(),
 			    value);
 	}
 
 	public void setEnvelopeMaxY(final double value) {
 
-		setProperty(ENVELOPE_MAX_Y_KEY,
+		setProperty(Key.envelopeMaxY.name(),
 			    value);
 	}
 
 	public void setAutoEnvelope(final boolean value) {
 
-		setProperty(AUTO_ENVELOPE_KEY,
+		setProperty(Key.autoEnvelope.name(),
 			    value);
 	}
 

@@ -140,12 +140,12 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 
     private StructrRelationship createRelationship(final Node fromNode, final Node toNode, final RelationshipType relType) {
 
-        final Command transactionCommand = Services.command(TransactionCommand.class);
+        final Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
         StructrRelationship newRelationship = (StructrRelationship) transactionCommand.execute(new StructrTransaction() {
 
             @Override
             public Object execute() throws Throwable {
-                return new StructrRelationship(fromNode.createRelationshipTo(toNode, relType));
+                return new StructrRelationship(securityContext, fromNode.createRelationshipTo(toNode, relType));
             }
         });
 

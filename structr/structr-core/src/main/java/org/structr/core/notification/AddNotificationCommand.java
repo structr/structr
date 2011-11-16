@@ -20,7 +20,6 @@
 package org.structr.core.notification;
 
 import javax.servlet.http.HttpSession;
-import org.structr.common.CurrentSession;
 
 /**
  * Adds a notification to the list of notificatons for the current session when
@@ -65,7 +64,7 @@ public class AddNotificationCommand extends NotificationServiceCommand {
 		// use the session from this thread
 		if(sessionKey == null) {
 
-			HttpSession session = CurrentSession.getSession();
+			HttpSession session = securityContext.getSession();
 			if(session != null) {
 				
 				sessionKey = session.getId();
