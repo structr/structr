@@ -38,10 +38,10 @@ import org.structr.rest.exception.PathException;
  * @author Christian Morgner
  */
 public class TypeConstraint extends SortableConstraint {
-
+	
 	private static final Logger logger = Logger.getLogger(TypeConstraint.class.getName());
 
-	private String type = null;
+	protected String type = null;
 	
 	@Override
 	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) {
