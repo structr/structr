@@ -145,13 +145,17 @@ public class EntityContext {
 		// include property sets from superclass
 		Class superClass = type.getSuperclass();
 		while(superClass != null && !superClass.equals(Object.class)) {
-			
+
 			Set<String> superProperties = getPropertySet(superClass, propertyView);
 			properties.addAll(superProperties);
 
 			// one level up :)
 			superClass = superClass.getSuperclass();
 		}
+	}
+
+	public static void clearPropertySet(Class type, PropertyView propertyView) {
+		getPropertySet(type, propertyView).clear();
 	}
 
 	public static Set<String> getPropertySet(Class type, PropertyView propertyView) {
