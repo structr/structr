@@ -21,7 +21,6 @@ package org.structr.core;
 
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.ObjectNotion;
-import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -31,7 +30,6 @@ import java.util.logging.Logger;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.PropertyKey;
-import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.core.entity.DirectedRelationship;
 import org.structr.core.entity.DirectedRelationship.Cardinality;
@@ -47,10 +45,11 @@ public class EntityContext {
 	private static final Map<Class, Map<String, Class<? extends PropertyConverter>>> globalPropertyConverterMap = new LinkedHashMap<Class, Map<String, Class<? extends PropertyConverter>>>();
 	private static final Map<Class, Map<String, Class<? extends PropertyValidator>>> globalValidatorMap = new LinkedHashMap<Class, Map<String, Class<? extends PropertyValidator>>>();
 	private static final Map<String, Map<String, DirectedRelationship>> globalRelationshipMap = new LinkedHashMap<String, Map<String, DirectedRelationship>>();
-	private static final Map<Class, Map<PropertyView, Set<String>>> globalStringMap = new LinkedHashMap<Class, Map<PropertyView, Set<String>>>();
+	private static final Map<Class, Map<String, Set<String>>> globalPropertyViewMap = new LinkedHashMap<Class, Map<String, Set<String>>>();
 	private static final Map<Class, Map<String, PropertyGroup>> globalPropertyGroupMap = new LinkedHashMap<Class, Map<String, PropertyGroup>>();
 	private static final Map<Class, Map<String, Value>> globalValidationParameterMap = new LinkedHashMap<Class, Map<String, Value>>();
 	private static final Map<Class, Map<String, Value>> globalConversionParameterMap = new LinkedHashMap<Class, Map<String, Value>>();
+	private static final Map<Class, Set<String>> globalWriteOncePropertyMap = new LinkedHashMap<Class, Set<String>>();
 	private static final Map<Class, Set<String>> globalReadOnlyPropertyMap = new LinkedHashMap<Class, Set<String>>();
 
 	private static final Logger logger = Logger.getLogger(EntityContext.class.getName());
@@ -135,7 +134,7 @@ public class EntityContext {
 	}
 
 	// ----- property set methods -----
-	public static void registerPropertySet(Class type, PropertyView propertyView, PropertyKey... propertySet) {
+	public static void registerPropertySet(Class type, String propertyView, PropertyKey... propertySet) {
 
 		Set<String> properties = getPropertySet(type, propertyView);
 		for(PropertyKey property : propertySet) {
@@ -154,13 +153,13 @@ public class EntityContext {
 		}
 	}
 
-	public static void clearPropertySet(Class type, PropertyView propertyView) {
+	public static void clearPropertySet(Class type, String propertyView) {
 		getPropertySet(type, propertyView).clear();
 	}
 
-	public static Set<String> getPropertySet(Class type, PropertyView propertyView) {
+	public static Set<String> getPropertySet(Class type, String propertyView) {
 
-		Map<PropertyView, Set<String>> propertyViewMap = getPropertyViewMapForType(type);
+		Map<String, Set<String>> propertyViewMap = getPropertyViewMapForType(type);
 		Set<String> propertySet = propertyViewMap.get(propertyView);
 
 		if(propertySet == null) {
@@ -317,7 +316,7 @@ public class EntityContext {
 	}
 
 	public static boolean isReadOnlyProperty(Class type, String key) {
-		
+
 		boolean isReadOnly = getReadOnlyPropertySetForType(type).contains(key);
 		Class localType = type;
 
@@ -331,6 +330,29 @@ public class EntityContext {
 		}
 
 		return isReadOnly;
+	}
+
+	// ----- write-once property map -----
+	public static void registerWriteOnceProperty(Class type, String key) {
+
+		getWriteOncePropertySetForType(type).add(key);
+	}
+
+	public static boolean isWriteOnceProperty(Class type, String key) {
+
+		boolean isWriteOnce = getWriteOncePropertySetForType(type).contains(key);
+		Class localType = type;
+
+		// try all superclasses
+		while(!isWriteOnce && !localType.equals(Object.class)) {
+
+			isWriteOnce = getWriteOncePropertySetForType(localType).contains(key);
+
+			// one level up :)
+			localType = localType.getSuperclass();
+		}
+
+		return isWriteOnce;
 	}
 
 	// ----- private methods -----
@@ -356,12 +378,12 @@ public class EntityContext {
 		return(typeMap);
 	}
 
-	private static Map<PropertyView, Set<String>> getPropertyViewMapForType(Class type) {
+	private static Map<String, Set<String>> getPropertyViewMapForType(Class type) {
 
-		Map<PropertyView, Set<String>> propertyViewMap = globalStringMap.get(type);
+		Map<String, Set<String>> propertyViewMap = globalPropertyViewMap.get(type);
 		if(propertyViewMap == null) {
-			propertyViewMap = new EnumMap<PropertyView, Set<String>>(PropertyView.class);
-			globalStringMap.put(type, propertyViewMap);
+			propertyViewMap = new LinkedHashMap<String, Set<String>>();
+			globalPropertyViewMap.put(type, propertyViewMap);
 		}
 
 		return propertyViewMap;
@@ -420,6 +442,18 @@ public class EntityContext {
 		}
 
 		return readOnlyPropertySet;
+	}
+
+
+	private static Set<String> getWriteOncePropertySetForType(Class type) {
+
+		Set<String> writeOncePropertySet = globalWriteOncePropertyMap.get(type);
+		if(writeOncePropertySet == null) {
+			writeOncePropertySet = new LinkedHashSet<String>();
+			globalWriteOncePropertyMap.put(type, writeOncePropertySet);
+		}
+
+		return writeOncePropertySet;
 	}
 
 	private static Map<String, PropertyGroup> getPropertyGroupMapForType(Class type) {

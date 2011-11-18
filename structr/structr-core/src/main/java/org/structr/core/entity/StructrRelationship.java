@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Map;
 import org.neo4j.graphdb.*;
 import org.structr.common.PropertyKey;
-import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.core.Command;
@@ -334,7 +333,7 @@ public class StructrRelationship implements GraphObject {
 
 	// ----- interface GraphObject -----
 	@Override
-	public Iterable<String> getPropertyKeys(PropertyView propertyView) {
+	public Iterable<String> getPropertyKeys(String propertyView) {
 		return getProperties().keySet();
 	}
 
