@@ -113,7 +113,7 @@ public class StaticRelationshipConstraint extends FilterableConstraint {
 		}
 
 		RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_CREATED);
-		result.addHeader("Location", buildLocationHeader(newNode.getType(), newNode.getId()));
+		result.addHeader("Location", buildLocationHeader(newNode));
 		return result;
 	}
 
