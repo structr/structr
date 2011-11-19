@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Map;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.RelationshipType;
-import org.structr.common.PropertyView;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.StructrRelationship;
 
@@ -38,7 +37,7 @@ public interface GraphObject {
 	public long getId();
 	public String getType();
 
-	public Iterable<String> getPropertyKeys(PropertyView propertyView);
+	public Iterable<String> getPropertyKeys(String propertyView);
 	public void setProperty(String key, Object value);
 	public Object getProperty(String key);
 	public void removeProperty(String key);

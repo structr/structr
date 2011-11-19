@@ -47,7 +47,7 @@ public class ResultGSONAdapter implements JsonSerializer<Result>, JsonDeserializ
 	private static final Logger logger = Logger.getLogger(ResultGSONAdapter.class.getName());
 	private GraphObjectGSONAdapter graphObjectGsonAdapter = null;
 
-	public ResultGSONAdapter(PropertyFormat propertyFormat, Value<PropertyView> propertyView) {
+	public ResultGSONAdapter(PropertyFormat propertyFormat, Value<String> propertyView) {
 		this.graphObjectGsonAdapter = new GraphObjectGSONAdapter(propertyFormat, propertyView);
 	}
 

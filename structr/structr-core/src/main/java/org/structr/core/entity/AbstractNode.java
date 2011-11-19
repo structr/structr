@@ -1792,7 +1792,7 @@ public abstract class AbstractNode
 	 * @return
 	 */
 	@Override
-	public Iterable<String> getPropertyKeys(final PropertyView propertyView) {
+	public Iterable<String> getPropertyKeys(final String propertyView) {
 
 		return EntityContext.getPropertySet(this.getClass(),
 			propertyView);
@@ -3793,18 +3793,19 @@ public abstract class AbstractNode
 			logger.log(Level.SEVERE,
 				   "Tried to set property with null key (action was denied)");
 
-			throw new IllegalArgumentException("Property key '".concat(key).concat("' is null."));
+			throw new IllegalArgumentException("A property key may not be null.");
 
 		}
 
 		// check for read-only properties
-		if (EntityContext.isReadOnlyProperty(type, key)) {
+		if (EntityContext.isReadOnlyProperty(type, key) || (EntityContext.isWriteOnceProperty(type, key) && dbNode != null && dbNode.hasProperty(key))) {
 
 			if (readOnlyPropertiesUnlocked) {
 
 				// permit write operation once and
 				// lock read-only properties again
 				readOnlyPropertiesUnlocked = false;
+
 			} else {
 				throw new IllegalArgumentException("Property '".concat(key).concat("' is read-only."));
 			}

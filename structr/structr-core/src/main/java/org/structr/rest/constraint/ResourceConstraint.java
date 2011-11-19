@@ -173,7 +173,7 @@ public abstract class ResourceConstraint {
 	 *
 	 * @param propertyView
 	 */
-	public void configurePropertyView(Value<PropertyView> propertyView) {
+	public void configurePropertyView(Value<String> propertyView) {
 	}
 
 	public void setSecurityContext(SecurityContext securityContext) {

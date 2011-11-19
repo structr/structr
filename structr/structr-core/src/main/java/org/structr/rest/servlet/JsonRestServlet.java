@@ -89,11 +89,14 @@ public class JsonRestServlet extends HttpServlet {
 	private static final String			SERVLET_PARAMETER_PROPERTY_FORMAT =		"PropertyFormat";
 	private static final String			SERVLET_PARAMETER_CONSTRAINT_PROVIDER =		"ConstraintProvider";
 	private static final String			SERVLET_PARAMETER_MODIFICATION_LISTENER =	"ModificationListener";
+	private static final String			SERVLET_PARAMETER_DEFAULT_PROPERTY_VIEW =	"DefaultPropertyView";
+
+	private String					defaultPropertyView =				PropertyView.Public;
 
 	private List<VetoableGraphObjectListener>	graphObjectListeners =				null;
 	private PropertySetGSONAdapter			propertySetAdapter =				null;
 	private Map<Pattern, Class>			constraintMap =					null;
-	private Value<PropertyView>			propertyView =					null;
+	private Value<String>				propertyView =					null;
 	private ResultGSONAdapter			resultGsonAdapter =				null;
 	private Gson					gson =						null;
 
@@ -165,6 +168,14 @@ public class JsonRestServlet extends HttpServlet {
 				}
 			}
 		}
+
+		// modification listener intializiation
+		String defaultPropertyViewName = this.getInitParameter(SERVLET_PARAMETER_DEFAULT_PROPERTY_VIEW);
+		if(defaultPropertyViewName != null) {
+
+			logger.log(Level.INFO, "Setting default property view to {0}", defaultPropertyViewName);
+			this.defaultPropertyView = defaultPropertyViewName;
+		}
 	}
 
 	@Override
@@ -215,7 +226,7 @@ public class JsonRestServlet extends HttpServlet {
 			SecurityContext securityContext = getSecurityContext(request);
 
 			// set default value for property view
-			propertyView.set(PropertyView.Public);
+			propertyView.set(defaultPropertyView);
 
 			// evaluate constraints and measure query time
 			double queryTimeStart = System.nanoTime();
@@ -678,11 +689,11 @@ public class JsonRestServlet extends HttpServlet {
 	// </editor-fold>
 
 	// <editor-fold defaultstate="collapsed" desc="nested classes">
-	private class ThreadLocalPropertyView extends ThreadLocal<PropertyView> implements Value<PropertyView> {
+	private class ThreadLocalPropertyView extends ThreadLocal<String> implements Value<String> {
 
 		@Override
-		protected PropertyView initialValue() {
-			return PropertyView.Public;
+		protected String initialValue() {
+			return defaultPropertyView;
 		}
 	}
 	// </editor-fold>
