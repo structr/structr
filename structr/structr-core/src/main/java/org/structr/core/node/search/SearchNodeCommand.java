@@ -24,8 +24,6 @@ package org.structr.core.node.search;
 import org.apache.commons.collections.ListUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.search.BooleanQuery;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.TermQuery;
 
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
@@ -40,13 +38,20 @@ import org.structr.core.node.StructrNodeFactory;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.Semaphore;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.TermQuery;
 import org.structr.common.SecurityContext;
+import org.structr.core.EntityContext;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -124,10 +129,11 @@ public class SearchNodeCommand extends NodeServiceCommand {
 	private List<AbstractNode> search(final SecurityContext securityContext, final AbstractNode topNode, final boolean includeDeleted,
 					 final boolean publicOnly, final List<SearchAttribute> searchAttrs) {
 
-		GraphDatabaseService graphDb   = (GraphDatabaseService) arguments.get("graphDb");
-		Index<Node> index              = (Index<Node>) arguments.get("index");
-		StructrNodeFactory nodeFactory = (StructrNodeFactory) arguments.get("nodeFactory");
-		List<AbstractNode> finalResult = new LinkedList<AbstractNode>();
+		GraphDatabaseService graphDb     = (GraphDatabaseService) arguments.get("graphDb");
+		Index<Node> index                = (Index<Node>) arguments.get("index");
+		StructrNodeFactory nodeFactory   = (StructrNodeFactory) arguments.get("nodeFactory");
+		Map<String, String> typesAndKeys = new LinkedHashMap<String, String>();
+		List<AbstractNode> finalResult   = new LinkedList<AbstractNode>();
 
 		if (graphDb != null) {
 
@@ -156,6 +162,10 @@ public class SearchNodeCommand extends NodeServiceCommand {
 							// TODO: support other than textual search attributes
 							if (groupedAttr instanceof TextualSearchAttribute) {
 
+								// collect types and keys of this search query
+								// in order to obtain locks for the properties
+								extractTypeAndKey(groupedAttr, typesAndKeys);
+
 								subQuery.add(
 								    toQuery((TextualSearchAttribute) groupedAttr),
 								    translateToBooleanClauseOccur(
@@ -181,6 +191,10 @@ public class SearchNodeCommand extends NodeServiceCommand {
 					}
 
 				} else if (attr instanceof TextualSearchAttribute) {
+
+					// collect types and keys of this search query
+					// in order to obtain locks for the properties
+					extractTypeAndKey(attr, typesAndKeys);
 
 					query.add(toQuery((TextualSearchAttribute) attr),
 						  translateToBooleanClauseOccur(attr.getSearchOperator()));
@@ -208,8 +222,28 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 				logger.log(Level.FINE, "Textual Query String: {0}", textualQueryString);
 
+				// obtain semaphores and acquire locks
+				for(Entry<String, String> requiredLock : typesAndKeys.entrySet()) {
+					String type = requiredLock.getKey();
+					String key = requiredLock.getValue();
+					Semaphore semaphore = EntityContext.getSemaphoreForTypeAndProperty(type, key);
+					if(semaphore != null) {
+						try {	semaphore.acquire(); } catch(InterruptedException iex) { /* notified */ }
+					}
+				}
+
 				IndexHits hits = index.query(new QueryContext(textualQueryString));    // .sort("name"));
 				long t1        = System.currentTimeMillis();
+
+				// release locks
+				for(Entry<String, String> requiredLock : typesAndKeys.entrySet()) {
+					String type = requiredLock.getKey();
+					String key = requiredLock.getValue();
+					Semaphore semaphore = EntityContext.getSemaphoreForTypeAndProperty(type, key);
+					if(semaphore != null) {
+						semaphore.release();
+					}
+				}
 
 				logger.log(Level.FINE, "Querying index took {0} ms, {1} results retrieved.",
 					   new Object[] { t1 - t0,
@@ -400,5 +434,20 @@ public class SearchNodeCommand extends NodeServiceCommand {
 		}
 
 		return result;
+	}
+
+	private void extractTypeAndKey(SearchAttribute attr, Map<String, String> typesAndKeys) {
+
+		if(attr instanceof TextualSearchAttribute) {
+
+			TextualSearchAttribute textualSearchAttribute = (TextualSearchAttribute)attr;
+			String key = textualSearchAttribute.getKey();
+			String value = textualSearchAttribute.getValue();
+
+			// add key and value to the required semaphore list
+			if(key != null && value != null && key.equals(AbstractNode.Key.type.name())) {
+				typesAndKeys.put(key, value);
+			}
+		}
 	}
 }

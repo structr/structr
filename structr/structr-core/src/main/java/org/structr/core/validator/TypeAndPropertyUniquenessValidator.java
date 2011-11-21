@@ -68,10 +68,8 @@ public class TypeAndPropertyUniquenessValidator extends PropertyValidator<String
 			//attributes.add(new TextualSearchAttribute(key, stringValue, SearchOperator.AND));
 			attributes.add(Search.andExactPropertyValue(key, stringValue));
 
-			synchronized(TypeAndPropertyUniquenessValidator.class) {
-				List<AbstractNode> resultList = (List<AbstractNode>)Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(topNode, includeDeleted, publicOnly, attributes);
-				nodeExists = !resultList.isEmpty();
-			}
+			List<AbstractNode> resultList = (List<AbstractNode>)Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(topNode, includeDeleted, publicOnly, attributes);
+			nodeExists = !resultList.isEmpty();
 
 			if(nodeExists) {
 
