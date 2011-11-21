@@ -76,7 +76,7 @@ public class EntityContext {
 		
 		if(semaphore == null) {
 			// try global semaphore afterwards
-			semaphore = getSemaphoreForTypeAndProperty(GLOBAL_UNIQUENESS, key);
+			semaphore = getSemaphoreMapForType(GLOBAL_UNIQUENESS).get(key);
 		}
 
 		return semaphore;
