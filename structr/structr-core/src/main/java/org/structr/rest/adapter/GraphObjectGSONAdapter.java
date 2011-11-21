@@ -46,10 +46,12 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 	private PropertyFormat propertyFormat = null;
 	private Value<String> propertyView = null;
 	private int outputNestingDepth = 1;
+	private String idProperty = null;
 
-	public GraphObjectGSONAdapter(PropertyFormat propertyFormat, Value<String> propertyView) {
+	public GraphObjectGSONAdapter(PropertyFormat propertyFormat, Value<String> propertyView, String idProperty) {
 		this.propertyFormat = propertyFormat;
 		this.propertyView = propertyView;
+		this.idProperty = idProperty;
 	}
 
 	@Override
@@ -86,8 +88,10 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 
 		JsonObject jsonObject = new JsonObject();
 
-		// id
-		jsonObject.add("id", new JsonPrimitive(src.getId()));
+		// id (only if idProperty is not set)
+		if(idProperty == null) {
+			jsonObject.add("id", new JsonPrimitive(src.getId()));
+		}
 
 		String type = src.getType();
 		if(type != null) {
@@ -211,8 +215,10 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 
 		JsonObject jsonObject = new JsonObject();
 
-		// id
-		jsonObject.add("id", new JsonPrimitive(src.getId()));
+		// id (only if idProperty is not set)
+		if(idProperty == null) {
+			jsonObject.add("id", new JsonPrimitive(src.getId()));
+		}
 
 		String type = src.getType();
 		if(type != null) {

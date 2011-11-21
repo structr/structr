@@ -83,15 +83,17 @@ public class JsonRestServlet extends HttpServlet {
 	public static final String			REQUEST_PARAMETER_PAGE_NUMBER =			"page";
 	public static final String			REQUEST_PARAMETER_PAGE_SIZE =			"pageSize";
 
-	public static final int				DEFAULT_VALUE_PAGE_SIZE =			20;
 	public static final String			DEFAULT_VALUE_SORT_ORDER =			"asc";
+	public static final int				DEFAULT_VALUE_PAGE_SIZE =			20;
 
 	private static final String			SERVLET_PARAMETER_PROPERTY_FORMAT =		"PropertyFormat";
 	private static final String			SERVLET_PARAMETER_CONSTRAINT_PROVIDER =		"ConstraintProvider";
 	private static final String			SERVLET_PARAMETER_MODIFICATION_LISTENER =	"ModificationListener";
 	private static final String			SERVLET_PARAMETER_DEFAULT_PROPERTY_VIEW =	"DefaultPropertyView";
+	private static final String			SERVLET_PARAMETER_ID_PROPERTY =			"IdProperty";
 
 	private String					defaultPropertyView =				PropertyView.Public;
+	private String					defaultIdProperty =				null;
 
 	private List<VetoableGraphObjectListener>	graphObjectListeners =				null;
 	private PropertySetGSONAdapter			propertySetAdapter =				null;
@@ -103,25 +105,10 @@ public class JsonRestServlet extends HttpServlet {
 	@Override
 	public void init() {
 
-		// init parameters
-		PropertyFormat propertyFormat =		initializePropertyFormat();
-
 		// initialize variables
 		this.graphObjectListeners =		new LinkedList<VetoableGraphObjectListener>();
 		this.constraintMap =			new LinkedHashMap<Pattern, Class>();
 		this.propertyView =			new ThreadLocalPropertyView();
-
-		// initialize adapters
-		this.resultGsonAdapter =		new ResultGSONAdapter(propertyFormat, propertyView);
-		this.propertySetAdapter =		new PropertySetGSONAdapter(propertyFormat);
-
-		// create GSON serializer
-		this.gson = new GsonBuilder()
-			.setPrettyPrinting()
-			.serializeNulls()
-			.registerTypeAdapter(PropertySet.class,	propertySetAdapter)
-			.registerTypeAdapter(Result.class,	resultGsonAdapter)
-			.create();
 
 		// external resource constraint initialization
 		String externalProviderName = this.getInitParameter(SERVLET_PARAMETER_CONSTRAINT_PROVIDER);
@@ -169,13 +156,35 @@ public class JsonRestServlet extends HttpServlet {
 			}
 		}
 
-		// modification listener intializiation
+		// property view initialization
 		String defaultPropertyViewName = this.getInitParameter(SERVLET_PARAMETER_DEFAULT_PROPERTY_VIEW);
 		if(defaultPropertyViewName != null) {
 
 			logger.log(Level.INFO, "Setting default property view to {0}", defaultPropertyViewName);
 			this.defaultPropertyView = defaultPropertyViewName;
 		}
+
+		// primary key
+		String defaultIdPropertyName = this.getInitParameter(SERVLET_PARAMETER_ID_PROPERTY);
+		if(defaultIdPropertyName != null) {
+
+			logger.log(Level.INFO, "Setting default id property to {0}", defaultIdPropertyName);
+			this.defaultIdProperty = defaultIdPropertyName;
+		}
+
+		PropertyFormat propertyFormat =		initializePropertyFormat();
+		
+		// initialize adapters
+		this.resultGsonAdapter =		new ResultGSONAdapter(propertyFormat, propertyView, defaultIdProperty);
+		this.propertySetAdapter =		new PropertySetGSONAdapter(propertyFormat);
+
+		// create GSON serializer
+		this.gson = new GsonBuilder()
+			.setPrettyPrinting()
+			.serializeNulls()
+			.registerTypeAdapter(PropertySet.class,	propertySetAdapter)
+			.registerTypeAdapter(Result.class,	resultGsonAdapter)
+			.create();
 	}
 
 	@Override
@@ -609,7 +618,13 @@ public class JsonRestServlet extends HttpServlet {
 		logger.log(Level.FINE, "########## Final constraint chain {0}", chain.toString() );
 
 		if(constraintChain.size() == 1) {
-			return constraintChain.get(0);
+
+			ResourceConstraint finalConstraint = constraintChain.get(0);
+
+			// inform final constraint about the configured ID property
+			finalConstraint.configureIdProperty(defaultIdProperty);
+
+			return finalConstraint;
 		}
 
 		throw new IllegalPathException();

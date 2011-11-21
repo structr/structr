@@ -64,7 +64,11 @@ public class Result {
 	}
 
 	public Integer getResultCount() {
-		return results.size();
+		if(results != null) {
+			return results.size();
+		}
+
+		return 0;
 	}
 
 //	public void setResultCount(Integer resultCount) {
