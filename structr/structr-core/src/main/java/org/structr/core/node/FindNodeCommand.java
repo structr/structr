@@ -78,15 +78,15 @@ public class FindNodeCommand extends NodeServiceCommand {
                     throw new UnsupportedArgumentError("No arguments supplied");
 
                 case 1:
-                    if (parameters[0] instanceof User) {
-			    throw new IllegalStateException("FindNodeCommand does not accept User instances any more. Please use SecurityContext!");
-                    }
+//                    if (parameters[0] instanceof User) {
+//			    throw new IllegalStateException("FindNodeCommand does not accept User instances any more. Please use SecurityContext!");
+//                    }
                     return (handleSingleArgument(graphDb, nodeFactory, parameters[0]));
 
                 default:
-                    if (parameters[0] instanceof User) {
-			    throw new IllegalStateException("FindNodeCommand does not accept User instances any more. Please use SecurityContext!");
-                    }
+//                    if (parameters[0] instanceof User) {
+//			    throw new IllegalStateException("FindNodeCommand does not accept User instances any more. Please use SecurityContext!");
+//                    }
                     return (handleMultipleArguments(graphDb, nodeFactory, parameters));
             }
         }
