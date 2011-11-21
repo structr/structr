@@ -3880,8 +3880,7 @@ public abstract class AbstractNode
 				   "Using validator of type {0} for property {1}",
 				   new Object[] { validator.getClass().getSimpleName(), key });
 
-			Value parameter         = EntityContext.getPropertyValidationParameter(type,
-				key);
+			Value parameter         = EntityContext.getPropertyValidationParameter(type, key);
 			ErrorBuffer errorBuffer = new ErrorBuffer();
 
 			if (!validator.isValid(key, convertedValue, parameter, errorBuffer)) {
@@ -3922,6 +3921,8 @@ public abstract class AbstractNode
 						// Setting last modified date explicetely is not allowed
 						if (!key.equals(Key.lastModifiedDate.name())) {
 
+
+							// ##### synchronize this #####
 							if (convertedValue instanceof Date) {
 
 								dbNode.setProperty(key,
@@ -3936,6 +3937,7 @@ public abstract class AbstractNode
 								dbNode.setProperty(Key.lastModifiedDate.name(),
 										   (new Date()).getTime());
 							}
+							// ##### until here #####
 
 						} else {
 

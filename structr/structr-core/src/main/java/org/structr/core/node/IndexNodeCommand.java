@@ -29,13 +29,14 @@ import org.neo4j.graphdb.index.Index;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.SuperUser;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.List;
+import java.util.concurrent.Semaphore;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.EntityContext;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -158,6 +159,7 @@ public class IndexNodeCommand extends NodeServiceCommand {
 
 	private void indexProperty(final AbstractNode node, final String key) {
 
+		String type = node.getClass().getSimpleName();
 		Node dbNode = node.getNode();
 		long id     = node.getId();
 
@@ -206,6 +208,12 @@ public class IndexNodeCommand extends NodeServiceCommand {
 
 		} else {
 
+			// obtain semaphore and acquire lock if semaphore exists
+			Semaphore semaphore = EntityContext.getSemaphoreForTypeAndProperty(type, key);
+			if(semaphore != null) {
+				try {	semaphore.acquire(); } catch(InterruptedException iex) { /* notified */ }
+			}
+
 			// index.remove(node, key, value);
 			index.remove(dbNode, key);
 			logger.log(Level.FINE, "Node {0}: Old value for key {1} removed from index", new Object[] { id,
@@ -213,6 +221,11 @@ public class IndexNodeCommand extends NodeServiceCommand {
 			index.add(dbNode, key, valueForIndexing);
 			logger.log(Level.FINE, "Node {0}: New value {2} added to index for key {1}", new Object[] { id,
 				key, value });
+
+			// release lock if semaphore exists
+			if(semaphore != null) {
+				semaphore.release();
+			}
 		}
 	}
 }

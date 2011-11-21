@@ -19,12 +19,14 @@
 
 package org.structr.core;
 
+import java.util.Collections;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.ObjectNotion;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Semaphore;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.Direction;
@@ -33,6 +35,8 @@ import org.structr.common.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.core.entity.DirectedRelationship;
 import org.structr.core.entity.DirectedRelationship.Cardinality;
+import org.structr.core.validator.GlobalPropertyUniquenessValidator;
+import org.structr.core.validator.TypeAndPropertyUniquenessValidator;
 
 /**
  * A global context for functional mappings between nodes and
@@ -47,12 +51,36 @@ public class EntityContext {
 	private static final Map<String, Map<String, DirectedRelationship>> globalRelationshipMap = new LinkedHashMap<String, Map<String, DirectedRelationship>>();
 	private static final Map<Class, Map<String, Set<String>>> globalPropertyViewMap = new LinkedHashMap<Class, Map<String, Set<String>>>();
 	private static final Map<Class, Map<String, PropertyGroup>> globalPropertyGroupMap = new LinkedHashMap<Class, Map<String, PropertyGroup>>();
+	private static final Map<String, Map<String, Semaphore>> globalSemaphoreMap = new LinkedHashMap<String, Map<String, Semaphore>>();
 	private static final Map<Class, Map<String, Value>> globalValidationParameterMap = new LinkedHashMap<Class, Map<String, Value>>();
 	private static final Map<Class, Map<String, Value>> globalConversionParameterMap = new LinkedHashMap<Class, Map<String, Value>>();
 	private static final Map<Class, Set<String>> globalWriteOncePropertyMap = new LinkedHashMap<Class, Set<String>>();
 	private static final Map<Class, Set<String>> globalReadOnlyPropertyMap = new LinkedHashMap<Class, Set<String>>();
 
 	private static final Logger logger = Logger.getLogger(EntityContext.class.getName());
+
+	private static final String GLOBAL_UNIQUENESS = "global_uniqueness_key";
+
+	// ----- semaphores -----
+	/**
+	 * Returns a semaphore for the given type and key IF there is a unique
+	 * constraint defined for the given type and property.
+	 * @param type
+	 * @param key
+	 * @return
+	 */
+	public static Semaphore getSemaphoreForTypeAndProperty(String type, String key) {
+
+		// try typed semaphore first
+		Semaphore semaphore = getSemaphoreMapForType(type).get(key);
+		
+		if(semaphore == null) {
+			// try global semaphore afterwards
+			semaphore = getSemaphoreForTypeAndProperty(GLOBAL_UNIQUENESS, key);
+		}
+
+		return semaphore;
+	}
 
 	// ----- property notions -----
 	public static PropertyGroup getPropertyGroup(Class type, PropertyKey key) {
@@ -187,6 +215,17 @@ public class EntityContext {
 
 		Map<String, Class<? extends PropertyValidator>> validatorMap = getPropertyValidatorMapForType(type);
 		validatorMap.put(propertyKey, validatorClass);
+
+		if(validatorClass.equals(GlobalPropertyUniquenessValidator.class)) {
+
+			// register semaphore for all types
+			getSemaphoreMapForType(GLOBAL_UNIQUENESS).put(propertyKey, new Semaphore(1));
+
+		} else if(validatorClass.equals(TypeAndPropertyUniquenessValidator.class)) {
+
+			// register semaphore
+			getSemaphoreMapForType(type.getSimpleName()).put(propertyKey, new Semaphore(1));
+		}
 
 		if(parameter != null) {
 			Map<String, Value> validatorParameterMap = getPropertyValidatonParameterMapForType(type);
@@ -465,5 +504,16 @@ public class EntityContext {
 		}
 
 		return groupMap;
+	}
+
+	private static Map<String, Semaphore> getSemaphoreMapForType(String type) {
+
+		Map<String, Semaphore> semaphoreMap = globalSemaphoreMap.get(type);
+		if(semaphoreMap == null) {
+			semaphoreMap = Collections.synchronizedMap(new LinkedHashMap<String, Semaphore>());
+			globalSemaphoreMap.put(type, semaphoreMap);
+		}
+
+		return semaphoreMap;
 	}
 }
