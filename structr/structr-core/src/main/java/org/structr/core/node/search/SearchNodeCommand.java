@@ -82,9 +82,9 @@ public class SearchNodeCommand extends NodeServiceCommand {
 	@Override
 	public Object execute(Object... parameters) {
 
-		if ((parameters == null) || (parameters.length != 4)) {
+		if ((parameters == null) || (parameters.length < 4)) {
 
-			logger.log(Level.WARNING, "Exactly 4 parameters are required for advanced search.");
+			logger.log(Level.WARNING, "4 or more parameters are required for advanced search.");
 
 			return Collections.emptyList();
 		}
@@ -113,7 +113,21 @@ public class SearchNodeCommand extends NodeServiceCommand {
 			searchAttrs = (List<SearchAttribute>) parameters[3];
 		}
 
-		return search(securityContext, topNode, includeDeleted, publicOnly, searchAttrs);
+		String propertyKey = null;
+		String type = null;
+
+		if(parameters.length >= 6) {
+			
+			if(parameters[4] instanceof String) {
+				type = (String)parameters[4];
+			}
+
+			if(parameters[5] instanceof String) {
+				propertyKey = (String)parameters[5];
+			}
+		}
+
+		return search(securityContext, topNode, includeDeleted, publicOnly, searchAttrs, type, propertyKey);
 	}
 
 	/**
@@ -127,13 +141,13 @@ public class SearchNodeCommand extends NodeServiceCommand {
 	 * @return
 	 */
 	private List<AbstractNode> search(final SecurityContext securityContext, final AbstractNode topNode, final boolean includeDeleted,
-					 final boolean publicOnly, final List<SearchAttribute> searchAttrs) {
+					 final boolean publicOnly, final List<SearchAttribute> searchAttrs, final String type, final String propertyKey) {
 
 		GraphDatabaseService graphDb     = (GraphDatabaseService) arguments.get("graphDb");
 		Index<Node> index                = (Index<Node>) arguments.get("index");
 		StructrNodeFactory nodeFactory   = (StructrNodeFactory) arguments.get("nodeFactory");
-		Map<String, String> typesAndKeys = new LinkedHashMap<String, String>();
 		List<AbstractNode> finalResult   = new LinkedList<AbstractNode>();
+		Semaphore semaphore              = null;
 
 		if (graphDb != null) {
 
@@ -162,10 +176,6 @@ public class SearchNodeCommand extends NodeServiceCommand {
 							// TODO: support other than textual search attributes
 							if (groupedAttr instanceof TextualSearchAttribute) {
 
-								// collect types and keys of this search query
-								// in order to obtain locks for the properties
-								extractTypeAndKey(groupedAttr, typesAndKeys);
-
 								subQuery.add(
 								    toQuery((TextualSearchAttribute) groupedAttr),
 								    translateToBooleanClauseOccur(
@@ -191,10 +201,6 @@ public class SearchNodeCommand extends NodeServiceCommand {
 					}
 
 				} else if (attr instanceof TextualSearchAttribute) {
-
-					// collect types and keys of this search query
-					// in order to obtain locks for the properties
-					extractTypeAndKey(attr, typesAndKeys);
 
 					query.add(toQuery((TextualSearchAttribute) attr),
 						  translateToBooleanClauseOccur(attr.getSearchOperator()));
@@ -222,28 +228,8 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 				logger.log(Level.FINE, "Textual Query String: {0}", textualQueryString);
 
-				// obtain semaphores and acquire locks
-				for(Entry<String, String> requiredLock : typesAndKeys.entrySet()) {
-					String type = requiredLock.getKey();
-					String key = requiredLock.getValue();
-					Semaphore semaphore = EntityContext.getSemaphoreForTypeAndProperty(type, key);
-					if(semaphore != null) {
-						try {	semaphore.acquire(); } catch(InterruptedException iex) { /* notified */ }
-					}
-				}
-
 				IndexHits hits = index.query(new QueryContext(textualQueryString));    // .sort("name"));
 				long t1        = System.currentTimeMillis();
-
-				// release locks
-				for(Entry<String, String> requiredLock : typesAndKeys.entrySet()) {
-					String type = requiredLock.getKey();
-					String key = requiredLock.getValue();
-					Semaphore semaphore = EntityContext.getSemaphoreForTypeAndProperty(type, key);
-					if(semaphore != null) {
-						semaphore.release();
-					}
-				}
 
 				logger.log(Level.FINE, "Querying index took {0} ms, {1} results retrieved.",
 					   new Object[] { t1 - t0,
@@ -434,20 +420,5 @@ public class SearchNodeCommand extends NodeServiceCommand {
 		}
 
 		return result;
-	}
-
-	private void extractTypeAndKey(SearchAttribute attr, Map<String, String> typesAndKeys) {
-
-		if(attr instanceof TextualSearchAttribute) {
-
-			TextualSearchAttribute textualSearchAttribute = (TextualSearchAttribute)attr;
-			String key = textualSearchAttribute.getKey();
-			String value = textualSearchAttribute.getValue();
-
-			// add key and value to the required semaphore list
-			if(key != null && value != null && key.equals(AbstractNode.Key.type.name())) {
-				typesAndKeys.put(key, value);
-			}
-		}
 	}
 }

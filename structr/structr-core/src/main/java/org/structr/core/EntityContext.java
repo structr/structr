@@ -59,7 +59,7 @@ public class EntityContext {
 
 	private static final Logger logger = Logger.getLogger(EntityContext.class.getName());
 
-	private static final String GLOBAL_UNIQUENESS = "global_uniqueness_key";
+	public static final String GLOBAL_UNIQUENESS = "global_uniqueness_key";
 
 	// ----- semaphores -----
 	/**
@@ -218,13 +218,23 @@ public class EntityContext {
 
 		if(validatorClass.equals(GlobalPropertyUniquenessValidator.class)) {
 
+			logger.log(Level.INFO, "registering semaphore for type {0}, key {1}", new Object[] { GLOBAL_UNIQUENESS, propertyKey} );
+
 			// register semaphore for all types
-			getSemaphoreMapForType(GLOBAL_UNIQUENESS).put(propertyKey, new Semaphore(1));
+			Map<String, Semaphore> map = getSemaphoreMapForType(GLOBAL_UNIQUENESS);
+			if(!map.containsKey(propertyKey)) {
+				map.put(propertyKey, new Semaphore(1));
+			}
 
 		} else if(validatorClass.equals(TypeAndPropertyUniquenessValidator.class)) {
 
+			logger.log(Level.INFO, "registering semaphore for type {0}, key {1}", new Object[] { type, propertyKey} );
+
 			// register semaphore
-			getSemaphoreMapForType(type.getSimpleName()).put(propertyKey, new Semaphore(1));
+			Map<String, Semaphore> map = getSemaphoreMapForType(type.getSimpleName());
+			if(!map.containsKey(propertyKey)) {
+				map.put(propertyKey, new Semaphore(1));
+			}
 		}
 
 		if(parameter != null) {
