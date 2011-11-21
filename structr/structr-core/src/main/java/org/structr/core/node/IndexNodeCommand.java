@@ -211,6 +211,7 @@ public class IndexNodeCommand extends NodeServiceCommand {
 			logger.log(Level.FINE, "Node {0}: Old value for key {1} removed from index", new Object[] { id,
 				key });
 			index.add(dbNode, key, valueForIndexing);
+
 			logger.log(Level.FINE, "Node {0}: New value {2} added to index for key {1}", new Object[] { id,
 				key, value });
 		}
