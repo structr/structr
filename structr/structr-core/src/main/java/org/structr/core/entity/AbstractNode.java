@@ -1920,14 +1920,11 @@ public abstract class AbstractNode
 			value = dbNode.getProperty(key);
 		}
 
-		PropertyConverter converter = EntityContext.getPropertyConverter(securityContext,
-			type,
-			key);
-
+		PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
 		if (converter != null) {
 
-			Value conversionValue = EntityContext.getPropertyConversionParameter(type,
-				key);
+			Value conversionValue = EntityContext.getPropertyConversionParameter(type, key);
+			converter.setCurrentNode(this);
 
 			value = converter.convertForGetter(value, conversionValue);
 		}
@@ -3854,15 +3851,13 @@ public abstract class AbstractNode
 			}
 		}
 
-		PropertyConverter converter = EntityContext.getPropertyConverter(securityContext,
-			type,
-			key);
+		PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
 		final Object convertedValue;
 
 		if (converter != null) {
 
-			Value conversionValue = EntityContext.getPropertyConversionParameter(type,
-				key);
+			Value conversionValue = EntityContext.getPropertyConversionParameter(type, key);
+			converter.setCurrentNode(this);
 
 			convertedValue = converter.convertForSetter(value, conversionValue);
 

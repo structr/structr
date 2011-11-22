@@ -20,6 +20,7 @@
 package org.structr.core;
 
 import org.structr.common.SecurityContext;
+import org.structr.core.entity.AbstractNode;
 
 /**
  * A generic converter interface that can be used to convert
@@ -31,6 +32,7 @@ import org.structr.common.SecurityContext;
 public abstract class PropertyConverter<S, T> {
 
 	protected SecurityContext securityContext = null;
+	protected AbstractNode currentNode = null;
 
 	/**
 	 * Converts from destination type to source type. Caution: source
@@ -53,5 +55,9 @@ public abstract class PropertyConverter<S, T> {
 	
 	public void setSecurityContext(SecurityContext securityContext) {
 		this.securityContext = securityContext;
+	}
+	
+	public void setCurrentNode(AbstractNode currentNode) {
+		this.currentNode = currentNode;
 	}
 }

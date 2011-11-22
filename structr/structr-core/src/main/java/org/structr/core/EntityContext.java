@@ -298,6 +298,10 @@ public class EntityContext {
 		registerPropertyConverter(type, propertyKey.name(), propertyConverterClass);
 	}
 
+	public static void registerPropertyConverter(Class type, PropertyKey propertyKey, Class<? extends PropertyConverter> propertyConverterClass, Value value) {
+		registerPropertyConverter(type, propertyKey.name(), propertyConverterClass, value);
+	}
+
 	public static void registerPropertyConverter(Class type, String propertyKey, Class<? extends PropertyConverter> propertyConverterClass) {
 		registerPropertyConverter(type, propertyKey, propertyConverterClass, null);
 	}
