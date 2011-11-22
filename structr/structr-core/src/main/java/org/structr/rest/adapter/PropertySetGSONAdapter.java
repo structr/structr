@@ -26,7 +26,6 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
-import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import java.lang.reflect.Type;
@@ -45,12 +44,14 @@ public class PropertySetGSONAdapter implements InstanceCreator<PropertySet>, Jso
 
 	private static final Logger logger = Logger.getLogger(PropertySetGSONAdapter.class.getName());
 	private PropertyFormat propertyFormat = null;
+	private String idProperty = null;
 
 	public PropertySetGSONAdapter() {
 	}
 
-	public PropertySetGSONAdapter(PropertyFormat propertyFormat) {
+	public PropertySetGSONAdapter(PropertyFormat propertyFormat, String idProperty) {
 		this.propertyFormat = propertyFormat;
+		this.idProperty = idProperty;
 	}
 
 	@Override
@@ -113,6 +114,11 @@ public class PropertySetGSONAdapter implements InstanceCreator<PropertySet>, Jso
 				String key = entry.getKey();
 				JsonElement elem = entry.getValue();
 
+				// static mapping of IdProperty if present
+				if(idProperty != null && "id".equals(key)) {
+					key = idProperty;
+				}
+
 				if(elem.isJsonNull()) {
 					wrapper.add(key, null);
 				} else if(elem.isJsonObject()) {
@@ -144,7 +150,14 @@ public class PropertySetGSONAdapter implements InstanceCreator<PropertySet>, Jso
 
 			if(obj.has("key")) {
 				key = obj.get("key").getAsString();
-				logger.log(Level.INFO, "key: {0}", key);
+
+				// static mapping of IdProperty if present
+				if(idProperty != null && "id".equals(key)) {
+					logger.log(Level.INFO, "mapped key: {0} -> {1}", new Object[] { key, idProperty } );
+					key = idProperty;
+				} else {
+					logger.log(Level.INFO, "key: {0}", key);
+				}
 			}
 			
 			if(obj.has("value")) {

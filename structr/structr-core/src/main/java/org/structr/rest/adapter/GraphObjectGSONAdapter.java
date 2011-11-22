@@ -91,6 +91,12 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 		// id (only if idProperty is not set)
 		if(idProperty == null) {
 			jsonObject.add("id", new JsonPrimitive(src.getId()));
+		} else {
+			Object idPropertyValue = src.getProperty(idProperty);
+			if(idPropertyValue != null) {
+				String idString = idPropertyValue.toString();
+				jsonObject.add("id", new JsonPrimitive(idString));
+			}
 		}
 
 		String type = src.getType();
@@ -218,6 +224,12 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 		// id (only if idProperty is not set)
 		if(idProperty == null) {
 			jsonObject.add("id", new JsonPrimitive(src.getId()));
+		} else {
+			Object idPropertyValue = src.getProperty(idProperty);
+			if(idPropertyValue != null) {
+				String idString = idPropertyValue.toString();
+				jsonObject.add("id", new JsonPrimitive(idString));
+			}
 		}
 
 		String type = src.getType();
@@ -230,6 +242,11 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 
 			Object value = src.getProperty(key);
 			if(value != null) {
+
+				// id property mapping
+				if(key.equals(idProperty)) {
+					key = "id";
+				}
 
 				if(value instanceof Iterable) {
 
@@ -284,6 +301,12 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 	private JsonObject serializePrimitive(String key, Object value, boolean includeTypeInOutput) {
 
 		JsonObject property = new JsonObject();
+
+		// id property mapping
+		if(key.equals(idProperty)) {
+			key = "id";
+		}
+
 		property.add("key", new JsonPrimitive(key));
 
 		if(value != null) {
@@ -319,10 +342,16 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 			Object value = entry.getValue();
 
 			if(key != null) {
+
+				// id property mapping
+				if(key.equals(idProperty)) {
+					key = "id";
+				}
+
 				if(value != null) {
-					object.add(entry.getKey(), new JsonPrimitive(value.toString()));
+					object.add(key, new JsonPrimitive(value.toString()));
 				} else {
-					object.add(entry.getKey(), new JsonNull());
+					object.add(key, new JsonNull());
 				}
 			}
 		}
