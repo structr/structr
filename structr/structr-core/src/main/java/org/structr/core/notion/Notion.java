@@ -40,6 +40,7 @@ public abstract class Notion {
 	protected DeserializationStrategy deserializationStrategy = null;
 	protected SerializationStrategy serializationStrategy = null;
 	protected SecurityContext securityContext = null;
+	protected String idProperty = null;
 	protected Class type = null;
 
 	public Notion(SerializationStrategy serializationStrategy, DeserializationStrategy deserializationStrategy) {
@@ -68,5 +69,9 @@ public abstract class Notion {
 
 	public void setType(Class type) {
 		this.type = type;
+	}
+
+	public void setIdProperty(String idProperty) {
+		this.idProperty = idProperty;
 	}
 }

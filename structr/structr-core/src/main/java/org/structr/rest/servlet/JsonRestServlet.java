@@ -176,7 +176,7 @@ public class JsonRestServlet extends HttpServlet {
 		
 		// initialize adapters
 		this.resultGsonAdapter =		new ResultGSONAdapter(propertyFormat, propertyView, defaultIdProperty);
-		this.propertySetAdapter =		new PropertySetGSONAdapter(propertyFormat);
+		this.propertySetAdapter =		new PropertySetGSONAdapter(propertyFormat, defaultIdProperty);
 
 		// create GSON serializer
 		this.gson = new GsonBuilder()
