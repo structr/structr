@@ -21,9 +21,12 @@ package org.structr.core.validator;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.Semaphore;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.ErrorBuffer;
 import org.structr.common.SecurityContext;
+import org.structr.core.EntityContext;
 import org.structr.core.PropertyValidator;
 import org.structr.core.Services;
 import org.structr.core.Value;
@@ -68,9 +71,31 @@ public class TypeAndPropertyUniquenessValidator extends PropertyValidator<String
 			//attributes.add(new TextualSearchAttribute(key, stringValue, SearchOperator.AND));
 			attributes.add(Search.andExactPropertyValue(key, stringValue));
 
-			List<AbstractNode> resultList = (List<AbstractNode>)Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(topNode, includeDeleted, publicOnly, attributes);
+			/*
+			Semaphore semaphore = null;
+
+			// obtain semaphores and acquire locks
+			if(type != null && key != null) {
+				semaphore = EntityContext.getSemaphoreForTypeAndProperty(type, key);
+				if(semaphore != null) {
+					try {	semaphore.acquire(); } catch(InterruptedException iex) { iex.printStackTrace(); }
+					logger.log(Level.INFO, "Entering critical section for type {0} key {1} from thread {2}",
+					    new Object[] { type, key, Thread.currentThread() } );
+				}
+			}
+			*/
+			
+			List<AbstractNode> resultList = (List<AbstractNode>)Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(topNode, includeDeleted, publicOnly, attributes, type, key);
 			nodeExists = !resultList.isEmpty();
 
+			/*
+			if(semaphore != null) {
+				semaphore.release();
+				logger.log(Level.INFO, "Exiting critical section for type {0} key {1} from thread {2}",
+				    new Object[] { type, key, Thread.currentThread() } );
+			}
+			*/
+			
 			if(nodeExists) {
 
 				errorBuffer.add("A node with value '", value, "' for property '", key, "' already exists.");

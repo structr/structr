@@ -104,6 +104,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Semaphore;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -1919,14 +1920,11 @@ public abstract class AbstractNode
 			value = dbNode.getProperty(key);
 		}
 
-		PropertyConverter converter = EntityContext.getPropertyConverter(securityContext,
-			type,
-			key);
-
+		PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
 		if (converter != null) {
 
-			Value conversionValue = EntityContext.getPropertyConversionParameter(type,
-				key);
+			Value conversionValue = EntityContext.getPropertyConversionParameter(type, key);
+			converter.setCurrentNode(this);
 
 			value = converter.convertForGetter(value, conversionValue);
 		}
@@ -3786,7 +3784,7 @@ public abstract class AbstractNode
 	 */
 	public void setProperty(final String key, final Object value, final boolean updateIndex) {
 
-		Class type = this.getClass();
+		final Class type = this.getClass();
 
 		if (key == null) {
 
@@ -3853,15 +3851,13 @@ public abstract class AbstractNode
 			}
 		}
 
-		PropertyConverter converter = EntityContext.getPropertyConverter(securityContext,
-			type,
-			key);
+		PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
 		final Object convertedValue;
 
 		if (converter != null) {
 
-			Value conversionValue = EntityContext.getPropertyConversionParameter(type,
-				key);
+			Value conversionValue = EntityContext.getPropertyConversionParameter(type, key);
+			converter.setCurrentNode(this);
 
 			convertedValue = converter.convertForSetter(value, conversionValue);
 
@@ -3913,46 +3909,71 @@ public abstract class AbstractNode
 				@Override
 				public Object execute() throws Throwable {
 
-					// save space
-					if (convertedValue == null) {
-						dbNode.removeProperty(key);
-					} else {
 
-						// Setting last modified date explicetely is not allowed
-						if (!key.equals(Key.lastModifiedDate.name())) {
+					// Semaphore semaphore = EntityContext.getSemaphoreForTypeAndProperty(type.getSimpleName(), key);
+
+					try {
+						/*
+						// obtain semaphore and acquire lock if semaphore exists
+						if(semaphore != null) {
+							try { semaphore.acquire(); } catch(InterruptedException iex) { iex.printStackTrace(); }
+							logger.log(Level.INFO, "Entering critical section for type {0} key {1} from thread {2}",
+							    new Object[] { type.getSimpleName(), key, Thread.currentThread() } );
+						}
+						*/
+
+						// save space
+						if (convertedValue == null) {
+							dbNode.removeProperty(key);
+						} else {
+
+							// Setting last modified date explicetely is not allowed
+							if (!key.equals(Key.lastModifiedDate.name())) {
 
 
-							// ##### synchronize this #####
-							if (convertedValue instanceof Date) {
+								// ##### synchronize this #####
+								if (convertedValue instanceof Date) {
 
-								dbNode.setProperty(key,
-										   ((Date) convertedValue).getTime());
+									dbNode.setProperty(key,
+											   ((Date) convertedValue).getTime());
+
+								} else {
+
+									dbNode.setProperty(key,
+											   convertedValue);
+
+									// set last modified date if not already happened
+									dbNode.setProperty(Key.lastModifiedDate.name(),
+											   (new Date()).getTime());
+								}
+								// ##### until here #####
 
 							} else {
 
-								dbNode.setProperty(key,
-										   convertedValue);
-
-								// set last modified date if not already happened
-								dbNode.setProperty(Key.lastModifiedDate.name(),
-										   (new Date()).getTime());
+								logger.log(Level.FINE,
+									   "Tried to set lastModifiedDate explicitely (action was denied)");
 							}
-							// ##### until here #####
-
-						} else {
-
-							logger.log(Level.FINE,
-								   "Tried to set lastModifiedDate explicitely (action was denied)");
 						}
-					}
 
-					// Don't automatically update index
-					// TODO: Implement something really fast to keep the index automatically in sync
-					if (updateIndex && dbNode.hasProperty(key)) {
+						// Don't automatically update index
+						// TODO: Implement something really fast to keep the index automatically in sync
+						if (updateIndex && dbNode.hasProperty(key)) {
 
-						Services.command(securityContext,
-								 IndexNodeCommand.class).execute(getId(),
-							key);
+							Services.command(securityContext,
+									 IndexNodeCommand.class).execute(getId(),
+								key);
+						}
+
+					} finally {
+
+						/*
+						// release lock if semaphore exists
+						if(semaphore != null) {
+							semaphore.release();
+							logger.log(Level.INFO, "Exiting critical section for type {0} key {1} from thread {2}",
+							    new Object[] { type.getSimpleName(), key, Thread.currentThread() } );
+						}
+						*/
 					}
 
 					return null;
