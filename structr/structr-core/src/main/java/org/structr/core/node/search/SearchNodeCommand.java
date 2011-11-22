@@ -38,12 +38,8 @@ import org.structr.core.node.StructrNodeFactory;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.concurrent.Semaphore;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.lucene.index.Term;
@@ -51,7 +47,6 @@ import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
 import org.structr.common.SecurityContext;
-import org.structr.core.EntityContext;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -147,7 +142,6 @@ public class SearchNodeCommand extends NodeServiceCommand {
 		Index<Node> index                = (Index<Node>) arguments.get("index");
 		StructrNodeFactory nodeFactory   = (StructrNodeFactory) arguments.get("nodeFactory");
 		List<AbstractNode> finalResult   = new LinkedList<AbstractNode>();
-		Semaphore semaphore              = null;
 
 		if (graphDb != null) {
 

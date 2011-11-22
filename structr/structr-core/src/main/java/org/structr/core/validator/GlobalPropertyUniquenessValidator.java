@@ -7,13 +7,10 @@ package org.structr.core.validator;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.Semaphore;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.dom4j.tree.AbstractNode;
 import org.structr.common.ErrorBuffer;
 import org.structr.common.SecurityContext;
-import org.structr.core.EntityContext;
 import org.structr.core.PropertyValidator;
 import org.structr.core.Services;
 import org.structr.core.Value;
@@ -44,7 +41,7 @@ public class GlobalPropertyUniquenessValidator extends PropertyValidator<String>
 				return false;
 			}
 
-			String type = EntityContext.GLOBAL_UNIQUENESS;
+			// String type = EntityContext.GLOBAL_UNIQUENESS;
 			String stringValue = (String)value;
 			AbstractNode topNode = null;
 			Boolean includeDeleted = false;
@@ -54,6 +51,7 @@ public class GlobalPropertyUniquenessValidator extends PropertyValidator<String>
 			List<SearchAttribute> attributes = new LinkedList<SearchAttribute>();
 			attributes.add(new TextualSearchAttribute(key, stringValue, SearchOperator.AND));
 
+			/*
 			Semaphore semaphore = null;
 
 			// obtain semaphores and acquire locks
@@ -65,16 +63,19 @@ public class GlobalPropertyUniquenessValidator extends PropertyValidator<String>
 					    new Object[] { type, key, Thread.currentThread() } );
 				}
 			}
-
+			*/
+			
 			List<AbstractNode> resultList = (List<AbstractNode>)Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(topNode, includeDeleted, publicOnly, attributes);
 			nodeExists = !resultList.isEmpty();
 
+			/*
 			if(semaphore != null) {
 				semaphore.release();
 				logger.log(Level.INFO, "Exiting critical section for type {0} key {1} from thread {2}",
 				    new Object[] { type, key, Thread.currentThread() } );
 			}
-
+			*/
+			
 			if(nodeExists) {
 
 				errorBuffer.add("A node with value '", value, "' for property '", key, "' already exists.");

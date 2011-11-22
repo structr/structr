@@ -3787,213 +3787,214 @@ public abstract class AbstractNode
 	 */
 	public void setProperty(final String key, final Object value, final boolean updateIndex) {
 
-		synchronized(AbstractNode.class) {
+		final Class type = this.getClass();
 
-			final Class type = this.getClass();
+		if (key == null) {
 
-			if (key == null) {
+			logger.log(Level.SEVERE,
+				   "Tried to set property with null key (action was denied)");
 
-				logger.log(Level.SEVERE,
-					   "Tried to set property with null key (action was denied)");
+			throw new IllegalArgumentException("A property key may not be null.");
 
-				throw new IllegalArgumentException("A property key may not be null.");
+		}
 
+		// check for read-only properties
+		if (EntityContext.isReadOnlyProperty(type, key) || (EntityContext.isWriteOnceProperty(type, key) && dbNode != null && dbNode.hasProperty(key))) {
+
+			if (readOnlyPropertiesUnlocked) {
+
+				// permit write operation once and
+				// lock read-only properties again
+				readOnlyPropertiesUnlocked = false;
+
+			} else {
+				throw new IllegalArgumentException("Property '".concat(key).concat("' is read-only."));
 			}
+		}
 
-			// check for read-only properties
-			if (EntityContext.isReadOnlyProperty(type, key) || (EntityContext.isWriteOnceProperty(type, key) && dbNode != null && dbNode.hasProperty(key))) {
+		// ----- BEGIN property group resolution -----
+		PropertyGroup propertyGroup = EntityContext.getPropertyGroup(type, key);
+		if(propertyGroup != null) {
+			propertyGroup.setGroupedProperties(value, this);
+			return;
+		}
+		// ----- END property group resolution -----
 
-				if (readOnlyPropertiesUnlocked) {
+		String singularType = getSingularTypeName(key);
+		if (key.endsWith("Id")) {
+			singularType = singularType.substring(0, singularType.length() - 2);
+		}
 
-					// permit write operation once and
-					// lock read-only properties again
-					readOnlyPropertiesUnlocked = false;
+		// check for static relationships and connect node
+		if (EntityContext.getRelations(type).containsKey(singularType.toLowerCase())) {
 
-				} else {
-					throw new IllegalArgumentException("Property '".concat(key).concat("' is read-only."));
+			// static relationship detected, create relationship
+			DirectedRelationship rel = EntityContext.getRelations(type).get(singularType.toLowerCase());
+			if (rel != null) {
+
+				try {
+
+					GraphObject graphObject = rel.getNotion().getAdapterForSetter(securityContext).adapt(value);
+					rel.createRelationship(securityContext, this, graphObject, singularType);
+
+					return;
+
+				} catch(IllegalArgumentException iaex) {
+
+					// re-throw exception
+					throw iaex;
+
+				} catch (Throwable t) {
+
+					// logger.log(Level.WARNING, "Exception in setProperty", t);
+
+					// report exception upwards
+					throw new IllegalArgumentException(t.getMessage());
 				}
 			}
+		}
 
-			// ----- BEGIN property group resolution -----
-			PropertyGroup propertyGroup = EntityContext.getPropertyGroup(type, key);
-			if(propertyGroup != null) {
-				propertyGroup.setGroupedProperties(value, this);
+		PropertyConverter converter = EntityContext.getPropertyConverter(securityContext,
+			type,
+			key);
+		final Object convertedValue;
+
+		if (converter != null) {
+
+			Value conversionValue = EntityContext.getPropertyConversionParameter(type,
+				key);
+
+			convertedValue = converter.convertForSetter(value, conversionValue);
+
+		} else {
+			convertedValue = value;
+		}
+
+		// look for validator
+		PropertyValidator validator = EntityContext.getPropertyValidator(securityContext,
+			type,
+			key);
+
+		if (validator != null) {
+
+			logger.log(Level.FINE,
+				   "Using validator of type {0} for property {1}",
+				   new Object[] { validator.getClass().getSimpleName(), key });
+
+			Value parameter         = EntityContext.getPropertyValidationParameter(type, key);
+			ErrorBuffer errorBuffer = new ErrorBuffer();
+
+			if (!validator.isValid(key, convertedValue, parameter, errorBuffer)) {
+				throw new IllegalArgumentException(errorBuffer.toString());
+			}
+		}
+
+		if (isDirty) {
+
+			// Don't write directly to database, but store property values
+			// in a map for later use
+			properties.put(key,
+				       convertedValue);
+		} else {
+
+			// Commit value directly to database
+			Object oldValue = getProperty(key);
+
+			// don't make any changes if
+			// - old and new value both are null
+			// - old and new value are not null but equal
+			if (((convertedValue == null) && (oldValue == null))
+				|| ((convertedValue != null) && (oldValue != null)
+				    && convertedValue.equals(oldValue))) {
 				return;
 			}
-			// ----- END property group resolution -----
 
-			String singularType = getSingularTypeName(key);
-			if (key.endsWith("Id")) {
-				singularType = singularType.substring(0, singularType.length() - 2);
-			}
+			StructrTransaction transaction = new StructrTransaction() {
 
-			// check for static relationships and connect node
-			if (EntityContext.getRelations(type).containsKey(singularType.toLowerCase())) {
+				@Override
+				public Object execute() throws Throwable {
 
-				// static relationship detected, create relationship
-				DirectedRelationship rel = EntityContext.getRelations(type).get(singularType.toLowerCase());
-				if (rel != null) {
+
+					// Semaphore semaphore = EntityContext.getSemaphoreForTypeAndProperty(type.getSimpleName(), key);
 
 					try {
+						/*
+						// obtain semaphore and acquire lock if semaphore exists
+						if(semaphore != null) {
+							try { semaphore.acquire(); } catch(InterruptedException iex) { iex.printStackTrace(); }
+							logger.log(Level.INFO, "Entering critical section for type {0} key {1} from thread {2}",
+							    new Object[] { type.getSimpleName(), key, Thread.currentThread() } );
+						}
+						*/
 
-						GraphObject graphObject = rel.getNotion().getAdapterForSetter(securityContext).adapt(value);
-						rel.createRelationship(securityContext, this, graphObject, singularType);
+						// save space
+						if (convertedValue == null) {
+							dbNode.removeProperty(key);
+						} else {
 
-						return;
-
-					} catch(IllegalArgumentException iaex) {
-
-						// re-throw exception
-						throw iaex;
-
-					} catch (Throwable t) {
-
-						// logger.log(Level.WARNING, "Exception in setProperty", t);
-
-						// report exception upwards
-						throw new IllegalArgumentException(t.getMessage());
-					}
-				}
-			}
-
-			PropertyConverter converter = EntityContext.getPropertyConverter(securityContext,
-				type,
-				key);
-			final Object convertedValue;
-
-			if (converter != null) {
-
-				Value conversionValue = EntityContext.getPropertyConversionParameter(type,
-					key);
-
-				convertedValue = converter.convertForSetter(value, conversionValue);
-
-			} else {
-				convertedValue = value;
-			}
-
-			// look for validator
-			PropertyValidator validator = EntityContext.getPropertyValidator(securityContext,
-				type,
-				key);
-
-			if (validator != null) {
-
-				logger.log(Level.FINE,
-					   "Using validator of type {0} for property {1}",
-					   new Object[] { validator.getClass().getSimpleName(), key });
-
-				Value parameter         = EntityContext.getPropertyValidationParameter(type, key);
-				ErrorBuffer errorBuffer = new ErrorBuffer();
-
-				if (!validator.isValid(key, convertedValue, parameter, errorBuffer)) {
-					throw new IllegalArgumentException(errorBuffer.toString());
-				}
-			}
-
-			if (isDirty) {
-
-				// Don't write directly to database, but store property values
-				// in a map for later use
-				properties.put(key,
-					       convertedValue);
-			} else {
-
-				// Commit value directly to database
-				Object oldValue = getProperty(key);
-
-				// don't make any changes if
-				// - old and new value both are null
-				// - old and new value are not null but equal
-				if (((convertedValue == null) && (oldValue == null))
-					|| ((convertedValue != null) && (oldValue != null)
-					    && convertedValue.equals(oldValue))) {
-					return;
-				}
-
-				StructrTransaction transaction = new StructrTransaction() {
-
-					@Override
-					public Object execute() throws Throwable {
+							// Setting last modified date explicetely is not allowed
+							if (!key.equals(Key.lastModifiedDate.name())) {
 
 
-						Semaphore semaphore = EntityContext.getSemaphoreForTypeAndProperty(type.getSimpleName(), key);
+								// ##### synchronize this #####
+								if (convertedValue instanceof Date) {
 
-						try {
-							// obtain semaphore and acquire lock if semaphore exists
-							if(semaphore != null) {
-								try { semaphore.acquire(); } catch(InterruptedException iex) { iex.printStackTrace(); }
-								logger.log(Level.INFO, "Entering critical section for type {0} key {1} from thread {2}",
-								    new Object[] { type.getSimpleName(), key, Thread.currentThread() } );
-							}
-
-							// save space
-							if (convertedValue == null) {
-								dbNode.removeProperty(key);
-							} else {
-
-								// Setting last modified date explicetely is not allowed
-								if (!key.equals(Key.lastModifiedDate.name())) {
-
-
-									// ##### synchronize this #####
-									if (convertedValue instanceof Date) {
-
-										dbNode.setProperty(key,
-												   ((Date) convertedValue).getTime());
-
-									} else {
-
-										dbNode.setProperty(key,
-												   convertedValue);
-
-										// set last modified date if not already happened
-										dbNode.setProperty(Key.lastModifiedDate.name(),
-												   (new Date()).getTime());
-									}
-									// ##### until here #####
+									dbNode.setProperty(key,
+											   ((Date) convertedValue).getTime());
 
 								} else {
 
-									logger.log(Level.FINE,
-										   "Tried to set lastModifiedDate explicitely (action was denied)");
+									dbNode.setProperty(key,
+											   convertedValue);
+
+									// set last modified date if not already happened
+									dbNode.setProperty(Key.lastModifiedDate.name(),
+											   (new Date()).getTime());
 								}
-							}
+								// ##### until here #####
 
-							// Don't automatically update index
-							// TODO: Implement something really fast to keep the index automatically in sync
-							if (updateIndex && dbNode.hasProperty(key)) {
+							} else {
 
-								Services.command(securityContext,
-										 IndexNodeCommand.class).execute(getId(),
-									key);
-							}
-
-						} finally {
-
-							// release lock if semaphore exists
-							if(semaphore != null) {
-								semaphore.release();
-								logger.log(Level.INFO, "Exiting critical section for type {0} key {1} from thread {2}",
-								    new Object[] { type.getSimpleName(), key, Thread.currentThread() } );
+								logger.log(Level.FINE,
+									   "Tried to set lastModifiedDate explicitely (action was denied)");
 							}
 						}
 
-						return null;
+						// Don't automatically update index
+						// TODO: Implement something really fast to keep the index automatically in sync
+						if (updateIndex && dbNode.hasProperty(key)) {
+
+							Services.command(securityContext,
+									 IndexNodeCommand.class).execute(getId(),
+								key);
+						}
+
+					} finally {
+
+						/*
+						// release lock if semaphore exists
+						if(semaphore != null) {
+							semaphore.release();
+							logger.log(Level.INFO, "Exiting critical section for type {0} key {1} from thread {2}",
+							    new Object[] { type.getSimpleName(), key, Thread.currentThread() } );
+						}
+						*/
 					}
-				};
 
-				// execute transaction
-				Services.command(securityContext,
-						 TransactionCommand.class).execute(transaction);
-
-				// debug
-				if (transaction.getCause() != null) {
-
-					logger.log(Level.WARNING,
-						   "Error while setting property",
-						   transaction.getCause());
+					return null;
 				}
+			};
+
+			// execute transaction
+			Services.command(securityContext,
+					 TransactionCommand.class).execute(transaction);
+
+			// debug
+			if (transaction.getCause() != null) {
+
+				logger.log(Level.WARNING,
+					   "Error while setting property",
+					   transaction.getCause());
 			}
 		}
 	}

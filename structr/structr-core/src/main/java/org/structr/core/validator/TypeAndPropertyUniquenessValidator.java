@@ -71,6 +71,7 @@ public class TypeAndPropertyUniquenessValidator extends PropertyValidator<String
 			//attributes.add(new TextualSearchAttribute(key, stringValue, SearchOperator.AND));
 			attributes.add(Search.andExactPropertyValue(key, stringValue));
 
+			/*
 			Semaphore semaphore = null;
 
 			// obtain semaphores and acquire locks
@@ -82,16 +83,19 @@ public class TypeAndPropertyUniquenessValidator extends PropertyValidator<String
 					    new Object[] { type, key, Thread.currentThread() } );
 				}
 			}
-
+			*/
+			
 			List<AbstractNode> resultList = (List<AbstractNode>)Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(topNode, includeDeleted, publicOnly, attributes, type, key);
 			nodeExists = !resultList.isEmpty();
 
+			/*
 			if(semaphore != null) {
 				semaphore.release();
 				logger.log(Level.INFO, "Exiting critical section for type {0} key {1} from thread {2}",
 				    new Object[] { type, key, Thread.currentThread() } );
 			}
-
+			*/
+			
 			if(nodeExists) {
 
 				errorBuffer.add("A node with value '", value, "' for property '", key, "' already exists.");
