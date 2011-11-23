@@ -29,6 +29,7 @@ import org.neo4j.graphdb.Transaction;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.neo4j.kernel.AbstractGraphDatabase;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -73,6 +74,7 @@ public class TransactionCommand extends NodeServiceCommand {
 
 					try {
 						tx.finish();
+
 					} catch (Throwable t) {
 						logger.log(Level.SEVERE, "Transaction could not be finished", t);
 					}

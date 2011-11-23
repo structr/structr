@@ -40,6 +40,7 @@ public abstract class ResourceConstraint {
 	private static final Logger logger = Logger.getLogger(ResourceConstraint.class.getName());
 	
 	protected SecurityContext securityContext = null;
+	protected String idProperty = null;
 
 	public abstract boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request);
 
@@ -173,7 +174,11 @@ public abstract class ResourceConstraint {
 	 *
 	 * @param propertyView
 	 */
-	public void configurePropertyView(Value<PropertyView> propertyView) {
+	public void configurePropertyView(Value<String> propertyView) {
+	}
+
+	public void configureIdProperty(String idProperty) {
+		this.idProperty = idProperty;
 	}
 
 	public void setSecurityContext(SecurityContext securityContext) {
@@ -245,13 +250,22 @@ public abstract class ResourceConstraint {
 		}
 	}
 
-	protected String buildLocationHeader(String type, long id) {
+	protected String buildLocationHeader(GraphObject newObject) {
 
 		StringBuilder uriBuilder = securityContext.getBaseURI();
 
 		uriBuilder.append(getUriPart());
 		uriBuilder.append("/");
-		uriBuilder.append(id);
+
+		if(newObject != null) {
+
+			// use configured id property
+			if(idProperty == null) {
+				uriBuilder.append(newObject.getId());
+			} else {
+				uriBuilder.append(newObject.getProperty(idProperty));
+			}
+		}
 
 		return uriBuilder.toString();
 	}

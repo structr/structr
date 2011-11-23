@@ -118,7 +118,7 @@ public class TypeConstraint extends SortableConstraint {
 
 		// finally: return 201 Created
 		RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_CREATED);
-		result.addHeader("Location", buildLocationHeader(newNode.getType(), newNode.getId()));
+		result.addHeader("Location", buildLocationHeader(newNode));
 		return result;
 	}
 

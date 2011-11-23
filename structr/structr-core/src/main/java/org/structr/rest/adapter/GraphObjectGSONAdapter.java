@@ -31,7 +31,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.RelationshipType;
-import org.structr.common.PropertyView;
 import org.structr.core.GraphObject;
 import org.structr.core.Value;
 import org.structr.rest.wrapper.PropertySet.PropertyFormat;
@@ -44,19 +43,21 @@ import org.structr.rest.wrapper.PropertySet.PropertyFormat;
  */
 public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 
-	private Value<PropertyView> propertyView = null;
 	private PropertyFormat propertyFormat = null;
+	private Value<String> propertyView = null;
 	private int outputNestingDepth = 1;
+	private String idProperty = null;
 
-	public GraphObjectGSONAdapter(PropertyFormat propertyFormat, Value<PropertyView> propertyView) {
+	public GraphObjectGSONAdapter(PropertyFormat propertyFormat, Value<String> propertyView, String idProperty) {
 		this.propertyFormat = propertyFormat;
 		this.propertyView = propertyView;
+		this.idProperty = idProperty;
 	}
 
 	@Override
 	public JsonElement serialize(GraphObject src, Type typeOfSrc, JsonSerializationContext context) {
 		
-		PropertyView localPropertyView = propertyView.get();
+		String localPropertyView = propertyView.get();
 		JsonElement serializedOutput = null;
 
 		switch(propertyFormat) {
@@ -78,7 +79,7 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 	}
 
 	// ----- private methods -----
-	private JsonElement serializeNestedKeyValueType(GraphObject src, Type typeOfSrc, JsonSerializationContext context, boolean includeTypeInOutput, PropertyView localPropertyView, int depth) {
+	private JsonElement serializeNestedKeyValueType(GraphObject src, Type typeOfSrc, JsonSerializationContext context, boolean includeTypeInOutput, String localPropertyView, int depth) {
 
 		// prevent endless recursion by pruning at depth 2
 		if(depth > outputNestingDepth) {
@@ -87,8 +88,16 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 
 		JsonObject jsonObject = new JsonObject();
 
-		// id
-		jsonObject.add("id", new JsonPrimitive(src.getId()));
+		// id (only if idProperty is not set)
+		if(idProperty == null) {
+			jsonObject.add("id", new JsonPrimitive(src.getId()));
+		} else {
+			Object idPropertyValue = src.getProperty(idProperty);
+			if(idPropertyValue != null) {
+				String idString = idPropertyValue.toString();
+				jsonObject.add("id", new JsonPrimitive(idString));
+			}
+		}
 
 		String type = src.getType();
 		if(type != null) {
@@ -203,7 +212,7 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 		return jsonObject;
 	}
 
-	private JsonElement serializeFlatNameValue(GraphObject src, Type typeOfSrc, JsonSerializationContext context, PropertyView localPropertyView, int depth) {
+	private JsonElement serializeFlatNameValue(GraphObject src, Type typeOfSrc, JsonSerializationContext context, String localPropertyView, int depth) {
 
 		// prevent endless recursion by pruning at depth 2
 		if(depth > outputNestingDepth) {
@@ -212,8 +221,16 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 
 		JsonObject jsonObject = new JsonObject();
 
-		// id
-		jsonObject.add("id", new JsonPrimitive(src.getId()));
+		// id (only if idProperty is not set)
+		if(idProperty == null) {
+			jsonObject.add("id", new JsonPrimitive(src.getId()));
+		} else {
+			Object idPropertyValue = src.getProperty(idProperty);
+			if(idPropertyValue != null) {
+				String idString = idPropertyValue.toString();
+				jsonObject.add("id", new JsonPrimitive(idString));
+			}
+		}
 
 		String type = src.getType();
 		if(type != null) {
@@ -225,6 +242,11 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 
 			Object value = src.getProperty(key);
 			if(value != null) {
+
+				// id property mapping
+				if(key.equals(idProperty)) {
+					key = "id";
+				}
 
 				if(value instanceof Iterable) {
 
@@ -291,6 +313,12 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 	private JsonObject serializePrimitive(String key, Object value, boolean includeTypeInOutput) {
 
 		JsonObject property = new JsonObject();
+
+		// id property mapping
+		if(key.equals(idProperty)) {
+			key = "id";
+		}
+
 		property.add("key", new JsonPrimitive(key));
 
 		if(value != null) {
@@ -326,10 +354,16 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 			Object value = entry.getValue();
 
 			if(key != null) {
+
+				// id property mapping
+				if(key.equals(idProperty)) {
+					key = "id";
+				}
+
 				if(value != null) {
-					object.add(entry.getKey(), new JsonPrimitive(value.toString()));
+					object.add(key, new JsonPrimitive(value.toString()));
 				} else {
-					object.add(entry.getKey(), new JsonNull());
+					object.add(key, new JsonNull());
 				}
 			}
 		}

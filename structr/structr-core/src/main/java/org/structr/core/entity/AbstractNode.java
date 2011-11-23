@@ -104,6 +104,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Semaphore;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -1792,7 +1793,7 @@ public abstract class AbstractNode
 	 * @return
 	 */
 	@Override
-	public Iterable<String> getPropertyKeys(final PropertyView propertyView) {
+	public Iterable<String> getPropertyKeys(final String propertyView) {
 
 		return EntityContext.getPropertySet(this.getClass(),
 			propertyView);
@@ -1919,14 +1920,11 @@ public abstract class AbstractNode
 			value = dbNode.getProperty(key);
 		}
 
-		PropertyConverter converter = EntityContext.getPropertyConverter(securityContext,
-			type,
-			key);
-
+		PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
 		if (converter != null) {
 
-			Value conversionValue = EntityContext.getPropertyConversionParameter(type,
-				key);
+			Value conversionValue = EntityContext.getPropertyConversionParameter(type, key);
+			converter.setCurrentNode(this);
 
 			value = converter.convertForGetter(value, conversionValue);
 		}
@@ -3786,25 +3784,26 @@ public abstract class AbstractNode
 	 */
 	public void setProperty(final String key, final Object value, final boolean updateIndex) {
 
-		Class type = this.getClass();
+		final Class type = this.getClass();
 
 		if (key == null) {
 
 			logger.log(Level.SEVERE,
 				   "Tried to set property with null key (action was denied)");
 
-			throw new IllegalArgumentException("Property key '".concat(key).concat("' is null."));
+			throw new IllegalArgumentException("A property key may not be null.");
 
 		}
 
 		// check for read-only properties
-		if (EntityContext.isReadOnlyProperty(type, key)) {
+		if (EntityContext.isReadOnlyProperty(type, key) || (EntityContext.isWriteOnceProperty(type, key) && dbNode != null && dbNode.hasProperty(key))) {
 
 			if (readOnlyPropertiesUnlocked) {
 
 				// permit write operation once and
 				// lock read-only properties again
 				readOnlyPropertiesUnlocked = false;
+
 			} else {
 				throw new IllegalArgumentException("Property '".concat(key).concat("' is read-only."));
 			}
@@ -3852,15 +3851,13 @@ public abstract class AbstractNode
 			}
 		}
 
-		PropertyConverter converter = EntityContext.getPropertyConverter(securityContext,
-			type,
-			key);
+		PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
 		final Object convertedValue;
 
 		if (converter != null) {
 
-			Value conversionValue = EntityContext.getPropertyConversionParameter(type,
-				key);
+			Value conversionValue = EntityContext.getPropertyConversionParameter(type, key);
+			converter.setCurrentNode(this);
 
 			convertedValue = converter.convertForSetter(value, conversionValue);
 
@@ -3879,8 +3876,7 @@ public abstract class AbstractNode
 				   "Using validator of type {0} for property {1}",
 				   new Object[] { validator.getClass().getSimpleName(), key });
 
-			Value parameter         = EntityContext.getPropertyValidationParameter(type,
-				key);
+			Value parameter         = EntityContext.getPropertyValidationParameter(type, key);
 			ErrorBuffer errorBuffer = new ErrorBuffer();
 
 			if (!validator.isValid(key, convertedValue, parameter, errorBuffer)) {
@@ -3913,43 +3909,71 @@ public abstract class AbstractNode
 				@Override
 				public Object execute() throws Throwable {
 
-					// save space
-					if (convertedValue == null) {
-						dbNode.removeProperty(key);
-					} else {
 
-						// Setting last modified date explicetely is not allowed
-						if (!key.equals(Key.lastModifiedDate.name())) {
+					// Semaphore semaphore = EntityContext.getSemaphoreForTypeAndProperty(type.getSimpleName(), key);
 
-							if (convertedValue instanceof Date) {
+					try {
+						/*
+						// obtain semaphore and acquire lock if semaphore exists
+						if(semaphore != null) {
+							try { semaphore.acquire(); } catch(InterruptedException iex) { iex.printStackTrace(); }
+							logger.log(Level.INFO, "Entering critical section for type {0} key {1} from thread {2}",
+							    new Object[] { type.getSimpleName(), key, Thread.currentThread() } );
+						}
+						*/
 
-								dbNode.setProperty(key,
-										   ((Date) convertedValue).getTime());
+						// save space
+						if (convertedValue == null) {
+							dbNode.removeProperty(key);
+						} else {
+
+							// Setting last modified date explicetely is not allowed
+							if (!key.equals(Key.lastModifiedDate.name())) {
+
+
+								// ##### synchronize this #####
+								if (convertedValue instanceof Date) {
+
+									dbNode.setProperty(key,
+											   ((Date) convertedValue).getTime());
+
+								} else {
+
+									dbNode.setProperty(key,
+											   convertedValue);
+
+									// set last modified date if not already happened
+									dbNode.setProperty(Key.lastModifiedDate.name(),
+											   (new Date()).getTime());
+								}
+								// ##### until here #####
 
 							} else {
 
-								dbNode.setProperty(key,
-										   convertedValue);
-
-								// set last modified date if not already happened
-								dbNode.setProperty(Key.lastModifiedDate.name(),
-										   (new Date()).getTime());
+								logger.log(Level.FINE,
+									   "Tried to set lastModifiedDate explicitely (action was denied)");
 							}
-
-						} else {
-
-							logger.log(Level.FINE,
-								   "Tried to set lastModifiedDate explicitely (action was denied)");
 						}
-					}
 
-					// Don't automatically update index
-					// TODO: Implement something really fast to keep the index automatically in sync
-					if (updateIndex && dbNode.hasProperty(key)) {
+						// Don't automatically update index
+						// TODO: Implement something really fast to keep the index automatically in sync
+						if (updateIndex && dbNode.hasProperty(key)) {
 
-						Services.command(securityContext,
-								 IndexNodeCommand.class).execute(getId(),
-							key);
+							Services.command(securityContext,
+									 IndexNodeCommand.class).execute(getId(),
+								key);
+						}
+
+					} finally {
+
+						/*
+						// release lock if semaphore exists
+						if(semaphore != null) {
+							semaphore.release();
+							logger.log(Level.INFO, "Exiting critical section for type {0} key {1} from thread {2}",
+							    new Object[] { type.getSimpleName(), key, Thread.currentThread() } );
+						}
+						*/
 					}
 
 					return null;

@@ -19,22 +19,24 @@
 
 package org.structr.core;
 
+import java.util.Collections;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.ObjectNotion;
-import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Semaphore;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.PropertyKey;
-import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.core.entity.DirectedRelationship;
 import org.structr.core.entity.DirectedRelationship.Cardinality;
+import org.structr.core.validator.GlobalPropertyUniquenessValidator;
+import org.structr.core.validator.TypeAndPropertyUniquenessValidator;
 
 /**
  * A global context for functional mappings between nodes and
@@ -47,13 +49,38 @@ public class EntityContext {
 	private static final Map<Class, Map<String, Class<? extends PropertyConverter>>> globalPropertyConverterMap = new LinkedHashMap<Class, Map<String, Class<? extends PropertyConverter>>>();
 	private static final Map<Class, Map<String, Class<? extends PropertyValidator>>> globalValidatorMap = new LinkedHashMap<Class, Map<String, Class<? extends PropertyValidator>>>();
 	private static final Map<String, Map<String, DirectedRelationship>> globalRelationshipMap = new LinkedHashMap<String, Map<String, DirectedRelationship>>();
-	private static final Map<Class, Map<PropertyView, Set<String>>> globalStringMap = new LinkedHashMap<Class, Map<PropertyView, Set<String>>>();
+	private static final Map<Class, Map<String, Set<String>>> globalPropertyViewMap = new LinkedHashMap<Class, Map<String, Set<String>>>();
 	private static final Map<Class, Map<String, PropertyGroup>> globalPropertyGroupMap = new LinkedHashMap<Class, Map<String, PropertyGroup>>();
+	private static final Map<String, Map<String, Semaphore>> globalSemaphoreMap = new LinkedHashMap<String, Map<String, Semaphore>>();
 	private static final Map<Class, Map<String, Value>> globalValidationParameterMap = new LinkedHashMap<Class, Map<String, Value>>();
 	private static final Map<Class, Map<String, Value>> globalConversionParameterMap = new LinkedHashMap<Class, Map<String, Value>>();
+	private static final Map<Class, Set<String>> globalWriteOncePropertyMap = new LinkedHashMap<Class, Set<String>>();
 	private static final Map<Class, Set<String>> globalReadOnlyPropertyMap = new LinkedHashMap<Class, Set<String>>();
 
 	private static final Logger logger = Logger.getLogger(EntityContext.class.getName());
+
+	public static final String GLOBAL_UNIQUENESS = "global_uniqueness_key";
+
+	// ----- semaphores -----
+	/**
+	 * Returns a semaphore for the given type and key IF there is a unique
+	 * constraint defined for the given type and property.
+	 * @param type
+	 * @param key
+	 * @return
+	 */
+	public static Semaphore getSemaphoreForTypeAndProperty(String type, String key) {
+
+		// try typed semaphore first
+		Semaphore semaphore = getSemaphoreMapForType(type).get(key);
+		
+		if(semaphore == null) {
+			// try global semaphore afterwards
+			semaphore = getSemaphoreMapForType(GLOBAL_UNIQUENESS).get(key);
+		}
+
+		return semaphore;
+	}
 
 	// ----- property notions -----
 	public static PropertyGroup getPropertyGroup(Class type, PropertyKey key) {
@@ -135,7 +162,7 @@ public class EntityContext {
 	}
 
 	// ----- property set methods -----
-	public static void registerPropertySet(Class type, PropertyView propertyView, PropertyKey... propertySet) {
+	public static void registerPropertySet(Class type, String propertyView, PropertyKey... propertySet) {
 
 		Set<String> properties = getPropertySet(type, propertyView);
 		for(PropertyKey property : propertySet) {
@@ -145,7 +172,7 @@ public class EntityContext {
 		// include property sets from superclass
 		Class superClass = type.getSuperclass();
 		while(superClass != null && !superClass.equals(Object.class)) {
-			
+
 			Set<String> superProperties = getPropertySet(superClass, propertyView);
 			properties.addAll(superProperties);
 
@@ -154,9 +181,13 @@ public class EntityContext {
 		}
 	}
 
-	public static Set<String> getPropertySet(Class type, PropertyView propertyView) {
+	public static void clearPropertySet(Class type, String propertyView) {
+		getPropertySet(type, propertyView).clear();
+	}
 
-		Map<PropertyView, Set<String>> propertyViewMap = getPropertyViewMapForType(type);
+	public static Set<String> getPropertySet(Class type, String propertyView) {
+
+		Map<String, Set<String>> propertyViewMap = getPropertyViewMapForType(type);
 		Set<String> propertySet = propertyViewMap.get(propertyView);
 
 		if(propertySet == null) {
@@ -184,6 +215,27 @@ public class EntityContext {
 
 		Map<String, Class<? extends PropertyValidator>> validatorMap = getPropertyValidatorMapForType(type);
 		validatorMap.put(propertyKey, validatorClass);
+
+		if(validatorClass.equals(GlobalPropertyUniquenessValidator.class)) {
+
+			logger.log(Level.INFO, "registering semaphore for type {0}, key {1}", new Object[] { GLOBAL_UNIQUENESS, propertyKey} );
+
+			// register semaphore for all types
+			Map<String, Semaphore> map = getSemaphoreMapForType(GLOBAL_UNIQUENESS);
+			if(!map.containsKey(propertyKey)) {
+				map.put(propertyKey, new Semaphore(1));
+			}
+
+		} else if(validatorClass.equals(TypeAndPropertyUniquenessValidator.class)) {
+
+			logger.log(Level.INFO, "registering semaphore for type {0}, key {1}", new Object[] { type, propertyKey} );
+
+			// register semaphore
+			Map<String, Semaphore> map = getSemaphoreMapForType(type.getSimpleName());
+			if(!map.containsKey(propertyKey)) {
+				map.put(propertyKey, new Semaphore(1));
+			}
+		}
 
 		if(parameter != null) {
 			Map<String, Value> validatorParameterMap = getPropertyValidatonParameterMapForType(type);
@@ -244,6 +296,10 @@ public class EntityContext {
 	// ----- PropertyConverter methods -----
 	public static void registerPropertyConverter(Class type, PropertyKey propertyKey, Class<? extends PropertyConverter> propertyConverterClass) {
 		registerPropertyConverter(type, propertyKey.name(), propertyConverterClass);
+	}
+
+	public static void registerPropertyConverter(Class type, PropertyKey propertyKey, Class<? extends PropertyConverter> propertyConverterClass, Value value) {
+		registerPropertyConverter(type, propertyKey.name(), propertyConverterClass, value);
 	}
 
 	public static void registerPropertyConverter(Class type, String propertyKey, Class<? extends PropertyConverter> propertyConverterClass) {
@@ -313,7 +369,7 @@ public class EntityContext {
 	}
 
 	public static boolean isReadOnlyProperty(Class type, String key) {
-		
+
 		boolean isReadOnly = getReadOnlyPropertySetForType(type).contains(key);
 		Class localType = type;
 
@@ -327,6 +383,29 @@ public class EntityContext {
 		}
 
 		return isReadOnly;
+	}
+
+	// ----- write-once property map -----
+	public static void registerWriteOnceProperty(Class type, String key) {
+
+		getWriteOncePropertySetForType(type).add(key);
+	}
+
+	public static boolean isWriteOnceProperty(Class type, String key) {
+
+		boolean isWriteOnce = getWriteOncePropertySetForType(type).contains(key);
+		Class localType = type;
+
+		// try all superclasses
+		while(!isWriteOnce && !localType.equals(Object.class)) {
+
+			isWriteOnce = getWriteOncePropertySetForType(localType).contains(key);
+
+			// one level up :)
+			localType = localType.getSuperclass();
+		}
+
+		return isWriteOnce;
 	}
 
 	// ----- private methods -----
@@ -352,12 +431,12 @@ public class EntityContext {
 		return(typeMap);
 	}
 
-	private static Map<PropertyView, Set<String>> getPropertyViewMapForType(Class type) {
+	private static Map<String, Set<String>> getPropertyViewMapForType(Class type) {
 
-		Map<PropertyView, Set<String>> propertyViewMap = globalStringMap.get(type);
+		Map<String, Set<String>> propertyViewMap = globalPropertyViewMap.get(type);
 		if(propertyViewMap == null) {
-			propertyViewMap = new EnumMap<PropertyView, Set<String>>(PropertyView.class);
-			globalStringMap.put(type, propertyViewMap);
+			propertyViewMap = new LinkedHashMap<String, Set<String>>();
+			globalPropertyViewMap.put(type, propertyViewMap);
 		}
 
 		return propertyViewMap;
@@ -418,6 +497,18 @@ public class EntityContext {
 		return readOnlyPropertySet;
 	}
 
+
+	private static Set<String> getWriteOncePropertySetForType(Class type) {
+
+		Set<String> writeOncePropertySet = globalWriteOncePropertyMap.get(type);
+		if(writeOncePropertySet == null) {
+			writeOncePropertySet = new LinkedHashSet<String>();
+			globalWriteOncePropertyMap.put(type, writeOncePropertySet);
+		}
+
+		return writeOncePropertySet;
+	}
+
 	private static Map<String, PropertyGroup> getPropertyGroupMapForType(Class type) {
 
 		Map<String, PropertyGroup> groupMap = globalPropertyGroupMap.get(type);
@@ -427,5 +518,16 @@ public class EntityContext {
 		}
 
 		return groupMap;
+	}
+
+	private static Map<String, Semaphore> getSemaphoreMapForType(String type) {
+
+		Map<String, Semaphore> semaphoreMap = globalSemaphoreMap.get(type);
+		if(semaphoreMap == null) {
+			semaphoreMap = Collections.synchronizedMap(new LinkedHashMap<String, Semaphore>());
+			globalSemaphoreMap.put(type, semaphoreMap);
+		}
+
+		return semaphoreMap;
 	}
 }

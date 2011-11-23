@@ -30,8 +30,6 @@ import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import java.lang.reflect.Type;
 import java.util.List;
-import java.util.logging.Logger;
-import org.structr.common.PropertyView;
 import org.structr.core.GraphObject;
 import org.structr.core.Value;
 import org.structr.rest.constraint.Result;
@@ -44,11 +42,10 @@ import org.structr.rest.wrapper.PropertySet.PropertyFormat;
  */
 public class ResultGSONAdapter implements JsonSerializer<Result>, JsonDeserializer<Result> {
 
-	private static final Logger logger = Logger.getLogger(ResultGSONAdapter.class.getName());
 	private GraphObjectGSONAdapter graphObjectGsonAdapter = null;
 
-	public ResultGSONAdapter(PropertyFormat propertyFormat, Value<PropertyView> propertyView) {
-		this.graphObjectGsonAdapter = new GraphObjectGSONAdapter(propertyFormat, propertyView);
+	public ResultGSONAdapter(PropertyFormat propertyFormat, Value<String> propertyView, String idProperty) {
+		this.graphObjectGsonAdapter = new GraphObjectGSONAdapter(propertyFormat, propertyView, idProperty);
 	}
 
 	@Override
