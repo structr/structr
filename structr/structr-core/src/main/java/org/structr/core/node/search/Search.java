@@ -209,6 +209,13 @@ public abstract class Search {
 		return attr;
 	}
 
+	public static SearchAttribute andExactPropertyValue(final String key, final String searchString) {
+
+		SearchAttribute attr = new TextualSearchAttribute(key, exactMatch(searchString), SearchOperator.AND);
+
+		return attr;
+	}
+
 	public static String exactMatch(final String searchString) {
 		return ("\"" + searchString + "\"");
 	}

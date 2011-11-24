@@ -77,9 +77,9 @@ public class SearchNodeCommand extends NodeServiceCommand {
 	@Override
 	public Object execute(Object... parameters) {
 
-		if ((parameters == null) || (parameters.length != 4)) {
+		if ((parameters == null) || (parameters.length < 4)) {
 
-			logger.log(Level.WARNING, "Exactly 4 parameters are required for advanced search.");
+			logger.log(Level.WARNING, "4 or more parameters are required for advanced search.");
 
 			return Collections.emptyList();
 
@@ -117,7 +117,26 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 		}
 
-		return search(securityContext, topNode, includeDeleted, publicOnly, searchAttrs);
+		String propertyKey = null;
+		String type        = null;
+
+		if (parameters.length >= 6) {
+
+			if (parameters[4] instanceof String) {
+
+				type = (String) parameters[4];
+
+			}
+
+			if (parameters[5] instanceof String) {
+
+				propertyKey = (String) parameters[5];
+
+			}
+
+		}
+
+		return search(securityContext, topNode, includeDeleted, publicOnly, searchAttrs, type, propertyKey);
 	}
 
 	/**
@@ -131,7 +150,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 	 * @return
 	 */
 	private List<AbstractNode> search(final SecurityContext securityContext, final AbstractNode topNode, final boolean includeDeleted,
-					  final boolean publicOnly, final List<SearchAttribute> searchAttrs) {
+					  final boolean publicOnly, final List<SearchAttribute> searchAttrs, final String type, final String propertyKey) {
 
 		GraphDatabaseService graphDb   = (GraphDatabaseService) arguments.get("graphDb");
 		Index<Node> index              = (Index<Node>) arguments.get("index");

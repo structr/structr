@@ -106,7 +106,6 @@ public class CreateNodeCommand extends NodeServiceCommand {
 			// Determine node type
 			Object typeObject = attrs.get(AbstractNode.Key.type.name());
 			String nodeType = typeObject != null ? typeObject.toString() : "GenericNode";
-
 			// Create node with type
 			node = nodeFactory.createNode(securityContext, graphDb.createNode(), nodeType);
 			logger.log(Level.FINE, "Node {0} created", node.getId());

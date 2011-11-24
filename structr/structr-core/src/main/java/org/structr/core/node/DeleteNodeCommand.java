@@ -32,9 +32,6 @@ import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.common.RelType;
 import org.structr.core.entity.StructrRelationship;
-import org.structr.core.entity.User;
-import org.structr.core.notification.AddNotificationCommand;
-import org.structr.core.notification.DefaultNotification;
 
 /**
  * Deletes a node, or removes a LINK relationship respectively.
@@ -59,7 +56,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
         switch (parameters.length) {
 
-            case 2:  // first parameter: node, second parameter: user
+            case 1:  // first parameter: node
 
                 if (parameters[0] instanceof Long) {
                     long id = ((Long) parameters[0]).longValue();
@@ -75,7 +72,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
                 break;
 
-            case 3: // first parameter: node, second parameter: new parent node, third parameter: user
+            case 2: // first parameter: node, second parameter: new parent node
 
                 if (parameters[0] instanceof Long) {
                     long id = ((Long) parameters[0]).longValue();
@@ -103,7 +100,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
                 break;
 
-            case 4: // first parameter: node, second parameter: new parent node, third parameter: recursive, forth parameter: user
+            case 3: // first parameter: node, second parameter: new parent node, third parameter: recursive
 
                 if (parameters[0] instanceof Long) {
                     long id = ((Long) parameters[0]).longValue();
