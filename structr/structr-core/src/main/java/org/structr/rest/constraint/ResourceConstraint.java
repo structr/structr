@@ -53,7 +53,7 @@ public abstract class ResourceConstraint {
 	public abstract boolean isCollectionResource();
 
 	// ----- methods -----
-	public final RestMethodResult doPut(final Map<String, Object> propertySet, final List<VetoableGraphObjectListener> listeners) throws Throwable {
+	public RestMethodResult doPut(final Map<String, Object> propertySet, final List<VetoableGraphObjectListener> listeners) throws Throwable {
 
 		final Iterable<? extends GraphObject> results = doGet(listeners);
 		if(results != null) {
@@ -116,7 +116,7 @@ public abstract class ResourceConstraint {
 		throw new IllegalPathException();
 	}
 
-	public final RestMethodResult doDelete(final List<VetoableGraphObjectListener> listeners) throws Throwable {
+	public RestMethodResult doDelete(final List<VetoableGraphObjectListener> listeners) throws Throwable {
 
 		Iterable<? extends GraphObject> results;
 

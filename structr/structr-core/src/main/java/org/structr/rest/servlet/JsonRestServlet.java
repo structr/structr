@@ -42,7 +42,6 @@ import org.structr.rest.constraint.PagingConstraint;
 import org.structr.rest.constraint.RelationshipFollowingConstraint;
 import org.structr.rest.constraint.ResourceConstraint;
 import org.structr.rest.constraint.Result;
-import org.structr.rest.constraint.SearchConstraint;
 import org.structr.rest.constraint.SortConstraint;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.MessageException;
@@ -91,7 +90,6 @@ public class JsonRestServlet extends HttpServlet {
 	public static final String DEFAULT_VALUE_SORT_ORDER                 = "asc";
 	public static final String REQUEST_PARAMETER_PAGE_NUMBER            = "page";
 	public static final String REQUEST_PARAMETER_PAGE_SIZE              = "pageSize";
-	public static final String REQUEST_PARAMETER_SEARCH_STRING          = "q";
 	public static final String REQUEST_PARAMETER_SORT_KEY               = "sort";
 	public static final String REQUEST_PARAMETER_SORT_ORDER             = "order";
 	private static final String SERVLET_PARAMETER_CONSTRAINT_PROVIDER   = "ConstraintProvider";
@@ -229,7 +227,7 @@ public class JsonRestServlet extends HttpServlet {
 			// do action
 			RestMethodResult result = resourceConstraint.doDelete(graphObjectListeners);
 
-			result.commitResponse(response);
+			result.commitResponse(gson, response);
 
 		} catch (IllegalArgumentException illegalArgumentException) {
 			handleValidationError(illegalArgumentException, response);
@@ -381,7 +379,7 @@ public class JsonRestServlet extends HttpServlet {
 			ResourceConstraint resourceConstraint = optimizeConstraintChain(chain);
 			RestMethodResult result               = resourceConstraint.doHead();
 
-			result.commitResponse(response);
+			result.commitResponse(gson, response);
 
 		} catch (IllegalArgumentException illegalArgumentException) {
 			handleValidationError(illegalArgumentException, response);
@@ -436,7 +434,7 @@ public class JsonRestServlet extends HttpServlet {
 			ResourceConstraint resourceConstraint = optimizeConstraintChain(chain);
 			RestMethodResult result               = resourceConstraint.doOptions();
 
-			result.commitResponse(response);
+			result.commitResponse(gson, response);
 
 		} catch (IllegalArgumentException illegalArgumentException) {
 			handleValidationError(illegalArgumentException, response);
@@ -505,7 +503,7 @@ public class JsonRestServlet extends HttpServlet {
 			// do action
 			RestMethodResult result = resourceConstraint.doPost(properties, graphObjectListeners);
 
-			result.commitResponse(response);
+			result.commitResponse(gson, response);
 
 		} catch (IllegalArgumentException illegalArgumentException) {
 			handleValidationError(illegalArgumentException, response);
@@ -574,7 +572,7 @@ public class JsonRestServlet extends HttpServlet {
 			// do action
 			RestMethodResult result = resourceConstraint.doPut(properties, graphObjectListeners);
 
-			result.commitResponse(response);
+			result.commitResponse(gson, response);
 
 		} catch (IllegalArgumentException illegalArgumentException) {
 			handleValidationError(illegalArgumentException, response);
@@ -694,15 +692,6 @@ public class JsonRestServlet extends HttpServlet {
 
 				}
 			}
-		}
-
-		// search
-		String searchString = request.getParameter(REQUEST_PARAMETER_SEARCH_STRING);
-
-		if (searchString != null) {
-
-			constraintChain.add(new SearchConstraint(securityContext, searchString));
-
 		}
 
 		// sorting

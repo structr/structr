@@ -54,6 +54,7 @@ public class EntityContext {
 	private static final Map<String, Map<String, Semaphore>> globalSemaphoreMap = new LinkedHashMap<String, Map<String, Semaphore>>();
 	private static final Map<Class, Map<String, Value>> globalValidationParameterMap = new LinkedHashMap<Class, Map<String, Value>>();
 	private static final Map<Class, Map<String, Value>> globalConversionParameterMap = new LinkedHashMap<Class, Map<String, Value>>();
+	private static final Map<String, Set<String>> globalSearchablePropertyMap = new LinkedHashMap<String, Set<String>>();
 	private static final Map<Class, Set<String>> globalWriteOncePropertyMap = new LinkedHashMap<Class, Set<String>>();
 	private static final Map<Class, Set<String>> globalReadOnlyPropertyMap = new LinkedHashMap<Class, Set<String>>();
 
@@ -385,6 +386,39 @@ public class EntityContext {
 		return isReadOnly;
 	}
 
+	// ----- searchable property map -----
+	public static void registerSearchableProperty(Class type, PropertyKey key) {
+		registerSearchableProperty(type, key.name());
+	}
+
+	public static void registerSearchableProperty(Class type, String key) {
+		registerSearchableProperty(convertName(type), key);
+	}
+	public static void registerSearchableProperty(String type, String key) {
+		getSearchablePropertySetForType(type).add(key);
+	}
+
+	public static boolean isSearchableProperty(Class type, PropertyKey key) {
+		return isSearchableProperty(type, key.name());
+	}
+
+	public static boolean isSearchableProperty(Class type, String key) {
+		return isSearchableProperty(convertName(type), key);
+	}
+
+	public static boolean isSearchableProperty(String type, String key) {
+
+		return getSearchablePropertySetForType(type).contains(key);
+	}
+
+	public static Set<String> getSearchableProperties(Class type) {
+		return getSearchableProperties(convertName(type));
+	}
+
+	public static Set<String> getSearchableProperties(String type) {
+		return getSearchablePropertySetForType(type);
+	}
+
 	// ----- write-once property map -----
 	public static void registerWriteOnceProperty(Class type, String key) {
 
@@ -497,7 +531,6 @@ public class EntityContext {
 		return readOnlyPropertySet;
 	}
 
-
 	private static Set<String> getWriteOncePropertySetForType(Class type) {
 
 		Set<String> writeOncePropertySet = globalWriteOncePropertyMap.get(type);
@@ -507,6 +540,17 @@ public class EntityContext {
 		}
 
 		return writeOncePropertySet;
+	}
+
+	private static Set<String> getSearchablePropertySetForType(String type) {
+
+		Set<String> searchablePropertySet = globalSearchablePropertyMap.get(type);
+		if(searchablePropertySet == null) {
+			searchablePropertySet = new LinkedHashSet<String>();
+			globalSearchablePropertyMap.put(type, searchablePropertySet);
+		}
+
+		return searchablePropertySet;
 	}
 
 	private static Map<String, PropertyGroup> getPropertyGroupMapForType(Class type) {

@@ -7,6 +7,7 @@ package org.structr.rest.constraint;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
@@ -14,6 +15,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.structr.common.CaseHelper;
 import org.structr.common.ErrorBuffer;
 import org.structr.common.SecurityContext;
+import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -26,6 +28,7 @@ import org.structr.core.node.search.SearchNodeCommand;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.VetoableGraphObjectListener;
 import org.structr.rest.exception.NoResultsException;
+import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.exception.PathException;
 
 /**
@@ -41,12 +44,14 @@ public class TypeConstraint extends SortableConstraint {
 	
 	private static final Logger logger = Logger.getLogger(TypeConstraint.class.getName());
 
+	protected HttpServletRequest request = null;
 	protected String type = null;
 	
 	@Override
 	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) {
 
 		this.securityContext = securityContext;
+		this.request = request;
 
 		// todo: check if type exists etc.
 		this.setType(part);
@@ -57,16 +62,22 @@ public class TypeConstraint extends SortableConstraint {
 	@Override
 	public List<GraphObject> doGet(final List<VetoableGraphObjectListener> listeners) throws PathException {
 
+
+
 		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+		boolean hasSearchableAttributes = false;
 		AbstractNode topNode = null;
 		boolean includeDeleted = false;
 		boolean publicOnly = false;
 
 		if(type != null) {
 
-			//searchAttributes.add(new TextualSearchAttribute("type", type, SearchOperator.OR));
 			searchAttributes.add(Search.orExactType(CaseHelper.toCamelCase(type)));
 
+			// searchable attributes from EntityContext
+			hasSearchableAttributes = hasSearchableAttributes(searchAttributes);
+
+			// do search
 			List<GraphObject> results = (List<GraphObject>)Services.command(securityContext, SearchNodeCommand.class).execute(
 				topNode,
 				includeDeleted,
@@ -83,7 +94,12 @@ public class TypeConstraint extends SortableConstraint {
 			logger.log(Level.WARNING, "type was null");
 		}
 
-		throw new NoResultsException();
+		// return 404 if search attributes were posted
+		if(hasSearchableAttributes) {
+			throw new NotFoundException();
+		} else {
+			throw new NoResultsException();
+		}
 	}
 
 	@Override
@@ -148,6 +164,8 @@ public class TypeConstraint extends SortableConstraint {
 			logger.log(Level.FINEST, "Removing trailing plural 's' from type {0}", type);
 			this.type = this.type.substring(0, this.type.length() - 1);
 		}
+
+		// determine real type
 	}
 
 	public AbstractNode createNode(final List<VetoableGraphObjectListener> listeners, final Map<String, Object> propertySet) throws Throwable {
@@ -168,8 +186,7 @@ public class TypeConstraint extends SortableConstraint {
 	@Override
 	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws PathException {
 
-		if(next instanceof IdConstraint)	return new TypedIdConstraint(securityContext, (IdConstraint)next, this); else
-		if(next instanceof SearchConstraint)	return new TypedSearchConstraint(securityContext, this, ((SearchConstraint)next).getSearchString());
+		if(next instanceof IdConstraint)	return new TypedIdConstraint(securityContext, (IdConstraint)next, this);
 
 		return super.tryCombineWith(next);
 	}
@@ -182,5 +199,31 @@ public class TypeConstraint extends SortableConstraint {
 	@Override
 	public boolean isCollectionResource() {
 		return true;
+	}
+
+	// ----- protected methods -----
+	protected boolean hasSearchableAttributes(List<SearchAttribute> searchAttributes) {
+
+		boolean hasSearchableAttributes = false;
+
+		// searchable attributes
+		if(type != null && request != null && !request.getParameterMap().isEmpty()) {
+
+			Set<String> searchableAttributes = EntityContext.getSearchableProperties(type);
+			if(searchableAttributes != null) {
+
+				for(String key : searchableAttributes) {
+
+					String searchValue = request.getParameter(key);
+					if(searchValue != null) {
+
+						searchAttributes.add(Search.andExactPropertyValue(key, searchValue));
+						hasSearchableAttributes = true;
+					}
+				}
+			}
+		}
+
+		return hasSearchableAttributes;
 	}
 }

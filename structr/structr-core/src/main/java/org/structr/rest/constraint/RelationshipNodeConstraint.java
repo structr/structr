@@ -115,7 +115,7 @@ public class RelationshipNodeConstraint extends WrappingConstraint {
 	}
 
 	@Override
-	public ResourceConstraint tryCombineWith(ResourceConstraint next) {
-		return null;
+	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws PathException {
+		return super.tryCombineWith(next);
 	}
 }

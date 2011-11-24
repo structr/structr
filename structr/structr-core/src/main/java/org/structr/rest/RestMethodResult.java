@@ -19,6 +19,8 @@
 
 package org.structr.rest;
 
+import com.google.gson.Gson;
+import java.io.Writer;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -37,6 +39,7 @@ public class RestMethodResult {
 	private static final Logger logger = Logger.getLogger(RestMethodResult.class.getName());
 
 	private Map<String, String> headers = null;
+	private Object content = null;
 	private int responseCode = 0;
 
 	public RestMethodResult(int responseCode) {
@@ -48,7 +51,11 @@ public class RestMethodResult {
 		headers.put(key, value);
 	}
 
-	public void commitResponse(HttpServletResponse response) {
+	public void setContent(Object content) {
+		this.content = content;
+	}
+
+	public void commitResponse(Gson gson, HttpServletResponse response) {
 
 		// set headers
 		for(Entry<String, String> header : headers.entrySet()) {
@@ -60,9 +67,15 @@ public class RestMethodResult {
 
 		try {
 
-			// commit response
-			response.getOutputStream().flush();
-			response.getOutputStream().close();
+			Writer writer = response.getWriter();
+			if(content != null) {
+				gson.toJson(content, writer);
+			}
+
+
+			writer.flush();
+			writer.close();
+
 
 		} catch(Throwable t) {
 

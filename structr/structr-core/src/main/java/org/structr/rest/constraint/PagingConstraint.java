@@ -60,8 +60,8 @@ public class PagingConstraint extends WrappingConstraint {
 	}
 
 	@Override
-	public ResourceConstraint tryCombineWith(ResourceConstraint next) {
-		return null;
+	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws PathException {
+		return super.tryCombineWith(next);
 	}
 
 	public int getPageSize() {
