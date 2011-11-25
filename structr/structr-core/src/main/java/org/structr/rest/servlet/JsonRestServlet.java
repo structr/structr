@@ -947,28 +947,24 @@ public class JsonRestServlet extends HttpServlet {
 		StringBuilder buf = new StringBuilder(100);
 
 		buf.append("{\n");
-		buf.append("    \"error\" : {\n");
 
 		if(message != null) {
-			buf.append("        \"message\" : \"").append(message).append("\"\n");
+			buf.append("    \"message\" : \"").append(message).append("\"\n");
 		} else {
-			buf.append("\n");
+			buf.append("    \"message\" : \"\"\n");
 		}
 
-		buf.append("    }\n");
 		buf.append("}\n");
 
 		return buf.toString();
 	}
 
-	//~--- get methods ----------------------------------------------------
-
-	// </editor-fold>
 	private SecurityContext getSecurityContext(HttpServletRequest request) {
 
 		// return SecurityContext.getSuperUserInstance();
 		return SecurityContext.getInstance(this.getServletConfig(), request, AccessMode.Backend);
 	}
+	// </editor-fold>
 
 	//~--- inner classes --------------------------------------------------
 
