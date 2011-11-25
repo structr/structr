@@ -127,4 +127,8 @@ public class ResultGSONAdapter implements JsonSerializer<Result>, JsonDeserializ
 	public Result deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
 		return null;
 	}
+
+	public GraphObjectGSONAdapter getGraphObjectGSONAdapter() {
+		return graphObjectGsonAdapter;
+	}
 }

@@ -503,6 +503,10 @@ public class JsonRestServlet extends HttpServlet {
 			// do action
 			RestMethodResult result = resourceConstraint.doPost(properties, graphObjectListeners);
 
+			// set default value for property view
+			propertyView.set(defaultPropertyView);
+
+			// commit response
 			result.commitResponse(gson, response);
 
 		} catch (IllegalArgumentException illegalArgumentException) {

@@ -22,11 +22,15 @@ package org.structr.rest;
 import com.google.gson.Gson;
 import java.io.Writer;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletResponse;
+import org.structr.core.GraphObject;
+import org.structr.rest.constraint.Result;
 
 /**
  * Encapsulates the result of a REST HTTP method call, i.e.
@@ -38,8 +42,8 @@ public class RestMethodResult {
 
 	private static final Logger logger = Logger.getLogger(RestMethodResult.class.getName());
 
+	private List<GraphObject> content = null;
 	private Map<String, String> headers = null;
-	private Object content = null;
 	private int responseCode = 0;
 
 	public RestMethodResult(int responseCode) {
@@ -51,8 +55,13 @@ public class RestMethodResult {
 		headers.put(key, value);
 	}
 
-	public void setContent(Object content) {
-		this.content = content;
+	public void addContent(GraphObject graphObject) {
+
+		if(this.content == null) {
+			this.content = new LinkedList<GraphObject>();
+		}
+
+		this.content.add(graphObject);
 	}
 
 	public void commitResponse(Gson gson, HttpServletResponse response) {
@@ -69,7 +78,12 @@ public class RestMethodResult {
 
 			Writer writer = response.getWriter();
 			if(content != null) {
-				gson.toJson(content, writer);
+
+				// create result set
+				Result result = new Result(this.content, this.content.size() > 1);
+
+				// serialize result set
+				gson.toJson(result, writer);
 			}
 
 
