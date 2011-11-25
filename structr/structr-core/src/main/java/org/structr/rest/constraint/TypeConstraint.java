@@ -30,6 +30,7 @@ import org.structr.rest.VetoableGraphObjectListener;
 import org.structr.rest.exception.NoResultsException;
 import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.exception.PathException;
+import org.structr.rest.servlet.JsonRestServlet;
 
 /**
  * Represents a bulk type match. A TypeConstraint will always result in a
@@ -62,8 +63,6 @@ public class TypeConstraint extends SortableConstraint {
 	@Override
 	public List<GraphObject> doGet(final List<VetoableGraphObjectListener> listeners) throws PathException {
 
-
-
 		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 		boolean hasSearchableAttributes = false;
 		AbstractNode topNode = null;
@@ -72,7 +71,7 @@ public class TypeConstraint extends SortableConstraint {
 
 		if(type != null) {
 
-			searchAttributes.add(Search.orExactType(CaseHelper.toCamelCase(type)));
+			searchAttributes.add(Search.andExactType(CaseHelper.toCamelCase(type)));
 
 			// searchable attributes from EntityContext
 			hasSearchableAttributes = hasSearchableAttributes(searchAttributes);
@@ -209,7 +208,9 @@ public class TypeConstraint extends SortableConstraint {
 		// searchable attributes
 		if(type != null && request != null && !request.getParameterMap().isEmpty()) {
 
+			boolean strictSearch = parseInteger(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_SEARCH_STRICT)) == 1;
 			Set<String> searchableAttributes = EntityContext.getSearchableProperties(type);
+
 			if(searchableAttributes != null) {
 
 				for(String key : searchableAttributes) {
@@ -217,13 +218,25 @@ public class TypeConstraint extends SortableConstraint {
 					String searchValue = request.getParameter(key);
 					if(searchValue != null) {
 
-						searchAttributes.add(Search.andExactPropertyValue(key, searchValue));
+						if(strictSearch) {
+							searchAttributes.add(Search.andExactPropertyValue(key, searchValue));
+						} else {
+							searchAttributes.add(Search.andPropertyValue(key, searchValue));
+						}
+
 						hasSearchableAttributes = true;
 					}
+
 				}
 			}
 		}
 
 		return hasSearchableAttributes;
+	}
+
+	// ----- private methods -----
+	private int parseInteger(Object source) {
+		try { return Integer.parseInt(source.toString()); } catch(Throwable t) {}
+		return -1;
 	}
 }

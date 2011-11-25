@@ -92,6 +92,7 @@ public class JsonRestServlet extends HttpServlet {
 	public static final String REQUEST_PARAMETER_PAGE_SIZE              = "pageSize";
 	public static final String REQUEST_PARAMETER_SORT_KEY               = "sort";
 	public static final String REQUEST_PARAMETER_SORT_ORDER             = "order";
+	public static final String REQUEST_PARAMETER_SEARCH_STRICT          = "strict";
 	private static final String SERVLET_PARAMETER_CONSTRAINT_PROVIDER   = "ConstraintProvider";
 	private static final String SERVLET_PARAMETER_DEFAULT_PROPERTY_VIEW = "DefaultPropertyView";
 	private static final String SERVLET_PARAMETER_ID_PROPERTY           = "IdProperty";
