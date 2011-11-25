@@ -219,15 +219,21 @@ public class JsonRestServlet extends HttpServlet {
 			response.setContentType("application/json; charset=utf-8");
 
 			SecurityContext securityContext = getSecurityContext(request);
+			if(securityContext != null && securityContext.getUser() != null) {
 
-			// evaluate constraint chain
-			List<ResourceConstraint> chain        = parsePath(securityContext, request);
-			ResourceConstraint resourceConstraint = optimizeConstraintChain(chain);
+				// evaluate constraint chain
+				List<ResourceConstraint> chain        = parsePath(securityContext, request);
+				ResourceConstraint resourceConstraint = optimizeConstraintChain(chain);
 
-			// do action
-			RestMethodResult result = resourceConstraint.doDelete(graphObjectListeners);
+				// do action
+				RestMethodResult result = resourceConstraint.doDelete(graphObjectListeners);
+				result.commitResponse(gson, response);
 
-			result.commitResponse(gson, response);
+			} else {
+
+				RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_FORBIDDEN);
+				result.commitResponse(gson, response);
+			}
 
 		} catch (IllegalArgumentException illegalArgumentException) {
 			handleValidationError(illegalArgumentException, response);
@@ -268,6 +274,7 @@ public class JsonRestServlet extends HttpServlet {
 	}
 
 	// </editor-fold>
+
 	// <editor-fold defaultstate="collapsed" desc="GET">
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
@@ -365,6 +372,7 @@ public class JsonRestServlet extends HttpServlet {
 	}
 
 	// </editor-fold>
+
 	// <editor-fold defaultstate="collapsed" desc="HEAD">
 	@Override
 	protected void doHead(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -420,6 +428,7 @@ public class JsonRestServlet extends HttpServlet {
 	}
 
 	// </editor-fold>
+
 	// <editor-fold defaultstate="collapsed" desc="OPTIONS">
 	@Override
 	protected void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -475,6 +484,7 @@ public class JsonRestServlet extends HttpServlet {
 	}
 
 	// </editor-fold>
+
 	// <editor-fold defaultstate="collapsed" desc="POST">
 	@Override
 	protected void doPost(final HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -486,28 +496,33 @@ public class JsonRestServlet extends HttpServlet {
 
 			final PropertySet propertySet   = gson.fromJson(request.getReader(), PropertySet.class);
 			SecurityContext securityContext = getSecurityContext(request);
+			if(securityContext != null && securityContext.getUser() != null) {
 
-			// evaluate constraint chain
-			List<ResourceConstraint> chain        = parsePath(securityContext, request);
-			ResourceConstraint resourceConstraint = optimizeConstraintChain(chain);
+				// evaluate constraint chain
+				List<ResourceConstraint> chain        = parsePath(securityContext, request);
+				ResourceConstraint resourceConstraint = optimizeConstraintChain(chain);
 
-			// create Map with properties
-			Map<String, Object> properties = new LinkedHashMap<String, Object>();
+				// create Map with properties
+				Map<String, Object> properties = new LinkedHashMap<String, Object>();
+				for (NodeAttribute attr : propertySet.getAttributes()) {
+					properties.put(attr.getKey(), attr.getValue());
 
-			for (NodeAttribute attr : propertySet.getAttributes()) {
+				}
 
-				properties.put(attr.getKey(), attr.getValue());
+				// do action
+				RestMethodResult result = resourceConstraint.doPost(properties, graphObjectListeners);
 
+				// set default value for property view
+				propertyView.set(defaultPropertyView);
+
+				// commit response
+				result.commitResponse(gson, response);
+
+			} else {
+
+				RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_FORBIDDEN);
+				result.commitResponse(gson, response);
 			}
-
-			// do action
-			RestMethodResult result = resourceConstraint.doPost(properties, graphObjectListeners);
-
-			// set default value for property view
-			propertyView.set(defaultPropertyView);
-
-			// commit response
-			result.commitResponse(gson, response);
 
 		} catch (IllegalArgumentException illegalArgumentException) {
 			handleValidationError(illegalArgumentException, response);
@@ -548,6 +563,7 @@ public class JsonRestServlet extends HttpServlet {
 	}
 
 	// </editor-fold>
+
 	// <editor-fold defaultstate="collapsed" desc="PUT">
 	@Override
 	protected void doPut(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
@@ -558,25 +574,30 @@ public class JsonRestServlet extends HttpServlet {
 			response.setContentType("application/json; charset=UTF-8");
 
 			final PropertySet propertySet   = gson.fromJson(request.getReader(), PropertySet.class);
+			
 			SecurityContext securityContext = getSecurityContext(request);
+			if(securityContext != null && securityContext.getUser() != null) {
 
-			// evaluate constraint chain
-			List<ResourceConstraint> chain        = parsePath(securityContext, request);
-			ResourceConstraint resourceConstraint = optimizeConstraintChain(chain);
+				// evaluate constraint chain
+				List<ResourceConstraint> chain        = parsePath(securityContext, request);
+				ResourceConstraint resourceConstraint = optimizeConstraintChain(chain);
 
-			// create Map with properties
-			Map<String, Object> properties = new LinkedHashMap<String, Object>();
+				// create Map with properties
+				Map<String, Object> properties = new LinkedHashMap<String, Object>();
+				for (NodeAttribute attr : propertySet.getAttributes()) {
+					properties.put(attr.getKey(), attr.getValue());
 
-			for (NodeAttribute attr : propertySet.getAttributes()) {
+				}
 
-				properties.put(attr.getKey(), attr.getValue());
+				// do action
+				RestMethodResult result = resourceConstraint.doPut(properties, graphObjectListeners);
+				result.commitResponse(gson, response);
 
+			} else {
+
+				RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_FORBIDDEN);
+				result.commitResponse(gson, response);
 			}
-
-			// do action
-			RestMethodResult result = resourceConstraint.doPut(properties, graphObjectListeners);
-
-			result.commitResponse(gson, response);
 
 		} catch (IllegalArgumentException illegalArgumentException) {
 			handleValidationError(illegalArgumentException, response);
@@ -617,6 +638,7 @@ public class JsonRestServlet extends HttpServlet {
 	}
 
 	// </editor-fold>
+
 	// <editor-fold defaultstate="collapsed" desc="TRACE">
 	@Override
 	protected void doTrace(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -630,6 +652,7 @@ public class JsonRestServlet extends HttpServlet {
 	}
 
 	// </editor-fold>
+
 	// <editor-fold defaultstate="collapsed" desc="private methods">
 	private List<ResourceConstraint> parsePath(SecurityContext securityContext, HttpServletRequest request) throws PathException {
 
@@ -900,11 +923,42 @@ public class JsonRestServlet extends HttpServlet {
 	}
 
 	private String jsonError(final int code, final String message) {
-		return "{\n  \"error\" : {\n    \"code\" : \"" + code + "\",\n    \"message\" : \"" + message + "\"\n  }\n}";
+
+		StringBuilder buf = new StringBuilder(100);
+
+		buf.append("{\n");
+		buf.append("    \"error\" : {\n");
+		buf.append("        \"code\" : ").append(code);
+
+		if(message != null) {
+			buf.append(",\n        \"message\" : \"").append(message).append("\"\n");
+		} else {
+			buf.append("\n");
+		}
+
+		buf.append("    }\n");
+		buf.append("}\n");
+
+		return buf.toString();
 	}
 
 	private String jsonMsg(final String message) {
-		return "{\n  \"message\" : \"" + message + "\"\n}";
+
+		StringBuilder buf = new StringBuilder(100);
+
+		buf.append("{\n");
+		buf.append("    \"error\" : {\n");
+
+		if(message != null) {
+			buf.append("        \"message\" : \"").append(message).append("\"\n");
+		} else {
+			buf.append("\n");
+		}
+
+		buf.append("    }\n");
+		buf.append("}\n");
+
+		return buf.toString();
 	}
 
 	//~--- get methods ----------------------------------------------------
