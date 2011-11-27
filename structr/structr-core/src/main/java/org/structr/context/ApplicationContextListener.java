@@ -31,6 +31,9 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionListener;
+import org.structr.common.SecurityContext;
+import org.structr.core.agent.ProcessTaskCommand;
+import org.structr.core.agent.RebuildIndexTask;
 import org.structr.ui.page.StructrPage;
 
 /**

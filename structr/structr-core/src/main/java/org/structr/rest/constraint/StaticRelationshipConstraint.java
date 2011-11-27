@@ -36,6 +36,7 @@ import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.VetoableGraphObjectListener;
+import org.structr.rest.exception.NotAllowedException;
 
 /**
  *
@@ -75,46 +76,53 @@ public class StaticRelationshipConstraint extends FilterableConstraint {
 	@Override
 	public RestMethodResult doPost(final Map<String, Object> propertySet, final List<VetoableGraphObjectListener> listeners) throws Throwable {
 
-		// create transaction closure
-		StructrTransaction transaction = new StructrTransaction() {
+		if(securityContext != null && securityContext.getUser() != null) {
 
-			@Override
-			public Object execute() throws Throwable {
+			// create transaction closure
+			StructrTransaction transaction = new StructrTransaction() {
 
-				AbstractNode sourceNode = typedIdConstraint.getIdConstraint().getNode();
-				AbstractNode newNode = typeConstraint.createNode(listeners, propertySet);
-				DirectedRelationship rel = EntityContext.getRelation(sourceNode.getClass(), newNode.getClass());
+				@Override
+				public Object execute() throws Throwable {
 
-				if(sourceNode != null && newNode != null && rel != null) {
+					AbstractNode sourceNode = typedIdConstraint.getIdConstraint().getNode();
+					AbstractNode newNode = typeConstraint.createNode(listeners, propertySet);
+					DirectedRelationship rel = EntityContext.getRelation(sourceNode.getClass(), newNode.getClass());
 
-					rel.createRelationship(securityContext, sourceNode, newNode, newNode.getType());
+					if(sourceNode != null && newNode != null && rel != null) {
 
-					ErrorBuffer errorBuffer = new ErrorBuffer();
+						rel.createRelationship(securityContext, sourceNode, newNode, newNode.getType());
 
-					if(!validAfterCreation(listeners, newNode, errorBuffer)) {
-						throw new IllegalArgumentException(errorBuffer.toString());
+						ErrorBuffer errorBuffer = new ErrorBuffer();
+
+						if(!validAfterCreation(listeners, newNode, errorBuffer)) {
+							throw new IllegalArgumentException(errorBuffer.toString());
+						}
+
+						return newNode;
 					}
 
-					return newNode;
+					throw new IllegalPathException();
 				}
+			};
 
-				throw new IllegalPathException();
+			// execute transaction: create new node
+			AbstractNode newNode = (AbstractNode)Services.command(securityContext, TransactionCommand.class).execute(transaction);
+			if(newNode == null) {
+
+				// re-throw transaction exception cause
+				if(transaction.getCause() != null) {
+					throw transaction.getCause();
+				}
 			}
-		};
 
-		// execute transaction: create new node
-		AbstractNode newNode = (AbstractNode)Services.command(securityContext, TransactionCommand.class).execute(transaction);
-		if(newNode == null) {
+			RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_CREATED);
+			result.addHeader("Location", buildLocationHeader(newNode));
+			return result;
 
-			// re-throw transaction exception cause
-			if(transaction.getCause() != null) {
-				throw transaction.getCause();
-			}
+		} else {
+
+			throw new NotAllowedException();
 		}
-
-		RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_CREATED);
-		result.addHeader("Location", buildLocationHeader(newNode));
-		return result;
 	}
 
 	@Override

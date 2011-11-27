@@ -11,7 +11,6 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.structr.common.ErrorBuffer;
-import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
@@ -25,6 +24,7 @@ import org.structr.rest.RestMethodResult;
 import org.structr.rest.VetoableGraphObjectListener;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NoResultsException;
+import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.exception.PathException;
 
 /**
@@ -55,65 +55,72 @@ public abstract class ResourceConstraint {
 	// ----- methods -----
 	public RestMethodResult doPut(final Map<String, Object> propertySet, final List<VetoableGraphObjectListener> listeners) throws Throwable {
 
-		final Iterable<? extends GraphObject> results = doGet(listeners);
-		if(results != null) {
+		if(securityContext != null && securityContext.getUser() != null) {
+			
+			final Iterable<? extends GraphObject> results = doGet(listeners);
+			if(results != null) {
 
-			StructrTransaction transaction = new StructrTransaction() {
+				StructrTransaction transaction = new StructrTransaction() {
 
-				@Override
-				public Object execute() throws Throwable {
+					@Override
+					public Object execute() throws Throwable {
 
-					ErrorBuffer errorBuffer = new ErrorBuffer();
-					boolean error = false;
+						ErrorBuffer errorBuffer = new ErrorBuffer();
+						boolean error = false;
 
-					for(GraphObject obj : results) {
+						for(GraphObject obj : results) {
 
-						if(mayModify(listeners, obj, errorBuffer)) {
+							if(mayModify(listeners, obj, errorBuffer)) {
 
-							for(Entry<String, Object> attr : propertySet.entrySet()) {
+								for(Entry<String, Object> attr : propertySet.entrySet()) {
 
-								try {
-									if(attr.getValue() != null) {
-	 									obj.setProperty(attr.getKey(), attr.getValue());
-									} else {
-										obj.removeProperty(attr.getKey());
+									try {
+										if(attr.getValue() != null) {
+											obj.setProperty(attr.getKey(), attr.getValue());
+										} else {
+											obj.removeProperty(attr.getKey());
+										}
+
+									} catch(Throwable t) {
+
+										errorBuffer.add(t.getMessage());
+										error = true;
 									}
-
-								} catch(Throwable t) {
-
-									errorBuffer.add(t.getMessage());
-									error = true;
 								}
+
+							} else {
+
+								throw new IllegalArgumentException(errorBuffer.toString());
 							}
-							
-						} else {
-							
-							throw new IllegalArgumentException(errorBuffer.toString());
+
+							// ask listener for modification validation
+							if(!validAfterModification(listeners, obj, errorBuffer) || error) {
+								throw new IllegalArgumentException(errorBuffer.toString());
+							}
 						}
 
-						// ask listener for modification validation
-						if(!validAfterModification(listeners, obj, errorBuffer) || error) {
-							throw new IllegalArgumentException(errorBuffer.toString());
-						}
+						return null;
 					}
 
-					return null;
+				};
+
+				// modify results in a single transaction
+				Services.command(securityContext, TransactionCommand.class).execute(transaction);
+
+				// if there was an exception, throw it again
+				if(transaction.getCause() != null) {
+					throw transaction.getCause();
 				}
 
-			};
-
-			// modify results in a single transaction
-			Services.command(securityContext, TransactionCommand.class).execute(transaction);
-
-			// if there was an exception, throw it again
-			if(transaction.getCause() != null) {
-				throw transaction.getCause();
+				return new RestMethodResult(HttpServletResponse.SC_OK);
 			}
 
-			return new RestMethodResult(HttpServletResponse.SC_OK);
-		}
+			throw new IllegalPathException();
 
-		throw new IllegalPathException();
+		} else {
+
+			throw new NotAllowedException();
+		}
 	}
 
 	public RestMethodResult doDelete(final List<VetoableGraphObjectListener> listeners) throws Throwable {

@@ -220,7 +220,7 @@ public class JsonRestServlet extends HttpServlet {
 			response.setContentType("application/json; charset=utf-8");
 
 			SecurityContext securityContext = getSecurityContext(request);
-			if(securityContext != null && securityContext.getUser() != null) {
+			if(securityContext != null) {
 
 				// evaluate constraint chain
 				List<ResourceConstraint> chain        = parsePath(securityContext, request);
@@ -497,7 +497,7 @@ public class JsonRestServlet extends HttpServlet {
 
 			final PropertySet propertySet   = gson.fromJson(request.getReader(), PropertySet.class);
 			SecurityContext securityContext = getSecurityContext(request);
-			if(securityContext != null && securityContext.getUser() != null) {
+			if(securityContext != null) {
 
 				// evaluate constraint chain
 				List<ResourceConstraint> chain        = parsePath(securityContext, request);
@@ -577,7 +577,7 @@ public class JsonRestServlet extends HttpServlet {
 			final PropertySet propertySet   = gson.fromJson(request.getReader(), PropertySet.class);
 			
 			SecurityContext securityContext = getSecurityContext(request);
-			if(securityContext != null && securityContext.getUser() != null) {
+			if(securityContext != null) {
 
 				// evaluate constraint chain
 				List<ResourceConstraint> chain        = parsePath(securityContext, request);

@@ -36,6 +36,7 @@ import org.structr.common.SecurityContext;
 import org.structr.core.Command;
 import org.structr.core.notion.Notion;
 import org.structr.core.Services;
+import org.structr.core.module.GetEntityClassCommand;
 import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.FindNodeCommand;
 import org.structr.core.node.StructrNodeFactory;
@@ -208,6 +209,10 @@ public class DirectedRelationship {
 	// ----- private methods -----
 	private List<AbstractNode> getTraversalResults(final SecurityContext securityContext, AbstractNode node, final String type) {
 
+		final Class realType = (Class)Services.command(securityContext, GetEntityClassCommand.class).execute(type);
+		final StructrNodeFactory nodeFactory = new StructrNodeFactory<AbstractNode>(securityContext);
+		final List<AbstractNode> nodeList = new LinkedList<AbstractNode>();
+
 		// use traverser
 		Iterable<Node> nodes = Traversal.description().breadthFirst().relationships(relType, direction).evaluator(
 
@@ -228,13 +233,11 @@ public class DirectedRelationship {
 
 						} else {
 
-							Node currentNode = path.endNode();
-							if(currentNode.hasProperty(AbstractNode.Key.type.name())) {
-
-								String nodeType = (String)currentNode.getProperty(AbstractNode.Key.type.name());
-								if(type.equals(nodeType)) {
-									return Evaluation.INCLUDE_AND_CONTINUE;
-								}
+							// use inheritance
+							AbstractNode abstractNode = (AbstractNode)nodeFactory.createNode(securityContext, path.endNode());
+							if(realType.isAssignableFrom(abstractNode.getClass())) {
+								nodeList.add(abstractNode);
+								return Evaluation.INCLUDE_AND_CONTINUE;
 							}
 						}
 					}
@@ -246,12 +249,8 @@ public class DirectedRelationship {
 
 		).traverse(node.getNode()).nodes();
 
-		// collect results and convert nodes into structr nodes
-		StructrNodeFactory nodeFactory = new StructrNodeFactory<AbstractNode>(securityContext);
-		List<AbstractNode> nodeList = new LinkedList<AbstractNode>();
-		for(Node n : nodes) {
-			nodeList.add(nodeFactory.createNode(securityContext, n, type));
-		}
+		// iterate nodes to evaluate traversal
+		for(Node n: nodes) {}
 
 		return nodeList;
 	}
