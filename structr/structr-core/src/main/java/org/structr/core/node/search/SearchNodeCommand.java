@@ -37,6 +37,7 @@ import org.neo4j.index.lucene.QueryContext;
 
 import org.structr.common.SecurityContext;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.node.NodeService.NodeIndex;
 import org.structr.core.node.NodeServiceCommand;
 import org.structr.core.node.StructrNodeFactory;
 
@@ -153,7 +154,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 					  final boolean publicOnly, final List<SearchAttribute> searchAttrs, final String type, final String propertyKey) {
 
 		GraphDatabaseService graphDb   = (GraphDatabaseService) arguments.get("graphDb");
-		Index<Node> index              = (Index<Node>) arguments.get("index");
+		Index<Node> index              = (Index<Node>) arguments.get(NodeIndex.fulltext.name());
 		StructrNodeFactory nodeFactory = (StructrNodeFactory) arguments.get("nodeFactory");
 		List<AbstractNode> finalResult = new LinkedList<AbstractNode>();
 
@@ -243,8 +244,9 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 				logger.log(Level.FINE, "Textual Query String: {0}", textualQueryString);
 
-				IndexHits hits = index.query(new QueryContext(textualQueryString));    // .sort("name"));
-				long t1        = System.currentTimeMillis();
+				QueryContext queryContext = new QueryContext(textualQueryString);
+				IndexHits hits            = index.query(queryContext);    // .sort("name"));
+				long t1                   = System.currentTimeMillis();
 
 				logger.log(Level.FINE, "Querying index took {0} ms, {1} results retrieved.", new Object[] { t1 - t0, hits.size() });
 
@@ -325,35 +327,6 @@ public class SearchNodeCommand extends NodeServiceCommand {
 			}
 
 			finalResult.addAll(intermediateResult);
-
-			// Filter not exact matches
-			for (AbstractNode node : finalResult) {
-
-				List<AbstractNode> notMatchingNodes = new LinkedList<AbstractNode>();
-
-				for (TextualSearchAttribute attr : textualAttributes) {
-
-					String value = attr.getValue();
-
-					if ((value != null) && isExactMatch(value)) {
-
-						String key          = attr.getKey();
-						String nodeValue    = node.getStringProperty(key);
-						String decodedValue = decodeExactMatch(value);
-
-						if (!nodeValue.equals(decodedValue)) {
-
-							notMatchingNodes.add(node);
-
-						}
-
-					}
-
-				}
-
-				finalResult = ListUtils.subtract(finalResult, notMatchingNodes);
-
-			}
 
 			long t3 = System.currentTimeMillis();
 
@@ -489,6 +462,34 @@ public class SearchNodeCommand extends NodeServiceCommand {
 		}
 
 		return result;
+	}
+
+	private List<AbstractNode> filterNotExactMatches(final List<AbstractNode> result, TextualSearchAttribute attr) {
+
+		List<AbstractNode> notMatchingNodes = new LinkedList<AbstractNode>();
+
+		// Filter not exact matches
+		for (AbstractNode node : result) {
+
+			String value = attr.getValue();
+
+			if ((value != null) && isExactMatch(value)) {
+
+				String key          = attr.getKey();
+				String nodeValue    = node.getStringProperty(key);
+				String decodedValue = decodeExactMatch(value);
+
+				if (!nodeValue.equals(decodedValue)) {
+
+					notMatchingNodes.add(node);
+
+				}
+
+			}
+
+		}
+
+		return ListUtils.subtract(result, notMatchingNodes);
 	}
 
 	private String decodeExactMatch(final String value) {

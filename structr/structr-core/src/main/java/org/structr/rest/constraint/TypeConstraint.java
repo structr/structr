@@ -20,6 +20,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.CreateNodeCommand;
+import org.structr.core.node.NodeService.NodeIndex;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 import org.structr.core.node.search.Search;
@@ -211,7 +212,13 @@ public class TypeConstraint extends SortableConstraint {
 		if(type != null && request != null && !request.getParameterMap().isEmpty()) {
 
 			boolean strictSearch = parseInteger(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_SEARCH_STRICT)) == 1;
-			Set<String> searchableAttributes = EntityContext.getSearchableProperties(type);
+
+			Set<String> searchableAttributes;
+			if (strictSearch) {
+				searchableAttributes = EntityContext.getSearchableProperties(type, NodeIndex.keyword.name());
+			} else {
+				searchableAttributes = EntityContext.getSearchableProperties(type, NodeIndex.fulltext.name());
+			}
 
 			if(searchableAttributes != null) {
 

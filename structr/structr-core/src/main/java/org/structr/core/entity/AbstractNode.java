@@ -78,6 +78,7 @@ import org.structr.core.node.IndexNodeCommand;
 import org.structr.core.node.NodeFactoryCommand;
 import org.structr.core.node.NodeRelationshipStatisticsCommand;
 import org.structr.core.node.NodeRelationshipsCommand;
+import org.structr.core.node.NodeService.NodeIndex;
 import org.structr.core.node.SetOwnerCommand;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
@@ -107,7 +108,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Semaphore;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -167,6 +167,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		EntityContext.registerPropertyConverter(AbstractNode.class, Key.lastModifiedDate, LongDateConverter.class);
 		EntityContext.registerPropertyConverter(AbstractNode.class, Key.createdDate, LongDateConverter.class);
 		EntityContext.registerPropertyConverter(AbstractNode.class, Key.ownerId, NodeIdNodeConverter.class);
+		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.fulltext.name(), Key.values());
+		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.keyword.name(), Key.values());
+		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.uuid.name(), Key.uuid);
 
 	}
 
@@ -1863,7 +1866,6 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		}
 
 		// ----- END property group resolution -----
-
 		// ----- BEGIN automatic property resolution (check for static relationships and return related nodes) -----
 		String singularType = getSingularTypeName(key);
 
@@ -3867,7 +3869,6 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		}
 
 		// ----- END property group resolution -----
-
 		String singularType = getSingularTypeName(key);
 
 		if (key.endsWith("Id")) {
