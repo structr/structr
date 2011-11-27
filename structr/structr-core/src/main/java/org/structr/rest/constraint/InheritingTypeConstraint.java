@@ -18,6 +18,7 @@ import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
 import org.structr.rest.VetoableGraphObjectListener;
+import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NoResultsException;
 import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.exception.PathException;
@@ -86,7 +87,8 @@ public class InheritingTypeConstraint extends TypeConstraint {
 	@Override
 	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws PathException {
 
-		if(next instanceof IdConstraint)	return new InheritingTypedIdConstraint(securityContext, (IdConstraint)next, this);
+		if(next instanceof IdConstraint)	return new InheritingTypedIdConstraint(securityContext, (IdConstraint)next, this); else
+		if(next instanceof TypeConstraint)	throw new IllegalPathException();
 		
 		return super.tryCombineWith(next);
 	}
