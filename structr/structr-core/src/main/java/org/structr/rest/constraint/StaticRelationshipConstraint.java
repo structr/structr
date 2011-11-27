@@ -36,6 +36,7 @@ import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.VetoableGraphObjectListener;
+import org.structr.rest.exception.NoResultsException;
 import org.structr.rest.exception.NotAllowedException;
 
 /**
@@ -66,7 +67,11 @@ public class StaticRelationshipConstraint extends FilterableConstraint {
 			// fetch static relationship definition
 			DirectedRelationship staticRel = EntityContext.getRelation(sourceType, targetType);
 			if(staticRel != null) {
-				return staticRel.getRelatedNodes(securityContext, typedIdConstraint.getTypesafeNode(), targetType);
+				List<AbstractNode> relatedNodes = staticRel.getRelatedNodes(securityContext, typedIdConstraint.getTypesafeNode(), targetType);
+				if(!relatedNodes.isEmpty()) {
+					return relatedNodes;
+				}
+				throw new NoResultsException();
 			}
 		}
 
