@@ -37,7 +37,7 @@ import org.structr.core.node.search.SearchNodeCommand;
  */
 public class TypeAndValueDeserializationStrategy implements DeserializationStrategy {
 
-	private PropertyKey propertyKey = null;
+	protected PropertyKey propertyKey = null;
 
 	public TypeAndValueDeserializationStrategy(PropertyKey propertyKey) {
 		this.propertyKey = propertyKey;
@@ -46,7 +46,7 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 	@Override
 	public GraphObject deserialize(SecurityContext securityContext, Class type, Object source) {
 		List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
-		attrs.add(Search.andExactPropertyValue(propertyKey, source.toString()));
+		attrs.add(Search.andExactProperty(propertyKey, source.toString()));
 		attrs.add(Search.andExactType(type.getSimpleName()));
 
 		// just check for existance

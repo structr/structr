@@ -39,6 +39,7 @@ import org.structr.core.node.XPath;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.List;
+import org.structr.core.entity.User;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -71,8 +72,7 @@ public class SearchUserCommand extends NodeServiceCommand {
 
 							AbstractNode s = (AbstractNode) findNode.execute(n);
 
-							// FIXME: remove hardcoded reference to User class name
-							if (s.getType().equals("User")) {
+							if (s.getType().equals(User.class.getSimpleName())) {
 
 								return s;
 
@@ -113,9 +113,8 @@ public class SearchUserCommand extends NodeServiceCommand {
 
 									AbstractNode s = (AbstractNode) findNode.execute(n);
 
-									// FIXME: remove hardcoded reference to User class name
 									// TODO: implement better algorithm for user retrieval
-									if (s.getType().equals("User") && userName.equals(s.getName())) {
+									if (s.getType().equals(User.class.getSimpleName()) && userName.equals(s.getName())) {
 
 										return s;
 

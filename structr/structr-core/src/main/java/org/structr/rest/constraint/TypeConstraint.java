@@ -228,9 +228,9 @@ public class TypeConstraint extends SortableConstraint {
 					if(searchValue != null) {
 
 						if(strictSearch) {
-							searchAttributes.add(Search.andExactPropertyValue(key, searchValue));
+							searchAttributes.add(Search.andExactProperty(key, searchValue));
 						} else {
-							searchAttributes.add(Search.andPropertyValue(key, searchValue));
+							searchAttributes.add(Search.andProperty(key, searchValue));
 						}
 
 						hasSearchableAttributes = true;
