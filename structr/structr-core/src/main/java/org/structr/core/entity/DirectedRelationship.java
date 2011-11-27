@@ -209,7 +209,7 @@ public class DirectedRelationship {
 	// ----- private methods -----
 	private List<AbstractNode> getTraversalResults(final SecurityContext securityContext, AbstractNode node, final String type) {
 
-		final Class realType = (Class)Services.command(securityContext, GetEntityClassCommand.class).execute(type);
+		final Class realType = (Class)Services.command(securityContext, GetEntityClassCommand.class).execute(StringUtils.capitalize(type));
 		final StructrNodeFactory nodeFactory = new StructrNodeFactory<AbstractNode>(securityContext);
 		final List<AbstractNode> nodeList = new LinkedList<AbstractNode>();
 
@@ -235,7 +235,7 @@ public class DirectedRelationship {
 
 							// use inheritance
 							AbstractNode abstractNode = (AbstractNode)nodeFactory.createNode(securityContext, path.endNode());
-							if(realType.isAssignableFrom(abstractNode.getClass())) {
+							if(realType != null && realType.isAssignableFrom(abstractNode.getClass())) {
 								nodeList.add(abstractNode);
 								return Evaluation.INCLUDE_AND_CONTINUE;
 							}
