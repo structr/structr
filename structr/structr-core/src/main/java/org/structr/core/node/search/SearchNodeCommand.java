@@ -153,10 +153,13 @@ public class SearchNodeCommand extends NodeServiceCommand {
 	private List<AbstractNode> search(final SecurityContext securityContext, final AbstractNode topNode, final boolean includeDeleted,
 					  final boolean publicOnly, final List<SearchAttribute> searchAttrs, final String type, final String propertyKey) {
 
-		GraphDatabaseService graphDb   = (GraphDatabaseService) arguments.get("graphDb");
-		Index<Node> index              = (Index<Node>) arguments.get(NodeIndex.fulltext.name());
+		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
+		Index<Node> index;
 		StructrNodeFactory nodeFactory = (StructrNodeFactory) arguments.get("nodeFactory");
 		List<AbstractNode> finalResult = new LinkedList<AbstractNode>();
+		boolean allExactMatch          = true;
+
+		// boolean allFulltext = false;
 
 		if (graphDb != null) {
 
@@ -192,6 +195,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 								subQueryString += toQueryString((TextualSearchAttribute) groupedAttr,
 												StringUtils.isBlank(subQueryString));
+								allExactMatch &= isExactMatch(((TextualSearchAttribute) groupedAttr).getValue());
 
 							}
 						}
@@ -215,6 +219,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 					query.add(toQuery((TextualSearchAttribute) attr), translateToBooleanClauseOccur(attr.getSearchOperator()));
 
 					textualQueryString += toQueryString((TextualSearchAttribute) attr, StringUtils.isBlank(textualQueryString));
+					allExactMatch      &= isExactMatch(((TextualSearchAttribute) attr).getValue());
 
 				} else if (attr instanceof BooleanSearchAttribute) {
 
@@ -245,8 +250,26 @@ public class SearchNodeCommand extends NodeServiceCommand {
 				logger.log(Level.FINE, "Textual Query String: {0}", textualQueryString);
 
 				QueryContext queryContext = new QueryContext(textualQueryString);
-				IndexHits hits            = index.query(queryContext);    // .sort("name"));
-				long t1                   = System.currentTimeMillis();
+				IndexHits hits;
+
+				if ((textualAttributes.size() == 1) && textualAttributes.get(0).getKey().equals(AbstractNode.Key.uuid.name())) {
+
+					// Search for uuid only: Use UUID index
+					index = (Index<Node>) arguments.get(NodeIndex.uuid.name());
+					hits  = index.get(AbstractNode.Key.uuid.name(), decodeExactMatch(textualAttributes.get(0).getValue()));
+				} else if ((textualAttributes.size() > 1) && allExactMatch) {
+
+					// Only exact machtes: Use keyword index
+					index = (Index<Node>) arguments.get(NodeIndex.keyword.name());
+					hits  = index.query(queryContext);
+				} else {
+
+					// Default: Mixed or fulltext-only search: Use fulltext index
+					index = (Index<Node>) arguments.get(NodeIndex.fulltext.name());
+					hits  = index.query(queryContext);
+				}
+
+				long t1 = System.currentTimeMillis();
 
 				logger.log(Level.FINE, "Querying index took {0} ms, {1} results retrieved.", new Object[] { t1 - t0, hits.size() });
 
