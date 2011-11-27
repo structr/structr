@@ -502,12 +502,13 @@ public class JsonRestServlet extends HttpServlet {
 				// evaluate constraint chain
 				List<ResourceConstraint> chain        = parsePath(securityContext, request);
 				ResourceConstraint resourceConstraint = optimizeConstraintChain(chain);
+				Map<String, Object> properties        = new LinkedHashMap<String, Object>();
 
-				// create Map with properties
-				Map<String, Object> properties = new LinkedHashMap<String, Object>();
-				for (NodeAttribute attr : propertySet.getAttributes()) {
-					properties.put(attr.getKey(), attr.getValue());
-
+				// copy properties to map
+				if(propertySet != null) {
+					for (NodeAttribute attr : propertySet.getAttributes()) {
+						properties.put(attr.getKey(), attr.getValue());
+					}
 				}
 
 				// do action
@@ -695,11 +696,16 @@ public class JsonRestServlet extends HttpServlet {
 							// instantiate resource constraint
 							ResourceConstraint constraint = (ResourceConstraint) type.newInstance();
 
+							// set security context
+							constraint.setSecurityContext(securityContext);
+
 							if (constraint.checkAndConfigure(part, securityContext, request)) {
 
 								logger.log(Level.FINE, "{0} matched, adding constraint of type {1} for part {2}",
 									   new Object[] { matcher.pattern(),
 											  type.getName(), part });
+
+
 
 								// allow constraint to modify context
 								constraint.configurePropertyView(propertyView);
