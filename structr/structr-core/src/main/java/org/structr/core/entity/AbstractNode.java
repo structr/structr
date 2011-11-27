@@ -167,6 +167,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		EntityContext.registerPropertyConverter(AbstractNode.class, Key.lastModifiedDate, LongDateConverter.class);
 		EntityContext.registerPropertyConverter(AbstractNode.class, Key.createdDate, LongDateConverter.class);
 		EntityContext.registerPropertyConverter(AbstractNode.class, Key.ownerId, NodeIdNodeConverter.class);
+
 		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.fulltext.name(), Key.values());
 		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.keyword.name(), Key.values());
 		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.uuid.name(), Key.uuid);

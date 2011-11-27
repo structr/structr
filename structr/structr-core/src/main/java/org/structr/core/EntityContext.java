@@ -248,9 +248,7 @@ public class EntityContext {
 	public static void registerSearchablePropertySet(Class type, String index, PropertyKey... keys) {
 
 		for (PropertyKey key : keys) {
-
 			registerSearchablePropertySet(type, index, key);
-
 		}
 	}
 
@@ -264,22 +262,14 @@ public class EntityContext {
 
 	public static void registerSearchablePropertySet(String type, String index, String key) {
 
-		Map<String, Set<String>> searchablePropertyMap = getSearchablePropertyMapForType(type);
-
-		if (searchablePropertyMap == null) {
-
-			searchablePropertyMap = new LinkedHashMap<String, Set<String>>();
-
-			Set<String> props = new LinkedHashSet<String>();
-
-			props.add(key);
-			searchablePropertyMap.put(index, props);
-
-		} else {
-
-			getSearchablePropertyMapForType(type).get(index).add(key);
-
+		Map<String, Set<String>> searchablePropertyMapForType = getSearchablePropertyMapForType(type);
+		Set<String> searchablePropertySet = searchablePropertyMapForType.get(index);
+		if (searchablePropertySet == null) {
+			searchablePropertySet = new LinkedHashSet<String>();
+			searchablePropertyMapForType.put(index, searchablePropertySet);
 		}
+
+		searchablePropertySet.add(key);
 	}
 
 	// ----- write-once property map -----
@@ -608,13 +598,9 @@ public class EntityContext {
 	private static Map<String, Set<String>> getSearchablePropertyMapForType(String type) {
 
 		Map<String, Set<String>> searchablePropertyMap = globalSearchablePropertyMap.get(type);
-
 		if (searchablePropertyMap == null) {
-
 			searchablePropertyMap = new LinkedHashMap<String, Set<String>>();
-
 			globalSearchablePropertyMap.put(type, searchablePropertyMap);
-
 		}
 
 		return searchablePropertyMap;
