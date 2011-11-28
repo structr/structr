@@ -680,6 +680,8 @@ public class JsonRestServlet extends HttpServlet {
 			String part = pathParts[i].trim();
 
 			if (part.length() > 0) {
+				
+				boolean found = false;
 
 				// look for matching pattern
 				for (Entry<Pattern, Class> entry : constraintMap.entrySet()) {
@@ -713,6 +715,7 @@ public class JsonRestServlet extends HttpServlet {
 								// add constraint and go on
 								constraintChain.add(constraint);
 
+								found = true;
 								// first match wins, so choose priority wisely ;)
 								break;
 
@@ -723,7 +726,10 @@ public class JsonRestServlet extends HttpServlet {
 						}
 
 					}
-
+				}
+				
+				if(!found) {
+					throw new IllegalPathException();
 				}
 			}
 		}

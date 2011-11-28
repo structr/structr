@@ -43,7 +43,7 @@ import org.structr.rest.exception.NotAllowedException;
  *
  * @author Christian Morgner
  */
-public class StaticRelationshipConstraint extends FilterableConstraint {
+public class StaticRelationshipConstraint extends SortableConstraint {
 
 	TypedIdConstraint typedIdConstraint = null;
 	TypeConstraint typeConstraint = null;

@@ -56,7 +56,7 @@ import org.structr.rest.exception.PathException;
  *
  * @author Christian Morgner
  */
-public class RelationshipFollowingConstraint extends FilterableConstraint implements Evaluator {
+public class RelationshipFollowingConstraint extends SortableConstraint implements Evaluator {
 
 	private static final Logger logger = Logger.getLogger(RelationshipFollowingConstraint.class.getName());
 
