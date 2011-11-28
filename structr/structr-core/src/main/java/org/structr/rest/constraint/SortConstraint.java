@@ -77,6 +77,10 @@ public class SortConstraint extends WrappingConstraint {
 
 				if(comparator != null) {
 					Collections.sort(results, comparator);
+
+				} else {
+
+					logger.log(Level.WARNING, "Comparator was null, no sorting applied");
 				}
 
 			} catch(Throwable t) {

@@ -292,8 +292,7 @@ public class JsonRestServlet extends HttpServlet {
 
 			// evaluate constraints and measure query time
 			double queryTimeStart                 = System.nanoTime();
-			List<ResourceConstraint> chain        = parsePath(securityContext, request);
-			ResourceConstraint resourceConstraint = optimizeConstraintChain(chain);
+			ResourceConstraint resourceConstraint = addSortingAndPaging(request, securityContext, optimizeConstraintChain(parsePath(securityContext, request)));
 			double queryTimeEnd                   = System.nanoTime();
 
 			// create result set
@@ -734,42 +733,6 @@ public class JsonRestServlet extends HttpServlet {
 			}
 		}
 
-		// sorting
-		String sortKey = request.getParameter(REQUEST_PARAMETER_SORT_KEY);
-
-		if (sortKey != null) {
-
-			String sortOrder = request.getParameter(REQUEST_PARAMETER_SORT_ORDER);
-
-			if (sortOrder == null) {
-
-				sortOrder = DEFAULT_VALUE_SORT_ORDER;
-
-			}
-
-			constraintChain.add(new SortConstraint(securityContext, sortKey, sortOrder));
-
-		}
-
-		// paging
-		String pageSizeParameter = request.getParameter(REQUEST_PARAMETER_PAGE_SIZE);
-
-		if (pageSizeParameter != null) {
-
-			String pageParameter = request.getParameter(REQUEST_PARAMETER_PAGE_NUMBER);
-			int pageSize         = parseInt(pageSizeParameter, DEFAULT_VALUE_PAGE_SIZE);
-			int page             = parseInt(pageParameter, 1);
-
-			if (pageSize <= 0) {
-
-				throw new IllegalPathException();
-
-			}
-
-			constraintChain.add(new PagingConstraint(securityContext, page, pageSize));
-
-		}
-
 		return constraintChain;
 	}
 
@@ -910,6 +873,44 @@ public class JsonRestServlet extends HttpServlet {
 		} catch (Throwable t) {
 			logger.log(Level.WARNING, "Unable to commit response", t);
 		}
+	}
+
+	private ResourceConstraint addSortingAndPaging(HttpServletRequest request, SecurityContext securityContext, ResourceConstraint finalConstraint) throws PathException {
+
+		ResourceConstraint pagedSortedConstraint = finalConstraint;
+
+		// sorting
+		String sortKey = request.getParameter(REQUEST_PARAMETER_SORT_KEY);
+		if (sortKey != null) {
+
+			String sortOrder = request.getParameter(REQUEST_PARAMETER_SORT_ORDER);
+			if (sortOrder == null) {
+				sortOrder = DEFAULT_VALUE_SORT_ORDER;
+			}
+
+			// combine sort constraint
+			pagedSortedConstraint = pagedSortedConstraint.tryCombineWith(new SortConstraint(securityContext, sortKey, sortOrder));
+
+		}
+
+		// paging
+		String pageSizeParameter = request.getParameter(REQUEST_PARAMETER_PAGE_SIZE);
+
+		if (pageSizeParameter != null) {
+
+			String pageParameter = request.getParameter(REQUEST_PARAMETER_PAGE_NUMBER);
+			int pageSize         = parseInt(pageSizeParameter, DEFAULT_VALUE_PAGE_SIZE);
+			int page             = parseInt(pageParameter, 1);
+
+			if (pageSize <= 0) {
+				throw new IllegalPathException();
+			}
+
+			pagedSortedConstraint = pagedSortedConstraint.tryCombineWith(new PagingConstraint(securityContext, page, pageSize));
+
+		}
+
+		return pagedSortedConstraint;
 	}
 
 	/**
