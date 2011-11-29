@@ -22,6 +22,7 @@
         <structr.version>0.4.4-SNAPSHOT</structr.version>
         <neo4j.version>1.5</neo4j.version>
         <netbeans.hint.deploy.server>Tomcat</netbeans.hint.deploy.server>
+        <configfile.path>/opt/structr/structr.conf</configfile.path>
     </properties>
 
     <repositories>
@@ -122,6 +123,23 @@
                     <encoding>${project.build.sourceEncoding}</encoding>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>2.1.1</version>
+                <configuration>
+                   <webResources>
+                        <resource>
+                            <directory>src/main/webapp/WEB-INF</directory>
+                            <filtering>true</filtering>
+                            <targetPath>WEB-INF</targetPath>
+                            <includes>
+                                <include>web.xml</include>
+                            </includes>
+                        </resource>
+                   </webResources>
+                </configuration>
+            </plugin>
         </plugins>
         <resources>
             <resource>
@@ -138,6 +156,98 @@
             </resource>
         </resources>
     </build>
+    
+    <profiles>
+        <profile>
+            <id>quickstart</id>
+            <properties>
+                <configfile.path>${project.build.directory}/structr/modules/structr.conf</configfile.path>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-resources-plugin</artifactId>
+                        <version>2.5</version>
+                        <executions>
+                            <execution>
+                                <id>copy-resources</id>
+                                <goals>
+                                    <goal>copy-resources</goal>
+                                </goals>
+                                <phase>validate</phase>
+                                <configuration>
+                                    <outputDirectory>${project.basedir}/target/structr/modules</outputDirectory>
+                                    <resources>
+                                        <resource>
+                                            <directory>src/quickstart</directory>
+                                            <filtering>true</filtering>
+                                        </resource>
+                                    </resources>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-dependency-plugin</artifactId>
+                        <version>2.3</version>
+                        <executions>
+                          <execution>
+                            <id>copy</id>
+                            <phase>package</phase>
+                            <goals>
+                              <goal>copy</goal>
+                            </goals>
+                            <configuration>
+                              <artifactItems>
+                                <artifactItem>
+                                  <groupId>${project.groupId}</groupId>
+                                  <artifactId>structr-core</artifactId>
+                                  <version>${project.version}</version>
+                                  <type>jar</type>
+                                </artifactItem>
+                                <artifactItem>
+                                  <groupId>${project.groupId}</groupId>
+                                  <artifactId>structr-module-web</artifactId>
+                                  <version>${project.version}</version>
+                                  <type>jar</type>
+                                </artifactItem>
+                                <artifactItem>
+                                  <groupId>${project.groupId}</groupId>
+                                  <artifactId>structr-module-app</artifactId>
+                                  <version>${project.version}</version>
+                                  <type>jar</type>
+                                </artifactItem>
+                                <artifactItem>
+                                  <groupId>${project.groupId}</groupId>
+                                  <artifactId>structr-module-gis</artifactId>
+                                  <version>${project.version}</version>
+                                  <type>jar</type>
+                                </artifactItem>
+                                <artifactItem>
+                                  <groupId>${project.groupId}</groupId>
+                                  <artifactId>structr-module-chart</artifactId>
+                                  <version>${project.version}</version>
+                                  <type>jar</type>
+                                </artifactItem>
+                              </artifactItems>
+                              <outputDirectory>${project.build.directory}/structr/modules</outputDirectory>
+                              <overWriteReleases>true</overWriteReleases>
+                              <overWriteSnapshots>true</overWriteSnapshots>
+                            </configuration>
+                          </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>com.googlecode.t7mp</groupId>
+                        <artifactId>maven-t7-plugin</artifactId>
+                        <version>0.9.9.M1</version>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
 
     <licenses>
