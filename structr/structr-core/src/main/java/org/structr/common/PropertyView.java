@@ -20,17 +20,15 @@
 package org.structr.common;
 
 /**
- * Enumeration to define different views on a node's properties.
- * 
- * Depending on the value, you get a different set of properties for
- * a node.
  *
- * F.e. in Public mode, only the properties suitable for public users should
- * be returned.
  *
  * @author Christian Morgner
  */
-public enum PropertyView {
+public interface PropertyView {
 
-	Public, Protected, Private, Owner, Admin, All
+	public static final String All =	"all";
+	public static final String Public =	"public";
+	public static final String Protected =	"protected";
+	public static final String Private =	"private";
+	public static final String Owner =	"owner";
 }

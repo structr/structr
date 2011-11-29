@@ -6,7 +6,6 @@ package org.structr.rest.constraint;
 
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -78,6 +77,10 @@ public class SortConstraint extends WrappingConstraint {
 
 				if(comparator != null) {
 					Collections.sort(results, comparator);
+
+				} else {
+
+					logger.log(Level.WARNING, "Comparator was null, no sorting applied");
 				}
 
 			} catch(Throwable t) {
@@ -92,7 +95,7 @@ public class SortConstraint extends WrappingConstraint {
 	}
 
 	@Override
-	public ResourceConstraint tryCombineWith(ResourceConstraint next) {
-		return null;
+	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws PathException {
+		return super.tryCombineWith(next);
 	}
 }

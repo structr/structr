@@ -22,8 +22,6 @@ package org.structr.rest.constraint;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
-import org.structr.common.CaseHelper;
-import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Value;
@@ -41,7 +39,7 @@ import org.structr.rest.exception.PathException;
  */
 public class ViewFilterConstraint extends WrappingConstraint {
 
-	private PropertyView propertyView = null;
+	private String propertyView = null;
 
 	// no-arg constructor for automatic instantiation
 	public ViewFilterConstraint() {
@@ -51,20 +49,10 @@ public class ViewFilterConstraint extends WrappingConstraint {
 	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) {
 
 		this.securityContext = securityContext;
+		propertyView = part;
 
-		try {
+		return true;
 
-			//propertyView = PropertyView.valueOf(StringUtils.capitalize(part));
-			propertyView = PropertyView.valueOf(CaseHelper.toCamelCase(part));
-			return true;
-
-		} catch(Throwable t) {
-
-			propertyView = PropertyView.Public;
-		}
-
-		// only accept valid views
-		return false;
 	}
 
 	@Override
@@ -101,7 +89,7 @@ public class ViewFilterConstraint extends WrappingConstraint {
 	}
 
 	@Override
-	public void configurePropertyView(Value<PropertyView> propertyView) {
+	public void configurePropertyView(Value<String> propertyView) {
 		propertyView.set(this.propertyView);
 	}
 }

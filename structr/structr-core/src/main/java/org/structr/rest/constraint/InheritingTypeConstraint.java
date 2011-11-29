@@ -18,7 +18,9 @@ import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
 import org.structr.rest.VetoableGraphObjectListener;
+import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NoResultsException;
+import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.exception.PathException;
 
 /**
@@ -35,7 +37,6 @@ public class InheritingTypeConstraint extends TypeConstraint {
 
 		this.securityContext = securityContext;
 
-		// todo: check if type exists etc.
 		this.setType(part);
 
 		return true;
@@ -45,6 +46,7 @@ public class InheritingTypeConstraint extends TypeConstraint {
 	public List<GraphObject> doGet(final List<VetoableGraphObjectListener> listeners) throws PathException {
 
 		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+		boolean hasSearchableAttributes = false;
 		AbstractNode topNode = null;
 		boolean includeDeleted = false;
 		boolean publicOnly = false;
@@ -54,6 +56,10 @@ public class InheritingTypeConstraint extends TypeConstraint {
 			//searchAttributes.add(new TextualSearchAttribute("type", type, SearchOperator.OR));
 			searchAttributes.addAll(Search.andExactTypeAndSubtypes(CaseHelper.toCamelCase(type)));
 
+			// searchable attributes from EntityContext
+			hasSearchableAttributes = hasSearchableAttributes(searchAttributes);
+
+			// do search
 			List<GraphObject> results = (List<GraphObject>)Services.command(securityContext, SearchNodeCommand.class).execute(
 				topNode,
 				includeDeleted,
@@ -70,15 +76,20 @@ public class InheritingTypeConstraint extends TypeConstraint {
 			logger.log(Level.WARNING, "type was null");
 		}
 
-		throw new NoResultsException();
+		// return 404 if search attributes were posted
+		if(hasSearchableAttributes) {
+			throw new NotFoundException();
+		} else {
+			throw new NoResultsException();
+		}
 	}
 
 	@Override
 	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws PathException {
 
 		if(next instanceof IdConstraint)	return new InheritingTypedIdConstraint(securityContext, (IdConstraint)next, this); else
-		if(next instanceof SearchConstraint)	return new TypedSearchConstraint(securityContext, this, ((SearchConstraint)next).getSearchString());
-
+		if(next instanceof TypeConstraint)	throw new IllegalPathException();
+		
 		return super.tryCombineWith(next);
 	}
 }

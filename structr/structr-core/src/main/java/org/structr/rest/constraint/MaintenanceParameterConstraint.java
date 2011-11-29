@@ -19,103 +19,86 @@
 
 package org.structr.rest.constraint;
 
-import java.util.LinkedList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
-import org.structr.core.entity.StructrRelationship;
+import org.structr.core.agent.RebuildIndexTask;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.VetoableGraphObjectListener;
-import org.structr.rest.exception.IllegalPathException;
+import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.exception.PathException;
 
 /**
  *
  * @author Christian Morgner
  */
-public class RelationshipNodeConstraint extends WrappingConstraint {
+public class MaintenanceParameterConstraint extends ResourceConstraint {
 
-	private static final Logger logger = Logger.getLogger(RelationshipNodeConstraint.class.getName());
-	private boolean startNode = false;
+	private static final Map<String, Class> maintenanceCommandMap = new LinkedHashMap<String, Class>();
+
+	static {
+		maintenanceCommandMap.put("rebuildIndex", RebuildIndexTask.class);
+	}
+
+	private String uriPart = null;
+
+	public Class getMaintenanceCommand() {
+		return maintenanceCommandMap.get(uriPart);
+	}
 
 	@Override
 	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) {
 
 		this.securityContext = securityContext;
 
-		// only "start" selects the start node, everything else means end node
-		if("start".equals(part.toLowerCase())) {
-			startNode = true;
+		if(maintenanceCommandMap.containsKey(part)) {
+			this.uriPart = part;
+			return true;
 		}
 
-		return true;
+		return false;
 	}
 
 	@Override
 	public List<? extends GraphObject> doGet(List<VetoableGraphObjectListener> listeners) throws PathException {
+		throw new NotAllowedException();
+	}
 
-		List<? extends GraphObject> results = wrappedConstraint.doGet(listeners);
-		if(results != null && !results.isEmpty()) {
-
-			try {
-				List<GraphObject> resultList = new LinkedList<GraphObject>();
-				for(GraphObject obj : results) {
-
-					if(obj instanceof StructrRelationship) {
-
-						StructrRelationship rel = (StructrRelationship)obj;
-						if(startNode) {
-
-							resultList.add(rel.getStartNode());
-
-						} else {
-
-							resultList.add(rel.getEndNode());
-						}
-					}
-				}
-
-				return resultList;
-
-			} catch(Throwable t) {
-
-				logger.log(Level.WARNING, "Exception while fetching relationships", t);
-			}
-
-		} else {
-
-			logger.log(Level.INFO, "No results from parent..");
-
-		}
-
-		throw new IllegalPathException();
+	@Override
+	public RestMethodResult doPut(Map<String, Object> propertySet, List<VetoableGraphObjectListener> listeners) throws Throwable {
+		throw new NotAllowedException();
 	}
 
 	@Override
 	public RestMethodResult doPost(Map<String, Object> propertySet, List<VetoableGraphObjectListener> listeners) throws Throwable {
-		if(wrappedConstraint != null) {
-			return wrappedConstraint.doPost(propertySet, listeners);
-		}
-
-		throw new IllegalPathException();
+		throw new NotAllowedException();
 	}
 
 	@Override
 	public RestMethodResult doHead() throws Throwable {
-		throw new UnsupportedOperationException("Not supported yet.");
+		throw new NotAllowedException();
 	}
 
 	@Override
 	public RestMethodResult doOptions() throws Throwable {
-		throw new UnsupportedOperationException("Not supported yet.");
+		throw new NotAllowedException();
+	}
+
+	@Override
+	public String getUriPart() {
+		return uriPart;
 	}
 
 	@Override
 	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws PathException {
-		return super.tryCombineWith(next);
+		return null;
+	}
+
+	@Override
+	public boolean isCollectionResource() {
+		return false;
 	}
 }

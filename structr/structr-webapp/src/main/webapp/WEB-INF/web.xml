@@ -18,7 +18,7 @@
 		</init-param>
 		<init-param>
 			<param-name>application-version</param-name>
-			<param-value>0.4.3</param-value>
+			<param-value>0.4.4-SNAPSHOT</param-value>
 		</init-param>
 		<init-param>
 			<param-name>cacheable-paths</param-name>

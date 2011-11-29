@@ -40,7 +40,6 @@ public class TemporaryValue<T> {
 	}
 
 	public boolean isExpired() {
-
 		return(System.currentTimeMillis() > timestamp);
 	}
 
@@ -62,6 +61,10 @@ public class TemporaryValue<T> {
 
 	public T getStoredValue() {
 
+		if(isExpired()) {
+			value = null;
+		}
+		
 		return(value);
 	}
 }

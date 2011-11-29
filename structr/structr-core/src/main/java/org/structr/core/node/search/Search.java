@@ -132,6 +132,20 @@ public abstract class Search {
 		return attr;
 	}
 
+	public static SearchAttribute andProperty(final String key, final String searchString) {
+
+		SearchAttribute attr = new TextualSearchAttribute(key, searchString, SearchOperator.AND);
+
+		return attr;
+	}
+
+	public static SearchAttribute andProperty(final PropertyKey propertyKey, final String searchString) {
+
+		SearchAttribute attr = new TextualSearchAttribute(propertyKey.name(), searchString, SearchOperator.AND);
+
+		return attr;
+	}
+
 	public static SearchAttribute orExactType(final String searchString) {
 
 		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.Key.type.name(), exactMatch(searchString), SearchOperator.OR);
@@ -202,9 +216,16 @@ public abstract class Search {
 		return attr;
 	}
 
-	public static SearchAttribute andExactPropertyValue(final PropertyKey propertyKey, final String searchString) {
+	public static SearchAttribute andExactProperty(final PropertyKey propertyKey, final String searchString) {
 
 		SearchAttribute attr = new TextualSearchAttribute(propertyKey.name(), exactMatch(searchString), SearchOperator.AND);
+
+		return attr;
+	}
+
+	public static SearchAttribute andExactProperty(final String key, final String searchString) {
+
+		SearchAttribute attr = new TextualSearchAttribute(key, exactMatch(searchString), SearchOperator.AND);
 
 		return attr;
 	}

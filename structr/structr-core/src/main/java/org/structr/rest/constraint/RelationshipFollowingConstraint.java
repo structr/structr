@@ -56,7 +56,7 @@ import org.structr.rest.exception.PathException;
  *
  * @author Christian Morgner
  */
-public class RelationshipFollowingConstraint extends FilterableConstraint implements Evaluator {
+public class RelationshipFollowingConstraint extends SortableConstraint implements Evaluator {
 
 	private static final Logger logger = Logger.getLogger(RelationshipFollowingConstraint.class.getName());
 
@@ -65,7 +65,7 @@ public class RelationshipFollowingConstraint extends FilterableConstraint implem
 	private TypedIdConstraint firstConstraint = null;
 	private TypedIdConstraint lastConstraint = null;
 	private List<String> uriParts = null;
-	private Set<Long> idSet = null;
+	private Set<Object> idSet = null;
 	private int pathLength = 0;
 
 	public RelationshipFollowingConstraint(SecurityContext securityContext, TypedIdConstraint typedIdConstraint) {
@@ -78,7 +78,7 @@ public class RelationshipFollowingConstraint extends FilterableConstraint implem
 		
 		this.visitedRelationships = new LinkedHashSet<DirectedRelationship>();
 		this.securityContext      = securityContext;
-		this.idSet                = new LinkedHashSet<Long>();
+		this.idSet                = new LinkedHashSet<Object>();
 		this.uriParts             = new LinkedList<String>();
 
 		// add TypedIdConstraint to list of evaluators
@@ -89,21 +89,47 @@ public class RelationshipFollowingConstraint extends FilterableConstraint implem
 		firstConstraint = typedIdConstraint;
 		lastConstraint = typedIdConstraint;
 
-		logger.log(Level.INFO, "Adding id {0} to id set", typedIdConstraint.getIdConstraint().getId());
+		IdConstraint idConstraint = typedIdConstraint.getIdConstraint();
+		if(idConstraint instanceof UuidConstraint) {
 
-		// add id from TypedIdConstraint to idSet
-		idSet.add(typedIdConstraint.getIdConstraint().getId());
+			logger.log(Level.FINE, "Adding id {0} to id set", idConstraint.getUriPart());
+
+			// add uuid from TypedIdConstraint to idSet
+			idSet.add(((UuidConstraint)idConstraint).getUriPart());
+
+		} else {
+
+			logger.log(Level.FINE, "Adding id {0} to id set", idConstraint.getUriPart());
+
+			// add id from TypedIdConstraint to idSet
+			idSet.add(idConstraint.getId());
+
+		}
 	}
 
 	public void addTypedIdConstraint(TypedIdConstraint typedIdConstraint) throws PathException {
 		
-		logger.log(Level.INFO, "Adding id {0} to id set", typedIdConstraint.getIdConstraint().getId());
+		logger.log(Level.FINE, "Adding id {0} to id set", typedIdConstraint.getIdConstraint().getUriPart());
 
-		// add id from TypedIdConstraint to idSet
-		if(!idSet.add(typedIdConstraint.getIdConstraint().getId())) {
-			// id alread in set, this is an illegal path!
-			throw new IllegalPathException();
+		// we need to differentiate between UuidConstraint and IdConstraint
+		IdConstraint idConstraint = typedIdConstraint.getIdConstraint();
+		if(idConstraint instanceof UuidConstraint) {
+
+			// add uuid from TypedIdConstraint to idSet
+			if(!idSet.add(((UuidConstraint)idConstraint).getUriPart())) {
+				// id alread in set, this is an illegal path!
+				throw new IllegalPathException();
+			}
+
+		} else {
+
+			// add id from TypedIdConstraint to idSet
+			if(!idSet.add(idConstraint.getId())) {
+				// id alread in set, this is an illegal path!
+				throw new IllegalPathException();
+			}
 		}
+		// add id from TypedIdConstraint to idSet
 
 		uriParts.add(typedIdConstraint.getUriPart());
 
@@ -188,6 +214,8 @@ public class RelationshipFollowingConstraint extends FilterableConstraint implem
 			// validate path before combining constraints
 			if(getValidatedPath() != null) {
 				return new StaticRelationshipConstraint(securityContext, lastConstraint, (TypeConstraint)next);
+			} else {
+				throw new NotFoundException();
 			}
 		}
 		
@@ -215,17 +243,21 @@ public class RelationshipFollowingConstraint extends FilterableConstraint implem
 	@Override
 	public Evaluation evaluate(Path path) {
 
-//		logger.log(Level.INFO, "Evaluating node with id {0}", path.endNode().getId());
+		Node endNode = path.endNode();
 
-		// only continue if we are on the right track :)
-		if(idSet.contains(path.endNode().getId())) {
+		try {
+			// only continue if we are on the right track :)
+			if(idSet.contains(endNode.getId()) || idSet.contains(endNode.getProperty(idProperty))) {
 
-//			logger.log(Level.INFO, "Including node with id {0}", path.endNode().getId());
-			if(path.length() == pathLength) {
-				return Evaluation.INCLUDE_AND_PRUNE;
-			} else {
-				return Evaluation.INCLUDE_AND_CONTINUE;
+				if(path.length() == pathLength) {
+					return Evaluation.INCLUDE_AND_PRUNE;
+				} else {
+					return Evaluation.INCLUDE_AND_CONTINUE;
+				}
 			}
+
+		} catch(Throwable t) {
+			// ignore
 		}
 
 		// dead end, stop here

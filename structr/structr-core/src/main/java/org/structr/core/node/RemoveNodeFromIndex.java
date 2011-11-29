@@ -21,18 +21,19 @@
 
 package org.structr.core.node;
 
-import org.apache.commons.lang.StringUtils;
-
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.index.Index;
 
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.node.NodeService.NodeIndex;
 
 //~--- JDK imports ------------------------------------------------------------
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -49,14 +50,18 @@ public class RemoveNodeFromIndex extends NodeServiceCommand {
 
 	//~--- fields ---------------------------------------------------------
 
-	private Index<Node> index;
+	private Map<String, Index> indices = new HashMap<String, Index>();
 
 	//~--- methods --------------------------------------------------------
 
 	@Override
 	public Object execute(Object... parameters) {
 
-		index = (Index<Node>) arguments.get("index");
+		for (Enum indexName : (NodeIndex[]) arguments.get("indices")) {
+
+			indices.put(indexName.name(), (Index<Node>) arguments.get(indexName.name()));
+
+		}
 
 		long id           = 0;
 		AbstractNode node = null;
@@ -73,7 +78,8 @@ public class RemoveNodeFromIndex extends NodeServiceCommand {
 					Command findNode = Services.command(securityContext, FindNodeCommand.class);
 
 					node = (AbstractNode) findNode.execute(id);
-					removeNodeFromIndex(node);
+
+					removeNodeFromAllIndices(node);
 
 				} else if (parameters[0] instanceof String) {
 
@@ -82,25 +88,28 @@ public class RemoveNodeFromIndex extends NodeServiceCommand {
 					Command findNode = Services.command(securityContext, FindNodeCommand.class);
 
 					node = (AbstractNode) findNode.execute(id);
-					removeNodeFromIndex(node);
+
+					removeNodeFromAllIndices(node);
 
 				} else if (parameters[0] instanceof AbstractNode) {
 
 					node = (AbstractNode) parameters[0];
-					removeNodeFromIndex(node);
+
+					removeNodeFromAllIndices(node);
 
 				} else if (parameters[0] instanceof List) {
+
 					removeNodesFromIndex((List<AbstractNode>) parameters[0]);
+
 				}
 
 				break;
 
 			default :
-				logger.log(Level.SEVERE,
-					   "Wrong number of parameters for the remove node from index command: {0}",
-					   parameters);
+				logger.log(Level.SEVERE, "Wrong number of parameters for the remove node from index command: {0}", parameters);
 
 				return null;
+
 		}
 
 		return null;
@@ -109,14 +118,18 @@ public class RemoveNodeFromIndex extends NodeServiceCommand {
 	private void removeNodesFromIndex(final List<AbstractNode> nodes) {
 
 		for (AbstractNode node : nodes) {
-			removeNodeFromIndex(node);
+
+			removeNodeFromAllIndices(node);
+
 		}
 	}
 
-	private void removeNodeFromIndex(final AbstractNode node) {
+	private void removeNodeFromAllIndices(final AbstractNode node) {
 
-		index.remove(node.getNode());
-		
+		for (Enum indexName : (NodeIndex[]) arguments.get("indices")) {
+
+			indices.get(indexName.name()).remove(node.getNode());
+
+		}
 	}
-
 }
