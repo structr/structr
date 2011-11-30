@@ -976,7 +976,7 @@ public class JsonRestServlet extends HttpServlet {
 	private SecurityContext getSecurityContext(HttpServletRequest request) {
 
 		// return SecurityContext.getSuperUserInstance();
-		return SecurityContext.getInstance(this.getServletConfig(), request, AccessMode.Backend);
+		return SecurityContext.getInstance(this.getServletConfig(), request, AccessMode.Frontend);
 	}
 	// </editor-fold>
 

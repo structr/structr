@@ -67,7 +67,7 @@ public class StaticRelationshipConstraint extends SortableConstraint {
 			// fetch static relationship definition
 			DirectedRelationship staticRel = EntityContext.getRelation(sourceType, targetType);
 			if(staticRel != null) {
-				List<AbstractNode> relatedNodes = staticRel.getRelatedNodes(securityContext, typedIdConstraint.getTypesafeNode(), targetType);
+				List<AbstractNode> relatedNodes = staticRel.getRelatedNodes(securityContext, typedIdConstraint.getTypesafeNode());
 				if(!relatedNodes.isEmpty()) {
 					return relatedNodes;
 				}
@@ -95,7 +95,7 @@ public class StaticRelationshipConstraint extends SortableConstraint {
 
 					if(sourceNode != null && newNode != null && rel != null) {
 
-						rel.createRelationship(securityContext, sourceNode, newNode, newNode.getType());
+						rel.createRelationship(securityContext, sourceNode, newNode);
 
 						ErrorBuffer errorBuffer = new ErrorBuffer();
 

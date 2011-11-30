@@ -52,6 +52,14 @@ public class DirectedRelationship {
 
 	private static final Logger logger = Logger.getLogger(DirectedRelationship.class.getName());
 
+	public String getDestType() {
+		return destType;
+	}
+
+	public void setDestType(String destType) {
+		this.destType = destType;
+	}
+
 	public enum Cardinality {
 		OneToOne, OneToMany, ManyToOne, ManyToMany
 	}
@@ -59,12 +67,14 @@ public class DirectedRelationship {
 	private RelationshipType relType =  null;
 	private Cardinality cardinality = null;
 	private Direction direction = null;
+	private String destType = null;
 	private Notion notion = null;
 
-	public DirectedRelationship(RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion) {
+	public DirectedRelationship(String destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion) {
 
 		this.cardinality = cardinality;
 		this.direction = direction;
+		this.destType = destType;
 		this.relType = relType;
 		this.notion = notion;
 	}
@@ -102,28 +112,28 @@ public class DirectedRelationship {
 	}
 
 	// ----- public methods -----
-	public List<AbstractNode> getRelatedNodes(final SecurityContext securityContext, final AbstractNode node, String type) {
+	public List<AbstractNode> getRelatedNodes(final SecurityContext securityContext, final AbstractNode node) {
 
 		if(cardinality.equals(Cardinality.OneToMany) || cardinality.equals(Cardinality.ManyToMany)) {
 			//return getTraversalResults(securityContext, node, StringUtils.toCamelCase(type));
-			return getTraversalResults(securityContext, node, CaseHelper.toCamelCase(type));
+			return getTraversalResults(securityContext, node);
 			
 
 		} else {
 
 			logger.log(Level.WARNING, "Requested related nodes with wrong cardinality {0} between {1} and {2}",
-				new Object[] { cardinality.name(), node.getClass().getSimpleName(), type }
+				new Object[] { cardinality.name(), node.getClass().getSimpleName(), destType }
 			);
 		}
 
 		return null;
 	}
 
-	public AbstractNode getRelatedNode(final SecurityContext securityContext, final AbstractNode node, final String type) {
+	public AbstractNode getRelatedNode(final SecurityContext securityContext, final AbstractNode node) {
 
 		if(cardinality.equals(Cardinality.OneToOne) || cardinality.equals(Cardinality.ManyToOne)) {
 
-			List<AbstractNode> nodes = getTraversalResults(securityContext, node, StringUtils.capitalize(type));
+			List<AbstractNode> nodes = getTraversalResults(securityContext, node);
 			if(nodes != null && nodes.iterator().hasNext()) {
 				return nodes.iterator().next();
 			}
@@ -131,14 +141,14 @@ public class DirectedRelationship {
 		} else {
 
 			logger.log(Level.WARNING, "Requested related node with wrong cardinality {0} between {1} and {2}",
-				new Object[] { cardinality.name(), node.getClass().getSimpleName(), type }
+				new Object[] { cardinality.name(), node.getClass().getSimpleName(), destType }
 			);
 		}
 
 		return null;
 	}
 
-	public void createRelationship(final SecurityContext securityContext, final AbstractNode sourceNode, final Object value, final String targetType) throws Throwable {
+	public void createRelationship(final SecurityContext securityContext, final AbstractNode sourceNode, final Object value) throws Throwable {
 
 		// create relationship if it does not already exist
 		final Command cmd = Services.command(securityContext, CreateRelationshipCommand.class);
@@ -197,7 +207,7 @@ public class DirectedRelationship {
 
 			StringBuilder errorMessage = new StringBuilder(100);
 			
-			errorMessage.append(StringUtils.capitalize(targetType));
+			errorMessage.append(StringUtils.capitalize(destType));
 			errorMessage.append(" with id ");
 			errorMessage.append(value);
 			errorMessage.append(" not found.");
@@ -207,9 +217,9 @@ public class DirectedRelationship {
 	}
 
 	// ----- private methods -----
-	private List<AbstractNode> getTraversalResults(final SecurityContext securityContext, AbstractNode node, final String type) {
+	private List<AbstractNode> getTraversalResults(final SecurityContext securityContext, AbstractNode node) {
 
-		final Class realType = (Class)Services.command(securityContext, GetEntityClassCommand.class).execute(StringUtils.capitalize(type));
+		final Class realType = (Class)Services.command(securityContext, GetEntityClassCommand.class).execute(StringUtils.capitalize(destType));
 		final StructrNodeFactory nodeFactory = new StructrNodeFactory<AbstractNode>(securityContext);
 		final List<AbstractNode> nodeList = new LinkedList<AbstractNode>();
 

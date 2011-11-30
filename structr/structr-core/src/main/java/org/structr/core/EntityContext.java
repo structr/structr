@@ -86,8 +86,8 @@ public class EntityContext {
 	 * @param relType
 	 * @param direction
 	 */
-	public static void registerRelation(Class sourceType, Class destType, RelationshipType relType, Direction direction) {
-		registerRelation(sourceType, destType, relType, direction, Cardinality.ManyToMany);
+	public static void registerRelation(Class sourceType, String property, Class destType, RelationshipType relType, Direction direction) {
+		registerRelation(sourceType, property, destType, relType, direction, Cardinality.ManyToMany);
 	}
 
 	/**
@@ -101,13 +101,17 @@ public class EntityContext {
 	 * @param direction
 	 * @param cardinality
 	 */
-	public static void registerRelation(Class sourceType, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality) {
+	public static void registerRelation(Class sourceType, PropertyKey propertyKey, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality) {
+		registerRelation(sourceType, propertyKey.name(), destType, relType, direction, cardinality);
+	}
+	
+	public static void registerRelation(Class sourceType, String property, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality) {
 
 		// need to set type here
 		Notion objectNotion = new ObjectNotion();
 
 		objectNotion.setType(destType);
-		registerRelation(convertName(sourceType), convertName(destType), relType, direction, cardinality, objectNotion);
+		registerRelation(convertName(sourceType), property, convertName(destType), relType, direction, cardinality, objectNotion);
 	}
 
 	/**
@@ -121,10 +125,14 @@ public class EntityContext {
 	 * @param cardinality
 	 * @param notion
 	 */
-	public static void registerRelation(Class sourceType, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality,
+	public static void registerRelation(Class sourceType, PropertyKey propertyKey, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion) {
+		registerRelation(sourceType, propertyKey.name(), destType, relType, direction, cardinality, notion);
+	}
+	
+	public static void registerRelation(Class sourceType, String property, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality,
 		Notion notion) {
 
-		registerRelation(convertName(sourceType), convertName(destType), relType, direction, cardinality, notion);
+		registerRelation(convertName(sourceType), property, convertName(destType), relType, direction, cardinality, notion);
 		notion.setType(destType);
 	}
 
@@ -282,12 +290,12 @@ public class EntityContext {
 		return (type.getSimpleName().toLowerCase());
 	}
 
-	private static void registerRelation(String sourceType, String destType, RelationshipType relType, Direction direction, Cardinality cardinality,
+	private static void registerRelation(String sourceType, String property, String destType, RelationshipType relType, Direction direction, Cardinality cardinality,
 		Notion notion) {
 
 		Map<String, DirectedRelationship> typeMap = getRelationshipMapForType(sourceType);
 
-		typeMap.put(destType, new DirectedRelationship(relType, direction, cardinality, notion));
+		typeMap.put(property, new DirectedRelationship(destType, relType, direction, cardinality, notion));
 	}
 
 	//~--- get methods ----------------------------------------------------
