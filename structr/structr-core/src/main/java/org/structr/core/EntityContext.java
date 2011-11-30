@@ -360,6 +360,10 @@ public class EntityContext {
 		return getRelationshipMapForType(convertName(sourceType)).get(propertyKey);
 	}
 
+	public static DirectedRelationship getRelation(Class sourceType, Class destType) {
+		return getRelationshipMapForType(convertName(sourceType)).get(convertName(destType));
+	}
+
 	public static Map<String, DirectedRelationship> getRelations(Class sourceType) {
 		return getRelationshipMapForType(convertName(sourceType));
 	}
