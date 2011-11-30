@@ -357,7 +357,7 @@ public class EntityContext {
 	}
 
 	public static DirectedRelationship getRelation(Class sourceType, String propertyKey) {
-		return getRelationshipMapForType(convertName(sourceType)).get(propertyKey);
+		return getRelationshipMapForType(convertName(sourceType)).get(propertyKey.toLowerCase());
 	}
 
 	public static DirectedRelationship getRelation(Class sourceType, Class destType) {

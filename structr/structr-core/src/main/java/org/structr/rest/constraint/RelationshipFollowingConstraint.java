@@ -155,7 +155,14 @@ public class RelationshipFollowingConstraint extends SortableConstraint implemen
 		// find static relationship between the two types
 		String type1             = lastConstraint.getTypeConstraint().getType();
 		String type2             = typedIdConstraint.getTypeConstraint().getType();
-		DirectedRelationship rel = EntityContext.getRelation(type1, type2);
+		String typeOrProperty    = typedIdConstraint.getTypeConstraint().getRawType();
+		
+		// try raw type first..
+		DirectedRelationship rel = EntityContext.getRelation(type1, typeOrProperty);
+		if(rel == null) {
+			// fallback to normalized type (entity name)
+			rel = EntityContext.getRelation(type1, type2);
+		}
 
 		if (rel != null) {
 
@@ -168,7 +175,7 @@ public class RelationshipFollowingConstraint extends SortableConstraint implemen
 
 		} else {
 
-			logger.log(Level.INFO, "No relationship defined between {0} and {1}, illegal path", new Object[] { type1, type2 });
+			logger.log(Level.INFO, "No relationship defined between {0} and {1}, illegal path", new Object[] { type1, typeOrProperty });
 
 			// no relationship defined, illegal path
 			throw new IllegalPathException();
@@ -218,7 +225,6 @@ public class RelationshipFollowingConstraint extends SortableConstraint implemen
 	public RestMethodResult doDelete(List<VetoableGraphObjectListener> listeners) throws Throwable {
 
 		Path path = getValidatedPath();
-
 		if (path != null) {
 
 			StructrNodeFactory nodeFactory = new StructrNodeFactory<AbstractNode>(securityContext);
@@ -239,11 +245,9 @@ public class RelationshipFollowingConstraint extends SortableConstraint implemen
 				// fetch the property name that connects the two nodes
 				// => "owner" in "teams/<id>/owner/<id>"
 				// => "users" in "teams/<id>/users/<id>"
-				final String property        = lastConstraint.getTypeConstraint().getType();
+				final String property        = lastConstraint.getTypeConstraint().getRawType();
 				final AbstractNode startNode = (AbstractNode) nodeList.get(1);
 				final AbstractNode endNode   = (AbstractNode) nodeList.get(0);
-				
-				logger.log(Level.INFO, "Identified property name {0} for relationship between {1} and {2}", new Object[] { property, startNode.getType(), endNode.getType() } );
 				
 				if ((startNode != null) && (endNode != null)) {
 

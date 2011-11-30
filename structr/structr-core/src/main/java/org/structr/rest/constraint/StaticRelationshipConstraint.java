@@ -43,6 +43,8 @@ import org.structr.rest.exception.PathException;
 import java.util.List;
 import java.util.Map;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -54,6 +56,8 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class StaticRelationshipConstraint extends SortableConstraint {
 
+	private static final Logger logger = Logger.getLogger(StaticRelationshipConstraint.class.getName());
+	
 	TypeConstraint typeConstraint       = null;
 	TypedIdConstraint typedIdConstraint = null;
 
@@ -72,13 +76,14 @@ public class StaticRelationshipConstraint extends SortableConstraint {
 	public List<? extends GraphObject> doGet(final List<VetoableGraphObjectListener> listeners) throws PathException {
 
 		List<GraphObject> results = typedIdConstraint.doGet(listeners);
-
 		if (results != null) {
 
 			// get source and target type from previous constraints
 			String sourceType = typedIdConstraint.getTypeConstraint().getType();
-			String targetType = typeConstraint.getType();
+			String targetType = typeConstraint.getRawType();
 
+			logger.log(Level.INFO, "sourceType {0}, targetType {1}", new Object[] { sourceType, targetType } );
+			
 			// fetch static relationship definition
 			DirectedRelationship staticRel = EntityContext.getRelation(sourceType, targetType);
 

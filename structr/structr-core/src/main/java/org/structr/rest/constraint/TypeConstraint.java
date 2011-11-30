@@ -19,10 +19,8 @@ import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.StructrRelationship;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.NodeService.NodeIndex;
-import org.structr.core.node.RemoveNodeFromIndex;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 import org.structr.core.node.search.Search;
@@ -50,6 +48,7 @@ public class TypeConstraint extends SortableConstraint {
 	private static final Logger logger = Logger.getLogger(TypeConstraint.class.getName());
 
 	protected HttpServletRequest request = null;
+	protected String rawType = null;
 	protected String type = null;
 	
 	@Override
@@ -158,6 +157,7 @@ public class TypeConstraint extends SortableConstraint {
 	public void setType(String type) {
 		
 		this.type = type.toLowerCase();
+		this.rawType = type;
 
 		if(this.type.endsWith("ies")) {
 			logger.log(Level.FINEST, "Replacing trailing 'ies' with 'y' for type {0}", type);
@@ -167,7 +167,6 @@ public class TypeConstraint extends SortableConstraint {
 			logger.log(Level.FINEST, "Removing trailing plural 's' from type {0}", type);
 			this.type = this.type.substring(0, this.type.length() - 1);
 		}
-
 		// determine real type
 	}
 
@@ -203,6 +202,10 @@ public class TypeConstraint extends SortableConstraint {
 	@Override
 	public boolean isCollectionResource() {
 		return true;
+	}
+	
+	public String getRawType() {
+		return rawType;
 	}
 
 	// ----- protected methods -----
