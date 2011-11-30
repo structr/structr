@@ -426,6 +426,9 @@ public class RelationshipFollowingConstraint extends SortableConstraint implemen
 
 			Path path = it.next();
 
+			// iterate
+			for(Node node: path.nodes()) {}
+			
 			paths.put(path.length(), path);
 
 		}
