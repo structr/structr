@@ -168,7 +168,7 @@ public class RelationshipFollowingConstraint extends SortableConstraint implemen
 
 			if (!visitedRelationships.contains(rel)) {
 
-				traversalDescription.relationships(rel.getRelType(), rel.getDirection());
+				traversalDescription = traversalDescription.relationships(rel.getRelType(), rel.getDirection());
 				visitedRelationships.add(rel);
 
 			}
@@ -351,6 +351,8 @@ public class RelationshipFollowingConstraint extends SortableConstraint implemen
 
 			} else {
 
+				logger.log(Level.INFO, "No path found!");
+				
 				throw new NotFoundException();
 
 			}
