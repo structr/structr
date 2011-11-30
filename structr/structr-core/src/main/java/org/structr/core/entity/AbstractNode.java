@@ -1853,69 +1853,38 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	@Override
 	public Object getProperty(final String key) {
 
-		boolean idRequested = false;
 		Object value        = null;
 		Class type          = this.getClass();
 
 		// ----- BEGIN property group resolution -----
 		PropertyGroup propertyGroup = EntityContext.getPropertyGroup(type, key);
-
 		if (propertyGroup != null) {
-
 			return propertyGroup.getGroupedProperties(this);
-
 		}
-
 		// ----- END property group resolution -----
+		
 		// ----- BEGIN automatic property resolution (check for static relationships and return related nodes) -----
-		String singularType = getSingularTypeName(key);
-
-		if (key.endsWith("Id")) {
-
-			// remove "Id" from the end of the value and set "id requested"-flag
-			singularType = singularType.substring(0, singularType.length() - 2);
-			idRequested  = true;
-		}
-
-		if ((singularType != null) && EntityContext.getRelations(type).containsKey(singularType.toLowerCase())) {
+		if (EntityContext.getRelations(type).containsKey(key)) {
 
 			// static relationship detected, return related nodes
 			// (we omit null check here because containsKey ensures that rel is not null)
-			DirectedRelationship rel = EntityContext.getRelations(type).get(singularType.toLowerCase());
+			DirectedRelationship rel = EntityContext.getRelations(type).get(key);
 
-			if (idRequested) {
+			// apply notion (default is "as-is")
+			Notion notion = rel.getNotion();
 
-				GraphObject node = rel.getRelatedNode(securityContext, this, singularType);
+			// return collection or single element depending on cardinality of relationship
+			switch (rel.getCardinality()) {
 
-				if (node != null) {
+				case ManyToMany :
+				case OneToMany :
+					return new IterableAdapter(rel.getRelatedNodes(securityContext, this),
+								   notion.getAdapterForGetter(securityContext));
 
-					return node.getId();
+				case OneToOne :
+				case ManyToOne :
+					return notion.getAdapterForGetter(securityContext).adapt(rel.getRelatedNode(securityContext, this));
 
-				} else {
-
-					logger.log(Level.FINE, "Related node not found for key {0}", key);
-
-				}
-
-			} else {
-
-				// apply notion (default is "as-is")
-				Notion notion = rel.getNotion();
-
-				// return collection or single element depending on cardinality of relationship
-				switch (rel.getCardinality()) {
-
-					case ManyToMany :
-					case OneToMany :
-						return new IterableAdapter(rel.getRelatedNodes(securityContext, this, singularType),
-									   notion.getAdapterForGetter(securityContext));
-
-					case OneToOne :
-					case ManyToOne :
-						return notion.getAdapterForGetter(securityContext).adapt(rel.getRelatedNode(securityContext, this,
-							singularType));
-
-				}
 			}
 		}
 
@@ -3868,29 +3837,19 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 			return;
 
 		}
-
 		// ----- END property group resolution -----
-		String singularType = getSingularTypeName(key);
-
-		if (key.endsWith("Id")) {
-
-			singularType = singularType.substring(0, singularType.length() - 2);
-
-		}
-
+		
 		// check for static relationships and connect node
-		if (EntityContext.getRelations(type).containsKey(singularType.toLowerCase())) {
+		if (EntityContext.getRelations(type).containsKey(key)) {
 
 			// static relationship detected, create relationship
-			DirectedRelationship rel = EntityContext.getRelations(type).get(singularType.toLowerCase());
-
+			DirectedRelationship rel = EntityContext.getRelations(type).get(key);
 			if (rel != null) {
 
 				try {
 
 					GraphObject graphObject = rel.getNotion().getAdapterForSetter(securityContext).adapt(value);
-
-					rel.createRelationship(securityContext, this, graphObject, singularType);
+					rel.createRelationship(securityContext, this, graphObject);
 
 					return;
 
