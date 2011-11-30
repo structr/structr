@@ -236,32 +236,51 @@ public class RelationshipFollowingConstraint extends SortableConstraint implemen
 			// remove relationship between last and second-last node
 			if (nodeList.size() >= 2) {
 
+				// fetch the property name that connects the two nodes
+				// => "owner" in "teams/<id>/owner/<id>"
+				// => "users" in "teams/<id>/users/<id>"
+				final String property        = lastConstraint.getTypeConstraint().getType();
 				final AbstractNode startNode = (AbstractNode) nodeList.get(1);
 				final AbstractNode endNode   = (AbstractNode) nodeList.get(0);
-
+				
+				logger.log(Level.INFO, "Identified property name {0} for relationship between {1} and {2}", new Object[] { property, startNode.getType(), endNode.getType() } );
+				
 				if ((startNode != null) && (endNode != null)) {
 
-					StructrTransaction transaction = new StructrTransaction() {
+					final DirectedRelationship directedRelationship = EntityContext.getRelation(startNode.getClass(), property);
+					if(directedRelationship != null) {
 
-						@Override
-						public Object execute() throws Throwable {
+						// relationship found!
+						StructrTransaction transaction = new StructrTransaction() {
 
-							for (StructrRelationship rel : startNode.getRelationships()) {
+							@Override
+							public Object execute() throws Throwable {
 
-								if (rel.getStartNodeId().equals(startNode.getId()) && rel.getEndNodeId().equals(endNode.getId())) {
+								for (StructrRelationship rel : startNode.getRelationships(directedRelationship.getRelType(), directedRelationship.getDirection())) {
 
-									rel.delete();
-
+									switch(directedRelationship.getDirection()) {
+										
+										case INCOMING:
+											if (rel.getStartNodeId().equals(endNode.getId()) && rel.getEndNodeId().equals(startNode.getId())) {
+												rel.delete();
+											}
+											break;
+											
+										case OUTGOING:
+											if (rel.getStartNodeId().equals(startNode.getId()) && rel.getEndNodeId().equals(endNode.getId())) {
+												rel.delete();
+											}
+											break;
+									}
 								}
 
+								return null;
 							}
+						};
 
-							return null;
-						}
-					};
-
-					// execute transaction
-					Services.command(securityContext, TransactionCommand.class).execute(transaction);
+						// execute transaction
+						Services.command(securityContext, TransactionCommand.class).execute(transaction);
+					}
 
 				}
 

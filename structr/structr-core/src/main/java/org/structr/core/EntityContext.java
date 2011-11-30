@@ -352,12 +352,12 @@ public class EntityContext {
 	}
 
 	// ----- static relationship methods -----
-	public static DirectedRelationship getRelation(String sourceType, String destType) {
-		return getRelationshipMapForType(sourceType.toLowerCase()).get(destType.toLowerCase());
+	public static DirectedRelationship getRelation(String sourceType, String propertyKey) {
+		return getRelationshipMapForType(sourceType.toLowerCase()).get(propertyKey.toLowerCase());
 	}
 
-	public static DirectedRelationship getRelation(Class sourceType, Class destType) {
-		return getRelationshipMapForType(convertName(sourceType)).get(convertName(destType));
+	public static DirectedRelationship getRelation(Class sourceType, String propertyKey) {
+		return getRelationshipMapForType(convertName(sourceType)).get(propertyKey);
 	}
 
 	public static Map<String, DirectedRelationship> getRelations(Class sourceType) {
