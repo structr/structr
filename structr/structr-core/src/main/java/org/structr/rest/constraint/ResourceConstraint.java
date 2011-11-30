@@ -53,6 +53,60 @@ public abstract class ResourceConstraint {
 	public abstract boolean isCollectionResource();
 
 	// ----- methods -----
+	public RestMethodResult doDelete(final List<VetoableGraphObjectListener> listeners) throws Throwable {
+
+		Iterable<? extends GraphObject> results;
+
+		// catch 204, DELETE must return 200 if resource is empty
+		try { results = doGet(listeners); } catch(NoResultsException nre) { results = null; }
+
+		if(results != null) {
+
+			final Iterable<? extends GraphObject> finalResults = results;
+
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws Throwable {
+
+					ErrorBuffer errorBuffer = new ErrorBuffer();
+					boolean success = true;
+
+					for(GraphObject obj : finalResults) {
+
+						if(mayDelete(listeners, obj, errorBuffer)) {
+
+							// 1: remove node from index
+							Services.command(securityContext, RemoveNodeFromIndex.class).execute(obj);
+
+							// 2: delete relationships
+							if(obj instanceof AbstractNode) {
+								List<StructrRelationship> rels = ((AbstractNode)obj).getRelationships();
+								for(StructrRelationship rel : rels) {
+									success &= rel.delete();
+								}
+							}
+
+							// 3: delete object
+							success &= obj.delete();
+						}
+					}
+
+					// roll back transaction if not all deletions were successful
+					if(!success) {
+						// throwable will cause transaction to be rolled back
+						throw new IllegalArgumentException(errorBuffer.toString());
+					}
+
+					return success;
+				}
+
+			});
+		}
+
+		return new RestMethodResult(HttpServletResponse.SC_OK);
+	}
+
 	public RestMethodResult doPut(final Map<String, Object> propertySet, final List<VetoableGraphObjectListener> listeners) throws Throwable {
 
 		if(securityContext != null && securityContext.getUser() != null) {
@@ -121,60 +175,6 @@ public abstract class ResourceConstraint {
 
 			throw new NotAllowedException();
 		}
-	}
-
-	public RestMethodResult doDelete(final List<VetoableGraphObjectListener> listeners) throws Throwable {
-
-		Iterable<? extends GraphObject> results;
-
-		// catch 204, DELETE must return 200 if resource is empty
-		try { results = doGet(listeners); } catch(NoResultsException nre) { results = null; }
-
-		if(results != null) {
-
-			final Iterable<? extends GraphObject> finalResults = results;
-
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-				@Override
-				public Object execute() throws Throwable {
-
-					ErrorBuffer errorBuffer = new ErrorBuffer();
-					boolean success = true;
-
-					for(GraphObject obj : finalResults) {
-
-						if(mayDelete(listeners, obj, errorBuffer)) {
-
-							// 1: remove node from index
-							Services.command(securityContext, RemoveNodeFromIndex.class).execute(obj);
-
-							// 2: delete relationships
-							if(obj instanceof AbstractNode) {
-								List<StructrRelationship> rels = ((AbstractNode)obj).getRelationships();
-								for(StructrRelationship rel : rels) {
-									success &= rel.delete();
-								}
-							}
-
-							// 3: delete object
-							success &= obj.delete();
-						}
-					}
-
-					// roll back transaction if not all deletions were successful
-					if(!success) {
-						// throwable will cause transaction to be rolled back
-						throw new IllegalArgumentException(errorBuffer.toString());
-					}
-
-					return success;
-				}
-
-			});
-		}
-
-		return new RestMethodResult(HttpServletResponse.SC_OK);
 	}
 
 	/**

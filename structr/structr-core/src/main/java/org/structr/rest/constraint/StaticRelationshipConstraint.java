@@ -32,6 +32,7 @@ import org.structr.rest.exception.PathException;
 import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.StructrRelationship;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 import org.structr.rest.RestMethodResult;
@@ -78,6 +79,34 @@ public class StaticRelationshipConstraint extends SortableConstraint {
 		throw new IllegalPathException();
 	}
 
+	@Override
+	public RestMethodResult doDelete(List<VetoableGraphObjectListener> listeners) throws Throwable {
+		
+		List<GraphObject> results = typedIdConstraint.doGet(listeners);
+		if(results != null) {
+
+			// get source and target type from previous constraints
+			String sourceType = typedIdConstraint.getTypeConstraint().getType();
+			String targetType = typeConstraint.getType();
+
+			// fetch static relationship definition
+			DirectedRelationship staticRel = EntityContext.getRelation(sourceType, targetType);
+			if(staticRel != null) {
+				
+				AbstractNode startNode = typedIdConstraint.getTypesafeNode();
+				if(startNode != null) {
+					
+					List<StructrRelationship> rels = startNode.getRelationships(staticRel.getRelType(), staticRel.getDirection());
+					for(StructrRelationship rel : rels) {
+						rel.delete();
+					}
+				}
+			}
+		}
+		
+		return new RestMethodResult(HttpServletResponse.SC_OK);
+	}
+	
 	@Override
 	public RestMethodResult doPost(final Map<String, Object> propertySet, final List<VetoableGraphObjectListener> listeners) throws Throwable {
 

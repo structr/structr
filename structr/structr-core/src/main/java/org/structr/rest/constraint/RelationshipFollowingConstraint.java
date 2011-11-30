@@ -29,6 +29,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.traversal.Evaluation;
@@ -42,6 +43,7 @@ import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.DirectedRelationship;
+import org.structr.core.entity.StructrRelationship;
 import org.structr.core.node.StructrNodeFactory;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.VetoableGraphObjectListener;
@@ -171,6 +173,7 @@ public class RelationshipFollowingConstraint extends SortableConstraint implemen
 			StructrNodeFactory nodeFactory = new StructrNodeFactory<AbstractNode>(securityContext);
 			List<GraphObject> nodeList = new LinkedList<GraphObject>();
 
+			// traverse path to force evaluation
 			for(Node node : path.nodes()) {
 				AbstractNode traversedNode = nodeFactory.createNode(securityContext, node);
 				nodeList.add(traversedNode);
@@ -187,8 +190,60 @@ public class RelationshipFollowingConstraint extends SortableConstraint implemen
 	}
 
 	@Override
+	public RestMethodResult doDelete(List<VetoableGraphObjectListener> listeners) throws Throwable {
+		
+		Path path = getValidatedPath();
+		if(path != null) {
+			
+			StructrNodeFactory nodeFactory = new StructrNodeFactory<AbstractNode>(securityContext);
+			List<GraphObject> nodeList = new LinkedList<GraphObject>();
+
+			// traverse path to force evaluation, add nodes in reverse order
+			for(Node node : path.nodes()) {
+				AbstractNode traversedNode = nodeFactory.createNode(securityContext, node);
+				nodeList.add(0, traversedNode);
+			}
+
+			// remove relationship between last and second-last node
+			if(nodeList.size() >= 2) {
+				AbstractNode startNode = (AbstractNode)nodeList.get(1);
+				AbstractNode endNode = (AbstractNode)nodeList.get(0);
+				
+				if(startNode != null && endNode != null) {
+					
+					for(StructrRelationship rel : startNode.getRelationships()) {
+						if(rel.getStartNodeId().equals(startNode.getId()) && rel.getEndNodeId().equals(endNode.getId())) {
+							rel.delete();
+						}
+					}
+				}
+			}
+
+			return new RestMethodResult(HttpServletResponse.SC_OK);
+		}
+		
+		throw new NotFoundException();
+	}
+
+	@Override
 	public RestMethodResult doPost(Map<String, Object> propertySet, List<VetoableGraphObjectListener> listeners) throws Throwable {
-		return lastConstraint.doPost(propertySet, listeners);
+
+		Path path = getValidatedPath();
+		if(path != null) {
+
+			StructrNodeFactory nodeFactory = new StructrNodeFactory<AbstractNode>(securityContext);
+			List<GraphObject> nodeList = new LinkedList<GraphObject>();
+
+			// traverse path to force evaluation
+			for(Node node : path.nodes()) {
+				AbstractNode traversedNode = nodeFactory.createNode(securityContext, node);
+				nodeList.add(traversedNode);
+			}
+		
+			return lastConstraint.doPost(propertySet, listeners);
+		}
+		
+		throw new NotFoundException();
 	}
 
 	@Override
