@@ -43,6 +43,8 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.ErrorBuffer;
+import org.structr.core.EntityContext;
+import org.structr.core.Transformation;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -165,6 +167,11 @@ public class CreateNodeCommand extends NodeServiceCommand {
 
 			// notify node of its creation
 			node.onNodeCreation();
+			
+			// iterate post creation transformations
+			for(Transformation<AbstractNode> transformation : EntityContext.getPostCreationTransformations(node.getClass())) {
+				transformation.apply(securityContext, node);
+			}
 		}
 
 		return node;
