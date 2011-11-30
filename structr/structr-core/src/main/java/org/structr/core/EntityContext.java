@@ -43,6 +43,7 @@ import java.util.Set;
 import java.util.concurrent.Semaphore;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.entity.AbstractNode;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -70,9 +71,31 @@ public class EntityContext {
 	private static final Map<Class, Set<String>> globalWriteOncePropertyMap            = new LinkedHashMap<Class, Set<String>>();
 	private static final Map<Class, Set<String>> globalReadOnlyPropertyMap             = new LinkedHashMap<Class, Set<String>>();
 	private static final Logger logger                                                 = Logger.getLogger(EntityContext.class.getName());
+	
+	private static final Map<Class, Set<Transformation<AbstractNode>>> globalPostCreationTransformationMap	= new LinkedHashMap<Class, Set<Transformation<AbstractNode>>>();
 
 	//~--- methods --------------------------------------------------------
 
+	public static void registerPostCreationTransformation(Class type, Transformation<AbstractNode> transformation) {
+		
+		getPostCreationTransformationsForType(type).add(transformation);
+	}
+	
+	public static Set<Transformation<AbstractNode>> getPostCreationTransformations(Class type) {
+	
+		Set<Transformation<AbstractNode>> transformations = new LinkedHashSet<Transformation<AbstractNode>>();
+		Class localType                                   = type;
+
+		// collect for all superclasses
+		while (!localType.equals(Object.class)) {
+
+			transformations.addAll(getPostCreationTransformationsForType(localType));
+			localType = localType.getSuperclass();
+		}
+		
+		return transformations;
+	}
+	
 	public static void registerPropertyGroup(Class type, PropertyKey key, PropertyGroup propertyGroup) {
 		getPropertyGroupMapForType(type).put(key.name(), propertyGroup);
 	}
@@ -187,8 +210,6 @@ public class EntityContext {
 
 		if (validatorClass.equals(GlobalPropertyUniquenessValidator.class)) {
 
-			logger.log(Level.INFO, "registering semaphore for type {0}, key {1}", new Object[] { GLOBAL_UNIQUENESS, propertyKey });
-
 			// register semaphore for all types
 			Map<String, Semaphore> map = getSemaphoreMapForType(GLOBAL_UNIQUENESS);
 
@@ -199,8 +220,6 @@ public class EntityContext {
 			}
 
 		} else if (validatorClass.equals(TypeAndPropertyUniquenessValidator.class)) {
-
-			logger.log(Level.INFO, "registering semaphore for type {0}, key {1}", new Object[] { type, propertyKey });
 
 			// register semaphore
 			Map<String, Semaphore> map = getSemaphoreMapForType(type.getSimpleName());
@@ -642,6 +661,17 @@ public class EntityContext {
 		}
 
 		return semaphoreMap;
+	}
+	
+	private static Set<Transformation<AbstractNode>> getPostCreationTransformationsForType(Class type) {
+
+		Set<Transformation<AbstractNode>> transformations = globalPostCreationTransformationMap.get(type);
+		if(transformations == null) {
+			transformations = new LinkedHashSet<Transformation<AbstractNode>>();
+			globalPostCreationTransformationMap.put(type, transformations);
+		}
+		
+		return transformations;
 	}
 
 	public static boolean isReadOnlyProperty(Class type, String key) {
