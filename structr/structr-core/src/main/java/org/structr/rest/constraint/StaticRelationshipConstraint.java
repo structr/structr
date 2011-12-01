@@ -82,7 +82,7 @@ public class StaticRelationshipConstraint extends SortableConstraint {
 			String sourceType = typedIdConstraint.getTypeConstraint().getType();
 			String targetType = typeConstraint.getRawType();
 
-			logger.log(Level.INFO, "sourceType {0}, targetType {1}", new Object[] { sourceType, targetType } );
+			// logger.log(Level.INFO, "sourceType {0}, targetType {1}", new Object[] { sourceType, targetType } );
 			
 			// fetch static relationship definition
 			DirectedRelationship staticRel = EntityContext.getRelation(sourceType, targetType);
