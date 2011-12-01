@@ -165,6 +165,8 @@ public class DirectedRelationship {
 
 			} catch(Throwable t) {
 
+				logger.log(Level.WARNING, "Unable to find target node for relationship creation: {0}", value);
+				
 				targetNode = null;
 			}
 		}

@@ -196,7 +196,7 @@ public class TypeConstraint extends SortableConstraint {
 
 	@Override
 	public String getUriPart() {
-		return type;
+		return rawType;
 	}
 
 	@Override

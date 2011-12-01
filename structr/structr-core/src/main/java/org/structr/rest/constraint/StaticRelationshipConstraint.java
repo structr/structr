@@ -165,7 +165,12 @@ public class StaticRelationshipConstraint extends SortableConstraint {
 
 					AbstractNode sourceNode  = typedIdConstraint.getIdConstraint().getNode();
 					AbstractNode newNode     = typeConstraint.createNode(listeners, propertySet);
-					DirectedRelationship rel = EntityContext.getRelation(sourceNode.getClass(), newNode.getClass());
+					DirectedRelationship rel = EntityContext.getRelation(sourceNode.getClass(), typeConstraint.getRawType());
+
+					// we try the property name first, then the node type as a fallback
+					if(rel == null) {
+						rel = EntityContext.getRelation(sourceNode.getClass(), newNode.getType());
+					}
 
 					if ((sourceNode != null) && (newNode != null) && (rel != null)) {
 
@@ -181,6 +186,15 @@ public class StaticRelationshipConstraint extends SortableConstraint {
 
 						return newNode;
 
+					} else {
+
+						logger.log(Level.WARNING, "Unable to create nested node, source node type {0}, new node type {1}, relationship type {2}",
+							new Object[] {
+								sourceNode != null ? sourceNode.getType() : "null",
+								newNode != null ? newNode.getType() : "null",
+								rel != null ? rel.getRelType() : "null"
+							}
+						);
 					}
 
 					throw new IllegalPathException();
