@@ -7,6 +7,7 @@ package org.structr.rest.constraint;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
@@ -81,7 +82,9 @@ public class TypedIdConstraint extends FilterableConstraint {
 		AbstractNode node = idConstraint.getNode();
 		String type = typeConstraint.getType();
 
-		if(node != null && type.equalsIgnoreCase(node.getType())) {
+		logger.log(Level.INFO, "type from TypeConstraint: {0}, type from node: {1}", new Object[] { type, node != null ? node.getType() : "null" } );
+		
+		if(node != null) { //  && type.equalsIgnoreCase(node.getType())) {
 			return node;
 		}
 

@@ -37,6 +37,7 @@ import org.neo4j.index.lucene.QueryContext;
 
 import org.structr.common.SecurityContext;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.node.NodeService.NodeIndex;
 import org.structr.core.node.NodeServiceCommand;
 import org.structr.core.node.StructrNodeFactory;
 
@@ -152,16 +153,20 @@ public class SearchNodeCommand extends NodeServiceCommand {
 	private List<AbstractNode> search(final SecurityContext securityContext, final AbstractNode topNode, final boolean includeDeleted,
 					  final boolean publicOnly, final List<SearchAttribute> searchAttrs, final String type, final String propertyKey) {
 
-		GraphDatabaseService graphDb   = (GraphDatabaseService) arguments.get("graphDb");
-		Index<Node> index              = (Index<Node>) arguments.get("index");
+		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
+		Index<Node> index;
 		StructrNodeFactory nodeFactory = (StructrNodeFactory) arguments.get("nodeFactory");
 		List<AbstractNode> finalResult = new LinkedList<AbstractNode>();
+		boolean allExactMatch          = true;
+
+		// boolean allFulltext = false;
 
 		if (graphDb != null) {
 
 			// At this point, all search attributes are ready
 			BooleanQuery query                             = new BooleanQuery();
 			List<BooleanSearchAttribute> booleanAttributes = new LinkedList<BooleanSearchAttribute>();
+			List<TextualSearchAttribute> textualAttributes = new LinkedList<TextualSearchAttribute>();
 			String textualQueryString                      = "";
 
 			for (SearchAttribute attr : searchAttrs) {
@@ -184,11 +189,13 @@ public class SearchNodeCommand extends NodeServiceCommand {
 							// TODO: support other than textual search attributes
 							if (groupedAttr instanceof TextualSearchAttribute) {
 
+								textualAttributes.add((TextualSearchAttribute) groupedAttr);
 								subQuery.add(toQuery((TextualSearchAttribute) groupedAttr),
 									     translateToBooleanClauseOccur(groupedAttr.getSearchOperator()));
 
 								subQueryString += toQueryString((TextualSearchAttribute) groupedAttr,
 												StringUtils.isBlank(subQueryString));
+								allExactMatch &= isExactMatch(((TextualSearchAttribute) groupedAttr).getValue());
 
 							}
 						}
@@ -208,9 +215,11 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 				} else if (attr instanceof TextualSearchAttribute) {
 
+					textualAttributes.add((TextualSearchAttribute) attr);
 					query.add(toQuery((TextualSearchAttribute) attr), translateToBooleanClauseOccur(attr.getSearchOperator()));
 
 					textualQueryString += toQueryString((TextualSearchAttribute) attr, StringUtils.isBlank(textualQueryString));
+					allExactMatch      &= isExactMatch(((TextualSearchAttribute) attr).getValue());
 
 				} else if (attr instanceof BooleanSearchAttribute) {
 
@@ -240,8 +249,27 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 				logger.log(Level.FINE, "Textual Query String: {0}", textualQueryString);
 
-				IndexHits hits = index.query(new QueryContext(textualQueryString));    // .sort("name"));
-				long t1        = System.currentTimeMillis();
+				QueryContext queryContext = new QueryContext(textualQueryString);
+				IndexHits hits;
+
+				if ((textualAttributes.size() == 1) && textualAttributes.get(0).getKey().equals(AbstractNode.Key.uuid.name())) {
+
+					// Search for uuid only: Use UUID index
+					index = (Index<Node>) arguments.get(NodeIndex.uuid.name());
+					hits  = index.get(AbstractNode.Key.uuid.name(), decodeExactMatch(textualAttributes.get(0).getValue()));
+				} else if ((textualAttributes.size() > 1) && allExactMatch) {
+
+					// Only exact machtes: Use keyword index
+					index = (Index<Node>) arguments.get(NodeIndex.keyword.name());
+					hits  = index.query(queryContext);
+				} else {
+
+					// Default: Mixed or fulltext-only search: Use fulltext index
+					index = (Index<Node>) arguments.get(NodeIndex.fulltext.name());
+					hits  = index.query(queryContext);
+				}
+
+				long t1 = System.currentTimeMillis();
 
 				logger.log(Level.FINE, "Querying index took {0} ms, {1} results retrieved.", new Object[] { t1 - t0, hits.size() });
 
@@ -258,11 +286,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 			long t2 = System.currentTimeMillis();
 
-			if (booleanAttributes.isEmpty()) {
-
-				// if no further boolean attributes, the final result equals the intermediate result
-				finalResult.addAll(intermediateResult);
-			} else {
+			if (!booleanAttributes.isEmpty()) {
 
 				// Filter intermediate result
 				for (AbstractNode node : intermediateResult) {
@@ -323,9 +347,9 @@ public class SearchNodeCommand extends NodeServiceCommand {
 					}
 
 				}
-
-				finalResult.addAll(intermediateResult);
 			}
+
+			finalResult.addAll(intermediateResult);
 
 			long t3 = System.currentTimeMillis();
 
@@ -461,5 +485,43 @@ public class SearchNodeCommand extends NodeServiceCommand {
 		}
 
 		return result;
+	}
+
+	private List<AbstractNode> filterNotExactMatches(final List<AbstractNode> result, TextualSearchAttribute attr) {
+
+		List<AbstractNode> notMatchingNodes = new LinkedList<AbstractNode>();
+
+		// Filter not exact matches
+		for (AbstractNode node : result) {
+
+			String value = attr.getValue();
+
+			if ((value != null) && isExactMatch(value)) {
+
+				String key          = attr.getKey();
+				String nodeValue    = node.getStringProperty(key);
+				String decodedValue = decodeExactMatch(value);
+
+				if (!nodeValue.equals(decodedValue)) {
+
+					notMatchingNodes.add(node);
+
+				}
+
+			}
+
+		}
+
+		return ListUtils.subtract(result, notMatchingNodes);
+	}
+
+	private String decodeExactMatch(final String value) {
+		return StringUtils.strip(value, "\"");
+	}
+
+	//~--- get methods ----------------------------------------------------
+
+	private boolean isExactMatch(final String value) {
+		return value.startsWith("\"") && value.endsWith("\"");
 	}
 }

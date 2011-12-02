@@ -98,13 +98,13 @@ public class RelationshipConstraint extends WrappingConstraint {
 	}
 
 	@Override
-	public ResourceConstraint tryCombineWith(ResourceConstraint next) {
+	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws PathException {
 
 		if(next instanceof IdConstraint) {
 			return new RelationshipIdConstraint(securityContext, this, (IdConstraint)next);
 		}
 
-		return null;
+		return super.tryCombineWith(next);
 	}
 
 	@Override

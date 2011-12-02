@@ -42,7 +42,6 @@ import org.structr.rest.constraint.PagingConstraint;
 import org.structr.rest.constraint.RelationshipFollowingConstraint;
 import org.structr.rest.constraint.ResourceConstraint;
 import org.structr.rest.constraint.Result;
-import org.structr.rest.constraint.SearchConstraint;
 import org.structr.rest.constraint.SortConstraint;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.MessageException;
@@ -91,9 +90,9 @@ public class JsonRestServlet extends HttpServlet {
 	public static final String DEFAULT_VALUE_SORT_ORDER                 = "asc";
 	public static final String REQUEST_PARAMETER_PAGE_NUMBER            = "page";
 	public static final String REQUEST_PARAMETER_PAGE_SIZE              = "pageSize";
-	public static final String REQUEST_PARAMETER_SEARCH_STRING          = "q";
 	public static final String REQUEST_PARAMETER_SORT_KEY               = "sort";
 	public static final String REQUEST_PARAMETER_SORT_ORDER             = "order";
+	public static final String REQUEST_PARAMETER_SEARCH_STRICT          = "strict";
 	private static final String SERVLET_PARAMETER_CONSTRAINT_PROVIDER   = "ConstraintProvider";
 	private static final String SERVLET_PARAMETER_DEFAULT_PROPERTY_VIEW = "DefaultPropertyView";
 	private static final String SERVLET_PARAMETER_ID_PROPERTY           = "IdProperty";
@@ -221,15 +220,21 @@ public class JsonRestServlet extends HttpServlet {
 			response.setContentType("application/json; charset=utf-8");
 
 			SecurityContext securityContext = getSecurityContext(request);
+			if(securityContext != null) {
 
-			// evaluate constraint chain
-			List<ResourceConstraint> chain        = parsePath(securityContext, request);
-			ResourceConstraint resourceConstraint = optimizeConstraintChain(chain);
+				// evaluate constraint chain
+				List<ResourceConstraint> chain        = parsePath(securityContext, request);
+				ResourceConstraint resourceConstraint = optimizeConstraintChain(chain);
 
-			// do action
-			RestMethodResult result = resourceConstraint.doDelete(graphObjectListeners);
+				// do action
+				RestMethodResult result = resourceConstraint.doDelete(graphObjectListeners);
+				result.commitResponse(gson, response);
 
-			result.commitResponse(response);
+			} else {
+
+				RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_FORBIDDEN);
+				result.commitResponse(gson, response);
+			}
 
 		} catch (IllegalArgumentException illegalArgumentException) {
 			handleValidationError(illegalArgumentException, response);
@@ -270,6 +275,7 @@ public class JsonRestServlet extends HttpServlet {
 	}
 
 	// </editor-fold>
+
 	// <editor-fold defaultstate="collapsed" desc="GET">
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
@@ -286,8 +292,7 @@ public class JsonRestServlet extends HttpServlet {
 
 			// evaluate constraints and measure query time
 			double queryTimeStart                 = System.nanoTime();
-			List<ResourceConstraint> chain        = parsePath(securityContext, request);
-			ResourceConstraint resourceConstraint = optimizeConstraintChain(chain);
+			ResourceConstraint resourceConstraint = addSortingAndPaging(request, securityContext, optimizeConstraintChain(parsePath(securityContext, request)));
 			double queryTimeEnd                   = System.nanoTime();
 
 			// create result set
@@ -367,6 +372,7 @@ public class JsonRestServlet extends HttpServlet {
 	}
 
 	// </editor-fold>
+
 	// <editor-fold defaultstate="collapsed" desc="HEAD">
 	@Override
 	protected void doHead(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -381,7 +387,7 @@ public class JsonRestServlet extends HttpServlet {
 			ResourceConstraint resourceConstraint = optimizeConstraintChain(chain);
 			RestMethodResult result               = resourceConstraint.doHead();
 
-			result.commitResponse(response);
+			result.commitResponse(gson, response);
 
 		} catch (IllegalArgumentException illegalArgumentException) {
 			handleValidationError(illegalArgumentException, response);
@@ -422,6 +428,7 @@ public class JsonRestServlet extends HttpServlet {
 	}
 
 	// </editor-fold>
+
 	// <editor-fold defaultstate="collapsed" desc="OPTIONS">
 	@Override
 	protected void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -436,7 +443,7 @@ public class JsonRestServlet extends HttpServlet {
 			ResourceConstraint resourceConstraint = optimizeConstraintChain(chain);
 			RestMethodResult result               = resourceConstraint.doOptions();
 
-			result.commitResponse(response);
+			result.commitResponse(gson, response);
 
 		} catch (IllegalArgumentException illegalArgumentException) {
 			handleValidationError(illegalArgumentException, response);
@@ -477,6 +484,7 @@ public class JsonRestServlet extends HttpServlet {
 	}
 
 	// </editor-fold>
+
 	// <editor-fold defaultstate="collapsed" desc="POST">
 	@Override
 	protected void doPost(final HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -488,24 +496,34 @@ public class JsonRestServlet extends HttpServlet {
 
 			final PropertySet propertySet   = gson.fromJson(request.getReader(), PropertySet.class);
 			SecurityContext securityContext = getSecurityContext(request);
+			if(securityContext != null) {
 
-			// evaluate constraint chain
-			List<ResourceConstraint> chain        = parsePath(securityContext, request);
-			ResourceConstraint resourceConstraint = optimizeConstraintChain(chain);
+				// evaluate constraint chain
+				List<ResourceConstraint> chain        = parsePath(securityContext, request);
+				ResourceConstraint resourceConstraint = optimizeConstraintChain(chain);
+				Map<String, Object> properties        = new LinkedHashMap<String, Object>();
 
-			// create Map with properties
-			Map<String, Object> properties = new LinkedHashMap<String, Object>();
+				// copy properties to map
+				if(propertySet != null) {
+					for (NodeAttribute attr : propertySet.getAttributes()) {
+						properties.put(attr.getKey(), attr.getValue());
+					}
+				}
 
-			for (NodeAttribute attr : propertySet.getAttributes()) {
+				// do action
+				RestMethodResult result = resourceConstraint.doPost(properties, graphObjectListeners);
 
-				properties.put(attr.getKey(), attr.getValue());
+				// set default value for property view
+				propertyView.set(defaultPropertyView);
 
+				// commit response
+				result.commitResponse(gson, response);
+
+			} else {
+
+				RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_FORBIDDEN);
+				result.commitResponse(gson, response);
 			}
-
-			// do action
-			RestMethodResult result = resourceConstraint.doPost(properties, graphObjectListeners);
-
-			result.commitResponse(response);
 
 		} catch (IllegalArgumentException illegalArgumentException) {
 			handleValidationError(illegalArgumentException, response);
@@ -546,6 +564,7 @@ public class JsonRestServlet extends HttpServlet {
 	}
 
 	// </editor-fold>
+
 	// <editor-fold defaultstate="collapsed" desc="PUT">
 	@Override
 	protected void doPut(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
@@ -556,25 +575,30 @@ public class JsonRestServlet extends HttpServlet {
 			response.setContentType("application/json; charset=UTF-8");
 
 			final PropertySet propertySet   = gson.fromJson(request.getReader(), PropertySet.class);
+			
 			SecurityContext securityContext = getSecurityContext(request);
+			if(securityContext != null) {
 
-			// evaluate constraint chain
-			List<ResourceConstraint> chain        = parsePath(securityContext, request);
-			ResourceConstraint resourceConstraint = optimizeConstraintChain(chain);
+				// evaluate constraint chain
+				List<ResourceConstraint> chain        = parsePath(securityContext, request);
+				ResourceConstraint resourceConstraint = optimizeConstraintChain(chain);
 
-			// create Map with properties
-			Map<String, Object> properties = new LinkedHashMap<String, Object>();
+				// create Map with properties
+				Map<String, Object> properties = new LinkedHashMap<String, Object>();
+				for (NodeAttribute attr : propertySet.getAttributes()) {
+					properties.put(attr.getKey(), attr.getValue());
 
-			for (NodeAttribute attr : propertySet.getAttributes()) {
+				}
 
-				properties.put(attr.getKey(), attr.getValue());
+				// do action
+				RestMethodResult result = resourceConstraint.doPut(properties, graphObjectListeners);
+				result.commitResponse(gson, response);
 
+			} else {
+
+				RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_FORBIDDEN);
+				result.commitResponse(gson, response);
 			}
-
-			// do action
-			RestMethodResult result = resourceConstraint.doPut(properties, graphObjectListeners);
-
-			result.commitResponse(response);
 
 		} catch (IllegalArgumentException illegalArgumentException) {
 			handleValidationError(illegalArgumentException, response);
@@ -615,6 +639,7 @@ public class JsonRestServlet extends HttpServlet {
 	}
 
 	// </editor-fold>
+
 	// <editor-fold defaultstate="collapsed" desc="TRACE">
 	@Override
 	protected void doTrace(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -628,6 +653,7 @@ public class JsonRestServlet extends HttpServlet {
 	}
 
 	// </editor-fold>
+
 	// <editor-fold defaultstate="collapsed" desc="private methods">
 	private List<ResourceConstraint> parsePath(SecurityContext securityContext, HttpServletRequest request) throws PathException {
 
@@ -653,6 +679,8 @@ public class JsonRestServlet extends HttpServlet {
 			String part = pathParts[i].trim();
 
 			if (part.length() > 0) {
+				
+				boolean found = false;
 
 				// look for matching pattern
 				for (Entry<Pattern, Class> entry : constraintMap.entrySet()) {
@@ -669,11 +697,16 @@ public class JsonRestServlet extends HttpServlet {
 							// instantiate resource constraint
 							ResourceConstraint constraint = (ResourceConstraint) type.newInstance();
 
+							// set security context
+							constraint.setSecurityContext(securityContext);
+
 							if (constraint.checkAndConfigure(part, securityContext, request)) {
 
 								logger.log(Level.FINE, "{0} matched, adding constraint of type {1} for part {2}",
 									   new Object[] { matcher.pattern(),
 											  type.getName(), part });
+
+
 
 								// allow constraint to modify context
 								constraint.configurePropertyView(propertyView);
@@ -681,6 +714,7 @@ public class JsonRestServlet extends HttpServlet {
 								// add constraint and go on
 								constraintChain.add(constraint);
 
+								found = true;
 								// first match wins, so choose priority wisely ;)
 								break;
 
@@ -691,54 +725,12 @@ public class JsonRestServlet extends HttpServlet {
 						}
 
 					}
-
+				}
+				
+				if(!found) {
+					throw new IllegalPathException();
 				}
 			}
-		}
-
-		// search
-		String searchString = request.getParameter(REQUEST_PARAMETER_SEARCH_STRING);
-
-		if (searchString != null) {
-
-			constraintChain.add(new SearchConstraint(securityContext, searchString));
-
-		}
-
-		// sorting
-		String sortKey = request.getParameter(REQUEST_PARAMETER_SORT_KEY);
-
-		if (sortKey != null) {
-
-			String sortOrder = request.getParameter(REQUEST_PARAMETER_SORT_ORDER);
-
-			if (sortOrder == null) {
-
-				sortOrder = DEFAULT_VALUE_SORT_ORDER;
-
-			}
-
-			constraintChain.add(new SortConstraint(securityContext, sortKey, sortOrder));
-
-		}
-
-		// paging
-		String pageSizeParameter = request.getParameter(REQUEST_PARAMETER_PAGE_SIZE);
-
-		if (pageSizeParameter != null) {
-
-			String pageParameter = request.getParameter(REQUEST_PARAMETER_PAGE_NUMBER);
-			int pageSize         = parseInt(pageSizeParameter, DEFAULT_VALUE_PAGE_SIZE);
-			int page             = parseInt(pageParameter, 1);
-
-			if (pageSize <= 0) {
-
-				throw new IllegalPathException();
-
-			}
-
-			constraintChain.add(new PagingConstraint(securityContext, page, pageSize));
-
 		}
 
 		return constraintChain;
@@ -820,7 +812,7 @@ public class JsonRestServlet extends HttpServlet {
 
 		}
 
-		logger.log(Level.FINE, "########## Final constraint chain {0}", chain.toString());
+		logger.log(Level.INFO, "########## Final constraint chain {0}", chain.toString());
 
 		if (constraintChain.size() == 1) {
 
@@ -883,6 +875,44 @@ public class JsonRestServlet extends HttpServlet {
 		}
 	}
 
+	private ResourceConstraint addSortingAndPaging(HttpServletRequest request, SecurityContext securityContext, ResourceConstraint finalConstraint) throws PathException {
+
+		ResourceConstraint pagedSortedConstraint = finalConstraint;
+
+		// sorting
+		String sortKey = request.getParameter(REQUEST_PARAMETER_SORT_KEY);
+		if (sortKey != null) {
+
+			String sortOrder = request.getParameter(REQUEST_PARAMETER_SORT_ORDER);
+			if (sortOrder == null) {
+				sortOrder = DEFAULT_VALUE_SORT_ORDER;
+			}
+
+			// combine sort constraint
+			pagedSortedConstraint = pagedSortedConstraint.tryCombineWith(new SortConstraint(securityContext, sortKey, sortOrder));
+
+		}
+
+		// paging
+		String pageSizeParameter = request.getParameter(REQUEST_PARAMETER_PAGE_SIZE);
+
+		if (pageSizeParameter != null) {
+
+			String pageParameter = request.getParameter(REQUEST_PARAMETER_PAGE_NUMBER);
+			int pageSize         = parseInt(pageSizeParameter, DEFAULT_VALUE_PAGE_SIZE);
+			int page             = parseInt(pageParameter, 1);
+
+			if (pageSize <= 0) {
+				throw new IllegalPathException();
+			}
+
+			pagedSortedConstraint = pagedSortedConstraint.tryCombineWith(new PagingConstraint(securityContext, page, pageSize));
+
+		}
+
+		return pagedSortedConstraint;
+	}
+
 	/**
 	 * Tries to parse the given String to an int value, returning
 	 * defaultValue on error.
@@ -907,21 +937,48 @@ public class JsonRestServlet extends HttpServlet {
 	}
 
 	private String jsonError(final int code, final String message) {
-		return "{\n  \"error\" : {\n    \"code\" : \"" + code + "\",\n    \"message\" : \"" + message + "\"\n  }\n}";
+
+		StringBuilder buf = new StringBuilder(100);
+
+		buf.append("{\n");
+		buf.append("    \"error\" : {\n");
+		buf.append("        \"code\" : ").append(code);
+
+		if(message != null) {
+			buf.append(",\n        \"message\" : \"").append(message).append("\"\n");
+		} else {
+			buf.append("\n");
+		}
+
+		buf.append("    }\n");
+		buf.append("}\n");
+
+		return buf.toString();
 	}
 
 	private String jsonMsg(final String message) {
-		return "{\n  \"message\" : \"" + message + "\"\n}";
+
+		StringBuilder buf = new StringBuilder(100);
+
+		buf.append("{\n");
+
+		if(message != null) {
+			buf.append("    \"message\" : \"").append(message).append("\"\n");
+		} else {
+			buf.append("    \"message\" : \"\"\n");
+		}
+
+		buf.append("}\n");
+
+		return buf.toString();
 	}
 
-	//~--- get methods ----------------------------------------------------
-
-	// </editor-fold>
 	private SecurityContext getSecurityContext(HttpServletRequest request) {
 
 		// return SecurityContext.getSuperUserInstance();
-		return SecurityContext.getInstance(this.getServletConfig(), request, AccessMode.Backend);
+		return SecurityContext.getInstance(this.getServletConfig(), request, AccessMode.Frontend);
 	}
+	// </editor-fold>
 
 	//~--- inner classes --------------------------------------------------
 

@@ -69,7 +69,7 @@ public class TypeAndPropertyUniquenessValidator extends PropertyValidator<String
 			//attributes.add(new TextualSearchAttribute(AbstractNode.Key.type.name(), type, SearchOperator.AND));
 			attributes.add(Search.andExactType(type));
 			//attributes.add(new TextualSearchAttribute(key, stringValue, SearchOperator.AND));
-			attributes.add(Search.andExactPropertyValue(key, stringValue));
+			attributes.add(Search.andExactProperty(key, stringValue));
 
 			/*
 			Semaphore semaphore = null;

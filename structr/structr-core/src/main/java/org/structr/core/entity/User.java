@@ -21,7 +21,6 @@
 
 package org.structr.core.entity;
 
-
 import org.neo4j.graphdb.Direction;
 
 import org.structr.common.PropertyKey;
@@ -31,11 +30,13 @@ import org.structr.core.Command;
 import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.converter.PasswordConverter;
+import org.structr.core.entity.DirectedRelationship.Cardinality;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.DeleteRelationshipCommand;
 import org.structr.core.node.FindNodeCommand;
 import org.structr.core.node.NodeAttribute;
+import org.structr.core.node.NodeService.NodeIndex;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 
@@ -48,7 +49,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.entity.DirectedRelationship.Cardinality;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -65,24 +65,21 @@ public class User extends Person {
 
 	static {
 
-		EntityContext.registerPropertyConverter(User.class,
-			Key.password.name(),
-			PasswordConverter.class);
-		EntityContext.registerPropertySet(User.class,
-						  PropertyView.All,
-						  Key.values());
-		EntityContext.registerPropertySet(User.class,
-						  PropertyView.Public,
-						  Key.realName);
+		EntityContext.registerPropertyConverter(User.class, Key.password.name(), PasswordConverter.class);
+		EntityContext.registerPropertySet(User.class, PropertyView.All, Key.values());
+		EntityContext.registerPropertySet(User.class, PropertyView.Public, Key.realName);
+		EntityContext.registerRelation(User.class, Key.groups, Group.class, RelType.HAS_CHILD, Direction.INCOMING, Cardinality.ManyToMany);
+		EntityContext.registerSearchablePropertySet(User.class, NodeIndex.user.name(), UserIndexKey.values());
 
-		EntityContext.registerRelation(User.class,	Group.class,	RelType.HAS_CHILD,	Direction.INCOMING, Cardinality.ManyToMany);
 	}
 
 	//~--- constant enums -------------------------------------------------
 
 	public enum Key implements PropertyKey {
-		realName, password, blocked, sessionId, confirmationKey, backendUser, frontendUser
+		realName, password, blocked, sessionId, confirmationKey, backendUser, frontendUser, groups
 	}
+
+	public enum UserIndexKey implements PropertyKey{ name, email; }
 
 	//~--- methods --------------------------------------------------------
 
@@ -102,21 +99,20 @@ public class User extends Person {
 
 		if (categoryName == null) {
 
-			logger.log(Level.SEVERE,
-				   "Empty category name!");
+			logger.log(Level.SEVERE, "Empty category name!");
 
 			return;
+
 		}
 
-		final AbstractNode object = (AbstractNode) Services.command(securityContext,
-			FindNodeCommand.class).execute(objectId);
+		final AbstractNode object = (AbstractNode) Services.command(securityContext, FindNodeCommand.class).execute(objectId);
 
 		if (object == null) {
 
-			logger.log(Level.SEVERE,
-				   "Object not found!");
+			logger.log(Level.SEVERE, "Object not found!");
 
 			return;
+
 		}
 
 		Category cat                = null;
@@ -125,16 +121,19 @@ public class User extends Person {
 		for (AbstractNode child : children) {
 
 			if ((child instanceof Category) && categoryName.equals(child.getName())) {
+
 				cat = (Category) child;
+
 			}
+
 		}
 
 		if (cat == null) {
 
-			logger.log(Level.SEVERE,
-				   "Category not found!");
+			logger.log(Level.SEVERE, "Category not found!");
 
 			return;
+
 		}
 
 		StructrRelationship relationshipToRemove        = null;
@@ -145,28 +144,30 @@ public class User extends Person {
 			AbstractNode endNode = rel.getEndNode();
 
 			if (endNode.equals(object)) {
+
 				relationshipToRemove = rel;
+
 			}
+
 		}
 
 		if (relationshipToRemove != null) {
 
 			final StructrRelationship relToDel = relationshipToRemove;
 
-			Services.command(securityContext,
-					 TransactionCommand.class).execute(new StructrTransaction() {
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
 				@Override
 				public Object execute() {
 
 					// Delete relationship
-					Services.command(securityContext,
-							 DeleteRelationshipCommand.class).execute(relToDel);
+					Services.command(securityContext, DeleteRelationshipCommand.class).execute(relToDel);
 
 					return null;
 				}
 
 			});
+
 		}
 	}
 
@@ -184,21 +185,20 @@ public class User extends Person {
 
 		if (categoryName == null) {
 
-			logger.log(Level.SEVERE,
-				   "Empty category name!");
+			logger.log(Level.SEVERE, "Empty category name!");
 
 			return null;
+
 		}
 
-		final AbstractNode object = (AbstractNode) Services.command(securityContext,
-			FindNodeCommand.class).execute(objectId);
+		final AbstractNode object = (AbstractNode) Services.command(securityContext, FindNodeCommand.class).execute(objectId);
 
 		if (object == null) {
 
-			logger.log(Level.SEVERE,
-				   "Object not found!");
+			logger.log(Level.SEVERE, "Object not found!");
 
 			return null;
+
 		}
 
 		Category cat                = null;
@@ -207,16 +207,17 @@ public class User extends Person {
 		for (AbstractNode child : children) {
 
 			if ((child instanceof Category) && categoryName.equals(child.getName())) {
+
 				cat = (Category) child;
+
 			}
+
 		}
 
 		final Category category = cat;
-		final Command createRel = Services.command(securityContext,
-			CreateRelationshipCommand.class);
+		final Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
 
-		Services.command(securityContext,
-				 TransactionCommand.class).execute(new StructrTransaction() {
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
 			Category cat = null;
 			@Override
@@ -225,27 +226,21 @@ public class User extends Person {
 				if (category == null) {
 
 					// Category with given name not found, create one!
-					cat = (Category) Services.command(
-						securityContext, CreateNodeCommand.class).execute(
-						user, new NodeAttribute(AbstractNode.Key.name.name(),
-									categoryName), new NodeAttribute(
-									AbstractNode.Key.type.name(),
-									Category.class.getSimpleName()), true);
+					cat = (Category) Services.command(securityContext, CreateNodeCommand.class).execute(user,
+									  new NodeAttribute(AbstractNode.Key.name.name(), categoryName),
+									  new NodeAttribute(AbstractNode.Key.type.name(), Category.class.getSimpleName()),
+									  true);
 
 					// Link category to user
-					createRel.execute(user,
-							  cat,
-							  RelType.HAS_CHILD,
-							  true);
+					createRel.execute(user, cat, RelType.HAS_CHILD, true);
 				} else {
+
 					cat = category;
+
 				}
 
 				// Create link between category and object
-				createRel.execute(cat,
-						  object,
-						  RelType.LINK,
-						  true);
+				createRel.execute(cat, object, RelType.LINK, true);
 
 				return null;
 			}
@@ -269,14 +264,16 @@ public class User extends Person {
 	 */
 	public AbstractNode getRootNode() {
 
-		List<StructrRelationship> outRels = getRelationships(RelType.ROOT_NODE,
-			Direction.OUTGOING);
+		List<StructrRelationship> outRels = getRelationships(RelType.ROOT_NODE, Direction.OUTGOING);
 
 		if (outRels != null) {
 
 			for (StructrRelationship r : outRels) {
+
 				return r.getEndNode();
+
 			}
+
 		}
 
 		return null;
@@ -290,7 +287,9 @@ public class User extends Person {
 		AbstractNode parentNode = getParentNode();
 
 		if ((parentNode != null) && (parentNode instanceof Group)) {
+
 			return (Group) parentNode;
+
 		}
 
 		return null;
@@ -307,7 +306,9 @@ public class User extends Person {
 			return (String) dbValue;
 
 		} else {
+
 			return null;
+
 		}
 	}
 
@@ -315,9 +316,13 @@ public class User extends Person {
 	public Object getPropertyForIndexing(final String key) {
 
 		if (Key.password.name().equals(key)) {
+
 			return "";
+
 		} else {
+
 			return getProperty(key);
+
 		}
 	}
 
@@ -354,25 +359,27 @@ public class User extends Person {
 	 * @param categoryName
 	 * @return
 	 */
-	public List<AbstractNode> getSortedObjectsOfCategory(final String categoryName, final String sortBy,
-		final String sortDirection) {
+	public List<AbstractNode> getSortedObjectsOfCategory(final String categoryName, final String sortBy, final String sortDirection) {
 
 		List<AbstractNode> objects = getObjectsOfCategory(categoryName);
 
 		if (sortBy != null) {
 
-			Collections.sort(objects,
-					 new Comparator<AbstractNode>() {
+			Collections.sort(objects, new Comparator<AbstractNode>() {
 
 				@Override
 				public int compare(AbstractNode nodeOne, AbstractNode nodeTwo) {
 
 					if (nodeOne instanceof Link) {
+
 						nodeOne = ((Link) nodeOne).getStructrNode();
+
 					}
 
 					if (nodeTwo instanceof Link) {
+
 						nodeTwo = ((Link) nodeTwo).getStructrNode();
+
 					}
 
 					Method getterOne = null;
@@ -380,10 +387,7 @@ public class User extends Person {
 					try {
 						getterOne = nodeOne.getClass().getMethod(sortBy);
 					} catch (Exception ex) {
-
-						logger.log(Level.FINE,
-							   "Cannot invoke method {0}",
-							   sortBy);
+						logger.log(Level.FINE, "Cannot invoke method {0}", sortBy);
 					}
 
 					Method getterTwo = null;
@@ -391,10 +395,7 @@ public class User extends Person {
 					try {
 						getterTwo = nodeOne.getClass().getMethod(sortBy);
 					} catch (Exception ex) {
-
-						logger.log(Level.FINE,
-							   "Cannot invoke method {0}",
-							   sortBy);
+						logger.log(Level.FINE, "Cannot invoke method {0}", sortBy);
 					}
 
 					int result = 0;
@@ -406,10 +407,7 @@ public class User extends Person {
 						try {
 							valueOne = getterOne.invoke(nodeOne);
 						} catch (Exception ex) {
-
-							logger.log(Level.FINE,
-								   "Cannot invoke method {0} on {1}",
-								   new Object[] { getterOne, nodeOne });
+							logger.log(Level.FINE, "Cannot invoke method {0} on {1}", new Object[] { getterOne, nodeOne });
 						}
 
 						Object valueTwo = null;
@@ -417,50 +415,46 @@ public class User extends Person {
 						try {
 							valueTwo = getterTwo.invoke(nodeTwo);
 						} catch (Exception ex) {
-
-							logger.log(Level.FINE,
-								   "Cannot invoke method {0} on {1}",
-								   new Object[] { getterTwo, nodeTwo });
+							logger.log(Level.FINE, "Cannot invoke method {0} on {1}", new Object[] { getterTwo, nodeTwo });
 						}
 
 						if ((valueOne != null) && (valueTwo != null)) {
 
-							if ((valueOne instanceof Comparable)
-								&& (valueTwo instanceof Comparable)) {
+							if ((valueOne instanceof Comparable) && (valueTwo instanceof Comparable)) {
 
-								if ((sortDirection != null)
-									&& sortDirection.equals("asc")) {
+								if ((sortDirection != null) && sortDirection.equals("asc")) {
 
-									result = ((Comparable) valueOne).compareTo(
-										(Comparable) valueTwo);
+									result = ((Comparable) valueOne).compareTo((Comparable) valueTwo);
 
 								} else {
 
-									result = ((Comparable) valueTwo).compareTo(
-										(Comparable) valueOne);
+									result = ((Comparable) valueTwo).compareTo((Comparable) valueOne);
+
 								}
 
 							} else {
 
-								if ((sortDirection != null)
-									&& sortDirection.equals("asc")) {
+								if ((sortDirection != null) && sortDirection.equals("asc")) {
 
-									result = valueOne.toString().compareTo(
-										valueTwo.toString());
+									result = valueOne.toString().compareTo(valueTwo.toString());
 
 								} else {
 
-									result = valueTwo.toString().compareTo(
-										valueOne.toString());
+									result = valueTwo.toString().compareTo(valueOne.toString());
+
 								}
+
 							}
+
 						}
+
 					}
 
 					return result;
 				}
 
 			});
+
 		}
 
 		return objects;
@@ -476,10 +470,10 @@ public class User extends Person {
 
 		if (categoryName == null) {
 
-			logger.log(Level.SEVERE,
-				   "Empty category name!");
+			logger.log(Level.SEVERE, "Empty category name!");
 
 			return null;
+
 		}
 
 		List<AbstractNode> result   = Collections.emptyList();
@@ -490,12 +484,17 @@ public class User extends Person {
 		for (AbstractNode child : children) {
 
 			if ((child instanceof Category) && categoryName.equals(child.getName())) {
+
 				cat = (Category) child;
+
 			}
+
 		}
 
 		if (cat != null) {
+
 			result = cat.getSortedLinkedNodes();
+
 		}
 
 		return result;
@@ -516,38 +515,26 @@ public class User extends Person {
 	//~--- set methods ----------------------------------------------------
 
 	public void setPassword(final String passwordValue) {
-
-		setProperty(Key.password,
-			    passwordValue);
+		setProperty(Key.password, passwordValue);
 	}
 
 	public void setRealName(final String realName) {
-
-		setProperty(Key.realName,
-			    realName);
+		setProperty(Key.realName, realName);
 	}
 
 	public void setBlocked(final Boolean blocked) {
-
-		setProperty(Key.blocked,
-			    blocked);
+		setProperty(Key.blocked, blocked);
 	}
 
 	public void setConfirmationKey(final String value) {
-
-		setProperty(Key.confirmationKey,
-			    value);
+		setProperty(Key.confirmationKey, value);
 	}
 
 	public void setFrontendUser(final boolean isFrontendUser) {
-
-		setProperty(Key.frontendUser,
-			    isFrontendUser);
+		setProperty(Key.frontendUser, isFrontendUser);
 	}
 
 	public void setBackendUser(final boolean isBackendUser) {
-
-		setProperty(Key.backendUser,
-			    isBackendUser);
+		setProperty(Key.backendUser, isBackendUser);
 	}
 }

@@ -49,7 +49,7 @@
 	<context-param>
 		<description>structr config file path</description>
 		<param-name>configfile.path</param-name>
-		<param-value>/opt/structr/structr.conf</param-value>
+		<param-value>${configfile.path}</param-value>
 	</context-param>
 
 	<session-config>

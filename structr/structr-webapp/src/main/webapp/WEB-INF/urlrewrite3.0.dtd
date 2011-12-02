@@ -1,0 +1,88 @@
+<!--
+ UrlRewriteFilter DTD
+ http://tuckey.org/urlrewrite/
+-->
+
+<!ELEMENT urlrewrite ((rule|class-rule)*, outbound-rule*, catch*)>
+<!ATTLIST urlrewrite
+use-query-string (true|false) "false"
+use-context  (true|false) "false"
+decode-using CDATA  #IMPLIED
+default-match-type (regex|wildcard) #IMPLIED
+>
+
+<!ELEMENT rule (name?, note?, condition*, from, set*, run*, to?)>
+<!ATTLIST rule
+enabled  (true|false) "true"
+match-type  (regex|wildcard) #IMPLIED
+>
+
+<!ELEMENT class-rule EMPTY>
+<!ATTLIST class-rule
+class  CDATA #IMPLIED
+method CDATA "matches"
+last (true|false) "true"
+>
+
+<!ELEMENT outbound-rule (name?, note?, condition*, from, set*, run*, to?)>
+<!ATTLIST outbound-rule
+enabled  (true|false) "true"
+encodefirst  (true|false) "false"
+match-type  (regex|wildcard) #IMPLIED
+>
+
+<!ELEMENT name (#PCDATA)>
+<!ELEMENT note (#PCDATA)>
+
+<!ELEMENT condition (#PCDATA)>
+<!ATTLIST condition
+type (time|year|month|dayofmonth|dayofweek|ampm|hourofday|minute|second|millisecond|attribute|auth-type|character-encoding|content-length|content-type|context-path|cookie|header|local-port|method|parameter|path-info|path-translated|protocol|query-string|remote-addr|remote-host|remote-user|requested-session-id|request-uri|request-url|session-attribute|session-isnew|port|server-name|scheme|user-in-role|exception) "header"
+name CDATA  #IMPLIED
+next (and|or)  "and"
+casesensitive (true|false) "false"
+operator (equal|notequal|greater|less|greaterorequal|lessorequal|instanceof) "equal"
+>
+
+<!ELEMENT from (#PCDATA)>
+<!ATTLIST from
+casesensitive (true|false) "false"
+>
+
+<!ELEMENT set (#PCDATA)>
+<!ATTLIST set
+type (request|session|response-header|cookie|content-type|charset|locale|status) "request"
+name CDATA  #IMPLIED
+>
+
+<!ELEMENT to (#PCDATA)>
+<!ATTLIST to
+type (redirect|temporary-redirect|permanent-redirect|pre-include|post-include|forward|passthrough) "forward"
+last (true|false) "true"
+encode (true|false) #IMPLIED
+>
+
+<!--
+eg,
+<run class="org.tuckey.web.filters.urlrewrite.TestTargetOther" method="runMeFool" />
+<run class="org.tuckey.web.filters.urlrewrite.TestTargetOther" method="run">
+ <init-param>
+ <param-name>biteMe</param-name>
+ <param-value>10</param-value>
+ </init-param>
+</run>
+-->
+<!ELEMENT run (init-param*)>
+<!ATTLIST run
+class  CDATA  #IMPLIED
+method  CDATA  #IMPLIED
+neweachtime (true|false) "false"
+>
+
+<!ELEMENT init-param (param-name, param-value)>
+<!ELEMENT param-name (#PCDATA)>
+<!ELEMENT param-value (#PCDATA)>
+
+<!ELEMENT catch (run?)>
+<!ATTLIST catch
+class CDATA #IMPLIED
+>

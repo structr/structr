@@ -29,10 +29,14 @@ import org.structr.common.PropertyKey;
 public class PropertyNotion extends Notion {
 
 	public PropertyNotion(PropertyKey propertyKey) {
+		this(propertyKey, false);
+	}
+	
+	public PropertyNotion(PropertyKey propertyKey, boolean createIfNotExisting) {
 
 		this(
 			new PropertySerializationStrategy(propertyKey),
-			new TypeAndValueDeserializationStrategy(propertyKey)
+			new TypeAndValueDeserializationStrategy(propertyKey, createIfNotExisting)
 		);
 	}
 

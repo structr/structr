@@ -24,6 +24,7 @@ import java.util.Map;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.VetoableGraphObjectListener;
 import org.structr.rest.exception.IllegalPathException;
+import org.structr.rest.exception.PathException;
 
 /**
  * A resource constraint that implements the generic ability to
@@ -77,5 +78,16 @@ public abstract class WrappingConstraint extends ResourceConstraint {
 	@Override
 	public boolean isCollectionResource() {
 		return wrappedConstraint.isCollectionResource();
+	}
+
+	@Override
+	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws PathException {
+
+		if(next instanceof WrappingConstraint) {
+			((WrappingConstraint)next).wrapConstraint(this);
+			return next;
+		}
+
+		return null;
 	}
 }

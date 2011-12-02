@@ -38,6 +38,6 @@ public abstract class FilterableConstraint extends WrappingConstraint {
 			return next;
 		}
 
-		return null;
+		return super.tryCombineWith(next);
 	}
 }
