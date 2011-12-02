@@ -47,7 +47,7 @@ public class Resource extends AbstractNode {
 		EntityContext.registerPropertySet(Resource.class,	PropertyView.All,		Key.values());
 		EntityContext.registerPropertySet(Resource.class,	PropertyView.Public,		Key.values());
 
-		EntityContext.registerRelation(Resource.class,	Element.class,	RelType.CONTAINS,	Direction.OUTGOING, Cardinality.ManyToMany);
+		EntityContext.registerRelation(Resource.class,	Key.elements,	Element.class,	RelType.CONTAINS,	Direction.OUTGOING, Cardinality.ManyToMany);
 	}
 
 	//~--- get methods ----------------------------------------------------

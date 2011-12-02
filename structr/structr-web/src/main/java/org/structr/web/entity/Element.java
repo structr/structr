@@ -39,7 +39,7 @@ import org.structr.web.common.RelType;
 public class Element extends AbstractNode {
 
 	public enum Key implements PropertyKey {
-		name, content, element
+		name, contents, elements
 	}
 
 	static {
@@ -47,9 +47,9 @@ public class Element extends AbstractNode {
 		EntityContext.registerPropertySet(Element.class,	PropertyView.All,	Key.values());
 		EntityContext.registerPropertySet(Element.class,	PropertyView.Public,	Key.values());
 
-		EntityContext.registerRelation(Element.class,	Resource.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
-		EntityContext.registerRelation(Element.class,	Element.class,	RelType.CONTAINS,	Direction.OUTGOING, Cardinality.ManyToMany);
-		EntityContext.registerRelation(Element.class,	Content.class,	RelType.CONTAINS,	Direction.OUTGOING, Cardinality.ManyToMany);
+		EntityContext.registerRelation(Element.class,	Key.elements,	Resource.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
+		EntityContext.registerRelation(Element.class,	Key.contents,	Element.class,	RelType.CONTAINS,	Direction.OUTGOING, Cardinality.ManyToMany);
+		EntityContext.registerRelation(Element.class,	Key.elements,	Content.class,	RelType.CONTAINS,	Direction.OUTGOING, Cardinality.ManyToMany);
 	}
 
 	//~--- get methods ----------------------------------------------------

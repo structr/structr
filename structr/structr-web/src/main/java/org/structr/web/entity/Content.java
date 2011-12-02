@@ -38,14 +38,14 @@ import org.structr.web.common.RelType;
  */
 public class Content extends AbstractNode {
 
-	public enum Key implements PropertyKey{ name, content, contentType, size; }
+	public enum Key implements PropertyKey{ name, elements, content, contentType, size; }
 
 	static {
 
 		EntityContext.registerPropertySet(Content.class,	PropertyView.All,	Key.values());
 		EntityContext.registerPropertySet(Content.class,	PropertyView.Public,	Key.values());
 
-		EntityContext.registerRelation(Content.class,	Element.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
+		EntityContext.registerRelation(Content.class, Key.elements, Element.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
 	}
 
 
