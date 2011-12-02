@@ -107,7 +107,7 @@ Copyright (C) 2011 Axel Morgner, structr &lt;structr@structr.org&gt;
     </licenses>
 
     <scm>
-        <url>https://github.com/structr/structr/tree/master/structr/structr-module-app</url>
+        <url>https://github.com/structr/structr/tree/master/structr/structr-web</url>
     </scm>
 
 </project>

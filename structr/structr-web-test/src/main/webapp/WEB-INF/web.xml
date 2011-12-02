@@ -29,7 +29,7 @@
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>StructrRestServlet</servlet-name>
-		<url-pattern>/api/*</url-pattern>
+		<url-pattern>/json/*</url-pattern>
 	</servlet-mapping>
 
 	<servlet>
@@ -39,7 +39,7 @@
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>HtmlServlet</servlet-name>
-		<url-pattern>/*</url-pattern>
+		<url-pattern>/html/*</url-pattern>
 	</servlet-mapping>
 
     <!--  custom context parameter start -->

@@ -7,6 +7,14 @@
     <version>0.1-SNAPSHOT</version>
     <name>structr-web-test</name>
     <url>http://maven.apache.org</url>
+		
+    <properties>
+        <netbeans.hint.license>structr-gpl30</netbeans.hint.license>
+        <structr.version>0.4.4-SNAPSHOT</structr.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <netbeans.hint.deploy.server>Tomcat</netbeans.hint.deploy.server>
+    </properties>
+		
     <repositories>
         <repository>
             <id>java.net2</id>
@@ -28,11 +36,11 @@
             <version>3.8.2</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
+<!--        <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>structr-core</artifactId>
-            <version>0.4.3-SNAPSHOT</version>
-        </dependency>
+            <version>${structr.version}</version>
+        </dependency>-->
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>structr-web</artifactId>
@@ -74,7 +82,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-compiler-plugin</artifactId>
-                        <version>2.0.2</version>
+                        <version>2.3.2</version>
                         <configuration>
                             <!-- javaee6 contains upgrades of APIs contained within the JDK itself.
                                  As such these need to be placed on the bootclasspath, rather than classpath of the
@@ -97,9 +105,35 @@
             </build>
         </profile>
     </profiles>
-    <properties>
-        <netbeans.hint.deploy.server>Tomcat</netbeans.hint.deploy.server>
-    </properties>
+
+    <licenses>
+        <license>
+            <name>GNU General Public License, Version 3</name>
+            <url>http://www.gnu.org/licenses/gpl-3.0-standalone.html</url>
+            <comments>
+Copyright (C) 2011 Axel Morgner, structr &lt;structr@structr.org&gt;
+
+ This file is part of structr &lt;http://structr.org&gt;.
+
+ structr is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ structr is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with structr.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+            </comments>
+        </license>
+    </licenses>
+
+    <scm>
+        <url>https://github.com/structr/structr/tree/master/structr/structr-web-test</url>
+    </scm>
 </project>
 
 
