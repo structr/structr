@@ -99,7 +99,7 @@ public class HtmlServlet extends HttpServlet {
 
 		// create prototype traversal description
 		desc = Traversal.description();
-		desc = desc.depthFirst();
+		desc = desc.breadthFirst();
 		desc = desc.uniqueness(Uniqueness.NODE_GLOBAL);
 	}
 
@@ -221,16 +221,13 @@ public class HtmlServlet extends HttpServlet {
 
 				logger.log(Level.INFO, "Created page1 with id {0}, page2 with id {1}", new Object[] { page1.getId(), page2.getId() });
 
-				AbstractNode doc       = createNode("Element", "doc");
-				AbstractNode body      = createNode("Element", "body");
-				AbstractNode article1  = createNode("Element", "article1");
-				AbstractNode article2  = createNode("Element", "article2");
-				AbstractNode header    = createNode("Content", "header", new NodeAttribute("content", "<html>"));
-				AbstractNode startBody = createNode("Content", "start_body", new NodeAttribute("content", "<body>"));
-				AbstractNode endBody   = createNode("Content", "end_body", new NodeAttribute("content", "</body>"));
-				AbstractNode footer    = createNode("Content", "footer", new NodeAttribute("content", "</html>"));
-				AbstractNode foo       = createNode("Content", "content1", new NodeAttribute("content", "<h1>Dies ist Seite 1</h1>"));
-				AbstractNode bar       = createNode("Content", "content2", new NodeAttribute("content", "<h1>Dies ist Seite 2</h1>"));
+				AbstractNode doc       = createNode("Element", "doc", new NodeAttribute("tag", "html"));
+				AbstractNode body      = createNode("Element", "body", new NodeAttribute("tag", "body"));
+				AbstractNode article1  = createNode("Element", "article1", new NodeAttribute("tag", "div"));
+				AbstractNode article2  = createNode("Element", "article2", new NodeAttribute("tag", "div"));
+				AbstractNode header    = createNode("Content", "header", new NodeAttribute("tag", "head"));
+				AbstractNode foo       = createNode("Content", "content1", new NodeAttribute("content", "Dies ist Seite 1"), new NodeAttribute("tag", "h1"));
+				AbstractNode bar       = createNode("Content", "content2", new NodeAttribute("content", "Dies ist Seite 2"), new NodeAttribute("tag", "h1"));
 				String idOfPage1       = page1.getIdString();
 				String idOfPage2       = page2.getIdString();
 
@@ -238,20 +235,14 @@ public class HtmlServlet extends HttpServlet {
 				linkNodes(page1, doc, idOfPage1, 0);
 				linkNodes(doc, header, idOfPage1, 0);
 				linkNodes(doc, body, idOfPage1, 1);
-				linkNodes(doc, footer, idOfPage1, 2);
-				linkNodes(body, startBody, idOfPage1, 0);
 				linkNodes(body, article1, idOfPage1, 1);
-				linkNodes(body, endBody, idOfPage1, 2);
 				linkNodes(article1, foo, idOfPage1, 0);
 
 				// page 2
 				linkNodes(page2, doc, idOfPage2, 0);
 				linkNodes(doc, header, idOfPage2, 0);
 				linkNodes(doc, body, idOfPage2, 1);
-				linkNodes(doc, footer, idOfPage2, 2);
-				linkNodes(body, startBody, idOfPage2, 0);
 				linkNodes(body, article2, idOfPage2, 1);
-				linkNodes(body, endBody, idOfPage2, 2);
 				linkNodes(article2, bar, idOfPage2, 0);
 
 				return null;
@@ -380,8 +371,9 @@ public class HtmlServlet extends HttpServlet {
 
 	private String getContent(Resource resource) {
 
-		final StringBuilder builder    = new StringBuilder();
 		TraversalDescription localDesc = desc.expand(new ResourceExpander(resource.getIdString()));
+		final StringBuilder headBuffer = new StringBuilder();
+		final StringBuilder tailBuffer = new StringBuilder();
 
 		localDesc = localDesc.evaluator(new Evaluator() {
 
@@ -398,7 +390,7 @@ public class HtmlServlet extends HttpServlet {
 
 						if (edit) {
 
-							builder.append("<div class=\"structr-editable-area data-structr-type-").append(type).append(
+							headBuffer.append("<div class=\"structr-editable-area data-structr-type-").append(type).append(
 							    "\" id=\"structr-id-").append(node.getId()).append("\">");
 
 						}
@@ -413,8 +405,18 @@ public class HtmlServlet extends HttpServlet {
 
 								if (content != null) {
 
-									// Content node reached, collect content and stop traversal here
-									builder.append(content);
+									// content nodes can have tags too!
+									if(node.hasProperty("tag")) {
+										Object tag = node.getProperty("tag");
+										headBuffer.append("<").append(tag).append(">");
+										headBuffer.append(content);
+										headBuffer.append("</").append(tag).append(">");
+
+									} else {
+
+										// no tag found
+										headBuffer.append(content);
+									}
 								}
 
 							}
@@ -423,13 +425,27 @@ public class HtmlServlet extends HttpServlet {
 
 						} else {
 
+							if(node.hasProperty("tag")) {
+								
+								// use Object here to allow lazy evaluation later
+								// (could be an object that creates its content when toString() is called)
+								Object tag = node.getProperty("tag");
+
+								// append start tag (and attributes) to head buffer
+								headBuffer.append("<").append(tag).append(">");
+								// TODO: add other attributes here (id, style, class, etc.)!
+								
+								// append end tag to tail buffer in reverse order
+								tailBuffer.insert(0, ">").insert(0, tag).insert(0, "</");
+							}
+
 							// continue traversal
 							evaluation = Evaluation.EXCLUDE_AND_CONTINUE;
 						}
 
 						if (edit) {
 
-							builder.append("</div><!-- .structr-editable-area structr-type-").append(type).append("\" -->");
+							headBuffer.append("</div><!-- .structr-editable-area structr-type-").append(type).append("\" -->");
 
 						}
 
@@ -457,7 +473,9 @@ public class HtmlServlet extends HttpServlet {
 
 		}
 
-		return builder.toString();
+		headBuffer.append(tailBuffer);
+
+		return headBuffer.toString();
 	}
 
 	//~--- inner classes --------------------------------------------------
