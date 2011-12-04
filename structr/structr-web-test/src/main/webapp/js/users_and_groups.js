@@ -146,15 +146,16 @@ function removeUserFromGroup(userId, groupId) {
   });
 }
 
-function deleteUser(button, userId, groupId) {
+function deleteUser(button, user, groupId) {
+    console.log('deleteUser ' + user);
   var parent;
   if (!groupId) {
-    parent = $('.' + userId + '_').parent('.group');
+    parent = $('.' + user.id + '_').parent('.group');
   } else {
     parent = $('.' + groupId + '_');
   }
   
-  deleteNode(button, userId, function() {
+  deleteNode(button, user, function() {
     console.log($('.user', parent).length);
     if ($('.user', parent).length == 0) {
       enable($('.delete_icon', parent));
@@ -197,8 +198,8 @@ function appendUserElement(user, groupId) {
     div = $('.' + groupId + '_ .' + user.id + '_')
     div.append('<img title="Remove user ' + user.id + ' from group ' + groupId + '" '
              + 'alt="Remove user ' + user.id + ' from group ' + groupId + '" class="delete_icon button" src="icon/delete.png">');
-    $('.delete_icon', div).on('click', function() { removeUserFromGroup(user.id, groupId) });
-    $('b', div).on('click', function() { editUserProperties(this, user.id, groupId); });
+    $('.delete_icon', div).on('click', function() { removeUserFromGroup(user, groupId) });
+    $('b', div).on('click', function() { editUserProperties(this, user, groupId); });
   } else {
     users.append('<div class="nested user ' + user.id + '_">'
                    + '<img class="typeIcon" src="icon/user.png">'
@@ -209,14 +210,14 @@ function appendUserElement(user, groupId) {
     div = $('#users .' + user.id + '_');
     div.append('<img title="Delete user ' + user.id + '" '
              + 'alt="Delete user ' + user.id + '" class="delete_icon button" src="icon/user_delete.png">');
-    $('.delete_icon', div).on('click', function() { deleteUser(this, user.id) });
-    $('b', div).on('click', function() { editUserProperties(this, user.id, groupId); });
+    $('.delete_icon', div).on('click', function() { deleteUser(this, user) });
+    $('b', div).on('click', function() { editUserProperties(this, user, groupId); });
   }
 }
 
-function editUserProperties(button, userId, groupId) {
+function editUserProperties(button, user, groupId) {
   console.log(button);
   if (isDisabled(button)) return;
   disable(button);
-  showProperties(button, userId, 'all', $('.' + userId + '_'));
+  showProperties(button, user, 'all', $('.' + user.id + '_'));
 }

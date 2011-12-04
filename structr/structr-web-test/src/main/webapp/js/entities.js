@@ -94,7 +94,7 @@ function plural(type) {
     var plural = type + 's';
     if (type.substring(type.length-1, type.length) == 'y') {
         plural = type.substring(0, type.length-1) + 'ies';
-//        console.log(plural);
+    //        console.log(plural);
     }
     return plural;
 }

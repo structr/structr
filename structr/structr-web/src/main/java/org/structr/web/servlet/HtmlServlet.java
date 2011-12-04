@@ -71,6 +71,7 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.structr.core.node.search.Search;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -148,15 +149,16 @@ public class HtmlServlet extends HttpServlet {
 
 			logger.log(Level.INFO, "Path info {0}", path);
 
-			String fileName = path.substring(path.lastIndexOf("/") + 1);
+			String resourceName = path.substring(path.lastIndexOf("/") + 1);
 
-			if (fileName.length() > 0) {
+			if (resourceName.length() > 0) {
 
-				logger.log(Level.INFO, "File name {0}", fileName);
+				logger.log(Level.INFO, "File name {0}", resourceName);
 
 				List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
 
-				searchAttrs.add(new TextualSearchAttribute("name", fileName, SearchOperator.AND));
+				searchAttrs.add(Search.andExactName(resourceName));
+				searchAttrs.add(Search.andExactType(Resource.class.getSimpleName()));
 
 				List<AbstractNode> results = (List<AbstractNode>) Services.command(SecurityContext.getSuperUserInstance(),
 								     SearchNodeCommand.class).execute(null, false, false, searchAttrs);

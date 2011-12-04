@@ -1,6 +1,6 @@
 function hideProperties(button, entity, view, element) {
-//    console.log('hideProperties');
-//    console.log(element);
+    //    console.log('hideProperties');
+    //    console.log(element);
     element.children('.sep').remove();
     element.children('.props').remove();
     enable(button, function() {
@@ -33,14 +33,14 @@ function showProperties(button, entity, view, element) {
                 var input = $(v);
                 var oldVal = input.val();
 		
-		console.log(oldVal);
+                //console.log(oldVal);
           
                 input.on('focus', function() {
                     input.addClass('active');
                     input.parent().append('<img class="button icon cancel" src="icon/cross.png">');
                     input.parent().append('<img class="button icon save" src="icon/tick.png">');
             
-//                    console.log($('.save', input.parent()));
+                    //console.log($('.save', input.parent()));
                     $('.cancel', input.parent()).on('click', function() {
                         input.val(oldVal);
                         input.removeClass('active');
@@ -51,8 +51,8 @@ function showProperties(button, entity, view, element) {
                         var key = input.attr('name');
                         var value = input.val();
                         var data = '{ "' + key + '" : "' + value + '" }';
-//                        console.log('PUT url: ' + rootUrl + entity.id);
-//                        console.log(data);
+                        //console.log('PUT url: ' + rootUrl + entity.id);
+                        //console.log(data);
               
                         $.ajax({
                             type: 'PUT',
@@ -66,11 +66,11 @@ function showProperties(button, entity, view, element) {
                                     $(img).remove();
                                 });
                                 input.removeClass('active');
-//                                console.log(element);//.children('.' + key));
+                                //console.log(element);//.children('.' + key));
                                 element.children('.' + key).text(value);
                                 //var tick = $('<img class="icon/tick" src="tick.png">');
                                 //tick.insertAfter(input);
-//                                console.log('value saved');
+                                //console.log('value saved');
                                 //$('.tick', input.parent()).fadeOut('slow', function() { console.log('fade out complete');});
                                 //$('.tick', $(v).parent()).fadeOut();
                                 //$('.tick', $(v).parent()).remove();
@@ -82,7 +82,7 @@ function showProperties(button, entity, view, element) {
           
                 input.on('change', function() {
                     input.data('changed', true);
-//                    console.log('changed');
+                //console.log('changed');
                 });
                    
                 input.on('focusout', function() {
@@ -92,8 +92,8 @@ function showProperties(button, entity, view, element) {
                         var key = input.attr('name');
                         var value = input.val();
                         var data = '{ "' + key + '" : "' + value + '" }';
-//                        console.log('PUT url: ' + rootUrl + entity.id);
-//                        console.log(data);
+                        //                        console.log('PUT url: ' + rootUrl + entity.id);
+                        //                        console.log(data);
               
                         $.ajax({
                             type: 'PUT',
@@ -107,11 +107,11 @@ function showProperties(button, entity, view, element) {
                                     $(img).remove();
                                 });
                                 input.removeClass('active');
-//                                console.log(element);//.children('.' + key));
+                                //                                console.log(element);//.children('.' + key));
                                 element.children('.' + key).text(value);
                                 //var tick = $('<img class="icon/tick" src="tick.png">');
                                 //tick.insertAfter(input);
-//                                console.log('value saved');
+                                //                                console.log('value saved');
                                 //$('.tick', input.parent()).fadeOut('slow', function() { console.log('fade out complete');});
                                 //$('.tick', $(v).parent()).fadeOut();
                                 //$('.tick', $(v).parent()).remove();
@@ -123,7 +123,7 @@ function showProperties(button, entity, view, element) {
                     input.parent().children('.icon').each(function(i, img) {
                         $(img).remove();
                     });
-//                    console.log('onFocusout: value: ' + input.attr('value'));
+                //                    console.log('onFocusout: value: ' + input.attr('value'));
                 });
           
           
@@ -137,7 +137,7 @@ function showProperties(button, entity, view, element) {
 function formatValue(key, obj) {
 
     if (obj == null) {
-        return '';
+        return '<input name="' + key + '" type="text" value="">';
     } else if (obj.constructor === Object) {
 
         return '<input name="' + key + '" type="text" value="' + JSON.stringify(obj) + '">';
@@ -145,7 +145,7 @@ function formatValue(key, obj) {
     } else if (obj.constructor === Array) {
         var out = '';
         $(obj).each(function(i,v) {
-            console.log(v);
+            //console.log(v);
             out += JSON.stringify(v);
         });
 
@@ -156,7 +156,7 @@ function formatValue(key, obj) {
 
     }
     
-    //return '<input name="' + key + '" type="text" value="' + formatValue(data.result[key]) + '">';
+//return '<input name="' + key + '" type="text" value="' + formatValue(data.result[key]) + '">';
 }
 
 function formatKey(text) {
@@ -250,7 +250,7 @@ function disable(button, callback) {
         b.off('click');
         b.on('click', callback);
         b.data('disabled', false);
-        //enable(button, callback);
+    //enable(button, callback);
     }
 }
 
@@ -350,68 +350,7 @@ function refreshIframes() {
     });
 }
 
-function appendElement(parentId, elementId, nested) {
-    var type = nested.type.toLowerCase();
-    var id = nested.id;
-    var name = nested.name;
-    var selector = '.' + parentId + '_ ' + (elementId ? '.' + elementId + '_' : '');
-    var element = $(selector);
-    element.append('<div class="nested ' + type + ' ' + parentId + '_ ' + id + '_"'
-        + '>'
-        + type + ' <b>' + name + '</b> [' + id + '] (parent: ' + parentId + ')'
-        //+ '<b>' + name + '</b>'
-        + '</div>');
-    var appendedSelector = '.' + parentId + '_ .' + id + '_';
-    var div = $(appendedSelector);
-    div.append('<img title="Delete" alt="Delete" class="delete_icon button" src="icon/delete.png">');
-    $('.delete_icon', div).on('click', function() {
-        deleteNode(this, nested, appendedSelector)
-    });
-    if (type == 'content') {
-        div.append('<img title="Edit" alt="Edit" class="edit_icon button" src="icon/pencil.png">');
-        $('.edit_icon', div).on('click', function() {
-            editContent(this, parentId, id)
-        });
-    //div.append('<img title="Close" alt="Close" class="close_icon" src="icon/cross.png">');
-    //$('.close_icon', div).hide();
-    } else {
-        div.append('<img title="Add" alt="Add" class="add_icon button" src="icon/add.png">');
-        $('.add_icon', div).on('click', function() {
-            addNode(this, 'content', parentId, id)
-        });
-    }
-    //div.append('<img class="sort_icon" src="icon/arrow_up_down.png">');
-    div.sortable({
-        axis: 'y',
-        appendTo: '.' + parentId + '_',
-        delay: 100,
-        containment: 'parent',
-        cursor: 'crosshair',
-        //handle: '.sort_icon',
-        stop: function() {
-            $('div.nested', this).each(function(i,v) {
-                var nodeId = lastPart(v.id);
-                var url = rootUrl + nodeId + '/' + 'in';
-                //console.log(url);
-                $.ajax({
-                    url: url,
-                    dataType: 'json',
-                    contentType: 'application/json; charset=utf-8',
-                    async: false,
-                    headers: headers,
-                    success: function(data) {
-                        if (!data || data.length == 0 || !data.result) return;
-                        var rel = data.result;
-                        var pos = rel[parentId];
-                        var nodeUrl = rootUrl + nodeId;
-                        setPosition(parentId, nodeUrl, i)
-                    }
-                });
-                refreshIframes();
-            });
-        }
-    });
-}
+
 
 function lastPart(id, separator) {
     if (!separator) {
