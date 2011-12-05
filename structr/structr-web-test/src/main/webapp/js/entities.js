@@ -28,20 +28,20 @@ function showEntities(type) {
     });
 }
 
-function appendEntityElement(entity, parentElementId) {
-    var selector;
-    if (parentElementId) {
-        selector = '#' + parentElementId;
+function appendEntityElement(entity, parentElement) {
+    var element;
+    if (parentElement) {
+        element = parentElement;
     } else {
-        selector = '#' + plural(entity.type.toLowerCase());
+        element = $('#' + plural(entity.type.toLowerCase()));
     }
-    //console.log(selector);
-    $(selector).append('<div class="nested top ' + entity.type.toLowerCase() + ' ' + entity.id + '_">'
+//    console.log(element);
+    element.append('<div class="nested top ' + entity.type.toLowerCase() + ' ' + entity.id + '_">'
         + (entity.iconUrl ? '<img class="typeIcon" src="' + entity.iconUrl + '">' : '')
         + '<b class="name">' + entity.name + '</b> '
         + '[' + entity.id + ']'
         + '</div>');
-    div = $('.' + entity.id + '_', $(selector));
+    div = $('.' + entity.id + '_', element);
     div.append('<img title="Delete ' + entity.name + ' [' + entity.id + ']" '
         + 'alt="Delete ' + entity.name + ' [' + entity.id + ']" class="delete_icon button" src="icon/delete.png">');
     $('.delete_icon', div).on('click', function() {
@@ -49,11 +49,11 @@ function appendEntityElement(entity, parentElementId) {
     });
     div.append('<img title="Edit ' + entity.name + ' [' + entity.id + ']" alt="Edit ' + entity.name + ' [' + entity.id + ']" class="edit_icon button" src="icon/pencil.png">');
     $('.edit_icon', div).on('click', function() {
-        showProperties(this, entity, 'all', $('.' + entity.id + '_', $(selector)));
+        showProperties(this, entity, 'all', $('.' + entity.id + '_', element));
     });
 }
 
-function createEntity(entity, parentElementId) {
+function createEntity(entity, parentElement) {
     //  console.log('Creating entity ..');
     //  console.log(entity);
     var url = rootUrl + entity.type.toLowerCase();
@@ -73,7 +73,7 @@ function createEntity(entity, parentElementId) {
                 success: function(data) {
                     //          console.log('Entity added: ' + getUrl);
                     entity.id = lastPart(getUrl, '/');
-                    appendEntityElement(data.result, parentElementId);
+                    appendEntityElement(data.result, parentElement);
                     if (buttonClicked) enable(buttonClicked);
                 }
             });

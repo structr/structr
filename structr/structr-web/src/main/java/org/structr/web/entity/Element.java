@@ -39,7 +39,7 @@ import org.structr.web.common.RelType;
 public class Element extends AbstractNode {
 
 	public enum Key implements PropertyKey {
-		name, contents, elements
+		name, tag, contents, elements
 	}
 
 	static {

@@ -13,7 +13,7 @@ function showResources() {
 
                     appendEntityElement(resource);
 
-                    var id = resource.id;
+                    var resourceId = resource.id;
                     //          $('#resources').append('<div class="editor_box"><div class="nested top resource" id="resource_' + id + '">'
                     //                              + '<b>' + resource.name + '</b>'
                     //                              //+ ' [' + id + ']'
@@ -22,12 +22,12 @@ function showResources() {
                     //                              + resource.name + '" alt="Delete '
                     //                              + resource.name + '" src="icon/delete.png" onclick="deleteNode(' + id + ', \'#resource_' + id + '\')">'
                     //                              + '</div></div>');
-                    showElementsOfResource(id, null);
+                    showSubEntities(resourceId, null);
       
                     $('#previews').append('<a target="_blank" href="' + viewRootUrl + resource.name + '">' + viewRootUrl + resource.name + '</a><br><div class="preview_box"><iframe id="preview_'
-                        + id + '" src="' + viewRootUrl + resource.name + '?edit"></iframe></div><div style="clear: both"></div>');
+                        + resourceId + '" src="' + viewRootUrl + resource.name + '?edit"></iframe></div><div style="clear: both"></div>');
       
-                    $('#preview_' + id).load(function() {
+                    $('#preview_' + resourceId).load(function() {
                         //console.log(this);
                         var doc = $(this).contents();
                         var head = $(doc).find('head');
@@ -84,10 +84,10 @@ function updateContent(contentId, content) {
         contentType: 'application/json; charset=utf-8',
         data: data,
         success: function(data) {
-            //refreshIframes();
-            //keyEventBlocked = true;
-            //enable(button);
-            //console.log('success');
+        //refreshIframes();
+        //keyEventBlocked = true;
+        //enable(button);
+        //console.log('success');
         }
     });
 }
@@ -106,7 +106,7 @@ function addResource() {
         contentType: 'application/json; charset=utf-8',
         data: data,
         success: function(data) {
-            var nodeUrl = resp.getResponseHeader('Location');
+            //            var nodeUrl = resp.getResponseHeader('Location');
             //console.log(nodeUrl);
             //setPosition(groupId, nodeUrl, pos);
             refreshMain();
@@ -114,11 +114,11 @@ function addResource() {
     });
 }
 
-function showElementsOfResource(resourceId, id) {
-    var follow = followIds(resourceId, id);
+function showSubEntities(resourceId, entity) {
+    var follow = followIds(resourceId, entity);
     $(follow).each(function(i, nodeId) {
         if (nodeId) {
-            //console.log(rootUrl + nodeId);
+            //            console.log(rootUrl + nodeId);
             $.ajax({
                 url: rootUrl + nodeId,
                 dataType: 'json',
@@ -128,68 +128,66 @@ function showElementsOfResource(resourceId, id) {
                 success: function(data) {
                     if (!data || data.length == 0 || !data.result) return;
                     var result = data.result;
-                    console.log(result);
-                    appendElement(result, resourceId, id);
-                    showElementsOfResource(resourceId, result.id);
+                    //                    console.log(result);
+                    appendElement(result, entity, resourceId);
+                    showSubEntities(resourceId, result);
                 }
             });
         }
     });
 }
 
-function appendElement(entity, parentId, elementId) {
-
-
-//    appendEntityElement(entity, parentId);
-
+function appendElement(entity, parentEntity, resourceId) {
+//    console.log('appendElement: resourceId=' + resourceId);
+//    console.log(entity);
+//    console.log(parentEntity);
     var type = entity.type.toLowerCase();
     var id = entity.id;
-
-    var name = entity.name;
-    var selector = '.' + parentId + '_ ' + (elementId ? '.' + elementId + '_' : '');
-    var element = $(selector);
-    element.append('<div class="nested ' + type + ' ' + parentId + '_ ' + id + '_"'
-        + '>'
-        + type + ' <b>' + name + '</b> [' + id + '] (parent: ' + parentId + ')'
-        //+ '<b>' + name + '</b>'
-        + '</div>');
-    var appendedSelector = '.' + parentId + '_ .' + id + '_';
-    var div = $(appendedSelector);
-    div.append('<img title="Delete" alt="Delete" class="delete_icon button" src="icon/delete.png">');
-    $('.delete_icon', div).on('click', function() {
-        deleteNode(this, entity, appendedSelector)
-    });
-//
+    var resourceEntitySelector = $('.' + resourceId + '_');
+    var element = (parentEntity ? $('.' + parentEntity.id + '_', resourceEntitySelector) : resourceEntitySelector);
+    //    console.log(element);
+    appendEntityElement(entity, element);
+    //
+    //    //element.append('<div class="nested ' + type + ' ' + parentId + '_ ' + id + '_"'
+    //    element.append('<div class="nested ' + type + ' ' + id + '_"'
+    //        + '>'
+    //        + type + ' <b>' + name + '</b> [' + id + '] (parent: ' + resourceId + ')'
+    //        //+ '<b>' + name + '</b>'
+    //        + '</div>');
+    //    var appendedSelector = '.' + resourceId + '_ .' + id + '_';
+    //    var div = $(appendedSelector);
+    //    div.append('<img title="Delete" alt="Delete" class="delete_icon button" src="icon/delete.png">');
+    //    $('.delete_icon', div).on('click', function() {
+    //        deleteNode(this, entity, appendedSelector)
+    //    });
+    //
 
 
 
     if (type == 'content') {
-        div.append('<img title="Edit" alt="Edit" class="edit_icon button" src="icon/pencil.png">');
+        div.append('<img title="Edit Content" alt="Edit Content" class="edit_icon button" src="icon/pencil.png">');
         $('.edit_icon', div).on('click', function() {
-            editContent(this, parentId, id)
+            editContent(this, resourceId, id)
         });
-    //div.append('<img title="Close" alt="Close" class="close_icon" src="icon/cross.png">');
-    //$('.close_icon', div).hide();
     } else {
         div.append('<img title="Add" alt="Add" class="add_icon button" src="icon/add.png">');
         $('.add_icon', div).on('click', function() {
-            addNode(this, 'content', parentId, id)
+            addNode(this, 'content', entity, resourceId)
         });
     }
-    //div.append('<img class="sort_icon" src="icon/arrow_up_down.png">');
+//    //div.append('<img class="sort_icon" src="icon/arrow_up_down.png">');
     div.sortable({
         axis: 'y',
-        appendTo: '.' + parentId + '_',
+        appendTo: '.' + resourceId + '_',
         delay: 100,
         containment: 'parent',
         cursor: 'crosshair',
         //handle: '.sort_icon',
         stop: function() {
             $('div.nested', this).each(function(i,v) {
-                var nodeId = lastPart(v.id);
+                var nodeId = getIdFromClassString($(v).attr('class'));
                 if (!nodeId) return;
                 var url = rootUrl + nodeId + '/' + 'in';
-                //console.log(url);
                 $.ajax({
                     url: url,
                     dataType: 'json',
@@ -198,14 +196,53 @@ function appendElement(entity, parentId, elementId) {
                     headers: headers,
                     success: function(data) {
                         if (!data || data.length == 0 || !data.result) return;
-                        var rel = data.result;
+//                        var rel = data.result;
                         //var pos = rel[parentId];
                         var nodeUrl = rootUrl + nodeId;
-                        setPosition(parentId, nodeUrl, i)
+                        setPosition(resourceId, nodeUrl, i)
                     }
                 });
                 refreshIframes();
             });
+        }
+    });
+}
+
+
+function addNode(button, type, entity, resourceId) {
+    if (isDisabled(button)) return;
+    disable(button);
+    var pos = $('.' + resourceId + '_ .' + entity.id + '_ > div.nested').length;
+//    console.log('addNode(' + type + ', ' + entity.id + ', ' + entity.id + ', ' + pos + ')');
+    var url = rootUrl + type;
+    var resp = $.ajax({
+        url: url,
+        //async: false,
+        type: 'POST',
+        dataType: 'json',
+        contentType: 'application/json; charset=utf-8',
+        headers: headers,
+        data: '{ "type" : "' + type + '", "name" : "' + type + '_' + Math.floor(Math.random() * (9999 - 1)) + '", "elements" : "' + entity.id + '" }',
+        success: function(data) {
+            var getUrl = resp.getResponseHeader('Location');
+            $.ajax({
+                url: getUrl + '/all',
+                success: function(data) {
+                    var node = data.result;
+                    if (entity) {
+                        appendElement(node, entity, resourceId);
+                        setPosition(resourceId, getUrl, pos);
+                    }
+                    //disable($('.' + groupId + '_ .delete_icon')[0]);
+                    enable(button);
+                }
+            });
+
+//            var nodeUrl = resp.getResponseHeader('Location');
+//            //console.log(nodeUrl);
+//            setPosition(resourceId, nodeUrl, pos);
+//            refresh(resourceId, elementId);
+//            enable(button);
         }
     });
 }

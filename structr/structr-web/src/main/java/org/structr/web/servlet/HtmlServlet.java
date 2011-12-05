@@ -390,7 +390,7 @@ public class HtmlServlet extends HttpServlet {
 
 						String type = (String) node.getProperty(AbstractNode.Key.type.name());
 
-						if (edit) {
+						if (edit && "Content".equals(type)) {
 
 							headBuffer.append("<div class=\"structr-editable-area data-structr-type-").append(type).append(
 							    "\" id=\"structr-id-").append(node.getId()).append("\">");
@@ -445,7 +445,7 @@ public class HtmlServlet extends HttpServlet {
 							evaluation = Evaluation.EXCLUDE_AND_CONTINUE;
 						}
 
-						if (edit) {
+						if (edit && "Content".equals(type)) {
 
 							headBuffer.append("</div><!-- .structr-editable-area structr-type-").append(type).append("\" -->");
 

@@ -39,7 +39,7 @@ function appendGroupElement(group) {
   var div = $('.' + group.id + '_');
   div.append('<img title="Delete Group ' + group.id + '" alt="Delete Group ' + group.id + '" class="delete_icon button" src="icon/group_delete.png">');
   div.append('<img title="Add User to Group ' + group.id + '" alt="Add User to Group ' + group.id + '" class="add_icon button" src="icon/user_add.png">');
-  $('.add_icon', div).on('click', function() { addUser(this, group.id) });
+  $('.add_icon', div).on('click', function() {addUser(this, group.id)});
   showUsersOfGroup(group.id);
 }
 
@@ -54,7 +54,7 @@ function showUsersOfGroup(groupId) {
     //headers: { 'X-User' : 457 },
     success: function(data) {
       if (!data || data.length == 0 || !data.result) {
-        $('.' + groupId + '_ .delete_icon').on('click', function() { deleteUser(this, groupId) });
+        $('.' + groupId + '_ .delete_icon').on('click', function() {deleteUser(this, groupId)});
         return;
       }
       disable($('.' + groupId + '_ .delete_icon'));
@@ -93,31 +93,31 @@ function addGroup(button) {
 }
 
 function addUser(button, groupId) {
-  if (isDisabled(button)) return;
-  disable(button);
-  var url = rootUrl + 'user';
-  var data = '{ "type" : "user", "realName" : "New user_' + Math.floor(Math.random() * (9999 - 1)) + '" ' + (groupId ? ', "groupId" : ' + groupId : '') + ' }';
-  var resp = $.ajax({
-    url: url,
-    //async: false,
-    type: 'POST',
-    dataType: 'json',
-    contentType: 'application/json; charset=utf-8',
-    data: data,
-    success: function(data) {
-      var getUrl = resp.getResponseHeader('Location');
-      $.ajax({
-        url: getUrl + '/all',
+    if (isDisabled(button)) return;
+    disable(button);
+    var url = rootUrl + 'user';
+    var data = '{ "type" : "user", "realName" : "New user_' + Math.floor(Math.random() * (9999 - 1)) + '" ' + (groupId ? ', "groupId" : ' + groupId : '') + ' }';
+    var resp = $.ajax({
+        url: url,
+        //async: false,
+        type: 'POST',
+        dataType: 'json',
+        contentType: 'application/json; charset=utf-8',
+        data: data,
         success: function(data) {
-          var user = data.result;
-          if (groupId) appendUserElement(user, groupId);
-          appendUserElement(user);
-          disable($('.' + groupId + '_ .delete_icon')[0]);
-          enable(button);
+            var getUrl = resp.getResponseHeader('Location');
+            $.ajax({
+                url: getUrl + '/all',
+                success: function(data) {
+                    var user = data.result;
+                    if (groupId) appendUserElement(user, groupId);
+                    appendUserElement(user);
+                    disable($('.' + groupId + '_ .delete_icon')[0]);
+                    enable(button);
+                }
+            });
         }
-      });
-    }
-  });
+    });
 }
 
 function removeUserFromGroup(userId, groupId) {
@@ -133,7 +133,7 @@ function removeUserFromGroup(userId, groupId) {
             url: url,
             type: 'DELETE',
             success: function(data) {
-              $('.' + groupId + '_ .' + userId + '_').hide('blind', { direction: "vertical" }, 200);
+              $('.' + groupId + '_ .' + userId + '_').hide('blind', {direction: "vertical"}, 200);
               $('.' + groupId + '_ .' + userId + '_').remove();
               if ($('.' + groupId + '_ .user').length == 0) {
                 enable($('.' + groupId + '_ .delete_icon'));
@@ -175,7 +175,7 @@ function refreshGroups() {
   showGroups();
   //groups.append('<div style="clear: both"></div>');
   groups.append('<button class="add_group_icon button"><img title="Add Group" alt="Add Group" src="icon/group_add.png"> Add Group</button>');
-  $('.add_group_icon', main).on('click', function() { addGroup(this); });
+  $('.add_group_icon', main).on('click', function() {addGroup(this);});
 }
 
 function refreshUsers() {
@@ -183,7 +183,7 @@ function refreshUsers() {
   showUsers();
   //users.append('<div style="clear: both"></div>');
   users.append('<button class="add_user_icon button"><img title="Add User" alt="Add User" src="icon/user_add.png"> Add User</button>');
-  $('.add_user_icon', main).on('click', function() { addUser(this); });
+  $('.add_user_icon', main).on('click', function() {addUser(this);});
 }
 
 function appendUserElement(user, groupId) {
@@ -198,8 +198,8 @@ function appendUserElement(user, groupId) {
     div = $('.' + groupId + '_ .' + user.id + '_')
     div.append('<img title="Remove user ' + user.id + ' from group ' + groupId + '" '
              + 'alt="Remove user ' + user.id + ' from group ' + groupId + '" class="delete_icon button" src="icon/delete.png">');
-    $('.delete_icon', div).on('click', function() { removeUserFromGroup(user, groupId) });
-    $('b', div).on('click', function() { editUserProperties(this, user, groupId); });
+    $('.delete_icon', div).on('click', function() {removeUserFromGroup(user, groupId)});
+    $('b', div).on('click', function() {editUserProperties(this, user, groupId);});
   } else {
     users.append('<div class="nested user ' + user.id + '_">'
                    + '<img class="typeIcon" src="icon/user.png">'
@@ -210,8 +210,8 @@ function appendUserElement(user, groupId) {
     div = $('#users .' + user.id + '_');
     div.append('<img title="Delete user ' + user.id + '" '
              + 'alt="Delete user ' + user.id + '" class="delete_icon button" src="icon/user_delete.png">');
-    $('.delete_icon', div).on('click', function() { deleteUser(this, user) });
-    $('b', div).on('click', function() { editUserProperties(this, user, groupId); });
+    $('.delete_icon', div).on('click', function() {deleteUser(this, user)});
+    $('b', div).on('click', function() {editUserProperties(this, user, groupId);});
   }
 }
 

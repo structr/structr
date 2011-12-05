@@ -38,7 +38,7 @@ import org.structr.web.common.RelType;
  */
 public class Content extends AbstractNode {
 
-	public enum Key implements PropertyKey{ name, elements, content, contentType, size; }
+	public enum Key implements PropertyKey{ name, tag, elements, content, contentType, size; }
 
 	static {
 

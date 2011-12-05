@@ -214,30 +214,6 @@ function deleteNode(button, entity, callback) {
     });
 }
 
-function addNode(button, type, parentId, elementId) {
-    if (isDisabled(button)) return;
-    disable(button);
-    var pos = $('.' + parentId + '_ .' + elementId + '_ > div.nested').length;
-    //console.log('addNode(' + type + ', ' + resourceId + ', ' + elementId + ', ' + pos + ')');
-    var url = rootUrl + type;
-    var resp = $.ajax({
-        url: url,
-        //async: false,
-        type: 'POST',
-        dataType: 'json',
-        contentType: 'application/json; charset=utf-8',
-        headers: headers,
-        data: '{ "type" : "' + type + '", "name" : "content_' + Math.floor(Math.random() * (9999 - 1)) + '", "elementId" : "' + elementId + '" }',
-        success: function(data) {
-            var nodeUrl = resp.getResponseHeader('Location');
-            //console.log(nodeUrl);
-            setPosition(parentId, nodeUrl, pos);
-            refresh(parentId, elementId);
-            enable(button);
-        }
-    });
-}
-
 function isDisabled(button) {
     return $(button).data('disabled');
 }
@@ -283,7 +259,7 @@ function setPosition(parentId, nodeUrl, pos) {
 
 function refresh(parentId, id) {
     $('.' + parentId + '_ ' + id + '_ > div.nested').remove();
-    showElementsOfResource(parentId, id);
+    showSubEntities(parentId, id);
 }
 
 
@@ -311,7 +287,7 @@ function editContent(button, resourceId, contentId) {
         headers: headers,
         success: function(data) {
             codeMirror = CodeMirror(contentBox.get(0), {
-                value: data.result.content,
+                value: unescapeTags(data.result.content),
                 mode:  "htmlmixed",
                 lineNumbers: true,
                 onKeyEvent: function() {
@@ -319,7 +295,9 @@ function editContent(button, resourceId, contentId) {
                     if (keyEventBlocked) {
                         clearTimeout(keyEventTimeout);
                         keyEventTimeout = setTimeout(function() {
-                            var data = '{ "content" : ' + $.quoteString(codeMirror.getValue()) + ' }';
+                            var fromCodeMirror = escapeTags(codeMirror.getValue());
+                            var content = $.quoteString(fromCodeMirror);
+                            var data = '{ "content" : ' + content + ' }';
                             //console.log(data);
                             $.ajax({
                                 url: url,
@@ -350,7 +328,17 @@ function refreshIframes() {
     });
 }
 
-
+function getIdFromClassString(classString) {
+    var classes = classString.split(' ');
+    var id;
+    $(classes).each(function(i,v) {
+        var len = v.length;
+        if (v.substring(len-1, len) == '_') {
+            id = v.substring(0,v.length-1);
+        }
+    });
+    return id;
+}
 
 function lastPart(id, separator) {
     if (!separator) {
@@ -369,10 +357,10 @@ function sortArray(arrayIn, sortBy) {
     return arrayOut;
 }
   
-function followIds(resourceId, nodeId) {
+function followIds(resourceId, entity) {
     var resId = resourceId.toString();
-    if (!nodeId) nodeId = resourceId;
-    var url = rootUrl + nodeId + '/' + 'out';
+    var entityId = (entity ? entity.id : resourceId);
+    var url = rootUrl + entityId + '/' + 'out';
     //console.log(url);
     var ids = [];
     $.ajax({
@@ -412,4 +400,12 @@ function followIds(resourceId, nodeId) {
   
 function isIn(id, ids) {
     return ($.inArray(id, ids) > -1);
+}
+
+function escapeTags(str) {
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function unescapeTags(str) {
+    return str.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
 }
