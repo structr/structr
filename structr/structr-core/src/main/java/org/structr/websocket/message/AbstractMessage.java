@@ -23,10 +23,18 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.eclipse.jetty.websocket.WebSocket.Connection;
+import org.structr.common.SecurityContext;
+import org.structr.core.Services;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.node.search.Search;
+import org.structr.core.node.search.SearchAttribute;
+import org.structr.core.node.search.SearchNodeCommand;
 
 /**
  * Base class for all WebSocket messages in structr.
@@ -35,16 +43,19 @@ import org.eclipse.jetty.websocket.WebSocket.Connection;
  */
 public abstract class AbstractMessage implements Message {
 
+	public static final String COMMAND_KEY             = "command";
+	public static final String UUID_KEY                = "uuid";
+
 	private static final Map<String, Class> commandSet = new LinkedHashMap<String, Class>();
 	private static final Logger logger                 = Logger.getLogger(AbstractMessage.class.getName());
-	private static final String COMMAND_KEY            = "command";
-	private static final String UUID_KEY               = "uuid";
 	private static final Gson gson;
 
 	static {
 
 		// initialize command set
+		commandSet.put("CREATE", CreateCommand.class);
 		commandSet.put("UPDATE", UpdateCommand.class);
+		commandSet.put("DELETE", DeleteCommand.class);
 
 		// initialize JSON parser
 		gson = new GsonBuilder().setPrettyPrinting().create();
@@ -73,6 +84,30 @@ public abstract class AbstractMessage implements Message {
 
 	public Connection getConnection() {
 		return connection;
+	}
+
+	// ----- protected methods -----
+	/**
+	 * Returns the node to which the uuid parameter
+	 * of this command refers to.
+	 *
+	 * @return the node
+	 */
+	protected AbstractNode getNode() {
+
+		List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
+		attrs.add(Search.andExactUuid(uuid));
+
+		List<AbstractNode> results = (List<AbstractNode>)Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(null, false, false, attrs);
+		if(!results.isEmpty()) {
+			return results.get(0);
+		}
+
+		return null;
+	}
+
+	protected String getParametersAsJson() {
+		return gson.toJson(parameters, new TypeToken<Map<String, String>>() {}.getType());
 	}
 
 	// ----- private methods -----

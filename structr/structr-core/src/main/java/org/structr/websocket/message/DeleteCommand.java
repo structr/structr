@@ -19,19 +19,21 @@
 
 package org.structr.websocket.message;
 
-import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.SecurityContext;
+import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.node.DeleteNodeCommand;
 import org.structr.websocket.StructrWebSocket;
 
 /**
  *
  * @author Christian Morgner
  */
-public class UpdateCommand extends AbstractMessage {
+public class DeleteCommand extends AbstractMessage {
 
-	private static final Logger logger = Logger.getLogger(UpdateCommand.class.getName());
+	private static final Logger logger = Logger.getLogger(DeleteCommand.class.getName());
 
 	@Override
 	public void processMessage() {
@@ -39,9 +41,7 @@ public class UpdateCommand extends AbstractMessage {
 		AbstractNode node = getNode();
 		if(node != null) {
 
-			for(Entry<String, String> entry : getParameters().entrySet()) {
-				node.setProperty(entry.getKey(), entry.getValue());
-			}
+			Services.command(SecurityContext.getSuperUserInstance(), DeleteNodeCommand.class).execute(node);
 
 			// broadcast message
 			StructrWebSocket.broadcast(getSource());

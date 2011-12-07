@@ -1,0 +1,75 @@
+/*
+ *  Copyright (C) 2011 Axel Morgner
+ * 
+ *  This file is part of structr <http://structr.org>.
+ * 
+ *  structr is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ * 
+ *  structr is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ * 
+ *  You should have received a copy of the GNU General Public License
+ *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.structr.websocket.message;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.structr.common.SecurityContext;
+import org.structr.core.Services;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.node.CreateNodeCommand;
+import org.structr.core.node.StructrTransaction;
+import org.structr.core.node.TransactionCommand;
+import org.structr.websocket.StructrWebSocket;
+
+/**
+ *
+ * @author Christian Morgner
+ */
+public class CreateCommand extends AbstractMessage {
+
+	private static final Logger logger = Logger.getLogger(CreateCommand.class.getName());
+
+	@Override
+	public void processMessage() {
+
+		StructrTransaction transaction = new StructrTransaction() {
+
+			@Override
+			public Object execute() throws Throwable {
+				return (AbstractNode)Services.command(SecurityContext.getSuperUserInstance(), CreateNodeCommand.class).execute(getParameters());
+			}
+		};
+
+		// create node in transaction
+		AbstractNode newNode = (AbstractNode)Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(transaction);
+
+		// check for errors
+		if(transaction.getCause() != null) {
+
+			logger.log(Level.WARNING, "Could not create node.", transaction.getCause());
+
+		} else {
+
+			if(newNode != null) {
+
+				// add uuid to parameters
+				getParameters().put(AbstractMessage.UUID_KEY, newNode.getStringProperty(AbstractNode.Key.uuid));
+
+				// broadcast message
+				StructrWebSocket.broadcast(getParametersAsJson());
+
+			} else {
+				
+				logger.log(Level.WARNING, "Could not create new node.");
+			}
+		}
+	}
+}

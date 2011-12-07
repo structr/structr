@@ -17,39 +17,28 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.structr.websocket.message;
+package org.structr.common;
 
-import java.util.Map.Entry;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.UUID;
+import org.apache.commons.lang.StringUtils;
+import org.structr.core.Transformation;
 import org.structr.core.entity.AbstractNode;
-import org.structr.websocket.StructrWebSocket;
 
 /**
  *
  * @author Christian Morgner
  */
-public class UpdateCommand extends AbstractMessage {
-
-	private static final Logger logger = Logger.getLogger(UpdateCommand.class.getName());
+public class UuidCreationTransformation implements Transformation<AbstractNode> {
 
 	@Override
-	public void processMessage() {
+	public void apply(SecurityContext securityContext, AbstractNode obj) {
 
-		AbstractNode node = getNode();
-		if(node != null) {
-
-			for(Entry<String, String> entry : getParameters().entrySet()) {
-				node.setProperty(entry.getKey(), entry.getValue());
+		// create uuid if not set
+		String uuid = (String)obj.getProperty(AbstractNode.Key.uuid.name());
+		if(StringUtils.isBlank(uuid)) {
+			synchronized(obj) {
+				obj.setProperty(AbstractNode.Key.uuid.name(), UUID.randomUUID().toString().replaceAll("[\\-]+", ""));
 			}
-
-			// broadcast message
-			StructrWebSocket.broadcast(getSource());
-
-		} else {
-
-			logger.log(Level.WARNING, "Node with uuid {0} not found.", getUuid());
-
 		}
 	}
 }

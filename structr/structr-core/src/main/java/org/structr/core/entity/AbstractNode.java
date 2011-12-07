@@ -113,6 +113,7 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import org.structr.common.UuidCreationTransformation;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -170,6 +171,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.fulltext.name(), Key.values());
 		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.keyword.name(), Key.values());
 		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.uuid.name(), Key.uuid);
+
+		// register transformation for automatic uuid creation
+		EntityContext.registerPostCreationTransformation(AbstractNode.class, new UuidCreationTransformation());
 
 	}
 
