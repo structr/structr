@@ -19,7 +19,6 @@
 
 package org.structr.websocket.message;
 
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
@@ -28,7 +27,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
-import org.structr.websocket.StructrWebSocket;
+import org.structr.websocket.WebSocketData;
 
 /**
  *
@@ -39,13 +38,13 @@ public class CreateCommand extends AbstractMessage {
 	private static final Logger logger = Logger.getLogger(CreateCommand.class.getName());
 
 	@Override
-	public Map<String, String> processMessage() {
+	public boolean processMessage(final WebSocketData webSocketData) {
 
 		StructrTransaction transaction = new StructrTransaction() {
 
 			@Override
 			public Object execute() throws Throwable {
-				return (AbstractNode)Services.command(SecurityContext.getSuperUserInstance(), CreateNodeCommand.class).execute(getParameters());
+				return (AbstractNode)Services.command(SecurityContext.getSuperUserInstance(), CreateNodeCommand.class).execute(webSocketData.getData());
 			}
 		};
 
@@ -61,11 +60,9 @@ public class CreateCommand extends AbstractMessage {
 
 			if(newNode != null) {
 
-				// add uuid to parameter set
-				getParameters().put(AbstractMessage.ID_KEY, newNode.getStringProperty(AbstractNode.Key.uuid));
+				webSocketData.setId(getIdFromNode(newNode));
 
-				// return parameter set
-				return getParameters();
+				return true;
 
 			} else {
 				
@@ -73,7 +70,7 @@ public class CreateCommand extends AbstractMessage {
 			}
 		}
 
-		return null;
+		return false;
 	}
 
 	@Override

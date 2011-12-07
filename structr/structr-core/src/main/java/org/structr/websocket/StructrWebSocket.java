@@ -20,16 +20,18 @@
 package org.structr.websocket;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.eclipse.jetty.websocket.WebSocket;
-import org.structr.core.entity.AbstractNode;
 import org.structr.websocket.message.AbstractMessage;
+import org.structr.websocket.message.CreateCommand;
+import org.structr.websocket.message.DeleteCommand;
+import org.structr.websocket.message.GetCommand;
+import org.structr.websocket.message.UpdateCommand;
 
 /**
  *
@@ -39,18 +41,24 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 
 	private static final Logger logger                 = Logger.getLogger(StructrWebSocket.class.getName());
 	private static final Set<StructrWebSocket> sockets = new LinkedHashSet<StructrWebSocket>();
-	private static final Gson gson;
-
-	private Connection connection                      = null;
-	private	String idProperty                          = null;
+	private static final Map<String, Class> commandSet = new LinkedHashMap<String, Class>();
 
 	static {
 
-		// initialize JSON parser
-		gson = new GsonBuilder().setPrettyPrinting().create();
+		// initialize command set
+		addCommand(CreateCommand.class);
+		addCommand(UpdateCommand.class);
+		addCommand(DeleteCommand.class);
+		addCommand(GetCommand.class);
 	}
 
-	public StructrWebSocket(String idProperty) {
+
+	private Connection connection = null;
+	private	String idProperty     = null;
+	private Gson gson             = null;
+
+	public StructrWebSocket(Gson gson, String idProperty) {
+		this.gson = gson;
 		this.idProperty = idProperty;
 	}
 
@@ -74,36 +82,38 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 
 	@Override
 	public void onMessage(String data) {
-		AbstractMessage message = AbstractMessage.createMessage(connection, data);
-		if(message != null) {
 
-			// initialize id property
-			message.setIdProperty(idProperty);
+		// parse web socket data from JSON
+		WebSocketData webSocketData = gson.fromJson(data, WebSocketData.class);
 
-			// process message
-			Map<String, String> result = message.processMessage();
-			if(result != null) {
+		try {
+			String command = webSocketData.getCommand();
+			Class type     = commandSet.get(command);
 
-				// add command to result set
-				result.put(AbstractMessage.COMMAND_KEY, message.getCommand());
+			if(type != null) {
 
-				// add id of node, but only if it is not present in the result
-				AbstractNode node = message.getNode();
-				if(node != null && !result.containsKey(AbstractMessage.ID_KEY)) {
-					if(idProperty != null) {
-						result.put(AbstractMessage.ID_KEY, node.getStringProperty(idProperty));
-					} else {
-						result.put(AbstractMessage.ID_KEY, node.getIdString());
-					}
+				AbstractMessage message = (AbstractMessage)type.newInstance();
+				message.setConnection(connection);
+				message.setIdProperty(idProperty);
+
+				// process message
+				if(message.processMessage(webSocketData)) {
+
+					// successful execution
+					broadcast(gson.toJson(webSocketData, WebSocketData.class));
+
+				} else {
+
+					// error
 				}
-
-				// successful execution
-				broadcast(gson.toJson(result, new TypeToken<Map<String, String>>() {}.getType()));
 
 			} else {
 
-				// error
+				logger.log(Level.WARNING, "Unknow command {0}", command);
 			}
+
+		} catch(Throwable t) {
+			logger.log(Level.WARNING, "Unable to parse message.", t);
 		}
 	}
 	
@@ -129,6 +139,19 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 					logger.log(Level.WARNING, "Error sending message to client.", t);
 				}
 			}
+		}
+	}
+
+	// ----- private static methods -----
+	private static final void addCommand(Class command) {
+
+		try {
+			AbstractMessage msg = (AbstractMessage)command.newInstance();
+			commandSet.put(msg.getCommand(), command);
+
+		} catch(Throwable t) {
+
+			logger.log(Level.SEVERE, "Unable to add command {0}", command.getName());
 		}
 	}
 }

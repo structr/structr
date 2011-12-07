@@ -19,36 +19,34 @@
 
 package org.structr.websocket.message;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.structr.common.SecurityContext;
-import org.structr.core.Services;
+import org.structr.common.PropertyView;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.node.DeleteNodeCommand;
 import org.structr.websocket.WebSocketData;
 
 /**
  *
  * @author Christian Morgner
  */
-public class DeleteCommand extends AbstractMessage {
-
-	private static final Logger logger = Logger.getLogger(DeleteCommand.class.getName());
+public class GetCommand extends AbstractMessage {
 
 	@Override
 	public boolean processMessage(final WebSocketData webSocketData) {
 
 		AbstractNode node = getNode(webSocketData.getId());
+		String view = webSocketData.getView();
+
 		if(node != null) {
 
-			Services.command(SecurityContext.getSuperUserInstance(), DeleteNodeCommand.class).execute(node);
+			if(view == null) {
+				view = PropertyView.All;
+			}
+
+			for(String key : node.getPropertyKeys(view)) {
+				webSocketData.setData(key, node.getStringProperty(key));
+
+			}
 
 			return true;
-
-		} else {
-
-			logger.log(Level.WARNING, "Node with id {0} not found.", webSocketData.getId());
-
 		}
 
 		return false;
@@ -56,6 +54,6 @@ public class DeleteCommand extends AbstractMessage {
 
 	@Override
 	public String getCommand() {
-		return "DELETE";
+		return "GET";
 	}
 }

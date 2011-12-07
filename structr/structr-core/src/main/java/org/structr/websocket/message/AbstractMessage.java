@@ -19,9 +19,6 @@
 
 package org.structr.websocket.message;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -36,57 +33,32 @@ import org.structr.core.node.FindNodeCommand;
 import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
+import org.structr.websocket.WebSocketData;
 
 /**
  * Base class for all WebSocket messages in structr.
  *
  * @author Christian Morgner
  */
-public abstract class AbstractMessage implements Message {
+public abstract class AbstractMessage {
 
+	private static final Logger logger                 = Logger.getLogger(AbstractMessage.class.getName());
+	
 	public static final String COMMAND_KEY             = "command";
 	public static final String ID_KEY                  = "id";
 
-	private static final Map<String, Class> commandSet = new LinkedHashMap<String, Class>();
-	private static final Logger logger                 = Logger.getLogger(AbstractMessage.class.getName());
-	private static final Gson gson;
-
-	static {
-
-		// initialize command set
-		addCommand(CreateCommand.class);
-		addCommand(UpdateCommand.class);
-		addCommand(DeleteCommand.class);
-
-		// initialize JSON parser
-		gson = new GsonBuilder().setPrettyPrinting().create();
-	}
-
-	private Map<String, String> parameters = new LinkedHashMap<String, String>();
 	private Connection connection = null;
 	private String idProperty = null;
-	private String source = null;
-	private String id = null;
 
-	public abstract Map<String, String> processMessage();
+	public abstract boolean processMessage(final WebSocketData webSocketData);
 	public abstract String getCommand();
-
-	@Override
-	public String getUuid() {
-		return id;
-	}
-
-	public String getSource() {
-		return source;
-	}
-
-	@Override
-	public Map<String, String> getParameters() {
-		return parameters;
-	}
 
 	public Connection getConnection() {
 		return connection;
+	}
+
+	public void setConnection(Connection connection) {
+		this.connection = connection;
 	}
 
 	public String getIdProperty() {
@@ -103,7 +75,7 @@ public abstract class AbstractMessage implements Message {
 	 *
 	 * @return the node
 	 */
-	public AbstractNode getNode() {
+	public AbstractNode getNode(String id) {
 
 		if(idProperty != null) {
 
@@ -127,69 +99,12 @@ public abstract class AbstractMessage implements Message {
 		return null;
 	}
 
-	// ----- private methods -----
-	private void setConnection(Connection connection) {
-		this.connection = connection;
-	}
-
-	private void setSource(String source) {
-		this.source = source;
-	}
-
-	private void setId(String id) {
-		this.id = id;
-	}
-
-	private void setParameters(Map<String, String> parameters) {
-		this.parameters = parameters;
-	}
-
-	// ----- public static methods -----
-	public static AbstractMessage createMessage(Connection connection, String source) {
-
-		try {
-			Map<String, String> parsedSource = gson.fromJson(source, new TypeToken<Map<String, String>>() {}.getType());
-			String command = parsedSource.get(COMMAND_KEY);
-			String id = parsedSource.get(ID_KEY);
-
-			// prepare parsed source map to be used for setProperty (remove meta-information)
-			parsedSource.remove(COMMAND_KEY);
-			parsedSource.remove(ID_KEY);
-
-			Class type = commandSet.get(command);
-			if(type != null) {
-
-				AbstractMessage msg = (AbstractMessage)type.newInstance();
-				msg.setParameters(parsedSource);
-				msg.setConnection(connection);
-				msg.setSource(source);
-				msg.setId(id);
-
-				return msg;
-
-			} else {
-				logger.log(Level.WARNING, "Unknow command {0}", command);
-			}
-
-
-
-		} catch(Throwable t) {
-			logger.log(Level.WARNING, "Unable to parse message.", t);
-		}
-
-		return null;
-	}
-
-	// ----- private static methods -----
-	private static final void addCommand(Class command) {
-
-		try {
-			AbstractMessage msg = (AbstractMessage)command.newInstance();
-			commandSet.put(msg.getCommand(), command);
-
-		} catch(Throwable t) {
-			
-			logger.log(Level.SEVERE, "Unable to add command {0}", command.getName());
+	// ----- protected methods -----
+	protected String getIdFromNode(AbstractNode node) {
+		if(idProperty != null) {
+			return node.getStringProperty(idProperty);
+		} else {
+			return node.getIdString();
 		}
 	}
 }

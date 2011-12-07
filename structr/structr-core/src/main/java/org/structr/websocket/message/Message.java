@@ -27,6 +27,6 @@ import java.util.Map;
  */
 public interface Message {
 
-	public String getUuid();
-	public Map<String, String> getParameters();
+	public String getId();
+	public Map<String, Object> getParameters();
 }
