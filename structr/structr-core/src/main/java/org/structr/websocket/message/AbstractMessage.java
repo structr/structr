@@ -32,6 +32,7 @@ import org.eclipse.jetty.websocket.WebSocket.Connection;
 import org.structr.common.SecurityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.node.FindNodeCommand;
 import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
@@ -44,7 +45,7 @@ import org.structr.core.node.search.SearchNodeCommand;
 public abstract class AbstractMessage implements Message {
 
 	public static final String COMMAND_KEY             = "command";
-	public static final String UUID_KEY                = "uuid";
+	public static final String ID_KEY                  = "id";
 
 	private static final Map<String, Class> commandSet = new LinkedHashMap<String, Class>();
 	private static final Logger logger                 = Logger.getLogger(AbstractMessage.class.getName());
@@ -63,15 +64,16 @@ public abstract class AbstractMessage implements Message {
 
 	private Map<String, String> parameters = new LinkedHashMap<String, String>();
 	private Connection connection = null;
+	private String idProperty = null;
 	private String source = null;
-	private String uuid = null;
+	private String id = null;
 
 	public abstract Map<String, String> processMessage();
 	public abstract String getCommand();
 
 	@Override
 	public String getUuid() {
-		return uuid;
+		return id;
 	}
 
 	public String getSource() {
@@ -87,21 +89,39 @@ public abstract class AbstractMessage implements Message {
 		return connection;
 	}
 
-	// ----- protected methods -----
+	public String getIdProperty() {
+		return idProperty;
+	}
+
+	public void setIdProperty(String idProperty) {
+		this.idProperty = idProperty;
+	}
+
 	/**
 	 * Returns the node to which the uuid parameter
 	 * of this command refers to.
 	 *
 	 * @return the node
 	 */
-	protected AbstractNode getNode() {
+	public AbstractNode getNode() {
 
-		List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
-		attrs.add(Search.andExactUuid(uuid));
+		if(idProperty != null) {
 
-		List<AbstractNode> results = (List<AbstractNode>)Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(null, false, false, attrs);
-		if(!results.isEmpty()) {
-			return results.get(0);
+			List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
+			attrs.add(Search.andExactProperty(idProperty, id));
+
+			List<AbstractNode> results = (List<AbstractNode>)Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(null, false, false, attrs);
+			if(!results.isEmpty()) {
+				return results.get(0);
+			}
+
+		} else {
+
+			List<AbstractNode> results = (List<AbstractNode>)Services.command(SecurityContext.getSuperUserInstance(), FindNodeCommand.class).execute(id);
+			if(!results.isEmpty()) {
+				return results.get(0);
+			}
+
 		}
 
 		return null;
@@ -116,8 +136,8 @@ public abstract class AbstractMessage implements Message {
 		this.source = source;
 	}
 
-	private void setUuid(String uuid) {
-		this.uuid = uuid;
+	private void setId(String id) {
+		this.id = id;
 	}
 
 	private void setParameters(Map<String, String> parameters) {
@@ -130,11 +150,11 @@ public abstract class AbstractMessage implements Message {
 		try {
 			Map<String, String> parsedSource = gson.fromJson(source, new TypeToken<Map<String, String>>() {}.getType());
 			String command = parsedSource.get(COMMAND_KEY);
-			String uuid = parsedSource.get(UUID_KEY);
+			String id = parsedSource.get(ID_KEY);
 
 			// prepare parsed source map to be used for setProperty (remove meta-information)
 			parsedSource.remove(COMMAND_KEY);
-			parsedSource.remove(UUID_KEY);
+			parsedSource.remove(ID_KEY);
 
 			Class type = commandSet.get(command);
 			if(type != null) {
@@ -143,7 +163,7 @@ public abstract class AbstractMessage implements Message {
 				msg.setParameters(parsedSource);
 				msg.setConnection(connection);
 				msg.setSource(source);
-				msg.setUuid(uuid);
+				msg.setId(id);
 
 				return msg;
 

@@ -28,6 +28,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.eclipse.jetty.websocket.WebSocket;
+import org.structr.core.entity.AbstractNode;
 import org.structr.websocket.message.AbstractMessage;
 
 /**
@@ -41,11 +42,16 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 	private static final Gson gson;
 
 	private Connection connection                      = null;
+	private	String idProperty                          = null;
 
 	static {
 
 		// initialize JSON parser
 		gson = new GsonBuilder().setPrettyPrinting().create();
+	}
+
+	public StructrWebSocket(String idProperty) {
+		this.idProperty = idProperty;
 	}
 
 	@Override
@@ -71,12 +77,25 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 		AbstractMessage message = AbstractMessage.createMessage(connection, data);
 		if(message != null) {
 
+			// initialize id property
+			message.setIdProperty(idProperty);
+
 			// process message
 			Map<String, String> result = message.processMessage();
 			if(result != null) {
 
 				// add command to result set
 				result.put(AbstractMessage.COMMAND_KEY, message.getCommand());
+
+				// add id of node, but only if it is not present in the result
+				AbstractNode node = message.getNode();
+				if(node != null && !result.containsKey(AbstractMessage.ID_KEY)) {
+					if(idProperty != null) {
+						result.put(AbstractMessage.ID_KEY, node.getStringProperty(idProperty));
+					} else {
+						result.put(AbstractMessage.ID_KEY, node.getIdString());
+					}
+				}
 
 				// successful execution
 				broadcast(gson.toJson(result, new TypeToken<Map<String, String>>() {}.getType()));

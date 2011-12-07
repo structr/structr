@@ -44,7 +44,7 @@ public class UpdateCommand extends AbstractMessage {
 			}
 
 			// add uuid to parameter set
-			getParameters().put(AbstractMessage.UUID_KEY, node.getStringProperty(AbstractNode.Key.uuid));
+			getParameters().put(AbstractMessage.ID_KEY, node.getStringProperty(getIdProperty()));
 
 			return getParameters();
 
