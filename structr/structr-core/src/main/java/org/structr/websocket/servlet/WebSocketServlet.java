@@ -19,6 +19,8 @@
 
 package org.structr.websocket.servlet;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.structr.websocket.StructrWebSocket;
 import java.io.IOException;
 import java.util.logging.Level;
@@ -29,6 +31,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.websocket.WebSocket;
 import org.eclipse.jetty.websocket.WebSocketFactory;
 import org.eclipse.jetty.websocket.WebSocketFactory.Acceptor;
+import org.structr.websocket.WebSocketData;
+import org.structr.websocket.WebSocketDataGSONAdapter;
 
 /**
  *
@@ -36,22 +40,49 @@ import org.eclipse.jetty.websocket.WebSocketFactory.Acceptor;
  */
 public class WebSocketServlet extends HttpServlet {
 
-	private static final WebSocketFactory factory              = new WebSocketFactory(new WebSocketAcceptor());
 	private static final Logger logger                         = Logger.getLogger(WebSocketServlet.class.getName());
 	private static final String STRUCTR_PROTOCOL               = "structr";
 	private static final String SERVLET_PARAMETER_ID_PROPERTY  = "IdProperty";
 
-	private static String idProperty                           = null;
+	private static WebSocketFactory factory                    = null;
 
 	@Override
 	public void init() {
 
 		// primary key
-		String idPropertyName = this.getInitParameter(SERVLET_PARAMETER_ID_PROPERTY);
+		final String idPropertyName = this.getInitParameter(SERVLET_PARAMETER_ID_PROPERTY);
 		if (idPropertyName != null) {
 			logger.log(Level.INFO, "Setting id property to {0}", idPropertyName);
-			this.idProperty = idPropertyName;
 		}
+
+		// create GSON serializer
+		final Gson gson = new GsonBuilder()
+			.setPrettyPrinting()
+			.registerTypeAdapter(WebSocketData.class, new WebSocketDataGSONAdapter())
+			.create();
+
+		// create web socket factory
+		factory = new WebSocketFactory(new Acceptor() {
+
+			@Override
+			public WebSocket doWebSocketConnect(HttpServletRequest request, String protocol) {
+
+				if(STRUCTR_PROTOCOL.equals(protocol)) {
+					return new StructrWebSocket(gson, idPropertyName);
+				} else {
+					logger.log(Level.INFO, "Protocol {0} not accepted", protocol);
+				}
+
+				return null;
+			}
+
+			@Override
+			public boolean checkOrigin(HttpServletRequest request, String origin) {
+
+				// TODO: check origin
+				return true;
+			}
+		});
 	}
 
 	@Override
@@ -65,28 +96,6 @@ public class WebSocketServlet extends HttpServlet {
 
 		} else {
 			logger.log(Level.INFO, "Request accepted.");
-		}
-	}
-
-	private static class WebSocketAcceptor implements Acceptor {
-
-		@Override
-		public WebSocket doWebSocketConnect(HttpServletRequest request, String protocol) {
-
-			if(STRUCTR_PROTOCOL.equals(protocol)) {
-				return new StructrWebSocket(idProperty);
-			} else {
-				logger.log(Level.INFO, "Protocol {0} not accepted", protocol);
-			}
-
-			return null;
-		}
-
-		@Override
-		public boolean checkOrigin(HttpServletRequest request, String origin) {
-
-			// TODO: check origin
-			return true;
 		}
 	}
 }
