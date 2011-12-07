@@ -19,6 +19,7 @@
 
 package org.structr.websocket.message;
 
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
@@ -38,7 +39,7 @@ public class CreateCommand extends AbstractMessage {
 	private static final Logger logger = Logger.getLogger(CreateCommand.class.getName());
 
 	@Override
-	public void processMessage() {
+	public Map<String, String> processMessage() {
 
 		StructrTransaction transaction = new StructrTransaction() {
 
@@ -60,16 +61,23 @@ public class CreateCommand extends AbstractMessage {
 
 			if(newNode != null) {
 
-				// add uuid to parameters
+				// add uuid to parameter set
 				getParameters().put(AbstractMessage.UUID_KEY, newNode.getStringProperty(AbstractNode.Key.uuid));
 
-				// broadcast message
-				StructrWebSocket.broadcast(getParametersAsJson());
+				// return parameter set
+				return getParameters();
 
 			} else {
 				
 				logger.log(Level.WARNING, "Could not create new node.");
 			}
 		}
+
+		return null;
+	}
+
+	@Override
+	public String getCommand() {
+		return "CREATE";
 	}
 }

@@ -19,7 +19,11 @@
 
 package org.structr.websocket;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -34,8 +38,15 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 
 	private static final Logger logger                 = Logger.getLogger(StructrWebSocket.class.getName());
 	private static final Set<StructrWebSocket> sockets = new LinkedHashSet<StructrWebSocket>();
+	private static final Gson gson;
 
 	private Connection connection                      = null;
+
+	static {
+
+		// initialize JSON parser
+		gson = new GsonBuilder().setPrettyPrinting().create();
+	}
 
 	@Override
 	public void onOpen(Connection connection) {
@@ -59,7 +70,21 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 	public void onMessage(String data) {
 		AbstractMessage message = AbstractMessage.createMessage(connection, data);
 		if(message != null) {
-			message.processMessage();
+
+			// process message
+			Map<String, String> result = message.processMessage();
+			if(result != null) {
+
+				// add command to result set
+				result.put(AbstractMessage.COMMAND_KEY, message.getCommand());
+
+				// successful execution
+				broadcast(gson.toJson(result, new TypeToken<Map<String, String>>() {}.getType()));
+
+			} else {
+
+				// error
+			}
 		}
 	}
 	
@@ -67,18 +92,18 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 		return connection;
 	}
 
-	// ----- public static methods -----
-	public static void broadcast(String message) {
+	// ----- private methods -----
+	private void broadcast(String message) {
 
 		logger.log(Level.INFO, "Broadcasting message to {0} clients..", sockets.size());
 
 		for(StructrWebSocket socket : sockets) {
 
-			Connection connection = socket.getConnection();
-			if(connection != null) {
+			Connection socketConnection = socket.getConnection();
+			if(socketConnection != null) {
 
 				try {
-					connection.sendMessage(message);
+					socketConnection.sendMessage(message);
 
 				} catch(Throwable t) {
 					

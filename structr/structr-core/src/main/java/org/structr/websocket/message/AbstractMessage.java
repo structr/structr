@@ -53,9 +53,9 @@ public abstract class AbstractMessage implements Message {
 	static {
 
 		// initialize command set
-		commandSet.put("CREATE", CreateCommand.class);
-		commandSet.put("UPDATE", UpdateCommand.class);
-		commandSet.put("DELETE", DeleteCommand.class);
+		addCommand(CreateCommand.class);
+		addCommand(UpdateCommand.class);
+		addCommand(DeleteCommand.class);
 
 		// initialize JSON parser
 		gson = new GsonBuilder().setPrettyPrinting().create();
@@ -66,7 +66,8 @@ public abstract class AbstractMessage implements Message {
 	private String source = null;
 	private String uuid = null;
 
-	public abstract void processMessage();
+	public abstract Map<String, String> processMessage();
+	public abstract String getCommand();
 
 	@Override
 	public String getUuid() {
@@ -104,10 +105,6 @@ public abstract class AbstractMessage implements Message {
 		}
 
 		return null;
-	}
-
-	protected String getParametersAsJson() {
-		return gson.toJson(parameters, new TypeToken<Map<String, String>>() {}.getType());
 	}
 
 	// ----- private methods -----
@@ -161,5 +158,18 @@ public abstract class AbstractMessage implements Message {
 		}
 
 		return null;
+	}
+
+	// ----- private static methods -----
+	private static final void addCommand(Class command) {
+
+		try {
+			AbstractMessage msg = (AbstractMessage)command.newInstance();
+			commandSet.put(msg.getCommand(), command);
+
+		} catch(Throwable t) {
+			
+			logger.log(Level.SEVERE, "Unable to add command {0}", command.getName());
+		}
 	}
 }
