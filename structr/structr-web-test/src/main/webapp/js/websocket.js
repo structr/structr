@@ -44,23 +44,36 @@ function connect() {
 
             log('Message received: ' + message);
 
-            var data = message.data;
+            var data = $.parseJSON(message.data);
 
-            console.log(message.data);
+            console.log(data);
 
-            if (data.command = 'CREATE') {
+            if (data.command == 'CREATE') {
 
-                if (data.type = 'User') {
+                if (data.type == 'user') {
+
                     data.command = null;
                     var user = data;
                     groupId = user.groupId;
                     if (groupId) appendUserElement(user, groupId);
                     appendUserElement(user);
                     disable($('.' + groupId + '_ .delete_icon')[0]);
-                    enable(clickedButton);
+                    if (buttonClicked) enable(clickedButton);
+
+                } else if (data.type == 'group') {
+
+                    appendGroupElement(data);
+                    if (buttonClicked) enable(buttonClicked);
+                    
+                }
+                else {
+                    
+                    appendEntityElement(data, parentElement);
+                    if (buttonClicked) enable(buttonClicked);
+
                 }
 
-            } else if (data.command = 'DELETE') {
+            } else if (data.command == 'DELETE') {
 
                 if (data.type = 'User') {
                     var elementSelector = '.' + data.id + '_';
@@ -69,11 +82,11 @@ function connect() {
                     }, 200);
                     $(elementSelector).remove();
                     refreshIframes();
-                    enable(clickedButton);
+                    if (buttonClicked) enable(clickedButton);
                     //if (callback) callback();
                 }
 
-            } else if (data.command = 'UPDATE') {
+            } else if (data.command == 'UPDATE') {
 
             } else {
                 console.log('Unknown command: ' + data.command);

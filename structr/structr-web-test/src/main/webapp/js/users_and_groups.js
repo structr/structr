@@ -73,26 +73,28 @@ function addGroup(button) {
     if (isDisabled(button)) return;
     disable(button);
     var url = rootUrl + 'group';
-    var data = '{ "type" : "group", "name" : "New group_' + Math.floor(Math.random() * (9999 - 1)) + '" }';
-    var resp = $.ajax({
-        url: url,
-        //async: false,
-        type: 'POST',
-        dataType: 'json',
-        contentType: 'application/json; charset=utf-8',
-        data: data,
-        success: function(data) {
-            var getUrl = resp.getResponseHeader('Location');
-            $.ajax({
-                url: getUrl + '/all',
-                success: function(data) {
-                    var group = data.result;
-                    appendGroupElement(group);
-                    enable(button);
-                }
-            });
-        }
-    });
+    var data = '{ "command" : "CREATE" , "type" : "group", "name" : "New group_' + Math.floor(Math.random() * (9999 - 1)) + '" }';
+    console.log(data);
+    ws.send(data);
+//    var resp = $.ajax({
+//        url: url,
+//        //async: false,
+//        type: 'POST',
+//        dataType: 'json',
+//        contentType: 'application/json; charset=utf-8',
+//        data: data,
+//        success: function(data) {
+//            var getUrl = resp.getResponseHeader('Location');
+//            $.ajax({
+//                url: getUrl + '/all',
+//                success: function(data) {
+//                    var group = data.result;
+//                    appendGroupElement(group);
+//                    enable(button);
+//                }
+//            });
+//        }
+//    });
 }
 
 function addUser(button, groupId) {
@@ -163,12 +165,7 @@ function deleteUser(button, user, groupId) {
         parent = $('.' + groupId + '_');
     }
   
-    deleteNode(button, user, function() {
-        console.log($('.user', parent).length);
-        if ($('.user', parent).length == 0) {
-            enable($('.delete_icon', parent));
-        }
-    });
+    deleteNode(button, user, "function() { console.log($('.user', parent).length); if ($('.user', parent).length == 0) { enable($('.delete_icon', parent)); } }");
 
 }
       
