@@ -19,13 +19,13 @@
 
 package org.structr.websocket.message;
 
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.DeleteNodeCommand;
-import org.structr.websocket.StructrWebSocket;
 
 /**
  *
@@ -36,20 +36,29 @@ public class DeleteCommand extends AbstractMessage {
 	private static final Logger logger = Logger.getLogger(DeleteCommand.class.getName());
 
 	@Override
-	public void processMessage() {
+	public Map<String, String> processMessage() {
 
 		AbstractNode node = getNode();
 		if(node != null) {
 
 			Services.command(SecurityContext.getSuperUserInstance(), DeleteNodeCommand.class).execute(node);
 
-			// broadcast message
-			StructrWebSocket.broadcast(getSource());
+			// add uuid to parameter set
+			getParameters().put(AbstractMessage.UUID_KEY, node.getStringProperty(AbstractNode.Key.uuid));
+
+			return getParameters();
 
 		} else {
 
 			logger.log(Level.WARNING, "Node with uuid {0} not found.", getUuid());
 
 		}
+
+		return null;
+	}
+
+	@Override
+	public String getCommand() {
+		return "DELETE";
 	}
 }
