@@ -12,25 +12,7 @@ $(document).ready(function() {
     refreshGroups();
     refreshUsers();
 
-
-    if (!('WebSocket' in window)) {
-        alert('Your browser doesn\'t support WebSocket!');
-        return;
-    } else {
-        
-        connect();
-
-        
-
-
-
-
-
-
-
-
-
-    }
+    connect();
 
 });
 

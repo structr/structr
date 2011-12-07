@@ -24,7 +24,15 @@ function connect() {
 
     try {
 
-        ws = new WebSocket("ws://localhost:8080/structr-web-test/ws/", "structr");
+
+        if ('WebSocket' in window) {
+            ws = new WebSocket('ws://localhost:8080/structr-web-test/ws/', 'structr');
+        } else if ('MozWebSocket' in window) {
+            ws = new MozWebSocket('ws://localhost:8080/structr-web-test/ws/', 'structr');
+        } else {
+            alert('Your browser doesn\'t support WebSocket. Go home!');
+            return;
+        }
 
         log('State: ' + ws.readyState);
 
@@ -33,7 +41,11 @@ function connect() {
         }
 
         ws.onmessage = function(message) {
-            log('Message: ' + message.data);
+            log('Message received: ' + message.data);
+
+            console.log(message.data);
+
+
         }
 
         ws.onclose = function() {

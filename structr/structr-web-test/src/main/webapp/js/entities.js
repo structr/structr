@@ -57,6 +57,13 @@ function createEntity(entity, parentElement) {
     //  console.log('Creating entity ..');
     //  console.log(entity);
     var url = rootUrl + entity.type.toLowerCase();
+
+    var command = entity;
+    var data = $.toJSON(command);
+    console.log(data);
+
+    //ws.send(data);
+
     var resp = $.ajax({
         url: url,
         //async: false,
