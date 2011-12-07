@@ -61,6 +61,7 @@ public class CreateCommand extends AbstractMessage {
 			if(newNode != null) {
 
 				webSocketData.setId(getIdFromNode(newNode));
+				webSocketData.setData("id", getIdFromNode(newNode));
 
 				return true;
 

@@ -42,8 +42,8 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketData>, 
 		JsonObject root = new JsonObject();
 		JsonObject data = new JsonObject();
 
-		if(src.getCommand() != null)	{ root.add("command", new JsonPrimitive(src.getCommand())); }
-		if(src.getId() != null)		{ root.add("id", new JsonPrimitive(src.getId())); }
+		if(src.getCommand() != null)	{ root.add("command",  new JsonPrimitive(src.getCommand())); }
+		if(src.getId() != null)		{ root.add("id",       new JsonPrimitive(src.getId())); }
 		if(src.getCallback() != null)	{ root.add("callback", new JsonPrimitive(src.getCallback())); }
 		if(src.getButton() != null)	{ root.add("button",   new JsonPrimitive(src.getButton())); }
 		if(src.getParent() != null)	{ root.add("parent",   new JsonPrimitive(src.getParent())); }
