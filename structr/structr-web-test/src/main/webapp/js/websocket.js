@@ -50,7 +50,7 @@ function connect() {
 
             if (data.command == 'CREATE') {
 
-                if (data.type == 'user') {
+                if (data.type == 'User') {
 
                     data.command = null;
                     var user = data;
@@ -58,35 +58,55 @@ function connect() {
                     if (groupId) appendUserElement(user, groupId);
                     appendUserElement(user);
                     disable($('.' + groupId + '_ .delete_icon')[0]);
-                    if (buttonClicked) enable(clickedButton);
+                    if (buttonClicked) enable(buttonClicked);
 
-                } else if (data.type == 'group') {
+                } else if (data.type == 'Group') {
 
                     appendGroupElement(data);
                     if (buttonClicked) enable(buttonClicked);
                     
                 }
                 else {
-                    
-                    appendEntityElement(data, parentElement);
+                    //appendEntityElement(data, parentElement);
+                    appendEntityElement(data);
                     if (buttonClicked) enable(buttonClicked);
 
                 }
 
             } else if (data.command == 'DELETE') {
 
-                if (data.type = 'User') {
-                    var elementSelector = '.' + data.id + '_';
-                    $(elementSelector).hide('blind', {
-                        direction: "vertical"
-                    }, 200);
-                    $(elementSelector).remove();
-                    refreshIframes();
-                    if (buttonClicked) enable(clickedButton);
-                    //if (callback) callback();
-                }
+                var elementSelector = '.' + data.uuid + '_';
+                $(elementSelector).hide('blind', {
+                    direction: "vertical"
+                }, 200);
+                $(elementSelector).remove();
+                //refreshIframes();
+                if (buttonClicked) enable(buttonClicked);
+            //if (callback) callback();
 
             } else if (data.command == 'UPDATE') {
+
+                console.log(data);
+                var element = $( data.uuid + '_');
+                var input = $('.props tr td.value input', element);
+
+                input.parent().children('.icon').each(function(i, img) {
+                    $(img).remove();
+                });
+                input.removeClass('active');
+                //                                console.log(element);//.children('.' + key));
+                $(data.keys).each(function(i, property) {
+                    console.log(property);
+                    //element.children('.' + key).text(value);
+                });
+                
+                //var tick = $('<img class="icon/tick" src="tick.png">');
+                //tick.insertAfter(input);
+                //                                console.log('value saved');
+                //$('.tick', input.parent()).fadeOut('slow', function() { console.log('fade out complete');});
+                //$('.tick', $(v).parent()).fadeOut();
+                //$('.tick', $(v).parent()).remove();
+                input.data('changed', false);
 
             } else {
                 console.log('Unknown command: ' + data.command);

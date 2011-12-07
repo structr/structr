@@ -57,7 +57,7 @@ function showUsersOfGroup(groupId) {
         //headers: { 'X-User' : 457 },
         success: function(data) {
             if (!data || data.length == 0 || !data.result) {
-                $('.' + groupId + '_ .delete_icon').on('click', function() {deleteUser(this, groupId)});
+                $('.' + groupId + '_ .delete_icon').on('click', function() {deleteGroup(this, groupId)});
                 return;
             }
             disable($('.' + groupId + '_ .delete_icon'));
@@ -72,8 +72,9 @@ function showUsersOfGroup(groupId) {
 function addGroup(button) {
     if (isDisabled(button)) return;
     disable(button);
+    buttonClicked = button;
     var url = rootUrl + 'group';
-    var data = '{ "command" : "CREATE" , "type" : "group", "name" : "New group_' + Math.floor(Math.random() * (9999 - 1)) + '" }';
+    var data = '{ "command" : "CREATE" , "type" : "Group", "name" : "New group_' + Math.floor(Math.random() * (9999 - 1)) + '" }';
     console.log(data);
     ws.send(data);
 //    var resp = $.ajax({
@@ -98,10 +99,10 @@ function addGroup(button) {
 }
 
 function addUser(button, groupId) {
-    clickedButton = button;
     if (isDisabled(button)) return;
     disable(button);
-    var url = rootUrl + 'user';
+    buttonClicked = button;
+//    var url = rootUrl + 'user';
     var name = Math.floor(Math.random() * (9999 - 1));
     var data = '{ "command" : "CREATE" , "type" : "User", "name" : "' + name + '", "realName" : "New user_' + name + '" ' + (groupId ? ', "groupId" : ' + groupId : '') + ' }';
     console.log(data);
@@ -168,6 +169,12 @@ function deleteUser(button, user, groupId) {
     deleteNode(button, user, "function() { console.log($('.user', parent).length); if ($('.user', parent).length == 0) { enable($('.delete_icon', parent)); } }");
 
 }
+
+function deleteGroup(button, groupId) {
+    buttonClicked = button;
+    var data = '{ "type" : "Group" , "id" : "' + groupId + '" , "uuid" : "' + groupId + '" }';
+    deleteNode(button, $.parseJSON(data));
+}
       
 function refreshGroup(groupId) {
     //console.log('#resource_' + resourceId + '_element_' + id);
@@ -222,7 +229,7 @@ function appendUserElement(user, groupId) {
 
 function editUserProperties(button, user, groupId) {
     console.log(button);
-    if (isDisabled(button)) return;
-    disable(button);
+//    if (isDisabled(button)) return;
+//    disable(button);
     showProperties(button, user, 'all', $('.' + user.id + '_'));
 }

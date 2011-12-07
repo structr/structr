@@ -13,7 +13,7 @@ function showProperties(button, entity, view, element) {
     disable(button, function() {
         hideProperties(button, entity, view, element);
     });
-    console.log(element);
+    //console.log(element);
     $.ajax({
         url: rootUrl + entity.id + (view ? '/' + view : ''),
         async: false,
@@ -54,7 +54,7 @@ function showProperties(button, entity, view, element) {
                         //console.log('PUT url: ' + rootUrl + entity.id);
                         //console.log(data);
 
-                        ws.send('{ "uuid" : "' + entity.id + '", "' + key + '" : "' + value + '" }');
+                        ws.send('{ "command" : "UPDATE" , "uuid" : "' + entity.id + '", "id" : "' + entity.id + '", "' + key + '" : "' + value + '" }');
 
 //                        $.ajax({
 //                            type: 'PUT',
@@ -93,33 +93,33 @@ function showProperties(button, entity, view, element) {
               
                         var key = input.attr('name');
                         var value = input.val();
-                        var data = '{ "' + key + '" : "' + value + '" }';
+//                        var data = '{ "' + key + '" : "' + value + '" }';
                         //                        console.log('PUT url: ' + rootUrl + entity.id);
                         //                        console.log(data);
-              
-                        $.ajax({
-                            type: 'PUT',
-                            url: rootUrl + entity.id,
-                            data: data,
-                            dataType: 'json',
-                            contentType: "application/json",
-                            headers: headers,
-                            success: function() {
-                                input.parent().children('.icon').each(function(i, img) {
-                                    $(img).remove();
-                                });
-                                input.removeClass('active');
-                                //                                console.log(element);//.children('.' + key));
-                                element.children('.' + key).text(value);
-                                //var tick = $('<img class="icon/tick" src="tick.png">');
-                                //tick.insertAfter(input);
-                                //                                console.log('value saved');
-                                //$('.tick', input.parent()).fadeOut('slow', function() { console.log('fade out complete');});
-                                //$('.tick', $(v).parent()).fadeOut();
-                                //$('.tick', $(v).parent()).remove();
-                                input.data('changed', false);
-                            }
-                        });
+                        ws.send('{ "command" : "UPDATE" , "uuid" : "' + entity.id + '", "id" : "' + entity.id + '", "' + key + '" : "' + value + '" }');
+//                        $.ajax({
+//                            type: 'PUT',
+//                            url: rootUrl + entity.id,
+//                            data: data,
+//                            dataType: 'json',
+//                            contentType: "application/json",
+//                            headers: headers,
+//                            success: function() {
+//                                input.parent().children('.icon').each(function(i, img) {
+//                                    $(img).remove();
+//                                });
+//                                input.removeClass('active');
+//                                //                                console.log(element);//.children('.' + key));
+//                                element.children('.' + key).text(value);
+//                                //var tick = $('<img class="icon/tick" src="tick.png">');
+//                                //tick.insertAfter(input);
+//                                //                                console.log('value saved');
+//                                //$('.tick', input.parent()).fadeOut('slow', function() { console.log('fade out complete');});
+//                                //$('.tick', $(v).parent()).fadeOut();
+//                                //$('.tick', $(v).parent()).remove();
+//                                input.data('changed', false);
+//                            }
+//                        });
                     }
                     input.removeClass('active');
                     input.parent().children('.icon').each(function(i, img) {
