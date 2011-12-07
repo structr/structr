@@ -25,7 +25,7 @@ function showProperties(button, entity, view, element) {
             element.append('<table class="props"></table>');
             var keys = Object.keys(data.result);
             $(keys).each(function(i, key) {
-                $('.props', element).append('<tr><td class="key">' + formatKey(key) + '</td><td class="value">' + formatValue(key, data.result[key]) + '</td></tr>');
+                $('.props', element).append('<tr><td class="key">' + formatKey(key) + '</td><td class="value ' + key + '">' + formatValue(key, data.result[key]) + '</td></tr>');
             });
         
             $('.props tr td.value input', element).each(function(i,v) {
@@ -96,7 +96,9 @@ function showProperties(button, entity, view, element) {
 //                        var data = '{ "' + key + '" : "' + value + '" }';
                         //                        console.log('PUT url: ' + rootUrl + entity.id);
                         //                        console.log(data);
-                        ws.send('{ "command" : "UPDATE" , "uuid" : "' + entity.id + '", "id" : "' + entity.id + '", "' + key + '" : "' + value + '" }');
+                        var data = '{ "command" : "UPDATE" , "id" : "' + entity.id + '", "data" : { "' + key + '" : "' + value + '" } }';
+                        console.log(data);
+                        ws.send(data);
 //                        $.ajax({
 //                            type: 'PUT',
 //                            url: rootUrl + entity.id,
@@ -200,8 +202,9 @@ function deleteNode(button, entity, callback) {
     var con = confirm('Delete ' + entity.name + ' [' + entity.id + ']?');
     if (!con) return;
     disable(button);
-
-    ws.send('{ "command" : "DELETE" , "id" : "' + entity.id + '", "uuid" : "' + entity.id + '", "callback" : "' + callback + '" }');
+    var toSend = '{ "command" : "DELETE" , "id" : "' + entity.id + '", "data" : { "callback" : "' + callback + '" } }';
+    console.log(toSend);
+    ws.send(toSend);
 
 //    $.ajax({
 //        url: rootUrl + entity.type.toLowerCase() + '/' + entity.id,
