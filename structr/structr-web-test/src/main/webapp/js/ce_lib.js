@@ -53,30 +53,32 @@ function showProperties(button, entity, view, element) {
                         var data = '{ "' + key + '" : "' + value + '" }';
                         //console.log('PUT url: ' + rootUrl + entity.id);
                         //console.log(data);
-              
-                        $.ajax({
-                            type: 'PUT',
-                            url: rootUrl + entity.id,
-                            data: data,
-                            dataType: 'json',
-                            contentType: "application/json",
-                            headers: headers,
-                            success: function() {
-                                input.parent().children('.icon').each(function(i, img) {
-                                    $(img).remove();
-                                });
-                                input.removeClass('active');
-                                //console.log(element);//.children('.' + key));
-                                element.children('.' + key).text(value);
-                                //var tick = $('<img class="icon/tick" src="tick.png">');
-                                //tick.insertAfter(input);
-                                //console.log('value saved');
-                                //$('.tick', input.parent()).fadeOut('slow', function() { console.log('fade out complete');});
-                                //$('.tick', $(v).parent()).fadeOut();
-                                //$('.tick', $(v).parent()).remove();
-                                input.data('changed', false);
-                            }
-                        });
+
+                        ws.send('{ "uuid" : "' + entity.id + '", "' + key + '" : "' + value + '" }');
+
+//                        $.ajax({
+//                            type: 'PUT',
+//                            url: rootUrl + entity.id,
+//                            data: data,
+//                            dataType: 'json',
+//                            contentType: "application/json",
+//                            headers: headers,
+//                            success: function() {
+//                                input.parent().children('.icon').each(function(i, img) {
+//                                    $(img).remove();
+//                                });
+//                                input.removeClass('active');
+//                                //console.log(element);//.children('.' + key));
+//                                element.children('.' + key).text(value);
+//                                //var tick = $('<img class="icon/tick" src="tick.png">');
+//                                //tick.insertAfter(input);
+//                                //console.log('value saved');
+//                                //$('.tick', input.parent()).fadeOut('slow', function() { console.log('fade out complete');});
+//                                //$('.tick', $(v).parent()).fadeOut();
+//                                //$('.tick', $(v).parent()).remove();
+//                                input.data('changed', false);
+//                            }
+//                        });
                     });
                 });
           
