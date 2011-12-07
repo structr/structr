@@ -58,8 +58,8 @@ function createEntity(entity, parentElement) {
     //  console.log(entity);
     var url = rootUrl + entity.type.toLowerCase();
 
-    var command = entity;
-    var data = $.toJSON(command);
+    entity.command = 'CREATE';
+    var data = $.toJSON(entity);
     console.log(data);
 
     //ws.send(data);

@@ -24,9 +24,9 @@ function connect() {
 
     try {
 
-
+        var host = document.location.host;
         if ('WebSocket' in window) {
-            ws = new WebSocket('ws://localhost:8080/structr-web-test/ws/', 'structr');
+            ws = new WebSocket('ws://' + host + '/structr-web-test/ws/', 'structr');
         } else if ('MozWebSocket' in window) {
             ws = new MozWebSocket('ws://localhost:8080/structr-web-test/ws/', 'structr');
         } else {
@@ -41,9 +41,43 @@ function connect() {
         }
 
         ws.onmessage = function(message) {
-            log('Message received: ' + message.data);
+
+            log('Message received: ' + message);
+
+            var data = message.data;
 
             console.log(message.data);
+
+            if (data.command = 'CREATE') {
+
+                if (data.type = 'User') {
+                    data.command = null;
+                    var user = data;
+                    groupId = user.groupId;
+                    if (groupId) appendUserElement(user, groupId);
+                    appendUserElement(user);
+                    disable($('.' + groupId + '_ .delete_icon')[0]);
+                    enable(clickedButton);
+                }
+
+            } else if (data.command = 'DELETE') {
+
+                if (data.type = 'User') {
+                    var elementSelector = '.' + data.id + '_';
+                    $(elementSelector).hide('blind', {
+                        direction: "vertical"
+                    }, 200);
+                    $(elementSelector).remove();
+                    refreshIframes();
+                    enable(clickedButton);
+                    //if (callback) callback();
+                }
+
+            } else if (data.command = 'UPDATE') {
+
+            } else {
+                console.log('Unknown command: ' + data.command);
+            }
 
 
         }

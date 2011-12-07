@@ -96,31 +96,36 @@ function addGroup(button) {
 }
 
 function addUser(button, groupId) {
+    clickedButton = button;
     if (isDisabled(button)) return;
     disable(button);
     var url = rootUrl + 'user';
-    var data = '{ "type" : "user", "realName" : "New user_' + Math.floor(Math.random() * (9999 - 1)) + '" ' + (groupId ? ', "groupId" : ' + groupId : '') + ' }';
-    var resp = $.ajax({
-        url: url,
-        //async: false,
-        type: 'POST',
-        dataType: 'json',
-        contentType: 'application/json; charset=utf-8',
-        data: data,
-        success: function(data) {
-            var getUrl = resp.getResponseHeader('Location');
-            $.ajax({
-                url: getUrl + '/all',
-                success: function(data) {
-                    var user = data.result;
-                    if (groupId) appendUserElement(user, groupId);
-                    appendUserElement(user);
-                    disable($('.' + groupId + '_ .delete_icon')[0]);
-                    enable(button);
-                }
-            });
-        }
-    });
+    var name = Math.floor(Math.random() * (9999 - 1));
+    var data = '{ "command" : "CREATE" , "type" : "User", "name" : "' + name + '", "realName" : "New user_' + name + '" ' + (groupId ? ', "groupId" : ' + groupId : '') + ' }';
+    console.log(data);
+    ws.send(data);
+
+//    var resp = $.ajax({
+//        url: url,
+//        //async: false,
+//        type: 'POST',
+//        dataType: 'json',
+//        contentType: 'application/json; charset=utf-8',
+//        data: data,
+//        success: function(data) {
+//            var getUrl = resp.getResponseHeader('Location');
+//            $.ajax({
+//                url: getUrl + '/all',
+//                success: function(data) {
+//                    var user = data.result;
+//                    if (groupId) appendUserElement(user, groupId);
+//                    appendUserElement(user);
+//                    disable($('.' + groupId + '_ .delete_icon')[0]);
+//                    enable(button);
+//                }
+//            });
+//        }
+//    });
 }
 
 function removeUserFromGroup(userId, groupId) {

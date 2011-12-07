@@ -195,25 +195,28 @@ function deleteAll(button, type, callback) {
 }
 
 function deleteNode(button, entity, callback) {
+    buttonClicked = button;
     if (isDisabled(button)) return;
     var con = confirm('Delete ' + entity.name + ' [' + entity.id + ']?');
     if (!con) return;
     disable(button);
-    var elementSelector = '.' + entity.id + '_';
-    $.ajax({
-        url: rootUrl + entity.type.toLowerCase() + '/' + entity.id,
-        type: "DELETE",
-        headers: headers,
-        success: function(data) {
-            $(elementSelector).hide('blind', {
-                direction: "vertical"
-            }, 200);
-            $(elementSelector).remove();
-            refreshIframes();
-            enable(button);
-            if (callback) callback();
-        }
-    });
+
+    ws.send('{ "command" : "DELETE" , "id" : "' + entity.id + '", "uuid" : "' + entity.id + '", "callback" : "' + callback + '" }');
+
+//    $.ajax({
+//        url: rootUrl + entity.type.toLowerCase() + '/' + entity.id,
+//        type: "DELETE",
+//        headers: headers,
+//        success: function(data) {
+//            $(elementSelector).hide('blind', {
+//                direction: "vertical"
+//            }, 200);
+//            $(elementSelector).remove();
+//            refreshIframes();
+//            enable(button);
+//            if (callback) callback();
+//        }
+//    });
 }
 
 function isDisabled(button) {
