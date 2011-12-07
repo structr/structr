@@ -2,8 +2,8 @@
 <web-app xmlns="http://java.sun.com/xml/ns/javaee"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
-        http://java.sun.com/xml/ns/javaee/web-app_2_4.xsd"
-        version="2.4">
+        http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
+        version="3.0">
 		
         <!--  configure structr context listener -->
 	<listener>
@@ -46,6 +46,17 @@
 		<servlet-name>HtmlServlet</servlet-name>
 		<url-pattern>/html/*</url-pattern>
 	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>WebSocketServlet</servlet-name>
+		<servlet-class>org.structr.websocket.servlet.WebSocketServlet</servlet-class>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>WebSocketServlet</servlet-name>
+		<url-pattern>/ws/*</url-pattern>
+	</servlet-mapping>
+
 
     <!--  custom context parameter start -->
 	<context-param>
