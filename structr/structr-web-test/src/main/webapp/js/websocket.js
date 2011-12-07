@@ -24,42 +24,46 @@ function connect() {
 
     try {
 
-        ws = new WebSocket("ws://localhost:8080/ws");
+        ws = new WebSocket("ws://localhost:8080/structr-web-test/ws/", "structr");
 
-        console.log('State: ' + ws.readyState);
+        log('State: ' + ws.readyState);
 
         ws.onopen = function() {
-            console.log('Open: ' + ws.readyState);
+            log('Open: ' + ws.readyState);
         }
 
         ws.onmessage = function(message) {
-            console.log('Message: ' + message.data);
+            log('Message: ' + message.data);
         }
 
         ws.onclose = function() {
-            console.log('Close: ' + ws.readyState);
+            log('Close: ' + ws.readyState);
         }
 
     } catch (exception) {
-        console.log('Error: ' + exception);
+        log('Error: ' + exception);
     }
-    
+
 }
 
 function send(text) {
 
     if (!text) {
-        console.log('No text to send!');
+        log('No text to send!');
         return;
     }
 
     try {
 
         ws.send(text);
-        console.log('Sent: ' + text);
+        log('Sent: ' + text);
 
     } catch (exception) {
-        console.log('Error: ' + exception);
+        log('Error: ' + exception);
     }
 
+}
+
+function log(msg) {
+    $("#log").append("<br />" + msg);
 }
