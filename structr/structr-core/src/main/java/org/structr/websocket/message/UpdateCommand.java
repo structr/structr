@@ -19,8 +19,18 @@
 
 package org.structr.websocket.message;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.SecurityContext;
+import org.structr.core.Services;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.node.search.Search;
+import org.structr.core.node.search.SearchAttribute;
+import org.structr.core.node.search.SearchNodeCommand;
+import org.structr.websocket.StructrWebSocket;
 
 /**
  *
@@ -32,6 +42,30 @@ public class UpdateCommand extends AbstractMessage {
 
 	@Override
 	public void processMessage() {
-		logger.log(Level.INFO, "Processing message..");
+
+		String uuid = getUuid();
+
+		List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
+		attrs.add(Search.andExactUuid(uuid));
+
+		List<AbstractNode> results = (List<AbstractNode>)Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(null, false, false, attrs);
+		if(!results.isEmpty()) {
+
+			logger.log(Level.INFO, "Updating node with uuid {0}", uuid);
+
+			AbstractNode node = results.get(0);
+
+			for(Entry<String, String> entry : getParameters().entrySet()) {
+				node.setProperty(entry.getKey(), entry.getValue());
+			}
+
+			// broadcast message
+			StructrWebSocket.broadcast(getSource());
+
+		} else {
+
+			logger.log(Level.WARNING, "Node with uuid {0} not found.", uuid);
+
+		}
 	}
 }

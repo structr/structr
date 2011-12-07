@@ -19,6 +19,8 @@
 
 package org.structr.websocket;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.eclipse.jetty.websocket.WebSocket;
@@ -30,14 +32,18 @@ import org.structr.websocket.message.AbstractMessage;
  */
 public class StructrWebSocket implements WebSocket.OnTextMessage {
 
-	private static final Logger logger = Logger.getLogger(StructrWebSocket.class.getName());
-	private Connection connection = null;
+	private static final Logger logger                 = Logger.getLogger(StructrWebSocket.class.getName());
+	private static final Set<StructrWebSocket> sockets = new LinkedHashSet<StructrWebSocket>();
+
+	private Connection connection                      = null;
 
 	@Override
 	public void onOpen(Connection connection) {
 
 		logger.log(Level.INFO, "New connection with protocol {0}", connection.getProtocol());
 		this.connection = connection;
+
+		sockets.add(this);
 	}
 
 	@Override
@@ -45,16 +51,40 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 
 		logger.log(Level.INFO, "Connection closed with closeCode {0} and message {1}", new Object[] { closeCode, message } );
 		this.connection = null;
+
+		sockets.remove(this);
 	}
 
 	@Override
 	public void onMessage(String data) {
-
-		logger.log(Level.INFO, "Received message {0}", data);
-
 		AbstractMessage message = AbstractMessage.createMessage(connection, data);
 		if(message != null) {
 			message.processMessage();
+		}
+	}
+	
+	public Connection getConnection() {
+		return connection;
+	}
+
+	// ----- public static methods -----
+	public static void broadcast(String message) {
+
+		logger.log(Level.INFO, "Broadcasting message to {0} clients..", sockets.size());
+
+		for(StructrWebSocket socket : sockets) {
+
+			Connection connection = socket.getConnection();
+			if(connection != null) {
+
+				try {
+					connection.sendMessage(message);
+
+				} catch(Throwable t) {
+					
+					logger.log(Level.WARNING, "Error sending message to client.", t);
+				}
+			}
 		}
 	}
 }
