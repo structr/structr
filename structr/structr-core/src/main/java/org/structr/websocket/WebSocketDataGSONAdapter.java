@@ -42,11 +42,8 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketData>, 
 		JsonObject root = new JsonObject();
 		JsonObject data = new JsonObject();
 
-		// mandatory fields
-		root.add("command", new JsonPrimitive(src.getCommand()));
-		root.add("id", new JsonPrimitive(src.getId()));
-
-		// optional fields
+		if(src.getCommand() != null)	{ root.add("command", new JsonPrimitive(src.getCommand())); }
+		if(src.getId() != null)		{ root.add("id", new JsonPrimitive(src.getId())); }
 		if(src.getCallback() != null)	{ root.add("callback", new JsonPrimitive(src.getCallback())); }
 		if(src.getButton() != null)	{ root.add("button",   new JsonPrimitive(src.getButton())); }
 		if(src.getParent() != null)	{ root.add("parent",   new JsonPrimitive(src.getParent())); }
@@ -78,11 +75,8 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketData>, 
 			JsonObject root = json.getAsJsonObject();
 			JsonObject data = root.getAsJsonObject("data");
 
-			// mandatory fields
-			webSocketData.setCommand(root.getAsJsonPrimitive("command").getAsString());
-			webSocketData.setId(root.getAsJsonPrimitive("id").getAsString());
-
-			// optional fields
+			if(root.has("command"))		{ webSocketData.setCommand(root.getAsJsonPrimitive("command").getAsString()); }
+			if(root.has("id"))		{ webSocketData.setId(root.getAsJsonPrimitive("id").getAsString()); }
 			if(root.has("callback"))	{ webSocketData.setCallback(root.getAsJsonPrimitive("callback").getAsString()); }
 			if(root.has("button"))		{ webSocketData.setButton(root.getAsJsonPrimitive("button").getAsString()); }
 			if(root.has("parent"))		{ webSocketData.setParent(root.getAsJsonPrimitive("parent").getAsString()); }
