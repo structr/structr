@@ -44,15 +44,18 @@ function connect() {
 
             log('Message received: ' + message);
 
-            var data = $.parseJSON(message.data);
+            var result = $.parseJSON(message.data);
+            var data = result.data;
+            var command = result.command;
 
             console.log(data);
 
-            if (data.command == 'CREATE') {
+            if (command == 'CREATE') {
 
                 if (data.type == 'User') {
 
-                    data.command = null;
+                    data.id = result.id;
+                    //data.command = null;
                     var user = data;
                     groupId = user.groupId;
                     if (groupId) appendUserElement(user, groupId);
@@ -73,9 +76,9 @@ function connect() {
 
                 }
 
-            } else if (data.command == 'DELETE') {
+            } else if (command == 'DELETE') {
 
-                var elementSelector = '.' + data.id + '_';
+                var elementSelector = '.' + result.id + '_';
                 $(elementSelector).hide('blind', {
                     direction: "vertical"
                 }, 200);
@@ -84,9 +87,9 @@ function connect() {
                 if (buttonClicked) enable(buttonClicked);
             //if (callback) callback();
 
-            } else if (data.command == 'UPDATE') {
+            } else if (command == 'UPDATE') {
 
-                var element = $( '.' + data.id + '_');
+                var element = $( '.' + result.id + '_');
                 var input = $('.props tr td.value input', element);
                 //console.log(element);
 
@@ -95,22 +98,16 @@ function connect() {
                 });
                 input.removeClass('active');
                 //                                console.log(element);//.children('.' + key));
-                for (key in data.data) {
-                    element.children('.' + key).text(data.data[key]);
+                for (key in data) {
+                    element.children('.' + key).text(data[key]);
                     console.log($('.props tr td.' + key + ' input', element));
-                    $('.props tr td.' + key + ' input', element).val(data.data[key]);
+                    $('.props tr td.' + key + ' input', element).val(data[key]);
                 }
                 
-                //var tick = $('<img class="icon/tick" src="tick.png">');
-                //tick.insertAfter(input);
-                //                                console.log('value saved');
-                //$('.tick', input.parent()).fadeOut('slow', function() { console.log('fade out complete');});
-                //$('.tick', $(v).parent()).fadeOut();
-                //$('.tick', $(v).parent()).remove();
                 input.data('changed', false);
 
             } else {
-                console.log('Unknown command: ' + data.command);
+                console.log('Unknown command: ' + command);
             }
 
 
