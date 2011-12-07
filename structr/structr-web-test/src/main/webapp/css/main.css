@@ -128,8 +128,7 @@ img.disabled {
 }
 
 
-.resource .element,
-#groups .group {
+.resource .element {
 	background-color: #f0f0f0;
 	background: -webkit-gradient(linear, left bottom, left top, from(#eee), to(#f5f5f5)) no-repeat;
 	background: -moz-linear-gradient(90deg, #eee, #f5f5f5) no-repeat;
@@ -138,6 +137,7 @@ img.disabled {
 
 .resource .content,
 #groups .user,
+#groups .group,
 #users .user,
 .nested {
 	background-color: #eee;
@@ -263,6 +263,7 @@ div.nested {
 
 .content:hover,
 #groups .user:hover,
+#groups .group:hover,
 #users .user:hover {
 	color: #000;
 	border: 1px solid #bbb;
@@ -272,8 +273,7 @@ div.nested {
 	filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#e7e7e7', EndColorStr='#e3e3e3', GradientType=0);
 }
 
-.element:hover,
-#groups .group:hover {
+.element:hover {
 	color: #000;
 	border: 1px solid #bbb;
 	background-color: #f5f5f5;

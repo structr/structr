@@ -56,36 +56,36 @@ function appendEntityElement(entity, parentElement) {
 function createEntity(entity, parentElement) {
     //  console.log('Creating entity ..');
     //  console.log(entity);
-    var url = rootUrl + entity.type.toLowerCase();
+//    var url = rootUrl + entity.type.toLowerCase();
 
     entity.command = 'CREATE';
     var data = $.toJSON(entity);
     console.log(data);
 
-    //ws.send(data);
+    ws.send(data);
 
-    var resp = $.ajax({
-        url: url,
-        //async: false,
-        type: 'POST',
-        dataType: 'json',
-        contentType: 'application/json; charset=utf-8',
-        headers: headers,
-        data: $.toJSON(entity),
-        success: function(data) {
-            var getUrl = resp.getResponseHeader('Location');
-            $.ajax({
-                url: getUrl + '/all',
-                headers: headers,
-                success: function(data) {
-                    //          console.log('Entity added: ' + getUrl);
-                    entity.id = lastPart(getUrl, '/');
-                    appendEntityElement(data.result, parentElement);
-                    if (buttonClicked) enable(buttonClicked);
-                }
-            });
-        }
-    });
+//    var resp = $.ajax({
+//        url: url,
+//        //async: false,
+//        type: 'POST',
+//        dataType: 'json',
+//        contentType: 'application/json; charset=utf-8',
+//        headers: headers,
+//        data: $.toJSON(entity),
+//        success: function(data) {
+//            var getUrl = resp.getResponseHeader('Location');
+//            $.ajax({
+//                url: getUrl + '/all',
+//                headers: headers,
+//                success: function(data) {
+//                    //          console.log('Entity added: ' + getUrl);
+//                    entity.id = lastPart(getUrl, '/');
+//                    appendEntityElement(data.result, parentElement);
+//                    if (buttonClicked) enable(buttonClicked);
+//                }
+//            });
+//        }
+//    });
 }
 
 var buttonClicked;

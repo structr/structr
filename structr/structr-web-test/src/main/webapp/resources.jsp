@@ -13,14 +13,20 @@
             $(document).ready(function() {
                 main = $('#main');
                 showResources();
+                connect();
+                $('#addResource').on('click', function() {
+                   addEntity('resource', this);
+                });
             });
             //-->
         </script>
+        <script src="js/websocket.js" type="text/javascript"></script>
         <script src="js/resources.js" type="text/javascript"></script>
     </head>
     <body>
         <%@include file="include/menu.jsp" %>
         <div id="main">
+            <button id="addResource"><img src="icon/add.png"> Add Resource</button>
             <div id="resources"></div><div id="previews"></div>
         </div>
         <%@include file="include/footer.jsp" %>
