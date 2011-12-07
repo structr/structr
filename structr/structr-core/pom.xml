@@ -199,8 +199,23 @@
             <artifactId>gson</artifactId>
             <version>1.7.1</version>
         </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-websocket</artifactId>
+            <version>8.1.0.RC0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-server</artifactId>
+            <version>8.1.0.RC0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty.aggregate</groupId>
+            <artifactId>jetty-all</artifactId>
+            <version>8.1.0.RC0</version>
+        </dependency>
     </dependencies>
-    
+
     <build>
         <plugins>
             <plugin>
@@ -269,6 +284,9 @@ Copyright (C) 2011 Axel Morgner, structr &lt;structr@structr.org&gt;
     </scm>
 
 </project>
+
+
+
 
 
 
