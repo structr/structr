@@ -19,10 +19,14 @@
 
 package org.structr.websocket.message;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
 import org.structr.core.Services;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.CreateNodeCommand;
+import org.structr.core.node.StructrTransaction;
+import org.structr.core.node.TransactionCommand;
 import org.structr.websocket.StructrWebSocket;
 
 /**
@@ -36,10 +40,36 @@ public class CreateCommand extends AbstractMessage {
 	@Override
 	public void processMessage() {
 
-		// create node
-		Services.command(SecurityContext.getSuperUserInstance(), CreateNodeCommand.class).execute(getParameters());
+		StructrTransaction transaction = new StructrTransaction() {
 
-		// broadcast message
-		StructrWebSocket.broadcast(getSource());
+			@Override
+			public Object execute() throws Throwable {
+				return (AbstractNode)Services.command(SecurityContext.getSuperUserInstance(), CreateNodeCommand.class).execute(getParameters());
+			}
+		};
+
+		// create node in transaction
+		AbstractNode newNode = (AbstractNode)Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(transaction);
+
+		// check for errors
+		if(transaction.getCause() != null) {
+
+			logger.log(Level.WARNING, "Could not create node.", transaction.getCause());
+
+		} else {
+
+			if(newNode != null) {
+
+				// add uuid to parameters
+				getParameters().put(AbstractMessage.UUID_KEY, newNode.getStringProperty(AbstractNode.Key.uuid));
+
+				// broadcast message
+				StructrWebSocket.broadcast(getParametersAsJson());
+
+			} else {
+				
+				logger.log(Level.WARNING, "Could not create new node.");
+			}
+		}
 	}
 }

@@ -43,10 +43,11 @@ import org.structr.core.node.search.SearchNodeCommand;
  */
 public abstract class AbstractMessage implements Message {
 
+	public static final String COMMAND_KEY             = "command";
+	public static final String UUID_KEY                = "uuid";
+
 	private static final Map<String, Class> commandSet = new LinkedHashMap<String, Class>();
 	private static final Logger logger                 = Logger.getLogger(AbstractMessage.class.getName());
-	private static final String COMMAND_KEY            = "command";
-	private static final String UUID_KEY               = "uuid";
 	private static final Gson gson;
 
 	static {
@@ -103,6 +104,10 @@ public abstract class AbstractMessage implements Message {
 		}
 
 		return null;
+	}
+
+	protected String getParametersAsJson() {
+		return gson.toJson(parameters, new TypeToken<Map<String, String>>() {}.getType());
 	}
 
 	// ----- private methods -----
