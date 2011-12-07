@@ -19,37 +19,27 @@
 
 package org.structr.websocket.message;
 
-import java.util.Map.Entry;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.entity.AbstractNode;
+import org.structr.common.SecurityContext;
+import org.structr.core.Services;
+import org.structr.core.node.CreateNodeCommand;
 import org.structr.websocket.StructrWebSocket;
 
 /**
  *
  * @author Christian Morgner
  */
-public class UpdateCommand extends AbstractMessage {
+public class CreateCommand extends AbstractMessage {
 
-	private static final Logger logger = Logger.getLogger(UpdateCommand.class.getName());
+	private static final Logger logger = Logger.getLogger(CreateCommand.class.getName());
 
 	@Override
 	public void processMessage() {
 
-		AbstractNode node = getNode();
-		if(node != null) {
+		// create node
+		Services.command(SecurityContext.getSuperUserInstance(), CreateNodeCommand.class).execute(getParameters());
 
-			for(Entry<String, String> entry : getParameters().entrySet()) {
-				node.setProperty(entry.getKey(), entry.getValue());
-			}
-
-			// broadcast message
-			StructrWebSocket.broadcast(getSource());
-
-		} else {
-
-			logger.log(Level.WARNING, "Node with uuid {0} not found.", getUuid());
-
-		}
+		// broadcast message
+		StructrWebSocket.broadcast(getSource());
 	}
 }
