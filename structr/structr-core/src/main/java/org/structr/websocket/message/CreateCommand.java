@@ -62,7 +62,7 @@ public class CreateCommand extends AbstractMessage {
 			if(newNode != null) {
 
 				// add uuid to parameter set
-				getParameters().put(AbstractMessage.UUID_KEY, newNode.getStringProperty(AbstractNode.Key.uuid));
+				getParameters().put(AbstractMessage.ID_KEY, newNode.getStringProperty(AbstractNode.Key.uuid));
 
 				// return parameter set
 				return getParameters();

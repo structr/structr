@@ -36,9 +36,23 @@ import org.eclipse.jetty.websocket.WebSocketFactory.Acceptor;
  */
 public class WebSocketServlet extends HttpServlet {
 
-	private static final WebSocketFactory factory = new WebSocketFactory(new WebSocketAcceptor());
-	private static final Logger logger            = Logger.getLogger(WebSocketServlet.class.getName());
-	private static final String STRUCTR_PROTOCOL  = "structr";
+	private static final WebSocketFactory factory              = new WebSocketFactory(new WebSocketAcceptor());
+	private static final Logger logger                         = Logger.getLogger(WebSocketServlet.class.getName());
+	private static final String STRUCTR_PROTOCOL               = "structr";
+	private static final String SERVLET_PARAMETER_ID_PROPERTY  = "IdProperty";
+
+	private static String idProperty                           = null;
+
+	@Override
+	public void init() {
+
+		// primary key
+		String idPropertyName = this.getInitParameter(SERVLET_PARAMETER_ID_PROPERTY);
+		if (idPropertyName != null) {
+			logger.log(Level.INFO, "Setting id property to {0}", idPropertyName);
+			this.idProperty = idPropertyName;
+		}
+	}
 
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -60,7 +74,7 @@ public class WebSocketServlet extends HttpServlet {
 		public WebSocket doWebSocketConnect(HttpServletRequest request, String protocol) {
 
 			if(STRUCTR_PROTOCOL.equals(protocol)) {
-				return new StructrWebSocket();
+				return new StructrWebSocket(idProperty);
 			} else {
 				logger.log(Level.INFO, "Protocol {0} not accepted", protocol);
 			}

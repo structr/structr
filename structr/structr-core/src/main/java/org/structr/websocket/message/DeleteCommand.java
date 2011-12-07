@@ -43,14 +43,11 @@ public class DeleteCommand extends AbstractMessage {
 
 			Services.command(SecurityContext.getSuperUserInstance(), DeleteNodeCommand.class).execute(node);
 
-			// add uuid to parameter set
-			getParameters().put(AbstractMessage.UUID_KEY, node.getStringProperty(AbstractNode.Key.uuid));
-
 			return getParameters();
 
 		} else {
 
-			logger.log(Level.WARNING, "Node with uuid {0} not found.", getUuid());
+			logger.log(Level.WARNING, "Node with id {0} not found.", getUuid());
 
 		}
 
