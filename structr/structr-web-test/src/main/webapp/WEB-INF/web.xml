@@ -51,6 +51,14 @@
 		<servlet-name>WebSocketServlet</servlet-name>
 		<servlet-class>org.structr.websocket.servlet.WebSocketServlet</servlet-class>
 		<load-on-startup>1</load-on-startup>
+		<init-param>
+			<param-name>Authenticator</param-name>
+			<param-value>org.structr.web.common.HttpAuthenticator</param-value>
+		</init-param>
+		<init-param>
+			<param-name>IdProperty</param-name>
+			<param-value>uuid</param-value>
+		</init-param>
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>WebSocketServlet</servlet-name>
