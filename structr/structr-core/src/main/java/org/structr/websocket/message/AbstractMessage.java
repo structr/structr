@@ -50,9 +50,9 @@ public abstract class AbstractMessage implements Message {
 		gson = new GsonBuilder().setPrettyPrinting().create();
 	}
 
-	private Map<String, String> parameters = null;
+	private Map<String, String> parameters = new LinkedHashMap<String, String>();
 	private Connection connection = null;
-	private String command = null;
+	private String source = null;
 	private String uuid = null;
 
 	public abstract void processMessage();
@@ -60,6 +60,10 @@ public abstract class AbstractMessage implements Message {
 	@Override
 	public String getUuid() {
 		return uuid;
+	}
+
+	public String getSource() {
+		return source;
 	}
 
 	@Override
@@ -76,26 +80,39 @@ public abstract class AbstractMessage implements Message {
 		this.connection = connection;
 	}
 
+	private void setSource(String source) {
+		this.source = source;
+	}
+
 	private void setUuid(String uuid) {
 		this.uuid = uuid;
+	}
+
+	private void setParameters(Map<String, String> parameters) {
+		this.parameters = parameters;
 	}
 
 	// ----- public static methods -----
 	public static AbstractMessage createMessage(Connection connection, String source) {
 
 		try {
-			Map<String, String> map = gson.fromJson(source, new TypeToken<Map<String, Map<String, String>>>() {}.getType());
-			String command = map.get(COMMAND_KEY);
-			String uuid = map.get(UUID_KEY);
+			Map<String, String> parsedSource = gson.fromJson(source, new TypeToken<Map<String, String>>() {}.getType());
+			String command = parsedSource.get(COMMAND_KEY);
+			String uuid = parsedSource.get(UUID_KEY);
+
+			// prepare parsed source map to be used for setProperty (remove meta-information)
+			parsedSource.remove(COMMAND_KEY);
+			parsedSource.remove(UUID_KEY);
 
 			Class type = commandSet.get(command);
 			if(type != null) {
 
 				AbstractMessage msg = (AbstractMessage)type.newInstance();
+				msg.setParameters(parsedSource);
 				msg.setConnection(connection);
+				msg.setSource(source);
 				msg.setUuid(uuid);
 
-				// TODO: initialize?
 				return msg;
 
 			} else {
