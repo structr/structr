@@ -75,7 +75,7 @@ function connect() {
 
             } else if (data.command == 'DELETE') {
 
-                var elementSelector = '.' + data.uuid + '_';
+                var elementSelector = '.' + data.id + '_';
                 $(elementSelector).hide('blind', {
                     direction: "vertical"
                 }, 200);
@@ -86,19 +86,20 @@ function connect() {
 
             } else if (data.command == 'UPDATE') {
 
-                console.log(data);
-                var element = $( data.uuid + '_');
+                var element = $( '.' + data.id + '_');
                 var input = $('.props tr td.value input', element);
+                //console.log(element);
 
                 input.parent().children('.icon').each(function(i, img) {
                     $(img).remove();
                 });
                 input.removeClass('active');
                 //                                console.log(element);//.children('.' + key));
-                $(data.keys).each(function(i, property) {
-                    console.log(property);
-                    //element.children('.' + key).text(value);
-                });
+                for (key in data.data) {
+                    element.children('.' + key).text(data.data[key]);
+                    console.log($('.props tr td.' + key + ' input', element));
+                    $('.props tr td.' + key + ' input', element).val(data.data[key]);
+                }
                 
                 //var tick = $('<img class="icon/tick" src="tick.png">');
                 //tick.insertAfter(input);

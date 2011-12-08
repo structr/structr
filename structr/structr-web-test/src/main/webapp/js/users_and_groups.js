@@ -74,7 +74,7 @@ function addGroup(button) {
     disable(button);
     buttonClicked = button;
     var url = rootUrl + 'group';
-    var data = '{ "command" : "CREATE" , "type" : "Group", "name" : "New group_' + Math.floor(Math.random() * (9999 - 1)) + '" }';
+    var data = '{ "command" : "CREATE" , "data" : { "type" : "Group", "name" : "New group_' + Math.floor(Math.random() * (9999 - 1)) + '" } }';
     console.log(data);
     ws.send(data);
 //    var resp = $.ajax({
@@ -104,7 +104,7 @@ function addUser(button, groupId) {
     buttonClicked = button;
 //    var url = rootUrl + 'user';
     var name = Math.floor(Math.random() * (9999 - 1));
-    var data = '{ "command" : "CREATE" , "type" : "User", "name" : "' + name + '", "realName" : "New user_' + name + '" ' + (groupId ? ', "groupId" : ' + groupId : '') + ' }';
+    var data = '{ "command" : "CREATE" , "data" : { "type" : "User", "name" : "' + name + '", "realName" : "New user_' + name + '" ' + (groupId ? ', "groupId" : ' + groupId : '') + ' } }';
     console.log(data);
     ws.send(data);
 
@@ -203,7 +203,7 @@ function appendUserElement(user, groupId) {
     if (groupId) {
         $('.' + groupId + '_').append('<div class="nested user ' + user.id + '_">'
             + '<img class="typeIcon" src="icon/user.png">'
-            + ' <b>' + user.realName + '</b> '
+            + ' <b class="realName">' + user.realName + '</b> '
         //+ '[' + user.id + '] ' + (groupId ? '(group: ' + groupId + ')' : '')
         //+ '<b>' + name + '</b>'
             + '</div>');
@@ -215,7 +215,7 @@ function appendUserElement(user, groupId) {
     } else {
         users.append('<div class="nested user ' + user.id + '_">'
             + '<img class="typeIcon" src="icon/user.png">'
-            + ' <b>' + user.realName + '</b> '
+            + ' <b class="realName">' + user.realName + '</b> '
         //+ '[' + user.id + '] ' + (groupId ? '(group: ' + groupId + ')' : '')
         //+ '<b>' + name + '</b>'
             + '</div>');
