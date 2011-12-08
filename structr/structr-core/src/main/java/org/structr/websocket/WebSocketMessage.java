@@ -38,6 +38,7 @@ public class WebSocketMessage {
 	private String sortKey = null;
 	private String button = null;
 	private String parent = null;
+	private String token = null;
 	private String view = null;
 	private String id = null;
 	private int pageSize = 0;
@@ -141,5 +142,13 @@ public class WebSocketMessage {
 
 	public void setSortOrder(String sortOrder) {
 		this.sortOrder = sortOrder;
+	}
+
+	public String getToken() {
+		return token;
+	}
+
+	public void setToken(String token) {
+		this.token = token;
 	}
 }

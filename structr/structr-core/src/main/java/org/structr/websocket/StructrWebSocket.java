@@ -20,18 +20,20 @@
 package org.structr.websocket;
 
 import com.google.gson.Gson;
+import java.security.SecureRandom;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.codec.binary.Base64;
 import org.eclipse.jetty.websocket.WebSocket;
 import org.structr.websocket.command.AbstractCommand;
 import org.structr.websocket.command.CreateCommand;
 import org.structr.websocket.command.DeleteCommand;
 import org.structr.websocket.command.GetCommand;
 import org.structr.websocket.command.ListCommand;
+import org.structr.websocket.command.LoginCommand;
+import org.structr.websocket.command.LogoutCommand;
 import org.structr.websocket.command.UpdateCommand;
 
 /**
@@ -40,9 +42,11 @@ import org.structr.websocket.command.UpdateCommand;
  */
 public class StructrWebSocket implements WebSocket.OnTextMessage {
 
-	private static final Logger logger                 = Logger.getLogger(StructrWebSocket.class.getName());
-	private static final Set<StructrWebSocket> sockets = new LinkedHashSet<StructrWebSocket>();
-	private static final Map<String, Class> commandSet = new LinkedHashMap<String, Class>();
+	private static final Map<String, StructrWebSocket> sockets = new LinkedHashMap<String, StructrWebSocket>();
+	private static final Logger logger                         = Logger.getLogger(StructrWebSocket.class.getName());
+	private static final SecureRandom secureRandom             = new SecureRandom();
+	private static final Map<String, Class> commandSet         = new LinkedHashMap<String, Class>();
+	private static final int SessionIdLength                   = 128;
 
 	static {
 
@@ -50,11 +54,13 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 		addCommand(CreateCommand.class);
 		addCommand(UpdateCommand.class);
 		addCommand(DeleteCommand.class);
+		addCommand(LogoutCommand.class);
+		addCommand(LoginCommand.class);
 		addCommand(ListCommand.class);
 		addCommand(GetCommand.class);
 	}
 
-
+	private String token          = null;
 	private Connection connection = null;
 	private	String idProperty     = null;
 	private Gson gson             = null;
@@ -68,9 +74,10 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 	public void onOpen(Connection connection) {
 
 		logger.log(Level.INFO, "New connection with protocol {0}", connection.getProtocol());
+		this.token = secureRandomString();
 		this.connection = connection;
 
-		sockets.add(this);
+		sockets.put(token, this);
 	}
 
 	@Override
@@ -79,7 +86,7 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 		logger.log(Level.INFO, "Connection closed with closeCode {0} and message {1}", new Object[] { closeCode, message } );
 		this.connection = null;
 
-		sockets.remove(this);
+		sockets.remove(token);
 	}
 
 	@Override
@@ -89,29 +96,39 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 		WebSocketMessage webSocketData = gson.fromJson(data, WebSocketMessage.class);
 
 		try {
-			String command = webSocketData.getCommand();
-			Class type     = commandSet.get(command);
+			String messageToken = webSocketData.getToken();
+			String command      = webSocketData.getCommand();
+			Class type          = commandSet.get(command);
+			boolean valid       = false;
 
 			if(type != null) {
 
-				AbstractCommand message = (AbstractCommand)type.newInstance();
-				message.setConnection(connection);
-				message.setIdProperty(idProperty);
+				// request is valid if token matches or LOGIN is requested
+				if(token.equals(messageToken) || type.equals(LoginCommand.class)) {
+					valid = true;
+				}
 
-				// process message
-				if(message.processMessage(webSocketData)) {
+				if(valid) {
 
-					// successful execution
-					broadcast(gson.toJson(webSocketData, WebSocketMessage.class));
+					AbstractCommand message = (AbstractCommand)type.newInstance();
+					message.setParent(this);
+					message.setConnection(connection);
+					message.setIdProperty(idProperty);
+					message.setToken(token);
 
-				} else {
+					// process message
+					if(message.processMessage(webSocketData)) {
 
-					// error
+						// successful execution, broadcast data but remove token
+						webSocketData.setToken(null);
+						broadcast(gson.toJson(webSocketData, WebSocketMessage.class));
+					}
 				}
 
 			} else {
 
 				logger.log(Level.WARNING, "Unknow command {0}", command);
+				// ignore?
 			}
 
 		} catch(Throwable t) {
@@ -123,12 +140,22 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 		return connection;
 	}
 
+	public void send(Connection connection, WebSocketMessage message) {
+
+		try {
+			connection.sendMessage(gson.toJson(message, WebSocketMessage.class));
+
+		} catch(Throwable t) {
+
+			logger.log(Level.WARNING, "Error sending message to client.", t);
+		}
+	}
+
 	// ----- private methods -----
 	private void broadcast(String message) {
 
 		logger.log(Level.INFO, "Broadcasting message to {0} clients..", sockets.size());
-
-		for(StructrWebSocket socket : sockets) {
+		for(StructrWebSocket socket : sockets.values()) {
 
 			Connection socketConnection = socket.getConnection();
 			if(socketConnection != null) {
@@ -137,7 +164,7 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 					socketConnection.sendMessage(message);
 
 				} catch(Throwable t) {
-					
+
 					logger.log(Level.WARNING, "Error sending message to client.", t);
 				}
 			}
@@ -156,4 +183,16 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 			logger.log(Level.SEVERE, "Unable to add command {0}", command.getName());
 		}
 	}
+
+        private static final String secureRandomString() {
+
+                byte[] binaryData = new byte[SessionIdLength];
+
+                // create random data
+                secureRandom.nextBytes(binaryData);
+
+                // return random data encoded in Base64
+                return Base64.encodeBase64URLSafeString(binaryData);
+        }
+
 }
