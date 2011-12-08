@@ -17,45 +17,23 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.structr.websocket.message;
+package org.structr.websocket.command;
 
-import java.util.Map.Entry;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.structr.core.entity.AbstractNode;
-import org.structr.websocket.WebSocketData;
+import org.structr.websocket.WebSocketMessage;
 
 /**
  *
  * @author Christian Morgner
  */
-public class UpdateCommand extends AbstractMessage {
-
-	private static final Logger logger = Logger.getLogger(UpdateCommand.class.getName());
+public class LoginCommand extends AbstractCommand {
 
 	@Override
-	public boolean processMessage(WebSocketData webSocketData) {
-
-		AbstractNode node = getNode(webSocketData.getId());
-		if(node != null) {
-
-			for(Entry<String, String> entry : webSocketData.getData().entrySet()) {
-				node.setProperty(entry.getKey(), entry.getValue());
-			}
-
-			return true;
-
-		} else {
-
-			logger.log(Level.WARNING, "Node with uuid {0} not found.", webSocketData.getId());
-
-		}
-
-		return false;
+	public boolean processMessage(WebSocketMessage webSocketData) {
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
 	public String getCommand() {
-		return "UPDATE";
+		return "LOGIN";
 	}
 }

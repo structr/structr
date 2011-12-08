@@ -17,7 +17,7 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.structr.websocket.message;
+package org.structr.websocket.command;
 
 import java.util.Map;
 

@@ -17,36 +17,38 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.structr.websocket.message;
+package org.structr.websocket.command;
 
-import org.structr.common.PropertyView;
+import java.util.Map.Entry;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.structr.core.entity.AbstractNode;
-import org.structr.websocket.WebSocketData;
+import org.structr.websocket.WebSocketMessage;
 
 /**
  *
  * @author Christian Morgner
  */
-public class GetCommand extends AbstractMessage {
+public class UpdateCommand extends AbstractCommand {
+
+	private static final Logger logger = Logger.getLogger(UpdateCommand.class.getName());
 
 	@Override
-	public boolean processMessage(final WebSocketData webSocketData) {
+	public boolean processMessage(WebSocketMessage webSocketData) {
 
 		AbstractNode node = getNode(webSocketData.getId());
-		String view = webSocketData.getView();
-
 		if(node != null) {
 
-			if(view == null) {
-				view = PropertyView.All;
-			}
-
-			for(String key : node.getPropertyKeys(view)) {
-				webSocketData.setData(key, node.getStringProperty(key));
-
+			for(Entry<String, String> entry : webSocketData.getData().entrySet()) {
+				node.setProperty(entry.getKey(), entry.getValue());
 			}
 
 			return true;
+
+		} else {
+
+			logger.log(Level.WARNING, "Node with uuid {0} not found.", webSocketData.getId());
+
 		}
 
 		return false;
@@ -54,6 +56,6 @@ public class GetCommand extends AbstractMessage {
 
 	@Override
 	public String getCommand() {
-		return "GET";
+		return "UPDATE";
 	}
 }

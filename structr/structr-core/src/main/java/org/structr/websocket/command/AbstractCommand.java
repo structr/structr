@@ -17,7 +17,7 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.structr.websocket.message;
+package org.structr.websocket.command;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -33,16 +33,16 @@ import org.structr.core.node.FindNodeCommand;
 import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
-import org.structr.websocket.WebSocketData;
+import org.structr.websocket.WebSocketMessage;
 
 /**
  * Base class for all WebSocket messages in structr.
  *
  * @author Christian Morgner
  */
-public abstract class AbstractMessage {
+public abstract class AbstractCommand {
 
-	private static final Logger logger                 = Logger.getLogger(AbstractMessage.class.getName());
+	private static final Logger logger                 = Logger.getLogger(AbstractCommand.class.getName());
 	
 	public static final String COMMAND_KEY             = "command";
 	public static final String ID_KEY                  = "id";
@@ -50,7 +50,7 @@ public abstract class AbstractMessage {
 	private Connection connection = null;
 	private String idProperty = null;
 
-	public abstract boolean processMessage(final WebSocketData webSocketData);
+	public abstract boolean processMessage(final WebSocketMessage webSocketData);
 	public abstract String getCommand();
 
 	public Connection getConnection() {

@@ -96,7 +96,7 @@ function addResource() {
     //var pos = $('#group_' + groupId + ' > div.nested').length;
     //console.log('addNode(' + type + ', ' + resourceId + ', ' + elementId + ', ' + pos + ')');
     var url = rootUrl + 'resource';
-    var data = '{ "type" : "resource", "name" : "resource_' + Math.floor(Math.random() * (9999 - 1)) + '" }';
+    var data = '{ "type" : "Resource", "name" : "resource_' + Math.floor(Math.random() * (9999 - 1)) + '" }';
     //console.log(data);
     var resp = $.ajax({
         url: url,

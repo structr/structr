@@ -17,7 +17,7 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.structr.websocket.message;
+package org.structr.websocket.command;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -27,18 +27,18 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
-import org.structr.websocket.WebSocketData;
+import org.structr.websocket.WebSocketMessage;
 
 /**
  *
  * @author Christian Morgner
  */
-public class CreateCommand extends AbstractMessage {
+public class CreateCommand extends AbstractCommand {
 
 	private static final Logger logger = Logger.getLogger(CreateCommand.class.getName());
 
 	@Override
-	public boolean processMessage(final WebSocketData webSocketData) {
+	public boolean processMessage(final WebSocketMessage webSocketData) {
 
 		StructrTransaction transaction = new StructrTransaction() {
 
@@ -61,6 +61,7 @@ public class CreateCommand extends AbstractMessage {
 			if(newNode != null) {
 
 				webSocketData.setId(getIdFromNode(newNode));
+				webSocketData.setData("id", getIdFromNode(newNode));
 
 				return true;
 

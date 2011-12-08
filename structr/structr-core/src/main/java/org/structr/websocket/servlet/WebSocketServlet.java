@@ -31,7 +31,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.websocket.WebSocket;
 import org.eclipse.jetty.websocket.WebSocketFactory;
 import org.eclipse.jetty.websocket.WebSocketFactory.Acceptor;
-import org.structr.websocket.WebSocketData;
+import org.structr.websocket.WebSocketMessage;
 import org.structr.websocket.WebSocketDataGSONAdapter;
 
 /**
@@ -58,7 +58,7 @@ public class WebSocketServlet extends HttpServlet {
 		// create GSON serializer
 		final Gson gson = new GsonBuilder()
 			.setPrettyPrinting()
-			.registerTypeAdapter(WebSocketData.class, new WebSocketDataGSONAdapter())
+			.registerTypeAdapter(WebSocketMessage.class, new WebSocketDataGSONAdapter(idPropertyName))
 			.create();
 
 		// create web socket factory
