@@ -22,135 +22,176 @@ var ws;
 
 function connect() {
 
-	try {
+    try {
 
-		var host = document.location.host;
-		if ('WebSocket' in window) {
-			ws = new WebSocket('ws://' + host + '/structr-web-test/ws/', 'structr');
-		} else if ('MozWebSocket' in window) {
-			ws = new MozWebSocket('ws://localhost:8080/structr-web-test/ws/', 'structr');
-		} else {
-			alert('Your browser doesn\'t support WebSocket.');
-			return;
-		}
+        var host = document.location.host;
+        if ('WebSocket' in window) {
+            ws = new WebSocket('ws://' + host + '/structr-web-test/ws/', 'structr');
+        } else if ('MozWebSocket' in window) {
+            ws = new MozWebSocket('ws://localhost:8080/structr-web-test/ws/', 'structr');
+        } else {
+            alert('Your browser doesn\'t support WebSocket.');
+            return;
+        }
 
-		log('State: ' + ws.readyState);
+        log('State: ' + ws.readyState);
 
-		ws.onopen = function() {
-			log('Open: ' + ws.readyState);
-		}
+        ws.onopen = function() {
+            log('Open: ' + ws.readyState);
+        }
 
-		ws.onmessage = function(message) {
+        ws.onmessage = function(message) {
 
-			log('Message received: ' + message);
+            log('Message received: ' + message);
 
-			var result = $.parseJSON(message.data);
-			var data = result.data;
-			var command = result.command;
+            var result = $.parseJSON(message.data);
+            var data = result.data;
+            var command = result.command;
 
-			console.log(data);
+            //console.log(result);
 
-			if (command == 'CREATE') {
+            if (command == 'LOGIN') {
 
-				if (data.type == 'User') {
+                console.log('login received');
 
-					data.id = result.id;
-					//data.command = null;
-					var user = data;
-					groupId = user.groupId;
-					if (groupId) appendUserElement(user, groupId);
-					appendUserElement(user);
-					disable($('.' + groupId + '_ .delete_icon')[0]);
-					if (buttonClicked) enable(buttonClicked);
-
-				} else if (data.type == 'Group') {
-
-					appendGroupElement(data);
-					if (buttonClicked) enable(buttonClicked);
-
-				}
-				else {
-					//appendEntityElement(data, parentElement);
-					appendEntityElement(data);
-					if (buttonClicked) enable(buttonClicked);
-
-				}
-
-			} else if (command == 'LIST') {
-
-				if (data) $(data.result).each(function(i, entity) {
-					appendEntityElement(entity);
-				});
+                console.log(data);
 
 
-			} else if (command == 'DELETE') {
-
-				var elementSelector = '.' + result.id + '_';
-				$(elementSelector).hide('blind', {
-					direction: "vertical"
-				}, 200);
-				$(elementSelector).remove();
-				//refreshIframes();
-				if (buttonClicked) enable(buttonClicked);
-			//if (callback) callback();
-
-			} else if (command == 'UPDATE') {
-
-				var element = $( '.' + result.id + '_');
-				var input = $('.props tr td.value input', element);
-				//console.log(element);
-
-				input.parent().children('.icon').each(function(i, img) {
-					$(img).remove();
-				});
-				input.removeClass('active');
-				//                                console.log(element);//.children('.' + key));
-				for (key in data) {
-					element.children('.' + key).text(data[key]);
-					console.log($('.props tr td.' + key + ' input', element));
-					$('.props tr td.' + key + ' input', element).val(data[key]);
-				}
-
-				input.data('changed', false);
-
-			} else {
-				console.log('Unknown command: ' + command);
-			}
 
 
-		}
+            } else if (command == 'CREATE') {
 
-		ws.onclose = function() {
-			log('Close: ' + ws.readyState);
-		}
+                if (data.type == 'User') {
 
-	} catch (exception) {
-		log('Error: ' + exception);
-	}
+                    data.id = result.id;
+                    //data.command = null;
+                    groupId = data.groupId;
+                    if (groupId) appendUserElement(data, groupId);
+                    appendUserElement(data);
+                    disable($('.' + groupId + '_ .delete_icon')[0]);
+                    if (buttonClicked) enable(buttonClicked);
+
+                } else if (data.type == 'Group') {
+
+                    appendGroupElement(data);
+                    if (buttonClicked) enable(buttonClicked);
+
+                }
+                else {
+                    //appendEntityElement(data, parentElement);
+                    appendEntityElement(data);
+                    if (buttonClicked) enable(buttonClicked);
+
+                }
+
+            } else if (command == 'LIST') {
+
+                if (data.type == 'User') {
+                    $(result.result).each(function(i, entity) {
+                        groupId = entity.groupId;
+                        if (groupId) appendUserElement(entity, groupId);
+                        appendUserElement(entity);
+                    });
+
+                } else if (data.type == 'Group') {
+                    $(result.result).each(function(i, entity) {
+                        appendGroupElement(entity);
+                    });
+                } else {
+                    $(result.result).each(function(i, entity) {
+                        appendEntityElement(entity);
+                    });
+                }
+
+
+            } else if (command == 'DELETE') {
+
+                var elementSelector = '.' + result.id + '_';
+                $(elementSelector).hide('blind', {
+                    direction: "vertical"
+                }, 200);
+                $(elementSelector).remove();
+                //refreshIframes();
+                if (buttonClicked) enable(buttonClicked);
+            //if (callback) callback();
+
+            } else if (command == 'UPDATE') {
+
+                var element = $( '.' + result.id + '_');
+                var input = $('.props tr td.value input', element);
+                //console.log(element);
+
+                input.parent().children('.icon').each(function(i, img) {
+                    $(img).remove();
+                });
+                input.removeClass('active');
+                //                                console.log(element);//.children('.' + key));
+                for (key in data) {
+                    element.children('.' + key).text(data[key]);
+                    console.log($('.props tr td.' + key + ' input', element));
+                    $('.props tr td.' + key + ' input', element).val(data[key]);
+                }
+
+                input.data('changed', false);
+
+            } else {
+                console.log('Unknown command: ' + command);
+            }
+
+
+        }
+
+        ws.onclose = function() {
+            log('Close: ' + ws.readyState);
+        }
+
+    } catch (exception) {
+        log('Error: ' + exception);
+    }
 
 }
 
 function send(text) {
 
-	log(ws.readyState);
+    log(ws.readyState);
 
-	if (!text) {
-		log('No text to send!');
-		return;
-	}
+    if (!text) {
+        log('No text to send!');
+        return;
+    }
 
-	try {
+    try {
 
-		ws.send(text);
-		log('Sent: ' + text);
+        ws.send(text);
+        log('Sent: ' + text);
 
-	} catch (exception) {
-		log('Error: ' + exception);
-	}
+    } catch (exception) {
+        log('Error: ' + exception);
+    }
 
 }
 
 function log(msg) {
-	console.log(msg);
-	$("#log").append("<br />" + msg);
+    console.log(msg);
+    $("#log").append("<br />" + msg);
+}
+
+function login() {
+
+    $.blockUI.defaults.overlayCSS.opacity = .6;
+    $.blockUI.defaults.applyPlatformOpacityRules = false;
+    $.blockUI({
+        message: $('#login'),
+        css: {
+            border: 'none',
+            backgroundColor: 'transparent'
+        }
+    });
+
+}
+
+function doLogin(username, password) {
+    alert('doLogin as ' + username + ' with ' + password);
+    ws.send('{ "command":"LOGIN", "data" : { "username" : "' + username + '", "password" : "' + password + '" } }');
+    $.unblockUI();
 }

@@ -15,11 +15,7 @@ function refreshEntities(type) {
 }
 
 function showEntities(type) {
-	//var data = '{ "command" : "LIST", "data" : { "type" : "' + type + '" } }';
-	var data = '{ }';
-	console.log(data);
-	console.log(ws);
-	//setTimeout(ws.send(data);
+	var data = '{ "command" : "LIST", "data" : { "type" : "' + type + '" } }';
 	ws.send(data);
 //ws.send(data);
 //    $.ajax({

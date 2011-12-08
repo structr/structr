@@ -14,3 +14,4 @@
 	<script src="js/websocket.js" type="text/javascript"></script>
     <script src="js/ce_lib.js" type="text/javascript"></script>
     <script src="js/entities.js" type="text/javascript"></script>
+    <script src="js/jquery.blockUI.js" type="text/javascript"></script>

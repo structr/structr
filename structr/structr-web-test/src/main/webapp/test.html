@@ -14,8 +14,16 @@
 
     try {
 
-        ws = new WebSocket("ws://localhost:8080/structr-web-test/ws/", "structr");
-
+        var host = document.location.host;
+        if ('WebSocket' in window) {
+            ws = new WebSocket('ws://' + host + '/structr-web-test/ws/', 'structr');
+        } else if ('MozWebSocket' in window) {
+            ws = new MozWebSocket('ws://localhost:8080/structr-web-test/ws/', 'structr');
+        } else {
+            alert('Your browser doesn\'t support WebSocket.');
+            return;
+        }
+        
         log('State: ' + ws.readyState);
 
         ws.onopen = function() {
