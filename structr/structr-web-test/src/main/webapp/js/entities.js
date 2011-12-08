@@ -33,21 +33,21 @@ function appendEntityElement(entity, parentElement) {
     if (parentElement) {
         element = parentElement;
     } else {
-        element = $('#' + plural(entity.type.toLowerCase()));
+        element = $('#' + plural(entity.data.type.toLowerCase()));
     }
 //    console.log(element);
-    element.append('<div class="nested top ' + entity.type.toLowerCase() + ' ' + entity.id + '_">'
-        + (entity.iconUrl ? '<img class="typeIcon" src="' + entity.iconUrl + '">' : '')
-        + '<b class="name">' + entity.name + '</b> '
+    element.append('<div class="nested top ' + entity.data.type.toLowerCase() + ' ' + entity.id + '_">'
+        + (entity.data.iconUrl ? '<img class="typeIcon" src="' + entity.data.iconUrl + '">' : '')
+        + '<b class="name">' + entity.data.name + '</b> '
         + '[' + entity.id + ']'
         + '</div>');
     div = $('.' + entity.id + '_', element);
-    div.append('<img title="Delete ' + entity.name + ' [' + entity.id + ']" '
-        + 'alt="Delete ' + entity.name + ' [' + entity.id + ']" class="delete_icon button" src="icon/delete.png">');
+    div.append('<img title="Delete ' + entity.data.name + ' [' + entity.id + ']" '
+        + 'alt="Delete ' + entity.data.name + ' [' + entity.id + ']" class="delete_icon button" src="icon/delete.png">');
     $('.delete_icon', div).on('click', function() {
         deleteNode(this, entity)
     });
-    div.append('<img title="Edit ' + entity.name + ' [' + entity.id + ']" alt="Edit ' + entity.name + ' [' + entity.id + ']" class="edit_icon button" src="icon/pencil.png">');
+    div.append('<img title="Edit ' + entity.data.name + ' [' + entity.id + ']" alt="Edit ' + entity.data.name + ' [' + entity.id + ']" class="edit_icon button" src="icon/pencil.png">');
     $('.edit_icon', div).on('click', function() {
         showProperties(this, entity, 'all', $('.' + entity.id + '_', element));
     });
