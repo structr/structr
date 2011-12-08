@@ -11,5 +11,6 @@
     <link rel="stylesheet" href="codemirror/theme/default.css">
     <!--script src="codemirror/mode/htmlmixed/htmlmixed.js" type="text/javascript"></script-->
     <link rel="stylesheet" type="text/css" media="screen" href="codemirror/lib/codemirror.css" >
+	<script src="js/websocket.js" type="text/javascript"></script>
     <script src="js/ce_lib.js" type="text/javascript"></script>
     <script src="js/entities.js" type="text/javascript"></script>

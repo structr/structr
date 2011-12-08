@@ -148,7 +148,7 @@ img.disabled {
 
 .sep {
 	height: 4px;
-	width: 105%;
+/*	width: 105%;*/
 	/*border-bottom: 1px solid #ccc;*/
 	margin: 2px 0 12px -12px ! important;
 }
@@ -157,6 +157,10 @@ img.disabled {
 	width: 100%;
 	border-collapse: collapse;
 	margin-bottom: 12px;
+}
+
+#users .props {
+	width: 462px ! important;
 }
 
 tr:nth-child(odd) {

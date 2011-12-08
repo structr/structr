@@ -22,125 +22,135 @@ var ws;
 
 function connect() {
 
-    try {
+	try {
 
-        var host = document.location.host;
-        if ('WebSocket' in window) {
-            ws = new WebSocket('ws://' + host + '/structr-web-test/ws/', 'structr');
-        } else if ('MozWebSocket' in window) {
-            ws = new MozWebSocket('ws://localhost:8080/structr-web-test/ws/', 'structr');
-        } else {
-            alert('Your browser doesn\'t support WebSocket. Go home!');
-            return;
-        }
+		var host = document.location.host;
+		if ('WebSocket' in window) {
+			ws = new WebSocket('ws://' + host + '/structr-web-test/ws/', 'structr');
+		} else if ('MozWebSocket' in window) {
+			ws = new MozWebSocket('ws://localhost:8080/structr-web-test/ws/', 'structr');
+		} else {
+			alert('Your browser doesn\'t support WebSocket.');
+			return;
+		}
 
-        log('State: ' + ws.readyState);
+		log('State: ' + ws.readyState);
 
-        ws.onopen = function() {
-            log('Open: ' + ws.readyState);
-        }
+		ws.onopen = function() {
+			log('Open: ' + ws.readyState);
+		}
 
-        ws.onmessage = function(message) {
+		ws.onmessage = function(message) {
 
-            log('Message received: ' + message);
+			log('Message received: ' + message);
 
-            var result = $.parseJSON(message.data);
-            var data = result.data;
-            var command = result.command;
+			var result = $.parseJSON(message.data);
+			var data = result.data;
+			var command = result.command;
 
-            console.log(data);
+			console.log(data);
 
-            if (command == 'CREATE') {
+			if (command == 'CREATE') {
 
-                if (data.type == 'User') {
+				if (data.type == 'User') {
 
-                    data.id = result.id;
-                    //data.command = null;
-                    var user = data;
-                    groupId = user.groupId;
-                    if (groupId) appendUserElement(user, groupId);
-                    appendUserElement(user);
-                    disable($('.' + groupId + '_ .delete_icon')[0]);
-                    if (buttonClicked) enable(buttonClicked);
+					data.id = result.id;
+					//data.command = null;
+					var user = data;
+					groupId = user.groupId;
+					if (groupId) appendUserElement(user, groupId);
+					appendUserElement(user);
+					disable($('.' + groupId + '_ .delete_icon')[0]);
+					if (buttonClicked) enable(buttonClicked);
 
-                } else if (data.type == 'Group') {
+				} else if (data.type == 'Group') {
 
-                    appendGroupElement(data);
-                    if (buttonClicked) enable(buttonClicked);
+					appendGroupElement(data);
+					if (buttonClicked) enable(buttonClicked);
                     
-                }
-                else {
-                    //appendEntityElement(data, parentElement);
-                    appendEntityElement(data);
-                    if (buttonClicked) enable(buttonClicked);
+				}
+				else {
+					//appendEntityElement(data, parentElement);
+					appendEntityElement(data);
+					if (buttonClicked) enable(buttonClicked);
 
-                }
+				}
 
-            } else if (command == 'DELETE') {
+			} else if (command == 'LIST') {
 
-                var elementSelector = '.' + result.id + '_';
-                $(elementSelector).hide('blind', {
-                    direction: "vertical"
-                }, 200);
-                $(elementSelector).remove();
-                //refreshIframes();
-                if (buttonClicked) enable(buttonClicked);
-            //if (callback) callback();
+				if (data) $(data.result).each(function(i, entity) {
+					appendEntityElement(entity);
+				});
 
-            } else if (command == 'UPDATE') {
 
-                var element = $( '.' + result.id + '_');
-                var input = $('.props tr td.value input', element);
-                //console.log(element);
+			} else if (command == 'DELETE') {
 
-                input.parent().children('.icon').each(function(i, img) {
-                    $(img).remove();
-                });
-                input.removeClass('active');
-                //                                console.log(element);//.children('.' + key));
-                for (key in data) {
-                    element.children('.' + key).text(data[key]);
-                    console.log($('.props tr td.' + key + ' input', element));
-                    $('.props tr td.' + key + ' input', element).val(data[key]);
-                }
+				var elementSelector = '.' + result.id + '_';
+				$(elementSelector).hide('blind', {
+					direction: "vertical"
+				}, 200);
+				$(elementSelector).remove();
+				//refreshIframes();
+				if (buttonClicked) enable(buttonClicked);
+			//if (callback) callback();
+
+			} else if (command == 'UPDATE') {
+
+				var element = $( '.' + result.id + '_');
+				var input = $('.props tr td.value input', element);
+				//console.log(element);
+
+				input.parent().children('.icon').each(function(i, img) {
+					$(img).remove();
+				});
+				input.removeClass('active');
+				//                                console.log(element);//.children('.' + key));
+				for (key in data) {
+					element.children('.' + key).text(data[key]);
+					console.log($('.props tr td.' + key + ' input', element));
+					$('.props tr td.' + key + ' input', element).val(data[key]);
+				}
                 
-                input.data('changed', false);
+				input.data('changed', false);
 
-            } else {
-                console.log('Unknown command: ' + command);
-            }
+			} else {
+				console.log('Unknown command: ' + command);
+			}
 
 
-        }
+		}
 
-        ws.onclose = function() {
-            log('Close: ' + ws.readyState);
-        }
+		ws.onclose = function() {
+			log('Close: ' + ws.readyState);
+		}
 
-    } catch (exception) {
-        log('Error: ' + exception);
-    }
+	} catch (exception) {
+		log('Error: ' + exception);
+	}
 
 }
 
 function send(text) {
+	
+	log(ws.readyState);
 
-    if (!text) {
-        log('No text to send!');
-        return;
-    }
+	if (!text) {
+		log('No text to send!');
+		return;
+	}
 
-    try {
+	try {
 
-        ws.send(text);
-        log('Sent: ' + text);
+		ws.send(text);
+		log('Sent: ' + text);
 
-    } catch (exception) {
-        log('Error: ' + exception);
-    }
+	} catch (exception) {
+		log('Error: ' + exception);
+	}
 
 }
 
 function log(msg) {
-    $("#log").append("<br />" + msg);
+	console.log(msg);
+	$("#log").append("<br />" + msg);
 }
