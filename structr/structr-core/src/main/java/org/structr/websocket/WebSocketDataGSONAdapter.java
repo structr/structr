@@ -68,6 +68,9 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 		if(src.getPageSize() > 0)	{ root.add("pageSize", new JsonPrimitive(src.getPageSize())); }
 		if(src.getPage() > 0)		{ root.add("page",     new JsonPrimitive(src.getPage())); }
 
+		// serialize session valid flag (output only)
+		root.add("sessionValid", new JsonPrimitive(src.isSessionValid()));
+
 		// serialize data
 		if(src.getData() != null) {
 

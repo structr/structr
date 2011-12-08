@@ -28,6 +28,7 @@ import org.structr.core.entity.User;
 import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
+import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.WebSocketMessage;
 
 /**
@@ -62,12 +63,20 @@ public class LoginCommand extends AbstractCommand {
 					// check password
 					if(DigestUtils.sha512Hex(password).equals(user.getProperty(User.Key.password))) {
 
-						// send success message
+						String token = StructrWebSocket.secureRandomString();
+
+						// store token in user
+						user.setProperty(User.Key.sessionId, token);
+
+						// store token in response data
 						webSocketData.getData().clear();
-						webSocketData.setToken(getToken());
+						webSocketData.setToken(token);
+
+						// authenticate socket
+						this.getWebSocket().setAuthenticated(token);
 
 						// send data..
-						this.getParent().send(getConnection(), webSocketData);
+						this.getWebSocket().send(getConnection(), webSocketData, false);
 					}
 				}
 			}

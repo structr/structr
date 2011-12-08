@@ -32,6 +32,7 @@ public class WebSocketMessage {
 
 	private Map<String, String> data = new LinkedHashMap<String, String>();
 	private List<GraphObject> result = null;
+	private boolean sessionValid = false;
 	private String sortOrder = null;
 	private String callback = null;
 	private String command = null;
@@ -150,5 +151,13 @@ public class WebSocketMessage {
 
 	public void setToken(String token) {
 		this.token = token;
+	}
+
+	public boolean isSessionValid() {
+		return sessionValid;
+	}
+
+	public void setSessionValid(boolean sessionValid) {
+		this.sessionValid = sessionValid;
 	}
 }

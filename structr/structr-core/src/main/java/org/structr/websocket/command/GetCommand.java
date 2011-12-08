@@ -47,7 +47,7 @@ public class GetCommand extends AbstractCommand {
 			}
 
 			// send only over local connection
-			getParent().send(getConnection(), webSocketData);
+			getWebSocket().send(getConnection(), webSocketData, true);
 		}
 
 		return false;
