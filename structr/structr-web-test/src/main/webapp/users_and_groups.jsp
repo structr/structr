@@ -25,12 +25,6 @@
             });
             //-->
         </script>
-        <style>
-            .props tr td.value input {
-                width: 440px;
-            }
-        </style>
-        <script src="js/websocket.js" type="text/javascript"></script>
         <script src="js/users_and_groups.js" type="text/javascript"></script>
     </head>
     <body>

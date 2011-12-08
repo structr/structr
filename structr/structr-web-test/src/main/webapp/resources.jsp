@@ -15,7 +15,7 @@
                 showResources();
                 connect();
                 $('#addResource').on('click', function() {
-                   addEntity('resource', this);
+                   addEntity('Resource', this);
                 });
             });
             //-->
