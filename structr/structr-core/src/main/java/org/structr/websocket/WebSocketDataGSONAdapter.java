@@ -62,6 +62,10 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 		if(src.getButton() != null)	{ root.add("button",   new JsonPrimitive(src.getButton())); }
 		if(src.getParent() != null)	{ root.add("parent",   new JsonPrimitive(src.getParent())); }
 		if(src.getView() != null)	{ root.add("view",     new JsonPrimitive(src.getView())); }
+		if(src.getSortKey() != null)	{ root.add("sort",     new JsonPrimitive(src.getSortKey())); }
+		if(src.getSortOrder() != null)	{ root.add("order",    new JsonPrimitive(src.getSortOrder())); }
+		if(src.getPageSize() > 0)	{ root.add("pageSize", new JsonPrimitive(src.getPageSize())); }
+		if(src.getPage() > 0)		{ root.add("page",     new JsonPrimitive(src.getPage())); }
 
 		// serialize data
 		if(src.getData() != null) {
@@ -113,6 +117,10 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 			if(root.has("button"))		{ webSocketData.setButton(root.getAsJsonPrimitive("button").getAsString()); }
 			if(root.has("parent"))		{ webSocketData.setParent(root.getAsJsonPrimitive("parent").getAsString()); }
 			if(root.has("view"))		{ webSocketData.setView(root.getAsJsonPrimitive("view").getAsString()); }
+			if(root.has("sort"))		{ webSocketData.setSortKey(root.getAsJsonPrimitive("sort").getAsString()); }
+			if(root.has("order"))		{ webSocketData.setSortOrder(root.getAsJsonPrimitive("order").getAsString()); }
+			if(root.has("pageSize"))	{ webSocketData.setPageSize(root.getAsJsonPrimitive("pageSize").getAsInt()); }
+			if(root.has("page"))		{ webSocketData.setPage(root.getAsJsonPrimitive("page").getAsInt()); }
 
 			if(data != null) {
 				for(Entry<String, JsonElement> entry : data.entrySet()) {
