@@ -19,6 +19,7 @@
 
 package org.structr.websocket;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
@@ -29,15 +30,28 @@ import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import java.lang.reflect.Type;
 import java.util.Map.Entry;
+import org.structr.common.PropertyView;
+import org.structr.core.GraphObject;
+import org.structr.core.Value;
+import org.structr.core.validator.GenericValue;
+import org.structr.rest.adapter.GraphObjectGSONAdapter;
+import org.structr.rest.wrapper.PropertySet.PropertyFormat;
 
 /**
  *
  * @author Christian Morgner
  */
-public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketData>, JsonDeserializer<WebSocketData> {
+public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage>, JsonDeserializer<WebSocketMessage> {
+
+	private Value<String> propertyView = new GenericValue<String>(PropertyView.All);
+	private GraphObjectGSONAdapter graphObjectSerializer = null;
+
+	public WebSocketDataGSONAdapter(String idProperty) {
+		graphObjectSerializer = new GraphObjectGSONAdapter(PropertyFormat.FlatNameValue, propertyView, idProperty);
+	}
 
 	@Override
-	public JsonElement serialize(WebSocketData src, Type typeOfSrc, JsonSerializationContext context) {
+	public JsonElement serialize(WebSocketMessage src, Type typeOfSrc, JsonSerializationContext context) {
 
 		JsonObject root = new JsonObject();
 		JsonObject data = new JsonObject();
@@ -49,6 +63,7 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketData>, 
 		if(src.getParent() != null)	{ root.add("parent",   new JsonPrimitive(src.getParent())); }
 		if(src.getView() != null)	{ root.add("view",     new JsonPrimitive(src.getView())); }
 
+		// serialize data
 		if(src.getData() != null) {
 
 			for(Entry<String, String> entry : src.getData().entrySet()) {
@@ -62,13 +77,30 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketData>, 
 			root.add("data", data);
 		}
 
+		// serialize result list
+		if(src.getResult() != null) {
+
+			if(src.getView() != null) {
+				propertyView.set(src.getView());
+			} else {
+				propertyView.set(PropertyView.All);
+			}
+
+			JsonArray result = new JsonArray();
+			for(GraphObject obj : src.getResult()) {
+				result.add(graphObjectSerializer.serialize(obj, GraphObject.class, context));
+			}
+
+			root.add("result", result);
+		}
+
 		return root;
 	}
 
 	@Override
-	public WebSocketData deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+	public WebSocketMessage deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
 
-		WebSocketData webSocketData = new WebSocketData();
+		WebSocketMessage webSocketData = new WebSocketMessage();
 
 		if(json instanceof JsonObject) {
 

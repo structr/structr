@@ -27,11 +27,12 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.eclipse.jetty.websocket.WebSocket;
-import org.structr.websocket.message.AbstractMessage;
-import org.structr.websocket.message.CreateCommand;
-import org.structr.websocket.message.DeleteCommand;
-import org.structr.websocket.message.GetCommand;
-import org.structr.websocket.message.UpdateCommand;
+import org.structr.websocket.command.AbstractCommand;
+import org.structr.websocket.command.CreateCommand;
+import org.structr.websocket.command.DeleteCommand;
+import org.structr.websocket.command.GetCommand;
+import org.structr.websocket.command.ListCommand;
+import org.structr.websocket.command.UpdateCommand;
 
 /**
  *
@@ -49,6 +50,7 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 		addCommand(CreateCommand.class);
 		addCommand(UpdateCommand.class);
 		addCommand(DeleteCommand.class);
+		addCommand(ListCommand.class);
 		addCommand(GetCommand.class);
 	}
 
@@ -84,7 +86,7 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 	public void onMessage(String data) {
 
 		// parse web socket data from JSON
-		WebSocketData webSocketData = gson.fromJson(data, WebSocketData.class);
+		WebSocketMessage webSocketData = gson.fromJson(data, WebSocketMessage.class);
 
 		try {
 			String command = webSocketData.getCommand();
@@ -92,7 +94,7 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 
 			if(type != null) {
 
-				AbstractMessage message = (AbstractMessage)type.newInstance();
+				AbstractCommand message = (AbstractCommand)type.newInstance();
 				message.setConnection(connection);
 				message.setIdProperty(idProperty);
 
@@ -100,7 +102,7 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 				if(message.processMessage(webSocketData)) {
 
 					// successful execution
-					broadcast(gson.toJson(webSocketData, WebSocketData.class));
+					broadcast(gson.toJson(webSocketData, WebSocketMessage.class));
 
 				} else {
 
@@ -146,7 +148,7 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 	private static final void addCommand(Class command) {
 
 		try {
-			AbstractMessage msg = (AbstractMessage)command.newInstance();
+			AbstractCommand msg = (AbstractCommand)command.newInstance();
 			commandSet.put(msg.getCommand(), command);
 
 		} catch(Throwable t) {
