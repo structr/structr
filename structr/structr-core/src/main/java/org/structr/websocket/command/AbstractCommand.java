@@ -19,11 +19,8 @@
 
 package org.structr.websocket.command;
 
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.eclipse.jetty.websocket.WebSocket.Connection;
 import org.structr.common.SecurityContext;
@@ -33,6 +30,7 @@ import org.structr.core.node.FindNodeCommand;
 import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
+import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.WebSocketMessage;
 
 /**
@@ -47,8 +45,10 @@ public abstract class AbstractCommand {
 	public static final String COMMAND_KEY             = "command";
 	public static final String ID_KEY                  = "id";
 
+	private StructrWebSocket parent = null;
 	private Connection connection = null;
 	private String idProperty = null;
+	private String token = null;
 
 	public abstract boolean processMessage(final WebSocketMessage webSocketData);
 	public abstract String getCommand();
@@ -67,6 +67,22 @@ public abstract class AbstractCommand {
 
 	public void setIdProperty(String idProperty) {
 		this.idProperty = idProperty;
+	}
+
+	public String getToken() {
+		return token;
+	}
+
+	public void setToken(String token) {
+		this.token = token;
+	}
+
+	public StructrWebSocket getParent() {
+		return parent;
+	}
+
+	public void setParent(StructrWebSocket parent) {
+		this.parent = parent;
 	}
 
 	/**

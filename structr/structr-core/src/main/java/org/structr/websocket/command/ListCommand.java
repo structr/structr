@@ -117,7 +117,11 @@ public class ListCommand extends AbstractCommand {
 			webSocketData.setResult(results);
 		}
 
-		return true;
+		// send only over local connection
+		getParent().send(getConnection(), webSocketData);
+
+		// do NOT broadcast
+		return false;
 	}
 
 	@Override

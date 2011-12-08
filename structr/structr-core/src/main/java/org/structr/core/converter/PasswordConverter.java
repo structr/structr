@@ -36,6 +36,6 @@ public class PasswordConverter extends PropertyConverter<String, String> {
 
 	@Override
 	public String convertForGetter(String passwordHash, Value value) {
-		return null;
+		return passwordHash;
 	}
 }
