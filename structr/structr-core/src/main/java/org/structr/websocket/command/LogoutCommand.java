@@ -19,6 +19,7 @@
 
 package org.structr.websocket.command;
 
+import org.structr.core.entity.User;
 import org.structr.websocket.WebSocketMessage;
 
 /**
@@ -29,7 +30,20 @@ public class LogoutCommand extends AbstractCommand {
 
 	@Override
 	public boolean processMessage(WebSocketMessage webSocketData) {
-		throw new UnsupportedOperationException("Not supported yet.");
+
+		User user = getWebSocket().getCurrentUser();
+		if(user != null) {
+
+			user.setProperty(User.Key.sessionId, null);
+
+			// TODO: remove lastAccessedAt property
+			// user.setProperty(User.Key.session, null);
+
+			getWebSocket().setAuthenticated(null);
+		}
+
+		// do NOT broadcast
+		return false;
 	}
 
 	@Override

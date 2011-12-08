@@ -22,11 +22,22 @@ package org.structr.websocket;
 import com.google.gson.Gson;
 import java.security.SecureRandom;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.codec.binary.Base64;
 import org.eclipse.jetty.websocket.WebSocket;
+import org.structr.common.SecurityContext;
+import org.structr.core.Services;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.User;
+import org.structr.core.node.search.Search;
+import org.structr.core.node.search.SearchAttribute;
+import org.structr.core.node.search.SearchNodeCommand;
 import org.structr.websocket.command.AbstractCommand;
 import org.structr.websocket.command.CreateCommand;
 import org.structr.websocket.command.DeleteCommand;
@@ -42,11 +53,11 @@ import org.structr.websocket.command.UpdateCommand;
  */
 public class StructrWebSocket implements WebSocket.OnTextMessage {
 
-	private static final Map<String, StructrWebSocket> sockets = new LinkedHashMap<String, StructrWebSocket>();
-	private static final Logger logger                         = Logger.getLogger(StructrWebSocket.class.getName());
-	private static final SecureRandom secureRandom             = new SecureRandom();
-	private static final Map<String, Class> commandSet         = new LinkedHashMap<String, Class>();
-	private static final int SessionIdLength                   = 128;
+	private static final Set<StructrWebSocket> sockets = new LinkedHashSet<StructrWebSocket>();
+	private static final Logger logger                 = Logger.getLogger(StructrWebSocket.class.getName());
+	private static final SecureRandom secureRandom     = new SecureRandom();
+	private static final Map<String, Class> commandSet = new LinkedHashMap<String, Class>();
+	private static final int SessionIdLength           = 128;
 
 	static {
 
@@ -60,9 +71,9 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 		addCommand(GetCommand.class);
 	}
 
-	private String token          = null;
 	private Connection connection = null;
 	private	String idProperty     = null;
+	private String token          = null;
 	private Gson gson             = null;
 
 	public StructrWebSocket(Gson gson, String idProperty) {
@@ -74,19 +85,28 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 	public void onOpen(Connection connection) {
 
 		logger.log(Level.INFO, "New connection with protocol {0}", connection.getProtocol());
-		this.token = secureRandomString();
 		this.connection = connection;
+		this.token = null;
 
-		sockets.put(token, this);
+		sockets.add(this);
 	}
 
 	@Override
 	public void onClose(int closeCode, String message) {
 
 		logger.log(Level.INFO, "Connection closed with closeCode {0} and message {1}", new Object[] { closeCode, message } );
+		this.token = null;
 		this.connection = null;
 
-		sockets.remove(token);
+		sockets.remove(this);
+	}
+
+	public boolean isAuthenticated() {
+		return token != null;
+	}
+
+	public void setAuthenticated(String token) {
+		this.token = token;
 	}
 
 	@Override
@@ -99,30 +119,31 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 			String messageToken = webSocketData.getToken();
 			String command      = webSocketData.getCommand();
 			Class type          = commandSet.get(command);
-			boolean valid       = false;
 
 			if(type != null) {
 
-				// request is valid if token matches or LOGIN is requested
-				if(token.equals(messageToken) || type.equals(LoginCommand.class)) {
-					valid = true;
+				if(!isAuthenticated() && messageToken != null) {
+					// try to authenticated this connection by token
+					authenticateToken(messageToken);
 				}
 
-				if(valid) {
+				AbstractCommand message = (AbstractCommand)type.newInstance();
+				message.setWebSocket(this);
+				message.setConnection(connection);
+				message.setIdProperty(idProperty);
 
-					AbstractCommand message = (AbstractCommand)type.newInstance();
-					message.setParent(this);
-					message.setConnection(connection);
-					message.setIdProperty(idProperty);
-					message.setToken(token);
+				// store authenticated-Flag in webSocketData
+				// so the command can access it
+				webSocketData.setSessionValid(isAuthenticated());
 
-					// process message
-					if(message.processMessage(webSocketData)) {
+				// clear token (no tokens in broadcast!!)
+				webSocketData.setToken(null);
 
-						// successful execution, broadcast data but remove token
-						webSocketData.setToken(null);
-						broadcast(gson.toJson(webSocketData, WebSocketMessage.class));
-					}
+				// process message
+				if(message.processMessage(webSocketData)) {
+
+					// successful execution, broadcast data but remove token
+					broadcast(gson.toJson(webSocketData, WebSocketMessage.class));
 				}
 
 			} else {
@@ -140,10 +161,22 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 		return connection;
 	}
 
-	public void send(Connection connection, WebSocketMessage message) {
+	public void send(Connection connection, WebSocketMessage message, boolean clearToken) {
+
+		// return session status to client
+		message.setSessionValid(isAuthenticated());
+
+		// whether to clear the token (all command except LOGIN (for now) should absolutely do this!)
+		if(clearToken) {
+			message.setToken(null);
+		}
 
 		try {
-			connection.sendMessage(gson.toJson(message, WebSocketMessage.class));
+			if(isAuthenticated()) {
+				connection.sendMessage(gson.toJson(message, WebSocketMessage.class));
+			} else {
+				logger.log(Level.WARNING, "NOT sending message to unauthenticated client.");
+			}
 
 		} catch(Throwable t) {
 
@@ -151,14 +184,30 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 		}
 	}
 
+	public User getCurrentUser() {
+		return getUserForToken(token);
+	}
+
+	// ----- public static methods -----
+        public static final String secureRandomString() {
+
+                byte[] binaryData = new byte[SessionIdLength];
+
+                // create random data
+                secureRandom.nextBytes(binaryData);
+
+                // return random data encoded in Base64
+                return Base64.encodeBase64URLSafeString(binaryData);
+        }
+
 	// ----- private methods -----
 	private void broadcast(String message) {
 
 		logger.log(Level.INFO, "Broadcasting message to {0} clients..", sockets.size());
-		for(StructrWebSocket socket : sockets.values()) {
+		for(StructrWebSocket socket : sockets) {
 
 			Connection socketConnection = socket.getConnection();
-			if(socketConnection != null) {
+			if(socketConnection != null && socket.isAuthenticated()) {
 
 				try {
 					socketConnection.sendMessage(message);
@@ -169,6 +218,38 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 				}
 			}
 		}
+	}
+
+	private void authenticateToken(String messageToken) {
+
+		User user = getUserForToken(messageToken);
+		if(user != null) {
+
+			// TODO: session timeout!
+			this.setAuthenticated(messageToken);
+		}
+	}
+
+	private User getUserForToken(String messageToken) {
+
+		List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
+		attrs.add(Search.andExactProperty(User.Key.sessionId, messageToken));
+		attrs.add(Search.andExactType("User"));
+
+		// we need to search with a super user security context here..
+		List<AbstractNode> results = (List<AbstractNode>)Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(
+		    null, false, false, attrs);
+
+		if(!results.isEmpty()) {
+
+			User user = (User)results.get(0);
+
+			if(user.getProperty(User.Key.sessionId).equals(messageToken)) {
+				return user;
+			}
+		}
+
+		return null;
 	}
 
 	// ----- private static methods -----
@@ -183,16 +264,4 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 			logger.log(Level.SEVERE, "Unable to add command {0}", command.getName());
 		}
 	}
-
-        private static final String secureRandomString() {
-
-                byte[] binaryData = new byte[SessionIdLength];
-
-                // create random data
-                secureRandom.nextBytes(binaryData);
-
-                // return random data encoded in Base64
-                return Base64.encodeBase64URLSafeString(binaryData);
-        }
-
 }

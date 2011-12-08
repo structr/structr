@@ -40,15 +40,12 @@ import org.structr.websocket.WebSocketMessage;
  */
 public abstract class AbstractCommand {
 
-	private static final Logger logger                 = Logger.getLogger(AbstractCommand.class.getName());
-	
 	public static final String COMMAND_KEY             = "command";
 	public static final String ID_KEY                  = "id";
 
-	private StructrWebSocket parent = null;
+	private StructrWebSocket webSocket = null;
 	private Connection connection = null;
 	private String idProperty = null;
-	private String token = null;
 
 	public abstract boolean processMessage(final WebSocketMessage webSocketData);
 	public abstract String getCommand();
@@ -69,20 +66,12 @@ public abstract class AbstractCommand {
 		this.idProperty = idProperty;
 	}
 
-	public String getToken() {
-		return token;
+	public StructrWebSocket getWebSocket() {
+		return webSocket;
 	}
 
-	public void setToken(String token) {
-		this.token = token;
-	}
-
-	public StructrWebSocket getParent() {
-		return parent;
-	}
-
-	public void setParent(StructrWebSocket parent) {
-		this.parent = parent;
+	public void setWebSocket(StructrWebSocket webSocket) {
+		this.webSocket = webSocket;
 	}
 
 	/**
