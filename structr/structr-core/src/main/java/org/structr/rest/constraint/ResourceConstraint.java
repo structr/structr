@@ -129,11 +129,12 @@ public abstract class ResourceConstraint {
 								for(Entry<String, Object> attr : propertySet.entrySet()) {
 
 									try {
-										if(attr.getValue() != null) {
+//										if(attr.getValue() != null) {
 											obj.setProperty(attr.getKey(), attr.getValue());
-										} else {
-											obj.removeProperty(attr.getKey());
-										}
+//										}
+//										else {
+//											obj.removeProperty(attr.getKey());
+//										}
 
 									} catch(Throwable t) {
 

@@ -202,8 +202,8 @@ public class IndexNodeCommand extends NodeServiceCommand {
 
 		if (!(dbNode.hasProperty(key))) {
 
-			logger.log(Level.FINE, "Node {0} has no key {1}, ignoring", new Object[] { id, key });
-
+			removeNodePropertyFromAllIndices(dbNode, key);
+			logger.log(Level.FINE, "Node {0} has no key {1}, to be sure, it was removed from all indices", new Object[] { id, key });
 			return;
 
 		}
@@ -214,13 +214,15 @@ public class IndexNodeCommand extends NodeServiceCommand {
 
 		if (value == null) {
 
-			logger.log(Level.SEVERE, "Node {0} has null value for key {1}, removing property", new Object[] { id, key });
+			logger.log(Level.FINE, "Node {0} has null value for key {1}, removing property", new Object[] { id, key });
 			dbNode.removeProperty(key);
+			removeNodePropertyFromAllIndices(dbNode, key);
 
 		} else if (emptyValue) {
 
-			logger.log(Level.SEVERE, "Node {0} has empty, non-null value for key {1}, removing property", new Object[] { id, key });
+			logger.log(Level.FINE, "Node {0} has empty, non-null value for key {1}, removing property", new Object[] { id, key });
 			dbNode.removeProperty(key);
+			removeNodePropertyFromAllIndices(dbNode, key);
 
 		} else {
 

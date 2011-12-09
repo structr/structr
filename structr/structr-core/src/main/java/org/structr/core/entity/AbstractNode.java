@@ -3973,7 +3973,8 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 						// Don't automatically update index
 						// TODO: Implement something really fast to keep the index automatically in sync
-						if (updateIndex && dbNode.hasProperty(key)) {
+//						if (updateIndex && dbNode.hasProperty(key)) {
+						if (updateIndex) {
 
 							Services.command(securityContext, IndexNodeCommand.class).execute(getId(), key);
 
