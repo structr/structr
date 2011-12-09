@@ -21,7 +21,6 @@ package org.structr.websocket.command;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Logger;
 import org.eclipse.jetty.websocket.WebSocket.Connection;
 import org.structr.common.SecurityContext;
 import org.structr.core.Services;
@@ -54,7 +53,7 @@ public abstract class AbstractCommand {
 		return connection;
 	}
 
-	public void setConnection(Connection connection) {
+	public void setConnection(final Connection connection) {
 		this.connection = connection;
 	}
 
@@ -62,7 +61,7 @@ public abstract class AbstractCommand {
 		return idProperty;
 	}
 
-	public void setIdProperty(String idProperty) {
+	public void setIdProperty(final String idProperty) {
 		this.idProperty = idProperty;
 	}
 
@@ -70,7 +69,7 @@ public abstract class AbstractCommand {
 		return webSocket;
 	}
 
-	public void setWebSocket(StructrWebSocket webSocket) {
+	public void setWebSocket(final StructrWebSocket webSocket) {
 		this.webSocket = webSocket;
 	}
 
@@ -80,7 +79,7 @@ public abstract class AbstractCommand {
 	 *
 	 * @return the node
 	 */
-	public AbstractNode getNode(String id) {
+	public AbstractNode getNode(final String id) {
 
 		if(idProperty != null) {
 
@@ -105,7 +104,7 @@ public abstract class AbstractCommand {
 	}
 
 	// ----- protected methods -----
-	protected String getIdFromNode(AbstractNode node) {
+	protected String getIdFromNode(final AbstractNode node) {
 		if(idProperty != null) {
 			return node.getStringProperty(idProperty);
 		} else {

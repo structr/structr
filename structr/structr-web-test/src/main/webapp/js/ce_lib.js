@@ -54,7 +54,7 @@ function showProperties(button, entity, view, element) {
                         //console.log('PUT url: ' + rootUrl + entity.id);
                         //console.log(data);
 
-                        ws.send('{ "command" : "UPDATE" , "uuid" : "' + entity.id + '", "id" : "' + entity.id + '", "' + key + '" : "' + value + '" }');
+                        send('{ "command" : "UPDATE" , "uuid" : "' + entity.id + '", "id" : "' + entity.id + '", "' + key + '" : "' + value + '" }');
 
 //                        $.ajax({
 //                            type: 'PUT',
@@ -98,7 +98,7 @@ function showProperties(button, entity, view, element) {
                         //                        console.log(data);
                         var data = '{ "command" : "UPDATE" , "id" : "' + entity.id + '", "data" : { "' + key + '" : "' + value + '" } }';
                         console.log(data);
-                        ws.send(data);
+                        send(data);
 //                        $.ajax({
 //                            type: 'PUT',
 //                            url: rootUrl + entity.id,
@@ -204,7 +204,7 @@ function deleteNode(button, entity, callback) {
     disable(button);
     var toSend = '{ "command" : "DELETE" , "id" : "' + entity.id + '", "data" : { "callback" : "' + callback + '" } }';
     console.log(toSend);
-    ws.send(toSend);
+    send(toSend);
 
 //    $.ajax({
 //        url: rootUrl + entity.type.toLowerCase() + '/' + entity.id,

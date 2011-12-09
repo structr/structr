@@ -16,7 +16,7 @@ function refreshEntities(type) {
 
 function showEntities(type) {
 	var data = '{ "command" : "LIST", "data" : { "type" : "' + type + '" } }';
-	ws.send(data);
+	send(data);
 //ws.send(data);
 //    $.ajax({
 //        url: rootUrl + type + 's/all',
@@ -68,7 +68,7 @@ function createEntity(entity, parentElement) {
 
 	console.log($.toJSON(toSend));
 
-	ws.send($.toJSON(toSend));
+	send($.toJSON(toSend));
 
 //    var resp = $.ajax({
 //        url: url,

@@ -6,25 +6,29 @@ var main;
 var groups;
 var users;
 var debug = true;
-
-var loggedIn = false;
+var onload;
 
 $(document).ready(function() {
     main = $('#main');
     groups = $('#groups');
     users = $('#users');
-    connect();
-    ws.onopen = function() {
-
-        if (!loggedIn) {
-
-            login();
-
-        }
-
-
+    onload = function() {
         refreshGroups();
         refreshUsers();
+    }
+
+
+    connect();
+
+    ws.onopen = function() {
+
+        console.log('logged in? ' + loggedIn);
+        if (!loggedIn) {
+            login();
+        } else {
+            onload();
+        }
+
     }
 });
 
@@ -87,7 +91,7 @@ function addGroup(button) {
     buttonClicked = button;
     var data = '{ "command" : "CREATE" , "data" : { "type" : "Group", "name" : "New group_' + Math.floor(Math.random() * (9999 - 1)) + '" } }';
     if (debug) console.log(data);
-    ws.send(data);
+    send(data);
 }
 
 function addUser(button, groupId) {
@@ -97,7 +101,7 @@ function addUser(button, groupId) {
     var name = Math.floor(Math.random() * (9999 - 1));
     var data = '{ "command" : "CREATE" , "data" : { "type" : "User", "name" : "' + name + '", "realName" : "New user_' + name + '" ' + (groupId ? ', "groupId" : ' + groupId : '') + ' } }';
     if (debug) console.log(data);
-    ws.send(data);
+    send(data);
 }
 
 function removeUserFromGroup(userId, groupId) {

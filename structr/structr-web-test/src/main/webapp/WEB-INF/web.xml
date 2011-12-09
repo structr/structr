@@ -53,7 +53,7 @@
 		<load-on-startup>1</load-on-startup>
 		<init-param>
 			<param-name>Authenticator</param-name>
-			<param-value>org.structr.web.common.HttpAuthenticator</param-value>
+			<param-value>org.structr.core.auth.StructrAuthenticator</param-value>
 		</init-param>
 		<init-param>
 			<param-name>IdProperty</param-name>

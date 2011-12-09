@@ -5,6 +5,7 @@
 			<li><a href="index.jsp">Dashboard</a></li>
 			<li><a href="resources.jsp">Resources</a></li>
 			<li><a href="users_and_groups.jsp">Users and Groups</a></li>
+                        <li><a id="logoutLink" href="#">Logout</a></li>
 		</ul>
 	</div>
 </div>

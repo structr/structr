@@ -27,6 +27,10 @@
                     var password = $('#passwordField').val();
                     doLogin(username, password);
                 });
+                $('#logoutLink').on('click', function() {
+                    doLogout();
+                });
+
             });
             //-->
         </script>

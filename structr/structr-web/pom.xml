@@ -12,7 +12,7 @@
     <groupId>org.structr</groupId>
     <artifactId>structr-web</artifactId>
     <packaging>jar</packaging>
-    <version>0.1-SNAPSHOT</version>
+    <version>0.4.4-SNAPSHOT</version>
     <name>structr-web</name>
     <url>http://maven.apache.org</url>
 

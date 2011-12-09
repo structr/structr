@@ -19,8 +19,18 @@
 
 
 var ws;
+var token;
+var loggedIn = false;
+var loggedInUser;
 
 function connect() {
+
+    token = $.cookie('structrSessionToken');
+    console.log('token: ' + token);
+
+    if (token) {
+        loggedIn = true;
+    }
 
     try {
 
@@ -36,9 +46,9 @@ function connect() {
 
         log('State: ' + ws.readyState);
 
-        ws.onopen = function() {
-            log('Open: ' + ws.readyState);
-        }
+//        ws.onopen = function() {
+//            log('Open: ' + ws.readyState);
+//        }
 
         ws.onmessage = function(message) {
 
@@ -48,16 +58,17 @@ function connect() {
             var data = result.data;
             var command = result.command;
 
-            //console.log(result);
+            console.log(result);
 
             if (command == 'LOGIN') {
 
                 console.log('login received');
 
-                console.log(data);
-
-
-
+                if (result.sessionValid) {
+                    $.cookie("structrSessionToken", result.token);
+                    loggedInUser = result.username;
+//                    onload();
+                }
 
             } else if (command == 'CREATE') {
 
@@ -155,6 +166,14 @@ function send(text) {
 
     log(ws.readyState);
 
+    var obj = $.parseJSON(text);
+    
+    if (token) {
+        obj.token = token;
+    }
+    
+    text = $.toJSON(obj);
+
     if (!text) {
         log('No text to send!');
         return;
@@ -191,7 +210,15 @@ function login() {
 }
 
 function doLogin(username, password) {
-    alert('doLogin as ' + username + ' with ' + password);
-    ws.send('{ "command":"LOGIN", "data" : { "username" : "' + username + '", "password" : "' + password + '" } }');
+    console.log('doLogin as ' + username + ' with ' + password);
+    send('{ "command":"LOGIN", "data" : { "username" : "' + username + '", "password" : "' + password + '" } }');
     $.unblockUI();
+    loggedInUser = username;
+    $('#logoutLink').append(' <span class="username">' + username + '</span>');
+}
+
+function doLogout() {
+    console.log('logout ' + loggedInUser);
+    send('{ "command":"LOGOUT", "data" : { "username" : "' + loggedInUser + '" } }');
+    login();
 }
