@@ -30,7 +30,7 @@ import org.eclipse.jetty.websocket.WebSocketFactory.Acceptor;
 
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.WebSocketDataGSONAdapter;
-import org.structr.websocket.WebSocketMessage;
+import org.structr.websocket.message.WebSocketMessage;
 
 //~--- JDK imports ------------------------------------------------------------
 

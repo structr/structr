@@ -20,7 +20,7 @@
 package org.structr.websocket.command;
 
 import org.structr.core.entity.User;
-import org.structr.websocket.WebSocketMessage;
+import org.structr.websocket.message.WebSocketMessage;
 
 /**
  *

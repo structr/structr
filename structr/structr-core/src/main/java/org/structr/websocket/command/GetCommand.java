@@ -21,7 +21,7 @@ package org.structr.websocket.command;
 
 import org.structr.common.PropertyView;
 import org.structr.core.entity.AbstractNode;
-import org.structr.websocket.WebSocketMessage;
+import org.structr.websocket.message.WebSocketMessage;
 
 /**
  *
@@ -47,7 +47,7 @@ public class GetCommand extends AbstractCommand {
 			}
 
 			// send only over local connection
-			getWebSocket().send(getConnection(), webSocketData, true);
+			getWebSocket().send(webSocketData, true);
 		}
 
 		return false;

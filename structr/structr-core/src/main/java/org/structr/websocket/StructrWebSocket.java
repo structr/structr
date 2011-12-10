@@ -21,6 +21,7 @@
 
 package org.structr.websocket;
 
+import org.structr.websocket.message.WebSocketMessage;
 import com.google.gson.Gson;
 
 import org.apache.commons.codec.binary.Base64;
@@ -42,6 +43,7 @@ import org.structr.websocket.command.ListCommand;
 import org.structr.websocket.command.LoginCommand;
 import org.structr.websocket.command.LogoutCommand;
 import org.structr.websocket.command.UpdateCommand;
+import org.structr.websocket.message.MessageBuilder;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -150,8 +152,15 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 					authenticateToken(messageToken);
 				}
 
-				AbstractCommand message = (AbstractCommand) type.newInstance();
+				// we only permit LOGIN commands if token authentication was not successful
+				if(!isAuthenticated() && !type.equals(LoginCommand.class)) {
 
+					// send 401 Authentication Required
+					send(MessageBuilder.status().code(401).message("").build(), true);
+					return;
+				}
+
+				AbstractCommand message = (AbstractCommand)type.newInstance();
 				message.setWebSocket(this);
 				message.setConnection(connection);
 				message.setIdProperty(idProperty);
@@ -174,8 +183,8 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 
 				logger.log(Level.WARNING, "Unknow command {0}", command);
 
-				// ignore?
-
+				// send 400 Bad Request
+				send(MessageBuilder.status().code(400).message("Unknown command").build(), true);
 			}
 
 		} catch (Throwable t) {
@@ -183,7 +192,7 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 		}
 	}
 
-	public void send(final Connection connection, final WebSocketMessage message, final boolean clearToken) {
+	public void send(final WebSocketMessage message, final boolean clearToken) {
 
 		// return session status to client
 		message.setSessionValid(isAuthenticated());
@@ -303,7 +312,7 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 
 			User user = (User) results.get(0);
 
-			if (user != null && user.getProperty(User.Key.sessionId).equals(messageToken)) {
+			if (user != null && messageToken.equals(user.getProperty(User.Key.sessionId))) {
 
 				return user;
 

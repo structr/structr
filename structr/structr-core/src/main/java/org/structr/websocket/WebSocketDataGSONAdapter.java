@@ -19,6 +19,7 @@
 
 package org.structr.websocket;
 
+import org.structr.websocket.message.WebSocketMessage;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
@@ -58,6 +59,8 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 		if(src.getCommand() != null)	{ root.add("command",  new JsonPrimitive(src.getCommand())); }
 		if(src.getId() != null)		{ root.add("id",       new JsonPrimitive(src.getId())); }
+		if(src.getMessage() != null)	{ root.add("message",  new JsonPrimitive(src.getMessage())); }
+		if(src.getCode() != 0)		{ root.add("code",     new JsonPrimitive(src.getCode())); }
 		if(src.getToken() != null)	{ root.add("token",    new JsonPrimitive(src.getToken())); }
 		if(src.getCallback() != null)	{ root.add("callback", new JsonPrimitive(src.getCallback())); }
 		if(src.getButton() != null)	{ root.add("button",   new JsonPrimitive(src.getButton())); }

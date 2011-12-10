@@ -17,7 +17,7 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.structr.websocket;
+package org.structr.websocket.message;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -35,6 +35,7 @@ public class WebSocketMessage {
 	private boolean sessionValid = false;
 	private String sortOrder = null;
 	private String callback = null;
+	private String message = null;
 	private String command = null;
 	private String sortKey = null;
 	private String button = null;
@@ -44,6 +45,7 @@ public class WebSocketMessage {
 	private String id = null;
 	private int pageSize = 0;
 	private int page = 0;
+	private int code = 0;
 
 	public void setCommand(String command) {
 		this.command = command;
@@ -159,5 +161,21 @@ public class WebSocketMessage {
 
 	public void setSessionValid(boolean sessionValid) {
 		this.sessionValid = sessionValid;
+	}
+
+	public String getMessage() {
+		return message;
+	}
+
+	public void setMessage(String message) {
+		this.message = message;
+	}
+
+	public int getCode() {
+		return code;
+	}
+
+	public void setCode(int code) {
+		this.code = code;
 	}
 }

@@ -28,7 +28,7 @@ import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.AuthenticatorCommand;
 import org.structr.core.entity.User;
 import org.structr.websocket.StructrWebSocket;
-import org.structr.websocket.WebSocketMessage;
+import org.structr.websocket.message.WebSocketMessage;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -59,8 +59,7 @@ public class LoginCommand extends AbstractCommand {
 			try {
 
 				StructrWebSocket socket = this.getWebSocket();
-
-				Authenticator auth = (Authenticator) Services.command(SecurityContext.getSuperUserInstance(), AuthenticatorCommand.class).execute(socket.getConfig());
+				Authenticator auth      = (Authenticator) Services.command(SecurityContext.getSuperUserInstance(), AuthenticatorCommand.class).execute(socket.getConfig());
 
 				user = auth.doLogin(socket.getRequest(), username, password);
 
@@ -83,10 +82,9 @@ public class LoginCommand extends AbstractCommand {
 				this.getWebSocket().setAuthenticated(token);
 
 				// send data..
-				this.getWebSocket().send(getConnection(), webSocketData, false);
+				this.getWebSocket().send(webSocketData, false);
 
 			}
-
 
 		}
 
