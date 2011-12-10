@@ -11,7 +11,7 @@ import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.FindNodeCommand;
 import org.structr.rest.RestMethodResult;
-import org.structr.rest.VetoableGraphObjectListener;
+import org.structr.core.VetoableGraphObjectListener;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.exception.PathException;
@@ -56,7 +56,7 @@ public class IdConstraint extends FilterableConstraint {
 	}
 
 	@Override
-	public List<? extends GraphObject> doGet(List<VetoableGraphObjectListener> listeners) throws PathException {
+	public List<? extends GraphObject> doGet() throws PathException {
 
 		GraphObject obj = getNode();
 
@@ -73,7 +73,7 @@ public class IdConstraint extends FilterableConstraint {
 	}
 
 	@Override
-	public RestMethodResult doPost(Map<String, Object> propertySet, List<VetoableGraphObjectListener> listeners) throws Throwable {
+	public RestMethodResult doPost(Map<String, Object> propertySet) throws Throwable {
 
 		// POST cannot be done on a single ID
 		throw new IllegalPathException();

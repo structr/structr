@@ -19,6 +19,9 @@
 
 package org.structr.websocket.message;
 
+import java.util.Map;
+import java.util.Map.Entry;
+
 /**
  *
  * @author Christian Morgner
@@ -26,7 +29,6 @@ package org.structr.websocket.message;
 public class MessageBuilder {
 
 	private WebSocketMessage data = null;
-	private String command = null;
 
 	public MessageBuilder() {
 		data = new WebSocketMessage();
@@ -35,6 +37,18 @@ public class MessageBuilder {
 	// ----- static methods -----
 	public static MessageBuilder status() {
 		return builder().command("STATUS");
+	}
+
+	public static MessageBuilder create() {
+		return builder().command("CREATE");
+	}
+
+	public static MessageBuilder delete() {
+		return builder().command("DELETE");
+	}
+
+	public static MessageBuilder update() {
+		return builder().command("UPDATE");
 	}
 
 	// ----- non-static methods -----
@@ -48,8 +62,25 @@ public class MessageBuilder {
 		return this;
 	}
 
+	public MessageBuilder id(String id) {
+		data.setId(id);
+		return this;
+	}
+
 	public MessageBuilder message(String message) {
 		data.setMessage(message);
+		return this;
+	}
+
+	public MessageBuilder data(String key, Object value) {
+		data.setData(key, value.toString());
+		return this;
+	}
+
+	public MessageBuilder data(Map<String, Object> data) {
+		for(Entry<String, Object> entry : data.entrySet()) {
+			this.data.setData(entry.getKey(), entry.getValue().toString());
+		}
 		return this;
 	}
 

@@ -23,6 +23,7 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.entity.AbstractNode;
+import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
 /**
@@ -34,7 +35,7 @@ public class UpdateCommand extends AbstractCommand {
 	private static final Logger logger = Logger.getLogger(UpdateCommand.class.getName());
 
 	@Override
-	public boolean processMessage(WebSocketMessage webSocketData) {
+	public void processMessage(WebSocketMessage webSocketData) {
 
 		AbstractNode node = getNode(webSocketData.getId());
 		if(node != null) {
@@ -43,15 +44,12 @@ public class UpdateCommand extends AbstractCommand {
 				node.setProperty(entry.getKey(), entry.getValue());
 			}
 
-			return true;
-
 		} else {
 
 			logger.log(Level.WARNING, "Node with uuid {0} not found.", webSocketData.getId());
 
+			getWebSocket().send(MessageBuilder.status().code(404).build(), true);
 		}
-
-		return false;
 	}
 
 	@Override

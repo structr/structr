@@ -34,6 +34,7 @@ import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.websocket.message.MessageBuilder;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -48,7 +49,7 @@ public class LoginCommand extends AbstractCommand {
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public boolean processMessage(WebSocketMessage webSocketData) {
+	public void processMessage(WebSocketMessage webSocketData) {
 
 		String username = webSocketData.getData().get("username");
 		String password = webSocketData.getData().get("password");
@@ -64,7 +65,9 @@ public class LoginCommand extends AbstractCommand {
 				user = auth.doLogin(socket.getRequest(), username, password);
 
 			} catch (AuthenticationException e) {
+
 				logger.log(Level.INFO, "Could not login {0} with {1}", new Object[] { username, password });
+				this.getWebSocket().send(MessageBuilder.status().code(403).build(), true);
 			}
 
 			if (user != null) {
@@ -87,9 +90,6 @@ public class LoginCommand extends AbstractCommand {
 			}
 
 		}
-
-		// do NOT broadcast
-		return false;
 	}
 
 	//~--- get methods ----------------------------------------------------

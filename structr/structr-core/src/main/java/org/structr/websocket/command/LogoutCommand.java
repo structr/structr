@@ -29,7 +29,7 @@ import org.structr.websocket.message.WebSocketMessage;
 public class LogoutCommand extends AbstractCommand {
 
 	@Override
-	public boolean processMessage(WebSocketMessage webSocketData) {
+	public void processMessage(WebSocketMessage webSocketData) {
 
 		User user = getWebSocket().getCurrentUser();
 		if(user != null) {
@@ -41,9 +41,6 @@ public class LogoutCommand extends AbstractCommand {
 
 			getWebSocket().setAuthenticated(null);
 		}
-
-		// do NOT broadcast
-		return false;
 	}
 
 	@Override

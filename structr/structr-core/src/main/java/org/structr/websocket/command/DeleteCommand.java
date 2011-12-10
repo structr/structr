@@ -25,6 +25,7 @@ import org.structr.common.SecurityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.DeleteNodeCommand;
+import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
 /**
@@ -36,22 +37,18 @@ public class DeleteCommand extends AbstractCommand {
 	private static final Logger logger = Logger.getLogger(DeleteCommand.class.getName());
 
 	@Override
-	public boolean processMessage(final WebSocketMessage webSocketData) {
+	public void processMessage(final WebSocketMessage webSocketData) {
 
 		AbstractNode node = getNode(webSocketData.getId());
 		if(node != null) {
 
 			Services.command(SecurityContext.getSuperUserInstance(), DeleteNodeCommand.class).execute(node);
 
-			return true;
-
 		} else {
 
 			logger.log(Level.WARNING, "Node with id {0} not found.", webSocketData.getId());
-
+			getWebSocket().send(MessageBuilder.status().code(404).build(), true);
 		}
-
-		return false;
 	}
 
 	@Override

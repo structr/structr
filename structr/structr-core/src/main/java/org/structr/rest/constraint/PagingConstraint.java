@@ -11,7 +11,7 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
-import org.structr.rest.VetoableGraphObjectListener;
+import org.structr.core.VetoableGraphObjectListener;
 import org.structr.rest.exception.PathException;
 
 /**
@@ -39,7 +39,7 @@ public class PagingConstraint extends WrappingConstraint {
 	}
 
 	@Override
-	public List<? extends GraphObject> doGet(List<VetoableGraphObjectListener> listeners) throws PathException {
+	public List<? extends GraphObject> doGet() throws PathException {
 
 		/*
 		 * page 1: 0 -> pageSize-1
@@ -48,7 +48,7 @@ public class PagingConstraint extends WrappingConstraint {
 		 * page n: ((n-1) * pageSize) -> (n * pageSize) - 1
 		 */
 
-		List<? extends GraphObject> results = wrappedConstraint.doGet(listeners);
+		List<? extends GraphObject> results = wrappedConstraint.doGet();
 		resultCount = results.size();
 
 		int fromIndex = Math.min(resultCount, Math.max(0, (getPage()-1) * getPageSize()));

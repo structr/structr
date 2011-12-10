@@ -40,7 +40,7 @@ import org.structr.websocket.message.WebSocketMessage;
 public class ListCommand extends AbstractCommand {
 
 	@Override
-	public boolean processMessage(WebSocketMessage webSocketData) {
+	public void processMessage(WebSocketMessage webSocketData) {
 
 		String type = webSocketData.getData().get("type");
 
@@ -119,9 +119,6 @@ public class ListCommand extends AbstractCommand {
 
 		// send only over local connection
 		getWebSocket().send(webSocketData, true);
-
-		// do NOT broadcast
-		return false;
 	}
 
 	@Override

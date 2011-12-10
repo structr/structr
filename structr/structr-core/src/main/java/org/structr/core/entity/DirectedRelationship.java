@@ -185,17 +185,15 @@ public class DirectedRelationship {
 						// delete relationships
 						List<StructrRelationship> rels = sourceNode.getRelationships(relType, direction);
 						for(StructrRelationship rel : rels) {
-							rel.delete();
+							rel.delete(securityContext);
 						}
 					}
 
 					if(direction.equals(Direction.OUTGOING)) {
-						cmd.execute(sourceNode, finalTargetNode, relType);
+						return cmd.execute(sourceNode, finalTargetNode, relType);
 					} else {
-						cmd.execute(finalTargetNode, sourceNode, relType);
+						return cmd.execute(finalTargetNode, sourceNode, relType);
 					}
-
-					return null;
 				}
 			};
 

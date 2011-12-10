@@ -27,6 +27,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
+import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
 /**
@@ -38,7 +39,7 @@ public class CreateCommand extends AbstractCommand {
 	private static final Logger logger = Logger.getLogger(CreateCommand.class.getName());
 
 	@Override
-	public boolean processMessage(final WebSocketMessage webSocketData) {
+	public void processMessage(final WebSocketMessage webSocketData) {
 
 		StructrTransaction transaction = new StructrTransaction() {
 
@@ -49,29 +50,14 @@ public class CreateCommand extends AbstractCommand {
 		};
 
 		// create node in transaction
-		AbstractNode newNode = (AbstractNode)Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(transaction);
+		Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(transaction);
 
 		// check for errors
 		if(transaction.getCause() != null) {
 
 			logger.log(Level.WARNING, "Could not create node.", transaction.getCause());
-
-		} else {
-
-			if(newNode != null) {
-
-				webSocketData.setId(getIdFromNode(newNode));
-				webSocketData.setData("id", getIdFromNode(newNode));
-
-				return true;
-
-			} else {
-				
-				logger.log(Level.WARNING, "Could not create new node.");
-			}
+			getWebSocket().send(MessageBuilder.status().code(400).message(transaction.getCause().getMessage()).build(), true);
 		}
-
-		return false;
 	}
 
 	@Override

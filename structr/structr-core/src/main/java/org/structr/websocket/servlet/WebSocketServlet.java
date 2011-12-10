@@ -43,6 +43,8 @@ import javax.servlet.ServletConfig;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.structr.core.EntityContext;
+import org.structr.websocket.SynchronizationController;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -57,6 +59,8 @@ public class WebSocketServlet extends HttpServlet {
 	private static ServletConfig config                       = null;
 	private static WebSocketFactory factory                   = null;
 	private static final Logger logger                        = Logger.getLogger(WebSocketServlet.class.getName());
+
+	private SynchronizationController syncController          = null;
 
 	//~--- methods --------------------------------------------------------
 
@@ -78,6 +82,9 @@ public class WebSocketServlet extends HttpServlet {
 		// create GSON serializer
 		final Gson gson = new GsonBuilder().setPrettyPrinting().registerTypeAdapter(WebSocketMessage.class, new WebSocketDataGSONAdapter(idPropertyName)).create();
 
+		syncController = new SynchronizationController(gson);
+		EntityContext.registerModificationListener(syncController);
+
 		// create web socket factory
 		factory = new WebSocketFactory(new Acceptor() {
 
@@ -86,7 +93,7 @@ public class WebSocketServlet extends HttpServlet {
 
 				if (STRUCTR_PROTOCOL.equals(protocol)) {
 
-					return new StructrWebSocket(config, request, gson, idPropertyName);
+					return new StructrWebSocket(syncController, config, request, gson, idPropertyName);
 
 				} else {
 
@@ -104,6 +111,11 @@ public class WebSocketServlet extends HttpServlet {
 			}
 
 		});
+	}
+
+	@Override
+	public void destroy() {
+		EntityContext.unregisterModificationListener(syncController);
 	}
 
 	@Override

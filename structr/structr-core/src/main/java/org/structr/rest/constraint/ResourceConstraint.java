@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.structr.common.ErrorBuffer;
 import org.structr.common.SecurityContext;
+import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.Value;
@@ -21,7 +22,7 @@ import org.structr.core.node.RemoveNodeFromIndex;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 import org.structr.rest.RestMethodResult;
-import org.structr.rest.VetoableGraphObjectListener;
+import org.structr.core.VetoableGraphObjectListener;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NoResultsException;
 import org.structr.rest.exception.NotAllowedException;
@@ -44,8 +45,8 @@ public abstract class ResourceConstraint {
 
 	public abstract boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request);
 
-	public abstract List<? extends GraphObject> doGet(final List<VetoableGraphObjectListener> listeners) throws PathException;
-	public abstract RestMethodResult doPost(final Map<String, Object> propertySet, final List<VetoableGraphObjectListener> listeners) throws Throwable;
+	public abstract List<? extends GraphObject> doGet() throws PathException;
+	public abstract RestMethodResult doPost(final Map<String, Object> propertySet) throws Throwable;
 	public abstract RestMethodResult doHead() throws Throwable;
 	public abstract RestMethodResult doOptions() throws Throwable;
 	public abstract String getUriPart();
@@ -53,12 +54,12 @@ public abstract class ResourceConstraint {
 	public abstract boolean isCollectionResource();
 
 	// ----- methods -----
-	public RestMethodResult doDelete(final List<VetoableGraphObjectListener> listeners) throws Throwable {
+	public RestMethodResult doDelete() throws Throwable {
 
 		Iterable<? extends GraphObject> results;
 
 		// catch 204, DELETE must return 200 if resource is empty
-		try { results = doGet(listeners); } catch(NoResultsException nre) { results = null; }
+		try { results = doGet(); } catch(NoResultsException nre) { results = null; }
 
 		if(results != null) {
 
@@ -69,36 +70,24 @@ public abstract class ResourceConstraint {
 				@Override
 				public Object execute() throws Throwable {
 
-					ErrorBuffer errorBuffer = new ErrorBuffer();
-					boolean success = true;
-
 					for(GraphObject obj : finalResults) {
 
-						if(mayDelete(listeners, obj, errorBuffer)) {
+						// 1: remove node from index
+						Services.command(securityContext, RemoveNodeFromIndex.class).execute(obj);
 
-							// 1: remove node from index
-							Services.command(securityContext, RemoveNodeFromIndex.class).execute(obj);
-
-							// 2: delete relationships
-							if(obj instanceof AbstractNode) {
-								List<StructrRelationship> rels = ((AbstractNode)obj).getRelationships();
-								for(StructrRelationship rel : rels) {
-									success &= rel.delete();
-								}
+						// 2: delete relationships
+						if(obj instanceof AbstractNode) {
+							List<StructrRelationship> rels = ((AbstractNode)obj).getRelationships();
+							for(StructrRelationship rel : rels) {
+								rel.delete(securityContext);
 							}
-
-							// 3: delete object
-							success &= obj.delete();
 						}
+
+						// 3: delete object
+						obj.delete(securityContext);
 					}
 
-					// roll back transaction if not all deletions were successful
-					if(!success) {
-						// throwable will cause transaction to be rolled back
-						throw new IllegalArgumentException(errorBuffer.toString());
-					}
-
-					return success;
+					return null;
 				}
 
 			});
@@ -107,11 +96,11 @@ public abstract class ResourceConstraint {
 		return new RestMethodResult(HttpServletResponse.SC_OK);
 	}
 
-	public RestMethodResult doPut(final Map<String, Object> propertySet, final List<VetoableGraphObjectListener> listeners) throws Throwable {
+	public RestMethodResult doPut(final Map<String, Object> propertySet) throws Throwable {
 
 		if(securityContext != null && securityContext.getUser() != null) {
 			
-			final Iterable<? extends GraphObject> results = doGet(listeners);
+			final Iterable<? extends GraphObject> results = doGet();
 			if(results != null) {
 
 				StructrTransaction transaction = new StructrTransaction() {
@@ -124,33 +113,36 @@ public abstract class ResourceConstraint {
 
 						for(GraphObject obj : results) {
 
-							if(mayModify(listeners, obj, errorBuffer)) {
+							for(Entry<String, Object> attr : propertySet.entrySet()) {
 
-								for(Entry<String, Object> attr : propertySet.entrySet()) {
-
-									try {
-										if(attr.getValue() != null) {
-											obj.setProperty(attr.getKey(), attr.getValue());
-										} else {
-											obj.removeProperty(attr.getKey());
-										}
-
-									} catch(Throwable t) {
-
-										errorBuffer.add(t.getMessage());
-										error = true;
+								try {
+									if(attr.getValue() != null) {
+										obj.setProperty(attr.getKey(), attr.getValue());
+									} else {
+										obj.removeProperty(attr.getKey());
 									}
+
+								} catch(Throwable t) {
+									errorBuffer.add(t.getMessage());
+									error = true;
 								}
-
-							} else {
-
-								throw new IllegalArgumentException(errorBuffer.toString());
 							}
 
-							// ask listener for modification validation
-							if(!validAfterModification(listeners, obj, errorBuffer) || error) {
-								throw new IllegalArgumentException(errorBuffer.toString());
+							/*
+							try {
+								// ask listener for modification validation
+								EntityContext.getGlobalModificationListener().graphObjectModified(securityContext, obj);
+
+							} catch(Throwable t) {
+								errorBuffer.add(t.getMessage());
+								error = true;
 							}
+							*/
+						}
+
+						// throw exception with errors
+						if(error) {
+							throw new IllegalArgumentException(errorBuffer.toString());
 						}
 
 						return null;
@@ -193,67 +185,9 @@ public abstract class ResourceConstraint {
 	}
 
 	// ----- protected methods -----
-	protected boolean mayCreate(List<VetoableGraphObjectListener> listeners, GraphObject object, ErrorBuffer errorBuffer) {
-
-		boolean mayCreate = true;
-
-		// only allow modification if all listeners answer with "yes"
-		for(VetoableGraphObjectListener listener : listeners) {
-			mayCreate &= listener.mayCreate(object, securityContext, errorBuffer);
-		}
-
-		return mayCreate;
-	}
-
-	protected boolean validAfterCreation(List<VetoableGraphObjectListener> listeners, GraphObject object, ErrorBuffer errorBuffer) {
-
-		boolean valid = true;
-
-		for(VetoableGraphObjectListener listener : listeners) {
-			valid &= listener.validAfterCreation(object, securityContext, errorBuffer);
-		}
-
-		return valid;
-	}
-
-	protected boolean mayModify(List<VetoableGraphObjectListener> listeners, GraphObject object, ErrorBuffer errorBuffer) {
-
-		boolean mayModify = true;
-
-		// only allow modification if all listeners answer with "yes"
-		for(VetoableGraphObjectListener listener : listeners) {
-			mayModify &= listener.mayModify(object, securityContext, errorBuffer);
-		}
-
-		return mayModify;
-	}
-
-	protected boolean validAfterModification(List<VetoableGraphObjectListener> listeners, GraphObject object, ErrorBuffer errorBuffer) {
-
-		boolean valid = true;
-
-		for(VetoableGraphObjectListener listener : listeners) {
-			valid &= listener.validAfterModification(object, securityContext, errorBuffer);
-		}
-		
-		return valid;
-	}
-
-	protected boolean mayDelete(List<VetoableGraphObjectListener> listeners, GraphObject object, ErrorBuffer errorBuffer) {
-
-		boolean mayDelete = true;
-
-		// only allow deletion if all listeners answer with "yes"
-		for(VetoableGraphObjectListener listener : listeners) {
-			mayDelete &= listener.mayDelete(object, securityContext, errorBuffer);
-		}
-
-		return mayDelete;
-	}
-
-	protected void notifyOfTraversal(List<VetoableGraphObjectListener> listeners, List<GraphObject> traversedNodes) {
-		for(VetoableGraphObjectListener listener : listeners) {
-			listener.wasVisited(traversedNodes, securityContext);
+	protected void notifyOfTraversal(List<GraphObject> traversedNodes) {
+		for(VetoableGraphObjectListener listener : EntityContext.getModificationListeners()) {
+			listener.wasVisited(traversedNodes, -1, securityContext);
 		}
 	}
 

@@ -21,13 +21,17 @@
 
 package org.structr.core;
 
+import java.security.SecureRandom;
+import java.util.List;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.event.TransactionData;
 
 import org.structr.common.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.core.entity.DirectedRelationship;
 import org.structr.core.entity.DirectedRelationship.Cardinality;
+import org.structr.core.entity.StructrRelationship;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.ObjectNotion;
 import org.structr.core.validator.GlobalPropertyUniquenessValidator;
@@ -43,7 +47,12 @@ import java.util.Set;
 import java.util.concurrent.Semaphore;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.event.PropertyEntry;
+import org.neo4j.graphdb.event.TransactionEventHandler;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.node.StructrNodeFactory;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -70,11 +79,26 @@ public class EntityContext {
 	private static final Map<Class, Map<String, Value>> globalConversionParameterMap   = new LinkedHashMap<Class, Map<String, Value>>();
 	private static final Map<Class, Set<String>> globalWriteOncePropertyMap            = new LinkedHashMap<Class, Set<String>>();
 	private static final Map<Class, Set<String>> globalReadOnlyPropertyMap             = new LinkedHashMap<Class, Set<String>>();
+	private static final Set<VetoableGraphObjectListener> modificationListeners        = new LinkedHashSet<VetoableGraphObjectListener>();
 	private static final Logger logger                                                 = Logger.getLogger(EntityContext.class.getName());
-	
+
+	private static final EntityContextModificationListener globalModificationListener  = new EntityContextModificationListener();
+
 	private static final Map<Class, Set<Transformation<AbstractNode>>> globalPostCreationTransformationMap	= new LinkedHashMap<Class, Set<Transformation<AbstractNode>>>();
 
 	//~--- methods --------------------------------------------------------
+
+	public static void registerModificationListener(VetoableGraphObjectListener listener) {
+		modificationListeners.add(listener);
+	}
+
+	public static void unregisterModificationListener(VetoableGraphObjectListener listener) {
+		modificationListeners.remove(listener);
+	}
+
+	public static Set<VetoableGraphObjectListener> getModificationListeners() {
+		return modificationListeners;
+	}
 
 	public static void registerPostCreationTransformation(Class type, Transformation<AbstractNode> transformation) {
 		
@@ -724,5 +748,166 @@ public class EntityContext {
 		}
 
 		return isWriteOnce;
+	}
+
+//	public static EntityContextModificationListener getGlobalModificationListener() {
+//		return globalModificationListener;
+//	}
+
+	public static EntityContextModificationListener getTransactionEventHandler() {
+		return globalModificationListener;
+	}
+
+	// facade to propagate modification events to all listeners
+	public static class EntityContextModificationListener implements VetoableGraphObjectListener, TransactionEventHandler<Long> {
+
+		private static final SecureRandom secureRandom = new SecureRandom();
+
+		// ----- interface TransactionEventHandler -----
+		@Override
+		public Long beforeCommit(TransactionData data) throws Exception {
+
+			Map<Node, Map<String, Object>> removedProperties = new LinkedHashMap<Node, Map<String, Object>>();
+			SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+			StructrNodeFactory factory = new StructrNodeFactory(securityContext);
+			Set<AbstractNode> modifiedNodes = new LinkedHashSet<AbstractNode>();
+			Set<AbstractNode> createdNodes = new LinkedHashSet<AbstractNode>();
+
+			long transactionKey = secureRandom.nextLong();
+
+			// 0: notify listeners of beginning commit
+			begin(securityContext, transactionKey);
+
+			// 1: collect properties of deleted nodes
+			for(PropertyEntry<Node> entry : data.removedNodeProperties()) {
+
+				Node node = entry.entity();
+				Map<String, Object> propertyMap = removedProperties.get(node);
+				if(propertyMap == null) {
+					propertyMap = new LinkedHashMap<String, Object>();
+					removedProperties.put(node, propertyMap);
+				}
+				propertyMap.put(entry.key(), entry.previouslyCommitedValue());
+			}
+
+			// 2: notify listeners of node creation (so the modifications can later be tracked)
+			for(Node node : data.createdNodes()) {
+				AbstractNode entity = factory.createNode(securityContext, node);
+				graphObjectCreated(securityContext, transactionKey, entity);
+				createdNodes.add(entity);
+			}
+
+			// 3: notify listeners of relationship creation
+			for(Relationship rel : data.createdRelationships()) {
+				graphObjectCreated(securityContext, transactionKey, new StructrRelationship(securityContext, rel));
+			}
+
+			// 4: notify listeners of node deletion
+			for(Node node : data.deletedNodes()) {
+				graphObjectDeleted(securityContext, transactionKey, node.getId(), removedProperties.get(node));
+			}
+
+			// 5: notify listeners of property modifications
+			for(PropertyEntry<Node> entry : data.assignedNodeProperties()) {
+
+				AbstractNode entity = factory.createNode(securityContext, entry.entity());
+
+				propertyModified(securityContext, transactionKey, entity, entry.key(), entry.previouslyCommitedValue(), entry.value());
+				modifiedNodes.add(entity);
+			}
+
+			// 6: notify listeners of modified nodes (to check for non-existing properties etc)
+			for(AbstractNode node : modifiedNodes) {
+				// only send UPDATE if node was not created in this transaction
+				if(!createdNodes.contains(node)) {
+					graphObjectModified(securityContext, transactionKey, node);
+				}
+			}
+
+			// notify listeners of commit of commit
+			commit(securityContext, transactionKey);
+
+			return transactionKey;
+		}
+
+		@Override
+		public void afterCommit(TransactionData data, Long transactionKey) {
+
+		}
+
+		@Override
+		public void afterRollback(TransactionData data, Long transactionKey) {
+		}
+
+		// ----- interface VetoableGraphObjectListener -----
+		@Override
+		public void begin(SecurityContext securityContext, long transactionKey) {
+			for(VetoableGraphObjectListener listener : modificationListeners) {
+				listener.begin(securityContext, transactionKey);
+			}
+		}
+
+		@Override
+		public void commit(SecurityContext securityContext, long transactionKey) {
+			for(VetoableGraphObjectListener listener : modificationListeners) {
+				listener.commit(securityContext, transactionKey);
+			}
+		}
+
+		@Override
+		public void rollback(SecurityContext securityContext, long transactionKey) {
+			for(VetoableGraphObjectListener listener : modificationListeners) {
+				listener.rollback(securityContext, transactionKey);
+			}
+		}
+
+		@Override
+		public void propertyModified(SecurityContext securityContext, long transactionKey, AbstractNode entity, String key, Object oldValue, Object newValue) {
+			for(VetoableGraphObjectListener listener : modificationListeners) {
+				listener.propertyModified(securityContext, transactionKey, entity, key, oldValue, newValue);
+			}
+		}
+
+		@Override
+		public void relationshipCreated(SecurityContext securityContext, long transactionKey, AbstractNode startNode, AbstractNode endNode, StructrRelationship relationship) {
+			for(VetoableGraphObjectListener listener : modificationListeners) {
+				listener.relationshipCreated(securityContext, transactionKey, startNode, endNode, relationship);
+			}
+		}
+
+		@Override
+		public void graphObjectCreated(SecurityContext securityContext, long transactionKey, GraphObject graphObject) {
+			for(VetoableGraphObjectListener listener : modificationListeners) {
+				listener.graphObjectCreated(securityContext, transactionKey, graphObject);
+			}
+		}
+
+		@Override
+		public void graphObjectModified(SecurityContext securityContext, long transactionKey, GraphObject graphObject) {
+			for(VetoableGraphObjectListener listener : modificationListeners) {
+				listener.graphObjectModified(securityContext, transactionKey, graphObject);
+			}
+		}
+
+		@Override
+		public void wasVisited(List<GraphObject> traversedNodes, long transactionKey, SecurityContext securityContext) {
+			for(VetoableGraphObjectListener listener : modificationListeners) {
+				listener.wasVisited(traversedNodes, transactionKey, securityContext);
+			}
+		}
+
+		@Override
+		public void relationshipDeleted(SecurityContext securityContext, long transactionKey, StructrRelationship relationship) {
+			for(VetoableGraphObjectListener listener : modificationListeners) {
+				listener.relationshipDeleted(securityContext, transactionKey, relationship);
+			}
+		}
+
+		@Override
+		public void graphObjectDeleted(SecurityContext securityContext, long transactionKey, long id, Map<String, Object> properties) {
+			for(VetoableGraphObjectListener listener : modificationListeners) {
+				listener.graphObjectDeleted(securityContext, transactionKey, id, properties);
+			}
+		}
 	}
 }

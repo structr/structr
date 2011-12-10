@@ -1339,11 +1339,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	}
 
 	@Override
-	public boolean delete() {
-
+	public void delete(SecurityContext securityContext) {
 		dbNode.delete();
-
-		return true;
+		// EntityContext.getGlobalModificationListener().graphObjectDeleted(securityContext, this);
 	}
 
 	/**
@@ -3851,7 +3849,6 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 				try {
 
 					GraphObject graphObject = rel.getNotion().getAdapterForSetter(securityContext).adapt(value);
-
 					rel.createRelationship(securityContext, this, graphObject);
 
 					return;
@@ -3913,7 +3910,8 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		} else {
 
 			// Commit value directly to database
-			Object oldValue = getProperty(key);
+			final Object oldValue = getProperty(key);
+			final AbstractNode thisNode = this;
 
 			// don't make any changes if
 			// - old and new value both are null
@@ -3929,17 +3927,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 				@Override
 				public Object execute() throws Throwable {
 
-					// Semaphore semaphore = EntityContext.getSemaphoreForTypeAndProperty(type.getSimpleName(), key);
 					try {
-
-						/*
-						 * // obtain semaphore and acquire lock if semaphore exists
-						 * if(semaphore != null) {
-						 *       try { semaphore.acquire(); } catch(InterruptedException iex) { iex.printStackTrace(); }
-						 *       logger.log(Level.INFO, "Entering critical section for type {0} key {1} from thread {2}",
-						 *           new Object[] { type.getSimpleName(), key, Thread.currentThread() } );
-						 * }
-						 */
 
 						// save space
 						if (convertedValue == null) {
@@ -3951,7 +3939,6 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 							// Setting last modified date explicetely is not allowed
 							if (!key.equals(Key.lastModifiedDate.name())) {
 
-								// ##### synchronize this #####
 								if (convertedValue instanceof Date) {
 
 									dbNode.setProperty(key, ((Date) convertedValue).getTime());
@@ -3965,7 +3952,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 								}
 
-								// ##### until here #####
+								// notify listeners here
+								// EntityContext.getGlobalModificationListener().propertyModified(securityContext, thisNode, key, oldValue, convertedValue);
+
 							} else {
 
 								logger.log(Level.FINE, "Tried to set lastModifiedDate explicitely (action was denied)");
@@ -3980,16 +3969,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 							Services.command(securityContext, IndexNodeCommand.class).execute(getId(), key);
 
 						}
+						
 					} finally {
 
-						/*
-						 * // release lock if semaphore exists
-						 * if(semaphore != null) {
-						 *       semaphore.release();
-						 *       logger.log(Level.INFO, "Exiting critical section for type {0} key {1} from thread {2}",
-						 *           new Object[] { type.getSimpleName(), key, Thread.currentThread() } );
-						 * }
-						 */
 					}
 
 					return null;

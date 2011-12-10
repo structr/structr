@@ -30,6 +30,7 @@ import org.neo4j.graphdb.Transaction;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.kernel.AbstractGraphDatabase;
+import org.structr.core.EntityContext;
 
 //~--- classes ----------------------------------------------------------------
 

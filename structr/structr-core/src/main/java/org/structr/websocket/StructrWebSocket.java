@@ -50,11 +50,9 @@ import org.structr.websocket.message.MessageBuilder;
 import java.security.SecureRandom;
 
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -70,7 +68,6 @@ import javax.servlet.http.HttpServletRequest;
 public class StructrWebSocket implements WebSocket.OnTextMessage {
 
 	private static final int SessionIdLength           = 128;
-	private static final Set<StructrWebSocket> sockets = new LinkedHashSet<StructrWebSocket>();
 	private static final SecureRandom secureRandom     = new SecureRandom();
 	private static final Logger logger                 = Logger.getLogger(StructrWebSocket.class.getName());
 	private static final Map<String, Class> commandSet = new LinkedHashMap<String, Class>();
@@ -91,21 +88,23 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 
 	//~--- fields ---------------------------------------------------------
 
-	private ServletConfig config       = null;
-	private Connection connection      = null;
-	private Gson gson                  = null;
-	private String idProperty          = null;
-	private HttpServletRequest request = null;
-	private String token               = null;
+	private SynchronizationController syncController = null;
+	private ServletConfig config                     = null;
+	private Connection connection                    = null;
+	private Gson gson                                = null;
+	private String idProperty                        = null;
+	private HttpServletRequest request               = null;
+	private String token                             = null;
 
 	//~--- constructors ---------------------------------------------------
 
-	public StructrWebSocket(final ServletConfig config, final HttpServletRequest request, final Gson gson, final String idProperty) {
+	public StructrWebSocket(final SynchronizationController syncController, final ServletConfig config, final HttpServletRequest request, final Gson gson, final String idProperty) {
 
-		this.config     = config;
-		this.request    = request;
-		this.gson       = gson;
-		this.idProperty = idProperty;
+		this.syncController = syncController;
+		this.config         = config;
+		this.request        = request;
+		this.gson           = gson;
+		this.idProperty     = idProperty;
 	}
 
 	//~--- methods --------------------------------------------------------
@@ -118,7 +117,7 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 		this.connection = connection;
 		this.token      = null;
 
-		sockets.add(this);
+		syncController.registerClient(this);
 	}
 
 	@Override
@@ -129,7 +128,7 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 		this.token      = null;
 		this.connection = null;
 
-		sockets.remove(this);
+		syncController.unregisterClient(this);
 	}
 
 	@Override
@@ -160,10 +159,10 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 					return;
 				}
 
-				AbstractCommand message = (AbstractCommand)type.newInstance();
-				message.setWebSocket(this);
-				message.setConnection(connection);
-				message.setIdProperty(idProperty);
+				AbstractCommand abstractCommand = (AbstractCommand)type.newInstance();
+				abstractCommand.setWebSocket(this);
+				abstractCommand.setConnection(connection);
+				abstractCommand.setIdProperty(idProperty);
 
 				// store authenticated-Flag in webSocketData
 				// so the command can access it
@@ -173,11 +172,8 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 				webSocketData.setToken(null);
 
 				// process message
-				if (message.processMessage(webSocketData)) {
+				abstractCommand.processMessage(webSocketData);
 
-					// successful execution, broadcast data but remove token
-					broadcast(gson.toJson(webSocketData, WebSocketMessage.class));
-				}
 
 			} else {
 
@@ -234,27 +230,6 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 	}
 
 	// ----- private methods -----
-	private void broadcast(final String message) {
-
-		logger.log(Level.INFO, "Broadcasting message to {0} clients..", sockets.size());
-
-		for (StructrWebSocket socket : sockets) {
-
-			Connection socketConnection = socket.getConnection();
-
-			if ((socketConnection != null) && socket.isAuthenticated()) {
-
-				try {
-					socketConnection.sendMessage(message);
-				} catch (Throwable t) {
-					logger.log(Level.WARNING, "Error sending message to client.", t);
-				}
-
-			}
-
-		}
-	}
-
 	private void authenticateToken(final String messageToken) {
 
 		User user = getUserForToken(messageToken);

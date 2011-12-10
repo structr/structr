@@ -31,6 +31,7 @@ import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.common.RelType;
+import org.structr.core.EntityContext;
 import org.structr.core.entity.StructrRelationship;
 
 /**
@@ -154,7 +155,9 @@ public class DeleteNodeCommand extends NodeServiceCommand {
             return null;
         }
 
-        return doDeleteNode(node, parentNode, recursive);
+//	EntityContext.getGlobalModificationListener().graphObjectDeleted(securityContext, node);
+	AbstractNode newParentNode = doDeleteNode(node, parentNode, recursive);
+	return newParentNode;
     }
 
     private AbstractNode doDeleteNode(final AbstractNode structrNode, final AbstractNode parentNode, final Boolean recursive) {

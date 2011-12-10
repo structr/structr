@@ -27,6 +27,7 @@ import org.structr.common.PropertyKey;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.core.Command;
+import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.node.CreateRelationshipCommand;
@@ -363,8 +364,9 @@ public class StructrRelationship implements GraphObject {
 	}
 
 	@Override
-	public boolean delete() {
+	public void delete(SecurityContext securityContext) {
+
 		dbRelationship.delete();
-		return true;
+		// EntityContext.getGlobalModificationListener().relationshipDeleted(securityContext, this);
 	}
 }

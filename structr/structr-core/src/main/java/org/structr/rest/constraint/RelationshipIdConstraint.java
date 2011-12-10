@@ -27,7 +27,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.rest.RestMethodResult;
-import org.structr.rest.VetoableGraphObjectListener;
+import org.structr.core.VetoableGraphObjectListener;
 import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.exception.PathException;
 
@@ -59,9 +59,9 @@ public class RelationshipIdConstraint extends FilterableConstraint {
 	}
 
 	@Override
-	public List<GraphObject> doGet(List<VetoableGraphObjectListener> listeners) throws PathException {
+	public List<GraphObject> doGet() throws PathException {
 
-		List<? extends GraphObject> results = relationshipConstraint.doGet(listeners);
+		List<? extends GraphObject> results = relationshipConstraint.doGet();
 		long desiredId = idConstraint.getId();
 		GraphObject desiredObject = null;
 
@@ -84,7 +84,7 @@ public class RelationshipIdConstraint extends FilterableConstraint {
 	}
 
 	@Override
-	public RestMethodResult doPost(Map<String, Object> propertySet, List<VetoableGraphObjectListener> listeners) throws Throwable {
+	public RestMethodResult doPost(Map<String, Object> propertySet) throws Throwable {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 

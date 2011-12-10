@@ -31,7 +31,7 @@ import org.structr.core.Services;
 import org.structr.core.agent.ProcessTaskCommand;
 import org.structr.core.agent.Task;
 import org.structr.rest.RestMethodResult;
-import org.structr.rest.VetoableGraphObjectListener;
+import org.structr.core.VetoableGraphObjectListener;
 import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.exception.PathException;
@@ -55,17 +55,17 @@ public class MaintenanceConstraint extends ResourceConstraint {
 	}
 
 	@Override
-	public List<? extends GraphObject> doGet(List<VetoableGraphObjectListener> listeners) throws PathException {
+	public List<? extends GraphObject> doGet() throws PathException {
 		throw new NotAllowedException();
 	}
 
 	@Override
-	public RestMethodResult doPut(Map<String, Object> propertySet, List<VetoableGraphObjectListener> listeners) throws Throwable {
+	public RestMethodResult doPut(Map<String, Object> propertySet) throws Throwable {
 		throw new NotAllowedException();
 	}
 
 	@Override
-	public RestMethodResult doPost(Map<String, Object> propertySet, List<VetoableGraphObjectListener> listeners) throws Throwable {
+	public RestMethodResult doPost(Map<String, Object> propertySet) throws Throwable {
 
 		if(securityContext != null && securityContext.isSuperUser()) {
 

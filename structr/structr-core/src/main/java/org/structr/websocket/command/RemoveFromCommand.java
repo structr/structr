@@ -28,7 +28,7 @@ import org.structr.websocket.message.WebSocketMessage;
 public class RemoveFromCommand extends AbstractCommand {
 
 	@Override
-	public boolean processMessage(WebSocketMessage webSocketData) {
+	public void processMessage(WebSocketMessage webSocketData) {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 

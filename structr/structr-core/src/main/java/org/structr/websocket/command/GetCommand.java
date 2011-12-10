@@ -21,6 +21,7 @@ package org.structr.websocket.command;
 
 import org.structr.common.PropertyView;
 import org.structr.core.entity.AbstractNode;
+import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
 /**
@@ -30,7 +31,7 @@ import org.structr.websocket.message.WebSocketMessage;
 public class GetCommand extends AbstractCommand {
 
 	@Override
-	public boolean processMessage(final WebSocketMessage webSocketData) {
+	public void processMessage(final WebSocketMessage webSocketData) {
 
 		AbstractNode node = getNode(webSocketData.getId());
 		String view = webSocketData.getView();
@@ -48,9 +49,11 @@ public class GetCommand extends AbstractCommand {
 
 			// send only over local connection
 			getWebSocket().send(webSocketData, true);
-		}
 
-		return false;
+		} else {
+
+			getWebSocket().send(MessageBuilder.status().code(404).build(), true);
+		}
 	}
 
 	@Override

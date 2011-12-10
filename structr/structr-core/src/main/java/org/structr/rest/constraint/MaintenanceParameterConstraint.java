@@ -27,7 +27,7 @@ import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.agent.RebuildIndexTask;
 import org.structr.rest.RestMethodResult;
-import org.structr.rest.VetoableGraphObjectListener;
+import org.structr.core.VetoableGraphObjectListener;
 import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.exception.PathException;
 
@@ -63,17 +63,17 @@ public class MaintenanceParameterConstraint extends ResourceConstraint {
 	}
 
 	@Override
-	public List<? extends GraphObject> doGet(List<VetoableGraphObjectListener> listeners) throws PathException {
+	public List<? extends GraphObject> doGet() throws PathException {
 		throw new NotAllowedException();
 	}
 
 	@Override
-	public RestMethodResult doPut(Map<String, Object> propertySet, List<VetoableGraphObjectListener> listeners) throws Throwable {
+	public RestMethodResult doPut(Map<String, Object> propertySet) throws Throwable {
 		throw new NotAllowedException();
 	}
 
 	@Override
-	public RestMethodResult doPost(Map<String, Object> propertySet, List<VetoableGraphObjectListener> listeners) throws Throwable {
+	public RestMethodResult doPost(Map<String, Object> propertySet) throws Throwable {
 		throw new NotAllowedException();
 	}
 

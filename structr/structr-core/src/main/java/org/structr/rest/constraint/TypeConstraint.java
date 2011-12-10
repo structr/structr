@@ -27,7 +27,7 @@ import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
 import org.structr.rest.RestMethodResult;
-import org.structr.rest.VetoableGraphObjectListener;
+import org.structr.core.VetoableGraphObjectListener;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NoResultsException;
 import org.structr.rest.exception.NotFoundException;
@@ -64,7 +64,7 @@ public class TypeConstraint extends SortableConstraint {
 	}
 
 	@Override
-	public List<GraphObject> doGet(final List<VetoableGraphObjectListener> listeners) throws PathException {
+	public List<GraphObject> doGet() throws PathException {
 
 		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 		boolean hasSearchableAttributes = false;
@@ -105,7 +105,7 @@ public class TypeConstraint extends SortableConstraint {
 	}
 
 	@Override
-	public RestMethodResult doPost(final Map<String, Object> propertySet, final List<VetoableGraphObjectListener> listeners) throws Throwable {
+	public RestMethodResult doPost(final Map<String, Object> propertySet) throws Throwable {
 
 		// create transaction closure
 		StructrTransaction transaction = new StructrTransaction() {
@@ -113,25 +113,16 @@ public class TypeConstraint extends SortableConstraint {
 			@Override
 			public Object execute() throws Throwable {
 
-				AbstractNode newNode = createNode(listeners, propertySet);
-				ErrorBuffer errorBuffer = new ErrorBuffer();
-
-				if(!validAfterCreation(listeners, newNode, errorBuffer)) {
-					throw new IllegalArgumentException(errorBuffer.toString());
-				}
-
-				return newNode;
+				return createNode(propertySet);
 			}
 		};
 
 		// execute transaction: create new node
 		AbstractNode newNode = (AbstractNode)Services.command(securityContext, TransactionCommand.class).execute(transaction);
-		if(newNode == null) {
 
-			// re-throw transaction exception cause
-			if(transaction.getCause() != null) {
-				throw transaction.getCause();
-			}
+		// re-throw transaction exception cause
+		if(transaction.getCause() != null) {
+			throw transaction.getCause();
 		}
 
 		// finally: return 201 Created
@@ -170,19 +161,12 @@ public class TypeConstraint extends SortableConstraint {
 		// determine real type
 	}
 
-	public AbstractNode createNode(final List<VetoableGraphObjectListener> listeners, final Map<String, Object> propertySet) throws Throwable {
+	public AbstractNode createNode(final Map<String, Object> propertySet) throws Throwable {
 
 		//propertySet.put(AbstractNode.Key.type.name(), StringUtils.toCamelCase(type));
 		propertySet.put(AbstractNode.Key.type.name(), CaseHelper.toCamelCase(type));
 
-		AbstractNode newNode = (AbstractNode)Services.command(securityContext, CreateNodeCommand.class).execute(propertySet);
-		ErrorBuffer errorBuffer = new ErrorBuffer();
-
-		if(!mayCreate(listeners, newNode, errorBuffer)) {
-			throw new IllegalArgumentException(errorBuffer.toString());
-		}
-
-		return newNode;
+		return (AbstractNode)Services.command(securityContext, CreateNodeCommand.class).execute(propertySet);
 	}
 
 	@Override

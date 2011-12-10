@@ -46,7 +46,7 @@ public abstract class AbstractCommand {
 	private Connection connection = null;
 	private String idProperty = null;
 
-	public abstract boolean processMessage(final WebSocketMessage webSocketData);
+	public abstract void processMessage(final WebSocketMessage webSocketData);
 	public abstract String getCommand();
 
 	public Connection getConnection() {
