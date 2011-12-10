@@ -68,21 +68,6 @@ public class LoginCommand extends AbstractCommand {
 				logger.log(Level.INFO, "Could not login {0} with {1}", new Object[] { username, password });
 			}
 
-//                      List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
-//
-//                      attrs.add(Search.andExactProperty(AbstractNode.Key.name.name(), username));
-//                      attrs.add(Search.andExactType("User"));
-			// we need to search with a super user security context here..
-//                      List<AbstractNode> results = (List<AbstractNode>)Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(
-//                          null, false, false, attrs);
-//                      if(!results.isEmpty()) {
-//
-//                              int resultCount = results.size();
-//                              if(resultCount == 1) {
-//
-//                                      User user = (User)results.get(0);
-			// check password
-//                      if (DigestUtils.sha512Hex(password).equals(user.getProperty(User.Key.password))) {
 			if (user != null) {
 
 				String token = StructrWebSocket.secureRandomString();
@@ -102,8 +87,6 @@ public class LoginCommand extends AbstractCommand {
 
 			}
 
-//                      }
-//                      }
 
 		}
 
