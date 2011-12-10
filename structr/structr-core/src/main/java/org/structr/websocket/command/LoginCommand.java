@@ -29,7 +29,7 @@ import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
 import org.structr.websocket.StructrWebSocket;
-import org.structr.websocket.WebSocketMessage;
+import org.structr.websocket.message.WebSocketMessage;
 
 /**
  *
@@ -76,7 +76,7 @@ public class LoginCommand extends AbstractCommand {
 						this.getWebSocket().setAuthenticated(token);
 
 						// send data..
-						this.getWebSocket().send(getConnection(), webSocketData, false);
+						this.getWebSocket().send(webSocketData, false);
 					}
 				}
 			}

@@ -19,6 +19,7 @@
 
 package org.structr.websocket;
 
+import org.structr.websocket.message.WebSocketMessage;
 import com.google.gson.Gson;
 import java.security.SecureRandom;
 import java.util.LinkedHashMap;
@@ -46,6 +47,7 @@ import org.structr.websocket.command.ListCommand;
 import org.structr.websocket.command.LoginCommand;
 import org.structr.websocket.command.LogoutCommand;
 import org.structr.websocket.command.UpdateCommand;
+import org.structr.websocket.message.MessageBuilder;
 
 /**
  *
@@ -127,6 +129,14 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 					authenticateToken(messageToken);
 				}
 
+				// we only permit LOGIN commands if token authentication was not successful
+				if(!isAuthenticated() && !type.equals(LoginCommand.class)) {
+
+					// send 401 Authentication Required
+					send(MessageBuilder.status().code(401).message("").build(), true);
+					return;
+				}
+
 				AbstractCommand message = (AbstractCommand)type.newInstance();
 				message.setWebSocket(this);
 				message.setConnection(connection);
@@ -149,7 +159,9 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 			} else {
 
 				logger.log(Level.WARNING, "Unknow command {0}", command);
-				// ignore?
+
+				// send 400 Bad Request
+				send(MessageBuilder.status().code(400).message("Unknown command").build(), true);
 			}
 
 		} catch(Throwable t) {
@@ -161,7 +173,7 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 		return connection;
 	}
 
-	public void send(Connection connection, WebSocketMessage message, boolean clearToken) {
+	public void send(WebSocketMessage message, boolean clearToken) {
 
 		// return session status to client
 		message.setSessionValid(isAuthenticated());

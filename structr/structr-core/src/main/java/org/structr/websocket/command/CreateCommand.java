@@ -27,7 +27,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
-import org.structr.websocket.WebSocketMessage;
+import org.structr.websocket.message.WebSocketMessage;
 
 /**
  *

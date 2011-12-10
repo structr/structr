@@ -31,7 +31,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
-import org.structr.websocket.WebSocketMessage;
+import org.structr.websocket.message.WebSocketMessage;
 
 /**
  *
@@ -118,7 +118,7 @@ public class ListCommand extends AbstractCommand {
 		}
 
 		// send only over local connection
-		getWebSocket().send(getConnection(), webSocketData, true);
+		getWebSocket().send(webSocketData, true);
 
 		// do NOT broadcast
 		return false;

@@ -17,16 +17,48 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.structr.websocket.command;
-
-import java.util.Map;
+package org.structr.websocket.message;
 
 /**
  *
  * @author Christian Morgner
  */
-public interface Message {
+public class MessageBuilder {
 
-	public String getId();
-	public Map<String, Object> getParameters();
+	private WebSocketMessage data = null;
+	private String command = null;
+
+	public MessageBuilder() {
+		data = new WebSocketMessage();
+	}
+
+	// ----- static methods -----
+	public static MessageBuilder status() {
+		return builder().command("STATUS");
+	}
+
+	// ----- non-static methods -----
+	public MessageBuilder command(String command) {
+		data.setCommand(command);
+		return this;
+	}
+
+	public MessageBuilder code(int code) {
+		data.setCode(code);
+		return this;
+	}
+
+	public MessageBuilder message(String message) {
+		data.setMessage(message);
+		return this;
+	}
+
+	public WebSocketMessage build() {
+		return data;
+	}
+
+	// ----- private methods -----
+	private static MessageBuilder builder() {
+		return new MessageBuilder();
+	}
 }

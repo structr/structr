@@ -21,7 +21,6 @@ package org.structr.websocket.command;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Logger;
 import org.eclipse.jetty.websocket.WebSocket.Connection;
 import org.structr.common.SecurityContext;
 import org.structr.core.Services;
@@ -31,7 +30,7 @@ import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
 import org.structr.websocket.StructrWebSocket;
-import org.structr.websocket.WebSocketMessage;
+import org.structr.websocket.message.WebSocketMessage;
 
 /**
  * Base class for all WebSocket messages in structr.

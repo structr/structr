@@ -25,7 +25,7 @@ import org.structr.common.SecurityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.DeleteNodeCommand;
-import org.structr.websocket.WebSocketMessage;
+import org.structr.websocket.message.WebSocketMessage;
 
 /**
  *
