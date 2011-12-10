@@ -43,7 +43,6 @@
             <!--      <textarea id="json_input" rows="10" cols="80">
                   </textarea>
                   <input type="button" id="import_json" value="Import JSON">-->
-            <div id="groups"></div><div id="users"></div>
         </div>
         <%@include file="include/footer.jsp" %>
 

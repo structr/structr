@@ -9,41 +9,47 @@ var debug = true;
 var onload;
 
 $(document).ready(function() {
+    console.log('debug? ' + debug);
     main = $('#main');
-    groups = $('#groups');
-    users = $('#users');
+
     onload = function() {
+        if (debug) console.log('onload');
+        main.append('<div id="groups"></div>');
+        groups = $('#groups');
+        main.append('<div id="users"></div>');
+        users = $('#users');
         refreshGroups();
         refreshUsers();
     }
 
+    user = $.cookie("structrUser");
 
     connect();
 
     ws.onopen = function() {
 
-        console.log('logged in? ' + loggedIn);
+        if (debug) console.log('logged in? ' + loggedIn);
         if (!loggedIn) {
+            if (debug) console.log('no');
+            $('#logoutLink').html('Login');
             login();
         } else {
+            if (debug) console.log('Current user: ' + user);
+            //            $.cookie("structrUser", username);
+            $('#logoutLink').html(' Logout <span class="username">' + user + '</span>');
             onload();
         }
-
     }
 });
 
 function showUsers() {
-    showEntities('User');
+    if (debug) console.log('showUsers()');
+    return showEntities('User');
 }
 
 function showGroups() {
-    showEntities('Group');
-//	$.getJSON(rootUrl + 'groups/all', function(data) {
-//		if (!data || data.length == 0 || !data.result) return;
-//		$(data.result).each(function(i,group) {
-//			appendGroupElement(group);
-//		});
-//	});
+    if (debug) console.log('showGroups()');
+    return showEntities('Group');
 }
 
 function appendGroupElement(group) {
@@ -86,26 +92,26 @@ function showUsersOfGroup(groupId) {
 }
 
 function addGroup(button) {
-    if (isDisabled(button)) return;
+    if (isDisabled(button)) return false;
     disable(button);
     buttonClicked = button;
     var data = '{ "command" : "CREATE" , "data" : { "type" : "Group", "name" : "New group_' + Math.floor(Math.random() * (9999 - 1)) + '" } }';
     if (debug) console.log(data);
-    send(data);
+    return send(data);
 }
 
 function addUser(button, groupId) {
-    if (isDisabled(button)) return;
+    if (isDisabled(button)) return false;
     disable(button);
     buttonClicked = button;
     var name = Math.floor(Math.random() * (9999 - 1));
     var data = '{ "command" : "CREATE" , "data" : { "type" : "User", "name" : "' + name + '", "realName" : "New user_' + name + '" ' + (groupId ? ', "groupId" : ' + groupId : '') + ' } }';
     if (debug) console.log(data);
-    send(data);
+    return send(data);
 }
 
 function removeUserFromGroup(userId, groupId) {
-    console.log('removeUserFromGroup: userId=' + userId + ', groupId=' + groupId);
+    if (debug) console.log('removeUserFromGroup: userId=' + userId + ', groupId=' + groupId);
     $.ajax({
         url: rootUrl + groupId + '/out',
         success: function(data) {
@@ -133,7 +139,7 @@ function removeUserFromGroup(userId, groupId) {
 }
 
 function deleteUser(button, user, groupId) {
-    console.log('deleteUser ' + user);
+    if (debug) console.log('deleteUser ' + user);
     var parent;
     if (!groupId) {
         parent = $('.' + user.id + '_').parent('.group');
@@ -159,22 +165,24 @@ function refreshGroup(groupId) {
 
 function refreshGroups() {
     groups.empty();
-    showGroups();
-    //groups.append('<div style="clear: both"></div>');
-    groups.append('<button class="add_group_icon button"><img title="Add Group" alt="Add Group" src="icon/group_add.png"> Add Group</button>');
-    $('.add_group_icon', main).on('click', function() {
-        addGroup(this);
-    });
+    if (showGroups()) {
+        //groups.append('<div style="clear: both"></div>');
+        groups.append('<button class="add_group_icon button"><img title="Add Group" alt="Add Group" src="icon/group_add.png"> Add Group</button>');
+        $('.add_group_icon', main).on('click', function() {
+            addGroup(this);
+        });
+    }
 }
 
 function refreshUsers() {
-    //users.empty();
-    showUsers();
-    //users.append('<div style="clear: both"></div>');
-    users.append('<button class="add_user_icon button"><img title="Add User" alt="Add User" src="icon/user_add.png"> Add User</button>');
-    $('.add_user_icon', main).on('click', function() {
-        addUser(this);
-    });
+    users.empty();
+    if (showUsers()) {
+        //users.append('<div style="clear: both"></div>');
+        users.append('<button class="add_user_icon button"><img title="Add User" alt="Add User" src="icon/user_add.png"> Add User</button>');
+        $('.add_user_icon', main).on('click', function() {
+            addUser(this);
+        });
+    }
 }
 
 function appendUserElement(user, groupId) {
@@ -215,7 +223,7 @@ function appendUserElement(user, groupId) {
 }
 
 function editUserProperties(button, user, groupId) {
-    console.log(button);
+    //    console.log(button);
     //    if (isDisabled(button)) return;
     //    disable(button);
     showProperties(button, user, 'all', $('.' + user.id + '_'));

@@ -74,6 +74,7 @@ h2 {
 }
 
 .menu ul {
+    width: 500px;
     list-style-type: none;
     padding: 0;
     margin: 0;
@@ -89,10 +90,10 @@ h2 {
     /*border-bottom: 2px solid #81ce25;*/
 }
 
-.menu a, .menu a:link, .menu a:visited, .menu a:hover, .menu a:active {
+.menu a, .menu a:link, .menu a:visited, .menu .inactive {
     text-decoration: none;
     font-weight: bold;
-    color: #fff;
+    color: #fff ! important;
 }
 
 .menu a:hover, .menu a:active {

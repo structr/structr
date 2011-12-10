@@ -21,12 +21,12 @@
 var ws;
 var token;
 var loggedIn = false;
-var loggedInUser;
+var user;
 
 function connect() {
 
     token = $.cookie('structrSessionToken');
-    console.log('token: ' + token);
+    if (debug) console.log('token: ' + token);
 
     if (token) {
         loggedIn = true;
@@ -46,32 +46,39 @@ function connect() {
 
         log('State: ' + ws.readyState);
 
-//        ws.onopen = function() {
-//            log('Open: ' + ws.readyState);
-//        }
-
         ws.onmessage = function(message) {
-
-            log('Message received: ' + message);
 
             var result = $.parseJSON(message.data);
             var data = result.data;
             var command = result.command;
 
-            console.log(result);
+            if (debug) console.log(command + ' received');
+            if (debug) console.log(result);
+
 
             if (command == 'LOGIN') {
 
-                console.log('login received');
-
                 if (result.sessionValid) {
                     $.cookie("structrSessionToken", result.token);
-                    loggedInUser = result.username;
-//                    onload();
+                    onload();
+                } else {
+                    $.cookie('structrSessionToken', '');
+                    $.cookie('structrUser', '');
+                    clearMain();
+                    $('#logoutLink').removeClass('active');
+                    $('#logoutLink').addClass('inactive');
+
+                    login();
                 }
 
-            } else if (command == 'CREATE') {
+            } else if (command == 'LOGOUT') {
 
+                $.cookie('structrSessionToken', '');
+                $.cookie('structrUser', '');
+                clearMain();
+                login();
+
+            } else if (command == 'CREATE') {
                 if (data.type == 'User') {
 
                     data.id = result.id;
@@ -96,7 +103,6 @@ function connect() {
                 }
 
             } else if (command == 'LIST') {
-
                 if (data.type == 'User') {
                     $(result.result).each(function(i, entity) {
                         groupId = entity.groupId;
@@ -116,7 +122,6 @@ function connect() {
 
 
             } else if (command == 'DELETE') {
-
                 var elementSelector = '.' + result.id + '_';
                 $(elementSelector).hide('blind', {
                     direction: "vertical"
@@ -127,26 +132,39 @@ function connect() {
             //if (callback) callback();
 
             } else if (command == 'UPDATE') {
-
                 var element = $( '.' + result.id + '_');
                 var input = $('.props tr td.value input', element);
-                //console.log(element);
+                if (debug) console.log(element);
 
                 input.parent().children('.icon').each(function(i, img) {
                     $(img).remove();
                 });
                 input.removeClass('active');
-                //                                console.log(element);//.children('.' + key));
+                if (debug) console.log(element);//.children('.' + key));
+                
                 for (key in data) {
                     element.children('.' + key).text(data[key]);
-                    console.log($('.props tr td.' + key + ' input', element));
+                    if (debug) console.log($('.props tr td.' + key + ' input', element));
                     $('.props tr td.' + key + ' input', element).val(data[key]);
                 }
 
                 input.data('changed', false);
 
             } else {
-                console.log('Unknown command: ' + command);
+                if (debug) console.log('Received unknown command: ' + command);
+
+                if (result.sessionValid == false) {
+                    if (debug) console.log('invalid session');
+                    $.cookie('structrSessionToken', '');
+                    $.cookie('structrUser', '');
+                    clearMain();
+                    $('#logoutLink').removeClass('active');
+                    $('#logoutLink').addClass('inactive');
+
+                    login();
+
+                }
+
             }
 
 
@@ -157,7 +175,7 @@ function connect() {
         }
 
     } catch (exception) {
-        log('Error: ' + exception);
+        log('Error in connect(): ' + exception);
     }
 
 }
@@ -176,7 +194,7 @@ function send(text) {
 
     if (!text) {
         log('No text to send!');
-        return;
+        return false;
     }
 
     try {
@@ -185,13 +203,16 @@ function send(text) {
         log('Sent: ' + text);
 
     } catch (exception) {
-        log('Error: ' + exception);
+        log('Error in send(): ' + exception);
+        return false;
     }
+
+    return true;
 
 }
 
 function log(msg) {
-    console.log(msg);
+    if (debug) console.log(msg);
     $("#log").append("<br />" + msg);
 }
 
@@ -206,19 +227,35 @@ function login() {
             backgroundColor: 'transparent'
         }
     });
-
+    $('#logoutLink').addClass('inactive');
 }
 
 function doLogin(username, password) {
-    console.log('doLogin as ' + username + ' with ' + password);
-    send('{ "command":"LOGIN", "data" : { "username" : "' + username + '", "password" : "' + password + '" } }');
-    $.unblockUI();
-    loggedInUser = username;
-    $('#logoutLink').append(' <span class="username">' + username + '</span>');
+    if (debug) console.log('doLogin ' + username + ' with ' + password);
+    if (send('{ "command":"LOGIN", "data" : { "username" : "' + username + '", "password" : "' + password + '" } }')) {
+        $.unblockUI();
+        user = username;
+        $.cookie("structrUser", username);
+        $('#logoutLink').html('Logout <span class="username">' + username + '</span>');
+        return true;
+    }
+    return false;
+
 }
 
 function doLogout() {
-    console.log('logout ' + loggedInUser);
-    send('{ "command":"LOGOUT", "data" : { "username" : "' + loggedInUser + '" } }');
-    login();
+    if (debug) console.log('doLogout ' + user);
+    $.cookie("structrSessionToken", '');
+    $.cookie("structrUser", '');
+    if (send('{ "command":"LOGOUT", "data" : { "username" : "' + user + '" } }')) {
+        $('#logoutLink').html('Login');
+        clearMain();
+        login();
+        return true;
+    }
+    return false;
+}
+
+function clearMain() {
+    main.empty();
 }
