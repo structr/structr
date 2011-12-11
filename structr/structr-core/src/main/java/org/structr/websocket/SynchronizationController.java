@@ -66,6 +66,9 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 
 		logger.log(Level.INFO, "Broadcasting message to {0} clients..", clients.size());
 
+		// session must be valid to be received by the client
+		webSocketData.setSessionValid(true);
+
 		// create message
 		String message = gson.toJson(webSocketData, WebSocketMessage.class);
 		logger.log(Level.INFO, "Sending message\n{0}", message);
