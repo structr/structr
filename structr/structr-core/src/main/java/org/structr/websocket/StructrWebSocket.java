@@ -134,6 +134,8 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 	@Override
 	public void onMessage(final String data) {
 
+		logger.log(Level.INFO, "############################################################ RECEIVED \n{0}", data);
+
 		// parse web socket data from JSON
 		WebSocketMessage webSocketData = gson.fromJson(data, WebSocketMessage.class);
 
@@ -205,7 +207,7 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 			if (isAuthenticated()) {
 
 				String msg = gson.toJson(message, WebSocketMessage.class);
-				logger.log(Level.INFO, "Sending message\n{0}", msg);
+				logger.log(Level.INFO, "############################################################ SENDING \n{0}", msg);
 
 				connection.sendMessage(msg);
 

@@ -29,8 +29,6 @@ import org.neo4j.graphdb.Transaction;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.kernel.AbstractGraphDatabase;
-import org.structr.core.EntityContext;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -77,7 +75,21 @@ public class TransactionCommand extends NodeServiceCommand {
 						tx.finish();
 
 					} catch (Throwable t) {
-						logger.log(Level.SEVERE, "Transaction could not be finished", t);
+
+						transaction.setCause(t);
+
+						Throwable cause = t;
+						do {
+							if(cause != null) {
+								logger.log(Level.INFO, "################## NESTED CAUSE: {0}", cause.getMessage());
+							}
+							cause = cause.getCause();
+
+						} while(cause != null);
+
+						// this ocurrs when we run into a constraint in the new
+						// entity context modification listener.
+//						logger.log(Level.SEVERE, "Transaction could not be finished", t);
 					}
 				}
 
@@ -106,6 +118,8 @@ public class TransactionCommand extends NodeServiceCommand {
 				try {
 					tx.finish();
 				} catch (Throwable t) {
+
+					transaction.setCause(t);
 					logger.log(Level.SEVERE, "Transaction could not be finished", t);
 				}
 			}

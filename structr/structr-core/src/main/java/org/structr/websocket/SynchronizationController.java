@@ -71,7 +71,7 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 
 		// create message
 		String message = gson.toJson(webSocketData, WebSocketMessage.class);
-		logger.log(Level.INFO, "Sending message\n{0}", message);
+		logger.log(Level.INFO, "############################################################ SENDING \n{0}", message);
 
 		for (StructrWebSocket socket : clients) {
 

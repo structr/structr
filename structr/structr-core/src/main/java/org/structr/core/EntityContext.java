@@ -767,65 +767,77 @@ public class EntityContext {
 		@Override
 		public Long beforeCommit(TransactionData data) throws Exception {
 
-			Map<Node, Map<String, Object>> removedProperties = new LinkedHashMap<Node, Map<String, Object>>();
-			SecurityContext securityContext = SecurityContext.getSuperUserInstance();
-			StructrNodeFactory factory = new StructrNodeFactory(securityContext);
-			Set<AbstractNode> modifiedNodes = new LinkedHashSet<AbstractNode>();
-			Set<AbstractNode> createdNodes = new LinkedHashSet<AbstractNode>();
-
 			long transactionKey = secureRandom.nextLong();
 
-			// 0: notify listeners of beginning commit
-			begin(securityContext, transactionKey);
+			try {
+				Map<Node, Map<String, Object>> removedProperties = new LinkedHashMap<Node, Map<String, Object>>();
+				SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+				StructrNodeFactory factory = new StructrNodeFactory(securityContext);
+				Set<AbstractNode> modifiedNodes = new LinkedHashSet<AbstractNode>();
+				Set<AbstractNode> createdNodes = new LinkedHashSet<AbstractNode>();
 
-			// 1: collect properties of deleted nodes
-			for(PropertyEntry<Node> entry : data.removedNodeProperties()) {
+				// 0: notify listeners of beginning commit
+				begin(securityContext, transactionKey);
 
-				Node node = entry.entity();
-				Map<String, Object> propertyMap = removedProperties.get(node);
-				if(propertyMap == null) {
-					propertyMap = new LinkedHashMap<String, Object>();
-					removedProperties.put(node, propertyMap);
+				// 1: collect properties of deleted nodes
+				for(PropertyEntry<Node> entry : data.removedNodeProperties()) {
+
+					Node node = entry.entity();
+					Map<String, Object> propertyMap = removedProperties.get(node);
+					if(propertyMap == null) {
+						propertyMap = new LinkedHashMap<String, Object>();
+						removedProperties.put(node, propertyMap);
+					}
+					propertyMap.put(entry.key(), entry.previouslyCommitedValue());
 				}
-				propertyMap.put(entry.key(), entry.previouslyCommitedValue());
-			}
 
-			// 2: notify listeners of node creation (so the modifications can later be tracked)
-			for(Node node : data.createdNodes()) {
-				AbstractNode entity = factory.createNode(securityContext, node);
-				graphObjectCreated(securityContext, transactionKey, entity);
-				createdNodes.add(entity);
-			}
-
-			// 3: notify listeners of relationship creation
-			for(Relationship rel : data.createdRelationships()) {
-				graphObjectCreated(securityContext, transactionKey, new StructrRelationship(securityContext, rel));
-			}
-
-			// 4: notify listeners of node deletion
-			for(Node node : data.deletedNodes()) {
-				graphObjectDeleted(securityContext, transactionKey, node.getId(), removedProperties.get(node));
-			}
-
-			// 5: notify listeners of property modifications
-			for(PropertyEntry<Node> entry : data.assignedNodeProperties()) {
-
-				AbstractNode entity = factory.createNode(securityContext, entry.entity());
-
-				propertyModified(securityContext, transactionKey, entity, entry.key(), entry.previouslyCommitedValue(), entry.value());
-				modifiedNodes.add(entity);
-			}
-
-			// 6: notify listeners of modified nodes (to check for non-existing properties etc)
-			for(AbstractNode node : modifiedNodes) {
-				// only send UPDATE if node was not created in this transaction
-				if(!createdNodes.contains(node)) {
-					graphObjectModified(securityContext, transactionKey, node);
+				// 2: notify listeners of node creation (so the modifications can later be tracked)
+				for(Node node : data.createdNodes()) {
+					AbstractNode entity = factory.createNode(securityContext, node);
+					graphObjectCreated(securityContext, transactionKey, entity);
+					createdNodes.add(entity);
 				}
-			}
 
-			// notify listeners of commit of commit
-			commit(securityContext, transactionKey);
+				// 3: notify listeners of relationship creation
+				for(Relationship rel : data.createdRelationships()) {
+					graphObjectCreated(securityContext, transactionKey, new StructrRelationship(securityContext, rel));
+				}
+
+				// 4: notify listeners of node deletion
+				for(Node node : data.deletedNodes()) {
+					graphObjectDeleted(securityContext, transactionKey, node.getId(), removedProperties.get(node));
+				}
+
+				// 5: notify listeners of property modifications
+				for(PropertyEntry<Node> entry : data.assignedNodeProperties()) {
+
+					AbstractNode entity = factory.createNode(securityContext, entry.entity());
+
+					propertyModified(securityContext, transactionKey, entity, entry.key(), entry.previouslyCommitedValue(), entry.value());
+					modifiedNodes.add(entity);
+				}
+
+				// 6: notify listeners of modified nodes (to check for non-existing properties etc)
+				for(AbstractNode node : modifiedNodes) {
+					// only send UPDATE if node was not created in this transaction
+					if(!createdNodes.contains(node)) {
+						graphObjectModified(securityContext, transactionKey, node);
+					}
+				}
+
+				// notify listeners of commit
+				commit(securityContext, transactionKey);
+
+			} catch(Throwable t) {
+
+				// FIXME: this is the exception we want to pass to the outside world,
+				// but neo4j only throws a TransactionFailureException with a nested
+				// RollbackException.
+
+				// possible fix: fail the commit by throwing an exception, save the throwable
+				// we received here and then later throw the very same exception in afterRollback
+				// below..
+			}
 
 			return transactionKey;
 		}
