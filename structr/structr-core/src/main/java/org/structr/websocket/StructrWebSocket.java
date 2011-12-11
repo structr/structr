@@ -204,7 +204,10 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 
 			if (isAuthenticated()) {
 
-				connection.sendMessage(gson.toJson(message, WebSocketMessage.class));
+				String msg = gson.toJson(message, WebSocketMessage.class);
+				logger.log(Level.INFO, "Sending message\n{0}", msg);
+
+				connection.sendMessage(msg);
 
 			} else {
 

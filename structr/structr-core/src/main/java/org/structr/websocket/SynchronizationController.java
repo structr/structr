@@ -61,12 +61,14 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 		clients.remove(client);
 	}
 
-	public void broadcast(final WebSocketMessage webSocketData) {
+	// ----- private methods -----
+	private void broadcast(final WebSocketMessage webSocketData) {
 
 		logger.log(Level.INFO, "Broadcasting message to {0} clients..", clients.size());
 
 		// create message
 		String message = gson.toJson(webSocketData, WebSocketMessage.class);
+		logger.log(Level.INFO, "Sending message\n{0}", message);
 
 		for (StructrWebSocket socket : clients) {
 
