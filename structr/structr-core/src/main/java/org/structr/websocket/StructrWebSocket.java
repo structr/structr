@@ -174,8 +174,14 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 				webSocketData.setToken(null);
 
 				// process message
-				abstractCommand.processMessage(webSocketData);
+				try {
+					abstractCommand.processMessage(webSocketData);
 
+				} catch(Throwable t) {
+
+					// send 400 Bad Request
+					send(MessageBuilder.status().code(400).message(t.getMessage()).build(), true);
+				}
 
 			} else {
 
@@ -204,7 +210,7 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 
 		try {
 
-			if (isAuthenticated()) {
+			if (isAuthenticated() || "STATUS".equals(message.getCommand())) {
 
 				String msg = gson.toJson(message, WebSocketMessage.class);
 				logger.log(Level.INFO, "############################################################ SENDING \n{0}", msg);
