@@ -48,23 +48,32 @@ function connect() {
 
 		ws.onmessage = function(message) {
 
-			if (debug) console.log(message);
+			var data = $.parseJSON(message.data);
+			console.log(data);
 
-			var result = $.parseJSON(message.data);
+			//var msg = $.parseJSON(message);
+			var type = data.type;
+			var command = data.command;
+			var result = data.result;
+			var sessionValid = data.sessionValid;
+			var code = data.code;
 
+			if (debug) console.log('command: ' + command);
+			if (debug) console.log('type: ' + type);
+			if (debug) console.log('code: ' + code);
+			if (debug) console.log('sessionValid: ' + sessionValid);
 
-
-			var data = result.data;
-			var command = result.command;
-
-			if (debug) console.log(command + ' received');
-			if (debug) console.log(result);
+			if (debug) console.log('result: ' + $.toJSON(result));
+			
 
 
 			if (command == 'LOGIN') {
-
-				if (result.sessionValid) {
-					$.cookie("structrSessionToken", result.token);
+		
+				var token = data.token;
+				if (debug) console.log('token: ' + token);
+		
+				if (sessionValid) {
+					$.cookie("structrSessionToken", token);
 					$.cookie("structrUser", user);
 					$.unblockUI();
 					$('#logoutLink').html('Logout <span class="username">' + user + '</span>');
@@ -87,7 +96,6 @@ function connect() {
 				login();
 
 			} else if (command == 'STATUS') {
-				var code = result.code;
 				if (debug) console.log('Error code: ' + code);
 				
 				if (code == 403) {
@@ -97,58 +105,58 @@ function connect() {
 				}
 
 			} else if (command == 'CREATE') {
-				if (data.type == 'User') {
+				
+				$(result).each(function(i, entity) {
+					if (entity.type == 'User') {
 
-					data.id = result.id;
-					//data.command = null;
-					groupId = data.groupId;
-					if (groupId) appendUserElement(data, groupId);
-					appendUserElement(data);
-					disable($('.' + groupId + '_ .delete_icon')[0]);
-					if (buttonClicked) enable(buttonClicked);
-
-				} else if (data.type == 'Group') {
-
-					data.id = result.id;
-
-					console.log(data);
-					appendGroupElement(data);
-					if (buttonClicked) enable(buttonClicked);
-
-				}
-				else {
-					//appendEntityElement(data, parentElement);
-					appendEntityElement(data);
-					if (buttonClicked) enable(buttonClicked);
-
-				}
-
-			} else if (command == 'LIST') {
-				if (data.type == 'User') {
-					$(result.result).each(function(i, entity) {
 						groupId = entity.groupId;
 						if (groupId) appendUserElement(entity, groupId);
 						appendUserElement(entity);
-					});
+						disable($('.' + groupId + '_ .delete_icon')[0]);
+						if (buttonClicked) enable(buttonClicked);
 
-				} else if (data.type == 'Group') {
-					$(result.result).each(function(i, entity) {
+					} else if (entity.type == 'Group') {
+
+						if (debug) console.log(entity);
 						appendGroupElement(entity);
-					});
-				} else {
-					$(result.result).each(function(i, entity) {
+						if (buttonClicked) enable(buttonClicked);
+
+					}
+					else {
+						//appendEntityElement(data, parentElement);
 						appendEntityElement(entity);
-					});
-				}
+						if (buttonClicked) enable(buttonClicked);
+
+					}
+				
+				});
+
+			} else if (command == 'LIST') {
+				
+				$(result).each(function(i, entity) {
+						
+					if (entity.type == 'User') {
+						
+						groupId = entity.groupId;
+						if (groupId) appendUserElement(entity, groupId);
+						appendUserElement(entity);
+						
+					} else if (entity.type == 'Group') {
+						appendGroupElement(entity);
+					} else {
+						appendEntityElement(entity);
+					}
+						
+				});
+
 
 
 			} else if (command == 'DELETE') {
-				var elementSelector = '.' + result.id + '_';
+				var elementSelector = '.' + data.id + '_';
 				if (debug) console.log($(elementSelector));
 				$(elementSelector).hide('blind', {
 					direction: 'vertical'
-				}, 200);
-				$(elementSelector).remove();
+				}, 200, function() { $(this).remove() });
 				//refreshIframes();
 				if (buttonClicked) enable(buttonClicked);
 			//if (callback) callback();
@@ -175,7 +183,7 @@ function connect() {
 			} else {
 				if (debug) console.log('Received unknown command: ' + command);
 
-				if (result.sessionValid == false) {
+				if (sessionValid == false) {
 					if (debug) console.log('invalid session');
 					$.cookie('structrSessionToken', '');
 					$.cookie('structrUser', '');

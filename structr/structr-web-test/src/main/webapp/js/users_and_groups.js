@@ -98,30 +98,30 @@ function addUser(button, groupId) {
 
 function removeUserFromGroup(userId, groupId) {
 	if (debug) console.log('removeUserFromGroup: userId=' + userId + ', groupId=' + groupId);
-	$.ajax({
-		url: rootUrl + groupId + '/out',
-		success: function(data) {
-			$(data.result).each(function(i,rel) {
-				if (rel.endNodeId == userId) {
-					var url = rootUrl + groupId + '/out/' + rel.id;
-					console.log(url);
-					$.ajax({
-						url: url,
-						type: 'DELETE',
-						success: function(data) {
-							$('.' + groupId + '_ .' + userId + '_').hide('blind', {
-								direction: "vertical"
-							}, 200);
-							$('.' + groupId + '_ .' + userId + '_').remove();
-							if ($('.' + groupId + '_ .user').length == 0) {
-								enable($('.' + groupId + '_ .delete_icon'));
-							}
-						}
-					});
-				}
-			});
-		}
-	});
+//	$.ajax({
+//		url: rootUrl + groupId + '/out',
+//		success: function(data) {
+//			$(data.result).each(function(i,rel) {
+//				if (rel.endNodeId == userId) {
+//					var url = rootUrl + groupId + '/out/' + rel.id;
+//					console.log(url);
+//					$.ajax({
+//						url: url,
+//						type: 'DELETE',
+//						success: function(data) {
+//							$('.' + groupId + '_ .' + userId + '_').hide('blind', {
+//								direction: "vertical"
+//							}, 200);
+//							$('.' + groupId + '_ .' + userId + '_').remove();
+//							if ($('.' + groupId + '_ .user').length == 0) {
+//								enable($('.' + groupId + '_ .delete_icon'));
+//							}
+//						}
+//					});
+//				}
+//			});
+//		}
+//	});
 }
 
 function deleteUser(button, user, groupId) {
@@ -133,12 +133,13 @@ function deleteUser(button, user, groupId) {
 		parent = $('.' + groupId + '_');
 	}
   
-	deleteNode(button, user, "function() { console.log($('.user', parent).length); if ($('.user', parent).length == 0) { enable($('.delete_icon', parent)); } }");
+//	deleteNode(button, user, "function() { console.log($('.user', parent).length); if ($('.user', parent).length == 0) { enable($('.delete_icon', parent)); } }");
+	deleteNode(button, user);
 
 }
 
 function deleteGroup(button, group) {
-	buttonClicked = button;
+//	buttonClicked = button;
 	var data = '{ "type" : "Group" , "name" : "' + group.name + '" , "id" : "' + group.id + '" }';
 	deleteNode(button, $.parseJSON(data));
 }

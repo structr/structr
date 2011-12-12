@@ -202,24 +202,10 @@ function deleteNode(button, entity, callback) {
     var con = confirm('Delete ' + entity.name + ' [' + entity.id + ']?');
     if (!con) return;
     disable(button);
-    var toSend = '{ "command" : "DELETE" , "id" : "' + entity.id + '", "data" : { "callback" : "' + callback + '" } }';
-    if (debug) console.log(toSend);
+//	var toSend = '{ "command" : "DELETE" , "id" : "' + entity.id + '", "data" : { "callback" : "' + callback + '" } }';
+	var toSend = '{ "command" : "DELETE" , "id" : "' + entity.id + '" }';
+    //if (debug) console.log(toSend);
     send(toSend);
-
-//    $.ajax({
-//        url: rootUrl + entity.type.toLowerCase() + '/' + entity.id,
-//        type: "DELETE",
-//        headers: headers,
-//        success: function(data) {
-//            $(elementSelector).hide('blind', {
-//                direction: "vertical"
-//            }, 200);
-//            $(elementSelector).remove();
-//            refreshIframes();
-//            enable(button);
-//            if (callback) callback();
-//        }
-//    });
 }
 
 function isDisabled(button) {
