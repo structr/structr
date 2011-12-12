@@ -341,7 +341,7 @@ button img {
     height: 500px;
 }
 
-#login {
+#login, #confirmation {
     display: none;
     font-size: 11pt;
     width: 240px;

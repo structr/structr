@@ -55,6 +55,11 @@
             </table>
         </div>
 
+        <div id="confirmation">
+			<div id="confirmationText"></div>
+            <button id="yesButton"><img src="icon/tick.png">Yes</button>
+			<button id="noButton"><img src="icon/cross.png">No</button>
+        </div>
 
     </body>
 </html>

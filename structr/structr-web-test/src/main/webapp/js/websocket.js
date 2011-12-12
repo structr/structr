@@ -156,13 +156,13 @@ function connect() {
 				if (debug) console.log($(elementSelector));
 				$(elementSelector).hide('blind', {
 					direction: 'vertical'
-				}, 200, function() { $(this).remove() });
+				}, 200, function() {$(this).remove()});
 				//refreshIframes();
 				if (buttonClicked) enable(buttonClicked);
 			//if (callback) callback();
 
 			} else if (command == 'UPDATE') {
-				var element = $( '.' + result.id + '_');
+				var element = $( '.' + data.id + '_');
 				var input = $('.props tr td.value input', element);
 				if (debug) console.log(element);
 
@@ -172,10 +172,10 @@ function connect() {
 				input.removeClass('active');
 				if (debug) console.log(element);//.children('.' + key));
                 
-				for (key in data) {
-					element.children('.' + key).text(data[key]);
+				for (key in data.data) {
+					element.children('.' + key).text(data.data[key]);
 					if (debug) console.log($('.props tr td.' + key + ' input', element));
-					$('.props tr td.' + key + ' input', element).val(data[key]);
+					$('.props tr td.' + key + ' input', element).val(data.data[key]);
 				}
 
 				input.data('changed', false);
@@ -285,4 +285,24 @@ function doLogout(text) {
 
 function clearMain() {
 	main.empty();
+}
+
+function confirmation(text, callback) {
+	if (text) $('#confirmationText').html(text);
+	if (callback) $('#yesButton').on('click', function() {
+		callback();
+	});
+	$('#noButton').on('click', function() {
+		$.unblockUI();
+	});
+	$.blockUI.defaults.overlayCSS.opacity = .6;
+	$.blockUI.defaults.applyPlatformOpacityRules = false;
+	$.blockUI({
+		message: $('#confirmation'),
+		css: {
+			border: 'none',
+			backgroundColor: 'transparent'
+		}
+	});
+	
 }

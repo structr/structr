@@ -175,7 +175,7 @@ function refreshUsers() {
 function appendGroupElement(group) {
 	groups.append('<div class="nested top group ' + group.id + '_">'
 		+ '<img class="typeIcon" src="icon/group.png">'
-		+ '<b>' + group.name + '</b> [' + group.id + ']'
+		+ '<b class="name">' + group.name + '</b> [' + group.id + ']'
 		+ '</div>');
 	var div = $('.' + group.id + '_');
 	div.append('<img title="Delete Group ' + group.id + '" alt="Delete Group ' + group.id + '" class="delete_icon button" src="icon/group_delete.png">');
