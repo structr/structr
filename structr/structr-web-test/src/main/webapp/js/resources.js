@@ -138,9 +138,9 @@ function showSubEntities(resourceId, entity) {
 }
 
 function appendElement(entity, parentEntity, resourceId) {
-//    console.log('appendElement: resourceId=' + resourceId);
-//    console.log(entity);
-//    console.log(parentEntity);
+    //    console.log('appendElement: resourceId=' + resourceId);
+    //    console.log(entity);
+    //    console.log(parentEntity);
     var type = entity.type.toLowerCase();
     var id = entity.id;
     var resourceEntitySelector = $('.' + resourceId + '_');
@@ -175,7 +175,7 @@ function appendElement(entity, parentEntity, resourceId) {
             addNode(this, 'content', entity, resourceId)
         });
     }
-//    //div.append('<img class="sort_icon" src="icon/arrow_up_down.png">');
+    //    //div.append('<img class="sort_icon" src="icon/arrow_up_down.png">');
     div.sortable({
         axis: 'y',
         appendTo: '.' + resourceId + '_',
@@ -196,7 +196,7 @@ function appendElement(entity, parentEntity, resourceId) {
                     headers: headers,
                     success: function(data) {
                         if (!data || data.length == 0 || !data.result) return;
-//                        var rel = data.result;
+                        //                        var rel = data.result;
                         //var pos = rel[parentId];
                         var nodeUrl = rootUrl + nodeId;
                         setPosition(resourceId, nodeUrl, i)
@@ -213,7 +213,7 @@ function addNode(button, type, entity, resourceId) {
     if (isDisabled(button)) return;
     disable(button);
     var pos = $('.' + resourceId + '_ .' + entity.id + '_ > div.nested').length;
-//    console.log('addNode(' + type + ', ' + entity.id + ', ' + entity.id + ', ' + pos + ')');
+    //    console.log('addNode(' + type + ', ' + entity.id + ', ' + entity.id + ', ' + pos + ')');
     var url = rootUrl + type;
     var resp = $.ajax({
         url: url,
@@ -238,11 +238,11 @@ function addNode(button, type, entity, resourceId) {
                 }
             });
 
-//            var nodeUrl = resp.getResponseHeader('Location');
-//            //console.log(nodeUrl);
-//            setPosition(resourceId, nodeUrl, pos);
-//            refresh(resourceId, elementId);
-//            enable(button);
+        //            var nodeUrl = resp.getResponseHeader('Location');
+        //            //console.log(nodeUrl);
+        //            setPosition(resourceId, nodeUrl, pos);
+        //            refresh(resourceId, elementId);
+        //            enable(button);
         }
     });
 }
