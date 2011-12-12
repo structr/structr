@@ -23,6 +23,7 @@ import com.google.gson.Gson;
 import java.lang.Long;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -143,9 +144,13 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 
 		WebSocketMessage message = messageMap.get(transactionKey);
 		if(message != null) {
-			String uuid = graphObject.getProperty("uuid").toString();
-			message.setId(uuid);
+
 			message.setCommand("CREATE");
+			
+			List<GraphObject> list = new LinkedList<GraphObject>();
+			list.add(graphObject);
+			message.setResult(list);
+			
 		} else {
 			logger.log(Level.WARNING, "No message found for transaction key {0}", transactionKey);
 		}
