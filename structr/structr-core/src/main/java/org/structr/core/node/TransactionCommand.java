@@ -22,6 +22,8 @@
 package org.structr.core.node;
 
 
+import java.security.SecureRandom;
+import java.util.concurrent.atomic.AtomicLong;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
 
@@ -29,6 +31,7 @@ import org.neo4j.graphdb.Transaction;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.EntityContext;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -39,6 +42,7 @@ import java.util.logging.Logger;
 public class TransactionCommand extends NodeServiceCommand {
 
 	private static final Logger logger = Logger.getLogger(TransactionCommand.class.getName());
+	private static final AtomicLong transactionCounter = new AtomicLong(0);
 
 	//~--- methods --------------------------------------------------------
 
@@ -71,25 +75,20 @@ public class TransactionCommand extends NodeServiceCommand {
 
 				} finally {
 
+					long transactionKey = nextLong();
+					EntityContext.setTransactionKey(transactionKey);
+
 					try {
 						tx.finish();
-
 					} catch (Throwable t) {
 
-						transaction.setCause(t);
+						// transaction failed, look for "real" cause..
+						Throwable throwable = EntityContext.getThrowable(transactionKey);
+						EntityContext.removeTransactionKey();
 
-						Throwable cause = t;
-						do {
-							if(cause != null) {
-								logger.log(Level.INFO, "################## NESTED CAUSE: {0}", cause.getMessage());
-							}
-							cause = cause.getCause();
-
-						} while(cause != null);
-
-						// this ocurrs when we run into a constraint in the new
-						// entity context modification listener.
-//						logger.log(Level.SEVERE, "Transaction could not be finished", t);
+						if(throwable != null) {
+							throw new IllegalArgumentException(throwable.getMessage());
+						}
 					}
 				}
 
@@ -115,17 +114,29 @@ public class TransactionCommand extends NodeServiceCommand {
 				logger.log(Level.WARNING, "Transaction failure", t);
 			} finally {
 
+				long transactionKey = nextLong();
+				EntityContext.setTransactionKey(transactionKey);
+
 				try {
 					tx.finish();
 				} catch (Throwable t) {
 
-					transaction.setCause(t);
-					logger.log(Level.SEVERE, "Transaction could not be finished", t);
+					// transaction failed, look for "real" cause..
+					Throwable throwable = EntityContext.getThrowable(transactionKey);
+					EntityContext.removeTransactionKey();
+
+					if(throwable != null) {
+						throw new IllegalArgumentException(throwable.getMessage());
+					}
 				}
 			}
 
 		}
 
 		return ret;
+	}
+
+	private long nextLong() {
+		return transactionCounter.incrementAndGet();
 	}
 }

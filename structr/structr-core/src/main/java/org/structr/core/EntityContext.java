@@ -21,7 +21,6 @@
 
 package org.structr.core;
 
-import java.security.SecureRandom;
 import java.util.List;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.RelationshipType;
@@ -80,6 +79,8 @@ public class EntityContext {
 	private static final Map<Class, Set<String>> globalWriteOncePropertyMap            = new LinkedHashMap<Class, Set<String>>();
 	private static final Map<Class, Set<String>> globalReadOnlyPropertyMap             = new LinkedHashMap<Class, Set<String>>();
 	private static final Set<VetoableGraphObjectListener> modificationListeners        = new LinkedHashSet<VetoableGraphObjectListener>();
+	private static final Map<Thread, Long> transactionKeyMap                           = new LinkedHashMap<Thread, Long>();
+	private static final Map<Long, Throwable> throwableMap                             = new LinkedHashMap<Long, Throwable>();
 	private static final Logger logger                                                 = Logger.getLogger(EntityContext.class.getName());
 
 	private static final EntityContextModificationListener globalModificationListener  = new EntityContextModificationListener();
@@ -750,24 +751,30 @@ public class EntityContext {
 		return isWriteOnce;
 	}
 
-//	public static EntityContextModificationListener getGlobalModificationListener() {
-//		return globalModificationListener;
-//	}
-
 	public static EntityContextModificationListener getTransactionEventHandler() {
 		return globalModificationListener;
 	}
 
-	// facade to propagate modification events to all listeners
-	public static class EntityContextModificationListener implements VetoableGraphObjectListener, TransactionEventHandler<Long> {
+	public static synchronized void setTransactionKey(Long transactionKey) {
+		transactionKeyMap.put(Thread.currentThread(), transactionKey); 
+	}
+	
+	public static synchronized void removeTransactionKey() {
+		transactionKeyMap.remove(Thread.currentThread()); 
+	}
 
-		private static final SecureRandom secureRandom = new SecureRandom();
+	public static synchronized Throwable getThrowable(Long transactionKey) {
+		return throwableMap.get(transactionKey);
+	}
+
+	
+	public static class EntityContextModificationListener implements VetoableGraphObjectListener, TransactionEventHandler<Long> {
 
 		// ----- interface TransactionEventHandler -----
 		@Override
 		public Long beforeCommit(TransactionData data) throws Exception {
 
-			long transactionKey = secureRandom.nextLong();
+			long transactionKey = transactionKeyMap.get(Thread.currentThread());
 
 			try {
 				Map<Node, Map<String, Object>> removedProperties = new LinkedHashMap<Node, Map<String, Object>>();
@@ -830,13 +837,9 @@ public class EntityContext {
 
 			} catch(Throwable t) {
 
-				// FIXME: this is the exception we want to pass to the outside world,
-				// but neo4j only throws a TransactionFailureException with a nested
-				// RollbackException.
+				throwableMap.put(transactionKey, t);
 
-				// possible fix: fail the commit by throwing an exception, save the throwable
-				// we received here and then later throw the very same exception in afterRollback
-				// below..
+				throw new IllegalStateException("Rollback");
 			}
 
 			return transactionKey;
@@ -849,6 +852,13 @@ public class EntityContext {
 
 		@Override
 		public void afterRollback(TransactionData data, Long transactionKey) {
+
+			Throwable t = throwableMap.get(transactionKey);
+			if(t != null) {
+
+				// thow 
+				throw new IllegalArgumentException(t);
+			}
 		}
 
 		// ----- interface VetoableGraphObjectListener -----
