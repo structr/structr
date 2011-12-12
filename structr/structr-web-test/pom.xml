@@ -20,7 +20,6 @@
         <netbeans.hint.license>structr-gpl30</netbeans.hint.license>
         <structr.version>0.4.4-SNAPSHOT</structr.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <netbeans.hint.deploy.server>JetServer</netbeans.hint.deploy.server>
     </properties>
 		
     <repositories>
