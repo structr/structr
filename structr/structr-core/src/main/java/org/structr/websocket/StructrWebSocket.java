@@ -58,6 +58,8 @@ import java.util.logging.Logger;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.http.HttpServletRequest;
+import org.structr.websocket.command.AddCommand;
+import org.structr.websocket.command.RemoveCommand;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -81,9 +83,11 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 		addCommand(UpdateCommand.class);
 		addCommand(DeleteCommand.class);
 		addCommand(LogoutCommand.class);
+		addCommand(RemoveCommand.class);
 		addCommand(LoginCommand.class);
 		addCommand(ListCommand.class);
 		addCommand(GetCommand.class);
+		addCommand(AddCommand.class);
 	}
 
 	//~--- fields ---------------------------------------------------------
@@ -95,6 +99,7 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 	private String idProperty                        = null;
 	private HttpServletRequest request               = null;
 	private String token                             = null;
+	private String callback                          = null;
 
 	//~--- constructors ---------------------------------------------------
 
@@ -141,6 +146,7 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 
 		try {
 
+			this.callback       = webSocketData.getCallback();
 			String messageToken = webSocketData.getToken();
 			String command      = webSocketData.getCommand();
 			Class type          = commandSet.get(command);
@@ -203,10 +209,11 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 
 		// whether to clear the token (all command except LOGIN (for now) should absolutely do this!)
 		if (clearToken) {
-
 			message.setToken(null);
-
 		}
+
+		// set callback
+		message.setCallback(callback);
 
 		try {
 
