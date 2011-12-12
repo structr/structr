@@ -54,7 +54,7 @@ function showProperties(button, entity, view, element) {
                         //console.log('PUT url: ' + rootUrl + entity.id);
                         //console.log(data);
 
-                        send('{ "command" : "UPDATE" , "uuid" : "' + entity.id + '", "id" : "' + entity.id + '", "' + key + '" : "' + value + '" }');
+                        send('{ "command" : "UPDATE" , "id" : "' + entity.id + '", "' + key + '" : "' + value + '" }');
 
 //                        $.ajax({
 //                            type: 'PUT',
@@ -203,7 +203,7 @@ function deleteNode(button, entity, callback) {
     if (!con) return;
     disable(button);
     var toSend = '{ "command" : "DELETE" , "id" : "' + entity.id + '", "data" : { "callback" : "' + callback + '" } }';
-    console.log(toSend);
+    if (debug) console.log(toSend);
     send(toSend);
 
 //    $.ajax({

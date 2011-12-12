@@ -51,6 +51,7 @@
                 <tr><td><label for="username">Username:</label></td><td><input id="usernameField" type="text" name="username"></input></td></tr>
                 <tr><td><label for="password">Password:</label></td><td><input id="passwordField" type="password" name="password"></input></td></tr>
                 <tr><td colspan="2" class="btn"><button id="loginButton" name="login"><img src="icon/key.png"> Login</button></td></tr>
+				<tr><td colspan="2" class="btn"><span id="errorText"></span></td></tr>
             </table>
         </div>
 

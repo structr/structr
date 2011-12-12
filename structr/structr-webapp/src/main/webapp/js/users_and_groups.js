@@ -33,13 +33,13 @@ function showGroups() {
 function appendGroupElement(group) {
   groups.append('<div class="nested top group ' + group.id + '_">'
                                        + '<img class="typeIcon" src="icon/group.png">'
-                                       + '<b>' + group.name + '</b> [' + group.uuid + ']'
+                                       + '<b>' + group.name + '</b> [' + group.id + ']'
                                        + '</div>');
-  var div = $('.' + group.uuid + '_');
-  div.append('<img title="Delete Group ' + group.uuid + '" alt="Delete Group ' + group.uuid + '" class="delete_icon button" src="icon/group_delete.png">');
-  div.append('<img title="Add User to Group ' + group.uuid + '" alt="Add User to Group ' + group.uuid + '" class="add_icon button" src="icon/user_add.png">');
-  $('.add_icon', div).on('click', function() { addUser(this, group.uuid) });
-  showUsersOfGroup(group.uuid);
+  var div = $('.' + group.id + '_');
+  div.append('<img title="Delete Group ' + group.id + '" alt="Delete Group ' + group.id + '" class="delete_icon button" src="icon/group_delete.png">');
+  div.append('<img title="Add User to Group ' + group.id + '" alt="Add User to Group ' + group.id + '" class="add_icon button" src="icon/user_add.png">');
+  $('.add_icon', div).on('click', function() { addUser(this, group.id) });
+  showUsersOfGroup(group.id);
 }
 
 function showUsersOfGroup(groupId) {
@@ -94,7 +94,7 @@ function addGroup(button) {
 function addUser(button, groupId) {
   if (isDisabled(button)) return;
   disable(button);
-  var url = rootUrl + 'user';
+//  var url = rootUrl + 'user';
   var data = '{ "type" : "user", "realName" : "New user_' + Math.floor(Math.random() * (9999 - 1)) + '" ' + (groupId ? ', "groupId" : ' + groupId : '') + ' }';
   var resp = $.ajax({
     url: url,
@@ -187,31 +187,31 @@ function refreshUsers() {
 function appendUserElement(user, groupId) {
   var div;
   if (groupId) {
-    $('.' + groupId + '_').append('<div class="nested user ' + user.uuid + '_">'
+    $('.' + groupId + '_').append('<div class="nested user ' + user.id + '_">'
                    + '<img class="typeIcon" src="icon/user.png">'
                    + ' <b class="title realName">' + user.realName + '</b> '
                    //+ '[' + user.uuid + '] ' + (groupId ? '(group: ' + groupId + ')' : '')
                    //+ '<b>' + name + '</b>'
                    + '</div>');
-    div = $('.' + groupId + '_ .' + user.uuid + '_')
-    div.append('<img title="Remove user ' + user.uuid + ' from group ' + groupId + '" '
-             + 'alt="Remove user ' + user.uuid + ' from group ' + groupId + '" class="delete_icon button" src="icon/delete.png">');
-    $('.delete_icon', div).on('click', function() { removeUserFromGroup(user.uuid, groupId) });
+    div = $('.' + groupId + '_ .' + user.id + '_')
+    div.append('<img title="Remove user ' + user.id + ' from group ' + groupId + '" '
+             + 'alt="Remove user ' + user.id + ' from group ' + groupId + '" class="delete_icon button" src="icon/delete.png">');
+    $('.delete_icon', div).on('click', function() { removeUserFromGroup(user.id, groupId) });
     div.append('<img title="Edit" alt="Edit" class="edit_icon button" src="icon/pencil.png">');
-    $('.edit_icon', div).on('click', function() {editUserProperties(this, user.uuid, groupId); });
+    $('.edit_icon', div).on('click', function() {editUserProperties(this, user.id, groupId); });
   } else {
-    users.append('<div class="nested user ' + user.uuid + '_">'
+    users.append('<div class="nested user ' + user.id + '_">'
                    + '<img class="typeIcon" src="icon/user.png">'
                    + ' <b>' + user.realName + '</b> '
                    //+ '[' + user.uuid + '] ' + (groupId ? '(group: ' + groupId + ')' : '')
                    //+ '<b>' + name + '</b>'
                    + '</div>');
-    div = $('#users .' + user.uuid + '_');
-    div.append('<img title="Delete user ' + user.uuid + '" '
-             + 'alt="Delete user ' + user.uuid + '" class="delete_icon button" src="icon/user_delete.png">');
-    $('.delete_icon', div).on('click', function() { deleteUser(this, user.uuid) });
+    div = $('#users .' + user.id + '_');
+    div.append('<img title="Delete user ' + user.id + '" '
+             + 'alt="Delete user ' + user.id + '" class="delete_icon button" src="icon/user_delete.png">');
+    $('.delete_icon', div).on('click', function() { deleteUser(this, user.id) });
     div.append('<img title="Edit" alt="Edit" class="edit_icon button" src="icon/pencil.png">');
-    enable($('.edit_icon', div), function() { showProperties(this, user.uuid, 'all', $('.' + user.uuid + '_', users)); });
+    enable($('.edit_icon', div), function() { showProperties(this, user.id, 'all', $('.' + user.id + '_', users)); });
   }
 }
 
