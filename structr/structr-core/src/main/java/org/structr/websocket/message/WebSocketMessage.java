@@ -20,8 +20,10 @@
 package org.structr.websocket.message;
 
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.structr.core.GraphObject;
 
 /**
@@ -31,7 +33,9 @@ import org.structr.core.GraphObject;
 public class WebSocketMessage {
 
 	private Map<String, String> data = new LinkedHashMap<String, String>();
+	private Set<String> modifiedProperties = new LinkedHashSet<String>();
 	private List<GraphObject> result = null;
+	private GraphObject graphObject = null;
 	private boolean sessionValid = false;
 	private String sortOrder = null;
 	private String callback = null;
@@ -177,5 +181,27 @@ public class WebSocketMessage {
 
 	public void setCode(int code) {
 		this.code = code;
+	}
+
+	public Set<String> getModifiedProperties() {
+		return modifiedProperties;
+	}
+
+	public void setModifiedProperties(Set<String> modifiedProperties) {
+		this.modifiedProperties = modifiedProperties;
+	}
+
+	/**
+	 * @return the graphObject
+	 */
+	public GraphObject getGraphObject() {
+		return graphObject;
+	}
+
+	/**
+	 * @param graphObject the graphObject to set
+	 */
+	public void setGraphObject(GraphObject graphObject) {
+		this.graphObject = graphObject;
 	}
 }

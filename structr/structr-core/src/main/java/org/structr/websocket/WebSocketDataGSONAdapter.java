@@ -74,6 +74,17 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 		// serialize session valid flag (output only)
 		root.add("sessionValid", new JsonPrimitive(src.isSessionValid()));
 
+		// UPDATE only, serialize only modified properties and use the correct values
+		if(src.getGraphObject() != null && !src.getModifiedProperties().isEmpty()) {
+			GraphObject graphObject = src.getGraphObject();
+			for(String modifiedKey : src.getModifiedProperties()) {
+				Object newValue = graphObject.getProperty(modifiedKey);
+				if(newValue != null) {
+					src.getData().put(modifiedKey, newValue.toString());
+				}
+			}
+		}
+
 		// serialize data
 		if(src.getData() != null) {
 

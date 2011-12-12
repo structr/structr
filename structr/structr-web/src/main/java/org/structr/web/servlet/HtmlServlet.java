@@ -44,8 +44,6 @@ import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
-import org.structr.core.node.search.SearchOperator;
-import org.structr.core.node.search.TextualSearchAttribute;
 import org.structr.web.common.RelType;
 import org.structr.web.entity.Content;
 import org.structr.web.entity.Resource;
@@ -230,6 +228,12 @@ public class HtmlServlet extends HttpServlet {
 				AbstractNode header    = createNode("Content", "header", new NodeAttribute("tag", "head"));
 				AbstractNode foo       = createNode("Content", "content1", new NodeAttribute("content", "Dies ist Seite 1"), new NodeAttribute("tag", "h1"));
 				AbstractNode bar       = createNode("Content", "content2", new NodeAttribute("content", "Dies ist Seite 2"), new NodeAttribute("tag", "h1"));
+
+				String content = "Inhalt...";
+
+				AbstractNode foo2      = createNode("Content", "content3", new NodeAttribute("content", content), new NodeAttribute("tag", "div"));
+
+
 				String idOfPage1       = page1.getIdString();
 				String idOfPage2       = page2.getIdString();
 
@@ -239,6 +243,7 @@ public class HtmlServlet extends HttpServlet {
 				linkNodes(doc, body, idOfPage1, 1);
 				linkNodes(body, article1, idOfPage1, 1);
 				linkNodes(article1, foo, idOfPage1, 0);
+				linkNodes(article1, foo2, idOfPage1, 1);
 
 				// page 2
 				linkNodes(page2, doc, idOfPage2, 0);
@@ -410,7 +415,10 @@ public class HtmlServlet extends HttpServlet {
 									// content nodes can have tags too!
 									if(node.hasProperty("tag")) {
 										Object tag = node.getProperty("tag");
-										headBuffer.append("<").append(tag).append(">");
+										headBuffer.append("<").append(tag);
+										// append attributes
+										headBuffer.append(" id='").append(node.getProperty("id")).append("'");
+										headBuffer.append(">");
 										headBuffer.append(content);
 										headBuffer.append("</").append(tag).append(">");
 

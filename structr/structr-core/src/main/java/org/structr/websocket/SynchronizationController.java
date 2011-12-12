@@ -20,7 +20,6 @@
 package org.structr.websocket;
 
 import com.google.gson.Gson;
-import java.lang.Long;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -121,7 +120,8 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 
 		WebSocketMessage message = messageMap.get(transactionKey);
 		if(message != null) {
-			message.setData(key, newValue != null ? newValue.toString() : "null");
+			// message.setData(key, newValue != null ? newValue.toString() : "null");
+			message.getModifiedProperties().add(key);
 		} else {
 			logger.log(Level.WARNING, "No message found for transaction key {0}", transactionKey);
 		}
@@ -146,6 +146,7 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 		if(message != null) {
 
 			message.setCommand("CREATE");
+			message.setGraphObject(graphObject);
 			
 			List<GraphObject> list = new LinkedList<GraphObject>();
 			list.add(graphObject);
@@ -164,6 +165,8 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 			String uuid = graphObject.getProperty("uuid").toString();
 			message.setId(uuid);
 			message.setCommand("UPDATE");
+			message.setGraphObject(graphObject);
+
 		} else {
 			logger.log(Level.WARNING, "No message found for transaction key {0}", transactionKey);
 		}
