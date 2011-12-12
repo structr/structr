@@ -48,7 +48,12 @@ function connect() {
 
         ws.onmessage = function(message) {
 
+            console.log(message);
+
             var result = $.parseJSON(message.data);
+
+
+
             var data = result.data;
             var command = result.command;
 
@@ -77,6 +82,10 @@ function connect() {
                 $.cookie('structrUser', '');
                 clearMain();
                 login();
+
+            } else if (command == 'STATUS') {
+                if (debug) console.log('STATUS');
+                if (debug) console.log(result);
 
             } else if (command == 'CREATE') {
                 if (data.type == 'User') {
