@@ -23,6 +23,8 @@ import org.structr.common.SecurityContext;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.DirectedRelationship;
+import org.structr.core.entity.Group;
+import org.structr.core.entity.User;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
@@ -47,8 +49,8 @@ public class AddCommand extends AbstractCommand {
 			AbstractNode targetNode = getNode(targetId);
 
 			if(sourceNode != null && targetNode != null) {
-
-				DirectedRelationship rel = EntityContext.getRelation(sourceNode.getClass(), targetNode.getClass());
+				
+				DirectedRelationship rel = EntityContext.getRelation(Group.class, Group.Key.users.name());
 				if(rel != null) {
 
 					try {

@@ -291,6 +291,10 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 		return getUserForToken(token);
 	}
 
+	public String getCallback() {
+		return callback;
+	}
+
 	private User getUserForToken(final String messageToken) {
 
 		List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
