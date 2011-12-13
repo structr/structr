@@ -114,12 +114,14 @@ img.disabled {
 #main {
     margin: 12px;
     width: 1000px;
+	overflow: hidden;
 }
 
 #resources, #previews,
 #groups, #users {
-    float: left;
-    width: 488px;
+/*    float: left;*/
+	vertical-align: top;
+    width: 486px;
     margin-right: 12px;
 }
 
@@ -127,7 +129,6 @@ img.disabled {
     background-color: #fff;
     margin-bottom: 12px ! important;
 }
-
 
 .resource .element {
     background-color: #f0f0f0;
@@ -276,6 +277,11 @@ div.nested {
     background: -webkit-gradient(linear, left bottom, left top, from(#e3e3e3), to(#e7e7e7)) no-repeat;
     background: -moz-linear-gradient(90deg, #e3e3e3, #e7e7e7) no-repeat;
     filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#e7e7e7', EndColorStr='#e3e3e3', GradientType=0);
+}
+
+.groupHover {
+    border: 1px solid #000;
+	padding-bottom: 40px ! important;
 }
 
 .element:hover {

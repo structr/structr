@@ -46,6 +46,18 @@ function appendEntityElement(entity, parentElement) {
     });
 }
 
+function addSourceToTarget(sourceId, targetId) {
+	if (debug) console.log('Add ' + sourceId + ' to ' + targetId);
+	var data = '{ "command" : "ADD" , "id" : "' + targetId + '" , "data" : { "id" : "' + sourceId + '" } }';
+	return send(data);
+}
+
+function removeSourceFromTarget(sourceId, targetId) {
+	if (debug) console.log('Remove ' + sourceId + ' from ' + targetId);
+	var data = '{ "command" : "REMOVE" , "id" : "' + targetId + '" , "data" : { "id" : "' + sourceId + '" } }';
+	return send(data);
+}
+
 function createEntity(entity, parentElement) {
     var toSend = {};
     toSend.data = entity;

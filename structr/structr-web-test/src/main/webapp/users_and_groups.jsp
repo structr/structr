@@ -30,7 +30,18 @@
                 $('#logoutLink').on('click', function() {
                     doLogout();
                 });
-
+				$('#usernameField').keypress(function(e) {
+					if(e.which == 13) {
+						jQuery(this).blur();
+						jQuery('#loginButton').focus().click();
+					}
+				});
+				$('#passwordField').keypress(function(e) {
+					if(e.which == 13) {
+						jQuery(this).blur();
+						jQuery('#loginButton').focus().click();
+					}
+				});
             });
             //-->
         </script>
@@ -43,6 +54,7 @@
             <!--      <textarea id="json_input" rows="10" cols="80">
                   </textarea>
                   <input type="button" id="import_json" value="Import JSON">-->
+			<div style="clear: both"></div>
         </div>
         <%@include file="include/footer.jsp" %>
 

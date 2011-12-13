@@ -38,7 +38,8 @@ function connect() {
         if ('WebSocket' in window) {
             ws = new WebSocket('ws://' + host + '/structr-web-test/ws/', 'structr');
         } else if ('MozWebSocket' in window) {
-            ws = new MozWebSocket('ws://localhost:8080/structr-web-test/ws/', 'structr');
+			console.log(host);
+            ws = new MozWebSocket('ws://' + host + '/structr-web-test/ws/', 'structr');
         } else {
             alert('Your browser doesn\'t support WebSocket.');
             return;
@@ -49,7 +50,7 @@ function connect() {
         ws.onmessage = function(message) {
 
             var data = $.parseJSON(message.data);
-            console.log(data);
+            if (debug) console.log(data);
 
             //var msg = $.parseJSON(message);
             var type = data.type;
@@ -121,6 +122,12 @@ function connect() {
 
                         if (debug) console.log(entity);
                         appendGroupElement(entity);
+						var users = entity.users;
+						if (users) {
+							$(users).each(function(i, user) {
+								appendUserElement(user, entity.id);
+							});
+						}
                         if (buttonClicked) enable(buttonClicked);
 
                     }
@@ -138,13 +145,19 @@ function connect() {
                 $(result).each(function(i, entity) {
 						
                     if (entity.type == 'User') {
-						
-                        groupId = entity.groupId;
-                        if (groupId) appendUserElement(entity, groupId);
-                        appendUserElement(entity);
+						var groups = entity.groups;
+						if (!groups || groups.length == 0) {
+							appendUserElement(entity);
+						}
 						
                     } else if (entity.type == 'Group') {
                         appendGroupElement(entity);
+						var users = entity.users;
+						if (users) {
+							$(users).each(function(i, user) {
+								appendUserElement(user, entity.id);
+							});
+						}						
                     } else {
                         appendEntityElement(entity);
                     }
