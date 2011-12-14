@@ -46,6 +46,7 @@ public interface GraphObject {
 	// ----- rels only -----
 	public Long getStartNodeId();
 	public Long getEndNodeId();
+	public Long getOtherNodeId(final AbstractNode node);
 
 	// ----- nodes only -----
 	public Map<RelationshipType, Long> getRelationshipInfo(Direction direction);

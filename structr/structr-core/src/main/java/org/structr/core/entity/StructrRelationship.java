@@ -27,7 +27,6 @@ import org.structr.common.PropertyKey;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.core.Command;
-import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.node.CreateRelationshipCommand;
@@ -150,6 +149,11 @@ public class StructrRelationship implements GraphObject {
 	public AbstractNode getStartNode() {
 		Command nodeFactory = Services.command(securityContext, NodeFactoryCommand.class);
 		return (AbstractNode) nodeFactory.execute(dbRelationship.getStartNode());
+	}
+
+	public AbstractNode getOtherNode(final AbstractNode node) {
+		Command nodeFactory = Services.command(securityContext, NodeFactoryCommand.class);
+		return (AbstractNode) nodeFactory.execute(dbRelationship.getOtherNode(node.getNode()));
 	}
 
 	public RelationshipType getRelType() {
@@ -363,10 +367,16 @@ public class StructrRelationship implements GraphObject {
 		return this.getEndNode().getId();
 	}
 
+	public Long getOtherNodeId(final AbstractNode node) {
+		return this.getOtherNode(node).getId();
+	}
+
 	@Override
 	public void delete(SecurityContext securityContext) {
 
 		dbRelationship.delete();
 		// EntityContext.getGlobalModificationListener().relationshipDeleted(securityContext, this);
 	}
+
+
 }

@@ -20,10 +20,10 @@ body {
     font-family: Arial, Helvetica, Sans-serif;
     font-size: 8pt;
     color: #222;
-    /*    background: #e5e5e5;
-                    background: -webkit-gradient(linear, left bottom, left top, from(#e5e5e5), to(#d4d4d4)) no-repeat;
-                    background: -moz-linear-gradient(90deg, #e5e5e5, #d4d4d4) no-repeat;*/
-    background: #F2F3F4;
+    background: #e5e5e5;
+    background: -webkit-gradient(linear, left bottom, left top, from(#e5e5e5), to(#d4d4d4)) no-repeat;
+    background: -moz-linear-gradient(90deg, #e5e5e5, #d4d4d4) no-repeat;
+    background: #f3f3f3;
 }
 
 tt, tt *, pre, pre *, code, code * {
@@ -114,15 +114,15 @@ img.disabled {
 #main {
     margin: 12px;
     width: 1000px;
-	overflow: hidden;
+    overflow: hidden;
 }
 
 #resources, #previews,
 #groups, #users {
-/*    float: left;*/
-	vertical-align: top;
-    width: 486px;
-    margin-right: 12px;
+    /*    float: left;*/
+    vertical-align: top;
+    width: 488px;
+    padding-right: 12px;
 }
 
 .resource, .group, .user {
@@ -137,16 +137,6 @@ img.disabled {
     filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#f5f5f5', EndColorStr='#eeeeee', GradientType=0);
 }
 
-.resource .content,
-#groups .user,
-#groups .group,
-#users .user,
-.nested {
-    background-color: #eee;
-    background: -webkit-gradient(linear, left bottom, left top, from(#ddd), to(#eee)) no-repeat;
-    background: -moz-linear-gradient(90deg, #ddd, #eee) no-repeat;
-    filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#eeeeee', EndColorStr='#dddddd', GradientType=0);
-}
 
 .sep {
     height: 4px;
@@ -267,6 +257,16 @@ div.nested {
     /*background: #fff;*/
 }
 
+.resource .content,
+#groups .user,
+#groups .group,
+#users .user {
+    background-color: #eee;
+    background: -webkit-gradient(linear, left bottom, left top, from(#ddd), to(#eee)) no-repeat;
+    background: -moz-linear-gradient(90deg, #ddd, #eee) no-repeat;
+    filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#eeeeee', EndColorStr='#dddddd', GradientType=0);
+}
+
 .content:hover,
 #groups .user:hover,
 #groups .group:hover,
@@ -277,11 +277,6 @@ div.nested {
     background: -webkit-gradient(linear, left bottom, left top, from(#e3e3e3), to(#e7e7e7)) no-repeat;
     background: -moz-linear-gradient(90deg, #e3e3e3, #e7e7e7) no-repeat;
     filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#e7e7e7', EndColorStr='#e3e3e3', GradientType=0);
-}
-
-.groupHover {
-    border: 1px solid #000;
-	padding-bottom: 40px ! important;
 }
 
 .element:hover {
@@ -312,10 +307,20 @@ div.nested img:hover {
      visibility: visible;*/
 }
 
+.groupHover {
+    border: 1px solid #bbb ! important;
+    /*    padding-bottom: 40px ! important;*/
+    background-color: #f5f5f5;
+    background: -webkit-gradient(linear, left bottom, left top, from(#f3f3f3), to(#f7f7f7)) no-repeat ! important;
+    background: -moz-linear-gradient(90deg, #f3f3f3, #f7f7f7) no-repeat ! important;
+    filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#f7f7f7', EndColorStr='#f3f3f3', GradientType=0) ! important;
+}
+
 button {
     color: #222;
     font-weight: bold;
     padding: 2px 8px 2px 4px;
+    margin-bottom: 6px;
     vertical-align: middle;
     line-height: 1.5em;
     border-radius: 5px;
@@ -351,8 +356,8 @@ button img {
     display: none;
     font-size: 11pt;
     width: 240px;
-    height: 96px;
-    padding: 24px 12px;
+    /*    height: 96px;*/
+    padding: 14px 12px 6px 12px;
     border-radius: 5px;
     border: 1px solid #999;
     background-color: #e5e5e5;
@@ -361,9 +366,21 @@ button img {
     filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#e7e7e7', EndColorStr='#cccccc', GradientType=0);
 }
 
+#confirmation {
+    width: 360px;
+}
+
+#confirmationText {
+    margin-bottom: 12px;
+}
+
 #login table, #login tr, #login td {
     background-color: transparent ! important;
     margin: 0;
+}
+
+#login #errorText {
+    color: #c00;
 }
 
 #login input {
@@ -376,4 +393,9 @@ button img {
 
 #login .btn {
     text-align: right;
+    text-decoration: none;
+}
+
+#confirmation button:focus {
+    border: 1px solid #666;
 }

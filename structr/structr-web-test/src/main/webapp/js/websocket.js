@@ -38,7 +38,7 @@ function connect() {
         if ('WebSocket' in window) {
             ws = new WebSocket('ws://' + host + '/structr-web-test/ws/', 'structr');
         } else if ('MozWebSocket' in window) {
-			console.log(host);
+            console.log(host);
             ws = new MozWebSocket('ws://' + host + '/structr-web-test/ws/', 'structr');
         } else {
             alert('Your browser doesn\'t support WebSocket.');
@@ -122,12 +122,15 @@ function connect() {
 
                         if (debug) console.log(entity);
                         appendGroupElement(entity);
-						var users = entity.users;
-						if (users) {
-							$(users).each(function(i, user) {
-								appendUserElement(user, entity.id);
-							});
-						}
+
+                        if (debug) console.log('group element appended');
+
+                        var users = entity.users;
+                        if (users) {
+                            $(users).each(function(i, user) {
+                                appendUserElement(user, entity.id);
+                            });
+                        }
                         if (buttonClicked) enable(buttonClicked);
 
                     }
@@ -145,19 +148,19 @@ function connect() {
                 $(result).each(function(i, entity) {
 						
                     if (entity.type == 'User') {
-						var groups = entity.groups;
-						if (!groups || groups.length == 0) {
-							appendUserElement(entity);
-						}
+                        var groups = entity.groups;
+                        if (!groups || groups.length == 0) {
+                            appendUserElement(entity);
+                        }
 						
                     } else if (entity.type == 'Group') {
                         appendGroupElement(entity);
-						var users = entity.users;
-						if (users) {
-							$(users).each(function(i, user) {
-								appendUserElement(user, entity.id);
-							});
-						}						
+                        var users = entity.users;
+                        if (users) {
+                            $(users).each(function(i, user) {
+                                appendUserElement(user, entity.id);
+                            });
+                        }
                     } else {
                         appendEntityElement(entity);
                     }
@@ -173,10 +176,76 @@ function connect() {
                     direction: 'vertical'
                 }, 200, function() {
                     $(this).remove()
-                    });
+                });
                 //refreshIframes();
                 if (buttonClicked) enable(buttonClicked);
             //if (callback) callback();
+
+            } else if (command == 'REMOVE') {
+
+                console.log(data);
+
+                var parentId = data.id;
+                var entityId = data.data.id;
+
+                var parent = $('.' + parentId + '_');
+                var entity = $('.' + entityId + '_');
+
+                console.log(parent);
+                console.log(entity);
+
+                var isUser = entity.hasClass('user');
+                if (isUser) {
+
+                    users.append(entity).animate();
+                    $('.delete_icon', entity).remove();
+                    entity.append('<img title="Delete user ' + entityId + '" '
+                        + 'alt="Delete user ' + entityId + '" class="delete_icon button" src="icon/delete.png">');
+                    $('.delete_icon', entity).on('click', function() {
+                        // TODO: get the complete user object via GET b/c 'entity' has not all data (e.g. name)
+                        deleteUser(this, entity);
+                    });
+
+                } else {
+
+                    entity.hide('blind', {
+                        direction: 'vertical'
+                    }, 200, function() {
+                        $(this).remove();
+                    });
+
+                }
+
+                if (debug) console.log('Removed ' + entityId + ' from ' + parentId);
+
+            } else if (command == 'ADD') {
+
+                console.log(data);
+
+                var parentId = data.id;
+                var entityId = data.data.id;
+
+                var parent = $('.' + parentId + '_');
+                var entity = $('.' + entityId + '_');
+
+                console.log(parent);
+                console.log(entity);
+
+                entity.css('left', 0);
+                entity.css('top', 0);
+
+                parent.append(entity);
+                var isUser = entity.hasClass('user');
+                if (isUser) {
+                    $('.delete_icon', entity).remove();
+                    entity.append('<img title="Remove user ' + entityId + ' from group ' + parentId + '" '
+                        + 'alt="Remove user ' + entityId + ' from group ' + parentId + '" class="delete_icon button" src="icon/user_delete.png">');
+                    $('.delete_icon', entity).on('click', function() {
+                        removeUserFromGroup(entityId, parentId)
+                    //deleteUser(this, user);
+                    });
+                }
+
 
             } else if (command == 'UPDATE') {
                 var element = $( '.' + data.id + '_');

@@ -30,18 +30,18 @@
                 $('#logoutLink').on('click', function() {
                     doLogout();
                 });
-				$('#usernameField').keypress(function(e) {
-					if(e.which == 13) {
-						jQuery(this).blur();
-						jQuery('#loginButton').focus().click();
-					}
-				});
-				$('#passwordField').keypress(function(e) {
-					if(e.which == 13) {
-						jQuery(this).blur();
-						jQuery('#loginButton').focus().click();
-					}
-				});
+                $('#usernameField').keypress(function(e) {
+                    if(e.which == 13) {
+                        jQuery(this).blur();
+                        jQuery('#loginButton').focus().click();
+                    }
+                });
+                $('#passwordField').keypress(function(e) {
+                    if(e.which == 13) {
+                        jQuery(this).blur();
+                        jQuery('#loginButton').focus().click();
+                    }
+                });
             });
             //-->
         </script>
@@ -54,7 +54,7 @@
             <!--      <textarea id="json_input" rows="10" cols="80">
                   </textarea>
                   <input type="button" id="import_json" value="Import JSON">-->
-			<div style="clear: both"></div>
+            <div style="clear: both"></div>
         </div>
         <%@include file="include/footer.jsp" %>
 
@@ -62,15 +62,15 @@
             <table>
                 <tr><td><label for="username">Username:</label></td><td><input id="usernameField" type="text" name="username"></input></td></tr>
                 <tr><td><label for="password">Password:</label></td><td><input id="passwordField" type="password" name="password"></input></td></tr>
+                <tr><td colspan="2" class="btn"><span id="errorText"></span></td></tr>
                 <tr><td colspan="2" class="btn"><button id="loginButton" name="login"><img src="icon/key.png"> Login</button></td></tr>
-				<tr><td colspan="2" class="btn"><span id="errorText"></span></td></tr>
             </table>
         </div>
 
         <div id="confirmation">
-			<div id="confirmationText"></div>
+            <div id="confirmationText"></div>
             <button id="yesButton"><img src="icon/tick.png">Yes</button>
-			<button id="noButton"><img src="icon/cross.png">No</button>
+            <button id="noButton"><img src="icon/cross.png">No</button>
         </div>
 
     </body>

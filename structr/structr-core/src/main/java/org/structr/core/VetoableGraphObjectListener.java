@@ -41,7 +41,7 @@ public interface VetoableGraphObjectListener {
 
 	public void propertyModified(SecurityContext securityContext, long transactionKey, AbstractNode entity, String key, Object oldValue, Object newValue);
 
-	public void relationshipCreated(SecurityContext securityContext, long transactionKey, AbstractNode startNode, AbstractNode endNode, StructrRelationship relationship);
+	public void relationshipCreated(SecurityContext securityContext, long transactionKey, StructrRelationship relationship);
 	public void relationshipDeleted(SecurityContext securityContext, long transactionKey, StructrRelationship relationship);
 
 	public void graphObjectCreated(SecurityContext securityContext, long transactionKey, GraphObject graphObject);

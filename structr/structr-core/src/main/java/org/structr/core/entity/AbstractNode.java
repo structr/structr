@@ -3394,6 +3394,11 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		return null;
 	}
 
+	@Override
+	public Long getOtherNodeId(final AbstractNode node) {
+		return null;
+	}
+
 	private String getSingularTypeName(String key) {
 
 		return (key.endsWith("ies")
