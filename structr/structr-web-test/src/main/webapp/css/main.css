@@ -86,18 +86,35 @@ h2 {
     margin: 0 10px;
 }
 
-.menu ul li.current span, .menu ul li:hover span {
-    /*border-bottom: 2px solid #81ce25;*/
-}
+/*.menu ul li.current span, .menu ul li:hover span {
+    border-bottom: 2px solid #81ce25;
+}*/
 
-.menu a, .menu a:link, .menu a:visited, .menu .inactive {
+.menu a {
     text-decoration: none;
     font-weight: bold;
+    color: #fff;
+}
+
+.menu .inactive {
     color: #fff ! important;
 }
 
-.menu a:hover, .menu a:active {
+.menu a:hover {
+    text-decoration: none;
+    font-weight: bold;
     color: #81ce25;
+}
+
+.menu .active {
+    color: #555 ! important;
+    padding: 4px;
+    border: 1px solid #81ce25;
+    border-radius: 5px;
+    background-color: #81ce25;
+    background: -webkit-gradient(linear, left bottom, left top, from(#73b821), to(#90e629)) no-repeat;
+    background: -moz-linear-gradient(90deg, #73b821, #90e629) no-repeat;
+    filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#90e629', EndColorStr='#73b821', GradientType=0);
 }
 
 .edit_icon, .add_icon, .delete_icon, .close_icon {

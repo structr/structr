@@ -35,11 +35,12 @@ function connect() {
     try {
 
         var host = document.location.host;
+        var url = 'ws://' + host + wsRoot;
+        console.log(url);
         if ('WebSocket' in window) {
-            ws = new WebSocket('ws://' + host + '/structr-web-test/ws/', 'structr');
+            ws = new WebSocket(url, 'structr');
         } else if ('MozWebSocket' in window) {
-            console.log(host);
-            ws = new MozWebSocket('ws://' + host + '/structr-web-test/ws/', 'structr');
+            ws = new MozWebSocket(url, 'structr');
         } else {
             alert('Your browser doesn\'t support WebSocket.');
             return;
@@ -80,6 +81,9 @@ function connect() {
                     $.cookie("structrUser", user);
                     $.unblockUI();
                     $('#logoutLink').html('Logout <span class="username">' + user + '</span>');
+                    $('#logoutLink').removeClass('active');
+                    $('#logoutLink').addClass('inactive');
+
                     onload();
                 } else {
                     $.cookie('structrSessionToken', '');

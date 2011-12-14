@@ -1,47 +1,24 @@
-/**************** config parameter **********************************/
-var rootUrl =     '/structr-web-test/json/';
-var viewRootUrl = '/structr-web-test/html/';
-/********************************************************************/
-var main;
+/*
+ *  Copyright (C) 2011 Axel Morgner
+ *
+ *  This file is part of structr <http://structr.org>.
+ *
+ *  structr is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  structr is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 var groups;
 var users;
-var debug = false;
-var onload;
-
-$(document).ready(function() {
-    if (debug) console.log('Debug mode');
-    main = $('#main');
-
-    onload = function() {
-        if (debug) console.log('onload');
-        main.append('<table><tr><td id="groups"></td><td id="users"></td></tr></table>');
-        //main.append('<div id="groups"></div>');
-        groups = $('#groups');
-        //main.append('<div id="users"></div>');
-        users = $('#users');
-        refreshGroups();
-        refreshUsers();
-    }
-
-    user = $.cookie("structrUser");
-
-    connect();
-
-    ws.onopen = function() {
-
-        if (debug) console.log('logged in? ' + loggedIn);
-        if (!loggedIn) {
-            if (debug) console.log('no');
-            $('#logoutLink').html('Login');
-            login();
-        } else {
-            if (debug) console.log('Current user: ' + user);
-            //            $.cookie("structrUser", username);
-            $('#logoutLink').html(' Logout <span class="username">' + user + '</span>');
-            onload();
-        }
-    }
-});
 
 function showUsers() {
     if (debug) console.log('showUsers()');
@@ -133,10 +110,10 @@ function appendGroupElement(group) {
         + '</div>');
     var div = $('.' + group.id + '_');
     div.append('<img title="Delete Group ' + group.id + '" alt="Delete Group ' + group.id + '" class="delete_icon button" src="icon/group_delete.png">');
-    div.append('<img title="Add User to Group ' + group.id + '" alt="Add User to Group ' + group.id + '" class="add_icon button" src="icon/user_add.png">');
-    $('.add_icon', div).on('click', function() {
-        addUser(this, group)
-    });
+//    div.append('<img title="Add User to Group ' + group.id + '" alt="Add User to Group ' + group.id + '" class="add_icon button" src="icon/user_add.png">');
+//    $('.add_icon', div).on('click', function() {
+//        addUser(this, group)
+//    });
     $('.delete_icon', div).on('click', function() {
         deleteGroup(this, group)
     });

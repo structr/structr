@@ -1,62 +1,48 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <%@include file="include/header.jsp" %>
-        <script type="text/javascript">
-            <!--
-            /**************** config parameter **********************************/
-            var rootUrl =     '/structr-web-test/json/api/';
-            var headers = { 'X-SplinkUser' : 0 };
-            /********************************************************************/
-            var main;
-            $(document).ready(function() {
-                main = $('#main');
-                //refreshEntities('group');
-                //refreshEntities('user');
-                $('#import_json').on('click', function() {
-                    var jsonArray = $.parseJSON($('#json_input').val());
-                    $(jsonArray).each(function(i, json) {
-                        //console.log(json);
-                        createEntity(json);
-                    });
-                    //var json = $.parseJSON('{ "test" : "abc" }');
-
-                });
-                $('#loginButton').on('click', function() {
-                    var username = $('#usernameField').val();
-                    var password = $('#passwordField').val();
-                    doLogin(username, password);
-                });
-                $('#logoutLink').on('click', function() {
-                    doLogout();
-                });
-                $('#usernameField').keypress(function(e) {
-                    if(e.which == 13) {
-                        jQuery(this).blur();
-                        jQuery('#loginButton').focus().click();
-                    }
-                });
-                $('#passwordField').keypress(function(e) {
-                    if(e.which == 13) {
-                        jQuery(this).blur();
-                        jQuery('#loginButton').focus().click();
-                    }
-                });
-            });
-            //-->
-        </script>
-        <script src="js/users_and_groups.js" type="text/javascript"></script>
+        <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+        <title>structr Async UI</title>
+        <link rel="stylesheet" type="text/css" media="screen" href="css/main.css" >
+        <meta name="viewport" content="width=1024, user-scalable=yes, target-densityDpi=device-dpi" />
+<meta name="apple-touch-fullscreen" content="YES" /> 
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.min.js" type="text/javascript"></script>
+        <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js"></script>
+        <script src="http://jquery-json.googlecode.com/files/jquery.json-2.3.min.js"></script>
+        <script src="js/jquery.tooltip.pack.js" type="text/javascript"></script>
+        <script src="codemirror/lib/codemirror.js"></script>
+        <link rel="stylesheet" href="codemirror/lib/codemirror.css">
+        <link rel="stylesheet" href="codemirror/theme/default.css">
+        <!--script src="codemirror/mode/htmlmixed/htmlmixed.js" type="text/javascript"></script-->
+        <link rel="stylesheet" type="text/css" media="screen" href="codemirror/lib/codemirror.css" >
+        <script src="js/init.js" type="text/javascript"></script>
+        <script src="js/websocket.js" type="text/javascript"></script>
+        <script src="js/ce_lib.js" type="text/javascript"></script>
+        <script src="js/entities.js" type="text/javascript"></script>
+        <script src="js/jquery.blockUI.js" type="text/javascript"></script>
+        <script src="js/jquery.cookie.js" type="text/javascript"></script>        <script src="js/users_and_groups.js" type="text/javascript"></script>
+        <script src="js/resources.js" type="text/javascript"></script>
     </head>
     <body>
-        <%@include file="include/menu.jsp" %>
-
+        <div id="header">
+            <img class="logo" src="img/structr-logo.png">
+            <div id="menu" class="menu">
+                <ul>
+                    <li><a id="dashboardLink" href="#dashboard">Dashboard</a></li>
+                    <li><a id="resourcesLink" href="#resources">Resources</a></li>
+                    <li><a id="usersAndGroupsLink" href="#usersAndGroups">Users and Groups</a></li>
+                    <li><a id="logoutLink" href="#"></a></li>
+                </ul>
+            </div>
+        </div>
         <div id="main">
             <!--      <textarea id="json_input" rows="10" cols="80">
                   </textarea>
                   <input type="button" id="import_json" value="Import JSON">-->
-            <div style="clear: both"></div>
+            <!--            <div style="clear: both"></div>-->
         </div>
-        <%@include file="include/footer.jsp" %>
+        <div id="footer">
+        </div>
 
         <div id="login">
             <table>
