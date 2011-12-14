@@ -200,12 +200,13 @@ function deleteNode(button, entity) {
     buttonClicked = button;
     if (isDisabled(button)) return;
     var con = confirmation('Delete ' + entity.name + ' [' + entity.id + ']?', function() {
-        disable(button);
         //	var toSend = '{ "command" : "DELETE" , "id" : "' + entity.id + '", "data" : { "callback" : "' + callback + '" } }';
         var toSend = '{ "command" : "DELETE" , "id" : "' + entity.id + '" }';
         //if (debug) console.log(toSend);
-        send(toSend);
-        $.unblockUI();
+        if (send(toSend)) {
+            disable(button);
+            $.unblockUI();
+        }
     });
 }
 

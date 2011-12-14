@@ -80,12 +80,12 @@ function removeUserFromGroup(userId, groupId) {
 
 function deleteUser(button, user, groupId) {
     if (debug) console.log('deleteUser ' + user);
-    var parent;
-    if (!groupId) {
-        parent = $('.' + user.id + '_').parent('.group');
-    } else {
-        parent = $('.' + groupId + '_');
-    }
+//    var parent;
+//    if (!groupId) {
+//        parent = $('.' + user.id + '_').parent('.group');
+//    } else {
+//        parent = $('.' + groupId + '_');
+//    }
   
     //	deleteNode(button, user, "function() { console.log($('.user', parent).length); if ($('.user', parent).length == 0) { enable($('.delete_icon', parent)); } }");
     deleteNode(button, user);
@@ -157,6 +157,8 @@ function appendGroupElement(group) {
             addSourceToTarget(userId, groupId);
         }
     });
+
+    return div;
 }
 
 function appendUserElement(user, groupId) {

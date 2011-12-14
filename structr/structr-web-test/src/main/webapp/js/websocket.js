@@ -122,15 +122,7 @@ function connect() {
 
                         if (debug) console.log(entity);
                         appendGroupElement(entity);
-
                         if (debug) console.log('group element appended');
-
-                        var users = entity.users;
-                        if (users) {
-                            $(users).each(function(i, user) {
-                                appendUserElement(user, entity.id);
-                            });
-                        }
                         if (buttonClicked) enable(buttonClicked);
 
                     }
@@ -154,9 +146,10 @@ function connect() {
                         }
 						
                     } else if (entity.type == 'Group') {
-                        appendGroupElement(entity);
+                        var groupElement = appendGroupElement(entity);
                         var users = entity.users;
-                        if (users) {
+                        if (users && users.length > 0) {
+                            disable($('.delete_icon', groupElement)[0]);
                             $(users).each(function(i, user) {
                                 appendUserElement(user, entity.id);
                             });
@@ -172,18 +165,19 @@ function connect() {
             } else if (command == 'DELETE') {
                 var elementSelector = '.' + data.id + '_';
                 if (debug) console.log($(elementSelector));
-                $(elementSelector).hide('blind', {
-                    direction: 'vertical'
-                }, 200, function() {
-                    $(this).remove()
-                });
+                $(elementSelector).remove();
+//                $(elementSelector).hide('blind', {
+//                    direction: 'vertical'
+//                }, 200, function() {
+//                    $(this).remove()
+//                });
                 //refreshIframes();
                 if (buttonClicked) enable(buttonClicked);
             //if (callback) callback();
 
             } else if (command == 'REMOVE') {
 
-                console.log(data);
+                if (debug) console.log(data);
 
                 var parentId = data.id;
                 var entityId = data.data.id;
@@ -191,13 +185,13 @@ function connect() {
                 var parent = $('.' + parentId + '_');
                 var entity = $('.' + entityId + '_');
 
-                console.log(parent);
-                console.log(entity);
+                if (debug) console.log(parent);
+                if (debug) console.log(entity);
 
                 var isUser = entity.hasClass('user');
                 if (isUser) {
 
-                    users.append(entity).animate();
+                    users.append(entity);//.animate();
                     $('.delete_icon', entity).remove();
                     entity.append('<img title="Delete user ' + entityId + '" '
                         + 'alt="Delete user ' + entityId + '" class="delete_icon button" src="icon/delete.png">');
@@ -205,14 +199,26 @@ function connect() {
                         // TODO: get the complete user object via GET b/c 'entity' has not all data (e.g. name)
                         deleteUser(this, entity);
                     });
+                    entity.draggable({
+                        revert: 'invalid',
+                        containment: '#main',
+                        zIndex: 1
+                    });
+
+                    var numberOfUsers = $('.user', parent).size();
+                    if (debug) console.log(numberOfUsers);
+                    if (numberOfUsers == 0) {
+                        enable($('.delete_icon', parent)[0]);
+                    }
+
 
                 } else {
-
-                    entity.hide('blind', {
-                        direction: 'vertical'
-                    }, 200, function() {
-                        $(this).remove();
-                    });
+                    entity.remove();
+//                    entity.hide('blind', {
+//                        direction: 'vertical'
+//                    }, 200, function() {
+//                        $(this).remove();
+//                    });
 
                 }
 
@@ -220,7 +226,7 @@ function connect() {
 
             } else if (command == 'ADD') {
 
-                console.log(data);
+                if (debug) console.log(data);
 
                 var parentId = data.id;
                 var entityId = data.data.id;
@@ -228,8 +234,8 @@ function connect() {
                 var parent = $('.' + parentId + '_');
                 var entity = $('.' + entityId + '_');
 
-                console.log(parent);
-                console.log(entity);
+                if (debug) console.log(parent);
+                if (debug) console.log(entity);
 
                 entity.css('left', 0);
                 entity.css('top', 0);
@@ -244,6 +250,14 @@ function connect() {
                         removeUserFromGroup(entityId, parentId)
                     //deleteUser(this, user);
                     });
+                    entity.draggable('destroy');
+
+                    var numberOfUsers = $('.user', parent).size();
+                    if (debug) console.log(numberOfUsers);
+                    if (numberOfUsers > 0) {
+                        disable($('.delete_icon', parent)[0]);
+                    }
+
                 }
 
 
