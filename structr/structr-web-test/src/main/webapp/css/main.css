@@ -108,7 +108,7 @@ h2 {
 
 .menu .active {
     color: #555 ! important;
-    padding: 4px;
+    padding: 4px 6px;
     border: 1px solid #81ce25;
     border-radius: 5px;
     background-color: #81ce25;

@@ -25,388 +25,332 @@ var user;
 
 function connect() {
 
-    token = $.cookie('structrSessionToken');
-    if (debug) console.log('token: ' + token);
+	token = $.cookie('structrSessionToken');
+	if (debug) console.log('token: ' + token);
 
-    if (token) {
-        loggedIn = true;
-    }
+	if (token) {
+		loggedIn = true;
+	}
 
-    try {
+	try {
+		var host = document.location.host;
+		var wsUrl = 'ws://' + host + wsRoot;
+		if (debug) console.log(wsUrl);
+		if ('WebSocket' in window) {
+			ws = new WebSocket(wsUrl, 'structr');
+		} else if ('MozWebSocket' in window) {
+			ws = new MozWebSocket(wsUrl, 'structr');
+		} else {
+			alert('Your browser doesn\'t support WebSocket.');
+			return;
+		}
 
-        var host = document.location.host;
-        var url = 'ws://' + host + wsRoot;
-        console.log(url);
-        if ('WebSocket' in window) {
-            ws = new WebSocket(url, 'structr');
-        } else if ('MozWebSocket' in window) {
-            ws = new MozWebSocket(url, 'structr');
-        } else {
-            alert('Your browser doesn\'t support WebSocket.');
-            return;
-        }
+		log('State: ' + ws.readyState);
 
-        log('State: ' + ws.readyState);
+		ws.onmessage = function(message) {
 
-        ws.onmessage = function(message) {
+			var data = $.parseJSON(message.data);
+			if (debug) console.log(data);
 
-            var data = $.parseJSON(message.data);
-            if (debug) console.log(data);
+			//var msg = $.parseJSON(message);
+			var type = data.type;
+			var command = data.command;
+			var result = data.result;
+			var sessionValid = data.sessionValid;
+			var code = data.code;
+			var callback = data.callback;
 
-            //var msg = $.parseJSON(message);
-            var type = data.type;
-            var command = data.command;
-            var result = data.result;
-            var sessionValid = data.sessionValid;
-            var code = data.code;
-            var callback = data.callback;
+			if (debug) console.log('command: ' + command);
+			if (debug) console.log('type: ' + type);
+			if (debug) console.log('code: ' + code);
+			if (debug) console.log('callback: ' + callback);
+			if (debug) console.log('sessionValid: ' + sessionValid);
 
-            if (debug) console.log('command: ' + command);
-            if (debug) console.log('type: ' + type);
-            if (debug) console.log('code: ' + code);
-            if (debug) console.log('callback: ' + callback);
-            if (debug) console.log('sessionValid: ' + sessionValid);
+			if (debug) console.log('result: ' + $.toJSON(result));
 
-            if (debug) console.log('result: ' + $.toJSON(result));
-			
-
-
-            if (command == 'LOGIN') {
+			if (command == 'LOGIN') {
 		
-                var token = data.token;
-                if (debug) console.log('token: ' + token);
+				var token = data.token;
+				if (debug) console.log('token: ' + token);
 		
-                if (sessionValid) {
-                    $.cookie("structrSessionToken", token);
-                    $.cookie("structrUser", user);
-                    $.unblockUI();
-                    $('#logoutLink').html('Logout <span class="username">' + user + '</span>');
-                    $('#logoutLink').removeClass('active');
-                    $('#logoutLink').addClass('inactive');
+				if (sessionValid) {
+					$.cookie('structrSessionToken', token);
+					$.cookie('structrUser', user);
+					$.unblockUI();
+					$('#logout_').html('Logout <span class="username">' + user + '</span>');
 
-                    onload();
-                } else {
-                    $.cookie('structrSessionToken', '');
-                    $.cookie('structrUser', '');
-                    clearMain();
-                    $('#logoutLink').removeClass('active');
-                    $('#logoutLink').addClass('inactive');
+					Structr.init();
+					
+				} else {
+					$.cookie('structrSessionToken', '');
+					$.cookie('structrUser', '');
+					clearMain();
 
-                    login();
-                }
+					Structr.login();
+				}
 
-            } else if (command == 'LOGOUT') {
+			} else if (command == 'LOGOUT') {
 
-                $.cookie('structrSessionToken', '');
-                $.cookie('structrUser', '');
-                clearMain();
-                login();
+				$.cookie('structrSessionToken', '');
+				$.cookie('structrUser', '');
+				clearMain();
+				Structr.login();
 
-            } else if (command == 'STATUS') {
-                if (debug) console.log('Error code: ' + code);
+			} else if (command == 'STATUS') {
+				if (debug) console.log('Error code: ' + code);
 				
-                if (code == 403) {
-                    login('Wrong username or password!');
-                } else if (code == 401) {
-                    login('Session invalid');
-                }
+				if (code == 403) {
+					Structr.login('Wrong username or password!');
+				} else if (code == 401) {
+					Structr.login('Session invalid');
+				}
 
-            } else if (command == 'CREATE') {
+			} else if (command == 'CREATE') {
 				
-                $(result).each(function(i, entity) {
-                    if (entity.type == 'User') {
+				$(result).each(function(i, entity) {
+					if (entity.type == 'User') {
 
-                        groupId = entity.groupId;
-                        if (groupId) appendUserElement(entity, groupId);
-                        appendUserElement(entity);
-                        disable($('.' + groupId + '_ .delete_icon')[0]);
-                        if (buttonClicked) enable(buttonClicked);
+						groupId = entity.groupId;
+						if (groupId) UsersAndGroups.appendUserElement(entity, groupId);
+						UsersAndGroups.appendUserElement(entity);
+						disable($('.' + groupId + '_ .delete_icon')[0]);
+						if (buttonClicked) enable(buttonClicked);
 
-                    } else if (entity.type == 'Group') {
+					} else if (entity.type == 'Group') {
 
-                        if (debug) console.log(entity);
-                        appendGroupElement(entity);
-                        if (debug) console.log('group element appended');
-                        if (buttonClicked) enable(buttonClicked);
+						if (debug) console.log(entity);
+						UsersAndGroups.appendGroupElement(entity);
+						if (debug) console.log('group element appended');
+						if (buttonClicked) enable(buttonClicked);
 
-                    }
-                    else {
-                        //appendEntityElement(data, parentElement);
-                        appendEntityElement(entity);
-                        if (buttonClicked) enable(buttonClicked);
+					}
+					else {
+						//appendEntityElement(data, parentElement);
+						appendEntityElement(entity);
+						if (buttonClicked) enable(buttonClicked);
 
-                    }
+					}
 				
-                });
+				});
 
-            } else if (command == 'LIST') {
+			} else if (command == 'LIST') {
 				
-                $(result).each(function(i, entity) {
+				$(result).each(function(i, entity) {
 						
-                    if (entity.type == 'User') {
-                        var groups = entity.groups;
-                        if (!groups || groups.length == 0) {
-                            appendUserElement(entity);
-                        }
+					if (entity.type == 'User') {
+						var groups = entity.groups;
+						if (!groups || groups.length == 0) {
+							UsersAndGroups.appendUserElement(entity);
+						}
 						
-                    } else if (entity.type == 'Group') {
-                        var groupElement = appendGroupElement(entity);
-                        var users = entity.users;
-                        if (users && users.length > 0) {
-                            disable($('.delete_icon', groupElement)[0]);
-                            $(users).each(function(i, user) {
-                                appendUserElement(user, entity.id);
-                            });
-                        }
-                    } else {
-                        appendEntityElement(entity);
-                    }
+					} else if (entity.type == 'Group') {
+						var groupElement = UsersAndGroups.appendGroupElement(entity);
+						var users = entity.users;
+						if (users && users.length > 0) {
+							disable($('.delete_icon', groupElement)[0]);
+							$(users).each(function(i, user) {
+								UsersAndGroups.appendUserElement(user, entity.id);
+							});
+						}
+					} else {
+						appendEntityElement(entity);
+					}
 						
-                });
+				});
 
 
 
-            } else if (command == 'DELETE') {
-                var elementSelector = '.' + data.id + '_';
-                if (debug) console.log($(elementSelector));
-                $(elementSelector).remove();
-//                $(elementSelector).hide('blind', {
-//                    direction: 'vertical'
-//                }, 200, function() {
-//                    $(this).remove()
-//                });
-                //refreshIframes();
-                if (buttonClicked) enable(buttonClicked);
-            //if (callback) callback();
+			} else if (command == 'DELETE') {
+				var elementSelector = '.' + data.id + '_';
+				if (debug) console.log($(elementSelector));
+				$(elementSelector).remove();
+				//                $(elementSelector).hide('blind', {
+				//                    direction: 'vertical'
+				//                }, 200, function() {
+				//                    $(this).remove()
+				//                });
+				//refreshIframes();
+				if (buttonClicked) enable(buttonClicked);
+			//if (callback) callback();
 
-            } else if (command == 'REMOVE') {
+			} else if (command == 'REMOVE') {
 
-                if (debug) console.log(data);
+				if (debug) console.log(data);
 
-                var parentId = data.id;
-                var entityId = data.data.id;
+				var parentId = data.id;
+				var entityId = data.data.id;
 
-                var parent = $('.' + parentId + '_');
-                var entity = $('.' + entityId + '_');
+				var parent = $('.' + parentId + '_');
+				var entity = $('.' + entityId + '_');
 
-                if (debug) console.log(parent);
-                if (debug) console.log(entity);
+				if (debug) console.log(parent);
+				if (debug) console.log(entity);
 
-                var isUser = entity.hasClass('user');
-                if (isUser) {
+				var isUser = entity.hasClass('user');
+				if (isUser) {
 
-                    users.append(entity);//.animate();
-                    $('.delete_icon', entity).remove();
-                    entity.append('<img title="Delete user ' + entityId + '" '
-                        + 'alt="Delete user ' + entityId + '" class="delete_icon button" src="icon/delete.png">');
-                    $('.delete_icon', entity).on('click', function() {
-                        // TODO: get the complete user object via GET b/c 'entity' has not all data (e.g. name)
-                        deleteUser(this, entity);
-                    });
-                    entity.draggable({
-                        revert: 'invalid',
-                        containment: '#main',
-                        zIndex: 1
-                    });
+					var id = getIdFromClassString(entity.attr('class'));
+					entity.id = id;
 
-                    var numberOfUsers = $('.user', parent).size();
-                    if (debug) console.log(numberOfUsers);
-                    if (numberOfUsers == 0) {
-                        enable($('.delete_icon', parent)[0]);
-                    }
+					users.append(entity);//.animate();
+					$('.delete_icon', entity).remove();
+					entity.append('<img title="Delete user ' + entityId + '" '
+						+ 'alt="Delete user ' + entityId + '" class="delete_icon button" src="icon/delete.png">');
+					$('.delete_icon', entity).on('click', function() {
+						deleteUser(this, entity);
+					});
+					entity.draggable({
+						revert: 'invalid',
+						containment: '#main',
+						zIndex: 1
+					});
 
-
-                } else {
-                    entity.remove();
-//                    entity.hide('blind', {
-//                        direction: 'vertical'
-//                    }, 200, function() {
-//                        $(this).remove();
-//                    });
-
-                }
-
-                if (debug) console.log('Removed ' + entityId + ' from ' + parentId);
-
-            } else if (command == 'ADD') {
-
-                if (debug) console.log(data);
-
-                var parentId = data.id;
-                var entityId = data.data.id;
-
-                var parent = $('.' + parentId + '_');
-                var entity = $('.' + entityId + '_');
-
-                if (debug) console.log(parent);
-                if (debug) console.log(entity);
-
-                entity.css('left', 0);
-                entity.css('top', 0);
-
-                parent.append(entity);
-                var isUser = entity.hasClass('user');
-                if (isUser) {
-                    $('.delete_icon', entity).remove();
-                    entity.append('<img title="Remove user ' + entityId + ' from group ' + parentId + '" '
-                        + 'alt="Remove user ' + entityId + ' from group ' + parentId + '" class="delete_icon button" src="icon/user_delete.png">');
-                    $('.delete_icon', entity).on('click', function() {
-                        removeUserFromGroup(entityId, parentId)
-                    //deleteUser(this, user);
-                    });
-                    entity.draggable('destroy');
-
-                    var numberOfUsers = $('.user', parent).size();
-                    if (debug) console.log(numberOfUsers);
-                    if (numberOfUsers > 0) {
-                        disable($('.delete_icon', parent)[0]);
-                    }
-
-                }
+					var numberOfUsers = $('.user', parent).size();
+					if (debug) console.log(numberOfUsers);
+					if (numberOfUsers == 0) {
+						enable($('.delete_icon', parent)[0]);
+					}
 
 
-            } else if (command == 'UPDATE') {
-                var element = $( '.' + data.id + '_');
-                var input = $('.props tr td.value input', element);
-                if (debug) console.log(element);
+				} else {
+					entity.remove();
+				//                    entity.hide('blind', {
+				//                        direction: 'vertical'
+				//                    }, 200, function() {
+				//                        $(this).remove();
+				//                    });
 
-                input.parent().children('.icon').each(function(i, img) {
-                    $(img).remove();
-                });
-                input.removeClass('active');
-                if (debug) console.log(element);//.children('.' + key));
+				}
+
+				if (debug) console.log('Removed ' + entityId + ' from ' + parentId);
+
+			} else if (command == 'ADD') {
+
+				if (debug) console.log(data);
+
+				var parentId = data.id;
+				var entityId = data.data.id;
+
+				var parent = $('.' + parentId + '_');
+				var entity = $('.' + entityId + '_');
+
+				if (debug) console.log(parent);
+				if (debug) console.log(entity);
+
+				entity.css('left', 0);
+				entity.css('top', 0);
+
+				parent.append(entity);
+				var isUser = entity.hasClass('user');
+				if (isUser) {
+					$('.delete_icon', entity).remove();
+					entity.append('<img title="Remove user ' + entityId + ' from group ' + parentId + '" '
+						+ 'alt="Remove user ' + entityId + ' from group ' + parentId + '" class="delete_icon button" src="icon/user_delete.png">');
+					$('.delete_icon', entity).on('click', function() {
+						UsersAndGroups.removeUserFromGroup(entityId, parentId)
+					//deleteUser(this, user);
+					});
+					entity.draggable('destroy');
+
+					var numberOfUsers = $('.user', parent).size();
+					if (debug) console.log(numberOfUsers);
+					if (numberOfUsers > 0) {
+						disable($('.delete_icon', parent)[0]);
+					}
+
+				}
+
+
+			} else if (command == 'UPDATE') {
+				var element = $( '.' + data.id + '_');
+				var input = $('.props tr td.value input', element);
+				if (debug) console.log(element);
+
+				input.parent().children('.icon').each(function(i, img) {
+					$(img).remove();
+				});
+				input.removeClass('active');
+				if (debug) console.log(element);//.children('.' + key));
                 
-                for (key in data.data) {
-                    element.children('.' + key).text(data.data[key]);
-                    if (debug) console.log($('.props tr td.' + key + ' input', element));
-                    $('.props tr td.' + key + ' input', element).val(data.data[key]);
-                }
+				for (key in data.data) {
+					element.children('.' + key).text(data.data[key]);
+					if (debug) console.log($('.props tr td.' + key + ' input', element));
+					$('.props tr td.' + key + ' input', element).val(data.data[key]);
+				}
 
-                input.data('changed', false);
+				input.data('changed', false);
 
-            } else {
-                if (debug) console.log('Received unknown command: ' + command);
+			} else {
+				if (debug) console.log('Received unknown command: ' + command);
 
-                if (sessionValid == false) {
-                    if (debug) console.log('invalid session');
-                    $.cookie('structrSessionToken', '');
-                    $.cookie('structrUser', '');
-                    clearMain();
-                    $('#logoutLink').removeClass('active');
-                    $('#logoutLink').addClass('inactive');
+				if (sessionValid == false) {
+					if (debug) console.log('invalid session');
+					$.cookie('structrSessionToken', '');
+					$.cookie('structrUser', '');
+					clearMain();
 
-                    login();
+					login();
 
-                }
+				}
 
-            }
+			}
 
 
-        }
+		}
 
-        ws.onclose = function() {
-            log('Close: ' + ws.readyState);
-        }
+		ws.onclose = function() {
+			log('Close: ' + ws.readyState);
+		}
 
-    } catch (exception) {
-        log('Error in connect(): ' + exception);
-    }
+	} catch (exception) {
+		log('Error in connect(): ' + exception);
+	}
 
 }
 
 function send(text) {
 
-    log(ws.readyState);
+	log(ws.readyState);
 
-    var obj = $.parseJSON(text);
+	var obj = $.parseJSON(text);
     
-    if (token) {
-        obj.token = token;
-    }
+	if (token) {
+		obj.token = token;
+	}
     
-    text = $.toJSON(obj);
+	text = $.toJSON(obj);
 
-    if (!text) {
-        log('No text to send!');
-        return false;
-    }
+	if (!text) {
+		log('No text to send!');
+		return false;
+	}
 
-    try {
+	try {
 
-        ws.send(text);
-        log('Sent: ' + text);
+		ws.send(text);
+		log('Sent: ' + text);
 
-    } catch (exception) {
-        log('Error in send(): ' + exception);
-        return false;
-    }
+	} catch (exception) {
+		log('Error in send(): ' + exception);
+		return false;
+	}
 
-    return true;
+	return true;
 
 }
 
 function log(msg) {
-    if (debug) console.log(msg);
-    $("#log").append("<br />" + msg);
+	if (debug) console.log(msg);
+	$("#log").append("<br />" + msg);
 }
 
-function login(text) {
-    if (text) $('#errorText').html(text);
-    $.blockUI.defaults.overlayCSS.opacity = .6;
-    $.blockUI.defaults.applyPlatformOpacityRules = false;
-    $.blockUI({
-        message: $('#login'),
-        css: {
-            border: 'none',
-            backgroundColor: 'transparent'
-        }
-    });
-    $('#logoutLink').addClass('inactive');
-}
 
-function doLogin(username, password) {
-    if (debug) console.log('doLogin ' + username + ' with ' + password);
-    if (send('{ "command":"LOGIN", "data" : { "username" : "' + username + '", "password" : "' + password + '" } }')) {
-        user = username;
-        return true;
-    }
-    return false;
-
-}
-
-function doLogout(text) {
-    if (debug) console.log('doLogout ' + user);
-    $.cookie("structrSessionToken", '');
-    $.cookie("structrUser", '');
-    if (send('{ "command":"LOGOUT", "data" : { "username" : "' + user + '" } }')) {
-        $('#logoutLink').html('Login');
-        clearMain();
-        login(text);
-        return true;
-    }
-    return false;
-}
-
-function clearMain() {
-    main.empty();
-}
-
-function confirmation(text, callback) {
-    if (text) $('#confirmationText').html(text);
-    if (callback) $('#yesButton').on('click', function() {
-        callback();
-    });
-    $('#noButton').on('click', function() {
-        $.unblockUI();
-    });
-    $.blockUI.defaults.overlayCSS.opacity = .6;
-    $.blockUI.defaults.applyPlatformOpacityRules = false;
-    $.blockUI({
-        message: $('#confirmation'),
-        css: {
-            border: 'none',
-            backgroundColor: 'transparent'
-        }
-    });
-	
+function getAnchorFromUrl(url) {
+	if (url) {
+		var pos = url.lastIndexOf('#');
+		if (pos > 0) {
+			return url.substring(pos+1, url.length);
+		}
+	}
+	return null;
 }
