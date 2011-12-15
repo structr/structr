@@ -45,7 +45,6 @@ import org.structr.core.node.TransactionCommand;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
 import org.structr.web.common.RelType;
-import org.structr.web.entity.Content;
 import org.structr.web.entity.Resource;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -69,6 +68,7 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.structr.core.node.StructrNodeFactory;
 import org.structr.core.node.search.Search;
 
 //~--- classes ----------------------------------------------------------------
@@ -98,7 +98,7 @@ public class HtmlServlet extends HttpServlet {
 
 		// create prototype traversal description
 		desc = Traversal.description();
-		desc = desc.breadthFirst();
+		desc = desc.depthFirst();
 		desc = desc.uniqueness(Uniqueness.NODE_GLOBAL);
 	}
 
@@ -107,6 +107,8 @@ public class HtmlServlet extends HttpServlet {
 
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) {
+
+		SecurityContext securityContext = SecurityContext.getSuperUserInstance();
 
 		edit = false;
 
@@ -174,7 +176,7 @@ public class HtmlServlet extends HttpServlet {
 			if (resource != null) {
 
 				// 2: do a traversal and collect content
-				String content = getContent(resource);
+				String content = getContent(securityContext, resource);
 				double end     = System.nanoTime();
 
 				logger.log(Level.INFO, "Content collected in {0} seconds", decimalFormat.format((end - start) / 1000000000.0));
@@ -221,17 +223,40 @@ public class HtmlServlet extends HttpServlet {
 
 				logger.log(Level.INFO, "Created page1 with id {0}, page2 with id {1}", new Object[] { page1.getId(), page2.getId() });
 
+				// list.js resource
+				AbstractNode listJs        = createNode("Resource", "list.js");
+				AbstractNode listJsContent = createNode("Content", "list", new NodeAttribute("content", readFile("/ge/js/list.js")));
+				linkNodes(listJs, listJsContent, listJs.getIdString(), 0);
+
+				// page resource
 				AbstractNode doc       = createNode("Element", "doc", new NodeAttribute("tag", "html"));
-				AbstractNode body      = createNode("Element", "body", new NodeAttribute("tag", "body"));
+				AbstractNode head      = createNode("Element", "header", new NodeAttribute("tag", "head"));
+				AbstractNode script    = createNode("Content", "script", new NodeAttribute("content", "<script src=\"list.js\" language=\"JavaScript\" type=\"text/javascript\"></script>"));
+				AbstractNode body      = createNode("Element", "body", new NodeAttribute("tag", "body"), new NodeAttribute("onload", "start()"));
 				AbstractNode article1  = createNode("Element", "article1", new NodeAttribute("tag", "div"));
 				AbstractNode article2  = createNode("Element", "article2", new NodeAttribute("tag", "div"));
-				AbstractNode header    = createNode("Content", "header", new NodeAttribute("tag", "head"));
 				AbstractNode foo       = createNode("Content", "content1", new NodeAttribute("content", "Dies ist Seite 1"), new NodeAttribute("tag", "h1"));
 				AbstractNode bar       = createNode("Content", "content2", new NodeAttribute("content", "Dies ist Seite 2"), new NodeAttribute("tag", "h1"));
+				AbstractNode log       = createNode("Content", "log", new NodeAttribute("tag", "div"));
 
-				String content = "Inhalt...";
+				// content
+				AbstractNode foo2      = createNode("Content", "content3");
+				
+  				String uuid = foo2.getStringProperty("uuid");
+				StringBuilder content = new StringBuilder();
 
-				AbstractNode foo2      = createNode("Content", "content3", new NodeAttribute("content", content), new NodeAttribute("tag", "div"));
+				content.append("<input type=\"hidden\" name=\"token\" id=\"token\" />");
+				content.append("<script language=\"JavaScript\" type=\"text/javascript\">\n");
+				content.append("function load").append(uuid).append("() {\n");
+				content.append("loadList(\"").append(uuid).append("\", \"User\", function(parent, element) {\n");
+				content.append("parent.innerHTML += (\"<div>\" + element.realName + \"</div>\");\n");
+				content.append("});\n");
+				content.append("}\n");
+				content.append("window.setTimeout(\"load").append(uuid).append("()\", 500);\n");
+				content.append("</script>\n");
+				
+				foo2.setProperty("content", content.toString());
+				foo2.setProperty("tag", "div");
 
 
 				String idOfPage1       = page1.getIdString();
@@ -239,18 +264,22 @@ public class HtmlServlet extends HttpServlet {
 
 				// page 1
 				linkNodes(page1, doc, idOfPage1, 0);
-				linkNodes(doc, header, idOfPage1, 0);
+				linkNodes(doc, head, idOfPage1, 0);
 				linkNodes(doc, body, idOfPage1, 1);
+				linkNodes(head, script, idOfPage1, 0);
 				linkNodes(body, article1, idOfPage1, 1);
 				linkNodes(article1, foo, idOfPage1, 0);
 				linkNodes(article1, foo2, idOfPage1, 1);
+				linkNodes(body, log, idOfPage1, 2);
 
 				// page 2
 				linkNodes(page2, doc, idOfPage2, 0);
-				linkNodes(doc, header, idOfPage2, 0);
+				linkNodes(doc, head, idOfPage2, 0);
 				linkNodes(doc, body, idOfPage2, 1);
+				linkNodes(head, script, idOfPage2, 0);
 				linkNodes(body, article2, idOfPage2, 1);
 				linkNodes(article2, bar, idOfPage2, 0);
+				linkNodes(body, log, idOfPage2, 2);
 
 				return null;
 			}
@@ -315,8 +344,12 @@ public class HtmlServlet extends HttpServlet {
 
 			System.out.println(new File(".").getAbsolutePath());
 
-			BufferedReader reader = new BufferedReader(new FileReader("/home/axel/NetBeansProjects/structr/structr/structr-web/src/main/resources"
-							+ path));
+//			BufferedReader reader = new BufferedReader(new FileReader("/home/axel/NetBeansProjects/structr/structr/structr-web/src/main/resources"
+//							+ path));
+
+			BufferedReader reader = new BufferedReader(new FileReader(getServletContext().getRealPath(path)));
+
+
 
 //                      BufferedReader reader = new BufferedReader(new InputStreamReader(getServletContext().getResourceAsStream(path)));
 			String line = null;
@@ -376,13 +409,15 @@ public class HtmlServlet extends HttpServlet {
 
 	//~--- get methods ----------------------------------------------------
 
-	private String getContent(Resource resource) {
+	private String getContent(final SecurityContext securityContext, final Resource resource) {
 
 		TraversalDescription localDesc = desc.expand(new ResourceExpander(resource.getIdString()));
-		final StringBuilder headBuffer = new StringBuilder();
-		final StringBuilder tailBuffer = new StringBuilder();
+		final StructrNodeFactory factory = new StructrNodeFactory(securityContext);
+		final ContentTreeNode root = new ContentTreeNode(null, null);
 
 		localDesc = localDesc.evaluator(new Evaluator() {
+
+			ContentTreeNode localRoot = root;
 
 			@Override
 			public Evaluation evaluate(Path path) {
@@ -394,68 +429,25 @@ public class HtmlServlet extends HttpServlet {
 					if (node.hasProperty(AbstractNode.Key.type.name())) {
 
 						String type = (String) node.getProperty(AbstractNode.Key.type.name());
-
-						if (edit && "Content".equals(type)) {
-
-							headBuffer.append("<div class=\"structr-editable-area data-structr-type-").append(type).append(
-							    "\" id=\"structr-id-").append(node.getId()).append("\">");
-
-						}
+						
+						ContentTreeNode newTreeNode = new ContentTreeNode(localRoot, factory.createNode(securityContext, node, type));
+						localRoot.addChild(newTreeNode);
 
 						Evaluation evaluation;
 
 						if ("Content".equals(type)) {
 
-							if (node.hasProperty(Content.Key.content.name())) {
-
-								Object content = node.getProperty(Content.Key.content.name());
-
-								if (content != null) {
-
-									// content nodes can have tags too!
-									if(node.hasProperty("tag")) {
-										Object tag = node.getProperty("tag");
-										headBuffer.append("<").append(tag);
-										// append attributes
-										headBuffer.append(" id='").append(node.getProperty("id")).append("'");
-										headBuffer.append(">");
-										headBuffer.append(content);
-										headBuffer.append("</").append(tag).append(">");
-
-									} else {
-
-										// no tag found
-										headBuffer.append(content);
-									}
-								}
-
-							}
-
 							evaluation = Evaluation.EXCLUDE_AND_PRUNE;
+
+							// step one up
+							localRoot = localRoot.getParent();
 
 						} else {
 
-							if(node.hasProperty("tag")) {
-								
-								// use Object here to allow lazy evaluation later
-								// (could be an object that creates its content when toString() is called)
-								Object tag = node.getProperty("tag");
-
-								// append start tag (and attributes) to head buffer
-								headBuffer.append("<").append(tag).append(">");
-								// TODO: add other attributes here (id, style, class, etc.)!
-								
-								// append end tag to tail buffer in reverse order
-								tailBuffer.insert(0, ">").insert(0, tag).insert(0, "</");
-							}
-
-							// continue traversal
 							evaluation = Evaluation.EXCLUDE_AND_CONTINUE;
-						}
 
-						if (edit && "Content".equals(type)) {
-
-							headBuffer.append("</div><!-- .structr-editable-area structr-type-").append(type).append("\" -->");
+							// step one down
+							localRoot = newTreeNode;
 
 						}
 
@@ -475,20 +467,84 @@ public class HtmlServlet extends HttpServlet {
 		});
 
 		// do traversal to retrieve paths
-		Iterable<Path> paths = localDesc.traverse(resource.getNode());
+		for (Node node : localDesc.traverse(resource.getNode()).nodes()) {}
 
-		for (Path path : paths) {
+		StringBuilder buffer = new StringBuilder(10000);	// FIXME: use sensible initial size..
+		printNodes(buffer, root, 0);
 
-			logger.log(Level.INFO, "Path: {0}", path.toString());
+		return buffer.toString();
+	}
 
+	private void printNodes(StringBuilder buffer, ContentTreeNode root, int depth) {
+
+		AbstractNode node = root.getData();
+		String content = null;
+		String tag = null;
+
+		if(node != null) {
+
+			content = (String)node.getProperty("content");
+			tag = (String)node.getProperty("tag");
+
+			if(tag != null) {
+
+				String onload = (String)node.getProperty("onload");
+				String id = (String)node.getProperty("uuid");
+
+				buffer.append("<").append(tag);
+
+				if(id != null)		buffer.append(" id='").append(id).append("'");
+				if(onload != null)	buffer.append(" onload='").append(onload).append("'");
+
+				buffer.append(">");
+			}
+
+			if(content != null) {
+				buffer.append(content);
+			}
 		}
 
-		headBuffer.append(tailBuffer);
+		// render children
+		for(ContentTreeNode subNode : root.getChildren()) {
+			printNodes(buffer, subNode, depth+1);
+		}
 
-		return headBuffer.toString();
+		// render end tag
+		if(tag != null) {
+			buffer.append("</").append(tag).append(">");
+		}
 	}
 
 	//~--- inner classes --------------------------------------------------
+
+	private static class ContentTreeNode {
+
+		private List<ContentTreeNode> children = new LinkedList<ContentTreeNode>();
+		private ContentTreeNode parent = null;
+		private AbstractNode data = null;
+
+		public ContentTreeNode(ContentTreeNode parent, AbstractNode data) {
+			this.parent = parent;
+			this.data = data;
+		}
+
+		public AbstractNode getData() {
+			return data;
+		}
+
+		public ContentTreeNode getParent() {
+			return parent;
+		}
+
+		public void addChild(ContentTreeNode treeNode) {
+			children.add(treeNode);
+		}
+
+		public List<ContentTreeNode> getChildren() {
+			return children;
+		}
+
+	}
 
 	private static class ResourceExpander implements RelationshipExpander {
 
