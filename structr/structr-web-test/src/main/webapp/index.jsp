@@ -5,7 +5,7 @@
         <title>structr Async UI</title>
         <link rel="stylesheet" type="text/css" media="screen" href="css/main.css" >
         <meta name="viewport" content="width=1024, user-scalable=yes, target-densityDpi=device-dpi" />
-<meta name="apple-touch-fullscreen" content="YES" /> 
+		<meta name="apple-touch-fullscreen" content="YES" /> 
         <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.min.js" type="text/javascript"></script>
         <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js"></script>
         <script src="http://jquery-json.googlecode.com/files/jquery.json-2.3.min.js"></script>
@@ -15,23 +15,24 @@
         <link rel="stylesheet" href="codemirror/theme/default.css">
         <!--script src="codemirror/mode/htmlmixed/htmlmixed.js" type="text/javascript"></script-->
         <link rel="stylesheet" type="text/css" media="screen" href="codemirror/lib/codemirror.css" >
-        <script src="js/init.js" type="text/javascript"></script>
         <script src="js/websocket.js" type="text/javascript"></script>
         <script src="js/ce_lib.js" type="text/javascript"></script>
         <script src="js/entities.js" type="text/javascript"></script>
         <script src="js/jquery.blockUI.js" type="text/javascript"></script>
-        <script src="js/jquery.cookie.js" type="text/javascript"></script>        <script src="js/users_and_groups.js" type="text/javascript"></script>
+        <script src="js/jquery.cookie.js" type="text/javascript"></script>
+        <script src="js/users_and_groups.js" type="text/javascript"></script>
         <script src="js/resources.js" type="text/javascript"></script>
+        <script src="js/init.js" type="text/javascript"></script>
     </head>
     <body>
         <div id="header">
             <img class="logo" src="img/structr-logo.png">
             <div id="menu" class="menu">
                 <ul>
-                    <li><a id="dashboardLink" href="#dashboard">Dashboard</a></li>
-                    <li><a id="resourcesLink" href="#resources">Resources</a></li>
-                    <li><a id="usersAndGroupsLink" href="#usersAndGroups">Users and Groups</a></li>
-                    <li><a id="logoutLink" href="#"></a></li>
+                    <li><a id="dashboard_" href="#dashboard">Dashboard</a></li>
+                    <li><a id="resources_" href="#resources">Resources</a></li>
+                    <li><a id="usersAndGroups_" href="#usersAndGroups">Users and Groups</a></li>
+                    <li><a id="logout_" href="#logout">Login</a></li>
                 </ul>
             </div>
         </div>
