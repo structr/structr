@@ -31,9 +31,6 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionListener;
-import org.structr.common.SecurityContext;
-import org.structr.core.agent.ProcessTaskCommand;
-import org.structr.core.agent.RebuildIndexTask;
 import org.structr.ui.page.StructrPage;
 
 /**
@@ -144,6 +141,14 @@ public class ApplicationContextListener implements ServletContextListener, HttpS
             if (superuserPassword != null) {
                 context.put(Services.SUPERUSER_PASSWORD, superuserPassword);
             }
+
+	    // load all properties into context
+	    for(String name : properties.stringPropertyNames()) {
+		    if(!context.containsKey(name)) {
+			    context.put(name, properties.getProperty(name));
+		    }
+	    }
+
 
         } catch (Throwable t) {
             // handle error
