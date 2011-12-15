@@ -22,7 +22,6 @@ var users;
 
 $(document).ready(function() {
 	Structr.registerModule('usersAndGroups', UsersAndGroups);
-	if (debug) console.log('Module UsersAndGroups registered');
 });
 
 var UsersAndGroups = {
@@ -32,7 +31,7 @@ var UsersAndGroups = {
 	},
 	
 	onload : function() {
-		Structr.activateMenuEntry('usersAndGroups');
+		//Structr.activateMenuEntry('usersAndGroups');
 		if (debug) console.log('onload');
 		main.append('<table><tr><td id="groups"></td><td id="users"></td></tr></table>');
 		groups = $('#groups');
@@ -123,7 +122,7 @@ var UsersAndGroups = {
 			UsersAndGroups.deleteGroup(this, group)
 		});
 		$('b', div).on('click', function() {
-			showProperties(this, group, 'all', $('.' + group.id + '_', groups));
+			Entities.showProperties(this, group, 'all', $('.' + group.id + '_', groups));
 		});
 	
 		div.droppable({
@@ -167,7 +166,7 @@ var UsersAndGroups = {
 				UsersAndGroups.deleteUser(this, user)
 			});
 			$('b', div).on('click', function() {
-				UsersAndGroups.editUserProperties(this, user, groupId);
+				UsersAndGroups.editUserProperties(this, user);
 			});
 			div.draggable({
 				revert: 'invalid',
@@ -177,8 +176,8 @@ var UsersAndGroups = {
 		}
 	},
 
-	editUserProperties : function(button, user, groupId) {
-		showProperties(button, user, 'all', $('.' + user.id + '_'));
+	editUserProperties : function(button, user) {
+		Entities.showProperties(button, user, 'all', $('.' + user.id + '_'));
 	}
 
 };

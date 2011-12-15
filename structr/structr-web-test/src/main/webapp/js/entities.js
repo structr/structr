@@ -94,6 +94,80 @@ var Entities = {
 		if (isDisabled(button)) return;
 		disable(button);
 		Entities.createEntity($.parseJSON('{ "type" : "' + type + '", "name" : "New ' + type + ' ' + Math.floor(Math.random() * (999999 - 1)) + '" }'));
+	},
+
+	hideProperties : function(button, entity, view, element) {
+		element.children('.sep').remove();
+		element.children('.props').remove();
+		enable(button, function() {
+			Entities.showProperties(button, entity, view, element);
+		});
+	},
+
+	showProperties : function(button, entity, view, element) {
+		if (isDisabled(button)) return;
+		disable(button, function() {
+			Entities.hideProperties(button, entity, view, element);
+		});
+		//console.log(element);
+		$.ajax({
+			url: rootUrl + entity.id + (view ? '/' + view : ''),
+			async: false,
+			dataType: 'json',
+			contentType: 'application/json; charset=utf-8',
+			headers: headers,
+			success: function(data) {
+				element.append('<div class="sep"></div>');
+				element.append('<table class="props"></table>');
+				var keys = Object.keys(data.result);
+				$(keys).each(function(i, key) {
+					$('.props', element).append('<tr><td class="key">' + formatKey(key) + '</td><td class="value ' + key + '">' + formatValue(key, data.result[key]) + '</td></tr>');
+				});
+        
+				$('.props tr td.value input', element).each(function(i,v) {
+					var input = $(v);
+					var oldVal = input.val();
+          
+					input.on('focus', function() {
+						input.addClass('active');
+						input.parent().append('<img class="button icon cancel" src="icon/cross.png">');
+						input.parent().append('<img class="button icon save" src="icon/tick.png">');
+            
+						$('.cancel', input.parent()).on('click', function() {
+							input.val(oldVal);
+							input.removeClass('active');
+						});
+                                          
+						$('.save', input.parent()).on('click', function() {
+							var key = input.attr('name');
+							var value = input.val();
+							send('{ "command" : "UPDATE" , "id" : "' + entity.id + '", "' + key + '" : "' + value + '" }');
+						});
+					});
+          
+					input.on('change', function() {
+						input.data('changed', true);
+					});
+                   
+					input.on('focusout', function() {
+            
+						if (input.data('changed') && confirm('Save changes?')) {
+              
+							var key = input.attr('name');
+							var value = input.val();
+							var data = '{ "command" : "UPDATE" , "id" : "' + entity.id + '", "data" : { "' + key + '" : "' + value + '" } }';
+							if (debug) console.log(data);
+							send(data);
+						}
+						input.removeClass('active');
+						input.parent().children('.icon').each(function(i, img) {
+							$(img).remove();
+						});
+					});
+
+				});
+			}
+		});
 	}
 
 
@@ -103,7 +177,6 @@ function plural(type) {
 	var plural = type + 's';
 	if (type.substring(type.length-1, type.length) == 'y') {
 		plural = type.substring(0, type.length-1) + 'ies';
-	//        console.log(plural);
 	}
 	return plural;
 }

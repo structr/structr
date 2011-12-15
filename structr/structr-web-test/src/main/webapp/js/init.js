@@ -218,6 +218,7 @@ var Structr = {
 	registerModule : function(name, module) {
 		
 		Structr.modules[name] = module;
+		if (debug) console.log('Module ' + name + ' registered');
 		
 	}
 };

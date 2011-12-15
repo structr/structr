@@ -122,15 +122,12 @@ function connect() {
 						UsersAndGroups.appendGroupElement(entity);
 						if (debug) console.log('group element appended');
 						if (buttonClicked) enable(buttonClicked);
-
 					}
 					else {
 						//appendEntityElement(data, parentElement);
 						appendEntityElement(entity);
 						if (buttonClicked) enable(buttonClicked);
-
 					}
-				
 				});
 
 			} else if (command == 'LIST') {
@@ -153,25 +150,16 @@ function connect() {
 							});
 						}
 					} else {
-						appendEntityElement(entity);
+						Entities.appendEntityElement(entity);
 					}
 						
 				});
-
-
 
 			} else if (command == 'DELETE') {
 				var elementSelector = '.' + data.id + '_';
 				if (debug) console.log($(elementSelector));
 				$(elementSelector).remove();
-				//                $(elementSelector).hide('blind', {
-				//                    direction: 'vertical'
-				//                }, 200, function() {
-				//                    $(this).remove()
-				//                });
-				//refreshIframes();
 				if (buttonClicked) enable(buttonClicked);
-			//if (callback) callback();
 
 			} else if (command == 'REMOVE') {
 
@@ -214,12 +202,6 @@ function connect() {
 
 				} else {
 					entity.remove();
-				//                    entity.hide('blind', {
-				//                        direction: 'vertical'
-				//                    }, 200, function() {
-				//                        $(this).remove();
-				//                    });
-
 				}
 
 				if (debug) console.log('Removed ' + entityId + ' from ' + parentId);
@@ -257,9 +239,7 @@ function connect() {
 					if (numberOfUsers > 0) {
 						disable($('.delete_icon', parent)[0]);
 					}
-
 				}
-
 
 			} else if (command == 'UPDATE') {
 				var element = $( '.' + data.id + '_');
@@ -290,15 +270,12 @@ function connect() {
 					clearMain();
 
 					login();
-
 				}
-
 			}
-
-
 		}
 
 		ws.onclose = function() {
+			login('Connection was closed by server');
 			log('Close: ' + ws.readyState);
 		}
 
@@ -326,17 +303,13 @@ function send(text) {
 	}
 
 	try {
-
 		ws.send(text);
 		log('Sent: ' + text);
-
 	} catch (exception) {
 		log('Error in send(): ' + exception);
 		return false;
 	}
-
 	return true;
-
 }
 
 function log(msg) {
