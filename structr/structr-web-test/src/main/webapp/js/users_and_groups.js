@@ -51,23 +51,25 @@ var UsersAndGroups = {
 	},
 
 	addGroup : function(button) {
-		if (isDisabled(button)) return false;
-		disable(button);
-		buttonClicked = button;
-		var data = '{ "command" : "CREATE" , "data" : { "type" : "Group", "name" : "New group_' + Math.floor(Math.random() * (9999 - 1)) + '" } }';
-		if (debug) console.log(data);
-		return send(data);
-	},
+            return Entities.add(button, 'Group');
+//		if (isDisabled(button)) return false;
+//		disable(button);
+//		buttonClicked = button;
+//		var data = '{ "command" : "CREATE" , "data" : { "type" : "Group", "name" : "New group_' + Math.floor(Math.random() * (9999 - 1)) + '" } }';
+//		if (debug) console.log(data);
+//		return send(data);
+            },
 
-	addUser : function(button, group) {
-		if (debug) console.log('addUser to group + ' + group);
-		if (isDisabled(button)) return false;
-		disable(button);
-		buttonClicked = button;
-		var name = Math.floor(Math.random() * (9999 - 1));
-		var data = '{ "command" : "CREATE" , "callback" : "test" , "data" : { "type" : "User", "name" : "' + name + '", "realName" : "New user_' + name + '" } }';
-		if (debug) console.log(data);
-		return send(data);
+	addUser : function(button) {
+            return Entities.add(button, 'User');
+//		if (debug) console.log('addUser to group + ' + group);
+//		if (isDisabled(button)) return false;
+//		disable(button);
+//		buttonClicked = button;
+//		var name = Math.floor(Math.random() * (9999 - 1));
+//		var data = '{ "command" : "CREATE" , "callback" : "test" , "data" : { "type" : "User", "name" : "' + name + '", "realName" : "New user_' + name + '" } }';
+//		if (debug) console.log(data);
+//		return send(data);
 	},
 
 	removeUserFromGroup : function(userId, groupId) {
@@ -75,7 +77,7 @@ var UsersAndGroups = {
 		Entities.removeSourceFromTarget(userId, groupId);
 	},
 
-	deleteUser : function(button, user, groupId) {
+	deleteUser : function(button, user) {
 		if (debug) console.log('deleteUser ' + user);
 		deleteNode(button, user);
 	},
@@ -113,7 +115,7 @@ var UsersAndGroups = {
 	appendGroupElement : function(group) {
 		groups.append('<div class="nested top group ' + group.id + '_">'
 			+ '<img class="typeIcon" src="icon/group.png">'
-			+ '<b class="name">' + group.name + '</b> [<span class="id">' + group.id + '</span>]'
+			+ '<b class="name">' + group.name + '</b> <span class="id">' + group.id + '</span>'
 			+ '</div>');
 		var div = $('.' + group.id + '_');
 		div.append('<img title="Delete Group ' + group.id + '" alt="Delete Group ' + group.id + '" class="delete_icon button" src="icon/group_delete.png">');
@@ -143,11 +145,12 @@ var UsersAndGroups = {
 		if (groupId) {
 			$('.' + groupId + '_').append('<div class="nested user ' + user.id + '_">'
 				+ '<img class="typeIcon" src="icon/user.png">'
-				+ ' <b class="realName">' + user.realName + '</b> [<span class="id">' + user.id + '</span>]'
+//				+ ' <b class="realName">' + user.realName + '</b> [<span class="id">' + user.id + '</span>]'
+				+ ' <b class="name">' + user.name + '</b> <span class="id">' + user.id + '</span>'
 				+ '</div>');
 			div = $('.' + groupId + '_ .' + user.id + '_')
-			div.append('<img title="Remove user ' + user.id + ' from group ' + groupId + '" '
-				+ 'alt="Remove user ' + user.id + ' from group ' + groupId + '" class="delete_icon button" src="icon/user_delete.png">');
+			div.append('<img title="Remove user \'' + user.name + '\' from group ' + groupId + '" '
+				+ 'alt="Remove user ' + user.name + ' from group ' + groupId + '" class="delete_icon button" src="icon/user_delete.png">');
 			$('.delete_icon', div).on('click', function() {
 				UsersAndGroups.removeUserFromGroup(user.id, groupId)
 			});
@@ -157,11 +160,12 @@ var UsersAndGroups = {
 		} else {
 			users.append('<div class="nested user ' + user.id + '_">'
 				+ '<img class="typeIcon" src="icon/user.png">'
-				+ ' <b class="realName">' + user.realName + '</b> [' + user.id + ']'
+//				+ ' <b class="realName">' + user.realName + '</b> [' + user.id + ']'
+				+ ' <b class="name">' + user.name + '</b> ' + user.id + ''
 				+ '</div>');
 			div = $('#users .' + user.id + '_');
-			div.append('<img title="Delete user ' + user.id + '" '
-				+ 'alt="Delete user ' + user.id + '" class="delete_icon button" src="icon/delete.png">');
+			div.append('<img title="Delete user \'' + user.name + '\'" '
+				+ 'alt="Delete user \'' + user.name + '\'" class="delete_icon button" src="icon/delete.png">');
 			$('.delete_icon', div).on('click', function() {
 				UsersAndGroups.deleteUser(this, user)
 			});

@@ -78,7 +78,7 @@ function deleteAll(button, type, callback) {
 function deleteNode(button, entity) {
     buttonClicked = button;
     if (isDisabled(button)) return;
-    var con = Structr.confirmation('Delete ' + entity.name + ' [' + entity.id + ']?', function() {
+    var con = Structr.confirmation('Delete ' + entity.type.toLowerCase() + ' \'' + entity.name + '\' <span class="id">' + entity.id + '</span>?', function() {
         //	var toSend = '{ "command" : "DELETE" , "id" : "' + entity.id + '", "data" : { "callback" : "' + callback + '" } }';
         var toSend = '{ "command" : "DELETE" , "id" : "' + entity.id + '" }';
         //if (debug) console.log(toSend);

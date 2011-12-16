@@ -118,14 +118,25 @@ function connect() {
 
 					} else if (entity.type == 'Group') {
 
-						if (debug) console.log(entity);
 						UsersAndGroups.appendGroupElement(entity);
 						if (debug) console.log('group element appended');
 						if (buttonClicked) enable(buttonClicked);
-					}
-					else {
+
+					} else if (entity.type == 'Resource') {
+
+						Resources.appendResourceElement(entity);
+						if (debug) console.log('resource element appended');
+						if (buttonClicked) enable(buttonClicked);
+
+					} else if (entity.type == 'Element') {
+
+						Elements.appendElementElement(entity);
+						if (debug) console.log('element element appended');
+						if (buttonClicked) enable(buttonClicked);
+
+					} else {
 						//appendEntityElement(data, parentElement);
-						appendEntityElement(entity);
+						Entities.appendEntityElement(entity);
 						if (buttonClicked) enable(buttonClicked);
 					}
 				});
@@ -140,6 +151,12 @@ function connect() {
 							UsersAndGroups.appendUserElement(entity);
 						}
 						
+                                        } else if (entity.type == 'Resource') {
+							Resources.appendResourceElement(entity);
+
+                                        } else if (entity.type == 'Element') {
+							Resources.appendElementElement(entity);
+
 					} else if (entity.type == 'Group') {
 						var groupElement = UsersAndGroups.appendGroupElement(entity);
 						var users = entity.users;
@@ -185,7 +202,7 @@ function connect() {
 					entity.append('<img title="Delete user ' + entityId + '" '
 						+ 'alt="Delete user ' + entityId + '" class="delete_icon button" src="icon/delete.png">');
 					$('.delete_icon', entity).on('click', function() {
-						deleteUser(this, entity);
+						UsersAndGroups.deleteUser(this, entity);
 					});
 					entity.draggable({
 						revert: 'invalid',
@@ -269,14 +286,13 @@ function connect() {
 					$.cookie('structrUser', '');
 					clearMain();
 
-					login();
+					Structr.login();
 				}
 			}
 		}
 
 		ws.onclose = function() {
-			login('Connection was closed by server');
-			log('Close: ' + ws.readyState);
+			Structr.confirmation('Connection timed out.<br>Reconnect?', Structr.init);
 		}
 
 	} catch (exception) {

@@ -30,7 +30,7 @@ var Entities = {
 		parentElement.append('<div style="clear: both"></div>');
 		parentElement.append('<img title="Add ' + type + '" alt="Add ' + type + '" class="add_icon button" src="icon/add.png">');
 		$('.add_icon', main).on('click', function() {
-			Entities.addEntity(type, this);
+			Entities.addEntity(this, type);
 		});
 		parentElement.append('<img title="Delete all ' + types + '" alt="Delete all ' + types + '" class="delete_icon button" src="icon/delete.png">');
 		$('.delete_icon', main).on('click', function() {
@@ -55,17 +55,17 @@ var Entities = {
 		element.append('<div class="nested top ' + entity.type.toLowerCase() + ' ' + entity.id + '_">'
 			+ (entity.iconUrl ? '<img class="typeIcon" src="' + entity.iconUrl + '">' : '')
 			+ '<b class="name">' + entity.name + '</b> '
-			+ '[' + entity.id + ']'
+			+ '<span class="id">' + entity.id + '</span>'
 			+ '</div>');
 		div = $('.' + entity.id + '_', element);
-		div.append('<img title="Delete ' + entity.name + ' [<span class="id">' + entity.id + '</span>]" '
-			+ 'alt="Delete ' + entity.name + ' [' + entity.id + ']" class="delete_icon button" src="icon/delete.png">');
+		div.append('<img title="Delete ' + entity.name + ' [' + entity.id + ']" '
+			+ 'alt="Delete ' + entity.type + '\'' + entity.name + '\' [' + entity.id + ']" class="delete_icon button" src="icon/delete.png">');
 		$('.delete_icon', div).on('click', function() {
 			deleteNode(this, entity)
 		});
 		div.append('<img title="Edit ' + entity.name + ' [' + entity.id + ']" alt="Edit ' + entity.name + ' [' + entity.id + ']" class="edit_icon button" src="icon/pencil.png">');
 		$('.edit_icon', div).on('click', function() {
-			showProperties(this, entity, 'all', $('.' + entity.id + '_', element));
+			Entities.showProperties(this, entity, 'all', $('.' + entity.id + '_', element));
 		});
 	},
 
@@ -81,7 +81,7 @@ var Entities = {
 		return send(data);
 	},
 
-	createEntity : function(entity, parentElement) {
+	create : function(entity) {
 		var toSend = {};
 		toSend.data = entity;
 		toSend.command = 'CREATE';
@@ -89,11 +89,13 @@ var Entities = {
 		return send($.toJSON(toSend));
 	},
 
-	addEntity : function(type, button) {
-		buttonClicked = button;
-		if (isDisabled(button)) return;
+	add : function(button, type) {
+		if (debug) console.log('add new ' + type);
+		if (isDisabled(button)) return false;
 		disable(button);
-		Entities.createEntity($.parseJSON('{ "type" : "' + type + '", "name" : "New ' + type + ' ' + Math.floor(Math.random() * (999999 - 1)) + '" }'));
+		buttonClicked = button;
+		disable(button);
+		return Entities.create($.parseJSON('{ "type" : "' + type + '", "name" : "New ' + type + ' ' + Math.floor(Math.random() * (999999 - 1)) + '" }'));
 	},
 
 	hideProperties : function(button, entity, view, element) {
