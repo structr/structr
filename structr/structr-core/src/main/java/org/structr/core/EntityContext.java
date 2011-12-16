@@ -307,8 +307,33 @@ public class EntityContext {
 	}
 
 	// ----- private methods -----
-	private static String convertName(Class type) {
-		return (type.getSimpleName().toLowerCase());
+	private static String convertName(final Class type) {
+		return convertName(type, false);
+	}
+
+	private static String convertName(final Class type, final boolean plural) {
+
+		String convertedName = type.getSimpleName().toLowerCase();
+
+		if (plural) {
+
+			if (convertedName.endsWith("y")) {
+
+				logger.log(Level.FINEST, "Replacing trailing 'y' by 'ies' for type {0}", convertedName);
+
+				convertedName = convertedName.substring(0, convertedName.length() - 1).concat("ies");
+
+			} else if (!convertedName.endsWith("s")) {
+
+				logger.log(Level.FINEST, "Adding trailing 's' to type {0}", convertedName);
+
+				convertedName = convertedName.concat("s");
+
+			}
+
+		}
+
+		return convertedName;
 	}
 
 	private static void registerRelation(String sourceType, String property, String destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion) {
@@ -386,8 +411,12 @@ public class EntityContext {
 		return getRelationshipMapForType(convertName(sourceType)).get(propertyKey.toLowerCase());
 	}
 
+	public static DirectedRelationship getRelation(Class sourceType, Class destType, boolean pluralDestType) {
+		return getRelationshipMapForType(convertName(sourceType)).get(convertName(destType, pluralDestType));
+	}
+
 	public static DirectedRelationship getRelation(Class sourceType, Class destType) {
-		return getRelationshipMapForType(convertName(sourceType)).get(convertName(destType));
+		return getRelationshipMapForType(convertName(sourceType)).get(convertName(destType, false));
 	}
 
 	public static Map<String, DirectedRelationship> getRelations(Class sourceType) {

@@ -61,81 +61,81 @@ var Resources = {
     },
 
     show : function() {
-        //return Entities.showEntities('Resource');
+        return Entities.showEntities('Resource');
 
-        $.ajax({
-            url: rootUrl + 'resources',
-            dataType: 'json',
-            contentType: 'application/json; charset=utf-8',
-            //headers: { 'X-User' : 457 },
-            success: function(data) {
-                if (!data || data.length == 0 || !data.result) return;
-                if ($.isArray(data.result)) {
-        
-                    for (var i=0; i<data.result.length; i++) {
-                        var resource = data.result[i];
-
-                        Resources.appendResourceElement(resource);
-
-                        var resourceId = resource.id;
-                        //          $('#resources').append('<div class="editor_box"><div class="nested top resource" id="resource_' + id + '">'
-                        //                              + '<b>' + resource.name + '</b>'
-                        //                              //+ ' [' + id + ']'
-                        //                              + '<img class="add_icon button" title="Add Element" alt="Add Element" src="icon/add.png" onclick="addElement(' + id + ', \'#resource_' + id + '\')">'
-                        //                              + '<img class="delete_icon button" title="Delete '
-                        //                              + resource.name + '" alt="Delete '
-                        //                              + resource.name + '" src="icon/delete.png" onclick="deleteNode(' + id + ', \'#resource_' + id + '\')">'
-                        //                              + '</div></div>');
-                        Resources.showSubEntities(resourceId, null);
-      
-                        $('#previews').append('<a target="_blank" href="' + viewRootUrl + resource.name + '">' + viewRootUrl + resource.name + '</a><br><div class="preview_box"><iframe id="preview_'
-                            + resourceId + '" src="' + viewRootUrl + resource.name + '?edit"></iframe></div><div style="clear: both"></div>');
-      
-                        $('#preview_' + resourceId).load(function() {
-                            //console.log(this);
-                            var doc = $(this).contents();
-                            var head = $(doc).find('head');
-                            head.append('<style type="text/css">'
-                                + '.structr-editable-area {'
-                                + 'border: 1px dotted #a5a5a5;'
-                                + 'margin: 2px;'
-                                + 'padding: 2px;'
-                                + '}'
-                                + '.structr-editable-area-active {'
-                                + 'border: 1px dotted #orange;'
-                                + 'margin: 2px;'
-                                + 'padding: 2px;'
-                                + '}'
-                                + '</style>');
-
-
-                            $(this).contents().find('.structr-editable-area').each(function(i,element) {
-                                //console.log(element);
-                                $(element).addClass('structr-editable-area');
-                                $(element).on({
-                                    mouseenter: function() {
-                                        var self = $(this);
-                                        self.attr('contenteditable', true);
-                                        self.addClass('structr-editable-area-active');
-                                    },
-                                    mouseleave: function() {
-                                        var self = $(this);
-                                        self.attr('contenteditable', true);
-                                        self.removeClass('structr-editable-area-active');
-                                        var id = self.attr('id');
-                                        id = lastPart(id, '-');
-                                        Resources.updateContent(id, this.innerHTML);
-                                    }
-                                });
-                            });
-                        });
-      
-                    }
-                }
-            }
-        });
-
-        return true;
+    //        $.ajax({
+    //            url: rootUrl + 'resources',
+    //            dataType: 'json',
+    //            contentType: 'application/json; charset=utf-8',
+    //            //headers: { 'X-User' : 457 },
+    //            success: function(data) {
+    //                if (!data || data.length == 0 || !data.result) return;
+    //                if ($.isArray(data.result)) {
+    //
+    //                    for (var i=0; i<data.result.length; i++) {
+    //                        var resource = data.result[i];
+    //
+    //                        Resources.appendResourceElement(resource);
+    //
+    //                        var resourceId = resource.id;
+    //                        //          $('#resources').append('<div class="editor_box"><div class="nested top resource" id="resource_' + id + '">'
+    //                        //                              + '<b>' + resource.name + '</b>'
+    //                        //                              //+ ' [' + id + ']'
+    //                        //                              + '<img class="add_icon button" title="Add Element" alt="Add Element" src="icon/add.png" onclick="addElement(' + id + ', \'#resource_' + id + '\')">'
+    //                        //                              + '<img class="delete_icon button" title="Delete '
+    //                        //                              + resource.name + '" alt="Delete '
+    //                        //                              + resource.name + '" src="icon/delete.png" onclick="deleteNode(' + id + ', \'#resource_' + id + '\')">'
+    //                        //                              + '</div></div>');
+    //                        Resources.showSubEntities(resourceId, null);
+    //
+    //                        $('#previews').append('<a target="_blank" href="' + viewRootUrl + resource.name + '">' + viewRootUrl + resource.name + '</a><br><div class="preview_box"><iframe id="preview_'
+    //                            + resourceId + '" src="' + viewRootUrl + resource.name + '?edit"></iframe></div><div style="clear: both"></div>');
+    //
+    //                        $('#preview_' + resourceId).load(function() {
+    //                            //console.log(this);
+    //                            var doc = $(this).contents();
+    //                            var head = $(doc).find('head');
+    //                            head.append('<style type="text/css">'
+    //                                + '.structr-editable-area {'
+    //                                + 'border: 1px dotted #a5a5a5;'
+    //                                + 'margin: 2px;'
+    //                                + 'padding: 2px;'
+    //                                + '}'
+    //                                + '.structr-editable-area-active {'
+    //                                + 'border: 1px dotted #orange;'
+    //                                + 'margin: 2px;'
+    //                                + 'padding: 2px;'
+    //                                + '}'
+    //                                + '</style>');
+    //
+    //
+    //                            $(this).contents().find('.structr-editable-area').each(function(i,element) {
+    //                                //console.log(element);
+    //                                $(element).addClass('structr-editable-area');
+    //                                $(element).on({
+    //                                    mouseenter: function() {
+    //                                        var self = $(this);
+    //                                        self.attr('contenteditable', true);
+    //                                        self.addClass('structr-editable-area-active');
+    //                                    },
+    //                                    mouseleave: function() {
+    //                                        var self = $(this);
+    //                                        self.attr('contenteditable', true);
+    //                                        self.removeClass('structr-editable-area-active');
+    //                                        var id = self.attr('id');
+    //                                        id = lastPart(id, '-');
+    //                                        Resources.updateContent(id, this.innerHTML);
+    //                                    }
+    //                                });
+    //                            });
+    //                        });
+    //
+    //                    }
+    //                }
+    //            }
+    //        });
+    //
+    //        return true;
     },
 
     showElements : function() {
@@ -147,7 +147,7 @@ var Resources = {
             + '<img class="typeIcon" src="icon/page.png">'
             + '<b class="name">' + resource.name + '</b> <span class="id">' + resource.id + '</span>'
             + '</div>');
-        var div = $('.' + resource.id + '_');
+        var div = $('.' + resource.id + '_', resources);
         div.append('<img title="Delete resource \'' + resource.name + '\'" alt="Delete resource \'' + resource.name + '\'" class="delete_icon button" src="icon/page_delete.png">');
         $('.delete_icon', div).on('click', function() {
             Resources.deleteResource(this, resource);
@@ -173,8 +173,18 @@ var Resources = {
         return div;
     },
 
-    appendElementElement : function(element) {
-        var div = Elements.appendElementElement(element);
+    appendElementElement : function(element, parentId) {
+        var div = Elements.appendElementElement(element, parentId);
+        //console.log(div);
+        if (parentId) {
+            $('.delete_icon', div).remove();
+            div.append('<img title="Remove element \'' + element.name + '\' from resource ' + parentId + '" '
+                + 'alt="Remove user ' + user.name + ' from group ' + parentId + '" class="delete_icon button" src="icon/brick_delete.png">');
+            $('.delete_icon', div).on('click', function() {
+                Entities.removeSourceFromTarget(element.id, parentId)
+            });
+        }
+
         div.draggable({
             revert: 'invalid',
             containment: '#main',
@@ -183,6 +193,57 @@ var Resources = {
         return div;
     },
 
+
+    addElementToResource : function(elementId, resourceId) {
+
+        var resource = $('.' + resourceId + '_');
+        var element = $('.' + elementId + '_');
+
+        resource.append(element);
+
+        $('.delete_icon', element).remove();
+        element.append('<img title="Remove user ' + elementId + ' from group ' + resourceId + '" '
+            + 'alt="Remove user ' + elementId + ' from group ' + resourceId + '" class="delete_icon button" src="icon/brick_delete.png">');
+        $('.delete_icon', element).on('click', function() {
+            Resources.removeElementFromResource(elementId, resourceId)
+        });
+        element.draggable('destroy');
+
+        var numberOfElements = $('.element', resource).size();
+        if (debug) console.log(numberOfElements);
+        if (numberOfElements > 0) {
+            disable($('.delete_icon', resource)[0]);
+        }
+
+    },
+
+    removeElementFromResource : function(elementId, resourceId) {
+
+        var resource = $('.' + resourceId + '_');
+        var element = $('.' + elementId + '_', resource);
+        element.remove();
+//        elements.append(element);//.animate();
+//        $('.delete_icon', element).remove();
+//        element.append('<img title="Delete element ' + elementId + '" '
+//            + 'alt="Delete element ' + elementId + '" class="delete_icon button" src="icon/delete.png">');
+//        $('.delete_icon', element).on('click', function() {
+//            Elements.deleteElement(this, element);
+//        });
+//        element.draggable({
+//            revert: 'invalid',
+//            containment: '#main',
+//            zIndex: 1
+//        });
+
+        var numberOfElements = $('.element', resource).size();
+        if (debug) console.log(numberOfElements);
+        if (numberOfElements == 0) {
+            enable($('.delete_icon', resource)[0]);
+        }
+        Entities.removeSourceFromTarget(elementId, resourceId);
+
+    },
+    
     updateContent : function(contentId, content) {
         //console.log('update ' + contentId + ' with ' + content);
         var url = rootUrl + 'content' + '/' + contentId;
@@ -195,10 +256,10 @@ var Resources = {
             contentType: 'application/json; charset=utf-8',
             data: data,
             success: function(data) {
-                //refreshIframes();
-                //keyEventBlocked = true;
-                //enable(button);
-                //console.log('success');
+            //refreshIframes();
+            //keyEventBlocked = true;
+            //enable(button);
+            //console.log('success');
             }
         });
     },

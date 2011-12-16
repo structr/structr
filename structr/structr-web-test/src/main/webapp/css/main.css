@@ -150,7 +150,7 @@ img.disabled {
     padding-right: 12px;
 }
 
-.group, .user {
+.group, .user, .resource, .element {
     background-color: #fff;
     margin-bottom: 12px ! important;
 }
@@ -282,7 +282,7 @@ div.nested {
 }
 
 .id {
-    display: none;
+/*    display: none;*/
 }
 
 .resource .content,

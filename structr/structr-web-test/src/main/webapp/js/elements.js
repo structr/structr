@@ -26,7 +26,7 @@ $(document).ready(function() {
 var Elements = {
 
     icon : 'icon/brick.png',
-    delete_icon : 'icon/brick_delete.png',
+    delete_icon : 'icon/delete.png',
 	
     init : function() {
     },
@@ -52,20 +52,29 @@ var Elements = {
         return Entities.showEntities('Element');
     },
 
-    appendElementElement : function(element) {
-        elements.append('<div class="nested top element ' + element.id + '_">'
+    appendElementElement : function(element, parentId) {
+        var parent;
+        console.log(parentId);
+        if (parentId) {
+            parent = $('.' + parentId + '_');
+            console.log(parent);
+        } else {
+            parent = elements;
+        }
+        
+        parent.append('<div class="nested top element ' + element.id + '_">'
             + '<img class="typeIcon" src="'+ Elements.icon + '">'
             + '<b class="name">' + element.name + '</b> <span class="id">' + element.id + '</span>'
             + '</div>');
-        var div = $('.' + element.id + '_');
+        var div = $('.' + element.id + '_', parent);
         div.append('<img title="Delete element \'' + element.name + '\'" alt="Delete element \'' + element.name + '\'" class="delete_icon button" src="' + Elements.delete_icon + '">');
         $('.delete_icon', div).on('click', function() {
             Elements.deleteElement(this, element);
         });
-//        div.append('<img class="add_icon button" title="Add Element" alt="Add Element" src="icon/add.png">');
-//        $('.add_icon', div).on('click', function() {
-//            Resources.addElement(this, resource);
-//        });
+        //        div.append('<img class="add_icon button" title="Add Element" alt="Add Element" src="icon/add.png">');
+        //        $('.add_icon', div).on('click', function() {
+        //            Resources.addElement(this, resource);
+        //        });
         $('b', div).on('click', function() {
             Entities.showProperties(this, element, 'all', $('.' + element.id + '_', elements));
         });

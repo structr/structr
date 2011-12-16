@@ -61,7 +61,7 @@ public class RemoveCommand extends AbstractCommand {
 
 			if ((sourceNode != null) && (targetNode != null)) {
 
-				DirectedRelationship rel = EntityContext.getRelation(Group.class, Group.Key.users.name());
+				DirectedRelationship rel = EntityContext.getRelation(sourceNode.getClass(), targetNode.getClass(), true);
 
 				if (rel != null) {
 
