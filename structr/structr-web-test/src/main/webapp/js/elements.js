@@ -26,6 +26,7 @@ $(document).ready(function() {
 var Elements = {
 
     icon : 'icon/brick.png',
+    add_icon : 'icon/brick_add.png',
     delete_icon : 'icon/delete.png',
 	
     init : function() {
@@ -41,7 +42,7 @@ var Elements = {
     refresh : function() {
         elements.empty();
         if (Elements.show()) {
-            elements.append('<button class="add_element_icon button"><img title="Add Element" alt="Add Element" src="icon/brick_add.png"> Add Element</button>');
+            elements.append('<button class="add_element_icon button"><img title="Add Element" alt="Add Element" src="' + Elements.add_icon + '"> Add Element</button>');
             $('.add_element_icon', main).on('click', function() {
                 Elements.addElement(this);
             });

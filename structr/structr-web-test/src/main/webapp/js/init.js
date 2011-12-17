@@ -78,6 +78,12 @@ $(document).ready(function() {
         Structr.modules['elements'].onload();
     });
 
+    $('#contents_').on('click', function() {
+        main.empty();
+        Structr.activateMenuEntry('contents');
+        Structr.modules['contents'].onload();
+    });
+
     $('#usersAndGroups_').on('click', function() {
         main.empty();
         Structr.activateMenuEntry('usersAndGroups');

@@ -119,19 +119,25 @@ function connect() {
                     } else if (entity.type == 'Group') {
 
                         UsersAndGroups.appendGroupElement(entity);
-                        if (debug) console.log('group element appended');
+                        if (debug) console.log('Group element appended');
                         if (buttonClicked) enable(buttonClicked);
 
                     } else if (entity.type == 'Resource') {
 
                         Resources.appendResourceElement(entity);
-                        if (debug) console.log('resource element appended');
+                        if (debug) console.log('Resource element appended');
                         if (buttonClicked) enable(buttonClicked);
 
                     } else if (entity.type == 'Element') {
 
                         Elements.appendElementElement(entity);
-                        if (debug) console.log('element element appended');
+                        if (debug) console.log('Element element appended');
+                        if (buttonClicked) enable(buttonClicked);
+
+                    } else if (entity.type == 'Content') {
+
+                        Contents.appendContentElement(entity);
+                        if (debug) console.log('Content element appended');
                         if (buttonClicked) enable(buttonClicked);
 
                     } else {
@@ -165,6 +171,9 @@ function connect() {
 
                     } else if (entity.type == 'Element') {
                         Resources.appendElementElement(entity);
+
+                    } else if (entity.type == 'Content') {
+                        Resources.appendContentElement(entity);
 
                     } else if (entity.type == 'Group') {
                         var groupElement = UsersAndGroups.appendGroupElement(entity);
@@ -211,6 +220,10 @@ function connect() {
                     console.log('remove element from resource');
                     Resources.removeElementFromResource(entityId, parentId);
 
+                } else if (entity.hasClass('content')) {
+                    console.log('remove content from element');
+                    Resources.removeContentFromElement(entityId, parentId);
+
                 } else {
                     console.log('remove element');
                     entity.remove();
@@ -243,6 +256,10 @@ function connect() {
                 } else if (entity.hasClass('element')) {
 
                     Resources.addElementToResource(entityId, parentId);
+
+                } else if (entity.hasClass('content')) {
+
+                    Resources.addContentToElement(entityId, parentId);
 
                 }
 
