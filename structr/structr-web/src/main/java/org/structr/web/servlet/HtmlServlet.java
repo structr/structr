@@ -411,7 +411,7 @@ public class HtmlServlet extends HttpServlet {
 
 	private String getContent(final SecurityContext securityContext, final Resource resource) {
 
-		TraversalDescription localDesc = desc.expand(new ResourceExpander(resource.getIdString()));
+		TraversalDescription localDesc = desc.expand(new ResourceExpander(resource.getStringProperty(AbstractNode.Key.uuid.name())));
 		final StructrNodeFactory factory = new StructrNodeFactory(securityContext);
 		final ContentTreeNode root = new ContentTreeNode(null, null);
 
