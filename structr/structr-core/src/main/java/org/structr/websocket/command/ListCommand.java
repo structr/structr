@@ -42,7 +42,7 @@ public class ListCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		String type = webSocketData.getData().get("type");
+		String type = (String) webSocketData.getData().get("type");
 
 		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 		searchAttributes.add(Search.andExactType(CaseHelper.toCamelCase(type)));

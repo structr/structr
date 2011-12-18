@@ -32,7 +32,7 @@ import org.structr.core.GraphObject;
  */
 public class WebSocketMessage {
 
-	private Map<String, String> data = new LinkedHashMap<String, String>();
+	private Map<String, Object> data = new LinkedHashMap<String, Object>();
 	private Set<String> modifiedProperties = new LinkedHashSet<String>();
 	private List<GraphObject> result = null;
 	private GraphObject graphObject = null;
@@ -75,7 +75,7 @@ public class WebSocketMessage {
 		this.data.putAll(data);
 	}
 
-	public Map<String, String> getData() {
+	public Map<String, Object> getData() {
 		return data;
 	}
 

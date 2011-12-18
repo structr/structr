@@ -40,7 +40,7 @@ public class UpdateCommand extends AbstractCommand {
 		AbstractNode node = getNode(webSocketData.getId());
 		if(node != null) {
 
-			for(Entry<String, String> entry : webSocketData.getData().entrySet()) {
+			for(Entry<String, Object> entry : webSocketData.getData().entrySet()) {
 				node.setProperty(entry.getKey(), entry.getValue());
 			}
 

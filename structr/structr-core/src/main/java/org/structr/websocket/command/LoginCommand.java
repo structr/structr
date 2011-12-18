@@ -51,8 +51,8 @@ public class LoginCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		String username = webSocketData.getData().get("username");
-		String password = webSocketData.getData().get("password");
+		String username = (String) webSocketData.getData().get("username");
+		String password = (String) webSocketData.getData().get("password");
 		User user       = null;
 
 		if ((username != null) && (password != null)) {

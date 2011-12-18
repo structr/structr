@@ -21,6 +21,7 @@
 
 package org.structr.websocket.command;
 
+import java.util.Map;
 import org.structr.common.SecurityContext;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
@@ -43,7 +44,9 @@ public class AddCommand extends AbstractCommand {
 
 		// create static relationship
 		String sourceId = webSocketData.getId();
-		String targetId = webSocketData.getData().get("id");
+		Map<String, Object> properties = webSocketData.getData();
+		String targetId = (String) properties.get("id");
+		properties.remove("id");
 
 		if ((sourceId != null) && (targetId != null)) {
 
@@ -57,7 +60,7 @@ public class AddCommand extends AbstractCommand {
 				if (rel != null) {
 
 					try {
-						rel.createRelationship(securityContext, sourceNode, targetNode);
+						rel.createRelationship(securityContext, sourceNode, targetNode, properties);
 					} catch (Throwable t) {
 						getWebSocket().send(MessageBuilder.status().code(400).message(t.getMessage()).build(), true);
 					}
