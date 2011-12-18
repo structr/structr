@@ -170,7 +170,11 @@ var Resources = {
             drop: function(event, ui) {
                 var elementId = getIdFromClassString(ui.draggable.attr('class'));
                 var resourceId = getIdFromClassString($(this).attr('class'));
-                Entities.addSourceToTarget(elementId, resourceId);
+                var pos = $('.element', $(this)).length;
+                console.log(pos);
+                var props = '"' + resourceId + '" : "' + pos + '"';
+                console.log(props);
+                Entities.addSourceToTarget(elementId, resourceId, props);
             }
         });
 
@@ -181,6 +185,9 @@ var Resources = {
         var div = Elements.appendElementElement(element, parentId);
         //console.log(div);
         if (parentId) {
+
+            var parent = $('.' + parentId + '_');
+
             $('.delete_icon', div).remove();
             div.append('<img title="Remove element \'' + element.name + '\' from resource ' + parentId + '" '
                 + 'alt="Remove element ' + element.name + ' from resources ' + parentId + '" class="delete_icon button" src="icon/brick_delete.png">');
@@ -199,9 +206,19 @@ var Resources = {
             accept: '.content',
             hoverClass: 'elementHover',
             drop: function(event, ui) {
+                var resource = $(this).closest( '.resource')[0];
+                console.log(resource);
                 var contentId = getIdFromClassString(ui.draggable.attr('class'));
                 var elementId = getIdFromClassString($(this).attr('class'));
-                Entities.addSourceToTarget(contentId, elementId);
+                var pos = $('.content', $(this)).length;
+                console.log(pos);
+                var props;
+                if (resource) {
+                    var resourceId = getIdFromClassString($(resource).attr('class'));
+                    props = '"' + resourceId + '" : "' + pos + '"';
+                }
+                console.log(props);
+                Entities.addSourceToTarget(contentId, elementId, props);
             }
         });
 

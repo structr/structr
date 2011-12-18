@@ -55,10 +55,10 @@ var Elements = {
 
     appendElementElement : function(element, parentId) {
         var parent;
-        console.log(parentId);
+        if (debug) console.log(parentId);
         if (parentId) {
             parent = $('.' + parentId + '_');
-            console.log(parent);
+            if (debug) console.log(parent);
         } else {
             parent = elements;
         }

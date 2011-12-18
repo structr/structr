@@ -69,9 +69,9 @@ var Entities = {
         });
     },
 
-    addSourceToTarget : function(sourceId, targetId) {
-        if (debug) console.log('Add ' + sourceId + ' to ' + targetId);
-        var data = '{ "command" : "ADD" , "id" : "' + targetId + '" , "data" : { "id" : "' + sourceId + '" } }';
+    addSourceToTarget : function(sourceId, targetId, props) {
+        if (debug) console.log('Add ' + sourceId + ' to ' + targetId + ' with additional properties: ' + props);
+        var data = '{ "command" : "ADD" , "id" : "' + targetId + '" , "data" : { "id" : "' + sourceId + '" ' + (props ? ',' + props : '') + '} }';
         return send(data);
     },
 

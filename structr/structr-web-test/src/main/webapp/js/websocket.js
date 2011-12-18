@@ -170,7 +170,19 @@ function connect() {
 
 
                     } else if (entity.type == 'Element') {
-                        Resources.appendElementElement(entity);
+                        var elementElement = Resources.appendElementElement(entity);
+                        var elements = entity.elements;
+                        if (elements && elements.length > 0) {
+                            disable($('.delete_icon', elementElement)[0]);
+                            $(elements).each(function(i, element) {
+                                if (element.type == 'Element') {
+                                    Resources.appendElementElement(element, entity.id);
+                                } else if (element.type == 'Content') {
+                                    Resources.appendContentElement(element, entity.id);
+                                }
+                            });
+                        }
+
 
                     } else if (entity.type == 'Content') {
                         Resources.appendContentElement(entity);
