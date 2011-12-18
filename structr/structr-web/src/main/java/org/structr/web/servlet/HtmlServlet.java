@@ -40,8 +40,10 @@ import org.structr.core.entity.StructrRelationship;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.NodeAttribute;
+import org.structr.core.node.StructrNodeFactory;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
+import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
 import org.structr.web.common.RelType;
@@ -68,8 +70,6 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.structr.core.node.StructrNodeFactory;
-import org.structr.core.node.search.Search;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -97,9 +97,7 @@ public class HtmlServlet extends HttpServlet {
 	public void init() {
 
 		// create prototype traversal description
-		desc = Traversal.description();
-		desc = desc.depthFirst();
-		desc = desc.uniqueness(Uniqueness.NODE_GLOBAL);
+		desc = Traversal.description().depthFirst().uniqueness(Uniqueness.NODE_GLOBAL);
 	}
 
 	@Override
@@ -160,8 +158,8 @@ public class HtmlServlet extends HttpServlet {
 				searchAttrs.add(Search.andExactName(resourceName));
 				searchAttrs.add(Search.andExactType(Resource.class.getSimpleName()));
 
-				List<AbstractNode> results = (List<AbstractNode>) Services.command(SecurityContext.getSuperUserInstance(),
-								     SearchNodeCommand.class).execute(null, false, false, searchAttrs);
+				List<AbstractNode> results = (List<AbstractNode>) Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(null, false, false,
+								     searchAttrs);
 
 				logger.log(Level.INFO, "{0} results", results.size());
 
@@ -226,23 +224,24 @@ public class HtmlServlet extends HttpServlet {
 				// list.js resource
 				AbstractNode listJs        = createNode("Resource", "list.js");
 				AbstractNode listJsContent = createNode("Content", "list", new NodeAttribute("content", readFile("/ge/js/list.js")));
+
 				linkNodes(listJs, listJsContent, listJs.getIdString(), 0);
 
 				// page resource
-				AbstractNode doc       = createNode("Element", "doc", new NodeAttribute("tag", "html"));
-				AbstractNode head      = createNode("Element", "header", new NodeAttribute("tag", "head"));
-				AbstractNode script    = createNode("Content", "script", new NodeAttribute("content", "<script src=\"list.js\" language=\"JavaScript\" type=\"text/javascript\"></script>"));
-				AbstractNode body      = createNode("Element", "body", new NodeAttribute("tag", "body"), new NodeAttribute("onload", "start()"));
-				AbstractNode article1  = createNode("Element", "article1", new NodeAttribute("tag", "div"));
-				AbstractNode article2  = createNode("Element", "article2", new NodeAttribute("tag", "div"));
-				AbstractNode foo       = createNode("Content", "content1", new NodeAttribute("content", "Dies ist Seite 1"), new NodeAttribute("tag", "h1"));
-				AbstractNode bar       = createNode("Content", "content2", new NodeAttribute("content", "Dies ist Seite 2"), new NodeAttribute("tag", "h1"));
-				AbstractNode log       = createNode("Content", "log", new NodeAttribute("tag", "div"));
+				AbstractNode doc    = createNode("Element", "doc", new NodeAttribute("tag", "html"));
+				AbstractNode head   = createNode("Element", "header", new NodeAttribute("tag", "head"));
+				AbstractNode script = createNode("Content", "script",
+								 new NodeAttribute("content", "<script src=\"list.js\" language=\"JavaScript\" type=\"text/javascript\"></script>"));
+				AbstractNode body     = createNode("Element", "body", new NodeAttribute("tag", "body"), new NodeAttribute("onload", "start()"));
+				AbstractNode article1 = createNode("Element", "article1", new NodeAttribute("tag", "div"));
+				AbstractNode article2 = createNode("Element", "article2", new NodeAttribute("tag", "div"));
+				AbstractNode foo      = createNode("Content", "content1", new NodeAttribute("content", "Dies ist Seite 1"), new NodeAttribute("tag", "h1"));
+				AbstractNode bar      = createNode("Content", "content2", new NodeAttribute("content", "Dies ist Seite 2"), new NodeAttribute("tag", "h1"));
+				AbstractNode log      = createNode("Content", "log", new NodeAttribute("tag", "div"));
 
 				// content
-				AbstractNode foo2      = createNode("Content", "content3");
-				
-  				String uuid = foo2.getStringProperty("uuid");
+				AbstractNode foo2     = createNode("Content", "content3");
+				String uuid           = foo2.getStringProperty("uuid");
 				StringBuilder content = new StringBuilder();
 
 				content.append("<input type=\"hidden\" name=\"token\" id=\"token\" />");
@@ -254,13 +253,11 @@ public class HtmlServlet extends HttpServlet {
 				content.append("}\n");
 				content.append("window.setTimeout(\"load").append(uuid).append("()\", 500);\n");
 				content.append("</script>\n");
-				
 				foo2.setProperty("content", content.toString());
 				foo2.setProperty("tag", "div");
 
-
-				String idOfPage1       = page1.getIdString();
-				String idOfPage2       = page2.getIdString();
+				String idOfPage1 = page1.getIdString();
+				String idOfPage2 = page2.getIdString();
 
 				// page 1
 				linkNodes(page1, doc, idOfPage1, 0);
@@ -307,20 +304,17 @@ public class HtmlServlet extends HttpServlet {
 				linkNodes(geObjJs, geObjContent, geObjJs.getIdString(), 0);
 
 				AbstractNode graphEditorCss        = createNode("Resource", "ge.css");
-				AbstractNode graphEditorCssContent = createNode("Content", "graph_editor_css_content",
-									     new NodeAttribute("content", readFile("/ge/css/ge.css")));
+				AbstractNode graphEditorCssContent = createNode("Content", "graph_editor_css_content", new NodeAttribute("content", readFile("/ge/css/ge.css")));
 
 				linkNodes(graphEditorCss, graphEditorCssContent, graphEditorCss.getIdString(), 0);
 
 				AbstractNode graphEditorHtml        = createNode("Resource", "ge.html");
-				AbstractNode graphEditorHtmlContent = createNode("Content", "graph_editor_html_content",
-									      new NodeAttribute("content", readFile("/ge/ge.html")));
+				AbstractNode graphEditorHtmlContent = createNode("Content", "graph_editor_html_content", new NodeAttribute("content", readFile("/ge/ge.html")));
 
 				linkNodes(graphEditorHtml, graphEditorHtmlContent, graphEditorHtml.getIdString(), 0);
 
 				AbstractNode graphEditorJs        = createNode("Resource", "ge.js");
-				AbstractNode graphEditorJsContent = createNode("Content", "graph_editor_js_content",
-									    new NodeAttribute("content", readFile("/ge/js/ge.js")));
+				AbstractNode graphEditorJsContent = createNode("Content", "graph_editor_js_content", new NodeAttribute("content", readFile("/ge/js/ge.js")));
 
 				linkNodes(graphEditorJs, graphEditorJsContent, graphEditorJs.getIdString(), 0);
 
@@ -344,12 +338,9 @@ public class HtmlServlet extends HttpServlet {
 
 			System.out.println(new File(".").getAbsolutePath());
 
-//			BufferedReader reader = new BufferedReader(new FileReader("/home/axel/NetBeansProjects/structr/structr/structr-web/src/main/resources"
-//							+ path));
-
+//                      BufferedReader reader = new BufferedReader(new FileReader("/home/axel/NetBeansProjects/structr/structr/structr-web/src/main/resources"
+//                                                      + path));
 			BufferedReader reader = new BufferedReader(new FileReader(getServletContext().getRealPath(path)));
-
-
 
 //                      BufferedReader reader = new BufferedReader(new InputStreamReader(getServletContext().getResourceAsStream(path)));
 			String line = null;
@@ -407,51 +398,111 @@ public class HtmlServlet extends HttpServlet {
 		return rel;
 	}
 
+	private void printNodes(StringBuilder buffer, ContentTreeNode root, int depth) {
+
+		AbstractNode node = root.getData();
+		String content    = null;
+		String tag        = null;
+
+		if (node != null) {
+
+			content = (String) node.getProperty("content");
+			tag     = (String) node.getProperty("tag");
+
+			if (tag != null) {
+
+				String onload = (String) node.getProperty("onload");
+				String id     = (String) node.getProperty("uuid");
+
+				buffer.append("<").append(tag);
+
+				if (id != null) {
+
+					buffer.append(" id='").append(id).append("'");
+
+				}
+
+				if (onload != null) {
+
+					buffer.append(" onload='").append(onload).append("'");
+
+				}
+
+				buffer.append(">");
+
+			}
+
+			if (content != null) {
+
+				buffer.append(content);
+
+			}
+
+		}
+
+		// render children
+		for (ContentTreeNode subNode : root.getChildren()) {
+
+			printNodes(buffer, subNode, depth + 1);
+
+		}
+
+		// render end tag
+		if (tag != null) {
+
+			buffer.append("</").append(tag).append(">");
+
+		}
+	}
+
 	//~--- get methods ----------------------------------------------------
 
 	private String getContent(final SecurityContext securityContext, final Resource resource) {
 
-		TraversalDescription localDesc = desc.expand(new ResourceExpander(resource.getStringProperty(AbstractNode.Key.uuid.name())));
+		TraversalDescription localDesc   = desc.expand(new ResourceExpander(resource.getStringProperty(AbstractNode.Key.uuid.name())));
 		final StructrNodeFactory factory = new StructrNodeFactory(securityContext);
-		final ContentTreeNode root = new ContentTreeNode(null, null);
+		final ContentTreeNode root       = new ContentTreeNode(null, null);
 
 		localDesc = localDesc.evaluator(new Evaluator() {
 
-			ContentTreeNode localRoot = root;
-
+			ContentTreeNode currentNode = root;
 			@Override
 			public Evaluation evaluate(Path path) {
 
-				Node node = path.endNode();
+				Node node            = path.endNode();
+				int nodeDepth        = path.length();
+				int currentTreeDepth = currentNode.depth();
+
+				System.out.println();
+				System.out.println("Node depth: " + nodeDepth);
+				System.out.println("Current tree depth: " + currentTreeDepth);
+				System.out.println(node.getProperty("name") + ": " + node.getProperty("type") + "[" + node.getProperty("uuid") + "]");
 
 				try {
 
 					if (node.hasProperty(AbstractNode.Key.type.name())) {
 
 						String type = (String) node.getProperty(AbstractNode.Key.type.name());
-						
-						ContentTreeNode newTreeNode = new ContentTreeNode(localRoot, factory.createNode(securityContext, node, type));
-						localRoot.addChild(newTreeNode);
+						ContentTreeNode newTreeNode = new ContentTreeNode(currentNode, factory.createNode(securityContext, node, type));
 
-						Evaluation evaluation;
+						if (nodeDepth > currentTreeDepth) {
 
-						if ("Content".equals(type)) {
+							currentNode.addChild(newTreeNode);
+							currentNode = newTreeNode;
 
-							evaluation = Evaluation.EXCLUDE_AND_PRUNE;
-
-							// step one up
-							localRoot = localRoot.getParent();
+						} else if (nodeDepth < currentTreeDepth) {
+							
+							currentNode.getParent().addChild(newTreeNode);
+							currentNode = newTreeNode;
 
 						} else {
-
-							evaluation = Evaluation.EXCLUDE_AND_CONTINUE;
-
-							// step one down
-							localRoot = newTreeNode;
-
+							
+							currentNode.getParent().addChild(newTreeNode);
 						}
 
-						return evaluation;
+						newTreeNode.depth(nodeDepth);
+
+						return Evaluation.INCLUDE_AND_CONTINUE;
 
 					}
 
@@ -467,52 +518,17 @@ public class HtmlServlet extends HttpServlet {
 		});
 
 		// do traversal to retrieve paths
-		for (Node node : localDesc.traverse(resource.getNode()).nodes()) {}
+		for (Node node : localDesc.traverse(resource.getNode()).nodes()) {
 
-		StringBuilder buffer = new StringBuilder(10000);	// FIXME: use sensible initial size..
+			System.out.println(node.getProperty("type") + "[" + node.getProperty("uuid") + "]: " + node.getProperty("name"));
+
+		}
+
+		StringBuilder buffer = new StringBuilder(10000);    // FIXME: use sensible initial size..
+
 		printNodes(buffer, root, 0);
 
 		return buffer.toString();
-	}
-
-	private void printNodes(StringBuilder buffer, ContentTreeNode root, int depth) {
-
-		AbstractNode node = root.getData();
-		String content = null;
-		String tag = null;
-
-		if(node != null) {
-
-			content = (String)node.getProperty("content");
-			tag = (String)node.getProperty("tag");
-
-			if(tag != null) {
-
-				String onload = (String)node.getProperty("onload");
-				String id = (String)node.getProperty("uuid");
-
-				buffer.append("<").append(tag);
-
-				if(id != null)		buffer.append(" id='").append(id).append("'");
-				if(onload != null)	buffer.append(" onload='").append(onload).append("'");
-
-				buffer.append(">");
-			}
-
-			if(content != null) {
-				buffer.append(content);
-			}
-		}
-
-		// render children
-		for(ContentTreeNode subNode : root.getChildren()) {
-			printNodes(buffer, subNode, depth+1);
-		}
-
-		// render end tag
-		if(tag != null) {
-			buffer.append("</").append(tag).append(">");
-		}
 	}
 
 	//~--- inner classes --------------------------------------------------
@@ -520,13 +536,33 @@ public class HtmlServlet extends HttpServlet {
 	private static class ContentTreeNode {
 
 		private List<ContentTreeNode> children = new LinkedList<ContentTreeNode>();
-		private ContentTreeNode parent = null;
-		private AbstractNode data = null;
+		private AbstractNode data              = null;
+		private int depth                      = -1;
+		private ContentTreeNode parent         = null;
+
+		//~--- constructors -------------------------------------------
 
 		public ContentTreeNode(ContentTreeNode parent, AbstractNode data) {
+
 			this.parent = parent;
-			this.data = data;
+			this.data   = data;
 		}
+
+		//~--- methods ------------------------------------------------
+
+		public void addChild(ContentTreeNode treeNode) {
+			children.add(treeNode);
+		}
+
+		public int depth() {
+			return depth;
+		}
+
+		public void depth(final int depth) {
+			this.depth = depth;
+		}
+
+		//~--- get methods --------------------------------------------
 
 		public AbstractNode getData() {
 			return data;
@@ -536,15 +572,11 @@ public class HtmlServlet extends HttpServlet {
 			return parent;
 		}
 
-		public void addChild(ContentTreeNode treeNode) {
-			children.add(treeNode);
-		}
-
 		public List<ContentTreeNode> getChildren() {
 			return children;
 		}
-
 	}
+
 
 	private static class ResourceExpander implements RelationshipExpander {
 
