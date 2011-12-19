@@ -1,66 +1,84 @@
+
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+* To change this template, choose Tools | Templates
+* and open the template in the editor.
  */
 package org.structr.rest.constraint;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.logging.Logger;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.structr.common.ErrorBuffer;
 import org.structr.common.SecurityContext;
+import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.Value;
+import org.structr.core.VetoableGraphObjectListener;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.StructrRelationship;
 import org.structr.core.node.RemoveNodeFromIndex;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 import org.structr.rest.RestMethodResult;
-import org.structr.rest.VetoableGraphObjectListener;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NoResultsException;
 import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.exception.PathException;
+
+//~--- JDK imports ------------------------------------------------------------
+
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.logging.Logger;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+//~--- classes ----------------------------------------------------------------
 
 /**
  * Base class for all resource constraints. Constraints can be
  * combined with succeeding constraints to avoid unneccesary
  * evaluation.
  *
- * 
+ *
  * @author Christian Morgner
  */
 public abstract class ResourceConstraint {
 
 	private static final Logger logger = Logger.getLogger(ResourceConstraint.class.getName());
-	
+
+	//~--- fields ---------------------------------------------------------
+
+	protected String idProperty               = null;
 	protected SecurityContext securityContext = null;
-	protected String idProperty = null;
+
+	//~--- methods --------------------------------------------------------
 
 	public abstract boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request);
 
-	public abstract List<? extends GraphObject> doGet(final List<VetoableGraphObjectListener> listeners) throws PathException;
-	public abstract RestMethodResult doPost(final Map<String, Object> propertySet, final List<VetoableGraphObjectListener> listeners) throws Throwable;
+	public abstract List<? extends GraphObject> doGet() throws PathException;
+
+	public abstract RestMethodResult doPost(final Map<String, Object> propertySet) throws Throwable;
+
 	public abstract RestMethodResult doHead() throws Throwable;
+
 	public abstract RestMethodResult doOptions() throws Throwable;
-	public abstract String getUriPart();
+
 	public abstract ResourceConstraint tryCombineWith(ResourceConstraint next) throws PathException;
-	public abstract boolean isCollectionResource();
 
 	// ----- methods -----
-	public RestMethodResult doDelete(final List<VetoableGraphObjectListener> listeners) throws Throwable {
+	public RestMethodResult doDelete() throws Throwable {
 
 		Iterable<? extends GraphObject> results;
 
 		// catch 204, DELETE must return 200 if resource is empty
-		try { results = doGet(listeners); } catch(NoResultsException nre) { results = null; }
+		try {
+			results = doGet();
+		} catch (NoResultsException nre) {
+			results = null;
+		}
 
-		if(results != null) {
+		if (results != null) {
 
 			final Iterable<? extends GraphObject> finalResults = results;
 
@@ -69,50 +87,45 @@ public abstract class ResourceConstraint {
 				@Override
 				public Object execute() throws Throwable {
 
-					ErrorBuffer errorBuffer = new ErrorBuffer();
-					boolean success = true;
+					for (GraphObject obj : finalResults) {
 
-					for(GraphObject obj : finalResults) {
+						// 1: remove node from index
+						Services.command(securityContext, RemoveNodeFromIndex.class).execute(obj);
 
-						if(mayDelete(listeners, obj, errorBuffer)) {
+						// 2: delete relationships
+						if (obj instanceof AbstractNode) {
 
-							// 1: remove node from index
-							Services.command(securityContext, RemoveNodeFromIndex.class).execute(obj);
+							List<StructrRelationship> rels = ((AbstractNode) obj).getRelationships();
 
-							// 2: delete relationships
-							if(obj instanceof AbstractNode) {
-								List<StructrRelationship> rels = ((AbstractNode)obj).getRelationships();
-								for(StructrRelationship rel : rels) {
-									success &= rel.delete();
-								}
+							for (StructrRelationship rel : rels) {
+
+								rel.delete(securityContext);
+
 							}
 
-							// 3: delete object
-							success &= obj.delete();
 						}
+
+						// 3: delete object
+						obj.delete(securityContext);
 					}
 
-					// roll back transaction if not all deletions were successful
-					if(!success) {
-						// throwable will cause transaction to be rolled back
-						throw new IllegalArgumentException(errorBuffer.toString());
-					}
-
-					return success;
+					return null;
 				}
 
 			});
+
 		}
 
 		return new RestMethodResult(HttpServletResponse.SC_OK);
 	}
 
-	public RestMethodResult doPut(final Map<String, Object> propertySet, final List<VetoableGraphObjectListener> listeners) throws Throwable {
+	public RestMethodResult doPut(final Map<String, Object> propertySet) throws Throwable {
 
-		if(securityContext != null && securityContext.getUser() != null) {
-			
-			final Iterable<? extends GraphObject> results = doGet(listeners);
-			if(results != null) {
+		if ((securityContext != null) && (securityContext.getUser() != null)) {
+
+			final Iterable<? extends GraphObject> results = doGet();
+
+			if (results != null) {
 
 				StructrTransaction transaction = new StructrTransaction() {
 
@@ -120,54 +133,66 @@ public abstract class ResourceConstraint {
 					public Object execute() throws Throwable {
 
 						ErrorBuffer errorBuffer = new ErrorBuffer();
-						boolean error = false;
+						boolean error           = false;
 
-						for(GraphObject obj : results) {
+						for (GraphObject obj : results) {
 
-							if(mayModify(listeners, obj, errorBuffer)) {
+							for (Entry<String, Object> attr : propertySet.entrySet()) {
 
-								for(Entry<String, Object> attr : propertySet.entrySet()) {
+								try {
 
-									try {
-//										if(attr.getValue() != null) {
-											obj.setProperty(attr.getKey(), attr.getValue());
-//										}
-//										else {
-//											obj.removeProperty(attr.getKey());
-//										}
+//                                                                      if(attr.getValue() != null) {
+									obj.setProperty(attr.getKey(), attr.getValue());
 
-									} catch(Throwable t) {
+//                                                                      }
+//                                                                      else {
+//                                                                              obj.removeProperty(attr.getKey());
+//                                                                      }
+								} catch (Throwable t) {
 
-										errorBuffer.add(t.getMessage());
-										error = true;
-									}
+									errorBuffer.add(t.getMessage());
+
+									error = true;
 								}
 
-							} else {
-
-								throw new IllegalArgumentException(errorBuffer.toString());
 							}
 
-							// ask listener for modification validation
-							if(!validAfterModification(listeners, obj, errorBuffer) || error) {
-								throw new IllegalArgumentException(errorBuffer.toString());
-							}
+							/*
+							 * try {
+							 *       // ask listener for modification validation
+							 *       EntityContext.getGlobalModificationListener().graphObjectModified(securityContext, obj);
+							 *
+							 * } catch(Throwable t) {
+							 *       errorBuffer.add(t.getMessage());
+							 *       error = true;
+							 * }
+							 */
+
+						}
+
+						// throw exception with errors
+						if (error) {
+
+							throw new IllegalArgumentException(errorBuffer.toString());
+
 						}
 
 						return null;
 					}
-
 				};
 
 				// modify results in a single transaction
 				Services.command(securityContext, TransactionCommand.class).execute(transaction);
 
 				// if there was an exception, throw it again
-				if(transaction.getCause() != null) {
+				if (transaction.getCause() != null) {
+
 					throw transaction.getCause();
+
 				}
 
 				return new RestMethodResult(HttpServletResponse.SC_OK);
+
 			}
 
 			throw new IllegalPathException();
@@ -175,6 +200,7 @@ public abstract class ResourceConstraint {
 		} else {
 
 			throw new NotAllowedException();
+
 		}
 	}
 
@@ -182,79 +208,19 @@ public abstract class ResourceConstraint {
 	 *
 	 * @param propertyView
 	 */
-	public void configurePropertyView(Value<String> propertyView) {
-	}
+	public void configurePropertyView(Value<String> propertyView) {}
 
 	public void configureIdProperty(String idProperty) {
 		this.idProperty = idProperty;
 	}
 
-	public void setSecurityContext(SecurityContext securityContext) {
-		this.securityContext = securityContext;
-	}
-
 	// ----- protected methods -----
-	protected boolean mayCreate(List<VetoableGraphObjectListener> listeners, GraphObject object, ErrorBuffer errorBuffer) {
+	protected void notifyOfTraversal(List<GraphObject> traversedNodes) {
 
-		boolean mayCreate = true;
+		for (VetoableGraphObjectListener listener : EntityContext.getModificationListeners()) {
 
-		// only allow modification if all listeners answer with "yes"
-		for(VetoableGraphObjectListener listener : listeners) {
-			mayCreate &= listener.mayCreate(object, securityContext, errorBuffer);
-		}
+			listener.wasVisited(traversedNodes, -1, securityContext);
 
-		return mayCreate;
-	}
-
-	protected boolean validAfterCreation(List<VetoableGraphObjectListener> listeners, GraphObject object, ErrorBuffer errorBuffer) {
-
-		boolean valid = true;
-
-		for(VetoableGraphObjectListener listener : listeners) {
-			valid &= listener.validAfterCreation(object, securityContext, errorBuffer);
-		}
-
-		return valid;
-	}
-
-	protected boolean mayModify(List<VetoableGraphObjectListener> listeners, GraphObject object, ErrorBuffer errorBuffer) {
-
-		boolean mayModify = true;
-
-		// only allow modification if all listeners answer with "yes"
-		for(VetoableGraphObjectListener listener : listeners) {
-			mayModify &= listener.mayModify(object, securityContext, errorBuffer);
-		}
-
-		return mayModify;
-	}
-
-	protected boolean validAfterModification(List<VetoableGraphObjectListener> listeners, GraphObject object, ErrorBuffer errorBuffer) {
-
-		boolean valid = true;
-
-		for(VetoableGraphObjectListener listener : listeners) {
-			valid &= listener.validAfterModification(object, securityContext, errorBuffer);
-		}
-		
-		return valid;
-	}
-
-	protected boolean mayDelete(List<VetoableGraphObjectListener> listeners, GraphObject object, ErrorBuffer errorBuffer) {
-
-		boolean mayDelete = true;
-
-		// only allow deletion if all listeners answer with "yes"
-		for(VetoableGraphObjectListener listener : listeners) {
-			mayDelete &= listener.mayDelete(object, securityContext, errorBuffer);
-		}
-
-		return mayDelete;
-	}
-
-	protected void notifyOfTraversal(List<VetoableGraphObjectListener> listeners, List<GraphObject> traversedNodes) {
-		for(VetoableGraphObjectListener listener : listeners) {
-			listener.wasVisited(traversedNodes, securityContext);
 		}
 	}
 
@@ -265,16 +231,32 @@ public abstract class ResourceConstraint {
 		uriBuilder.append(getUriPart());
 		uriBuilder.append("/");
 
-		if(newObject != null) {
+		if (newObject != null) {
 
 			// use configured id property
-			if(idProperty == null) {
+			if (idProperty == null) {
+
 				uriBuilder.append(newObject.getId());
+
 			} else {
+
 				uriBuilder.append(newObject.getProperty(idProperty));
+
 			}
 		}
 
 		return uriBuilder.toString();
+	}
+
+	//~--- get methods ----------------------------------------------------
+
+	public abstract String getUriPart();
+
+	public abstract boolean isCollectionResource();
+
+	//~--- set methods ----------------------------------------------------
+
+	public void setSecurityContext(SecurityContext securityContext) {
+		this.securityContext = securityContext;
 	}
 }

@@ -17,7 +17,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
-import org.structr.rest.VetoableGraphObjectListener;
+import org.structr.core.VetoableGraphObjectListener;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NoResultsException;
 import org.structr.rest.exception.NotFoundException;
@@ -43,7 +43,7 @@ public class InheritingTypeConstraint extends TypeConstraint {
 	}
 
 	@Override
-	public List<GraphObject> doGet(final List<VetoableGraphObjectListener> listeners) throws PathException {
+	public List<GraphObject> doGet() throws PathException {
 
 		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 		boolean hasSearchableAttributes = false;

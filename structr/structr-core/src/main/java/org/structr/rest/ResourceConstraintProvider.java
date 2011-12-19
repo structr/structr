@@ -22,7 +22,6 @@ package org.structr.rest;
 import java.util.Map;
 import java.util.regex.Pattern;
 import org.structr.rest.constraint.ResourceConstraint;
-import org.structr.rest.constraint.ResourceConstraint;
 
 /**
  * A provider interface that allows external modules to

@@ -14,7 +14,7 @@ import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import org.structr.rest.RestMethodResult;
-import org.structr.rest.VetoableGraphObjectListener;
+import org.structr.core.VetoableGraphObjectListener;
 import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.exception.PathException;
 
@@ -48,7 +48,7 @@ public class TypedIdConstraint extends FilterableConstraint {
 	}
 
 	@Override
-	public List<GraphObject> doGet(List<VetoableGraphObjectListener> listeners) throws PathException {
+	public List<GraphObject> doGet() throws PathException {
 
 		List<GraphObject> results = new LinkedList<GraphObject>();
 		AbstractNode node = getTypesafeNode();
@@ -63,7 +63,7 @@ public class TypedIdConstraint extends FilterableConstraint {
 	}
 
 	@Override
-	public RestMethodResult doPost(Map<String, Object> propertySet, List<VetoableGraphObjectListener> listeners) throws Throwable {
+	public RestMethodResult doPost(Map<String, Object> propertySet) throws Throwable {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 

@@ -16,13 +16,13 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+
+
 package org.structr.core.entity;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import org.neo4j.graphdb.*;
+
 import org.structr.common.PropertyKey;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
@@ -36,6 +36,15 @@ import org.structr.core.node.NodeFactoryCommand;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 
+//~--- JDK imports ------------------------------------------------------------
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+//~--- classes ----------------------------------------------------------------
+
 /**
  *
  * @author amorgner
@@ -43,48 +52,83 @@ import org.structr.core.node.TransactionCommand;
  */
 public class StructrRelationship implements GraphObject {
 
-	public enum Permission implements PropertyKey {
-		allowed, denied, read, showTree, write, execute,
-		createNode, deleteNode, editProperties, addRelationship,
-		removeRelationship, accessControl;
-	}
-
-//	public final static String ALLOWED_KEY = "allowed";
-//	public final static String DENIED_KEY = "denied";
-//	public final static String READ_KEY = "read";
-//	public final static String SHOW_TREE_KEY = "showTree";
-//	public final static String WRITE_KEY = "write";
-//	public final static String EXECUTE_KEY = "execute";
-//	public final static String CREATE_SUBNODE_KEY = "createNode";
-//	public final static String DELETE_NODE_KEY = "deleteNode";
-//	public final static String EDIT_PROPERTIES_KEY = "editProperties";
-//	public final static String ADD_RELATIONSHIP_KEY = "addRelationship";
-//	public final static String REMOVE_RELATIONSHIP_KEY = "removeRelationship";
-//	public final static String ACCESS_CONTROL_KEY = "accessControl";
-//	public final static String[] ALL_PERMISSIONS = new String[]{
-//		READ_KEY, SHOW_TREE_KEY,
-//		CREATE_SUBNODE_KEY, DELETE_NODE_KEY,
-//		WRITE_KEY, EXECUTE_KEY,
-//		ADD_RELATIONSHIP_KEY, REMOVE_RELATIONSHIP_KEY,
-//		EDIT_PROPERTIES_KEY, ACCESS_CONTROL_KEY
-//	};
-
+//      public final static String ALLOWED_KEY = "allowed";
+//      public final static String DENIED_KEY = "denied";
+//      public final static String READ_KEY = "read";
+//      public final static String SHOW_TREE_KEY = "showTree";
+//      public final static String WRITE_KEY = "write";
+//      public final static String EXECUTE_KEY = "execute";
+//      public final static String CREATE_SUBNODE_KEY = "createNode";
+//      public final static String DELETE_NODE_KEY = "deleteNode";
+//      public final static String EDIT_PROPERTIES_KEY = "editProperties";
+//      public final static String ADD_RELATIONSHIP_KEY = "addRelationship";
+//      public final static String REMOVE_RELATIONSHIP_KEY = "removeRelationship";
+//      public final static String ACCESS_CONTROL_KEY = "accessControl";
+//      public final static String[] ALL_PERMISSIONS = new String[]{
+//              READ_KEY, SHOW_TREE_KEY,
+//              CREATE_SUBNODE_KEY, DELETE_NODE_KEY,
+//              WRITE_KEY, EXECUTE_KEY,
+//              ADD_RELATIONSHIP_KEY, REMOVE_RELATIONSHIP_KEY,
+//              EDIT_PROPERTIES_KEY, ACCESS_CONTROL_KEY
+//      };
 	protected SecurityContext securityContext = null;
 
 	// reference to database relationship
 	protected Relationship dbRelationship;
 
-	public StructrRelationship() {
+	//~--- constant enums -------------------------------------------------
+
+	public enum Permission implements PropertyKey {
+		allowed, denied, read, showTree, write, execute, createNode, deleteNode, editProperties, addRelationship, removeRelationship, accessControl;
 	}
+
+	//~--- constructors ---------------------------------------------------
+
+	public StructrRelationship() {}
 
 	public StructrRelationship(SecurityContext securityContext, Relationship dbRelationship) {
 		init(securityContext, dbRelationship);
 	}
 
+	//~--- methods --------------------------------------------------------
+
 	public void init(final SecurityContext securityContext, final Relationship dbRelationship) {
+
 		this.securityContext = securityContext;
-		this.dbRelationship = dbRelationship;
+		this.dbRelationship  = dbRelationship;
 	}
+
+	@Override
+	public void removeProperty(final String key) {
+		dbRelationship.removeProperty(key);
+	}
+
+	@Override
+	public boolean equals(final Object o) {
+		return (new Integer(this.hashCode()).equals(new Integer(o.hashCode())));
+	}
+
+	@Override
+	public int hashCode() {
+
+		if (this.dbRelationship == null) {
+
+			return (super.hashCode());
+
+		}
+
+		return (new Long(dbRelationship.getId()).hashCode());
+	}
+
+	@Override
+	public void delete(SecurityContext securityContext) {
+
+		dbRelationship.delete();
+
+		// EntityContext.getGlobalModificationListener().relationshipDeleted(securityContext, this);
+	}
+
+	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public long getId() {
@@ -100,10 +144,13 @@ public class StructrRelationship implements GraphObject {
 	}
 
 	public Map<String, Object> getProperties() {
+
 		Map<String, Object> properties = new HashMap<String, Object>();
 
 		for (String key : dbRelationship.getPropertyKeys()) {
+
 			properties.put(key, dbRelationship.getProperty(key));
+
 		}
 
 		return properties;
@@ -118,20 +165,6 @@ public class StructrRelationship implements GraphObject {
 		return dbRelationship.getProperty(key, null);
 	}
 
-	public void setProperty(final PropertyKey propertyKey, final Object value) {
-		dbRelationship.setProperty(propertyKey.name(), value);
-	}
-
-	@Override
-	public void setProperty(final String key, final Object value) {
-		dbRelationship.setProperty(key, value);
-	}
-
-	@Override
-	public void removeProperty(final String key) {
-		dbRelationship.removeProperty(key);
-	}
-
 	/**
 	 * Return database relationship
 	 *
@@ -142,193 +175,80 @@ public class StructrRelationship implements GraphObject {
 	}
 
 	public AbstractNode getEndNode() {
+
 		Command nodeFactory = Services.command(securityContext, NodeFactoryCommand.class);
+
 		return (AbstractNode) nodeFactory.execute(dbRelationship.getEndNode());
 	}
 
 	public AbstractNode getStartNode() {
+
 		Command nodeFactory = Services.command(securityContext, NodeFactoryCommand.class);
+
 		return (AbstractNode) nodeFactory.execute(dbRelationship.getStartNode());
+	}
+
+	public AbstractNode getOtherNode(final AbstractNode node) {
+
+		Command nodeFactory = Services.command(securityContext, NodeFactoryCommand.class);
+
+		return (AbstractNode) nodeFactory.execute(dbRelationship.getOtherNode(node.getNode()));
 	}
 
 	public RelationshipType getRelType() {
 		return (dbRelationship.getType());
 	}
 
-	public boolean isType(RelType type) {
-		return (type != null && type.equals(dbRelationship.getType()));
-	}
-
-	/**
-	 * Set node id of end node.
-	 *
-	 * Internally, this method deletes the old relationship
-	 * and creates a new one, start from the same start node,
-	 * but pointing to the node with endNodeId
-	 *
-	 */
-	public void setEndNodeId(final User user, final long endNodeId) {
-		Command transaction = Services.command(securityContext, TransactionCommand.class);
-
-		transaction.execute(new StructrTransaction() {
-
-			@Override
-			public Object execute() throws Throwable {
-				Command findNode = Services.command(securityContext, FindNodeCommand.class);
-				Command deleteRel = Services.command(securityContext, DeleteRelationshipCommand.class);
-				Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
-				Command nodeFactory = Services.command(securityContext, NodeFactoryCommand.class);
-
-				AbstractNode startNode = (AbstractNode) nodeFactory.execute(getStartNode());
-				AbstractNode newEndNode = (AbstractNode) findNode.execute(endNodeId);
-
-				if (newEndNode != null) {
-					RelationshipType type = dbRelationship.getType();
-
-					deleteRel.execute(dbRelationship);
-					dbRelationship = ((StructrRelationship) createRel.execute(type, startNode, newEndNode)).getRelationship();
-				}
-
-				return (null);
-			}
-		});
-	}
-
-	/**
-	 * Set relationship type
-	 *
-	 * Internally, this method deletes the old relationship
-	 * and creates a new one, with the same start and end node,
-	 * but with another type
-	 *
-	 */
-	public void setType(final String type) {
-		if (type != null) {
-			Command transacted = Services.command(securityContext, TransactionCommand.class);
-
-			transacted.execute(new StructrTransaction() {
-
-				@Override
-				public Object execute() throws Throwable {
-					Command deleteRel = Services.command(securityContext, DeleteRelationshipCommand.class);
-					Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
-					Command nodeFactory = Services.command(securityContext, NodeFactoryCommand.class);
-
-					AbstractNode startNode = (AbstractNode) nodeFactory.execute(getStartNode());
-					AbstractNode endNode = (AbstractNode) nodeFactory.execute(getEndNode());
-
-					deleteRel.execute(dbRelationship);
-					dbRelationship = ((StructrRelationship) createRel.execute(type, startNode, endNode)).getRelationship();
-
-					return (null);
-				}
-			});
-		}
-	}
-
 	public String getAllowed() {
 
 		if (dbRelationship.hasProperty(StructrRelationship.Permission.allowed.name())) {
 
-			String result = "";
-
+			String result              = "";
 			String[] allowedProperties = (String[]) dbRelationship.getProperty(StructrRelationship.Permission.allowed.name());
 
 			if (allowedProperties != null) {
+
 				for (String p : allowedProperties) {
+
 					result += p + "\n";
+
 				}
+
 			}
+
 			return result;
 
 		} else {
+
 			return null;
-		}
-	}
 
-	public void setAllowed(final List<String> allowed) {
-		String[] allowedActions = (String[]) allowed.toArray(new String[allowed.size()]);
-		dbRelationship.setProperty(StructrRelationship.Permission.allowed.name(), allowedActions);
-	}
-
-	public void setAllowed(final PropertyKey[] allowed) {
-		List<String> allowedActions = new ArrayList<String>();
-		for (PropertyKey key : allowed) {
-			allowedActions.add(key.name());
 		}
-		setAllowed(allowedActions);
 	}
 
 	public String getDenied() {
 
 		if (dbRelationship.hasProperty(StructrRelationship.Permission.denied.name())) {
 
-			String result = "";
-
+			String result             = "";
 			String[] deniedProperties = (String[]) dbRelationship.getProperty(StructrRelationship.Permission.denied.name());
 
 			if (deniedProperties != null) {
+
 				for (String p : deniedProperties) {
+
 					result += p + "\n";
+
 				}
+
 			}
+
 			return result;
 
 		} else {
+
 			return null;
-		}
-	}
-
-	public void setDenied(final List<String> denied) {
-		if (dbRelationship.hasProperty(StructrRelationship.Permission.denied.name())) {
-			dbRelationship.setProperty(StructrRelationship.Permission.denied.name(), denied);
-		}
-	}
-
-	public boolean isAllowed(final String action) {
-		if (dbRelationship.hasProperty(StructrRelationship.Permission.allowed.name())) {
-			String[] allowedProperties = (String[]) dbRelationship.getProperty(StructrRelationship.Permission.allowed.name());
-
-			if (allowedProperties != null) {
-				for (String p : allowedProperties) {
-					if (p.equals(action)) {
-						return true;
-					}
-				}
-			}
 
 		}
-		return false;
-	}
-
-	public boolean isDenied(final String action) {
-		if (dbRelationship.hasProperty(StructrRelationship.Permission.denied.name())) {
-			String[] deniedProperties = (String[]) dbRelationship.getProperty(StructrRelationship.Permission.denied.name());
-
-			if (deniedProperties != null) {
-				for (String p : deniedProperties) {
-					if (p.equals(action)) {
-						return true;
-					}
-				}
-			}
-
-		}
-		return false;
-	}
-
-	@Override
-	public boolean equals(final Object o) {
-		return (new Integer(this.hashCode()).equals(new Integer(o.hashCode())));
-	}
-
-	@Override
-	public int hashCode() {
-		if (this.dbRelationship == null) {
-			return (super.hashCode());
-		}
-
-		return (new Long(dbRelationship.getId()).hashCode());
 	}
 
 	// ----- interface GraphObject -----
@@ -362,9 +282,187 @@ public class StructrRelationship implements GraphObject {
 		return this.getEndNode().getId();
 	}
 
+	public Long getOtherNodeId(final AbstractNode node) {
+		return this.getOtherNode(node).getId();
+	}
+
+	public boolean isType(RelType type) {
+		return ((type != null) && type.equals(dbRelationship.getType()));
+	}
+
+	public boolean isAllowed(final String action) {
+
+		if (dbRelationship.hasProperty(StructrRelationship.Permission.allowed.name())) {
+
+			String[] allowedProperties = (String[]) dbRelationship.getProperty(StructrRelationship.Permission.allowed.name());
+
+			if (allowedProperties != null) {
+
+				for (String p : allowedProperties) {
+
+					if (p.equals(action)) {
+
+						return true;
+
+					}
+
+				}
+
+			}
+
+		}
+
+		return false;
+	}
+
+	public boolean isDenied(final String action) {
+
+		if (dbRelationship.hasProperty(StructrRelationship.Permission.denied.name())) {
+
+			String[] deniedProperties = (String[]) dbRelationship.getProperty(StructrRelationship.Permission.denied.name());
+
+			if (deniedProperties != null) {
+
+				for (String p : deniedProperties) {
+
+					if (p.equals(action)) {
+
+						return true;
+
+					}
+
+				}
+
+			}
+
+		}
+
+		return false;
+	}
+
+	//~--- set methods ----------------------------------------------------
+
+	public void setProperties(final Map<String, Object> properties) {
+
+		for (String key : properties.keySet()) {
+
+			setProperty(key, properties.get(key));
+
+		}
+	}
+
+	public void setProperty(final PropertyKey propertyKey, final Object value) {
+		dbRelationship.setProperty(propertyKey.name(), value);
+	}
+
 	@Override
-	public boolean delete() {
-		dbRelationship.delete();
-		return true;
+	public void setProperty(final String key, final Object value) {
+		dbRelationship.setProperty(key, value);
+	}
+
+	/**
+	 * Set node id of end node.
+	 *
+	 * Internally, this method deletes the old relationship
+	 * and creates a new one, start from the same start node,
+	 * but pointing to the node with endNodeId
+	 *
+	 */
+	public void setEndNodeId(final User user, final long endNodeId) {
+
+		Command transaction = Services.command(securityContext, TransactionCommand.class);
+
+		transaction.execute(new StructrTransaction() {
+
+			@Override
+			public Object execute() throws Throwable {
+
+				Command findNode        = Services.command(securityContext, FindNodeCommand.class);
+				Command deleteRel       = Services.command(securityContext, DeleteRelationshipCommand.class);
+				Command createRel       = Services.command(securityContext, CreateRelationshipCommand.class);
+				Command nodeFactory     = Services.command(securityContext, NodeFactoryCommand.class);
+				AbstractNode startNode  = (AbstractNode) nodeFactory.execute(getStartNode());
+				AbstractNode newEndNode = (AbstractNode) findNode.execute(endNodeId);
+
+				if (newEndNode != null) {
+
+					RelationshipType type = dbRelationship.getType();
+
+					deleteRel.execute(dbRelationship);
+
+					dbRelationship = ((StructrRelationship) createRel.execute(type, startNode, newEndNode)).getRelationship();
+
+				}
+
+				return (null);
+			}
+
+		});
+	}
+
+	/**
+	 * Set relationship type
+	 *
+	 * Internally, this method deletes the old relationship
+	 * and creates a new one, with the same start and end node,
+	 * but with another type
+	 *
+	 */
+	public void setType(final String type) {
+
+		if (type != null) {
+
+			Command transacted = Services.command(securityContext, TransactionCommand.class);
+
+			transacted.execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws Throwable {
+
+					Command deleteRel      = Services.command(securityContext, DeleteRelationshipCommand.class);
+					Command createRel      = Services.command(securityContext, CreateRelationshipCommand.class);
+					Command nodeFactory    = Services.command(securityContext, NodeFactoryCommand.class);
+					AbstractNode startNode = (AbstractNode) nodeFactory.execute(getStartNode());
+					AbstractNode endNode   = (AbstractNode) nodeFactory.execute(getEndNode());
+
+					deleteRel.execute(dbRelationship);
+
+					dbRelationship = ((StructrRelationship) createRel.execute(type, startNode, endNode)).getRelationship();
+
+					return (null);
+				}
+
+			});
+
+		}
+	}
+
+	public void setAllowed(final List<String> allowed) {
+
+		String[] allowedActions = (String[]) allowed.toArray(new String[allowed.size()]);
+
+		dbRelationship.setProperty(StructrRelationship.Permission.allowed.name(), allowedActions);
+	}
+
+	public void setAllowed(final PropertyKey[] allowed) {
+
+		List<String> allowedActions = new ArrayList<String>();
+
+		for (PropertyKey key : allowed) {
+
+			allowedActions.add(key.name());
+
+		}
+
+		setAllowed(allowedActions);
+	}
+
+	public void setDenied(final List<String> denied) {
+
+		if (dbRelationship.hasProperty(StructrRelationship.Permission.denied.name())) {
+
+			dbRelationship.setProperty(StructrRelationship.Permission.denied.name(), denied);
+
+		}
 	}
 }

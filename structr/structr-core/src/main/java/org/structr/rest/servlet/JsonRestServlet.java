@@ -35,7 +35,6 @@ import org.structr.core.Value;
 import org.structr.core.node.NodeAttribute;
 import org.structr.rest.ResourceConstraintProvider;
 import org.structr.rest.RestMethodResult;
-import org.structr.rest.VetoableGraphObjectListener;
 import org.structr.rest.adapter.PropertySetGSONAdapter;
 import org.structr.rest.adapter.ResultGSONAdapter;
 import org.structr.rest.constraint.PagingConstraint;
@@ -60,7 +59,6 @@ import java.text.DecimalFormatSymbols;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -96,7 +94,6 @@ public class JsonRestServlet extends HttpServlet {
 	private static final String SERVLET_PARAMETER_CONSTRAINT_PROVIDER   = "ConstraintProvider";
 	private static final String SERVLET_PARAMETER_DEFAULT_PROPERTY_VIEW = "DefaultPropertyView";
 	private static final String SERVLET_PARAMETER_ID_PROPERTY           = "IdProperty";
-	private static final String SERVLET_PARAMETER_MODIFICATION_LISTENER = "ModificationListener";
 	private static final String SERVLET_PARAMETER_PROPERTY_FORMAT       = "PropertyFormat";
 	private static final Logger logger                                  = Logger.getLogger(JsonRestServlet.class.getName());
 
@@ -105,7 +102,6 @@ public class JsonRestServlet extends HttpServlet {
 	private Map<Pattern, Class> constraintMap                      = null;
 	private String defaultIdProperty                               = null;
 	private String defaultPropertyView                             = PropertyView.Public;
-	private List<VetoableGraphObjectListener> graphObjectListeners = null;
 	private Gson gson                                              = null;
 	private PropertySetGSONAdapter propertySetAdapter              = null;
 	private Value<String> propertyView                             = null;
@@ -117,7 +113,6 @@ public class JsonRestServlet extends HttpServlet {
 	public void init() {
 
 		// initialize variables
-		this.graphObjectListeners = new LinkedList<VetoableGraphObjectListener>();
 		this.constraintMap        = new LinkedHashMap<Pattern, Class>();
 		this.propertyView         = new ThreadLocalPropertyView();
 
@@ -142,32 +137,6 @@ public class JsonRestServlet extends HttpServlet {
 
 				} catch (Throwable t) {
 					logger.log(Level.WARNING, "Unable to inject external resource constraints", t);
-				}
-
-			}
-
-		}
-
-		// modification listener intializiation
-		String externalListenerName = this.getInitParameter(SERVLET_PARAMETER_MODIFICATION_LISTENER);
-
-		if (externalListenerName != null) {
-
-			String[] parts = externalListenerName.split("[, ]+");
-
-			for (String part : parts) {
-
-				try {
-
-					logger.log(Level.INFO, "Injecting listener {0}", part);
-
-					Class listenerClass                  = Class.forName(part);
-					VetoableGraphObjectListener listener = (VetoableGraphObjectListener) listenerClass.newInstance();
-
-					graphObjectListeners.add(listener);
-
-				} catch (Throwable t) {
-					logger.log(Level.WARNING, "Unable to instantiate listener", t);
 				}
 
 			}
@@ -227,7 +196,7 @@ public class JsonRestServlet extends HttpServlet {
 				ResourceConstraint resourceConstraint = optimizeConstraintChain(chain);
 
 				// do action
-				RestMethodResult result = resourceConstraint.doDelete(graphObjectListeners);
+				RestMethodResult result = resourceConstraint.doDelete();
 				result.commitResponse(gson, response);
 
 			} else {
@@ -296,7 +265,7 @@ public class JsonRestServlet extends HttpServlet {
 			double queryTimeEnd                   = System.nanoTime();
 
 			// create result set
-			Result result = new Result(resourceConstraint.doGet(graphObjectListeners), resourceConstraint.isCollectionResource());
+			Result result = new Result(resourceConstraint.doGet(), resourceConstraint.isCollectionResource());
 
 			if (result != null) {
 
@@ -511,7 +480,7 @@ public class JsonRestServlet extends HttpServlet {
 				}
 
 				// do action
-				RestMethodResult result = resourceConstraint.doPost(properties, graphObjectListeners);
+				RestMethodResult result = resourceConstraint.doPost(properties);
 
 				// set default value for property view
 				propertyView.set(defaultPropertyView);
@@ -591,7 +560,7 @@ public class JsonRestServlet extends HttpServlet {
 				}
 
 				// do action
-				RestMethodResult result = resourceConstraint.doPut(properties, graphObjectListeners);
+				RestMethodResult result = resourceConstraint.doPut(properties);
 				result.commitResponse(gson, response);
 
 			} else {

@@ -28,7 +28,7 @@ import org.structr.core.entity.AbstractNode;
  *
  * @author Christian Morgner
  */
-public class IterableFilter<T extends AbstractNode> implements Iterable<T> {
+public class IterableFilter<T> implements Iterable<T> {
 
 	private Iterator<T> sourceIterator = null;
 	private Set<Predicate<T>> filters = null;

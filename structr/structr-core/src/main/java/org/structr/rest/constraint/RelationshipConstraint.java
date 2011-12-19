@@ -28,7 +28,7 @@ import org.neo4j.graphdb.Direction;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
-import org.structr.rest.VetoableGraphObjectListener;
+import org.structr.core.VetoableGraphObjectListener;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.PathException;
 
@@ -62,9 +62,9 @@ public class RelationshipConstraint extends WrappingConstraint {
 	}
 
 	@Override
-	public List<? extends GraphObject> doGet(List<VetoableGraphObjectListener> listeners) throws PathException {
+	public List<? extends GraphObject> doGet() throws PathException {
 
-		List<? extends GraphObject> results = wrappedConstraint.doGet(listeners);
+		List<? extends GraphObject> results = wrappedConstraint.doGet();
 		if(results != null && !results.isEmpty()) {
 
 			try {

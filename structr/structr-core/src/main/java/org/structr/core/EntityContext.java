@@ -22,12 +22,20 @@
 package org.structr.core;
 
 import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.event.PropertyEntry;
+import org.neo4j.graphdb.event.TransactionData;
+import org.neo4j.graphdb.event.TransactionEventHandler;
 
 import org.structr.common.PropertyKey;
 import org.structr.common.SecurityContext;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.DirectedRelationship;
 import org.structr.core.entity.DirectedRelationship.Cardinality;
+import org.structr.core.entity.StructrRelationship;
+import org.structr.core.node.StructrNodeFactory;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.ObjectNotion;
 import org.structr.core.validator.GlobalPropertyUniquenessValidator;
@@ -38,12 +46,12 @@ import org.structr.core.validator.TypeAndPropertyUniquenessValidator;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Semaphore;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.entity.AbstractNode;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -56,46 +64,38 @@ import org.structr.core.entity.AbstractNode;
 public class EntityContext {
 
 	public static final String GLOBAL_UNIQUENESS                                                                = "global_uniqueness_key";
-	private static final Map<Class, Map<String, Class<? extends PropertyConverter>>> globalPropertyConverterMap =
-		new LinkedHashMap<Class, Map<String, Class<? extends PropertyConverter>>>();
-	private static final Map<Class, Map<String, Class<? extends PropertyValidator>>> globalValidatorMap =
-		new LinkedHashMap<Class, Map<String, Class<? extends PropertyValidator>>>();
-	private static final Map<Class, Map<String, Value>> globalValidationParameterMap          = new LinkedHashMap<Class, Map<String, Value>>();
-	private static final Map<String, Map<String, Semaphore>> globalSemaphoreMap               = new LinkedHashMap<String, Map<String, Semaphore>>();
-	private static final Map<String, Map<String, Set<String>>> globalSearchablePropertyMap    = new LinkedHashMap<String, Map<String, Set<String>>>();
-	private static final Map<String, Map<String, DirectedRelationship>> globalRelationshipMap = new LinkedHashMap<String,
-													    Map<String, DirectedRelationship>>();
-	private static final Map<Class, Map<String, Set<String>>> globalPropertyViewMap    = new LinkedHashMap<Class, Map<String, Set<String>>>();
-	private static final Map<Class, Map<String, PropertyGroup>> globalPropertyGroupMap = new LinkedHashMap<Class, Map<String, PropertyGroup>>();
-	private static final Map<Class, Map<String, Value>> globalConversionParameterMap   = new LinkedHashMap<Class, Map<String, Value>>();
-	private static final Map<Class, Set<String>> globalWriteOncePropertyMap            = new LinkedHashMap<Class, Set<String>>();
-	private static final Map<Class, Set<String>> globalReadOnlyPropertyMap             = new LinkedHashMap<Class, Set<String>>();
-	private static final Logger logger                                                 = Logger.getLogger(EntityContext.class.getName());
-	
-	private static final Map<Class, Set<Transformation<AbstractNode>>> globalPostCreationTransformationMap	= new LinkedHashMap<Class, Set<Transformation<AbstractNode>>>();
+	private static final Map<Class, Map<String, Class<? extends PropertyConverter>>> globalPropertyConverterMap = new LinkedHashMap<Class, Map<String, Class<? extends PropertyConverter>>>();
+	private static final Map<Class, Map<String, Class<? extends PropertyValidator>>> globalValidatorMap         = new LinkedHashMap<Class, Map<String, Class<? extends PropertyValidator>>>();
+	private static final Map<Class, Map<String, Value>> globalValidationParameterMap                            = new LinkedHashMap<Class, Map<String, Value>>();
+	private static final Map<String, Map<String, Semaphore>> globalSemaphoreMap                                 = new LinkedHashMap<String, Map<String, Semaphore>>();
+	private static final Map<String, Map<String, Set<String>>> globalSearchablePropertyMap                      = new LinkedHashMap<String, Map<String, Set<String>>>();
+	private static final Map<String, Map<String, DirectedRelationship>> globalRelationshipMap                   = new LinkedHashMap<String, Map<String, DirectedRelationship>>();
+	private static final Map<Class, Map<String, Set<String>>> globalPropertyViewMap                             = new LinkedHashMap<Class, Map<String, Set<String>>>();
+	private static final Map<Class, Map<String, PropertyGroup>> globalPropertyGroupMap                          = new LinkedHashMap<Class, Map<String, PropertyGroup>>();
+	private static final Map<Class, Map<String, Value>> globalConversionParameterMap                            = new LinkedHashMap<Class, Map<String, Value>>();
+	private static final Map<Class, Set<String>> globalWriteOncePropertyMap                                     = new LinkedHashMap<Class, Set<String>>();
+	private static final Map<Class, Set<String>> globalReadOnlyPropertyMap                                      = new LinkedHashMap<Class, Set<String>>();
+	private static final Set<VetoableGraphObjectListener> modificationListeners                                 = new LinkedHashSet<VetoableGraphObjectListener>();
+	private static final Map<Thread, Long> transactionKeyMap                                                    = new LinkedHashMap<Thread, Long>();
+	private static final Map<Long, Throwable> throwableMap                                                      = new LinkedHashMap<Long, Throwable>();
+	private static final Logger logger                                                                          = Logger.getLogger(EntityContext.class.getName());
+	private static final Map<Class, Set<Transformation<AbstractNode>>> globalPostCreationTransformationMap      = new LinkedHashMap<Class, Set<Transformation<AbstractNode>>>();
+	private static final EntityContextModificationListener globalModificationListener                           = new EntityContextModificationListener();
 
 	//~--- methods --------------------------------------------------------
 
+	public static void registerModificationListener(VetoableGraphObjectListener listener) {
+		modificationListeners.add(listener);
+	}
+
+	public static void unregisterModificationListener(VetoableGraphObjectListener listener) {
+		modificationListeners.remove(listener);
+	}
+
 	public static void registerPostCreationTransformation(Class type, Transformation<AbstractNode> transformation) {
-		
 		getPostCreationTransformationsForType(type).add(transformation);
 	}
-	
-	public static Set<Transformation<AbstractNode>> getPostCreationTransformations(Class type) {
-	
-		Set<Transformation<AbstractNode>> transformations = new LinkedHashSet<Transformation<AbstractNode>>();
-		Class localType                                   = type;
 
-		// collect for all superclasses
-		while (!localType.equals(Object.class)) {
-
-			transformations.addAll(getPostCreationTransformationsForType(localType));
-			localType = localType.getSuperclass();
-		}
-		
-		return transformations;
-	}
-	
 	public static void registerPropertyGroup(Class type, PropertyKey key, PropertyGroup propertyGroup) {
 		getPropertyGroupMapForType(type).put(key.name(), propertyGroup);
 	}
@@ -127,7 +127,7 @@ public class EntityContext {
 	public static void registerRelation(Class sourceType, PropertyKey propertyKey, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality) {
 		registerRelation(sourceType, propertyKey.name(), destType, relType, direction, cardinality);
 	}
-	
+
 	public static void registerRelation(Class sourceType, String property, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality) {
 
 		// need to set type here
@@ -151,9 +151,8 @@ public class EntityContext {
 	public static void registerRelation(Class sourceType, PropertyKey propertyKey, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion) {
 		registerRelation(sourceType, propertyKey.name(), destType, relType, direction, cardinality, notion);
 	}
-	
-	public static void registerRelation(Class sourceType, String property, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality,
-		Notion notion) {
+
+	public static void registerRelation(Class sourceType, String property, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion) {
 
 		registerRelation(convertName(sourceType), property, convertName(destType), relType, direction, cardinality, notion);
 		notion.setType(destType);
@@ -218,7 +217,6 @@ public class EntityContext {
 				map.put(propertyKey, new Semaphore(1));
 
 			}
-
 		} else if (validatorClass.equals(TypeAndPropertyUniquenessValidator.class)) {
 
 			// register semaphore
@@ -229,7 +227,6 @@ public class EntityContext {
 				map.put(propertyKey, new Semaphore(1));
 
 			}
-
 		}
 
 		if (parameter != null) {
@@ -246,8 +243,7 @@ public class EntityContext {
 		registerPropertyConverter(type, propertyKey.name(), propertyConverterClass);
 	}
 
-	public static void registerPropertyConverter(Class type, PropertyKey propertyKey, Class<? extends PropertyConverter> propertyConverterClass,
-		Value value) {
+	public static void registerPropertyConverter(Class type, PropertyKey propertyKey, Class<? extends PropertyConverter> propertyConverterClass, Value value) {
 		registerPropertyConverter(type, propertyKey.name(), propertyConverterClass, value);
 	}
 
@@ -275,7 +271,9 @@ public class EntityContext {
 	public static void registerSearchablePropertySet(Class type, String index, PropertyKey... keys) {
 
 		for (PropertyKey key : keys) {
+
 			registerSearchablePropertySet(type, index, key);
+
 		}
 	}
 
@@ -290,10 +288,14 @@ public class EntityContext {
 	public static void registerSearchablePropertySet(String type, String index, String key) {
 
 		Map<String, Set<String>> searchablePropertyMapForType = getSearchablePropertyMapForType(type);
-		Set<String> searchablePropertySet = searchablePropertyMapForType.get(index);
+		Set<String> searchablePropertySet                     = searchablePropertyMapForType.get(index);
+
 		if (searchablePropertySet == null) {
+
 			searchablePropertySet = new LinkedHashSet<String>();
+
 			searchablePropertyMapForType.put(index, searchablePropertySet);
+
 		}
 
 		searchablePropertySet.add(key);
@@ -305,19 +307,68 @@ public class EntityContext {
 	}
 
 	// ----- private methods -----
-	private static String convertName(Class type) {
-		return (type.getSimpleName().toLowerCase());
+	private static String convertName(final Class type) {
+		return convertName(type, false);
 	}
 
-	private static void registerRelation(String sourceType, String property, String destType, RelationshipType relType, Direction direction, Cardinality cardinality,
-		Notion notion) {
+	private static String convertName(final Class type, final boolean plural) {
+
+		String convertedName = type.getSimpleName().toLowerCase();
+
+		if (plural) {
+
+			if (convertedName.endsWith("y")) {
+
+				logger.log(Level.FINEST, "Replacing trailing 'y' by 'ies' for type {0}", convertedName);
+
+				convertedName = convertedName.substring(0, convertedName.length() - 1).concat("ies");
+
+			} else if (!convertedName.endsWith("s")) {
+
+				logger.log(Level.FINEST, "Adding trailing 's' to type {0}", convertedName);
+
+				convertedName = convertedName.concat("s");
+
+			}
+
+		}
+
+		return convertedName;
+	}
+
+	private static void registerRelation(String sourceType, String property, String destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion) {
 
 		Map<String, DirectedRelationship> typeMap = getRelationshipMapForType(sourceType);
 
 		typeMap.put(property, new DirectedRelationship(destType, relType, direction, cardinality, notion));
 	}
 
+	public static synchronized void removeTransactionKey() {
+		transactionKeyMap.remove(Thread.currentThread());
+	}
+
 	//~--- get methods ----------------------------------------------------
+
+	public static Set<VetoableGraphObjectListener> getModificationListeners() {
+		return modificationListeners;
+	}
+
+	public static Set<Transformation<AbstractNode>> getPostCreationTransformations(Class type) {
+
+		Set<Transformation<AbstractNode>> transformations = new LinkedHashSet<Transformation<AbstractNode>>();
+		Class localType                                   = type;
+
+		// collect for all superclasses
+		while (!localType.equals(Object.class)) {
+
+			transformations.addAll(getPostCreationTransformationsForType(localType));
+
+			localType = localType.getSuperclass();
+
+		}
+
+		return transformations;
+	}
 
 	// ----- semaphores -----
 
@@ -360,8 +411,12 @@ public class EntityContext {
 		return getRelationshipMapForType(convertName(sourceType)).get(propertyKey.toLowerCase());
 	}
 
+	public static DirectedRelationship getRelation(Class sourceType, Class destType, boolean pluralDestType) {
+		return getRelationshipMapForType(convertName(sourceType)).get(convertName(destType, pluralDestType));
+	}
+
 	public static DirectedRelationship getRelation(Class sourceType, Class destType) {
-		return getRelationshipMapForType(convertName(sourceType)).get(convertName(destType));
+		return getRelationshipMapForType(convertName(sourceType)).get(convertName(destType, false));
 	}
 
 	public static Map<String, DirectedRelationship> getRelations(Class sourceType) {
@@ -469,9 +524,7 @@ public class EntityContext {
 				propertyConverter.setSecurityContext(securityContext);
 
 			} catch (Throwable t) {
-
-				logger.log(Level.WARNING, "Unable to instantiate property PropertyConverter {0}: {1}", new Object[] { clazz.getName(),
-					t.getMessage() });
+				logger.log(Level.WARNING, "Unable to instantiate property PropertyConverter {0}: {1}", new Object[] { clazz.getName(), t.getMessage() });
 			}
 
 		}
@@ -629,9 +682,13 @@ public class EntityContext {
 	private static Map<String, Set<String>> getSearchablePropertyMapForType(String type) {
 
 		Map<String, Set<String>> searchablePropertyMap = globalSearchablePropertyMap.get(type);
+
 		if (searchablePropertyMap == null) {
+
 			searchablePropertyMap = new LinkedHashMap<String, Set<String>>();
+
 			globalSearchablePropertyMap.put(type, searchablePropertyMap);
+
 		}
 
 		return searchablePropertyMap;
@@ -666,16 +723,28 @@ public class EntityContext {
 
 		return semaphoreMap;
 	}
-	
+
 	private static Set<Transformation<AbstractNode>> getPostCreationTransformationsForType(Class type) {
 
 		Set<Transformation<AbstractNode>> transformations = globalPostCreationTransformationMap.get(type);
-		if(transformations == null) {
+
+		if (transformations == null) {
+
 			transformations = new LinkedHashSet<Transformation<AbstractNode>>();
+
 			globalPostCreationTransformationMap.put(type, transformations);
+
 		}
-		
+
 		return transformations;
+	}
+
+	public static EntityContextModificationListener getTransactionEventHandler() {
+		return globalModificationListener;
+	}
+
+	public static synchronized Throwable getThrowable(Long transactionKey) {
+		return throwableMap.get(transactionKey);
 	}
 
 	public static boolean isReadOnlyProperty(Class type, String key) {
@@ -724,5 +793,240 @@ public class EntityContext {
 		}
 
 		return isWriteOnce;
+	}
+
+	//~--- set methods ----------------------------------------------------
+
+	public static synchronized void setTransactionKey(Long transactionKey) {
+		transactionKeyMap.put(Thread.currentThread(), transactionKey);
+	}
+
+	//~--- inner classes --------------------------------------------------
+
+	public static class EntityContextModificationListener implements VetoableGraphObjectListener, TransactionEventHandler<Long> {
+
+		// ----- interface TransactionEventHandler -----
+		@Override
+		public Long beforeCommit(TransactionData data) throws Exception {
+
+			long transactionKey = transactionKeyMap.get(Thread.currentThread());
+
+			try {
+
+				Map<Node, Map<String, Object>> removedProperties = new LinkedHashMap<Node, Map<String, Object>>();
+				SecurityContext securityContext                  = SecurityContext.getSuperUserInstance();
+				StructrNodeFactory factory                       = new StructrNodeFactory(securityContext);
+				Set<AbstractNode> modifiedNodes                  = new LinkedHashSet<AbstractNode>();
+				Set<AbstractNode> createdNodes                   = new LinkedHashSet<AbstractNode>();
+				Set<StructrRelationship> createdRels             = new LinkedHashSet<StructrRelationship>();
+				Set<StructrRelationship> deletedRels             = new LinkedHashSet<StructrRelationship>();
+
+				// 0: notify listeners of beginning commit
+				begin(securityContext, transactionKey);
+
+				// 1: collect properties of deleted nodes
+				for (PropertyEntry<Node> entry : data.removedNodeProperties()) {
+
+					Node node                       = entry.entity();
+					Map<String, Object> propertyMap = removedProperties.get(node);
+
+					if (propertyMap == null) {
+
+						propertyMap = new LinkedHashMap<String, Object>();
+
+						removedProperties.put(node, propertyMap);
+
+					}
+
+					propertyMap.put(entry.key(), entry.previouslyCommitedValue());
+
+				}
+
+				// 2: notify listeners of node creation (so the modifications can later be tracked)
+				for (Node node : data.createdNodes()) {
+
+					AbstractNode entity = factory.createNode(securityContext, node);
+
+					graphObjectCreated(securityContext, transactionKey, entity);
+					createdNodes.add(entity);
+
+				}
+
+				// 3: notify listeners of relationship creation
+				for (Relationship rel : data.createdRelationships()) {
+
+					StructrRelationship relationship = new StructrRelationship(securityContext, rel);
+
+					relationshipCreated(securityContext, transactionKey, relationship);
+					deletedRels.add(relationship);
+
+				}
+
+				// 4: notify listeners of relationship deletion
+				for (Relationship rel : data.deletedRelationships()) {
+
+					StructrRelationship relationship = new StructrRelationship(securityContext, rel);
+
+					relationshipDeleted(securityContext, transactionKey, relationship);
+					deletedRels.add(relationship);
+
+				}
+
+				// 5: notify listeners of node deletion
+				for (Node node : data.deletedNodes()) {
+
+					graphObjectDeleted(securityContext, transactionKey, node.getId(), removedProperties.get(node));
+
+				}
+
+				// 6: notify listeners of property modifications
+				for (PropertyEntry<Node> entry : data.assignedNodeProperties()) {
+
+					AbstractNode entity = factory.createNode(securityContext, entry.entity());
+
+					propertyModified(securityContext, transactionKey, entity, entry.key(), entry.previouslyCommitedValue(), entry.value());
+					modifiedNodes.add(entity);
+
+				}
+
+				// 7: notify listeners of modified nodes (to check for non-existing properties etc)
+				for (AbstractNode node : modifiedNodes) {
+
+					// only send UPDATE if node was not created in this transaction
+					if (!createdNodes.contains(node)) {
+
+						graphObjectModified(securityContext, transactionKey, node);
+
+					}
+				}
+
+				// notify listeners of commit
+				commit(securityContext, transactionKey);
+
+			} catch (Throwable t) {
+
+				throwableMap.put(transactionKey, t);
+
+				throw new IllegalStateException("Rollback");
+			}
+
+			return transactionKey;
+		}
+
+		@Override
+		public void afterCommit(TransactionData data, Long transactionKey) {}
+
+		@Override
+		public void afterRollback(TransactionData data, Long transactionKey) {
+
+			Throwable t = throwableMap.get(transactionKey);
+
+			if (t != null) {
+
+				// thow
+				throw new IllegalArgumentException(t);
+			}
+		}
+
+		// ----- interface VetoableGraphObjectListener -----
+		@Override
+		public void begin(SecurityContext securityContext, long transactionKey) {
+
+			for (VetoableGraphObjectListener listener : modificationListeners) {
+
+				listener.begin(securityContext, transactionKey);
+
+			}
+		}
+
+		@Override
+		public void commit(SecurityContext securityContext, long transactionKey) {
+
+			for (VetoableGraphObjectListener listener : modificationListeners) {
+
+				listener.commit(securityContext, transactionKey);
+
+			}
+		}
+
+		@Override
+		public void rollback(SecurityContext securityContext, long transactionKey) {
+
+			for (VetoableGraphObjectListener listener : modificationListeners) {
+
+				listener.rollback(securityContext, transactionKey);
+
+			}
+		}
+
+		@Override
+		public void propertyModified(SecurityContext securityContext, long transactionKey, AbstractNode entity, String key, Object oldValue, Object newValue) {
+
+			for (VetoableGraphObjectListener listener : modificationListeners) {
+
+				listener.propertyModified(securityContext, transactionKey, entity, key, oldValue, newValue);
+
+			}
+		}
+
+		@Override
+		public void relationshipCreated(SecurityContext securityContext, long transactionKey, StructrRelationship relationship) {
+
+			for (VetoableGraphObjectListener listener : modificationListeners) {
+
+				listener.relationshipCreated(securityContext, transactionKey, relationship);
+
+			}
+		}
+
+		@Override
+		public void relationshipDeleted(SecurityContext securityContext, long transactionKey, StructrRelationship relationship) {
+
+			for (VetoableGraphObjectListener listener : modificationListeners) {
+
+				listener.relationshipDeleted(securityContext, transactionKey, relationship);
+
+			}
+		}
+
+		@Override
+		public void graphObjectCreated(SecurityContext securityContext, long transactionKey, GraphObject graphObject) {
+
+			for (VetoableGraphObjectListener listener : modificationListeners) {
+
+				listener.graphObjectCreated(securityContext, transactionKey, graphObject);
+
+			}
+		}
+
+		@Override
+		public void graphObjectModified(SecurityContext securityContext, long transactionKey, GraphObject graphObject) {
+
+			for (VetoableGraphObjectListener listener : modificationListeners) {
+
+				listener.graphObjectModified(securityContext, transactionKey, graphObject);
+
+			}
+		}
+
+		@Override
+		public void wasVisited(List<GraphObject> traversedNodes, long transactionKey, SecurityContext securityContext) {
+
+			for (VetoableGraphObjectListener listener : modificationListeners) {
+
+				listener.wasVisited(traversedNodes, transactionKey, securityContext);
+
+			}
+		}
+
+		@Override
+		public void graphObjectDeleted(SecurityContext securityContext, long transactionKey, long id, Map<String, Object> properties) {
+
+			for (VetoableGraphObjectListener listener : modificationListeners) {
+
+				listener.graphObjectDeleted(securityContext, transactionKey, id, properties);
+
+			}
+		}
 	}
 }

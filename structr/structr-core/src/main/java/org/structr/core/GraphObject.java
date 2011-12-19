@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.RelationshipType;
+import org.structr.common.SecurityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.StructrRelationship;
 
@@ -45,12 +46,13 @@ public interface GraphObject {
 	// ----- rels only -----
 	public Long getStartNodeId();
 	public Long getEndNodeId();
+	public Long getOtherNodeId(final AbstractNode node);
 
 	// ----- nodes only -----
 	public Map<RelationshipType, Long> getRelationshipInfo(Direction direction);
 	public List<StructrRelationship> getRelationships(RelationshipType type, Direction dir);
 
 	// ----- editing methods -----
-	public boolean delete();
+	public void delete(SecurityContext seucrityContext);
 
 }

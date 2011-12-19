@@ -41,6 +41,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.EntityContext;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -110,6 +111,10 @@ public class NodeService implements SingletonService {
 				logger.log(Level.INFO, "Database config not found");
 
 				graphDb = new EmbeddedGraphDatabase(dbPath);
+			}
+
+			if(graphDb != null) {
+				graphDb.registerTransactionEventHandler(EntityContext.getTransactionEventHandler());
 			}
 
 			String filesPath = Services.getFilesPath();
@@ -204,6 +209,7 @@ public class NodeService implements SingletonService {
 	}
 
 	// </editor-fold>
+
 	@Override
 	public boolean isRunning() {
 		return (graphDb != null);

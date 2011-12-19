@@ -113,6 +113,7 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import org.structr.common.UuidCreationTransformation;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -167,10 +168,12 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		EntityContext.registerPropertyConverter(AbstractNode.class, Key.lastModifiedDate, LongDateConverter.class);
 		EntityContext.registerPropertyConverter(AbstractNode.class, Key.createdDate, LongDateConverter.class);
 		EntityContext.registerPropertyConverter(AbstractNode.class, Key.ownerId, NodeIdNodeConverter.class);
-
 		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.fulltext.name(), Key.values());
 		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.keyword.name(), Key.values());
 		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.uuid.name(), Key.uuid);
+
+		// register transformation for automatic uuid creation
+		EntityContext.registerPostCreationTransformation(AbstractNode.class, new UuidCreationTransformation());
 
 	}
 
@@ -210,8 +213,8 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 	public static enum Key implements PropertyKey {
 
-		uuid, name, type, nodeId, createdBy, createdDate, deleted, hidden, lastModifiedDate, position, visibleToPublicUsers, title, titles,
-		visibilityEndDate, visibilityStartDate, visibleToAuthenticatedUsers, templateId, categories, ownerId, owner;
+		uuid, name, type, nodeId, createdBy, createdDate, deleted, hidden, lastModifiedDate, position, visibleToPublicUsers, title, titles, visibilityEndDate, visibilityStartDate,
+		visibleToAuthenticatedUsers, templateId, categories, ownerId, owner;
 	}
 
 	//~--- constructors ---------------------------------------------------
@@ -424,8 +427,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 		logger.log(Level.FINE, "Got renderer {0} for mode {1}, node type {2} ({3})", new Object[] { (nodeRenderer != null)
 			? nodeRenderer.getClass().getName()
-			: "Unknown", renderMode, this.getType(),
-			this.getId() });
+			: "Unknown", renderMode, this.getType(), this.getId() });
 
 		if (nodeRenderer != null) {
 
@@ -475,8 +477,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	public void renderEditFrame(StructrOutputStream out, final String editUrl) {
 
 		// create IFRAME with given URL
-		out.append("<iframe style=\"border: 1px solid #ccc; background-color: #fff\" src=\"").append(editUrl).append(
-		    "\" width=\"100%\" height=\"100%\"").append("></iframe>");
+		out.append("<iframe style=\"border: 1px solid #ccc; background-color: #fff\" src=\"").append(editUrl).append("\" width=\"100%\" height=\"100%\"").append("></iframe>");
 	}
 
 	/**
@@ -883,8 +884,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * @param editUrl
 	 * @param editNodeId
 	 */
-	public void replaceBySubnodes(HttpServletRequest request, StringBuilder content, final AbstractNode startNode, final String editUrl,
-				      final Long editNodeId) {
+	public void replaceBySubnodes(HttpServletRequest request, StringBuilder content, final AbstractNode startNode, final String editUrl, final Long editNodeId) {
 
 		List<AbstractNode> subnodes               = null;
 		List<AbstractNode> subnodesAndLinkedNodes = null;
@@ -920,8 +920,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 			if (end < 0) {
 
-				logger.log(Level.WARNING, "Node key suffix {0} not found in template {1}",
-					   new Object[] { NODE_KEY_SUFFIX, template.getName() });
+				logger.log(Level.WARNING, "Node key suffix {0} not found in template {1}", new Object[] { NODE_KEY_SUFFIX, template.getName() });
 
 				break;
 
@@ -1096,8 +1095,8 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * @param depth
 	 * @param maxDepth
 	 */
-	private void collectRelatedNodes(Set<AbstractNode> nodes, Set<StructrRelationship> rels, Set<AbstractNode> visitedNodes, AbstractNode currentNode,
-					 int depth, int maxDepth, int maxNum, RelationshipType... relTypes) {
+	private void collectRelatedNodes(Set<AbstractNode> nodes, Set<StructrRelationship> rels, Set<AbstractNode> visitedNodes, AbstractNode currentNode, int depth, int maxDepth, int maxNum,
+					 RelationshipType... relTypes) {
 
 		if (depth >= maxDepth) {
 
@@ -1181,8 +1180,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		return "get".concat(name.substring(0, 1).toUpperCase()).concat(name.substring(1));
 	}
 
-	public void replaceByFreeMarker(HttpServletRequest request, final String templateString, Writer out, final AbstractNode startNode,
-					final String editUrl, final Long editNodeId) {
+	public void replaceByFreeMarker(HttpServletRequest request, final String templateString, Writer out, final AbstractNode startNode, final String editUrl, final Long editNodeId) {
 
 		Configuration cfg = new Configuration();
 
@@ -1341,11 +1339,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	}
 
 	@Override
-	public boolean delete() {
-
+	public void delete(SecurityContext securityContext) {
 		dbNode.delete();
-
-		return true;
+		// EntityContext.getGlobalModificationListener().graphObjectDeleted(securityContext, this);
 	}
 
 	/**
@@ -1649,8 +1645,8 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 					try {
 
-						Date date = DateUtils.parseDate(((String) propertyValue), new String[] { "yyyy-MM-dd'T'HH:mm:ssZ",
-							"yyyy-MM-dd'T'HH:mm:ss", "yyyymmdd", "yyyymm", "yyyy" });
+						Date date = DateUtils.parseDate(((String) propertyValue), new String[] { "yyyy-MM-dd'T'HH:mm:ssZ", "yyyy-MM-dd'T'HH:mm:ss", "yyyymmdd", "yyyymm",
+							"yyyy" });
 
 						return date;
 
@@ -1853,16 +1849,20 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	@Override
 	public Object getProperty(final String key) {
 
-		Object value        = null;
-		Class type          = this.getClass();
+		Object value = null;
+		Class type   = this.getClass();
 
 		// ----- BEGIN property group resolution -----
 		PropertyGroup propertyGroup = EntityContext.getPropertyGroup(type, key);
+
 		if (propertyGroup != null) {
+
 			return propertyGroup.getGroupedProperties(this);
+
 		}
+
 		// ----- END property group resolution -----
-		
+
 		// ----- BEGIN automatic property resolution (check for static relationships and return related nodes) -----
 		if (EntityContext.getRelations(type).containsKey(key)) {
 
@@ -1878,8 +1878,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 				case ManyToMany :
 				case OneToMany :
-					return new IterableAdapter(rel.getRelatedNodes(securityContext, this),
-								   notion.getAdapterForGetter(securityContext));
+					return new IterableAdapter(rel.getRelatedNodes(securityContext, this), notion.getAdapterForGetter(securityContext));
 
 				case OneToOne :
 				case ManyToOne :
@@ -3395,6 +3394,11 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		return null;
 	}
 
+	@Override
+	public Long getOtherNodeId(final AbstractNode node) {
+		return null;
+	}
+
 	private String getSingularTypeName(String key) {
 
 		return (key.endsWith("ies")
@@ -3811,8 +3815,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		}
 
 		// check for read-only properties
-		if (EntityContext.isReadOnlyProperty(type, key)
-			|| (EntityContext.isWriteOnceProperty(type, key) && (dbNode != null) && dbNode.hasProperty(key))) {
+		if (EntityContext.isReadOnlyProperty(type, key) || (EntityContext.isWriteOnceProperty(type, key) && (dbNode != null) && dbNode.hasProperty(key))) {
 
 			if (readOnlyPropertiesUnlocked) {
 
@@ -3837,13 +3840,15 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 			return;
 
 		}
+
 		// ----- END property group resolution -----
-		
+
 		// check for static relationships and connect node
 		if (EntityContext.getRelations(type).containsKey(key)) {
 
 			// static relationship detected, create relationship
 			DirectedRelationship rel = EntityContext.getRelations(type).get(key);
+
 			if (rel != null) {
 
 				try {
@@ -3910,13 +3915,13 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		} else {
 
 			// Commit value directly to database
-			Object oldValue = getProperty(key);
+			final Object oldValue = getProperty(key);
+			final AbstractNode thisNode = this;
 
 			// don't make any changes if
 			// - old and new value both are null
 			// - old and new value are not null but equal
-			if (((convertedValue == null) && (oldValue == null))
-				|| ((convertedValue != null) && (oldValue != null) && convertedValue.equals(oldValue))) {
+			if (((convertedValue == null) && (oldValue == null)) || ((convertedValue != null) && (oldValue != null) && convertedValue.equals(oldValue))) {
 
 				return;
 
@@ -3927,17 +3932,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 				@Override
 				public Object execute() throws Throwable {
 
-					// Semaphore semaphore = EntityContext.getSemaphoreForTypeAndProperty(type.getSimpleName(), key);
 					try {
-
-						/*
-						 * // obtain semaphore and acquire lock if semaphore exists
-						 * if(semaphore != null) {
-						 *       try { semaphore.acquire(); } catch(InterruptedException iex) { iex.printStackTrace(); }
-						 *       logger.log(Level.INFO, "Entering critical section for type {0} key {1} from thread {2}",
-						 *           new Object[] { type.getSimpleName(), key, Thread.currentThread() } );
-						 * }
-						 */
 
 						// save space
 						if (convertedValue == null) {
@@ -3949,7 +3944,6 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 							// Setting last modified date explicetely is not allowed
 							if (!key.equals(Key.lastModifiedDate.name())) {
 
-								// ##### synchronize this #####
 								if (convertedValue instanceof Date) {
 
 									dbNode.setProperty(key, ((Date) convertedValue).getTime());
@@ -3963,7 +3957,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 								}
 
-								// ##### until here #####
+								// notify listeners here
+								// EntityContext.getGlobalModificationListener().propertyModified(securityContext, thisNode, key, oldValue, convertedValue);
+
 							} else {
 
 								logger.log(Level.FINE, "Tried to set lastModifiedDate explicitely (action was denied)");
@@ -3979,16 +3975,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 							Services.command(securityContext, IndexNodeCommand.class).execute(getId(), key);
 
 						}
+						
 					} finally {
 
-						/*
-						 * // release lock if semaphore exists
-						 * if(semaphore != null) {
-						 *       semaphore.release();
-						 *       logger.log(Level.INFO, "Exiting critical section for type {0} key {1} from thread {2}",
-						 *           new Object[] { type.getSimpleName(), key, Thread.currentThread() } );
-						 * }
-						 */
 					}
 
 					return null;
@@ -4033,8 +4022,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	private class DefaultRenderer implements NodeRenderer<AbstractNode> {
 
 		@Override
-		public void renderNode(StructrOutputStream out, AbstractNode currentNode, AbstractNode startNode, String editUrl, Long editNodeId,
-				       RenderMode renderMode) {
+		public void renderNode(StructrOutputStream out, AbstractNode currentNode, AbstractNode startNode, String editUrl, Long editNodeId, RenderMode renderMode) {
 
 			SecurityContext securityContext = out.getSecurityContext();
 

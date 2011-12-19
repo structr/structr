@@ -112,6 +112,8 @@ public class CreateNodeCommand extends NodeServiceCommand {
 			node = nodeFactory.createNode(securityContext, graphDb.createNode(), nodeType);
 			logger.log(Level.FINE, "Node {0} created", node.getId());
 
+//			EntityContext.getGlobalModificationListener().newNode(securityContext, node.getId());
+
 			ErrorBuffer errorBuffer = new ErrorBuffer();
 			for(Entry<String, Object> attr : attrs.entrySet()) {
 
@@ -172,6 +174,10 @@ public class CreateNodeCommand extends NodeServiceCommand {
 			for(Transformation<AbstractNode> transformation : EntityContext.getPostCreationTransformations(node.getClass())) {
 				transformation.apply(securityContext, node);
 			}
+
+			// allow modification listener to examine creation
+//			EntityContext.getGlobalModificationListener().graphObjectCreated(securityContext, node);
+
 		}
 
 		return node;

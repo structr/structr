@@ -41,7 +41,7 @@ import org.structr.core.node.StructrNodeFactory;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 import org.structr.rest.RestMethodResult;
-import org.structr.rest.VetoableGraphObjectListener;
+import org.structr.core.VetoableGraphObjectListener;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.exception.PathException;
@@ -192,7 +192,7 @@ public class RelationshipFollowingConstraint extends SortableConstraint implemen
 	}
 
 	@Override
-	public List<GraphObject> doGet(List<VetoableGraphObjectListener> listeners) throws PathException {
+	public List<GraphObject> doGet() throws PathException {
 
 		Path path = getValidatedPath();
 
@@ -210,7 +210,7 @@ public class RelationshipFollowingConstraint extends SortableConstraint implemen
 
 			}
 
-			return lastConstraint.doGet(listeners);
+			return lastConstraint.doGet();
 
 		} else {
 
@@ -222,7 +222,7 @@ public class RelationshipFollowingConstraint extends SortableConstraint implemen
 	}
 
 	@Override
-	public RestMethodResult doDelete(List<VetoableGraphObjectListener> listeners) throws Throwable {
+	public RestMethodResult doDelete() throws Throwable {
 
 		Path path = getValidatedPath();
 		if (path != null) {
@@ -266,13 +266,13 @@ public class RelationshipFollowingConstraint extends SortableConstraint implemen
 										
 										case INCOMING:
 											if (rel.getStartNodeId().equals(endNode.getId()) && rel.getEndNodeId().equals(startNode.getId())) {
-												rel.delete();
+												rel.delete(securityContext);
 											}
 											break;
 											
 										case OUTGOING:
 											if (rel.getStartNodeId().equals(startNode.getId()) && rel.getEndNodeId().equals(endNode.getId())) {
-												rel.delete();
+												rel.delete(securityContext);
 											}
 											break;
 									}
@@ -298,7 +298,7 @@ public class RelationshipFollowingConstraint extends SortableConstraint implemen
 	}
 
 	@Override
-	public RestMethodResult doPost(Map<String, Object> propertySet, List<VetoableGraphObjectListener> listeners) throws Throwable {
+	public RestMethodResult doPost(Map<String, Object> propertySet) throws Throwable {
 
 		Path path = getValidatedPath();
 
@@ -316,7 +316,7 @@ public class RelationshipFollowingConstraint extends SortableConstraint implemen
 
 			}
 
-			return lastConstraint.doPost(propertySet, listeners);
+			return lastConstraint.doPost(propertySet);
 
 		}
 

@@ -32,7 +32,6 @@ import org.structr.core.entity.StructrRelationship;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 import org.structr.rest.RestMethodResult;
-import org.structr.rest.VetoableGraphObjectListener;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NoResultsException;
 import org.structr.rest.exception.NotAllowedException;
@@ -73,9 +72,9 @@ public class StaticRelationshipConstraint extends SortableConstraint {
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public List<? extends GraphObject> doGet(final List<VetoableGraphObjectListener> listeners) throws PathException {
+	public List<? extends GraphObject> doGet() throws PathException {
 
-		List<GraphObject> results = typedIdConstraint.doGet(listeners);
+		List<GraphObject> results = typedIdConstraint.doGet();
 		if (results != null) {
 
 			// get source and target type from previous constraints
@@ -106,9 +105,9 @@ public class StaticRelationshipConstraint extends SortableConstraint {
 	}
 
 	@Override
-	public RestMethodResult doDelete(List<VetoableGraphObjectListener> listeners) throws Throwable {
+	public RestMethodResult doDelete() throws Throwable {
 
-		List<GraphObject> results = typedIdConstraint.doGet(listeners);
+		List<GraphObject> results = typedIdConstraint.doGet();
 
 		if (results != null) {
 
@@ -132,9 +131,7 @@ public class StaticRelationshipConstraint extends SortableConstraint {
 						public Object execute() throws Throwable {
 
 							for (StructrRelationship rel : rels) {
-
-								rel.delete();
-
+								rel.delete(securityContext);
 							}
 
 							return null;
@@ -143,6 +140,11 @@ public class StaticRelationshipConstraint extends SortableConstraint {
 
 					// execute transaction
 					Services.command(securityContext, TransactionCommand.class).execute(transaction);
+
+					// re-throw exception that may occur during transaction
+					if(transaction.getCause() != null) {
+						throw transaction.getCause();
+					}
 
 				}
 
@@ -153,7 +155,7 @@ public class StaticRelationshipConstraint extends SortableConstraint {
 	}
 
 	@Override
-	public RestMethodResult doPost(final Map<String, Object> propertySet, final List<VetoableGraphObjectListener> listeners) throws Throwable {
+	public RestMethodResult doPost(final Map<String, Object> propertySet) throws Throwable {
 
 		if ((securityContext != null) && (securityContext.getUser() != null)) {
 
@@ -164,7 +166,7 @@ public class StaticRelationshipConstraint extends SortableConstraint {
 				public Object execute() throws Throwable {
 
 					AbstractNode sourceNode  = typedIdConstraint.getIdConstraint().getNode();
-					AbstractNode newNode     = typeConstraint.createNode(listeners, propertySet);
+					AbstractNode newNode     = typeConstraint.createNode(propertySet);
 					DirectedRelationship rel = EntityContext.getRelation(sourceNode.getClass(), typeConstraint.getRawType());
 
 					// we try the property name first, then the node type as a fallback
@@ -175,15 +177,6 @@ public class StaticRelationshipConstraint extends SortableConstraint {
 					if ((sourceNode != null) && (newNode != null) && (rel != null)) {
 
 						rel.createRelationship(securityContext, sourceNode, newNode);
-
-						ErrorBuffer errorBuffer = new ErrorBuffer();
-
-						if (!validAfterCreation(listeners, newNode, errorBuffer)) {
-
-							throw new IllegalArgumentException(errorBuffer.toString());
-
-						}
-
 						return newNode;
 
 					} else {
@@ -203,22 +196,20 @@ public class StaticRelationshipConstraint extends SortableConstraint {
 
 			// execute transaction: create new node
 			AbstractNode newNode = (AbstractNode) Services.command(securityContext, TransactionCommand.class).execute(transaction);
-
 			if (newNode == null) {
 
 				// re-throw transaction exception cause
 				if (transaction.getCause() != null) {
-
 					throw transaction.getCause();
 
 				}
 			}
 
 			RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_CREATED);
-
 			result.addHeader("Location", buildLocationHeader(newNode));
 
 			return result;
+
 		} else {
 
 			throw new NotAllowedException();

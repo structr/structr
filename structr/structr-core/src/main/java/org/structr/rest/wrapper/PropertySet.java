@@ -19,9 +19,12 @@
 
 package org.structr.rest.wrapper;
 
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import org.structr.core.node.NodeAttribute;
+import org.structr.rest.servlet.JsonRestServlet;
 
 /**
  * Wrapper class for JSON input via {@see JsonRestServlet}.
@@ -36,10 +39,10 @@ public class PropertySet {
 		FlatNameValue			// { "name" : "Test" }
 	}
 
-	private List<NodeAttribute> attributes = null;
+	private Map<String, NodeAttribute> attributes = null;
 
 	public PropertySet() {
-		this.attributes = new LinkedList<NodeAttribute>();
+		this.attributes = new LinkedHashMap<String, NodeAttribute>();
 	}
 
 	/**
@@ -62,7 +65,7 @@ public class PropertySet {
 	 */
 	public void add(String key, Object value, String type) {
 
-		attributes.add(new NodeAttribute(key, value));
+		attributes.put(key, new NodeAttribute(key, value));
 	}
 
 	/**
@@ -71,7 +74,7 @@ public class PropertySet {
 	 * @return the list of attributes
 	 */
 	public List<NodeAttribute> getAttributes() {
-		return attributes;
+		return new LinkedList<NodeAttribute>(attributes.values());
 	}
 
 	@Override
@@ -79,11 +82,33 @@ public class PropertySet {
 
 		StringBuilder builder = new StringBuilder();
 
-		for(NodeAttribute attr : attributes) {
+		for(NodeAttribute attr : attributes.values()) {
 
 			builder.append(attr.getKey()).append(" = '").append(attr.getValue()).append("', ");
 		}
 
 		return builder.toString();
+	}
+
+	public Object get(String key) {
+		
+		NodeAttribute attr = attributes.get(key);
+		if(attr != null) {
+			return attr.getValue();
+		}
+
+		return null;
+	}
+
+	public boolean containsKey(String key) {
+		return attributes.containsKey(key);
+	}
+
+	public void remove(String key) {
+		attributes.remove(key);
+	}
+
+	public void put(String key, Object value) {
+		add(key, value);
 	}
 }

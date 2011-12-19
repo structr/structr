@@ -58,6 +58,11 @@
             <version>${structr.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.structr</groupId>
+            <artifactId>structr-web</artifactId>
+            <version>0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>3.8.1</version>

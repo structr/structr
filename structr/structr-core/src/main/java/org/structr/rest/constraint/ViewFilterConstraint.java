@@ -26,7 +26,7 @@ import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Value;
 import org.structr.rest.RestMethodResult;
-import org.structr.rest.VetoableGraphObjectListener;
+import org.structr.core.VetoableGraphObjectListener;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.PathException;
 
@@ -56,18 +56,18 @@ public class ViewFilterConstraint extends WrappingConstraint {
 	}
 
 	@Override
-	public List<? extends GraphObject> doGet(List<VetoableGraphObjectListener> listeners) throws PathException {
+	public List<? extends GraphObject> doGet() throws PathException {
 		if(wrappedConstraint != null) {
-			return wrappedConstraint.doGet(listeners);
+			return wrappedConstraint.doGet();
 		}
 
 		throw new IllegalPathException();
 	}
 
 	@Override
-	public RestMethodResult doPost(Map<String, Object> propertySet, List<VetoableGraphObjectListener> listeners) throws Throwable {
+	public RestMethodResult doPost(Map<String, Object> propertySet) throws Throwable {
 		if(wrappedConstraint != null) {
-			return wrappedConstraint.doPost(propertySet, listeners);
+			return wrappedConstraint.doPost(propertySet);
 		}
 
 		throw new IllegalPathException();
