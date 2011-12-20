@@ -53,6 +53,7 @@ import org.structr.common.RequestHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.StructrOutputStream;
 import org.structr.common.TemplateHelper;
+import org.structr.common.UuidCreationTransformation;
 import org.structr.common.renderer.DefaultEditRenderer;
 import org.structr.common.renderer.RenderContext;
 import org.structr.common.renderer.RenderController;
@@ -113,7 +114,6 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import org.structr.common.UuidCreationTransformation;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -1340,7 +1340,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 	@Override
 	public void delete(SecurityContext securityContext) {
+
 		dbNode.delete();
+
 		// EntityContext.getGlobalModificationListener().graphObjectDeleted(securityContext, this);
 	}
 
@@ -1862,7 +1864,6 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		}
 
 		// ----- END property group resolution -----
-
 		// ----- BEGIN automatic property resolution (check for static relationships and return related nodes) -----
 		if (EntityContext.getRelations(type).containsKey(key)) {
 
@@ -3842,7 +3843,6 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		}
 
 		// ----- END property group resolution -----
-
 		// check for static relationships and connect node
 		if (EntityContext.getRelations(type).containsKey(key)) {
 
@@ -3854,6 +3854,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 				try {
 
 					GraphObject graphObject = rel.getNotion().getAdapterForSetter(securityContext).adapt(value);
+
 					rel.createRelationship(securityContext, this, graphObject);
 
 					return;
@@ -3889,6 +3890,17 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 		}
 
+		final Object oldValue       = getProperty(key);
+
+		// don't make any changes if
+		// - old and new value both are null
+		// - old and new value are not null but equal
+		if (((convertedValue == null) && (oldValue == null)) || ((convertedValue != null) && (oldValue != null) && convertedValue.equals(oldValue))) {
+
+			return;
+
+		}
+
 		// look for validator
 		PropertyValidator validator = EntityContext.getPropertyValidator(securityContext, type, key);
 
@@ -3915,18 +3927,6 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		} else {
 
 			// Commit value directly to database
-			final Object oldValue = getProperty(key);
-			final AbstractNode thisNode = this;
-
-			// don't make any changes if
-			// - old and new value both are null
-			// - old and new value are not null but equal
-			if (((convertedValue == null) && (oldValue == null)) || ((convertedValue != null) && (oldValue != null) && convertedValue.equals(oldValue))) {
-
-				return;
-
-			}
-
 			StructrTransaction transaction = new StructrTransaction() {
 
 				@Override
@@ -3969,16 +3969,13 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 						// Don't automatically update index
 						// TODO: Implement something really fast to keep the index automatically in sync
-//						if (updateIndex && dbNode.hasProperty(key)) {
+//                                              if (updateIndex && dbNode.hasProperty(key)) {
 						if (updateIndex) {
 
 							Services.command(securityContext, IndexNodeCommand.class).execute(getId(), key);
 
 						}
-						
-					} finally {
-
-					}
+					} finally {}
 
 					return null;
 				}
