@@ -32,8 +32,10 @@ import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 
 import org.structr.common.PropertyView;
+import org.structr.common.TreeNode;
 import org.structr.core.GraphObject;
 import org.structr.core.Value;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.validator.GenericValue;
 import org.structr.rest.adapter.GraphObjectGSONAdapter;
 import org.structr.rest.wrapper.PropertySet.PropertyFormat;
@@ -239,7 +241,30 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 		}
 
+		// serialize result tree
+		if (src.getResultTree() != null) {
+
+			TreeNode node  = src.getResultTree();
+
+			root.add("root", buildTree(node, context));
+
+		}
+
 		return root;
+	}
+
+	private JsonObject buildTree(TreeNode node, JsonSerializationContext context) {
+
+		AbstractNode data    = node.getData();
+		JsonObject jsonChild = new JsonObject();
+		if (data != null) jsonChild = graphObjectSerializer.serialize(data, GraphObject.class, context).getAsJsonObject();
+
+		for (TreeNode childNode : node.getChildren()) {
+			AbstractNode childData = childNode.getData();
+			jsonChild.add(childData.getStringProperty(AbstractNode.Key.uuid), buildTree(childNode, context));
+		}
+
+		return jsonChild;
 	}
 
 	@Override

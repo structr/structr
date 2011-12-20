@@ -105,6 +105,9 @@ function connect() {
                     Structr.login('Session invalid');
                 }
 
+            } else if (command == 'TREE') {
+                console.log(data);
+
             } else if (command == 'CREATE') {
 				
                 $(result).each(function(i, entity) {
@@ -160,13 +163,17 @@ function connect() {
                     } else if (entity.type == 'Resource') {
                         //console.log(entity);
                         var resourceElement = Resources.appendResourceElement(entity);
-                        var elements = entity.elements;
-                        if (elements && elements.length > 0) {
-                            disable($('.delete_icon', resourceElement)[0]);
-                            $(elements).each(function(i, element) {
-                                Resources.appendElementElement(element, entity.id);
-                            });
-                        }
+
+                        Resources.renderTree(entity.id);
+
+
+//                        var elements = entity.elements;
+//                        if (elements && elements.length > 0) {
+//                            disable($('.delete_icon', resourceElement)[0]);
+//                            $(elements).each(function(i, element) {
+//                                Resources.appendElementElement(element, entity.id);
+//                            });
+//                        }
 
 
                     } else if (entity.type == 'Element') {

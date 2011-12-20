@@ -64,6 +64,12 @@ var Resources = {
         }
     },
 
+    renderTree : function(resourceId) {
+        console.log('renderTree(' + resourceId + ')');
+        var data = '{ "command" : "TREE", "id" : "' + resourceId + '" }';
+        return send(data);
+    },
+
     show : function() {
         return Entities.showEntities('Resource');
 

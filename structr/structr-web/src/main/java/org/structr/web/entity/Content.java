@@ -24,10 +24,10 @@ package org.structr.web.entity;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
+import org.structr.common.RelType;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.DirectedRelationship.Cardinality;
-import org.structr.web.common.RelType;
 
 //~--- classes ----------------------------------------------------------------
 

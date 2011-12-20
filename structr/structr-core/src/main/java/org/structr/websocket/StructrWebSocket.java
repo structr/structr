@@ -60,6 +60,7 @@ import javax.servlet.ServletConfig;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.websocket.command.AddCommand;
 import org.structr.websocket.command.RemoveCommand;
+import org.structr.websocket.command.TreeCommand;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -88,6 +89,7 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 		addCommand(ListCommand.class);
 		addCommand(GetCommand.class);
 		addCommand(AddCommand.class);
+		addCommand(TreeCommand.class);
 	}
 
 	//~--- fields ---------------------------------------------------------

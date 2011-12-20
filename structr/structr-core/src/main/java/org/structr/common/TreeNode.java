@@ -19,41 +19,61 @@
 
 
 
-package org.structr.web.entity;
+package org.structr.common;
 
-import org.neo4j.graphdb.Direction;
-import org.structr.common.PropertyKey;
-import org.structr.common.PropertyView;
-import org.structr.common.RelType;
-import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.DirectedRelationship.Cardinality;
+
+//~--- JDK imports ------------------------------------------------------------
+
+import java.util.LinkedList;
+import java.util.List;
 
 //~--- classes ----------------------------------------------------------------
 
 /**
- * Represents an arbitrary element
  *
  * @author axel
  */
-public class Resource extends AbstractNode {
+public class TreeNode {
 
-	public enum Key implements PropertyKey {
-		name, tag, elements
+	private List<TreeNode> children = new LinkedList<TreeNode>();
+	private AbstractNode data       = null;
+	private int depth               = -1;
+	private TreeNode parent         = null;
+
+	//~--- constructors ---------------------------------------------------
+
+	public TreeNode(TreeNode parent, AbstractNode data) {
+
+		this.parent = parent;
+		this.data   = data;
 	}
 
-	static {
+	//~--- methods --------------------------------------------------------
 
-		EntityContext.registerPropertySet(Resource.class,	PropertyView.All,		Key.values());
-		EntityContext.registerPropertySet(Resource.class,	PropertyView.Public,		Key.values());
+	public void addChild(TreeNode treeNode) {
+		children.add(treeNode);
+	}
 
-		EntityContext.registerRelation(Resource.class,	Key.elements,	Element.class,	RelType.CONTAINS,	Direction.OUTGOING, Cardinality.ManyToMany);
+	public int depth() {
+		return depth;
+	}
+
+	public void depth(final int depth) {
+		this.depth = depth;
 	}
 
 	//~--- get methods ----------------------------------------------------
 
-	@Override
-	public String getIconSrc() {
-		return "";
+	public AbstractNode getData() {
+		return data;
+	}
+
+	public TreeNode getParent() {
+		return parent;
+	}
+
+	public List<TreeNode> getChildren() {
+		return children;
 	}
 }
