@@ -781,7 +781,7 @@ public class JsonRestServlet extends HttpServlet {
 
 		}
 
-		logger.log(Level.INFO, "########## Final constraint chain {0}", chain.toString());
+		logger.log(Level.FINE, "Final constraint chain {0}", chain.toString());
 
 		if (constraintChain.size() == 1) {
 
