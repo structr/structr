@@ -26,7 +26,6 @@ import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Value;
 import org.structr.rest.RestMethodResult;
-import org.structr.core.VetoableGraphObjectListener;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.PathException;
 
@@ -81,11 +80,6 @@ public class ViewFilterConstraint extends WrappingConstraint {
 	@Override
 	public RestMethodResult doOptions() throws Throwable {
 		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
-	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws PathException {
-		return null;
 	}
 
 	@Override
