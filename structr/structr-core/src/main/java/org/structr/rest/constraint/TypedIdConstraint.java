@@ -80,9 +80,9 @@ public class TypedIdConstraint extends FilterableConstraint {
 	public AbstractNode getTypesafeNode() throws PathException {
 		
 		AbstractNode node = idConstraint.getNode();
-		String type = typeConstraint.getType();
+//		String type = typeConstraint.getType();
 
-		logger.log(Level.INFO, "type from TypeConstraint: {0}, type from node: {1}", new Object[] { type, node != null ? node.getType() : "null" } );
+		// logger.log(Level.INFO, "type from TypeConstraint: {0}, type from node: {1}", new Object[] { type, node != null ? node.getType() : "null" } );
 		
 		if(node != null) { //  && type.equalsIgnoreCase(node.getType())) {
 			return node;

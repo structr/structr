@@ -13,7 +13,6 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.structr.common.CaseHelper;
-import org.structr.common.ErrorBuffer;
 import org.structr.common.SecurityContext;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
@@ -27,7 +26,6 @@ import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
 import org.structr.rest.RestMethodResult;
-import org.structr.core.VetoableGraphObjectListener;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NoResultsException;
 import org.structr.rest.exception.NotFoundException;
@@ -147,7 +145,7 @@ public class TypeConstraint extends SortableConstraint {
 
 	public void setType(String type) {
 		
-		this.type = type.toLowerCase();
+		this.type = CaseHelper.toCamelCase(type).toLowerCase();
 		this.rawType = type;
 
 		if(this.type.endsWith("ies")) {
