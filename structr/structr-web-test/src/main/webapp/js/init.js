@@ -42,6 +42,7 @@ $(document).ready(function() {
     if (debug) console.log('Debug mode');
 	
     main = $('#main');
+	main.height($(window.document).height() - $('#header').height() - 12);
     $('#import_json').on('click', function() {
         var jsonArray = $.parseJSON($('#json_input').val());
         $(jsonArray).each(function(i, json) {
