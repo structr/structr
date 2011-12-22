@@ -23,13 +23,17 @@ package org.structr.web.servlet;
 
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
+import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.traversal.Evaluation;
 import org.neo4j.graphdb.traversal.Evaluator;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.kernel.Traversal;
 import org.neo4j.kernel.Uniqueness;
 
+import org.structr.common.RelType;
+import org.structr.common.ResourceExpander;
 import org.structr.common.SecurityContext;
+import org.structr.common.TreeNode;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -65,9 +69,6 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.structr.common.RelType;
-import org.structr.common.ResourceExpander;
-import org.structr.common.TreeNode;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -459,7 +460,7 @@ public class HtmlServlet extends HttpServlet {
 
 		TraversalDescription localDesc   = desc.expand(new ResourceExpander(resource.getStringProperty(AbstractNode.Key.uuid.name())));
 		final StructrNodeFactory factory = new StructrNodeFactory(securityContext);
-		final TreeNode root       = new TreeNode(null, null);
+		final TreeNode root              = new TreeNode(null);
 
 		localDesc = localDesc.evaluator(new Evaluator() {
 
@@ -471,46 +472,64 @@ public class HtmlServlet extends HttpServlet {
 				int nodeDepth        = path.length();
 				int currentTreeDepth = currentNode.depth();
 
-				System.out.println();
-				System.out.println("Node depth: " + nodeDepth);
-				System.out.println("Current tree depth: " + currentTreeDepth);
-				System.out.println(node.getProperty("name") + ": " + node.getProperty("type") + "[" + node.getProperty("uuid") + "]");
+				if (node.hasProperty(AbstractNode.Key.type.name())) {
 
-				try {
+					String type          = (String) node.getProperty(AbstractNode.Key.type.name());
+					TreeNode newTreeNode = new TreeNode(factory.createNode(securityContext, node, type));
+					Relationship rel     = path.lastRelationship();
 
-					if (node.hasProperty(AbstractNode.Key.type.name())) {
+					if (rel != null) {
 
-						String type = (String) node.getProperty(AbstractNode.Key.type.name());
-						TreeNode newTreeNode = new TreeNode(currentNode, factory.createNode(securityContext, node, type));
+						AbstractNode parentNode = factory.createNode(securityContext, rel.getStartNode());
+						TreeNode parentTreeNode = root.getNode(parentNode);
+
+						if (parentTreeNode == null) {
+
+							parentTreeNode = new TreeNode(parentNode);
+
+						}
+
+						logger.log(Level.FINE, "New tree node: {0} --> {1}", new Object[] { newTreeNode.getData().getName(), ((parentTreeNode.getData() != null)
+							? parentTreeNode.getData().getName()
+							: "<no data>") });
+						newTreeNode.setParent(parentTreeNode);
 
 						if (nodeDepth > currentTreeDepth) {
 
 							currentNode.addChild(newTreeNode);
+							logger.log(Level.FINE, "Level down; {0} --> {1}", new Object[] { newTreeNode.getData().getName(), currentNode.getData().getName() });
+
 							currentNode = newTreeNode;
 
 						} else if (nodeDepth < currentTreeDepth) {
-							
-							currentNode.getParent().getParent().addChild(newTreeNode);
+
+							newTreeNode.setParent(parentTreeNode);
+							logger.log(Level.FINE, "Level up; {1} --> {0}", new Object[] { ((parentTreeNode.getData() != null)
+								? parentTreeNode.getData().getName()
+								: "<no data>"), currentNode.getData().getName() });
+
 							currentNode = newTreeNode;
 
-						} else {
-							
-							currentNode.getParent().addChild(newTreeNode);
 						}
 
-						newTreeNode.depth(nodeDepth);
+					} else {
 
-						return Evaluation.INCLUDE_AND_CONTINUE;
+						root.addChild(newTreeNode);
+						logger.log(Level.FINE, "Added {0} to root", newTreeNode);
+
+						currentNode = newTreeNode;
 
 					}
 
-				} catch (Throwable t) {
+					newTreeNode.depth(nodeDepth);
 
-					// fail fast, no check
-					logger.log(Level.SEVERE, "While evaluating path " + path, t);
+					return Evaluation.INCLUDE_AND_CONTINUE;
+
+				} else {
+
+					return Evaluation.EXCLUDE_AND_CONTINUE;
+
 				}
-
-				return Evaluation.EXCLUDE_AND_CONTINUE;
 			}
 
 		});
@@ -529,129 +548,128 @@ public class HtmlServlet extends HttpServlet {
 		return buffer.toString();
 	}
 
-	//~--- inner classes --------------------------------------------------
 //
-//	private static class ContentTreeNode {
+//      private static class ContentTreeNode {
 //
-//		private List<ContentTreeNode> children = new LinkedList<ContentTreeNode>();
-//		private AbstractNode data              = null;
-//		private int depth                      = -1;
-//		private ContentTreeNode parent         = null;
+//              private List<ContentTreeNode> children = new LinkedList<ContentTreeNode>();
+//              private AbstractNode data              = null;
+//              private int depth                      = -1;
+//              private ContentTreeNode parent         = null;
 //
-//		//~--- constructors -------------------------------------------
+//              //~--- constructors -------------------------------------------
 //
-//		public ContentTreeNode(ContentTreeNode parent, AbstractNode data) {
+//              public ContentTreeNode(ContentTreeNode parent, AbstractNode data) {
 //
-//			this.parent = parent;
-//			this.data   = data;
-//		}
+//                      this.parent = parent;
+//                      this.data   = data;
+//              }
 //
-//		//~--- methods ------------------------------------------------
+//              //~--- methods ------------------------------------------------
 //
-//		public void addChild(ContentTreeNode treeNode) {
-//			children.add(treeNode);
-//		}
+//              public void addChild(ContentTreeNode treeNode) {
+//                      children.add(treeNode);
+//              }
 //
-//		public int depth() {
-//			return depth;
-//		}
+//              public int depth() {
+//                      return depth;
+//              }
 //
-//		public void depth(final int depth) {
-//			this.depth = depth;
-//		}
+//              public void depth(final int depth) {
+//                      this.depth = depth;
+//              }
 //
-//		//~--- get methods --------------------------------------------
+//              //~--- get methods --------------------------------------------
 //
-//		public AbstractNode getData() {
-//			return data;
-//		}
+//              public AbstractNode getData() {
+//                      return data;
+//              }
 //
-//		public ContentTreeNode getParent() {
-//			return parent;
-//		}
+//              public ContentTreeNode getParent() {
+//                      return parent;
+//              }
 //
-//		public List<ContentTreeNode> getChildren() {
-//			return children;
-//		}
-//	}
+//              public List<ContentTreeNode> getChildren() {
+//                      return children;
+//              }
+//      }
 //
 //
-//	private static class ResourceExpander implements RelationshipExpander {
+//      private static class ResourceExpander implements RelationshipExpander {
 //
-//		private Direction direction = Direction.OUTGOING;
-//		private String resourceId   = null;
+//              private Direction direction = Direction.OUTGOING;
+//              private String resourceId   = null;
 //
-//		//~--- constructors -------------------------------------------
+//              //~--- constructors -------------------------------------------
 //
-//		public ResourceExpander(final String resourceId) {
-//			this.resourceId = resourceId;
-//		}
+//              public ResourceExpander(final String resourceId) {
+//                      this.resourceId = resourceId;
+//              }
 //
-//		//~--- methods ------------------------------------------------
+//              //~--- methods ------------------------------------------------
 //
-//		@Override
-//		public Iterable<Relationship> expand(Node node) {
+//              @Override
+//              public Iterable<Relationship> expand(Node node) {
 //
-//			/**
-//			 * Expand outgoing relationships of type CONTAINS and check for
-//			 * resourceId property. If property exists, let TreeMap do the
-//			 * sorting for us and return sorted values from map.
-//			 */
-//			Map<Integer, Relationship> sortedRelationshipMap = new TreeMap<Integer, Relationship>();
+//                      /**
+//                       * Expand outgoing relationships of type CONTAINS and check for
+//                       * resourceId property. If property exists, let TreeMap do the
+//                       * sorting for us and return sorted values from map.
+//                       */
+//                      Map<Integer, Relationship> sortedRelationshipMap = new TreeMap<Integer, Relationship>();
 //
-//			for (Relationship rel : node.getRelationships(RelType.CONTAINS, direction)) {
+//                      for (Relationship rel : node.getRelationships(RelType.CONTAINS, direction)) {
 //
-//				try {
+//                              try {
 //
-//					Integer position = null;
+//                                      Integer position = null;
 //
-//					if (rel.hasProperty(resourceId)) {
+//                                      if (rel.hasProperty(resourceId)) {
 //
-//						Object prop = rel.getProperty(resourceId);
+//                                              Object prop = rel.getProperty(resourceId);
 //
-//						if (prop instanceof Integer) {
+//                                              if (prop instanceof Integer) {
 //
-//							position = (Integer) prop;
+//                                                      position = (Integer) prop;
 //
-//						} else if (prop instanceof String) {
+//                                              } else if (prop instanceof String) {
 //
-//							position = Integer.parseInt((String) prop);
+//                                                      position = Integer.parseInt((String) prop);
 //
-//						} else {
+//                                              } else {
 //
-//							throw new java.lang.IllegalArgumentException("Expected Integer or String");
+//                                                      throw new java.lang.IllegalArgumentException("Expected Integer or String");
 //
-//						}
+//                                              }
 //
-//						sortedRelationshipMap.put(position, rel);
+//                                              sortedRelationshipMap.put(position, rel);
 //
-//					}
+//                                      }
 //
-//				} catch (Throwable t) {
+//                              } catch (Throwable t) {
 //
-//					// fail fast, no check
-//					logger.log(Level.SEVERE, "While reading property " + resourceId, t);
-//				}
+//                                      // fail fast, no check
+//                                      logger.log(Level.SEVERE, "While reading property " + resourceId, t);
+//                              }
 //
-//			}
+//                      }
 //
-//			return sortedRelationshipMap.values();
-//		}
+//                      return sortedRelationshipMap.values();
+//              }
 //
-//		@Override
-//		public RelationshipExpander reversed() {
+//              @Override
+//              public RelationshipExpander reversed() {
 //
-//			ResourceExpander reversed = new ResourceExpander(resourceId);
+//                      ResourceExpander reversed = new ResourceExpander(resourceId);
 //
-//			reversed.setDirection(Direction.INCOMING);
+//                      reversed.setDirection(Direction.INCOMING);
 //
-//			return reversed;
-//		}
+//                      return reversed;
+//              }
 //
-//		//~--- set methods --------------------------------------------
+//              //~--- set methods --------------------------------------------
 //
-//		public void setDirection(Direction direction) {
-//			this.direction = direction;
-//		}
-//	}
+//              public void setDirection(Direction direction) {
+//                      this.direction = direction;
+//              }
+//      }
 }

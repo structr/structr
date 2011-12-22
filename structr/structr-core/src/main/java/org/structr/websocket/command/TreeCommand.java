@@ -23,6 +23,7 @@ package org.structr.websocket.command;
 
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
+import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.traversal.Evaluation;
 import org.neo4j.graphdb.traversal.Evaluator;
 import org.neo4j.graphdb.traversal.TraversalDescription;
@@ -61,7 +62,7 @@ public class TreeCommand extends AbstractCommand {
 		TraversalDescription localDesc        =
 			Traversal.description().depthFirst().uniqueness(Uniqueness.NODE_GLOBAL).expand(new ResourceExpander(rootNode.getStringProperty(AbstractNode.Key.uuid.name())));
 		final StructrNodeFactory factory = new StructrNodeFactory(securityContext);
-		final TreeNode root              = new TreeNode(null, null);
+		final TreeNode root              = new TreeNode(null);
 
 		localDesc = localDesc.evaluator(new Evaluator() {
 
@@ -73,49 +74,64 @@ public class TreeCommand extends AbstractCommand {
 				int nodeDepth        = path.length();
 				int currentTreeDepth = currentNode.depth();
 
-				System.out.println();
-				System.out.println("Node depth: " + nodeDepth);
-				System.out.println("Current tree depth: " + currentTreeDepth);
-				System.out.println(node.getProperty("name") + ": " + node.getProperty("type") + "[" + node.getProperty("uuid") + "]");
+				if (node.hasProperty(AbstractNode.Key.type.name())) {
 
-				try {
+					String type          = (String) node.getProperty(AbstractNode.Key.type.name());
+					TreeNode newTreeNode = new TreeNode(factory.createNode(securityContext, node, type));
+					Relationship rel     = path.lastRelationship();
 
-					if (node.hasProperty(AbstractNode.Key.type.name())) {
+					if (rel != null) {
 
-						String type          = (String) node.getProperty(AbstractNode.Key.type.name());
-						TreeNode newTreeNode = new TreeNode(currentNode, factory.createNode(securityContext, node, type));
+						AbstractNode parentNode = factory.createNode(securityContext, rel.getStartNode());
+						TreeNode parentTreeNode = root.getNode(parentNode);
+
+						if (parentTreeNode == null) {
+
+							parentTreeNode = new TreeNode(parentNode);
+
+						}
+
+						logger.log(Level.FINE, "New tree node: {0} --> {1}", new Object[] { newTreeNode.getData().getName(), ((parentTreeNode.getData() != null)
+							? parentTreeNode.getData().getName()
+							: "<no data>") });
+						newTreeNode.setParent(parentTreeNode);
 
 						if (nodeDepth > currentTreeDepth) {
 
 							currentNode.addChild(newTreeNode);
+							logger.log(Level.FINE, "Level down; {0} --> {1}", new Object[] { newTreeNode.getData().getName(), currentNode.getData().getName() });
 
 							currentNode = newTreeNode;
 
 						} else if (nodeDepth < currentTreeDepth) {
 
-							currentNode.getParent().getParent().addChild(newTreeNode);
+							newTreeNode.setParent(parentTreeNode);
+							logger.log(Level.FINE, "Level up; {1} --> {0}", new Object[] { ((parentTreeNode.getData() != null)
+								? parentTreeNode.getData().getName()
+								: "<no data>"), currentNode.getData().getName() });
 
 							currentNode = newTreeNode;
 
-						} else {
-
-							currentNode.getParent().addChild(newTreeNode);
-
 						}
 
-						newTreeNode.depth(nodeDepth);
+					} else {
 
-						return Evaluation.INCLUDE_AND_CONTINUE;
+						root.addChild(newTreeNode);
+						logger.log(Level.FINE, "Added {0} to root", newTreeNode);
+
+						currentNode = newTreeNode;
 
 					}
 
-				} catch (Throwable t) {
+					newTreeNode.depth(nodeDepth);
 
-					// fail fast, no check
-					logger.log(Level.SEVERE, "While evaluating path " + path, t);
+					return Evaluation.INCLUDE_AND_CONTINUE;
+
+				} else {
+
+					return Evaluation.EXCLUDE_AND_CONTINUE;
+
 				}
-
-				return Evaluation.EXCLUDE_AND_CONTINUE;
 			}
 
 		});
@@ -126,13 +142,12 @@ public class TreeCommand extends AbstractCommand {
 			System.out.println(node.getProperty("type") + "[" + node.getProperty("uuid") + "]: " + node.getProperty("name"));
 
 		}
-		
+
 		webSocketData.setResultTree(root);
 
 		// send only over local connection
 		getWebSocket().send(webSocketData, true);
 	}
-
 
 	//~--- get methods ----------------------------------------------------
 

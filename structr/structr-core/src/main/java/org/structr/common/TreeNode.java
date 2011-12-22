@@ -25,8 +25,8 @@ import org.structr.core.entity.AbstractNode;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -36,22 +36,22 @@ import java.util.List;
  */
 public class TreeNode {
 
-	private List<TreeNode> children = new LinkedList<TreeNode>();
-	private AbstractNode data       = null;
-	private int depth               = -1;
-	private TreeNode parent         = null;
+	private Set<TreeNode> children = new LinkedHashSet<TreeNode>();
+	private AbstractNode data      = null;
+	private int depth              = -1;
+	private TreeNode parent        = null;
 
 	//~--- constructors ---------------------------------------------------
 
-	public TreeNode(TreeNode parent, AbstractNode data) {
-
-		this.parent = parent;
-		this.data   = data;
+	public TreeNode(AbstractNode data) {
+		this.data = data;
 	}
 
 	//~--- methods --------------------------------------------------------
 
 	public void addChild(TreeNode treeNode) {
+
+		// treeNode.setParent(this);
 		children.add(treeNode);
 	}
 
@@ -73,7 +73,37 @@ public class TreeNode {
 		return parent;
 	}
 
-	public List<TreeNode> getChildren() {
+	public Set<TreeNode> getChildren() {
 		return children;
+	}
+
+	public TreeNode getNode(final AbstractNode node) {
+
+		for (TreeNode treeNode : getChildren()) {
+
+			AbstractNode data = treeNode.getData();
+
+			if ((data != null) && data.equals(node)) {
+
+				return treeNode;
+
+			} else {
+
+				return treeNode.getNode(node);
+
+			}
+
+		}
+
+		return null;
+	}
+
+	//~--- set methods ----------------------------------------------------
+
+	public void setParent(final TreeNode parent) {
+
+		this.parent = parent;
+
+		parent.addChild(this);
 	}
 }
