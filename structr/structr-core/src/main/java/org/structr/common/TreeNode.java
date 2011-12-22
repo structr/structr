@@ -50,8 +50,6 @@ public class TreeNode {
 	//~--- methods --------------------------------------------------------
 
 	public void addChild(TreeNode treeNode) {
-
-		// treeNode.setParent(this);
 		children.add(treeNode);
 	}
 
@@ -77,33 +75,27 @@ public class TreeNode {
 		return children;
 	}
 
-	public TreeNode getNode(final AbstractNode node) {
+	public TreeNode getNode(final String uuid) {
+
+		if ((data != null) && data.getStringProperty(AbstractNode.Key.uuid).equals(uuid)) {
+
+			return this;
+
+		}
 
 		for (TreeNode treeNode : getChildren()) {
 
-			AbstractNode data = treeNode.getData();
-
-			if ((data != null) && data.equals(node)) {
-
-				return treeNode;
-
-			} else {
-
-				return treeNode.getNode(node);
-
-			}
+			TreeNode found = treeNode.getNode(uuid);
+			if (found != null) return found;
 
 		}
 
 		return null;
 	}
-
+	
 	//~--- set methods ----------------------------------------------------
 
 	public void setParent(final TreeNode parent) {
-
 		this.parent = parent;
-
-		parent.addChild(this);
 	}
 }

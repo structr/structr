@@ -66,13 +66,10 @@ public class TreeCommand extends AbstractCommand {
 
 		localDesc = localDesc.evaluator(new Evaluator() {
 
-			TreeNode currentNode = root;
 			@Override
 			public Evaluation evaluate(Path path) {
 
-				Node node            = path.endNode();
-				int nodeDepth        = path.length();
-				int currentTreeDepth = currentNode.depth();
+				Node node = path.endNode();
 
 				if (node.hasProperty(AbstractNode.Key.type.name())) {
 
@@ -82,48 +79,29 @@ public class TreeCommand extends AbstractCommand {
 
 					if (rel != null) {
 
-						AbstractNode parentNode = factory.createNode(securityContext, rel.getStartNode());
-						TreeNode parentTreeNode = root.getNode(parentNode);
+						Node parentNode         = rel.getStartNode();
+						TreeNode parentTreeNode = root.getNode((String) parentNode.getProperty("uuid"));
 
 						if (parentTreeNode == null) {
 
-							parentTreeNode = new TreeNode(parentNode);
+							root.addChild(newTreeNode);
+							logger.log(Level.FINEST, "New tree node: {0} --> {1}", new Object[] { newTreeNode, root });
+							logger.log(Level.FINE, "New tree node: {0} --> {1}", new Object[] { newTreeNode.getData().getName(), "root" });
 
-						}
+						} else {
 
-						logger.log(Level.FINE, "New tree node: {0} --> {1}", new Object[] { newTreeNode.getData().getName(), ((parentTreeNode.getData() != null)
-							? parentTreeNode.getData().getName()
-							: "<no data>") });
-						newTreeNode.setParent(parentTreeNode);
-
-						if (nodeDepth > currentTreeDepth) {
-
-							currentNode.addChild(newTreeNode);
-							logger.log(Level.FINE, "Level down; {0} --> {1}", new Object[] { newTreeNode.getData().getName(), currentNode.getData().getName() });
-
-							currentNode = newTreeNode;
-
-						} else if (nodeDepth < currentTreeDepth) {
-
-							newTreeNode.setParent(parentTreeNode);
-							logger.log(Level.FINE, "Level up; {1} --> {0}", new Object[] { ((parentTreeNode.getData() != null)
-								? parentTreeNode.getData().getName()
-								: "<no data>"), currentNode.getData().getName() });
-
-							currentNode = newTreeNode;
+							parentTreeNode.addChild(newTreeNode);
+							logger.log(Level.FINEST, "New tree node: {0} --> {1}", new Object[] { newTreeNode, parentTreeNode });
+							logger.log(Level.FINE, "New tree node: {0} --> {1}", new Object[] { newTreeNode.getData().getName(), parentTreeNode.getData().getName() });
 
 						}
 
 					} else {
 
 						root.addChild(newTreeNode);
-						logger.log(Level.FINE, "Added {0} to root", newTreeNode);
-
-						currentNode = newTreeNode;
+						logger.log(Level.INFO, "Added {0} to root", newTreeNode);
 
 					}
-
-					newTreeNode.depth(nodeDepth);
 
 					return Evaluation.INCLUDE_AND_CONTINUE;
 

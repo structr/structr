@@ -259,10 +259,13 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 		JsonObject jsonChild = new JsonObject();
 		if (data != null) jsonChild = graphObjectSerializer.serialize(data, GraphObject.class, context).getAsJsonObject();
 
+		JsonArray array = new JsonArray();
 		for (TreeNode childNode : node.getChildren()) {
-			AbstractNode childData = childNode.getData();
-			jsonChild.add(childData.getStringProperty(AbstractNode.Key.uuid), buildTree(childNode, context));
+//			AbstractNode childData = childNode.getData();
+			array.add(buildTree(childNode, context));
 		}
+		
+		jsonChild.add("children", array);
 
 		return jsonChild;
 	}

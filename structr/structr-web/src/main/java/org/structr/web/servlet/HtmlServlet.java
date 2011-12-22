@@ -417,7 +417,7 @@ public class HtmlServlet extends HttpServlet {
 
 				if (id != null) {
 
-					buffer.append(" id='").append(id).append("'");
+					buffer.append(" structr_id='").append(id).append("'");
 
 				}
 
@@ -464,13 +464,10 @@ public class HtmlServlet extends HttpServlet {
 
 		localDesc = localDesc.evaluator(new Evaluator() {
 
-			TreeNode currentNode = root;
 			@Override
 			public Evaluation evaluate(Path path) {
 
-				Node node            = path.endNode();
-				int nodeDepth        = path.length();
-				int currentTreeDepth = currentNode.depth();
+				Node node = path.endNode();
 
 				if (node.hasProperty(AbstractNode.Key.type.name())) {
 
@@ -480,48 +477,29 @@ public class HtmlServlet extends HttpServlet {
 
 					if (rel != null) {
 
-						AbstractNode parentNode = factory.createNode(securityContext, rel.getStartNode());
-						TreeNode parentTreeNode = root.getNode(parentNode);
+						Node parentNode         = rel.getStartNode();
+						TreeNode parentTreeNode = root.getNode((String) parentNode.getProperty("uuid"));
 
 						if (parentTreeNode == null) {
 
-							parentTreeNode = new TreeNode(parentNode);
+							root.addChild(newTreeNode);
+							logger.log(Level.FINEST, "New tree node: {0} --> {1}", new Object[] { newTreeNode, root });
+							logger.log(Level.FINE, "New tree node: {0} --> {1}", new Object[] { newTreeNode.getData().getName(), "root" });
 
-						}
+						} else {
 
-						logger.log(Level.FINE, "New tree node: {0} --> {1}", new Object[] { newTreeNode.getData().getName(), ((parentTreeNode.getData() != null)
-							? parentTreeNode.getData().getName()
-							: "<no data>") });
-						newTreeNode.setParent(parentTreeNode);
-
-						if (nodeDepth > currentTreeDepth) {
-
-							currentNode.addChild(newTreeNode);
-							logger.log(Level.FINE, "Level down; {0} --> {1}", new Object[] { newTreeNode.getData().getName(), currentNode.getData().getName() });
-
-							currentNode = newTreeNode;
-
-						} else if (nodeDepth < currentTreeDepth) {
-
-							newTreeNode.setParent(parentTreeNode);
-							logger.log(Level.FINE, "Level up; {1} --> {0}", new Object[] { ((parentTreeNode.getData() != null)
-								? parentTreeNode.getData().getName()
-								: "<no data>"), currentNode.getData().getName() });
-
-							currentNode = newTreeNode;
+							parentTreeNode.addChild(newTreeNode);
+							logger.log(Level.FINEST, "New tree node: {0} --> {1}", new Object[] { newTreeNode, parentTreeNode });
+							logger.log(Level.FINE, "New tree node: {0} --> {1}", new Object[] { newTreeNode.getData().getName(), parentTreeNode.getData().getName() });
 
 						}
 
 					} else {
 
 						root.addChild(newTreeNode);
-						logger.log(Level.FINE, "Added {0} to root", newTreeNode);
-
-						currentNode = newTreeNode;
+						logger.log(Level.INFO, "Added {0} to root", newTreeNode);
 
 					}
-
-					newTreeNode.depth(nodeDepth);
 
 					return Evaluation.INCLUDE_AND_CONTINUE;
 
@@ -547,129 +525,4 @@ public class HtmlServlet extends HttpServlet {
 
 		return buffer.toString();
 	}
-
-//
-//      private static class ContentTreeNode {
-//
-//              private List<ContentTreeNode> children = new LinkedList<ContentTreeNode>();
-//              private AbstractNode data              = null;
-//              private int depth                      = -1;
-//              private ContentTreeNode parent         = null;
-//
-//              //~--- constructors -------------------------------------------
-//
-//              public ContentTreeNode(ContentTreeNode parent, AbstractNode data) {
-//
-//                      this.parent = parent;
-//                      this.data   = data;
-//              }
-//
-//              //~--- methods ------------------------------------------------
-//
-//              public void addChild(ContentTreeNode treeNode) {
-//                      children.add(treeNode);
-//              }
-//
-//              public int depth() {
-//                      return depth;
-//              }
-//
-//              public void depth(final int depth) {
-//                      this.depth = depth;
-//              }
-//
-//              //~--- get methods --------------------------------------------
-//
-//              public AbstractNode getData() {
-//                      return data;
-//              }
-//
-//              public ContentTreeNode getParent() {
-//                      return parent;
-//              }
-//
-//              public List<ContentTreeNode> getChildren() {
-//                      return children;
-//              }
-//      }
-//
-//
-//      private static class ResourceExpander implements RelationshipExpander {
-//
-//              private Direction direction = Direction.OUTGOING;
-//              private String resourceId   = null;
-//
-//              //~--- constructors -------------------------------------------
-//
-//              public ResourceExpander(final String resourceId) {
-//                      this.resourceId = resourceId;
-//              }
-//
-//              //~--- methods ------------------------------------------------
-//
-//              @Override
-//              public Iterable<Relationship> expand(Node node) {
-//
-//                      /**
-//                       * Expand outgoing relationships of type CONTAINS and check for
-//                       * resourceId property. If property exists, let TreeMap do the
-//                       * sorting for us and return sorted values from map.
-//                       */
-//                      Map<Integer, Relationship> sortedRelationshipMap = new TreeMap<Integer, Relationship>();
-//
-//                      for (Relationship rel : node.getRelationships(RelType.CONTAINS, direction)) {
-//
-//                              try {
-//
-//                                      Integer position = null;
-//
-//                                      if (rel.hasProperty(resourceId)) {
-//
-//                                              Object prop = rel.getProperty(resourceId);
-//
-//                                              if (prop instanceof Integer) {
-//
-//                                                      position = (Integer) prop;
-//
-//                                              } else if (prop instanceof String) {
-//
-//                                                      position = Integer.parseInt((String) prop);
-//
-//                                              } else {
-//
-//                                                      throw new java.lang.IllegalArgumentException("Expected Integer or String");
-//
-//                                              }
-//
-//                                              sortedRelationshipMap.put(position, rel);
-//
-//                                      }
-//
-//                              } catch (Throwable t) {
-//
-//                                      // fail fast, no check
-//                                      logger.log(Level.SEVERE, "While reading property " + resourceId, t);
-//                              }
-//
-//                      }
-//
-//                      return sortedRelationshipMap.values();
-//              }
-//
-//              @Override
-//              public RelationshipExpander reversed() {
-//
-//                      ResourceExpander reversed = new ResourceExpander(resourceId);
-//
-//                      reversed.setDirection(Direction.INCOMING);
-//
-//                      return reversed;
-//              }
-//
-//              //~--- set methods --------------------------------------------
-//
-//              public void setDirection(Direction direction) {
-//                      this.direction = direction;
-//              }
-//      }
 }
