@@ -24,6 +24,7 @@ import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.File;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
@@ -45,18 +46,26 @@ public class CreateCommand extends AbstractCommand {
 
 			@Override
 			public Object execute() throws Throwable {
-				return (AbstractNode)Services.command(SecurityContext.getSuperUserInstance(), CreateNodeCommand.class).execute(webSocketData.getData());
+				return Services.command(SecurityContext.getSuperUserInstance(), CreateNodeCommand.class).execute(webSocketData.getData());
 			}
 		};
 
 		// create node in transaction
-		Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(transaction);
+		AbstractNode newNode = (AbstractNode)Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(transaction);
 
 		// check for errors
 		if(transaction.getCause() != null) {
 
 			logger.log(Level.WARNING, "Could not create node.", transaction.getCause());
 			getWebSocket().send(MessageBuilder.status().code(400).message(transaction.getCause().getMessage()).build(), true);
+
+		} else {
+
+			// check for File node and store in WebSocket to receive chunks
+			if(newNode instanceof File) {
+
+				getWebSocket().handleFileCreation((File)newNode);
+			}
 		}
 	}
 

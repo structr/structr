@@ -23,6 +23,7 @@ package org.structr.websocket;
 
 import org.structr.websocket.message.WebSocketMessage;
 import com.google.gson.Gson;
+import java.io.IOException;
 
 import org.apache.commons.codec.binary.Base64;
 
@@ -58,7 +59,10 @@ import java.util.logging.Logger;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.http.HttpServletRequest;
+import org.structr.core.entity.File;
 import org.structr.websocket.command.AddCommand;
+import org.structr.websocket.command.ChunkCommand;
+import org.structr.websocket.command.FileUploadHandler;
 import org.structr.websocket.command.RemoveCommand;
 import org.structr.websocket.command.TreeCommand;
 
@@ -86,6 +90,7 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 		addCommand(LogoutCommand.class);
 		addCommand(RemoveCommand.class);
 		addCommand(LoginCommand.class);
+		addCommand(ChunkCommand.class);
 		addCommand(ListCommand.class);
 		addCommand(GetCommand.class);
 		addCommand(AddCommand.class);
@@ -95,6 +100,7 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 	//~--- fields ---------------------------------------------------------
 
 	private SynchronizationController syncController = null;
+	private Map<String, FileUploadHandler> uploads   = null;
 	private ServletConfig config                     = null;
 	private Connection connection                    = null;
 	private Gson gson                                = null;
@@ -107,6 +113,7 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 
 	public StructrWebSocket(final SynchronizationController syncController, final ServletConfig config, final HttpServletRequest request, final Gson gson, final String idProperty) {
 
+		this.uploads        = new LinkedHashMap<String, FileUploadHandler>();
 		this.syncController = syncController;
 		this.config         = config;
 		this.request        = request;
@@ -136,6 +143,13 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 		this.connection = null;
 
 		syncController.unregisterClient(this);
+
+		// flush and close open uploads
+		for(FileUploadHandler upload : uploads.values()) {
+			upload.finish();
+		}
+
+		uploads.clear();
 	}
 
 	@Override
@@ -234,6 +248,22 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 
 		} catch (Throwable t) {
 			logger.log(Level.WARNING, "Error sending message to client.", t);
+		}
+	}
+
+	// ----- file handling -----
+	public void handleFileCreation(File file) {
+
+		String uuid = file.getStringProperty(AbstractNode.Key.uuid);
+		uploads.put(uuid, new FileUploadHandler(file));
+	}
+
+	public void handleFileChunk(String uuid, int sequenceNumber, byte[] data) throws IOException {
+
+		FileUploadHandler upload = uploads.get(uuid);
+		if(upload != null) {
+
+			upload.handleChunk(sequenceNumber, data);
 		}
 	}
 
