@@ -27,7 +27,7 @@ var headers = {
 /********************************************************************/
 
 var main;
-var debug = false;
+var debug = true;
 //var onload = [];
 var lastMenuEntry;
 
@@ -83,6 +83,12 @@ $(document).ready(function() {
         main.empty();
         Structr.activateMenuEntry('contents');
         Structr.modules['contents'].onload();
+    });
+
+    $('#files_').on('click', function() {
+        main.empty();
+        Structr.activateMenuEntry('files');
+        Structr.modules['files'].onload();
     });
 
     $('#usersAndGroups_').on('click', function() {

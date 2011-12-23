@@ -142,7 +142,7 @@ img.disabled {
     overflow: hidden;
 }
 
-#resources, #previews, #elements, #contents,
+#resources, #previews, #elements, #contents, #files
 #groups, #users {
     /*    float: left;*/
     vertical-align: top;
@@ -160,12 +160,12 @@ img.disabled {
     display: none;
 }
 
-.group, .user, .resource, .element, .content {
+.group, .user, .resource, .element, .content, .file {
     background-color: #fff;
     margin-bottom: 12px ! important;
 }
 
-.resource, .element, .content {
+.resource, .element, .content, .file {
     background-color: #eee;
     background: -webkit-gradient(linear, left bottom, left top, from(#ddd), to(#eee)) no-repeat;
     background: -moz-linear-gradient(90deg, #ddd, #eee) no-repeat;
@@ -437,4 +437,13 @@ button img {
 
 #confirmation button:focus {
     border: 1px solid #666;
+}
+
+#filesDropArea {
+    color: #222;
+    font-size: 12px;
+    height: 60px;
+    padding: 12px 12px 12px 24px;
+    border-radius: 10px;
+    border: 1px dashed #999;
 }
