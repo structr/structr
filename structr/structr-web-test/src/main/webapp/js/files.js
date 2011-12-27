@@ -18,6 +18,9 @@
  */
 
 var files, drop;
+var fileList;
+var chunkSize = 1024*64;
+var sizeLimit = 1024*1024*42;
 
 $(document).ready(function() {
     Structr.registerModule('files', Files);
@@ -47,11 +50,42 @@ var Files = {
             });
             
             drop.on('drop', function(event) {
-                var fileList = event.originalEvent.dataTransfer.files;
+                fileList = event.originalEvent.dataTransfer.files;
+
+                var filesToUpload = [];
+                var tooLargeFiles = [];
+
                 $(fileList).each(function(i, file) {
-                    if (debug) console.log(file);
-                    Files.uploadFile(file);
+                    if (file.size <= sizeLimit) {
+                        filesToUpload.push(file);
+                    } else {
+                        tooLargeFiles.push(file);
+                    }
                 });
+
+                if (filesToUpload.length < fileList.length) {
+
+                    var errorText = 'The following files are too large (limit ' + sizeLimit/(1024*1024) + ' Mbytes):<br>\n';
+
+                    $(tooLargeFiles).each(function(i, tooLargeFile) {
+                        errorText += tooLargeFile.name + ': ' + Math.round(tooLargeFile.size/(1024*1024)) + ' Mbytes<br>\n';
+                    });
+
+                    Structr.error(errorText, function() {
+                        $.unblockUI();
+                        $(filesToUpload).each(function(i, file) {
+                            if (debug) console.log(file);
+                            if (file) Files.createFile(file);
+                        });
+                    })
+                } else {
+                    $(fileList).each(function(i, file) {
+                        if (debug) console.log(file);
+                        if (file) Files.createFile(file);
+                    });
+
+                }
+
                 return false;
             });
         }
@@ -65,10 +99,10 @@ var Files = {
     refresh : function() {
         files.empty();
         if (Files.show()) {
-            drop.append(' or click <button class="add_content_icon button"><img title="Add File" alt="Add File" src="' + Files.add_icon + '"> Add File</button>');
-            $('.add_content_icon', main).on('click', function() {
-                Files.addFile(this);
-            });
+//            drop.append(' or click <button class="add_content_icon button"><img title="Add File" alt="Add File" src="' + Files.add_icon + '"> Add File</button>');
+//            $('.add_content_icon', main).on('click', function() {
+//                Files.addFile(this);
+//            });
         }
     },
 
@@ -114,18 +148,73 @@ var Files = {
         deleteNode(button, file);
     },
 
+    createFile : function(fileObj) {
+        Entities.create($.parseJSON('{ "type" : "File", "name" : "' + fileObj.name + '", "contentType" : "' + fileObj.type + '", "size" : "' + fileObj.size + '" }'));
+
+    },
+
     uploadFile : function(file) {
 
-        var reader = new FileReader();
-        reader.readAsBinaryString(file);
+        if (debug) console.log(fileList);
 
-        var binaryContent;
+        $(fileList).each(function(i, fileObj) {
 
-        reader.onload = function(f) {
-            console.log('File was read into memory.');
-            binaryContent = f.target.result;
-            Entities.create($.parseJSON('{ "type" : "File", "name" : "' + file.name + '", "contentType" : "' + file.type + '", "size" : "' + file.size + '" , "binaryContent" : "' + $.quoteString(binaryContent) + '" }'));
-        }
+            if (debug) console.log(file);
+
+            if (fileObj.name == file.name) {
+     
+                if (debug) console.log(fileObj);
+                if (debug) console.log('Uploading chunks for file ' + file.id);
+                
+                var reader = new FileReader();
+                reader.readAsBinaryString(fileObj);
+                //reader.readAsText(fileObj);
+
+                var chunks = Math.ceil(fileObj.size / chunkSize);
+                if (debug) console.log('file size: ' + fileObj.size + ', chunk size: ' + chunkSize + ', chunks: ' + chunks);
+
+                // slicing is still unstable/browser dependent yet, see f.e. http://georgik.sinusgear.com/2011/05/06/html5-api-file-slice-changed/
+
+                //                var blob;
+                //                for (var c=0; c<chunks; c++) {
+                //
+                //                    var start = c*chunkSize;
+                //                    var end = (c+1)*chunkSize-1;
+                //
+                //                    console.log('start: ' + start + ', end: ' + end);
+                //
+                //                    if (fileObj.webkitSlice) {
+                //                        blob = fileObj.webkitSlice(start, end);
+                //                    } else if (fileObj.mozSlice) {
+                //                        blob = fileObj.mozSlice(start, end);
+                //                    }
+                //                    setTimeout(function() { reader.readAsText(blob)}, 1000);
+                //                }
+
+                reader.onload = function(f) {
+                    
+                    if (debug) console.log('File was read into memory.');
+                    var binaryContent = f.target.result;
+                    //console.log(binaryContent);
+
+                    for (var c=0; c<chunks; c++) {
+                        
+                        var start = c*chunkSize;
+                        var end = (c+1)*chunkSize;
+                        
+                        var chunk = utf8_to_b64(binaryContent.substring(start,end));
+                        // TODO: check if we can send binary data directly
+                        var data = '{ "command" : "CHUNK" , "id" : "' + file.id + '" , "data" : { "chunkId" : ' + c + ' , "chunkSize" : ' + chunkSize + ' , "chunk" : "' + chunk + '" } }';
+
+                        //console.log(data);
+                        send(data);
+
+                    }
+
+                }
+            }
+
+        });
 
     }
 

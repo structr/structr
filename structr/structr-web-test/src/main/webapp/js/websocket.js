@@ -140,6 +140,13 @@ function connect() {
 						if (debug) console.log('Content element appended');
 						if (buttonClicked) enable(buttonClicked);
 
+					} else if (entity.type == 'File') {
+
+						Files.uploadFile(entity);
+                                                Entities.appendEntityElement(entity);
+						if (debug) console.log('File uploaded');
+						if (buttonClicked) enable(buttonClicked);
+
 					} else {
 						//appendEntityElement(data, parentElement);
 						Entities.appendEntityElement(entity);
@@ -362,4 +369,17 @@ function getAnchorFromUrl(url) {
 		}
 	}
 	return null;
+}
+
+
+// from https://developer.mozilla.org/En/DOM/Window.btoa
+function utf8_to_b64( str ) {
+    //return window.btoa(unescape(encodeURIComponent( str )));
+    return window.btoa(str);
+}
+
+// from https://developer.mozilla.org/En/DOM/Window.btoa
+function b64_to_utf8( str ) {
+    //return decodeURIComponent(escape(window.atob( str )));
+    return window.atob(str);
 }

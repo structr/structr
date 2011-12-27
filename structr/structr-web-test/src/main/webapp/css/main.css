@@ -390,7 +390,7 @@ button img {
     height: 500px;
 }
 
-#login, #confirmation {
+#login, #confirmation, #infoBox {
     display: none;
     font-size: 11pt;
     width: 240px;
@@ -404,12 +404,17 @@ button img {
     filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#e7e7e7', EndColorStr='#cccccc', GradientType=0);
 }
 
-#confirmation {
+#confirmation, #infoBox {
     width: 360px;
 }
 
-#confirmationText {
+#confirmationText, #infoText {
     margin-bottom: 12px;
+    vertical-align: top;
+}
+
+#okButton {
+    padding-left: 8px ! important;
 }
 
 #login table, #login tr, #login td {
@@ -435,7 +440,7 @@ button img {
     text-decoration: none;
 }
 
-#confirmation button:focus {
+#confirmation button:focus, #infoBox button:focus {
     border: 1px solid #666;
 }
 

@@ -27,7 +27,7 @@ var headers = {
 /********************************************************************/
 
 var main;
-var debug = true;
+var debug = false;
 //var onload = [];
 var lastMenuEntry;
 
@@ -224,7 +224,41 @@ var Structr = {
         });
 	
     },
-	
+
+    info : function(text, callback) {
+        if (text) $('#infoText').html(text);
+        if (callback) $('#okButton').on('click', function() {
+            callback();
+        });
+        $.blockUI.defaults.overlayCSS.opacity = .6;
+        $.blockUI.defaults.applyPlatformOpacityRules = false;
+        $.blockUI({
+            message: $('#infoBox'),
+            css: {
+                border: 'none',
+                backgroundColor: 'transparent'
+            }
+        });
+
+    },
+
+    error : function(text, callback) {
+        if (text) $('#infoText').html('<img src="icon/error.png"> ' + text);
+        if (callback) $('#okButton').on('click', function() {
+            callback();
+        });
+        $.blockUI.defaults.overlayCSS.opacity = .6;
+        $.blockUI.defaults.applyPlatformOpacityRules = false;
+        $.blockUI({
+            message: $('#infoBox'),
+            css: {
+                border: 'none',
+                backgroundColor: 'transparent'
+            }
+        });
+
+    },
+
     activateMenuEntry : function(name) {
 	
         lastMenuEntry = name;
