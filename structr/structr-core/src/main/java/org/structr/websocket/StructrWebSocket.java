@@ -132,6 +132,9 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 		this.token      = null;
 
 		syncController.registerClient(this);
+
+		connection.setMaxTextMessageSize(1024*1024*1024);
+		connection.setMaxBinaryMessageSize(1024*1024*1024);
 	}
 
 	@Override
@@ -155,7 +158,7 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 	@Override
 	public void onMessage(final String data) {
 
-		logger.log(Level.INFO, "############################################################ RECEIVED \n{0}", data);
+		logger.log(Level.INFO, "############################################################ RECEIVED \n{0}", data.substring(0, Math.min(data.length(), 255)));
 
 		// parse web socket data from JSON
 		WebSocketMessage webSocketData = gson.fromJson(data, WebSocketMessage.class);
@@ -258,12 +261,12 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 		uploads.put(uuid, new FileUploadHandler(file));
 	}
 
-	public void handleFileChunk(String uuid, int sequenceNumber, byte[] data) throws IOException {
+	public void handleFileChunk(String uuid, int sequenceNumber, int chunkSize, byte[] data) throws IOException {
 
 		FileUploadHandler upload = uploads.get(uuid);
 		if(upload != null) {
 
-			upload.handleChunk(sequenceNumber, data);
+			upload.handleChunk(sequenceNumber, chunkSize, data);
 		}
 	}
 

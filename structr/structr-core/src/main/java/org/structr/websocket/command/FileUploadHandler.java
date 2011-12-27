@@ -36,7 +36,6 @@ import org.structr.core.entity.File;
 public class FileUploadHandler {
 
 	private static final Logger logger  = Logger.getLogger(FileUploadHandler.class.getName());
-	private static final int CHUNK_SIZE = 65535;
 
 	private FileChannel privateFileChannel = null;
 	private File file = null;
@@ -47,12 +46,12 @@ public class FileUploadHandler {
 		this.file = file;
 	}
 
-	public void handleChunk(int sequenceNumber, byte[] data) throws IOException {
+	public void handleChunk(int sequenceNumber, int chunkSize, byte[] data) throws IOException {
 
 		FileChannel channel = getChannel();
 		if(channel != null) {
 
-			channel.position(sequenceNumber * CHUNK_SIZE);
+			channel.position(sequenceNumber * chunkSize);
 			channel.write(ByteBuffer.wrap(data));
 
 			// file size reached? upload finished
@@ -69,7 +68,7 @@ public class FileUploadHandler {
 
 		try {
 			FileChannel channel = getChannel();
-			if(channel != null) {
+			if(channel != null && channel.isOpen()) {
 				channel.force(true);
 				channel.close();
 			}
@@ -87,8 +86,13 @@ public class FileUploadHandler {
 			String relativeFilePath = file.getRelativeFilePath();
 			if (relativeFilePath != null) {
 
+				if (relativeFilePath.contains("..")) {
+					throw new IOException("Security violation: File path contains ..");
+				}
+
 				String filePath         = Services.getFilePath(Path.Files, relativeFilePath);
 				java.io.File fileOnDisk = new java.io.File(filePath);
+				fileOnDisk.getParentFile().mkdirs();
 
 				this.privateFileChannel = new FileOutputStream(fileOnDisk).getChannel();
 			}

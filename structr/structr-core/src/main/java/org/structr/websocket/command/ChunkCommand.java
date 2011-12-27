@@ -19,6 +19,9 @@
 
 package org.structr.websocket.command;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.apache.commons.codec.binary.Base64;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
@@ -28,11 +31,14 @@ import org.structr.websocket.message.WebSocketMessage;
  */
 public class ChunkCommand extends AbstractCommand {
 
+	private static final Logger logger  = Logger.getLogger(ChunkCommand.class.getName());
+
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
 		try {
 			int sequenceNumber = Integer.parseInt((String)webSocketData.getData().get("chunkId"));
+			int chunkSize = Integer.parseInt((String)webSocketData.getData().get("chunkSize"));
 			Object rawData = webSocketData.getData().get("chunk");
 			String uuid = webSocketData.getId();
 			byte[] data = null;
@@ -41,11 +47,17 @@ public class ChunkCommand extends AbstractCommand {
 
 				if(rawData instanceof String) {
 
-					data = ((String)rawData).getBytes("UTF-8");
+					logger.log(Level.FINEST, "Raw data: {0}", rawData);
+
+//					data = Base64.decodeBase64(((String)rawData).getBytes("UTF-8"));
+					data = Base64.decodeBase64(((String)rawData));
+
+					logger.log(Level.FINEST, "Decoded data: {0}", data);
+
 				}
 			}
 
-			getWebSocket().handleFileChunk(uuid, sequenceNumber, data);
+			getWebSocket().handleFileChunk(uuid, sequenceNumber, chunkSize, data);
 
 		} catch(Throwable t) {
 

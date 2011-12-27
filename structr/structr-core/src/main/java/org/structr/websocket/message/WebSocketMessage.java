@@ -59,6 +59,7 @@ public class WebSocketMessage {
 	private String sortOrder               = null;
 	private String token                   = null;
 	private String view                    = null;
+	private int chunkSize		       = 512;
 
 	//~--- get methods ----------------------------------------------------
 
@@ -124,6 +125,10 @@ public class WebSocketMessage {
 
 	public Set<String> getModifiedProperties() {
 		return modifiedProperties;
+	}
+
+	public int getChunkSize() {
+		return chunkSize;
 	}
 
 	/**
@@ -217,6 +222,10 @@ public class WebSocketMessage {
 
 	public void setModifiedProperties(Set<String> modifiedProperties) {
 		this.modifiedProperties = modifiedProperties;
+	}
+
+	public void setChunkSize(int chunkSize) {
+		this.chunkSize = chunkSize;
 	}
 
 	/**

@@ -138,6 +138,7 @@ public class File extends AbstractNode {
 	}
 
 	public String getRelativeFilePath() {
+
 		return getStringProperty(Key.relativeFilePath.name());
 	}
 

@@ -64,6 +64,12 @@ public class CreateCommand extends AbstractCommand {
 			// check for File node and store in WebSocket to receive chunks
 			if(newNode instanceof File) {
 
+				File fileNode = (File) newNode;
+
+				String uuid = newNode.getStringProperty(AbstractNode.Key.uuid);
+				String directory = uuid.substring(0,1) + "/" + uuid.substring(1,2) + "/" + uuid.substring(2,3) + "/" + uuid.substring(3,4);
+				fileNode.setRelativeFilePath(directory + "/" + uuid);
+
 				getWebSocket().handleFileCreation((File)newNode);
 			}
 		}
