@@ -36,7 +36,7 @@ function appendEntityElement(entity, parentElementId) {
         selector = '#' + plural(entity.type.toLowerCase());
     }
     //console.log(selector);
-    $(selector).append('<div class="nested top ' + entity.type.toLowerCase() + ' ' + entity.id + '_">'
+    $(selector).append('<div class="' + entity.type.toLowerCase() + ' ' + entity.id + '_">'
         + (entity.iconUrl ? '<img class="typeIcon" src="' + entity.iconUrl + '">' : '')
         + '<b class="name">' + entity.name + '</b> '
         + '[' + entity.id + ']'

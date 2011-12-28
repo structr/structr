@@ -17,8 +17,7 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var groups;
-var users;
+var groups, users;
 
 $(document).ready(function() {
     Structr.registerModule('usersAndGroups', UsersAndGroups);
@@ -27,7 +26,8 @@ $(document).ready(function() {
 var UsersAndGroups = {
 
     init : function() {
-    // module-specific init code goes here
+		Structr.classes.push('user');
+		Structr.classes.push('group');
     },
 	
     onload : function() {
@@ -103,9 +103,9 @@ var UsersAndGroups = {
         users.append(user);//.animate();
         $('.delete_icon', user).remove();
         user.append('<img title="Delete user ' + user.name + '" '
-            + 'alt="Delete user ' + user.name + '" class="delete_icon button" src="icon/delete.png">');
+            + 'alt="Delete user ' + user.name + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
         $('.delete_icon', user).on('click', function() {
-            UsersAndGroups.deleteUser(this, user);
+            UsersAndGroups.deleteUser(this, Structr.entity(userId));
         });
         
         user.draggable({
@@ -120,7 +120,7 @@ var UsersAndGroups = {
             enable($('.delete_icon', group)[0]);
         }
 
-        console.log('removeUserFromGroup: userId=' + userId + ', groupId=' + groupId);
+        if (debug) console.log('removeUserFromGroup: userId=' + userId + ', groupId=' + groupId);
         Entities.removeSourceFromTarget(userId, groupId);
     },
 
@@ -133,11 +133,11 @@ var UsersAndGroups = {
         var data = '{ "type" : "Group" , "name" : "' + group.name + '" , "id" : "' + group.id + '" }';
         deleteNode(button, $.parseJSON(data));
     },
-      
-    refreshGroup : function(groupId) {
-        $('#group_' + groupId + ' > div.nested').remove();
-        UsersAndGroups.showUsersOfGroup(groupId);
-    },
+//      
+//    refreshGroup : function(groupId) {
+//        $('#group_' + groupId + ' > div.nested').remove();
+//        UsersAndGroups.showUsersOfGroup(groupId);
+//    },
 
     refreshGroups : function() {
         groups.empty();
@@ -160,7 +160,7 @@ var UsersAndGroups = {
     },
 
     appendGroupElement : function(group) {
-        groups.append('<div class="nested top group ' + group.id + '_">'
+        groups.append('<div class="group ' + group.id + '_">'
             + '<img class="typeIcon" src="icon/group.png">'
             + '<b class="name">' + group.name + '</b> <span class="id">' + group.id + '</span>'
             + '</div>');
@@ -191,7 +191,7 @@ var UsersAndGroups = {
         var div;
         if (groupId) {
             var parent = $('.' + groupId + '_');
-            parent.append('<div class="nested user ' + user.id + '_">'
+            parent.append('<div class="user ' + user.id + '_">'
                 + '<img class="typeIcon" src="icon/user.png">'
                 //				+ ' <b class="realName">' + user.realName + '</b> [<span class="id">' + user.id + '</span>]'
                 + ' <b class="name">' + user.name + '</b> <span class="id">' + user.id + '</span>'
@@ -206,14 +206,14 @@ var UsersAndGroups = {
                 UsersAndGroups.editUserProperties(this, user, groupId);
             });
         } else {
-            users.append('<div class="nested user ' + user.id + '_">'
+            users.append('<div class="user ' + user.id + '_">'
                 + '<img class="typeIcon" src="icon/user.png">'
                 //				+ ' <b class="realName">' + user.realName + '</b> [' + user.id + ']'
                 + ' <b class="name">' + user.name + '</b> ' + user.id + ''
                 + '</div>');
             div = $('.' + user.id + '_', users);
             div.append('<img title="Delete user \'' + user.name + '\'" '
-                + 'alt="Delete user \'' + user.name + '\'" class="delete_icon button" src="icon/delete.png">');
+                + 'alt="Delete user \'' + user.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
             $('.delete_icon', div).on('click', function() {
                 UsersAndGroups.deleteUser(this, user)
             });

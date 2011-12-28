@@ -142,7 +142,11 @@ img.disabled {
     overflow: hidden;
 }
 
-#resources, #previews, #elements, #contents, #files
+#resources, #previews,
+#elements,
+#contents,
+#folders,
+#files,
 #groups, #users {
     /*    float: left;*/
     vertical-align: top;
@@ -160,12 +164,12 @@ img.disabled {
     display: none;
 }
 
-.group, .user, .resource, .element, .content, .file {
+.group, .user, .resource, .element, .content, .folder, .file {
     background-color: #fff;
     margin-bottom: 12px ! important;
 }
 
-.resource, .element, .content, .file {
+.resource, .element, .content, .folder, .file {
     background-color: #eee;
     background: -webkit-gradient(linear, left bottom, left top, from(#ddd), to(#eee)) no-repeat;
     background: -moz-linear-gradient(90deg, #ddd, #eee) no-repeat;
@@ -251,13 +255,13 @@ tr:nth-child(even) {
     height: 488px;
     float: left;
     background: #fff;
-/*    margin-left: 12px;*/
+	/*    margin-left: 12px;*/
     border: 1px solid #a5a5a5;
     overflow: auto;
 }
 
 .preview_box iframe {
-/*    width: 1000px;*/
+	/*    width: 1000px;*/
     height: 1024px;
     border: 0;
     /*zoom: 0.75;
@@ -279,8 +283,18 @@ tr:nth-child(even) {
     width: 540px;
 }
 
-div.nested {
-    /*float: left;*/
+.id {
+	/*    display: none;*/
+}
+
+.resource,
+.element,
+.content,
+.user,
+.group,
+.folder,
+.file {
+	/*float: left;*/
     color: #333;
     /*width: 95%;*/
     line-height: 1.7em;
@@ -289,17 +303,7 @@ div.nested {
     padding: 4px 12px;
     margin: 12px 0 0 0;
     /*background: #fff;*/
-}
-
-.id {
-/*    display: none;*/
-}
-
-.resource .content,
-#groups .user,
-#groups .group,
-#users .user {
-    background-color: #eee;
+	background-color: #eee;
     background: -webkit-gradient(linear, left bottom, left top, from(#ddd), to(#eee)) no-repeat;
     background: -moz-linear-gradient(90deg, #ddd, #eee) no-repeat;
     filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#eeeeee', EndColorStr='#dddddd', GradientType=0);
@@ -308,7 +312,9 @@ div.nested {
 .content:hover,
 #groups .user:hover,
 #groups .group:hover,
-#users .user:hover {
+#users .user:hover,
+#folders .folder:hover,
+#files .file:hover {
     color: #000;
     border: 1px solid #bbb;
     background-color: #e5e5e5;
@@ -326,7 +332,7 @@ div.nested {
     filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#f7f7f7', EndColorStr='#f3f3f3', GradientType=0);
 }
 
-div.nested img.typeIcon {
+img.typeIcon {
     width: 18px;
     height: 18px;
     float: left ! important;
@@ -335,17 +341,18 @@ div.nested img.typeIcon {
     margin-right: 8px;
 }
 
-div.nested img.button {
+img.button {
     float: right;
 }
 
+/*
 div.nested img:hover {
     background: #f0f0f0;
-    /*display: inline;
-     visibility: visible;*/
-}
+    display: inline;
+     visibility: visible;
+}*/
 
-.groupHover, .resourceHover, .elementHover {
+.groupHover, .resourceHover, .elementHover, .folderHover {
     border: 1px solid #bbb ! important;
     /*    padding-bottom: 40px ! important;*/
     background-color: #f5f5f5;
@@ -445,10 +452,11 @@ button img {
 }
 
 #filesDropArea {
-    color: #222;
-    font-size: 12px;
-    height: 60px;
-    padding: 12px 12px 12px 24px;
-    border-radius: 10px;
+    color: #999;
+    font-size: 16px;
+	font-weight: bold;
+    height: 22px;
+    padding: 7px 12px 3px 12px;
+    border-radius: 5px;
     border: 1px dashed #999;
 }

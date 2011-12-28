@@ -17,205 +17,346 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var files, drop;
+var files, folders, drop;
 var fileList;
 var chunkSize = 1024*64;
 var sizeLimit = 1024*1024*42;
 
 $(document).ready(function() {
-    Structr.registerModule('files', Files);
+	Structr.registerModule('files', Files);
 });
 
 var Files = {
 
-    icon : 'icon/folder_page_white.png',
-    add_icon : 'icon/page_white_add.png',
-    delete_icon : 'icon/page_white_delete.png',
+	icon : 'icon/folder_page_white.png',
+	add_file_icon : 'icon/page_white_add.png',
+	delete_file_icon : 'icon/page_white_delete.png',
+	add_folder_icon : 'icon/folder_add.png',
+	folder_icon : 'icon/folder.png',
+	delete_folder_icon : 'icon/folder_delete.png',
 	
-    init : function() {
-    },
+	init : function() {
+		Structr.classes.push('file');
+		Structr.classes.push('folder');
+	},
 
-    onload : function() {
-        if (debug) console.log('onload');
-
-        if (window.File && window.FileReader && window.FileList && window.Blob) {
-
-            main.append('<div id="filesDropArea">Drop files here to add</div>');
-            
-            drop = $('#filesDropArea');
-
-            drop.on('dragover', function(event) {
-                event.originalEvent.dataTransfer.dropEffect = 'copy';
-                return false;
-            });
-            
-            drop.on('drop', function(event) {
-                fileList = event.originalEvent.dataTransfer.files;
-
-                var filesToUpload = [];
-                var tooLargeFiles = [];
-
-                $(fileList).each(function(i, file) {
-                    if (file.size <= sizeLimit) {
-                        filesToUpload.push(file);
-                    } else {
-                        tooLargeFiles.push(file);
-                    }
-                });
-
-                if (filesToUpload.length < fileList.length) {
-
-                    var errorText = 'The following files are too large (limit ' + sizeLimit/(1024*1024) + ' Mbytes):<br>\n';
-
-                    $(tooLargeFiles).each(function(i, tooLargeFile) {
-                        errorText += tooLargeFile.name + ': ' + Math.round(tooLargeFile.size/(1024*1024)) + ' Mbytes<br>\n';
-                    });
-
-                    Structr.error(errorText, function() {
-                        $.unblockUI();
-                        $(filesToUpload).each(function(i, file) {
-                            if (debug) console.log(file);
-                            if (file) Files.createFile(file);
-                        });
-                    })
-                } else {
-                    $(fileList).each(function(i, file) {
-                        if (debug) console.log(file);
-                        if (file) Files.createFile(file);
-                    });
-
-                }
-
-                return false;
-            });
-        }
-
-        main.append('<div id="files"></div>');
-        files = $('#files');
+	onload : function() {
+		if (debug) console.log('onload');
+		
+		main.append('<table><tr><td id="folders"></td><td id="files"></td></tr></table>');
+		folders = $('#folders');
+		files = $('#files');
         
-        Files.refresh();
-    },
+		Files.refreshFiles();
+		Files.refreshFolders();
+	},
 
-    refresh : function() {
-        files.empty();
-        if (Files.show()) {
-//            drop.append(' or click <button class="add_content_icon button"><img title="Add File" alt="Add File" src="' + Files.add_icon + '"> Add File</button>');
-//            $('.add_content_icon', main).on('click', function() {
-//                Files.addFile(this);
-//            });
-        }
-    },
+	refreshFiles : function() {
+		files.empty();
+		
+		if (window.File && window.FileReader && window.FileList && window.Blob) {
 
-    show : function() {
-        return Entities.showEntities('File');
-    },
+			files.append('<div id="filesDropArea">Drop files here</div>');
+            
+			drop = $('#filesDropArea');
 
-    appendFileElement : function(content, parentId) {
-        var parent;
-        if (debug) console.log(parentId);
-        if (parentId) {
-            parent = $('.' + parentId + '_');
-            if (debug) console.log(parent);
-        } else {
-            parent = files;
-        }
+			drop.on('dragover', function(event) {
+				event.originalEvent.dataTransfer.dropEffect = 'copy';
+				return false;
+			});
+            
+			drop.on('drop', function(event) {
+				fileList = event.originalEvent.dataTransfer.files;
+
+				var filesToUpload = [];
+				var tooLargeFiles = [];
+
+				$(fileList).each(function(i, file) {
+					if (file.size <= sizeLimit) {
+						filesToUpload.push(file);
+					} else {
+						tooLargeFiles.push(file);
+					}
+				});
+
+				if (filesToUpload.length < fileList.length) {
+
+					var errorText = 'The following files are too large (limit ' + sizeLimit/(1024*1024) + ' Mbytes):<br>\n';
+
+					$(tooLargeFiles).each(function(i, tooLargeFile) {
+						errorText += tooLargeFile.name + ': ' + Math.round(tooLargeFile.size/(1024*1024)) + ' Mbytes<br>\n';
+					});
+
+					Structr.error(errorText, function() {
+						$.unblockUI();
+						$(filesToUpload).each(function(i, file) {
+							if (debug) console.log(file);
+							if (file) Files.createFile(file);
+						});
+					})
+				} else {
+					$(fileList).each(function(i, file) {
+						if (debug) console.log(file);
+						if (file) Files.createFile(file);
+					});
+
+				}
+
+				return false;
+			});
+		}		
+		Files.showFiles();
+	},
+	
+	refreshFolders : function() {
+		folders.empty();
+		if (Files.showFolders()) {
+			folders.append('<button class="add_folder_icon button"><img title="Add Folder" alt="Add Folder" src="' + Files.add_folder_icon + '"> Add Folder</button>');
+			$('.add_folder_icon', main).on('click', function() {
+				Files.addFolder(this);
+			});
+		}
+	},
+	
+	showFolders : function() {
+		return Entities.showEntities('Folder');
+	},
+
+	showFiles : function() {
+		return Entities.showEntities('File');
+	},
+
+	appendFileElement : function(file, parentId) {
+		var parent;
+		if (debug) console.log(parentId);
+		if (parentId) {
+			parent = $('.' + parentId + '_');
+			if (debug) console.log(parent);
+		} else {
+			parent = files;
+		}
         
-        parent.append('<div class="nested top content ' + content.id + '_">'
-            + '<img class="typeIcon" src="'+ Files.icon + '">'
-            + '<b class="name">' + content.name + '</b> <span class="id">' + content.id + '</span>'
-            + '</div>');
-        var div = $('.' + content.id + '_', parent);
-        div.append('<img title="Delete content \'' + content.name + '\'" alt="Delete content \'' + content.name + '\'" class="delete_icon button" src="' + Files.delete_icon + '">');
-        $('.delete_icon', div).on('click', function() {
-            Files.deleteContent(this, content);
-        });
-        //        div.append('<img class="add_icon button" title="Add Element" alt="Add Element" src="icon/add.png">');
-        //        $('.add_icon', div).on('click', function() {
-        //            Resources.addElement(this, resource);
-        //        });
-        $('b', div).on('click', function() {
-            Entities.showProperties(this, content, 'all', $('.' + content.id + '_', files));
-        });
-        return div;
-    },
+		var icon = Files.icon; // default
+		if (debug) console.log(file.contentType);
+		if (file.contentType.substring(0,5) == 'image') {
+			icon = 'icon/image.png';
+		}
+		
+		parent.append('<div class="file ' + file.id + '_">'
+			+ '<img class="typeIcon" src="'+ icon + '">'
+			+ '<b class="name">' + file.name + '</b> <span class="id">' + file.id + '</span>'
+			+ '</div>');
+		var div = $('.' + file.id + '_', parent);
+		
+		if (parentId) {
 
-    addFile : function(button) {
-        return Entities.add(button, 'File');
-    },
+			div.append('<img title="Remove file \'' + file.name + '\' from folder ' + parentId + '" alt="Remove file \'' + file.name + '\' from folder" class="delete_icon button" src="' + Files.delete_file_icon + '">');
+			$('.delete_icon', div).on('click', function() {
+				Files.removeFileFromFolder(file.id, parentId);
+			});
+			
+		} else {
+		
+			div.append('<img title="Delete file \'' + file.name + '\'" alt="Delete file \'' + file.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
+			$('.delete_icon', div).on('click', function() {
+				Files.deleteFile(this, file);
+			});
+		
+		}
+		//        div.append('<img class="add_icon button" title="Add Element" alt="Add Element" src="icon/add.png">');
+		//        $('.add_icon', div).on('click', function() {
+		//            Resources.addElement(this, resource);
+		//        });
+		$('b', div).on('click', function() {
+			Entities.showProperties(this, file, 'all', $('.' + file.id + '_', files));
+		});
+		
+		div.draggable({
+			revert: 'invalid',
+			containment: '#main',
+			zIndex: 1
+		});
+		
+		return div;
+	},
+	
+	appendFolderElement : function(folder, parentId) {
+		var parent;
+		if (debug) console.log(parentId);
+		if (parentId) {
+			parent = $('.' + parentId + '_');
+			if (debug) console.log(parent);
+		} else {
+			parent = folders;
+		}
+        
+		parent.append('<div structr_type="folder" class="folder ' + folder.id + '_">'
+			+ '<img class="typeIcon" src="'+ Files.folder_icon + '">'
+			+ '<b class="name">' + folder.name + '</b> <span class="id">' + folder.id + '</span>'
+			+ '</div>');
+		var div = $('.' + folder.id + '_', parent);
+		div.append('<img title="Delete content \'' + folder.name + '\'" alt="Delete content \'' + folder.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
+		$('.delete_icon', div).on('click', function() {
+			Files.deleteFolder(this, folder);
+		});
+		//        div.append('<img class="add_icon button" title="Add Element" alt="Add Element" src="icon/add.png">');
+		//        $('.add_icon', div).on('click', function() {
+		//            Resources.addElement(this, resource);
+		//        });
+		$('b', div).on('click', function() {
+			Entities.showProperties(this, folder, 'all', $('.' + folder.id + '_', folders));
+		});
+		
+		div.droppable({
+			accept: '.file',
+			hoverClass: 'folderHover',
+			drop: function(event, ui) {
+				var fileId = getIdFromClassString(ui.draggable.attr('class'));
+				var folderId = getIdFromClassString($(this).attr('class'));
+				Entities.addSourceToTarget(fileId, folderId);
+			}
+		});		
+		
+		return div;
+	},
+	
+	addFileToFolder : function(fileId, folderId) {
 
-    deleteFile : function(button, file) {
-        if (debug) console.log('delete file ' + file);
-        deleteNode(button, file);
-    },
+		var folder = $('.' + folderId + '_');
+		var file = $('.' + fileId + '_');
 
-    createFile : function(fileObj) {
-        Entities.create($.parseJSON('{ "type" : "File", "name" : "' + fileObj.name + '", "contentType" : "' + fileObj.type + '", "size" : "' + fileObj.size + '" }'));
+		folder.append(file);
 
-    },
+		$('.delete_icon', file).remove();
+		file.append('<img title="Remove file ' + fileId + ' from folder ' + folderId + '" '
+			+ 'alt="Remove file ' + fileId + ' from folder ' + folderId + '" class="delete_icon button" src="' + Files.delete_file_icon + '">');
+		$('.delete_icon', file).on('click', function() {
+			Files.removeFileFromFolder(fileId, folderId)
+		});
+		file.draggable('destroy');
 
-    uploadFile : function(file) {
+		var numberOfFiles = $('.file', folder).size();
+		if (debug) console.log(numberOfFiles);
+		if (numberOfFiles > 0) {
+			disable($('.delete_icon', folder)[0]);
+		}
 
-        if (debug) console.log(fileList);
+	},
 
-        $(fileList).each(function(i, fileObj) {
+	removeFileFromFolder : function(fileId, folderId) {
 
-            if (debug) console.log(file);
+		var folder = $('.' + folderId + '_');
+		var file = $('.' + fileId + '_', folder);
+		files.append(file);//.animate();
+		$('.delete_icon', file).remove();
+		file.append('<img title="Delete file ' + fileId + '" '
+			+ 'alt="Delete file ' + fileId + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
+		$('.delete_icon', file).on('click', function() {
+			Files.deleteFile(this, Structr.entity(fileId));
+		});
+        
+		file.draggable({
+			revert: 'invalid',
+			containment: '#main',
+			zIndex: 1
+		});
 
-            if (fileObj.name == file.name) {
+		var numberOfFiles = $('.file', folder).size();
+		if (debug) console.log(numberOfFiles);
+		if (numberOfFiles == 0) {
+			enable($('.delete_icon', folder)[0]);
+		}
+
+		if (debug) console.log('removeFileFromFolder: fileId=' + fileId + ', folderId=' + folderId);
+		Entities.removeSourceFromTarget(fileId, folderId);
+	},
+	
+	addFolder : function(button) {
+		return Entities.add(button, 'Folder');
+	},
+	
+	addFile : function(button) {
+		return Entities.add(button, 'File');
+	},
+
+	deleteFolder : function(button, folder) {
+		if (debug) console.log('delete folder ' + folder);
+		deleteNode(button, folder);
+	},
+
+	deleteFile : function(button, file) {
+		if (debug) console.log('delete file ' + file);
+		deleteNode(button, file);
+	},
+
+	createFile : function(fileObj) {
+		Entities.create($.parseJSON('{ "type" : "File", "name" : "' + fileObj.name + '", "contentType" : "' + fileObj.type + '", "size" : "' + fileObj.size + '" }'));
+
+	},
+
+	uploadFile : function(file) {
+
+		if (debug) console.log(fileList);
+
+		$(fileList).each(function(i, fileObj) {
+
+			if (debug) console.log(file);
+
+			if (fileObj.name == file.name) {
      
-                if (debug) console.log(fileObj);
-                if (debug) console.log('Uploading chunks for file ' + file.id);
+				if (debug) console.log(fileObj);
+				if (debug) console.log('Uploading chunks for file ' + file.id);
                 
-                var reader = new FileReader();
-                reader.readAsBinaryString(fileObj);
-                //reader.readAsText(fileObj);
+				var reader = new FileReader();
+				reader.readAsBinaryString(fileObj);
+				//reader.readAsText(fileObj);
 
-                var chunks = Math.ceil(fileObj.size / chunkSize);
-                if (debug) console.log('file size: ' + fileObj.size + ', chunk size: ' + chunkSize + ', chunks: ' + chunks);
+				var chunks = Math.ceil(fileObj.size / chunkSize);
+				if (debug) console.log('file size: ' + fileObj.size + ', chunk size: ' + chunkSize + ', chunks: ' + chunks);
 
-                // slicing is still unstable/browser dependent yet, see f.e. http://georgik.sinusgear.com/2011/05/06/html5-api-file-slice-changed/
+				// slicing is still unstable/browser dependent yet, see f.e. http://georgik.sinusgear.com/2011/05/06/html5-api-file-slice-changed/
 
-                //                var blob;
-                //                for (var c=0; c<chunks; c++) {
-                //
-                //                    var start = c*chunkSize;
-                //                    var end = (c+1)*chunkSize-1;
-                //
-                //                    console.log('start: ' + start + ', end: ' + end);
-                //
-                //                    if (fileObj.webkitSlice) {
-                //                        blob = fileObj.webkitSlice(start, end);
-                //                    } else if (fileObj.mozSlice) {
-                //                        blob = fileObj.mozSlice(start, end);
-                //                    }
-                //                    setTimeout(function() { reader.readAsText(blob)}, 1000);
-                //                }
+				//                var blob;
+				//                for (var c=0; c<chunks; c++) {
+				//
+				//                    var start = c*chunkSize;
+				//                    var end = (c+1)*chunkSize-1;
+				//
+				//                    console.log('start: ' + start + ', end: ' + end);
+				//
+				//                    if (fileObj.webkitSlice) {
+				//                        blob = fileObj.webkitSlice(start, end);
+				//                    } else if (fileObj.mozSlice) {
+				//                        blob = fileObj.mozSlice(start, end);
+				//                    }
+				//                    setTimeout(function() { reader.readAsText(blob)}, 1000);
+				//                }
 
-                reader.onload = function(f) {
+				reader.onload = function(f) {
                     
-                    if (debug) console.log('File was read into memory.');
-                    var binaryContent = f.target.result;
-                    //console.log(binaryContent);
+					if (debug) console.log('File was read into memory.');
+					var binaryContent = f.target.result;
+					//console.log(binaryContent);
 
-                    for (var c=0; c<chunks; c++) {
+					for (var c=0; c<chunks; c++) {
                         
-                        var start = c*chunkSize;
-                        var end = (c+1)*chunkSize;
+						var start = c*chunkSize;
+						var end = (c+1)*chunkSize;
                         
-                        var chunk = utf8_to_b64(binaryContent.substring(start,end));
-                        // TODO: check if we can send binary data directly
-                        var data = '{ "command" : "CHUNK" , "id" : "' + file.id + '" , "data" : { "chunkId" : ' + c + ' , "chunkSize" : ' + chunkSize + ' , "chunk" : "' + chunk + '" } }';
+						var chunk = utf8_to_b64(binaryContent.substring(start,end));
+						// TODO: check if we can send binary data directly
+						var data = '{ "command" : "CHUNK" , "id" : "' + file.id + '" , "data" : { "chunkId" : ' + c + ' , "chunkSize" : ' + chunkSize + ' , "chunk" : "' + chunk + '" } }';
 
-                        //console.log(data);
-                        send(data);
+						//console.log(data);
+						send(data);
 
-                    }
+					}
 
-                }
-            }
+				}
+			}
 
-        });
+		});
 
-    }
+	}
 
 };

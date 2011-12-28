@@ -20,7 +20,7 @@
 var buttonClicked;
 
 var Entities = {
-
+	
     refreshEntities : function(type) {
         if (debug) console.log('refreshEntities(' + type + ')');
         var types = plural(type);
@@ -28,11 +28,11 @@ var Entities = {
         parentElement.empty();
         Entities.showEntities(type);
         parentElement.append('<div style="clear: both"></div>');
-        parentElement.append('<img title="Add ' + type + '" alt="Add ' + type + '" class="add_icon button" src="icon/add.png">');
+        parentElement.append('<img title="Add ' + type + '" alt="Add ' + type + '" class="add_icon button" src="' + Structr.add_icon + '">');
         $('.add_icon', main).on('click', function() {
             Entities.addEntity(this, type);
         });
-        parentElement.append('<img title="Delete all ' + types + '" alt="Delete all ' + types + '" class="delete_icon button" src="icon/delete.png">');
+        parentElement.append('<img title="Delete all ' + types + '" alt="Delete all ' + types + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
         $('.delete_icon', main).on('click', function() {
             deleteAll(this, type);
         });
@@ -58,14 +58,14 @@ var Entities = {
             element = $('#' + plural(entity.type.toLowerCase()));
         }
         //    console.log(element);
-        element.append('<div class="nested top ' + entity.type.toLowerCase() + ' ' + entity.id + '_">'
+        element.append('<div class="' + entity.type.toLowerCase() + ' ' + entity.id + '_">'
             + (entity.iconUrl ? '<img class="typeIcon" src="' + entity.iconUrl + '">' : '')
             + '<b class="name">' + entity.name + '</b> '
             + '<span class="id">' + entity.id + '</span>'
             + '</div>');
         div = $('.' + entity.id + '_', element);
         div.append('<img title="Delete ' + entity.name + ' [' + entity.id + ']" '
-            + 'alt="Delete ' + entity.type + '\'' + entity.name + '\' [' + entity.id + ']" class="delete_icon button" src="icon/delete.png">');
+            + 'alt="Delete ' + entity.type + '\'' + entity.name + '\' [' + entity.id + ']" class="delete_icon button" src="' + Structr.delete_icon + '">');
         $('.delete_icon', div).on('click', function() {
             deleteNode(this, entity)
         });

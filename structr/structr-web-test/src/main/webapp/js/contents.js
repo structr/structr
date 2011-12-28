@@ -30,6 +30,7 @@ var Contents = {
     delete_icon : 'icon/page_white_delete.png',
 	
     init : function() {
+		Structr.classes.push('content');
     },
 
     onload : function() {
@@ -63,12 +64,12 @@ var Contents = {
             parent = contents;
         }
         
-        parent.append('<div class="nested top content ' + content.id + '_">'
+        parent.append('<div class="content ' + content.id + '_">'
             + '<img class="typeIcon" src="'+ Contents.icon + '">'
             + '<b class="name">' + content.name + '</b> <span class="id">' + content.id + '</span>'
             + '</div>');
         var div = $('.' + content.id + '_', parent);
-        div.append('<img title="Delete content \'' + content.name + '\'" alt="Delete content \'' + content.name + '\'" class="delete_icon button" src="' + Contents.delete_icon + '">');
+        div.append('<img title="Delete content \'' + content.name + '\'" alt="Delete content \'' + content.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
         $('.delete_icon', div).on('click', function() {
             Contents.deleteContent(this, content);
         });

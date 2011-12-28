@@ -31,7 +31,7 @@ function showGroups() {
 }
 
 function appendGroupElement(group) {
-  groups.append('<div class="nested top group ' + group.id + '_">'
+  groups.append('<div class="group ' + group.id + '_">'
                                        + '<img class="typeIcon" src="icon/group.png">'
                                        + '<b>' + group.name + '</b> [' + group.id + ']'
                                        + '</div>');

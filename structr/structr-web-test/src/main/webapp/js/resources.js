@@ -24,9 +24,9 @@ $(document).ready(function() {
 	Structr.registerModule('resources', Resources);
 });
 
-var Resources = {
-	
+var Resources = {	
 	init : function() {
+		Structr.classes.push('resource');
 	},
 
 	onload : function() {
@@ -40,7 +40,7 @@ var Resources = {
 		previews = $('#previews');
 
 		Resources.refresh();
-		Elements.refresh();
+		Resources.refreshElements();
 		Contents.refresh();
 	},
 
@@ -82,7 +82,7 @@ var Resources = {
 	//                        Resources.appendResourceElement(resource);
 	//
 	//                        var resourceId = resource.id;
-	//                        //          $('#resources').append('<div class="editor_box"><div class="nested top resource" id="resource_' + id + '">'
+	//                        //          $('#resources').append('<div class="editor_box"><div class="resource" id="resource_' + id + '">'
 	//                        //                              + '<b>' + resource.name + '</b>'
 	//                        //                              //+ ' [' + id + ']'
 	//                        //                              + '<img class="add_icon button" title="Add Element" alt="Add Element" src="icon/add.png" onclick="addElement(' + id + ', \'#resource_' + id + '\')">'
@@ -147,12 +147,12 @@ var Resources = {
 	},
 
 	appendResourceElement : function(resource) {
-		resources.append('<div class="nested top resource ' + resource.id + '_">'
+		resources.append('<div class="resource ' + resource.id + '_">'
 			+ '<img class="typeIcon" src="icon/page.png">'
 			+ '<b class="name">' + resource.name + '</b> <span class="id">' + resource.id + '</span>'
 			+ '</div>');
 		var div = $('.' + resource.id + '_', resources);
-		div.append('<img title="Delete resource \'' + resource.name + '\'" alt="Delete resource \'' + resource.name + '\'" class="delete_icon button" src="icon/page_delete.png">');
+		div.append('<img title="Delete resource \'' + resource.name + '\'" alt="Delete resource \'' + resource.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
 		$('.delete_icon', div).on('click', function() {
 			Resources.deleteResource(this, resource);
 		});
@@ -412,12 +412,12 @@ var Resources = {
 		Entities.appendEntityElement(entity, element);
 
 		if (type == 'content') {
-			div.append('<img title="Edit Content" alt="Edit Content" class="edit_icon button" src="icon/pencil.png">');
+			div.append('<img title="Edit Content" alt="Edit Content" class="edit_icon button" src="' + Structr.edit_icon + '">');
 			$('.edit_icon', div).on('click', function() {
 				editContent(this, resourceId, id)
 			});
 		} else {
-			div.append('<img title="Add" alt="Add" class="add_icon button" src="icon/add.png">');
+			div.append('<img title="Add" alt="Add" class="add_icon button" src="' + Structr.add_icon + '">');
 			$('.add_icon', div).on('click', function() {
 				addNode(this, 'content', entity, resourceId)
 			});

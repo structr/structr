@@ -30,6 +30,7 @@ var Elements = {
     delete_icon : 'icon/delete.png',
 	
     init : function() {
+		Structr.classes.push('element');
     },
 
     onload : function() {
@@ -63,12 +64,12 @@ var Elements = {
             parent = elements;
         }
         
-        parent.append('<div class="nested top element ' + element.id + '_">'
+        parent.append('<div class="element ' + element.id + '_">'
             + '<img class="typeIcon" src="'+ Elements.icon + '">'
             + '<b class="name">' + element.name + '</b> <span class="id">' + element.id + '</span>'
             + '</div>');
         var div = $('.' + element.id + '_', parent);
-        div.append('<img title="Delete element \'' + element.name + '\'" alt="Delete element \'' + element.name + '\'" class="delete_icon button" src="' + Elements.delete_icon + '">');
+        div.append('<img title="Delete element \'' + element.name + '\'" alt="Delete element \'' + element.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
         $('.delete_icon', div).on('click', function() {
             Elements.deleteElement(this, element);
         });

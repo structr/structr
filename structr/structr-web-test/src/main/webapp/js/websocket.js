@@ -46,6 +46,10 @@ function connect() {
 		}
 
 		log('State: ' + ws.readyState);
+		
+		var parentId, entityId;
+		var parent, entity;
+		
 
 		ws.onmessage = function(message) {
 
@@ -140,10 +144,16 @@ function connect() {
 						if (debug) console.log('Content element appended');
 						if (buttonClicked) enable(buttonClicked);
 
+					} else if (entity.type == 'Folder') {
+
+						Files.appendFolderElement(entity);
+						if (debug) console.log('Folder element appended');
+						if (buttonClicked) enable(buttonClicked);
+
 					} else if (entity.type == 'File') {
 
 						Files.uploadFile(entity);
-                                                Entities.appendEntityElement(entity);
+						Entities.appendFileElement(entity);
 						if (debug) console.log('File uploaded');
 						if (buttonClicked) enable(buttonClicked);
 
@@ -179,23 +189,48 @@ function connect() {
 
 					} else if (entity.type == 'Element') {
 						
-						Entities.renderTree(entity.id);
-//						var elementElement = Resources.appendElementElement(entity);
-//						var elements = entity.elements;
-//						if (elements && elements.length > 0) {
-//							disable($('.delete_icon', elementElement)[0]);
-//							$(elements).each(function(i, element) {
-//								if (element.type == 'Element') {
-//									Resources.appendElementElement(element, entity.id);
-//								} else if (element.type == 'Content') {
-//									Resources.appendContentElement(element, entity.id);
-//								}
-//							});
-//						}
+						//Entities.renderTree(entity.id);
+						var elementElement = Resources.appendElementElement(entity);
+						var elements = entity.elements;
+						if (elements && elements.length > 0) {
+							disable($('.delete_icon', elementElement)[0]);
+							$(elements).each(function(i, element) {
+								if (element.type == 'Element') {
+									Resources.appendElementElement(element, entity.id);
+								} else if (element.type == 'Content') {
+									Resources.appendContentElement(element, entity.id);
+								}
+							});
+						}
 
 
 					} else if (entity.type == 'Content') {
 						Resources.appendContentElement(entity);
+
+					} else if (entity.type == 'Folder') {
+						
+						var folderElement = Files.appendFolderElement(entity);
+						var folders = entity.folders;
+						if (folders && folders.length > 0) {
+							disable($('.delete_icon', folderElement)[0]);
+							$(folders).each(function(i, folder) {
+								Files.appendFolderElement(file, entity.id);
+							});
+						}
+						var files = entity.files;
+						if (files && files.length > 0) {
+							disable($('.delete_icon', folderElement)[0]);
+							$(files).each(function(i, file) {
+								Files.appendFileElement(file, entity.id);
+							});
+						}
+						
+
+					} else if (entity.type == 'File') {
+						var parentFolder = entity.parentFolder;
+						if (!parentFolder || parentFolder.length == 0) {
+							Files.appendFileElement(entity);
+						}						
 
 					} else if (entity.type == 'Group') {
 						var groupElement = UsersAndGroups.appendGroupElement(entity);
@@ -222,11 +257,11 @@ function connect() {
 
 				if (debug) console.log(data);
 
-				var parentId = data.id;
-				var entityId = data.data.id;
+				parentId = data.id;
+				entityId = data.data.id;
 
-				var parent = $('.' + parentId + '_');
-				var entity = $('.' + entityId + '_', parent);
+				parent = $('.' + parentId + '_');
+				entity = $('.' + entityId + '_', parent);
 
 				if (debug) console.log(parent);
 				if (debug) console.log(entity);
@@ -235,20 +270,24 @@ function connect() {
 				//entity.id = id;
 
 				if (entity.hasClass('user')) {
-                    
+                    if (debug) console.log('remove user from group');
 					UsersAndGroups.removeUserFromGroup(entityId, parentId);
 
 				} else if (entity.hasClass('element')) {
-					console.log('remove element from resource');
+					if (debug) console.log('remove element from resource');
 					Resources.removeElementFromResource(entityId, parentId);
 
 				} else if (entity.hasClass('content')) {
-					console.log('remove content from element');
+					if (debug) console.log('remove content from element');
 					Resources.removeContentFromElement(entityId, parentId);
 
+				} else if (entity.hasClass('file')) {
+					if (debug) console.log('remove file from folder');
+					Files.removeFileFromFolder(entityId, parentId);
+
 				} else {
-					console.log('remove element');
-					entity.remove();
+					//if (debug) console.log('remove element');
+					//entity.remove();
 				}
 
 				if (debug) console.log('Removed ' + entityId + ' from ' + parentId);
@@ -257,11 +296,11 @@ function connect() {
 
 				if (debug) console.log(data);
 
-				var parentId = data.id;
-				var entityId = data.data.id;
+				parentId = data.id;
+				entityId = data.data.id;
 
-				var parent = $('.' + parentId + '_');
-				var entity = $('.' + entityId + '_');
+				parent = $('.' + parentId + '_');
+				entity = $('.' + entityId + '_');
 
 				if (debug) console.log(parent);
 				if (debug) console.log(entity);
@@ -272,17 +311,16 @@ function connect() {
 				//parent.append(entity);
                 
 				if (entity.hasClass('user')) {
-
 					UsersAndGroups.addUserToGroup(entityId, parentId);
 
 				} else if (entity.hasClass('element')) {
-
 					Resources.addElementToResource(entityId, parentId);
 
 				} else if (entity.hasClass('content')) {
-
 					Resources.addContentToElement(entityId, parentId);
 
+				} else if (entity.hasClass('file')) {
+					Files.addFileToFolder(entityId, parentId);
 				}
 
 			} else if (command == 'UPDATE') {
@@ -374,12 +412,12 @@ function getAnchorFromUrl(url) {
 
 // from https://developer.mozilla.org/En/DOM/Window.btoa
 function utf8_to_b64( str ) {
-    //return window.btoa(unescape(encodeURIComponent( str )));
-    return window.btoa(str);
+	//return window.btoa(unescape(encodeURIComponent( str )));
+	return window.btoa(str);
 }
 
 // from https://developer.mozilla.org/En/DOM/Window.btoa
 function b64_to_utf8( str ) {
-    //return decodeURIComponent(escape(window.atob( str )));
-    return window.atob(str);
+	//return decodeURIComponent(escape(window.atob( str )));
+	return window.atob(str);
 }

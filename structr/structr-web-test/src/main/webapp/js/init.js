@@ -27,7 +27,7 @@ var headers = {
 /********************************************************************/
 
 var main;
-var debug = false;
+var debug = true;
 //var onload = [];
 var lastMenuEntry;
 
@@ -118,7 +118,12 @@ $(document).ready(function() {
 var Structr = {
 	
     modules : {},
+	classes : [],
 	
+	add_icon : 'icon/add.png',
+	delete_icon : 'icon/delete.png',
+	edit_icon : 'icon/pencil.png',
+		
     init : function() {
         
         $.unblockUI();
@@ -256,28 +261,45 @@ var Structr = {
                 backgroundColor: 'transparent'
             }
         });
-
     },
 
     activateMenuEntry : function(name) {
-	
         lastMenuEntry = name;
-
-        
-
         $('.menu a').each(function(i,v) {
             $(this).removeClass('active').addClass('inactive');
         });
         var menuEntry = $('#' + name + '_');
         menuEntry.addClass('active').removeClass('inactive');
         $('#title').text('structr ' + menuEntry.text());
-
     },
 	
     registerModule : function(name, module) {
-		
         Structr.modules[name] = module;
         if (debug) console.log('Module ' + name + ' registered');
+    },
+	
+	entity : function(id, parentId) {
+		var entityElement, parentElement;
+		if (parentId) {
+			parentElement = $('.' + parentId + '_');
+			entityElement = $('.' + id + '_', parentElement);
+		} else {
+			entityElement = $('.' + id + '_');
+		}
+
+		var entity = {};
 		
-    }
+		entity.id = id;
+		
+		$(Structr.classes).each(function(i, cls) {
+			if (entityElement.hasClass(cls)) {
+				entity.type = cls;
+			}
+		});
+		
+		console.log(entity.type);
+		entity.name = $('.name', entityElement).text();
+	
+		return entity;
+	}
 };
