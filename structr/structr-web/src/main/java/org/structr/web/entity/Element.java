@@ -39,7 +39,7 @@ import org.structr.core.entity.DirectedRelationship.Cardinality;
 public class Element extends AbstractNode {
 
 	public enum Key implements PropertyKey {
-		name, tag;
+		name, tag, contents, elements
 	}
 
 	static {
@@ -47,7 +47,10 @@ public class Element extends AbstractNode {
 		EntityContext.registerPropertySet(Element.class,	PropertyView.All,	Key.values());
 		EntityContext.registerPropertySet(Element.class,	PropertyView.Public,	Key.values());
 		EntityContext.registerPropertySet(Resource.class,	"ui",			Key.values());
-	}
+
+		EntityContext.registerRelation(Element.class,	Key.elements,	Resource.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
+		EntityContext.registerRelation(Element.class,	Key.contents,	Element.class,	RelType.CONTAINS,	Direction.OUTGOING, Cardinality.ManyToMany);
+		EntityContext.registerRelation(Element.class,	Key.elements,	Content.class,	RelType.CONTAINS,	Direction.OUTGOING, Cardinality.ManyToMany);	}
 
 	//~--- get methods ----------------------------------------------------
 
