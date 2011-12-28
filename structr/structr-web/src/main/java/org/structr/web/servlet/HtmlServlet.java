@@ -37,6 +37,7 @@ import org.structr.common.TreeNode;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Image;
 import org.structr.core.entity.StructrRelationship;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;
@@ -55,6 +56,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 
@@ -69,6 +72,9 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.io.IOUtils;
+import org.structr.core.node.search.SearchAttributeGroup;
+import org.structr.core.node.search.SearchOperator;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -140,22 +146,28 @@ public class HtmlServlet extends HttpServlet {
 			DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 			double start                = System.nanoTime();
 
-			// 1: find entry point (Resource)
-			Resource resource = null;
-			String path       = request.getPathInfo();
+			// 1: find entry point (Resource, File or Image)
+			Resource resource                 = null;
+			org.structr.core.entity.File file = null;
+			Image image                       = null;
+			String path                       = request.getPathInfo();
 
 			logger.log(Level.INFO, "Path info {0}", path);
 
-			String resourceName = path.substring(path.lastIndexOf("/") + 1);
+			String name = path.substring(path.lastIndexOf("/") + 1);
 
-			if (resourceName.length() > 0) {
+			if (name.length() > 0) {
 
-				logger.log(Level.INFO, "File name {0}", resourceName);
+				logger.log(Level.INFO, "File name {0}", name);
 
 				List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
 
-				searchAttrs.add(Search.andExactName(resourceName));
-				searchAttrs.add(Search.andExactType(Resource.class.getSimpleName()));
+				searchAttrs.add(Search.andExactName(name));
+				SearchAttributeGroup group = new SearchAttributeGroup(SearchOperator.AND);
+				group.add(Search.orExactType(Resource.class.getSimpleName()));
+				group.add(Search.orExactType(org.structr.core.entity.File.class.getSimpleName()));
+				group.add(Search.orExactType(Image.class.getSimpleName()));
+				searchAttrs.add(group);
 
 				List<AbstractNode> results = (List<AbstractNode>) Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(null, false, false,
 								     searchAttrs);
@@ -164,15 +176,24 @@ public class HtmlServlet extends HttpServlet {
 
 				if (!results.isEmpty()) {
 
-					resource = (Resource) results.get(0);
+					AbstractNode node = results.get(0);
 
+					if (node instanceof Resource) {
+
+						resource = (Resource) node;
+
+					} else if (node instanceof org.structr.core.entity.File) {
+
+						file = (org.structr.core.entity.File) node;
+
+					}
 				}
 
 			}
 
 			if (resource != null) {
 
-				// 2: do a traversal and collect content
+				// 2a: do a traversal and collect content
 				String content = getContent(securityContext, resource);
 				double end     = System.nanoTime();
 
@@ -195,10 +216,32 @@ public class HtmlServlet extends HttpServlet {
 				response.getWriter().flush();
 				response.getWriter().close();
 				response.setStatus(HttpServletResponse.SC_OK);
-			} else {
 
-				response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+			} else if (file != null) {
 
+				// 2b: stream file to response
+				
+				InputStream in = file.getInputStream();
+				OutputStream out = response.getOutputStream();
+
+				String contentType = file.getContentType();
+
+				if (contentType != null) {
+
+					response.setContentType(contentType);
+
+				} else {
+
+					// Default
+					response.setContentType("text/html; charset=utf-8");
+				}
+
+				IOUtils.copy(in, out);
+				
+				// 3: output content
+				out.flush();
+				out.close();
+				response.setStatus(HttpServletResponse.SC_OK);
 			}
 
 		} catch (Throwable t) {
