@@ -21,10 +21,15 @@
 
 package org.structr.core.entity;
 
+import org.neo4j.graphdb.Direction;
+
 import org.structr.common.AbstractComponent;
+import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
+import org.structr.common.RelType;
 import org.structr.common.renderer.RenderContext;
 import org.structr.core.EntityContext;
+import org.structr.core.entity.DirectedRelationship.Cardinality;
 import org.structr.help.Container;
 import org.structr.help.Content;
 import org.structr.help.Paragraph;
@@ -40,10 +45,16 @@ public class Folder extends AbstractNode {
 
 	static {
 
-		EntityContext.registerPropertySet(Folder.class,
-						  PropertyView.All,
-						  Key.values());
+		EntityContext.registerPropertySet(Folder.class, PropertyView.All, Key.values());
+		EntityContext.registerRelation(Folder.class, Key.folders, Folder.class, RelType.HAS_CHILD, Direction.OUTGOING, Cardinality.OneToMany);
+		EntityContext.registerRelation(Folder.class, Key.files, File.class, RelType.HAS_CHILD, Direction.OUTGOING, Cardinality.OneToMany);
+		EntityContext.registerRelation(Folder.class, Key.parentFolder, Folder.class, RelType.HAS_CHILD, Direction.INCOMING, Cardinality.ManyToOne);
+
 	}
+
+	//~--- constant enums -------------------------------------------------
+
+	public enum Key implements PropertyKey{ name, parentFolder, folders, files }
 
 	//~--- methods --------------------------------------------------------
 
