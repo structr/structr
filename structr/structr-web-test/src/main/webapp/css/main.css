@@ -71,13 +71,13 @@ h2 {
 
 #header .logo {
     position: absolute;
-    top: 16px;
+    top: 15px;
     left: 16px;
 }
 
 #menu {
     position: absolute;
-    top: 18px;
+    top: 17px;
     left: 160px;
 }
 
@@ -115,9 +115,10 @@ h2 {
 }
 
 .menu .active {
-    color: #555 ! important;
-    padding: 4px 6px;
-    border: 1px solid #81ce25;
+    color: #333 ! important;
+    padding: 3px 6px 4px 6px;
+/*    border: 1px solid #81ce25;*/
+    border: 1px solid #333;
     border-radius: 5px;
     background-color: #81ce25;
     background: -webkit-gradient(linear, left bottom, left top, from(#73b821), to(#90e629)) no-repeat;
