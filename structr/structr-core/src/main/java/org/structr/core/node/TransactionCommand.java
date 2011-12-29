@@ -22,7 +22,6 @@
 package org.structr.core.node;
 
 
-import java.security.SecureRandom;
 import java.util.concurrent.atomic.AtomicLong;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
@@ -87,6 +86,7 @@ public class TransactionCommand extends NodeServiceCommand {
 						EntityContext.removeTransactionKey();
 
 						if(throwable != null) {
+							throwable.printStackTrace();
 							throw new IllegalArgumentException(throwable.getMessage());
 						}
 					}

@@ -25,6 +25,9 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSyntaxException;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileWriter;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -56,6 +59,7 @@ import java.io.Writer;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.text.SimpleDateFormat;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -72,6 +76,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.structr.core.Services;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -95,17 +100,20 @@ public class JsonRestServlet extends HttpServlet {
 	private static final String SERVLET_PARAMETER_DEFAULT_PROPERTY_VIEW = "DefaultPropertyView";
 	private static final String SERVLET_PARAMETER_ID_PROPERTY           = "IdProperty";
 	private static final String SERVLET_PARAMETER_PROPERTY_FORMAT       = "PropertyFormat";
+	private static final String SERVLET_PARAMETER_REQUEST_LOGGING       = "RequestLogging";
 	private static final Logger logger                                  = Logger.getLogger(JsonRestServlet.class.getName());
 
 	//~--- fields ---------------------------------------------------------
 
+	private SimpleDateFormat accessLogDateFormat                   = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
+	private String defaultPropertyView                             = PropertyView.Public;
 	private Map<Pattern, Class> constraintMap                      = null;
 	private String defaultIdProperty                               = null;
-	private String defaultPropertyView                             = PropertyView.Public;
 	private Gson gson                                              = null;
 	private PropertySetGSONAdapter propertySetAdapter              = null;
 	private Value<String> propertyView                             = null;
 	private ResultGSONAdapter resultGsonAdapter                    = null;
+	private Writer logWriter                                       = null;
 
 	//~--- methods --------------------------------------------------------
 
@@ -174,16 +182,41 @@ public class JsonRestServlet extends HttpServlet {
 		// create GSON serializer
 		this.gson = new GsonBuilder().setPrettyPrinting().serializeNulls().registerTypeAdapter(PropertySet.class,
 			propertySetAdapter).registerTypeAdapter(Result.class, resultGsonAdapter).create();
+
+		String requestLoggingParameter = this.getInitParameter(SERVLET_PARAMETER_REQUEST_LOGGING);
+		if(requestLoggingParameter != null && "true".equalsIgnoreCase(requestLoggingParameter)) {
+
+			// initialize access log
+			String logFileName = Services.getBasePath().concat("/logs/access.log");
+			try {
+				File logFile = new File(logFileName);
+				logFile.getParentFile().mkdir();
+				logWriter = new FileWriter(logFileName);
+
+			} catch(IOException ioex) {
+				logger.log(Level.WARNING, "Could not open access log file {0}: {1}", new Object[] { logFileName, ioex.getMessage() } );
+			}
+		}
 	}
 
 	@Override
-	public void destroy() {}
+	public void destroy() {
+		if(logWriter != null) {
+			try {
+				logWriter.flush();
+				logWriter.close();
+			} catch(IOException ioex) {
+				logger.log(Level.WARNING, "Could not close access log file.", ioex);
+			}
+		}
+	}
 
 	// <editor-fold defaultstate="collapsed" desc="DELETE">
 	@Override
 	protected void doDelete(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
 		try {
+			logRequest("DELETE", request);
 
 			request.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=utf-8");
@@ -250,6 +283,7 @@ public class JsonRestServlet extends HttpServlet {
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
 		try {
+			logRequest("GET", request);
 
 			request.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=utf-8");
@@ -347,6 +381,7 @@ public class JsonRestServlet extends HttpServlet {
 	protected void doHead(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
 		try {
+			logRequest("HEAD", request);
 
 			request.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=UTF-8");
@@ -403,6 +438,7 @@ public class JsonRestServlet extends HttpServlet {
 	protected void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
 		try {
+			logRequest("OPTIONS", request);
 
 			request.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=UTF-8");
@@ -459,6 +495,7 @@ public class JsonRestServlet extends HttpServlet {
 	protected void doPost(final HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
 		try {
+			logRequest("POST", request);
 
 			request.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=UTF-8");
@@ -539,6 +576,7 @@ public class JsonRestServlet extends HttpServlet {
 	protected void doPut(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
 		try {
+			logRequest("PUT", request);
 
 			request.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=UTF-8");
@@ -612,6 +650,8 @@ public class JsonRestServlet extends HttpServlet {
 	// <editor-fold defaultstate="collapsed" desc="TRACE">
 	@Override
 	protected void doTrace(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+		logRequest("TRACE", request);
 
 		response.setContentType("application/json; charset=UTF-8");
 
@@ -946,6 +986,34 @@ public class JsonRestServlet extends HttpServlet {
 
 		// return SecurityContext.getSuperUserInstance();
 		return SecurityContext.getInstance(this.getServletConfig(), request, AccessMode.Frontend);
+	}
+
+	private void logRequest(String method, HttpServletRequest request) {
+
+		if(logWriter != null) {
+
+			try {
+				logWriter.append(accessLogDateFormat.format(System.currentTimeMillis()));
+				logWriter.append(" ");
+				logWriter.append(StringUtils.rightPad(method, 8));
+				logWriter.append(request.getRequestURI());
+				logWriter.append("\n");
+
+				BufferedReader reader = request.getReader();
+				String line = reader.readLine();
+				while(line != null) {
+					logWriter.append("        ");
+					logWriter.append(line);
+					line = reader.readLine();
+					logWriter.append("\n");
+				}
+
+				logWriter.flush();
+				
+			} catch(IOException ioex) {
+				// ignore
+			}
+		}
 	}
 	// </editor-fold>
 
