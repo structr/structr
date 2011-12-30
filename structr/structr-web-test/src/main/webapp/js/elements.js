@@ -54,11 +54,16 @@ var Elements = {
         return Entities.showEntities('Element');
     },
 
-    appendElementElement : function(element, parentId) {
+    appendElementElement : function(element, parentId, resourceId) {
         var parent;
         if (debug) console.log(parentId);
         if (parentId) {
-            parent = $('.' + parentId + '_');
+			if (resourceId) {
+				var resourceElement = $('.' + resourceId + '_');
+				parent = $('.' + parentId + '_', resourceElement);
+			} else {
+				parent = $('.' + parentId + '_');
+			}
             if (debug) console.log(parent);
         } else {
             parent = elements;

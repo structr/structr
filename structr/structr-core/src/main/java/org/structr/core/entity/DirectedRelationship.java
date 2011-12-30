@@ -94,7 +94,7 @@ public class DirectedRelationship {
 	public void createRelationship(final SecurityContext securityContext, final AbstractNode sourceNode, final Object value, final Map properties) throws Throwable {
 
 		// create relationship if it does not already exist
-		final Command cmd       = Services.command(securityContext, CreateRelationshipCommand.class);
+		final Command createRel       = Services.command(securityContext, CreateRelationshipCommand.class);
 		AbstractNode targetNode = null;
 
 		if (value instanceof AbstractNode) {
@@ -139,11 +139,11 @@ public class DirectedRelationship {
 
 					if (direction.equals(Direction.OUTGOING)) {
 
-						newRel = (StructrRelationship) cmd.execute(sourceNode, finalTargetNode, relType);
+						newRel = (StructrRelationship) createRel.execute(sourceNode, finalTargetNode, relType);
 
 					} else {
 
-						newRel = (StructrRelationship) cmd.execute(finalTargetNode, sourceNode, relType);
+						newRel = (StructrRelationship) createRel.execute(finalTargetNode, sourceNode, relType);
 
 					}
 

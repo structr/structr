@@ -71,10 +71,21 @@ public class ResourceExpander implements RelationshipExpander {
 			try {
 
 				Integer position = null;
+				Object prop      = null;
 
-				if (rel.hasProperty(resourceId)) {
+				// "*" is a wildcard for "matches any resource id"
+				// TOOD: use pattern matching here?
+				if (rel.hasProperty("*")) {
 
-					Object prop = rel.getProperty(resourceId);
+					prop = rel.getProperty("*");
+
+				} else if (rel.hasProperty(resourceId)) {
+
+					prop = rel.getProperty(resourceId);
+
+				}
+
+				if (prop != null) {
 
 					if (prop instanceof Integer) {
 

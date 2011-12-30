@@ -162,7 +162,7 @@ img.disabled {
 }
 
 #resourcesEditor .id {
-    display: none;
+/*    display: none;*/
 }
 
 .group, .user, .resource, .element, .content, .folder, .file {
@@ -284,8 +284,8 @@ tr:nth-child(even) {
     width: 540px;
 }
 
-.id {
-	/*    display: none;*/
+span.id {
+	display: none;
 }
 
 .resource,

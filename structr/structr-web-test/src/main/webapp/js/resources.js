@@ -145,8 +145,8 @@ var Resources = {
     showElements : function() {
         return Resources.showEntities('Element');
     },
-
-    appendResourceElement : function(resource) {
+	
+    appendResourceElement : function(resource, resourceId) {
         resources.append('<div class="resource ' + resource.id + '_">'
             + '<img class="typeIcon" src="icon/page.png">'
             + '<b class="name">' + resource.name + '</b> <span class="id">' + resource.id + '</span>'
@@ -164,21 +164,20 @@ var Resources = {
             Entities.showProperties(this, resource, 'all', $('.' + resource.id + '_', resources));
         });
 
-        var elements = resource.children;
-					
-        if (elements && elements.length > 0) {
-            disable($('.delete_icon', div));
-            $(elements).each(function(i, child) {
-							
-                console.log("type: " + child.type);
-                if (child.type == "Element") {
-                    Resources.appendElementElement(child, resource.id);
-                } else if (child.type == "Content") {
-                    Resources.appendContentElement(child, resource.id);
-                }
-            });
-        }
-
+//        var elements = resource.children;
+//					
+//        if (elements && elements.length > 0) {
+//            disable($('.delete_icon', div));
+//            $(elements).each(function(i, child) {
+//							
+//                if (debug) console.log("type: " + child.type);
+//                if (child.type == "Element") {
+//                    Resources.appendElementElement(child, resource.id);
+//                } else if (child.type == "Content") {
+//                    Resources.appendContentElement(child, resource.id);
+//                }
+//            });
+//        }
 
         div.droppable({
             accept: '.element',
@@ -186,6 +185,9 @@ var Resources = {
             drop: function(event, ui) {
                 var elementId = getIdFromClassString(ui.draggable.attr('class'));
                 var resourceId = getIdFromClassString($(this).attr('class'));
+				
+				if (!resourceId) resourceId = '*';
+				
                 var pos = $('.element', $(this)).length;
                 console.log(pos);
                 var props = '"' + resourceId + '" : "' + pos + '"';
@@ -197,31 +199,30 @@ var Resources = {
         return div;
     },
 
-    appendElementElement : function(element, parentId) {
-        var div = Elements.appendElementElement(element, parentId);
+    appendElementElement : function(element, parentId, resourceId) {
+        var div = Elements.appendElementElement(element, parentId, resourceId);
         //console.log(div);
         if (parentId) {
-            var parent = $('.' + parentId + '_');
 
             $('.delete_icon', div).remove();
             div.append('<img title="Remove element \'' + element.name + '\' from resource ' + parentId + '" '
-                + 'alt="Remove element ' + element.name + ' from resources ' + parentId + '" class="delete_icon button" src="icon/brick_delete.png">');
+                + 'alt="Remove element ' + element.name + ' from ' + parentId + '" class="delete_icon button" src="icon/brick_delete.png">');
             $('.delete_icon', div).on('click', function() {
                 Entities.removeSourceFromTarget(element.id, parentId);
             });
         }
-        var elements = element.children;
-		
-        if (elements && elements.length > 0) {
-            disable($('.delete_icon', div));
-            $(elements).each(function(i, child) {
-                if (child.type == "Element") {
-                    Resources.appendElementElement(child, element.id);
-                } else if (child.type == "Content") {
-                    Resources.appendContentElement(child, element.id);
-                }
-            });
-        }
+//        var elements = element.children;
+//		
+//        if (elements && elements.length > 0) {
+//            disable($('.delete_icon', div));
+//            $(elements).each(function(i, child) {
+//                if (child.type == "Element") {
+//                    Resources.appendElementElement(child, element.id);
+//                } else if (child.type == "Content") {
+//                    Resources.appendContentElement(child, element.id);
+//                }
+//            });
+//        }
 
         div.draggable({
             revert: 'invalid',
@@ -234,16 +235,18 @@ var Resources = {
             hoverClass: 'elementHover',
             drop: function(event, ui) {
                 var resource = $(this).closest( '.resource')[0];
-                console.log(resource);
+                if (debug) console.log(resource);
                 var contentId = getIdFromClassString(ui.draggable.attr('class'));
                 var elementId = getIdFromClassString($(this).attr('class'));
                 var pos = $('.content', $(this)).length;
-                console.log(pos);
+                if (debug) console.log(pos);
                 var props;
                 if (resource) {
                     var resourceId = getIdFromClassString($(resource).attr('class'));
                     props = '"' + resourceId + '" : "' + pos + '"';
-                }
+                } else {
+					props = '"*" : "' + pos + '"';
+				}
                 console.log(props);
                 Entities.addSourceToTarget(contentId, elementId, props);
             }
@@ -252,8 +255,8 @@ var Resources = {
         return div;
     },
 
-    appendContentElement : function(content, parentId) {
-        var div = Contents.appendContentElement(content, parentId);
+    appendContentElement : function(content, parentId, resourceId) {
+        var div = Contents.appendContentElement(content, parentId, resourceId);
         //console.log(div);
         if (parentId) {
             $('.delete_icon', div).remove();
@@ -275,7 +278,7 @@ var Resources = {
     addElementToResource : function(elementId, resourceId) {
 
         var resource = $('.' + resourceId + '_');
-        var element = $('.' + elementId + '_');
+        var element = $('.' + elementId + '_', elements);
 
         resource.append(element);
 
