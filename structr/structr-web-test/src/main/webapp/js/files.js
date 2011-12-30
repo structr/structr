@@ -138,7 +138,7 @@ var Files = {
         
 		var icon = Files.icon; // default
 		if (debug) console.log(file.contentType);
-		if (file.contentType.substring(0,5) == 'image') {
+		if (file.contentType && file.contentType.substring(0,5) == 'image') {
 			icon = 'icon/image.png';
 		}
 		
