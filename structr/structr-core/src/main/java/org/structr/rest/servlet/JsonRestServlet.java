@@ -989,37 +989,37 @@ public class JsonRestServlet extends HttpServlet {
 	}
 
 	private void logRequest(String method, HttpServletRequest request) {
-
-		if(logWriter != null) {
-
-			try {
-				logWriter.append(accessLogDateFormat.format(System.currentTimeMillis()));
-				logWriter.append(" ");
-				logWriter.append(StringUtils.rightPad(method, 8));
-				logWriter.append(request.getRequestURI());
-				logWriter.append("\n");
-
-				BufferedReader reader = request.getReader();
-				if(reader.markSupported()) {
-					reader.mark(65535);
-				}
-
-				String line = reader.readLine();
-				while(line != null) {
-					logWriter.append("        ");
-					logWriter.append(line);
-					line = reader.readLine();
-					logWriter.append("\n");
-				}
-
-				reader.reset();
-
-				logWriter.flush();
-				
-			} catch(IOException ioex) {
-				// ignore
-			}
-		}
+//
+//		if(logWriter != null) {
+//
+//			try {
+//				logWriter.append(accessLogDateFormat.format(System.currentTimeMillis()));
+//				logWriter.append(" ");
+//				logWriter.append(StringUtils.rightPad(method, 8));
+//				logWriter.append(request.getRequestURI());
+//				logWriter.append("\n");
+//
+//				BufferedReader reader = request.getReader();
+//				if(reader.markSupported()) {
+//					reader.mark(65535);
+//				}
+//
+//				String line = reader.readLine();
+//				while(line != null) {
+//					logWriter.append("        ");
+//					logWriter.append(line);
+//					line = reader.readLine();
+//					logWriter.append("\n");
+//				}
+//
+//				reader.reset();
+//
+//				logWriter.flush();
+//				
+//			} catch(IOException ioex) {
+//				// ignore
+//			}
+//		}
 	}
 	// </editor-fold>
 
