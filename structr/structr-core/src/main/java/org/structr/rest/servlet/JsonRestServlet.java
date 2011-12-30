@@ -1000,6 +1000,10 @@ public class JsonRestServlet extends HttpServlet {
 				logWriter.append("\n");
 
 				BufferedReader reader = request.getReader();
+				if(reader.markSupported()) {
+					reader.mark(65535);
+				}
+
 				String line = reader.readLine();
 				while(line != null) {
 					logWriter.append("        ");
@@ -1007,6 +1011,8 @@ public class JsonRestServlet extends HttpServlet {
 					line = reader.readLine();
 					logWriter.append("\n");
 				}
+
+				reader.reset();
 
 				logWriter.flush();
 				
