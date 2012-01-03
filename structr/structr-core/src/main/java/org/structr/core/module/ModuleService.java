@@ -562,7 +562,8 @@ public class ModuleService implements SingletonService {
                     }
 
                 } else {
-                    logger.log(Level.WARNING, "Invalid entry: {0}", sourcePath);
+		    // do not log as this can occur when classes from WEB-INF/classes are examined here
+                    // logger.log(Level.WARNING, "Invalid entry: {0}", sourcePath);
                 }
 
             } catch (Throwable t) {
@@ -755,7 +756,7 @@ public class ModuleService implements SingletonService {
      * @throws IOException
      */
     private Module createModuleIndex(String moduleName) throws IOException {
-        String modulePath = createModuleFileName(moduleName);
+	String modulePath = servletContext.getRealPath("/WEB-INF/lib").concat("/").concat(moduleName);
         String indexPath = createIndexFileName(moduleName);
         File moduleFile = new File(modulePath);
         File indexFile = new File(indexPath);
@@ -814,7 +815,11 @@ public class ModuleService implements SingletonService {
 
         }
 
-        // store index file
+	// add entries from WEB-INF/classes
+	File classesDir = new File(servletContext.getRealPath("/WEB-INF/classes"));
+	addClassesRecursively(classesDir, classes);
+
+	// store index file
         try {
             indexFile.getParentFile().mkdirs();
 
@@ -954,5 +959,26 @@ public class ModuleService implements SingletonService {
             toDelete.delete();
         }
     }
+
+	private void addClassesRecursively(File dir, Set<String> classes) {
+
+		for(File file : dir.listFiles()) {
+			if(file.isDirectory()) {
+				addClassesRecursively(file, classes);
+			} else {
+
+				try {
+					String fileEntry = file.getAbsolutePath();
+					fileEntry = fileEntry.substring(0, fileEntry.length() - 6);
+					fileEntry = fileEntry.substring(fileEntry.indexOf("/WEB-INF/classes") + 17);
+					fileEntry = fileEntry.replaceAll("[/]+", ".");
+					classes.add(fileEntry);
+
+				} catch(Throwable t) {
+					//ignore
+				}
+			}
+		}
+	}
     // </editor-fold>
 }

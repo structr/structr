@@ -23,15 +23,12 @@ package org.structr.core;
 
 import org.structr.common.PropertyKey;
 import org.structr.core.node.NodeAttribute;
-import org.structr.rest.wrapper.PropertySet;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 //~--- classes ----------------------------------------------------------------
 
