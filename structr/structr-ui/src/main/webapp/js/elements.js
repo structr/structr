@@ -56,15 +56,16 @@ var Elements = {
 
     appendElementElement : function(element, parentId, resourceId) {
         var parent;
-        if (debug) console.log(parentId);
+        console.log('Elements.appendElementElement: parentId=' + parentId);
+		console.log('Elements.appendElementElement: resourceId=' + resourceId);
         if (parentId) {
-			if (resourceId) {
+			if (resourceId && resourceId != parentId) {
 				var resourceElement = $('.' + resourceId + '_');
 				parent = $('.' + parentId + '_', resourceElement);
 			} else {
 				parent = $('.' + parentId + '_');
 			}
-            if (debug) console.log(parent);
+            console.log(parent);
         } else {
             parent = elements;
         }

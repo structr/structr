@@ -167,9 +167,9 @@ function connect() {
 			} else if (command == 'TREE') {
 				
 				console.log('Render Tree');
-				console.log(data.root, data.root);
+				console.log(data.root, data.id);
 				
-				Entities.renderTree(data.root);
+				Entities.renderTree(data.root, data.id);
 
 			} else if (command == 'LIST') {
 				
@@ -190,19 +190,19 @@ function connect() {
 
 					} else if (entity.type == 'Element') {
 						
-						Entities.getTree(entity.id);
-//						var elementElement = Resources.appendElementElement(entity);
-//						var elements = entity.elements;
-//						if (elements && elements.length > 0) {
-//							disable($('.delete_icon', elementElement)[0]);
-//							$(elements).each(function(i, element) {
-//								if (element.type == 'Element') {
-//									Resources.appendElementElement(element, entity.id);
-//								} else if (element.type == 'Content') {
-//									Resources.appendContentElement(element, entity.id);
-//								}
-//							});
-//						}
+//						Entities.getTree(entity.id);
+						var elementElement = Resources.appendElementElement(entity);
+						var elements = entity.elements;
+						if (elements && elements.length > 0) {
+							disable($('.delete_icon', elementElement)[0]);
+							$(elements).each(function(i, element) {
+								if (element.type == 'Element') {
+									Resources.appendElementElement(element, entity.id);
+								} else if (element.type == 'Content') {
+									Resources.appendContentElement(element, entity.id);
+								}
+							});
+						}
 
 
 					} else if (entity.type == 'Content') {

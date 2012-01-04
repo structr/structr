@@ -285,7 +285,7 @@ tr:nth-child(even) {
 }
 
 span.id {
-	display: none;
+/*	display: none;*/
 }
 
 .resource,

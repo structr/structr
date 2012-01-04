@@ -51,12 +51,12 @@ var Entities = {
 	},
 
 	renderTree : function(parent, rootId) {
-		
+		console.log('Entities.renderTree');
 		var children = parent.children;
 					
 		if (children && children.length > 0) {
 			$(children).each(function(i,child) {
-				
+				console.log(child);
 				if (child.type == "Resource") {
 					Resources.appendResourceElement(child, parent.id, rootId);
 				} else if (child.type == "Element") {

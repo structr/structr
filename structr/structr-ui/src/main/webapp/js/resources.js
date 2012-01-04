@@ -189,9 +189,9 @@ var Resources = {
 				if (!resourceId) resourceId = '*';
 				
                 var pos = $('.element', $(this)).length;
-                console.log(pos);
+                if (debug) console.log(pos);
                 var props = '"' + resourceId + '" : "' + pos + '"';
-                console.log(props);
+                if (debug) console.log(props);
                 Entities.addSourceToTarget(elementId, resourceId, props);
             }
         });
@@ -247,7 +247,7 @@ var Resources = {
                 } else {
 					props = '"*" : "' + pos + '"';
 				}
-                console.log(props);
+                if (debug) console.log(props);
                 Entities.addSourceToTarget(contentId, elementId, props);
             }
         });
@@ -261,7 +261,7 @@ var Resources = {
         if (parentId) {
             $('.delete_icon', div).remove();
             div.append('<img title="Remove element \'' + content.name + '\' from resource ' + parentId + '" '
-                + 'alt="Remove content ' + content.name + ' from element ' + parentId + '" class="delete_icon button" src="icon/brick_delete.png">');
+                + 'alt="Remove content ' + content.name + ' from element ' + parentId + '" class="delete_icon button" src="' + Contents.delete_icon + '">');
             $('.delete_icon', div).on('click', function() {
                 Entities.removeSourceFromTarget(content.id, parentId)
             });
@@ -278,13 +278,13 @@ var Resources = {
     addElementToResource : function(elementId, resourceId) {
 
         var resource = $('.' + resourceId + '_');
-        var element = $('.' + elementId + '_', elements);
+        var element = $('.' + elementId + '_', resource);
 
         resource.append(element);
 
         $('.delete_icon', element).remove();
         element.append('<img title="Remove element ' + elementId + ' from resource ' + resourceId + '" '
-            + 'alt="Remove element ' + elementId + ' from resource ' + resourceId + '" class="delete_icon button" src="icon/brick_delete.png">');
+            + 'alt="Remove element ' + elementId + ' from resource ' + resourceId + '" class="delete_icon button" src="' + Elements.delete_icon + '">');
         $('.delete_icon', element).on('click', function() {
             Resources.removeElementFromResource(elementId, resourceId);
         });
@@ -322,7 +322,7 @@ var Resources = {
 
         $('.delete_icon', content).remove();
         content.append('<img title="Remove content ' + contentId + ' from element ' + elementId + '" '
-            + 'alt="Remove content ' + contentId + ' from element ' + elementId + '" class="delete_icon button" src="icon/page_white_delete.png">');
+            + 'alt="Remove content ' + contentId + ' from element ' + elementId + '" class="delete_icon button" src="' + Contents.delete_icon + '">');
         $('.delete_icon', content).on('click', function() {
             Resources.removeElementFromResource(contentId, elementId)
         });
