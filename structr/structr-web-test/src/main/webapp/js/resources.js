@@ -374,7 +374,11 @@ var Resources = {
     addResource : function(button) {
         return Entities.add(button, 'Resource');
     },
-
+	
+    addElement : function(button) {
+        return Entities.add(button, 'Element');
+    },
+	
     deleteResource : function(button, resource) {
         if (debug) console.log('delete resource ' + resource);
         deleteNode(button, resource);
