@@ -4,6 +4,7 @@
  */
 package org.structr.rest.constraint;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
@@ -17,7 +18,6 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
-import org.structr.core.VetoableGraphObjectListener;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NoResultsException;
 import org.structr.rest.exception.NotFoundException;
@@ -78,9 +78,13 @@ public class InheritingTypeConstraint extends TypeConstraint {
 
 		// return 404 if search attributes were posted
 		if(hasSearchableAttributes) {
+
 			throw new NotFoundException();
+
 		} else {
-			throw new NoResultsException();
+
+			// throw new NoResultsException();
+			return Collections.emptyList();
 		}
 	}
 

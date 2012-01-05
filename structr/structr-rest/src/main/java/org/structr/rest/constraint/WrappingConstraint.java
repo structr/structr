@@ -72,6 +72,7 @@ public abstract class WrappingConstraint extends ResourceConstraint {
 	}
 
 	protected void wrapConstraint(ResourceConstraint wrappedConstraint) {
+		this.idProperty = wrappedConstraint.idProperty;
 		this.wrappedConstraint = wrappedConstraint;
 	}
 

@@ -108,11 +108,14 @@ public class TypedIdConstraint extends FilterableConstraint {
 			// next constraint is a type constraint
 			// => follow predefined statc relationship
 			//    between the two types
-			return new StaticRelationshipConstraint(securityContext, this, (TypeConstraint)next);
+			StaticRelationshipConstraint constraint = new StaticRelationshipConstraint(securityContext, this, (TypeConstraint)next);
+			constraint.configureIdProperty(idProperty);
+			return constraint;
 
 		} else if(next instanceof TypedIdConstraint) {
 
 			RelationshipFollowingConstraint constraint = new RelationshipFollowingConstraint(securityContext, this);
+			constraint.configureIdProperty(idProperty);
 			constraint.addTypedIdConstraint((TypedIdConstraint)next);
 
 			return constraint;
