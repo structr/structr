@@ -310,6 +310,7 @@ public class JsonRestServlet extends HttpServlet {
 				Writer writer = response.getWriter();
 
 				gson.toJson(result, writer);
+				writer.append("\n"); // useful newline
 				writer.flush();
 				writer.close();
 				response.setStatus(HttpServletResponse.SC_OK);
