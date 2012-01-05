@@ -21,7 +21,7 @@
 
 package org.structr.rest.constraint;
 
-import org.structr.common.ErrorBuffer;
+import java.util.Collections;
 import org.structr.common.SecurityContext;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
@@ -33,7 +33,6 @@ import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
-import org.structr.rest.exception.NoResultsException;
 import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.exception.PathException;
 
@@ -81,7 +80,7 @@ public class StaticRelationshipConstraint extends SortableConstraint {
 			String sourceType = typedIdConstraint.getTypeConstraint().getType();
 			String targetType = typeConstraint.getRawType();
 
-			logger.log(Level.INFO, "sourceType {0}, targetType {1}", new Object[] { sourceType, targetType } );
+			// logger.log(Level.INFO, "sourceType {0}, targetType {1}", new Object[] { sourceType, targetType } );
 			
 			// fetch static relationship definition
 			DirectedRelationship staticRel = EntityContext.getRelation(sourceType, targetType);
@@ -96,7 +95,8 @@ public class StaticRelationshipConstraint extends SortableConstraint {
 
 				}
 
-				throw new NoResultsException();
+				//throw new NoResultsException();
+				return Collections.emptyList();
 
 			}
 		}

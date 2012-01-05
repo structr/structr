@@ -85,26 +85,33 @@ public class ResultGSONAdapter implements JsonSerializer<Result>, JsonDeserializ
 			result.add("resultCount", new JsonPrimitive(resultCount));
 		}
 
-		if(results != null && !results.isEmpty()) {
+		if(results != null) {
 
-			if (results.size() > 1 && !src.isCollectionResource()){
-				throw new IllegalStateException(src.getClass().getSimpleName() + " is not a collection resource, but result set has size " + results.size());
-			}
+			if(results.isEmpty()) {
 
-			if(src.isCollectionResource()) {
-
-				// serialize list of results
-				JsonArray resultArray = new JsonArray();
-				for(GraphObject graphObject : results) {
-					resultArray.add(graphObjectGsonAdapter.serialize(graphObject, GraphObject.class, context));
-				}
-
-				result.add("result", resultArray);
+				result.add("result", new JsonArray());
 
 			} else {
 
-				// use GraphObject adapter to serialize single result
-				result.add("result", graphObjectGsonAdapter.serialize(results.get(0), GraphObject.class, context));
+				if (results.size() > 1 && !src.isCollectionResource()){
+					throw new IllegalStateException(src.getClass().getSimpleName() + " is not a collection resource, but result set has size " + results.size());
+				}
+
+				if(src.isCollectionResource()) {
+
+					// serialize list of results
+					JsonArray resultArray = new JsonArray();
+					for(GraphObject graphObject : results) {
+						resultArray.add(graphObjectGsonAdapter.serialize(graphObject, GraphObject.class, context));
+					}
+
+					result.add("result", resultArray);
+
+				} else {
+
+					// use GraphObject adapter to serialize single result
+					result.add("result", graphObjectGsonAdapter.serialize(results.get(0), GraphObject.class, context));
+				}
 			}
 		}
 

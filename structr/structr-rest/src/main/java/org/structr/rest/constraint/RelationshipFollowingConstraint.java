@@ -41,7 +41,6 @@ import org.structr.core.node.StructrNodeFactory;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 import org.structr.rest.RestMethodResult;
-import org.structr.core.VetoableGraphObjectListener;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.exception.PathException;
@@ -370,7 +369,7 @@ public class RelationshipFollowingConstraint extends SortableConstraint implemen
 		try {
 
 			// only continue if we are on the right track :)
-			if (idSet.contains(endNode.getId()) || idSet.contains(endNode.getProperty(idProperty))) {
+			if (idSet.contains(endNode.getProperty(AbstractNode.Key.uuid.name()))) {
 
 				if (path.length() == pathLength) {
 
@@ -386,6 +385,7 @@ public class RelationshipFollowingConstraint extends SortableConstraint implemen
 		} catch (Throwable t) {
 
 			// ignore
+			t.printStackTrace();
 		}
 
 		// dead end, stop here
@@ -434,11 +434,8 @@ public class RelationshipFollowingConstraint extends SortableConstraint implemen
 		}
 
 		Path path = paths.get(pathLength - 1);
-
 		if ((path != null) && path.startNode().equals(startNode) && path.endNode().equals(endNode)) {
-
 			return path;
-
 		}
 
 		return null;
