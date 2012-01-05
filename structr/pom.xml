@@ -19,7 +19,6 @@
         <module>structr-module-web</module>
         <module>structr-module-app</module>
         <module>structr-module-chart</module>
-        <module>structr-webapp</module>
         <module>structr-web</module>
         <module>structr-web-test</module>
   </modules>
