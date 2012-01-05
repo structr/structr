@@ -78,7 +78,6 @@ public class Services {
 	public static final String SMTP_PORT       = "smtp.port";
 
 //      public static final String ENTITY_PACKAGES = "entity.packages";
-	public static final String STRUCTR_PAGE_PREDICATE = "structr.page.predicate";
 	public static final String SUPERUSER_PASSWORD     = "superuser.password";
 
 	// Security-related constants

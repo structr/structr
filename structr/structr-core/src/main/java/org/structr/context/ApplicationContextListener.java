@@ -31,7 +31,6 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionListener;
-import org.structr.ui.page.StructrPage;
 
 /**
  * Web application lifecycle listener.
@@ -154,15 +153,6 @@ public class ApplicationContextListener implements ServletContextListener, HttpS
             // handle error
             logger.log(Level.WARNING, "Could not inititialize all values");
         }
-
-        // register predicate that can decide whether a given Class object is a subclass of StructrPage
-        context.put(Services.STRUCTR_PAGE_PREDICATE, new Predicate<Class>() {
-
-            @Override
-            public boolean evaluate(Class obj) {
-                return (StructrPage.class.isAssignableFrom(obj));
-            }
-        });
 
         Services.initialize(context);
         //Services.setContext(context);

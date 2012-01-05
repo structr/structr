@@ -74,17 +74,6 @@ public class StandaloneTestHelper
 		Map<String, Object> context = new Hashtable<String, Object>();
 
 		context.put(Services.DATABASE_PATH, databasePath);
-//		context.put(Services.ENTITY_PACKAGES, "org.structr.core.entity");
-
-		// add predicate
-		context.put(Services.STRUCTR_PAGE_PREDICATE, new Predicate()
-		{
-			@Override
-			public boolean evaluate(Object obj)
-			{
-				return(false);
-			}
-		});
 
 		try
 		{

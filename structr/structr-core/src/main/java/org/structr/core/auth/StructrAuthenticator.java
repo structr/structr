@@ -30,8 +30,6 @@ import org.structr.core.Services;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
 import org.structr.core.node.FindUserCommand;
-import org.structr.ui.page.LoginPage;
-import org.structr.ui.page.StructrPage;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -67,7 +65,7 @@ public class StructrAuthenticator implements Authenticator {
 		String errorMsg = null;
 		User user       = null;
 
-		if (LoginPage.SUPERADMIN_USERNAME_KEY.equals(userName) && StructrPage.SUPERADMIN_PASSWORD_KEY.equals(password)) {
+		if (Services.SUPERUSER_USERNAME.equals(userName) && Services.SUPERUSER_PASSWORD.equals(password)) {
 
 			logger.log(Level.INFO, "############# Logged in as superadmin! ############");
 

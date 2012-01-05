@@ -21,7 +21,6 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <structr.version>0.4.5-SNAPSHOT</structr.version>
         <neo4j.version>1.5</neo4j.version>
-        <click.version>2.3.0</click.version>
     </properties>
 
     <repositories>
@@ -175,24 +174,6 @@
             <groupId>org.jsoup</groupId>
             <artifactId>jsoup</artifactId>
             <version>1.4.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.click</groupId>
-            <artifactId>click</artifactId>
-            <version>${click.version}</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.click</groupId>
-            <artifactId>click-extras</artifactId>
-            <version>${click.version}</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.click</groupId>
-            <artifactId>click-nodeps</artifactId>
-            <version>${click.version}</version>
-            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.google.code.gson</groupId>

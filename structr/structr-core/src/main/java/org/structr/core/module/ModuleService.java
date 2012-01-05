@@ -361,18 +361,6 @@ public class ModuleService implements SingletonService {
     @Override
     public void initialize(Map<String, Object> context) {
         this.servletContext = (ServletContext) context.get(Services.SERVLET_CONTEXT);
-        this.structrPagePredicate = (Predicate) context.get(Services.STRUCTR_PAGE_PREDICATE);
-
-        if (this.structrPagePredicate == null) {
-            throw new RuntimeException(Services.STRUCTR_PAGE_PREDICATE + " not set, aborting!");
-        }
-
-//        // initialize default structr entites
-//        String entityPackagesFromContext = (String) context.get(Services.ENTITY_PACKAGES);
-//        for (String entityPackageFromContext : entityPackagesFromContext.split("[, ]+")) {
-//            entityPackages.add(entityPackageFromContext);
-//        }
-
         initializeModules();
     }
 
