@@ -16,8 +16,10 @@
 
     <modules>
         <module>structr-core</module>
+        <module>structr-rest</module>
+        <module>structr-websocket</module>
         <module>structr-web</module>
-        <module>structr-web-test</module>
+        <module>structr-ui</module>
   </modules>
 
     <build>

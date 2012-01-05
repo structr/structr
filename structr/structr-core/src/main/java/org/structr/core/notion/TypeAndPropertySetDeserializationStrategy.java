@@ -35,8 +35,8 @@ import org.structr.core.node.search.SearchNodeCommand;
 
 import java.util.LinkedList;
 import java.util.List;
+import org.structr.core.PropertySet;
 import org.structr.core.node.NodeAttribute;
-import org.structr.rest.wrapper.PropertySet;
 
 //~--- classes ----------------------------------------------------------------
 
