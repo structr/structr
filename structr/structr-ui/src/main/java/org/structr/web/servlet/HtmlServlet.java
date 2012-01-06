@@ -458,7 +458,7 @@ public class HtmlServlet extends HttpServlet {
 
 				buffer.append("<").append(tag);
 
-				if (id != null) {
+				if (edit && id != null) {
 
 					buffer.append(" structr_id='").append(id).append("'");
 

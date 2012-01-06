@@ -80,7 +80,7 @@ var Entities = {
 		//    console.log(element);
 		element.append('<div class="' + entity.type.toLowerCase() + ' ' + entity.id + '_">'
 			+ (entity.iconUrl ? '<img class="typeIcon" src="' + entity.iconUrl + '">' : '')
-			+ '<b class="name">' + entity.name + '</b> '
+			+ '<b class="name_">' + entity.name + '</b> '
 			+ '<span class="id">' + entity.id + '</span>'
 			+ '</div>');
 		div = $('.' + entity.id + '_', element);
@@ -149,7 +149,7 @@ var Entities = {
 				element.append('<table class="props"></table>');
 				var keys = Object.keys(data.result);
 				$(keys).each(function(i, key) {
-					$('.props', element).append('<tr><td class="key">' + formatKey(key) + '</td><td class="value ' + key + '">' + formatValue(key, data.result[key]) + '</td></tr>');
+					$('.props', element).append('<tr><td class="key">' + formatKey(key) + '</td><td class="value ' + key + '_">' + formatValue(key, data.result[key]) + '</td></tr>');
 				});
         
 				$('.props tr td.value input', element).each(function(i,v) {

@@ -55,23 +55,13 @@ var Contents = {
     },
 
     appendContentElement : function(content, parentId, resourceId) {
-        var parent;
-        console.log('Contents.appendContentElement: parentId: ' + parentId + ', resourceId: ' + resourceId);
-        if (parentId) {
-			if (resourceId) {
-				var resourceElement = $('.' + resourceId + '_');
-				parent = $('.' + parentId + '_', resourceElement);
-			} else {
-				parent = $('.' + parentId + '_');
-			}
-            if (debug) console.log(parent);
-        } else {
-            parent = contents;
-        }
+        if (debug) console.log('Contents.appendContentElement: parentId: ' + parentId + ', resourceId: ' + resourceId);
+
+        var parent = Structr.findParent(parentId, resourceId, contents);
         
         parent.append('<div class="content ' + content.id + '_">'
             + '<img class="typeIcon" src="'+ Contents.icon + '">'
-            + '<b class="name">' + content.name + '</b> <span class="id">' + content.id + '</span>'
+            + '<b class="name_">' + content.name + '</b> <span class="id">' + content.id + '</span>'
             + '</div>');
         var div = $('.' + content.id + '_', parent);
         div.append('<img title="Delete content \'' + content.name + '\'" alt="Delete content \'' + content.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');

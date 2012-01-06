@@ -162,7 +162,7 @@ var UsersAndGroups = {
     appendGroupElement : function(group) {
         groups.append('<div class="group ' + group.id + '_">'
             + '<img class="typeIcon" src="icon/group.png">'
-            + '<b class="name">' + group.name + '</b> <span class="id">' + group.id + '</span>'
+            + '<b class="name_">' + group.name + '</b> <span class="id">' + group.id + '</span>'
             + '</div>');
         var div = $('.' + group.id + '_', groups);
         div.append('<img title="Delete Group ' + group.id + '" alt="Delete Group ' + group.id + '" class="delete_icon button" src="icon/group_delete.png">');
@@ -194,7 +194,7 @@ var UsersAndGroups = {
             parent.append('<div class="user ' + user.id + '_">'
                 + '<img class="typeIcon" src="icon/user.png">'
                 //				+ ' <b class="realName">' + user.realName + '</b> [<span class="id">' + user.id + '</span>]'
-                + ' <b class="name">' + user.name + '</b> <span class="id">' + user.id + '</span>'
+                + ' <b class="name_">' + user.name + '</b> <span class="id">' + user.id + '</span>'
                 + '</div>');
             div = $('.' + user.id + '_', parent)
             div.append('<img title="Remove user \'' + user.name + '\' from group ' + groupId + '" '
@@ -209,7 +209,7 @@ var UsersAndGroups = {
             users.append('<div class="user ' + user.id + '_">'
                 + '<img class="typeIcon" src="icon/user.png">'
                 //				+ ' <b class="realName">' + user.realName + '</b> [' + user.id + ']'
-                + ' <b class="name">' + user.name + '</b> ' + user.id + ''
+                + ' <b class="name_">' + user.name + '</b> ' + user.id + ''
                 + '</div>');
             div = $('.' + user.id + '_', users);
             div.append('<img title="Delete user \'' + user.name + '\'" '

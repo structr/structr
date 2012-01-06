@@ -144,7 +144,7 @@ var Files = {
 		
 		parent.append('<div class="file ' + file.id + '_">'
 			+ '<img class="typeIcon" src="'+ icon + '">'
-			+ '<b class="name">' + file.name + '</b> <span class="id">' + file.id + '</span>'
+			+ '<b class="name_">' + file.name + '</b> <span class="id">' + file.id + '</span>'
 			+ '</div>');
 		var div = $('.' + file.id + '_', parent);
 		
@@ -192,7 +192,7 @@ var Files = {
         
 		parent.append('<div structr_type="folder" class="folder ' + folder.id + '_">'
 			+ '<img class="typeIcon" src="'+ Files.folder_icon + '">'
-			+ '<b class="name">' + folder.name + '</b> <span class="id">' + folder.id + '</span>'
+			+ '<b class="name_">' + folder.name + '</b> <span class="id">' + folder.id + '</span>'
 			+ '</div>');
 		var div = $('.' + folder.id + '_', parent);
 		div.append('<img title="Delete content \'' + folder.name + '\'" alt="Delete content \'' + folder.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');

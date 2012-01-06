@@ -139,8 +139,8 @@ img.disabled {
 
 #main {
     margin: 12px;
-    width: 1000px;
-    overflow: hidden;
+/*    width: 1000px;
+    overflow: hidden;*/
 }
 
 #resources, #previews,
@@ -151,16 +151,10 @@ img.disabled {
 #groups, #users {
     /*    float: left;*/
     vertical-align: top;
-    width: 488px;
+    width: 400px;
     padding-right: 12px;
 /*	overflow: auto;
 	height: 600px;*/
-}
-
-#resourcesEditor #resources,
-#resourcesEditor #elements,
-#resourcesEditor #contents {
-    width: 340px;
 }
 
 #resourcesEditor .id {
@@ -287,7 +281,7 @@ tr:nth-child(even) {
 }
 
 span.id {
-/*	display: none;*/
+	display: none;
 }
 
 .resource,

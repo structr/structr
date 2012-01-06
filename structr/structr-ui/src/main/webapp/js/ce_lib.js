@@ -197,12 +197,6 @@ function editContent(button, resourceId, contentId) {
     });
 }
 
-function refreshIframes() {
-    $('.preview_box iframe').each(function() {
-        this.contentDocument.location.reload(true);
-    });
-}
-
 function getIdFromClassString(classString) {
     var classes = classString.split(' ');
     var id;

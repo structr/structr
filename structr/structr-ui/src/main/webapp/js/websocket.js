@@ -129,6 +129,7 @@ function connect() {
 					} else if (entity.type == 'Resource') {
 
 						Resources.appendResourceElement(entity);
+						Resources.reloadPreviews();
 						if (debug) console.log('Resource element appended');
 						if (buttonClicked) enable(buttonClicked);
 
@@ -190,7 +191,7 @@ function connect() {
 
 					} else if (entity.type == 'Element') {
 						
-//						Entities.getTree(entity.id);
+						//						Entities.getTree(entity.id);
 						var elementElement = Resources.appendElementElement(entity);
 						var elements = entity.elements;
 						if (elements && elements.length > 0) {
@@ -277,10 +278,12 @@ function connect() {
 				} else if (entity.hasClass('element')) {
 					if (debug) console.log('remove element from resource');
 					Resources.removeElementFromResource(entityId, parentId);
+					Resources.reloadPreviews();
 
 				} else if (entity.hasClass('content')) {
 					if (debug) console.log('remove content from element');
 					Resources.removeContentFromElement(entityId, parentId);
+					Resources.reloadPreviews();
 
 				} else if (entity.hasClass('file')) {
 					if (debug) console.log('remove file from folder');
@@ -294,8 +297,6 @@ function connect() {
 				if (debug) console.log('Removed ' + entityId + ' from ' + parentId);
 
 			} else if (command == 'ADD') {
-
-				if (debug) console.log(data);
 
 				parentId = data.id;
 				entityId = data.data.id;
@@ -316,9 +317,11 @@ function connect() {
 
 				} else if (entity.hasClass('element')) {
 					Resources.addElementToResource(entityId, parentId);
+					Resources.reloadPreviews();
 
 				} else if (entity.hasClass('content')) {
 					Resources.addContentToElement(entityId, parentId);
+					Resources.reloadPreviews();
 
 				} else if (entity.hasClass('file')) {
 					Files.addFileToFolder(entityId, parentId);
@@ -336,12 +339,13 @@ function connect() {
 				if (debug) console.log(element);//.children('.' + key));
                 
 				for (key in data.data) {
-					element.children('.' + key).text(data.data[key]);
+					element.children('.' + key + '_').text(data.data[key]);
 					if (debug) console.log($('.props tr td.' + key + ' input', element));
 					$('.props tr td.' + key + ' input', element).val(data.data[key]);
 				}
 
 				input.data('changed', false);
+				Resources.reloadPreviews();
 
 			} else {
 				if (debug) console.log('Received unknown command: ' + command);

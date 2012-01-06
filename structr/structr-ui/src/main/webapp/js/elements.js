@@ -20,82 +20,71 @@
 var elements;
 
 $(document).ready(function() {
-    Structr.registerModule('elements', Elements);
+	Structr.registerModule('elements', Elements);
 });
 
 var Elements = {
 
-    icon : 'icon/brick.png',
-    add_icon : 'icon/brick_add.png',
-    delete_icon : 'icon/delete.png',
+	icon : 'icon/brick.png',
+	add_icon : 'icon/brick_add.png',
+	delete_icon : 'icon/delete.png',
 	
-    init : function() {
+	init : function() {
 		Structr.classes.push('element');
-    },
+	},
 
-    onload : function() {
-        if (debug) console.log('onload');
-        main.append('<div id="elements"></div>');
-        elements = $('#elements');
-        Elements.refresh();
-    },
+	onload : function() {
+		if (debug) console.log('onload');
+		main.append('<div id="elements"></div>');
+		elements = $('#elements');
+		Elements.refresh();
+	},
 
-    refresh : function() {
-        elements.empty();
-        if (Elements.show()) {
-            elements.append('<button class="add_element_icon button"><img title="Add Element" alt="Add Element" src="' + Elements.add_icon + '"> Add Element</button>');
-            $('.add_element_icon', main).on('click', function() {
-                Elements.addElement(this);
-            });
-        }
-    },
+	refresh : function() {
+		elements.empty();
+		if (Elements.show()) {
+			elements.append('<button class="add_element_icon button"><img title="Add Element" alt="Add Element" src="' + Elements.add_icon + '"> Add Element</button>');
+			$('.add_element_icon', main).on('click', function() {
+				Elements.addElement(this);
+			});
+		}
+	},
 
-    show : function() {
-        return Entities.showEntities('Element');
-    },
+	show : function() {
+		return Entities.showEntities('Element');
+	},
 
-    appendElementElement : function(element, parentId, resourceId) {
-        var parent;
-        console.log('Elements.appendElementElement: parentId=' + parentId);
-		console.log('Elements.appendElementElement: resourceId=' + resourceId);
-        if (parentId) {
-			if (resourceId && resourceId != parentId) {
-				var resourceElement = $('.' + resourceId + '_');
-				parent = $('.' + parentId + '_', resourceElement);
-			} else {
-				parent = $('.' + parentId + '_');
-			}
-            console.log(parent);
-        } else {
-            parent = elements;
-        }
+	appendElementElement : function(element, parentId, resourceId) {
+		if (debug) console.log('Elements.appendElementElement: parentId: ' + parentId + ', resourceId: ' + resourceId);
+
+		var parent = Structr.findParent(parentId, resourceId, elements);
         
-        parent.append('<div class="element ' + element.id + '_">'
-            + '<img class="typeIcon" src="'+ Elements.icon + '">'
-            + '<b class="name">' + element.name + '</b> <span class="id">' + element.id + '</span>'
-            + '</div>');
-        var div = $('.' + element.id + '_', parent);
-        div.append('<img title="Delete element \'' + element.name + '\'" alt="Delete element \'' + element.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
-        $('.delete_icon', div).on('click', function() {
-            Elements.deleteElement(this, element);
-        });
-        //        div.append('<img class="add_icon button" title="Add Element" alt="Add Element" src="icon/add.png">');
-        //        $('.add_icon', div).on('click', function() {
-        //            Resources.addElement(this, resource);
-        //        });
-        $('b', div).on('click', function() {
-            Entities.showProperties(this, element, 'all', $('.' + element.id + '_', elements));
-        });
-        return div;
-    },
+		parent.append('<div class="element ' + element.id + '_">'
+			+ '<img class="typeIcon" src="'+ Elements.icon + '">'
+			+ '<b class="name_">' + element.name + '</b> <span class="id">' + element.id + '</span>'
+			+ '</div>');
+		var div = $('.' + element.id + '_', parent);
+		div.append('<img title="Delete element \'' + element.name + '\'" alt="Delete element \'' + element.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
+		$('.delete_icon', div).on('click', function() {
+			Elements.deleteElement(this, element);
+		});
+		//        div.append('<img class="add_icon button" title="Add Element" alt="Add Element" src="icon/add.png">');
+		//        $('.add_icon', div).on('click', function() {
+		//            Resources.addElement(this, resource);
+		//        });
+		$('b', div).on('click', function() {
+			Entities.showProperties(this, element, 'all', $('.' + element.id + '_', elements));
+		});
+		return div;
+	},
 
-    addElement : function(button) {
-        return Entities.add(button, 'Element');
-    },
+	addElement : function(button) {
+		return Entities.add(button, 'Element');
+	},
 
-    deleteElement : function(button, element) {
-        if (debug) console.log('delete element ' + element);
-        deleteNode(button, element);
-    }
+	deleteElement : function(button, element) {
+		if (debug) console.log('delete element ' + element);
+		deleteNode(button, element);
+	}
 
 };
