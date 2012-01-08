@@ -519,9 +519,6 @@ var Resources = {
         var elements = $('.element', resourceElement);
         elements.each(function(i,el){
             $(el).toggle(50, function() {
-
-                console.log(button.src);
-
                 if (button.src.endsWith('icon/tree_arrow_down.png')) {
                     button.src = 'icon/tree_arrow_right.png'
                 } else {
