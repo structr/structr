@@ -130,6 +130,11 @@ h2 {
     margin-left: 4px;
 }
 
+.expand_icon {
+    margin-left: -4px;
+    float: left ! important;
+}
+
 img.disabled {
     filter: alpha(opacity=40);
     -khtml-opacity: 0.4;
@@ -171,6 +176,10 @@ img.disabled {
     background: -webkit-gradient(linear, left bottom, left top, from(#ddd), to(#eee)) no-repeat;
     background: -moz-linear-gradient(90deg, #ddd, #eee) no-repeat;
     filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#eeeeee', EndColorStr='#dddddd', GradientType=0);
+}
+
+.resource .element {
+    display: none;
 }
 
 .sep {

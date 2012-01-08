@@ -30,7 +30,7 @@ var Contents = {
     delete_icon : 'icon/page_white_delete.png',
 	
     init : function() {
-		Structr.classes.push('content');
+        Structr.classes.push('content');
     },
 
     onload : function() {
