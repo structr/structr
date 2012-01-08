@@ -167,8 +167,8 @@ function connect() {
 
 			} else if (command == 'TREE') {
 				
-				console.log('Render Tree');
-				console.log(data.root, data.id);
+				if (debug) console.log('Render Tree');
+				if (debug) console.log(data.root, data.id);
 				
 				Entities.renderTree(data.root, data.id);
 

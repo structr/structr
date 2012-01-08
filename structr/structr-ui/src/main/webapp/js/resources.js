@@ -184,14 +184,32 @@ var Resources = {
 				+ '}'
 				+ '</style>');
 	
-	
+			var iframe = $(this).contents()[0];
+			var iframeWindow = this.contentWindow;
+				
 			$(this).contents().find('body').children().each(function(i,element) {
-				console.log(element);
+				if (debug) console.log(element);
 				var el = $(element);
 				var structr_id = el.attr('structr_id');
 				if (structr_id) {
 					el.addClass('structr-editable-area');
 					el.on({
+						mousedown: function() {
+							var sel = iframeWindow.getSelection();
+							if (sel.rangeCount) {
+								var start = sel.getRangeAt(0).startOffset;
+								var end = sel.getRangeAt(0).endOffset;
+								console.log(start,end);
+							}
+						},
+						mouseup: function() {
+							var sel = iframeWindow.getSelection();
+							if (sel.rangeCount) {
+								var start = sel.getRangeAt(0).startOffset;
+								var end = sel.getRangeAt(0).endOffset;
+								console.log(start,end);
+							}
+						},
 						mouseenter: function() {
 							var self = $(this);
 							self.attr('contenteditable', true);

@@ -27,7 +27,7 @@ var headers = {
 /********************************************************************/
 
 var main;
-var debug = true;
+var debug = false;
 //var onload = [];
 var lastMenuEntry;
 
@@ -297,7 +297,7 @@ var Structr = {
 			}
 		});
 		
-		console.log(entity.type);
+		if (debug) console.log(entity.type);
 		entity.name = $('.name', entityElement).text();
 	
 		return entity;
