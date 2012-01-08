@@ -74,6 +74,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 import org.structr.core.node.search.SearchAttributeGroup;
 import org.structr.core.node.search.SearchOperator;
+import org.structr.web.entity.Content;
 import org.structr.web.entity.Resource;
 
 //~--- classes ----------------------------------------------------------------
@@ -448,13 +449,15 @@ public class HtmlServlet extends HttpServlet {
 
 		if (node != null) {
 
-			content = (String) node.getProperty("content");
-			tag     = (String) node.getProperty("tag");
+			if (node instanceof Content) {
+				content = node.getStringProperty("content");
+			}
+			tag     = node.getStringProperty("tag");
 
 			if (tag != null) {
 
-				String onload = (String) node.getProperty("onload");
-				String id     = (String) node.getProperty("uuid");
+				String onload = node.getStringProperty("onload");
+				String id     = node.getStringProperty("uuid");
 
 				buffer.append("<").append(tag);
 
