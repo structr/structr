@@ -58,7 +58,7 @@ public class LinkCommand extends AbstractCommand {
 			if ((sourceNode != null) && (targetNode != null)) {
 
 				// Create a LINK relationship
-				DirectedRelationship rel = new DirectedRelationship(targetNode.getClass(), RelType.LINK, Direction.OUTGOING, Cardinality.ManyToMany, null);
+				DirectedRelationship rel = new DirectedRelationship(targetNode.getType(), RelType.LINK, Direction.OUTGOING, Cardinality.ManyToMany, null);
 
 				if (rel != null) {
 
