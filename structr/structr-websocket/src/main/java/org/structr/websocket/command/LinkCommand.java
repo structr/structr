@@ -21,15 +21,28 @@
 
 package org.structr.websocket.command;
 
-import java.util.Map;
 import org.neo4j.graphdb.Direction;
+
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
+import org.structr.core.Command;
+import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.DirectedRelationship;
 import org.structr.core.entity.DirectedRelationship.Cardinality;
+import org.structr.core.node.CreateNodeCommand;
+import org.structr.core.node.NodeAttribute;
+import org.structr.core.node.StructrTransaction;
+import org.structr.core.node.TransactionCommand;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
+
+//~--- JDK imports ------------------------------------------------------------
+
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -45,29 +58,125 @@ public class LinkCommand extends AbstractCommand {
 		SecurityContext securityContext = SecurityContext.getSuperUserInstance();
 
 		// create static relationship
-		String sourceId = webSocketData.getId();
+		String sourceId                = webSocketData.getId();
 		Map<String, Object> properties = webSocketData.getData();
-		String targetId = (String) properties.get("id");
+		String resourceId              = (String) properties.get("resourceId");
+		String rootResourceId          = (String) properties.get("rootResourceId");
+
+		if (rootResourceId == null) {
+
+			rootResourceId = "*";
+
+		}
+
+		Integer startOffset = Integer.parseInt((String) properties.get("startOffset"));
+		Integer endOffset   = Integer.parseInt((String) properties.get("endOffset"));
+
 		properties.remove("id");
 
-		if ((sourceId != null) && (targetId != null)) {
+		if ((sourceId != null) && (resourceId != null)) {
 
-			AbstractNode sourceNode = getNode(sourceId);
-			AbstractNode targetNode = getNode(targetId);
+			AbstractNode sourceNode   = getNode(sourceId);
+			AbstractNode resourceNode = getNode(resourceId);
 
-			if ((sourceNode != null) && (targetNode != null)) {
+			if ((sourceNode != null) && (resourceNode != null)) {
 
-				// Create a LINK relationship
-				DirectedRelationship rel = new DirectedRelationship(targetNode.getType(), RelType.LINK, Direction.OUTGOING, Cardinality.ManyToMany, null);
+				try {
 
-				if (rel != null) {
+					Command transactionCommand = Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class);
 
-					try {
-						rel.createRelationship(securityContext, sourceNode, targetNode, properties);
-					} catch (Throwable t) {
-						getWebSocket().send(MessageBuilder.status().code(400).message(t.getMessage()).build(), true);
+					// Create first (leading) node
+					final List<NodeAttribute> attrsFirstNode = new LinkedList<NodeAttribute>();
+
+					attrsFirstNode.add(new NodeAttribute(AbstractNode.Key.type.name(), "Content"));
+					attrsFirstNode.add(new NodeAttribute(AbstractNode.Key.name.name(), "First Node"));
+
+					if (sourceNode.getType().equals("Content")) {
+
+						String content = sourceNode.getStringProperty("content");
+
+						attrsFirstNode.add(new NodeAttribute("content", content.substring(0, startOffset)));
+
 					}
 
+
+					StructrTransaction transaction = new StructrTransaction() {
+
+						@Override
+						public Object execute() throws Throwable {
+							return Services.command(SecurityContext.getSuperUserInstance(), CreateNodeCommand.class).execute(attrsFirstNode);
+						}
+					};
+					AbstractNode firstNode = (AbstractNode) transactionCommand.execute(transaction);
+
+					// Create second (linked) node
+					final List<NodeAttribute> attrsSecondNode = new LinkedList<NodeAttribute>();
+
+					attrsSecondNode.add(new NodeAttribute(AbstractNode.Key.type.name(), "Content"));
+					attrsSecondNode.add(new NodeAttribute(AbstractNode.Key.name.name(), "Second (Link) Node"));
+
+					if (sourceNode.getType().equals("Content")) {
+
+						String content = sourceNode.getStringProperty("content");
+
+						attrsSecondNode.add(new NodeAttribute("content", content.substring(startOffset, endOffset)));
+
+					}
+
+					transaction = new StructrTransaction() {
+
+						@Override
+						public Object execute() throws Throwable {
+							return Services.command(SecurityContext.getSuperUserInstance(), CreateNodeCommand.class).execute(attrsSecondNode);
+						}
+					};
+
+					AbstractNode secondNode = (AbstractNode) transactionCommand.execute(transaction);
+
+					// Create third (trailing) node
+					final List<NodeAttribute> attrsThirdNode = new LinkedList<NodeAttribute>();
+
+					attrsThirdNode.add(new NodeAttribute(AbstractNode.Key.type.name(), "Content"));
+					attrsThirdNode.add(new NodeAttribute(AbstractNode.Key.name.name(), "Third Node"));
+
+					if (sourceNode.getType().equals("Content")) {
+
+						String content = sourceNode.getStringProperty("content");
+
+						attrsThirdNode.add(new NodeAttribute("content", content.substring(endOffset, content.length())));
+
+					}
+
+					transaction = new StructrTransaction() {
+
+						@Override
+						public Object execute() throws Throwable {
+							return Services.command(SecurityContext.getSuperUserInstance(), CreateNodeCommand.class).execute(attrsThirdNode);
+						}
+					};
+
+					AbstractNode thirdNode = (AbstractNode) transactionCommand.execute(transaction);
+
+					// Create a CONTAINS relationship
+					DirectedRelationship rel     = new DirectedRelationship(null, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany, null);
+					Map<String, Object> relProps = new HashMap<String, Object>();
+
+					relProps.put(rootResourceId, 0);
+					rel.createRelationship(securityContext, sourceNode, firstNode, relProps);
+					relProps.put(rootResourceId, 1);
+					rel.createRelationship(securityContext, sourceNode, secondNode, relProps);
+					relProps.put(rootResourceId, 2);
+					rel.createRelationship(securityContext, sourceNode, thirdNode, relProps);
+
+					// Create a LINK relationship
+					rel = new DirectedRelationship(resourceNode.getType(), RelType.LINK, Direction.OUTGOING, Cardinality.ManyToMany, null);
+
+					rel.createRelationship(securityContext, secondNode, resourceNode);
+					sourceNode.setType("Element");
+					sourceNode.removeProperty("content");
+
+				} catch (Throwable t) {
+					getWebSocket().send(MessageBuilder.status().code(400).message(t.getMessage()).build(), true);
 				}
 
 			} else {
@@ -87,6 +196,6 @@ public class LinkCommand extends AbstractCommand {
 
 	@Override
 	public String getCommand() {
-		return "ADD";
+		return "LINK";
 	}
 }

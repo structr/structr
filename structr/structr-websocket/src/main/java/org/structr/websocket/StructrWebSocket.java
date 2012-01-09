@@ -63,6 +63,7 @@ import org.structr.core.entity.File;
 import org.structr.websocket.command.AddCommand;
 import org.structr.websocket.command.ChunkCommand;
 import org.structr.websocket.command.FileUploadHandler;
+import org.structr.websocket.command.LinkCommand;
 import org.structr.websocket.command.RemoveCommand;
 import org.structr.websocket.command.TreeCommand;
 
@@ -95,6 +96,7 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 		addCommand(GetCommand.class);
 		addCommand(AddCommand.class);
 		addCommand(TreeCommand.class);
+		addCommand(LinkCommand.class);
 	}
 
 	//~--- fields ---------------------------------------------------------

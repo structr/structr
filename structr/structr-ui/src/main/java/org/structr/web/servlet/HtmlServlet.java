@@ -21,6 +21,8 @@
 
 package org.structr.web.servlet;
 
+import org.apache.commons.io.IOUtils;
+
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.Relationship;
@@ -47,16 +49,20 @@ import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
+import org.structr.core.node.search.SearchAttributeGroup;
 import org.structr.core.node.search.SearchNodeCommand;
+import org.structr.core.node.search.SearchOperator;
+import org.structr.web.entity.Content;
+import org.structr.web.entity.Resource;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-
 import java.io.InputStream;
 import java.io.OutputStream;
+
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 
@@ -71,11 +77,6 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.apache.commons.io.IOUtils;
-import org.structr.core.node.search.SearchAttributeGroup;
-import org.structr.core.node.search.SearchOperator;
-import org.structr.web.entity.Content;
-import org.structr.web.entity.Resource;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -164,7 +165,9 @@ public class HtmlServlet extends HttpServlet {
 				List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
 
 				searchAttrs.add(Search.andExactName(name));
+
 				SearchAttributeGroup group = new SearchAttributeGroup(SearchOperator.AND);
+
 				group.add(Search.orExactType(Resource.class.getSimpleName()));
 				group.add(Search.orExactType(org.structr.core.entity.File.class.getSimpleName()));
 				group.add(Search.orExactType(Image.class.getSimpleName()));
@@ -188,6 +191,7 @@ public class HtmlServlet extends HttpServlet {
 						file = (org.structr.core.entity.File) node;
 
 					}
+
 				}
 
 			}
@@ -217,14 +221,11 @@ public class HtmlServlet extends HttpServlet {
 				response.getWriter().flush();
 				response.getWriter().close();
 				response.setStatus(HttpServletResponse.SC_OK);
-
 			} else if (file != null) {
 
 				// 2b: stream file to response
-				
-				InputStream in = file.getInputStream();
-				OutputStream out = response.getOutputStream();
-
+				InputStream in     = file.getInputStream();
+				OutputStream out   = response.getOutputStream();
 				String contentType = file.getContentType();
 
 				if (contentType != null) {
@@ -238,7 +239,7 @@ public class HtmlServlet extends HttpServlet {
 				}
 
 				IOUtils.copy(in, out);
-				
+
 				// 3: output content
 				out.flush();
 				out.close();
@@ -443,16 +444,34 @@ public class HtmlServlet extends HttpServlet {
 
 	private void printNodes(StringBuilder buffer, TreeNode root, int depth) {
 
-		AbstractNode node = root.getData();
-		String content    = null;
-		String tag        = null;
+		AbstractNode node        = root.getData();
+		String content           = null;
+		String tag               = null;
+		StructrRelationship link = null;
 
 		if (node != null) {
 
 			if (node instanceof Content) {
+
 				content = node.getStringProperty("content");
+
+				List<StructrRelationship> links = node.getOutgoingLinkRelationships();
+
+				if ((links != null) &&!links.isEmpty()) {
+
+					link = links.get(0);    // first link wins
+
+				}
+
 			}
-			tag     = node.getStringProperty("tag");
+
+			if (link != null) {
+
+				buffer.append("<a href=\"").append(link.getEndNode().getName()).append("\">");
+
+			}
+
+			tag = node.getStringProperty("tag");
 
 			if (tag != null) {
 
@@ -461,7 +480,7 @@ public class HtmlServlet extends HttpServlet {
 
 				buffer.append("<").append(tag);
 
-				if (edit && id != null) {
+				if (edit && (id != null)) {
 
 					buffer.append(" structr_id='").append(id).append("'");
 
@@ -496,6 +515,12 @@ public class HtmlServlet extends HttpServlet {
 		if (tag != null) {
 
 			buffer.append("</").append(tag).append(">");
+
+		}
+
+		if (link != null) {
+
+			buffer.append("</a>");
 
 		}
 	}
@@ -561,7 +586,11 @@ public class HtmlServlet extends HttpServlet {
 		// do traversal to retrieve paths
 		for (Node node : localDesc.traverse(resource.getNode()).nodes()) {
 
-			System.out.println(node.getProperty("type") + "[" + node.getProperty("uuid") + "]: " + node.getProperty("name"));
+			String name = node.hasProperty("name")
+				      ? (String) node.getProperty("name")
+				      : "unknown";
+
+			System.out.println(node.getProperty("type") + "[" + node.getProperty("uuid") + "]: " + name);
 
 		}
 

@@ -179,7 +179,7 @@ img.disabled {
 }
 
 .resource .element {
-    display: none;
+/*    display: none;*/
 }
 
 .sep {
@@ -289,6 +289,10 @@ tr:nth-child(even) {
     width: 540px;
 }
 
+.link_icon {
+	display: none;
+}
+
 span.id {
 	display: none;
 }
@@ -300,19 +304,17 @@ span.id {
 .group,
 .folder,
 .file {
-	/*float: left;*/
     color: #333;
-    /*width: 95%;*/
     line-height: 1.7em;
     border-radius: 5px;
     border: 1px solid #a5a5a5;
     padding: 4px 12px;
     margin: 12px 0 0 0;
-    /*background: #fff;*/
 	background-color: #eee;
     background: -webkit-gradient(linear, left bottom, left top, from(#ddd), to(#eee)) no-repeat;
     background: -moz-linear-gradient(90deg, #ddd, #eee) no-repeat;
     filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#eeeeee', EndColorStr='#dddddd', GradientType=0);
+	min-width: 200px;
 }
 
 .content:hover,

@@ -124,6 +124,7 @@ var Structr = {
     delete_icon : 'icon/delete.png',
     edit_icon : 'icon/pencil.png',
     expand_icon: 'icon/tree_arrow_right.png',
+	link_icon: 'icon/link.png',
 		
     init : function() {
         

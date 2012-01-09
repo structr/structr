@@ -179,14 +179,14 @@ var Entities = {
                    
                     input.on('focusout', function() {
             
-                        if (input.data('changed') && confirm('Save changes?')) {
+                        //if (input.data('changed') && confirm('Save changes?')) {
               
                             var key = input.attr('name');
                             var value = input.val();
                             var data = '{ "command" : "UPDATE" , "id" : "' + entity.id + '", "data" : { "' + key + '" : "' + value + '" } }';
                             if (debug) console.log(data);
                             send(data);
-                        }
+                        //}
                         input.removeClass('active');
                         input.parent().children('.icon').each(function(i, img) {
                             $(img).remove();
