@@ -128,6 +128,7 @@ h2 {
 
 .edit_icon, .add_icon, .delete_icon, .close_icon {
     margin-left: 4px;
+    cursor: pointer;
 }
 
 .expand_icon {
@@ -347,6 +348,7 @@ img.typeIcon {
     border: none;
     background: none;
     margin-right: 8px;
+    cursor: pointer;
 }
 
 img.button {
