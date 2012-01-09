@@ -28,12 +28,13 @@ $(document).ready(function() {
 
 var Files = {
 
-    icon : 'icon/folder_page_white.png',
+    icon : 'icon/page_white.png',
     add_file_icon : 'icon/page_white_add.png',
     delete_file_icon : 'icon/page_white_delete.png',
     add_folder_icon : 'icon/folder_add.png',
     folder_icon : 'icon/folder.png',
     delete_folder_icon : 'icon/folder_delete.png',
+    download_icon : 'icon/basket_put.png',
 	
     init : function() {
         Structr.classes.push('file');
@@ -138,8 +139,18 @@ var Files = {
         
         var icon = Files.icon; // default
         if (debug) console.log(file.contentType);
-        if (file.contentType && file.contentType.substring(0,5) == 'image') {
-            icon = 'icon/image.png';
+        if (file.contentType) {
+
+            if (file.contentType.indexOf('image') > -1) {
+                icon = 'icon/image.png';
+            } else if (file.contentType.indexOf('pdf') > -1) {
+                icon = 'icon/page_white_acrobat.png';
+            } else if (file.contentType.indexOf('text') > -1) {
+                icon = 'icon/page_white_text.png';
+            } else if (file.contentType.indexOf('xml') > -1) {
+                icon = 'icon/page_white_code.png';
+            }
+
         }
 		
         parent.append('<div class="file ' + file.id + '_">'
@@ -147,6 +158,10 @@ var Files = {
             + '<b class="name_">' + file.name + '</b> <span class="id">' + file.id + '</span>'
             + '</div>');
         var div = $('.' + file.id + '_', parent);
+
+        $('.typeIcon', div).on('click', function() {
+           window.open(viewRootUrl + file.name, 'Download ' + file.name);
+        });
 		
         if (parentId) {
 
