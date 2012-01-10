@@ -128,14 +128,10 @@ var Files = {
     },
 
     appendFileElement : function(file, parentId) {
-        var parent;
-        if (debug) console.log(parentId);
-        if (parentId) {
-            parent = $('.' + parentId + '_');
-            if (debug) console.log(parent);
-        } else {
-            parent = files;
-        }
+
+        if (debug) console.log('Files.appendFileElement: parentId: ' + parentId + ', file: ', file);
+
+        var parent = Structr.findParent(parentId, null, files);
         
         var icon = Files.icon; // default
         if (debug) console.log(file.contentType);

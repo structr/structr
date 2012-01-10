@@ -75,6 +75,19 @@ var Contents = {
         $('b', div).on('click', function() {
             Entities.showProperties(this, content, 'all', $('.' + content.id + '_', contents));
         });
+
+        $.ajax({
+            url: rootUrl + 'contents/' + content.id + '/out',
+            dataType: 'json',
+            contentType: 'application/json; charset=utf-8',
+            success: function(data) {
+                console.log(data);
+                $(data).each(function(i,v) {
+                    console.log(v); //TODO: display information about relationship
+                });
+
+            }
+        });
         return div;
     },
 

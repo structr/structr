@@ -134,14 +134,20 @@ function connect() {
                         if (buttonClicked) enable(buttonClicked);
 
                     } else if (entity.type == 'Element') {
-
-                        Elements.appendElementElement(entity);
+                        if (resources) {
+                            Resources.appendElementElement(entity);
+                        } else {
+                            Elements.appendElementElement(entity);
+                        }
                         if (debug) console.log('Element element appended');
                         if (buttonClicked) enable(buttonClicked);
 
                     } else if (entity.type == 'Content') {
-
-                        Contents.appendContentElement(entity);
+                        if (resources) {
+                            Resources.appendContentElement(entity);
+                        } else {
+                            Contents.appendContentElement(entity);
+                        }
                         if (debug) console.log('Content element appended');
                         if (buttonClicked) enable(buttonClicked);
 
@@ -254,6 +260,7 @@ function connect() {
                 if (debug) console.log($(elementSelector));
                 $(elementSelector).remove();
                 if (buttonClicked) enable(buttonClicked);
+                Resources.reloadPreviews();
 
             } else if (command == 'REMOVE') {
 
@@ -294,6 +301,7 @@ function connect() {
                 //entity.remove();
                 }
 
+                Resources.reloadPreviews();
                 if (debug) console.log('Removed ' + entityId + ' from ' + parentId);
 
             } else if (command == 'ADD') {
@@ -304,8 +312,8 @@ function connect() {
                 parent = $('.' + parentId + '_');
                 entity = $('.' + entityId + '_');
 
-                if (debug) console.log(parent);
-                if (debug) console.log(entity);
+                if (debug) console.log('entity, parent');
+                if (debug) console.log(entity, parent);
 
                 entity.css('left', 0);
                 entity.css('top', 0);

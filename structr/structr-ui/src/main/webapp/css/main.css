@@ -172,6 +172,10 @@ img.disabled {
     margin-bottom: 12px ! important;
 }
 
+.group b, .user b, .resource b, .element b, .content b, .folder b, .file b {
+    cursor: pointer;
+}
+
 .resource, .element, .content, .folder, .file {
     background-color: #eee;
     background: -webkit-gradient(linear, left bottom, left top, from(#ddd), to(#eee)) no-repeat;
@@ -473,4 +477,8 @@ button img {
     padding: 7px 12px 3px 12px;
     border-radius: 5px;
     border: 1px dashed #999;
+}
+
+.ui-draggable {
+    cursor: move;
 }

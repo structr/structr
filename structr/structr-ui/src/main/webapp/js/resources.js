@@ -167,7 +167,7 @@ var Resources = {
 
 		div.append('<img title="Link resource \'' + resource.name + '\' to current selection" alt="Link resource \'' + resource.name + '\' to current selection" class="link_icon button" src="' + Structr.link_icon + '">');
 		$('.link_icon', div).on('click', function() {
-			console.log(rootId, sourceId, selStart, selEnd);
+			console.log(rootId, sourceId);
 			if (sourceId && selStart && selEnd) {
 				// function(resourceId, sourceId, linkedResourceId, startOffset, endOffset)
 				Resources.linkSelectionToResource(rootId, sourceId, resource.id, selStart, selEnd);
@@ -352,7 +352,8 @@ var Resources = {
 		div.draggable({
 			revert: 'invalid',
 			containment: '#main',
-			zIndex: 1
+			zIndex: 1,
+                        helper: 'clone'
 		});
 
 		div.droppable({
@@ -381,7 +382,7 @@ var Resources = {
 	},
 
 	appendContentElement : function(content, parentId, resourceId) {
-		if (debug) console.log('Resources.appendContentElement');
+		console.log('Resources.appendContentElement');
 		
 		var div = Contents.appendContentElement(content, parentId, resourceId);
 
@@ -407,9 +408,15 @@ var Resources = {
 		if (debug) console.log('Resources.appendElementToResource');
 
 		var resource = $('.' + resourceId + '_');
-		var element = $('.' + elementId + '_', resource);
+		var element = $('.' + elementId + '_', elements);
 
-		resource.append(element);
+                var existing = $('.' + elementId + '_', resource);
+
+                if (existing.length) return;
+
+                if (debug) console.log(resource, element);
+
+		resource.append(element.clone());
 
 		$('.delete_icon', element).remove();
 		element.append('<img title="Remove element ' + elementId + ' from resource ' + resourceId + '" '
@@ -417,7 +424,7 @@ var Resources = {
 		$('.delete_icon', element).on('click', function() {
 			Resources.removeElementFromResource(elementId, resourceId);
 		});
-		element.draggable('destroy');
+		//element.draggable('destroy');
 
 		var numberOfElements = $('.element', resource).size();
 		if (debug) console.log(numberOfElements);
