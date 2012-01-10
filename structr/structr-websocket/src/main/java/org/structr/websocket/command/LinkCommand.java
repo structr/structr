@@ -30,6 +30,7 @@ import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.DirectedRelationship;
 import org.structr.core.entity.DirectedRelationship.Cardinality;
+import org.structr.core.entity.StructrRelationship;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.NodeAttribute;
 import org.structr.core.node.StructrTransaction;
@@ -61,13 +62,13 @@ public class LinkCommand extends AbstractCommand {
 		String sourceId                = webSocketData.getId();
 		Map<String, Object> properties = webSocketData.getData();
 		String resourceId              = (String) properties.get("resourceId");
-		String rootResourceId          = (String) properties.get("rootResourceId");
-
-		if (rootResourceId == null) {
-
-			rootResourceId = "*";
-
-		}
+//		String rootResourceId          = (String) properties.get("rootResourceId");
+//
+//		if (rootResourceId == null) {
+//
+//			rootResourceId = "*";
+//
+//		}
 
 		Integer startOffset = Integer.parseInt((String) properties.get("startOffset"));
 		Integer endOffset   = Integer.parseInt((String) properties.get("endOffset"));
@@ -78,6 +79,9 @@ public class LinkCommand extends AbstractCommand {
 
 			AbstractNode sourceNode   = getNode(sourceId);
 			AbstractNode resourceNode = getNode(resourceId);
+			AbstractNode firstNode;
+			AbstractNode secondNode;
+			AbstractNode thirdNode;
 
 			if ((sourceNode != null) && (resourceNode != null)) {
 
@@ -85,93 +89,109 @@ public class LinkCommand extends AbstractCommand {
 
 					Command transactionCommand = Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class);
 
-					// Create first (leading) node
-					final List<NodeAttribute> attrsFirstNode = new LinkedList<NodeAttribute>();
+					// As an element can be contained in multiple resources, we have
+					// to do the following for each incoming CONTAINS relationship
+					List<StructrRelationship> relsIn = sourceNode.getIncomingRelationships();
 
-					attrsFirstNode.add(new NodeAttribute(AbstractNode.Key.type.name(), "Content"));
-					attrsFirstNode.add(new NodeAttribute(AbstractNode.Key.name.name(), "First Node"));
+					for (StructrRelationship relIn : relsIn) {
 
-					if (sourceNode.getType().equals("Content")) {
+						if (relIn.getType().equals(RelType.CONTAINS.name())) {
 
-						String content = sourceNode.getStringProperty("content");
+							Map<String, Object> sourceRelationshipProperties = relIn.getProperties();
 
-						attrsFirstNode.add(new NodeAttribute("content", content.substring(0, startOffset)));
+							for (String resourceIdFromRel : sourceRelationshipProperties.keySet()) {
+
+								// Create first (leading) node
+								final List<NodeAttribute> attrsFirstNode = new LinkedList<NodeAttribute>();
+
+								attrsFirstNode.add(new NodeAttribute(AbstractNode.Key.type.name(), "Content"));
+								attrsFirstNode.add(new NodeAttribute(AbstractNode.Key.name.name(), "First Node"));
+
+								if (sourceNode.getType().equals("Content")) {
+
+									String content = sourceNode.getStringProperty("content");
+
+									attrsFirstNode.add(new NodeAttribute("content", content.substring(0, startOffset)));
+
+								}
+
+								StructrTransaction transaction = new StructrTransaction() {
+
+									@Override
+									public Object execute() throws Throwable {
+										return Services.command(SecurityContext.getSuperUserInstance(), CreateNodeCommand.class).execute(attrsFirstNode);
+									}
+								};
+
+								firstNode = (AbstractNode) transactionCommand.execute(transaction);
+
+								// Create second (linked) node
+								final List<NodeAttribute> attrsSecondNode = new LinkedList<NodeAttribute>();
+
+								attrsSecondNode.add(new NodeAttribute(AbstractNode.Key.type.name(), "Content"));
+								attrsSecondNode.add(new NodeAttribute(AbstractNode.Key.name.name(), "Second (Link) Node"));
+
+								if (sourceNode.getType().equals("Content")) {
+
+									String content = sourceNode.getStringProperty("content");
+
+									attrsSecondNode.add(new NodeAttribute("content", content.substring(startOffset, endOffset)));
+
+								}
+
+								transaction = new StructrTransaction() {
+
+									@Override
+									public Object execute() throws Throwable {
+										return Services.command(SecurityContext.getSuperUserInstance(), CreateNodeCommand.class).execute(attrsSecondNode);
+									}
+								};
+								secondNode = (AbstractNode) transactionCommand.execute(transaction);
+
+								// Create third (trailing) node
+								final List<NodeAttribute> attrsThirdNode = new LinkedList<NodeAttribute>();
+
+								attrsThirdNode.add(new NodeAttribute(AbstractNode.Key.type.name(), "Content"));
+								attrsThirdNode.add(new NodeAttribute(AbstractNode.Key.name.name(), "Third Node"));
+
+								if (sourceNode.getType().equals("Content")) {
+
+									String content = sourceNode.getStringProperty("content");
+
+									attrsThirdNode.add(new NodeAttribute("content", content.substring(endOffset, content.length())));
+
+								}
+
+								transaction = new StructrTransaction() {
+
+									@Override
+									public Object execute() throws Throwable {
+										return Services.command(SecurityContext.getSuperUserInstance(), CreateNodeCommand.class).execute(attrsThirdNode);
+									}
+								};
+								thirdNode = (AbstractNode) transactionCommand.execute(transaction);
+
+								// Create a CONTAINS relationship
+								DirectedRelationship rel                      = new DirectedRelationship(null, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany, null);
+								Map<String, Object> newRelationshipProperties = new HashMap<String, Object>();
+
+								newRelationshipProperties.put(resourceIdFromRel, 0);
+								rel.createRelationship(securityContext, sourceNode, firstNode, newRelationshipProperties);
+								newRelationshipProperties.put(resourceIdFromRel, 1);
+								rel.createRelationship(securityContext, sourceNode, secondNode, newRelationshipProperties);
+								newRelationshipProperties.put(resourceIdFromRel, 2);
+								rel.createRelationship(securityContext, sourceNode, thirdNode, newRelationshipProperties);
+
+								// Create a LINK relationship
+								rel = new DirectedRelationship(resourceNode.getType(), RelType.LINK, Direction.OUTGOING, Cardinality.ManyToMany, null);
+
+								rel.createRelationship(securityContext, secondNode, resourceNode);
+							}
+
+						}
 
 					}
 
-
-					StructrTransaction transaction = new StructrTransaction() {
-
-						@Override
-						public Object execute() throws Throwable {
-							return Services.command(SecurityContext.getSuperUserInstance(), CreateNodeCommand.class).execute(attrsFirstNode);
-						}
-					};
-					AbstractNode firstNode = (AbstractNode) transactionCommand.execute(transaction);
-
-					// Create second (linked) node
-					final List<NodeAttribute> attrsSecondNode = new LinkedList<NodeAttribute>();
-
-					attrsSecondNode.add(new NodeAttribute(AbstractNode.Key.type.name(), "Content"));
-					attrsSecondNode.add(new NodeAttribute(AbstractNode.Key.name.name(), "Second (Link) Node"));
-
-					if (sourceNode.getType().equals("Content")) {
-
-						String content = sourceNode.getStringProperty("content");
-
-						attrsSecondNode.add(new NodeAttribute("content", content.substring(startOffset, endOffset)));
-
-					}
-
-					transaction = new StructrTransaction() {
-
-						@Override
-						public Object execute() throws Throwable {
-							return Services.command(SecurityContext.getSuperUserInstance(), CreateNodeCommand.class).execute(attrsSecondNode);
-						}
-					};
-
-					AbstractNode secondNode = (AbstractNode) transactionCommand.execute(transaction);
-
-					// Create third (trailing) node
-					final List<NodeAttribute> attrsThirdNode = new LinkedList<NodeAttribute>();
-
-					attrsThirdNode.add(new NodeAttribute(AbstractNode.Key.type.name(), "Content"));
-					attrsThirdNode.add(new NodeAttribute(AbstractNode.Key.name.name(), "Third Node"));
-
-					if (sourceNode.getType().equals("Content")) {
-
-						String content = sourceNode.getStringProperty("content");
-
-						attrsThirdNode.add(new NodeAttribute("content", content.substring(endOffset, content.length())));
-
-					}
-
-					transaction = new StructrTransaction() {
-
-						@Override
-						public Object execute() throws Throwable {
-							return Services.command(SecurityContext.getSuperUserInstance(), CreateNodeCommand.class).execute(attrsThirdNode);
-						}
-					};
-
-					AbstractNode thirdNode = (AbstractNode) transactionCommand.execute(transaction);
-
-					// Create a CONTAINS relationship
-					DirectedRelationship rel     = new DirectedRelationship(null, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany, null);
-					Map<String, Object> relProps = new HashMap<String, Object>();
-
-					relProps.put(rootResourceId, 0);
-					rel.createRelationship(securityContext, sourceNode, firstNode, relProps);
-					relProps.put(rootResourceId, 1);
-					rel.createRelationship(securityContext, sourceNode, secondNode, relProps);
-					relProps.put(rootResourceId, 2);
-					rel.createRelationship(securityContext, sourceNode, thirdNode, relProps);
-
-					// Create a LINK relationship
-					rel = new DirectedRelationship(resourceNode.getType(), RelType.LINK, Direction.OUTGOING, Cardinality.ManyToMany, null);
-
-					rel.createRelationship(securityContext, secondNode, resourceNode);
 					sourceNode.setType("Element");
 					sourceNode.removeProperty("content");
 
