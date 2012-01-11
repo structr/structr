@@ -50,6 +50,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.neo4j.kernel.Uniqueness;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -122,16 +123,16 @@ public class DirectedRelationship {
 				@Override
 				public Object execute() throws Throwable {
 
-					// remove relationships
-					if (cardinality.equals(Cardinality.OneToOne) /* || FIXME */) {
+					if (cardinality.equals(Cardinality.OneToOne)) {
 
-						// delete relationships
+						String destType = finalTargetNode.getType();
+
+						// delete previous relationships to nodes of the same destination type
 						List<StructrRelationship> rels = sourceNode.getRelationships(relType, direction);
-
 						for (StructrRelationship rel : rels) {
-
-							rel.delete(securityContext);
-
+							if(rel.getOtherNode(sourceNode).getType().equals(destType)) {
+								rel.delete(securityContext);
+							}
 						}
 					}
 
@@ -238,14 +239,14 @@ public class DirectedRelationship {
 	}
 
 	// ----- private methods -----
-	private List<AbstractNode> getTraversalResults(final SecurityContext securityContext, AbstractNode node) {
+	private List<AbstractNode> getTraversalResults(final SecurityContext securityContext, final AbstractNode node) {
 
 		final Class realType                 = (Class) Services.command(securityContext, GetEntityClassCommand.class).execute(StringUtils.capitalize(destType));
 		final StructrNodeFactory nodeFactory = new StructrNodeFactory<AbstractNode>(securityContext);
 		final List<AbstractNode> nodeList    = new LinkedList<AbstractNode>();
 
 		// use traverser
-		Iterable<Node> nodes = Traversal.description().breadthFirst().relationships(relType, direction).evaluator(new Evaluator() {
+		Iterable<Node> nodes = Traversal.description().uniqueness(Uniqueness.NODE_PATH).breadthFirst().relationships(relType, direction).evaluator(new Evaluator() {
 
 			@Override
 			public Evaluation evaluate(Path path) {
@@ -260,17 +261,21 @@ public class DirectedRelationship {
 						// index node in this case), but continue
 						// traversal
 						return Evaluation.EXCLUDE_AND_CONTINUE;
+
 					} else {
 
-						// use inheritance
-						AbstractNode abstractNode = (AbstractNode) nodeFactory.createNode(securityContext, path.endNode());
+						AbstractNode abstractNode = abstractNode = (AbstractNode) nodeFactory.createNode(securityContext, path.endNode());
 
-						if ((realType != null) && realType.isAssignableFrom(abstractNode.getClass())) {
+						// use inheritance
+						if(realType != null && realType.isAssignableFrom(abstractNode.getClass())) {
 
 							nodeList.add(abstractNode);
 
 							return Evaluation.INCLUDE_AND_CONTINUE;
 
+						} else {
+
+							return Evaluation.EXCLUDE_AND_CONTINUE;
 						}
 					}
 

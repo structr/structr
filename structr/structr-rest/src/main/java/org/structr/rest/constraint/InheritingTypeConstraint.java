@@ -10,8 +10,8 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
-import org.structr.common.CaseHelper;
 import org.structr.common.SecurityContext;
+import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -19,7 +19,6 @@ import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
 import org.structr.rest.exception.IllegalPathException;
-import org.structr.rest.exception.NoResultsException;
 import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.exception.PathException;
 
@@ -35,11 +34,7 @@ public class InheritingTypeConstraint extends TypeConstraint {
 	@Override
 	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) {
 
-		this.securityContext = securityContext;
-
-		this.setType(part);
-
-		return true;
+		return super.checkAndConfigure(part, securityContext, request);
 	}
 
 	@Override
@@ -51,10 +46,10 @@ public class InheritingTypeConstraint extends TypeConstraint {
 		boolean includeDeleted = false;
 		boolean publicOnly = false;
 
-		if(type != null) {
+		if(rawType != null) {
 
 			//searchAttributes.add(new TextualSearchAttribute("type", type, SearchOperator.OR));
-			searchAttributes.addAll(Search.andExactTypeAndSubtypes(CaseHelper.toCamelCase(type)));
+			searchAttributes.addAll(Search.andExactTypeAndSubtypes(EntityContext.normalizeEntityName(rawType)));
 
 			// searchable attributes from EntityContext
 			hasSearchableAttributes = hasSearchableAttributes(searchAttributes);

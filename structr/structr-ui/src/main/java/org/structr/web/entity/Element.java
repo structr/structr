@@ -48,9 +48,10 @@ public class Element extends AbstractNode {
 		EntityContext.registerPropertySet(Element.class,	PropertyView.Public,	Key.values());
 		EntityContext.registerPropertySet(Resource.class,	"ui",			Key.values());
 
-		EntityContext.registerRelation(Element.class,	Key.elements,	Resource.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
-		EntityContext.registerRelation(Element.class,	Key.contents,	Element.class,	RelType.CONTAINS,	Direction.OUTGOING, Cardinality.ManyToMany);
-		EntityContext.registerRelation(Element.class,	Key.elements,	Content.class,	RelType.CONTAINS,	Direction.OUTGOING, Cardinality.ManyToMany);	}
+		EntityContext.registerEntityRelation(Element.class,	Resource.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Element.class,	Element.class,	RelType.CONTAINS,	Direction.OUTGOING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Element.class,	Content.class,	RelType.CONTAINS,	Direction.OUTGOING, Cardinality.ManyToMany);
+	}
 
 	//~--- get methods ----------------------------------------------------
 

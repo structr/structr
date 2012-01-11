@@ -45,7 +45,7 @@ public class Content extends AbstractNode {
 		EntityContext.registerPropertySet(Content.class,	PropertyView.Public,	Key.values());
 		EntityContext.registerPropertySet(Resource.class,	"ui",			Key.values());
 
-		EntityContext.registerRelation(Content.class, Key.elements, Element.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Content.class,	Element.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
 	}
 
 

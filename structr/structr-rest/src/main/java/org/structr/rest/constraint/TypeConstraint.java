@@ -47,16 +47,13 @@ public class TypeConstraint extends SortableConstraint {
 
 	protected HttpServletRequest request = null;
 	protected String rawType = null;
-	protected String type = null;
 	
 	@Override
 	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) {
 
 		this.securityContext = securityContext;
 		this.request = request;
-
-		// todo: check if type exists etc.
-		this.setType(part);
+		this.rawType = part;
 
 		return true;
 	}
@@ -70,9 +67,9 @@ public class TypeConstraint extends SortableConstraint {
 		boolean includeDeleted = false;
 		boolean publicOnly = false;
 
-		if(type != null) {
+		if(rawType != null) {
 
-			searchAttributes.add(Search.andExactType(CaseHelper.toCamelCase(type)));
+			searchAttributes.add(Search.andExactType(EntityContext.normalizeEntityName(rawType)));
 
 			// searchable attributes from EntityContext
 			hasSearchableAttributes = hasSearchableAttributes(searchAttributes);
@@ -143,30 +140,10 @@ public class TypeConstraint extends SortableConstraint {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
-	public String getType() {
-		return type;
-	}
-
-	public void setType(String type) {
-		
-		this.type = CaseHelper.toCamelCase(type).toLowerCase();
-		this.rawType = type;
-
-		if(this.type.endsWith("ies")) {
-			logger.log(Level.FINEST, "Replacing trailing 'ies' with 'y' for type {0}", type);
-			this.type = this.type.substring(0, this.type.length() - 3).concat("y");
-		} else
-		if(this.type.endsWith("s")) {
-			logger.log(Level.FINEST, "Removing trailing plural 's' from type {0}", type);
-			this.type = this.type.substring(0, this.type.length() - 1);
-		}
-		// determine real type
-	}
-
 	public AbstractNode createNode(final Map<String, Object> propertySet) throws Throwable {
 
 		//propertySet.put(AbstractNode.Key.type.name(), StringUtils.toCamelCase(type));
-		propertySet.put(AbstractNode.Key.type.name(), CaseHelper.toCamelCase(type));
+		propertySet.put(AbstractNode.Key.type.name(), EntityContext.normalizeEntityName(rawType));
 
 		return (AbstractNode)Services.command(securityContext, CreateNodeCommand.class).execute(propertySet);
 	}
@@ -205,15 +182,15 @@ public class TypeConstraint extends SortableConstraint {
 		boolean hasSearchableAttributes = false;
 
 		// searchable attributes
-		if(type != null && request != null && !request.getParameterMap().isEmpty()) {
+		if(rawType != null && request != null && !request.getParameterMap().isEmpty()) {
 
 			boolean strictSearch = parseInteger(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_SEARCH_STRICT)) == 1;
 
 			Set<String> searchableAttributes;
 			if (strictSearch) {
-				searchableAttributes = EntityContext.getSearchableProperties(type, NodeIndex.keyword.name());
+				searchableAttributes = EntityContext.getSearchableProperties(rawType, NodeIndex.keyword.name());
 			} else {
-				searchableAttributes = EntityContext.getSearchableProperties(type, NodeIndex.fulltext.name());
+				searchableAttributes = EntityContext.getSearchableProperties(rawType, NodeIndex.fulltext.name());
 			}
 
 			if(searchableAttributes != null) {

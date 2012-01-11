@@ -20,7 +20,6 @@ import org.structr.core.node.TransactionCommand;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NoResultsException;
-import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.exception.PathException;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -28,10 +27,12 @@ import org.structr.rest.exception.PathException;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.structr.core.entity.DirectedRelationship;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -121,87 +122,63 @@ public abstract class ResourceConstraint {
 
 	public RestMethodResult doPut(final Map<String, Object> propertySet) throws Throwable {
 
-		if ((securityContext != null) && (securityContext.getUser() != null)) {
+		final Iterable<? extends GraphObject> results = doGet();
 
-			final Iterable<? extends GraphObject> results = doGet();
+		if (results != null) {
 
-			if (results != null) {
+			StructrTransaction transaction = new StructrTransaction() {
 
-				StructrTransaction transaction = new StructrTransaction() {
+				@Override
+				public Object execute() throws Throwable {
 
-					@Override
-					public Object execute() throws Throwable {
+					ErrorBuffer errorBuffer = new ErrorBuffer();
+					boolean error           = false;
 
-						ErrorBuffer errorBuffer = new ErrorBuffer();
-						boolean error           = false;
+					for (GraphObject obj : results) {
 
-						for (GraphObject obj : results) {
+						for (Entry<String, Object> attr : propertySet.entrySet()) {
 
-							for (Entry<String, Object> attr : propertySet.entrySet()) {
+							try {
 
-								try {
+								obj.setProperty(attr.getKey(), attr.getValue());
 
-//                                                                      if(attr.getValue() != null) {
-									obj.setProperty(attr.getKey(), attr.getValue());
+							} catch (Throwable t) {
 
-//                                                                      }
-//                                                                      else {
-//                                                                              obj.removeProperty(attr.getKey());
-//                                                                      }
-								} catch (Throwable t) {
+								errorBuffer.add(t.getMessage());
 
-									errorBuffer.add(t.getMessage());
-
-									error = true;
-								}
-
+								error = true;
 							}
 
-							/*
-							 * try {
-							 *       // ask listener for modification validation
-							 *       EntityContext.getGlobalModificationListener().graphObjectModified(securityContext, obj);
-							 *
-							 * } catch(Throwable t) {
-							 *       errorBuffer.add(t.getMessage());
-							 *       error = true;
-							 * }
-							 */
-
 						}
 
-						// throw exception with errors
-						if (error) {
-
-							throw new IllegalArgumentException(errorBuffer.toString());
-
-						}
-
-						return null;
 					}
-				};
 
-				// modify results in a single transaction
-				Services.command(securityContext, TransactionCommand.class).execute(transaction);
+					// throw exception with errors
+					if (error) {
 
-				// if there was an exception, throw it again
-				if (transaction.getCause() != null) {
+						throw new IllegalArgumentException(errorBuffer.toString());
 
-					throw transaction.getCause();
+					}
 
+					return null;
 				}
+			};
 
-				return new RestMethodResult(HttpServletResponse.SC_OK);
+			// modify results in a single transaction
+			Services.command(securityContext, TransactionCommand.class).execute(transaction);
+
+			// if there was an exception, throw it again
+			if (transaction.getCause() != null) {
+
+				throw transaction.getCause();
 
 			}
 
-			throw new IllegalPathException();
-
-		} else {
-
-			throw new NotAllowedException();
+			return new RestMethodResult(HttpServletResponse.SC_OK);
 
 		}
+
+		throw new IllegalPathException();
 	}
 
 	/**
@@ -215,6 +192,28 @@ public abstract class ResourceConstraint {
 	}
 
 	// ----- protected methods -----
+	protected DirectedRelationship findDirectedRelationship(TypedIdConstraint constraint1, TypeConstraint constraint2) {
+		return findDirectedRelationship(constraint1.getTypeConstraint(), constraint2);
+	}
+
+	protected DirectedRelationship findDirectedRelationship(TypeConstraint constraint1, TypedIdConstraint constraint2) {
+		return findDirectedRelationship(constraint1, constraint2.getTypeConstraint());
+	}
+
+	protected DirectedRelationship findDirectedRelationship(TypedIdConstraint constraint1, TypedIdConstraint constraint2) {
+		return findDirectedRelationship(constraint1.getTypeConstraint(), constraint2.getTypeConstraint());
+	}
+
+	protected DirectedRelationship findDirectedRelationship(TypeConstraint constraint1, TypeConstraint constraint2) {
+
+		String type1             = constraint1.getRawType();
+		String type2             = constraint2.getRawType();
+
+		// try raw type first..
+		return EntityContext.getDirectedRelationship(type1, type2);
+
+	}
+
 	protected void notifyOfTraversal(List<GraphObject> traversedNodes) {
 
 		for (VetoableGraphObjectListener listener : EntityContext.getModificationListeners()) {

@@ -6,8 +6,8 @@ package org.structr.rest.constraint;
 
 import java.util.Map;
 import java.util.logging.Logger;
-import org.structr.common.CaseHelper;
 import org.structr.common.SecurityContext;
+import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.module.GetEntitiesCommand;
@@ -38,7 +38,7 @@ public class InheritingTypedIdConstraint extends TypedIdConstraint {
 		AbstractNode node = idConstraint.getNode();
 
 		Class entityClass = node.getClass();
-		String type = CaseHelper.toCamelCase(typeConstraint.getType());
+		String type = EntityContext.normalizeEntityName(typeConstraint.getRawType());
 
 		Map<String, Class> entities = (Map) Services.command(SecurityContext.getSuperUserInstance(), GetEntitiesCommand.class).execute();
 		Class parentClass           = entities.get(type);

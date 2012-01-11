@@ -18,6 +18,7 @@
  */
 package org.structr.common;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.WordUtils;
 
 /**
@@ -27,7 +28,18 @@ import org.apache.commons.lang.WordUtils;
 public class CaseHelper {
 	
 	public static String toCamelCase(final String type) {
-		return WordUtils.capitalizeFully(type, new char[]{'_'}).replaceAll("_", "");
+		return WordUtils.capitalize(type, new char[]{'_'}).replaceAll("_", "");
 	}
-	
+
+	public static void main(String[] args) {
+
+		String[] input = {
+			"check_ins",
+			"CheckIns"
+		};
+
+		for(int i=0; i<input.length; i++) {
+			System.out.println(StringUtils.rightPad(input[i], 20) + StringUtils.leftPad(toCamelCase(input[i]), 20));
+		}
+	}
 }

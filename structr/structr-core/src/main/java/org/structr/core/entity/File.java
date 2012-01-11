@@ -64,7 +64,7 @@ public class File extends AbstractNode {
 	static {
 
 		EntityContext.registerPropertySet(File.class, PropertyView.All, Key.values());
-		EntityContext.registerRelation(File.class, Key.parentFolder, Folder.class, RelType.HAS_CHILD, Direction.INCOMING, Cardinality.ManyToOne);
+		EntityContext.registerPropertyRelation(File.class, Key.parentFolder, Folder.class, RelType.HAS_CHILD, Direction.INCOMING, Cardinality.ManyToOne);
 
 	}
 

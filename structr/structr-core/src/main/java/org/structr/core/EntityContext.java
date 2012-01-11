@@ -52,6 +52,8 @@ import java.util.Set;
 import java.util.concurrent.Semaphore;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.lang.StringUtils;
+import org.structr.common.CaseHelper;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -69,12 +71,14 @@ public class EntityContext {
 	private static final Map<Class, Map<String, Value>> globalValidationParameterMap                            = new LinkedHashMap<Class, Map<String, Value>>();
 	private static final Map<String, Map<String, Semaphore>> globalSemaphoreMap                                 = new LinkedHashMap<String, Map<String, Semaphore>>();
 	private static final Map<String, Map<String, Set<String>>> globalSearchablePropertyMap                      = new LinkedHashMap<String, Map<String, Set<String>>>();
-	private static final Map<String, Map<String, DirectedRelationship>> globalRelationshipMap                   = new LinkedHashMap<String, Map<String, DirectedRelationship>>();
+	private static final Map<String, Map<String, DirectedRelationship>> globalPropertyRelationshipMap           = new LinkedHashMap<String, Map<String, DirectedRelationship>>();
+	private static final Map<String, Map<String, DirectedRelationship>> globalEntityRelationshipMap             = new LinkedHashMap<String, Map<String, DirectedRelationship>>();
 	private static final Map<Class, Map<String, Set<String>>> globalPropertyViewMap                             = new LinkedHashMap<Class, Map<String, Set<String>>>();
 	private static final Map<Class, Map<String, PropertyGroup>> globalPropertyGroupMap                          = new LinkedHashMap<Class, Map<String, PropertyGroup>>();
 	private static final Map<Class, Map<String, Value>> globalConversionParameterMap                            = new LinkedHashMap<Class, Map<String, Value>>();
 	private static final Map<Class, Set<String>> globalWriteOncePropertyMap                                     = new LinkedHashMap<Class, Set<String>>();
 	private static final Map<Class, Set<String>> globalReadOnlyPropertyMap                                      = new LinkedHashMap<Class, Set<String>>();
+	private static final Map<String, String> normalizedEntityNameCache                                          = new LinkedHashMap<String, String>();
 	private static final Set<VetoableGraphObjectListener> modificationListeners                                 = new LinkedHashSet<VetoableGraphObjectListener>();
 	private static final Map<Thread, Long> transactionKeyMap                                                    = new LinkedHashMap<Thread, Long>();
 	private static final Map<Long, Throwable> throwableMap                                                      = new LinkedHashMap<Long, Throwable>();
@@ -100,62 +104,45 @@ public class EntityContext {
 		getPropertyGroupMapForType(type).put(key.name(), propertyGroup);
 	}
 
-	/**
-	 * Defines a static relationship between <code>sourceType</code> and <code>destType</code>
-	 * with the given relationship type, direction and the default cardinality of <code>ManyToMany<code>.
-	 *
-	 * @param sourceType
-	 * @param destType
-	 * @param relType
-	 * @param direction
-	 */
-	public static void registerRelation(Class sourceType, String property, Class destType, RelationshipType relType, Direction direction) {
-		registerRelation(sourceType, property, destType, relType, direction, Cardinality.ManyToMany);
+	// ----- property and entity relationships -----
+	public static void registerPropertyRelation(Class sourceType, PropertyKey propertyKey, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality) {
+		registerPropertyRelation(sourceType, propertyKey.name(), destType, relType, direction, cardinality);
 	}
 
-	/**
-	 * Defines a static relationship between <code>sourceType</code> and <code>destType</code>
-	 * with the given relationship type, direction, cardinality and the default notion which
-	 * returns the source object unmodified.
-	 *
-	 * @param sourceType
-	 * @param destType
-	 * @param relType
-	 * @param direction
-	 * @param cardinality
-	 */
-	public static void registerRelation(Class sourceType, PropertyKey propertyKey, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality) {
-		registerRelation(sourceType, propertyKey.name(), destType, relType, direction, cardinality);
-	}
-
-	public static void registerRelation(Class sourceType, String property, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality) {
+	public static void registerPropertyRelation(Class sourceType, String property, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality) {
 
 		// need to set type here
 		Notion objectNotion = new ObjectNotion();
-
 		objectNotion.setType(destType);
-		registerRelation(convertName(sourceType), property, convertName(destType), relType, direction, cardinality, objectNotion);
+
+		registerPropertyRelationInternal(sourceType.getSimpleName(), property, destType.getSimpleName(), relType, direction, cardinality, objectNotion);
 	}
 
-	/**
-	 * Defines a static relationship between <code>sourceType</code> and <code>destType</code>
-	 * with the given relationship type, direction and cardinality.
-	 *
-	 * @param sourceType
-	 * @param destType
-	 * @param relType
-	 * @param direction
-	 * @param cardinality
-	 * @param notion
-	 */
-	public static void registerRelation(Class sourceType, PropertyKey propertyKey, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion) {
-		registerRelation(sourceType, propertyKey.name(), destType, relType, direction, cardinality, notion);
+	public static void registerPropertyRelation(Class sourceType, PropertyKey propertyKey, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion) {
+		registerPropertyRelation(sourceType, propertyKey.name(), destType, relType, direction, cardinality, notion);
 	}
 
-	public static void registerRelation(Class sourceType, String property, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion) {
+	public static void registerPropertyRelation(Class sourceType, String property, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion) {
 
-		registerRelation(convertName(sourceType), property, convertName(destType), relType, direction, cardinality, notion);
 		notion.setType(destType);
+
+		registerPropertyRelationInternal(sourceType.getSimpleName(), property, destType.getSimpleName(), relType, direction, cardinality, notion);
+	}
+
+	public static void registerEntityRelation(Class sourceType, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality) {
+
+		// need to set type here
+		Notion objectNotion = new ObjectNotion();
+		objectNotion.setType(destType);
+
+		registerEntityRelationInternal(sourceType.getSimpleName(), destType.getSimpleName(), relType, direction, cardinality, objectNotion);
+	}
+
+	public static void registerEntityRelation(Class sourceType, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion) {
+
+		notion.setType(destType);
+
+		registerEntityRelationInternal(sourceType.getSimpleName(), destType.getSimpleName(), relType, direction, cardinality, notion);
 	}
 
 	// ----- property set methods -----
@@ -282,7 +269,7 @@ public class EntityContext {
 	}
 
 	public static void registerSearchablePropertySet(Class type, String index, String key) {
-		registerSearchablePropertySet(convertName(type), index, key);
+		registerSearchablePropertySet(type.getSimpleName(), index, key);
 	}
 
 	public static void registerSearchablePropertySet(String type, String index, String key) {
@@ -307,40 +294,45 @@ public class EntityContext {
 	}
 
 	// ----- private methods -----
-	private static String convertName(final Class type) {
-		return convertName(type, false);
-	}
+	public static String normalizeEntityName(String possibleEntityName) {
 
-	private static String convertName(final Class type, final boolean plural) {
+		// CAUTION: this cache might grow to a very large size, as it
+		//          contains all normalized mappings for every possible
+		//          property key / entity name that is ever called.
 
-		String convertedName = type.getSimpleName().toLowerCase();
+		String normalizedType = normalizedEntityNameCache.get(possibleEntityName);
+		if(normalizedType == null) {
 
-		if (plural) {
+			normalizedType = StringUtils.capitalize(CaseHelper.toCamelCase(possibleEntityName));
 
-			if (convertedName.endsWith("y")) {
+			if(normalizedType.endsWith("ies")) {
 
-				logger.log(Level.FINEST, "Replacing trailing 'y' by 'ies' for type {0}", convertedName);
+				normalizedType = normalizedType.substring(0, normalizedType.length() - 3).concat("y");
 
-				convertedName = convertedName.substring(0, convertedName.length() - 1).concat("ies");
+			} else if(normalizedType.endsWith("s")) {
 
-			} else if (!convertedName.endsWith("s")) {
-
-				logger.log(Level.FINEST, "Adding trailing 's' to type {0}", convertedName);
-
-				convertedName = convertedName.concat("s");
-
+				logger.log(Level.FINEST, "Removing trailing plural 's' from type {0}", normalizedType);
+				normalizedType = normalizedType.substring(0, normalizedType.length() - 1);
 			}
 
+			logger.log(Level.INFO, "String {0} normalized to {1}", new Object[] { possibleEntityName, normalizedType } );
+			
+			normalizedEntityNameCache.put(possibleEntityName, normalizedType);
 		}
 
-		return convertedName;
+		return normalizedType;
 	}
 
-	private static void registerRelation(String sourceType, String property, String destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion) {
+	private static void registerPropertyRelationInternal(String sourceType, String property, String destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion) {
 
-		Map<String, DirectedRelationship> typeMap = getRelationshipMapForType(sourceType);
-
+		Map<String, DirectedRelationship> typeMap = getPropertyRelationshipMapForType(sourceType);
 		typeMap.put(property, new DirectedRelationship(destType, relType, direction, cardinality, notion));
+	}
+
+	private static void registerEntityRelationInternal(String sourceType, String destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion) {
+
+		Map<String, DirectedRelationship> typeMap = getEntityRelationshipMapForType(sourceType);
+		typeMap.put(destType, new DirectedRelationship(destType, relType, direction, cardinality, notion));
 	}
 
 	public static synchronized void removeTransactionKey() {
@@ -375,7 +367,7 @@ public class EntityContext {
 	/**
 	 * Returns a semaphore for the given type and key IF there is a unique
 	 * constraint defined for the given type and property.
-	 * @param type
+	 * @param sourceType
 	 * @param key
 	 * @return
 	 */
@@ -403,30 +395,31 @@ public class EntityContext {
 	}
 
 	// ----- static relationship methods -----
-	public static DirectedRelationship getRelation(String sourceType, String propertyKey) {
-		return getRelationshipMapForType(sourceType.toLowerCase()).get(propertyKey.toLowerCase());
+	public static DirectedRelationship getDirectedRelationship(Class sourceType, Class destType) {
+		return getDirectedRelationship(sourceType.getSimpleName(), destType.getSimpleName());
 	}
 
-	public static DirectedRelationship getRelation(Class sourceType, String propertyKey) {
-		return getRelationshipMapForType(convertName(sourceType)).get(propertyKey.toLowerCase());
+	public static DirectedRelationship getDirectedRelationship(Class sourceType, String key) {
+		return getDirectedRelationship(sourceType.getSimpleName(), key);
 	}
 
-	public static DirectedRelationship getRelation(Class sourceType, Class destType, boolean pluralDestType) {
-		return getRelationshipMapForType(convertName(sourceType)).get(convertName(destType, pluralDestType));
+	public static DirectedRelationship getDirectedRelationship(String sourceType, String key) {
+
+		String normalizedSourceType = normalizeEntityName(sourceType);
+		DirectedRelationship rel = null;
+
+		// try property relations with EXACT MATCH first
+		rel = getPropertyRelationshipMapForType(normalizedSourceType).get(key);
+		if(rel == null) {
+
+			// no relationship for exact match, try normalized entity name now
+			rel = getEntityRelationshipMapForType(normalizedSourceType).get(normalizeEntityName(key));
+		}
+
+		return rel;
 	}
 
-	public static DirectedRelationship getRelation(Class sourceType, Class destType) {
-		return getRelationshipMapForType(convertName(sourceType)).get(convertName(destType, false));
-	}
-
-	public static Map<String, DirectedRelationship> getRelations(Class sourceType) {
-		return getRelationshipMapForType(convertName(sourceType));
-	}
-
-	public static Map<String, DirectedRelationship> getRelations(String sourceType) {
-		return getRelationshipMapForType(sourceType);
-	}
-
+	// ----- property set methods -----
 	public static Set<String> getPropertySet(Class type, String propertyView) {
 
 		Map<String, Set<String>> propertyViewMap = getPropertyViewMapForType(type);
@@ -552,22 +545,37 @@ public class EntityContext {
 	}
 
 	public static Set<String> getSearchableProperties(Class type, String index) {
-		return getSearchableProperties(convertName(type), index);
+		return getSearchableProperties(type.getSimpleName(), index);
 	}
 
 	public static Set<String> getSearchableProperties(String type, String index) {
 		return getSearchablePropertyMapForType(type).get(index);
 	}
 
-	private static Map<String, DirectedRelationship> getRelationshipMapForType(String sourceType) {
+	private static Map<String, DirectedRelationship> getPropertyRelationshipMapForType(String sourceType) {
 
-		Map<String, DirectedRelationship> typeMap = globalRelationshipMap.get(sourceType);
+		Map<String, DirectedRelationship> typeMap = globalPropertyRelationshipMap.get(normalizeEntityName(sourceType));
 
 		if (typeMap == null) {
 
 			typeMap = new LinkedHashMap<String, DirectedRelationship>();
 
-			globalRelationshipMap.put(sourceType, typeMap);
+			globalPropertyRelationshipMap.put(normalizeEntityName(sourceType), typeMap);
+
+		}
+
+		return (typeMap);
+	}
+
+	private static Map<String, DirectedRelationship> getEntityRelationshipMapForType(String sourceType) {
+
+		Map<String, DirectedRelationship> typeMap = globalEntityRelationshipMap.get(normalizeEntityName(sourceType));
+
+		if (typeMap == null) {
+
+			typeMap = new LinkedHashMap<String, DirectedRelationship>();
+
+			globalEntityRelationshipMap.put(normalizeEntityName(sourceType), typeMap);
 
 		}
 
@@ -679,15 +687,15 @@ public class EntityContext {
 		return writeOncePropertySet;
 	}
 
-	private static Map<String, Set<String>> getSearchablePropertyMapForType(String type) {
+	private static Map<String, Set<String>> getSearchablePropertyMapForType(String sourceType) {
 
-		Map<String, Set<String>> searchablePropertyMap = globalSearchablePropertyMap.get(type);
+		Map<String, Set<String>> searchablePropertyMap = globalSearchablePropertyMap.get(normalizeEntityName(sourceType));
 
 		if (searchablePropertyMap == null) {
 
 			searchablePropertyMap = new LinkedHashMap<String, Set<String>>();
 
-			globalSearchablePropertyMap.put(type, searchablePropertyMap);
+			globalSearchablePropertyMap.put(normalizeEntityName(sourceType), searchablePropertyMap);
 
 		}
 
@@ -709,15 +717,15 @@ public class EntityContext {
 		return groupMap;
 	}
 
-	private static Map<String, Semaphore> getSemaphoreMapForType(String type) {
+	private static Map<String, Semaphore> getSemaphoreMapForType(String sourceType) {
 
-		Map<String, Semaphore> semaphoreMap = globalSemaphoreMap.get(type);
+		Map<String, Semaphore> semaphoreMap = globalSemaphoreMap.get(normalizeEntityName(sourceType));
 
 		if (semaphoreMap == null) {
 
 			semaphoreMap = Collections.synchronizedMap(new LinkedHashMap<String, Semaphore>());
 
-			globalSemaphoreMap.put(type, semaphoreMap);
+			globalSemaphoreMap.put(normalizeEntityName(sourceType), semaphoreMap);
 
 		}
 
@@ -770,11 +778,11 @@ public class EntityContext {
 	}
 
 	public static boolean isSearchableProperty(Class type, String index, String key) {
-		return isSearchableProperty(convertName(type), index, key);
+		return isSearchableProperty(type.getSimpleName(), index, key);
 	}
 
 	public static boolean isSearchableProperty(String type, String index, String key) {
-		return getSearchablePropertyMapForType(type).containsKey(key);
+		return getSearchablePropertyMapForType(normalizeEntityName(type)).containsKey(key);
 	}
 
 	public static boolean isWriteOnceProperty(Class type, String key) {
@@ -803,6 +811,7 @@ public class EntityContext {
 
 	//~--- inner classes --------------------------------------------------
 
+	// <editor-fold defaultstate="collapsed" desc="EntityContextModificationListener">
 	public static class EntityContextModificationListener implements VetoableGraphObjectListener, TransactionEventHandler<Long> {
 
 		// ----- interface TransactionEventHandler -----
@@ -928,7 +937,6 @@ public class EntityContext {
 			}
 		}
 
-		// ----- interface VetoableGraphObjectListener -----
 		@Override
 		public void begin(SecurityContext securityContext, long transactionKey) {
 
@@ -1029,4 +1037,5 @@ public class EntityContext {
 			}
 		}
 	}
+	// </editor-fold>
 }

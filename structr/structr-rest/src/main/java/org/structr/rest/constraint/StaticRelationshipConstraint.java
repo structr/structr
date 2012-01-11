@@ -76,15 +76,8 @@ public class StaticRelationshipConstraint extends SortableConstraint {
 		List<GraphObject> results = typedIdConstraint.doGet();
 		if (results != null) {
 
-			// get source and target type from previous constraints
-			String sourceType = typedIdConstraint.getTypeConstraint().getType();
-			String targetType = typeConstraint.getRawType();
-
-			// logger.log(Level.INFO, "sourceType {0}, targetType {1}", new Object[] { sourceType, targetType } );
-			
 			// fetch static relationship definition
-			DirectedRelationship staticRel = EntityContext.getRelation(sourceType, targetType);
-
+			DirectedRelationship staticRel = findDirectedRelationship(typedIdConstraint, typeConstraint);
 			if (staticRel != null) {
 
 				List<AbstractNode> relatedNodes = staticRel.getRelatedNodes(securityContext, typedIdConstraint.getTypesafeNode());
@@ -111,13 +104,8 @@ public class StaticRelationshipConstraint extends SortableConstraint {
 
 		if (results != null) {
 
-			// get source and target type from previous constraints
-			String sourceType = typedIdConstraint.getTypeConstraint().getType();
-			String targetType = typeConstraint.getType();
-
 			// fetch static relationship definition
-			DirectedRelationship staticRel = EntityContext.getRelation(sourceType, targetType);
-
+			DirectedRelationship staticRel = findDirectedRelationship(typedIdConstraint, typeConstraint);
 			if (staticRel != null) {
 
 				AbstractNode startNode = typedIdConstraint.getTypesafeNode();
@@ -157,64 +145,51 @@ public class StaticRelationshipConstraint extends SortableConstraint {
 	@Override
 	public RestMethodResult doPost(final Map<String, Object> propertySet) throws Throwable {
 
-		if ((securityContext != null) && (securityContext.getUser() != null)) {
+		// create transaction closure
+		StructrTransaction transaction = new StructrTransaction() {
 
-			// create transaction closure
-			StructrTransaction transaction = new StructrTransaction() {
+			@Override
+			public Object execute() throws Throwable {
 
-				@Override
-				public Object execute() throws Throwable {
+				AbstractNode sourceNode  = typedIdConstraint.getIdConstraint().getNode();
+				AbstractNode newNode     = typeConstraint.createNode(propertySet);
+				DirectedRelationship rel = EntityContext.getDirectedRelationship(sourceNode.getClass(), newNode.getClass());
 
-					AbstractNode sourceNode  = typedIdConstraint.getIdConstraint().getNode();
-					AbstractNode newNode     = typeConstraint.createNode(propertySet);
-					DirectedRelationship rel = EntityContext.getRelation(sourceNode.getClass(), typeConstraint.getRawType());
+				if ((sourceNode != null) && (newNode != null) && (rel != null)) {
 
-					// we try the property name first, then the node type as a fallback
-					if(rel == null) {
-						rel = EntityContext.getRelation(sourceNode.getClass(), newNode.getType());
-					}
+					rel.createRelationship(securityContext, sourceNode, newNode);
+					return newNode;
 
-					if ((sourceNode != null) && (newNode != null) && (rel != null)) {
+				} else {
 
-						rel.createRelationship(securityContext, sourceNode, newNode);
-						return newNode;
-
-					} else {
-
-						logger.log(Level.WARNING, "Unable to create nested node, source node type {0}, new node type {1}, relationship type {2}",
-							new Object[] {
-								sourceNode != null ? sourceNode.getType() : "null",
-								newNode != null ? newNode.getType() : "null",
-								rel != null ? rel.getRelType() : "null"
-							}
-						);
-					}
-
-					throw new IllegalPathException();
+					logger.log(Level.WARNING, "Unable to create nested node, source node type {0}, new node type {1}, relationship type {2}",
+						new Object[] {
+							sourceNode != null ? sourceNode.getType() : "null",
+							newNode != null ? newNode.getType() : "null",
+							rel != null ? rel.getRelType() : "null"
+						}
+					);
 				}
-			};
 
-			// execute transaction: create new node
-			AbstractNode newNode = (AbstractNode) Services.command(securityContext, TransactionCommand.class).execute(transaction);
-			if (newNode == null) {
-
-				// re-throw transaction exception cause
-				if (transaction.getCause() != null) {
-					throw transaction.getCause();
-
-				}
+				throw new IllegalPathException();
 			}
+		};
 
-			RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_CREATED);
-			result.addHeader("Location", buildLocationHeader(newNode));
+		// execute transaction: create new node
+		AbstractNode newNode = (AbstractNode) Services.command(securityContext, TransactionCommand.class).execute(transaction);
+		if (newNode == null) {
 
-			return result;
+			// re-throw transaction exception cause
+			if (transaction.getCause() != null) {
+				throw transaction.getCause();
 
-		} else {
-
-			throw new NotAllowedException();
-
+			}
 		}
+
+		RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_CREATED);
+		result.addHeader("Location", buildLocationHeader(newNode));
+
+		return result;
 	}
 
 	@Override

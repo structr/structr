@@ -68,7 +68,7 @@ public class User extends Person {
 		EntityContext.registerPropertyConverter(User.class, Key.password.name(), PasswordConverter.class);
 		EntityContext.registerPropertySet(User.class, PropertyView.All, Key.values());
 		EntityContext.registerPropertySet(User.class, PropertyView.Public, Key.realName);
-		EntityContext.registerRelation(User.class, Key.groups, Group.class, RelType.HAS_CHILD, Direction.INCOMING, Cardinality.ManyToMany);
+		EntityContext.registerPropertyRelation(User.class, Key.groups, Group.class, RelType.HAS_CHILD, Direction.INCOMING, Cardinality.ManyToMany);
 		EntityContext.registerSearchablePropertySet(User.class, NodeIndex.user.name(), UserIndexKey.values());
 
 	}

@@ -152,17 +152,7 @@ public class RelationshipFollowingConstraint extends SortableConstraint implemen
 		uriParts.add(typedIdConstraint.getUriPart());
 
 		// find static relationship between the two types
-		String type1             = lastConstraint.getTypeConstraint().getType();
-		String type2             = typedIdConstraint.getTypeConstraint().getType();
-		String typeOrProperty    = typedIdConstraint.getTypeConstraint().getRawType();
-		
-		// try raw type first..
-		DirectedRelationship rel = EntityContext.getRelation(type1, typeOrProperty);
-		if(rel == null) {
-			// fallback to normalized type (entity name)
-			rel = EntityContext.getRelation(type1, type2);
-		}
-
+		DirectedRelationship rel = findDirectedRelationship(lastConstraint, typedIdConstraint);
 		if (rel != null) {
 
 			if (!visitedRelationships.contains(rel)) {
@@ -174,7 +164,10 @@ public class RelationshipFollowingConstraint extends SortableConstraint implemen
 
 		} else {
 
-			logger.log(Level.INFO, "No relationship defined between {0} and {1}, illegal path", new Object[] { type1, typeOrProperty });
+			String rawType1    = lastConstraint.getTypeConstraint().getRawType();
+			String rawType2    = typedIdConstraint.getTypeConstraint().getRawType();
+
+			logger.log(Level.INFO, "No relationship defined between {0} and {1}, illegal path", new Object[] { rawType1, rawType2 });
 
 			// no relationship defined, illegal path
 			throw new IllegalPathException();
@@ -250,7 +243,7 @@ public class RelationshipFollowingConstraint extends SortableConstraint implemen
 				
 				if ((startNode != null) && (endNode != null)) {
 
-					final DirectedRelationship directedRelationship = EntityContext.getRelation(startNode.getClass(), property);
+					final DirectedRelationship directedRelationship = EntityContext.getDirectedRelationship(startNode.getClass(), property);
 					if(directedRelationship != null) {
 
 						// relationship found!

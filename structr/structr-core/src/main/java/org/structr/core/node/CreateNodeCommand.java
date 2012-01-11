@@ -114,6 +114,10 @@ public class CreateNodeCommand extends NodeServiceCommand {
 
 //			EntityContext.getGlobalModificationListener().newNode(securityContext, node.getId());
 
+			// set type first!!
+			node.setProperty(AbstractNode.Key.type.name(), nodeType);
+			attrs.remove(AbstractNode.Key.type.name());
+
 			ErrorBuffer errorBuffer = new ErrorBuffer();
 			for(Entry<String, Object> attr : attrs.entrySet()) {
 

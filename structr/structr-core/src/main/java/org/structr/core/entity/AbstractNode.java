@@ -579,7 +579,8 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 		return (dbNode.hasProperty(Key.name.name())
 			? dbNode.getProperty(Key.name.name())
-			: "<AbstractNode>") + " [" + dbNode.getProperty(Key.type.name()) + ", " + dbNode.getId() + "]";
+			: "<AbstractNode>") + " [" + 
+			(dbNode.hasProperty(Key.type.name()) ? dbNode.getProperty(Key.type.name()) : "Unknown") + ", " + dbNode.getId() + "]";
 	}
 
 	/**
@@ -1863,82 +1864,86 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 		}
 
-		// ----- END property group resolution -----
-		// ----- BEGIN automatic property resolution (check for static relationships and return related nodes) -----
-		if (EntityContext.getRelations(type).containsKey(key)) {
+		if(dbNode.hasProperty(key)) {
 
-			// static relationship detected, return related nodes
-			// (we omit null check here because containsKey ensures that rel is not null)
-			DirectedRelationship rel = EntityContext.getRelations(type).get(key);
-
-			// apply notion (default is "as-is")
-			Notion notion = rel.getNotion();
-
-			// return collection or single element depending on cardinality of relationship
-			switch (rel.getCardinality()) {
-
-				case ManyToMany :
-				case OneToMany :
-					return new IterableAdapter(rel.getRelatedNodes(securityContext, this), notion.getAdapterForGetter(securityContext));
-
-				case OneToOne :
-				case ManyToOne :
-					return notion.getAdapterForGetter(securityContext).adapt(rel.getRelatedNode(securityContext, this));
-
+			if (isDirty) {
+				value = properties.get(key);
 			}
-		}
 
-		// ----- END automatic property resolution -----
-		if (isDirty) {
+			// Temporary hook for format conversion introduced with 0.4.3-SNAPSHOT:
+			// public -> visibleToPublicUsers (due to usage of enum Permission public instead of public static final String PUBLIC = "public"
+			// TODO: remove this hook if you can be absolutely sure that no old repository is in use anymore!
+			if (key.equals(Key.visibleToPublicUsers.name()) && dbNode.hasProperty("public")) {
 
-			value = properties.get(key);
+				final Object oldValue          = dbNode.getProperty("public");
+				StructrTransaction transaction = new StructrTransaction() {
 
-		}
+					@Override
+					public Object execute() throws Throwable {
 
-		// Temporary hook for format conversion introduced with 0.4.3-SNAPSHOT:
-		// public -> visibleToPublicUsers (due to usage of enum Permission public instead of public static final String PUBLIC = "public"
-		// TODO: remove this hook if you can be absolutely sure that no old repository is in use anymore!
-		if (key.equals(Key.visibleToPublicUsers.name()) && dbNode.hasProperty("public")) {
+						dbNode.setProperty(Key.visibleToPublicUsers.name(), oldValue);
+						dbNode.removeProperty("public");
 
-			final Object oldValue          = dbNode.getProperty("public");
-			StructrTransaction transaction = new StructrTransaction() {
+						return null;
+					}
+				};
 
-				@Override
-				public Object execute() throws Throwable {
+				// execute transaction
+				Services.command(securityContext, TransactionCommand.class).execute(transaction);
 
-					dbNode.setProperty(Key.visibleToPublicUsers.name(), oldValue);
-					dbNode.removeProperty("public");
+				// debug
+				if (transaction.getCause() != null) {
 
-					return null;
+					logger.log(Level.WARNING, "Error while setting property", transaction.getCause());
+
 				}
-			};
-
-			// execute transaction
-			Services.command(securityContext, TransactionCommand.class).execute(transaction);
-
-			// debug
-			if (transaction.getCause() != null) {
-
-				logger.log(Level.WARNING, "Error while setting property", transaction.getCause());
 
 			}
 
+			if ((key != null) && (dbNode != null) && dbNode.hasProperty(key)) {
+
+				value = dbNode.getProperty(key);
+
+			}
+
+		} else {
+
+			// ----- BEGIN automatic property resolution (check for static relationships and return related nodes) -----
+			DirectedRelationship rel = EntityContext.getDirectedRelationship(type, key);
+
+			if(rel != null) {
+				// apply notion (default is "as-is")
+				Notion notion = rel.getNotion();
+
+				// return collection or single element depending on cardinality of relationship
+				switch (rel.getCardinality()) {
+
+					case ManyToMany :
+					case OneToMany :
+						value = new IterableAdapter(rel.getRelatedNodes(securityContext, this), notion.getAdapterForGetter(securityContext));
+						break;
+
+					case OneToOne :
+					case ManyToOne :
+						value = notion.getAdapterForGetter(securityContext).adapt(rel.getRelatedNode(securityContext, this));
+						break;
+
+				}
+//
+//			} else {
+//
+//				logger.log(Level.WARNING, "No relationship found for type {0}, key {1}", new Object[] { type.getSimpleName(), key } );
+			}
+
+			// ----- END automatic property resolution -----
 		}
 
-		if ((key != null) && (dbNode != null) && dbNode.hasProperty(key)) {
-
-			value = dbNode.getProperty(key);
-
-		}
-
+		// apply property converters
 		PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
-
 		if (converter != null) {
 
 			Value conversionValue = EntityContext.getPropertyConversionParameter(type, key);
-
 			converter.setCurrentNode(this);
-
 			value = converter.convertForGetter(value, conversionValue);
 
 		}
@@ -3842,153 +3847,150 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 		}
 
-		// ----- END property group resolution -----
-		// check for static relationships and connect node
-		if (EntityContext.getRelations(type).containsKey(key)) {
 
-			// static relationship detected, create relationship
-			DirectedRelationship rel = EntityContext.getRelations(type).get(key);
+		// static relationship detected, create relationship
+		DirectedRelationship rel = EntityContext.getDirectedRelationship(type, key);
+		if (rel != null) {
 
-			if (rel != null) {
+			try {
 
-				try {
+				GraphObject graphObject = rel.getNotion().getAdapterForSetter(securityContext).adapt(value);
+				rel.createRelationship(securityContext, this, graphObject);
 
-					GraphObject graphObject = rel.getNotion().getAdapterForSetter(securityContext).adapt(value);
+				return;
 
-					rel.createRelationship(securityContext, this, graphObject);
+			} catch (IllegalArgumentException iaex) {
 
-					return;
+				// re-throw exception
+				throw iaex;
+			} catch (Throwable t) {
 
-				} catch (IllegalArgumentException iaex) {
+				t.printStackTrace();
 
-					// re-throw exception
-					throw iaex;
-				} catch (Throwable t) {
+				// logger.log(Level.WARNING, "Exception in setProperty", t);
+				// report exception upwards
+				throw new IllegalArgumentException(t.getMessage());
+			}
 
-					// logger.log(Level.WARNING, "Exception in setProperty", t);
-					// report exception upwards
-					throw new IllegalArgumentException(t.getMessage());
+		} else {
+
+			PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
+			final Object convertedValue;
+
+			if (converter != null) {
+
+				Value conversionValue = EntityContext.getPropertyConversionParameter(type, key);
+
+				converter.setCurrentNode(this);
+
+				convertedValue = converter.convertForSetter(value, conversionValue);
+
+			} else {
+
+				convertedValue = value;
+
+			}
+
+			final Object oldValue       = getProperty(key);
+
+			// don't make any changes if
+			// - old and new value both are null
+			// - old and new value are not null but equal
+			if (((convertedValue == null) && (oldValue == null)) || ((convertedValue != null) && (oldValue != null) && convertedValue.equals(oldValue))) {
+
+				return;
+
+			}
+
+			// look for validator
+			PropertyValidator validator = EntityContext.getPropertyValidator(securityContext, type, key);
+
+			if (validator != null) {
+
+				logger.log(Level.FINE, "Using validator of type {0} for property {1}", new Object[] { validator.getClass().getSimpleName(), key });
+
+				Value parameter         = EntityContext.getPropertyValidationParameter(type, key);
+				ErrorBuffer errorBuffer = new ErrorBuffer();
+
+				if (!validator.isValid(key, convertedValue, parameter, errorBuffer)) {
+
+					throw new IllegalArgumentException(errorBuffer.toString());
+
 				}
 
 			}
-		}
 
-		PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
-		final Object convertedValue;
+			if (isDirty) {
 
-		if (converter != null) {
+				// Don't write directly to database, but store property values
+				// in a map for later use
+				properties.put(key, convertedValue);
+			} else {
 
-			Value conversionValue = EntityContext.getPropertyConversionParameter(type, key);
+				// Commit value directly to database
+				StructrTransaction transaction = new StructrTransaction() {
 
-			converter.setCurrentNode(this);
+					@Override
+					public Object execute() throws Throwable {
 
-			convertedValue = converter.convertForSetter(value, conversionValue);
+						try {
 
-		} else {
+							// save space
+							if (convertedValue == null) {
 
-			convertedValue = value;
-
-		}
-
-		final Object oldValue       = getProperty(key);
-
-		// don't make any changes if
-		// - old and new value both are null
-		// - old and new value are not null but equal
-		if (((convertedValue == null) && (oldValue == null)) || ((convertedValue != null) && (oldValue != null) && convertedValue.equals(oldValue))) {
-
-			return;
-
-		}
-
-		// look for validator
-		PropertyValidator validator = EntityContext.getPropertyValidator(securityContext, type, key);
-
-		if (validator != null) {
-
-			logger.log(Level.FINE, "Using validator of type {0} for property {1}", new Object[] { validator.getClass().getSimpleName(), key });
-
-			Value parameter         = EntityContext.getPropertyValidationParameter(type, key);
-			ErrorBuffer errorBuffer = new ErrorBuffer();
-
-			if (!validator.isValid(key, convertedValue, parameter, errorBuffer)) {
-
-				throw new IllegalArgumentException(errorBuffer.toString());
-
-			}
-
-		}
-
-		if (isDirty) {
-
-			// Don't write directly to database, but store property values
-			// in a map for later use
-			properties.put(key, convertedValue);
-		} else {
-
-			// Commit value directly to database
-			StructrTransaction transaction = new StructrTransaction() {
-
-				@Override
-				public Object execute() throws Throwable {
-
-					try {
-
-						// save space
-						if (convertedValue == null) {
-
-							dbNode.removeProperty(key);
-
-						} else {
-
-							// Setting last modified date explicetely is not allowed
-							if (!key.equals(Key.lastModifiedDate.name())) {
-
-								if (convertedValue instanceof Date) {
-
-									dbNode.setProperty(key, ((Date) convertedValue).getTime());
-
-								} else {
-
-									dbNode.setProperty(key, convertedValue);
-
-									// set last modified date if not already happened
-									dbNode.setProperty(Key.lastModifiedDate.name(), (new Date()).getTime());
-
-								}
-
-								// notify listeners here
-								// EntityContext.getGlobalModificationListener().propertyModified(securityContext, thisNode, key, oldValue, convertedValue);
+								dbNode.removeProperty(key);
 
 							} else {
 
-								logger.log(Level.FINE, "Tried to set lastModifiedDate explicitely (action was denied)");
+								// Setting last modified date explicetely is not allowed
+								if (!key.equals(Key.lastModifiedDate.name())) {
+
+									if (convertedValue instanceof Date) {
+
+										dbNode.setProperty(key, ((Date) convertedValue).getTime());
+
+									} else {
+
+										dbNode.setProperty(key, convertedValue);
+
+										// set last modified date if not already happened
+										dbNode.setProperty(Key.lastModifiedDate.name(), (new Date()).getTime());
+
+									}
+
+									// notify listeners here
+									// EntityContext.getGlobalModificationListener().propertyModified(securityContext, thisNode, key, oldValue, convertedValue);
+
+								} else {
+
+									logger.log(Level.FINE, "Tried to set lastModifiedDate explicitely (action was denied)");
+
+								}
+							}
+
+							// Don't automatically update index
+							// TODO: Implement something really fast to keep the index automatically in sync
+	//                                              if (updateIndex && dbNode.hasProperty(key)) {
+							if (updateIndex) {
+
+								Services.command(securityContext, IndexNodeCommand.class).execute(getId(), key);
 
 							}
-						}
+						} finally {}
 
-						// Don't automatically update index
-						// TODO: Implement something really fast to keep the index automatically in sync
-//                                              if (updateIndex && dbNode.hasProperty(key)) {
-						if (updateIndex) {
+						return null;
+					}
+				};
 
-							Services.command(securityContext, IndexNodeCommand.class).execute(getId(), key);
+				// execute transaction
+				Services.command(securityContext, TransactionCommand.class).execute(transaction);
 
-						}
-					} finally {}
+				// debug
+				if (transaction.getCause() != null) {
 
-					return null;
+					logger.log(Level.WARNING, "Error while setting property", transaction.getCause());
+
 				}
-			};
-
-			// execute transaction
-			Services.command(securityContext, TransactionCommand.class).execute(transaction);
-
-			// debug
-			if (transaction.getCause() != null) {
-
-				logger.log(Level.WARNING, "Error while setting property", transaction.getCause());
-
 			}
 		}
 	}
