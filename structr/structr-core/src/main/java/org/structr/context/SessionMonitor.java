@@ -168,8 +168,7 @@ public class SessionMonitor {
 
 		if (request != null) {
 
-			Map<String, Object> parameterMap = request.getParameterMap();
-			Set<String> keys                 = parameterMap.keySet();
+			Set<String> keys                 = request.getParameterMap().keySet();
 
 			for (String key : keys) {
 
