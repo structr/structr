@@ -867,7 +867,7 @@ public class EntityContext {
 					StructrRelationship relationship = new StructrRelationship(securityContext, rel);
 
 					relationshipCreated(securityContext, transactionKey, relationship);
-					deletedRels.add(relationship);
+					createdRels.add(relationship);
 
 				}
 
