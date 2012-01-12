@@ -57,6 +57,7 @@ import java.util.Set;
 import java.util.concurrent.Semaphore;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.neo4j.kernel.impl.index.IndexCommand;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -821,6 +822,8 @@ public class EntityContext {
 	// <editor-fold defaultstate="collapsed" desc="EntityContextModificationListener">
 	public static class EntityContextModificationListener implements VetoableGraphObjectListener, TransactionEventHandler<Long> {
 
+		private Command indexCommand = Services.command(SecurityContext.getSuperUserInstance(), IndexNodeCommand.class);
+		
 		// ----- interface TransactionEventHandler -----
 		@Override
 		public Long beforeCommit(TransactionData data) throws Exception {
@@ -924,7 +927,7 @@ public class EntityContext {
 					hasError |= propertyModified(securityContext, transactionKey, errorBuffer, entity, key, entry.previouslyCommitedValue(), value);
 
 					// after successful validation, add node to index to make uniqueness constraints work
-					Services.command(securityContext, IndexNodeCommand.class).execute(entity, key);
+					indexCommand.execute(entity, key);
 					modifiedNodes.add(entity);
 
 				}
