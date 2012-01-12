@@ -214,13 +214,15 @@ public abstract class ResourceConstraint {
 
 	}
 
-	protected void notifyOfTraversal(List<GraphObject> traversedNodes) {
+	protected boolean notifyOfTraversal(List<GraphObject> traversedNodes, ErrorBuffer errorBuffer) {
 
+		boolean hasError = false;
 		for (VetoableGraphObjectListener listener : EntityContext.getModificationListeners()) {
 
-			listener.wasVisited(traversedNodes, -1, securityContext);
+			hasError |= listener.wasVisited(traversedNodes, -1, errorBuffer, securityContext);
 
 		}
+		return hasError;
 	}
 
 	protected String buildLocationHeader(GraphObject newObject) {

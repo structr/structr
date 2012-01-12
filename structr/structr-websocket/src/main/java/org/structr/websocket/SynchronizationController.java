@@ -29,6 +29,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.eclipse.jetty.websocket.WebSocket.Connection;
+import org.structr.common.ErrorBuffer;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.VetoableGraphObjectListener;
@@ -90,12 +91,13 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 
 	// ----- interface VetoableGraphObjectListener -----
 	@Override
-	public void begin(SecurityContext securityContext, long transactionKey) {
+	public boolean begin(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer) {
 		messageMap.put(transactionKey, new WebSocketMessage());
+		return false;
 	}
 
 	@Override
-	public void commit(SecurityContext securityContext, long transactionKey) {
+	public boolean commit(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer) {
 
 		WebSocketMessage message = messageMap.get(transactionKey);
 		if(message != null) {
@@ -106,17 +108,19 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 		}
 
 		messageMap.remove(transactionKey);
+		return false;
 	}
 
 	@Override
-	public void rollback(SecurityContext securityContext, long transactionKey) {
+	public boolean rollback(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer) {
 
 		// roll back transaction
 		messageMap.remove(transactionKey);
+		return false;
 	}
 
 	@Override
-	public void propertyModified(SecurityContext securityContext, long transactionKey, AbstractNode entity, String key, Object oldValue, Object newValue) {
+	public boolean propertyModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, AbstractNode entity, String key, Object oldValue, Object newValue) {
 
 		WebSocketMessage message = messageMap.get(transactionKey);
 		if(message != null) {
@@ -125,10 +129,11 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 		} else {
 			logger.log(Level.WARNING, "No message found for transaction key {0}", transactionKey);
 		}
+		return false;
 	}
 
 	@Override
-	public void relationshipCreated(SecurityContext securityContext, long transactionKey, StructrRelationship relationship) {
+	public boolean relationshipCreated(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, StructrRelationship relationship) {
 
 		AbstractNode startNode = relationship.getStartNode();
 		AbstractNode endNode = relationship.getEndNode();
@@ -146,10 +151,11 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 		}
 
 		logger.log(Level.INFO, "{0} -> {1}", new Object[] { startNode.getId(), endNode.getId() } );
+		return false;
 	}
 
 	@Override
-	public void relationshipDeleted(SecurityContext securityContext, long transactionKey, StructrRelationship relationship) {
+	public boolean relationshipDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, StructrRelationship relationship) {
 
 		AbstractNode startNode = relationship.getStartNode();
 		AbstractNode endNode = relationship.getEndNode();
@@ -168,10 +174,11 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 		}
 
 		logger.log(Level.INFO, "{0} -> {1}", new Object[] { startNode.getId(), endNode.getId() } );
+		return false;
 	}
 
 	@Override
-	public void graphObjectCreated(SecurityContext securityContext, long transactionKey, GraphObject graphObject) {
+	public boolean graphObjectCreated(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject) {
 
 		WebSocketMessage message = messageMap.get(transactionKey);
 		if(message != null) {
@@ -186,10 +193,11 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 		} else {
 			logger.log(Level.WARNING, "No message found for transaction key {0}", transactionKey);
 		}
+		return false;
 	}
 
 	@Override
-	public void graphObjectModified(SecurityContext securityContext, long transactionKey, GraphObject graphObject) {
+	public boolean graphObjectModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject) {
 
 		WebSocketMessage message = messageMap.get(transactionKey);
 		if(message != null) {
@@ -202,10 +210,11 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 			logger.log(Level.WARNING, "No message found for transaction key {0}", transactionKey);
 		}
 
+		return false;
 	}
 
 	@Override
-	public void graphObjectDeleted(SecurityContext securityContext, long transactionKey, long id, Map<String, Object> properties) {
+	public boolean graphObjectDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, long id, Map<String, Object> properties) {
 
 		WebSocketMessage message = messageMap.get(transactionKey);
 		if(message != null) {
@@ -215,9 +224,11 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 		} else {
 			logger.log(Level.WARNING, "No message found for transaction key {0}", transactionKey);
 		}
+		return false;
 	}
 
 	@Override
-	public void wasVisited(List<GraphObject> traversedNodes, long transactionKey, SecurityContext securityContext) {
+	public boolean wasVisited(List<GraphObject> traversedNodes, long transactionKey, ErrorBuffer errorBuffer, SecurityContext securityContext) {
+		return false;
 	}
 }

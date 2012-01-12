@@ -21,6 +21,7 @@ package org.structr.core;
 
 import java.util.List;
 import java.util.Map;
+import org.structr.common.ErrorBuffer;
 import org.structr.common.SecurityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.StructrRelationship;
@@ -35,18 +36,18 @@ import org.structr.core.entity.StructrRelationship;
  */
 public interface VetoableGraphObjectListener {
 
-	public void begin(SecurityContext securityContext, long transactionKey);
-	public void commit(SecurityContext securityContext, long transactionKey);
-	public void rollback(SecurityContext securityContext, long transactionKey);
+	public boolean begin(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer);
+	public boolean commit(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer);
+	public boolean rollback(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer);
 
-	public void propertyModified(SecurityContext securityContext, long transactionKey, AbstractNode entity, String key, Object oldValue, Object newValue);
+	public boolean propertyModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, AbstractNode entity, String key, Object oldValue, Object newValue);
 
-	public void relationshipCreated(SecurityContext securityContext, long transactionKey, StructrRelationship relationship);
-	public void relationshipDeleted(SecurityContext securityContext, long transactionKey, StructrRelationship relationship);
+	public boolean relationshipCreated(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, StructrRelationship relationship);
+	public boolean relationshipDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, StructrRelationship relationship);
 
-	public void graphObjectCreated(SecurityContext securityContext, long transactionKey, GraphObject graphObject);
-	public void graphObjectModified(SecurityContext securityContext, long transactionKey, GraphObject graphObject);
-	public void graphObjectDeleted(SecurityContext securityContext, long transactionKey, long id, Map<String, Object> properties);
+	public boolean graphObjectCreated(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject);
+	public boolean graphObjectModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject);
+	public boolean graphObjectDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, long id, Map<String, Object> properties);
 
-	public void wasVisited(List<GraphObject> traversedNodes, long transactionKey, SecurityContext securityContext);
+	public boolean wasVisited(List<GraphObject> traversedNodes, long transactionKey, ErrorBuffer errorBuffer, SecurityContext securityContext);
 }

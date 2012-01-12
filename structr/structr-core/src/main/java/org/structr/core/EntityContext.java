@@ -829,6 +829,8 @@ public class EntityContext {
 
 			try {
 
+				ErrorBuffer errorBuffer                          = new ErrorBuffer();
+				boolean hasError                                 = false;
 				Map<Node, Map<String, Object>> removedProperties = new LinkedHashMap<Node, Map<String, Object>>();
 				SecurityContext securityContext                  = SecurityContext.getSuperUserInstance();
 				StructrNodeFactory factory                       = new StructrNodeFactory(securityContext);
@@ -838,7 +840,7 @@ public class EntityContext {
 				Set<StructrRelationship> deletedRels             = new LinkedHashSet<StructrRelationship>();
 
 				// 0: notify listeners of beginning commit
-				begin(securityContext, transactionKey);
+				begin(securityContext, transactionKey, errorBuffer);
 
 				// 1: collect properties of deleted nodes
 				for (PropertyEntry<Node> entry : data.removedNodeProperties()) {
@@ -863,7 +865,8 @@ public class EntityContext {
 
 					AbstractNode entity = factory.createNode(securityContext, node);
 
-					graphObjectCreated(securityContext, transactionKey, entity);
+					hasError |= graphObjectCreated(securityContext, transactionKey, errorBuffer, entity);
+
 					createdNodes.add(entity);
 
 				}
@@ -873,7 +876,8 @@ public class EntityContext {
 
 					StructrRelationship relationship = new StructrRelationship(securityContext, rel);
 
-					relationshipCreated(securityContext, transactionKey, relationship);
+					hasError |= relationshipCreated(securityContext, transactionKey, errorBuffer, relationship);
+
 					createdRels.add(relationship);
 
 				}
@@ -883,7 +887,8 @@ public class EntityContext {
 
 					StructrRelationship relationship = new StructrRelationship(securityContext, rel);
 
-					relationshipDeleted(securityContext, transactionKey, relationship);
+					hasError |= relationshipDeleted(securityContext, transactionKey, errorBuffer, relationship);
+
 					deletedRels.add(relationship);
 
 				}
@@ -891,7 +896,7 @@ public class EntityContext {
 				// 5: notify listeners of node deletion
 				for (Node node : data.deletedNodes()) {
 
-					graphObjectDeleted(securityContext, transactionKey, node.getId(), removedProperties.get(node));
+					hasError |= graphObjectDeleted(securityContext, transactionKey, errorBuffer, node.getId(), removedProperties.get(node));
 
 				}
 
@@ -910,24 +915,17 @@ public class EntityContext {
 
 						logger.log(Level.FINE, "Using validator of type {0} for property {1}", new Object[] { validator.getClass().getSimpleName(), key });
 
-						Value parameter         = EntityContext.getPropertyValidationParameter(entity.getClass(), key);
-						ErrorBuffer errorBuffer = new ErrorBuffer();
+						Value parameter = EntityContext.getPropertyValidationParameter(entity.getClass(), key);
 
-						if (!validator.isValid(key, value, parameter, errorBuffer)) {
-
-							throw new IllegalArgumentException(errorBuffer.toString());
-
-						}
+						hasError |= !(validator.isValid(key, value, parameter, errorBuffer));
 
 					}
 
-					propertyModified(securityContext, transactionKey, entity, key, entry.previouslyCommitedValue(), value);
+					hasError |= propertyModified(securityContext, transactionKey, errorBuffer, entity, key, entry.previouslyCommitedValue(), value);
 
 					// after successful validation, add node to index to make uniqueness constraints work
 					Services.command(securityContext, IndexNodeCommand.class).execute(entity, key);
-
 					modifiedNodes.add(entity);
-
 
 				}
 
@@ -937,13 +935,19 @@ public class EntityContext {
 					// only send UPDATE if node was not created in this transaction
 					if (!createdNodes.contains(node)) {
 
-						graphObjectModified(securityContext, transactionKey, node);
+						hasError |= graphObjectModified(securityContext, transactionKey, errorBuffer, node);
 
 					}
 				}
 
 				// notify listeners of commit
-				commit(securityContext, transactionKey);
+				hasError |= commit(securityContext, transactionKey, errorBuffer);
+
+				if (hasError) {
+
+					throw new IllegalArgumentException(errorBuffer.toString());
+
+				}
 
 			} catch (Throwable t) {
 
@@ -958,17 +962,7 @@ public class EntityContext {
 		@Override
 		public void afterCommit(TransactionData data, Long transactionKey) {
 
-//                      SecurityContext securityContext = SecurityContext.getSuperUserInstance();
-//                      StructrNodeFactory factory      = new StructrNodeFactory(securityContext);
 //
-//                      for (PropertyEntry<Node> entry : data.assignedNodeProperties()) {
-//
-//                              AbstractNode entity = factory.createNode(securityContext, entry.entity());
-//                              String key          = entry.key();
-//
-//                              Services.command(securityContext, IndexNodeCommand.class).execute(entity, key);
-//
-//                      }
 		}
 
 		@Override
@@ -984,103 +978,143 @@ public class EntityContext {
 		}
 
 		@Override
-		public void begin(SecurityContext securityContext, long transactionKey) {
+		public boolean begin(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer) {
+
+			boolean hasError = false;
 
 			for (VetoableGraphObjectListener listener : modificationListeners) {
 
-				listener.begin(securityContext, transactionKey);
+				hasError |= listener.begin(securityContext, transactionKey, errorBuffer);
 
 			}
+
+			return hasError;
 		}
 
 		@Override
-		public void commit(SecurityContext securityContext, long transactionKey) {
+		public boolean commit(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer) {
+
+			boolean hasError = false;
 
 			for (VetoableGraphObjectListener listener : modificationListeners) {
 
-				listener.commit(securityContext, transactionKey);
+				hasError |= listener.commit(securityContext, transactionKey, errorBuffer);
 
 			}
+
+			return hasError;
 		}
 
 		@Override
-		public void rollback(SecurityContext securityContext, long transactionKey) {
+		public boolean rollback(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer) {
+
+			boolean hasError = false;
 
 			for (VetoableGraphObjectListener listener : modificationListeners) {
 
-				listener.rollback(securityContext, transactionKey);
+				hasError |= listener.rollback(securityContext, transactionKey, errorBuffer);
 
 			}
+
+			return hasError;
 		}
 
 		@Override
-		public void propertyModified(SecurityContext securityContext, long transactionKey, AbstractNode entity, String key, Object oldValue, Object newValue) {
+		public boolean propertyModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, AbstractNode entity, String key, Object oldValue, Object newValue) {
+
+			boolean hasError = false;
 
 			for (VetoableGraphObjectListener listener : modificationListeners) {
 
-				listener.propertyModified(securityContext, transactionKey, entity, key, oldValue, newValue);
+				hasError |= listener.propertyModified(securityContext, transactionKey, errorBuffer, entity, key, oldValue, newValue);
 
 			}
+
+			return hasError;
 		}
 
 		@Override
-		public void relationshipCreated(SecurityContext securityContext, long transactionKey, StructrRelationship relationship) {
+		public boolean relationshipCreated(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, StructrRelationship relationship) {
+
+			boolean hasError = false;
 
 			for (VetoableGraphObjectListener listener : modificationListeners) {
 
-				listener.relationshipCreated(securityContext, transactionKey, relationship);
+				hasError |= listener.relationshipCreated(securityContext, transactionKey, errorBuffer, relationship);
 
 			}
+
+			return hasError;
 		}
 
 		@Override
-		public void relationshipDeleted(SecurityContext securityContext, long transactionKey, StructrRelationship relationship) {
+		public boolean relationshipDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, StructrRelationship relationship) {
+
+			boolean hasError = false;
 
 			for (VetoableGraphObjectListener listener : modificationListeners) {
 
-				listener.relationshipDeleted(securityContext, transactionKey, relationship);
+				hasError |= listener.relationshipDeleted(securityContext, transactionKey, errorBuffer, relationship);
 
 			}
+
+			return hasError;
 		}
 
 		@Override
-		public void graphObjectCreated(SecurityContext securityContext, long transactionKey, GraphObject graphObject) {
+		public boolean graphObjectCreated(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject) {
+
+			boolean hasError = false;
 
 			for (VetoableGraphObjectListener listener : modificationListeners) {
 
-				listener.graphObjectCreated(securityContext, transactionKey, graphObject);
+				hasError |= listener.graphObjectCreated(securityContext, transactionKey, errorBuffer, graphObject);
 
 			}
+
+			return hasError;
 		}
 
 		@Override
-		public void graphObjectModified(SecurityContext securityContext, long transactionKey, GraphObject graphObject) {
+		public boolean graphObjectModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject) {
+
+			boolean hasError = false;
 
 			for (VetoableGraphObjectListener listener : modificationListeners) {
 
-				listener.graphObjectModified(securityContext, transactionKey, graphObject);
+				hasError |= listener.graphObjectModified(securityContext, transactionKey, errorBuffer, graphObject);
 
 			}
+
+			return hasError;
 		}
 
 		@Override
-		public void wasVisited(List<GraphObject> traversedNodes, long transactionKey, SecurityContext securityContext) {
+		public boolean wasVisited(List<GraphObject> traversedNodes, long transactionKey, ErrorBuffer errorBuffer, SecurityContext securityContext) {
+
+			boolean hasError = false;
 
 			for (VetoableGraphObjectListener listener : modificationListeners) {
 
-				listener.wasVisited(traversedNodes, transactionKey, securityContext);
+				hasError |= listener.wasVisited(traversedNodes, transactionKey, errorBuffer, securityContext);
 
 			}
+
+			return hasError;
 		}
 
 		@Override
-		public void graphObjectDeleted(SecurityContext securityContext, long transactionKey, long id, Map<String, Object> properties) {
+		public boolean graphObjectDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, long id, Map<String, Object> properties) {
+
+			boolean hasError = false;
 
 			for (VetoableGraphObjectListener listener : modificationListeners) {
 
-				listener.graphObjectDeleted(securityContext, transactionKey, id, properties);
+				hasError |= listener.graphObjectDeleted(securityContext, transactionKey, errorBuffer, id, properties);
 
 			}
+
+			return hasError;
 		}
 	}
 
