@@ -108,7 +108,7 @@ public class NodeService implements SingletonService {
 
 			} catch (Throwable t) {
 
-				logger.log(Level.INFO, "Database config not found");
+				logger.log(Level.INFO, "Database config {0}/neo4j.conf not found", dbPath);
 
 				graphDb = new EmbeddedGraphDatabase(dbPath);
 			}
