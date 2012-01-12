@@ -319,7 +319,7 @@ public class EntityContext {
 
 			}
 
-			logger.log(Level.INFO, "String {0} normalized to {1}", new Object[] { possibleEntityName, normalizedType });
+			logger.log(Level.FINEST, "String {0} normalized to {1}", new Object[] { possibleEntityName, normalizedType });
 			normalizedEntityNameCache.put(possibleEntityName, normalizedType);
 
 		}
@@ -822,11 +822,12 @@ public class EntityContext {
 	// <editor-fold defaultstate="collapsed" desc="EntityContextModificationListener">
 	public static class EntityContextModificationListener implements VetoableGraphObjectListener, TransactionEventHandler<Long> {
 
-		private Command indexCommand = Services.command(SecurityContext.getSuperUserInstance(), IndexNodeCommand.class);
 		
 		// ----- interface TransactionEventHandler -----
 		@Override
 		public Long beforeCommit(TransactionData data) throws Exception {
+			
+			Command indexCommand = Services.command(SecurityContext.getSuperUserInstance(), IndexNodeCommand.class);
 
 			long transactionKey = transactionKeyMap.get(Thread.currentThread());
 
