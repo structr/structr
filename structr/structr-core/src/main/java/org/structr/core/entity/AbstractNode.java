@@ -579,8 +579,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 		return (dbNode.hasProperty(Key.name.name())
 			? dbNode.getProperty(Key.name.name())
-			: "<AbstractNode>") + " [" + 
-			(dbNode.hasProperty(Key.type.name()) ? dbNode.getProperty(Key.type.name()) : "Unknown") + ", " + dbNode.getId() + "]";
+			: "<AbstractNode>") + " [" + (dbNode.hasProperty(Key.type.name())
+			? dbNode.getProperty(Key.type.name())
+			: "Unknown") + ", " + dbNode.getId() + "]";
 	}
 
 	/**
@@ -1864,10 +1865,12 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 		}
 
-		if(dbNode.hasProperty(key)) {
+		if (dbNode.hasProperty(key)) {
 
 			if (isDirty) {
+
 				value = properties.get(key);
+
 			}
 
 			// Temporary hook for format conversion introduced with 0.4.3-SNAPSHOT:
@@ -1911,7 +1914,8 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 			// ----- BEGIN automatic property resolution (check for static relationships and return related nodes) -----
 			DirectedRelationship rel = EntityContext.getDirectedRelationship(type, key);
 
-			if(rel != null) {
+			if (rel != null) {
+
 				// apply notion (default is "as-is")
 				Notion notion = rel.getNotion();
 
@@ -1921,18 +1925,21 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 					case ManyToMany :
 					case OneToMany :
 						value = new IterableAdapter(rel.getRelatedNodes(securityContext, this), notion.getAdapterForGetter(securityContext));
+
 						break;
 
 					case OneToOne :
 					case ManyToOne :
 						value = notion.getAdapterForGetter(securityContext).adapt(rel.getRelatedNode(securityContext, this));
+
 						break;
 
 				}
+
 //
-//			} else {
+//                              } else {
 //
-//				logger.log(Level.WARNING, "No relationship found for type {0}, key {1}", new Object[] { type.getSimpleName(), key } );
+//                                      logger.log(Level.WARNING, "No relationship found for type {0}, key {1}", new Object[] { type.getSimpleName(), key } );
 			}
 
 			// ----- END automatic property resolution -----
@@ -1940,10 +1947,13 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 		// apply property converters
 		PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
+
 		if (converter != null) {
 
 			Value conversionValue = EntityContext.getPropertyConversionParameter(type, key);
+
 			converter.setCurrentNode(this);
+
 			value = converter.convertForGetter(value, conversionValue);
 
 		}
@@ -3847,14 +3857,15 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 		}
 
-
 		// static relationship detected, create relationship
 		DirectedRelationship rel = EntityContext.getDirectedRelationship(type, key);
+
 		if (rel != null) {
 
 			try {
 
 				GraphObject graphObject = rel.getNotion().getAdapterForSetter(securityContext).adapt(value);
+
 				rel.createRelationship(securityContext, this, graphObject);
 
 				return;
@@ -3891,7 +3902,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 			}
 
-			final Object oldValue       = getProperty(key);
+			final Object oldValue = getProperty(key);
 
 			// don't make any changes if
 			// - old and new value both are null
@@ -3899,24 +3910,6 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 			if (((convertedValue == null) && (oldValue == null)) || ((convertedValue != null) && (oldValue != null) && convertedValue.equals(oldValue))) {
 
 				return;
-
-			}
-
-			// look for validator
-			PropertyValidator validator = EntityContext.getPropertyValidator(securityContext, type, key);
-
-			if (validator != null) {
-
-				logger.log(Level.FINE, "Using validator of type {0} for property {1}", new Object[] { validator.getClass().getSimpleName(), key });
-
-				Value parameter         = EntityContext.getPropertyValidationParameter(type, key);
-				ErrorBuffer errorBuffer = new ErrorBuffer();
-
-				if (!validator.isValid(key, convertedValue, parameter, errorBuffer)) {
-
-					throw new IllegalArgumentException(errorBuffer.toString());
-
-				}
 
 			}
 
@@ -3968,14 +3961,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 								}
 							}
 
-							// Don't automatically update index
-							// TODO: Implement something really fast to keep the index automatically in sync
-	//                                              if (updateIndex && dbNode.hasProperty(key)) {
-							if (updateIndex) {
 
-								Services.command(securityContext, IndexNodeCommand.class).execute(getId(), key);
-
-							}
 						} finally {}
 
 						return null;
@@ -3992,6 +3978,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 				}
 			}
+
 		}
 	}
 

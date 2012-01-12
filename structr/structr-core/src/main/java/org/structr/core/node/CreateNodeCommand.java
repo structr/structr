@@ -161,12 +161,13 @@ public class CreateNodeCommand extends NodeServiceCommand {
 			node.setProperty(AbstractNode.Key.createdDate.name(), now, false);
 			node.setProperty(AbstractNode.Key.lastModifiedDate.name(), now, false);
 
-			if (updateIndex) {
-
-				// index the database node we just created
-				Services.command(securityContext, IndexNodeCommand.class).execute(node);
-				logger.log(Level.FINE, "Node {0} indexed.", node.getId());
-			}
+			// index update is done in TransactionEventHandler
+//			if (updateIndex) {
+//
+//				// index the database node we just created
+//				Services.command(securityContext, IndexNodeCommand.class).execute(node);
+//				logger.log(Level.FINE, "Node {0} indexed.", node.getId());
+//			}
 		}
 
 		if (node != null) {

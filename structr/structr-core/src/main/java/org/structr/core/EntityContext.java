@@ -21,6 +21,8 @@
 
 package org.structr.core;
 
+import org.apache.commons.lang.StringUtils;
+
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
@@ -29,12 +31,15 @@ import org.neo4j.graphdb.event.PropertyEntry;
 import org.neo4j.graphdb.event.TransactionData;
 import org.neo4j.graphdb.event.TransactionEventHandler;
 
+import org.structr.common.CaseHelper;
+import org.structr.common.ErrorBuffer;
 import org.structr.common.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.DirectedRelationship;
 import org.structr.core.entity.DirectedRelationship.Cardinality;
 import org.structr.core.entity.StructrRelationship;
+import org.structr.core.node.IndexNodeCommand;
 import org.structr.core.node.StructrNodeFactory;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.ObjectNotion;
@@ -52,8 +57,6 @@ import java.util.Set;
 import java.util.concurrent.Semaphore;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.lang.StringUtils;
-import org.structr.common.CaseHelper;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -71,10 +74,10 @@ public class EntityContext {
 	private static final Map<Class, Map<String, Value>> globalValidationParameterMap                            = new LinkedHashMap<Class, Map<String, Value>>();
 	private static final Map<String, Map<String, Semaphore>> globalSemaphoreMap                                 = new LinkedHashMap<String, Map<String, Semaphore>>();
 	private static final Map<String, Map<String, Set<String>>> globalSearchablePropertyMap                      = new LinkedHashMap<String, Map<String, Set<String>>>();
-	private static final Map<String, Map<String, DirectedRelationship>> globalPropertyRelationshipMap           = new LinkedHashMap<String, Map<String, DirectedRelationship>>();
-	private static final Map<String, Map<String, DirectedRelationship>> globalEntityRelationshipMap             = new LinkedHashMap<String, Map<String, DirectedRelationship>>();
 	private static final Map<Class, Map<String, Set<String>>> globalPropertyViewMap                             = new LinkedHashMap<Class, Map<String, Set<String>>>();
+	private static final Map<String, Map<String, DirectedRelationship>> globalPropertyRelationshipMap           = new LinkedHashMap<String, Map<String, DirectedRelationship>>();
 	private static final Map<Class, Map<String, PropertyGroup>> globalPropertyGroupMap                          = new LinkedHashMap<Class, Map<String, PropertyGroup>>();
+	private static final Map<String, Map<String, DirectedRelationship>> globalEntityRelationshipMap             = new LinkedHashMap<String, Map<String, DirectedRelationship>>();
 	private static final Map<Class, Map<String, Value>> globalConversionParameterMap                            = new LinkedHashMap<Class, Map<String, Value>>();
 	private static final Map<Class, Set<String>> globalWriteOncePropertyMap                                     = new LinkedHashMap<Class, Set<String>>();
 	private static final Map<Class, Set<String>> globalReadOnlyPropertyMap                                      = new LinkedHashMap<Class, Set<String>>();
@@ -113,8 +116,8 @@ public class EntityContext {
 
 		// need to set type here
 		Notion objectNotion = new ObjectNotion();
-		objectNotion.setType(destType);
 
+		objectNotion.setType(destType);
 		registerPropertyRelationInternal(sourceType.getSimpleName(), property, destType.getSimpleName(), relType, direction, cardinality, objectNotion);
 	}
 
@@ -125,7 +128,6 @@ public class EntityContext {
 	public static void registerPropertyRelation(Class sourceType, String property, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion) {
 
 		notion.setType(destType);
-
 		registerPropertyRelationInternal(sourceType.getSimpleName(), property, destType.getSimpleName(), relType, direction, cardinality, notion);
 	}
 
@@ -133,15 +135,14 @@ public class EntityContext {
 
 		// need to set type here
 		Notion objectNotion = new ObjectNotion();
-		objectNotion.setType(destType);
 
+		objectNotion.setType(destType);
 		registerEntityRelationInternal(sourceType.getSimpleName(), destType.getSimpleName(), relType, direction, cardinality, objectNotion);
 	}
 
 	public static void registerEntityRelation(Class sourceType, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion) {
 
 		notion.setType(destType);
-
 		registerEntityRelationInternal(sourceType.getSimpleName(), destType.getSimpleName(), relType, direction, cardinality, notion);
 	}
 
@@ -297,41 +298,46 @@ public class EntityContext {
 	public static String normalizeEntityName(String possibleEntityName) {
 
 		// CAUTION: this cache might grow to a very large size, as it
-		//          contains all normalized mappings for every possible
-		//          property key / entity name that is ever called.
-
+		// contains all normalized mappings for every possible
+		// property key / entity name that is ever called.
 		String normalizedType = normalizedEntityNameCache.get(possibleEntityName);
-		if(normalizedType == null) {
+
+		if (normalizedType == null) {
 
 			normalizedType = StringUtils.capitalize(CaseHelper.toCamelCase(possibleEntityName));
 
-			if(normalizedType.endsWith("ies")) {
+			if (normalizedType.endsWith("ies")) {
 
 				normalizedType = normalizedType.substring(0, normalizedType.length() - 3).concat("y");
 
-			} else if(normalizedType.endsWith("s")) {
+			} else if (normalizedType.endsWith("s")) {
 
 				logger.log(Level.FINEST, "Removing trailing plural 's' from type {0}", normalizedType);
+
 				normalizedType = normalizedType.substring(0, normalizedType.length() - 1);
+
 			}
 
-			logger.log(Level.INFO, "String {0} normalized to {1}", new Object[] { possibleEntityName, normalizedType } );
-			
+			logger.log(Level.INFO, "String {0} normalized to {1}", new Object[] { possibleEntityName, normalizedType });
 			normalizedEntityNameCache.put(possibleEntityName, normalizedType);
+
 		}
 
 		return normalizedType;
 	}
 
-	private static void registerPropertyRelationInternal(String sourceType, String property, String destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion) {
+	private static void registerPropertyRelationInternal(String sourceType, String property, String destType, RelationshipType relType, Direction direction, Cardinality cardinality,
+		Notion notion) {
 
 		Map<String, DirectedRelationship> typeMap = getPropertyRelationshipMapForType(sourceType);
+
 		typeMap.put(property, new DirectedRelationship(destType, relType, direction, cardinality, notion));
 	}
 
 	private static void registerEntityRelationInternal(String sourceType, String destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion) {
 
 		Map<String, DirectedRelationship> typeMap = getEntityRelationshipMapForType(sourceType);
+
 		typeMap.put(destType, new DirectedRelationship(destType, relType, direction, cardinality, notion));
 	}
 
@@ -406,11 +412,12 @@ public class EntityContext {
 	public static DirectedRelationship getDirectedRelationship(String sourceType, String key) {
 
 		String normalizedSourceType = normalizeEntityName(sourceType);
-		DirectedRelationship rel = null;
+		DirectedRelationship rel    = null;
 
 		// try property relations with EXACT MATCH first
 		rel = getPropertyRelationshipMapForType(normalizedSourceType).get(key);
-		if(rel == null) {
+
+		if (rel == null) {
 
 			// no relationship for exact match, try normalized entity name now
 			rel = getEntityRelationshipMapForType(normalizedSourceType).get(normalizeEntityName(key));
@@ -888,13 +895,39 @@ public class EntityContext {
 
 				}
 
-				// 6: notify listeners of property modifications
+				// 6: validate property modifications and
+				// notify listeners of property modifications
 				for (PropertyEntry<Node> entry : data.assignedNodeProperties()) {
 
 					AbstractNode entity = factory.createNode(securityContext, entry.entity());
+					String key          = entry.key();
+					Object value        = entry.value();
 
-					propertyModified(securityContext, transactionKey, entity, entry.key(), entry.previouslyCommitedValue(), entry.value());
+					// look for validator
+					PropertyValidator validator = EntityContext.getPropertyValidator(securityContext, entity.getClass(), key);
+
+					if (validator != null) {
+
+						logger.log(Level.FINE, "Using validator of type {0} for property {1}", new Object[] { validator.getClass().getSimpleName(), key });
+
+						Value parameter         = EntityContext.getPropertyValidationParameter(entity.getClass(), key);
+						ErrorBuffer errorBuffer = new ErrorBuffer();
+
+						if (!validator.isValid(key, value, parameter, errorBuffer)) {
+
+							throw new IllegalArgumentException(errorBuffer.toString());
+
+						}
+
+					}
+
+					propertyModified(securityContext, transactionKey, entity, key, entry.previouslyCommitedValue(), value);
+
+					// after successful validation, add node to index to make uniqueness constraints work
+					Services.command(securityContext, IndexNodeCommand.class).execute(entity, key);
+
 					modifiedNodes.add(entity);
+
 
 				}
 
@@ -923,7 +956,20 @@ public class EntityContext {
 		}
 
 		@Override
-		public void afterCommit(TransactionData data, Long transactionKey) {}
+		public void afterCommit(TransactionData data, Long transactionKey) {
+
+//                      SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+//                      StructrNodeFactory factory      = new StructrNodeFactory(securityContext);
+//
+//                      for (PropertyEntry<Node> entry : data.assignedNodeProperties()) {
+//
+//                              AbstractNode entity = factory.createNode(securityContext, entry.entity());
+//                              String key          = entry.key();
+//
+//                              Services.command(securityContext, IndexNodeCommand.class).execute(entity, key);
+//
+//                      }
+		}
 
 		@Override
 		public void afterRollback(TransactionData data, Long transactionKey) {
@@ -1037,5 +1083,6 @@ public class EntityContext {
 			}
 		}
 	}
+
 	// </editor-fold>
 }

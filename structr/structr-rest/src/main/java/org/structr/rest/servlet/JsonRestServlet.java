@@ -557,7 +557,16 @@ public class JsonRestServlet extends HttpServlet {
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
 			response.setStatus(code);
-			response.getWriter().append(jsonError(code, "JsonSyntaxException in POST: " + jpex.getMessage()));
+			response.getWriter().append(jsonError(code, "JsonParseException in POST: " + jpex.getMessage()));
+
+		} catch (UnsupportedOperationException uoe) {
+
+			logger.log(Level.WARNING, "POST not supported", uoe);
+
+			int code = HttpServletResponse.SC_BAD_REQUEST;
+
+			response.setStatus(code);
+			response.getWriter().append(jsonError(code, "POST not supported: " + uoe.getMessage()));
 
 		} catch (Throwable t) {
 
