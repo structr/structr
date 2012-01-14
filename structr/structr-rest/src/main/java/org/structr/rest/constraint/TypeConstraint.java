@@ -131,6 +131,11 @@ public class TypeConstraint extends SortableConstraint {
 	}
 
 	@Override
+	public RestMethodResult doPut(final Map<String, Object> propertySet) throws Throwable {
+		throw new IllegalPathException();
+	}
+
+	@Override
 	public RestMethodResult doHead() throws Throwable {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
