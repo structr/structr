@@ -185,15 +185,15 @@ public class Services {
 			return;
 		}
 
-		configFilePath     = getConfigValue(context, Services.CONFIG_FILE_PATH, "/opt/structr/structr.conf");
+		configFilePath     = getConfigValue(context, Services.CONFIG_FILE_PATH, "./structr.conf");
 		configuredServices = getConfigValue(context, Services.CONFIGURED_SERVICES,
 			"ModuleService NodeService AgentService CloudService CacheService LogService NotificationService");
 		appTitle          = getConfigValue(context, Services.APPLICATION_TITLE, "structr");
 		tmpPath           = getConfigValue(context, Services.TMP_PATH, "/tmp");
-		basePath          = getConfigValue(context, Services.BASE_PATH, "/opt/structr");
-		databasePath      = getConfigValue(context, Services.DATABASE_PATH, "/opt/structr/db");
-		filesPath         = getConfigValue(context, Services.FILES_PATH, "/opt/structr/files");
-		modulesPath       = getConfigValue(context, Services.MODULES_PATH, "/opt/structr/modules");
+		basePath          = getConfigValue(context, Services.BASE_PATH, ".");
+		databasePath      = getConfigValue(context, Services.DATABASE_PATH, "./db");
+		filesPath         = getConfigValue(context, Services.FILES_PATH, "./files");
+		modulesPath       = getConfigValue(context, Services.MODULES_PATH, "./modules");
 		serverIp          = getConfigValue(context, Services.SERVER_IP, "127.0.0.1");
 		tcpPort           = getConfigValue(context, Services.TCP_PORT, "54555");
 		udpPort           = getConfigValue(context, Services.UDP_PORT, "57555");
@@ -223,7 +223,7 @@ public class Services {
 			}
 		}
 
-		logger.log(Level.INFO, "{0} service(s) processed", registeredServiceClasses.size());
+		logger.log(Level.INFO, "{0} service(s) processed", serviceCache.size());
 		registeredServiceClasses.clear();
 		logger.log(Level.INFO, "Initialization complete");
 	}
