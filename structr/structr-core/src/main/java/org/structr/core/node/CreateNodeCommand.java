@@ -64,16 +64,9 @@ public class CreateNodeCommand extends NodeServiceCommand {
 		GraphDatabaseService graphDb   = (GraphDatabaseService) arguments.get("graphDb");
 		StructrNodeFactory nodeFactory = (StructrNodeFactory) arguments.get("nodeFactory");
 
-//              IndexService index = (LuceneFulltextIndexService) arguments.get("index");
 		User user         = securityContext.getUser();
 		AbstractNode node = null;
 
-		// Default is update index when creating a new node,
-		// so the node is found immediately
-		boolean updateIndex = true;
-
-		// TODO: let the AbstractNode create itself, including all necessary db properties
-		// example: a HtmlSource has to be created with mimeType=text/html
 		if (graphDb != null) {
 
 			Date now                  = new Date();
@@ -100,8 +93,6 @@ public class CreateNodeCommand extends NodeServiceCommand {
 					NodeAttribute attr = (NodeAttribute)o;
 					attrs.put(attr.getKey(), attr.getValue());
 
-				} else if(o instanceof Boolean) {
-					updateIndex = (Boolean)o;
 				}
 			}
 
@@ -154,20 +145,16 @@ public class CreateNodeCommand extends NodeServiceCommand {
 
 				securityRel.setAllowed(StructrRelationship.Permission.values());
 				logger.log(Level.FINEST, "All permissions given to {0}", principal.getName());
+
+				node.unlockReadOnlyPropertiesOnce();
 				node.setProperty(AbstractNode.Key.createdBy.name(),
-						 user.getRealName() + " (" + user.getName() + ")", false);
+//						 user.getRealName() + " (" + user.getName() + ")", false);
+						 user.getProperty(AbstractNode.Key.uuid), false);
 			}
 
+			node.unlockReadOnlyPropertiesOnce();
 			node.setProperty(AbstractNode.Key.createdDate.name(), now, false);
 			node.setProperty(AbstractNode.Key.lastModifiedDate.name(), now, false);
-
-			// index update is done in TransactionEventHandler
-//			if (updateIndex) {
-//
-//				// index the database node we just created
-//				Services.command(securityContext, IndexNodeCommand.class).execute(node);
-//				logger.log(Level.FINE, "Node {0} indexed.", node.getId());
-//			}
 		}
 
 		if (node != null) {
