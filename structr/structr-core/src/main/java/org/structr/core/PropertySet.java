@@ -52,20 +52,21 @@ public class PropertySet {
 	 */
 	public void add(String key, Object value) {
 
-		add(key, value, "String");
-	}
-
-	/**
-	 * Add a key-value-pair of given type to this property set.
-	 *
-	 * @param key the key
-	 * @param value the value
-	 * @param type the type
-	 */
-	public void add(String key, Object value, String type) {
-
 		attributes.put(key, new NodeAttribute(key, value));
+//		add(key, value, "String");
 	}
+
+//	/**
+//	 * Add a key-value-pair of given type to this property set.
+//	 *
+//	 * @param key the key
+//	 * @param value the value
+//	 * @param type the type
+//	 */
+//	public void add(String key, Object value, String type) {
+//
+//		attributes.put(key, new NodeAttribute(key, value));
+//	}
 
 	/**
 	 * Return the list of attributes in this property set.
