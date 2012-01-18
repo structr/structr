@@ -4,7 +4,7 @@
  */
 package org.structr.rest.filter;
 
-import org.neo4j.graphdb.Node;
+import org.structr.core.GraphObject;
 
 /**
  *
@@ -12,5 +12,5 @@ import org.neo4j.graphdb.Node;
  */
 public interface Filter {
 
-	public boolean includeInResultSet(Node currentNode);
+	public boolean includeInResultSet(GraphObject object);
 }

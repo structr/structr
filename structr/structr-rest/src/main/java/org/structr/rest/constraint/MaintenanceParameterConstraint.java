@@ -27,7 +27,6 @@ import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.agent.RebuildIndexTask;
 import org.structr.rest.RestMethodResult;
-import org.structr.core.VetoableGraphObjectListener;
 import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.exception.PathException;
 

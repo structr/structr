@@ -19,10 +19,8 @@
 
 package org.structr.rest.constraint;
 
-import java.util.List;
 import java.util.Map;
 import org.structr.rest.RestMethodResult;
-import org.structr.core.VetoableGraphObjectListener;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.PathException;
 
