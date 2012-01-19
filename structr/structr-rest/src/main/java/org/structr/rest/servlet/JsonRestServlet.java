@@ -45,7 +45,6 @@ import org.structr.rest.constraint.ResourceConstraint;
 import org.structr.rest.constraint.Result;
 import org.structr.rest.constraint.SortConstraint;
 import org.structr.rest.exception.IllegalPathException;
-import org.structr.rest.exception.MessageException;
 import org.structr.rest.exception.NoResultsException;
 import org.structr.core.PropertySet;
 import org.structr.core.PropertySet.PropertyFormat;
@@ -105,7 +104,6 @@ public class JsonRestServlet extends HttpServlet {
 
 	//~--- fields ---------------------------------------------------------
 
-	private SimpleDateFormat accessLogDateFormat                   = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
 	private String defaultPropertyView                             = PropertyView.Public;
 	private Map<Pattern, Class> constraintMap                      = null;
 	private String defaultIdProperty                               = null;
@@ -243,14 +241,14 @@ public class JsonRestServlet extends HttpServlet {
 				result.commitResponse(gson, response);
 			}
 
-		} catch (IllegalArgumentException illegalArgumentException) {
-			handleValidationError(illegalArgumentException, response);
 		} catch (FrameworkException frameworkException) {
 
-			int code = frameworkException.getStatus();
-
-			response.setStatus(code);
-			response.getWriter().append(jsonError(code, frameworkException.getMessage()));
+			// set status & write JSON output
+			response.setStatus(frameworkException.getStatus());
+			gson.toJson(frameworkException, response.getWriter());
+			response.getWriter().println();
+			response.getWriter().flush();
+			response.getWriter().close();
 
 		} catch (JsonSyntaxException jsex) {
 
@@ -332,21 +330,12 @@ public class JsonRestServlet extends HttpServlet {
 
 			}
 
-		} catch (MessageException msgException) {
-
-			int code = msgException.getStatus();
-
-			response.setStatus(code);
-			response.getWriter().append(jsonMsg(msgException.getMessage()));
-			response.getWriter().flush();
-			response.getWriter().close();
-
 		} catch (FrameworkException frameworkException) {
 
 			// set status & write JSON output
 			response.setStatus(frameworkException.getStatus());
 			gson.toJson(frameworkException, response.getWriter());
-
+			response.getWriter().println();
 			response.getWriter().flush();
 			response.getWriter().close();
 
@@ -398,14 +387,14 @@ public class JsonRestServlet extends HttpServlet {
 
 			result.commitResponse(gson, response);
 
-		} catch (IllegalArgumentException illegalArgumentException) {
-			handleValidationError(illegalArgumentException, response);
 		} catch (FrameworkException frameworkException) {
 
-			int code = frameworkException.getStatus();
-
-			response.setStatus(code);
-			response.getWriter().append(jsonError(code, frameworkException.getMessage()));
+			// set status & write JSON output
+			response.setStatus(frameworkException.getStatus());
+			gson.toJson(frameworkException, response.getWriter());
+			response.getWriter().println();
+			response.getWriter().flush();
+			response.getWriter().close();
 
 		} catch (JsonSyntaxException jsex) {
 
@@ -455,14 +444,14 @@ public class JsonRestServlet extends HttpServlet {
 
 			result.commitResponse(gson, response);
 
-		} catch (IllegalArgumentException illegalArgumentException) {
-			handleValidationError(illegalArgumentException, response);
 		} catch (FrameworkException frameworkException) {
 
-			int code = frameworkException.getStatus();
-
-			response.setStatus(code);
-			response.getWriter().append(jsonError(code, frameworkException.getMessage()));
+			// set status & write JSON output
+			response.setStatus(frameworkException.getStatus());
+			gson.toJson(frameworkException, response.getWriter());
+			response.getWriter().println();
+			response.getWriter().flush();
+			response.getWriter().close();
 
 		} catch (JsonSyntaxException jsex) {
 
@@ -536,14 +525,12 @@ public class JsonRestServlet extends HttpServlet {
 				result.commitResponse(gson, response);
 			}
 
-		} catch (IllegalArgumentException illegalArgumentException) {
-			handleValidationError(illegalArgumentException, response);
 		} catch (FrameworkException frameworkException) {
 
 			// set status & write JSON output
 			response.setStatus(frameworkException.getStatus());
 			gson.toJson(frameworkException, response.getWriter());
-
+			response.getWriter().println();
 			response.getWriter().flush();
 			response.getWriter().close();
 
@@ -623,14 +610,14 @@ public class JsonRestServlet extends HttpServlet {
 				result.commitResponse(gson, response);
 			}
 
-		} catch (IllegalArgumentException illegalArgumentException) {
-			handleValidationError(illegalArgumentException, response);
 		} catch (FrameworkException frameworkException) {
 
-			int code = frameworkException.getStatus();
-
-			response.setStatus(code);
-			response.getWriter().append(jsonError(code, frameworkException.getMessage()));
+			// set status & write JSON output
+			response.setStatus(frameworkException.getStatus());
+			gson.toJson(frameworkException, response.getWriter());
+			response.getWriter().println();
+			response.getWriter().flush();
+			response.getWriter().close();
 
 		} catch (JsonSyntaxException jsex) {
 

@@ -20,7 +20,6 @@
 package org.structr.rest.exception;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.MessageToken;
 
 /**
  * An exception that can be used to pass a response message from
@@ -31,6 +30,6 @@ import org.structr.common.error.MessageToken;
 public class MessageException extends FrameworkException {
 
 	public MessageException(int status, String msg) {
-		super("MessageException", new MessageToken(status, msg));
+		super(status, msg);
 	}
 }

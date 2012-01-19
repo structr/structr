@@ -29,6 +29,7 @@ import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
 
@@ -45,22 +46,35 @@ public class FrameworkExceptionGSONAdapter implements JsonSerializer<FrameworkEx
 		JsonObject error = new JsonObject();
 
 		container.add("code", new JsonPrimitive(src.getStatus()));
-		container.add("errors", error);
 
-		Map<String, List<ErrorToken>> tokens = src.getErrorBuffer().getErrorTokens();
-		for(Entry<String, List<ErrorToken>> entry : tokens.entrySet()) {
-
-			List<ErrorToken> list = entry.getValue();
-			String type = entry.getKey();
-
-			JsonArray array = new JsonArray();
-			for(ErrorToken token : list) {
-				array.add(token.getContent());
-			}
-
-			error.add(type, array);
+		// add message if exists
+		if(src.getMessage() != null) {
+			container.add("message", new JsonPrimitive(src.getMessage()));
 		}
 
+		// add errors if there are any
+		ErrorBuffer errorBuffer = src.getErrorBuffer();
+		if(errorBuffer != null) {
+
+			Map<String, List<ErrorToken>> tokens = errorBuffer.getErrorTokens();
+			if(!tokens.isEmpty()) {
+
+				for(Entry<String, List<ErrorToken>> entry : tokens.entrySet()) {
+
+					List<ErrorToken> list = entry.getValue();
+					String type = entry.getKey();
+
+					JsonArray array = new JsonArray();
+					for(ErrorToken token : list) {
+						array.add(token.getContent());
+					}
+
+					error.add(type, array);
+				}
+
+				container.add("errors", error);
+			}
+		}
 
 		return container;
 	}

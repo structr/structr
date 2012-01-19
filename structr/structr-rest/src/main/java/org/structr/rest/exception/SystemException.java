@@ -20,7 +20,6 @@
 package org.structr.rest.exception;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.MessageToken;
 
 /**
  *
@@ -28,6 +27,6 @@ import org.structr.common.error.MessageToken;
  */
 public class SystemException extends FrameworkException {
 	public SystemException(String msg) {
-		super("SystemException", new MessageToken(msg));
+		super(500, msg);
 	}
 }

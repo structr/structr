@@ -32,6 +32,12 @@ public class FrameworkException extends Exception {
 
 	private int status = HttpServletResponse.SC_OK;
 	private ErrorBuffer errorBuffer = null;
+	private String message = null;
+
+	public FrameworkException(int status, String message) {
+		this.status = status;
+		this.message = message;
+	}
 
 	public FrameworkException(String type, ErrorToken errorToken) {
 		this.errorBuffer = new ErrorBuffer();
@@ -54,6 +60,6 @@ public class FrameworkException extends Exception {
 
 	@Override
 	public String getMessage() {
-		return errorBuffer.toString();
+		return message;
 	}
 }
