@@ -42,6 +42,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.GenericNode;
 
 //~--- classes ----------------------------------------------------------------
@@ -68,7 +69,7 @@ public class StructrNodeFactory<T extends AbstractNode> implements Adapter<Node,
 
 	//~--- methods --------------------------------------------------------
 
-	public AbstractNode createNode(SecurityContext securityContext, final Node node) {
+	public AbstractNode createNode(SecurityContext securityContext, final Node node) throws FrameworkException {
 
 		String nodeType = node.hasProperty(AbstractNode.Key.type.name())
 				  ? (String) node.getProperty(AbstractNode.Key.type.name())
@@ -77,7 +78,7 @@ public class StructrNodeFactory<T extends AbstractNode> implements Adapter<Node,
 		return createNode(securityContext, node, nodeType);
 	}
 
-	public AbstractNode createNode(final SecurityContext securityContext, final Node node, final String nodeType) {
+	public AbstractNode createNode(final SecurityContext securityContext, final Node node, final String nodeType) throws FrameworkException {
 
 		Class nodeClass      = (Class) Services.command(securityContext, GetEntityClassCommand.class).execute(nodeType);
 		AbstractNode newNode = null;
@@ -115,7 +116,7 @@ public class StructrNodeFactory<T extends AbstractNode> implements Adapter<Node,
 	 * @return
 	 */
 	public List<AbstractNode> createNodes(final SecurityContext securityContext, final Iterable<Node> input,
-		final boolean includeDeleted, final boolean publicOnly) {
+		final boolean includeDeleted, final boolean publicOnly) throws FrameworkException {
 
 		List<AbstractNode> nodes        = new LinkedList<AbstractNode>();
 
@@ -147,7 +148,7 @@ public class StructrNodeFactory<T extends AbstractNode> implements Adapter<Node,
 	 * @param includeDeleted
 	 * @return
 	 */
-	public List<AbstractNode> createNodes(final SecurityContext securityContext, final Iterable<Node> input, final boolean includeDeleted) {
+	public List<AbstractNode> createNodes(final SecurityContext securityContext, final Iterable<Node> input, final boolean includeDeleted) throws FrameworkException {
 
 		List<AbstractNode> nodes        = new LinkedList<AbstractNode>();
 		User user                       = securityContext.getUser();
@@ -205,7 +206,7 @@ public class StructrNodeFactory<T extends AbstractNode> implements Adapter<Node,
 	 * @param input
 	 * @return
 	 */
-	public List<AbstractNode> createNodes(final SecurityContext securityContext, final Iterable<Node> input) {
+	public List<AbstractNode> createNodes(final SecurityContext securityContext, final Iterable<Node> input) throws FrameworkException {
 
 		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
 
@@ -228,10 +229,15 @@ public class StructrNodeFactory<T extends AbstractNode> implements Adapter<Node,
 //      }
 	@Override
 	public T adapt(Node s) {
-		return ((T) createNode(securityContext, s));
+		try {
+			return ((T) createNode(securityContext, s));
+		} catch(FrameworkException fex) {
+			logger.log(Level.WARNING, "Unable to adapt node", fex);
+		}
+		return null;
 	}
 
-	public AbstractNode createNode(final SecurityContext securityContext, final NodeDataContainer data) {
+	public AbstractNode createNode(final SecurityContext securityContext, final NodeDataContainer data) throws FrameworkException {
 
 		if (data == null) {
 

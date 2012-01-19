@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 
 /**
@@ -39,12 +40,17 @@ public class UnsetOperation implements PrimaryOperation, NodeListOperation {
 	@Override
 	public boolean executeOperation(StringBuilder stdOut) throws NodeCommandException {
 
-		for(AbstractNode node : nodeList) {
+		try {
+			for(AbstractNode node : nodeList) {
 
-			for(String property : properties) {
+				for(String property : properties) {
 
-				node.setProperty(property, null);
+					node.setProperty(property, null);
+				}
 			}
+
+		} catch(FrameworkException fex) {
+			throw new NodeCommandException(fex.getMessage());
 		}
 
 		return(true);

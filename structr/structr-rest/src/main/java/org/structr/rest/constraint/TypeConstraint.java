@@ -13,8 +13,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.structr.common.CaseHelper;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
@@ -29,7 +29,6 @@ import org.structr.core.node.search.SearchNodeCommand;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
-import org.structr.rest.exception.PathException;
 import org.structr.rest.servlet.JsonRestServlet;
 
 /**
@@ -59,7 +58,7 @@ public class TypeConstraint extends SortableConstraint {
 	}
 
 	@Override
-	public List<GraphObject> doGet() throws PathException {
+	public List<GraphObject> doGet() throws FrameworkException {
 
 		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 		boolean hasSearchableAttributes = false;
@@ -104,13 +103,13 @@ public class TypeConstraint extends SortableConstraint {
 	}
 
 	@Override
-	public RestMethodResult doPost(final Map<String, Object> propertySet) throws Throwable {
+	public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
 
 		// create transaction closure
 		StructrTransaction transaction = new StructrTransaction() {
 
 			@Override
-			public Object execute() throws Throwable {
+			public Object execute() throws FrameworkException {
 
 				return createNode(propertySet);
 			}
@@ -118,34 +117,32 @@ public class TypeConstraint extends SortableConstraint {
 
 		// execute transaction: create new node
 		AbstractNode newNode = (AbstractNode)Services.command(securityContext, TransactionCommand.class).execute(transaction);
-
-		// re-throw transaction exception cause
-		if(transaction.getCause() != null) {
-			throw transaction.getCause();
-		}
-
-		// finally: return 201 Created
 		RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_CREATED);
-		result.addHeader("Location", buildLocationHeader(newNode));
+
+		if(newNode != null) {
+			result.addHeader("Location", buildLocationHeader(newNode));
+		}
+		
+		// finally: return 201 Created
 		return result;
 	}
 
 	@Override
-	public RestMethodResult doPut(final Map<String, Object> propertySet) throws Throwable {
+	public RestMethodResult doPut(final Map<String, Object> propertySet) throws FrameworkException {
 		throw new IllegalPathException();
 	}
 
 	@Override
-	public RestMethodResult doHead() throws Throwable {
+	public RestMethodResult doHead() throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
-	public RestMethodResult doOptions() throws Throwable {
+	public RestMethodResult doOptions() throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
-	public AbstractNode createNode(final Map<String, Object> propertySet) throws Throwable {
+	public AbstractNode createNode(final Map<String, Object> propertySet) throws FrameworkException {
 
 		//propertySet.put(AbstractNode.Key.type.name(), StringUtils.toCamelCase(type));
 		propertySet.put(AbstractNode.Key.type.name(), EntityContext.normalizeEntityName(rawType));
@@ -154,7 +151,7 @@ public class TypeConstraint extends SortableConstraint {
 	}
 
 	@Override
-	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws PathException {
+	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws FrameworkException {
 
 		if(next instanceof IdConstraint) {
 			

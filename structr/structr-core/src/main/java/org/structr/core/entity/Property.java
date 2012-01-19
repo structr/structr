@@ -19,8 +19,11 @@
 package org.structr.core.entity;
 
 import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.neo4j.graphdb.*;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.node.StructrTransaction;
@@ -33,118 +36,124 @@ import org.structr.core.node.TransactionCommand;
  */
 public class Property {
 
-    private SecurityContext securityContext = null;
-    private final Node dbNode;
-    private String key;
-    private Object value;
+	private static final Logger logger = Logger.getLogger(Property.class.getName());
+	private SecurityContext securityContext = null;
+	private final Node dbNode;
+	private String key;
+	private Object value;
 
-    /**
-     * Create bean with reference to backend database and node
-     *
-     * @param graphDb
-     * @param dbNode
-     */
-    public Property(final SecurityContext securityContext, final Node dbNode) {
-        this.dbNode = dbNode;
-        this.key = null;
-        this.value = null;
-	this.securityContext = securityContext;
-    }
+	/**
+	 * Create bean with reference to backend database and node
+	 *
+	 * @param graphDb
+	 * @param dbNode
+	 */
+	public Property(final SecurityContext securityContext, final Node dbNode) {
+		this.dbNode = dbNode;
+		this.key = null;
+		this.value = null;
+		this.securityContext = securityContext;
+	}
 
-    /**
-     * Create bean with reference to backend database and node,
-     * get value for key from backend
-     *
-     * @param graphDb
-     * @param dbNode
-     * @param key
-     */
-    public Property(final SecurityContext securityContext, final Node dbNode, final String key) {
-        this.dbNode = dbNode;
-        this.key = key;
-        this.value = getValue();
-	this.securityContext = securityContext;
-    }
+	/**
+	 * Create bean with reference to backend database and node,
+	 * get value for key from backend
+	 *
+	 * @param graphDb
+	 * @param dbNode
+	 * @param key
+	 */
+	public Property(final SecurityContext securityContext, final Node dbNode, final String key) {
+		this.dbNode = dbNode;
+		this.key = key;
+		this.value = getValue();
+		this.securityContext = securityContext;
+	}
 
-    /**
-     * Create bean and set key and value in backend
-     *
-     * @param graphDb
-     * @param dbNode
-     * @param key
-     * @param value
-     */
-    public Property(final SecurityContext securityContext, final Node dbNode, final String key, final String value) {
-        this.dbNode = dbNode;
-        this.key = key;
-        this.value = value;
-	this.securityContext = securityContext;
-        setPropertyInBackend();
-    }
+	/**
+	 * Create bean and set key and value in backend
+	 *
+	 * @param graphDb
+	 * @param dbNode
+	 * @param key
+	 * @param value
+	 */
+	public Property(final SecurityContext securityContext, final Node dbNode, final String key, final String value) {
+		this.dbNode = dbNode;
+		this.key = key;
+		this.value = value;
+		this.securityContext = securityContext;
+		setPropertyInBackend();
+	}
 
-    public String getKey() {
-        return key;
-    }
+	public String getKey() {
+		return key;
+	}
 
-    /**
-     * Get value from underlying db node with given key
-     *
-     * TODO: support others than String values
-     */
-    public final Object getValue() {
+	/**
+	 * Get value from underlying db node with given key
+	 *
+	 * TODO: support others than String values
+	 */
+	public final Object getValue() {
 
-        Object ret = null;
+		Object ret = null;
 
-        if (dbNode.hasProperty(key)) {
-            if (key.equals(AbstractNode.Key.createdDate.name()) ||
-                    key.equals(AbstractNode.Key.lastModifiedDate.name())) {
+		if(dbNode.hasProperty(key)) {
+			if(key.equals(AbstractNode.Key.createdDate.name())
+			    || key.equals(AbstractNode.Key.lastModifiedDate.name())) {
 
-                ret = new Date((Long) dbNode.getProperty(key));
+				ret = new Date((Long)dbNode.getProperty(key));
 
-            } else {
-                
-                ret = dbNode.getProperty(key);
+			} else {
 
-            }
+				ret = dbNode.getProperty(key);
 
-        }
+			}
 
-        return ret;
-    }
+		}
 
-    private void setPropertyInBackend() {
+		return ret;
+	}
 
-        Command transaction = Services.command(securityContext, TransactionCommand.class);
-        transaction.execute(new StructrTransaction() {
+	private void setPropertyInBackend() {
 
-            @Override
-            public Object execute() throws Throwable {
+		try {
+			Command transaction = Services.command(securityContext, TransactionCommand.class);
+			transaction.execute(new StructrTransaction() {
 
-                if (key.equals(AbstractNode.Key.createdDate.name()) ||
-                    key.equals(AbstractNode.Key.lastModifiedDate.name())) {
+				@Override
+				public Object execute() throws FrameworkException {
 
-                    Date d = (Date) value;
+					if(key.equals(AbstractNode.Key.createdDate.name())
+					    || key.equals(AbstractNode.Key.lastModifiedDate.name())) {
 
-                    // store date as long
-                    dbNode.setProperty(key, d.getTime());
+						Date d = (Date)value;
 
-                } else {
+						// store date as long
+						dbNode.setProperty(key, d.getTime());
 
-                    dbNode.setProperty(key, value);
-                    
-                }
+					} else {
 
-                return (null);
-            }
-        });
-    }
+						dbNode.setProperty(key, value);
 
-    public void setKey(final String key) {
-        this.key = key;
-    }
+					}
 
-    public void setValue(final Object value) {
-        this.value = value;
-        setPropertyInBackend();
-    }
+					return (null);
+				}
+			});
+
+		} catch(FrameworkException fex) {
+			logger.log(Level.WARNING, "Unable to set property in backend", fex);
+		}
+	}
+
+	public void setKey(final String key) {
+		this.key = key;
+	}
+
+	public void setValue(final Object value) {
+		this.value = value;
+		setPropertyInBackend();
+	}
 }

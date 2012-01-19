@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.NodeAttribute;
 
@@ -43,17 +44,22 @@ public class SetOperation implements PrimaryOperation, NodeListOperation {
 		boolean ret = true;
 		int count = 0;
 
-		for(AbstractNode node : nodeList) {
+		try {
+			for(AbstractNode node : nodeList) {
 
-			for(NodeAttribute attr : attributes) {
+				for(NodeAttribute attr : attributes) {
 
-				node.setProperty(attr.getKey(), attr.getValue());
+					node.setProperty(attr.getKey(), attr.getValue());
+				}
+
+				count++;
 			}
 
-			count++;
-		}
+			stdOut.append("set: ").append(count).append(" nodes modified");
 
-		stdOut.append("set: ").append(count).append(" nodes modified");
+		} catch(FrameworkException fex) {
+			stdOut.append(fex.getMessage());
+		}
 
 		return(ret);
 	}

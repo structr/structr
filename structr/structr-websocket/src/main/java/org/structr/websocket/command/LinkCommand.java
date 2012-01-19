@@ -44,6 +44,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import org.structr.common.error.FrameworkException;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -118,7 +119,7 @@ public class LinkCommand extends AbstractCommand {
 								StructrTransaction transaction = new StructrTransaction() {
 
 									@Override
-									public Object execute() throws Throwable {
+									public Object execute() throws FrameworkException {
 										return Services.command(SecurityContext.getSuperUserInstance(), CreateNodeCommand.class).execute(attrsFirstNode);
 									}
 								};
@@ -142,7 +143,7 @@ public class LinkCommand extends AbstractCommand {
 								transaction = new StructrTransaction() {
 
 									@Override
-									public Object execute() throws Throwable {
+									public Object execute() throws FrameworkException {
 										return Services.command(SecurityContext.getSuperUserInstance(), CreateNodeCommand.class).execute(attrsSecondNode);
 									}
 								};
@@ -165,7 +166,7 @@ public class LinkCommand extends AbstractCommand {
 								transaction = new StructrTransaction() {
 
 									@Override
-									public Object execute() throws Throwable {
+									public Object execute() throws FrameworkException {
 										return Services.command(SecurityContext.getSuperUserInstance(), CreateNodeCommand.class).execute(attrsThirdNode);
 									}
 								};

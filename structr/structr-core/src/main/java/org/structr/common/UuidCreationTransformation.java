@@ -21,6 +21,7 @@ package org.structr.common;
 
 import java.util.UUID;
 import org.apache.commons.lang.StringUtils;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Transformation;
 import org.structr.core.entity.AbstractNode;
 
@@ -31,7 +32,7 @@ import org.structr.core.entity.AbstractNode;
 public class UuidCreationTransformation implements Transformation<AbstractNode> {
 
 	@Override
-	public void apply(SecurityContext securityContext, AbstractNode obj) {
+	public void apply(SecurityContext securityContext, AbstractNode obj) throws FrameworkException {
 
 		// create uuid if not set
 		String uuid = (String)obj.getProperty(AbstractNode.Key.uuid.name());

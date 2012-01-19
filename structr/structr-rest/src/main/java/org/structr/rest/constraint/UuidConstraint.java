@@ -25,13 +25,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
 import org.structr.rest.exception.NotFoundException;
-import org.structr.rest.exception.PathException;
 
 /**
  * Represents an exact UUID match and behaves like an {@see IdConstraint} otherwise.
@@ -45,7 +45,7 @@ public class UuidConstraint extends IdConstraint {
 	private String uuid = null;
 
 	@Override
-	public AbstractNode getNode() throws PathException {
+	public AbstractNode getNode() throws FrameworkException {
 
 		List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
 		attrs.add(Search.andExactUuid(uuid));

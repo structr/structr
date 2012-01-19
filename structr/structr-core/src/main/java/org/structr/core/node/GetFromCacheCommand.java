@@ -19,6 +19,7 @@
 package org.structr.core.node;
 
 import java.util.concurrent.ConcurrentHashMap;
+import org.structr.common.error.FrameworkException;
 
 /**
  *
@@ -27,7 +28,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class GetFromCacheCommand extends CacheServiceCommand {
 
     @Override
-    public Object execute(Object... parameters) {
+    public Object execute(Object... parameters) throws FrameworkException {
         ConcurrentHashMap cache = (ConcurrentHashMap) arguments.get("cache");
         
         Long key = null;

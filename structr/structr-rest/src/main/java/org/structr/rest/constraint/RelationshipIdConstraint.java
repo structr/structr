@@ -25,11 +25,10 @@ import java.util.Map;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.rest.RestMethodResult;
-import org.structr.core.VetoableGraphObjectListener;
 import org.structr.rest.exception.NotFoundException;
-import org.structr.rest.exception.PathException;
 
 /**
  *
@@ -59,7 +58,7 @@ public class RelationshipIdConstraint extends FilterableConstraint {
 	}
 
 	@Override
-	public List<GraphObject> doGet() throws PathException {
+	public List<GraphObject> doGet() throws FrameworkException {
 
 		List<? extends GraphObject> results = relationshipConstraint.doGet();
 		long desiredId = idConstraint.getId();
@@ -84,17 +83,17 @@ public class RelationshipIdConstraint extends FilterableConstraint {
 	}
 
 	@Override
-	public RestMethodResult doPost(Map<String, Object> propertySet) throws Throwable {
+	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
-	public RestMethodResult doHead() throws Throwable {
+	public RestMethodResult doHead() throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
-	public RestMethodResult doOptions() throws Throwable {
+	public RestMethodResult doOptions() throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
@@ -107,7 +106,7 @@ public class RelationshipIdConstraint extends FilterableConstraint {
 	}
 
 	@Override
-	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws PathException {
+	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws FrameworkException {
 
 		if(next instanceof RelationshipNodeConstraint) {
 

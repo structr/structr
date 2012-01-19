@@ -49,6 +49,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.error.FrameworkException;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -83,7 +84,7 @@ public class User extends Person {
 
 	//~--- methods --------------------------------------------------------
 
-	public void block() {
+	public void block() throws FrameworkException {
 		setBlocked(Boolean.TRUE);
 	}
 
@@ -105,69 +106,74 @@ public class User extends Person {
 
 		}
 
-		final AbstractNode object = (AbstractNode) Services.command(securityContext, FindNodeCommand.class).execute(objectId);
+		try {
+			final AbstractNode object = (AbstractNode) Services.command(securityContext, FindNodeCommand.class).execute(objectId);
+			if (object == null) {
 
-		if (object == null) {
+				logger.log(Level.SEVERE, "Object not found!");
 
-			logger.log(Level.SEVERE, "Object not found!");
-
-			return;
-
-		}
-
-		Category cat                = null;
-		List<AbstractNode> children = this.getDirectChildNodes();
-
-		for (AbstractNode child : children) {
-
-			if ((child instanceof Category) && categoryName.equals(child.getName())) {
-
-				cat = (Category) child;
+				return;
 
 			}
 
-		}
+			Category cat                = null;
+			List<AbstractNode> children = this.getDirectChildNodes();
 
-		if (cat == null) {
+			for (AbstractNode child : children) {
 
-			logger.log(Level.SEVERE, "Category not found!");
+				if ((child instanceof Category) && categoryName.equals(child.getName())) {
 
-			return;
+					cat = (Category) child;
 
-		}
-
-		StructrRelationship relationshipToRemove        = null;
-		List<StructrRelationship> outgoingRelationships = cat.getOutgoingLinkRelationships();
-
-		for (StructrRelationship rel : outgoingRelationships) {
-
-			AbstractNode endNode = rel.getEndNode();
-
-			if (endNode.equals(object)) {
-
-				relationshipToRemove = rel;
-
-			}
-
-		}
-
-		if (relationshipToRemove != null) {
-
-			final StructrRelationship relToDel = relationshipToRemove;
-
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-				@Override
-				public Object execute() {
-
-					// Delete relationship
-					Services.command(securityContext, DeleteRelationshipCommand.class).execute(relToDel);
-
-					return null;
 				}
 
-			});
+			}
 
+			if (cat == null) {
+
+				logger.log(Level.SEVERE, "Category not found!");
+
+				return;
+
+			}
+
+			StructrRelationship relationshipToRemove        = null;
+			List<StructrRelationship> outgoingRelationships = cat.getOutgoingLinkRelationships();
+
+			for (StructrRelationship rel : outgoingRelationships) {
+
+				AbstractNode endNode = rel.getEndNode();
+
+				if (endNode.equals(object)) {
+
+					relationshipToRemove = rel;
+
+				}
+
+			}
+
+			if (relationshipToRemove != null) {
+
+				final StructrRelationship relToDel = relationshipToRemove;
+
+				Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+					@Override
+					public Object execute() throws FrameworkException {
+
+						// Delete relationship
+						Services.command(securityContext, DeleteRelationshipCommand.class).execute(relToDel);
+
+						return null;
+					}
+
+				});
+
+			}
+
+		} catch(FrameworkException fex) {
+			logger.log(Level.WARNING, "Unable to remove node from category", fex);
+			return;
 		}
 	}
 
@@ -191,63 +197,70 @@ public class User extends Person {
 
 		}
 
-		final AbstractNode object = (AbstractNode) Services.command(securityContext, FindNodeCommand.class).execute(objectId);
+		try {
+			final AbstractNode object = (AbstractNode) Services.command(securityContext, FindNodeCommand.class).execute(objectId);
 
-		if (object == null) {
+			if (object == null) {
 
-			logger.log(Level.SEVERE, "Object not found!");
+				logger.log(Level.SEVERE, "Object not found!");
 
-			return null;
-
-		}
-
-		Category cat                = null;
-		List<AbstractNode> children = this.getDirectChildNodes();
-
-		for (AbstractNode child : children) {
-
-			if ((child instanceof Category) && categoryName.equals(child.getName())) {
-
-				cat = (Category) child;
+				return null;
 
 			}
 
-		}
+			Category cat                = null;
+			List<AbstractNode> children = this.getDirectChildNodes();
 
-		final Category category = cat;
-		final Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
+			for (AbstractNode child : children) {
 
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+				if ((child instanceof Category) && categoryName.equals(child.getName())) {
 
-			Category cat = null;
-			@Override
-			public Object execute() {
-
-				if (category == null) {
-
-					// Category with given name not found, create one!
-					cat = (Category) Services.command(securityContext, CreateNodeCommand.class).execute(user,
-									  new NodeAttribute(AbstractNode.Key.name.name(), categoryName),
-									  new NodeAttribute(AbstractNode.Key.type.name(), Category.class.getSimpleName()),
-									  true);
-
-					// Link category to user
-					createRel.execute(user, cat, RelType.HAS_CHILD, true);
-				} else {
-
-					cat = category;
+					cat = (Category) child;
 
 				}
 
-				// Create link between category and object
-				createRel.execute(cat, object, RelType.LINK, true);
-
-				return null;
 			}
 
-		});
+			final Category category = cat;
+			final Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
 
-		return object;
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+				Category cat = null;
+				@Override
+				public Object execute() throws FrameworkException {
+
+					if (category == null) {
+
+						// Category with given name not found, create one!
+						cat = (Category) Services.command(securityContext, CreateNodeCommand.class).execute(user,
+										  new NodeAttribute(AbstractNode.Key.name.name(), categoryName),
+										  new NodeAttribute(AbstractNode.Key.type.name(), Category.class.getSimpleName()),
+										  true);
+
+						// Link category to user
+						createRel.execute(user, cat, RelType.HAS_CHILD, true);
+					} else {
+
+						cat = category;
+
+					}
+
+					// Create link between category and object
+					createRel.execute(cat, object, RelType.LINK, true);
+
+					return null;
+				}
+
+			});
+
+			return object;
+
+		} catch(FrameworkException fex) {
+			logger.log(Level.WARNING, "Unable to add node to category", fex);
+		}
+
+		return null;
 	}
 
 	//~--- get methods ----------------------------------------------------
@@ -514,27 +527,27 @@ public class User extends Person {
 
 	//~--- set methods ----------------------------------------------------
 
-	public void setPassword(final String passwordValue) {
+	public void setPassword(final String passwordValue) throws FrameworkException {
 		setProperty(Key.password, passwordValue);
 	}
 
-	public void setRealName(final String realName) {
+	public void setRealName(final String realName) throws FrameworkException {
 		setProperty(Key.realName, realName);
 	}
 
-	public void setBlocked(final Boolean blocked) {
+	public void setBlocked(final Boolean blocked) throws FrameworkException {
 		setProperty(Key.blocked, blocked);
 	}
 
-	public void setConfirmationKey(final String value) {
+	public void setConfirmationKey(final String value) throws FrameworkException {
 		setProperty(Key.confirmationKey, value);
 	}
 
-	public void setFrontendUser(final boolean isFrontendUser) {
+	public void setFrontendUser(final boolean isFrontendUser) throws FrameworkException {
 		setProperty(Key.frontendUser, isFrontendUser);
 	}
 
-	public void setBackendUser(final boolean isBackendUser) {
+	public void setBackendUser(final boolean isBackendUser) throws FrameworkException {
 		setProperty(Key.backendUser, isBackendUser);
 	}
 }

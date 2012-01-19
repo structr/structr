@@ -37,6 +37,9 @@ import java.text.Normalizer;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.structr.common.error.FrameworkException;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -46,31 +49,37 @@ import java.util.Map;
  */
 public abstract class Search {
 
+	private static final Logger logger = Logger.getLogger(Search.class.getName());
+
 	public static List<SearchAttribute> andExactTypeAndSubtypes(final String searchString) {
 
 		List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
-
 		attrs.add(Search.orExactType(searchString));
 
-		Map<String, Class> entities = (Map) Services.command(SecurityContext.getSuperUserInstance(), GetEntitiesCommand.class).execute();
-		Class parentClass           = entities.get(searchString);
+		try {
+			Map<String, Class> entities = (Map) Services.command(SecurityContext.getSuperUserInstance(), GetEntitiesCommand.class).execute();
+			Class parentClass           = entities.get(searchString);
 
-		if (parentClass == null) {
+			if (parentClass == null) {
 
-			return attrs;
-
-		}
-
-		for (Map.Entry<String, Class> entity : entities.entrySet()) {
-
-			Class entityClass = entity.getValue();
-
-			if (parentClass.isAssignableFrom(entityClass)) {
-
-				attrs.add(Search.orExactType(entity.getKey()));
+				return attrs;
 
 			}
 
+			for (Map.Entry<String, Class> entity : entities.entrySet()) {
+
+				Class entityClass = entity.getValue();
+
+				if (parentClass.isAssignableFrom(entityClass)) {
+
+					attrs.add(Search.orExactType(entity.getKey()));
+
+				}
+
+			}
+
+		} catch(FrameworkException fex) {
+			logger.log(Level.WARNING, "Unable to add subtypes to search attributes", fex);
 		}
 
 		return attrs;
@@ -336,17 +345,19 @@ public abstract class Search {
 		// always add wildcard character '*' for auto completion
 		searchAttrs.add(Search.andName(string + SearchAttribute.WILDCARD));
 
-		List<AbstractNode> result = (List<AbstractNode>) Services.command(securityContext, SearchNodeCommand.class).execute(null, false, false,
-						    searchAttrs);
+		try {
+			List<AbstractNode> result = (List<AbstractNode>) Services.command(securityContext, SearchNodeCommand.class).execute(null, false, false, searchAttrs);
+			if (result != null) {
 
-		if (result != null) {
+				for (AbstractNode n : result) {
+					names.add(n.getName());
 
-			for (AbstractNode n : result) {
-
-				names.add(n.getName());
+				}
 
 			}
-
+			
+		} catch(FrameworkException fex) {
+			logger.log(Level.WARNING, "Unable to execute SearchNodeCommand", fex);
 		}
 
 		return names;

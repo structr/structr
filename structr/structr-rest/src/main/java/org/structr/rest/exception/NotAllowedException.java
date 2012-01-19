@@ -20,14 +20,16 @@
 package org.structr.rest.exception;
 
 import javax.servlet.http.HttpServletResponse;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
 
 /**
  *
  * @author Christian Morgner
  */
-public class NotAllowedException extends PathException {
+public class NotAllowedException extends FrameworkException {
 
 	public NotAllowedException() {
-		super(HttpServletResponse.SC_FORBIDDEN);
+		super(HttpServletResponse.SC_FORBIDDEN, new ErrorBuffer());
 	}
 }

@@ -21,12 +21,12 @@ package org.structr.core.validator;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.Semaphore;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.ErrorBuffer;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.SecurityContext;
-import org.structr.core.EntityContext;
+import org.structr.common.error.EmptyPropertyToken;
+import org.structr.common.error.FrameworkException;
+import org.structr.common.error.UniqueToken;
 import org.structr.core.PropertyValidator;
 import org.structr.core.Services;
 import org.structr.core.Value;
@@ -47,7 +47,7 @@ public class TypeAndPropertyUniquenessValidator extends PropertyValidator<String
 	public boolean isValid(String key, Object value, Value<String> parameter, ErrorBuffer errorBuffer) {
 
 		if(value == null || (value != null && value.toString().length() == 0)) {
-			errorBuffer.add("Property '", key, "' must not be empty.");
+			errorBuffer.add("TypeAndProperyUniquenessValidator", new EmptyPropertyToken(key));
 			return false;
 		}
 
@@ -84,9 +84,14 @@ public class TypeAndPropertyUniquenessValidator extends PropertyValidator<String
 				}
 			}
 			*/
-			
-			List<AbstractNode> resultList = (List<AbstractNode>)Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(topNode, includeDeleted, publicOnly, attributes, type, key);
-			nodeExists = !resultList.isEmpty();
+
+			try {
+				List<AbstractNode> resultList = (List<AbstractNode>)Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(topNode, includeDeleted, publicOnly, attributes, type, key);
+				nodeExists = !resultList.isEmpty();
+
+			} catch(FrameworkException fex ) {
+				// handle error
+			}
 
 			/*
 			if(semaphore != null) {
@@ -98,7 +103,7 @@ public class TypeAndPropertyUniquenessValidator extends PropertyValidator<String
 			
 			if(nodeExists) {
 
-				errorBuffer.add("A node with value '", value, "' for property '", key, "' already exists.");
+				errorBuffer.add("TypeAndProperyUniquenessValidator", new UniqueToken(key, value));
 				return false;
 
 			} else {

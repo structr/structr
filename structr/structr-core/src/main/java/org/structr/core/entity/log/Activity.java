@@ -32,6 +32,7 @@ import org.structr.core.entity.User;
 
 import java.util.Date;
 import java.util.Map;
+import org.structr.common.error.FrameworkException;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -111,25 +112,25 @@ public class Activity extends AbstractNode {
 
 	//~--- set methods ----------------------------------------------------
 
-	public void setStartTimestamp(final Date timestamp) {
+	public void setStartTimestamp(final Date timestamp) throws FrameworkException {
 
 		setProperty(Key.startTimestamp.name(),
 			    timestamp);
 	}
 
-	public void setEndTimestamp(final Date timestamp) {
+	public void setEndTimestamp(final Date timestamp) throws FrameworkException {
 
 		setProperty(Key.endTimestamp.name(),
 			    timestamp);
 	}
 
-	public void setActivityText(final String text) {
+	public void setActivityText(final String text) throws FrameworkException {
 
 		setProperty(Key.activityText.name(),
 			    text);
 	}
 
-	public void setSessionId(final long id) {
+	public void setSessionId(final long id) throws FrameworkException {
 
 		setProperty(Key.sessionId.name(),
 			    id);

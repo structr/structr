@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -56,34 +57,39 @@ public class DeleteOperation implements PrimaryOperation {
 
 			} else {
 
-				Object findNodeResult = Services.command(securityContext, FindNodeCommand.class).execute(currentNode, param);
-				if(findNodeResult != null) {
+				try {
+					Object findNodeResult = Services.command(securityContext, FindNodeCommand.class).execute(currentNode, param);
+					if(findNodeResult != null) {
 
-					if(findNodeResult instanceof Collection) {
+						if(findNodeResult instanceof Collection) {
 
-						toDelete.addAll((Collection)findNodeResult);
+							toDelete.addAll((Collection)findNodeResult);
 
-					} else if(findNodeResult instanceof AbstractNode) {
+						} else if(findNodeResult instanceof AbstractNode) {
 
-						toDelete.add((AbstractNode)findNodeResult);
-					}
-				}
-
-				for(AbstractNode node : toDelete) {
-
-					try
-					{
-						// execute delete node command and call callbacks
-						deleteCommand.execute(node, currentNode, recursive, securityContext.getUser());
-
-						if(deleteCommand.getExitCode().equals(Command.exitCode.FAILURE)) {
-							stdOut.append(deleteCommand.getErrorMessage());
+							toDelete.add((AbstractNode)findNodeResult);
 						}
-
-					} catch(Throwable t) {
-
-						stdOut.append(t.getMessage());
 					}
+
+					for(AbstractNode node : toDelete) {
+
+						try
+						{
+							// execute delete node command and call callbacks
+							deleteCommand.execute(node, currentNode, recursive, securityContext.getUser());
+
+							if(deleteCommand.getExitCode().equals(Command.exitCode.FAILURE)) {
+								stdOut.append(deleteCommand.getErrorMessage());
+							}
+
+						} catch(Throwable t) {
+
+							stdOut.append(t.getMessage());
+						}
+					}
+
+				} catch(FrameworkException fex) {
+					stdOut.append(fex.getMessage());
 				}
 			}
 

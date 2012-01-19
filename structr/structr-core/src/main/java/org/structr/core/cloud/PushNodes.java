@@ -29,13 +29,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.UnsupportedArgumentError;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.File;
 import org.structr.core.entity.StructrRelationship;
-import org.structr.core.entity.SuperUser;
 import org.structr.core.node.FindNodeCommand;
 import org.structr.core.notification.AddNotificationCommand;
 import org.structr.core.notification.ProgressBarNotification;
@@ -49,7 +49,7 @@ public class PushNodes extends CloudServiceCommand
 	private static final Logger logger = Logger.getLogger(PushNodes.class.getName());
 
 	@Override
-	public Object execute(Object... parameters)
+	public Object execute(Object... parameters) throws FrameworkException
 	{
 		String userName = null;
 		String password = null;
@@ -133,7 +133,7 @@ public class PushNodes extends CloudServiceCommand
 		return null;
 	}
 
-	private void pushNodes(final String userName, String password, final AbstractNode sourceNode, final long remoteTargetNodeId, final String remoteHost, final int remoteTcpPort, final int remoteUdpPort, final boolean recursive)
+	private void pushNodes(final String userName, String password, final AbstractNode sourceNode, final long remoteTargetNodeId, final String remoteHost, final int remoteTcpPort, final int remoteUdpPort, final boolean recursive) throws FrameworkException
 	{
 		final SynchronizingListener listener = new SynchronizingListener();
 		int chunkSize = CloudService.CHUNK_SIZE;

@@ -33,8 +33,6 @@ import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
-import org.structr.rest.exception.NotAllowedException;
-import org.structr.rest.exception.PathException;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -45,6 +43,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.structr.common.error.FrameworkException;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -71,7 +70,7 @@ public class StaticRelationshipConstraint extends SortableConstraint {
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public List<? extends GraphObject> doGet() throws PathException {
+	public List<? extends GraphObject> doGet() throws FrameworkException {
 
 		List<GraphObject> results = typedIdConstraint.doGet();
 		if (results != null) {
@@ -98,7 +97,7 @@ public class StaticRelationshipConstraint extends SortableConstraint {
 	}
 
 	@Override
-	public RestMethodResult doDelete() throws Throwable {
+	public RestMethodResult doDelete() throws FrameworkException {
 
 		List<GraphObject> results = typedIdConstraint.doGet();
 
@@ -116,7 +115,7 @@ public class StaticRelationshipConstraint extends SortableConstraint {
 					StructrTransaction transaction       = new StructrTransaction() {
 
 						@Override
-						public Object execute() throws Throwable {
+						public Object execute() throws FrameworkException {
 
 							for (StructrRelationship rel : rels) {
 								rel.delete(securityContext);
@@ -128,12 +127,6 @@ public class StaticRelationshipConstraint extends SortableConstraint {
 
 					// execute transaction
 					Services.command(securityContext, TransactionCommand.class).execute(transaction);
-
-					// re-throw exception that may occur during transaction
-					if(transaction.getCause() != null) {
-						throw transaction.getCause();
-					}
-
 				}
 
 			}
@@ -143,13 +136,13 @@ public class StaticRelationshipConstraint extends SortableConstraint {
 	}
 
 	@Override
-	public RestMethodResult doPost(final Map<String, Object> propertySet) throws Throwable {
+	public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
 
 		// create transaction closure
 		StructrTransaction transaction = new StructrTransaction() {
 
 			@Override
-			public Object execute() throws Throwable {
+			public Object execute() throws FrameworkException {
 
 				AbstractNode sourceNode  = typedIdConstraint.getIdConstraint().getNode();
 				AbstractNode newNode     = typeConstraint.createNode(propertySet);
@@ -177,28 +170,22 @@ public class StaticRelationshipConstraint extends SortableConstraint {
 
 		// execute transaction: create new node
 		AbstractNode newNode = (AbstractNode) Services.command(securityContext, TransactionCommand.class).execute(transaction);
-		if (newNode == null) {
-
-			// re-throw transaction exception cause
-			if (transaction.getCause() != null) {
-				throw transaction.getCause();
-
-			}
-		}
 
 		RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_CREATED);
-		result.addHeader("Location", buildLocationHeader(newNode));
+		if (newNode != null) {
+			result.addHeader("Location", buildLocationHeader(newNode));
+		}
 
 		return result;
 	}
 
 	@Override
-	public RestMethodResult doHead() throws Throwable {
+	public RestMethodResult doHead() throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
-	public RestMethodResult doOptions() throws Throwable {
+	public RestMethodResult doOptions() throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
@@ -208,7 +195,7 @@ public class StaticRelationshipConstraint extends SortableConstraint {
 	}
 
 	@Override
-	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws PathException {
+	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws FrameworkException {
 		return super.tryCombineWith(next);
 	}
 

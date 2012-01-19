@@ -19,6 +19,8 @@
 
 package org.structr.core.log;
 
+import org.structr.common.error.FrameworkException;
+
 /**
  * Returns the global log list.
  *
@@ -27,7 +29,7 @@ package org.structr.core.log;
 public class GetGlobalLogCommand extends LogServiceCommand
 {
 	@Override
-	public Object execute(Object... parameters)
+	public Object execute(Object... parameters) throws FrameworkException
 	{
 		LogService service = (LogService)getArgument("service");
 

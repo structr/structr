@@ -32,7 +32,7 @@ import org.neo4j.graphdb.event.TransactionData;
 import org.neo4j.graphdb.event.TransactionEventHandler;
 
 import org.structr.common.CaseHelper;
-import org.structr.common.ErrorBuffer;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.core.entity.AbstractNode;
@@ -57,7 +57,7 @@ import java.util.Set;
 import java.util.concurrent.Semaphore;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.kernel.impl.index.IndexCommand;
+import org.structr.common.error.FrameworkException;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -85,7 +85,7 @@ public class EntityContext {
 	private static final Map<String, String> normalizedEntityNameCache                                          = new LinkedHashMap<String, String>();
 	private static final Set<VetoableGraphObjectListener> modificationListeners                                 = new LinkedHashSet<VetoableGraphObjectListener>();
 	private static final Map<Thread, Long> transactionKeyMap                                                    = new LinkedHashMap<Thread, Long>();
-	private static final Map<Long, Throwable> throwableMap                                                      = new LinkedHashMap<Long, Throwable>();
+	private static final Map<Long, FrameworkException> exceptionMap                                             = new LinkedHashMap<Long, FrameworkException>();
 	private static final Logger logger                                                                          = Logger.getLogger(EntityContext.class.getName());
 	private static final Map<Class, Set<Transformation<AbstractNode>>> globalPostCreationTransformationMap      = new LinkedHashMap<Class, Set<Transformation<AbstractNode>>>();
 	private static final EntityContextModificationListener globalModificationListener                           = new EntityContextModificationListener();
@@ -759,8 +759,8 @@ public class EntityContext {
 		return globalModificationListener;
 	}
 
-	public static synchronized Throwable getThrowable(Long transactionKey) {
-		return throwableMap.get(transactionKey);
+	public static synchronized FrameworkException getFrameworkException(Long transactionKey) {
+		return exceptionMap.get(transactionKey);
 	}
 
 	public static boolean isReadOnlyProperty(Class type, String key) {
@@ -949,13 +949,13 @@ public class EntityContext {
 
 				if (hasError) {
 
-					throw new IllegalArgumentException(errorBuffer.toString());
+					throw new FrameworkException(422, errorBuffer);
 
 				}
 
-			} catch (Throwable t) {
+			} catch (FrameworkException fex) {
 
-				throwableMap.put(transactionKey, t);
+				exceptionMap.put(transactionKey, fex);
 
 				throw new IllegalStateException("Rollback");
 			}
@@ -972,7 +972,7 @@ public class EntityContext {
 		@Override
 		public void afterRollback(TransactionData data, Long transactionKey) {
 
-			Throwable t = throwableMap.get(transactionKey);
+			Throwable t = exceptionMap.get(transactionKey);
 
 			if (t != null) {
 

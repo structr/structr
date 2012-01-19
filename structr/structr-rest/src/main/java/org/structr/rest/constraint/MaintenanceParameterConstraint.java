@@ -24,11 +24,11 @@ import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.agent.RebuildIndexTask;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.NotAllowedException;
-import org.structr.rest.exception.PathException;
 
 /**
  *
@@ -62,27 +62,27 @@ public class MaintenanceParameterConstraint extends ResourceConstraint {
 	}
 
 	@Override
-	public List<? extends GraphObject> doGet() throws PathException {
+	public List<? extends GraphObject> doGet() throws FrameworkException {
 		throw new NotAllowedException();
 	}
 
 	@Override
-	public RestMethodResult doPut(Map<String, Object> propertySet) throws Throwable {
+	public RestMethodResult doPut(Map<String, Object> propertySet) throws FrameworkException {
 		throw new NotAllowedException();
 	}
 
 	@Override
-	public RestMethodResult doPost(Map<String, Object> propertySet) throws Throwable {
+	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
 		throw new NotAllowedException();
 	}
 
 	@Override
-	public RestMethodResult doHead() throws Throwable {
+	public RestMethodResult doHead() throws FrameworkException {
 		throw new NotAllowedException();
 	}
 
 	@Override
-	public RestMethodResult doOptions() throws Throwable {
+	public RestMethodResult doOptions() throws FrameworkException {
 		throw new NotAllowedException();
 	}
 
@@ -92,7 +92,7 @@ public class MaintenanceParameterConstraint extends ResourceConstraint {
 	}
 
 	@Override
-	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws PathException {
+	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws FrameworkException {
 		return null;
 	}
 

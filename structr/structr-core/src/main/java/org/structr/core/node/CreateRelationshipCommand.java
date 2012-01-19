@@ -23,11 +23,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.RelType;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
-import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.UnsupportedArgumentError;
 import org.structr.core.entity.AbstractNode;
@@ -50,7 +49,7 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 	private static final Logger logger = Logger.getLogger(CreateRelationshipCommand.class.getName());
 
 	@Override
-	public Object execute(Object... parameters) {
+	public Object execute(Object... parameters) throws FrameworkException {
 
 		GraphDatabaseService graphDb = (GraphDatabaseService)arguments.get("graphDb");
 
@@ -133,13 +132,13 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 		return null;
 	}
 
-	private StructrRelationship createRelationship(final AbstractNode fromNode, final AbstractNode toNode, final RelationshipType relType) {
+	private StructrRelationship createRelationship(final AbstractNode fromNode, final AbstractNode toNode, final RelationshipType relType) throws FrameworkException {
 
 		final Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
 		StructrRelationship newRelationship = (StructrRelationship)transactionCommand.execute(new StructrTransaction() {
 
 			@Override
-			public Object execute() throws Throwable {
+			public Object execute() throws FrameworkException {
 
 				StructrRelationship relationship = new StructrRelationship(securityContext, fromNode.getNode().createRelationshipTo(toNode.getNode(), relType));
 				//EntityContext.getGlobalModificationListener().relationshipCreated(securityContext, fromNode, toNode, relationship);

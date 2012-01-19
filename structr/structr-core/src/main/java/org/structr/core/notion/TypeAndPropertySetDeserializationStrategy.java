@@ -21,7 +21,7 @@
 
 package org.structr.core.notion;
 
-import org.structr.common.ErrorBuffer;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
@@ -35,6 +35,9 @@ import org.structr.core.node.search.SearchNodeCommand;
 
 import java.util.LinkedList;
 import java.util.List;
+import org.structr.common.error.FrameworkException;
+import org.structr.common.error.PropertiesNotFoundToken;
+import org.structr.common.error.PropertyNotFoundToken;
 import org.structr.core.PropertySet;
 import org.structr.core.node.NodeAttribute;
 
@@ -57,46 +60,27 @@ public class TypeAndPropertySetDeserializationStrategy implements Deserializatio
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public GraphObject deserialize(SecurityContext securityContext, Class type, Object source) {
-
-		StringBuilder msgBuffer = new StringBuilder();
+	public GraphObject deserialize(SecurityContext securityContext, Class type, Object source) throws FrameworkException {
 
 		if (source instanceof PropertySet) {
 
 			List<SearchAttribute> attrs          = new LinkedList<SearchAttribute>();
-
 			for (NodeAttribute attr : ((PropertySet) source).getAttributes()) {
 
 				String key = attr.getKey();
 				String value = (String) attr.getValue();
 
 				attrs.add(Search.andExactProperty(key, value));
-				msgBuffer.append(key).append(" = '").append(value).append("', ");
 
 			}
 
 			// just check for existance
 			List<AbstractNode> nodes = (List<AbstractNode>) Services.command(securityContext, SearchNodeCommand.class).execute(null, false, false, attrs);
-			ErrorBuffer buf          = new ErrorBuffer();
-			int size                 = nodes.size();
-
-			switch (size) {
-
-				case 0 :
-					buf.add(type.getSimpleName(), " with ", msgBuffer, " not found.");
-
-					break;
-
-				case 1 :
-					return nodes.get(0);
-
-				default :
-					buf.add(type.getSimpleName(), " with ", msgBuffer, " is ambiguous.");
-
+			if(nodes.size() == 1) {
+				return nodes.get(0);
 			}
 
-			throw new IllegalArgumentException(buf.toString());
-
+			throw new FrameworkException(type.getSimpleName(), new PropertiesNotFoundToken(attrs));
 		}
 
 		return null;

@@ -27,9 +27,10 @@ import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.kernel.Traversal;
 import org.structr.common.RelType;
 import org.structr.common.TreeHelper;
+import org.structr.common.error.FrameworkException;
+import org.structr.common.error.IdNotFoundToken;
 import org.structr.core.UnsupportedArgumentError;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.User;
 //import org.structr.common.xpath.JXPathFinder;
 
 /**
@@ -67,7 +68,7 @@ public class FindNodeCommand extends NodeServiceCommand {
     private static final Logger logger = Logger.getLogger(FindNodeCommand.class.getName());
 
     @Override
-    public Object execute(Object... parameters) {
+    public Object execute(Object... parameters) throws FrameworkException {
 
         GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
         StructrNodeFactory nodeFactory = (StructrNodeFactory) arguments.get("nodeFactory");
@@ -95,7 +96,7 @@ public class FindNodeCommand extends NodeServiceCommand {
     }
 
     // <editor-fold defaultstate="collapsed" desc="private methods">
-    private Object handleSingleArgument(GraphDatabaseService graphDb, StructrNodeFactory nodeFactory, Object argument) {
+    private Object handleSingleArgument(GraphDatabaseService graphDb, StructrNodeFactory nodeFactory, Object argument) throws FrameworkException {
 
         Object result = null;
 
@@ -112,6 +113,7 @@ public class FindNodeCommand extends NodeServiceCommand {
                 result = nodeFactory.createNode(securityContext, node);
             } catch (NotFoundException nfe) {
                 logger.log(Level.WARNING, "Node with id {0} not found in database!", id);
+		throw new FrameworkException("FindNodeCommand", new IdNotFoundToken(id));
             }
 
         } else if (argument instanceof String) {
@@ -197,7 +199,7 @@ public class FindNodeCommand extends NodeServiceCommand {
         return result;
     }
 
-    private Object handleMultipleArguments(GraphDatabaseService graphDb, StructrNodeFactory nodeFactory, Object[] parameters) {
+    private Object handleMultipleArguments(GraphDatabaseService graphDb, StructrNodeFactory nodeFactory, Object[] parameters) throws FrameworkException {
         // at this point, we're sure there are at least 2 elements in the array
         // (so, no check here :))
 

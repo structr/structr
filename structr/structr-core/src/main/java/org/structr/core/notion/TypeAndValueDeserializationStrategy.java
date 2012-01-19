@@ -23,9 +23,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.ErrorBuffer;
 import org.structr.common.PropertyKey;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.common.error.PropertiesNotFoundToken;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -52,14 +53,14 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 	}
 
 	@Override
-	public GraphObject deserialize(SecurityContext securityContext, Class type, Object source) {
+	public GraphObject deserialize(SecurityContext securityContext, Class type, Object source) throws FrameworkException {
+		
 		List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
 		attrs.add(Search.andExactProperty(propertyKey, source.toString()));
 		attrs.add(Search.andExactType(type.getSimpleName()));
 
 		// just check for existance
 		List<AbstractNode> nodes = (List<AbstractNode>)Services.command(securityContext, SearchNodeCommand.class).execute(null, false, false, attrs);
-		ErrorBuffer buf = new ErrorBuffer();
 		int resultCount = nodes.size();
 		
 		switch(resultCount) {
@@ -79,23 +80,16 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 						
 					} else {
 						
-						buf.add("Unable to create new node of type ", type.getSimpleName(), " for property ", propertyKey.name());
+						logger.log(Level.WARNING, "Unable to create node of type {0} for property {1}", new Object[] { type.getSimpleName(), propertyKey.name() } );
 					}
-					
-					
-				} else {
-					buf.add(type.getSimpleName(), " with ", propertyKey.name(), " = '", source, "' not found.");
 				}
 				break;
 
 			case 1:
 				return nodes.get(0);
 
-			default:
-				buf.add(type.getSimpleName(), " with ", propertyKey.name(), " = '", source, "' is ambiguous.");
-
 		}
 
-		throw new IllegalArgumentException(buf.toString());
+		throw new FrameworkException(type.getSimpleName(), new PropertiesNotFoundToken(attrs));
 	}
 }

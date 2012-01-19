@@ -19,7 +19,8 @@
 
 package org.structr.core.validator;
 
-import org.structr.common.ErrorBuffer;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.TypeToken;
 import org.structr.core.PropertyValidator;
 import org.structr.core.Value;
 
@@ -38,7 +39,7 @@ public class TypeValidator extends PropertyValidator<Class> {
 		}
 
 		// set error
-		errorBuffer.add("Property '", key, "' must be of type '", parameter.get().getName(), "'");
+		errorBuffer.add("TypeValidator", new TypeToken(key, parameter.get().getName()));
 
 		return false;
 	}

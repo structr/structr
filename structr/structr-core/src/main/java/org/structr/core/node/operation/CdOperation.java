@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.FindNodeCommand;
@@ -43,17 +44,22 @@ public class CdOperation implements PrimaryOperation {
 
 		if(target != null) {
 
-			AbstractNode newLocation = (AbstractNode)Services.command(securityContext, FindNodeCommand.class).execute(
-			    currentNode,
-			    target
-			   );
+			try {
+				AbstractNode newLocation = (AbstractNode)Services.command(securityContext, FindNodeCommand.class).execute(
+				    currentNode,
+				    target
+				   );
 
-			if(newLocation != null) {
+				if(newLocation != null) {
 
-				for(Callback callback : callbacks) { callback.callback(newLocation.getId()); }
+					for(Callback callback : callbacks) { callback.callback(newLocation.getId()); }
 
-				return(true);
+					return(true);
 
+				}
+
+			} catch(FrameworkException fex) {
+				fex.printStackTrace();
 			}
 
 		} else {

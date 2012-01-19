@@ -40,6 +40,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -203,9 +204,16 @@ public class Services {
 		superuserPassword = getConfigValue(context, Services.SUPERUSER_PASSWORD, "");    // intentionally no default password!
 		logger.log(Level.INFO, "Starting services");
 
-		// initialize module service (which can be thought of as the root service)
-		// securityContext can be null here, as the command is a null command
-		Services.command(null, InitializeModuleServiceCommand.class).execute();
+		try {
+			// initialize module service (which can be thought of as the root service)
+			// securityContext can be null here, as the command is a null command
+			Services.command(null, InitializeModuleServiceCommand.class).execute();
+
+		} catch(FrameworkException fex) {
+			
+			// initialization failed!
+			fex.printStackTrace();
+		}
 
 		// initialize other services
 		for (Class serviceClass : registeredServiceClasses) {

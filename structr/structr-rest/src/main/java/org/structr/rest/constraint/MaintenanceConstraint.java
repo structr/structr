@@ -26,15 +26,15 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.agent.ProcessTaskCommand;
 import org.structr.core.agent.Task;
 import org.structr.rest.RestMethodResult;
-import org.structr.core.VetoableGraphObjectListener;
 import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.exception.NotFoundException;
-import org.structr.rest.exception.PathException;
+import org.structr.rest.exception.SystemException;
 
 /**
  * A resource constraint that allows to execute maintenance tasks via
@@ -55,17 +55,17 @@ public class MaintenanceConstraint extends ResourceConstraint {
 	}
 
 	@Override
-	public List<? extends GraphObject> doGet() throws PathException {
+	public List<? extends GraphObject> doGet() throws FrameworkException {
 		throw new NotAllowedException();
 	}
 
 	@Override
-	public RestMethodResult doPut(Map<String, Object> propertySet) throws Throwable {
+	public RestMethodResult doPut(Map<String, Object> propertySet) throws FrameworkException {
 		throw new NotAllowedException();
 	}
 
 	@Override
-	public RestMethodResult doPost(Map<String, Object> propertySet) throws Throwable {
+	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
 
 		if(securityContext != null && securityContext.isSuperUser()) {
 
@@ -79,8 +79,9 @@ public class MaintenanceConstraint extends ResourceConstraint {
 					return new RestMethodResult(HttpServletResponse.SC_OK);
 
 				} catch(InstantiationException iex) {
-
-					throw new IllegalArgumentException(iex.getMessage());
+					throw new SystemException(iex.getMessage());
+				} catch(IllegalAccessException iaex) {
+					throw new SystemException(iaex.getMessage());
 				}
 
 			} else {
@@ -100,12 +101,12 @@ public class MaintenanceConstraint extends ResourceConstraint {
 	}
 
 	@Override
-	public RestMethodResult doHead() throws Throwable {
+	public RestMethodResult doHead() throws FrameworkException {
 		throw new NotAllowedException();
 	}
 
 	@Override
-	public RestMethodResult doOptions() throws Throwable {
+	public RestMethodResult doOptions() throws FrameworkException {
 		throw new NotAllowedException();
 	}
 
@@ -115,7 +116,7 @@ public class MaintenanceConstraint extends ResourceConstraint {
 	}
 
 	@Override
-	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws PathException {
+	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws FrameworkException {
 
 		if(next instanceof MaintenanceParameterConstraint) {
 			this.taskClass = ((MaintenanceParameterConstraint)next).getMaintenanceCommand();

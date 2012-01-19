@@ -41,6 +41,7 @@ import java.util.logging.Logger;
 import javax.servlet.ServletConfig;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import org.structr.common.error.FrameworkException;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -71,8 +72,13 @@ public class SecurityContext {
 		this.accessMode = accessMode;
 		this.request    = request;
 
-		// the authenticator does not have a security context
-		this.authenticator = (Authenticator) Services.command(null, AuthenticatorCommand.class).execute(config);
+		try {
+			// the authenticator does not have a security context
+			this.authenticator = (Authenticator) Services.command(null, AuthenticatorCommand.class).execute(config);
+
+		} catch(FrameworkException fex) {
+			fex.printStackTrace();
+		}
 	}
 
 	//~--- methods --------------------------------------------------------

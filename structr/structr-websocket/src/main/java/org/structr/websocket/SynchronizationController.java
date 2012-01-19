@@ -29,7 +29,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.eclipse.jetty.websocket.WebSocket.Connection;
-import org.structr.common.ErrorBuffer;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.VetoableGraphObjectListener;

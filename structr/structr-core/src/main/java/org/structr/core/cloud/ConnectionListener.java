@@ -32,11 +32,11 @@ import java.util.logging.Logger;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.StructrRelationship;
-import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
 import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.FindNodeCommand;
@@ -62,7 +62,7 @@ public class ConnectionListener extends Listener implements CloudTransmission {
 	// the root node
 	// FIXME: superuser security context
 	final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
-	private AbstractNode rootNode = (AbstractNode)Services.command(securityContext, FindNodeCommand.class).execute(0L);
+	private AbstractNode rootNode = null;
 
 	// private fields
 	private boolean transactionFinished = false;
@@ -81,6 +81,13 @@ public class ConnectionListener extends Listener implements CloudTransmission {
 	private final Command findNode = Services.command(securityContext, FindNodeCommand.class);
 
 	public ConnectionListener(Connection connection) {
+
+		try {
+			rootNode = (AbstractNode)Services.command(securityContext, FindNodeCommand.class).execute(0L);
+
+		} catch(FrameworkException fex ){
+			fex.printStackTrace();
+		}
 
 		remoteHost = connection.getRemoteAddressTCP().getAddress().getHostAddress();
 		remoteTcpPort = connection.getRemoteAddressTCP().getPort();
@@ -137,23 +144,28 @@ public class ConnectionListener extends Listener implements CloudTransmission {
 		} else if(object instanceof AuthenticationContainer) {
 			
 			AuthenticationContainer auth = (AuthenticationContainer)object;
-			
-			// try to find target user
-			targetUser = (User)Services.command(securityContext, FindUserCommand.class).execute(auth.getUserName());
-			if(targetUser == null) {
-				
-				logger.log(Level.WARNING, "User not found, disconnecting");
-			
-				connection.sendTCP("Authentication failed");
-				connection.close();
 
-			} else {
+			try {
+				// try to find target user
+				targetUser = (User)Services.command(securityContext, FindUserCommand.class).execute(auth.getUserName());
+				if(targetUser == null) {
 
-				connection.sendTCP(auth);
+					logger.log(Level.WARNING, "User not found, disconnecting");
 
-				EncryptionContext.setPassword(connection.getID(), targetUser.getEncryptedPassword());
+					connection.sendTCP("Authentication failed");
+					connection.close();
+
+				} else {
+
+					connection.sendTCP(auth);
+
+					EncryptionContext.setPassword(connection.getID(), targetUser.getEncryptedPassword());
+				}
+
+			} catch(FrameworkException fex) {
+				fex.printStackTrace();
 			}
-			
+
 		} else if(object instanceof PullNodeRequestContainer) {
 
 			pullRequests.add((PullNodeRequestContainer)object);
@@ -162,10 +174,16 @@ public class ConnectionListener extends Listener implements CloudTransmission {
 
 			PushNodeRequestContainer request = (PushNodeRequestContainer)object;
 
-			// set desired root node for push request
-			rootNode = (AbstractNode)Services.command(securityContext, FindNodeCommand.class).execute(request.getTargetNodeId());
+			try {
+				// set desired root node for push request
+				rootNode = (AbstractNode)Services.command(securityContext, FindNodeCommand.class).execute(request.getTargetNodeId());
 
-			connection.sendTCP(CloudService.ACK_DATA);
+				connection.sendTCP(CloudService.ACK_DATA);
+
+			} catch(FrameworkException fex) {
+				fex.printStackTrace();
+			}
+
 
 		} else if(object instanceof FileNodeDataContainer) {
 
@@ -187,18 +205,22 @@ public class ConnectionListener extends Listener implements CloudTransmission {
 			} else {
 				container.flushAndCloseTemporaryFile();
 
-				// commit database node
-				Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
-				transactionCommand.execute(new StructrTransaction() {
+				try {
+					// commit database node
+					Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
+					transactionCommand.execute(new StructrTransaction() {
 
-					@Override
-					public Object execute() throws Throwable {
-						storeNode(container, linkNode);
+						@Override
+						public Object execute() throws FrameworkException {
+							storeNode(container, linkNode);
 
-						return null;
-					}
-				});
+							return null;
+						}
+					});
 
+				} catch(FrameworkException fex) {
+					fex.printStackTrace();
+				}
 			}
 
 			connection.sendTCP(CloudService.ACK_DATA);
@@ -219,40 +241,50 @@ public class ConnectionListener extends Listener implements CloudTransmission {
 		} else if(object instanceof NodeDataContainer) {
 			final NodeDataContainer receivedNodeData = (NodeDataContainer)object;
 
-			Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
-			transactionCommand.execute(new StructrTransaction() {
+			try {
+				Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
+				transactionCommand.execute(new StructrTransaction() {
 
-				@Override
-				public Object execute() throws Throwable {
-					storeNode(receivedNodeData, linkNode);
+					@Override
+					public Object execute() throws FrameworkException {
+						storeNode(receivedNodeData, linkNode);
 
-					return null;
-				}
-			});
+						return null;
+					}
+				});
 
-			connection.sendTCP(CloudService.ACK_DATA);
+				connection.sendTCP(CloudService.ACK_DATA);
+
+			} catch(FrameworkException fex) {
+				fex.printStackTrace();
+			}
 
 		} else if(object instanceof RelationshipDataContainer) {
 
 			final RelationshipDataContainer receivedRelationshipData = (RelationshipDataContainer)object;
 
-			Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
-			transactionCommand.execute(new StructrTransaction() {
+			try {
+				Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
+				transactionCommand.execute(new StructrTransaction() {
 
-				@Override
-				public Object execute() throws Throwable {
+					@Override
+					public Object execute() throws FrameworkException {
 
-					storeRelationship(receivedRelationshipData);
+						storeRelationship(receivedRelationshipData);
 
-					return null;
-				}
-			});
+						return null;
+					}
+				});
 
-			connection.sendTCP(CloudService.ACK_DATA);
+				connection.sendTCP(CloudService.ACK_DATA);
+
+			} catch(FrameworkException fex) {
+				fex.printStackTrace();
+			}
 		}
 	}
 
-	private AbstractNode storeNode(final DataContainer receivedData, final boolean linkToRootNode) {
+	private AbstractNode storeNode(final DataContainer receivedData, final boolean linkToRootNode) throws FrameworkException {
 		NodeDataContainer receivedNodeData = (NodeDataContainer)receivedData;
 		AbstractNode newNode = (AbstractNode)nodeFactory.execute(receivedNodeData);
 
@@ -269,7 +301,7 @@ public class ConnectionListener extends Listener implements CloudTransmission {
 		return (newNode);
 	}
 
-	private StructrRelationship storeRelationship(final DataContainer receivedData) {
+	private StructrRelationship storeRelationship(final DataContainer receivedData) throws FrameworkException {
 		RelationshipDataContainer receivedRelationshipData = (RelationshipDataContainer)receivedData;
 		StructrRelationship newRelationship = null;
 

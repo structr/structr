@@ -25,6 +25,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.node.search.Search;
 import org.structr.core.Command;
 import org.structr.core.Services;
@@ -50,7 +51,7 @@ public class FindGroupCommand extends NodeServiceCommand {
     private static final Logger logger = Logger.getLogger(FindGroupCommand.class.getName());
 
     @Override
-    public Object execute(Object... parameters) {
+    public Object execute(Object... parameters) throws FrameworkException {
 
         GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
         Command searchNode = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class);

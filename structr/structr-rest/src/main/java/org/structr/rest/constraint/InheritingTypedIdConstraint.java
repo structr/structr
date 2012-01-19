@@ -7,12 +7,12 @@ package org.structr.rest.constraint;
 import java.util.Map;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.module.GetEntitiesCommand;
 import org.structr.rest.exception.NotFoundException;
-import org.structr.rest.exception.PathException;
 
 /**
  * Represents a type-constrained ID match with match on all sub-types. It will always
@@ -33,7 +33,7 @@ public class InheritingTypedIdConstraint extends TypedIdConstraint {
 	}
 
 	@Override
-	public AbstractNode getTypesafeNode() throws PathException {
+	public AbstractNode getTypesafeNode() throws FrameworkException {
 		
 		AbstractNode node = idConstraint.getNode();
 
@@ -51,7 +51,7 @@ public class InheritingTypedIdConstraint extends TypedIdConstraint {
 	}
 	
 	@Override
-	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws PathException {
+	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws FrameworkException {
 
 		if(next instanceof TypeConstraint) {
 

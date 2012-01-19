@@ -23,11 +23,11 @@ import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Value;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
-import org.structr.rest.exception.PathException;
 
 /**
  * A resource constraint whose only purpose is to configure the
@@ -55,7 +55,7 @@ public class ViewFilterConstraint extends WrappingConstraint {
 	}
 
 	@Override
-	public List<? extends GraphObject> doGet() throws PathException {
+	public List<? extends GraphObject> doGet() throws FrameworkException {
 		if(wrappedConstraint != null) {
 			return wrappedConstraint.doGet();
 		}
@@ -64,7 +64,7 @@ public class ViewFilterConstraint extends WrappingConstraint {
 	}
 
 	@Override
-	public RestMethodResult doPost(Map<String, Object> propertySet) throws Throwable {
+	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
 		if(wrappedConstraint != null) {
 			return wrappedConstraint.doPost(propertySet);
 		}
@@ -73,12 +73,12 @@ public class ViewFilterConstraint extends WrappingConstraint {
 	}
 
 	@Override
-	public RestMethodResult doHead() throws Throwable {
+	public RestMethodResult doHead() throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
-	public RestMethodResult doOptions() throws Throwable {
+	public RestMethodResult doOptions() throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 

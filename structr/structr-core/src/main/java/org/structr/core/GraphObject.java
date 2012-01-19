@@ -24,6 +24,7 @@ import java.util.Map;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.StructrRelationship;
 
@@ -39,9 +40,9 @@ public interface GraphObject {
 	public String getType();
 
 	public Iterable<String> getPropertyKeys(String propertyView);
-	public void setProperty(String key, Object value);
+	public void setProperty(String key, Object value) throws FrameworkException;
 	public Object getProperty(String key);
-	public void removeProperty(String key);
+	public void removeProperty(String key) throws FrameworkException;
 
 	// ----- rels only -----
 	public Long getStartNodeId();

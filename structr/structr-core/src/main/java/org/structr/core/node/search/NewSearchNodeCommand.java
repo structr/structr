@@ -40,6 +40,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.lucene.search.Query;
 import org.neo4j.index.lucene.QueryContext;
+import org.structr.common.error.FrameworkException;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -67,7 +68,7 @@ public class NewSearchNodeCommand extends NodeServiceCommand {
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public Object execute(Object... parameters) {
+	public Object execute(Object... parameters) throws FrameworkException {
 
 		if(parameters != null && parameters.length > 0) {
 
@@ -94,7 +95,7 @@ public class NewSearchNodeCommand extends NodeServiceCommand {
 		return Collections.emptyList();
 	}
 
-	private List<AbstractNode> search(final Query query, final int desiredResultCount, final boolean strict) {
+	private List<AbstractNode> search(final Query query, final int desiredResultCount, final boolean strict) throws FrameworkException {
 
 		GraphDatabaseService graphDb   = (GraphDatabaseService) arguments.get("graphDb");
 		if (graphDb != null) {

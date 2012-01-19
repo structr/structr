@@ -5,7 +5,7 @@
  */
 package org.structr.rest.constraint;
 
-import org.structr.common.ErrorBuffer;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.SecurityContext;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
@@ -20,18 +20,17 @@ import org.structr.core.node.TransactionCommand;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NoResultsException;
-import org.structr.rest.exception.PathException;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.DirectedRelationship;
 
 //~--- classes ----------------------------------------------------------------
@@ -57,18 +56,18 @@ public abstract class ResourceConstraint {
 
 	public abstract boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request);
 
-	public abstract List<? extends GraphObject> doGet() throws PathException;
+	public abstract List<? extends GraphObject> doGet() throws FrameworkException;
 
-	public abstract RestMethodResult doPost(final Map<String, Object> propertySet) throws Throwable;
+	public abstract RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException;
 
-	public abstract RestMethodResult doHead() throws Throwable;
+	public abstract RestMethodResult doHead() throws FrameworkException;
 
-	public abstract RestMethodResult doOptions() throws Throwable;
+	public abstract RestMethodResult doOptions() throws FrameworkException;
 
-	public abstract ResourceConstraint tryCombineWith(ResourceConstraint next) throws PathException;
+	public abstract ResourceConstraint tryCombineWith(ResourceConstraint next) throws FrameworkException;
 
 	// ----- methods -----
-	public RestMethodResult doDelete() throws Throwable {
+	public RestMethodResult doDelete() throws FrameworkException {
 
 		Iterable<? extends GraphObject> results;
 
@@ -86,7 +85,7 @@ public abstract class ResourceConstraint {
 			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
 				@Override
-				public Object execute() throws Throwable {
+				public Object execute() throws FrameworkException {
 
 					for (GraphObject obj : finalResults) {
 
@@ -120,7 +119,7 @@ public abstract class ResourceConstraint {
 		return new RestMethodResult(HttpServletResponse.SC_OK);
 	}
 
-	public RestMethodResult doPut(final Map<String, Object> propertySet) throws Throwable {
+	public RestMethodResult doPut(final Map<String, Object> propertySet) throws FrameworkException {
 
 		final Iterable<? extends GraphObject> results = doGet();
 
@@ -129,35 +128,13 @@ public abstract class ResourceConstraint {
 			StructrTransaction transaction = new StructrTransaction() {
 
 				@Override
-				public Object execute() throws Throwable {
-
-					ErrorBuffer errorBuffer = new ErrorBuffer();
-					boolean error           = false;
+				public Object execute() throws FrameworkException {
 
 					for (GraphObject obj : results) {
 
 						for (Entry<String, Object> attr : propertySet.entrySet()) {
-
-							try {
-
-								obj.setProperty(attr.getKey(), attr.getValue());
-
-							} catch (Throwable t) {
-
-								errorBuffer.add(t.getMessage());
-
-								error = true;
-							}
-
+							obj.setProperty(attr.getKey(), attr.getValue());
 						}
-
-					}
-
-					// throw exception with errors
-					if (error) {
-
-						throw new IllegalArgumentException(errorBuffer.toString());
-
 					}
 
 					return null;
@@ -166,13 +143,6 @@ public abstract class ResourceConstraint {
 
 			// modify results in a single transaction
 			Services.command(securityContext, TransactionCommand.class).execute(transaction);
-
-			// if there was an exception, throw it again
-			if (transaction.getCause() != null) {
-
-				throw transaction.getCause();
-
-			}
 
 			return new RestMethodResult(HttpServletResponse.SC_OK);
 

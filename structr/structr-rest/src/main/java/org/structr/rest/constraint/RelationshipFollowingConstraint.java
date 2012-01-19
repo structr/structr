@@ -43,7 +43,6 @@ import org.structr.core.node.TransactionCommand;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
-import org.structr.rest.exception.PathException;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -59,6 +58,7 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.structr.common.error.FrameworkException;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -122,7 +122,7 @@ public class RelationshipFollowingConstraint extends SortableConstraint implemen
 
 	//~--- methods --------------------------------------------------------
 
-	public void addTypedIdConstraint(TypedIdConstraint typedIdConstraint) throws PathException {
+	public void addTypedIdConstraint(TypedIdConstraint typedIdConstraint) throws FrameworkException {
 
 		logger.log(Level.FINE, "Adding id {0} to id set", typedIdConstraint.getIdConstraint().getUriPart());
 
@@ -184,7 +184,7 @@ public class RelationshipFollowingConstraint extends SortableConstraint implemen
 	}
 
 	@Override
-	public List<GraphObject> doGet() throws PathException {
+	public List<GraphObject> doGet() throws FrameworkException {
 
 		Path path = getValidatedPath();
 
@@ -214,7 +214,7 @@ public class RelationshipFollowingConstraint extends SortableConstraint implemen
 	}
 
 	@Override
-	public RestMethodResult doDelete() throws Throwable {
+	public RestMethodResult doDelete() throws FrameworkException {
 
 		Path path = getValidatedPath();
 		if (path != null) {
@@ -250,7 +250,7 @@ public class RelationshipFollowingConstraint extends SortableConstraint implemen
 						StructrTransaction transaction = new StructrTransaction() {
 
 							@Override
-							public Object execute() throws Throwable {
+							public Object execute() throws FrameworkException {
 
 								for (StructrRelationship rel : startNode.getRelationships(directedRelationship.getRelType(), directedRelationship.getDirection())) {
 
@@ -290,7 +290,7 @@ public class RelationshipFollowingConstraint extends SortableConstraint implemen
 	}
 
 	@Override
-	public RestMethodResult doPost(Map<String, Object> propertySet) throws Throwable {
+	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
 
 		Path path = getValidatedPath();
 
@@ -316,17 +316,17 @@ public class RelationshipFollowingConstraint extends SortableConstraint implemen
 	}
 
 	@Override
-	public RestMethodResult doHead() throws Throwable {
+	public RestMethodResult doHead() throws FrameworkException {
 		return lastConstraint.doHead();
 	}
 
 	@Override
-	public RestMethodResult doOptions() throws Throwable {
+	public RestMethodResult doOptions() throws FrameworkException {
 		return lastConstraint.doOptions();
 	}
 
 	@Override
-	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws PathException {
+	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws FrameworkException {
 
 		if (next instanceof TypedIdConstraint) {
 
@@ -403,7 +403,7 @@ public class RelationshipFollowingConstraint extends SortableConstraint implemen
 	}
 
 	// ----- private methods -----
-	private Path getValidatedPath() throws PathException {
+	private Path getValidatedPath() throws FrameworkException {
 
 		// the nodes we want to find an existing path for.
 		Node startNode = firstConstraint.getTypesafeNode().getNode();

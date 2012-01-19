@@ -31,8 +31,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.RelationshipType;
-import org.structr.core.GraphObject;
-import org.structr.core.Value;
 import org.structr.core.PropertySet.PropertyFormat;
 
 /**

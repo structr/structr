@@ -26,7 +26,6 @@ import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.DirectedRelationship;
-import org.structr.core.entity.Group;
 import org.structr.core.entity.StructrRelationship;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
@@ -36,6 +35,7 @@ import org.structr.websocket.message.WebSocketMessage;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.List;
+import org.structr.common.error.FrameworkException;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -69,7 +69,7 @@ public class RemoveCommand extends AbstractCommand {
 					StructrTransaction transaction       = new StructrTransaction() {
 
 						@Override
-						public Object execute() throws Throwable {
+						public Object execute() throws FrameworkException {
 
 							for (StructrRelationship rel : rels) {
 
@@ -86,13 +86,12 @@ public class RemoveCommand extends AbstractCommand {
 					};
 
 					// execute transaction
-					Services.command(securityContext, TransactionCommand.class).execute(transaction);
+					try {
+						Services.command(securityContext, TransactionCommand.class).execute(transaction);
 
-					// re-throw exception that may occur during transaction
-					if (transaction.getCause() != null) {
+					} catch(FrameworkException fex) {
 
-						getWebSocket().send(MessageBuilder.status().code(400).message(transaction.getCause().getMessage()).build(), true);
-
+						getWebSocket().send(MessageBuilder.status().code(400).message(fex.getMessage()).build(), true);
 					}
 
 				}

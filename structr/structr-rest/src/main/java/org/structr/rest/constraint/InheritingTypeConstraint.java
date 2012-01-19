@@ -11,6 +11,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
@@ -20,7 +21,6 @@ import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
-import org.structr.rest.exception.PathException;
 
 /**
  * Like {@link TypeConstraint} but matches inheriting subclasses as well
@@ -38,7 +38,7 @@ public class InheritingTypeConstraint extends TypeConstraint {
 	}
 
 	@Override
-	public List<GraphObject> doGet() throws PathException {
+	public List<GraphObject> doGet() throws FrameworkException {
 
 		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 		boolean hasSearchableAttributes = false;
@@ -84,7 +84,7 @@ public class InheritingTypeConstraint extends TypeConstraint {
 	}
 
 	@Override
-	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws PathException {
+	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws FrameworkException {
 
 		if(next instanceof IdConstraint)	return new InheritingTypedIdConstraint(securityContext, (IdConstraint)next, this); else
 		if(next instanceof TypeConstraint)	throw new IllegalPathException();

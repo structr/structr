@@ -23,10 +23,8 @@ package org.structr.core.node.operation;
  *
  * @author Christian Morgner
  */
-public class NodeCommandException extends Throwable {
-
+public class NodeCommandException extends Exception {
 	public NodeCommandException(String msg) {
-
 		super(msg);
 	}
 }

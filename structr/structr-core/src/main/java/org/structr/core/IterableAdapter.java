@@ -20,6 +20,9 @@
 package org.structr.core;
 
 import java.util.Iterator;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.structr.common.error.FrameworkException;
 
 /**
  * Converts an Iterable of source type S to an Iterable of target type T by
@@ -31,8 +34,9 @@ import java.util.Iterator;
  */
 public class IterableAdapter<S, T> implements Iterable<T>
 {
-	Iterator<S> sourceIterator = null;
-	Adapter<S, T> adapter = null;
+	private static final Logger logger = Logger.getLogger(IterableAdapter.class.getName());
+	private Iterator<S> sourceIterator = null;
+	private Adapter<S, T> adapter = null;
 
 	public IterableAdapter(Iterable<S> source, Adapter<S, T> adapter)
 	{
@@ -54,7 +58,12 @@ public class IterableAdapter<S, T> implements Iterable<T>
 			@Override
 			public T next()
 			{
-				return(adapter.adapt(sourceIterator.next()));
+				try {
+					return(adapter.adapt(sourceIterator.next()));
+				} catch(FrameworkException fex) {
+					logger.log(Level.WARNING, "Error in iterable adapter", fex);
+				}
+				return null;
 			}
 
 			@Override

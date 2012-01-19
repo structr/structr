@@ -19,7 +19,8 @@
 
 package org.structr.core.validator;
 
-import org.structr.common.ErrorBuffer;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.TooLongToken;
 import org.structr.core.PropertyValidator;
 import org.structr.core.Value;
 
@@ -37,7 +38,8 @@ public class SimpleMaxlengthValidator extends PropertyValidator<Integer> {
 			return true;
 		}
 
-		errorBuffer.add("Property '", key, "' exceeds maxium allowed length of ", parameter.get());
+		errorBuffer.add("SimpleMaxlengthValidator", new TooLongToken(key, parameter.get()));
+
 		return false;
 	}
 }

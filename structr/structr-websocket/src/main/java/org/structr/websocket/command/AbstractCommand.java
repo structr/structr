@@ -21,8 +21,11 @@ package org.structr.websocket.command;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.eclipse.jetty.websocket.WebSocket.Connection;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.FindNodeCommand;
@@ -39,6 +42,8 @@ import org.structr.websocket.message.WebSocketMessage;
  */
 public abstract class AbstractCommand {
 
+	private static final Logger logger = Logger.getLogger(AbstractCommand.class.getName());
+	
 	public static final String COMMAND_KEY             = "command";
 	public static final String ID_KEY                  = "id";
 
@@ -81,23 +86,28 @@ public abstract class AbstractCommand {
 	 */
 	public AbstractNode getNode(final String id) {
 
-		if(idProperty != null) {
+		try {
+			if(idProperty != null) {
 
-			List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
-			attrs.add(Search.andExactProperty(idProperty, id));
+				List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
+				attrs.add(Search.andExactProperty(idProperty, id));
 
-			List<AbstractNode> results = (List<AbstractNode>)Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(null, false, false, attrs);
-			if(!results.isEmpty()) {
-				return results.get(0);
+				List<AbstractNode> results = (List<AbstractNode>)Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(null, false, false, attrs);
+				if(!results.isEmpty()) {
+					return results.get(0);
+				}
+
+			} else {
+
+				List<AbstractNode> results = (List<AbstractNode>)Services.command(SecurityContext.getSuperUserInstance(), FindNodeCommand.class).execute(id);
+				if(!results.isEmpty()) {
+					return results.get(0);
+				}
+
 			}
 
-		} else {
-
-			List<AbstractNode> results = (List<AbstractNode>)Services.command(SecurityContext.getSuperUserInstance(), FindNodeCommand.class).execute(id);
-			if(!results.isEmpty()) {
-				return results.get(0);
-			}
-
+		} catch(FrameworkException fex) {
+			logger.log(Level.WARNING, "Unable to get node", fex);
 		}
 
 		return null;

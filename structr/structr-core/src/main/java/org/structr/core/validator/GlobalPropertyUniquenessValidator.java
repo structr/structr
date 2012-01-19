@@ -9,8 +9,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Logger;
 import org.dom4j.tree.AbstractNode;
-import org.structr.common.ErrorBuffer;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.EmptyPropertyToken;
+import org.structr.common.error.FrameworkException;
+import org.structr.common.error.UniqueToken;
 import org.structr.core.PropertyValidator;
 import org.structr.core.Services;
 import org.structr.core.Value;
@@ -31,7 +34,7 @@ public class GlobalPropertyUniquenessValidator extends PropertyValidator<String>
 	public boolean isValid(String key, Object value, Value<String> parameter, ErrorBuffer errorBuffer) {
 
 		if(value == null || (value != null && value.toString().length() == 0)) {
-			errorBuffer.add("Property '", key, "' must not be empty.");
+			errorBuffer.add("GlobalPropertyUniquenessValidator", new EmptyPropertyToken(key));
 			return false;
 		}
 
@@ -51,34 +54,17 @@ public class GlobalPropertyUniquenessValidator extends PropertyValidator<String>
 			List<SearchAttribute> attributes = new LinkedList<SearchAttribute>();
 			attributes.add(new TextualSearchAttribute(key, stringValue, SearchOperator.AND));
 
-			/*
-			Semaphore semaphore = null;
+			try {
+				List<AbstractNode> resultList = (List<AbstractNode>)Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(topNode, includeDeleted, publicOnly, attributes);
+				nodeExists = !resultList.isEmpty();
 
-			// obtain semaphores and acquire locks
-			if(type != null && key != null) {
-				semaphore = EntityContext.getSemaphoreForTypeAndProperty(type, key);
-				if(semaphore != null) {
-					try {	semaphore.acquire(); } catch(InterruptedException iex) { iex.printStackTrace(); }
-					logger.log(Level.INFO, "Entering critical section for type {0} key {1} from thread {2}",
-					    new Object[] { type, key, Thread.currentThread() } );
-				}
+			} catch(FrameworkException fex ) {
+				// handle error
 			}
-			*/
-			
-			List<AbstractNode> resultList = (List<AbstractNode>)Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(topNode, includeDeleted, publicOnly, attributes);
-			nodeExists = !resultList.isEmpty();
-
-			/*
-			if(semaphore != null) {
-				semaphore.release();
-				logger.log(Level.INFO, "Exiting critical section for type {0} key {1} from thread {2}",
-				    new Object[] { type, key, Thread.currentThread() } );
-			}
-			*/
 			
 			if(nodeExists) {
 
-				errorBuffer.add("A node with value '", value, "' for property '", key, "' already exists.");
+				errorBuffer.add("GlobalPropertyUniquenessValidator", new UniqueToken(key, value));
 				return false;
 
 			} else {

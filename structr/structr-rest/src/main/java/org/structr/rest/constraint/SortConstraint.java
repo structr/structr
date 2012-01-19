@@ -11,9 +11,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.rest.exception.IllegalPathException;
-import org.structr.rest.exception.PathException;
 import org.structr.rest.servlet.JsonRestServlet;
 
 /**
@@ -43,7 +43,7 @@ public class SortConstraint extends WrappingConstraint {
 	}
 	
 	@Override
-	public List<? extends GraphObject> doGet() throws PathException {
+	public List<? extends GraphObject> doGet() throws FrameworkException {
 
 		if(wrappedConstraint != null) {
 			
@@ -94,7 +94,7 @@ public class SortConstraint extends WrappingConstraint {
 	}
 
 	@Override
-	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws PathException {
+	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws FrameworkException {
 		return super.tryCombineWith(next);
 	}
 }

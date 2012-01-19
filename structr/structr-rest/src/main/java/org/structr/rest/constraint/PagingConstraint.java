@@ -6,13 +6,11 @@
 package org.structr.rest.constraint;
 
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.VetoableGraphObjectListener;
-import org.structr.rest.exception.PathException;
 
 /**
  * Implements paging.
@@ -39,7 +37,7 @@ public class PagingConstraint extends WrappingConstraint {
 	}
 
 	@Override
-	public List<? extends GraphObject> doGet() throws PathException {
+	public List<? extends GraphObject> doGet() throws FrameworkException {
 
 		/*
 		 * page 1: 0 -> pageSize-1
@@ -58,7 +56,7 @@ public class PagingConstraint extends WrappingConstraint {
 	}
 
 	@Override
-	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws PathException {
+	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws FrameworkException {
 		return super.tryCombineWith(next);
 	}
 

@@ -21,6 +21,7 @@ package org.structr.core.node.operation;
 
 import java.util.Collection;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.FindNodeCommand;
@@ -90,14 +91,19 @@ public class InOperation implements Transformation {
 
 			} catch(Throwable t) {
 
-				AbstractNode findNode = (AbstractNode)Services.command(securityContext, FindNodeCommand.class).execute(parameter);
-				if(findNode != null) {
+				try {
+					AbstractNode findNode = (AbstractNode)Services.command(securityContext, FindNodeCommand.class).execute(parameter);
+					if(findNode != null) {
 
-					parentNodeId = findNode.getId();
+						parentNodeId = findNode.getId();
 
-				} else {
+					} else {
 
-					parentNodeId = -1;
+						parentNodeId = -1;
+					}
+					
+				} catch(FrameworkException fex) {
+					fex.printStackTrace();
 				}
 			}
 

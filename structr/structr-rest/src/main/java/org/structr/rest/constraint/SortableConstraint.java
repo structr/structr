@@ -4,7 +4,7 @@
  */
 package org.structr.rest.constraint;
 
-import org.structr.rest.exception.PathException;
+import org.structr.common.error.FrameworkException;
 
 /**
  * A resource constraint that implements the generic ability to be
@@ -16,7 +16,7 @@ import org.structr.rest.exception.PathException;
 public abstract class SortableConstraint extends PageableConstraint {
 
 	@Override
-	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws PathException {
+	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws FrameworkException {
 
 		if(next instanceof SortConstraint) {
 			((SortConstraint)next).wrapConstraint(this);

@@ -29,6 +29,7 @@ import org.structr.core.node.NodeAttribute;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import org.structr.common.error.FrameworkException;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -66,7 +67,7 @@ public class MapPropertyGroup implements PropertyGroup {
 	//~--- set methods ----------------------------------------------------
 
 	@Override
-	public void setGroupedProperties(Object source, GraphObject destination) {
+	public void setGroupedProperties(Object source, GraphObject destination) throws FrameworkException {
 
 		if (source == null) {
 

@@ -7,16 +7,14 @@ package org.structr.rest.constraint;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import org.structr.rest.RestMethodResult;
-import org.structr.core.VetoableGraphObjectListener;
 import org.structr.rest.exception.NotFoundException;
-import org.structr.rest.exception.PathException;
 
 /**
  * Represents a type-constrained ID match. A TypedIdConstraint will always
@@ -48,7 +46,7 @@ public class TypedIdConstraint extends FilterableConstraint {
 	}
 
 	@Override
-	public List<GraphObject> doGet() throws PathException {
+	public List<GraphObject> doGet() throws FrameworkException {
 
 		List<GraphObject> results = new LinkedList<GraphObject>();
 		AbstractNode node = getTypesafeNode();
@@ -63,21 +61,21 @@ public class TypedIdConstraint extends FilterableConstraint {
 	}
 
 	@Override
-	public RestMethodResult doPost(Map<String, Object> propertySet) throws Throwable {
+	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
-	public RestMethodResult doHead() throws Throwable {
+	public RestMethodResult doHead() throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
-	public RestMethodResult doOptions() throws Throwable {
+	public RestMethodResult doOptions() throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
-	public AbstractNode getTypesafeNode() throws PathException {
+	public AbstractNode getTypesafeNode() throws FrameworkException {
 		
 		AbstractNode node = idConstraint.getNode();
 //		String type = typeConstraint.getType();
@@ -101,7 +99,7 @@ public class TypedIdConstraint extends FilterableConstraint {
 	}
 
 	@Override
-	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws PathException {
+	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws FrameworkException {
 
 		if(next instanceof TypeConstraint) {
 

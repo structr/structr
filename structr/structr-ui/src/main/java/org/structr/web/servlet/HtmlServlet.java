@@ -77,6 +77,7 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.structr.common.error.FrameworkException;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -119,7 +120,10 @@ public class HtmlServlet extends HttpServlet {
 
 		if (request.getParameter("create") != null) {
 
-			createTestStructure();
+			try {
+				createTestStructure();
+			} catch(FrameworkException fex) {}
+
 			response.setStatus(HttpServletResponse.SC_CREATED);
 
 			return;
@@ -128,7 +132,9 @@ public class HtmlServlet extends HttpServlet {
 
 		if (request.getParameter("editor") != null) {
 
-			createEditorStructure();
+			try {
+				createEditorStructure();
+			} catch(FrameworkException fex) {}
 			response.setStatus(HttpServletResponse.SC_CREATED);
 
 			return;
@@ -251,12 +257,12 @@ public class HtmlServlet extends HttpServlet {
 		}
 	}
 
-	private void createTestStructure() {
+	private void createTestStructure() throws FrameworkException {
 
 		Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(new StructrTransaction() {
 
 			@Override
-			public Object execute() throws Throwable {
+			public Object execute() throws FrameworkException {
 
 				logger.log(Level.INFO, "Creating test structure..");
 
@@ -328,12 +334,12 @@ public class HtmlServlet extends HttpServlet {
 		});
 	}
 
-	private void createEditorStructure() {
+	private void createEditorStructure() throws FrameworkException {
 
 		Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(new StructrTransaction() {
 
 			@Override
-			public Object execute() throws Throwable {
+			public Object execute() throws FrameworkException {
 
 				logger.log(Level.INFO, "Creating test structure..");
 
@@ -409,7 +415,7 @@ public class HtmlServlet extends HttpServlet {
 		return content.toString();
 	}
 
-	private AbstractNode createNode(String type, String name, NodeAttribute... attributes) {
+	private AbstractNode createNode(String type, String name, NodeAttribute... attributes) throws FrameworkException {
 
 		SecurityContext context   = SecurityContext.getSuperUserInstance();
 		Command createNodeCommand = Services.command(context, CreateNodeCommand.class);
@@ -431,7 +437,7 @@ public class HtmlServlet extends HttpServlet {
 		return node;
 	}
 
-	private StructrRelationship linkNodes(AbstractNode startNode, AbstractNode endNode, String resourceId, int index) {
+	private StructrRelationship linkNodes(AbstractNode startNode, AbstractNode endNode, String resourceId, int index) throws FrameworkException {
 
 		SecurityContext context  = SecurityContext.getSuperUserInstance();
 		Command createRelCommand = Services.command(context, CreateRelationshipCommand.class);
@@ -542,34 +548,39 @@ public class HtmlServlet extends HttpServlet {
 
 				if (node.hasProperty(AbstractNode.Key.type.name())) {
 
-					String type          = (String) node.getProperty(AbstractNode.Key.type.name());
-					TreeNode newTreeNode = new TreeNode(factory.createNode(securityContext, node, type));
-					Relationship rel     = path.lastRelationship();
+					try {
+						String type          = (String) node.getProperty(AbstractNode.Key.type.name());
+						TreeNode newTreeNode = new TreeNode(factory.createNode(securityContext, node, type));
+						Relationship rel     = path.lastRelationship();
 
-					if (rel != null) {
+						if (rel != null) {
 
-						Node parentNode         = rel.getStartNode();
-						TreeNode parentTreeNode = root.getNode((String) parentNode.getProperty("uuid"));
+							Node parentNode         = rel.getStartNode();
+							TreeNode parentTreeNode = root.getNode((String) parentNode.getProperty("uuid"));
 
-						if (parentTreeNode == null) {
+							if (parentTreeNode == null) {
 
-							root.addChild(newTreeNode);
-							logger.log(Level.FINEST, "New tree node: {0} --> {1}", new Object[] { newTreeNode, root });
-							logger.log(Level.FINE, "New tree node: {0} --> {1}", new Object[] { newTreeNode.getData().getName(), "root" });
+								root.addChild(newTreeNode);
+								logger.log(Level.FINEST, "New tree node: {0} --> {1}", new Object[] { newTreeNode, root });
+								logger.log(Level.FINE, "New tree node: {0} --> {1}", new Object[] { newTreeNode.getData().getName(), "root" });
+
+							} else {
+
+								parentTreeNode.addChild(newTreeNode);
+								logger.log(Level.FINEST, "New tree node: {0} --> {1}", new Object[] { newTreeNode, parentTreeNode });
+								logger.log(Level.FINE, "New tree node: {0} --> {1}", new Object[] { newTreeNode.getData().getName(), parentTreeNode.getData().getName() });
+
+							}
 
 						} else {
 
-							parentTreeNode.addChild(newTreeNode);
-							logger.log(Level.FINEST, "New tree node: {0} --> {1}", new Object[] { newTreeNode, parentTreeNode });
-							logger.log(Level.FINE, "New tree node: {0} --> {1}", new Object[] { newTreeNode.getData().getName(), parentTreeNode.getData().getName() });
+							root.addChild(newTreeNode);
+							logger.log(Level.INFO, "Added {0} to root", newTreeNode);
 
 						}
 
-					} else {
-
-						root.addChild(newTreeNode);
-						logger.log(Level.INFO, "Added {0} to root", newTreeNode);
-
+					} catch(FrameworkException fex) {
+						logger.log(Level.WARNING, "Unable to instantiate node", fex);
 					}
 
 					return Evaluation.INCLUDE_AND_CONTINUE;

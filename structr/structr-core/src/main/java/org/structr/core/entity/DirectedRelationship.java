@@ -51,6 +51,8 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.kernel.Uniqueness;
+import org.structr.common.error.FrameworkException;
+import org.structr.common.error.IdNotFoundToken;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -88,11 +90,11 @@ public class DirectedRelationship {
 
 	//~--- methods --------------------------------------------------------
 
-	public void createRelationship(final SecurityContext securityContext, final AbstractNode sourceNode, final Object value) throws Throwable {
+	public void createRelationship(final SecurityContext securityContext, final AbstractNode sourceNode, final Object value) throws FrameworkException {
 		createRelationship(securityContext, sourceNode, value, Collections.EMPTY_MAP);
 	}
 
-	public void createRelationship(final SecurityContext securityContext, final AbstractNode sourceNode, final Object value, final Map properties) throws Throwable {
+	public void createRelationship(final SecurityContext securityContext, final AbstractNode sourceNode, final Object value, final Map properties) throws FrameworkException {
 
 		// create relationship if it does not already exist
 		final Command createRel       = Services.command(securityContext, CreateRelationshipCommand.class);
@@ -104,15 +106,7 @@ public class DirectedRelationship {
 
 		} else {
 
-			try {
-				targetNode = (AbstractNode) Services.command(securityContext, FindNodeCommand.class).execute(value);
-			} catch (Throwable t) {
-
-				logger.log(Level.WARNING, "Unable to find target node for relationship creation: {0}", value);
-
-				targetNode = null;
-			}
-
+			targetNode = (AbstractNode) Services.command(securityContext, FindNodeCommand.class).execute(value);
 		}
 
 		if ((sourceNode != null) && (targetNode != null)) {
@@ -121,7 +115,7 @@ public class DirectedRelationship {
 			StructrTransaction transaction     = new StructrTransaction() {
 
 				@Override
-				public Object execute() throws Throwable {
+				public Object execute() throws FrameworkException {
 
 					if (cardinality.equals(Cardinality.OneToOne)) {
 
@@ -157,22 +151,16 @@ public class DirectedRelationship {
 			// execute transaction
 			Services.command(securityContext, TransactionCommand.class).execute(transaction);
 
-			if (transaction.getCause() != null) {
-
-				throw transaction.getCause();
-
-			}
-
 		} else {
 
-			StringBuilder errorMessage = new StringBuilder(100);
+			String type = "unknown";
+			if(sourceNode != null) {
+				type = sourceNode.getType();
+			} else if(targetNode != null) {
+				type = targetNode.getType();
+			}
 
-			errorMessage.append(StringUtils.capitalize(destType));
-			errorMessage.append(" with id ");
-			errorMessage.append(value);
-			errorMessage.append(" not found.");
-
-			throw new IllegalArgumentException(errorMessage.toString());
+			throw new FrameworkException(type, new IdNotFoundToken(value));
 
 		}
 	}
@@ -241,55 +229,67 @@ public class DirectedRelationship {
 	// ----- private methods -----
 	private List<AbstractNode> getTraversalResults(final SecurityContext securityContext, final AbstractNode node) {
 
-		final Class realType                 = (Class) Services.command(securityContext, GetEntityClassCommand.class).execute(StringUtils.capitalize(destType));
-		final StructrNodeFactory nodeFactory = new StructrNodeFactory<AbstractNode>(securityContext);
-		final List<AbstractNode> nodeList    = new LinkedList<AbstractNode>();
+		try {
+			final Class realType                 = (Class) Services.command(securityContext, GetEntityClassCommand.class).execute(StringUtils.capitalize(destType));
+			final StructrNodeFactory nodeFactory = new StructrNodeFactory<AbstractNode>(securityContext);
+			final List<AbstractNode> nodeList    = new LinkedList<AbstractNode>();
 
-		// use traverser
-		Iterable<Node> nodes = Traversal.description().uniqueness(Uniqueness.NODE_PATH).breadthFirst().relationships(relType, direction).evaluator(new Evaluator() {
+			// use traverser
+			Iterable<Node> nodes = Traversal.description().uniqueness(Uniqueness.NODE_PATH).breadthFirst().relationships(relType, direction).evaluator(new Evaluator() {
 
-			@Override
-			public Evaluation evaluate(Path path) {
+				@Override
+				public Evaluation evaluate(Path path) {
 
-				int len = path.length();
+					int len = path.length();
 
-				if (len <= 1) {
+					if (len <= 1) {
 
-					if (len == 0) {
+						if (len == 0) {
 
-						// do not include start node (which is the
-						// index node in this case), but continue
-						// traversal
-						return Evaluation.EXCLUDE_AND_CONTINUE;
-
-					} else {
-
-						AbstractNode abstractNode = abstractNode = (AbstractNode) nodeFactory.createNode(securityContext, path.endNode());
-
-						// use inheritance
-						if(realType != null && realType.isAssignableFrom(abstractNode.getClass())) {
-
-							nodeList.add(abstractNode);
-
-							return Evaluation.INCLUDE_AND_CONTINUE;
+							// do not include start node (which is the
+							// index node in this case), but continue
+							// traversal
+							return Evaluation.EXCLUDE_AND_CONTINUE;
 
 						} else {
 
-							return Evaluation.EXCLUDE_AND_CONTINUE;
+							try {
+								AbstractNode abstractNode = (AbstractNode) nodeFactory.createNode(securityContext, path.endNode());
+
+								// use inheritance
+								if(realType != null && realType.isAssignableFrom(abstractNode.getClass())) {
+
+									nodeList.add(abstractNode);
+
+									return Evaluation.INCLUDE_AND_CONTINUE;
+
+								} else {
+
+									return Evaluation.EXCLUDE_AND_CONTINUE;
+								}
+
+							} catch(FrameworkException fex) {
+								logger.log(Level.WARNING, "Unable to instantiate node", fex);
+							}
 						}
+
 					}
 
+					return Evaluation.EXCLUDE_AND_PRUNE;
 				}
 
-				return Evaluation.EXCLUDE_AND_PRUNE;
-			}
+			}).traverse(node.getNode()).nodes();
 
-		}).traverse(node.getNode()).nodes();
+			// iterate nodes to evaluate traversal
+			for (Node n : nodes) {}
 
-		// iterate nodes to evaluate traversal
-		for (Node n : nodes) {}
+			return nodeList;
 
-		return nodeList;
+		} catch(FrameworkException fex) {
+			logger.log(Level.WARNING, "Unable to get traversal results", fex);
+		}
+
+		return Collections.emptyList();
 	}
 
 	//~--- set methods ----------------------------------------------------

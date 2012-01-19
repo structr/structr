@@ -41,6 +41,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -263,26 +264,30 @@ public class AgentService extends Thread implements RunnableService {
 		if (agentClass == null) {
 
 //                      Set<Class> agentClasses = ClasspathEntityLocator.locateEntitiesByType(Agent.class);
-			Map<String, Class> agentClassesMap =
-				(Map<String, Class>) Services.command(securityContext, GetAgentsCommand.class).execute();
+			try {
+				Map<String, Class> agentClassesMap = (Map<String, Class>) Services.command(securityContext, GetAgentsCommand.class).execute();
 
-			for (String className : agentClassesMap.keySet()) {
+				for (String className : agentClassesMap.keySet()) {
 
-				Class supportedAgentClass = agentClassesMap.get(className);
+					Class supportedAgentClass = agentClassesMap.get(className);
 
-				try {
+					try {
 
-					Agent supportedAgent     = (Agent) supportedAgentClass.newInstance();
-					Class supportedTaskClass = supportedAgent.getSupportedTaskType();
+						Agent supportedAgent     = (Agent) supportedAgentClass.newInstance();
+						Class supportedTaskClass = supportedAgent.getSupportedTaskType();
 
-					if (supportedTaskClass.equals(taskClass)) {
-						agentClass = supportedAgentClass;
-					}
+						if (supportedTaskClass.equals(taskClass)) {
+							agentClass = supportedAgentClass;
+						}
 
-					agentClassCache.put(supportedTaskClass, supportedAgentClass);
+						agentClassCache.put(supportedTaskClass, supportedAgentClass);
 
-				} catch (IllegalAccessException iaex) {}
-				catch (InstantiationException itex) {}
+					} catch (IllegalAccessException iaex) {}
+					catch (InstantiationException itex) {}
+				}
+
+			} catch(FrameworkException fex) {
+				fex.printStackTrace();
 			}
 		}
 

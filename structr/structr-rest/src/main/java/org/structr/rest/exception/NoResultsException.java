@@ -20,14 +20,16 @@
 package org.structr.rest.exception;
 
 import javax.servlet.http.HttpServletResponse;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
 
 /**
  *
  * @author Christian Morgner
  */
-public class NoResultsException extends PathException {
+public class NoResultsException extends FrameworkException {
 
 	public NoResultsException() {
-		super(HttpServletResponse.SC_NO_CONTENT);
+		super(HttpServletResponse.SC_NO_CONTENT, new ErrorBuffer());
 	}
 }

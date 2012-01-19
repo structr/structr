@@ -19,23 +19,18 @@
 
 package org.structr.rest.exception;
 
+import org.structr.common.error.FrameworkException;
+import org.structr.common.error.MessageToken;
+
 /**
  * An exception that can be used to pass a response message from
  * module-specific code to the response body.
  *
  * @author Christian Morgner
  */
-public class MessageException extends PathException {
-
-	private String msg = null;
+public class MessageException extends FrameworkException {
 
 	public MessageException(int status, String msg) {
-		super(status);
-		this.msg = msg;
-	}
-
-	@Override
-	public String getMessage() {
-		return msg;
+		super("MessageException", new MessageToken(status, msg));
 	}
 }

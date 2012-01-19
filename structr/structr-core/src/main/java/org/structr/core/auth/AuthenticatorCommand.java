@@ -22,6 +22,7 @@ package org.structr.core.auth;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletConfig;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 
 /**
@@ -36,7 +37,7 @@ public class AuthenticatorCommand extends Command {
 	private static final Logger logger = Logger.getLogger(AuthenticatorCommand.class.getName());
 
 	@Override
-	public Object execute(Object... parameters) {
+	public Object execute(Object... parameters) throws FrameworkException {
 
 		if(parameters != null && parameters.length == 1 && parameters[0] instanceof ServletConfig) {
 

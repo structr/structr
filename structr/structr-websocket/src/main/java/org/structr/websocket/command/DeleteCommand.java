@@ -22,6 +22,7 @@ package org.structr.websocket.command;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.DeleteNodeCommand;
@@ -42,7 +43,12 @@ public class DeleteCommand extends AbstractCommand {
 		AbstractNode node = getNode(webSocketData.getId());
 		if(node != null) {
 
-			Services.command(SecurityContext.getSuperUserInstance(), DeleteNodeCommand.class).execute(node);
+			try {
+				Services.command(SecurityContext.getSuperUserInstance(), DeleteNodeCommand.class).execute(node);
+
+			} catch(FrameworkException fex) {
+				logger.log(Level.WARNING, "Unable to delete node", fex);
+			}
 
 		} else {
 

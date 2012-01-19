@@ -58,6 +58,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.node.operation.HelpOperation;
 import org.structr.core.node.operation.ShowOperation;
 
@@ -103,7 +104,7 @@ public class NodeConsoleCommand extends NodeServiceCommand {
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public Object execute(Object... parameters) {
+	public Object execute(Object... parameters) throws FrameworkException {
 
 		StringBuilder ret =			new StringBuilder(200);
 		AbstractNode currentNode =		null;

@@ -43,6 +43,7 @@ import org.apache.commons.io.FileUtils;
 import org.structr.common.ImageHelper;
 import org.structr.common.Path;
 import org.structr.common.RelType;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.UnsupportedArgumentError;
 import org.structr.core.entity.Image;
@@ -72,7 +73,7 @@ public class SaveImagesFromFlashUrl extends NodeServiceCommand {
      * @return
      */
     @Override
-    public Object execute(Object... parameters) {
+    public Object execute(Object... parameters) throws FrameworkException {
 
         User user = null;
         String urlString = null;
@@ -117,7 +118,7 @@ public class SaveImagesFromFlashUrl extends NodeServiceCommand {
      * @param imageNode
      * @return image list
      */
-    private List<Image> saveFlashImagesFromUrl(final User user, final String urlString, final AbstractNode parentNode) {
+    private List<Image> saveFlashImagesFromUrl(final User user, final String urlString, final AbstractNode parentNode) throws FrameworkException {
 
         String flashObjectName = urlString.substring(urlString.lastIndexOf("/") + 1);
         String tmpFilePath = Services.getFilePath(Path.Temp, "_ " + flashObjectName + "_" + System.nanoTime());

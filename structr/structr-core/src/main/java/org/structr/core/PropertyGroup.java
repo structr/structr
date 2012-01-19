@@ -19,6 +19,8 @@
 
 package org.structr.core;
 
+import org.structr.common.error.FrameworkException;
+
 /**
  * A PropertyGroup can be used to encapsulate multiple node properties
  * into a single property. Register classes of this type with
@@ -28,5 +30,5 @@ package org.structr.core;
  */
 public interface PropertyGroup<T> {
 	public T getGroupedProperties(GraphObject source);
-	public void setGroupedProperties(T source, GraphObject destination);
+	public void setGroupedProperties(T source, GraphObject destination) throws FrameworkException;
 }

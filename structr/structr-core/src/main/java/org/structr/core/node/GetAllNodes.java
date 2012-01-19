@@ -20,6 +20,7 @@ package org.structr.core.node;
 
 import java.util.Collections;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.structr.common.error.FrameworkException;
 
 /**
  * Get all nodes in the database.
@@ -31,7 +32,7 @@ import org.neo4j.graphdb.GraphDatabaseService;
 public class GetAllNodes extends NodeServiceCommand {
 
     @Override
-    public Object execute(Object... parameters) {
+    public Object execute(Object... parameters) throws FrameworkException {
 
         GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
         StructrNodeFactory nodeFactory = (StructrNodeFactory) arguments.get("nodeFactory");

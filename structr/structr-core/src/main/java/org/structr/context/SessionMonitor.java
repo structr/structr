@@ -49,6 +49,7 @@ import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -114,30 +115,36 @@ public class SessionMonitor {
 	 */
 	public static void logActivity(final SecurityContext securityContext, final long sessionId, final String action) {
 
-		if (!(Services.isAvailable(LogService.class))) {
-			return;
+		try {
+			if (!(Services.isAvailable(LogService.class))) {
+				return;
+			}
+
+			User user = securityContext != null ? securityContext.getUser() : null;
+			Date now  = new Date();
+
+			// Create a "dirty" activity node
+			Activity activity = new Activity();
+
+			activity.setProperty(AbstractNode.Key.type.name(), Activity.class.getSimpleName());
+
+			if (user != null) {
+
+				activity.setProperty(AbstractNode.Key.name.name(),
+						     "User: " + user.getName() + ", Action: " + action + ", Date: " + now);
+			}
+
+			activity.setProperty(Activity.Key.sessionId.name(), sessionId);
+			activity.setProperty(Activity.Key.startTimestamp.name(), now);
+			activity.setProperty(Activity.Key.endTimestamp.name(), now);
+			activity.setUser(user);
+			getSession(sessionId).setLastActivity(activity);
+
+			Services.command(securityContext, LogCommand.class).execute(activity);
+
+		} catch(FrameworkException fex) {
+			fex.printStackTrace();
 		}
-
-		User user = securityContext != null ? securityContext.getUser() : null;
-		Date now  = new Date();
-
-		// Create a "dirty" activity node
-		Activity activity = new Activity();
-
-		activity.setProperty(AbstractNode.Key.type.name(), Activity.class.getSimpleName());
-
-		if (user != null) {
-
-			activity.setProperty(AbstractNode.Key.name.name(),
-					     "User: " + user.getName() + ", Action: " + action + ", Date: " + now);
-		}
-
-		activity.setProperty(Activity.Key.sessionId.name(), sessionId);
-		activity.setProperty(Activity.Key.startTimestamp.name(), now);
-		activity.setProperty(Activity.Key.endTimestamp.name(), now);
-		activity.setUser(user);
-		getSession(sessionId).setLastActivity(activity);
-		Services.command(securityContext, LogCommand.class).execute(activity);
 	}
 
 	/**
@@ -148,53 +155,60 @@ public class SessionMonitor {
 	 */
 	public static void logPageRequest(final SecurityContext securityContext, final long sessionId, final String action, final HttpServletRequest request) {
 
-		if (!(Services.isAvailable(LogService.class))) {
-			return;
-		}
-
 		long t0   = System.currentTimeMillis();
-		Date now  = new Date();
-		User user = securityContext.getUser();
-
-		// Create a "dirty" page request node
-		PageRequest pageRequest = new PageRequest();
-
-		pageRequest.setProperty(AbstractNode.Key.type.name(), PageRequest.class.getSimpleName());
-		pageRequest.setProperty(AbstractNode.Key.name.name(), action + ", Date: " + now);
-
-		StringBuilder text = new StringBuilder();
-
-		text.append("{");
-
-		if (request != null) {
-
-			Set<String> keys                 = request.getParameterMap().keySet();
-
-			for (String key : keys) {
-
-				String value = request.getParameter(key);
-
-				// Don't log ajax notification requests
-				if ("onUpdateNotificationContent".equals(value)) {
-					return;
-				}
-
-				text.append("\"").append(key).append("\": \"").append(value).append("\", ");
+		
+		try {
+			if (!(Services.isAvailable(LogService.class))) {
+				return;
 			}
 
-			text.append("\"uri\": \"").append(request.getRequestURI()).append("\", ");
-			text.append("\"remoteAddress\": \"").append(request.getRemoteAddr()).append("\", ");
-			text.append("\"remoteHost\": \"").append(request.getRemoteHost()).append("\"");
-		}
+			Date now  = new Date();
+			User user = securityContext.getUser();
 
-		pageRequest.setProperty(Activity.Key.sessionId.name(), sessionId);
-		pageRequest.setProperty(Activity.Key.startTimestamp.name(), now);
-		pageRequest.setProperty(Activity.Key.endTimestamp.name(), now);
-		pageRequest.setUser(user);
-		text.append("}");
-		pageRequest.setActivityText(text.toString());
-		getSession(sessionId).setLastActivity(pageRequest);
-		Services.command(securityContext, LogCommand.class).execute(pageRequest);
+			// Create a "dirty" page request node
+			PageRequest pageRequest = new PageRequest();
+
+			pageRequest.setProperty(AbstractNode.Key.type.name(), PageRequest.class.getSimpleName());
+			pageRequest.setProperty(AbstractNode.Key.name.name(), action + ", Date: " + now);
+
+			StringBuilder text = new StringBuilder();
+
+			text.append("{");
+
+			if (request != null) {
+
+				Set<String> keys                 = request.getParameterMap().keySet();
+
+				for (String key : keys) {
+
+					String value = request.getParameter(key);
+
+					// Don't log ajax notification requests
+					if ("onUpdateNotificationContent".equals(value)) {
+						return;
+					}
+
+					text.append("\"").append(key).append("\": \"").append(value).append("\", ");
+				}
+
+				text.append("\"uri\": \"").append(request.getRequestURI()).append("\", ");
+				text.append("\"remoteAddress\": \"").append(request.getRemoteAddr()).append("\", ");
+				text.append("\"remoteHost\": \"").append(request.getRemoteHost()).append("\"");
+			}
+
+			pageRequest.setProperty(Activity.Key.sessionId.name(), sessionId);
+			pageRequest.setProperty(Activity.Key.startTimestamp.name(), now);
+			pageRequest.setProperty(Activity.Key.endTimestamp.name(), now);
+			pageRequest.setUser(user);
+			text.append("}");
+			pageRequest.setActivityText(text.toString());
+			getSession(sessionId).setLastActivity(pageRequest);
+
+			Services.command(securityContext, LogCommand.class).execute(pageRequest);
+
+		} catch(FrameworkException fex) {
+			fex.printStackTrace();
+		}
 
 		long t1 = System.currentTimeMillis();
 
@@ -396,15 +410,22 @@ public class SessionMonitor {
 			Command createNode = Services.command(securityContext, CreateNodeCommand.class);
 			Command createRel  = Services.command(securityContext, CreateRelationshipCommand.class);
 
-			activityList = (LogNodeList<Activity>) createNode.execute(user,
-				new NodeAttribute(AbstractNode.Key.type.name(), LogNodeList.class.getSimpleName()),
-				new NodeAttribute(AbstractNode.Key.name.name(), user.getName() + "'s Activity Log"));
+			try {
+				activityList = (LogNodeList<Activity>) createNode.execute(user,
+					new NodeAttribute(AbstractNode.Key.type.name(), LogNodeList.class.getSimpleName()),
+					new NodeAttribute(AbstractNode.Key.name.name(), user.getName() + "'s Activity Log"));
 
-//                      activityList = new LogNodeList<Activity>();
-//                      activityList.init(s);
-			createRel.execute(user, activityList, RelType.HAS_CHILD);
+	//                      activityList = new LogNodeList<Activity>();
+	//                      activityList.init(s);
+				createRel.execute(user, activityList, RelType.HAS_CHILD);
 
-			return activityList;
+				return activityList;
+
+			} catch(FrameworkException fex) {
+				fex.printStackTrace();
+			}
+
+			return null;
 		}
 
 		private Activity getLastActivity() {

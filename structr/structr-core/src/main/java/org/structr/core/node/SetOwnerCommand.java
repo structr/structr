@@ -27,18 +27,15 @@ import org.structr.common.RelType;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Group;
-import org.structr.core.entity.Principal;
 import org.structr.core.entity.StructrRelationship;
-import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.error.FrameworkException;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -66,7 +63,7 @@ public class SetOwnerCommand extends NodeServiceCommand {
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public Object execute(Object... parameters) {
+	public Object execute(Object... parameters) throws FrameworkException {
 
 		Command findNode            = Services.command(securityContext, FindNodeCommand.class);
 		AbstractNode node           = null;
@@ -121,7 +118,7 @@ public class SetOwnerCommand extends NodeServiceCommand {
 
 	//~--- set methods ----------------------------------------------------
 
-	private void setOwner(final AbstractNode node, final User user) {
+	private void setOwner(final AbstractNode node, final User user) throws FrameworkException {
 
 		Command delRel = Services.command(securityContext, DeleteRelationshipCommand.class);
 
@@ -141,7 +138,7 @@ public class SetOwnerCommand extends NodeServiceCommand {
 		logger.log(Level.FINEST, "Relationship to owner {0} added", user.getName());
 	}
 
-	private void setOwner(final List<AbstractNode> nodeList, final User user) {
+	private void setOwner(final List<AbstractNode> nodeList, final User user) throws FrameworkException {
 
 		// Create outer transaction to bundle inner transactions
 		final Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
@@ -149,7 +146,7 @@ public class SetOwnerCommand extends NodeServiceCommand {
 		transactionCommand.execute(new StructrTransaction() {
 
 			@Override
-			public Object execute() throws Throwable {
+			public Object execute() throws FrameworkException {
 
 				for (AbstractNode node : nodeList) {
 					setOwner(node, user);

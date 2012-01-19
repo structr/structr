@@ -55,6 +55,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.error.FrameworkException;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -113,9 +114,14 @@ public class Image extends File {
 				continue;
 			}
 
-			deleteRelationship.execute(s);
-			deleteNode.execute(thumbnail,
-					   new SuperUser());
+			try {
+				deleteRelationship.execute(s);
+				deleteNode.execute(thumbnail,
+						   new SuperUser());
+
+			} catch(FrameworkException fex) {
+				logger.log(Level.WARNING, "Unable to remove thumbnail", fex);
+			}
 		}
 
 		// Clear cache
@@ -257,110 +263,114 @@ public class Image extends File {
 			   "Creating thumbnail for {0}",
 			   getName());
 
-		Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
+		try {
+			Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
+			thumbnail = (Image) transactionCommand.execute(new StructrTransaction() {
 
-		thumbnail = (Image) transactionCommand.execute(new StructrTransaction() {
+				@Override
+				public Object execute() throws FrameworkException {
 
-			@Override
-			public Object execute() throws Throwable {
+					Command createNode = Services.command(securityContext, CreateNodeCommand.class);
+					Command createRel  = Services.command(securityContext, CreateRelationshipCommand.class);
 
-				Command createNode = Services.command(securityContext, CreateNodeCommand.class);
-				Command createRel  = Services.command(securityContext, CreateRelationshipCommand.class);
+	//                              Command findNode = Services.command(securityContext, FindNodeCommand.class);
+					NodeAttribute typeAttr = new NodeAttribute(AbstractNode.Key.type.name(),
+						Image.class.getSimpleName());
+					NodeAttribute contentTypeAttr = new NodeAttribute(File.Key.contentType.name(),
+						"image/" + Thumbnail.FORMAT);
+					NodeAttribute isHiddenAttr = new NodeAttribute(AbstractNode.Key.hidden.name(),
+						originalImage.getHidden());
+					NodeAttribute isPublicAttr = new NodeAttribute(AbstractNode.Key.visibleToPublicUsers.name(),
+						originalImage.getVisibleToPublicUsers());
+					NodeAttribute isVisibleForAuthenticatedUsersAttr =
+						new NodeAttribute(AbstractNode.Key.visibleToAuthenticatedUsers.name(),
+								  originalImage.getVisibleToAuthenticatedUsers());
+					Thumbnail thumbnailData = ImageHelper.createThumbnail(originalImage,
+						maxWidth,
+						maxHeight,
+						cropToFit);
 
-//                              Command findNode = Services.command(securityContext, FindNodeCommand.class);
-				NodeAttribute typeAttr = new NodeAttribute(AbstractNode.Key.type.name(),
-					Image.class.getSimpleName());
-				NodeAttribute contentTypeAttr = new NodeAttribute(File.Key.contentType.name(),
-					"image/" + Thumbnail.FORMAT);
-				NodeAttribute isHiddenAttr = new NodeAttribute(AbstractNode.Key.hidden.name(),
-					originalImage.getHidden());
-				NodeAttribute isPublicAttr = new NodeAttribute(AbstractNode.Key.visibleToPublicUsers.name(),
-					originalImage.getVisibleToPublicUsers());
-				NodeAttribute isVisibleForAuthenticatedUsersAttr =
-					new NodeAttribute(AbstractNode.Key.visibleToAuthenticatedUsers.name(),
-							  originalImage.getVisibleToAuthenticatedUsers());
-				Thumbnail thumbnailData = ImageHelper.createThumbnail(originalImage,
-					maxWidth,
-					maxHeight,
-					cropToFit);
+					if (thumbnailData != null) {
 
-				if (thumbnailData != null) {
+						// create thumbnail node
+	//                                      Image thumbnail = (Image) createNode.execute(user,
+						Image thumbnail = (Image) createNode.execute(originalImage.getOwnerNode(),    // Same owner as original image
+							typeAttr,
+							contentTypeAttr,
+							isHiddenAttr,
+							isPublicAttr,
+							isVisibleForAuthenticatedUsersAttr,
+							false);    // Don't index thumbnails
 
-					// create thumbnail node
-//                                      Image thumbnail = (Image) createNode.execute(user,
-					Image thumbnail = (Image) createNode.execute(originalImage.getOwnerNode(),    // Same owner as original image
-						typeAttr,
-						contentTypeAttr,
-						isHiddenAttr,
-						isPublicAttr,
-						isVisibleForAuthenticatedUsersAttr,
-						false);    // Don't index thumbnails
+						if (thumbnail != null) {
 
-					if (thumbnail != null) {
+							// Create a thumbnail relationship
+							StructrRelationship thumbnailRelationship =
+								(StructrRelationship) createRel.execute(originalImage,
+								thumbnail,
+								RelType.THUMBNAIL);
 
-						// Create a thumbnail relationship
-						StructrRelationship thumbnailRelationship =
-							(StructrRelationship) createRel.execute(originalImage,
-							thumbnail,
-							RelType.THUMBNAIL);
+							// Add to cache list
+							thumbnailRelationships.add(thumbnailRelationship);
 
-						// Add to cache list
-						thumbnailRelationships.add(thumbnailRelationship);
+							// determine properties
+							String relativeFilePath = thumbnail.getId() + "_"
+										  + System.currentTimeMillis();
+							String path            = Services.getFilesPath() + "/"
+										 + relativeFilePath;
+							java.io.File imageFile = new java.io.File(path);
 
-						// determine properties
-						String relativeFilePath = thumbnail.getId() + "_"
-									  + System.currentTimeMillis();
-						String path            = Services.getFilesPath() + "/"
-									 + relativeFilePath;
-						java.io.File imageFile = new java.io.File(path);
+							try {
 
-						try {
+								// copy url to file
+								FileUtils.writeByteArrayToFile(imageFile,
+											       thumbnailData.getBytes());
+							} catch (IOException ex) {
 
-							// copy url to file
-							FileUtils.writeByteArrayToFile(imageFile,
-										       thumbnailData.getBytes());
-						} catch (IOException ex) {
+								logger.log(Level.SEVERE,
+									   "Could not write thumbnail data to file",
+									   ex);
 
-							logger.log(Level.SEVERE,
-								   "Could not write thumbnail data to file",
-								   ex);
+								return null;
+							}
 
-							return null;
+							// set size
+							long size = imageFile.length();
+
+							thumbnail.setSize(size);
+
+							Integer tnWidth  = thumbnailData.getWidth();
+							Integer tnHeight = thumbnailData.getHeight();
+
+							thumbnailRelationship.setProperty(Key.width.name(),
+											  tnWidth);
+							thumbnailRelationship.setProperty(Key.height.name(),
+											  tnHeight);
+
+							// set local file url
+							thumbnail.setRelativeFilePath(relativeFilePath);
+
+							// Set name to reflect thumbnail size
+							thumbnail.setName(originalImage.getName() + "_thumb_" + tnWidth + "x"
+									  + tnHeight);
 						}
 
-						// set size
-						long size = imageFile.length();
+						return thumbnail;
+					} else {
 
-						thumbnail.setSize(size);
+						logger.log(Level.WARNING,
+							   "Could not create thumbnail for image {0} ({1})",
+							   new Object[] { getName(), getId() });
 
-						Integer tnWidth  = thumbnailData.getWidth();
-						Integer tnHeight = thumbnailData.getHeight();
-
-						thumbnailRelationship.setProperty(Key.width.name(),
-										  tnWidth);
-						thumbnailRelationship.setProperty(Key.height.name(),
-										  tnHeight);
-
-						// set local file url
-						thumbnail.setRelativeFilePath(relativeFilePath);
-
-						// Set name to reflect thumbnail size
-						thumbnail.setName(originalImage.getName() + "_thumb_" + tnWidth + "x"
-								  + tnHeight);
+						return null;
 					}
-
-					return thumbnail;
-				} else {
-
-					logger.log(Level.WARNING,
-						   "Could not create thumbnail for image {0} ({1})",
-						   new Object[] { getName(), getId() });
-
-					return null;
 				}
-			}
 
-		});
+			});
+
+		} catch(FrameworkException fex) {
+			logger.log(Level.WARNING, "Unable to create thumbnail", fex);
+		}
 
 		return thumbnail;
 	}
@@ -384,13 +394,13 @@ public class Image extends File {
 
 	//~--- set methods ----------------------------------------------------
 
-	public void setWidth(Integer width) {
+	public void setWidth(Integer width) throws FrameworkException {
 
 		setProperty(Key.width.name(),
 			    width);
 	}
 
-	public void setHeight(Integer height) {
+	public void setHeight(Integer height) throws FrameworkException {
 
 		setProperty(Key.height.name(),
 			    height);
@@ -398,7 +408,7 @@ public class Image extends File {
 
 	/** Copy public flag to all thumbnails */
 	@Override
-	public void setVisibleToPublicUsers(final boolean publicFlag) {
+	public void setVisibleToPublicUsers(final boolean publicFlag) throws FrameworkException {
 
 		super.setVisibleToPublicUsers(publicFlag);
 
@@ -411,7 +421,7 @@ public class Image extends File {
 
 	/** Copy visible for authenticated users flag to all thumbnails */
 	@Override
-	public void setVisibleToAuthenticatedUsers(final boolean flag) {
+	public void setVisibleToAuthenticatedUsers(final boolean flag) throws FrameworkException {
 
 		super.setVisibleToAuthenticatedUsers(flag);
 
@@ -424,7 +434,7 @@ public class Image extends File {
 
 	/** Copy hidden flag to all thumbnails */
 	@Override
-	public void setHidden(final boolean hidden) {
+	public void setHidden(final boolean hidden) throws FrameworkException {
 
 		super.setHidden(hidden);
 
@@ -437,7 +447,7 @@ public class Image extends File {
 
 	/** Copy deleted flag to all thumbnails */
 	@Override
-	public void setDeleted(final boolean deleted) {
+	public void setDeleted(final boolean deleted) throws FrameworkException {
 
 		super.setDeleted(deleted);
 
@@ -450,7 +460,7 @@ public class Image extends File {
 
 	/** Copy visibility start date to all thumbnails */
 	@Override
-	public void setVisibilityStartDate(final Date date) {
+	public void setVisibilityStartDate(final Date date) throws FrameworkException {
 
 		super.setVisibilityStartDate(date);
 
@@ -463,7 +473,7 @@ public class Image extends File {
 
 	/** Copy visibility end date to all thumbnails */
 	@Override
-	public void setVisibilityEndDate(final Date date) {
+	public void setVisibilityEndDate(final Date date) throws FrameworkException {
 
 		super.setVisibilityEndDate(date);
 

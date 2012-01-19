@@ -20,7 +20,9 @@
 package org.structr.core.notion;
 
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Adapter;
+import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 
 /**
@@ -52,7 +54,7 @@ public abstract class Notion {
 		this.securityContext = securityContext;
 		return new Adapter<GraphObject, Object>() {
 			@Override
-			public Object adapt(GraphObject s) {
+			public Object adapt(GraphObject s) throws FrameworkException {
 				return serializationStrategy.serialize(securityContext, type, s);
 			}
 		};
@@ -61,7 +63,7 @@ public abstract class Notion {
 	public Adapter<Object, GraphObject> getAdapterForSetter(final SecurityContext securityContext) {
 		return new Adapter<Object, GraphObject>() {
 			@Override
-			public GraphObject adapt(Object s) {
+			public GraphObject adapt(Object s) throws FrameworkException {
 				return deserializationStrategy.deserialize(securityContext, type, s);
 			}
 		};

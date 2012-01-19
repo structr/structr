@@ -19,7 +19,8 @@
 
 package org.structr.core.validator;
 
-import org.structr.common.ErrorBuffer;
+import org.structr.common.error.EmptyPropertyToken;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.core.PropertyValidator;
 import org.structr.core.Value;
 
@@ -37,7 +38,7 @@ public class SimpleNonEmptyValueValidator extends PropertyValidator {
 			return true;
 		}
 
-		errorBuffer.add("Property '", key, "' must not be empty.");
+		errorBuffer.add("SimpleNonEmptyValidator", new EmptyPropertyToken(key));
 		return false;
 	}
 }

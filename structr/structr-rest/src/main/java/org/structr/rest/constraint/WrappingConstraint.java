@@ -20,9 +20,9 @@
 package org.structr.rest.constraint;
 
 import java.util.Map;
+import org.structr.common.error.FrameworkException;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
-import org.structr.rest.exception.PathException;
 
 /**
  * A resource constraint that implements the generic ability to
@@ -35,7 +35,7 @@ public abstract class WrappingConstraint extends ResourceConstraint {
 	protected ResourceConstraint wrappedConstraint = null;
 
 	@Override
-	public RestMethodResult doPost(Map<String, Object> propertySet) throws Throwable {
+	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
 
 		if(wrappedConstraint != null) {
 			return wrappedConstraint.doPost(propertySet);
@@ -45,7 +45,7 @@ public abstract class WrappingConstraint extends ResourceConstraint {
 	}
 
 	@Override
-	public RestMethodResult doHead() throws Throwable {
+	public RestMethodResult doHead() throws FrameworkException {
 
 		if(wrappedConstraint != null) {
 			return wrappedConstraint.doHead();
@@ -55,7 +55,7 @@ public abstract class WrappingConstraint extends ResourceConstraint {
 	}
 
 	@Override
-	public RestMethodResult doOptions() throws Throwable {
+	public RestMethodResult doOptions() throws FrameworkException {
 
 		if(wrappedConstraint != null) {
 			return wrappedConstraint.doOptions();
@@ -80,7 +80,7 @@ public abstract class WrappingConstraint extends ResourceConstraint {
 	}
 
 	@Override
-	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws PathException {
+	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws FrameworkException {
 
 		if(next instanceof WrappingConstraint) {
 			((WrappingConstraint)next).wrapConstraint(this);

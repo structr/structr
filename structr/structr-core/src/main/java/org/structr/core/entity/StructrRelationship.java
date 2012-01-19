@@ -42,6 +42,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.structr.common.error.FrameworkException;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -51,6 +54,8 @@ import java.util.Map;
  *
  */
 public class StructrRelationship implements GraphObject {
+
+	private static final Logger logger = Logger.getLogger(StructrRelationship.class.getName());
 
 //      public final static String ALLOWED_KEY = "allowed";
 //      public final static String DENIED_KEY = "denied";
@@ -176,23 +181,38 @@ public class StructrRelationship implements GraphObject {
 
 	public AbstractNode getEndNode() {
 
-		Command nodeFactory = Services.command(securityContext, NodeFactoryCommand.class);
+		try {
+			Command nodeFactory = Services.command(securityContext, NodeFactoryCommand.class);
+			return (AbstractNode) nodeFactory.execute(dbRelationship.getEndNode());
 
-		return (AbstractNode) nodeFactory.execute(dbRelationship.getEndNode());
+		} catch(FrameworkException fex) {
+			logger.log(Level.WARNING, "Unable to instantiate node", fex);
+		}
+		return null;
 	}
 
 	public AbstractNode getStartNode() {
 
-		Command nodeFactory = Services.command(securityContext, NodeFactoryCommand.class);
+		try {
+			Command nodeFactory = Services.command(securityContext, NodeFactoryCommand.class);
+			return (AbstractNode) nodeFactory.execute(dbRelationship.getStartNode());
 
-		return (AbstractNode) nodeFactory.execute(dbRelationship.getStartNode());
+		} catch(FrameworkException fex) {
+			logger.log(Level.WARNING, "Unable to instantiate node", fex);
+		}
+		return null;
 	}
 
 	public AbstractNode getOtherNode(final AbstractNode node) {
 
-		Command nodeFactory = Services.command(securityContext, NodeFactoryCommand.class);
+		try {
+			Command nodeFactory = Services.command(securityContext, NodeFactoryCommand.class);
+			return (AbstractNode) nodeFactory.execute(dbRelationship.getOtherNode(node.getNode()));
 
-		return (AbstractNode) nodeFactory.execute(dbRelationship.getOtherNode(node.getNode()));
+		} catch(FrameworkException fex) {
+			logger.log(Level.WARNING, "Unable to instantiate node", fex);
+		}
+		return null;
 	}
 
 	public RelationshipType getRelType() {
@@ -372,32 +392,37 @@ public class StructrRelationship implements GraphObject {
 
 		Command transaction = Services.command(securityContext, TransactionCommand.class);
 
-		transaction.execute(new StructrTransaction() {
+		try {
+			transaction.execute(new StructrTransaction() {
 
-			@Override
-			public Object execute() throws Throwable {
+				@Override
+				public Object execute() throws FrameworkException {
 
-				Command findNode        = Services.command(securityContext, FindNodeCommand.class);
-				Command deleteRel       = Services.command(securityContext, DeleteRelationshipCommand.class);
-				Command createRel       = Services.command(securityContext, CreateRelationshipCommand.class);
-				Command nodeFactory     = Services.command(securityContext, NodeFactoryCommand.class);
-				AbstractNode startNode  = (AbstractNode) nodeFactory.execute(getStartNode());
-				AbstractNode newEndNode = (AbstractNode) findNode.execute(endNodeId);
+					Command findNode        = Services.command(securityContext, FindNodeCommand.class);
+					Command deleteRel       = Services.command(securityContext, DeleteRelationshipCommand.class);
+					Command createRel       = Services.command(securityContext, CreateRelationshipCommand.class);
+					Command nodeFactory     = Services.command(securityContext, NodeFactoryCommand.class);
+					AbstractNode startNode  = (AbstractNode) nodeFactory.execute(getStartNode());
+					AbstractNode newEndNode = (AbstractNode) findNode.execute(endNodeId);
 
-				if (newEndNode != null) {
+					if (newEndNode != null) {
 
-					RelationshipType type = dbRelationship.getType();
+						RelationshipType type = dbRelationship.getType();
 
-					deleteRel.execute(dbRelationship);
+						deleteRel.execute(dbRelationship);
 
-					dbRelationship = ((StructrRelationship) createRel.execute(type, startNode, newEndNode)).getRelationship();
+						dbRelationship = ((StructrRelationship) createRel.execute(type, startNode, newEndNode)).getRelationship();
 
+					}
+
+					return (null);
 				}
 
-				return (null);
-			}
+			});
 
-		});
+		} catch(FrameworkException fex) {
+			logger.log(Level.WARNING, "Unable to set end node id", fex);
+		}
 	}
 
 	/**
@@ -412,28 +437,31 @@ public class StructrRelationship implements GraphObject {
 
 		if (type != null) {
 
-			Command transacted = Services.command(securityContext, TransactionCommand.class);
+			try {
+				Command transacted = Services.command(securityContext, TransactionCommand.class);
+				transacted.execute(new StructrTransaction() {
 
-			transacted.execute(new StructrTransaction() {
+					@Override
+					public Object execute() throws FrameworkException {
 
-				@Override
-				public Object execute() throws Throwable {
+						Command deleteRel      = Services.command(securityContext, DeleteRelationshipCommand.class);
+						Command createRel      = Services.command(securityContext, CreateRelationshipCommand.class);
+						Command nodeFactory    = Services.command(securityContext, NodeFactoryCommand.class);
+						AbstractNode startNode = (AbstractNode) nodeFactory.execute(getStartNode());
+						AbstractNode endNode   = (AbstractNode) nodeFactory.execute(getEndNode());
 
-					Command deleteRel      = Services.command(securityContext, DeleteRelationshipCommand.class);
-					Command createRel      = Services.command(securityContext, CreateRelationshipCommand.class);
-					Command nodeFactory    = Services.command(securityContext, NodeFactoryCommand.class);
-					AbstractNode startNode = (AbstractNode) nodeFactory.execute(getStartNode());
-					AbstractNode endNode   = (AbstractNode) nodeFactory.execute(getEndNode());
+						deleteRel.execute(dbRelationship);
 
-					deleteRel.execute(dbRelationship);
+						dbRelationship = ((StructrRelationship) createRel.execute(type, startNode, endNode)).getRelationship();
 
-					dbRelationship = ((StructrRelationship) createRel.execute(type, startNode, endNode)).getRelationship();
+						return (null);
+					}
 
-					return (null);
-				}
+				});
 
-			});
-
+			} catch(FrameworkException fex) {
+				logger.log(Level.WARNING, "Unable to set relationship type", fex);
+			}
 		}
 	}
 

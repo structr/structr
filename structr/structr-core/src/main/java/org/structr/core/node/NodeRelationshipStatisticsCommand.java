@@ -24,7 +24,6 @@ package org.structr.core.node;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.TreeMap;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
@@ -37,6 +36,7 @@ import org.structr.core.entity.AbstractNode;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.error.FrameworkException;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -62,7 +62,7 @@ public class NodeRelationshipStatisticsCommand extends NodeServiceCommand {
 	 * @return list with relationships that match relationship type and direction
 	 */
 	@Override
-	public Object execute(Object... parameters) {
+	public Object execute(Object... parameters) throws FrameworkException {
 
 		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
 		Map<RelationshipType, Long> statistics = new LinkedHashMap<RelationshipType, Long>();

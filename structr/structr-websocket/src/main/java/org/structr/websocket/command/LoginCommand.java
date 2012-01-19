@@ -34,6 +34,7 @@ import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.error.FrameworkException;
 import org.structr.websocket.message.MessageBuilder;
 
 //~--- classes ----------------------------------------------------------------
@@ -63,32 +64,33 @@ public class LoginCommand extends AbstractCommand {
 				Authenticator auth      = (Authenticator) Services.command(SecurityContext.getSuperUserInstance(), AuthenticatorCommand.class).execute(socket.getConfig());
 
 				user = auth.doLogin(socket.getRequest(), username, password);
+				if (user != null) {
+
+					String token = StructrWebSocket.secureRandomString();
+
+					// store token in user
+					user.setProperty(User.Key.sessionId, token);
+
+					// store token in response data
+					webSocketData.getData().clear();
+					webSocketData.setToken(token);
+
+					// authenticate socket
+					this.getWebSocket().setAuthenticated(token);
+
+					// send data..
+					this.getWebSocket().send(webSocketData, false);
+
+				}
 
 			} catch (AuthenticationException e) {
 
 				logger.log(Level.INFO, "Could not login {0} with {1}", new Object[] { username, password });
 				this.getWebSocket().send(MessageBuilder.status().code(403).build(), true);
+
+			} catch(FrameworkException fex) {
+				logger.log(Level.WARNING, "Unable to execute command", fex);
 			}
-
-			if (user != null) {
-
-				String token = StructrWebSocket.secureRandomString();
-
-				// store token in user
-				user.setProperty(User.Key.sessionId, token);
-
-				// store token in response data
-				webSocketData.getData().clear();
-				webSocketData.setToken(token);
-
-				// authenticate socket
-				this.getWebSocket().setAuthenticated(token);
-
-				// send data..
-				this.getWebSocket().send(webSocketData, false);
-
-			}
-
 		}
 	}
 

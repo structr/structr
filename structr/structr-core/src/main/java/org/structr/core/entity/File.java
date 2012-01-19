@@ -47,6 +47,7 @@ import java.net.URL;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.error.FrameworkException;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -182,19 +183,19 @@ public class File extends AbstractNode {
 
 	//~--- set methods ----------------------------------------------------
 
-	public void setRelativeFilePath(final String filePath) {
+	public void setRelativeFilePath(final String filePath) throws FrameworkException {
 		setProperty(Key.relativeFilePath.name(), filePath);
 	}
 
-	public void setUrl(final String url) {
+	public void setUrl(final String url) throws FrameworkException {
 		setProperty(Key.url.name(), url);
 	}
 
-	public void setContentType(final String contentType) {
+	public void setContentType(final String contentType) throws FrameworkException {
 		setProperty(Key.contentType.name(), contentType);
 	}
 
-	public void setSize(final long size) {
+	public void setSize(final long size) throws FrameworkException {
 		setProperty(Key.size.name(), size);
 	}
 }

@@ -8,7 +8,13 @@ package org.structr.core.validator;
 import java.util.LinkedList;
 import java.util.List;
 import org.apache.commons.lang.StringUtils;
-import org.structr.common.ErrorBuffer;
+import org.structr.common.error.EmptyPropertyToken;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
+import org.structr.common.error.NotFoundToken;
+import org.structr.common.error.PropertiesNotFoundToken;
+import org.structr.common.error.PropertyNotFoundToken;
+import org.structr.common.error.TypeToken;
 import org.structr.core.PropertyValidator;
 import org.structr.core.Services;
 import org.structr.core.Value;
@@ -39,13 +45,13 @@ public class TypeAndExactNameValidator extends PropertyValidator {
 		}
 
 		if(!(value instanceof String)) {
-			errorBuffer.add("Property '", key, "' must be of type string.");
+			errorBuffer.add("TypeAndExactNameValidator", new TypeToken(key, "string"));
 			return false;
 		}
 
 		String stringValue = (String)value;
 		if(StringUtils.isBlank(stringValue)) {
-			errorBuffer.add("Property '", key, "' must not be empty.");
+			errorBuffer.add("TypeAndExactNameValidator", new EmptyPropertyToken(key));
 			return false;
 		}
 
@@ -56,16 +62,23 @@ public class TypeAndExactNameValidator extends PropertyValidator {
 		attrs.add(Search.andType(type));
 
 		// just check for existance
-		List<AbstractNode> nodes = (List<AbstractNode>)Services.command(securityContext, SearchNodeCommand.class).execute(null, false, false, attrs);
-		if(nodes != null && !nodes.isEmpty()) {
+		try {
+			List<AbstractNode> nodes = (List<AbstractNode>)Services.command(securityContext, SearchNodeCommand.class).execute(null, false, false, attrs);
+			if(nodes != null && !nodes.isEmpty()) {
 
-			return true;
+				return true;
 
-		} else {
+			} else {
 
-			errorBuffer.add("Property value for '", key, "' does not match any existing value.");
-			return false;
+				errorBuffer.add("TypeAndExactNameValidator", new PropertyNotFoundToken(key, value));
+				return false;
+			}
+
+		} catch(FrameworkException fex ) {
+			// handle error
 		}
+
+		return false;
 	}
 
 }

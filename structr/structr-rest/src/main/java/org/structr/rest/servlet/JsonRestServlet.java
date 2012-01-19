@@ -25,7 +25,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSyntaxException;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileWriter;
 
@@ -48,7 +47,6 @@ import org.structr.rest.constraint.SortConstraint;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.MessageException;
 import org.structr.rest.exception.NoResultsException;
-import org.structr.rest.exception.PathException;
 import org.structr.core.PropertySet;
 import org.structr.core.PropertySet.PropertyFormat;
 
@@ -76,7 +74,9 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
+import org.structr.rest.adapter.FrameworkExceptionGSONAdapter;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -180,8 +180,13 @@ public class JsonRestServlet extends HttpServlet {
 		this.propertySetAdapter = new PropertySetGSONAdapter(propertyFormat, defaultIdProperty);
 
 		// create GSON serializer
-		this.gson = new GsonBuilder().setPrettyPrinting().serializeNulls().registerTypeAdapter(PropertySet.class,
-			propertySetAdapter).registerTypeAdapter(Result.class, resultGsonAdapter).create();
+		this.gson = new GsonBuilder()
+			.setPrettyPrinting()
+			.serializeNulls()
+			.registerTypeHierarchyAdapter(FrameworkException.class, new FrameworkExceptionGSONAdapter())
+			.registerTypeAdapter(PropertySet.class, propertySetAdapter)
+			.registerTypeAdapter(Result.class, resultGsonAdapter)
+			.create();
 
 		String requestLoggingParameter = this.getInitParameter(SERVLET_PARAMETER_REQUEST_LOGGING);
 		if(requestLoggingParameter != null && "true".equalsIgnoreCase(requestLoggingParameter)) {
@@ -240,12 +245,12 @@ public class JsonRestServlet extends HttpServlet {
 
 		} catch (IllegalArgumentException illegalArgumentException) {
 			handleValidationError(illegalArgumentException, response);
-		} catch (PathException pathException) {
+		} catch (FrameworkException frameworkException) {
 
-			int code = pathException.getStatus();
+			int code = frameworkException.getStatus();
 
 			response.setStatus(code);
-			response.getWriter().append(jsonError(code, pathException.getMessage()));
+			response.getWriter().append(jsonError(code, frameworkException.getMessage()));
 
 		} catch (JsonSyntaxException jsex) {
 
@@ -300,7 +305,6 @@ public class JsonRestServlet extends HttpServlet {
 
 			// create result set
 			Result result = new Result(resourceConstraint.doGet(), resourceConstraint.isCollectionResource());
-
 			if (result != null) {
 
 				DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
@@ -337,14 +341,14 @@ public class JsonRestServlet extends HttpServlet {
 			response.getWriter().flush();
 			response.getWriter().close();
 
-		} catch (IllegalArgumentException illegalArgumentException) {
-			handleValidationError(illegalArgumentException, response);
-		} catch (PathException pathException) {
+		} catch (FrameworkException frameworkException) {
 
-			int code = pathException.getStatus();
+			// set status & write JSON output
+			response.setStatus(frameworkException.getStatus());
+			gson.toJson(frameworkException, response.getWriter());
 
-			response.setStatus(code);
-			response.getWriter().append(jsonError(code, pathException.getMessage()));
+			response.getWriter().flush();
+			response.getWriter().close();
 
 		} catch (JsonSyntaxException jsex) {
 
@@ -396,12 +400,12 @@ public class JsonRestServlet extends HttpServlet {
 
 		} catch (IllegalArgumentException illegalArgumentException) {
 			handleValidationError(illegalArgumentException, response);
-		} catch (PathException pathException) {
+		} catch (FrameworkException frameworkException) {
 
-			int code = pathException.getStatus();
+			int code = frameworkException.getStatus();
 
 			response.setStatus(code);
-			response.getWriter().append(jsonError(code, pathException.getMessage()));
+			response.getWriter().append(jsonError(code, frameworkException.getMessage()));
 
 		} catch (JsonSyntaxException jsex) {
 
@@ -453,12 +457,12 @@ public class JsonRestServlet extends HttpServlet {
 
 		} catch (IllegalArgumentException illegalArgumentException) {
 			handleValidationError(illegalArgumentException, response);
-		} catch (PathException pathException) {
+		} catch (FrameworkException frameworkException) {
 
-			int code = pathException.getStatus();
+			int code = frameworkException.getStatus();
 
 			response.setStatus(code);
-			response.getWriter().append(jsonError(code, pathException.getMessage()));
+			response.getWriter().append(jsonError(code, frameworkException.getMessage()));
 
 		} catch (JsonSyntaxException jsex) {
 
@@ -534,12 +538,14 @@ public class JsonRestServlet extends HttpServlet {
 
 		} catch (IllegalArgumentException illegalArgumentException) {
 			handleValidationError(illegalArgumentException, response);
-		} catch (PathException pathException) {
+		} catch (FrameworkException frameworkException) {
 
-			int code = pathException.getStatus();
+			// set status & write JSON output
+			response.setStatus(frameworkException.getStatus());
+			gson.toJson(frameworkException, response.getWriter());
 
-			response.setStatus(code);
-			response.getWriter().append(jsonError(code, pathException.getMessage()));
+			response.getWriter().flush();
+			response.getWriter().close();
 
 		} catch (JsonSyntaxException jsex) {
 
@@ -619,12 +625,12 @@ public class JsonRestServlet extends HttpServlet {
 
 		} catch (IllegalArgumentException illegalArgumentException) {
 			handleValidationError(illegalArgumentException, response);
-		} catch (PathException pathException) {
+		} catch (FrameworkException frameworkException) {
 
-			int code = pathException.getStatus();
+			int code = frameworkException.getStatus();
 
 			response.setStatus(code);
-			response.getWriter().append(jsonError(code, pathException.getMessage()));
+			response.getWriter().append(jsonError(code, frameworkException.getMessage()));
 
 		} catch (JsonSyntaxException jsex) {
 
@@ -674,7 +680,7 @@ public class JsonRestServlet extends HttpServlet {
 	// </editor-fold>
 
 	// <editor-fold defaultstate="collapsed" desc="private methods">
-	private List<ResourceConstraint> parsePath(SecurityContext securityContext, HttpServletRequest request) throws PathException {
+	private List<ResourceConstraint> parsePath(SecurityContext securityContext, HttpServletRequest request) throws FrameworkException {
 
 		String path = request.getPathInfo();
 
@@ -755,7 +761,7 @@ public class JsonRestServlet extends HttpServlet {
 		return constraintChain;
 	}
 
-	private ResourceConstraint optimizeConstraintChain(List<ResourceConstraint> constraintChain) throws PathException {
+	private ResourceConstraint optimizeConstraintChain(List<ResourceConstraint> constraintChain) throws FrameworkException {
 
 		int num        = constraintChain.size();
 		boolean found  = false;
@@ -779,7 +785,6 @@ public class JsonRestServlet extends HttpServlet {
 			for (int i = 0; i < num; i++) {
 
 				try {
-
 					ResourceConstraint firstElement       = constraintChain.get(i);
 					ResourceConstraint secondElement      = constraintChain.get(i + 1);
 					ResourceConstraint combinedConstraint = firstElement.tryCombineWith(secondElement);
@@ -807,15 +812,9 @@ public class JsonRestServlet extends HttpServlet {
 
 					}
 
-				} catch (PathException p) {
-
-					// re-throw any PathException on the way
-					throw p;
-				} catch (Throwable t) {
-
-					// logger.log(Level.WARNING, "Exception while combining constraints", t);
+				} catch(Throwable t) {
+					// ignore exceptions thrown here
 				}
-
 			}
 
 			iterations++;
@@ -894,7 +893,7 @@ public class JsonRestServlet extends HttpServlet {
 		}
 	}
 
-	private ResourceConstraint addSortingAndPaging(HttpServletRequest request, SecurityContext securityContext, ResourceConstraint finalConstraint) throws PathException {
+	private ResourceConstraint addSortingAndPaging(HttpServletRequest request, SecurityContext securityContext, ResourceConstraint finalConstraint) throws FrameworkException {
 
 		ResourceConstraint pagedSortedConstraint = finalConstraint;
 

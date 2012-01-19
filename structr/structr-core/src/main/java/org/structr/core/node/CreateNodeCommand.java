@@ -42,7 +42,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.ErrorBuffer;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.Transformation;
 
@@ -59,7 +60,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public Object execute(Object... parameters) {
+	public Object execute(Object... parameters) throws FrameworkException {
 
 		GraphDatabaseService graphDb   = (GraphDatabaseService) arguments.get("graphDb");
 		StructrNodeFactory nodeFactory = (StructrNodeFactory) arguments.get("nodeFactory");
@@ -109,19 +110,8 @@ public class CreateNodeCommand extends NodeServiceCommand {
 			node.setProperty(AbstractNode.Key.type.name(), nodeType);
 			attrs.remove(AbstractNode.Key.type.name());
 
-			ErrorBuffer errorBuffer = new ErrorBuffer();
 			for(Entry<String, Object> attr : attrs.entrySet()) {
-
-				try {
-					node.setProperty(attr.getKey(), attr.getValue());
-
-				} catch(Throwable t) {
-					errorBuffer.add(t.getMessage());
-				}
-			}
-
-			if(errorBuffer.hasError()) {
-				throw new IllegalArgumentException(errorBuffer.toString());
+				node.setProperty(attr.getKey(), attr.getValue());
 			}
 
 			attrs.clear();

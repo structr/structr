@@ -11,10 +11,8 @@ import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.FindNodeCommand;
 import org.structr.rest.RestMethodResult;
-import org.structr.core.VetoableGraphObjectListener;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
-import org.structr.rest.exception.PathException;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -23,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
+import org.structr.common.error.FrameworkException;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -56,7 +55,7 @@ public class IdConstraint extends FilterableConstraint {
 	}
 
 	@Override
-	public List<? extends GraphObject> doGet() throws PathException {
+	public List<? extends GraphObject> doGet() throws FrameworkException {
 
 		GraphObject obj = getNode();
 
@@ -73,24 +72,24 @@ public class IdConstraint extends FilterableConstraint {
 	}
 
 	@Override
-	public RestMethodResult doPost(Map<String, Object> propertySet) throws Throwable {
+	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
 
 		// POST cannot be done on a single ID
 		throw new IllegalPathException();
 	}
 
 	@Override
-	public RestMethodResult doHead() throws Throwable {
+	public RestMethodResult doHead() throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
-	public RestMethodResult doOptions() throws Throwable {
+	public RestMethodResult doOptions() throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
-	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws PathException {
+	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws FrameworkException {
 
 		if(next instanceof RelationshipConstraint) {
 
@@ -104,7 +103,7 @@ public class IdConstraint extends FilterableConstraint {
 
 	//~--- get methods ----------------------------------------------------
 
-	public AbstractNode getNode() throws PathException {
+	public AbstractNode getNode() throws FrameworkException {
 		return (AbstractNode) Services.command(securityContext, FindNodeCommand.class).execute(getId());
 	}
 

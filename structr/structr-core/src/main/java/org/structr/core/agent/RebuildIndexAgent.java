@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -48,7 +49,7 @@ public class RebuildIndexAgent extends Agent {
     }
 
     @Override
-    public ReturnValue processTask(Task task) {
+    public ReturnValue processTask(Task task) throws FrameworkException {
 
         if (task instanceof RebuildIndexTask) {
 
@@ -65,7 +66,7 @@ public class RebuildIndexAgent extends Agent {
         return (ReturnValue.Success);
     }
 
-    private long rebuildIndex() {
+    private long rebuildIndex() throws FrameworkException {
 
 	// FIXME: superuser security context
 	final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
@@ -73,7 +74,7 @@ public class RebuildIndexAgent extends Agent {
         Long nodes = (Long) transactionCommand.execute(new StructrTransaction() {
 
             @Override
-            public Object execute() throws Throwable {
+            public Object execute() throws FrameworkException {
 
 //                GraphDatabaseService graphDb = (GraphDatabaseService) Services.command(securityContext, GraphDatabaseCommand.class).execute();
 

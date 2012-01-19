@@ -25,6 +25,7 @@ import java.util.LinkedList;
 import java.util.List;
 import org.structr.common.CaseHelper;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -50,75 +51,80 @@ public class ListCommand extends AbstractCommand {
 		boolean includeDeleted = false;
 		boolean publicOnly = false;
 
-		// do search
-		List<GraphObject> results = (List<GraphObject>)Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(
-			topNode,
-			includeDeleted,
-			publicOnly,
-			searchAttributes
-		);
+		try {
+			// do search
+			List<GraphObject> results = (List<GraphObject>)Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(
+				topNode,
+				includeDeleted,
+				publicOnly,
+				searchAttributes
+			);
 
-		// sorting
-		if(webSocketData.getSortKey() != null) {
+			// sorting
+			if(webSocketData.getSortKey() != null) {
 
-			final String sortOrder = webSocketData.getSortOrder();
-			final String sortKey = webSocketData.getSortKey();
-			Comparator<GraphObject> comparator = null;
+				final String sortOrder = webSocketData.getSortOrder();
+				final String sortKey = webSocketData.getSortKey();
+				Comparator<GraphObject> comparator = null;
 
-			try {
-				if("desc".equalsIgnoreCase(sortOrder)) {
+				try {
+					if("desc".equalsIgnoreCase(sortOrder)) {
 
-					comparator = new Comparator<GraphObject>() {
-						@Override
-						public int compare(GraphObject n1, GraphObject n2) {
-							Comparable c1 = (Comparable)n1.getProperty(sortKey);
-							Comparable c2 = (Comparable)n2.getProperty(sortKey);
-							return(c2.compareTo(c1));
-						}
-					};
+						comparator = new Comparator<GraphObject>() {
+							@Override
+							public int compare(GraphObject n1, GraphObject n2) {
+								Comparable c1 = (Comparable)n1.getProperty(sortKey);
+								Comparable c2 = (Comparable)n2.getProperty(sortKey);
+								return(c2.compareTo(c1));
+							}
+						};
 
-				} else {
+					} else {
 
-					comparator = new Comparator<GraphObject>() {
-						@Override
-						public int compare(GraphObject n1, GraphObject n2) {
-							Comparable c1 = (Comparable)n1.getProperty(sortKey);
-							Comparable c2 = (Comparable)n2.getProperty(sortKey);
-							return(c1.compareTo(c2));
-						}
-					};
+						comparator = new Comparator<GraphObject>() {
+							@Override
+							public int compare(GraphObject n1, GraphObject n2) {
+								Comparable c1 = (Comparable)n1.getProperty(sortKey);
+								Comparable c2 = (Comparable)n2.getProperty(sortKey);
+								return(c1.compareTo(c2));
+							}
+						};
+					}
+
+					if(comparator != null) {
+						Collections.sort(results, comparator);
+					}
+
+				} catch(Throwable t) {
+					// todo: logging
 				}
-
-				if(comparator != null) {
-					Collections.sort(results, comparator);
-				}
-
-			} catch(Throwable t) {
-				// todo: logging
 			}
+
+			// paging
+			if(webSocketData.getPageSize() > 0) {
+
+				int pageSize = webSocketData.getPageSize();
+				int page = webSocketData.getPage();
+				int resultCount = results.size();
+
+				int fromIndex = Math.min(resultCount, Math.max(0, (page-1) * pageSize));
+				int toIndex = Math.min(resultCount, page*pageSize);
+
+				// set paged results
+				webSocketData.setResult(results.subList(fromIndex, toIndex));
+
+			} else {
+
+				// set full result list
+				webSocketData.setResult(results);
+			}
+
+			// send only over local connection
+			getWebSocket().send(webSocketData, true);
+
+		} catch(FrameworkException fex) {
+			fex.printStackTrace();
 		}
-
-		// paging
-		if(webSocketData.getPageSize() > 0) {
-			
-			int pageSize = webSocketData.getPageSize();
-			int page = webSocketData.getPage();
-			int resultCount = results.size();
-
-			int fromIndex = Math.min(resultCount, Math.max(0, (page-1) * pageSize));
-			int toIndex = Math.min(resultCount, page*pageSize);
-
-			// set paged results
-			webSocketData.setResult(results.subList(fromIndex, toIndex));
-			
-		} else {
-			
-			// set full result list
-			webSocketData.setResult(results);
-		}
-
-		// send only over local connection
-		getWebSocket().send(webSocketData, true);
 	}
 
 	@Override

@@ -21,6 +21,7 @@ package org.structr.core;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 
 /**
  * The base class for all types of commands.
@@ -76,7 +77,7 @@ public abstract class Command {
      * @param parameters the parameters
      * @return the result
      */
-    public abstract Object execute(Object... parameters);
+    public abstract Object execute(Object... parameters) throws FrameworkException;
 
     /**
      * Returns the service class this command belongs to. Implement this method

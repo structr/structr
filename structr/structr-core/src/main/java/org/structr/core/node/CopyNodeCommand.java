@@ -24,6 +24,7 @@ import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.common.RelType;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.User;
 
 /**
@@ -39,7 +40,7 @@ public class CopyNodeCommand extends NodeServiceCommand {
     private static final Logger logger = Logger.getLogger(CopyNodeCommand.class.getName());
 
     @Override
-    public Object execute(Object... parameters) {
+    public Object execute(Object... parameters) throws FrameworkException {
         AbstractNode node = null;
         AbstractNode targetNode = null;
         User user = null;
@@ -87,7 +88,7 @@ public class CopyNodeCommand extends NodeServiceCommand {
         return (doCopyNode(node, targetNode, user));
     }
 
-    private AbstractNode doCopyNode(AbstractNode node, AbstractNode targetNode, User user) {
+    private AbstractNode doCopyNode(AbstractNode node, AbstractNode targetNode, User user) throws FrameworkException {
 
         if (node != null) {
 

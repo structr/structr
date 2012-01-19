@@ -22,7 +22,10 @@ package org.structr.core.node.operation;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -37,6 +40,7 @@ import org.structr.core.node.TransactionCommand;
  */
 public class MoveOperation implements PrimaryOperation {
 
+	private static final Logger logger = Logger.getLogger(MoveOperation.class.getName());
 	private ParameterState parameterState = ParameterState.NoNodeSet;
 
 	private List<Callback> callbacks = new LinkedList<Callback>();
@@ -57,18 +61,23 @@ public class MoveOperation implements PrimaryOperation {
 
 		if(parameterState.equals(ParameterState.DestinationNodeSet)) {
 
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+			try {
+				Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
-				@Override
-				public Object execute() throws Throwable {
+					@Override
+					public Object execute() throws FrameworkException {
 
-					Command moveCommand = Services.command(securityContext, MoveNodeCommand.class);
-					moveCommand.execute(sourceNode, destinationNode);
+						Command moveCommand = Services.command(securityContext, MoveNodeCommand.class);
+						moveCommand.execute(sourceNode, destinationNode);
 
-					return(null);
-				}
+						return(null);
+					}
 
-			});
+				});
+
+			} catch(FrameworkException fex) {
+				logger.log(Level.WARNING, "Unable to move node", fex);
+			}
 		}
 
 		return(true);
@@ -146,18 +155,24 @@ public class MoveOperation implements PrimaryOperation {
 
 		} else {
 
-			Object findNodeReturnValue = findNodeCommand.execute(currentNode, parameter);
-			if(findNodeReturnValue instanceof Collection) {
+			try {
 
-				throw new InvalidParameterException("MOVE does not support wildcards");
+				Object findNodeReturnValue = findNodeCommand.execute(currentNode, parameter);
+				if(findNodeReturnValue instanceof Collection) {
 
-			} else if(findNodeReturnValue instanceof AbstractNode) {
+					throw new InvalidParameterException("MOVE does not support wildcards");
 
-				ret = (AbstractNode)findNodeReturnValue;
+				} else if(findNodeReturnValue instanceof AbstractNode) {
 
-			} else {
+					ret = (AbstractNode)findNodeReturnValue;
 
-				throw new InvalidParameterException("Node " + parameter.toString() + " not found");
+				} else {
+
+					throw new InvalidParameterException("Node " + parameter.toString() + " not found");
+				}
+
+			} catch(FrameworkException fex) {
+				fex.printStackTrace();
 			}
 
 		}

@@ -31,6 +31,7 @@ import org.structr.core.NodeRenderer;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.Map;
+import org.structr.common.error.FrameworkException;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -83,19 +84,19 @@ public class PlainText extends AbstractNode {
 
 	//~--- set methods ----------------------------------------------------
 
-	public void setContent(final String content) {
+	public void setContent(final String content) throws FrameworkException {
 
 		setProperty(Key.content.name(),
 			    content);
 	}
 
-	public void setContentType(final String contentType) {
+	public void setContentType(final String contentType) throws FrameworkException {
 
 		setProperty(Key.contentType.name(),
 			    contentType);
 	}
 
-	public void setSize(final String size) {
+	public void setSize(final String size) throws FrameworkException {
 
 		setProperty(Key.size.name(),
 			    size);

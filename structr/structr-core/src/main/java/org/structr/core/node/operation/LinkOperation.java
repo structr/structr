@@ -16,13 +16,13 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package org.structr.core.node.operation;
 
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -40,7 +40,6 @@ import org.structr.core.node.TransactionCommand;
 public class LinkOperation implements PrimaryOperation, NodeRelationshipOperation, NodePropertyOperation {
 
 	private ParameterState parameterState = ParameterState.NoNodeSet;
-
 	private List<NodeAttribute> attributes = new LinkedList<NodeAttribute>();
 	private List<String> relationships = new LinkedList<String>();
 	private List<Callback> callbacks = new LinkedList<Callback>();
@@ -69,29 +68,34 @@ public class LinkOperation implements PrimaryOperation, NodeRelationshipOperatio
 			Command createRelationshipCommand = Services.command(securityContext, CreateRelationshipCommand.class);
 			for(String rel : relationships) {
 
-				final StructrRelationship newRel = (StructrRelationship)createRelationshipCommand.execute(startNode, endNode, rel);
+				try {
 
-				if(newRel != null) {
+					final StructrRelationship newRel = (StructrRelationship)createRelationshipCommand.execute(startNode, endNode, rel);
 
-					Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+					if(newRel != null) {
 
-						@Override
-						public Object execute() throws Throwable {
+						Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
-							for(NodeAttribute attribute : attributes) {
-								newRel.setProperty(attribute.getKey(), attribute.getValue());
+							@Override
+							public Object execute() throws FrameworkException {
+
+								for(NodeAttribute attribute : attributes) {
+									newRel.setProperty(attribute.getKey(), attribute.getValue());
+								}
+
+								return (null);
 							}
+						});
 
-							return(null);
-						}
+						ret = true;
 
-					});
+					} else {
 
-					ret = true;
+						ret = false;
+					}
 
-				} else {
-
-					ret = false;
+				} catch(FrameworkException fex) {
+					fex.printStackTrace();
 				}
 			}
 
@@ -100,16 +104,16 @@ public class LinkOperation implements PrimaryOperation, NodeRelationshipOperatio
 			throw new NodeCommandException("Invalid number of parameters");
 		}
 
-		return(ret);
+		return (ret);
 	}
 
 	@Override
 	public String help() {
-		
+
 		StringBuilder ret = new StringBuilder(100);
 		ret.append("usage: ln [startNode] [endNode] [using [relationship(s)]] [with [attribute(s)]] - link nodes");
 
-		return(ret.toString());
+		return (ret.toString());
 	}
 
 	@Override
@@ -124,18 +128,18 @@ public class LinkOperation implements PrimaryOperation, NodeRelationshipOperatio
 
 	@Override
 	public int getParameterCount() {
-		return(2);
+		return (2);
 	}
 
 	@Override
 	public String getKeyword() {
-		return("ln");
+		return ("ln");
 	}
 
 	@Override
 	public boolean canExecute() {
 
-		return(parameterState.equals(ParameterState.EndNodeSet));
+		return (parameterState.equals(ParameterState.EndNodeSet));
 	}
 
 	@Override
@@ -191,23 +195,28 @@ public class LinkOperation implements PrimaryOperation, NodeRelationshipOperatio
 
 		} else {
 
-			Object findNodeReturnValue = findNodeCommand.execute(currentNode, parameter);
-			if(findNodeReturnValue instanceof Collection) {
+			try {
+				Object findNodeReturnValue = findNodeCommand.execute(currentNode, parameter);
+				if(findNodeReturnValue instanceof Collection) {
 
-				throw new InvalidParameterException("LINK does not support wildcards");
+					throw new InvalidParameterException("LINK does not support wildcards");
 
-			} else if(findNodeReturnValue instanceof AbstractNode) {
+				} else if(findNodeReturnValue instanceof AbstractNode) {
 
-				ret = (AbstractNode)findNodeReturnValue;
+					ret = (AbstractNode)findNodeReturnValue;
 
-			} else {
+				} else {
 
-				throw new InvalidParameterException("Node " + parameter.toString() + " not found");
+					throw new InvalidParameterException("Node " + parameter.toString() + " not found");
+				}
+
+			} catch(FrameworkException fex) {
+				fex.printStackTrace();
 			}
 
 		}
 
-		return(ret);
+		return (ret);
 	}
 
 	@Override

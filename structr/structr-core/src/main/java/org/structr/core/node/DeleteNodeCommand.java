@@ -31,7 +31,7 @@ import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.common.RelType;
-import org.structr.core.EntityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.StructrRelationship;
 
 /**
@@ -48,7 +48,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
     private static final Logger logger = Logger.getLogger(DeleteNodeCommand.class.getName());
 
     @Override
-    public Object execute(Object... parameters) {
+    public Object execute(Object... parameters) throws FrameworkException {
         AbstractNode node = null;
         AbstractNode parentNode = null;
         Boolean recursive = false;
@@ -160,7 +160,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 	return newParentNode;
     }
 
-    private AbstractNode doDeleteNode(final AbstractNode structrNode, final AbstractNode parentNode, final Boolean recursive) {
+    private AbstractNode doDeleteNode(final AbstractNode structrNode, final AbstractNode parentNode, final Boolean recursive) throws FrameworkException {
 
         GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
 
@@ -172,7 +172,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
         AbstractNode newParentNode = (AbstractNode) transactionCommand.execute(new StructrTransaction() {
 
             @Override
-            public Object execute() throws Throwable {
+            public Object execute() throws FrameworkException {
 
                 AbstractNode newParentNode = null;
 

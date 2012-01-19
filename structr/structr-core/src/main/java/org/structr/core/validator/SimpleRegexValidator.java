@@ -20,7 +20,8 @@
 package org.structr.core.validator;
 
 import java.util.regex.Pattern;
-import org.structr.common.ErrorBuffer;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.MatchToken;
 import org.structr.core.PropertyValidator;
 import org.structr.core.Value;
 
@@ -37,8 +38,8 @@ public class SimpleRegexValidator extends PropertyValidator<String> {
 		if(value != null && Pattern.compile(parameter.get()).matcher(value.toString()).matches()) {
 			return true;
 		}
-		
-		errorBuffer.add("Property '", key, "' must match '", parameter.get(), "'.");
+
+		errorBuffer.add("SimpleRegexValidator", new MatchToken(key, parameter.get()));
 		return false;
 	}
 }

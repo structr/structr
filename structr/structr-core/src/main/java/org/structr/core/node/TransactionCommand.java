@@ -30,6 +30,7 @@ import org.neo4j.graphdb.Transaction;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 
 //~--- classes ----------------------------------------------------------------
@@ -46,15 +47,15 @@ public class TransactionCommand extends NodeServiceCommand {
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public Object execute(Object... parameters) {
+	public Object execute(Object... parameters) throws FrameworkException {
 
-		Object ret                   = null;
 		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
+		FrameworkException exception = null;
+		Object ret                   = null;
 
 		if ((parameters.length > 0) && (parameters[0] instanceof StructrTransaction)) {
 
 			StructrTransaction transaction = (StructrTransaction) parameters[0];
-
 			if (graphDb != null) {
 
 				Transaction tx = graphDb.beginTx();
@@ -66,11 +67,13 @@ public class TransactionCommand extends NodeServiceCommand {
 					tx.success();
 					logger.log(Level.FINEST, "Transaction successfull");
 
-				} catch (Throwable t) {
+				} catch (FrameworkException frameworkException) {
 
-					transaction.setCause(t);
 					tx.failure();
-					logger.log(Level.WARNING, "Transaction failure", t);
+					logger.log(Level.WARNING, "Transaction failure", frameworkException);
+
+					// store exception for later use
+					exception = frameworkException;
 
 				} finally {
 
@@ -82,13 +85,8 @@ public class TransactionCommand extends NodeServiceCommand {
 					} catch (Throwable t) {
 
 						// transaction failed, look for "real" cause..
-						Throwable throwable = EntityContext.getThrowable(transactionKey);
+						exception = EntityContext.getFrameworkException(transactionKey);
 						EntityContext.removeTransactionKey();
-
-						if(throwable != null) {
-							throwable.printStackTrace();
-							throw new IllegalArgumentException(throwable.getMessage());
-						}
 					}
 				}
 
@@ -106,12 +104,14 @@ public class TransactionCommand extends NodeServiceCommand {
 				tx.success();
 				logger.log(Level.FINEST, "Transaction successfull");
 
-			} catch (Throwable t) {
+			} catch (FrameworkException frameworkException) {
 
-//                              t.printStackTrace();
-				transaction.setCause(t);
 				tx.failure();
-				logger.log(Level.WARNING, "Transaction failure", t);
+
+				logger.log(Level.WARNING, "Transaction failure", frameworkException);
+
+				exception = frameworkException;
+
 			} finally {
 
 				long transactionKey = nextLong();
@@ -122,15 +122,15 @@ public class TransactionCommand extends NodeServiceCommand {
 				} catch (Throwable t) {
 
 					// transaction failed, look for "real" cause..
-					Throwable throwable = EntityContext.getThrowable(transactionKey);
+					exception = EntityContext.getFrameworkException(transactionKey);
 					EntityContext.removeTransactionKey();
-
-					if(throwable != null) {
-						throw new IllegalArgumentException(throwable.getMessage());
-					}
 				}
 			}
 
+		}
+
+		if(exception != null) {
+			throw exception;
 		}
 
 		return ret;

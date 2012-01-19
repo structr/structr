@@ -26,11 +26,10 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.VetoableGraphObjectListener;
 import org.structr.rest.exception.IllegalPathException;
-import org.structr.rest.exception.PathException;
 
 /**
  *
@@ -62,7 +61,7 @@ public class RelationshipConstraint extends WrappingConstraint {
 	}
 
 	@Override
-	public List<? extends GraphObject> doGet() throws PathException {
+	public List<? extends GraphObject> doGet() throws FrameworkException {
 
 		List<? extends GraphObject> results = wrappedConstraint.doGet();
 		if(results != null && !results.isEmpty()) {
@@ -98,7 +97,7 @@ public class RelationshipConstraint extends WrappingConstraint {
 	}
 
 	@Override
-	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws PathException {
+	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws FrameworkException {
 
 		if(next instanceof IdConstraint) {
 			return new RelationshipIdConstraint(securityContext, this, (IdConstraint)next);

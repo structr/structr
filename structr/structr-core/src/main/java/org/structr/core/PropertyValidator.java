@@ -19,7 +19,7 @@
 
 package org.structr.core;
 
-import org.structr.common.ErrorBuffer;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.SecurityContext;
 
 /**

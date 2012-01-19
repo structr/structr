@@ -21,6 +21,7 @@ package org.structr.core.agent;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.UnsupportedArgumentError;
 import org.structr.core.entity.CsvFile;
@@ -34,46 +35,50 @@ import org.structr.core.node.ConvertCsvToNodeListCommand;
  */
 public class ConversionAgent extends Agent {
 
-    private static final Logger logger = Logger.getLogger(ConversionAgent.class.getName());
+	private static final Logger logger = Logger.getLogger(ConversionAgent.class.getName());
 
-    public ConversionAgent() {
-        setName("ConversionAgent");
-    }
+	public ConversionAgent() {
+		setName("ConversionAgent");
+	}
 
-    @Override
-    public Class getSupportedTaskType() {
-        return (ConversionTask.class);
-    }
+	@Override
+	public Class getSupportedTaskType() {
+		return (ConversionTask.class);
+	}
 
-    @Override
-    public ReturnValue processTask(Task task) {
+	@Override
+	public ReturnValue processTask(Task task) {
 
-        if (task instanceof ConversionTask) {
+		if(task instanceof ConversionTask) {
 
-            ConversionTask ct = (ConversionTask) task;
-            logger.log(Level.INFO, "Task found, starting conversion ...");
-            convert(ct.getUser(), ct.getSourceNode(), ct.getTargetNodeClass());
-            logger.log(Level.INFO, " done.");
+			ConversionTask ct = (ConversionTask)task;
+			logger.log(Level.INFO, "Task found, starting conversion ...");
+			convert(ct.getUser(), ct.getSourceNode(), ct.getTargetNodeClass());
+			logger.log(Level.INFO, " done.");
 
-        }
+		}
 
-        return (ReturnValue.Success);
-    }
+		return (ReturnValue.Success);
+	}
 
-    private void convert(final User user, final AbstractNode sourceNode, final Class targetClass) {
+	private void convert(final User user, final AbstractNode sourceNode, final Class targetClass) {
 
-	// FIXME: superuser security context
-	final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+		// FIXME: superuser security context
+		final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
 
-	if (sourceNode == null) {
-            throw new UnsupportedArgumentError("Source node is null!");
-        }
+		if(sourceNode == null) {
+			throw new UnsupportedArgumentError("Source node is null!");
+		}
 
-        if (sourceNode instanceof CsvFile) {
-            Services.command(securityContext, ConvertCsvToNodeListCommand.class).execute(user, sourceNode, targetClass);
-        } else {
-            throw new UnsupportedArgumentError("Source node type " + sourceNode.getType() + " not supported. This agent can convert only CSV files.");
-        }
+		if(sourceNode instanceof CsvFile) {
+			try {
+				Services.command(securityContext, ConvertCsvToNodeListCommand.class).execute(user, sourceNode, targetClass);
+			} catch(FrameworkException fex) {
+				fex.printStackTrace();
+			}
+		} else {
+			throw new UnsupportedArgumentError("Source node type " + sourceNode.getType() + " not supported. This agent can convert only CSV files.");
+		}
 
-    }
+	}
 }

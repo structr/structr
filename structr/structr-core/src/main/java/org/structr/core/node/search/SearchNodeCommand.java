@@ -48,6 +48,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.error.FrameworkException;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -76,7 +77,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public Object execute(Object... parameters) {
+	public Object execute(Object... parameters) throws FrameworkException {
 
 		if ((parameters == null) || (parameters.length < 4)) {
 
@@ -151,7 +152,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 	 * @return
 	 */
 	private List<AbstractNode> search(final SecurityContext securityContext, final AbstractNode topNode, final boolean includeDeleted,
-					  final boolean publicOnly, final List<SearchAttribute> searchAttrs, final String type, final String propertyKey) {
+					  final boolean publicOnly, final List<SearchAttribute> searchAttrs, final String type, final String propertyKey) throws FrameworkException {
 
 		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
 		Index<Node> index;
