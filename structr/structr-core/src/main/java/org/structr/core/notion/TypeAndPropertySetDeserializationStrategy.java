@@ -80,7 +80,7 @@ public class TypeAndPropertySetDeserializationStrategy implements Deserializatio
 				return nodes.get(0);
 			}
 
-			throw new FrameworkException(type.getSimpleName(), new PropertiesNotFoundToken("@base", attrs));
+			throw new FrameworkException(type.getSimpleName(), new PropertiesNotFoundToken("base", attrs));
 		}
 
 		return null;
