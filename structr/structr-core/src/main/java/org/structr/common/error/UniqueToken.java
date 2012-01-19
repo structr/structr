@@ -20,6 +20,7 @@
 package org.structr.common.error;
 
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
 /**
@@ -38,6 +39,11 @@ public class UniqueToken extends SemanticErrorToken {
 
 	@Override
 	public JsonElement getContent() {
-		return new JsonPrimitive("already_taken");
+
+		JsonObject obj = new JsonObject();
+
+		obj.add("already_taken", new JsonPrimitive(value.toString()));
+
+		return obj;
 	}
 }

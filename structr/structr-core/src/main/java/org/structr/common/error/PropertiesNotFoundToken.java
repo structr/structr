@@ -20,9 +20,10 @@
 package org.structr.common.error;
 
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import java.util.List;
-import org.structr.core.node.search.SearchAttribute;
+import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  *
@@ -30,15 +31,29 @@ import org.structr.core.node.search.SearchAttribute;
  */
 public class PropertiesNotFoundToken extends NotFoundToken {
 
-	private List<SearchAttribute> attributes = null;
+	private Map<String, Object> attributes = null;
 
-	public PropertiesNotFoundToken(String key, List<SearchAttribute> attributes) {
+	public PropertiesNotFoundToken(String key, Map<String, Object> attributes) {
 		super(key);
 		this.attributes = attributes;
 	}
 
 	@Override
 	public JsonElement getContent() {
-		return new JsonPrimitive("object_not_found");
+
+		JsonObject obj = new JsonObject();
+		JsonObject vals = new JsonObject();
+
+		for(Entry<String, Object> entry : attributes.entrySet()) {
+
+			String key = entry.getKey();
+			Object value = entry.getValue();
+
+			vals.add(key, new JsonPrimitive(value.toString()));
+		}
+
+		obj.add("object_not_found", vals);
+
+		return obj;
 	}
 }

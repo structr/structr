@@ -19,8 +19,10 @@
 
 package org.structr.core.notion;
 
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.PropertyKey;
@@ -54,7 +56,7 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 
 	@Override
 	public GraphObject deserialize(SecurityContext securityContext, Class type, Object source) throws FrameworkException {
-		
+
 		List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
 		attrs.add(Search.andExactProperty(propertyKey, source.toString()));
 		attrs.add(Search.andExactType(type.getSimpleName()));
@@ -90,6 +92,10 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 
 		}
 
-		throw new FrameworkException(type.getSimpleName(), new PropertiesNotFoundToken("base", attrs));
+		Map<String, Object> attributes = new LinkedHashMap<String, Object>();
+		attributes.put(propertyKey.name(), source.toString());
+		attributes.put("type", type.getSimpleName());
+
+		throw new FrameworkException(type.getSimpleName(), new PropertiesNotFoundToken("base", attributes));
 	}
 }

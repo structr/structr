@@ -20,7 +20,6 @@
 package org.structr.common.error;
 
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import javax.servlet.http.HttpServletResponse;
 
@@ -30,18 +29,12 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class ReadOnlyPropertyToken extends ErrorToken {
 
-
 	public ReadOnlyPropertyToken(String propertyName) {
 		super(HttpServletResponse.SC_FORBIDDEN, propertyName);
 	}
 
 	@Override
 	public JsonElement getContent() {
-
-		JsonObject obj = new JsonObject();
-
-		obj.add(getKey(), new JsonPrimitive("is_read_only_property"));
-
-		return obj;
+		return new JsonPrimitive("is_read_only_property");
 	}
 }

@@ -21,7 +21,7 @@
 
 package org.structr.core.notion;
 
-import org.structr.common.error.ErrorBuffer;
+import java.util.LinkedHashMap;
 import org.structr.common.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
@@ -35,9 +35,9 @@ import org.structr.core.node.search.SearchNodeCommand;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.PropertiesNotFoundToken;
-import org.structr.common.error.PropertyNotFoundToken;
 import org.structr.core.PropertySet;
 import org.structr.core.node.NodeAttribute;
 
@@ -64,14 +64,16 @@ public class TypeAndPropertySetDeserializationStrategy implements Deserializatio
 
 		if (source instanceof PropertySet) {
 
+			Map<String, Object> attributes       = new LinkedHashMap<String, Object>();
 			List<SearchAttribute> attrs          = new LinkedList<SearchAttribute>();
+
 			for (NodeAttribute attr : ((PropertySet) source).getAttributes()) {
 
 				String key = attr.getKey();
 				String value = (String) attr.getValue();
 
 				attrs.add(Search.andExactProperty(key, value));
-
+				attributes.put(key, value);
 			}
 
 			// just check for existance
@@ -80,7 +82,7 @@ public class TypeAndPropertySetDeserializationStrategy implements Deserializatio
 				return nodes.get(0);
 			}
 
-			throw new FrameworkException(type.getSimpleName(), new PropertiesNotFoundToken("base", attrs));
+			throw new FrameworkException(type.getSimpleName(), new PropertiesNotFoundToken("base", attributes));
 		}
 
 		return null;
