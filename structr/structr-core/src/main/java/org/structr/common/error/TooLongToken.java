@@ -38,7 +38,7 @@ public class TooLongToken extends SemanticErrorToken {
 	}
 
 	@Override
-	public JsonElement getErrors() {
+	public JsonElement getContent() {
 
 		JsonObject obj = new JsonObject();
 

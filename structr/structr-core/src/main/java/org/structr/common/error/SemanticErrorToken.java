@@ -19,34 +19,13 @@
 
 package org.structr.common.error;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-
 /**
  *
  * @author Christian Morgner
  */
-public abstract class SemanticErrorToken implements ErrorToken {
-
-	private String propertyKey = null;
+public abstract class SemanticErrorToken extends ErrorToken {
 
 	public SemanticErrorToken(String propertyKey) {
-		this.propertyKey = propertyKey;
-	}
-
-	public abstract JsonElement getErrors();
-
-	@Override
-	public int getStatus() {
-		return 422;
-	}
-
-	@Override
-	public JsonElement getContent() {
-
-		JsonObject obj = new JsonObject();
-		obj.add(propertyKey, getErrors());
-
-		return obj;
+		super(422, propertyKey);
 	}
 }

@@ -32,7 +32,8 @@ public class PropertiesNotFoundToken extends NotFoundToken {
 
 	private List<SearchAttribute> attributes = null;
 
-	public PropertiesNotFoundToken(List<SearchAttribute> attributes) {
+	public PropertiesNotFoundToken(String key, List<SearchAttribute> attributes) {
+		super(key);
 		this.attributes = attributes;
 	}
 

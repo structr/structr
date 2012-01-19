@@ -33,7 +33,7 @@ public class EmptyPropertyToken extends NullPropertyToken {
 	}
 
 	@Override
-	public JsonElement getErrors() {
+	public JsonElement getContent() {
 		return new JsonPrimitive("must_not_be_empty");
 	}
 }

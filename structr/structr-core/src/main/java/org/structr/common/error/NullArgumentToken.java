@@ -27,11 +27,10 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author Christian Morgner
  */
-public class NullArgumentToken implements ErrorToken {
+public class NullArgumentToken extends ErrorToken {
 
-	@Override
-	public int getStatus() {
-		return HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
+	public NullArgumentToken(String key) {
+		super(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, key);
 	}
 
 	@Override

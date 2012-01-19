@@ -18,7 +18,6 @@
  */
 package org.structr.common.error;
 
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -32,29 +31,41 @@ import java.util.Map;
  */
 public class ErrorBuffer {
 
-	private Map<String, List<ErrorToken>> tokens = new LinkedHashMap<String, List<ErrorToken>>();
+	private Map<String, Map<String, List<ErrorToken>>> tokens = new LinkedHashMap<String, Map<String, List<ErrorToken>>>();
 
 	public void add(String type, ErrorToken msg) {
-		getTokenList(type).add(msg);
+		getTokenList(type, msg.getKey()).add(msg);
 	}
 
 	public boolean hasError() {
 		return !tokens.isEmpty();
 	}
 
-	public Map<String, List<ErrorToken>> getErrorTokens() {
+	public Map<String, Map<String, List<ErrorToken>>> getErrorTokens() {
 		return tokens;
 	}
 
 	// ----- private methods -----
-	private List<ErrorToken> getTokenList(String type) {
+	private List<ErrorToken> getTokenList(String type, String key) {
 
-		List<ErrorToken> list = tokens.get(type);
+		Map<String, List<ErrorToken>> map = getTypeList(type);
+		List<ErrorToken> list = map.get(key);
 		if(list == null) {
 			list = new LinkedList<ErrorToken>();
-			tokens.put(type, list);
+			map.put(key, list);
 		}
 
 		return list;
+	}
+
+	private Map<String, List<ErrorToken>> getTypeList(String type) {
+
+		Map<String, List<ErrorToken>> map = tokens.get(type);
+		if(map == null) {
+			map = new LinkedHashMap<String, List<ErrorToken>>();
+			tokens.put(type, map);
+		}
+
+		return map;
 	}
 }

@@ -3881,7 +3881,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		if (key == null) {
 
 			logger.log(Level.SEVERE, "Tried to set property with null key (action was denied)");
-			throw new FrameworkException(type.getSimpleName(), new NullArgumentToken());
+			throw new FrameworkException(type.getSimpleName(), new NullArgumentToken("@base"));
 
 		}
 

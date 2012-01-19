@@ -37,7 +37,7 @@ public class UniqueToken extends SemanticErrorToken {
 	}
 
 	@Override
-	public JsonElement getErrors() {
+	public JsonElement getContent() {
 		return new JsonPrimitive("already_taken");
 	}
 }

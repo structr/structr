@@ -33,7 +33,7 @@ public class NullPropertyToken extends SemanticErrorToken {
 	}
 
 	@Override
-	public JsonElement getErrors() {
+	public JsonElement getContent() {
 		return new JsonPrimitive("must_not_be_null");
 	}
 }

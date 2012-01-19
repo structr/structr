@@ -37,7 +37,7 @@ public class ChronologicalOrderToken extends SemanticErrorToken {
 	}
 
 	@Override
-	public JsonElement getErrors() {
+	public JsonElement getContent() {
 
 		JsonObject obj = new JsonObject();
 

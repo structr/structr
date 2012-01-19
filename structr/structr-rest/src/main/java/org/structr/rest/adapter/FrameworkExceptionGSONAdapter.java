@@ -56,20 +56,41 @@ public class FrameworkExceptionGSONAdapter implements JsonSerializer<FrameworkEx
 		ErrorBuffer errorBuffer = src.getErrorBuffer();
 		if(errorBuffer != null) {
 
-			Map<String, List<ErrorToken>> tokens = errorBuffer.getErrorTokens();
+			Map<String, Map<String, List<ErrorToken>>> tokens = errorBuffer.getErrorTokens();
 			if(!tokens.isEmpty()) {
 
-				for(Entry<String, List<ErrorToken>> entry : tokens.entrySet()) {
+				for(Entry<String, Map<String, List<ErrorToken>>> tokensEntry : tokens.entrySet()) {
 
-					List<ErrorToken> list = entry.getValue();
-					String type = entry.getKey();
+					Map<String, List<ErrorToken>> map = tokensEntry.getValue();
+					JsonObject typeEntry = new JsonObject();
+					String type = tokensEntry.getKey();
+					
+					error.add(type, typeEntry);
+					
+					for(Entry<String, List<ErrorToken>> mapEntry : map.entrySet()) {
+						
+						List<ErrorToken> list = mapEntry.getValue();
+						String key = mapEntry.getKey();
 
-					JsonArray array = new JsonArray();
-					for(ErrorToken token : list) {
-						array.add(token.getContent());
+						if(!list.isEmpty()) {
+							
+							if(list.size() == 1) {
+
+								ErrorToken token = list.get(0);
+								typeEntry.add(key, token.getContent());
+								
+							} else {
+
+								JsonArray array = new JsonArray();
+								for(ErrorToken token : list) {
+									array.add(token.getContent());
+								}
+								
+								typeEntry.add(key, array);
+							}
+						}
+						
 					}
-
-					error.add(type, array);
 				}
 
 				container.add("errors", error);

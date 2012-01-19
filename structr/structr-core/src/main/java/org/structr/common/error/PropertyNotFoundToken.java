@@ -29,11 +29,10 @@ import com.google.gson.JsonPrimitive;
  */
 public class PropertyNotFoundToken extends NotFoundToken {
 
-	private String name = null;
 	private Object value = null;
 
-	public PropertyNotFoundToken(String name, Object value) {
-		this.name = name;
+	public PropertyNotFoundToken(String key, Object value) {
+		super(key);
 		this.value = value;
 	}
 

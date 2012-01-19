@@ -90,6 +90,6 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 
 		}
 
-		throw new FrameworkException(type.getSimpleName(), new PropertiesNotFoundToken(attrs));
+		throw new FrameworkException(type.getSimpleName(), new PropertiesNotFoundToken("@base", attrs));
 	}
 }

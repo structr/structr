@@ -28,17 +28,11 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author Christian Morgner
  */
-public class ReadOnlyPropertyToken implements ErrorToken {
+public class ReadOnlyPropertyToken extends ErrorToken {
 
-	private String propertyName = null;
 
 	public ReadOnlyPropertyToken(String propertyName) {
-		this.propertyName = propertyName;
-	}
-
-	@Override
-	public int getStatus() {
-		return HttpServletResponse.SC_FORBIDDEN;
+		super(HttpServletResponse.SC_FORBIDDEN, propertyName);
 	}
 
 	@Override
@@ -46,7 +40,7 @@ public class ReadOnlyPropertyToken implements ErrorToken {
 
 		JsonObject obj = new JsonObject();
 
-		obj.add(propertyName, new JsonPrimitive("is_read_only_property"));
+		obj.add(getKey(), new JsonPrimitive("is_read_only_property"));
 
 		return obj;
 	}

@@ -25,7 +25,23 @@ import com.google.gson.JsonElement;
  *
  * @author Christian Morgner
  */
-public interface ErrorToken {
-	public JsonElement getContent();
-	public int getStatus();
+public abstract class ErrorToken {
+
+	private String key = null;
+	private int status = 0;
+
+	public abstract JsonElement getContent();
+
+	public ErrorToken(int status, String key) {
+		this.status = status;
+		this.key = key;
+	}
+
+	public String getKey() {
+		return key;
+	}
+
+	public int getStatus() {
+		return status;
+	}
 }

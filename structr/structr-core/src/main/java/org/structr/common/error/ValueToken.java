@@ -38,7 +38,7 @@ public class ValueToken extends SemanticErrorToken {
 	}
 
 	@Override
-	public JsonElement getErrors() {
+	public JsonElement getContent() {
 
 		JsonObject obj = new JsonObject();
 		JsonArray array = new JsonArray();
