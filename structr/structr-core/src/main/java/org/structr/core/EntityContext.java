@@ -914,14 +914,13 @@ public class EntityContext {
 
 					// look for validator
 					PropertyValidator validator = EntityContext.getPropertyValidator(securityContext, entity.getClass(), key);
-
 					if (validator != null) {
 
 						logger.log(Level.FINE, "Using validator of type {0} for property {1}", new Object[] { validator.getClass().getSimpleName(), key });
 
 						Value parameter = EntityContext.getPropertyValidationParameter(entity.getClass(), key);
 
-						hasError |= !(validator.isValid(key, value, parameter, errorBuffer));
+						hasError |= !(validator.isValid(entity, key, value, parameter, errorBuffer));
 
 					}
 

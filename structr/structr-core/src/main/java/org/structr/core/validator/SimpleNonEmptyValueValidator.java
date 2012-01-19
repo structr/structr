@@ -21,6 +21,7 @@ package org.structr.core.validator;
 
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
+import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
 import org.structr.core.Value;
 
@@ -32,13 +33,13 @@ import org.structr.core.Value;
 public class SimpleNonEmptyValueValidator extends PropertyValidator {
 
 	@Override
-	public boolean isValid(String key, Object value, Value parameter, ErrorBuffer errorBuffer) {
+	public boolean isValid(GraphObject object, String key, Object value, Value parameter, ErrorBuffer errorBuffer) {
 
 		if(value != null && value.toString().length() > 0) {
 			return true;
 		}
 
-		errorBuffer.add("SimpleNonEmptyValidator", new EmptyPropertyToken(key));
+		errorBuffer.add(object.getType(), new EmptyPropertyToken(key));
 		return false;
 	}
 }

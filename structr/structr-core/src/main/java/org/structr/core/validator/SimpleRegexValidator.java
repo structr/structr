@@ -22,6 +22,7 @@ package org.structr.core.validator;
 import java.util.regex.Pattern;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.MatchToken;
+import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
 import org.structr.core.Value;
 
@@ -33,13 +34,13 @@ import org.structr.core.Value;
 public class SimpleRegexValidator extends PropertyValidator<String> {
 
 	@Override
-	public boolean isValid(String key, Object value, Value<String> parameter, ErrorBuffer errorBuffer) {
+	public boolean isValid(GraphObject object, String key, Object value, Value<String> parameter, ErrorBuffer errorBuffer) {
 
 		if(value != null && Pattern.compile(parameter.get()).matcher(value.toString()).matches()) {
 			return true;
 		}
 
-		errorBuffer.add("SimpleRegexValidator", new MatchToken(key, parameter.get()));
+		errorBuffer.add(object.getType(), new MatchToken(key, parameter.get()));
 		return false;
 	}
 }

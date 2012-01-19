@@ -21,6 +21,7 @@ package org.structr.core.validator;
 
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.TypeToken;
+import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
 import org.structr.core.Value;
 
@@ -32,14 +33,14 @@ import org.structr.core.Value;
 public class TypeValidator extends PropertyValidator<Class> {
 
 	@Override
-	public boolean isValid(String key, Object value, Value<Class> parameter, ErrorBuffer errorBuffer) {
+	public boolean isValid(GraphObject object, String key, Object value, Value<Class> parameter, ErrorBuffer errorBuffer) {
 
 		if(value != null && parameter.get().isAssignableFrom(value.getClass())) {
 			return true;
 		}
 
 		// set error
-		errorBuffer.add("TypeValidator", new TypeToken(key, parameter.get().getName()));
+		errorBuffer.add(object.getType(), new TypeToken(key, parameter.get().getName()));
 
 		return false;
 	}

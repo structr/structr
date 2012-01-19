@@ -27,6 +27,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UniqueToken;
+import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
 import org.structr.core.Services;
 import org.structr.core.Value;
@@ -44,10 +45,10 @@ public class TypeAndPropertyUniquenessValidator extends PropertyValidator<String
 	private static final Logger logger = Logger.getLogger(TypeAndPropertyUniquenessValidator.class.getName());
 
 	@Override
-	public boolean isValid(String key, Object value, Value<String> parameter, ErrorBuffer errorBuffer) {
+	public boolean isValid(GraphObject object, String key, Object value, Value<String> parameter, ErrorBuffer errorBuffer) {
 
 		if(value == null || (value != null && value.toString().length() == 0)) {
-			errorBuffer.add("TypeAndProperyUniquenessValidator", new EmptyPropertyToken(key));
+			errorBuffer.add(object.getType(), new EmptyPropertyToken(key));
 			return false;
 		}
 
@@ -103,7 +104,7 @@ public class TypeAndPropertyUniquenessValidator extends PropertyValidator<String
 			
 			if(nodeExists) {
 
-				errorBuffer.add("TypeAndProperyUniquenessValidator", new UniqueToken(key, value));
+				errorBuffer.add(object.getType(), new UniqueToken(key, value));
 				return false;
 
 			} else {

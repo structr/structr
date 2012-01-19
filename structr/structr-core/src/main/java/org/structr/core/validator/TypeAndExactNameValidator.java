@@ -11,10 +11,9 @@ import org.apache.commons.lang.StringUtils;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.NotFoundToken;
-import org.structr.common.error.PropertiesNotFoundToken;
 import org.structr.common.error.PropertyNotFoundToken;
 import org.structr.common.error.TypeToken;
+import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
 import org.structr.core.Services;
 import org.structr.core.Value;
@@ -32,7 +31,7 @@ import org.structr.core.node.search.SearchNodeCommand;
 public class TypeAndExactNameValidator extends PropertyValidator {
 
 	@Override
-	public boolean isValid(String key, Object value, Value parameter, ErrorBuffer errorBuffer) {
+	public boolean isValid(GraphObject object, String key, Object value, Value parameter, ErrorBuffer errorBuffer) {
 
 		if(parameter == null) {
 			throw new IllegalStateException("TypeAndExactNameValidator needs a type parameter.");
@@ -45,13 +44,13 @@ public class TypeAndExactNameValidator extends PropertyValidator {
 		}
 
 		if(!(value instanceof String)) {
-			errorBuffer.add("TypeAndExactNameValidator", new TypeToken(key, "string"));
+			errorBuffer.add(object.getType(), new TypeToken(key, "string"));
 			return false;
 		}
 
 		String stringValue = (String)value;
 		if(StringUtils.isBlank(stringValue)) {
-			errorBuffer.add("TypeAndExactNameValidator", new EmptyPropertyToken(key));
+			errorBuffer.add(object.getType(), new EmptyPropertyToken(key));
 			return false;
 		}
 
@@ -70,7 +69,7 @@ public class TypeAndExactNameValidator extends PropertyValidator {
 
 			} else {
 
-				errorBuffer.add("TypeAndExactNameValidator", new PropertyNotFoundToken(key, value));
+				errorBuffer.add(object.getType(), new PropertyNotFoundToken(key, value));
 				return false;
 			}
 

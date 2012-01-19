@@ -41,7 +41,7 @@ public abstract class PropertyValidator<T> {
 	 * @param parameter
 	 * @return
 	 */
-	public abstract boolean isValid(String key, Object value, Value<T> parameter, ErrorBuffer errorBuffer);
+	public abstract boolean isValid(GraphObject object, String key, Object value, Value<T> parameter, ErrorBuffer errorBuffer);
 
 	public void setSecurityContext(SecurityContext securityContext) {
 		this.securityContext = securityContext;
