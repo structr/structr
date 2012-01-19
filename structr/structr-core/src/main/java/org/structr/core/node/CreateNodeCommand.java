@@ -21,6 +21,7 @@
 
 package org.structr.core.node;
 
+import java.util.Collection;
 import org.neo4j.graphdb.GraphDatabaseService;
 
 import org.structr.common.RelType;
@@ -35,12 +36,15 @@ import org.structr.core.entity.User;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.Arrays;
 import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.ErrorBuffer;
+import org.structr.core.EntityContext;
+import org.structr.core.Transformation;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -60,60 +64,64 @@ public class CreateNodeCommand extends NodeServiceCommand {
 		GraphDatabaseService graphDb   = (GraphDatabaseService) arguments.get("graphDb");
 		StructrNodeFactory nodeFactory = (StructrNodeFactory) arguments.get("nodeFactory");
 
-//              IndexService index = (LuceneFulltextIndexService) arguments.get("index");
+		User user         = securityContext.getUser();
 		AbstractNode node = null;
-		User user         = null;
 
-		// Default is update index when creating a new node,
-		// so the node is found immediately
-		boolean updateIndex = true;
-
-		// TODO: let the AbstractNode create itself, including all necessary db properties
-		// example: a HtmlSource has to be created with mimeType=text/html
 		if (graphDb != null) {
 
 			Date now                  = new Date();
-			Command createRel         = Services.command(CreateRelationshipCommand.class);
-			List<NodeAttribute> attrs = new LinkedList<NodeAttribute>();
+			Command createRel         = Services.command(securityContext, CreateRelationshipCommand.class);
+			Map<String, Object> attrs = new HashMap<String, Object>();
 
 			// initialize node from parameters...
 			for (Object o : parameters) {
 
-				if (o instanceof List) {
-					attrs.addAll((List) o);
-				} else if (o instanceof NodeAttribute) {
+				if(o instanceof Map) {
 
-					NodeAttribute attr = (NodeAttribute) o;
+					Map<String, Object> map = (Map<String, Object>)o;
+					attrs.putAll(map);
 
-					attrs.add(attr);
+				} else if(o instanceof Collection) {
 
-				} else if (o instanceof User) {
-					user = (User) o;
-				} else if (o instanceof Boolean) {
-					updateIndex = (Boolean) o;
+					Collection<NodeAttribute> c = (Collection)o;
+					for(NodeAttribute attr : c) {
+						attrs.put(attr.getKey(), attr.getValue());
+					}
+
+				} else if(o instanceof NodeAttribute) {
+
+					NodeAttribute attr = (NodeAttribute)o;
+					attrs.put(attr.getKey(), attr.getValue());
+
 				}
 			}
 
 			// Determine node type
-			String nodeType = null;
+			Object typeObject = attrs.get(AbstractNode.Key.type.name());
+			String nodeType = typeObject != null ? typeObject.toString() : "GenericNode";
+			// Create node with type
+			node = nodeFactory.createNode(securityContext, graphDb.createNode(), nodeType);
+			logger.log(Level.FINE, "Node {0} created", node.getId());
 
-			for (NodeAttribute attr : attrs) {
+//			EntityContext.getGlobalModificationListener().newNode(securityContext, node.getId());
 
-				if (AbstractNode.TYPE_KEY.equals(attr.getKey())) {
-					nodeType = (String) attr.getValue();
+			// set type first!!
+			node.setProperty(AbstractNode.Key.type.name(), nodeType);
+			attrs.remove(AbstractNode.Key.type.name());
+
+			ErrorBuffer errorBuffer = new ErrorBuffer();
+			for(Entry<String, Object> attr : attrs.entrySet()) {
+
+				try {
+					node.setProperty(attr.getKey(), attr.getValue());
+
+				} catch(Throwable t) {
+					errorBuffer.add(t.getMessage());
 				}
 			}
 
-			// Create node with type
-			node = nodeFactory.createNode(graphDb.createNode(), nodeType);
-			logger.log(Level.FINE, "Node {0} created", node.getId());
-
-			for (NodeAttribute attr : attrs) {
-
-				// Don't update index now
-				node.setProperty(attr.getKey(), attr.getValue(), false);
-				logger.log(Level.FINEST, "Set node attribute {0} to {1}", new Object[] { attr.getKey(),
-					attr.getValue() });
+			if(errorBuffer.hasError()) {
+				throw new IllegalArgumentException(errorBuffer.toString());
 			}
 
 			attrs.clear();
@@ -135,27 +143,33 @@ public class CreateNodeCommand extends NodeServiceCommand {
 				StructrRelationship securityRel = (StructrRelationship) createRel.execute(principal,
 									  node, RelType.SECURITY);
 
-				securityRel.setAllowed(Arrays.asList(StructrRelationship.ALL_PERMISSIONS));
+				securityRel.setAllowed(StructrRelationship.Permission.values());
 				logger.log(Level.FINEST, "All permissions given to {0}", principal.getName());
-				node.setProperty(AbstractNode.CREATED_BY_KEY,
-						 user.getRealName() + " (" + user.getName() + ")", false);
+
+				node.unlockReadOnlyPropertiesOnce();
+				node.setProperty(AbstractNode.Key.createdBy.name(),
+//						 user.getRealName() + " (" + user.getName() + ")", false);
+						 user.getProperty(AbstractNode.Key.uuid), false);
 			}
 
-			node.setProperty(AbstractNode.CREATED_DATE_KEY, now, false);
-			node.setProperty(AbstractNode.LAST_MODIFIED_DATE_KEY, now, false);
-
-			if (updateIndex) {
-
-				// index the database node we just created
-				Services.command(IndexNodeCommand.class).execute(node);
-				logger.log(Level.FINE, "Node {0} indexed.", node.getId());
-			}
+			node.unlockReadOnlyPropertiesOnce();
+			node.setProperty(AbstractNode.Key.createdDate.name(), now, false);
+			node.setProperty(AbstractNode.Key.lastModifiedDate.name(), now, false);
 		}
 
 		if (node != null) {
 
 			// notify node of its creation
 			node.onNodeCreation();
+			
+			// iterate post creation transformations
+			for(Transformation<AbstractNode> transformation : EntityContext.getPostCreationTransformations(node.getClass())) {
+				transformation.apply(securityContext, node);
+			}
+
+			// allow modification listener to examine creation
+//			EntityContext.getGlobalModificationListener().graphObjectCreated(securityContext, node);
+
 		}
 
 		return node;

@@ -223,17 +223,17 @@ public class SaveImagesFromFlashUrl extends NodeServiceCommand {
                             String name = flashObjectName + "_" + id + "_" + width + "x" + height + fileExtension;
 
                             // Create new image node
-                            Image newImageNode = (Image) Services.command(CreateNodeCommand.class).execute(user,
-                                    new NodeAttribute(AbstractNode.TYPE_KEY, Image.class.getSimpleName()),
-                                    new NodeAttribute(AbstractNode.NAME_KEY, name),
-                                    new NodeAttribute(Image.WIDTH_KEY, width),
-                                    new NodeAttribute(Image.HEIGHT_KEY, height),
-                                    new NodeAttribute(Image.CONTENT_TYPE_KEY, contentType),
-                                    new NodeAttribute(AbstractNode.VISIBLE_TO_AUTHENTICATED_USERS_KEY, true),
+                            Image newImageNode = (Image) Services.command(securityContext, CreateNodeCommand.class).execute(user,
+                                    new NodeAttribute(AbstractNode.Key.type.name(), Image.class.getSimpleName()),
+                                    new NodeAttribute(AbstractNode.Key.name.name(), name),
+                                    new NodeAttribute(Image.Key.width.name(), width),
+                                    new NodeAttribute(Image.Key.height.name(), height),
+                                    new NodeAttribute(org.structr.core.entity.File.Key.contentType.name(), contentType),
+                                    new NodeAttribute(AbstractNode.Key.visibleToAuthenticatedUsers.name(), true),
                                     true);  // Update index
 
                             // Establish HAS_CHILD relationship from parent node
-                            Services.command(CreateRelationshipCommand.class).execute(parentNode, newImageNode, RelType.HAS_CHILD);
+                            Services.command(securityContext, CreateRelationshipCommand.class).execute(parentNode, newImageNode, RelType.HAS_CHILD);
 
                             String relativeFilePath = newImageNode.getId() + "_" + System.currentTimeMillis();
 

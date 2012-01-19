@@ -4,24 +4,23 @@
     <groupId>org.structr</groupId>
     <artifactId>structr</artifactId>
     <packaging>pom</packaging>
-    <version>0.4.2</version>
+    <version>0.4.5</version>
     <name>structr</name>
     <url>http://structr.org</url>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <netbeans.hint.license>structr-gpl30</netbeans.hint.license>
-        <structr.version>0.4.2</structr.version>
+        <structr.version>0.4.5</structr.version>
     </properties>
 
     <modules>
         <module>structr-core</module>
-        <module>structr-module-web</module>
-        <module>structr-module-app</module>
-        <module>structr-module-chart</module>
-        <module>structr-module-gis</module>
-        <module>structr-webapp</module>
-    </modules>
+        <module>structr-rest</module>
+        <module>structr-websocket</module>
+        <module>structr-ui</module>
+        <module>structr-test-suite</module>
+  </modules>
 
     <build>
         <plugins>

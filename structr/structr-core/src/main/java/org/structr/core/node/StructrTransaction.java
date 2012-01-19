@@ -23,7 +23,17 @@ package org.structr.core.node;
  *
  * @author cmorgner
  */
-public interface StructrTransaction
+public abstract class StructrTransaction
 {
-	public Object execute() throws Throwable;
+	private Throwable cause = null;
+
+	public abstract Object execute() throws Throwable;
+
+	public void setCause(Throwable cause) {
+		this.cause = cause;
+	}
+
+	public Throwable getCause() {
+		return cause;
+	}
 }

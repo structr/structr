@@ -18,6 +18,8 @@
  */
 package org.structr.core.notification;
 
+import org.structr.common.SecurityContext;
+
 /**
  * A notification that displays a title and a text, and stays visible for
  * 3 seconds. The delay can be configured via the {@see #setLifespan} method.
@@ -26,6 +28,7 @@ package org.structr.core.notification;
  */
 public class DefaultNotification implements Notification {
 
+    protected SecurityContext securityContext = null;
     protected long creationTime = 0L;
     protected long lifespan = 0L;
     protected String title = null;
@@ -38,8 +41,8 @@ public class DefaultNotification implements Notification {
      * @param title the title to display
      * @param text the text to display
      */
-    public DefaultNotification(String title, String text) {
-	this(title, text, 3000);
+    public DefaultNotification(SecurityContext securityContext, String title, String text) {
+	this(securityContext, title, text, 3000);
     }
 
     /**
@@ -50,7 +53,8 @@ public class DefaultNotification implements Notification {
      * @param text the text to display
      * @param lifespan the lifespan in milliseconds
      */
-    public DefaultNotification(String title, String text, long lifespan) {
+    public DefaultNotification(SecurityContext securityContext, String title, String text, long lifespan) {
+	this.securityContext = securityContext;
 	this.creationTime = System.currentTimeMillis();
 	this.lifespan = lifespan;
 
@@ -95,5 +99,13 @@ public class DefaultNotification implements Notification {
     @Override
     public boolean isExpired() {
 	return (System.currentTimeMillis() > this.creationTime + lifespan);
+    }
+
+    public SecurityContext getSecurityContext() {
+	    return securityContext;
+    }
+
+    public void setSecurityContext(SecurityContext securityContext) {
+	this.securityContext = securityContext;
     }
 }

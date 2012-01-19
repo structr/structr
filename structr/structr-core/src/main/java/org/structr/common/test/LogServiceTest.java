@@ -19,6 +19,7 @@
 
 package org.structr.common.test;
 
+import org.structr.common.SecurityContext;
 import org.structr.common.StandaloneTestHelper;
 import org.structr.core.Command;
 import org.structr.core.Services;
@@ -36,7 +37,8 @@ public class LogServiceTest
 
 		try
 		{
-			Command logCommand = Services.command(LogCommand.class);
+			final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+			Command logCommand = Services.command(securityContext, LogCommand.class);
 
 			for(int i=0; i<1000; i++)
 			{
@@ -50,8 +52,8 @@ public class LogServiceTest
 		}
 
 		/*
-		final GraphDatabaseService graphDb = (GraphDatabaseService)Services.command(GraphDatabaseCommand.class).execute();
-		final Command factory = Services.command(NodeFactoryCommand.class);
+		final GraphDatabaseService graphDb = (GraphDatabaseService)Services.command(securityContext, GraphDatabaseCommand.class).execute();
+		final Command factory = Services.command(securityContext, NodeFactoryCommand.class);
 		NodeList<StructrNode> nodeList = null;
 		*/
 

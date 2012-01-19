@@ -29,11 +29,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.crypto.Cipher;
-import javax.crypto.spec.SecretKeySpec;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.RelType;
+import org.structr.common.SecurityContext;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -62,7 +60,9 @@ public class ConnectionListener extends Listener implements CloudTransmission {
 	private final Map<Long, Long> idMap = new HashMap<Long, Long>();
 
 	// the root node
-	private AbstractNode rootNode = (AbstractNode)Services.command(FindNodeCommand.class).execute(new SuperUser(), 0L);
+	// FIXME: superuser security context
+	final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+	private AbstractNode rootNode = (AbstractNode)Services.command(securityContext, FindNodeCommand.class).execute(0L);
 
 	// private fields
 	private boolean transactionFinished = false;
@@ -76,9 +76,9 @@ public class ConnectionListener extends Listener implements CloudTransmission {
 	private User targetUser = null;
 	
 	// commands
-	private final Command createRel = Services.command(CreateRelationshipCommand.class);
-	private final Command nodeFactory = Services.command(NodeFactoryCommand.class);
-	private final Command findNode = Services.command(FindNodeCommand.class);
+	private final Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
+	private final Command nodeFactory = Services.command(securityContext, NodeFactoryCommand.class);
+	private final Command findNode = Services.command(securityContext, FindNodeCommand.class);
 
 	public ConnectionListener(Connection connection) {
 
@@ -139,7 +139,7 @@ public class ConnectionListener extends Listener implements CloudTransmission {
 			AuthenticationContainer auth = (AuthenticationContainer)object;
 			
 			// try to find target user
-			targetUser = (User)Services.command(FindUserCommand.class).execute(auth.getUserName());
+			targetUser = (User)Services.command(securityContext, FindUserCommand.class).execute(auth.getUserName());
 			if(targetUser == null) {
 				
 				logger.log(Level.WARNING, "User not found, disconnecting");
@@ -163,7 +163,7 @@ public class ConnectionListener extends Listener implements CloudTransmission {
 			PushNodeRequestContainer request = (PushNodeRequestContainer)object;
 
 			// set desired root node for push request
-			rootNode = (AbstractNode)Services.command(FindNodeCommand.class).execute(new SuperUser(), request.getTargetNodeId());
+			rootNode = (AbstractNode)Services.command(securityContext, FindNodeCommand.class).execute(request.getTargetNodeId());
 
 			connection.sendTCP(CloudService.ACK_DATA);
 
@@ -188,7 +188,7 @@ public class ConnectionListener extends Listener implements CloudTransmission {
 				container.flushAndCloseTemporaryFile();
 
 				// commit database node
-				Command transactionCommand = Services.command(TransactionCommand.class);
+				Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
 				transactionCommand.execute(new StructrTransaction() {
 
 					@Override
@@ -219,7 +219,7 @@ public class ConnectionListener extends Listener implements CloudTransmission {
 		} else if(object instanceof NodeDataContainer) {
 			final NodeDataContainer receivedNodeData = (NodeDataContainer)object;
 
-			Command transactionCommand = Services.command(TransactionCommand.class);
+			Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
 			transactionCommand.execute(new StructrTransaction() {
 
 				@Override
@@ -236,7 +236,7 @@ public class ConnectionListener extends Listener implements CloudTransmission {
 
 			final RelationshipDataContainer receivedRelationshipData = (RelationshipDataContainer)object;
 
-			Command transactionCommand = Services.command(TransactionCommand.class);
+			Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
 			transactionCommand.execute(new StructrTransaction() {
 
 				@Override
@@ -284,8 +284,8 @@ public class ConnectionListener extends Listener implements CloudTransmission {
 			long targetEndNodeId = targetEndNodeIdValue.longValue();
 
 			// Get new start and end node
-			AbstractNode targetStartNode = (AbstractNode)findNode.execute(new SuperUser(), targetStartNodeId);
-			AbstractNode targetEndNode = (AbstractNode)findNode.execute(new SuperUser(), targetEndNodeId);
+			AbstractNode targetStartNode = (AbstractNode)findNode.execute(targetStartNodeId);
+			AbstractNode targetEndNode = (AbstractNode)findNode.execute(targetEndNodeId);
 			String name = receivedRelationshipData.getName();
 
 			if(targetStartNode != null && targetEndNode != null && StringUtils.isNotEmpty(name)) {
@@ -321,10 +321,10 @@ public class ConnectionListener extends Listener implements CloudTransmission {
 							PullNodeRequestContainer request = it.next();
 
 							// swap source and target nodes since we're dealing with a request from the remote's point of view!
-							AbstractNode sourceNode = (AbstractNode)findNode.execute(new SuperUser(), request.getSourceNodeId());
+							AbstractNode sourceNode = (AbstractNode)findNode.execute(request.getSourceNodeId());
 							boolean recursive = request.isRecursive();
 
-							Command pushNodes = Services.command(PushNodes.class);
+							Command pushNodes = Services.command(securityContext, PushNodes.class);
 
 							User remoteUser = request.getRemoteUser();
 							long remoteTargetNodeId = request.getTargetNodeId();

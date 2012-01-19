@@ -31,10 +31,8 @@ import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.common.RelType;
+import org.structr.core.EntityContext;
 import org.structr.core.entity.StructrRelationship;
-import org.structr.core.entity.User;
-import org.structr.core.notification.AddNotificationCommand;
-import org.structr.core.notification.DefaultNotification;
 
 /**
  * Deletes a node, or removes a LINK relationship respectively.
@@ -54,98 +52,85 @@ public class DeleteNodeCommand extends NodeServiceCommand {
         AbstractNode node = null;
         AbstractNode parentNode = null;
         Boolean recursive = false;
-        User user = null;
 
-        Command findNode = Services.command(FindNodeCommand.class);
+        Command findNode = Services.command(securityContext, FindNodeCommand.class);
 
         switch (parameters.length) {
 
-            case 2:  // first parameter: node, second parameter: user
+            case 1:  // first parameter: node
 
                 if (parameters[0] instanceof Long) {
                     long id = ((Long) parameters[0]).longValue();
-                    node = (AbstractNode) findNode.execute(user, id);
+                    node = (AbstractNode) findNode.execute(id);
 
                 } else if (parameters[0] instanceof AbstractNode) {
                     node = ((AbstractNode) parameters[0]);
 
                 } else if (parameters[0] instanceof String) {
                     long id = Long.parseLong((String) parameters[0]);
-                    node = (AbstractNode) findNode.execute(user, id);
-                }
-
-                if (parameters[1] instanceof User) {
-                    user = (User) parameters[1];
+                    node = (AbstractNode) findNode.execute(id);
                 }
 
                 break;
 
-            case 3: // first parameter: node, second parameter: new parent node, third parameter: user
+            case 2: // first parameter: node, second parameter: new parent node
 
                 if (parameters[0] instanceof Long) {
                     long id = ((Long) parameters[0]).longValue();
-                    node = (AbstractNode) findNode.execute(user, id);
+                    node = (AbstractNode) findNode.execute(id);
 
                 } else if (parameters[0] instanceof AbstractNode) {
                     node = ((AbstractNode) parameters[0]);
 
                 } else if (parameters[0] instanceof String) {
                     long id = Long.parseLong((String) parameters[0]);
-                    node = (AbstractNode) findNode.execute(user, id);
+                    node = (AbstractNode) findNode.execute(id);
                 }
 
                 if (parameters[1] instanceof Long) {
                     long id = ((Long) parameters[1]).longValue();
-                    parentNode = (AbstractNode) findNode.execute(user, id);
+                    parentNode = (AbstractNode) findNode.execute(id);
 
                 } else if (parameters[1] instanceof AbstractNode) {
                     parentNode = (AbstractNode) parameters[1];
 
                 } else if (parameters[1] instanceof String) {
                     long id = Long.parseLong((String) parameters[1]);
-                    parentNode = (AbstractNode) findNode.execute(user, id);
-                }
-
-                if (parameters[2] instanceof User) {
-                    user = (User) parameters[2];
+                    parentNode = (AbstractNode) findNode.execute(id);
                 }
 
                 break;
 
-            case 4: // first parameter: node, second parameter: new parent node, third parameter: recursive, forth parameter: user
+            case 3: // first parameter: node, second parameter: new parent node, third parameter: recursive
 
                 if (parameters[0] instanceof Long) {
                     long id = ((Long) parameters[0]).longValue();
-                    node = (AbstractNode) findNode.execute(user, id);
+                    node = (AbstractNode) findNode.execute(id);
 
                 } else if (parameters[0] instanceof AbstractNode) {
                     node = ((AbstractNode) parameters[0]);
 
                 } else if (parameters[0] instanceof String) {
                     long id = Long.parseLong((String) parameters[0]);
-                    node = (AbstractNode) findNode.execute(user, id);
+                    node = (AbstractNode) findNode.execute(id);
                 }
 
                 if (parameters[1] instanceof Long) {
                     long id = ((Long) parameters[1]).longValue();
-                    parentNode = (AbstractNode) findNode.execute(user, id);
+                    parentNode = (AbstractNode) findNode.execute(id);
 
                 } else if (parameters[1] instanceof AbstractNode) {
                     parentNode = (AbstractNode) parameters[1];
 
                 } else if (parameters[1] instanceof String) {
                     long id = Long.parseLong((String) parameters[1]);
-                    parentNode = (AbstractNode) findNode.execute(user, id);
+                    parentNode = (AbstractNode) findNode.execute(id);
                 }
 
                 if (parameters[2] instanceof String) {
                     recursive = Boolean.parseBoolean((String) parameters[2]);
                 } else if (parameters[2] instanceof Boolean) {
                     recursive = (Boolean) parameters[2];
-                }
-
-                if (parameters[3] instanceof User) {
-                    user = (User) parameters[3];
                 }
 
                 break;
@@ -170,10 +155,12 @@ public class DeleteNodeCommand extends NodeServiceCommand {
             return null;
         }
 
-        return doDeleteNode(user, node, parentNode, recursive);
+//	EntityContext.getGlobalModificationListener().graphObjectDeleted(securityContext, node);
+	AbstractNode newParentNode = doDeleteNode(node, parentNode, recursive);
+	return newParentNode;
     }
 
-    private AbstractNode doDeleteNode(final User user, final AbstractNode structrNode, final AbstractNode parentNode, final Boolean recursive) {
+    private AbstractNode doDeleteNode(final AbstractNode structrNode, final AbstractNode parentNode, final Boolean recursive) {
 
         GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
 
@@ -181,7 +168,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
         final Node node = graphDb.getNodeById(structrNode.getId());
 
 
-        final Command transactionCommand = Services.command(TransactionCommand.class);
+        final Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
         AbstractNode newParentNode = (AbstractNode) transactionCommand.execute(new StructrTransaction() {
 
             @Override
@@ -189,14 +176,14 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
                 AbstractNode newParentNode = null;
 
-                Command findNode = Services.command(FindNodeCommand.class);
+                Command findNode = Services.command(securityContext, FindNodeCommand.class);
                 if (parentNode == null) {
 
                     if (recursive) {
 
                         Relationship parentRel = node.getSingleRelationship(RelType.HAS_CHILD, Direction.INCOMING);
                         if (parentRel != null) {
-                            newParentNode = (AbstractNode) findNode.execute(user, parentRel.getStartNode().getId());
+                            newParentNode = (AbstractNode) findNode.execute(parentRel.getStartNode().getId());
                             parentRel.delete();
                         }
 
@@ -235,7 +222,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
                             // deletion callback, must not prevent node deletion!
                             try {
-                                ((AbstractNode) findNode.execute(user, n.getId())).onNodeDeletion();
+                                ((AbstractNode) findNode.execute(n.getId())).onNodeDeletion();
 
                             } catch (Throwable t) {
                                 logger.log(Level.WARNING, "Exception while calling onDeletion callback: {0}", t);
@@ -259,7 +246,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
                         // it is possible that a node has no parent (= incoming child) relationship, e.g. thumbnails
                         if (parentRel != null) {
-                            //newParentNode = (AbstractNode) findNode.execute(user, parentRel.getStartNode().getId());
+                            //newParentNode = (AbstractNode) findNode.execute(parentRel.getStartNode().getId());
                             newParentNode = structrNode.getParentNode();
                             parentRel.delete();
                         }
@@ -285,7 +272,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
                     for (Relationship r : node.getRelationships(RelType.LINK, Direction.INCOMING)) {
 
-                        AbstractNode p = (AbstractNode) findNode.execute(user, r.getStartNode().getId());
+                        AbstractNode p = (AbstractNode) findNode.execute(r.getStartNode().getId());
                         if (p.equals(parentNode)) {
                             r.delete();
                         }

@@ -21,14 +21,15 @@
 
 package org.structr.core.entity;
 
-import org.structr.common.RenderMode;
-import org.structr.common.renderer.RenderContext;
-import org.structr.core.NodeRenderer;
+import org.neo4j.graphdb.Direction;
 
-//~--- JDK imports ------------------------------------------------------------
-
-import java.util.Map;
 import org.structr.common.AbstractComponent;
+import org.structr.common.PropertyKey;
+import org.structr.common.PropertyView;
+import org.structr.common.RelType;
+import org.structr.common.renderer.RenderContext;
+import org.structr.core.EntityContext;
+import org.structr.core.entity.DirectedRelationship.Cardinality;
 import org.structr.help.Container;
 import org.structr.help.Content;
 import org.structr.help.Paragraph;
@@ -42,21 +43,20 @@ import org.structr.help.Paragraph;
  */
 public class Folder extends AbstractNode {
 
-	private final static String ICON_SRC = "/images/folder.png";
+	static {
+
+		EntityContext.registerPropertySet(Folder.class, PropertyView.All, Key.values());
+		EntityContext.registerPropertyRelation(Folder.class, Key.folders, Folder.class, RelType.HAS_CHILD, Direction.OUTGOING, Cardinality.OneToMany);
+		EntityContext.registerPropertyRelation(Folder.class, Key.files, File.class, RelType.HAS_CHILD, Direction.OUTGOING, Cardinality.OneToMany);
+		EntityContext.registerPropertyRelation(Folder.class, Key.parentFolder, Folder.class, RelType.HAS_CHILD, Direction.INCOMING, Cardinality.ManyToOne);
+
+	}
+
+	//~--- constant enums -------------------------------------------------
+
+	public enum Key implements PropertyKey{ name, parentFolder, folders, files }
 
 	//~--- methods --------------------------------------------------------
-
-	@Override
-	public void initializeRenderers(Map<RenderMode, NodeRenderer> rendererMap) {}
-
-	@Override
-	public void onNodeCreation() {}
-
-	@Override
-	public void onNodeInstantiation() {}
-
-	@Override
-	public void onNodeDeletion() {}
 
 	@Override
 	public boolean renderingAllowed(final RenderContext context) {
@@ -67,16 +67,16 @@ public class Folder extends AbstractNode {
 
 	@Override
 	public String getIconSrc() {
-		return ICON_SRC;
+		return "/images/folder.png";
 	}
-	
+
 	@Override
 	public AbstractComponent getHelpContent() {
-		
+
 		AbstractComponent root = new Container();
-		
+
 		root.add(new Paragraph().add(new Content("This is a Folder node.")));
-		
-		return(root);
+
+		return (root);
 	}
 }

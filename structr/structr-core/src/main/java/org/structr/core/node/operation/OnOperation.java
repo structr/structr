@@ -22,7 +22,7 @@ package org.structr.core.node.operation;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import org.structr.common.CurrentSession;
+import org.structr.common.SecurityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.FindNodeCommand;
@@ -34,7 +34,13 @@ import org.structr.core.node.FindNodeCommand;
 public class OnOperation implements Transformation {
 
 	private List<AbstractNode> nodeList = new LinkedList<AbstractNode>();
+	private SecurityContext securityContext = null;
 	private AbstractNode currentNode = null;
+
+	@Override
+	public void setSecurityContext(SecurityContext securityContext) {
+		this.securityContext = securityContext;
+	}
 
 	@Override
 	public void transform(Operation operation) throws InvalidTransformationException {
@@ -99,7 +105,7 @@ public class OnOperation implements Transformation {
 
 	private void add(Object obj) {
 
-		Object findNodeResult = Services.command(FindNodeCommand.class).execute(CurrentSession.getUser(), currentNode, obj);
+		Object findNodeResult = Services.command(securityContext, FindNodeCommand.class).execute(currentNode, obj);
 
 		if(findNodeResult != null) {
 

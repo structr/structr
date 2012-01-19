@@ -21,12 +21,8 @@
 
 package org.structr.core.entity;
 
-import org.structr.common.RenderMode;
-import org.structr.core.NodeRenderer;
-
-//~--- JDK imports ------------------------------------------------------------
-
-import java.util.Map;
+import org.structr.common.PropertyView;
+import org.structr.core.EntityContext;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -36,17 +32,12 @@ import java.util.Map;
  */
 public class GenericNode extends AbstractNode {
 
-	@Override
-	public void initializeRenderers(Map<RenderMode, NodeRenderer> rendererMap) {}
+	static {
 
-	@Override
-	public void onNodeCreation() {}
-
-	@Override
-	public void onNodeInstantiation() {}
-
-	@Override
-	public void onNodeDeletion() {}
+		EntityContext.registerPropertySet(GenericNode.class,
+						  PropertyView.All,
+						  Key.values());
+	}
 
 	//~--- get methods ----------------------------------------------------
 

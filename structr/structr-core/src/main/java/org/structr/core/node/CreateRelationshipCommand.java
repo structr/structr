@@ -27,6 +27,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.RelType;
 import org.structr.core.Command;
+import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.UnsupportedArgumentError;
 import org.structr.core.entity.AbstractNode;
@@ -46,126 +47,123 @@ import org.structr.core.entity.StructrRelationship;
  */
 public class CreateRelationshipCommand extends NodeServiceCommand {
 
-    private static final Logger logger = Logger.getLogger(CreateRelationshipCommand.class.getName());
+	private static final Logger logger = Logger.getLogger(CreateRelationshipCommand.class.getName());
 
-    @Override
-    public Object execute(Object... parameters) {
+	@Override
+	public Object execute(Object... parameters) {
 
-        GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
+		GraphDatabaseService graphDb = (GraphDatabaseService)arguments.get("graphDb");
 
-        if (graphDb != null && parameters.length == 3) {
+		if(graphDb != null && parameters.length == 3) {
 
-            Object arg0 = parameters[0]; // start node
-            Object arg1 = parameters[1]; // end node
-            Object arg2 = parameters[2]; // relationship type
+			Object arg0 = parameters[0]; // start node
+			Object arg1 = parameters[1]; // end node
+			Object arg2 = parameters[2]; // relationship type
 
-            RelationshipType relType = null;
-            if (arg2 instanceof String) {
-
-
-
-                relType = DynamicRelationshipType.withName((String) arg2);
-            } else if (arg2 instanceof RelationshipType) {
-                relType = (RelationshipType) arg2;
-            } else {
-                throw new UnsupportedArgumentError("Wrong argument type(s).");
-            }
+			RelationshipType relType = null;
+			if(arg2 instanceof String) {
 
 
-            if (arg0 instanceof AbstractNode && arg1 instanceof AbstractNode) {
 
-                AbstractNode startNode = (AbstractNode) arg0;
-                AbstractNode endNode = (AbstractNode) arg1;
+				relType = DynamicRelationshipType.withName((String)arg2);
+			} else if(arg2 instanceof RelationshipType) {
+				relType = (RelationshipType)arg2;
+			} else {
+				throw new UnsupportedArgumentError("Wrong argument type(s).");
+			}
 
-                Node node1 = graphDb.getNodeById(startNode.getId());
-                Node node2 = graphDb.getNodeById(endNode.getId());
 
-                return createRelationship(node1, node2, relType);
+			if(arg0 instanceof AbstractNode && arg1 instanceof AbstractNode) {
 
-            } else {
-                throw new UnsupportedArgumentError("Wrong argument type(s).");
-            }
+				AbstractNode startNode = (AbstractNode)arg0;
+				AbstractNode endNode = (AbstractNode)arg1;
 
-        } else if (graphDb != null && parameters.length == 4) {
+				return createRelationship(startNode, endNode, relType);
 
-            Object arg0 = parameters[0]; // start node
-            Object arg1 = parameters[1]; // end node
-            Object arg2 = parameters[2]; // relationship type
-            Object arg3 = parameters[3]; // check duplicates
+			} else {
+				throw new UnsupportedArgumentError("Wrong argument type(s).");
+			}
 
-            RelationshipType relType = null;
-            if (arg2 instanceof String) {
-                relType = getRelationshipTypeFor((String) arg2);
-            } else if (arg2 instanceof RelationshipType) {
-                relType = (RelationshipType) arg2;
-            } else {
-                throw new UnsupportedArgumentError("Wrong argument type(s).");
-            }
+		} else if(graphDb != null && parameters.length == 4) {
 
-            boolean checkDuplicates = false;
-            if (arg3 instanceof Boolean) {
-                checkDuplicates = ((Boolean) arg3) == true;
-            }
+			Object arg0 = parameters[0]; // start node
+			Object arg1 = parameters[1]; // end node
+			Object arg2 = parameters[2]; // relationship type
+			Object arg3 = parameters[3]; // check duplicates
 
-            if (arg0 instanceof AbstractNode && arg1 instanceof AbstractNode) {
+			RelationshipType relType = null;
+			if(arg2 instanceof String) {
+				relType = getRelationshipTypeFor((String)arg2);
+			} else if(arg2 instanceof RelationshipType) {
+				relType = (RelationshipType)arg2;
+			} else {
+				throw new UnsupportedArgumentError("Wrong argument type(s).");
+			}
 
-                AbstractNode startNode = (AbstractNode) arg0;
-                AbstractNode endNode = (AbstractNode) arg1;
+			boolean checkDuplicates = false;
+			if(arg3 instanceof Boolean) {
+				checkDuplicates = ((Boolean)arg3) == true;
+			}
 
-                if (checkDuplicates) {
+			if(arg0 instanceof AbstractNode && arg1 instanceof AbstractNode) {
 
-                    List<StructrRelationship> incomingRels = endNode.getIncomingLinkRelationships();
+				AbstractNode startNode = (AbstractNode)arg0;
+				AbstractNode endNode = (AbstractNode)arg1;
 
-                    for (StructrRelationship rel : incomingRels) {
-                        if (rel.getRelType().equals(relType) && rel.getStartNode().equals(startNode)) {
-                            logger.log(Level.WARNING, "Creation of duplicate relationship was blocked");
-                            return null;
-                        }
-                    }
+				if(checkDuplicates) {
 
-                }
+					List<StructrRelationship> incomingRels = endNode.getIncomingLinkRelationships();
 
-                Node node1 = graphDb.getNodeById(startNode.getId());
-                Node node2 = graphDb.getNodeById(endNode.getId());
+					for(StructrRelationship rel : incomingRels) {
+						if(rel.getRelType().equals(relType) && rel.getStartNode().equals(startNode)) {
+							logger.log(Level.WARNING, "Creation of duplicate relationship was blocked");
+							return null;
+						}
+					}
 
-                return createRelationship(node1, node2, relType);
+				}
 
-            } else {
-                throw new UnsupportedArgumentError("Wrong argument type(s).");
-            }
-        }
+				return createRelationship(startNode, endNode, relType);
 
-        return null;
-    }
+			} else {
+				throw new UnsupportedArgumentError("Wrong argument type(s).");
+			}
+		}
 
-    private StructrRelationship createRelationship(final Node fromNode, final Node toNode, final RelationshipType relType) {
+		return null;
+	}
 
-        final Command transactionCommand = Services.command(TransactionCommand.class);
-        StructrRelationship newRelationship = (StructrRelationship) transactionCommand.execute(new StructrTransaction() {
+	private StructrRelationship createRelationship(final AbstractNode fromNode, final AbstractNode toNode, final RelationshipType relType) {
 
-            @Override
-            public Object execute() throws Throwable {
-                return new StructrRelationship(fromNode.createRelationshipTo(toNode, relType));
-            }
-        });
+		final Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
+		StructrRelationship newRelationship = (StructrRelationship)transactionCommand.execute(new StructrTransaction() {
 
-        return newRelationship;
-    }
+			@Override
+			public Object execute() throws Throwable {
 
-    private RelationshipType getRelationshipTypeFor(final String relTypeString) {
+				StructrRelationship relationship = new StructrRelationship(securityContext, fromNode.getNode().createRelationshipTo(toNode.getNode(), relType));
+				//EntityContext.getGlobalModificationListener().relationshipCreated(securityContext, fromNode, toNode, relationship);
+				return relationship;
+			}
+		});
 
-        RelationshipType relType = null;
-        
-        try {
-            relType = RelType.valueOf(relTypeString);
-        } catch (Exception ignore) {
-        }
+		return newRelationship;
+	}
 
-        if (relType == null) {
-            relType = DynamicRelationshipType.withName(relTypeString);
-        }
+	private RelationshipType getRelationshipTypeFor(final String relTypeString) {
 
-        return relType;
+		RelationshipType relType = null;
 
-    }
+		try {
+			relType = RelType.valueOf(relTypeString);
+		} catch(Exception ignore) {
+		}
+
+		if(relType == null) {
+			relType = DynamicRelationshipType.withName(relTypeString);
+		}
+
+		return relType;
+
+	}
 }

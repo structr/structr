@@ -60,7 +60,7 @@ public class PushNodes extends CloudServiceCommand
 		int remoteUdpPort = 0;
 		boolean recursive = false;
 
-		Command findNode = Services.command(FindNodeCommand.class);
+		Command findNode = Services.command(securityContext, FindNodeCommand.class);
 
 		switch(parameters.length)
 		{
@@ -85,7 +85,7 @@ public class PushNodes extends CloudServiceCommand
 				if(parameters[2] instanceof Long)
 				{
 					long id = ((Long)parameters[2]).longValue();
-					sourceNode = (AbstractNode)findNode.execute(null, id);
+					sourceNode = (AbstractNode)findNode.execute(id);
 
 				} else if(parameters[2] instanceof AbstractNode)
 				{
@@ -94,7 +94,7 @@ public class PushNodes extends CloudServiceCommand
 				} else if(parameters[2] instanceof String)
 				{
 					long id = Long.parseLong((String)parameters[2]);
-					sourceNode = (AbstractNode)findNode.execute(null, id);
+					sourceNode = (AbstractNode)findNode.execute(id);
 				}
 
 				// target node
@@ -152,8 +152,8 @@ public class PushNodes extends CloudServiceCommand
 		// add GUI notification
 		StringBuilder titleBuffer = new StringBuilder();
 		titleBuffer.append("Transmission to ").append(remoteHost).append(":").append(remoteTcpPort);
-		ProgressBarNotification progressNotification = new ProgressBarNotification(titleBuffer.toString());
-		Services.command(AddNotificationCommand.class).execute(progressNotification);
+		ProgressBarNotification progressNotification = new ProgressBarNotification(securityContext, titleBuffer.toString());
+		Services.command(securityContext, AddNotificationCommand.class).execute(progressNotification);
 		
 		// enable notifications to be passed to UI
 		listener.setNotification(progressNotification);
@@ -180,10 +180,10 @@ public class PushNodes extends CloudServiceCommand
 				// send child nodes when recursive sending is requested
 				if(recursive)
 				{
-					List<AbstractNode> nodes = sourceNode.getAllChildrenForRemotePush(new SuperUser()); // FIXME: use real user here
+					List<AbstractNode> nodes = sourceNode.getAllChildrenForRemotePush();
 
 					// FIXME: were collecting the nodes twice here, the first time is only for counting..
-					progressNotification.setTargetProgress(sourceNode.getRemotePushSize(new SuperUser(), chunkSize));
+					progressNotification.setTargetProgress(sourceNode.getRemotePushSize(chunkSize));
 
 					for(AbstractNode n : nodes)
 					{

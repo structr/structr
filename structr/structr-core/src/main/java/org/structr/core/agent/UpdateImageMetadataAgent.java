@@ -22,6 +22,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.SecurityContext;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.Image;
@@ -68,9 +69,11 @@ public class UpdateImageMetadataAgent extends Agent {
 
     private long updateImageMetadata() {
 
-        final Command extract = Services.command(ExtractAndSetImageDimensionsAndFormat.class);
+	// FIXME: superuser security context
+	final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+        final Command extract = Services.command(securityContext, ExtractAndSetImageDimensionsAndFormat.class);
 
-        Command transactionCommand = Services.command(TransactionCommand.class);
+        Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
         Long numberOfImages = (Long) transactionCommand.execute(new StructrTransaction() {
 
             @Override
@@ -78,7 +81,7 @@ public class UpdateImageMetadataAgent extends Agent {
 
                 List<Image> images = new LinkedList<Image>();
 
-                List<AbstractNode> allNodes = (List<AbstractNode>) Services.command(GetAllNodes.class).execute();
+                List<AbstractNode> allNodes = (List<AbstractNode>) Services.command(securityContext, GetAllNodes.class).execute();
                 for (AbstractNode s : allNodes) {
                     if (s instanceof Image) {
                         images.add((Image) s);

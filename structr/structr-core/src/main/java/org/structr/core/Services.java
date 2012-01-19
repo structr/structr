@@ -39,6 +39,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.SecurityContext;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -77,7 +78,6 @@ public class Services {
 	public static final String SMTP_PORT       = "smtp.port";
 
 //      public static final String ENTITY_PACKAGES = "entity.packages";
-	public static final String STRUCTR_PAGE_PREDICATE = "structr.page.predicate";
 	public static final String SUPERUSER_PASSWORD     = "superuser.password";
 
 	// Security-related constants
@@ -118,7 +118,7 @@ public class Services {
 	 * @return the command
 	 * @throws NoSuchCommandException
 	 */
-	public static Command command(Class commandType) {
+	public static Command command(SecurityContext securityContext, Class commandType) {
 
 		logger.log(Level.FINER, "Creating command ", commandType.getName());
 
@@ -128,6 +128,8 @@ public class Services {
 		try {
 
 			command      = (Command) commandType.newInstance();
+			command.setSecurityContext(securityContext);
+
 			serviceClass = command.getServiceClass();
 
 			if ((serviceClass != null) && isConfigured(serviceClass)) {
@@ -183,15 +185,15 @@ public class Services {
 			return;
 		}
 
-		configFilePath     = getConfigValue(context, Services.CONFIG_FILE_PATH, "/opt/structr/structr.conf");
+		configFilePath     = getConfigValue(context, Services.CONFIG_FILE_PATH, "./structr.conf");
 		configuredServices = getConfigValue(context, Services.CONFIGURED_SERVICES,
 			"ModuleService NodeService AgentService CloudService CacheService LogService NotificationService");
 		appTitle          = getConfigValue(context, Services.APPLICATION_TITLE, "structr");
 		tmpPath           = getConfigValue(context, Services.TMP_PATH, "/tmp");
-		basePath          = getConfigValue(context, Services.BASE_PATH, "/opt/structr");
-		databasePath      = getConfigValue(context, Services.DATABASE_PATH, "/opt/structr/db");
-		filesPath         = getConfigValue(context, Services.FILES_PATH, "/opt/structr/files");
-		modulesPath       = getConfigValue(context, Services.MODULES_PATH, "/opt/structr/modules");
+		basePath          = getConfigValue(context, Services.BASE_PATH, ".");
+		databasePath      = getConfigValue(context, Services.DATABASE_PATH, "./db");
+		filesPath         = getConfigValue(context, Services.FILES_PATH, "./files");
+		modulesPath       = getConfigValue(context, Services.MODULES_PATH, "./modules");
 		serverIp          = getConfigValue(context, Services.SERVER_IP, "127.0.0.1");
 		tcpPort           = getConfigValue(context, Services.TCP_PORT, "54555");
 		udpPort           = getConfigValue(context, Services.UDP_PORT, "57555");
@@ -202,7 +204,8 @@ public class Services {
 		logger.log(Level.INFO, "Starting services");
 
 		// initialize module service (which can be thought of as the root service)
-		Services.command(InitializeModuleServiceCommand.class).execute();
+		// securityContext can be null here, as the command is a null command
+		Services.command(null, InitializeModuleServiceCommand.class).execute();
 
 		// initialize other services
 		for (Class serviceClass : registeredServiceClasses) {
@@ -220,7 +223,7 @@ public class Services {
 			}
 		}
 
-		logger.log(Level.INFO, "{0} service(s) processed", registeredServiceClasses.size());
+		logger.log(Level.INFO, "{0} service(s) processed", serviceCache.size());
 		registeredServiceClasses.clear();
 		logger.log(Level.INFO, "Initialization complete");
 	}

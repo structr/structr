@@ -51,6 +51,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.SecurityContext;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -71,6 +72,7 @@ public class LogService extends RunnableNodeService {
 		new ConcurrentHashMap<User, LogNodeList<Activity>>(10, 0.9f, 8);
 	private static final ConcurrentLinkedQueue queue = new ConcurrentLinkedQueue();
 	private static final long DefaultInterval        = TimeUnit.SECONDS.toMillis(10);
+	private SecurityContext securityContext = SecurityContext.getSuperUserInstance();
 
 	//~--- fields ---------------------------------------------------------
 
@@ -273,7 +275,7 @@ public class LogService extends RunnableNodeService {
 				}
 			}
 
-			userLogNodeList = (LogNodeList) Services.command(TransactionCommand.class).execute(
+			userLogNodeList = (LogNodeList) Services.command(securityContext, TransactionCommand.class).execute(
 				new StructrTransaction() {
 
 				@Override
@@ -282,15 +284,15 @@ public class LogService extends RunnableNodeService {
 //                                      LogNodeList newLogNodeList = null;
 					// Create a new activity list as child node of the respective user
 					Command createNode                   =
-						Services.command(CreateNodeCommand.class);
+						Services.command(securityContext, CreateNodeCommand.class);
 					Command createRel                    =
-						Services.command(CreateRelationshipCommand.class);
+						Services.command(securityContext, CreateRelationshipCommand.class);
 					LogNodeList<Activity> newLogNodeList =
 						(LogNodeList<Activity>) createNode.execute(
 						    new NodeAttribute(
-							AbstractNode.TYPE_KEY,
+							AbstractNode.Key.type.name(),
 							LogNodeList.class.getSimpleName()), new NodeAttribute(
-							    AbstractNode.NAME_KEY, user.getName() + "'s Activity Log"));
+							    AbstractNode.Key.name.name(), user.getName() + "'s Activity Log"));
 
 //                                      newLogNodeList = new LogNodeList<Activity>();
 //                                      newLogNodeList.init(s);
@@ -313,7 +315,7 @@ public class LogService extends RunnableNodeService {
 		if (globalLogNodeList == null) {
 
 			GraphDatabaseService graphDb =
-				(GraphDatabaseService) Services.command(GraphDatabaseCommand.class).execute();
+				(GraphDatabaseService) Services.command(securityContext, GraphDatabaseCommand.class).execute();
 
 			if (graphDb == null) {
 
@@ -322,7 +324,7 @@ public class LogService extends RunnableNodeService {
 				return null;
 			}
 
-			Command factory             = Services.command(NodeFactoryCommand.class);
+			Command factory             = Services.command(securityContext, NodeFactoryCommand.class);
 			final AbstractNode rootNode = (AbstractNode) factory.execute(graphDb.getReferenceNode());
 
 			if (rootNode != null) {
@@ -347,7 +349,7 @@ public class LogService extends RunnableNodeService {
 				return null;
 			}
 
-			globalLogNodeList = (LogNodeList) Services.command(TransactionCommand.class).execute(
+			globalLogNodeList = (LogNodeList) Services.command(securityContext, TransactionCommand.class).execute(
 				new StructrTransaction() {
 
 				@Override
@@ -356,14 +358,14 @@ public class LogService extends RunnableNodeService {
 					LogNodeList newGlobalLogNodeList = null;
 
 					// if we arrive here, no global log node exists yet
-					Command createNode = Services.command(CreateNodeCommand.class);
-					Command createRel  = Services.command(CreateRelationshipCommand.class);
+					Command createNode = Services.command(securityContext, CreateNodeCommand.class);
+					Command createRel  = Services.command(securityContext, CreateRelationshipCommand.class);
 
 					newGlobalLogNodeList = (LogNodeList<Activity>) createNode.execute(
 						new NodeAttribute(
-						    AbstractNode.TYPE_KEY,
+						    AbstractNode.Key.type.name(),
 						    LogNodeList.class.getSimpleName()), new NodeAttribute(
-							AbstractNode.NAME_KEY, "Global Activity Log"));
+							AbstractNode.Key.name.name(), "Global Activity Log"));
 
 					// load reference node and link new node to it..
 					createRel.execute(rootNode, newGlobalLogNodeList, RelType.HAS_CHILD);

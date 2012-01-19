@@ -22,6 +22,7 @@ package org.structr.core.node.operation;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import org.structr.common.SecurityContext;
 import org.structr.core.entity.AbstractNode;
 
 /**
@@ -31,6 +32,7 @@ import org.structr.core.entity.AbstractNode;
 public class WithOperation implements Transformation {
 
 	private List<String> attributes = new LinkedList<String>();
+	private SecurityContext securityContext = null;
 
 	@Override
 	public void transform(Operation operation) throws InvalidTransformationException {
@@ -108,4 +110,8 @@ public class WithOperation implements Transformation {
 		}
 	}
 
+	@Override
+	public void setSecurityContext(SecurityContext securityContext) {
+		this.securityContext = securityContext;
+	}
 }

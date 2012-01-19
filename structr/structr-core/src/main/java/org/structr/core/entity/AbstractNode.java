@@ -42,36 +42,50 @@ import org.neo4j.kernel.Traversal;
 import org.structr.common.AbstractComponent;
 import org.structr.common.AbstractNodeComparator;
 import org.structr.common.AccessControllable;
-import org.structr.common.CurrentRequest;
-import org.structr.common.CurrentSession;
+import org.structr.common.ErrorBuffer;
 import org.structr.common.PathHelper;
 import org.structr.common.Permission;
 import org.structr.common.PropertyKey;
+import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.RenderMode;
+import org.structr.common.RequestHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.StructrOutputStream;
 import org.structr.common.TemplateHelper;
+import org.structr.common.UuidCreationTransformation;
 import org.structr.common.renderer.DefaultEditRenderer;
 import org.structr.common.renderer.RenderContext;
 import org.structr.common.renderer.RenderController;
 import org.structr.core.Command;
+import org.structr.core.EntityContext;
+import org.structr.core.GraphObject;
+import org.structr.core.IterableAdapter;
 import org.structr.core.NodeRenderer;
 import org.structr.core.NodeSource;
+import org.structr.core.PropertyConverter;
+import org.structr.core.PropertyGroup;
+import org.structr.core.PropertyValidator;
 import org.structr.core.Services;
+import org.structr.core.Value;
 import org.structr.core.cloud.NodeDataContainer;
+import org.structr.core.converter.LongDateConverter;
+import org.structr.core.converter.NodeIdNodeConverter;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.DeleteRelationshipCommand;
 import org.structr.core.node.FindNodeCommand;
 import org.structr.core.node.IndexNodeCommand;
 import org.structr.core.node.NodeFactoryCommand;
+import org.structr.core.node.NodeRelationshipStatisticsCommand;
 import org.structr.core.node.NodeRelationshipsCommand;
+import org.structr.core.node.NodeService.NodeIndex;
 import org.structr.core.node.SetOwnerCommand;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 import org.structr.core.node.XPath;
 import org.structr.core.node.search.Search;
+import org.structr.core.notion.Notion;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -100,53 +114,68 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import org.structr.core.GraphObject;
-import org.structr.core.node.DeleteNodeCommand;
-import org.structr.core.node.NodeRelationshipStatisticsCommand;
 
 //~--- classes ----------------------------------------------------------------
 
 /**
- * The base class for alle node types in structr.
+ * The base class for all node types in structr.
  *
  * @author amorgner
  *
  */
 public abstract class AbstractNode implements Comparable<AbstractNode>, RenderController, AccessControllable, GraphObject {
 
-	public final static String CATEGORIES_KEY         = "categories";
-	public final static String CREATED_BY_KEY         = "createdBy";
-	public final static String CREATED_DATE_KEY       = "createdDate";
-	public final static String DELETED_KEY            = "deleted";
-	public final static String HIDDEN_KEY             = "hidden";
-	public final static String LAST_MODIFIED_DATE_KEY = "lastModifiedDate";
-	public final static String NAME_KEY               = "name";
-	public final static String NODE_ID_KEY            = "nodeId";
-
+//      public final static String CATEGORIES_KEY         = "categories";
+//      public final static String CREATED_BY_KEY         = "createdBy";
+//      public final static String CREATED_DATE_KEY       = "createdDate";
+//      public final static String DELETED_KEY            = "deleted";
+//      public final static String HIDDEN_KEY             = "hidden";
+//      public final static String LAST_MODIFIED_DATE_KEY = "lastModifiedDate";
+//      public final static String NAME_KEY               = "name";
+//      public final static String NODE_ID_KEY            = "nodeId";
 //      public final static String ACL_KEY = "acl";
 	// private final static String keyPrefix = "${";
 	// private final static String keySuffix = "}";
-	private final static String NODE_KEY_PREFIX               = "%{";
-	private final static String NODE_KEY_SUFFIX               = "}";
-	public final static String OWNER_ID_KEY                   = "ownerId";
-	public final static String OWNER_KEY                      = "owner";
-	public final static String POSITION_KEY                   = "position";
-	public final static String PUBLIC_KEY                     = "public";
+	private final static String NODE_KEY_PREFIX = "%{";
+	private final static String NODE_KEY_SUFFIX = "}";
+
+//      public final static String OWNER_ID_KEY                   = "ownerId";
+//      public final static String OWNER_KEY                      = "owner";
+//      public final static String POSITION_KEY                   = "position";
+//      public final static String PUBLIC_KEY                     = "public";
 	private final static String SUBNODES_AND_LINKED_NODES_KEY = "#";
 	private final static String SUBNODES_KEY                  = "*";
-	public final static String TEMPLATE_ID_KEY                = "templateId";
 
+//      public final static String TEMPLATE_ID_KEY                = "templateId";
 //      public final static String LOCALE_KEY = "locale";
-	public final static String TITLES_KEY = "titles";
-	public final static String TITLE_KEY  = "title";
-
+//      public final static String TITLES_KEY = "titles";
+//      public final static String TITLE_KEY  = "title";
 	// keys for basic properties (any node should have at least all of the following properties)
-	public final static String TYPE_KEY                           = "type";
-	public final static String VISIBILITY_END_DATE_KEY            = "visibilityEndDate";
-	public final static String VISIBILITY_START_DATE_KEY          = "visibilityStartDate";
-	public final static String VISIBLE_TO_AUTHENTICATED_USERS_KEY = "visibleToAuthenticatedUsers";
-	private static final Logger logger                            = Logger.getLogger(AbstractNode.class.getName());
-	private static final boolean updateIndexDefault               = true;
+//      public final static String TYPE_KEY                           = "type";
+//      public final static String VISIBILITY_END_DATE_KEY            = "visibilityEndDate";
+//      public final static String VISIBILITY_START_DATE_KEY          = "visibilityStartDate";
+//      public final static String VISIBLE_TO_AUTHENTICATED_USERS_KEY = "visibleToAuthenticatedUsers";
+	private static final Logger logger              = Logger.getLogger(AbstractNode.class.getName());
+	private static final boolean updateIndexDefault = true;
+
+	//~--- static initializers --------------------------------------------
+
+	static {
+
+		EntityContext.registerPropertySet(AbstractNode.class, PropertyView.All, Key.values());
+		EntityContext.registerPropertyConverter(AbstractNode.class, Key.visibilityStartDate, LongDateConverter.class);
+		EntityContext.registerPropertyConverter(AbstractNode.class, Key.visibilityEndDate, LongDateConverter.class);
+		EntityContext.registerPropertyConverter(AbstractNode.class, Key.lastModifiedDate, LongDateConverter.class);
+		EntityContext.registerPropertyConverter(AbstractNode.class, Key.createdDate, LongDateConverter.class);
+		EntityContext.registerPropertyConverter(AbstractNode.class, Key.ownerId, NodeIdNodeConverter.class);
+		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.fulltext.name(), Key.values());
+		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.keyword.name(), Key.values());
+		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.uuid.name(), Key.uuid);
+
+		// register transformation for automatic uuid creation
+		EntityContext.registerPostCreationTransformation(AbstractNode.class, new UuidCreationTransformation());
+
+	}
 
 	//~--- fields ---------------------------------------------------------
 
@@ -163,10 +192,11 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	// request parameters
 	// private HttpServletRequest request = null;
 	// private HttpSession session = null;
-	private final Map<RenderMode, NodeRenderer> rendererMap = new EnumMap<RenderMode,
-									  NodeRenderer>(RenderMode.class);
+	private final Map<RenderMode, NodeRenderer> rendererMap      = new EnumMap<RenderMode, NodeRenderer>(RenderMode.class);
+	protected SecurityContext securityContext                    = null;
 	private Map<Long, StructrRelationship> securityRelationships = null;
 	private boolean renderersInitialized                         = false;
+	private boolean readOnlyPropertiesUnlocked                   = false;
 
 	// reference to database node
 	protected Node dbNode;
@@ -178,6 +208,14 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	// public final static String TEMPLATES_KEY = "templates";
 	protected Template template;
 	protected User user;
+
+	//~--- constant enums -------------------------------------------------
+
+	public static enum Key implements PropertyKey {
+
+		uuid, name, type, nodeId, createdBy, createdDate, deleted, hidden, lastModifiedDate, position, visibleToPublicUsers, title, titles, visibilityEndDate, visibilityStartDate,
+		visibleToAuthenticatedUsers, templateId, categories, ownerId, owner;
+	}
 
 	//~--- constructors ---------------------------------------------------
 
@@ -193,72 +231,88 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		isDirty         = true;
 	}
 
-	public AbstractNode(final Node dbNode) {
-		init(dbNode);
+	public AbstractNode(SecurityContext securityContext, final Node dbNode) {
+		init(securityContext, dbNode);
 	}
 
-	public AbstractNode(final NodeDataContainer data) {
+	public AbstractNode(final SecurityContext securityContext, final NodeDataContainer data) {
 
 		if (data != null) {
 
-			this.properties = data.getProperties();
-			isDirty         = true;
+			this.securityContext = securityContext;
+			this.properties      = data.getProperties();
+			isDirty              = true;
+
 		}
 	}
 
 	//~--- methods --------------------------------------------------------
-
-	// ----- abstract methods ----
 
 	/**
 	 * Implement this method to specify renderers for the different rendering modes.
 	 *
 	 * @param rendererMap the map that hosts renderers for the different rendering modes
 	 */
-	public abstract void initializeRenderers(final Map<RenderMode, NodeRenderer> rendererMap);
+	public void initializeRenderers(final Map<RenderMode, NodeRenderer> rendererMap) {
+
+		// override me
+	}
 
 	/**
 	 * Called when a node of this type is created in the UI.
 	 */
-	public abstract void onNodeCreation();
+	public void onNodeCreation() {
+
+		// override me
+	}
 
 	/**
 	 * Called when a node of this type is instatiated. Please note that a
 	 * node can (and will) be instantiated several times during a normal
 	 * rendering turn.
 	 */
-	public abstract void onNodeInstantiation();
+	public void onNodeInstantiation() {
+
+		// override me
+	}
 
 	/**
 	 * Called when a node of this type is deleted.
 	 */
-	public abstract void onNodeDeletion();
+	public void onNodeDeletion() {
+
+		// override me
+	}
 
 	@Override
 	public boolean renderingAllowed(final RenderContext context) {
 		return true;
 	}
 
-	public void init(final Node dbNode) {
+	public void init(final SecurityContext securityContext, final Node dbNode) {
 
-		this.dbNode = dbNode;
-		isDirty     = false;
-		setAccessingUser(CurrentSession.getUser());
+		this.dbNode          = dbNode;
+		this.isDirty         = false;
+		this.securityContext = securityContext;
+
 		logger.log(Level.FINE, "User set to {0}", user);
 	}
 
-	private void init(final AbstractNode node) {
+	private void init(final SecurityContext securityContext, final AbstractNode node) {
 
-		this.dbNode = node.dbNode;
-		isDirty     = false;
+		this.dbNode          = node.dbNode;
+		this.isDirty         = false;
+		this.securityContext = securityContext;
 	}
 
-	public void init(final NodeDataContainer data) {
+	public void init(final SecurityContext securityContext, final NodeDataContainer data) {
 
 		if (data != null) {
 
-			this.properties = data.getProperties();
-			isDirty         = true;
+			this.properties      = data.getProperties();
+			this.isDirty         = true;
+			this.securityContext = securityContext;
+
 		}
 	}
 
@@ -266,11 +320,15 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	public boolean equals(final Object o) {
 
 		if (o == null) {
+
 			return false;
+
 		}
 
 		if (!(o instanceof AbstractNode)) {
+
 			return false;
+
 		}
 
 		return (new Integer(this.hashCode()).equals(new Integer(o.hashCode())));
@@ -280,7 +338,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	public int hashCode() {
 
 		if (this.dbNode == null) {
+
 			return (super.hashCode());
+
 		}
 
 		return (new Long(dbNode.getId()).hashCode());
@@ -291,39 +351,50 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 		// TODO: implement finer compare methods, e.g. taking title and position into account
 		if ((node == null) || (node.getName() == null) || (this.getName() == null)) {
+
 			return -1;
+
 		}
 
 		return (this.getName().compareTo(node.getName()));
 	}
 
-	public final void renderNode(final StructrOutputStream out, final AbstractNode startNode, final String editUrl,
-				     final Long editNodeId) {
+	public final void renderNode(final StructrOutputStream out, final AbstractNode startNode, final String editUrl, final Long editNodeId) {
 
 		if (this.equals(startNode) &&!(this.renderingAllowed(RenderContext.AsTopNode))) {
+
 			return;
+
 		}
 
 		if (!(this.equals(startNode)) &&!(this.renderingAllowed(RenderContext.AsSubnode))) {
+
 			return;
+
 		}
 
 		// initialize renderers
 		if (!renderersInitialized) {
 
 			initializeRenderers(rendererMap);
+
 			renderersInitialized = true;
+
 		}
 
 		// determine RenderMode
 		RenderMode renderMode = RenderMode.Default;
 
 		if (this.equals(startNode) && rendererMap.containsKey(RenderMode.Direct)) {
+
 			renderMode = RenderMode.Direct;
+
 		}
 
 		if ((editNodeId != null) && (getId() == editNodeId.longValue())) {
+
 			renderMode = RenderMode.Edit;
+
 		}
 
 		// fetch Renderer
@@ -349,13 +420,14 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 					nodeRenderer = new DefaultEditRenderer();
 
 					break;
+
 			}
+
 		}
 
-		logger.log(Level.FINE, "Got renderer {0} for mode {1}, node type {2} ({3})",
-			   new Object[] { (nodeRenderer != null)
-					  ? nodeRenderer.getClass().getName()
-					  : "Unknown", renderMode, this.getType(), this.getId() });
+		logger.log(Level.FINE, "Got renderer {0} for mode {1}, node type {2} ({3})", new Object[] { (nodeRenderer != null)
+			? nodeRenderer.getClass().getName()
+			: "Unknown", renderMode, this.getType(), this.getId() });
 
 		if (nodeRenderer != null) {
 
@@ -366,15 +438,15 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 			nodeRenderer.renderNode(out, this, startNode, editUrl, editNodeId, renderMode);
 		} else {
 
-			logger.log(Level.WARNING, "No renderer for mode {0}, node {1}", new Object[] { renderMode,
-				this.getId() });
+			logger.log(Level.WARNING, "No renderer for mode {0}, node {1}", new Object[] { renderMode, this.getId() });
+
 		}
 	}
 
 	public void createTemplateRelationship(final Template template) {
 
 		// create a relationship to the given template node
-		Command createRel = Services.command(CreateRelationshipCommand.class);
+		Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
 
 		createRel.execute(this, template, RelType.USE_TEMPLATE);
 	}
@@ -387,11 +459,12 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * @param editUrl
 	 * @param editNodeId
 	 */
-	public void renderEditView(StructrOutputStream out, final AbstractNode startNode, final String editUrl,
-				   final Long editNodeId) {
+	public void renderEditView(StructrOutputStream out, final AbstractNode startNode, final String editUrl, final Long editNodeId) {
 
 		if (getId() == editNodeId.longValue()) {
+
 			renderEditFrame(out, editUrl);
+
 		}
 	}
 
@@ -404,8 +477,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	public void renderEditFrame(StructrOutputStream out, final String editUrl) {
 
 		// create IFRAME with given URL
-		out.append("<iframe style=\"border: 1px solid #ccc; background-color: #fff\" src=\"").append(
-		    editUrl).append("\" width=\"100%\" height=\"100%\"").append("></iframe>");
+		out.append("<iframe style=\"border: 1px solid #ccc; background-color: #fff\" src=\"").append(editUrl).append("\" width=\"100%\" height=\"100%\"").append("></iframe>");
 	}
 
 	/**
@@ -414,84 +486,102 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	@Override
 	public String toString() {
 
-		StringBuilder out = new StringBuilder();
+		/*
+		 * StringBuilder out = new StringBuilder();
+		 *
+		 * out.append(getName()).append(" [").append(getId()).append("]: ");
+		 *
+		 * List<String> props = new LinkedList<String>();
+		 *
+		 * for (String key : getPropertyKeys()) {
+		 *
+		 *       Object value = getProperty(key);
+		 *
+		 *       if (value != null) {
+		 *
+		 *               String displayValue = "";
+		 *
+		 *               if (value.getClass().isPrimitive()) {
+		 *                       displayValue = value.toString();
+		 *               } else if (value.getClass().isArray()) {
+		 *
+		 *                       if (value instanceof byte[]) {
+		 *                               displayValue = new String((byte[]) value);
+		 *                       } else if (value instanceof char[]) {
+		 *                               displayValue = new String((char[]) value);
+		 *                       } else if (value instanceof double[]) {
+		 *
+		 *                               Double[] values = ArrayUtils.toObject((double[]) value);
+		 *
+		 *                               displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
+		 *
+		 *                       } else if (value instanceof float[]) {
+		 *
+		 *                               Float[] values = ArrayUtils.toObject((float[]) value);
+		 *
+		 *                               displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
+		 *
+		 *                       } else if (value instanceof short[]) {
+		 *
+		 *                               Short[] values = ArrayUtils.toObject((short[]) value);
+		 *
+		 *                               displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
+		 *
+		 *                       } else if (value instanceof long[]) {
+		 *
+		 *                               Long[] values = ArrayUtils.toObject((long[]) value);
+		 *
+		 *                               displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
+		 *
+		 *                       } else if (value instanceof int[]) {
+		 *
+		 *                               Integer[] values = ArrayUtils.toObject((int[]) value);
+		 *
+		 *                               displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
+		 *
+		 *                       } else if (value instanceof boolean[]) {
+		 *
+		 *                               Boolean[] values = (Boolean[]) value;
+		 *
+		 *                               displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
+		 *
+		 *                       } else if (value instanceof byte[]) {
+		 *                               displayValue = new String((byte[]) value);
+		 *                       } else {
+		 *
+		 *                               Object[] values = (Object[]) value;
+		 *
+		 *                               displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
+		 *                       }
+		 *
+		 *               } else {
+		 *
+		 *                       if(!(value instanceof AbstractNode)) {
+		 *                               displayValue = value.toString();
+		 *                       } else {
+		 *                               displayValue = "AbstractNode";
+		 *                       }
+		 *               }
+		 *
+		 *               props.add("\"" + key + "\"" + " : " + "\"" + displayValue + "\"");
+		 *       }
+		 * }
+		 *
+		 * out.append("{ ").append(StringUtils.join(props.toArray(), " , ")).append(" }");
+		 *
+		 * return out.toString();
+		 */
+		if (dbNode == null) {
 
-		out.append(getName()).append(" [").append(getId()).append("]: ");
+			return "AbstractNode with null database node";
 
-		List<String> props = new LinkedList<String>();
-
-		for (String key : getPropertyKeys()) {
-
-			Object value = getProperty(key);
-
-			if (value != null) {
-
-				String displayValue = "";
-
-				if (value.getClass().isPrimitive()) {
-					displayValue = value.toString();
-				} else if (value.getClass().isArray()) {
-
-					if (value instanceof byte[]) {
-						displayValue = new String((byte[]) value);
-					} else if (value instanceof char[]) {
-						displayValue = new String((char[]) value);
-					} else if (value instanceof double[]) {
-
-						Double[] values = ArrayUtils.toObject((double[]) value);
-
-						displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
-
-					} else if (value instanceof float[]) {
-
-						Float[] values = ArrayUtils.toObject((float[]) value);
-
-						displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
-
-					} else if (value instanceof short[]) {
-
-						Short[] values = ArrayUtils.toObject((short[]) value);
-
-						displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
-
-					} else if (value instanceof long[]) {
-
-						Long[] values = ArrayUtils.toObject((long[]) value);
-
-						displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
-
-					} else if (value instanceof int[]) {
-
-						Integer[] values = ArrayUtils.toObject((int[]) value);
-
-						displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
-
-					} else if (value instanceof boolean[]) {
-
-						Boolean[] values = (Boolean[]) value;
-
-						displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
-
-					} else if (value instanceof byte[]) {
-						displayValue = new String((byte[]) value);
-					} else {
-
-						Object[] values = (Object[]) value;
-
-						displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
-					}
-
-				} else {
-					displayValue = value.toString();
-				}
-
-				props.add("\"" + key + "\"" + " : " + "\"" + displayValue + "\"");
-			}
 		}
 
-		out.append("{ ").append(StringUtils.join(props.toArray(), " , ")).append(" }");
-
-		return out.toString();
+		return (dbNode.hasProperty(Key.name.name())
+			? dbNode.getProperty(Key.name.name())
+			: "<AbstractNode>") + " [" + (dbNode.hasProperty(Key.type.name())
+			? dbNode.getProperty(Key.type.name())
+			: "Unknown") + ", " + dbNode.getId() + "]";
 	}
 
 	/**
@@ -507,13 +597,19 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 			String displayValue = "";
 
 			if (value.getClass().isPrimitive()) {
+
 				displayValue = value.toString();
+
 			} else if (value.getClass().isArray()) {
 
 				if (value instanceof byte[]) {
+
 					displayValue = new String((byte[]) value);
+
 				} else if (value instanceof char[]) {
+
 					displayValue = new String((char[]) value);
+
 				} else if (value instanceof double[]) {
 
 					Double[] values = ArrayUtils.toObject((double[]) value);
@@ -551,19 +647,25 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 					displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
 
 				} else if (value instanceof byte[]) {
+
 					displayValue = new String((byte[]) value);
+
 				} else {
 
 					Object[] values = (Object[]) value;
 
 					displayValue = "[ " + StringUtils.join(values, " , ") + " ]";
+
 				}
 
 			} else {
+
 				displayValue = value.toString();
+
 			}
 
 			props.add(displayValue);
+
 		}
 
 		return (String[]) props.toArray(new String[props.size()]);
@@ -587,17 +689,17 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 		// Create an outer transaction to combine any inner neo4j transactions
 		// to one single transaction
-		Command transactionCommand = Services.command(TransactionCommand.class);
+		Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
 
 		transactionCommand.execute(new StructrTransaction() {
 
 			@Override
 			public Object execute() throws Throwable {
 
-				Command createNode = Services.command(CreateNodeCommand.class);
+				Command createNode = Services.command(securityContext, CreateNodeCommand.class);
 				AbstractNode s     = (AbstractNode) createNode.execute(user);
 
-				init(s);
+				init(securityContext, s);
 
 				Set<String> keys = properties.keySet();
 
@@ -606,8 +708,11 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 					Object value = properties.get(key);
 
 					if ((key != null) && (value != null)) {
+
 						setProperty(key, value, false);    // Don't update index now!
+
 					}
+
 				}
 
 				return null;
@@ -621,7 +726,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 *
 	 * @return the output
 	 */
-	public String evaluate() {
+	public String evaluate(HttpServletRequest request) {
 		return ("");
 	}
 
@@ -631,12 +736,16 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	private void populateSecurityRelationshipCacheMap() {
 
 		if (securityRelationships == null) {
+
 			securityRelationships = new HashMap<Long, StructrRelationship>();
+
 		}
 
 		// Fill cache map
 		for (StructrRelationship r : getRelationships(RelType.SECURITY, Direction.INCOMING)) {
+
 			securityRelationships.put(r.getStartNode().getId(), r);
+
 		}
 	}
 
@@ -649,11 +758,13 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 		// Check global settings first
 		if (isVisible()) {
+
 			return true;
+
 		}
 
 		// Then check per-user permissions
-		return hasPermission(StructrRelationship.READ_KEY, user);
+		return hasPermission(StructrRelationship.Permission.read.name(), user);
 	}
 
 	/**
@@ -662,7 +773,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * @return
 	 */
 	public boolean showTreeAllowed() {
-		return hasPermission(StructrRelationship.SHOW_TREE_KEY, user);
+		return hasPermission(StructrRelationship.Permission.showTree.name(), user);
 	}
 
 	/**
@@ -671,7 +782,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * @return
 	 */
 	public boolean writeAllowed() {
-		return hasPermission(StructrRelationship.WRITE_KEY, user);
+		return hasPermission(StructrRelationship.Permission.showTree.name(), user);
 	}
 
 	/**
@@ -680,7 +791,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * @return
 	 */
 	public boolean createSubnodeAllowed() {
-		return hasPermission(StructrRelationship.CREATE_SUBNODE_KEY, user);
+		return hasPermission(StructrRelationship.Permission.createNode.name(), user);
 	}
 
 	/**
@@ -689,7 +800,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * @return
 	 */
 	public boolean deleteNodeAllowed() {
-		return hasPermission(StructrRelationship.DELETE_NODE_KEY, user);
+		return hasPermission(StructrRelationship.Permission.deleteNode.name(), user);
 	}
 
 	/**
@@ -698,7 +809,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * @return
 	 */
 	public boolean addRelationshipAllowed() {
-		return hasPermission(StructrRelationship.ADD_RELATIONSHIP_KEY, user);
+		return hasPermission(StructrRelationship.Permission.addRelationship.name(), user);
 	}
 
 	/**
@@ -707,7 +818,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * @return
 	 */
 	public boolean editPropertiesAllowed() {
-		return hasPermission(StructrRelationship.EDIT_PROPERTIES_KEY, user);
+		return hasPermission(StructrRelationship.Permission.editProperties.name(), user);
 	}
 
 	/**
@@ -716,7 +827,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * @return
 	 */
 	public boolean removeRelationshipAllowed() {
-		return hasPermission(StructrRelationship.REMOVE_RELATIONSHIP_KEY, user);
+		return hasPermission(StructrRelationship.Permission.removeRelationship.name(), user);
 	}
 
 	/**
@@ -728,30 +839,40 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 		// just in case ...
 		if (user == null) {
+
 			return false;
+
 		}
 
 		// superuser
 		if (user instanceof SuperUser) {
+
 			return true;
+
 		}
 
 		// node itself
 		if (this.equals(user)) {
+
 			return true;
+
 		}
 
 		StructrRelationship r = null;
 
 		// owner has always access control
 		if (user.equals(getOwnerNode())) {
+
 			return true;
+
 		}
 
 		r = getSecurityRelationship(user);
 
-		if ((r != null) && r.isAllowed(StructrRelationship.ACCESS_CONTROL_KEY)) {
+		if ((r != null) && r.isAllowed(StructrRelationship.Permission.accessControl.name())) {
+
 			return true;
+
 		}
 
 		return false;
@@ -765,8 +886,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * @param editUrl
 	 * @param editNodeId
 	 */
-	public void replaceBySubnodes(StringBuilder content, final AbstractNode startNode, final String editUrl,
-				      final Long editNodeId) {
+	public void replaceBySubnodes(HttpServletRequest request, StringBuilder content, final AbstractNode startNode, final String editUrl, final Long editNodeId) {
 
 		List<AbstractNode> subnodes               = null;
 		List<AbstractNode> subnodesAndLinkedNodes = null;
@@ -783,15 +903,17 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 				subnodesAndLinkedNodes = callingNode.getSortedDirectChildAndLinkNodes();
 				subnodes               = callingNode.getSortedDirectChildNodes();
+
 			}
 
 		} else {
 
 			subnodesAndLinkedNodes = getSortedDirectChildAndLinkNodes();
 			subnodes               = getSortedDirectChildNodes();
+
 		}
 
-		Command findNode = Services.command(FindNodeCommand.class);
+		Command findNode = Services.command(securityContext, FindNodeCommand.class);
 		int start        = content.indexOf(NODE_KEY_PREFIX);
 
 		while (start > -1) {
@@ -800,11 +922,10 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 			if (end < 0) {
 
-				logger.log(Level.WARNING, "Node key suffix {0} not found in template {1}",
-					   new Object[] { NODE_KEY_SUFFIX,
-							  template.getName() });
+				logger.log(Level.WARNING, "Node key suffix {0} not found in template {1}", new Object[] { NODE_KEY_SUFFIX, template.getName() });
 
 				break;
+
 			}
 
 			String key              = content.substring(start + NODE_KEY_PREFIX.length(), end);
@@ -823,8 +944,8 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 				if (StringUtils.isNotEmpty(templateKey)) {
 
-					customTemplate = (Template) findNode.execute(user, this,
-						new XPath(templateKey));
+					customTemplate = (Template) findNode.execute(this, new XPath(templateKey));
+
 				}
 
 			} else if (indexOfDot > 0) {
@@ -833,10 +954,11 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 				key       = splitted[0];
 				methodKey = splitted[1];
+
 			}
 
 			// StringBuilder replacement = new StringBuilder();
-			StructrOutputStream replacement = new StructrOutputStream();
+			StructrOutputStream replacement = new StructrOutputStream(request, securityContext);
 
 			if ((callingNode != null) && key.equals(SUBNODES_KEY)) {
 
@@ -861,9 +983,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 				// if (key.startsWith("/") || key.startsWith("count(")) {
 				// use XPath notation
 				// search relative to calling node
-				// List<AbstractNode> nodes = (List<AbstractNode>) findNode.execute(user, callingNode, new XPath(key));
-				// Object result = findNode.execute(user, this, new XPath(key));
-				Object result = findNode.execute(user, this, key);
+				// List<AbstractNode> nodes = (List<AbstractNode>) findNode.execute(callingNode, new XPath(key));
+				// Object result = findNode.execute(this, new XPath(key));
+				Object result = findNode.execute(this, key);
 
 				if (result instanceof List) {
 
@@ -875,20 +997,26 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 						for (AbstractNode s : nodes) {
 
 							if (customTemplate != null) {
+
 								s.setTemplate(customTemplate);
+
 							}
 
 							// propagate request
 							// s.setRequest(getRequest());
 							s.renderNode(replacement, startNode, editUrl, editNodeId);
+
 						}
+
 					}
 				} else if (result instanceof AbstractNode) {
 
 					AbstractNode s = (AbstractNode) result;
 
 					if (customTemplate != null) {
+
 						s.setTemplate(customTemplate);
+
 					}
 
 					// propagate request
@@ -908,14 +1036,11 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 							try {
 
 								value = getter.invoke(s);
+
 								replacement.append(value);
 
 							} catch (Exception ex) {
-
-								logger.log(Level.FINE,
-									   "Cannot invoke method {0} on {1}",
-									   new Object[] { getter,
-											  s });
+								logger.log(Level.FINE, "Cannot invoke method {0} on {1}", new Object[] { getter, s });
 							}
 
 						} catch (Exception ex) {
@@ -923,11 +1048,15 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 						}
 
 					} else {
+
 						s.renderNode(replacement, startNode, editUrl, editNodeId);
+
 					}
 
 				} else {
+
 					replacement.append(result);
+
 				}
 			}
 
@@ -937,6 +1066,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 			// avoid replacing in the replacement again
 			start = content.indexOf(NODE_KEY_PREFIX, start + replaceBy.length() + 1);
+
 		}
 	}
 
@@ -947,10 +1077,13 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 			List<RelationshipType> relTypeList = new ArrayList<RelationshipType>(10);
 
 			for (String type : relTypes.split("[, ]+")) {
+
 				relTypeList.add(DynamicRelationshipType.withName(type));
+
 			}
 
 			return (relTypeList.toArray(new RelationshipType[0]));
+
 		}
 
 		return (null);
@@ -964,12 +1097,13 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * @param depth
 	 * @param maxDepth
 	 */
-	private void collectRelatedNodes(Set<AbstractNode> nodes, Set<StructrRelationship> rels,
-					 Set<AbstractNode> visitedNodes, AbstractNode currentNode, int depth,
-					 int maxDepth, int maxNum, RelationshipType... relTypes) {
+	private void collectRelatedNodes(Set<AbstractNode> nodes, Set<StructrRelationship> rels, Set<AbstractNode> visitedNodes, AbstractNode currentNode, int depth, int maxDepth, int maxNum,
+					 RelationshipType... relTypes) {
 
 		if (depth >= maxDepth) {
+
 			return;
+
 		}
 
 		if (nodes.size() < maxNum) {
@@ -982,11 +1116,15 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 			if ((relTypes != null) && (relTypes.length > 0)) {
 
 				for (RelationshipType type : relTypes) {
+
 					inRels.addAll(currentNode.getRelationships(type, Direction.INCOMING));
+
 				}
 
 			} else {
+
 				inRels = currentNode.getIncomingRelationships();
+
 			}
 
 			for (StructrRelationship rel : inRels) {
@@ -997,9 +1135,10 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 					nodes.add(startNode);
 					rels.add(rel);
-					collectRelatedNodes(nodes, rels, visitedNodes, startNode, depth + 1, maxDepth,
-							    maxNum, relTypes);
+					collectRelatedNodes(nodes, rels, visitedNodes, startNode, depth + 1, maxDepth, maxNum, relTypes);
+
 				}
+
 			}
 
 			// collect outgoing relationships
@@ -1008,11 +1147,15 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 			if ((relTypes != null) && (relTypes.length > 0)) {
 
 				for (RelationshipType type : relTypes) {
+
 					outRels.addAll(currentNode.getRelationships(type, Direction.OUTGOING));
+
 				}
 
 			} else {
+
 				outRels = currentNode.getOutgoingRelationships();
+
 			}
 
 			for (StructrRelationship rel : outRels) {
@@ -1023,12 +1166,14 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 					nodes.add(endNode);
 					rels.add(rel);
-					collectRelatedNodes(nodes, rels, visitedNodes, endNode, depth + 1, maxDepth,
-							    maxNum, relTypes);
+					collectRelatedNodes(nodes, rels, visitedNodes, endNode, depth + 1, maxDepth, maxNum, relTypes);
+
 				}
+
 			}
 
 			// visitedNodes.add(currentNode);
+
 		}
 	}
 
@@ -1037,74 +1182,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		return "get".concat(name.substring(0, 1).toUpperCase()).concat(name.substring(1));
 	}
 
-	/**
-	 * Replace ${key} by the value of calling node's property with the name "key".
-	 *
-	 * Alternatively, propertyName can be
-	 *
-	 * @param content
-	 * @param node
-	 * @param editUrl
-	 * @param editNodeId
-	 */
-
-//      protected void replaceByPropertyValues(StringBuilder content, final AbstractNode startNode, final String editUrl, final Long editNodeId) {
-//          // start with first occurrence of key prefix
-//          int start = content.indexOf(keyPrefix);
-//
-//          while (start > -1) {
-//
-//              int end = content.indexOf(keySuffix, start + keyPrefix.length());
-//              String key = content.substring(start + keyPrefix.length(), end);
-//
-//              StringBuilder replacement = new StringBuilder();
-//
-//              // special placeholder for calling node's child nodes
-//              if (key.equals(CALLING_NODE_KEY)) {
-//
-//                  List<AbstractNode> subnodes = callingNode.getSortedDirectChildAndLinkNodes();
-//
-//                  // render subnodes in correct order
-//                  for (AbstractNode s : subnodes) {
-//
-//                      // propagate request
-//                      s.setRequest(getRequest());
-//                      s.renderNode(replacement, startNode, editUrl, editNodeId);
-//                  }
-//
-//              } else if (callingNode.getNode() != null && callingNode.getNode().hasProperty(key)) {
-//                  // then, look for a property with name=key
-//                  replacement.append(callingNode.getProperty(key));
-//              }
-//              // moved to replaceBySubnodes
-////              } else {
-////
-////                  // use XPath notation
-////                  Command findNode = Services.command(FindNodeCommand.class);
-////
-////                  // search relative to calling node
-////                  //List<AbstractNode> nodes = (List<AbstractNode>) findNode.execute(user, callingNode, new XPath(key));
-////
-////                  // get referenced nodes relative to the template
-////                  List<AbstractNode> nodes = (List<AbstractNode>) findNode.execute(user, this, new XPath(key));
-////
-////                  if (nodes != null) {
-////                      for (AbstractNode s : nodes) {
-////                          // propagate request
-////                          s.setRequest(getRequest());
-////                          s.renderNode(replacement, startNode, editUrl, editNodeId);
-////                      }
-////                  }
-////
-////              }
-//              String replaceBy = replacement.toString();
-//              content.replace(start, end + keySuffix.length(), replaceBy);
-//              // avoid replacing in the replacement again
-//              start = content.indexOf(keyPrefix, start + replaceBy.length() + 1);
-//          }
-//      }
-	public void replaceByFreeMarker(final String templateString, Writer out, final AbstractNode startNode,
-					final String editUrl, final Long editNodeId) {
+	public void replaceByFreeMarker(HttpServletRequest request, final String templateString, Writer out, final AbstractNode startNode, final String editUrl, final Long editNodeId) {
 
 		Configuration cfg = new Configuration();
 
@@ -1115,9 +1193,13 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 			AbstractNode callingNode = null;
 
 			if (getTemplate() != null) {
+
 				callingNode = template.getCallingNode();
+
 			} else {
+
 				callingNode = startNode;
+
 			}
 
 			Map root = new HashMap();
@@ -1132,50 +1214,59 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 				root.put(callingNode.getType(), callingNode);
 				root.put("CallingNode", callingNode);
-			}
 
-			HttpServletRequest request = CurrentRequest.getRequest();
+			}
 
 			if (request != null) {
 
 				// root.put("Request", new freemarker.template.SimpleHash(request.getParameterMap().));
-				HttpRequestParametersHashModel requestModel =
-					new HttpRequestParametersHashModel(request);
+				HttpRequestParametersHashModel requestModel = new HttpRequestParametersHashModel(request);
 
 				root.put("Request", requestModel);
 				root.put("ContextPath", request.getContextPath());
 
-				String searchString  = Search.clean(request.getParameter("search"));
-				
+				String searchString = Search.clean(request.getParameter("search"));
+
 				if ((searchString != null) &&!(searchString.isEmpty())) {
+
 					root.put("SearchString", searchString);
-					List<AbstractNode> result = CurrentRequest.getSearchResult();
+
+					List<AbstractNode> result = RequestHelper.retrieveSearchResult(securityContext, request);
+
 					root.put("SearchResults", result);
+
 				}
 			}
 
 			if (user != null) {
+
 				root.put("User", user);
+
 			}
 
 			// Add a generic helper
 			root.put("Helper", new TemplateHelper());
 
 			// Add path helper / finder
-			root.put("path", new PathHelper());
+			root.put("path", new PathHelper(securityContext));
 
 			// Add error and ok message if present
-			HttpSession session = CurrentRequest.getSession();
+			HttpSession session = securityContext.getSession();
 
 			if (session != null) {
 
 				if (session.getAttribute("errorMessage") != null) {
+
 					root.put("ErrorMessage", session.getAttribute("errorMessage"));
+
 				}
 
 				if (session.getAttribute("okMessage") != null) {
+
 					root.put("OkMessage", session.getAttribute("okMessage"));
+
 				}
+
 			}
 
 			// root.put("Content", new StructrTemplateNodeModel(this, startNode, editUrl, editNodeId, user));
@@ -1183,8 +1274,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 			String name                    = (template != null)
 							 ? template.getName()
 							 : getName();
-			freemarker.template.Template t = new freemarker.template.Template(name,
-								 new StringReader(templateString), cfg);
+			freemarker.template.Template t = new freemarker.template.Template(name, new StringReader(templateString), cfg);
 
 			t.process(root, out);
 			out.flush();
@@ -1194,98 +1284,15 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		}
 	}
 
-//
-//      public static void staticReplaceByFreeMarker(final String templateString, Writer out, final AbstractNode startNode,
-//              final String editUrl, final Long editNodeId) {
-//
-//              Configuration cfg = new Configuration();
-//
-//              // TODO: enable access to content tree, see below (Content variable)
-//              // cfg.setSharedVariable("Tree", new StructrTemplateNodeModel(this));
-//              try {
-//
-//                      AbstractNode callingNode = null;
-//
-//                      if (templateString != null) {
-//
-//                              Map root = new HashMap();
-//
-//                              root.put("StartNode", startNode);
-//
-//                              if (callingNode != null) {
-//                                      root.put(callingNode.getType(), callingNode);
-//                              }
-//
-//                              HttpServletRequest request = CurrentRequest.getRequest();
-//
-//                              if (request != null) {
-//
-//                                      // root.put("Request", new freemarker.template.SimpleHash(request.getParameterMap().));
-//                                      root.put("Request",
-//                                               new freemarker.ext.servlet.HttpRequestParametersHashModel(request));
-//
-//                                      // if search string is given, put search results into freemarker model
-//                                      String searchString = request.getParameter("search");
-//
-//                                      if ((searchString != null) &&!(searchString.isEmpty())) {
-//
-//                                              Command search            = Services.command(SearchNodeCommand.class);
-//                                              List<AbstractNode> result = (List<AbstractNode>) search.execute(null,    // user => null means super user
-//                                                      null,                            // top node => null means search all
-//                                                      false,                           // include hidden
-//                                                      true,                            // public only
-//                                                      Search.orName(searchString));    // search in name
-//
-//                                              root.put("SearchResults", result);
-//                                      }
-//                              }
-//
-//                              // if (user != null) {
-//                              root.put("User", CurrentSession.getUser());
-//
-//                              // }
-//                              // Add a generic helper
-//                              root.put("Helper", new TemplateHelper());
-//
-//                              // Add error and ok message if present
-//                              HttpSession session = CurrentRequest.getSession();
-//
-//                              if (session != null) {
-//
-//                                      if (session.getAttribute("errorMessage") != null) {
-//                                              root.put("ErrorMessage", session.getAttribute("errorMessage"));
-//                                      }
-//
-//                                      if (session.getAttribute("errorMessage") != null) {
-//                                              root.put("OkMessage", session.getAttribute("okMessage"));
-//                                      }
-//                              }
-//
-//                              freemarker.template.Template t = new freemarker.template.Template(startNode.getName(),
-//                                                                       new StringReader(templateString), cfg);
-//
-//                              t.process(root, out);
-//
-//                      } else {
-//
-//                              // if no template is given, just copy the input
-//                              out.write(templateString);
-//                              out.flush();
-//                      }
-//
-//              } catch (Throwable t) {
-//                      logger.log(Level.WARNING, "Error: {0}", t.getMessage());
-//              }
-//      }
 	// ----- protected methods -----
 	protected String createUniqueIdentifier(String prefix) {
 
-		StringBuilder ret = new StringBuilder(100);
+		StringBuilder identifier = new StringBuilder(100);
 
-		ret.append(prefix);
-		ret.append(getIdString());
+		identifier.append(prefix);
+		identifier.append(getIdString());
 
-		return (ret.toString());
+		return identifier.toString();
 	}
 
 	/**
@@ -1297,11 +1304,8 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 *
 	 * @return an Iterable of the nodes found in the traversal
 	 */
-	protected Iterable<Node> traverseDepthFirst(final RelationshipType relType, final Direction direction,
-		Evaluator evaluator) {
-
-		return (Traversal.description().depthFirst().relationships(relType,
-			direction).evaluator(evaluator).traverse(dbNode).nodes());
+	protected Iterable<Node> traverseDepthFirst(final RelationshipType relType, final Direction direction, Evaluator evaluator) {
+		return (Traversal.description().depthFirst().relationships(relType, direction).evaluator(evaluator).traverse(dbNode).nodes());
 	}
 
 	/**
@@ -1313,11 +1317,8 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 *
 	 * @return an Iterable of the nodes found in the traversal
 	 */
-	protected Iterable<Node> traverseBreadthFirst(final RelationshipType relType, final Direction direction,
-		Evaluator evaluator) {
-
-		return (Traversal.description().breadthFirst().relationships(relType,
-			direction).evaluator(evaluator).traverse(dbNode).nodes());
+	protected Iterable<Node> traverseBreadthFirst(final RelationshipType relType, final Direction direction, Evaluator evaluator) {
+		return (Traversal.description().breadthFirst().relationships(relType, direction).evaluator(evaluator).traverse(dbNode).nodes());
 	}
 
 	/**
@@ -1331,10 +1332,76 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		int count = 0;
 
 		for (Object o : iterable) {
+
 			count++;
+
 		}
 
 		return (count);
+	}
+
+	@Override
+	public void delete(SecurityContext securityContext) {
+
+		dbNode.delete();
+
+		// EntityContext.getGlobalModificationListener().graphObjectDeleted(securityContext, this);
+	}
+
+	/**
+	 * Can be used to permit the setting of a read-only
+	 * property once. The lock will be restored automatically
+	 * after the next setProperty operation. This method exists
+	 * to prevent automatic set methods from setting a read-only
+	 * property while allowing a manual set method to override this
+	 * default behaviour.
+	 */
+	public void unlockReadOnlyPropertiesOnce() {
+		this.readOnlyPropertiesUnlocked = true;
+	}
+
+	@Override
+	public void removeProperty(final String key) {
+
+		if (this.dbNode != null) {
+
+			if (key == null) {
+
+				logger.log(Level.SEVERE, "Tried to set property with null key (action was denied)");
+
+				return;
+
+			}
+
+			// check for read-only properties
+			if (EntityContext.isReadOnlyProperty(this.getClass(), key)) {
+
+				if (readOnlyPropertiesUnlocked) {
+
+					// permit write operation once and
+					// lock read-only properties again
+					readOnlyPropertiesUnlocked = false;
+				} else {
+
+					throw new IllegalArgumentException("Property '".concat(key).concat("' is read-only."));
+
+				}
+
+			}
+
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws Throwable {
+
+					dbNode.removeProperty(key);
+
+					return null;
+				}
+
+			});
+
+		}
 	}
 
 	//~--- get methods ----------------------------------------------------
@@ -1394,6 +1461,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 			template = (Template) this;
 
 			return template;
+
 		}
 
 		if (template != null) {
@@ -1410,14 +1478,14 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 		while ((startNode != null) &&!(startNode.isRootNode())) {
 
-			List<StructrRelationship> templateRelationships =
-				startNode.getRelationships(RelType.USE_TEMPLATE, Direction.OUTGOING);
+			List<StructrRelationship> templateRelationships = startNode.getRelationships(RelType.USE_TEMPLATE, Direction.OUTGOING);
 
 			if ((templateRelationships != null) &&!(templateRelationships.isEmpty())) {
 
 				template = (Template) templateRelationships.get(0).getEndNode();
 
 				return template;
+
 			}
 
 			if (template == null) {
@@ -1425,7 +1493,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 				startNode = startNode.getParentNode();
 
 				continue;
+
 			}
+
 		}
 
 		long t1 = System.currentTimeMillis();
@@ -1441,7 +1511,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 */
 	@Override
 	public String getType() {
-		return (String) getProperty(TYPE_KEY);
+		return (String) getProperty(Key.type.name());
 	}
 
 	/**
@@ -1463,12 +1533,16 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 */
 	public String getName() {
 
-		Object nameProperty = getProperty(NAME_KEY);
+		Object nameProperty = getProperty(Key.name.name());
 
 		if (nameProperty != null) {
+
 			return (String) nameProperty;
+
 		} else {
+
 			return getNodeId().toString();
+
 		}
 	}
 
@@ -1476,7 +1550,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * Get categories
 	 */
 	public String[] getCategories() {
-		return (String[]) getProperty(CATEGORIES_KEY);
+		return (String[]) getProperty(Key.categories.name());
 	}
 
 	/**
@@ -1496,11 +1570,11 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 //              logger.log(Level.FINE, "Title without locale requested.");
 //              return getTitle(new Locale("en"));
-		return getStringProperty(TITLE_KEY);
+		return getStringProperty(Key.title.name());
 	}
 
 	public static String getTitleKey(final Locale locale) {
-		return TITLE_KEY + "_" + locale;
+		return Key.title.name() + "_" + locale;
 	}
 
 	/**
@@ -1515,8 +1589,11 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 			String title = (String) getProperty(getTitleKey(locale));
 
 			if (title != null) {
+
 				titleList.add(new Title(locale, title));
+
 			}
+
 		}
 
 		return titleList;
@@ -1525,10 +1602,13 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	/**
 	 * Get id from underlying db
 	 */
+	@Override
 	public long getId() {
 
 		if (isDirty) {
+
 			return -1;
+
 		}
 
 		return dbNode.getId();
@@ -1552,9 +1632,13 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		if (propertyValue != null) {
 
 			if (propertyValue instanceof Date) {
+
 				return (Date) propertyValue;
+
 			} else if (propertyValue instanceof Long) {
+
 				return new Date((Long) propertyValue);
+
 			} else if (propertyValue instanceof String) {
 
 				try {
@@ -1565,16 +1649,13 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 					try {
 
-						Date date = DateUtils.parseDate(((String) propertyValue),
-										new String[] { "yyyy-MM-ddTHH:mm:ssZ",
-							"yyyymmdd", "yyyymm", "yyyy" });
+						Date date = DateUtils.parseDate(((String) propertyValue), new String[] { "yyyy-MM-dd'T'HH:mm:ssZ", "yyyy-MM-dd'T'HH:mm:ss", "yyyymmdd", "yyyymm",
+							"yyyy" });
 
 						return date;
 
 					} catch (ParseException ex2) {
-
-						logger.log(Level.WARNING,
-							   "Could not parse " + propertyValue + " to date", ex2);
+						logger.log(Level.WARNING, "Could not parse " + propertyValue + " to date", ex2);
 					}
 
 					logger.log(Level.WARNING, "Can''t parse String {0} to a Date.", propertyValue);
@@ -1584,30 +1665,32 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 			} else {
 
-				logger.log(
-				    Level.WARNING,
-				    "Date property is not null, but type is neither Long nor String, returning null");
+				logger.log(Level.WARNING, "Date property is not null, but type is neither Long nor String, returning null");
 
 				return null;
+
 			}
+
 		}
 
 		return null;
 	}
 
 	public String getCreatedBy() {
-		return (String) getProperty(CREATED_BY_KEY);
+		return (String) getProperty(Key.createdBy.name());
 	}
 
 	public Long getPosition() {
 
-		Object p = getProperty(POSITION_KEY);
+		Object p = getProperty(Key.position.name());
 		Long pos;
 
 		if (p != null) {
 
 			if (p instanceof Long) {
+
 				return (Long) p;
+
 			} else if (p instanceof Integer) {
 
 				try {
@@ -1642,9 +1725,10 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 			} else {
 
-				logger.log(Level.SEVERE, "Position property not stored as Integer or String: {0}",
-					   p.getClass().getName());
+				logger.log(Level.SEVERE, "Position property not stored as Integer or String: {0}", p.getClass().getName());
+
 			}
+
 		}
 
 		// If no value is in the database, write the actual id once
@@ -1656,20 +1740,20 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		return id;
 	}
 
-	public boolean getPublic() {
-		return getBooleanProperty(PUBLIC_KEY);
+	public boolean getVisibleToPublicUsers() {
+		return getBooleanProperty(Key.visibleToPublicUsers.name());
 	}
 
 	public boolean getVisibleToAuthenticatedUsers() {
-		return getBooleanProperty(VISIBLE_TO_AUTHENTICATED_USERS_KEY);
+		return getBooleanProperty(Key.visibleToAuthenticatedUsers.name());
 	}
 
 	public boolean getHidden() {
-		return getBooleanProperty(HIDDEN_KEY);
+		return getBooleanProperty(Key.hidden.name());
 	}
 
 	public boolean getDeleted() {
-		return getBooleanProperty(DELETED_KEY);
+		return getBooleanProperty(Key.deleted.name());
 	}
 
 	/**
@@ -1697,8 +1781,11 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 			Object prop = getProperty(key);
 
 			if (prop != null) {
+
 				signature.put(key, prop.getClass());
+
 			}
+
 		}
 
 		return signature;
@@ -1710,16 +1797,41 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * @return
 	 */
 	public final Iterable<String> getDatabasePropertyKeys() {
+
+		if (dbNode == null) {
+
+			return null;
+
+		}
+
 		return dbNode.getPropertyKeys();
 	}
 
 	/**
-	 * Return all property keys of the underlying database node
+	 * Return all property keys.
 	 *
 	 * @return
 	 */
 	public Iterable<String> getPropertyKeys() {
-		return dbNode.getPropertyKeys();
+		return getPropertyKeys(PropertyView.All);
+	}
+
+	/**
+	 * Depending on the given value, return different set of properties for
+	 * a node.
+	 *
+	 * F.e. in Public mode, only the properties suitable for public users should
+	 * be returned.
+	 *
+	 * This method should be overwritten in any subclass where you want to
+	 * hide certain properties in different view modes.
+	 *
+	 * @param propertyView
+	 * @return
+	 */
+	@Override
+	public Iterable<String> getPropertyKeys(final String propertyView) {
+		return EntityContext.getPropertySet(this.getClass(), propertyView);
 	}
 
 	public Object getProperty(final PropertyKey propertyKey) {
@@ -1738,17 +1850,115 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		return getProperty(key);
 	}
 
+	@Override
 	public Object getProperty(final String key) {
 
-		if (isDirty) {
-			return properties.get(key);
+		Object value = null;
+		Class type   = this.getClass();
+
+		// ----- BEGIN property group resolution -----
+		PropertyGroup propertyGroup = EntityContext.getPropertyGroup(type, key);
+
+		if (propertyGroup != null) {
+
+			return propertyGroup.getGroupedProperties(this);
+
 		}
 
-		if ((key != null) && dbNode.hasProperty(key)) {
-			return dbNode.getProperty(key);
+		if (dbNode.hasProperty(key)) {
+
+			if (isDirty) {
+
+				value = properties.get(key);
+
+			}
+
+			// Temporary hook for format conversion introduced with 0.4.3-SNAPSHOT:
+			// public -> visibleToPublicUsers (due to usage of enum Permission public instead of public static final String PUBLIC = "public"
+			// TODO: remove this hook if you can be absolutely sure that no old repository is in use anymore!
+			if (key.equals(Key.visibleToPublicUsers.name()) && dbNode.hasProperty("public")) {
+
+				final Object oldValue          = dbNode.getProperty("public");
+				StructrTransaction transaction = new StructrTransaction() {
+
+					@Override
+					public Object execute() throws Throwable {
+
+						dbNode.setProperty(Key.visibleToPublicUsers.name(), oldValue);
+						dbNode.removeProperty("public");
+
+						return null;
+					}
+				};
+
+				// execute transaction
+				Services.command(securityContext, TransactionCommand.class).execute(transaction);
+
+				// debug
+				if (transaction.getCause() != null) {
+
+					logger.log(Level.WARNING, "Error while setting property", transaction.getCause());
+
+				}
+
+			}
+
+			if ((key != null) && (dbNode != null) && dbNode.hasProperty(key)) {
+
+				value = dbNode.getProperty(key);
+
+			}
+
 		} else {
-			return null;
+
+			// ----- BEGIN automatic property resolution (check for static relationships and return related nodes) -----
+			DirectedRelationship rel = EntityContext.getDirectedRelationship(type, key);
+
+			if (rel != null) {
+
+				// apply notion (default is "as-is")
+				Notion notion = rel.getNotion();
+
+				// return collection or single element depending on cardinality of relationship
+				switch (rel.getCardinality()) {
+
+					case ManyToMany :
+					case OneToMany :
+						value = new IterableAdapter(rel.getRelatedNodes(securityContext, this), notion.getAdapterForGetter(securityContext));
+
+						break;
+
+					case OneToOne :
+					case ManyToOne :
+						value = notion.getAdapterForGetter(securityContext).adapt(rel.getRelatedNode(securityContext, this));
+
+						break;
+
+				}
+
+//
+//                              } else {
+//
+//                                      logger.log(Level.WARNING, "No relationship found for type {0}, key {1}", new Object[] { type.getSimpleName(), key } );
+			}
+
+			// ----- END automatic property resolution -----
 		}
+
+		// apply property converters
+		PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
+
+		if (converter != null) {
+
+			Value conversionValue = EntityContext.getPropertyConversionParameter(type, key);
+
+			converter.setCurrentNode(this);
+
+			value = converter.convertForGetter(value, conversionValue);
+
+		}
+
+		return value;
 	}
 
 	public String getStringProperty(final PropertyKey propertyKey) {
@@ -1760,9 +1970,13 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		Object value = getProperty(key);
 
 		if (value instanceof String) {
+
 			return DigestUtils.md5Hex((String) value);
+
 		} else if (value instanceof byte[]) {
+
 			return DigestUtils.md5Hex((byte[]) value);
+
 		}
 
 		logger.log(Level.WARNING, "Could not create MD5 hex out of value {0}", value);
@@ -1776,11 +1990,15 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		String result        = null;
 
 		if (propertyValue == null) {
+
 			return null;
+
 		}
 
 		if (propertyValue instanceof String) {
+
 			result = ((String) propertyValue);
+
 		}
 
 		return result;
@@ -1796,7 +2014,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		List<String> result  = new LinkedList<String>();
 
 		if (propertyValue == null) {
+
 			return null;
+
 		}
 
 		if (propertyValue instanceof String) {
@@ -1810,6 +2030,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 			String[] values = (String[]) propertyValue;
 
 			result = Arrays.asList(values);
+
 		}
 
 		return result;
@@ -1834,9 +2055,13 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 				result.append(value);
 
 				if (i < values.length - 1) {
+
 					result.append("\r\n");
+
 				}
+
 			}
+
 		}
 
 		return result.toString();
@@ -1852,18 +2077,25 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		Integer result       = null;
 
 		if (propertyValue == null) {
+
 			return null;
+
 		}
 
 		if (propertyValue instanceof Integer) {
+
 			result = ((Integer) propertyValue);
+
 		} else if (propertyValue instanceof String) {
 
 			if ("".equals((String) propertyValue)) {
+
 				return null;
+
 			}
 
 			result = Integer.parseInt(((String) propertyValue));
+
 		}
 
 		return result;
@@ -1879,18 +2111,25 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		Long result          = null;
 
 		if (propertyValue == null) {
+
 			return null;
+
 		}
 
 		if (propertyValue instanceof Long) {
+
 			result = ((Long) propertyValue);
+
 		} else if (propertyValue instanceof String) {
 
 			if ("".equals((String) propertyValue)) {
+
 				return null;
+
 			}
 
 			result = Long.parseLong(((String) propertyValue));
+
 		}
 
 		return result;
@@ -1906,7 +2145,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		Double result        = null;
 
 		if (propertyValue == null) {
+
 			return null;
+
 		}
 
 		if (propertyValue instanceof Double) {
@@ -1926,10 +2167,13 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		} else if (propertyValue instanceof String) {
 
 			if ("".equals((String) propertyValue)) {
+
 				return null;
+
 			}
 
 			result = Double.parseDouble(((String) propertyValue));
+
 		}
 
 		return result;
@@ -1945,13 +2189,19 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		Boolean result       = false;
 
 		if (propertyValue == null) {
+
 			return Boolean.FALSE;
+
 		}
 
 		if (propertyValue instanceof Boolean) {
+
 			result = ((Boolean) propertyValue).booleanValue();
+
 		} else if (propertyValue instanceof String) {
+
 			result = Boolean.parseBoolean(((String) propertyValue));
+
 		}
 
 		return result;
@@ -1996,11 +2246,15 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		String nodePath = getNodePath(node);
 
 		if (nodePath.equals(".")) {
+
 			return "";
+
 		}
 
 		if (nodePath.startsWith("../")) {
+
 			return nodePath.substring(3);
+
 		}
 
 		return nodePath;
@@ -2087,7 +2341,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	/*
 	 * public String getNodePath(final AbstractNode node, final Enum renderMode) {
 	 *
-	 * Command nodeFactory = Services.command(NodeFactoryCommand.class);
+	 * Command nodeFactory = Services.command(securityContext, NodeFactoryCommand.class);
 	 * AbstractNode n = (AbstractNode) nodeFactory.execute(node);
 	 * return n.getNodePath();
 	 * }
@@ -2106,7 +2360,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		AbstractNode node = this;
 
 		// create bean node
-//              Command nodeFactory = Services.command(NodeFactoryCommand.class);
+//              Command nodeFactory = Services.command(securityContext, NodeFactoryCommand.class);
 //              AbstractNode n = (AbstractNode) nodeFactory.execute(node);
 		// stop at root node
 		while ((node != null) && (node.getId() > 0)) {
@@ -2122,6 +2376,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 //                          node = r.getStartNode();
 //                          n = (AbstractNode) nodeFactory.execute(node);
 //                      }
+
 		}
 
 		return "/".concat(path);    // add leading slash, because we always include the root node
@@ -2140,7 +2395,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		AbstractNode node = this;
 
 		// create bean node
-//              Command nodeFactory = Services.command(NodeFactoryCommand.class);
+//              Command nodeFactory = Services.command(securityContext, NodeFactoryCommand.class);
 //              AbstractNode n = (AbstractNode) nodeFactory.execute(node);
 		// stop at root node
 		while ((node != null) && (node.getId() > 0)) {
@@ -2151,6 +2406,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 			// check parent nodes
 			node = node.getParentNode();
+
 		}
 
 		return "/".concat(xpath);    // add leading slash, because we always include the root node
@@ -2188,17 +2444,23 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	public StructrRelationship getSecurityRelationship(final Principal principal) {
 
 		if (principal == null) {
+
 			return null;
+
 		}
 
 		long userId = principal.getId();
 
 		if (securityRelationships == null) {
+
 			securityRelationships = new HashMap<Long, StructrRelationship>();
+
 		}
 
 		if (!(securityRelationships.containsKey(userId))) {
+
 			populateSecurityRelationshipCacheMap();
+
 		}
 
 		return securityRelationships.get(userId);
@@ -2211,9 +2473,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 */
 	@Override
 	public List<StructrRelationship> getRelationships(RelationshipType type, Direction dir) {
-
-		return (List<StructrRelationship>) Services.command(NodeRelationshipsCommand.class).execute(this, type,
-			dir);
+		return (List<StructrRelationship>) Services.command(securityContext, NodeRelationshipsCommand.class).execute(this, type, dir);
 	}
 
 	/**
@@ -2223,8 +2483,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 */
 	@Override
 	public Map<RelationshipType, Long> getRelationshipInfo(Direction dir) {
-
-		return (Map<RelationshipType, Long>) Services.command(NodeRelationshipStatisticsCommand.class).execute(this, dir);
+		return (Map<RelationshipType, Long>) Services.command(securityContext, NodeRelationshipStatisticsCommand.class).execute(this, dir);
 	}
 
 //
@@ -2271,9 +2530,13 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		List<AbstractNode> parentNodes = getParentNodes();
 
 		if ((parentNodes != null) &&!(parentNodes.isEmpty())) {
+
 			return parentNodes.get(0);
+
 		} else {
+
 			return null;
+
 		}
 	}
 
@@ -2289,9 +2552,13 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		List<AbstractNode> parentNodes = getParentNodesIgnorePermissions();
 
 		if ((parentNodes != null) &&!(parentNodes.isEmpty())) {
+
 			return parentNodes.get(0);
+
 		} else {
+
 			return null;
+
 		}
 	}
 
@@ -2306,7 +2573,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 		// If node has no ancestors, itself is its context node
 		if (ancestors.isEmpty()) {
+
 			return this;
+
 		}
 
 		// Return root node
@@ -2332,25 +2601,27 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 */
 	public List<AbstractNode> getSiblingNodes() {
 
-		SecurityContext securityContext = CurrentRequest.getSecurityContext();
-		List<AbstractNode> nodes        = new LinkedList<AbstractNode>();
-		AbstractNode parentNode         = getParentNode();
+		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
+		AbstractNode parentNode  = getParentNode();
 
 		if (parentNode != null) {
 
-			Command nodeFactory            = Services.command(NodeFactoryCommand.class);
-			Command relsCommand            = Services.command(NodeRelationshipsCommand.class);
-			List<StructrRelationship> rels = (List<StructrRelationship>) relsCommand.execute(parentNode,
-								 RelType.HAS_CHILD, Direction.OUTGOING);
+			Command nodeFactory            = Services.command(securityContext, NodeFactoryCommand.class);
+			Command relsCommand            = Services.command(securityContext, NodeRelationshipsCommand.class);
+			List<StructrRelationship> rels = (List<StructrRelationship>) relsCommand.execute(parentNode, RelType.HAS_CHILD, Direction.OUTGOING);
 
 			for (StructrRelationship r : rels) {
 
 				AbstractNode s = (AbstractNode) nodeFactory.execute(r.getEndNode());
 
 				if (securityContext.isAllowed(s, Permission.Read)) {
+
 					nodes.add(s);
+
 				}
+
 			}
+
 		}
 
 		return nodes;
@@ -2372,6 +2643,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		do {
 
 			nodes.add(node);
+
 			node = node.getParentNodeIgnorePermissions();
 
 		} while ((node != null) &&!node.isRootNode());
@@ -2393,18 +2665,20 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 */
 	public List<AbstractNode> getParentNodes() {
 
-		SecurityContext securityContext = CurrentRequest.getSecurityContext();
-		List<AbstractNode> nodes        = new LinkedList<AbstractNode>();
-		Command nodeFactory             = Services.command(NodeFactoryCommand.class);
-		List<StructrRelationship> rels  = getIncomingChildRelationships();
+		List<AbstractNode> nodes       = new LinkedList<AbstractNode>();
+		Command nodeFactory            = Services.command(securityContext, NodeFactoryCommand.class);
+		List<StructrRelationship> rels = getIncomingChildRelationships();
 
 		for (StructrRelationship r : rels) {
 
 			AbstractNode s = (AbstractNode) nodeFactory.execute(r.getStartNode());
 
 			if (securityContext.isAllowed(s, Permission.Read)) {
+
 				nodes.add(s);
+
 			}
+
 		}
 
 		return nodes;
@@ -2420,7 +2694,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	public List<AbstractNode> getParentNodesIgnorePermissions() {
 
 		List<AbstractNode> nodes       = new LinkedList<AbstractNode>();
-		Command nodeFactory            = Services.command(NodeFactoryCommand.class);
+		Command nodeFactory            = Services.command(securityContext, NodeFactoryCommand.class);
 		List<StructrRelationship> rels = getIncomingChildRelationships();
 
 		for (StructrRelationship r : rels) {
@@ -2428,6 +2702,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 			AbstractNode s = (AbstractNode) nodeFactory.execute(r.getStartNode());
 
 			nodes.add(s);
+
 		}
 
 		return nodes;
@@ -2441,7 +2716,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	public List<StructrRelationship> getRelationships() {
 
 		if (allRelationships == null) {
+
 			allRelationships = getRelationships(null, Direction.BOTH);
+
 		}
 
 		return allRelationships;
@@ -2464,7 +2741,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	public List<StructrRelationship> getIncomingRelationships() {
 
 		if (incomingRelationships == null) {
+
 			incomingRelationships = getRelationships(null, Direction.INCOMING);
+
 		}
 
 		return incomingRelationships;
@@ -2478,13 +2757,15 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	public List<StructrRelationship> getOutgoingRelationships() {
 
 		if (outgoingRelationships == null) {
+
 			outgoingRelationships = getRelationships(null, Direction.OUTGOING);
+
 		}
 
 		return outgoingRelationships;
 	}
 
-	public Iterable<AbstractNode> getDataNodes() {
+	public Iterable<AbstractNode> getDataNodes(HttpServletRequest request) {
 
 		// this is the default implementation
 		return getDirectChildNodes();
@@ -2507,7 +2788,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	public List<StructrRelationship> getIncomingLinkRelationships() {
 
 		if (incomingLinkRelationships == null) {
+
 			incomingLinkRelationships = getRelationships(RelType.LINK, Direction.INCOMING);
+
 		}
 
 		return incomingLinkRelationships;
@@ -2521,7 +2804,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	public List<StructrRelationship> getOutgoingDataRelationships() {
 
 		if (outgoingDataRelationships == null) {
+
 			outgoingDataRelationships = getRelationships(RelType.DATA, Direction.OUTGOING);
+
 		}
 
 		return outgoingDataRelationships;
@@ -2535,7 +2820,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	public List<StructrRelationship> getIncomingDataRelationships() {
 
 		if (incomingDataRelationships == null) {
+
 			incomingDataRelationships = getRelationships(RelType.DATA, Direction.INCOMING);
+
 		}
 
 		return incomingDataRelationships;
@@ -2549,7 +2836,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	public List<StructrRelationship> getOutgoingLinkRelationships() {
 
 		if (outgoingLinkRelationships == null) {
+
 			outgoingLinkRelationships = getRelationships(RelType.LINK, Direction.OUTGOING);
+
 		}
 
 		return outgoingLinkRelationships;
@@ -2563,7 +2852,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	public List<StructrRelationship> getIncomingChildRelationships() {
 
 		if (incomingChildRelationships == null) {
+
 			incomingChildRelationships = getRelationships(RelType.HAS_CHILD, Direction.INCOMING);
+
 		}
 
 		return incomingChildRelationships;
@@ -2577,7 +2868,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	public List<StructrRelationship> getOutgoingChildRelationships() {
 
 		if (outgoingChildRelationships == null) {
+
 			outgoingChildRelationships = getRelationships(RelType.HAS_CHILD, Direction.OUTGOING);
+
 		}
 
 		return outgoingChildRelationships;
@@ -2610,18 +2903,18 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		return getAllChildren(null);
 	}
 
-	public List<AbstractNode> getAllChildrenForRemotePush(User remoteUser) {
+	public List<AbstractNode> getAllChildrenForRemotePush() {
 
 		// FIXME: add handling for remote user here
-		Command findNode = Services.command(FindNodeCommand.class);
+		Command findNode = Services.command(securityContext, FindNodeCommand.class);
 
-		return ((List<AbstractNode>) findNode.execute(remoteUser, this));
+		return ((List<AbstractNode>) findNode.execute(this));
 	}
 
-	public int getRemotePushSize(User remoteUser, int chunkSize) {
+	public int getRemotePushSize(final int chunkSize) {
 
-		Command findNode        = Services.command(FindNodeCommand.class);
-		List<AbstractNode> list = ((List<AbstractNode>) findNode.execute(remoteUser, this));
+		Command findNode        = Services.command(securityContext, FindNodeCommand.class);
+		List<AbstractNode> list = ((List<AbstractNode>) findNode.execute(this));
 		int size                = 0;
 
 		for (AbstractNode node : list) {
@@ -2634,7 +2927,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 				size += 3;
 
 			} else {
+
 				size++;
+
 			}
 
 			List<StructrRelationship> rels = node.getOutgoingRelationships();
@@ -2642,9 +2937,13 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 			for (StructrRelationship r : rels) {
 
 				if (list.contains(r.getStartNode()) && list.contains(r.getEndNode())) {
+
 					size++;
+
 				}
+
 			}
+
 		}
 
 		return (size);
@@ -2696,18 +2995,19 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 */
 	public List<AbstractNode> getDirectChildren(final RelationshipType relType, final String nodeType) {
 
-		List<StructrRelationship> rels  = this.getOutgoingRelationships(relType);
-		SecurityContext securityContext = CurrentRequest.getSecurityContext();
-		List<AbstractNode> nodes        = new LinkedList<AbstractNode>();
+		List<StructrRelationship> rels = this.getOutgoingRelationships(relType);
+		List<AbstractNode> nodes       = new LinkedList<AbstractNode>();
 
 		for (StructrRelationship r : rels) {
 
 			AbstractNode s = r.getEndNode();
 
-			if (securityContext.isAllowed(s, Permission.Read)
-				&& ((nodeType == null) || nodeType.equals(s.getType()))) {
+			if (securityContext.isAllowed(s, Permission.Read) && ((nodeType == null) || nodeType.equals(s.getType()))) {
+
 				nodes.add(s);
+
 			}
+
 		}
 
 		return nodes;
@@ -2721,8 +3021,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 *
 	 * @return list with structr nodes
 	 */
-	public List<AbstractNode> getDirectChildrenIgnorePermissions(final RelationshipType relType,
-		final String nodeType) {
+	public List<AbstractNode> getDirectChildrenIgnorePermissions(final RelationshipType relType, final String nodeType) {
 
 		List<StructrRelationship> rels = this.getOutgoingRelationships(relType);
 
@@ -2734,8 +3033,11 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 			AbstractNode s = r.getEndNode();
 
 			if ((nodeType == null) || nodeType.equals(s.getType())) {
+
 				nodes.add(s);
+
 			}
+
 		}
 
 		return nodes;
@@ -2886,17 +3188,18 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 */
 	protected List<AbstractNode> getAllChildren(final String nodeType) {
 
-		SecurityContext securityContext = CurrentRequest.getSecurityContext();
-		List<AbstractNode> nodes        = new LinkedList<AbstractNode>();
-		Command findNode                = Services.command(FindNodeCommand.class);
-		List<AbstractNode> result       = (List<AbstractNode>) findNode.execute(user, this);
+		List<AbstractNode> nodes  = new LinkedList<AbstractNode>();
+		Command findNode          = Services.command(securityContext, FindNodeCommand.class);
+		List<AbstractNode> result = (List<AbstractNode>) findNode.execute(this);
 
 		for (AbstractNode s : result) {
 
-			if (securityContext.isAllowed(s, Permission.Read)
-				&& ((nodeType == null) || nodeType.equals(s.getType()))) {
+			if (securityContext.isAllowed(s, Permission.Read) && ((nodeType == null) || nodeType.equals(s.getType()))) {
+
 				nodes.add(s);
+
 			}
+
 		}
 
 		return nodes;
@@ -2915,11 +3218,13 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 			AbstractNode n = s.getStartNode();
 
 			if (n instanceof User) {
+
 				return (User) n;
+
 			}
 
-			logger.log(Level.SEVERE, "Owner node is not a user: {0}[{1}]", new Object[] { n.getName(),
-				n.getId() });
+			logger.log(Level.SEVERE, "Owner node is not a user: {0}[{1}]", new Object[] { n.getName(), n.getId() });
+
 		}
 
 		return null;
@@ -2972,13 +3277,17 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	public Object get(final String key) {
 
 		if (key == null) {
+
 			return null;
+
 		}
 
 		Object propertyValue = this.getProperty(key);
 
 		if (propertyValue != null) {
+
 			return propertyValue;
+
 		}
 
 		List<AbstractNode> subnodes = this.getDirectChildAndLinkNodes();
@@ -2986,8 +3295,11 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		for (AbstractNode node : subnodes) {
 
 			if (key.equals(node.getName())) {
+
 				return node;
+
 			}
+
 		}
 
 		// nothing found
@@ -3012,8 +3324,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		Set<AbstractNode> nodes        = new LinkedHashSet<AbstractNode>();
 		Set<StructrRelationship> rels  = new LinkedHashSet<StructrRelationship>();
 
-		collectRelatedNodes(nodes, rels, visitedNodes, this, 0, maxDepth, maxNum,
-				    splitRelationshipTypes(relTypes));
+		collectRelatedNodes(nodes, rels, visitedNodes, this, 0, maxDepth, maxNum, splitRelationshipTypes(relTypes));
 
 		return (nodes);
 	}
@@ -3036,16 +3347,15 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		Set<AbstractNode> nodes        = new LinkedHashSet<AbstractNode>();
 		Set<StructrRelationship> rels  = new LinkedHashSet<StructrRelationship>();
 
-		collectRelatedNodes(nodes, rels, visitedNodes, this, 0, maxDepth, maxNum,
-				    splitRelationshipTypes(relTypes));
+		collectRelatedNodes(nodes, rels, visitedNodes, this, 0, maxDepth, maxNum, splitRelationshipTypes(relTypes));
 
 		return (rels);
 	}
 
-	protected AbstractNode getNodeFromLoader() {
+	protected AbstractNode getNodeFromLoader(HttpServletRequest request) {
 
 		List<StructrRelationship> rels = getIncomingDataRelationships();
-		AbstractNode ret               = null;
+		AbstractNode node              = null;
 
 		for (StructrRelationship rel : rels) {
 
@@ -3056,37 +3366,62 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 				NodeSource source = (NodeSource) startNode;
 
-				ret = source.loadNode();
+				node = source.loadNode(request);
 
 				break;
+
 			}
 		}
 
-		return (ret);
+		return node;
 	}
 
 	@Override
 	public Date getVisibilityStartDate() {
-		return getDateProperty(VISIBILITY_START_DATE_KEY);
+		return getDateProperty(Key.visibilityStartDate.name());
 	}
 
 	@Override
 	public Date getVisibilityEndDate() {
-		return getDateProperty(VISIBILITY_END_DATE_KEY);
+		return getDateProperty(Key.visibilityEndDate.name());
 	}
 
 	@Override
 	public Date getCreatedDate() {
-		return getDateProperty(CREATED_DATE_KEY);
+		return getDateProperty(Key.createdDate.name());
 	}
 
 	@Override
 	public Date getLastModifiedDate() {
-		return getDateProperty(LAST_MODIFIED_DATE_KEY);
+		return getDateProperty(Key.lastModifiedDate.name());
 	}
 
 	public AbstractComponent getHelpContent() {
 		return (null);
+	}
+
+	@Override
+	public Long getStartNodeId() {
+		return null;
+	}
+
+	@Override
+	public Long getEndNodeId() {
+		return null;
+	}
+
+	@Override
+	public Long getOtherNodeId(final AbstractNode node) {
+		return null;
+	}
+
+	private String getSingularTypeName(String key) {
+
+		return (key.endsWith("ies")
+			? key.substring(0, key.length() - 3).concat("y")
+			: (key.endsWith("s")
+			   ? key.substring(0, key.length() - 1)
+			   : key));
 	}
 
 	public boolean hasTemplate() {
@@ -3113,9 +3448,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * @return
 	 */
 	public boolean hasChildren() {
-
-		return (hasRelationship(RelType.HAS_CHILD, Direction.OUTGOING)
-			|| hasRelationship(RelType.LINK, Direction.OUTGOING));
+		return (hasRelationship(RelType.HAS_CHILD, Direction.OUTGOING) || hasRelationship(RelType.LINK, Direction.OUTGOING));
 	}
 
 	// ----- interface AccessControllable -----
@@ -3123,28 +3456,38 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	public boolean hasPermission(final String permission, final Principal principal) {
 
 		if (principal == null) {
+
 			return false;
+
 		}
 
 		// just in case ...
 		if (permission == null) {
+
 			return false;
+
 		}
 
 		// superuser
 		if (principal instanceof SuperUser) {
+
 			return true;
+
 		}
 
 		// user has full control over his/her own user node
 		if (this.equals(principal)) {
+
 			return true;
+
 		}
 
 		StructrRelationship r = getSecurityRelationship(principal);
 
 		if ((r != null) && r.isAllowed(permission)) {
+
 			return true;
+
 		}
 
 		// Check group
@@ -3157,7 +3500,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 			AbstractNode node = sr.getStartNode();
 
 			if (!(node instanceof Group)) {
+
 				continue;
+
 			}
 
 			Group group = (Group) node;
@@ -3165,21 +3510,24 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 			r = getSecurityRelationship(group);
 
 			if ((r != null) && r.isAllowed(permission)) {
+
 				return true;
+
 			}
+
 		}
 
 		return false;
 	}
 
 	@Override
-	public boolean isPublic() {
-		return getBooleanProperty(PUBLIC_KEY);
+	public boolean isVisibleToPublicUsers() {
+		return getVisibleToPublicUsers();
 	}
 
 	@Override
 	public boolean isVisibleToAuthenticatedUsers() {
-		return getBooleanProperty(VISIBLE_TO_AUTHENTICATED_USERS_KEY);
+		return getBooleanProperty(Key.visibleToAuthenticatedUsers.name());
 	}
 
 	@Override
@@ -3220,8 +3568,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 */
 	public boolean isInTrash() {
 
-		return (countIterableElements(traverseDepthFirst(RelType.HAS_CHILD, Direction.INCOMING,
-			new Evaluator() {
+		return (countIterableElements(traverseDepthFirst(RelType.HAS_CHILD, Direction.INCOMING, new Evaluator() {
 
 			@Override
 			public Evaluation evaluate(Path path) {
@@ -3229,7 +3576,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 				Node node = path.endNode();
 
 				// check for type property with value "Trash"
-				if (node.hasProperty(TYPE_KEY) && node.getProperty(TYPE_KEY).equals("Trash")) {
+				if (node.hasProperty(Key.type.name()) && node.getProperty(Key.type.name()).equals("Trash")) {
 
 					// only include Trash nodes in result set
 					return (Evaluation.INCLUDE_AND_PRUNE);
@@ -3244,29 +3591,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	}
 
 	public boolean isVisible() {
-
-		SecurityContext securityContext = CurrentRequest.getSecurityContext();
-
 		return securityContext.isVisible(this);
-	}
-
-	//~--- interface GraphObject -----------------------------------------
-	@Override
-	public Long getStartNodeId() {
-		return null;
-	}
-
-	@Override
-	public Long getEndNodeId() {
-		return null;
-	}
-
-	@Override
-	public boolean delete() {
-
-		dbNode.delete();
-
-		return true;
 	}
 
 	//~--- set methods ----------------------------------------------------
@@ -3320,7 +3645,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 *       if (user == null) {
 	 *
 	 *               // No logged-in user
-	 *               if (isPublic()) {
+	 *               if (visibleToPublicUsers()) {
 	 *                       return visibleByTime;
 	 *               } else {
 	 *                       return false;
@@ -3343,80 +3668,83 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	public void setTemplateId(final Long value) {
 
 		// find template node
-		Command findNode      = Services.command(FindNodeCommand.class);
-		Template templateNode = (Template) findNode.execute(new SuperUser(), value);
+		Command findNode      = Services.command(securityContext, FindNodeCommand.class);
+		Template templateNode = (Template) findNode.execute(value);
 
 		// delete existing template relationships
 		List<StructrRelationship> templateRels = this.getOutgoingRelationships(RelType.USE_TEMPLATE);
-		Command delRel                         = Services.command(DeleteRelationshipCommand.class);
+		Command delRel                         = Services.command(securityContext, DeleteRelationshipCommand.class);
 
 		if (templateRels != null) {
 
 			for (StructrRelationship r : templateRels) {
+
 				delRel.execute(r);
+
 			}
+
 		}
 
 		// create new link target relationship
-		Command createRel = Services.command(CreateRelationshipCommand.class);
+		Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
 
 		createRel.execute(this, templateNode, RelType.USE_TEMPLATE);
 	}
 
 	public void setCreatedBy(final String createdBy) {
-		setProperty(CREATED_BY_KEY, createdBy);
+		setProperty(Key.createdBy.name(), createdBy);
 	}
 
 	public void setCreatedDate(final Date date) {
-		setProperty(CREATED_DATE_KEY, date);
+		setProperty(Key.createdDate.name(), date);
 	}
 
 	public void setLastModifiedDate(final Date date) {
-		setProperty(LAST_MODIFIED_DATE_KEY, date);
+		setProperty(Key.lastModifiedDate.name(), date);
 	}
 
 	public void setVisibilityStartDate(final Date date) {
-		setProperty(VISIBILITY_START_DATE_KEY, date);
+		setProperty(Key.visibilityStartDate.name(), date);
 	}
 
 	public void setVisibilityEndDate(final Date date) {
-		setProperty(VISIBILITY_END_DATE_KEY, date);
+		setProperty(Key.visibilityEndDate.name(), date);
 	}
 
 	public void setPosition(final Long position) {
-		setProperty(POSITION_KEY, position);
+		setProperty(Key.position.name(), position);
 	}
 
-	public void setPublic(final boolean publicFlag) {
-		setProperty(PUBLIC_KEY, publicFlag);
+	public void setVisibleToPublicUsers(final boolean publicFlag) {
+		setProperty(Key.visibleToPublicUsers.name(), publicFlag);
 	}
 
 	public void setVisibleToAuthenticatedUsers(final boolean flag) {
-		setProperty(VISIBLE_TO_AUTHENTICATED_USERS_KEY, flag);
+		setProperty(Key.visibleToAuthenticatedUsers.name(), flag);
 	}
 
 	public void setHidden(final boolean hidden) {
-		setProperty(HIDDEN_KEY, hidden);
+		setProperty(Key.hidden.name(), hidden);
 	}
 
 	public void setDeleted(final boolean deleted) {
-		setProperty(DELETED_KEY, deleted);
+		setProperty(Key.deleted.name(), deleted);
 	}
 
 	public void setType(final String type) {
-		setProperty(TYPE_KEY, type);
+		setProperty(Key.type.name(), type);
 	}
 
 	public void setName(final String name) {
-		setProperty(NAME_KEY, name);
+		setProperty(Key.name.name(), name);
 	}
 
 	public void setCategories(final String[] categories) {
-		setProperty(CATEGORIES_KEY, categories);
+		setProperty(Key.categories.name(), categories);
 	}
 
 	public void setTitle(final String title) {
-		setProperty(TITLE_KEY, title);
+		setProperty(Key.title.name(), title);
 	}
 
 	/**
@@ -3425,7 +3753,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * @param title
 	 */
 	public void setTitles(final String[] titles) {
-		setProperty(TITLES_KEY, titles);
+		setProperty(Key.titles.name(), titles);
 	}
 
 	public void setId(final Long id) {
@@ -3450,8 +3778,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * Set property only if value has changed
 	 *
 	 * @param key
-	 * @param value
+	 * @param convertedValue
 	 */
+	@Override
 	public void setProperty(final String key, final Object value) {
 		setProperty(key, value, updateIndexDefault);
 	}
@@ -3486,80 +3815,170 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * Update index only if updateIndex is true
 	 *
 	 * @param key
-	 * @param value
+	 * @param convertedValue
 	 * @param updateIndex
 	 */
 	public void setProperty(final String key, final Object value, final boolean updateIndex) {
+
+		final Class type = this.getClass();
 
 		if (key == null) {
 
 			logger.log(Level.SEVERE, "Tried to set property with null key (action was denied)");
 
-			return;
+			throw new IllegalArgumentException("A property key may not be null.");
+
 		}
 
-		if (isDirty) {
+		// check for read-only properties
+		if (EntityContext.isReadOnlyProperty(type, key) || (EntityContext.isWriteOnceProperty(type, key) && (dbNode != null) && dbNode.hasProperty(key))) {
 
-			// Don't write directly to database, but store property values
-			// in a map for later use
-			properties.put(key, value);
+			if (readOnlyPropertiesUnlocked) {
+
+				// permit write operation once and
+				// lock read-only properties again
+				readOnlyPropertiesUnlocked = false;
+			} else {
+
+				throw new IllegalArgumentException("Property '".concat(key).concat("' is read-only."));
+
+			}
+
+		}
+
+		// ----- BEGIN property group resolution -----
+		PropertyGroup propertyGroup = EntityContext.getPropertyGroup(type, key);
+
+		if (propertyGroup != null) {
+
+			propertyGroup.setGroupedProperties(value, this);
+
+			return;
+
+		}
+
+		// static relationship detected, create relationship
+		DirectedRelationship rel = EntityContext.getDirectedRelationship(type, key);
+
+		if (rel != null) {
+
+			try {
+
+				GraphObject graphObject = rel.getNotion().getAdapterForSetter(securityContext).adapt(value);
+
+				rel.createRelationship(securityContext, this, graphObject);
+
+				return;
+
+			} catch (IllegalArgumentException iaex) {
+
+				// re-throw exception
+				throw iaex;
+			} catch (Throwable t) {
+
+				t.printStackTrace();
+
+				// logger.log(Level.WARNING, "Exception in setProperty", t);
+				// report exception upwards
+				throw new IllegalArgumentException(t.getMessage());
+			}
+
 		} else {
 
-			// Commit value directly to database
-			Object oldValue = getProperty(key);
+			PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
+			final Object convertedValue;
+
+			if (converter != null) {
+
+				Value conversionValue = EntityContext.getPropertyConversionParameter(type, key);
+
+				converter.setCurrentNode(this);
+
+				convertedValue = converter.convertForSetter(value, conversionValue);
+
+			} else {
+
+				convertedValue = value;
+
+			}
+
+			final Object oldValue = getProperty(key);
 
 			// don't make any changes if
 			// - old and new value both are null
 			// - old and new value are not null but equal
-			if (((value == null) && (oldValue == null))
-				|| ((value != null) && (oldValue != null) && value.equals(oldValue))) {
+			if (((convertedValue == null) && (oldValue == null)) || ((convertedValue != null) && (oldValue != null) && convertedValue.equals(oldValue))) {
+
 				return;
+
 			}
 
-			Command transactionCommand = Services.command(TransactionCommand.class);
+			if (isDirty) {
 
-			transactionCommand.execute(new StructrTransaction() {
+				// Don't write directly to database, but store property values
+				// in a map for later use
+				properties.put(key, convertedValue);
+			} else {
 
-				@Override
-				public Object execute() throws Throwable {
+				// Commit value directly to database
+				StructrTransaction transaction = new StructrTransaction() {
 
-					// save space
-					if (value == null) {
-						dbNode.removeProperty(key);
-					} else {
+					@Override
+					public Object execute() throws Throwable {
 
-						// Setting last modified date explicetely is not allowed
-						if (!key.equals(AbstractNode.LAST_MODIFIED_DATE_KEY)) {
+						try {
 
-							if (value instanceof Date) {
-								dbNode.setProperty(key, ((Date) value).getTime());
+							// save space
+							if (convertedValue == null) {
+
+								dbNode.removeProperty(key);
+
 							} else {
 
-								dbNode.setProperty(key, value);
+								// Setting last modified date explicetely is not allowed
+								if (!key.equals(Key.lastModifiedDate.name())) {
 
-								// set last modified date if not already happened
-								dbNode.setProperty(AbstractNode.LAST_MODIFIED_DATE_KEY,
-										   (new Date()).getTime());
+									if (convertedValue instanceof Date) {
+
+										dbNode.setProperty(key, ((Date) convertedValue).getTime());
+
+									} else {
+
+										dbNode.setProperty(key, convertedValue);
+
+										// set last modified date if not already happened
+										dbNode.setProperty(Key.lastModifiedDate.name(), (new Date()).getTime());
+
+									}
+
+									// notify listeners here
+									// EntityContext.getGlobalModificationListener().propertyModified(securityContext, thisNode, key, oldValue, convertedValue);
+
+								} else {
+
+									logger.log(Level.FINE, "Tried to set lastModifiedDate explicitely (action was denied)");
+
+								}
 							}
 
-						} else {
 
-							logger.log(
-							    Level.FINE,
-							    "Tried to set lastModifiedDate explicitely (action was denied)");
-						}
+						} finally {}
+
+						return null;
 					}
+				};
 
-					// Don't automatically update index
-					// TODO: Implement something really fast to keep the index automatically in sync
-					if (updateIndex && dbNode.hasProperty(key)) {
-						Services.command(IndexNodeCommand.class).execute(getId(), key);
-					}
+				// execute transaction
+				Services.command(securityContext, TransactionCommand.class).execute(transaction);
 
-					return null;
+				// debug
+				if (transaction.getCause() != null) {
+
+					logger.log(Level.WARNING, "Error while setting property", transaction.getCause());
+
 				}
+			}
 
-			});
 		}
 	}
 
@@ -3579,9 +3998,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 	private void setOwnerNode(final Long nodeId) {
 
-		Command setOwner = Services.command(SetOwnerCommand.class);
+		Command setOwner = Services.command(securityContext, SetOwnerCommand.class);
 
-		setOwner.execute(this, Services.command(FindNodeCommand.class).execute(new SuperUser(), nodeId));
+		setOwner.execute(this, Services.command(securityContext, FindNodeCommand.class).execute(nodeId));
 	}
 
 	//~--- inner classes --------------------------------------------------
@@ -3589,13 +4008,14 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	private class DefaultRenderer implements NodeRenderer<AbstractNode> {
 
 		@Override
-		public void renderNode(StructrOutputStream out, AbstractNode currentNode, AbstractNode startNode,
-				       String editUrl, Long editNodeId, RenderMode renderMode) {
+		public void renderNode(StructrOutputStream out, AbstractNode currentNode, AbstractNode startNode, String editUrl, Long editNodeId, RenderMode renderMode) {
 
-			SecurityContext securityContext = CurrentRequest.getSecurityContext();
+			SecurityContext securityContext = out.getSecurityContext();
 
 			if (securityContext.isVisible(currentNode)) {
+
 				out.append(currentNode.getName());
+
 			}
 		}
 

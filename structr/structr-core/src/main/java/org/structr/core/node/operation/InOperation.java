@@ -20,7 +20,7 @@
 package org.structr.core.node.operation;
 
 import java.util.Collection;
-import org.structr.common.CurrentSession;
+import org.structr.common.SecurityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.FindNodeCommand;
@@ -31,6 +31,7 @@ import org.structr.core.node.FindNodeCommand;
  */
 public class InOperation implements Transformation {
 
+	private SecurityContext securityContext = null;
 	private long parentNodeId = 0L;
 
 	@Override
@@ -89,7 +90,7 @@ public class InOperation implements Transformation {
 
 			} catch(Throwable t) {
 
-				AbstractNode findNode = (AbstractNode)Services.command(FindNodeCommand.class).execute(CurrentSession.getUser(), parameter);
+				AbstractNode findNode = (AbstractNode)Services.command(securityContext, FindNodeCommand.class).execute(parameter);
 				if(findNode != null) {
 
 					parentNodeId = findNode.getId();
@@ -105,5 +106,10 @@ public class InOperation implements Transformation {
 				throw new InvalidParameterException("Invalid parent node ID");
 			}
 		}
+	}
+
+	@Override
+	public void setSecurityContext(SecurityContext securityContext) {
+		this.securityContext = securityContext;
 	}
 }

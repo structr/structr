@@ -27,11 +27,14 @@ import org.neo4j.graphdb.Direction;
 
 import org.structr.common.ImageHelper;
 import org.structr.common.ImageHelper.Thumbnail;
+import org.structr.common.PropertyKey;
+import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.RenderMode;
 import org.structr.common.renderer.FileStreamRenderer;
 import org.structr.common.renderer.ImageSourceRenderer;
 import org.structr.core.Command;
+import org.structr.core.EntityContext;
 import org.structr.core.NodeRenderer;
 import org.structr.core.Services;
 import org.structr.core.node.CreateNodeCommand;
@@ -62,29 +65,41 @@ import java.util.logging.Logger;
  */
 public class Image extends File {
 
-	public final static String HEIGHT_KEY = "height";
-	private final static String ICON_SRC  = "/images/image.png";
-	public final static String WIDTH_KEY  = "width";
-	private static final Logger logger    = Logger.getLogger(Image.class.getName());
+	private static final Logger logger = Logger.getLogger(Image.class.getName());
+
+	//~--- static initializers --------------------------------------------
+
+	static {
+
+		EntityContext.registerPropertySet(Image.class,
+						  PropertyView.All,
+						  Key.values());
+	}
 
 	//~--- fields ---------------------------------------------------------
 
 	// Cached list with relationships to thumbnails
 	private List<StructrRelationship> thumbnailRelationships = null;
 
+	//~--- constant enums -------------------------------------------------
+
+	public enum Key implements PropertyKey{ height, width; }
+
 	//~--- methods --------------------------------------------------------
 
 	@Override
 	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers) {
 
-		renderers.put(RenderMode.Default, new ImageSourceRenderer());
-		renderers.put(RenderMode.Direct, new FileStreamRenderer());
+		renderers.put(RenderMode.Default,
+			      new ImageSourceRenderer());
+		renderers.put(RenderMode.Direct,
+			      new FileStreamRenderer());
 	}
 
 	synchronized public void removeThumbnails() {
 
-		Command deleteRelationship = Services.command(DeleteRelationshipCommand.class);
-		Command deleteNode         = Services.command(DeleteNodeCommand.class);
+		Command deleteRelationship = Services.command(securityContext, DeleteRelationshipCommand.class);
+		Command deleteNode         = Services.command(securityContext, DeleteNodeCommand.class);
 
 		for (StructrRelationship s : getThumbnailRelationships()) {
 
@@ -92,13 +107,15 @@ public class Image extends File {
 
 			if (((Image) thumbnail).equals(this)) {
 
-				logger.log(Level.SEVERE, "Attempted to remove me as thumbnail!!");
+				logger.log(Level.SEVERE,
+					   "Attempted to remove me as thumbnail!!");
 
 				continue;
 			}
 
 			deleteRelationship.execute(s);
-			deleteNode.execute(thumbnail, new SuperUser());
+			deleteNode.execute(thumbnail,
+					   new SuperUser());
 		}
 
 		// Clear cache
@@ -109,101 +126,17 @@ public class Image extends File {
 
 	@Override
 	public String getIconSrc() {
-		return ICON_SRC;
+		return "/images/image.png";
 	}
 
 	public Integer getWidth() {
-		return getIntProperty(WIDTH_KEY);
+		return getIntProperty(Key.width.name());
 	}
 
 	public Integer getHeight() {
-		return getIntProperty(HEIGHT_KEY);
+		return getIntProperty(Key.height.name());
 	}
 
-//
-//      /**
-//       * Get thumbnail image of this image
-//       *
-//       * If no thumbnail exists or the image is newer than the thumbnail, create a new one
-//       *
-//       * @return
-//       */
-//      public Image createThumbnail(final User user) {
-//
-//          List<StructrRelationship> thumbnailRelationships = getRelationships(RelType.THUMBNAIL, Direction.OUTGOING);
-//
-//          Image thumbnail = null;
-//          final Image originalImage = this;
-//
-//          if (thumbnailRelationships != null && !(thumbnailRelationships.isEmpty())) {
-//              thumbnail = (Image) thumbnailRelationships.get(0).getEndNode();
-//
-//              // Check age: Use thumbnail only if younger than original image
-//              if (!(originalImage.getLastModifiedDate().after(thumbnail.getLastModifiedDate()))) {
-//                  return thumbnail;
-//              }
-//          }
-//
-//          // No thumbnail exists, or thumbnail is too old, so let's create a new one
-//          logger.log(Level.INFO, "Creating thumbnail for {0}", getName());
-//
-//          Command transactionCommand = Services.command(TransactionCommand.class);
-//          thumbnail = (Image) transactionCommand.execute(new StructrTransaction() {
-//
-//              @Override
-//              public Object execute() throws Throwable {
-//
-//                  Command createNode = Services.command(CreateNodeCommand.class);
-//                  Command createRel = Services.command(CreateRelationshipCommand.class);
-//                  Command findNode = Services.command(FindNodeCommand.class);
-//
-//                  NodeAttribute typeAttr = new NodeAttribute(AbstractNode.TYPE_KEY, Image.class.getSimpleName());
-//                  NodeAttribute nameAttr = new NodeAttribute(Image.NAME_KEY, originalImage.getName() + "_thumb");
-//
-//                  // create new node
-//                  AbstractNode newNode = (AbstractNode) createNode.execute(user, typeAttr, nameAttr);
-//
-//                  if (newNode != null) {
-//
-//                      // re-find node as image node
-//                      Image tn = (Image) findNode.execute(user, newNode.getId());
-//
-//                      // create a thumbnail relationship
-//                      createRel.execute(originalImage, tn, RelType.THUMBNAIL);
-//
-//                      // determine properties
-//                      String relativeFilePath = tn.getId() + "_" + System.currentTimeMillis();
-//                      String path = Services.getFilesPath() + "/" + relativeFilePath;
-//
-//                      java.io.File imageFile = new java.io.File(path);
-//
-//                      byte[] thumbnailData = ImageHelper.createThumbnail(originalImage);
-//                      try {
-//                          // copy url to file
-//                          FileUtils.writeByteArrayToFile(imageFile, thumbnailData);
-//                      } catch (IOException ex) {
-//                          logger.log(Level.SEVERE, "Could not write thumbnail data to file", ex);
-//                          return null;
-//                      }
-//
-//                      // set size
-//                      long size = imageFile.length();
-//                      tn.setSize(size);
-//
-//                      // set local file url
-//                      tn.setRelativeFilePath(relativeFilePath);
-//
-//                      return tn;
-//
-//                  } else {
-//                      return null;
-//                  }
-//              }
-//          });
-//
-//          return thumbnail;
-//
-//      }
 	public List<Image> getThumbnails() {
 
 		List<Image> thumbnails = new LinkedList<Image>();
@@ -240,16 +173,25 @@ public class Image extends File {
 	 * @return
 	 */
 	public Image getScaledImage(final String maxWidthString, final String maxHeightString) {
-		return getScaledImage(Integer.parseInt(maxWidthString), Integer.parseInt(maxHeightString), false);
+
+		return getScaledImage(Integer.parseInt(maxWidthString),
+				      Integer.parseInt(maxHeightString),
+				      false);
 	}
 
 	public Image getScaledImage(final String maxWidthString, final String maxHeightString,
 				    final boolean cropToFit) {
-		return getScaledImage(Integer.parseInt(maxWidthString), Integer.parseInt(maxHeightString), cropToFit);
+
+		return getScaledImage(Integer.parseInt(maxWidthString),
+				      Integer.parseInt(maxHeightString),
+				      cropToFit);
 	}
 
 	public Image getScaledImage(final int maxWidth, final int maxHeight) {
-		return getScaledImage(maxWidth, maxHeight, false);
+
+		return getScaledImage(maxWidth,
+				      maxHeight,
+				      false);
 	}
 
 	/**
@@ -280,8 +222,8 @@ public class Image extends File {
 
 				for (StructrRelationship r : thumbnailRelationships) {
 
-					Integer w = (Integer) r.getProperty(Image.WIDTH_KEY);
-					Integer h = (Integer) r.getProperty(Image.HEIGHT_KEY);
+					Integer w = (Integer) r.getProperty(Key.width.name());
+					Integer h = (Integer) r.getProperty(Key.height.name());
 
 					if ((w != null) && (h != null)) {
 
@@ -311,47 +253,56 @@ public class Image extends File {
 		}
 
 		// No thumbnail exists, or thumbnail is too old, so let's create a new one
-		logger.log(Level.INFO, "Creating thumbnail for {0}", getName());
+		logger.log(Level.INFO,
+			   "Creating thumbnail for {0}",
+			   getName());
 
-		Command transactionCommand = Services.command(TransactionCommand.class);
+		Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
 
 		thumbnail = (Image) transactionCommand.execute(new StructrTransaction() {
 
 			@Override
 			public Object execute() throws Throwable {
 
-				Command createNode = Services.command(CreateNodeCommand.class);
-				Command createRel  = Services.command(CreateRelationshipCommand.class);
+				Command createNode = Services.command(securityContext, CreateNodeCommand.class);
+				Command createRel  = Services.command(securityContext, CreateRelationshipCommand.class);
 
-//                              Command findNode = Services.command(FindNodeCommand.class);
-				NodeAttribute typeAttr = new NodeAttribute(AbstractNode.TYPE_KEY,
-								 Image.class.getSimpleName());
-				NodeAttribute contentTypeAttr = new NodeAttribute(Image.CONTENT_TYPE_KEY,
-									"image/" + Thumbnail.FORMAT);
-				NodeAttribute isHiddenAttr = new NodeAttribute(AbstractNode.HIDDEN_KEY,
-								     originalImage.getHidden());
-				NodeAttribute isPublicAttr = new NodeAttribute(AbstractNode.PUBLIC_KEY,
-								     originalImage.getPublic());
+//                              Command findNode = Services.command(securityContext, FindNodeCommand.class);
+				NodeAttribute typeAttr = new NodeAttribute(AbstractNode.Key.type.name(),
+					Image.class.getSimpleName());
+				NodeAttribute contentTypeAttr = new NodeAttribute(File.Key.contentType.name(),
+					"image/" + Thumbnail.FORMAT);
+				NodeAttribute isHiddenAttr = new NodeAttribute(AbstractNode.Key.hidden.name(),
+					originalImage.getHidden());
+				NodeAttribute isPublicAttr = new NodeAttribute(AbstractNode.Key.visibleToPublicUsers.name(),
+					originalImage.getVisibleToPublicUsers());
 				NodeAttribute isVisibleForAuthenticatedUsersAttr =
-					new NodeAttribute(AbstractNode.VISIBLE_TO_AUTHENTICATED_USERS_KEY,
+					new NodeAttribute(AbstractNode.Key.visibleToAuthenticatedUsers.name(),
 							  originalImage.getVisibleToAuthenticatedUsers());
-				Thumbnail thumbnailData = ImageHelper.createThumbnail(originalImage, maxWidth,
-								  maxHeight, cropToFit);
+				Thumbnail thumbnailData = ImageHelper.createThumbnail(originalImage,
+					maxWidth,
+					maxHeight,
+					cropToFit);
 
 				if (thumbnailData != null) {
 
 					// create thumbnail node
 //                                      Image thumbnail = (Image) createNode.execute(user,
 					Image thumbnail = (Image) createNode.execute(originalImage.getOwnerNode(),    // Same owner as original image
-						typeAttr, contentTypeAttr, isHiddenAttr, isPublicAttr,
-						isVisibleForAuthenticatedUsersAttr, false);    // Don't index thumbnails
+						typeAttr,
+						contentTypeAttr,
+						isHiddenAttr,
+						isPublicAttr,
+						isVisibleForAuthenticatedUsersAttr,
+						false);    // Don't index thumbnails
 
 					if (thumbnail != null) {
 
 						// Create a thumbnail relationship
 						StructrRelationship thumbnailRelationship =
 							(StructrRelationship) createRel.execute(originalImage,
-								thumbnail, RelType.THUMBNAIL);
+							thumbnail,
+							RelType.THUMBNAIL);
 
 						// Add to cache list
 						thumbnailRelationships.add(thumbnailRelationship);
@@ -371,7 +322,8 @@ public class Image extends File {
 						} catch (IOException ex) {
 
 							logger.log(Level.SEVERE,
-								   "Could not write thumbnail data to file", ex);
+								   "Could not write thumbnail data to file",
+								   ex);
 
 							return null;
 						}
@@ -384,8 +336,10 @@ public class Image extends File {
 						Integer tnWidth  = thumbnailData.getWidth();
 						Integer tnHeight = thumbnailData.getHeight();
 
-						thumbnailRelationship.setProperty(Image.WIDTH_KEY, tnWidth);
-						thumbnailRelationship.setProperty(Image.HEIGHT_KEY, tnHeight);
+						thumbnailRelationship.setProperty(Key.width.name(),
+										  tnWidth);
+						thumbnailRelationship.setProperty(Key.height.name(),
+										  tnHeight);
 
 						// set local file url
 						thumbnail.setRelativeFilePath(relativeFilePath);
@@ -398,9 +352,9 @@ public class Image extends File {
 					return thumbnail;
 				} else {
 
-					logger.log(Level.WARNING, "Could not create thumbnail for image {0} ({1})",
-						   new Object[] { getName(),
-								  getId() });
+					logger.log(Level.WARNING,
+						   "Could not create thumbnail for image {0} ({1})",
+						   new Object[] { getName(), getId() });
 
 					return null;
 				}
@@ -423,27 +377,35 @@ public class Image extends File {
 	 * @return
 	 */
 	public boolean isThumbnail() {
-		return hasRelationship(RelType.THUMBNAIL, Direction.INCOMING);
+
+		return hasRelationship(RelType.THUMBNAIL,
+				       Direction.INCOMING);
 	}
 
 	//~--- set methods ----------------------------------------------------
 
 	public void setWidth(Integer width) {
-		setProperty(WIDTH_KEY, width);
+
+		setProperty(Key.width.name(),
+			    width);
 	}
 
 	public void setHeight(Integer height) {
-		setProperty(HEIGHT_KEY, height);
+
+		setProperty(Key.height.name(),
+			    height);
 	}
 
 	/** Copy public flag to all thumbnails */
 	@Override
-	public void setPublic(final boolean publicFlag) {
+	public void setVisibleToPublicUsers(final boolean publicFlag) {
 
-		super.setPublic(publicFlag);
+		super.setVisibleToPublicUsers(publicFlag);
 
 		for (Image thumbnail : getThumbnails()) {
-			thumbnail.setProperty(PUBLIC_KEY, publicFlag);
+
+			thumbnail.setProperty(AbstractNode.Key.visibleToPublicUsers.name(),
+					      publicFlag);
 		}
 	}
 
@@ -454,7 +416,9 @@ public class Image extends File {
 		super.setVisibleToAuthenticatedUsers(flag);
 
 		for (Image thumbnail : getThumbnails()) {
-			thumbnail.setProperty(VISIBLE_TO_AUTHENTICATED_USERS_KEY, flag);
+
+			thumbnail.setProperty(AbstractNode.Key.visibleToAuthenticatedUsers.name(),
+					      flag);
 		}
 	}
 
@@ -465,7 +429,9 @@ public class Image extends File {
 		super.setHidden(hidden);
 
 		for (Image thumbnail : getThumbnails()) {
-			thumbnail.setProperty(HIDDEN_KEY, hidden);
+
+			thumbnail.setProperty(AbstractNode.Key.hidden.name(),
+					      hidden);
 		}
 	}
 
@@ -476,7 +442,9 @@ public class Image extends File {
 		super.setDeleted(deleted);
 
 		for (Image thumbnail : getThumbnails()) {
-			thumbnail.setProperty(DELETED_KEY, deleted);
+
+			thumbnail.setProperty(AbstractNode.Key.deleted.name(),
+					      deleted);
 		}
 	}
 
@@ -487,7 +455,9 @@ public class Image extends File {
 		super.setVisibilityStartDate(date);
 
 		for (Image thumbnail : getThumbnails()) {
-			thumbnail.setProperty(VISIBILITY_START_DATE_KEY, date);
+
+			thumbnail.setProperty(AbstractNode.Key.visibilityStartDate.name(),
+					      date);
 		}
 	}
 
@@ -498,7 +468,9 @@ public class Image extends File {
 		super.setVisibilityEndDate(date);
 
 		for (Image thumbnail : getThumbnails()) {
-			thumbnail.setProperty(VISIBILITY_END_DATE_KEY, date);
+
+			thumbnail.setProperty(AbstractNode.Key.visibilityEndDate.name(),
+					      date);
 		}
 	}
 }

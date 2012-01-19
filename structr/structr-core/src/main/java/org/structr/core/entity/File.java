@@ -23,11 +23,18 @@ package org.structr.core.entity;
 
 import org.apache.commons.io.FileUtils;
 
+import org.neo4j.graphdb.Direction;
+
 import org.structr.common.Path;
+import org.structr.common.PropertyKey;
+import org.structr.common.PropertyView;
+import org.structr.common.RelType;
 import org.structr.common.RenderMode;
 import org.structr.common.renderer.FileStreamRenderer;
+import org.structr.core.EntityContext;
 import org.structr.core.NodeRenderer;
 import org.structr.core.Services;
+import org.structr.core.entity.DirectedRelationship.Cardinality;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -50,30 +57,20 @@ import java.util.logging.Logger;
  */
 public class File extends AbstractNode {
 
-	public final static String CONTENT_TYPE_KEY = "contentType";
-	private final static String ICON_SRC        = "/images/page_white.png";
+	private static final Logger logger = Logger.getLogger(File.class.getName());
 
-//      public final static String FORMATTED_SIZE_KEY = "formattedSize";
-	public final static String RELATIVE_FILE_PATH_KEY = "relativeFilePath";
-	public final static String SIZE_KEY               = "size";
-	public final static String URL_KEY                = "url";
-	private static final Logger logger                = Logger.getLogger(File.class.getName());
+	//~--- static initializers --------------------------------------------
 
-	//~--- get methods ----------------------------------------------------
+	static {
 
-	@Override
-	public String getIconSrc() {
-		return ICON_SRC;
+		EntityContext.registerPropertySet(File.class, PropertyView.All, Key.values());
+		EntityContext.registerPropertyRelation(File.class, Key.parentFolder, Folder.class, RelType.HAS_CHILD, Direction.INCOMING, Cardinality.ManyToOne);
+
 	}
 
-	public String getUrl() {
-		return (String) getProperty(URL_KEY);
-	}
+	//~--- constant enums -------------------------------------------------
 
-	@Override
-	public String getContentType() {
-		return (String) getProperty(CONTENT_TYPE_KEY);
-	}
+	public enum Key implements PropertyKey{ contentType, relativeFilePath, size, url, parentFolder; }
 
 	//~--- methods --------------------------------------------------------
 
@@ -82,7 +79,39 @@ public class File extends AbstractNode {
 		renderers.put(RenderMode.Direct, new FileStreamRenderer());
 	}
 
+	@Override
+	public void onNodeDeletion() {
+
+		try {
+
+			java.io.File toDelete = new java.io.File(getFileLocation().toURI());
+
+			if (toDelete.exists() && toDelete.isFile()) {
+
+				toDelete.delete();
+
+			}
+
+		} catch (Throwable t) {
+			logger.log(Level.WARNING, "Exception while trying to delete file {0}: {1}", new Object[] { getFileLocation(), t });
+		}
+	}
+
 	//~--- get methods ----------------------------------------------------
+
+	@Override
+	public String getIconSrc() {
+		return "/images/page_white.png";
+	}
+
+	public String getUrl() {
+		return getStringProperty(Key.url.name());
+	}
+
+	@Override
+	public String getContentType() {
+		return getStringProperty(Key.contentType.name());
+	}
 
 	public long getSize() {
 
@@ -94,10 +123,10 @@ public class File extends AbstractNode {
 			java.io.File fileOnDisk = new java.io.File(filePath);
 			long fileSize           = fileOnDisk.length();
 
-			logger.log(Level.FINE, "File size of node {0} ({1}): {2}", new Object[] { getId(), filePath,
-				fileSize });
+			logger.log(Level.FINE, "File size of node {0} ({1}): {2}", new Object[] { getId(), filePath, fileSize });
 
 			return fileSize;
+
 		}
 
 		return 0;
@@ -108,28 +137,8 @@ public class File extends AbstractNode {
 	}
 
 	public String getRelativeFilePath() {
-		return (String) getProperty(RELATIVE_FILE_PATH_KEY);
+		return getStringProperty(Key.relativeFilePath.name());
 	}
-
-	//~--- set methods ----------------------------------------------------
-
-	public void setRelativeFilePath(final String filePath) {
-		setProperty(RELATIVE_FILE_PATH_KEY, filePath);
-	}
-
-	public void setUrl(final String url) {
-		setProperty(URL_KEY, url);
-	}
-
-	public void setContentType(final String contentType) {
-		setProperty(CONTENT_TYPE_KEY, contentType);
-	}
-
-	public void setSize(final long size) {
-		setProperty(SIZE_KEY, size);
-	}
-
-	//~--- get methods ----------------------------------------------------
 
 	public URL getFileLocation() {
 
@@ -164,36 +173,28 @@ public class File extends AbstractNode {
 				try {
 					in.close();
 				} catch (IOException ignore) {}
+
 			}
 		}
 
 		return null;
 	}
 
-	//~--- methods --------------------------------------------------------
+	//~--- set methods ----------------------------------------------------
 
-	@Override
-	public void onNodeCreation() {}
+	public void setRelativeFilePath(final String filePath) {
+		setProperty(Key.relativeFilePath.name(), filePath);
+	}
 
-	@Override
-	public void onNodeInstantiation() {}
+	public void setUrl(final String url) {
+		setProperty(Key.url.name(), url);
+	}
 
-	@Override
-	public void onNodeDeletion() {
+	public void setContentType(final String contentType) {
+		setProperty(Key.contentType.name(), contentType);
+	}
 
-		try {
-
-			java.io.File toDelete = new java.io.File(getFileLocation().toURI());
-
-			if (toDelete.exists() && toDelete.isFile()) {
-				toDelete.delete();
-			}
-
-		} catch (Throwable t) {
-
-			logger.log(Level.WARNING, "Exception while trying to delete file {0}: {1}",
-				   new Object[] { getFileLocation(),
-						  t });
-		}
+	public void setSize(final long size) {
+		setProperty(Key.size.name(), size);
 	}
 }

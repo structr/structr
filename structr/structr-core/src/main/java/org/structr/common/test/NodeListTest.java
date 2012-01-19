@@ -27,6 +27,7 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.structr.common.RelType;
+import org.structr.common.SecurityContext;
 import org.structr.common.StandaloneTestHelper;
 import org.structr.core.Command;
 import org.structr.core.Services;
@@ -48,8 +49,9 @@ public class NodeListTest
 	{
 		StandaloneTestHelper.prepareStandaloneTest("/tmp/structr-test/");
 
-		final GraphDatabaseService graphDb = (GraphDatabaseService)Services.command(GraphDatabaseCommand.class).execute();
-		final Command factory = Services.command(NodeFactoryCommand.class);
+		final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+		final GraphDatabaseService graphDb = (GraphDatabaseService)Services.command(securityContext, GraphDatabaseCommand.class).execute();
+		final Command factory = Services.command(securityContext, NodeFactoryCommand.class);
 		NodeList<AbstractNode> nodeList = null;
 
 		for(Node node : graphDb.getAllNodes())
@@ -65,13 +67,13 @@ public class NodeListTest
 
 		if(nodeList == null)
 		{
-			nodeList = (NodeList)Services.command(TransactionCommand.class).execute(new StructrTransaction()
+			nodeList = (NodeList)Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction()
 			{
 				@Override
 				public Object execute() throws Throwable
 				{
 					Node node = graphDb.createNode();
-					node.setProperty(AbstractNode.TYPE_KEY, "NodeList");
+					node.setProperty(AbstractNode.Key.type.name(), "NodeList");
 					graphDb.getReferenceNode().createRelationshipTo(node, RelType.HAS_CHILD);
 
 					return(factory.execute(node));
@@ -124,7 +126,7 @@ public class NodeListTest
 
 						final int finalCount = count;
 
-						Services.command(TransactionCommand.class).execute(new StructrTransaction()
+						Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction()
 						{
 							@Override
 							public Object execute() throws Throwable
@@ -132,8 +134,8 @@ public class NodeListTest
 								for(int i=0; i<finalCount; i++)
 								{
 									AbstractNode node = new PlainText();
-									node.init(graphDb.createNode());
-									node.setProperty(AbstractNode.TYPE_KEY, "PlainText");
+									node.init(securityContext, graphDb.createNode());
+									node.setProperty(AbstractNode.Key.type.name(), "PlainText");
 									nodes.add(node);
 								}
 
@@ -150,13 +152,13 @@ public class NodeListTest
 					{
 						final AbstractNode node = new PlainText();
 
-						Services.command(TransactionCommand.class).execute(new StructrTransaction()
+						Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction()
 						{
 							@Override
 							public Object execute() throws Throwable
 							{
-								node.init(graphDb.createNode());
-								node.setProperty(AbstractNode.TYPE_KEY, "PlainText");
+								node.init(securityContext, graphDb.createNode());
+								node.setProperty(AbstractNode.Key.type.name(), "PlainText");
 
 								return(null);
 							}

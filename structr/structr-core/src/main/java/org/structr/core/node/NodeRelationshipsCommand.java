@@ -108,7 +108,7 @@ public class NodeRelationshipsCommand extends NodeServiceCommand {
 			try {
 
 				for (Relationship r : rels) {
-					result.add(new StructrRelationship(r));
+					result.add(new StructrRelationship(securityContext, r));
 				}
 
 			} catch (RuntimeException e) {

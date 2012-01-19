@@ -41,7 +41,7 @@ public class TestNodeCommand extends NodeServiceCommand
 		final GraphDatabaseService graphDb = (GraphDatabaseService)arguments.get("graphDb");
 		final StructrNodeFactory nodeFactory = (StructrNodeFactory)arguments.get("nodeFactory");
 
-		Command transactionCommand = Services.command(TransactionCommand.class);
+		Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
 		return(transactionCommand.execute(new StructrTransaction()
 		{
 			@Override
@@ -52,7 +52,7 @@ public class TestNodeCommand extends NodeServiceCommand
 					Node listNode = graphDb.getNodeById(6);
 					if(listNode != null)
 					{
-						NodeList nodeList = (NodeList)nodeFactory.createNode(listNode);
+						NodeList nodeList = (NodeList)nodeFactory.createNode(securityContext, listNode);
 						if(nodeList != null)
 						{
 							if(parameters.length > 0)
@@ -66,7 +66,7 @@ public class TestNodeCommand extends NodeServiceCommand
 									Node newNode = graphDb.createNode();
 									newNode.setProperty("type", "PlainText");
 
-									AbstractNode newStructrNode = nodeFactory.createNode(newNode);
+									AbstractNode newStructrNode = nodeFactory.createNode(securityContext, newNode);
 									nodeList.add(newStructrNode);
 
 								} else if("del".equals(cmd))

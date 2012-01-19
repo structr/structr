@@ -21,7 +21,6 @@
 
 package org.structr.context;
 
-import org.structr.common.CurrentSession;
 import org.structr.common.RelType;
 import org.structr.core.Command;
 import org.structr.core.Services;
@@ -49,6 +48,7 @@ import java.util.logging.Logger;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import org.structr.common.SecurityContext;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -76,9 +76,9 @@ public class SessionMonitor {
 	/**
 	 * Register user in servlet context
 	 */
-	public static long registerUserSession(final HttpSession session) {
+	public static long registerUserSession(final SecurityContext securityContext, final HttpSession session) {
 
-		User user = CurrentSession.getUser();
+		User user = securityContext.getUser();
 
 		init(session.getServletContext());
 
@@ -108,35 +108,36 @@ public class SessionMonitor {
 	/**
 	 * Append an activity to the activity list
 	 *
+	 * @param securityContext the current security context, can be null
 	 * @param sessionId
 	 * @param action
 	 */
-	public static void logActivity(final long sessionId, final String action) {
+	public static void logActivity(final SecurityContext securityContext, final long sessionId, final String action) {
 
 		if (!(Services.isAvailable(LogService.class))) {
 			return;
 		}
 
+		User user = securityContext != null ? securityContext.getUser() : null;
 		Date now  = new Date();
-		User user = CurrentSession.getUser();
 
 		// Create a "dirty" activity node
 		Activity activity = new Activity();
 
-		activity.setProperty(AbstractNode.TYPE_KEY, Activity.class.getSimpleName());
+		activity.setProperty(AbstractNode.Key.type.name(), Activity.class.getSimpleName());
 
 		if (user != null) {
 
-			activity.setProperty(AbstractNode.NAME_KEY,
+			activity.setProperty(AbstractNode.Key.name.name(),
 					     "User: " + user.getName() + ", Action: " + action + ", Date: " + now);
 		}
 
-		activity.setProperty(Activity.SESSION_ID_KEY, sessionId);
-		activity.setProperty(Activity.START_TIMESTAMP_KEY, now);
-		activity.setProperty(Activity.END_TIMESTAMP_KEY, now);
+		activity.setProperty(Activity.Key.sessionId.name(), sessionId);
+		activity.setProperty(Activity.Key.startTimestamp.name(), now);
+		activity.setProperty(Activity.Key.endTimestamp.name(), now);
 		activity.setUser(user);
 		getSession(sessionId).setLastActivity(activity);
-		Services.command(LogCommand.class).execute(activity);
+		Services.command(securityContext, LogCommand.class).execute(activity);
 	}
 
 	/**
@@ -145,7 +146,7 @@ public class SessionMonitor {
 	 * @param sessionId
 	 * @param action
 	 */
-	public static void logPageRequest(final long sessionId, final String action, final HttpServletRequest request) {
+	public static void logPageRequest(final SecurityContext securityContext, final long sessionId, final String action, final HttpServletRequest request) {
 
 		if (!(Services.isAvailable(LogService.class))) {
 			return;
@@ -153,13 +154,13 @@ public class SessionMonitor {
 
 		long t0   = System.currentTimeMillis();
 		Date now  = new Date();
-		User user = CurrentSession.getUser();
+		User user = securityContext.getUser();
 
 		// Create a "dirty" page request node
 		PageRequest pageRequest = new PageRequest();
 
-		pageRequest.setProperty(AbstractNode.TYPE_KEY, PageRequest.class.getSimpleName());
-		pageRequest.setProperty(AbstractNode.NAME_KEY, action + ", Date: " + now);
+		pageRequest.setProperty(AbstractNode.Key.type.name(), PageRequest.class.getSimpleName());
+		pageRequest.setProperty(AbstractNode.Key.name.name(), action + ", Date: " + now);
 
 		StringBuilder text = new StringBuilder();
 
@@ -167,8 +168,7 @@ public class SessionMonitor {
 
 		if (request != null) {
 
-			Map<String, Object> parameterMap = request.getParameterMap();
-			Set<String> keys                 = parameterMap.keySet();
+			Set<String> keys                 = request.getParameterMap().keySet();
 
 			for (String key : keys) {
 
@@ -187,14 +187,14 @@ public class SessionMonitor {
 			text.append("\"remoteHost\": \"").append(request.getRemoteHost()).append("\"");
 		}
 
-		pageRequest.setProperty(Activity.SESSION_ID_KEY, sessionId);
-		pageRequest.setProperty(Activity.START_TIMESTAMP_KEY, now);
-		pageRequest.setProperty(Activity.END_TIMESTAMP_KEY, now);
+		pageRequest.setProperty(Activity.Key.sessionId.name(), sessionId);
+		pageRequest.setProperty(Activity.Key.startTimestamp.name(), now);
+		pageRequest.setProperty(Activity.Key.endTimestamp.name(), now);
 		pageRequest.setUser(user);
 		text.append("}");
 		pageRequest.setActivityText(text.toString());
 		getSession(sessionId).setLastActivity(pageRequest);
-		Services.command(LogCommand.class).execute(pageRequest);
+		Services.command(securityContext, LogCommand.class).execute(pageRequest);
 
 		long t1 = System.currentTimeMillis();
 
@@ -389,13 +389,16 @@ public class SessionMonitor {
 				}
 			}
 
+			// FIXME: superuser-Instance ok here?
+			final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+
 			// Create a new activity list as child node of the respective user
-			Command createNode = Services.command(CreateNodeCommand.class);
-			Command createRel  = Services.command(CreateRelationshipCommand.class);
+			Command createNode = Services.command(securityContext, CreateNodeCommand.class);
+			Command createRel  = Services.command(securityContext, CreateRelationshipCommand.class);
 
 			activityList = (LogNodeList<Activity>) createNode.execute(user,
-				new NodeAttribute(AbstractNode.TYPE_KEY, LogNodeList.class.getSimpleName()),
-				new NodeAttribute(AbstractNode.NAME_KEY, user.getName() + "'s Activity Log"));
+				new NodeAttribute(AbstractNode.Key.type.name(), LogNodeList.class.getSimpleName()),
+				new NodeAttribute(AbstractNode.Key.name.name(), user.getName() + "'s Activity Log"));
 
 //                      activityList = new LogNodeList<Activity>();
 //                      activityList.init(s);

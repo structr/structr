@@ -1,36 +1,46 @@
 /*
  *  Copyright (C) 2011 Axel Morgner, structr <structr@structr.org>
- * 
+ *
  *  This file is part of structr <http://structr.org>.
- * 
+ *
  *  structr is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
- * 
+ *
  *  structr is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- * 
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+
+
 package org.structr.core.node;
 
-import org.structr.core.node.search.SearchNodeCommand;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.structr.core.node.search.Search;
+
+import org.structr.common.SecurityContext;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
+import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
+import org.structr.core.node.search.SearchNodeCommand;
+
+//~--- JDK imports ------------------------------------------------------------
+
+import java.util.LinkedList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+//~--- classes ----------------------------------------------------------------
 
 /**
  * <p>Searches for a user node by her/his name in the database and returns the result.</p>
@@ -47,123 +57,107 @@ import org.structr.core.node.search.SearchAttribute;
  */
 public class FindUserCommand extends NodeServiceCommand {
 
-    private static final Logger logger = Logger.getLogger(FindUserCommand.class.getName());
+	private static final Logger logger = Logger.getLogger(FindUserCommand.class.getName());
 
-    @Override
-    public Object execute(Object... parameters) {
+	//~--- methods --------------------------------------------------------
 
-        GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
-        //IndexService index = (LuceneFulltextIndexService) arguments.get("index");
+	@Override
+	public Object execute(Object... parameters) {
 
-//        Command findNode = Services.command(FindNodeCommand.class);
-        Command searchNode = Services.command(SearchNodeCommand.class);
+		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
+		Command searchNode           = Services.command(SecurityContext.getSuperUserInstance(),
+			SearchNodeCommand.class);
 
-//        String userXPath = null;
+		if (graphDb != null) {
 
-        if (graphDb != null) {
+			List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
 
-            switch (parameters.length) {
+			searchAttrs.add(Search.andExactType(User.class.getSimpleName()));
 
-                case 0:
+			switch (parameters.length) {
 
-                    //userXPath = "//User";
-//                    break;
-                    List<User> users = new LinkedList<User>();
-                    List<AbstractNode> result = (List<AbstractNode>) searchNode.execute(new SuperUser(), null, false, false, Search.andExactType(User.class.getSimpleName()));
-                    
-                    for (AbstractNode n : result) {
-                        if (n instanceof User) {
-                            users.add((User) n);
-                        }
-                    }
-                    
-                    return users;
+				case 0 :
+					List<User> users          = new LinkedList<User>();
+					List<AbstractNode> result = (List<AbstractNode>) searchNode.execute(null,
+						false,
+						false,
+						searchAttrs);
 
+					for (AbstractNode n : result) {
 
-                case 1:
+						if (n instanceof User) {
+							users.add((User) n);
+						}
+					}
 
-                    // we have only a simple user name
-                    if (parameters[0] instanceof String) {
+					return users;
 
-                        String userName = (String) parameters[0];
-//                        userXPath = "//User[@name='" + userName + "']";
+				case 1 :
 
-                        List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
-                        searchAttrs.add(Search.andExactName(userName));
-                        searchAttrs.add(Search.andExactType(User.class.getSimpleName()));
+					// we have only a simple user name
+					if (parameters[0] instanceof String) {
 
-                        List<AbstractNode> usersFound = (List<AbstractNode>) searchNode.execute(new SuperUser(), null, false, false, searchAttrs);
+						String userName = (String) parameters[0];
 
-                        if (usersFound != null && usersFound.size() > 0 && usersFound.get(0) instanceof User) {
-                            return (User) usersFound.get(0);
-                        } else {
-                            logger.log(Level.FINE, "No user with name {0} found.", userName);
-                            return null;
-                        }
+						searchAttrs.add(Search.andExactName(userName));
 
-                    }
-//                    break;
+						List<AbstractNode> usersFound =
+							(List<AbstractNode>) searchNode.execute(null,
+							false,
+							false,
+							searchAttrs);
 
-                case 2:
+						if ((usersFound != null) && (usersFound.size() > 0)
+							&& (usersFound.get(0) instanceof User)) {
+							return (User) usersFound.get(0);
+						} else {
 
-                    // Limit search to a top node, means: Return users which are in the CHILD tree beneath a given node
-                    if (parameters[0] instanceof String && parameters[1] instanceof AbstractNode) {
+							logger.log(Level.FINE,
+								   "No user with name {0} found.",
+								   userName);
 
-                        String userName = (String) parameters[0];
-                        AbstractNode topNode = (AbstractNode) parameters[1];
+							return null;
+						}
+					}
 
-                        List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
-                        searchAttrs.add(Search.andExactName(userName));
-                        searchAttrs.add(Search.andExactType(User.class.getSimpleName()));
+//                              break;
+				case 2 :
 
-                        List<AbstractNode> usersFound = (List<AbstractNode>) searchNode.execute(new SuperUser(), topNode, false, false, searchAttrs);
+					// Limit search to a top node, means: Return users which are in the CHILD tree beneath a given node
+					if ((parameters[0] instanceof String)
+						&& (parameters[1] instanceof AbstractNode)) {
 
-                        if (usersFound != null && usersFound.size() > 0 && usersFound.get(0) instanceof User) {
-                            return (User) usersFound.get(0);
-                        } else {
-                            logger.log(Level.FINE, "No user with name {0} found.", userName);
-                            return null;
-                        }
+						String userName      = (String) parameters[0];
+						AbstractNode topNode = (AbstractNode) parameters[1];
 
-                    }
-                    break;
+						searchAttrs.add(Search.andExactName(userName));
 
-                default:
-                    break;
+						List<AbstractNode> usersFound =
+							(List<AbstractNode>) searchNode.execute(topNode,
+							false,
+							false,
+							searchAttrs);
 
-            }
-        }
-//
-//        // search for user nodes with super user permissions
-//        List<AbstractNode> nodes = (List<AbstractNode>) findNode.execute(new SuperUser(), new XPath(userXPath));
-//
-//        if (nodes != null) {
-//
-//            if (nodes.size() == 1) {
-//
-//                AbstractNode r = nodes.get(0);
-//
-//                if (r instanceof User) {
-//                    return (User) r;
-//                } else {
-//                    logger.log(Level.SEVERE, "XPath search {0} for User, but returned class was not User: {1}", new Object[]{userXPath, r.getType()});
-//                    return null;
-//                }
-//
-//            } else if (nodes.size() > 1) {
-//
-//                return nodes;
-//
-//            } else {
-////                Long nodeId = r.getId();
-////                String name = r.getName();
-////                String type = r.getType();
-////                String className = r.getClass().getCanonicalName();
-//
-//                logger.log(Level.SEVERE, "XPath search {0} for User, but returned class was not User!", userXPath);
-//            }
-//        }
+						if ((usersFound != null) && (usersFound.size() > 0)
+							&& (usersFound.get(0) instanceof User)) {
+							return (User) usersFound.get(0);
+						} else {
 
-        return null;
-    }
+							logger.log(Level.FINE,
+								   "No user with name {0} found.",
+								   userName);
+
+							return null;
+						}
+					}
+
+					break;
+
+				default :
+					break;
+			}
+		}
+
+		return null;
+	}
 }

@@ -103,7 +103,7 @@ public class SaveImagesFromWebsiteUrl extends NodeServiceCommand {
      */
     private List<Image> saveImagesFromWebsiteUrl(final User user, final String urlString, final AbstractNode parentNode) {
 
-        Command saveImage = Services.command(SaveImageFromUrl.class);
+        Command saveImage = Services.command(securityContext, SaveImageFromUrl.class);
         List<Image> result = new LinkedList<Image>();
 
         try {

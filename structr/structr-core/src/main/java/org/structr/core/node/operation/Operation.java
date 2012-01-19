@@ -19,6 +19,7 @@
 
 package org.structr.core.node.operation;
 
+import org.structr.common.SecurityContext;
 import org.structr.core.entity.AbstractNode;
 
 
@@ -28,6 +29,7 @@ import org.structr.core.entity.AbstractNode;
  */
 public interface Operation {
 
+	public void setSecurityContext(SecurityContext securityContext);
 	public void setCurrentNode(AbstractNode currentNode);
 	
 	public int getParameterCount();

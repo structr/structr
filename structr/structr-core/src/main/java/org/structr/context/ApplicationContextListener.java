@@ -31,7 +31,6 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionListener;
-import org.structr.ui.page.StructrPage;
 
 /**
  * Web application lifecycle listener.
@@ -142,25 +141,24 @@ public class ApplicationContextListener implements ServletContextListener, HttpS
                 context.put(Services.SUPERUSER_PASSWORD, superuserPassword);
             }
 
+	    // load all properties into context
+	    for(String name : properties.stringPropertyNames()) {
+		    if(!context.containsKey(name)) {
+			    context.put(name, properties.getProperty(name));
+		    }
+	    }
+
+
         } catch (Throwable t) {
             // handle error
             logger.log(Level.WARNING, "Could not inititialize all values");
         }
 
-        // register predicate that can decide whether a given Class object is a subclass of StructrPage
-        context.put(Services.STRUCTR_PAGE_PREDICATE, new Predicate<Class>() {
-
-            @Override
-            public boolean evaluate(Class obj) {
-                return (StructrPage.class.isAssignableFrom(obj));
-            }
-        });
-
         Services.initialize(context);
         //Services.setContext(context);
 
         // Initialize cloud service
-        // not needed any more: Services.command(StartCloudService.class);
+        // not needed any more: Services.command(securityContext, StartCloudService.class);
 
         logger.log(Level.INFO, "structr application context initialized (structr started successfully)");
 
@@ -195,7 +193,8 @@ public class ApplicationContextListener implements ServletContextListener, HttpS
 
             if (sessionId != null) {
 
-                SessionMonitor.logActivity(sessionId, "Logout");
+		// no security context present
+                SessionMonitor.logActivity(null, sessionId, "Logout");
 
                 // Remove session from internal session management
                 SessionMonitor.unregisterUserSession(sessionId, session.getServletContext());
