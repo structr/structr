@@ -41,8 +41,13 @@ public class ChronologicalOrderToken extends SemanticErrorToken {
 
 		JsonObject obj = new JsonObject();
 
-		obj.add("must_lie_after", new JsonPrimitive(propertyKey2));
+		obj.add(getErrorToken(), new JsonPrimitive(propertyKey2));
 
 		return obj;
+	}
+
+	@Override
+	public String getErrorToken() {
+		return "must_lie_after";
 	}
 }

@@ -52,8 +52,13 @@ public class PropertiesNotFoundToken extends NotFoundToken {
 			vals.add(key, new JsonPrimitive(value.toString()));
 		}
 
-		obj.add("object_not_found", vals);
+		obj.add(getErrorToken(), vals);
 
 		return obj;
+	}
+
+	@Override
+	public String getErrorToken() {
+		return "object_not_found";
 	}
 }

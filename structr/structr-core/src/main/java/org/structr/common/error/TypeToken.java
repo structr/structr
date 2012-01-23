@@ -42,8 +42,13 @@ public class TypeToken extends SemanticErrorToken {
 
 		JsonObject obj = new JsonObject();
 
-		obj.add("must_be_of_type", new JsonPrimitive(type));
+		obj.add(getErrorToken(), new JsonPrimitive(type));
 
 		return obj;
+	}
+
+	@Override
+	public String getErrorToken() {
+		return "must_be_of_type";
 	}
 }

@@ -31,6 +31,7 @@ public abstract class ErrorToken {
 	private int status = 0;
 
 	public abstract JsonElement getContent();
+	public abstract String getErrorToken();
 
 	public ErrorToken(int status, String key) {
 		this.status = status;
@@ -43,5 +44,18 @@ public abstract class ErrorToken {
 
 	public int getStatus() {
 		return status;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if(o instanceof ErrorToken) {
+			return ((ErrorToken)o).getErrorToken().equals(getErrorToken());
+		}
+		return false;
+	}
+
+	@Override
+	public int hashCode() {
+		return getErrorToken().hashCode();
 	}
 }

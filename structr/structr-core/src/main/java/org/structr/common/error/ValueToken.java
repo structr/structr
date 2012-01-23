@@ -47,8 +47,13 @@ public class ValueToken extends SemanticErrorToken {
 			array.add(new JsonPrimitive(o.toString()));
 		}
 
-		obj.add("must_be_one_of", array);
+		obj.add(getErrorToken(), array);
 
 		return obj;
+	}
+
+	@Override
+	public String getErrorToken() {
+		return "must_be_one_of";
 	}
 }

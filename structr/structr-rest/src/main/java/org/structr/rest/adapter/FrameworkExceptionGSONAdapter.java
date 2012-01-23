@@ -26,9 +26,9 @@ import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import java.lang.reflect.Type;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
@@ -56,27 +56,27 @@ public class FrameworkExceptionGSONAdapter implements JsonSerializer<FrameworkEx
 		ErrorBuffer errorBuffer = src.getErrorBuffer();
 		if(errorBuffer != null) {
 
-			Map<String, Map<String, List<ErrorToken>>> tokens = errorBuffer.getErrorTokens();
+			Map<String, Map<String, Set<ErrorToken>>> tokens = errorBuffer.getErrorTokens();
 			if(!tokens.isEmpty()) {
 
-				for(Entry<String, Map<String, List<ErrorToken>>> tokensEntry : tokens.entrySet()) {
+				for(Entry<String, Map<String, Set<ErrorToken>>> tokensEntry : tokens.entrySet()) {
 
-					Map<String, List<ErrorToken>> map = tokensEntry.getValue();
+					Map<String, Set<ErrorToken>> map = tokensEntry.getValue();
 					JsonObject typeEntry = new JsonObject();
 					String type = tokensEntry.getKey();
 					
 					error.add(type, typeEntry);
 					
-					for(Entry<String, List<ErrorToken>> mapEntry : map.entrySet()) {
+					for(Entry<String, Set<ErrorToken>> mapEntry : map.entrySet()) {
 						
-						List<ErrorToken> list = mapEntry.getValue();
+						Set<ErrorToken> list = mapEntry.getValue();
 						String key = mapEntry.getKey();
 
 						if(!list.isEmpty()) {
 							
 							if(list.size() == 1) {
 
-								ErrorToken token = list.get(0);
+								ErrorToken token = list.iterator().next();
 								typeEntry.add(key, token.getContent());
 								
 							} else {

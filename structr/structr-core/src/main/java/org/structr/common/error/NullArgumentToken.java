@@ -35,6 +35,11 @@ public class NullArgumentToken extends ErrorToken {
 
 	@Override
 	public JsonElement getContent() {
-		return new JsonPrimitive("may_not_be_null");
+		return new JsonPrimitive(getErrorToken());
+	}
+
+	@Override
+	public String getErrorToken() {
+		return "may_not_be_null";
 	}
 }

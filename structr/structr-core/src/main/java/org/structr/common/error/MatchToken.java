@@ -42,8 +42,13 @@ public class MatchToken extends SemanticErrorToken {
 
 		JsonObject obj = new JsonObject();
 
-		obj.add("must_match", new JsonPrimitive(expression));
+		obj.add(getErrorToken(), new JsonPrimitive(expression));
 
 		return obj;
+	}
+
+	@Override
+	public String getErrorToken() {
+		return "must_match";
 	}
 }

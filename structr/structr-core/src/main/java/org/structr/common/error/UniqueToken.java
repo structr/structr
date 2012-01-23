@@ -42,8 +42,13 @@ public class UniqueToken extends SemanticErrorToken {
 
 		JsonObject obj = new JsonObject();
 
-		obj.add("already_taken", new JsonPrimitive(value.toString()));
+		obj.add(getErrorToken(), new JsonPrimitive(value.toString()));
 
 		return obj;
+	}
+
+	@Override
+	public String getErrorToken() {
+		return "already_taken";
 	}
 }

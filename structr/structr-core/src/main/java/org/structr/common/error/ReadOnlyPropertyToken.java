@@ -35,6 +35,11 @@ public class ReadOnlyPropertyToken extends ErrorToken {
 
 	@Override
 	public JsonElement getContent() {
-		return new JsonPrimitive("is_read_only_property");
+		return new JsonPrimitive(getErrorToken());
+	}
+
+	@Override
+	public String getErrorToken() {
+		return "is_read_only_property";
 	}
 }

@@ -34,7 +34,12 @@ public class FutureDateToken extends SemanticErrorToken {
 
 	@Override
 	public JsonElement getContent() {
-		return new JsonPrimitive("must_lie_in_the_future");
+		return new JsonPrimitive(getErrorToken());
 	}
 
+
+	@Override
+	public String getErrorToken() {
+		return "must_lie_in_the_future";
+	}
 }
