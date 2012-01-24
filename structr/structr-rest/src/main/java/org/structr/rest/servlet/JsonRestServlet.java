@@ -25,19 +25,22 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSyntaxException;
-import java.io.File;
-import java.io.FileWriter;
 
 import org.apache.commons.lang.StringUtils;
 
 import org.structr.common.AccessMode;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.PropertySet;
+import org.structr.core.PropertySet.PropertyFormat;
+import org.structr.core.PropertySetGSONAdapter;
+import org.structr.core.Services;
 import org.structr.core.Value;
 import org.structr.core.node.NodeAttribute;
 import org.structr.rest.ResourceConstraintProvider;
 import org.structr.rest.RestMethodResult;
-import org.structr.core.PropertySetGSONAdapter;
+import org.structr.rest.adapter.FrameworkExceptionGSONAdapter;
 import org.structr.rest.adapter.ResultGSONAdapter;
 import org.structr.rest.constraint.PagingConstraint;
 import org.structr.rest.constraint.RelationshipFollowingConstraint;
@@ -46,11 +49,11 @@ import org.structr.rest.constraint.Result;
 import org.structr.rest.constraint.SortConstraint;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NoResultsException;
-import org.structr.core.PropertySet;
-import org.structr.core.PropertySet.PropertyFormat;
 
 //~--- JDK imports ------------------------------------------------------------
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 
@@ -72,9 +75,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
-import org.structr.rest.adapter.FrameworkExceptionGSONAdapter;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -89,11 +89,11 @@ public class JsonRestServlet extends HttpServlet {
 
 	public static final int DEFAULT_VALUE_PAGE_SIZE                     = 20;
 	public static final String DEFAULT_VALUE_SORT_ORDER                 = "asc";
+	public static final String REQUEST_PARAMETER_LOOSE_SEARCH           = "loose";
 	public static final String REQUEST_PARAMETER_PAGE_NUMBER            = "page";
 	public static final String REQUEST_PARAMETER_PAGE_SIZE              = "pageSize";
 	public static final String REQUEST_PARAMETER_SORT_KEY               = "sort";
 	public static final String REQUEST_PARAMETER_SORT_ORDER             = "order";
-	public static final String REQUEST_PARAMETER_SEARCH_STRICT          = "strict";
 	private static final String SERVLET_PARAMETER_CONSTRAINT_PROVIDER   = "ConstraintProvider";
 	private static final String SERVLET_PARAMETER_DEFAULT_PROPERTY_VIEW = "DefaultPropertyView";
 	private static final String SERVLET_PARAMETER_ID_PROPERTY           = "IdProperty";
@@ -103,14 +103,14 @@ public class JsonRestServlet extends HttpServlet {
 
 	//~--- fields ---------------------------------------------------------
 
-	private String defaultPropertyView                             = PropertyView.Public;
-	private Map<Pattern, Class> constraintMap                      = null;
-	private String defaultIdProperty                               = null;
-	private Gson gson                                              = null;
-	private PropertySetGSONAdapter propertySetAdapter              = null;
-	private Value<String> propertyView                             = null;
-	private ResultGSONAdapter resultGsonAdapter                    = null;
-	private Writer logWriter                                       = null;
+	private Map<Pattern, Class> constraintMap         = null;
+	private String defaultIdProperty                  = null;
+	private String defaultPropertyView                = PropertyView.Public;
+	private Gson gson                                 = null;
+	private Writer logWriter                          = null;
+	private PropertySetGSONAdapter propertySetAdapter = null;
+	private Value<String> propertyView                = null;
+	private ResultGSONAdapter resultGsonAdapter       = null;
 
 	//~--- methods --------------------------------------------------------
 
@@ -118,8 +118,8 @@ public class JsonRestServlet extends HttpServlet {
 	public void init() {
 
 		// initialize variables
-		this.constraintMap        = new LinkedHashMap<Pattern, Class>();
-		this.propertyView         = new ThreadLocalPropertyView();
+		this.constraintMap = new LinkedHashMap<Pattern, Class>();
+		this.propertyView  = new ThreadLocalPropertyView();
 
 		// external resource constraint initialization
 		String externalProviderName = this.getInitParameter(SERVLET_PARAMETER_CONSTRAINT_PROVIDER);
@@ -177,39 +177,44 @@ public class JsonRestServlet extends HttpServlet {
 		this.propertySetAdapter = new PropertySetGSONAdapter(propertyFormat, defaultIdProperty);
 
 		// create GSON serializer
-		this.gson = new GsonBuilder()
-			.setPrettyPrinting()
-			.serializeNulls()
-			.registerTypeHierarchyAdapter(FrameworkException.class, new FrameworkExceptionGSONAdapter())
-			.registerTypeAdapter(PropertySet.class, propertySetAdapter)
-			.registerTypeAdapter(Result.class, resultGsonAdapter)
-			.create();
+		this.gson = new GsonBuilder().setPrettyPrinting().serializeNulls().registerTypeHierarchyAdapter(FrameworkException.class,
+			new FrameworkExceptionGSONAdapter()).registerTypeAdapter(PropertySet.class, propertySetAdapter).registerTypeAdapter(Result.class, resultGsonAdapter).create();
 
 		String requestLoggingParameter = this.getInitParameter(SERVLET_PARAMETER_REQUEST_LOGGING);
-		if(requestLoggingParameter != null && "true".equalsIgnoreCase(requestLoggingParameter)) {
+
+		if ((requestLoggingParameter != null) && "true".equalsIgnoreCase(requestLoggingParameter)) {
 
 			// initialize access log
 			String logFileName = Services.getBasePath().concat("/logs/access.log");
+
 			try {
+
 				File logFile = new File(logFileName);
+
 				logFile.getParentFile().mkdir();
+
 				logWriter = new FileWriter(logFileName);
 
-			} catch(IOException ioex) {
-				logger.log(Level.WARNING, "Could not open access log file {0}: {1}", new Object[] { logFileName, ioex.getMessage() } );
+			} catch (IOException ioex) {
+				logger.log(Level.WARNING, "Could not open access log file {0}: {1}", new Object[] { logFileName, ioex.getMessage() });
 			}
 		}
 	}
 
 	@Override
 	public void destroy() {
-		if(logWriter != null) {
+
+		if (logWriter != null) {
+
 			try {
+
 				logWriter.flush();
 				logWriter.close();
-			} catch(IOException ioex) {
+
+			} catch (IOException ioex) {
 				logger.log(Level.WARNING, "Could not close access log file.", ioex);
 			}
+
 		}
 	}
 
@@ -218,13 +223,14 @@ public class JsonRestServlet extends HttpServlet {
 	protected void doDelete(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
 		try {
-			logRequest("DELETE", request);
 
+			logRequest("DELETE", request);
 			request.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=utf-8");
 
 			SecurityContext securityContext = getSecurityContext(request);
-			if(securityContext != null) {
+
+			if (securityContext != null) {
 
 				// evaluate constraint chain
 				List<ResourceConstraint> chain        = parsePath(securityContext, request);
@@ -232,12 +238,14 @@ public class JsonRestServlet extends HttpServlet {
 
 				// do action
 				RestMethodResult result = resourceConstraint.doDelete();
-				result.commitResponse(gson, response);
 
+				result.commitResponse(gson, response);
 			} else {
 
 				RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_FORBIDDEN);
+
 				result.commitResponse(gson, response);
+
 			}
 
 		} catch (FrameworkException frameworkException) {
@@ -248,7 +256,6 @@ public class JsonRestServlet extends HttpServlet {
 			response.getWriter().println();
 			response.getWriter().flush();
 			response.getWriter().close();
-
 		} catch (JsonSyntaxException jsex) {
 
 			logger.log(Level.WARNING, "JsonSyntaxException in DELETE", jsex);
@@ -279,14 +286,13 @@ public class JsonRestServlet extends HttpServlet {
 	}
 
 	// </editor-fold>
-
 	// <editor-fold defaultstate="collapsed" desc="GET">
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
 		try {
-			logRequest("GET", request);
 
+			logRequest("GET", request);
 			request.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=utf-8");
 
@@ -302,6 +308,7 @@ public class JsonRestServlet extends HttpServlet {
 
 			// create result set
 			Result result = new Result(resourceConstraint.doGet(), resourceConstraint.isCollectionResource());
+
 			if (result != null) {
 
 				DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
@@ -311,7 +318,7 @@ public class JsonRestServlet extends HttpServlet {
 				Writer writer = response.getWriter();
 
 				gson.toJson(result, writer);
-				writer.append("\n"); // useful newline
+				writer.append("\n");    // useful newline
 				writer.flush();
 				writer.close();
 				response.setStatus(HttpServletResponse.SC_OK);
@@ -337,7 +344,6 @@ public class JsonRestServlet extends HttpServlet {
 			response.getWriter().println();
 			response.getWriter().flush();
 			response.getWriter().close();
-
 		} catch (JsonSyntaxException jsex) {
 
 			logger.log(Level.WARNING, "JsonSyntaxException in GET", jsex);
@@ -368,14 +374,13 @@ public class JsonRestServlet extends HttpServlet {
 	}
 
 	// </editor-fold>
-
 	// <editor-fold defaultstate="collapsed" desc="HEAD">
 	@Override
 	protected void doHead(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
 		try {
-			logRequest("HEAD", request);
 
+			logRequest("HEAD", request);
 			request.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=UTF-8");
 
@@ -394,7 +399,6 @@ public class JsonRestServlet extends HttpServlet {
 			response.getWriter().println();
 			response.getWriter().flush();
 			response.getWriter().close();
-
 		} catch (JsonSyntaxException jsex) {
 
 			logger.log(Level.WARNING, "JsonSyntaxException in HEAD", jsex);
@@ -425,14 +429,13 @@ public class JsonRestServlet extends HttpServlet {
 	}
 
 	// </editor-fold>
-
 	// <editor-fold defaultstate="collapsed" desc="OPTIONS">
 	@Override
 	protected void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
 		try {
-			logRequest("OPTIONS", request);
 
+			logRequest("OPTIONS", request);
 			request.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=UTF-8");
 
@@ -451,7 +454,6 @@ public class JsonRestServlet extends HttpServlet {
 			response.getWriter().println();
 			response.getWriter().flush();
 			response.getWriter().close();
-
 		} catch (JsonSyntaxException jsex) {
 
 			logger.log(Level.WARNING, "JsonSyntaxException in OPTIONS", jsex);
@@ -482,20 +484,20 @@ public class JsonRestServlet extends HttpServlet {
 	}
 
 	// </editor-fold>
-
 	// <editor-fold defaultstate="collapsed" desc="POST">
 	@Override
 	protected void doPost(final HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
 		try {
-			logRequest("POST", request);
 
+			logRequest("POST", request);
 			request.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=UTF-8");
 
 			final PropertySet propertySet   = gson.fromJson(request.getReader(), PropertySet.class);
 			SecurityContext securityContext = getSecurityContext(request);
-			if(securityContext != null) {
+
+			if (securityContext != null) {
 
 				// evaluate constraint chain
 				List<ResourceConstraint> chain        = parsePath(securityContext, request);
@@ -503,10 +505,14 @@ public class JsonRestServlet extends HttpServlet {
 				Map<String, Object> properties        = new LinkedHashMap<String, Object>();
 
 				// copy properties to map
-				if(propertySet != null) {
+				if (propertySet != null) {
+
 					for (NodeAttribute attr : propertySet.getAttributes()) {
+
 						properties.put(attr.getKey(), attr.getValue());
+
 					}
+
 				}
 
 				// do action
@@ -517,11 +523,12 @@ public class JsonRestServlet extends HttpServlet {
 
 				// commit response
 				result.commitResponse(gson, response);
-
 			} else {
 
 				RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_FORBIDDEN);
+
 				result.commitResponse(gson, response);
+
 			}
 
 		} catch (FrameworkException frameworkException) {
@@ -532,7 +539,6 @@ public class JsonRestServlet extends HttpServlet {
 			response.getWriter().println();
 			response.getWriter().flush();
 			response.getWriter().close();
-
 		} catch (JsonSyntaxException jsex) {
 
 			logger.log(Level.WARNING, "JsonSyntaxException in POST", jsex);
@@ -572,21 +578,20 @@ public class JsonRestServlet extends HttpServlet {
 	}
 
 	// </editor-fold>
-
 	// <editor-fold defaultstate="collapsed" desc="PUT">
 	@Override
 	protected void doPut(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
 		try {
-			logRequest("PUT", request);
 
+			logRequest("PUT", request);
 			request.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=UTF-8");
 
 			final PropertySet propertySet   = gson.fromJson(request.getReader(), PropertySet.class);
-			
 			SecurityContext securityContext = getSecurityContext(request);
-			if(securityContext != null) {
+
+			if (securityContext != null) {
 
 				// evaluate constraint chain
 				List<ResourceConstraint> chain        = parsePath(securityContext, request);
@@ -594,19 +599,23 @@ public class JsonRestServlet extends HttpServlet {
 
 				// create Map with properties
 				Map<String, Object> properties = new LinkedHashMap<String, Object>();
+
 				for (NodeAttribute attr : propertySet.getAttributes()) {
+
 					properties.put(attr.getKey(), attr.getValue());
 
 				}
 
 				// do action
 				RestMethodResult result = resourceConstraint.doPut(properties);
-				result.commitResponse(gson, response);
 
+				result.commitResponse(gson, response);
 			} else {
 
 				RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_FORBIDDEN);
+
 				result.commitResponse(gson, response);
+
 			}
 
 		} catch (FrameworkException frameworkException) {
@@ -617,7 +626,6 @@ public class JsonRestServlet extends HttpServlet {
 			response.getWriter().println();
 			response.getWriter().flush();
 			response.getWriter().close();
-
 		} catch (JsonSyntaxException jsex) {
 
 			logger.log(Level.WARNING, "JsonSyntaxException in PUT", jsex);
@@ -648,13 +656,11 @@ public class JsonRestServlet extends HttpServlet {
 	}
 
 	// </editor-fold>
-
 	// <editor-fold defaultstate="collapsed" desc="TRACE">
 	@Override
 	protected void doTrace(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
 		logRequest("TRACE", request);
-
 		response.setContentType("application/json; charset=UTF-8");
 
 		int code = HttpServletResponse.SC_METHOD_NOT_ALLOWED;
@@ -664,7 +670,6 @@ public class JsonRestServlet extends HttpServlet {
 	}
 
 	// </editor-fold>
-
 	// <editor-fold defaultstate="collapsed" desc="private methods">
 	private List<ResourceConstraint> parsePath(SecurityContext securityContext, HttpServletRequest request) throws FrameworkException {
 
@@ -690,7 +695,7 @@ public class JsonRestServlet extends HttpServlet {
 			String part = pathParts[i].trim();
 
 			if (part.length() > 0) {
-				
+
 				boolean found = false;
 
 				// look for matching pattern
@@ -713,11 +718,8 @@ public class JsonRestServlet extends HttpServlet {
 
 							if (constraint.checkAndConfigure(part, securityContext, request)) {
 
-								logger.log(Level.FINE, "{0} matched, adding constraint of type {1} for part {2}",
-									   new Object[] { matcher.pattern(),
-											  type.getName(), part });
-
-
+								logger.log(Level.FINE, "{0} matched, adding constraint of type {1} for part {2}", new Object[] { matcher.pattern(), type.getName(),
+									part });
 
 								// allow constraint to modify context
 								constraint.configurePropertyView(propertyView);
@@ -726,6 +728,7 @@ public class JsonRestServlet extends HttpServlet {
 								constraintChain.add(constraint);
 
 								found = true;
+
 								// first match wins, so choose priority wisely ;)
 								break;
 
@@ -736,11 +739,15 @@ public class JsonRestServlet extends HttpServlet {
 						}
 
 					}
+
 				}
-				
-				if(!found) {
+
+				if (!found) {
+
 					throw new IllegalPathException();
+
 				}
+
 			}
 		}
 
@@ -771,6 +778,7 @@ public class JsonRestServlet extends HttpServlet {
 			for (int i = 0; i < num; i++) {
 
 				try {
+
 					ResourceConstraint firstElement       = constraintChain.get(i);
 					ResourceConstraint secondElement      = constraintChain.get(i + 1);
 					ResourceConstraint combinedConstraint = firstElement.tryCombineWith(secondElement);
@@ -798,9 +806,11 @@ public class JsonRestServlet extends HttpServlet {
 
 					}
 
-				} catch(Throwable t) {
+				} catch (Throwable t) {
+
 					// ignore exceptions thrown here
 				}
+
 			}
 
 			iterations++;
@@ -885,11 +895,15 @@ public class JsonRestServlet extends HttpServlet {
 
 		// sorting
 		String sortKey = request.getParameter(REQUEST_PARAMETER_SORT_KEY);
+
 		if (sortKey != null) {
 
 			String sortOrder = request.getParameter(REQUEST_PARAMETER_SORT_ORDER);
+
 			if (sortOrder == null) {
+
 				sortOrder = DEFAULT_VALUE_SORT_ORDER;
+
 			}
 
 			// combine sort constraint
@@ -907,7 +921,9 @@ public class JsonRestServlet extends HttpServlet {
 			int page             = parseInt(pageParameter, 1);
 
 			if (pageSize <= 0) {
+
 				throw new IllegalPathException();
+
 			}
 
 			pagedSortedConstraint = pagedSortedConstraint.tryCombineWith(new PagingConstraint(securityContext, page, pageSize));
@@ -947,10 +963,14 @@ public class JsonRestServlet extends HttpServlet {
 		buf.append("{\n");
 		buf.append("  \"code\" : ").append(code);
 
-		if(message != null) {
+		if (message != null) {
+
 			buf.append(",\n  \"error\" : \"").append(StringUtils.replace(message, "\"", "\\\"")).append("\"\n");
+
 		} else {
+
 			buf.append("\n");
+
 		}
 
 		buf.append("}\n");
@@ -964,10 +984,14 @@ public class JsonRestServlet extends HttpServlet {
 
 		buf.append("{\n");
 
-		if(message != null) {
+		if (message != null) {
+
 			buf.append("    \"message\" : \"").append(StringUtils.replace(message, "\"", "\\\"")).append("\"\n");
+
 		} else {
+
 			buf.append("    \"message\" : \"\"\n");
+
 		}
 
 		buf.append("}\n");
@@ -975,46 +999,50 @@ public class JsonRestServlet extends HttpServlet {
 		return buf.toString();
 	}
 
+	private void logRequest(String method, HttpServletRequest request) {
+
+//
+//              if(logWriter != null) {
+//
+//                      try {
+//                              logWriter.append(accessLogDateFormat.format(System.currentTimeMillis()));
+//                              logWriter.append(" ");
+//                              logWriter.append(StringUtils.rightPad(method, 8));
+//                              logWriter.append(request.getRequestURI());
+//                              logWriter.append("\n");
+//
+//                              BufferedReader reader = request.getReader();
+//                              if(reader.markSupported()) {
+//                                      reader.mark(65535);
+//                              }
+//
+//                              String line = reader.readLine();
+//                              while(line != null) {
+//                                      logWriter.append("        ");
+//                                      logWriter.append(line);
+//                                      line = reader.readLine();
+//                                      logWriter.append("\n");
+//                              }
+//
+//                              reader.reset();
+//
+//                              logWriter.flush();
+//
+//                      } catch(IOException ioex) {
+//                              // ignore
+//                      }
+//              }
+	}
+
+	// </editor-fold>
+
+	//~--- get methods ----------------------------------------------------
+
 	private SecurityContext getSecurityContext(HttpServletRequest request) {
 
 		// return SecurityContext.getSuperUserInstance();
 		return SecurityContext.getInstance(this.getServletConfig(), request, AccessMode.Frontend);
 	}
-
-	private void logRequest(String method, HttpServletRequest request) {
-//
-//		if(logWriter != null) {
-//
-//			try {
-//				logWriter.append(accessLogDateFormat.format(System.currentTimeMillis()));
-//				logWriter.append(" ");
-//				logWriter.append(StringUtils.rightPad(method, 8));
-//				logWriter.append(request.getRequestURI());
-//				logWriter.append("\n");
-//
-//				BufferedReader reader = request.getReader();
-//				if(reader.markSupported()) {
-//					reader.mark(65535);
-//				}
-//
-//				String line = reader.readLine();
-//				while(line != null) {
-//					logWriter.append("        ");
-//					logWriter.append(line);
-//					line = reader.readLine();
-//					logWriter.append("\n");
-//				}
-//
-//				reader.reset();
-//
-//				logWriter.flush();
-//				
-//			} catch(IOException ioex) {
-//				// ignore
-//			}
-//		}
-	}
-	// </editor-fold>
 
 	//~--- inner classes --------------------------------------------------
 
