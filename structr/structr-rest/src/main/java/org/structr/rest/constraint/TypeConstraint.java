@@ -186,13 +186,13 @@ public class TypeConstraint extends SortableConstraint {
 		// searchable attributes
 		if(rawType != null && request != null && !request.getParameterMap().isEmpty()) {
 
-			boolean strictSearch = parseInteger(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_SEARCH_STRICT)) == 1;
+			boolean looseSearch = parseInteger(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH)) == 1;
 
 			Set<String> searchableAttributes;
-			if (strictSearch) {
-				searchableAttributes = EntityContext.getSearchableProperties(rawType, NodeIndex.keyword.name());
-			} else {
+			if (looseSearch) {
 				searchableAttributes = EntityContext.getSearchableProperties(rawType, NodeIndex.fulltext.name());
+			} else {
+				searchableAttributes = EntityContext.getSearchableProperties(rawType, NodeIndex.keyword.name());
 			}
 
 			if(searchableAttributes != null) {
@@ -202,10 +202,10 @@ public class TypeConstraint extends SortableConstraint {
 					String searchValue = request.getParameter(key);
 					if(searchValue != null) {
 
-						if(strictSearch) {
-							searchAttributes.add(Search.andExactProperty(key, searchValue));
-						} else {
+						if(looseSearch) {
 							searchAttributes.add(Search.andProperty(key, searchValue));
+						} else {
+							searchAttributes.add(Search.andExactProperty(key, searchValue));
 						}
 
 						hasSearchableAttributes = true;
