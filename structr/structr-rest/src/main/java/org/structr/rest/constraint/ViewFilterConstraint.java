@@ -47,10 +47,14 @@ public class ViewFilterConstraint extends WrappingConstraint {
 	@Override
 	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) {
 
-		this.securityContext = securityContext;
-		propertyView = part;
+		if(this.wrappedConstraint == null) {
+			this.securityContext = securityContext;
+			propertyView = part;
 
-		return true;
+			return true;
+		}
+		
+		return false;
 
 	}
 

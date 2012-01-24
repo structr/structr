@@ -219,6 +219,22 @@ public class RelationshipFollowingConstraint extends SortableConstraint implemen
 		Path path = getValidatedPath();
 		if (path != null) {
 
+			// traverse path to force evaluation and validation
+			List nodeList     = new LinkedList();
+			for (Node node : path.nodes()) {
+				nodeList.add(node);
+			}
+
+			return lastConstraint.doDelete();
+
+		}
+
+		throw new NotFoundException();
+
+		/*
+		Path path = getValidatedPath();
+		if (path != null) {
+
 			StructrNodeFactory nodeFactory = new StructrNodeFactory<AbstractNode>(securityContext);
 			List<GraphObject> nodeList     = new LinkedList<GraphObject>();
 
@@ -287,25 +303,38 @@ public class RelationshipFollowingConstraint extends SortableConstraint implemen
 		}
 
 		throw new NotFoundException();
+		*/
+	}
+
+	@Override
+	public RestMethodResult doPut(Map<String, Object> propertySet) throws FrameworkException {
+
+		Path path = getValidatedPath();
+		if (path != null) {
+
+			// traverse path to force evaluation and validation
+			List nodeList     = new LinkedList();
+			for (Node node : path.nodes()) {
+				nodeList.add(node);
+			}
+
+			return lastConstraint.doPut(propertySet);
+
+		}
+
+		throw new NotFoundException();
 	}
 
 	@Override
 	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
 
 		Path path = getValidatedPath();
-
 		if (path != null) {
 
-			StructrNodeFactory nodeFactory = new StructrNodeFactory<AbstractNode>(securityContext);
-			List<GraphObject> nodeList     = new LinkedList<GraphObject>();
-
-			// traverse path to force evaluation
+			// traverse path to force evaluation and validation
+			List nodeList     = new LinkedList();
 			for (Node node : path.nodes()) {
-
-				AbstractNode traversedNode = nodeFactory.createNode(securityContext, node);
-
-				nodeList.add(traversedNode);
-
+				nodeList.add(node);
 			}
 
 			return lastConstraint.doPost(propertySet);

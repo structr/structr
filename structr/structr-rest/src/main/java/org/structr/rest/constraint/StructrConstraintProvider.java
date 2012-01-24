@@ -37,10 +37,8 @@ public class StructrConstraintProvider implements ResourceConstraintProvider {
 		Map<Pattern, Class<? extends ResourceConstraint>> constraintMap = new LinkedHashMap<Pattern, Class<? extends ResourceConstraint>>();
 
 		constraintMap.put(Pattern.compile("[a-zA-Z0-9]{32}"),	UuidConstraint.class);			// matches a UUID without dashes
-		constraintMap.put(Pattern.compile("[0-9]+"),		IdConstraint.class);			// this matches the ID constraint first
 
 		constraintMap.put(Pattern.compile("maintenance"),	MaintenanceConstraint.class);		// maintenance
-		constraintMap.put(Pattern.compile("[a-zA-Z]+"),		MaintenanceParameterConstraint.class);	// maintenance parameter
 
 		constraintMap.put(Pattern.compile("in"),		RelationshipConstraint.class);		// incoming relationship
 		constraintMap.put(Pattern.compile("out"),		RelationshipConstraint.class);		// outgoing relationship
@@ -54,8 +52,11 @@ public class StructrConstraintProvider implements ResourceConstraintProvider {
 		constraintMap.put(Pattern.compile("owner"),		ViewFilterConstraint.class);		// owner view
 		constraintMap.put(Pattern.compile("admin"),		ViewFilterConstraint.class);		// admin view
 		constraintMap.put(Pattern.compile("all"),		ViewFilterConstraint.class);		// all view
+		constraintMap.put(Pattern.compile("ids"),		ViewFilterConstraint.class);		// "ids only" view
 
+		constraintMap.put(Pattern.compile("[a-zA-Z]+"),		MaintenanceParameterConstraint.class);	// maintenance parameter
 		constraintMap.put(Pattern.compile("[a-z_]+"),		TypeConstraint.class);			// any type match
+		constraintMap.put(Pattern.compile("[0-9]+"),		IdConstraint.class);			// this matches the ID constraint first
 
 		return constraintMap;
 	}

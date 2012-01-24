@@ -125,13 +125,14 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 
 		}
 
+		/*
 		String type = src.getType();
-
 		if (type != null) {
 
 			jsonObject.add("type", new JsonPrimitive(type));
 
 		}
+		*/
 
 		// property keys
 		JsonArray properties = new JsonArray();
@@ -291,13 +292,14 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 
 		}
 
+		/*
 		String type = src.getType();
-
 		if (type != null) {
 
 			jsonObject.add("type", new JsonPrimitive(type));
 
 		}
+		*/
 
 		// property keys
 		for (String key : src.getPropertyKeys(localPropertyView)) {

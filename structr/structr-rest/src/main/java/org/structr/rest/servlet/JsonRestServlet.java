@@ -58,7 +58,9 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -500,14 +502,7 @@ public class JsonRestServlet extends HttpServlet {
 				// evaluate constraint chain
 				List<ResourceConstraint> chain        = parsePath(securityContext, request);
 				ResourceConstraint resourceConstraint = optimizeConstraintChain(chain);
-				Map<String, Object> properties        = new LinkedHashMap<String, Object>();
-
-				// copy properties to map
-				if(propertySet != null) {
-					for (NodeAttribute attr : propertySet.getAttributes()) {
-						properties.put(attr.getKey(), attr.getValue());
-					}
-				}
+				Map<String, Object> properties        = convertPropertySetToMap(propertySet);
 
 				// do action
 				RestMethodResult result = resourceConstraint.doPost(properties);
@@ -591,13 +586,7 @@ public class JsonRestServlet extends HttpServlet {
 				// evaluate constraint chain
 				List<ResourceConstraint> chain        = parsePath(securityContext, request);
 				ResourceConstraint resourceConstraint = optimizeConstraintChain(chain);
-
-				// create Map with properties
-				Map<String, Object> properties = new LinkedHashMap<String, Object>();
-				for (NodeAttribute attr : propertySet.getAttributes()) {
-					properties.put(attr.getKey(), attr.getValue());
-
-				}
+				Map<String, Object> properties        = convertPropertySetToMap(propertySet);
 
 				// do action
 				RestMethodResult result = resourceConstraint.doPut(properties);
@@ -768,39 +757,35 @@ public class JsonRestServlet extends HttpServlet {
 
 			found = false;
 
-			for (int i = 0; i < num; i++) {
+			try {
+				ResourceConstraint firstElement       = constraintChain.get(0);
+				ResourceConstraint secondElement      = constraintChain.get(1);
+				ResourceConstraint combinedConstraint = firstElement.tryCombineWith(secondElement);
 
-				try {
-					ResourceConstraint firstElement       = constraintChain.get(i);
-					ResourceConstraint secondElement      = constraintChain.get(i + 1);
-					ResourceConstraint combinedConstraint = firstElement.tryCombineWith(secondElement);
+				if (combinedConstraint != null) {
 
-					if (combinedConstraint != null) {
+					logger.log(Level.FINE, "Combined constraint {0}", combinedConstraint.getClass().getSimpleName());
 
-						logger.log(Level.FINE, "Combined constraint {0}", combinedConstraint.getClass().getSimpleName());
+					// remove source constraints
+					constraintChain.remove(firstElement);
+					constraintChain.remove(secondElement);
 
-						// remove source constraints
-						constraintChain.remove(firstElement);
-						constraintChain.remove(secondElement);
+					// add combined constraint
+					constraintChain.add(0, combinedConstraint);
 
-						// add combined constraint
-						constraintChain.add(i, combinedConstraint);
+					// signal success
+					found = true;
 
-						// signal success
-						found = true;
+					if (combinedConstraint instanceof RelationshipFollowingConstraint) {
 
-						//
-						if (combinedConstraint instanceof RelationshipFollowingConstraint) {
-
-							break;
-
-						}
+						break;
 
 					}
 
-				} catch(Throwable t) {
-					// ignore exceptions thrown here
 				}
+
+			} catch(Throwable t) {
+				// ignore exceptions thrown here
 			}
 
 			iterations++;
@@ -973,6 +958,25 @@ public class JsonRestServlet extends HttpServlet {
 		buf.append("}\n");
 
 		return buf.toString();
+	}
+
+	private Map<String, Object> convertPropertySetToMap(PropertySet propertySet) {
+
+		Map<String, Object> properties        = new LinkedHashMap<String, Object>();
+
+		// copy properties to map
+		if(propertySet != null) {
+
+			for (NodeAttribute attr : propertySet.getAttributes()) {
+				String key = attr.getKey();
+				Object val = attr.getValue();
+
+				// store value
+				properties.put(key, val);
+			}
+		}
+
+		return properties;
 	}
 
 	private SecurityContext getSecurityContext(HttpServletRequest request) {

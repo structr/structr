@@ -38,7 +38,8 @@ import org.structr.core.PropertySet.PropertyFormat;
 
 import java.lang.reflect.Type;
 
-import java.math.BigDecimal;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -155,6 +156,18 @@ public class PropertySetGSONAdapter implements InstanceCreator<PropertySet>, Jso
 				} else if (elem.isJsonObject()) {
 
 					wrapper.add(key, deserializeFlatNameValue(elem, typeOfT, context));
+
+				} else if (elem.isJsonArray()) {
+
+					JsonArray array = elem.getAsJsonArray();
+					List list = new LinkedList();
+					for(JsonElement element : array) {
+						if (element.isJsonPrimitive()) {
+							list.add(fromPrimitive((element.getAsJsonPrimitive())));
+						}
+					}
+
+					wrapper.add(key, list);
 
 				} else if (elem.isJsonPrimitive()) {
 
