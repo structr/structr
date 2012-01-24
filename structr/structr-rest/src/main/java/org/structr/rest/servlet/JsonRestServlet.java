@@ -56,7 +56,6 @@ import java.io.Writer;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
-import java.text.SimpleDateFormat;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -946,16 +945,14 @@ public class JsonRestServlet extends HttpServlet {
 		StringBuilder buf = new StringBuilder(100);
 
 		buf.append("{\n");
-		buf.append("    \"error\" : {\n");
-		buf.append("        \"code\" : ").append(code);
+		buf.append("  \"code\" : ").append(code);
 
 		if(message != null) {
-			buf.append(",\n        \"message\" : \"").append(message).append("\"\n");
+			buf.append(",\n  \"error\" : \"").append(StringUtils.replace(message, "\"", "\\\"")).append("\"\n");
 		} else {
 			buf.append("\n");
 		}
 
-		buf.append("    }\n");
 		buf.append("}\n");
 
 		return buf.toString();
@@ -968,7 +965,7 @@ public class JsonRestServlet extends HttpServlet {
 		buf.append("{\n");
 
 		if(message != null) {
-			buf.append("    \"message\" : \"").append(message).append("\"\n");
+			buf.append("    \"message\" : \"").append(StringUtils.replace(message, "\"", "\\\"")).append("\"\n");
 		} else {
 			buf.append("    \"message\" : \"\"\n");
 		}
