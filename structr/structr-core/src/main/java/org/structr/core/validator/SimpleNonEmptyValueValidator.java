@@ -23,19 +23,18 @@ import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
-import org.structr.core.Value;
 
 /**
  * A simple validator that checks for non-empty values.
  *
  * @author Christian Morgner
  */
-public class SimpleNonEmptyValueValidator extends PropertyValidator {
+public class SimpleNonEmptyValueValidator extends PropertyValidator<String> {
 
 	@Override
-	public boolean isValid(GraphObject object, String key, Object value, Value parameter, ErrorBuffer errorBuffer) {
+	public boolean isValid(GraphObject object, String key, String value, ErrorBuffer errorBuffer) {
 
-		if(value != null && value.toString().length() > 0) {
+		if(value != null && value.length() > 0) {
 			return true;
 		}
 

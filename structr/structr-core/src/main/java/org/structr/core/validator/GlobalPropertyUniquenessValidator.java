@@ -17,7 +17,6 @@ import org.structr.common.error.UniqueToken;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
 import org.structr.core.Services;
-import org.structr.core.Value;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
 import org.structr.core.node.search.SearchOperator;
@@ -32,7 +31,7 @@ public class GlobalPropertyUniquenessValidator extends PropertyValidator<String>
 	private static final Logger logger = Logger.getLogger(GlobalPropertyUniquenessValidator.class.getName());
 
 	@Override
-	public boolean isValid(GraphObject object, String key, Object value, Value<String> parameter, ErrorBuffer errorBuffer) {
+	public boolean isValid(GraphObject object, String key, String value, ErrorBuffer errorBuffer) {
 
 		if(value == null || (value != null && value.toString().length() == 0)) {
 			errorBuffer.add(object.getType(), new EmptyPropertyToken(key));
@@ -41,19 +40,14 @@ public class GlobalPropertyUniquenessValidator extends PropertyValidator<String>
 
 		if(key != null && value != null) {
 
-			if(!(value instanceof String)) {
-				return false;
-			}
-
 			// String type = EntityContext.GLOBAL_UNIQUENESS;
-			String stringValue = (String)value;
 			AbstractNode topNode = null;
 			Boolean includeDeleted = false;
 			Boolean publicOnly = false;
 			boolean nodeExists = false;
 
 			List<SearchAttribute> attributes = new LinkedList<SearchAttribute>();
-			attributes.add(new TextualSearchAttribute(key, stringValue, SearchOperator.AND));
+			attributes.add(new TextualSearchAttribute(key, value, SearchOperator.AND));
 
 			try {
 				List<AbstractNode> resultList = (List<AbstractNode>)Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(topNode, includeDeleted, publicOnly, attributes);

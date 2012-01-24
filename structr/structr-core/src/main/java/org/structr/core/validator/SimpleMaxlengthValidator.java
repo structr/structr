@@ -23,23 +23,28 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.TooLongToken;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
-import org.structr.core.Value;
 
 /**
  * A simple string max length validator.
  *
  * @author Christian Morgner
  */
-public class SimpleMaxlengthValidator extends PropertyValidator<Integer> {
+public class SimpleMaxlengthValidator extends PropertyValidator<String> {
+
+	private int maxLength = 0;
+
+	public SimpleMaxlengthValidator(int maxLength) {
+		this.maxLength = maxLength;
+	}
 
 	@Override
-	public boolean isValid(GraphObject object, String key, Object value, Value<Integer> parameter, ErrorBuffer errorBuffer) {
+	public boolean isValid(GraphObject object, String key, String value, ErrorBuffer errorBuffer) {
 		
-		if(value.toString().length() <= parameter.get()) {
+		if(value.length() <= maxLength) {
 			return true;
 		}
 
-		errorBuffer.add(object.getType(), new TooLongToken(key, parameter.get()));
+		errorBuffer.add(object.getType(), new TooLongToken(key, maxLength));
 
 		return false;
 	}

@@ -43,18 +43,14 @@ import org.structr.core.node.IndexNodeCommand;
 import org.structr.core.node.StructrNodeFactory;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.ObjectNotion;
-import org.structr.core.validator.GlobalPropertyUniquenessValidator;
-import org.structr.core.validator.TypeAndPropertyUniquenessValidator;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Semaphore;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.error.FrameworkException;
@@ -71,9 +67,7 @@ public class EntityContext {
 
 	public static final String GLOBAL_UNIQUENESS                                                                = "global_uniqueness_key";
 	private static final Map<Class, Map<String, Class<? extends PropertyConverter>>> globalPropertyConverterMap = new LinkedHashMap<Class, Map<String, Class<? extends PropertyConverter>>>();
-	private static final Map<Class, Map<String, Class<? extends PropertyValidator>>> globalValidatorMap         = new LinkedHashMap<Class, Map<String, Class<? extends PropertyValidator>>>();
-	private static final Map<Class, Map<String, Value>> globalValidationParameterMap                            = new LinkedHashMap<Class, Map<String, Value>>();
-	private static final Map<String, Map<String, Semaphore>> globalSemaphoreMap                                 = new LinkedHashMap<String, Map<String, Semaphore>>();
+	private static final Map<Class, Map<String, Set<PropertyValidator>>> globalValidatorMap                     = new LinkedHashMap<Class, Map<String, Set<PropertyValidator>>>();
 	private static final Map<String, Map<String, Set<String>>> globalSearchablePropertyMap                      = new LinkedHashMap<String, Map<String, Set<String>>>();
 	private static final Map<Class, Map<String, Set<String>>> globalPropertyViewMap                             = new LinkedHashMap<Class, Map<String, Set<String>>>();
 	private static final Map<String, Map<String, DirectedRelationship>> globalPropertyRelationshipMap           = new LinkedHashMap<String, Map<String, DirectedRelationship>>();
@@ -178,53 +172,22 @@ public class EntityContext {
 	}
 
 	// ----- validator methods -----
-	public static void registerPropertyValidator(Class type, PropertyKey propertyKey, Class<? extends PropertyValidator> validatorClass) {
+	public static void registerPropertyValidator(Class type, PropertyKey propertyKey, PropertyValidator validatorClass) {
 		registerPropertyValidator(type, propertyKey.name(), validatorClass);
 	}
 
-	public static void registerPropertyValidator(Class type, String propertyKey, Class<? extends PropertyValidator> validatorClass) {
-		registerPropertyValidator(type, propertyKey, validatorClass, null);
-	}
+	public static void registerPropertyValidator(Class type, String propertyKey, PropertyValidator validator) {
 
-	public static void registerPropertyValidator(Class type, PropertyKey propertyKey, Class<? extends PropertyValidator> validatorClass, Value parameter) {
-		registerPropertyValidator(type, propertyKey.name(), validatorClass, parameter);
-	}
+		Map<String, Set<PropertyValidator>> validatorMap = getPropertyValidatorMapForType(type);
 
-	public static void registerPropertyValidator(Class type, String propertyKey, Class<? extends PropertyValidator> validatorClass, Value parameter) {
-
-		Map<String, Class<? extends PropertyValidator>> validatorMap = getPropertyValidatorMapForType(type);
-
-		validatorMap.put(propertyKey, validatorClass);
-
-		if (validatorClass.equals(GlobalPropertyUniquenessValidator.class)) {
-
-			// register semaphore for all types
-			Map<String, Semaphore> map = getSemaphoreMapForType(GLOBAL_UNIQUENESS);
-
-			if (!map.containsKey(propertyKey)) {
-
-				map.put(propertyKey, new Semaphore(1));
-
-			}
-		} else if (validatorClass.equals(TypeAndPropertyUniquenessValidator.class)) {
-
-			// register semaphore
-			Map<String, Semaphore> map = getSemaphoreMapForType(type.getSimpleName());
-
-			if (!map.containsKey(propertyKey)) {
-
-				map.put(propertyKey, new Semaphore(1));
-
-			}
+		// fetch or create validator set
+		Set<PropertyValidator> validators = validatorMap.get(propertyKey);
+		if(validators == null) {
+			validators = new LinkedHashSet<PropertyValidator>();
+			validatorMap.put(propertyKey, validators);
 		}
 
-		if (parameter != null) {
-
-			Map<String, Value> validatorParameterMap = getPropertyValidatonParameterMapForType(type);
-
-			validatorParameterMap.put(propertyKey, parameter);
-
-		}
+		validators.add(validator);
 	}
 
 	// ----- PropertyConverter methods -----
@@ -369,29 +332,6 @@ public class EntityContext {
 		return transformations;
 	}
 
-	// ----- semaphores -----
-
-	/**
-	 * Returns a semaphore for the given type and key IF there is a unique
-	 * constraint defined for the given type and property.
-	 * @param sourceType
-	 * @param key
-	 * @return
-	 */
-	public static Semaphore getSemaphoreForTypeAndProperty(String type, String key) {
-
-		// try typed semaphore first
-		Semaphore semaphore = getSemaphoreMapForType(type).get(key);
-
-		if (semaphore == null) {
-
-			// try global semaphore afterwards
-			semaphore = getSemaphoreMapForType(GLOBAL_UNIQUENESS).get(key);
-		}
-
-		return semaphore;
-	}
-
 	// ----- property notions -----
 	public static PropertyGroup getPropertyGroup(Class type, PropertyKey key) {
 		return getPropertyGroup(type, key.name());
@@ -444,18 +384,17 @@ public class EntityContext {
 		return propertySet;
 	}
 
-	public static PropertyValidator getPropertyValidator(final SecurityContext securityContext, Class type, String propertyKey) {
+	public static Set<PropertyValidator> getPropertyValidators(final SecurityContext securityContext, Class type, String propertyKey) {
 
-		Map<String, Class<? extends PropertyValidator>> validatorMap = null;
-		PropertyValidator validator                                  = null;
-		Class localType                                              = type;
-		Class clazz                                                  = null;
+		Map<String, Set<PropertyValidator>> validatorMap = null;
+		Set<PropertyValidator> validators                = null;
+		Class localType                                  = type;
 
 		// try all superclasses
-		while ((clazz == null) &&!localType.equals(Object.class)) {
+		while ((validators == null) &&!localType.equals(Object.class)) {
 
 			validatorMap = getPropertyValidatorMapForType(localType);
-			clazz        = validatorMap.get(propertyKey);
+			validators   = validatorMap.get(propertyKey);
 
 //                      logger.log(Level.INFO, "Validator class {0} found for type {1}", new Object[] { clazz != null ? clazz.getSimpleName() : "null", localType } );
 			// one level up :)
@@ -463,40 +402,7 @@ public class EntityContext {
 
 		}
 
-		if (clazz != null) {
-
-			try {
-
-				validator = (PropertyValidator) clazz.newInstance();
-
-				validator.setSecurityContext(securityContext);
-
-			} catch (Throwable t) {
-				logger.log(Level.WARNING, "Unable to instantiate validator {0}: {1}", new Object[] { clazz.getName(), t.getMessage() });
-			}
-
-		}
-
-		return validator;
-	}
-
-	public static Value getPropertyValidationParameter(Class type, String propertyKey) {
-
-		Map<String, Value> validationParameterMap = null;
-		Class localType                           = type;
-		Value value                               = null;
-
-		while ((value == null) &&!localType.equals(Object.class)) {
-
-			validationParameterMap = getPropertyValidatonParameterMapForType(localType);
-			value                  = validationParameterMap.get(propertyKey);
-
-//                      logger.log(Level.INFO, "Validation parameter value {0} found for type {1}", new Object[] { value != null ? value.getClass().getSimpleName() : "null", localType } );
-			localType = localType.getSuperclass();
-
-		}
-
-		return value;
+		return validators;
 	}
 
 	public static PropertyConverter getPropertyConverter(final SecurityContext securityContext, Class type, String propertyKey) {
@@ -605,34 +511,18 @@ public class EntityContext {
 		return propertyViewMap;
 	}
 
-	private static Map<String, Class<? extends PropertyValidator>> getPropertyValidatorMapForType(Class type) {
+	private static Map<String, Set<PropertyValidator>> getPropertyValidatorMapForType(Class type) {
 
-		Map<String, Class<? extends PropertyValidator>> validatorMap = globalValidatorMap.get(type);
+		Map<String, Set<PropertyValidator>> validatorMap = globalValidatorMap.get(type);
 
 		if (validatorMap == null) {
 
-			validatorMap = new LinkedHashMap<String, Class<? extends PropertyValidator>>();
-
+			validatorMap = new LinkedHashMap<String, Set<PropertyValidator>>();
 			globalValidatorMap.put(type, validatorMap);
 
 		}
 
 		return validatorMap;
-	}
-
-	private static Map<String, Value> getPropertyValidatonParameterMapForType(Class type) {
-
-		Map<String, Value> validationParameterMap = globalValidationParameterMap.get(type);
-
-		if (validationParameterMap == null) {
-
-			validationParameterMap = new LinkedHashMap<String, Value>();
-
-			globalValidationParameterMap.put(type, validationParameterMap);
-
-		}
-
-		return validationParameterMap;
 	}
 
 	private static Map<String, Class<? extends PropertyConverter>> getPropertyConverterMapForType(Class type) {
@@ -723,21 +613,6 @@ public class EntityContext {
 		}
 
 		return groupMap;
-	}
-
-	private static Map<String, Semaphore> getSemaphoreMapForType(String sourceType) {
-
-		Map<String, Semaphore> semaphoreMap = globalSemaphoreMap.get(normalizeEntityName(sourceType));
-
-		if (semaphoreMap == null) {
-
-			semaphoreMap = Collections.synchronizedMap(new LinkedHashMap<String, Semaphore>());
-
-			globalSemaphoreMap.put(normalizeEntityName(sourceType), semaphoreMap);
-
-		}
-
-		return semaphoreMap;
 	}
 
 	private static Set<Transformation<AbstractNode>> getPostCreationTransformationsForType(Class type) {
@@ -912,15 +787,12 @@ public class EntityContext {
 					String key          = entry.key();
 					Object value        = entry.value();
 
-					// look for validator
-					PropertyValidator validator = EntityContext.getPropertyValidator(securityContext, entity.getClass(), key);
-					if (validator != null) {
-
-						logger.log(Level.FINE, "Using validator of type {0} for property {1}", new Object[] { validator.getClass().getSimpleName(), key });
-
-						Value parameter = EntityContext.getPropertyValidationParameter(entity.getClass(), key);
-
-						hasError |= !(validator.isValid(entity, key, value, parameter, errorBuffer));
+					// iterate over validators
+					Set<PropertyValidator> validators = EntityContext.getPropertyValidators(securityContext, entity.getClass(), key);
+					if (validators != null) {
+						for(PropertyValidator validator : validators) {
+							hasError |= !(validator.isValid(entity, key, value, errorBuffer));
+						}
 
 					}
 

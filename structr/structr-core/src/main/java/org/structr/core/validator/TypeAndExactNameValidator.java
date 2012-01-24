@@ -16,7 +16,6 @@ import org.structr.common.error.TypeToken;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
 import org.structr.core.Services;
-import org.structr.core.Value;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
@@ -28,28 +27,22 @@ import org.structr.core.node.search.SearchNodeCommand;
  *
  * @author Christian Morgner
  */
-public class TypeAndExactNameValidator extends PropertyValidator {
+public class TypeAndExactNameValidator extends PropertyValidator<String> {
+
+	private String type = null;
+
+	public TypeAndExactNameValidator(String type) {
+		this.type = type;
+	}
 
 	@Override
-	public boolean isValid(GraphObject object, String key, Object value, Value parameter, ErrorBuffer errorBuffer) {
-
-		if(parameter == null) {
-			throw new IllegalStateException("TypeAndExactNameValidator needs a type parameter.");
-		}
-
-		String type = (String)parameter.get();
+	public boolean isValid(GraphObject object, String key, String value, ErrorBuffer errorBuffer) {
 
 		if(key == null) {
 			return false;
 		}
 
-		if(!(value instanceof String)) {
-			errorBuffer.add(object.getType(), new TypeToken(key, "string"));
-			return false;
-		}
-
-		String stringValue = (String)value;
-		if(StringUtils.isBlank(stringValue)) {
+		if(StringUtils.isBlank(value)) {
 			errorBuffer.add(object.getType(), new EmptyPropertyToken(key));
 			return false;
 		}
@@ -57,7 +50,7 @@ public class TypeAndExactNameValidator extends PropertyValidator {
 		// FIXME: search should be case-sensitive!
 
 		List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
-		attrs.add(Search.andExactName(stringValue));
+		attrs.add(Search.andExactName(value));
 		attrs.add(Search.andType(type));
 
 		// just check for existance
