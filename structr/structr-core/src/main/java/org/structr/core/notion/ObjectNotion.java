@@ -19,8 +19,10 @@
 
 package org.structr.core.notion;
 
+import org.structr.common.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
+import org.structr.core.entity.AbstractNode;
 
 /**
  * The default notion that returns the object itself.
@@ -45,5 +47,11 @@ public class ObjectNotion extends Notion {
 		public Object serialize(SecurityContext securityContext, Class type, GraphObject source) {
 			return source;
 		}
+	}
+	
+
+	@Override
+	public PropertyKey getPrimaryPropertyKey() {
+		return AbstractNode.Key.uuid;
 	}
 }

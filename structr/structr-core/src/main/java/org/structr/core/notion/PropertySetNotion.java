@@ -38,4 +38,9 @@ public class PropertySetNotion extends Notion {
 	public PropertySetNotion(SerializationStrategy serializationStrategy, DeserializationStrategy deserializationStrategy) {
 		super(serializationStrategy, deserializationStrategy);
 	}
+
+	@Override
+	public PropertyKey getPrimaryPropertyKey() {
+		return null; // this notion cannot deserialize objects from a single key
+	}
 }

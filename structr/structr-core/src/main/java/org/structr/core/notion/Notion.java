@@ -19,6 +19,7 @@
 
 package org.structr.core.notion;
 
+import org.structr.common.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Adapter;
@@ -45,6 +46,15 @@ public abstract class Notion {
 	protected String idProperty = null;
 	protected Class type = null;
 
+	/**
+	 * Returns the property key that will be used to de-serialize objects
+	 * with this notion, or null if this notion can not deserialize objects
+	 * with a single key.
+	 * 
+	 * @return the primary key property
+	 */
+	public abstract PropertyKey getPrimaryPropertyKey();
+	
 	public Notion(SerializationStrategy serializationStrategy, DeserializationStrategy deserializationStrategy) {
 		this.serializationStrategy = serializationStrategy;
 		this.deserializationStrategy = deserializationStrategy;

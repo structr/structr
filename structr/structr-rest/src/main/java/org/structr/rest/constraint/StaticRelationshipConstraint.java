@@ -39,13 +39,15 @@ import org.structr.rest.exception.IllegalPathException;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.structr.common.PropertyKey;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Adapter;
+import org.structr.core.notion.Notion;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -138,6 +140,15 @@ public class StaticRelationshipConstraint extends SortableConstraint {
 	}
 
 	@Override
+	public RestMethodResult doPut(final Map<String, Object> propertySet) throws FrameworkException {
+
+		// in this case, PUT is just the concatenation of DELETE and POST
+
+		doDelete();
+		return doPost(propertySet);
+	}
+
+	@Override
 	public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
 
 		// create transaction closure
@@ -146,48 +157,79 @@ public class StaticRelationshipConstraint extends SortableConstraint {
 			@Override
 			public Object execute() throws FrameworkException {
 
-				// get source node from first resource
 				AbstractNode sourceNode  = typedIdConstraint.getIdConstraint().getNode();
-
-				// get relationship with raw type
 				DirectedRelationship rel = EntityContext.getDirectedRelationship(sourceNode.getClass(), typeConstraint.getRawType());
-				if(rel != null) {
 
-					// get notion (i.e. object that knows how to create GraphObjects from Objects)
-					Adapter<Object, GraphObject> adapter = rel.getNotion().getAdapterForSetter(securityContext);
-					for(Entry<String, Object> entry : propertySet.entrySet()) {
+				if(sourceNode != null && rel != null) {
 
-						Object value = entry.getValue();
-						if(value instanceof Collection) {
+					// fetch notion
+					Notion notion = rel.getNotion();
+					PropertyKey primaryPropertyKey = notion.getPrimaryPropertyKey();
+					if(primaryPropertyKey != null && propertySet.containsKey(primaryPropertyKey.name())) {
+						
+						// the notion that is defined for this relationship can deserialize
+						// objects with a single key (uuid for example), and the POSTed
+						// property set contains value(s) for this key, so we only need
+						// to create relationships
+						Adapter<Object, GraphObject> deserializationStrategy = notion.getAdapterForSetter(securityContext);
+						Object keySource = propertySet.get(primaryPropertyKey.name());
+						
+						if(keySource != null) {
+							if(keySource instanceof Collection) {
 
-							Collection collection = (Collection)value;
-							for(Object obj : collection) {
+								Collection collection = (Collection)keySource;
+								for(Object key : collection) {
 
-								GraphObject otherNode = adapter.adapt(obj);
+									GraphObject otherNode = deserializationStrategy.adapt(key);
+									if(otherNode != null) {
+										rel.createRelationship(securityContext, sourceNode, otherNode);
+									}								
+								}
+
+							} else {
+
+								// create a single relationship
+								GraphObject otherNode = deserializationStrategy.adapt(keySource);
 								if(otherNode != null) {
 									rel.createRelationship(securityContext, sourceNode, otherNode);
 								}
-
 							}
-
+							
 						} else {
+							
+							logger.log(Level.INFO, "Key {0} not found in {1}", new Object[] { primaryPropertyKey.name(), propertySet.toString() } );
+						}
 
-							GraphObject otherNode = adapter.adapt(value);
-							if(otherNode != null) {
-								rel.createRelationship(securityContext, sourceNode, otherNode);
-							}
+						return null;
+
+					} else {
+
+						// the notion can not deserialize objects with a single key, or
+						// the POSTed propertySet did not contain a key to deserialize,
+						// so we create a new node from the POSTed properties and link
+						// the source node to it. (this is the "old" implementation)
+						
+						AbstractNode otherNode = typeConstraint.createNode(propertySet);
+						if(otherNode != null) {
+							rel.createRelationship(securityContext, sourceNode, otherNode);
+							return otherNode;
 						}
 					}
 				}
-				
-				return null;
+
+				throw new IllegalPathException();
 			}
 		};
 
 		// execute transaction: create new node
-		Services.command(securityContext, TransactionCommand.class).execute(transaction);
+		AbstractNode newNode = (AbstractNode) Services.command(securityContext, TransactionCommand.class).execute(transaction);
 
-		return new RestMethodResult(HttpServletResponse.SC_OK);
+		RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_CREATED);
+		if (newNode != null) {
+			result.addHeader("Location", buildLocationHeader(newNode));
+		}
+
+		return result;
 	}
 
 	@Override
