@@ -21,7 +21,6 @@
 
 package org.structr.rest.constraint;
 
-import java.util.Collection;
 import java.util.Collections;
 import org.structr.common.SecurityContext;
 import org.structr.core.EntityContext;
@@ -39,13 +38,12 @@ import org.structr.rest.exception.IllegalPathException;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Adapter;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -146,48 +144,39 @@ public class StaticRelationshipConstraint extends SortableConstraint {
 			@Override
 			public Object execute() throws FrameworkException {
 
-				// get source node from first resource
 				AbstractNode sourceNode  = typedIdConstraint.getIdConstraint().getNode();
+				AbstractNode newNode     = typeConstraint.createNode(propertySet);
+				DirectedRelationship rel = EntityContext.getDirectedRelationship(sourceNode.getClass(), newNode.getClass());
 
-				// get relationship with raw type
-				DirectedRelationship rel = EntityContext.getDirectedRelationship(sourceNode.getClass(), typeConstraint.getRawType());
-				if(rel != null) {
+				if ((sourceNode != null) && (newNode != null) && (rel != null)) {
 
-					// get notion (i.e. object that knows how to create GraphObjects from Objects)
-					Adapter<Object, GraphObject> adapter = rel.getNotion().getAdapterForSetter(securityContext);
-					for(Entry<String, Object> entry : propertySet.entrySet()) {
+					rel.createRelationship(securityContext, sourceNode, newNode);
+					return newNode;
 
-						Object value = entry.getValue();
-						if(value instanceof Collection) {
+				} else {
 
-							Collection collection = (Collection)value;
-							for(Object obj : collection) {
-
-								GraphObject otherNode = adapter.adapt(obj);
-								if(otherNode != null) {
-									rel.createRelationship(securityContext, sourceNode, otherNode);
-								}
-
-							}
-
-						} else {
-
-							GraphObject otherNode = adapter.adapt(value);
-							if(otherNode != null) {
-								rel.createRelationship(securityContext, sourceNode, otherNode);
-							}
+					logger.log(Level.WARNING, "Unable to create nested node, source node type {0}, new node type {1}, relationship type {2}",
+						new Object[] {
+							sourceNode != null ? sourceNode.getType() : "null",
+							newNode != null ? newNode.getType() : "null",
+							rel != null ? rel.getRelType() : "null"
 						}
-					}
+					);
 				}
-				
-				return null;
+
+				throw new IllegalPathException();
 			}
 		};
 
 		// execute transaction: create new node
-		Services.command(securityContext, TransactionCommand.class).execute(transaction);
+		AbstractNode newNode = (AbstractNode) Services.command(securityContext, TransactionCommand.class).execute(transaction);
 
-		return new RestMethodResult(HttpServletResponse.SC_OK);
+		RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_CREATED);
+		if (newNode != null) {
+			result.addHeader("Location", buildLocationHeader(newNode));
+		}
+
+		return result;
 	}
 
 	@Override
