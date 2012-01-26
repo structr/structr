@@ -61,9 +61,8 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -77,6 +76,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.structr.rest.constraint.ViewFilterConstraint;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -739,48 +739,59 @@ public class JsonRestServlet extends HttpServlet {
 
 	private ResourceConstraint optimizeConstraintChain(List<ResourceConstraint> constraintChain) throws FrameworkException {
 
-		int num        = constraintChain.size();
-		boolean found  = false;
-		int iterations = 0;
+		ViewFilterConstraint view = null;
+		int num                   = constraintChain.size();
+		boolean found             = false;
+		int iterations            = 0;
 
 		do {
 
 			StringBuilder chain = new StringBuilder();
 
-			for (ResourceConstraint constr : constraintChain) {
+			for(Iterator<ResourceConstraint> it = constraintChain.iterator(); it.hasNext();) {
+				
+				ResourceConstraint constr = it.next();
 
 				chain.append(constr.getClass().getSimpleName());
 				chain.append(", ");
+				
+				if(constr instanceof ViewFilterConstraint) {
+					view = (ViewFilterConstraint)constr;
+					it.remove();
+				}
 
 			}
 
-			logger.log(Level.FINE, "########## Constraint chain after iteration {0}: {1}", new Object[] { iterations, chain.toString() });
+			logger.log(Level.INFO, "########## Constraint chain after iteration {0}: {1}", new Object[] { iterations, chain.toString() });
 
 			found = false;
 
 			try {
-				ResourceConstraint firstElement       = constraintChain.get(0);
-				ResourceConstraint secondElement      = constraintChain.get(1);
-				ResourceConstraint combinedConstraint = firstElement.tryCombineWith(secondElement);
+				
+				for(int i=0; i<num; i++) {
+					ResourceConstraint firstElement       = constraintChain.get(i);
+					ResourceConstraint secondElement      = constraintChain.get(i + 1);
+					ResourceConstraint combinedConstraint = firstElement.tryCombineWith(secondElement);
 
-				if (combinedConstraint != null) {
+					if (combinedConstraint != null) {
 
-					logger.log(Level.FINE, "Combined constraint {0}", combinedConstraint.getClass().getSimpleName());
+						logger.log(Level.INFO, "Combined constraint {0}", combinedConstraint.getClass().getSimpleName());
 
-					// remove source constraints
-					constraintChain.remove(firstElement);
-					constraintChain.remove(secondElement);
+						// remove source constraints
+						constraintChain.remove(firstElement);
+						constraintChain.remove(secondElement);
 
-					// add combined constraint
-					constraintChain.add(0, combinedConstraint);
+						// add combined constraint
+						constraintChain.add(i, combinedConstraint);
 
-					// signal success
-					found = true;
+						// signal success
+						found = true;
 
-					if (combinedConstraint instanceof RelationshipFollowingConstraint) {
+						if (combinedConstraint instanceof RelationshipFollowingConstraint) {
 
-						break;
+							break;
 
+						}
 					}
 				}
 
@@ -801,12 +812,15 @@ public class JsonRestServlet extends HttpServlet {
 
 		}
 
-		logger.log(Level.FINE, "Final constraint chain {0}", chain.toString());
+		logger.log(Level.INFO, "Final constraint chain {0}", chain.toString());
 
 		if (constraintChain.size() == 1) {
 
 			ResourceConstraint finalConstraint = constraintChain.get(0);
-
+			if(view != null) {
+				finalConstraint = finalConstraint.tryCombineWith(view);
+			}
+			
 			// inform final constraint about the configured ID property
 			finalConstraint.configureIdProperty(defaultIdProperty);
 

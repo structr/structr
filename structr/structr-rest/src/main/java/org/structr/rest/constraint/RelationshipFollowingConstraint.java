@@ -31,15 +31,10 @@ import org.neo4j.kernel.Traversal;
 import org.neo4j.kernel.Uniqueness;
 
 import org.structr.common.SecurityContext;
-import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.DirectedRelationship;
-import org.structr.core.entity.StructrRelationship;
 import org.structr.core.node.StructrNodeFactory;
-import org.structr.core.node.StructrTransaction;
-import org.structr.core.node.TransactionCommand;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
@@ -57,7 +52,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.structr.common.error.FrameworkException;
 
 //~--- classes ----------------------------------------------------------------
