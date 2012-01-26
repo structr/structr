@@ -42,7 +42,9 @@ public class PropertyNotFoundToken extends NotFoundToken {
 		JsonObject obj = new JsonObject();
 		JsonObject vals = new JsonObject();
 
-		vals.add(getKey(), new JsonPrimitive(value.toString()));
+		if (value != null) {
+			vals.add(getKey(), new JsonPrimitive(value.toString()));
+		}
 		obj.add(getErrorToken(), vals);
 
 		return obj;
