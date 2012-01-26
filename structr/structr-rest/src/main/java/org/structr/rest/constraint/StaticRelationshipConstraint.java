@@ -249,6 +249,11 @@ public class StaticRelationshipConstraint extends SortableConstraint {
 
 	@Override
 	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws FrameworkException {
+		
+		if(next instanceof TypeConstraint) {
+			throw new IllegalPathException();
+		}
+		
 		return super.tryCombineWith(next);
 	}
 
