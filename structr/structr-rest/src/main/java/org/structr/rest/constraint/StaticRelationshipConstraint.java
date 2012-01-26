@@ -109,11 +109,18 @@ public class StaticRelationshipConstraint extends SortableConstraint {
 
 			// fetch static relationship definition
 			DirectedRelationship staticRel = findDirectedRelationship(typedIdConstraint, typeConstraint);
+
+
 			if (staticRel != null) {
 
 				AbstractNode startNode = typedIdConstraint.getTypesafeNode();
 
 				if (startNode != null) {
+
+					if (EntityContext.isReadOnlyProperty(startNode.getClass(), typeConstraint.getRawType())) {
+						logger.log(Level.INFO, "Read-only property on {1}: {0}", new Object[] { startNode.getClass(), typeConstraint.getRawType() } );
+						return new RestMethodResult(HttpServletResponse.SC_FORBIDDEN);
+					}
 
 					final List<StructrRelationship> rels = startNode.getRelationships(staticRel.getRelType(), staticRel.getDirection());
 					StructrTransaction transaction       = new StructrTransaction() {
@@ -162,6 +169,11 @@ public class StaticRelationshipConstraint extends SortableConstraint {
 
 				if(sourceNode != null && rel != null) {
 
+					if (EntityContext.isReadOnlyProperty(sourceNode.getClass(), typeConstraint.getRawType())) {
+						logger.log(Level.INFO, "Read-only property on {0}: {1}", new Object[] { sourceNode.getClass(), typeConstraint.getRawType() } );
+						return null;
+					}
+
 					// fetch notion
 					Notion notion = rel.getNotion();
 					PropertyKey primaryPropertyKey = notion.getPrimaryPropertyKey();
@@ -175,12 +187,14 @@ public class StaticRelationshipConstraint extends SortableConstraint {
 						Object keySource = propertySet.get(primaryPropertyKey.name());
 						
 						if(keySource != null) {
+
+							GraphObject otherNode = null;
 							if(keySource instanceof Collection) {
 
 								Collection collection = (Collection)keySource;
 								for(Object key : collection) {
 
-									GraphObject otherNode = deserializationStrategy.adapt(key);
+									otherNode = deserializationStrategy.adapt(key);
 									if(otherNode != null) {
 										rel.createRelationship(securityContext, sourceNode, otherNode);
 									}								
@@ -189,11 +203,13 @@ public class StaticRelationshipConstraint extends SortableConstraint {
 							} else {
 
 								// create a single relationship
-								GraphObject otherNode = deserializationStrategy.adapt(keySource);
+								otherNode = deserializationStrategy.adapt(keySource);
 								if(otherNode != null) {
 									rel.createRelationship(securityContext, sourceNode, otherNode);
 								}
 							}
+
+							return otherNode;
 							
 						} else {
 							
@@ -224,9 +240,13 @@ public class StaticRelationshipConstraint extends SortableConstraint {
 		// execute transaction: create new node
 		AbstractNode newNode = (AbstractNode) Services.command(securityContext, TransactionCommand.class).execute(transaction);
 
-		RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_CREATED);
+		RestMethodResult result;
 		if (newNode != null) {
+			result = new RestMethodResult(HttpServletResponse.SC_CREATED);
 			result.addHeader("Location", buildLocationHeader(newNode));
+
+		} else {
+			result = new RestMethodResult(HttpServletResponse.SC_FORBIDDEN);
 		}
 
 		return result;
