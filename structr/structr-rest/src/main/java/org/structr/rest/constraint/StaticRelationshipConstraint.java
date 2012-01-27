@@ -22,7 +22,7 @@
 package org.structr.rest.constraint;
 
 import java.util.Collection;
-import java.util.Collections;
+import java.util.LinkedList;
 import org.structr.common.SecurityContext;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
@@ -48,6 +48,8 @@ import org.structr.common.PropertyKey;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Adapter;
 import org.structr.core.notion.Notion;
+import org.structr.rest.exception.NotFoundException;
+import org.structr.rest.exception.SystemException;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -76,24 +78,67 @@ public class StaticRelationshipConstraint extends SortableConstraint {
 	@Override
 	public List<? extends GraphObject> doGet() throws FrameworkException {
 
+		// fetch results from typedIdConstraint (should be a single node)
 		List<GraphObject> results = typedIdConstraint.doGet();
 		if (results != null) {
 
-			// fetch static relationship definition
-			DirectedRelationship staticRel = findDirectedRelationship(typedIdConstraint, typeConstraint);
-			if (staticRel != null) {
+			// ok, source node exists, fetch it
+			AbstractNode sourceNode = typedIdConstraint.getTypesafeNode();
+			
+			if(sourceNode != null) {
+				// fetch static relationship definition
+				DirectedRelationship staticRel = findDirectedRelationship(typedIdConstraint, typeConstraint);
+				if (staticRel != null) {
 
-				List<AbstractNode> relatedNodes = staticRel.getRelatedNodes(securityContext, typedIdConstraint.getTypesafeNode());
+					List<AbstractNode> relatedNodes = staticRel.getRelatedNodes(securityContext, sourceNode);
 
-				if (!relatedNodes.isEmpty()) {
+					if (!relatedNodes.isEmpty()) {
 
-					return relatedNodes;
+						return relatedNodes;
+
+					}
+
+					// do not return empty collection here, try getProperty
+					// return Collections.emptyList();
 
 				}
 
-				//throw new NoResultsException();
-				return Collections.emptyList();
+				// URL: /type1/uuid/type2
+				// we need to use the raw type of the second type constraint
+				// as the property key for getProperty
 
+				String rawType = typeConstraint.getRawType();	// this is the literal string from the URL (e.g. "type2")
+				Object value = sourceNode.getProperty(rawType);
+
+				// create error message in advance to avoid having to construct it twice in different locations
+				StringBuilder msgBuilder = new StringBuilder();
+				msgBuilder.append("Property result on type ");
+				msgBuilder.append(sourceNode.getClass().getSimpleName());
+				msgBuilder.append(", key ");
+				msgBuilder.append(rawType);
+				msgBuilder.append(" is not an Iterable<GraphObject>!");
+				String msg = msgBuilder.toString();
+				
+				if(value != null && value instanceof Iterable) {
+
+					// check type of value (must be an Iterable of GraphObjects in order to proceed here)
+					List<GraphObject> propertyListResult = new LinkedList<GraphObject>();
+					Iterable sourceIterable = (Iterable)value;
+					for(Object o : sourceIterable) {
+						if(o instanceof GraphObject) {
+							propertyListResult.add((GraphObject)o);
+						} else {
+							throw new SystemException(msg);
+						}
+					}
+					
+					return propertyListResult;
+					
+				} else {
+
+					logger.log(Level.SEVERE, msg);
+					throw new SystemException(msg);
+				}
 			}
 		}
 
