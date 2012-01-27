@@ -21,36 +21,32 @@
 
 package org.structr.rest.constraint;
 
-import java.util.Collection;
-import java.util.LinkedList;
+import org.structr.common.PropertyKey;
 import org.structr.common.SecurityContext;
-import org.structr.core.EntityContext;
-import org.structr.core.GraphObject;
-import org.structr.core.Services;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.*;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.DirectedRelationship;
 import org.structr.core.entity.StructrRelationship;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
+import org.structr.core.notion.Notion;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
+import org.structr.rest.exception.SystemException;
 
 //~--- JDK imports ------------------------------------------------------------
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.structr.common.PropertyKey;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.Adapter;
-import org.structr.core.PropertyConverter;
-import org.structr.core.Value;
-import org.structr.core.notion.Notion;
-import org.structr.rest.exception.SystemException;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -61,7 +57,9 @@ import org.structr.rest.exception.SystemException;
 public class StaticRelationshipConstraint extends SortableConstraint {
 
 	private static final Logger logger = Logger.getLogger(StaticRelationshipConstraint.class.getName());
-	
+
+	//~--- fields ---------------------------------------------------------
+
 	TypeConstraint typeConstraint       = null;
 	TypedIdConstraint typedIdConstraint = null;
 
@@ -81,13 +79,17 @@ public class StaticRelationshipConstraint extends SortableConstraint {
 
 		// fetch results from typedIdConstraint (should be a single node)
 		List<GraphObject> results = typedIdConstraint.doGet();
+
 		if (results != null) {
 
 			// ok, source node exists, fetch it
 			AbstractNode sourceNode = typedIdConstraint.getTypesafeNode();
-			if(sourceNode != null) {
+
+			if (sourceNode != null) {
+
 				// fetch static relationship definition
 				DirectedRelationship staticRel = findDirectedRelationship(typedIdConstraint, typeConstraint);
+
 				if (staticRel != null) {
 
 					List<AbstractNode> relatedNodes = staticRel.getRelatedNodes(securityContext, sourceNode);
@@ -106,62 +108,73 @@ public class StaticRelationshipConstraint extends SortableConstraint {
 				// URL: /type1/uuid/type2
 				// we need to use the raw type of the second type constraint
 				// as the property key for getProperty
-
 				// look for a property converter for the given type and key
-				Class type = sourceNode.getClass();
-				String key = typeConstraint.getRawType();
-				
+				Class type                  = sourceNode.getClass();
+				String key                  = typeConstraint.getRawType();
 				PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
+
 				if (converter != null) {
 
 					Value conversionValue = EntityContext.getPropertyConversionParameter(type, key);
+
 					converter.setCurrentNode(sourceNode);
-					converter.setRawMode(true);		// disable notion
+					converter.setRawMode(true);    // disable notion
 
 					Object value = converter.convertForGetter(null, conversionValue);
 
 					// create error message in advance to avoid having to construct it twice in different locations
 					StringBuilder msgBuilder = new StringBuilder();
+
 					msgBuilder.append("Property result on type ");
 					msgBuilder.append(sourceNode.getClass().getSimpleName());
 					msgBuilder.append(", key ");
 					msgBuilder.append(key);
 					msgBuilder.append(" is not an Iterable<GraphObject>!");
+
 					String msg = msgBuilder.toString();
 
-					if(value != null) {
+					if (value != null) {
 
 						// check for non-empty list of GraphObjects
-						if(value instanceof List && !((List)value).isEmpty() && ((List)value).get(0) instanceof GraphObject) {
-							
-							return (List<GraphObject>)value;
-							
-						} else if(value instanceof Iterable) {
-							
+						if ((value instanceof List) &&!((List) value).isEmpty() && ((List) value).get(0) instanceof GraphObject) {
+
+							return (List<GraphObject>) value;
+
+						} else if (value instanceof Iterable) {
+
 							// check type of value (must be an Iterable of GraphObjects in order to proceed here)
 							List<GraphObject> propertyListResult = new LinkedList<GraphObject>();
-							Iterable sourceIterable = (Iterable)value;
-							for(Object o : sourceIterable) {
-								if(o instanceof GraphObject) {
-									propertyListResult.add((GraphObject)o);
+							Iterable sourceIterable              = (Iterable) value;
+
+							for (Object o : sourceIterable) {
+
+								if (o instanceof GraphObject) {
+
+									propertyListResult.add((GraphObject) o);
+
 								} else {
+
 									throw new SystemException(msg);
+
 								}
+
 							}
 
 							return propertyListResult;
 						}
-
 					} else {
 
 						logger.log(Level.SEVERE, msg);
+
 						throw new SystemException(msg);
+
 					}
+
 				}
 			}
 		}
 
-		throw new IllegalPathException();
+		return Collections.emptyList();
 	}
 
 	@Override
@@ -174,7 +187,6 @@ public class StaticRelationshipConstraint extends SortableConstraint {
 			// fetch static relationship definition
 			DirectedRelationship staticRel = findDirectedRelationship(typedIdConstraint, typeConstraint);
 
-
 			if (staticRel != null) {
 
 				AbstractNode startNode = typedIdConstraint.getTypesafeNode();
@@ -182,8 +194,11 @@ public class StaticRelationshipConstraint extends SortableConstraint {
 				if (startNode != null) {
 
 					if (EntityContext.isReadOnlyProperty(startNode.getClass(), typeConstraint.getRawType())) {
-						logger.log(Level.INFO, "Read-only property on {1}: {0}", new Object[] { startNode.getClass(), typeConstraint.getRawType() } );
+
+						logger.log(Level.INFO, "Read-only property on {1}: {0}", new Object[] { startNode.getClass(), typeConstraint.getRawType() });
+
 						return new RestMethodResult(HttpServletResponse.SC_FORBIDDEN);
+
 					}
 
 					final List<StructrRelationship> rels = startNode.getRelationships(staticRel.getRelType(), staticRel.getDirection());
@@ -193,7 +208,9 @@ public class StaticRelationshipConstraint extends SortableConstraint {
 						public Object execute() throws FrameworkException {
 
 							for (StructrRelationship rel : rels) {
+
 								rel.delete(securityContext);
+
 							}
 
 							return null;
@@ -202,6 +219,7 @@ public class StaticRelationshipConstraint extends SortableConstraint {
 
 					// execute transaction
 					Services.command(securityContext, TransactionCommand.class).execute(transaction);
+
 				}
 
 			}
@@ -214,8 +232,8 @@ public class StaticRelationshipConstraint extends SortableConstraint {
 	public RestMethodResult doPut(final Map<String, Object> propertySet) throws FrameworkException {
 
 		// in this case, PUT is just the concatenation of DELETE and POST
-
 		doDelete();
+
 		return doPost(propertySet);
 	}
 
@@ -231,70 +249,87 @@ public class StaticRelationshipConstraint extends SortableConstraint {
 				AbstractNode sourceNode  = typedIdConstraint.getIdConstraint().getNode();
 				DirectedRelationship rel = EntityContext.getDirectedRelationship(sourceNode.getClass(), typeConstraint.getRawType());
 
-				if(sourceNode != null && rel != null) {
+				if ((sourceNode != null) && (rel != null)) {
 
 					if (EntityContext.isReadOnlyProperty(sourceNode.getClass(), typeConstraint.getRawType())) {
-						logger.log(Level.INFO, "Read-only property on {0}: {1}", new Object[] { sourceNode.getClass(), typeConstraint.getRawType() } );
+
+						logger.log(Level.INFO, "Read-only property on {0}: {1}", new Object[] { sourceNode.getClass(), typeConstraint.getRawType() });
+
 						return null;
+
 					}
 
 					// fetch notion
-					Notion notion = rel.getNotion();
+					Notion notion                  = rel.getNotion();
 					PropertyKey primaryPropertyKey = notion.getPrimaryPropertyKey();
-					if(primaryPropertyKey != null && propertySet.containsKey(primaryPropertyKey.name())) {
-						
+
+					if ((primaryPropertyKey != null) && propertySet.containsKey(primaryPropertyKey.name())) {
+
 						// the notion that is defined for this relationship can deserialize
 						// objects with a single key (uuid for example), and the POSTed
 						// property set contains value(s) for this key, so we only need
 						// to create relationships
 						Adapter<Object, GraphObject> deserializationStrategy = notion.getAdapterForSetter(securityContext);
-						Object keySource = propertySet.get(primaryPropertyKey.name());
-						
-						if(keySource != null) {
+						Object keySource                                     = propertySet.get(primaryPropertyKey.name());
+
+						if (keySource != null) {
 
 							GraphObject otherNode = null;
-							if(keySource instanceof Collection) {
 
-								Collection collection = (Collection)keySource;
-								for(Object key : collection) {
+							if (keySource instanceof Collection) {
+
+								Collection collection = (Collection) keySource;
+
+								for (Object key : collection) {
 
 									otherNode = deserializationStrategy.adapt(key);
-									if(otherNode != null) {
+
+									if (otherNode != null) {
+
 										rel.createRelationship(securityContext, sourceNode, otherNode);
-									}								
+
+									}
+
 								}
 
 							} else {
 
 								// create a single relationship
 								otherNode = deserializationStrategy.adapt(keySource);
-								if(otherNode != null) {
+
+								if (otherNode != null) {
+
 									rel.createRelationship(securityContext, sourceNode, otherNode);
+
 								}
 							}
 
 							return otherNode;
-							
+
 						} else {
-							
-							logger.log(Level.INFO, "Key {0} not found in {1}", new Object[] { primaryPropertyKey.name(), propertySet.toString() } );
+
+							logger.log(Level.INFO, "Key {0} not found in {1}", new Object[] { primaryPropertyKey.name(), propertySet.toString() });
+
 						}
 
 						return null;
-
 					} else {
 
 						// the notion can not deserialize objects with a single key, or
 						// the POSTed propertySet did not contain a key to deserialize,
 						// so we create a new node from the POSTed properties and link
 						// the source node to it. (this is the "old" implementation)
-						
 						AbstractNode otherNode = typeConstraint.createNode(propertySet);
-						if(otherNode != null) {
+
+						if (otherNode != null) {
+
 							rel.createRelationship(securityContext, sourceNode, otherNode);
+
 							return otherNode;
+
 						}
 					}
+
 				}
 
 				throw new IllegalPathException();
@@ -303,14 +338,18 @@ public class StaticRelationshipConstraint extends SortableConstraint {
 
 		// execute transaction: create new node
 		AbstractNode newNode = (AbstractNode) Services.command(securityContext, TransactionCommand.class).execute(transaction);
-
 		RestMethodResult result;
+
 		if (newNode != null) {
+
 			result = new RestMethodResult(HttpServletResponse.SC_CREATED);
+
 			result.addHeader("Location", buildLocationHeader(newNode));
 
 		} else {
+
 			result = new RestMethodResult(HttpServletResponse.SC_FORBIDDEN);
+
 		}
 
 		return result;
@@ -333,11 +372,13 @@ public class StaticRelationshipConstraint extends SortableConstraint {
 
 	@Override
 	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws FrameworkException {
-		
-		if(next instanceof TypeConstraint) {
+
+		if (next instanceof TypeConstraint) {
+
 			throw new IllegalPathException();
+
 		}
-		
+
 		return super.tryCombineWith(next);
 	}
 
