@@ -33,6 +33,7 @@ public abstract class PropertyConverter<S, T> {
 
 	protected SecurityContext securityContext = null;
 	protected AbstractNode currentNode = null;
+	protected boolean rawMode = false;
 
 	/**
 	 * Converts from destination type to source type. Caution: source
@@ -59,5 +60,13 @@ public abstract class PropertyConverter<S, T> {
 	
 	public void setCurrentNode(AbstractNode currentNode) {
 		this.currentNode = currentNode;
+	}
+	
+	public void setRawMode(boolean rawMode) {
+		this.rawMode = rawMode;
+	}
+	
+	public boolean getRawMode() {
+		return rawMode;
 	}
 }

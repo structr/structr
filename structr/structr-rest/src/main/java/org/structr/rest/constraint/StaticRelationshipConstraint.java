@@ -47,8 +47,9 @@ import javax.servlet.http.HttpServletResponse;
 import org.structr.common.PropertyKey;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Adapter;
+import org.structr.core.PropertyConverter;
+import org.structr.core.Value;
 import org.structr.core.notion.Notion;
-import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.exception.SystemException;
 
 //~--- classes ----------------------------------------------------------------
@@ -84,7 +85,6 @@ public class StaticRelationshipConstraint extends SortableConstraint {
 
 			// ok, source node exists, fetch it
 			AbstractNode sourceNode = typedIdConstraint.getTypesafeNode();
-			
 			if(sourceNode != null) {
 				// fetch static relationship definition
 				DirectedRelationship staticRel = findDirectedRelationship(typedIdConstraint, typeConstraint);
@@ -107,37 +107,56 @@ public class StaticRelationshipConstraint extends SortableConstraint {
 				// we need to use the raw type of the second type constraint
 				// as the property key for getProperty
 
-				String rawType = typeConstraint.getRawType();	// this is the literal string from the URL (e.g. "type2")
-				Object value = sourceNode.getProperty(rawType);
-
-				// create error message in advance to avoid having to construct it twice in different locations
-				StringBuilder msgBuilder = new StringBuilder();
-				msgBuilder.append("Property result on type ");
-				msgBuilder.append(sourceNode.getClass().getSimpleName());
-				msgBuilder.append(", key ");
-				msgBuilder.append(rawType);
-				msgBuilder.append(" is not an Iterable<GraphObject>!");
-				String msg = msgBuilder.toString();
+				// look for a property converter for the given type and key
+				Class type = sourceNode.getClass();
+				String key = typeConstraint.getRawType();
 				
-				if(value != null && value instanceof Iterable) {
+				PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
+				if (converter != null) {
 
-					// check type of value (must be an Iterable of GraphObjects in order to proceed here)
-					List<GraphObject> propertyListResult = new LinkedList<GraphObject>();
-					Iterable sourceIterable = (Iterable)value;
-					for(Object o : sourceIterable) {
-						if(o instanceof GraphObject) {
-							propertyListResult.add((GraphObject)o);
-						} else {
-							throw new SystemException(msg);
+					Value conversionValue = EntityContext.getPropertyConversionParameter(type, key);
+					converter.setCurrentNode(sourceNode);
+					converter.setRawMode(true);		// disable notion
+
+					Object value = converter.convertForGetter(null, conversionValue);
+
+					// create error message in advance to avoid having to construct it twice in different locations
+					StringBuilder msgBuilder = new StringBuilder();
+					msgBuilder.append("Property result on type ");
+					msgBuilder.append(sourceNode.getClass().getSimpleName());
+					msgBuilder.append(", key ");
+					msgBuilder.append(key);
+					msgBuilder.append(" is not an Iterable<GraphObject>!");
+					String msg = msgBuilder.toString();
+
+					if(value != null) {
+
+						// check for non-empty list of GraphObjects
+						if(value instanceof List && !((List)value).isEmpty() && ((List)value).get(0) instanceof GraphObject) {
+							
+							return (List<GraphObject>)value;
+							
+						} else if(value instanceof Iterable) {
+							
+							// check type of value (must be an Iterable of GraphObjects in order to proceed here)
+							List<GraphObject> propertyListResult = new LinkedList<GraphObject>();
+							Iterable sourceIterable = (Iterable)value;
+							for(Object o : sourceIterable) {
+								if(o instanceof GraphObject) {
+									propertyListResult.add((GraphObject)o);
+								} else {
+									throw new SystemException(msg);
+								}
+							}
+
+							return propertyListResult;
 						}
-					}
-					
-					return propertyListResult;
-					
-				} else {
 
-					logger.log(Level.SEVERE, msg);
-					throw new SystemException(msg);
+					} else {
+
+						logger.log(Level.SEVERE, msg);
+						throw new SystemException(msg);
+					}
 				}
 			}
 		}
