@@ -117,7 +117,8 @@ public class DirectedRelationship {
 				@Override
 				public Object execute() throws FrameworkException {
 
-					if (cardinality.equals(Cardinality.OneToOne)) {
+					//if (cardinality.equals(Cardinality.OneToOne)) {
+					if (cardinality.equals(Cardinality.ManyToOne) || cardinality.equals(Cardinality.OneToOne)) {
 
 						String destType = finalTargetNode.getType();
 
@@ -125,6 +126,7 @@ public class DirectedRelationship {
 						List<StructrRelationship> rels = sourceNode.getRelationships(relType, direction);
 						for (StructrRelationship rel : rels) {
 							if(rel.getOtherNode(sourceNode).getType().equals(destType)) {
+								
 								rel.delete(securityContext);
 							}
 						}
