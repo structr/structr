@@ -134,7 +134,7 @@ public class JsonRestServlet extends HttpServlet {
 
 				try {
 
-					logger.log(Level.INFO, "Injecting constraints from provider {0}", part);
+					logger.log(Level.FINE, "Injecting constraints from provider {0}", part);
 
 					Class providerClass                 = Class.forName(part);
 					ResourceConstraintProvider provider = (ResourceConstraintProvider) providerClass.newInstance();
@@ -155,7 +155,7 @@ public class JsonRestServlet extends HttpServlet {
 
 		if (defaultPropertyViewName != null) {
 
-			logger.log(Level.INFO, "Setting default property view to {0}", defaultPropertyViewName);
+			logger.log(Level.FINE, "Setting default property view to {0}", defaultPropertyViewName);
 
 			this.defaultPropertyView = defaultPropertyViewName;
 
@@ -166,7 +166,7 @@ public class JsonRestServlet extends HttpServlet {
 
 		if (defaultIdPropertyName != null) {
 
-			logger.log(Level.INFO, "Setting default id property to {0}", defaultIdPropertyName);
+			logger.log(Level.FINE, "Setting default id property to {0}", defaultIdPropertyName);
 
 			this.defaultIdProperty = defaultIdPropertyName;
 
@@ -762,7 +762,7 @@ public class JsonRestServlet extends HttpServlet {
 
 			}
 
-			logger.log(Level.INFO, "########## Constraint chain after iteration {0}: {1}", new Object[] { iterations, chain.toString() });
+			logger.log(Level.FINE, "########## Constraint chain after iteration {0}: {1}", new Object[] { iterations, chain.toString() });
 
 			found = false;
 
@@ -775,7 +775,7 @@ public class JsonRestServlet extends HttpServlet {
 
 					if (combinedConstraint != null) {
 
-						logger.log(Level.INFO, "Combined constraint {0}", combinedConstraint.getClass().getSimpleName());
+						logger.log(Level.FINE, "Combined constraint {0}", combinedConstraint.getClass().getSimpleName());
 
 						// remove source constraints
 						constraintChain.remove(firstElement);
@@ -812,7 +812,7 @@ public class JsonRestServlet extends HttpServlet {
 
 		}
 
-		logger.log(Level.INFO, "Final constraint chain {0}", chain.toString());
+		logger.log(Level.FINE, "Final constraint chain {0}", chain.toString());
 
 		if (constraintChain.size() == 1) {
 
@@ -843,7 +843,7 @@ public class JsonRestServlet extends HttpServlet {
 
 				propertyFormat = PropertyFormat.valueOf(propertyFormatParameter);
 
-				logger.log(Level.INFO, "Setting property format to {0}", propertyFormatParameter);
+				logger.log(Level.FINE, "Setting property format to {0}", propertyFormatParameter);
 
 			} catch (Throwable t) {
 				logger.log(Level.WARNING, "Cannot use property format {0}, unknown format.", propertyFormatParameter);
