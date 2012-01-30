@@ -21,7 +21,6 @@
 
 package org.structr.core.entity;
 
-import java.util.Collections;
 import org.apache.commons.lang.StringUtils;
 
 import org.neo4j.graphdb.Direction;
@@ -31,8 +30,11 @@ import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.traversal.Evaluation;
 import org.neo4j.graphdb.traversal.Evaluator;
 import org.neo4j.kernel.Traversal;
+import org.neo4j.kernel.Uniqueness;
 
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.common.error.IdNotFoundToken;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.module.GetEntityClassCommand;
@@ -45,14 +47,12 @@ import org.structr.core.notion.Notion;
 
 //~--- JDK imports ------------------------------------------------------------
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.kernel.Uniqueness;
-import org.structr.common.error.FrameworkException;
-import org.structr.common.error.IdNotFoundToken;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -97,7 +97,7 @@ public class DirectedRelationship {
 	public void createRelationship(final SecurityContext securityContext, final AbstractNode sourceNode, final Object value, final Map properties) throws FrameworkException {
 
 		// create relationship if it does not already exist
-		final Command createRel       = Services.command(securityContext, CreateRelationshipCommand.class);
+		final Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
 		AbstractNode targetNode = null;
 
 		if (value instanceof AbstractNode) {
@@ -107,6 +107,7 @@ public class DirectedRelationship {
 		} else {
 
 			targetNode = (AbstractNode) Services.command(securityContext, FindNodeCommand.class).execute(value);
+
 		}
 
 		if ((sourceNode != null) && (targetNode != null)) {
@@ -117,17 +118,47 @@ public class DirectedRelationship {
 				@Override
 				public Object execute() throws FrameworkException {
 
-					//if (cardinality.equals(Cardinality.OneToOne)) {
-					if (cardinality.equals(Cardinality.ManyToOne) || cardinality.equals(Cardinality.OneToOne)) {
+					switch (cardinality) {
 
-						String destType = finalTargetNode.getType();
+						case ManyToOne :
+						case OneToOne :
 
-						// delete previous relationships to nodes of the same destination type
-						List<StructrRelationship> rels = sourceNode.getRelationships(relType, direction);
-						for (StructrRelationship rel : rels) {
-							if(rel.getOtherNode(sourceNode).getType().equals(destType)) {
-								
-								rel.delete(securityContext);
+						{
+							String destType = finalTargetNode.getType();
+
+							// delete previous incoming relationships to nodes of the same destination type
+							List<StructrRelationship> rels = sourceNode.getRelationships(relType, Direction.INCOMING);
+
+							for (StructrRelationship rel : rels) {
+
+								if (rel.getOtherNode(sourceNode).getType().equals(destType)) {
+
+									rel.delete(securityContext);
+
+								}
+
+							}
+
+							break;
+
+						}
+
+						case OneToMany :
+
+						{
+							// Here, we have a OneToMany with OUTGOING Rel, so we need to remove all relationships
+							// of the same type incoming to the target node
+							
+							List<StructrRelationship> rels = finalTargetNode.getRelationships(relType, Direction.INCOMING);
+
+							for (StructrRelationship rel : rels) {
+
+								if (rel.getOtherNode(finalTargetNode).getType().equals(sourceNode.getType())) {
+
+									rel.delete(securityContext);
+
+								}
+
 							}
 						}
 					}
@@ -156,10 +187,15 @@ public class DirectedRelationship {
 		} else {
 
 			String type = "unknown";
-			if(sourceNode != null) {
+
+			if (sourceNode != null) {
+
 				type = sourceNode.getType();
-			} else if(targetNode != null) {
+
+			} else if (targetNode != null) {
+
 				type = targetNode.getType();
+
 			}
 
 			throw new FrameworkException(type, new IdNotFoundToken(value));
@@ -232,6 +268,7 @@ public class DirectedRelationship {
 	private List<AbstractNode> getTraversalResults(final SecurityContext securityContext, final AbstractNode node) {
 
 		try {
+
 			final Class realType                 = (Class) Services.command(securityContext, GetEntityClassCommand.class).execute(StringUtils.capitalize(destType));
 			final StructrNodeFactory nodeFactory = new StructrNodeFactory<AbstractNode>(securityContext);
 			final List<AbstractNode> nodeList    = new LinkedList<AbstractNode>();
@@ -252,14 +289,14 @@ public class DirectedRelationship {
 							// index node in this case), but continue
 							// traversal
 							return Evaluation.EXCLUDE_AND_CONTINUE;
-
 						} else {
 
 							try {
+
 								AbstractNode abstractNode = (AbstractNode) nodeFactory.createNode(securityContext, path.endNode());
 
 								// use inheritance
-								if(realType != null && realType.isAssignableFrom(abstractNode.getClass())) {
+								if ((realType != null) && realType.isAssignableFrom(abstractNode.getClass())) {
 
 									nodeList.add(abstractNode);
 
@@ -268,11 +305,13 @@ public class DirectedRelationship {
 								} else {
 
 									return Evaluation.EXCLUDE_AND_CONTINUE;
+
 								}
 
-							} catch(FrameworkException fex) {
+							} catch (FrameworkException fex) {
 								logger.log(Level.WARNING, "Unable to instantiate node", fex);
 							}
+
 						}
 
 					}
@@ -287,7 +326,7 @@ public class DirectedRelationship {
 
 			return nodeList;
 
-		} catch(FrameworkException fex) {
+		} catch (FrameworkException fex) {
 			logger.log(Level.WARNING, "Unable to get traversal results", fex);
 		}
 

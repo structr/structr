@@ -42,10 +42,12 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.error.ErrorBuffer;
+import org.neo4j.graphdb.Direction;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.Transformation;
+import org.structr.core.entity.*;
+import org.structr.core.entity.DirectedRelationship.Cardinality;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -118,7 +120,10 @@ public class CreateNodeCommand extends NodeServiceCommand {
 
 			if ((user != null) &&!(user instanceof SuperUser)) {
 
-				createRel.execute(user, node, RelType.OWNS);
+				DirectedRelationship rel = new DirectedRelationship(null, RelType.OWNS, Direction.OUTGOING, Cardinality.OneToMany, null);
+				rel.createRelationship(securityContext, user, node);
+
+//				createRel.execute(user, node, RelType.OWNS, true); // avoid duplicates
 				logger.log(Level.FINEST, "Relationship to owner {0} added", user.getName());
 
 				Principal principal;
@@ -131,7 +136,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 				}
 
 				StructrRelationship securityRel = (StructrRelationship) createRel.execute(principal,
-									  node, RelType.SECURITY);
+									  node, RelType.SECURITY, true); // avoid duplicates
 
 				securityRel.setAllowed(StructrRelationship.Permission.values());
 				logger.log(Level.FINEST, "All permissions given to {0}", principal.getName());

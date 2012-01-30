@@ -74,12 +74,12 @@ public class FrameworkExceptionGSONAdapter implements JsonSerializer<FrameworkEx
 
 						if(!list.isEmpty()) {
 							
-							if(list.size() == 1) {
-
-								ErrorToken token = list.iterator().next();
-								typeEntry.add(key, token.getContent());
-								
-							} else {
+//							if(list.size() == 1) {
+//
+//								ErrorToken token = list.iterator().next();
+//								typeEntry.add(key, token.getContent());
+//
+//							} else {
 
 								JsonArray array = new JsonArray();
 								for(ErrorToken token : list) {
@@ -87,7 +87,7 @@ public class FrameworkExceptionGSONAdapter implements JsonSerializer<FrameworkEx
 								}
 								
 								typeEntry.add(key, array);
-							}
+//							}
 						}
 						
 					}
