@@ -27,8 +27,12 @@ import org.apache.commons.lang.WordUtils;
  */
 public class CaseHelper {
 	
-	public static String toCamelCase(final String type) {
-		return WordUtils.capitalize(type, new char[]{'_'}).replaceAll("_", "");
+	public static String toUpperCamelCase(final String input) {
+		return WordUtils.capitalize(input, new char[]{'_'}).replaceAll("_", "");
+	}
+
+	public static String toLowerCamelCase(final String input) {
+		return input.substring(0,1).toLowerCase().concat(WordUtils.capitalize(input, new char[]{'_'}).replaceAll("_", "").substring(1));
 	}
 
 	public static void main(String[] args) {
@@ -39,7 +43,7 @@ public class CaseHelper {
 		};
 
 		for(int i=0; i<input.length; i++) {
-			System.out.println(StringUtils.rightPad(input[i], 20) + StringUtils.leftPad(toCamelCase(input[i]), 20));
+			System.out.println(StringUtils.rightPad(input[i], 20) + StringUtils.leftPad(toUpperCamelCase(input[i]), 20));
 		}
 	}
 }

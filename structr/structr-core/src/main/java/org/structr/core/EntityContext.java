@@ -268,7 +268,7 @@ public class EntityContext {
 
 		if (normalizedType == null) {
 
-			normalizedType = StringUtils.capitalize(CaseHelper.toCamelCase(possibleEntityName));
+			normalizedType = StringUtils.capitalize(CaseHelper.toUpperCamelCase(possibleEntityName));
 
 			if (normalizedType.endsWith("ies")) {
 

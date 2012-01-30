@@ -47,6 +47,7 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.structr.common.CaseHelper;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -110,7 +111,8 @@ public class StaticRelationshipConstraint extends SortableConstraint {
 				// as the property key for getProperty
 				// look for a property converter for the given type and key
 				Class type                  = sourceNode.getClass();
-				String key                  = typeConstraint.getRawType();
+				//String key                  = typeConstraint.getRawType();
+				String key                  = CaseHelper.toLowerCamelCase(typeConstraint.getRawType());
 				PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
 
 				if (converter != null) {
