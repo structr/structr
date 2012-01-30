@@ -177,6 +177,19 @@ public class PropertySetGSONAdapter implements InstanceCreator<PropertySet>, Jso
 
 			}
 
+		} else if(json.isJsonArray()) {
+
+			JsonArray array = json.getAsJsonArray();
+			for(JsonElement elem : array) {
+
+				if(elem.isJsonPrimitive()) {
+					wrapper.add(elem.toString(), ((JsonPrimitive)elem).getAsString());
+				} else if(elem.isJsonObject()) {
+					wrapper.add(elem.toString(), deserializeFlatNameValue(elem, typeOfT, context));
+				} else if(elem.isJsonArray()) {
+					wrapper.add(elem.toString(), deserializeFlatNameValue(elem, typeOfT, context));
+				}
+			}
 		}
 
 		return wrapper;

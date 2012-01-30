@@ -19,10 +19,92 @@
 
 package org.structr.rest.resource;
 
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.servlet.http.HttpServletRequest;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
+import org.structr.core.Value;
+import org.structr.rest.RestMethodResult;
+import org.structr.rest.exception.IllegalPathException;
+
 /**
  *
  * @author Christian Morgner
  */
-public class IdsOnlyResource {
+public class IdsOnlyResource extends WrappingResource {
+
+	private static final Logger logger = Logger.getLogger(IdsOnlyResource.class.getName());
+
+	@Override
+	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) {
+		this.securityContext = securityContext;
+		return true;
+	}
+
+	@Override
+	public List<? extends GraphObject> doGet() throws FrameworkException {
+		if(wrappedResource != null) {
+			return wrappedResource.doGet();
+		}
+		throw new IllegalPathException();
+	}
+
+	@Override
+	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
+
+		for(Object o : propertySet.values()) {
+			logger.log(Level.INFO, "Property Set contains value {0}", o);
+		}
+
+		if(wrappedResource != null) {
+			return wrappedResource.doPost(propertySet);
+		}
+		throw new IllegalPathException();
+	}
+
+	@Override
+	public RestMethodResult doPut(Map<String, Object> propertySet) throws FrameworkException {
+		if(wrappedResource != null) {
+			return wrappedResource.doPut(propertySet);
+		}
+		throw new IllegalPathException();
+	}
+
+	@Override
+	public RestMethodResult doDelete() throws FrameworkException {
+		if(wrappedResource != null) {
+			return wrappedResource.doDelete();
+		}
+		throw new IllegalPathException();
+	}
+
+	@Override
+	public RestMethodResult doHead() throws FrameworkException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public RestMethodResult doOptions() throws FrameworkException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public String getUriPart() {
+		return "ids";
+	}
+
+	@Override
+	public boolean isCollectionResource() {
+		return true;
+	}
+
+	@Override
+	public void configurePropertyView(Value<String> propertyView) {
+		propertyView.set("ids");
+	}
 
 }
