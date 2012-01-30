@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.structr.rest.constraint;
+package org.structr.rest.resource;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -20,14 +20,14 @@ import org.structr.rest.servlet.JsonRestServlet;
  *
  * @author Christian Morgner
  */
-public class SortConstraint extends WrappingConstraint {
+public class SortResource extends WrappingResource {
 
-	private static final Logger logger = Logger.getLogger(SortConstraint.class.getName());
+	private static final Logger logger = Logger.getLogger(SortResource.class.getName());
 
 	private String sortOrder = null;
 	private String sortKey = null;
 	
-	public SortConstraint(SecurityContext securityContext, String sortKey, String sortOrder) {
+	public SortResource(SecurityContext securityContext, String sortKey, String sortOrder) {
 		this.securityContext = securityContext;
 		this.sortKey = sortKey;
 		this.sortOrder = sortOrder;
@@ -45,9 +45,9 @@ public class SortConstraint extends WrappingConstraint {
 	@Override
 	public List<? extends GraphObject> doGet() throws FrameworkException {
 
-		if(wrappedConstraint != null) {
+		if(wrappedResource != null) {
 			
-			List<? extends GraphObject> results = wrappedConstraint.doGet();
+			List<? extends GraphObject> results = wrappedResource.doGet();
 			Comparator<GraphObject> comparator = null;
 
 			try {
@@ -94,7 +94,7 @@ public class SortConstraint extends WrappingConstraint {
 	}
 
 	@Override
-	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws FrameworkException {
+	public Resource tryCombineWith(Resource next) throws FrameworkException {
 		return super.tryCombineWith(next);
 	}
 }

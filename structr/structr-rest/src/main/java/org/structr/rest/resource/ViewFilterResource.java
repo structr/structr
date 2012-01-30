@@ -17,87 +17,77 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.structr.rest.constraint;
+package org.structr.rest.resource;
 
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.agent.RebuildIndexTask;
+import org.structr.core.Value;
 import org.structr.rest.RestMethodResult;
-import org.structr.rest.exception.NotAllowedException;
+import org.structr.rest.exception.IllegalPathException;
 
 /**
+ * A resource constraint whose only purpose is to configure the
+ * property view. This constraint must be wrapped around another
+ * resource constraint, otherwise it will throw an IllegalPathException.
  *
  * @author Christian Morgner
  */
-public class MaintenanceParameterConstraint extends ResourceConstraint {
+public class ViewFilterResource extends WrappingResource {
 
-	private static final Map<String, Class> maintenanceCommandMap = new LinkedHashMap<String, Class>();
+	private String propertyView = null;
 
-	static {
-		maintenanceCommandMap.put("rebuildIndex", RebuildIndexTask.class);
-	}
-
-	private String uriPart = null;
-
-	public Class getMaintenanceCommand() {
-		return maintenanceCommandMap.get(uriPart);
+	// no-arg constructor for automatic instantiation
+	public ViewFilterResource() {
 	}
 
 	@Override
 	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) {
 
-		this.securityContext = securityContext;
+		if(this.wrappedResource == null) {
+			this.securityContext = securityContext;
+			propertyView = part;
 
-		if(maintenanceCommandMap.containsKey(part)) {
-			this.uriPart = part;
 			return true;
 		}
-
+		
 		return false;
+
 	}
 
 	@Override
 	public List<? extends GraphObject> doGet() throws FrameworkException {
-		throw new NotAllowedException();
-	}
+		if(wrappedResource != null) {
+			return wrappedResource.doGet();
+		}
 
-	@Override
-	public RestMethodResult doPut(Map<String, Object> propertySet) throws FrameworkException {
-		throw new NotAllowedException();
+		throw new IllegalPathException();
 	}
 
 	@Override
 	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
-		throw new NotAllowedException();
+		if(wrappedResource != null) {
+			return wrappedResource.doPost(propertySet);
+		}
+
+		throw new IllegalPathException();
 	}
 
 	@Override
 	public RestMethodResult doHead() throws FrameworkException {
-		throw new NotAllowedException();
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
 	public RestMethodResult doOptions() throws FrameworkException {
-		throw new NotAllowedException();
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
-	public String getUriPart() {
-		return uriPart;
-	}
-
-	@Override
-	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws FrameworkException {
-		return null;
-	}
-
-	@Override
-	public boolean isCollectionResource() {
-		return false;
+	public void configurePropertyView(Value<String> propertyView) {
+		propertyView.set(this.propertyView);
 	}
 }

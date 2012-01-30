@@ -21,7 +21,7 @@ package org.structr.rest;
 
 import java.util.Map;
 import java.util.regex.Pattern;
-import org.structr.rest.constraint.ResourceConstraint;
+import org.structr.rest.resource.Resource;
 
 /**
  * A provider interface that allows external modules to
@@ -29,6 +29,6 @@ import org.structr.rest.constraint.ResourceConstraint;
  *
  * @author Christian Morgner
  */
-public interface ResourceConstraintProvider {
-	public Map<Pattern, Class<? extends ResourceConstraint>> getConstraints();
+public interface ResourceProvider {
+	public Map<Pattern, Class<? extends Resource>> getResources();
 }

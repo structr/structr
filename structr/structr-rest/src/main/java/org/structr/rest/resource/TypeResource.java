@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.structr.rest.constraint;
+package org.structr.rest.resource;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -32,17 +32,17 @@ import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.servlet.JsonRestServlet;
 
 /**
- * Represents a bulk type match. A TypeConstraint will always result in a
- * list of elements when it is the last element in an URI. A TypeConstraint
+ * Represents a bulk type match. A TypeResource will always result in a
+ * list of elements when it is the last element in an URI. A TypeResource
  * that is not the first element in an URI will try to find a pre-defined
  * relationship between preceding and the node type (defined by
  * {@see AbstractNode#getRelationshipWith}) and follow that path.
  * 
  * @author Christian Morgner
  */
-public class TypeConstraint extends SortableConstraint {
+public class TypeResource extends SortableResource {
 	
-	private static final Logger logger = Logger.getLogger(TypeConstraint.class.getName());
+	private static final Logger logger = Logger.getLogger(TypeResource.class.getName());
 
 	protected HttpServletRequest request = null;
 	protected String rawType = null;
@@ -151,15 +151,15 @@ public class TypeConstraint extends SortableConstraint {
 	}
 
 	@Override
-	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws FrameworkException {
+	public Resource tryCombineWith(Resource next) throws FrameworkException {
 
-		if(next instanceof IdConstraint) {
+		if(next instanceof IdResource) {
 			
-			TypedIdConstraint constraint = new TypedIdConstraint(securityContext, (IdConstraint)next, this);
+			TypedIdResource constraint = new TypedIdResource(securityContext, (IdResource)next, this);
 			constraint.configureIdProperty(idProperty);
 			return constraint;
 
-		} else if(next instanceof TypeConstraint)	throw new IllegalPathException();
+		} else if(next instanceof TypeResource)	throw new IllegalPathException();
 
 		return super.tryCombineWith(next);
 	}

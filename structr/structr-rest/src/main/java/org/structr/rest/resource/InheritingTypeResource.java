@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.structr.rest.constraint;
+package org.structr.rest.resource;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -23,13 +23,13 @@ import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
 
 /**
- * Like {@link TypeConstraint} but matches inheriting subclasses as well
+ * Like {@link TypeResource} but matches inheriting subclasses as well
  * 
  * @author Axel Morgner
  */
-public class InheritingTypeConstraint extends TypeConstraint {
+public class InheritingTypeResource extends TypeResource {
 
-	private static final Logger logger = Logger.getLogger(InheritingTypeConstraint.class.getName());
+	private static final Logger logger = Logger.getLogger(InheritingTypeResource.class.getName());
 
 	@Override
 	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) {
@@ -84,10 +84,10 @@ public class InheritingTypeConstraint extends TypeConstraint {
 	}
 
 	@Override
-	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws FrameworkException {
+	public Resource tryCombineWith(Resource next) throws FrameworkException {
 
-		if(next instanceof IdConstraint)	return new InheritingTypedIdConstraint(securityContext, (IdConstraint)next, this); else
-		if(next instanceof TypeConstraint)	throw new IllegalPathException();
+		if(next instanceof IdResource)	return new InheritingTypedIdResource(securityContext, (IdResource)next, this); else
+		if(next instanceof TypeResource)	throw new IllegalPathException();
 		
 		return super.tryCombineWith(next);
 	}

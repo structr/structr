@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 
-package org.structr.rest.constraint;
+package org.structr.rest.resource;
 
 import java.util.List;
 import org.structr.common.PropertyView;

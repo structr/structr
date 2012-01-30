@@ -33,7 +33,7 @@ import java.lang.reflect.Type;
 import java.util.List;
 import org.structr.core.GraphObject;
 import org.structr.core.Value;
-import org.structr.rest.constraint.Result;
+import org.structr.rest.resource.Result;
 import org.structr.core.PropertySet.PropertyFormat;
 
 /**

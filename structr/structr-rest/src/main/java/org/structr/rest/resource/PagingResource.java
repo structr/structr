@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 
-package org.structr.rest.constraint;
+package org.structr.rest.resource;
 
 import java.util.List;
 import java.util.logging.Logger;
@@ -17,15 +17,15 @@ import org.structr.core.GraphObject;
  *
  * @author Christian Morgner
  */
-public class PagingConstraint extends WrappingConstraint {
+public class PagingResource extends WrappingResource {
 
-	private static final Logger logger = Logger.getLogger(PagingConstraint.class.getName());
+	private static final Logger logger = Logger.getLogger(PagingResource.class.getName());
 
 	private int resultCount = 0;
 	private int pageSize = 0;
 	private int page = 0;
 
-	public PagingConstraint(SecurityContext securityContext, int page, int pageSize) {
+	public PagingResource(SecurityContext securityContext, int page, int pageSize) {
 		this.securityContext = securityContext;
 		this.page = page;
 		this.pageSize = pageSize;
@@ -46,7 +46,7 @@ public class PagingConstraint extends WrappingConstraint {
 		 * page n: ((n-1) * pageSize) -> (n * pageSize) - 1
 		 */
 
-		List<? extends GraphObject> results = wrappedConstraint.doGet();
+		List<? extends GraphObject> results = wrappedResource.doGet();
 		resultCount = results.size();
 
 		int fromIndex = Math.min(resultCount, Math.max(0, (getPage()-1) * getPageSize()));
@@ -56,7 +56,7 @@ public class PagingConstraint extends WrappingConstraint {
 	}
 
 	@Override
-	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws FrameworkException {
+	public Resource tryCombineWith(Resource next) throws FrameworkException {
 		return super.tryCombineWith(next);
 	}
 

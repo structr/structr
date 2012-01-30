@@ -3,7 +3,7 @@
 * To change this template, choose Tools | Templates
 * and open the template in the editor.
  */
-package org.structr.rest.constraint;
+package org.structr.rest.resource;
 
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
@@ -26,13 +26,13 @@ import org.structr.common.error.FrameworkException;
 //~--- classes ----------------------------------------------------------------
 
 /**
- * Represents an exact ID match. An IdConstraint will always result in a
+ * Represents an exact ID match. An IdResource will always result in a
  * single element when it is the last element in an URI. IdConstraints
  * must be tied to a preceding TypeConstraint.
  *
  * @author Christian Morgner
  */
-public class IdConstraint extends FilterableConstraint {
+public class IdResource extends FilterableResource {
 
 	private long id = -1;
 
@@ -89,12 +89,12 @@ public class IdConstraint extends FilterableConstraint {
 	}
 
 	@Override
-	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws FrameworkException {
+	public Resource tryCombineWith(Resource next) throws FrameworkException {
 
-		if(next instanceof RelationshipConstraint) {
+		if(next instanceof RelationshipResource) {
 
 			// make rel constraint wrap this
-			((RelationshipConstraint)next).wrapConstraint(this);
+			((RelationshipResource)next).wrapResource(this);
 			return next;
 		}
 

@@ -19,7 +19,7 @@
 
 
 
-package org.structr.rest.constraint;
+package org.structr.rest.resource;
 
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
@@ -63,15 +63,15 @@ import org.structr.common.error.FrameworkException;
  *
  * @author Christian Morgner
  */
-public class RelationshipFollowingConstraint extends SortableConstraint implements Evaluator {
+public class RelationshipFollowingResource extends SortableResource implements Evaluator {
 
-	private static final Logger logger = Logger.getLogger(RelationshipFollowingConstraint.class.getName());
+	private static final Logger logger = Logger.getLogger(RelationshipFollowingResource.class.getName());
 
 	//~--- fields ---------------------------------------------------------
 
-	private TypedIdConstraint firstConstraint              = null;
+	private TypedIdResource firstResource                  = null;
 	private Set<Object> idSet                              = null;
-	private TypedIdConstraint lastConstraint               = null;
+	private TypedIdResource lastResource                   = null;
 	private int pathLength                                 = 0;
 	private TraversalDescription traversalDescription      = null;
 	private List<String> uriParts                          = null;
@@ -79,7 +79,7 @@ public class RelationshipFollowingConstraint extends SortableConstraint implemen
 
 	//~--- constructors ---------------------------------------------------
 
-	public RelationshipFollowingConstraint(SecurityContext securityContext, TypedIdConstraint typedIdConstraint) {
+	public RelationshipFollowingResource(SecurityContext securityContext, TypedIdResource typedIdResource) {
 
 		this.traversalDescription = Traversal.description().depthFirst().uniqueness(Uniqueness.NODE_GLOBAL).evaluator(Evaluators.excludeStartPosition());
 		this.visitedRelationships = new LinkedHashSet<DirectedRelationship>();
@@ -87,28 +87,28 @@ public class RelationshipFollowingConstraint extends SortableConstraint implemen
 		this.idSet                = new LinkedHashSet<Object>();
 		this.uriParts             = new LinkedList<String>();
 
-		// add TypedIdConstraint to list of evaluators
+		// add TypedIdResource to list of evaluators
 		traversalDescription = traversalDescription.evaluator(this);
 
 		// store first and last constraint separately
 		// to be able to access them faster afterwards
-		firstConstraint = typedIdConstraint;
-		lastConstraint  = typedIdConstraint;
+		firstResource = typedIdResource;
+		lastResource  = typedIdResource;
 
-		IdConstraint idConstraint = typedIdConstraint.getIdConstraint();
+		IdResource idConstraint = typedIdResource.getIdResource();
 
-		if (idConstraint instanceof UuidConstraint) {
+		if (idConstraint instanceof UuidResource) {
 
 			logger.log(Level.FINE, "Adding id {0} to id set", idConstraint.getUriPart());
 
-			// add uuid from TypedIdConstraint to idSet
-			idSet.add(((UuidConstraint) idConstraint).getUriPart());
+			// add uuid from TypedIdResource to idSet
+			idSet.add(((UuidResource) idConstraint).getUriPart());
 
 		} else {
 
 			logger.log(Level.FINE, "Adding id {0} to id set", idConstraint.getUriPart());
 
-			// add id from TypedIdConstraint to idSet
+			// add id from TypedIdResource to idSet
 			idSet.add(idConstraint.getId());
 
 		}
@@ -116,37 +116,37 @@ public class RelationshipFollowingConstraint extends SortableConstraint implemen
 
 	//~--- methods --------------------------------------------------------
 
-	public void addTypedIdConstraint(TypedIdConstraint typedIdConstraint) throws FrameworkException {
+	public void addTypedIdResource(TypedIdResource typedIdResource) throws FrameworkException {
 
-		logger.log(Level.FINE, "Adding id {0} to id set", typedIdConstraint.getIdConstraint().getUriPart());
+		logger.log(Level.FINE, "Adding id {0} to id set", typedIdResource.getIdResource().getUriPart());
 
-		// we need to differentiate between UuidConstraint and IdConstraint
-		IdConstraint idConstraint = typedIdConstraint.getIdConstraint();
+		// we need to differentiate between UuidResource and IdResource
+		IdResource idResource = typedIdResource.getIdResource();
 
-		if (idConstraint instanceof UuidConstraint) {
+		if (idResource instanceof UuidResource) {
 
-			// add uuid from TypedIdConstraint to idSet
-			if (!idSet.add(((UuidConstraint) idConstraint).getUriPart())) {
+			// add uuid from TypedIdResource to idSet
+			if (!idSet.add(((UuidResource) idResource).getUriPart())) {
 
 				// id alread in set, this is an illegal path!
 				throw new IllegalPathException();
 			}
 		} else {
 
-			// add id from TypedIdConstraint to idSet
-			if (!idSet.add(idConstraint.getId())) {
+			// add id from TypedIdResource to idSet
+			if (!idSet.add(idResource.getId())) {
 
 				// id alread in set, this is an illegal path!
 				throw new IllegalPathException();
 			}
 		}
 
-		// add id from TypedIdConstraint to idSet
+		// add id from TypedIdResource to idSet
 
-		uriParts.add(typedIdConstraint.getUriPart());
+		uriParts.add(typedIdResource.getUriPart());
 
 		// find static relationship between the two types
-		DirectedRelationship rel = findDirectedRelationship(lastConstraint, typedIdConstraint);
+		DirectedRelationship rel = findDirectedRelationship(lastResource, typedIdResource);
 		if (rel != null) {
 
 			if (!visitedRelationships.contains(rel)) {
@@ -158,8 +158,8 @@ public class RelationshipFollowingConstraint extends SortableConstraint implemen
 
 		} else {
 
-			String rawType1    = lastConstraint.getTypeConstraint().getRawType();
-			String rawType2    = typedIdConstraint.getTypeConstraint().getRawType();
+			String rawType1    = lastResource.getTypeResource().getRawType();
+			String rawType2    = typedIdResource.getTypeResource().getRawType();
 
 			logger.log(Level.INFO, "No relationship defined between {0} and {1}, illegal path", new Object[] { rawType1, rawType2 });
 
@@ -169,7 +169,7 @@ public class RelationshipFollowingConstraint extends SortableConstraint implemen
 		}
 
 		// store last constraint separately
-		lastConstraint = typedIdConstraint;
+		lastResource = typedIdResource;
 	}
 
 	@Override
@@ -196,7 +196,7 @@ public class RelationshipFollowingConstraint extends SortableConstraint implemen
 
 			}
 
-			return lastConstraint.doGet();
+			return lastResource.doGet();
 
 		} else {
 
@@ -219,7 +219,7 @@ public class RelationshipFollowingConstraint extends SortableConstraint implemen
 				nodeList.add(node);
 			}
 
-			return lastConstraint.doDelete();
+			return lastResource.doDelete();
 
 		}
 
@@ -247,7 +247,7 @@ public class RelationshipFollowingConstraint extends SortableConstraint implemen
 				// fetch the property name that connects the two nodes
 				// => "owner" in "teams/<id>/owner/<id>"
 				// => "users" in "teams/<id>/users/<id>"
-				final String property        = lastConstraint.getTypeConstraint().getRawType();
+				final String property        = lastConstraint.getTypeResource().getRawType();
 				final AbstractNode startNode = (AbstractNode) nodeList.get(1);
 				final AbstractNode endNode   = (AbstractNode) nodeList.get(0);
 				
@@ -312,7 +312,7 @@ public class RelationshipFollowingConstraint extends SortableConstraint implemen
 				nodeList.add(node);
 			}
 
-			return lastConstraint.doPut(propertySet);
+			return lastResource.doPut(propertySet);
 
 		}
 
@@ -331,7 +331,7 @@ public class RelationshipFollowingConstraint extends SortableConstraint implemen
 				nodeList.add(node);
 			}
 
-			return lastConstraint.doPost(propertySet);
+			return lastResource.doPost(propertySet);
 
 		}
 
@@ -340,29 +340,29 @@ public class RelationshipFollowingConstraint extends SortableConstraint implemen
 
 	@Override
 	public RestMethodResult doHead() throws FrameworkException {
-		return lastConstraint.doHead();
+		return lastResource.doHead();
 	}
 
 	@Override
 	public RestMethodResult doOptions() throws FrameworkException {
-		return lastConstraint.doOptions();
+		return lastResource.doOptions();
 	}
 
 	@Override
-	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws FrameworkException {
+	public Resource tryCombineWith(Resource next) throws FrameworkException {
 
-		if (next instanceof TypedIdConstraint) {
+		if (next instanceof TypedIdResource) {
 
-			addTypedIdConstraint((TypedIdConstraint) next);
+			addTypedIdResource((TypedIdResource) next);
 
 			return this;
 
-		} else if (next instanceof TypeConstraint) {
+		} else if (next instanceof TypeResource) {
 
 			// validate path before combining constraints
 			if (getValidatedPath() != null) {
 
-				return new StaticRelationshipConstraint(securityContext, lastConstraint, (TypeConstraint) next);
+				return new StaticRelationshipResource(securityContext, lastResource, (TypeResource) next);
 
 			} else {
 
@@ -429,8 +429,8 @@ public class RelationshipFollowingConstraint extends SortableConstraint implemen
 	private Path getValidatedPath() throws FrameworkException {
 
 		// the nodes we want to find an existing path for.
-		Node startNode = firstConstraint.getTypesafeNode().getNode();
-		Node endNode   = lastConstraint.getTypesafeNode().getNode();
+		Node startNode = firstResource.getTypesafeNode().getNode();
+		Node endNode   = lastResource.getTypesafeNode().getNode();
 
 		// set desired path length we want to get
 		pathLength = idSet.size();
@@ -459,6 +459,6 @@ public class RelationshipFollowingConstraint extends SortableConstraint implemen
 
 	@Override
 	public boolean isCollectionResource() {
-		return lastConstraint.isCollectionResource();
+		return lastResource.isCollectionResource();
 	}
 }

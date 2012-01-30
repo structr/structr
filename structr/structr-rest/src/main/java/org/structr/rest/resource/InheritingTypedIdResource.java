@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.structr.rest.constraint;
+package org.structr.rest.resource;
 
 import java.util.Map;
 import java.util.logging.Logger;
@@ -20,25 +20,25 @@ import org.structr.rest.exception.NotFoundException;
  * 
  * @author Christian Morgner
  */
-public class InheritingTypedIdConstraint extends TypedIdConstraint {
+public class InheritingTypedIdResource extends TypedIdResource {
 
-	private static final Logger logger = Logger.getLogger(InheritingTypedIdConstraint.class.getName());
+	private static final Logger logger = Logger.getLogger(InheritingTypedIdResource.class.getName());
 
-	protected InheritingTypedIdConstraint(SecurityContext securityContext) {
+	protected InheritingTypedIdResource(SecurityContext securityContext) {
 		super(securityContext);
 	}
 
-	public InheritingTypedIdConstraint(SecurityContext securityContext, IdConstraint idConstraint, InheritingTypeConstraint typeConstraint) {
-		super(securityContext, idConstraint, typeConstraint);
+	public InheritingTypedIdResource(SecurityContext securityContext, IdResource idResource, InheritingTypeResource typeResource) {
+		super(securityContext, idResource, typeResource);
 	}
 
 	@Override
 	public AbstractNode getTypesafeNode() throws FrameworkException {
 		
-		AbstractNode node = idConstraint.getNode();
+		AbstractNode node = idResource.getNode();
 
 		Class entityClass = node.getClass();
-		String type = EntityContext.normalizeEntityName(typeConstraint.getRawType());
+		String type = EntityContext.normalizeEntityName(typeResource.getRawType());
 
 		Map<String, Class> entities = (Map) Services.command(SecurityContext.getSuperUserInstance(), GetEntitiesCommand.class).execute();
 		Class parentClass           = entities.get(type);
@@ -51,31 +51,31 @@ public class InheritingTypedIdConstraint extends TypedIdConstraint {
 	}
 	
 	@Override
-	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws FrameworkException {
+	public Resource tryCombineWith(Resource next) throws FrameworkException {
 
-		if(next instanceof TypeConstraint) {
+		if(next instanceof TypeResource) {
 
 			// next constraint is a type constraint
 			// => follow predefined statc relationship
 			//    between the two types
-			return new StaticRelationshipConstraint(securityContext, this, (TypeConstraint)next);
+			return new StaticRelationshipResource(securityContext, this, (TypeResource)next);
 
-		} else if(next instanceof InheritingTypedIdConstraint) {
+		} else if(next instanceof InheritingTypedIdResource) {
 
-			RelationshipFollowingConstraint constraint = new RelationshipFollowingConstraint(securityContext, this);
-			constraint.addTypedIdConstraint((InheritingTypedIdConstraint)next);
+			RelationshipFollowingResource constraint = new RelationshipFollowingResource(securityContext, this);
+			constraint.addTypedIdResource((InheritingTypedIdResource)next);
 
 			return constraint;
 
-		} else if(next instanceof RelationshipConstraint) {
+		} else if(next instanceof RelationshipResource) {
 
 			// make rel constraint wrap this
-			((RelationshipConstraint)next).wrapConstraint(this);
+			((RelationshipResource)next).wrapResource(this);
 			return next;
 
-		} else if(next instanceof RelationshipIdConstraint) {
+		} else if(next instanceof RelationshipIdResource) {
 
-			((RelationshipIdConstraint)next).getRelationshipConstraint().wrapConstraint(this);
+			((RelationshipIdResource)next).getRelationshipResource().wrapResource(this);
 			return next;
 		}
 

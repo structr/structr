@@ -17,7 +17,7 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.structr.rest.constraint;
+package org.structr.rest.resource;
 
 import java.util.List;
 import java.util.Map;
@@ -42,9 +42,9 @@ import org.structr.rest.exception.SystemException;
  *
  * @author Christian Morgner
  */
-public class MaintenanceConstraint extends ResourceConstraint {
+public class MaintenanceResource extends Resource {
 
-	private static final Logger logger = Logger.getLogger(MaintenanceConstraint.class.getName());
+	private static final Logger logger = Logger.getLogger(MaintenanceResource.class.getName());
 	private Class taskClass = null;
 
 	@Override
@@ -116,10 +116,10 @@ public class MaintenanceConstraint extends ResourceConstraint {
 	}
 
 	@Override
-	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws FrameworkException {
+	public Resource tryCombineWith(Resource next) throws FrameworkException {
 
-		if(next instanceof MaintenanceParameterConstraint) {
-			this.taskClass = ((MaintenanceParameterConstraint)next).getMaintenanceCommand();
+		if(next instanceof MaintenanceParameterResource) {
+			this.taskClass = ((MaintenanceParameterResource)next).getMaintenanceCommand();
 			return this;
 		}
 

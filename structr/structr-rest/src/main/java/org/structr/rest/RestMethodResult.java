@@ -30,7 +30,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletResponse;
 import org.structr.core.GraphObject;
-import org.structr.rest.constraint.Result;
+import org.structr.rest.resource.Result;
 
 /**
  * Encapsulates the result of a REST HTTP method call, i.e.

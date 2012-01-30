@@ -17,7 +17,7 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.structr.rest.constraint;
+package org.structr.rest.resource;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -34,22 +34,22 @@ import org.structr.rest.exception.NotFoundException;
  *
  * @author Christian Morgner
  */
-public class RelationshipIdConstraint extends FilterableConstraint {
+public class RelationshipIdResource extends FilterableResource {
 
-	private static final Logger logger = Logger.getLogger(TypedIdConstraint.class.getName());
+	private static final Logger logger = Logger.getLogger(TypedIdResource.class.getName());
 
-	protected RelationshipConstraint relationshipConstraint = null;
-	protected IdConstraint idConstraint = null;
+	protected RelationshipResource relationshipResource = null;
+	protected IdResource idResource = null;
 
-	protected RelationshipIdConstraint(SecurityContext securityContext) {
+	protected RelationshipIdResource(SecurityContext securityContext) {
 		this.securityContext = securityContext;
 		// empty protected constructor
 	}
 
-	public RelationshipIdConstraint(SecurityContext securityContext, RelationshipConstraint relationshipConstraint, IdConstraint idConstraint) {
+	public RelationshipIdResource(SecurityContext securityContext, RelationshipResource relationshipResource, IdResource idResource) {
 		this.securityContext = securityContext;
-		this.relationshipConstraint = relationshipConstraint;
-		this.idConstraint = idConstraint;
+		this.relationshipResource = relationshipResource;
+		this.idResource = idResource;
 	}
 
 	@Override
@@ -60,8 +60,8 @@ public class RelationshipIdConstraint extends FilterableConstraint {
 	@Override
 	public List<GraphObject> doGet() throws FrameworkException {
 
-		List<? extends GraphObject> results = relationshipConstraint.doGet();
-		long desiredId = idConstraint.getId();
+		List<? extends GraphObject> results = relationshipResource.doGet();
+		long desiredId = idResource.getId();
 		GraphObject desiredObject = null;
 
 		for(GraphObject obj : results) {
@@ -97,20 +97,20 @@ public class RelationshipIdConstraint extends FilterableConstraint {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
-	public RelationshipConstraint getRelationshipConstraint() {
-		return relationshipConstraint;
+	public RelationshipResource getRelationshipResource() {
+		return relationshipResource;
 	}
 
-	public IdConstraint getIdConstraint() {
-		return idConstraint;
+	public IdResource getIdResource() {
+		return idResource;
 	}
 
 	@Override
-	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws FrameworkException {
+	public Resource tryCombineWith(Resource next) throws FrameworkException {
 
-		if(next instanceof RelationshipNodeConstraint) {
+		if(next instanceof RelationshipNodeResource) {
 
-			((RelationshipNodeConstraint)next).wrapConstraint(this);
+			((RelationshipNodeResource)next).wrapResource(this);
 			return next;
 		}
 
@@ -119,7 +119,7 @@ public class RelationshipIdConstraint extends FilterableConstraint {
 
 	@Override
 	public String getUriPart() {
-		return relationshipConstraint.getUriPart().concat("/").concat(idConstraint.getUriPart());
+		return relationshipResource.getUriPart().concat("/").concat(idResource.getUriPart());
 	}
 
 	@Override

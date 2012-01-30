@@ -19,7 +19,7 @@
 
 
 
-package org.structr.rest.constraint;
+package org.structr.rest.resource;
 
 import org.structr.common.PropertyKey;
 import org.structr.common.SecurityContext;
@@ -55,22 +55,22 @@ import org.structr.common.CaseHelper;
  *
  * @author Christian Morgner
  */
-public class StaticRelationshipConstraint extends SortableConstraint {
+public class StaticRelationshipResource extends SortableResource {
 
-	private static final Logger logger = Logger.getLogger(StaticRelationshipConstraint.class.getName());
+	private static final Logger logger = Logger.getLogger(StaticRelationshipResource.class.getName());
 
 	//~--- fields ---------------------------------------------------------
 
-	TypeConstraint typeConstraint       = null;
-	TypedIdConstraint typedIdConstraint = null;
+	TypeResource typeResource       = null;
+	TypedIdResource typedIdResource = null;
 
 	//~--- constructors ---------------------------------------------------
 
-	public StaticRelationshipConstraint(SecurityContext securityContext, TypedIdConstraint typedIdConstraint, TypeConstraint typeConstraint) {
+	public StaticRelationshipResource(SecurityContext securityContext, TypedIdResource typedIdResource, TypeResource typeResource) {
 
 		this.securityContext   = securityContext;
-		this.typedIdConstraint = typedIdConstraint;
-		this.typeConstraint    = typeConstraint;
+		this.typedIdResource = typedIdResource;
+		this.typeResource    = typeResource;
 	}
 
 	//~--- methods --------------------------------------------------------
@@ -78,18 +78,18 @@ public class StaticRelationshipConstraint extends SortableConstraint {
 	@Override
 	public List<? extends GraphObject> doGet() throws FrameworkException {
 
-		// fetch results from typedIdConstraint (should be a single node)
-		List<GraphObject> results = typedIdConstraint.doGet();
+		// fetch results from typedIdResource (should be a single node)
+		List<GraphObject> results = typedIdResource.doGet();
 
 		if (results != null) {
 
 			// ok, source node exists, fetch it
-			AbstractNode sourceNode = typedIdConstraint.getTypesafeNode();
+			AbstractNode sourceNode = typedIdResource.getTypesafeNode();
 
 			if (sourceNode != null) {
 
 				// fetch static relationship definition
-				DirectedRelationship staticRel = findDirectedRelationship(typedIdConstraint, typeConstraint);
+				DirectedRelationship staticRel = findDirectedRelationship(typedIdResource, typeResource);
 
 				if (staticRel != null) {
 
@@ -111,8 +111,8 @@ public class StaticRelationshipConstraint extends SortableConstraint {
 				// as the property key for getProperty
 				// look for a property converter for the given type and key
 				Class type                  = sourceNode.getClass();
-				//String key                  = typeConstraint.getRawType();
-				String key                  = CaseHelper.toLowerCamelCase(typeConstraint.getRawType());
+				//String key                  = typeResource.getRawType();
+				String key                  = CaseHelper.toLowerCamelCase(typeResource.getRawType());
 				PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
 
 				if (converter != null) {
@@ -182,22 +182,22 @@ public class StaticRelationshipConstraint extends SortableConstraint {
 	@Override
 	public RestMethodResult doDelete() throws FrameworkException {
 
-		List<GraphObject> results = typedIdConstraint.doGet();
+		List<GraphObject> results = typedIdResource.doGet();
 
 		if (results != null) {
 
 			// fetch static relationship definition
-			DirectedRelationship staticRel = findDirectedRelationship(typedIdConstraint, typeConstraint);
+			DirectedRelationship staticRel = findDirectedRelationship(typedIdResource, typeResource);
 
 			if (staticRel != null) {
 
-				AbstractNode startNode = typedIdConstraint.getTypesafeNode();
+				AbstractNode startNode = typedIdResource.getTypesafeNode();
 
 				if (startNode != null) {
 
-					if (EntityContext.isReadOnlyProperty(startNode.getClass(), typeConstraint.getRawType())) {
+					if (EntityContext.isReadOnlyProperty(startNode.getClass(), typeResource.getRawType())) {
 
-						logger.log(Level.INFO, "Read-only property on {1}: {0}", new Object[] { startNode.getClass(), typeConstraint.getRawType() });
+						logger.log(Level.INFO, "Read-only property on {1}: {0}", new Object[] { startNode.getClass(), typeResource.getRawType() });
 
 						return new RestMethodResult(HttpServletResponse.SC_FORBIDDEN);
 
@@ -248,14 +248,14 @@ public class StaticRelationshipConstraint extends SortableConstraint {
 			@Override
 			public Object execute() throws FrameworkException {
 
-				AbstractNode sourceNode  = typedIdConstraint.getIdConstraint().getNode();
-				DirectedRelationship rel = EntityContext.getDirectedRelationship(sourceNode.getClass(), typeConstraint.getRawType());
+				AbstractNode sourceNode  = typedIdResource.getIdResource().getNode();
+				DirectedRelationship rel = EntityContext.getDirectedRelationship(sourceNode.getClass(), typeResource.getRawType());
 
 				if ((sourceNode != null) && (rel != null)) {
 
-					if (EntityContext.isReadOnlyProperty(sourceNode.getClass(), typeConstraint.getRawType())) {
+					if (EntityContext.isReadOnlyProperty(sourceNode.getClass(), typeResource.getRawType())) {
 
-						logger.log(Level.INFO, "Read-only property on {0}: {1}", new Object[] { sourceNode.getClass(), typeConstraint.getRawType() });
+						logger.log(Level.INFO, "Read-only property on {0}: {1}", new Object[] { sourceNode.getClass(), typeResource.getRawType() });
 
 						return null;
 
@@ -321,7 +321,7 @@ public class StaticRelationshipConstraint extends SortableConstraint {
 						// the POSTed propertySet did not contain a key to deserialize,
 						// so we create a new node from the POSTed properties and link
 						// the source node to it. (this is the "old" implementation)
-						AbstractNode otherNode = typeConstraint.createNode(propertySet);
+						AbstractNode otherNode = typeResource.createNode(propertySet);
 
 						if (otherNode != null) {
 
@@ -373,9 +373,9 @@ public class StaticRelationshipConstraint extends SortableConstraint {
 	}
 
 	@Override
-	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws FrameworkException {
+	public Resource tryCombineWith(Resource next) throws FrameworkException {
 
-		if (next instanceof TypeConstraint) {
+		if (next instanceof TypeResource) {
 
 			throw new IllegalPathException();
 
@@ -388,15 +388,15 @@ public class StaticRelationshipConstraint extends SortableConstraint {
 
 	@Override
 	public String getUriPart() {
-		return typedIdConstraint.getUriPart().concat("/").concat(typeConstraint.getUriPart());
+		return typedIdResource.getUriPart().concat("/").concat(typeResource.getUriPart());
 	}
 
-	public TypedIdConstraint getTypedIdConstraint() {
-		return typedIdConstraint;
+	public TypedIdResource getTypedIdConstraint() {
+		return typedIdResource;
 	}
 
-	public TypeConstraint getTypeConstraint() {
-		return typeConstraint;
+	public TypeResource getTypeConstraint() {
+		return typeResource;
 	}
 
 	@Override

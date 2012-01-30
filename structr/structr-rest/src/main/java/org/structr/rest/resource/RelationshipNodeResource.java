@@ -17,65 +17,63 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.structr.rest.constraint;
+package org.structr.rest.resource;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
-import org.neo4j.graphdb.Direction;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.StructrRelationship;
+import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
 
 /**
  *
  * @author Christian Morgner
  */
-public class RelationshipConstraint extends WrappingConstraint {
+public class RelationshipNodeResource extends WrappingResource {
 
-	private static final Logger logger = Logger.getLogger(RelationshipConstraint.class.getName());
-	private Direction direction = null;
+	private static final Logger logger = Logger.getLogger(RelationshipNodeResource.class.getName());
+	private boolean startNode = false;
 
 	@Override
 	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) {
 
 		this.securityContext = securityContext;
 
-		if("in".equals(part.toLowerCase())) {
-
-			direction = Direction.INCOMING;
-			return true;
-
-		} else if("out".equals(part.toLowerCase())) {
-
-			direction = Direction.OUTGOING;
-			return true;
-
+		// only "start" selects the start node, everything else means end node
+		if("start".equals(part.toLowerCase())) {
+			startNode = true;
 		}
 
-		return false;
+		return true;
 	}
 
 	@Override
 	public List<? extends GraphObject> doGet() throws FrameworkException {
 
-		List<? extends GraphObject> results = wrappedConstraint.doGet();
+		List<? extends GraphObject> results = wrappedResource.doGet();
 		if(results != null && !results.isEmpty()) {
 
 			try {
 				List<GraphObject> resultList = new LinkedList<GraphObject>();
 				for(GraphObject obj : results) {
 
-					if(obj instanceof AbstractNode) {
+					if(obj instanceof StructrRelationship) {
 
-						List relationships = obj.getRelationships(null, direction);
-						if(relationships != null) {
+						StructrRelationship rel = (StructrRelationship)obj;
+						if(startNode) {
 
-							resultList.addAll(relationships);
+							resultList.add(rel.getStartNode());
+
+						} else {
+
+							resultList.add(rel.getEndNode());
 						}
 					}
 				}
@@ -97,17 +95,26 @@ public class RelationshipConstraint extends WrappingConstraint {
 	}
 
 	@Override
-	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws FrameworkException {
-
-		if(next instanceof IdConstraint) {
-			return new RelationshipIdConstraint(securityContext, this, (IdConstraint)next);
+	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
+		if(wrappedResource != null) {
+			return wrappedResource.doPost(propertySet);
 		}
 
-		return super.tryCombineWith(next);
+		throw new IllegalPathException();
 	}
 
 	@Override
-	public boolean isCollectionResource() {
-		return true;
+	public RestMethodResult doHead() throws FrameworkException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public RestMethodResult doOptions() throws FrameworkException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public Resource tryCombineWith(Resource next) throws FrameworkException {
+		return super.tryCombineWith(next);
 	}
 }

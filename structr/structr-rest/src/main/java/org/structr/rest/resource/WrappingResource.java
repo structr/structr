@@ -17,7 +17,7 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.structr.rest.constraint;
+package org.structr.rest.resource;
 
 import java.util.Map;
 import org.structr.common.error.FrameworkException;
@@ -30,15 +30,15 @@ import org.structr.rest.exception.IllegalPathException;
  *
  * @author Christian Morgner
  */
-public abstract class WrappingConstraint extends ResourceConstraint {
+public abstract class WrappingResource extends Resource {
 
-	protected ResourceConstraint wrappedConstraint = null;
+	protected Resource wrappedResource = null;
 
 	@Override
 	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
 
-		if(wrappedConstraint != null) {
-			return wrappedConstraint.doPost(propertySet);
+		if(wrappedResource != null) {
+			return wrappedResource.doPost(propertySet);
 		}
 
 		throw new IllegalPathException();
@@ -47,8 +47,8 @@ public abstract class WrappingConstraint extends ResourceConstraint {
 	@Override
 	public RestMethodResult doHead() throws FrameworkException {
 
-		if(wrappedConstraint != null) {
-			return wrappedConstraint.doHead();
+		if(wrappedResource != null) {
+			return wrappedResource.doHead();
 		}
 
 		throw new IllegalPathException();
@@ -57,8 +57,8 @@ public abstract class WrappingConstraint extends ResourceConstraint {
 	@Override
 	public RestMethodResult doOptions() throws FrameworkException {
 
-		if(wrappedConstraint != null) {
-			return wrappedConstraint.doOptions();
+		if(wrappedResource != null) {
+			return wrappedResource.doOptions();
 		}
 
 		throw new IllegalPathException();
@@ -66,24 +66,24 @@ public abstract class WrappingConstraint extends ResourceConstraint {
 
 	@Override
 	public String getUriPart() {
-		return wrappedConstraint.getUriPart();
+		return wrappedResource.getUriPart();
 	}
 
-	protected void wrapConstraint(ResourceConstraint wrappedConstraint) {
-		this.idProperty = wrappedConstraint.idProperty;
-		this.wrappedConstraint = wrappedConstraint;
+	protected void wrapResource(Resource wrappedResource) {
+		this.idProperty = wrappedResource.idProperty;
+		this.wrappedResource = wrappedResource;
 	}
 
 	@Override
 	public boolean isCollectionResource() {
-		return wrappedConstraint.isCollectionResource();
+		return wrappedResource.isCollectionResource();
 	}
 
 	@Override
-	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws FrameworkException {
+	public Resource tryCombineWith(Resource next) throws FrameworkException {
 
-		if(next instanceof WrappingConstraint) {
-			((WrappingConstraint)next).wrapConstraint(this);
+		if(next instanceof WrappingResource) {
+			((WrappingResource)next).wrapResource(this);
 			return next;
 		}
 

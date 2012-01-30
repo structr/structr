@@ -17,7 +17,7 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.structr.rest.constraint;
+package org.structr.rest.resource;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -34,13 +34,13 @@ import org.structr.core.node.search.SearchNodeCommand;
 import org.structr.rest.exception.NotFoundException;
 
 /**
- * Represents an exact UUID match and behaves like an {@see IdConstraint} otherwise.
+ * Represents an exact UUID match and behaves like an {@see IdResource} otherwise.
  *
  * @author Christian Morgner
  */
-public class UuidConstraint extends IdConstraint {
+public class UuidResource extends IdResource {
 
-	private static final Logger logger = Logger.getLogger(UuidConstraint.class.getName());
+	private static final Logger logger = Logger.getLogger(UuidResource.class.getName());
 
 	private String uuid = null;
 

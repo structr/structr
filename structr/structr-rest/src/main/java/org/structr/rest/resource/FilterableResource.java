@@ -17,24 +17,24 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.structr.rest.constraint;
+package org.structr.rest.resource;
 
 import org.structr.common.error.FrameworkException;
 
 /**
  * A resource constraint that implements the generic ability to be
- * combined with a {@see ViewFilterConstraint) in order to configure
+ * combined with a {@see ViewFilterResource) in order to configure
  * a specific property view.
  *
  * @author Christian Morgner
  */
-public abstract class FilterableConstraint extends WrappingConstraint {
+public abstract class FilterableResource extends WrappingResource {
 
 	@Override
-	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws FrameworkException {
+	public Resource tryCombineWith(Resource next) throws FrameworkException {
 
-		if(next instanceof ViewFilterConstraint) {
-			((ViewFilterConstraint)next).wrapConstraint(this);
+		if(next instanceof ViewFilterResource) {
+			((ViewFilterResource)next).wrapResource(this);
 			return next;
 		}
 

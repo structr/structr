@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.structr.rest.constraint;
+package org.structr.rest.resource;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -17,27 +17,27 @@ import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.NotFoundException;
 
 /**
- * Represents a type-constrained ID match. A TypedIdConstraint will always
+ * Represents a type-constrained ID match. A TypedIdResource will always
  * result in a single element.
  * 
  * @author Christian Morgner
  */
-public class TypedIdConstraint extends FilterableConstraint {
+public class TypedIdResource extends FilterableResource {
 
-	private static final Logger logger = Logger.getLogger(TypedIdConstraint.class.getName());
+	private static final Logger logger = Logger.getLogger(TypedIdResource.class.getName());
 
-	protected TypeConstraint typeConstraint = null;
-	protected IdConstraint idConstraint = null;
+	protected TypeResource typeResource = null;
+	protected IdResource idResource = null;
 
-	protected TypedIdConstraint(SecurityContext securityContext) {
+	protected TypedIdResource(SecurityContext securityContext) {
 		this.securityContext = securityContext;
 		// empty protected constructor
 	}
 
-	public TypedIdConstraint(SecurityContext securityContext, IdConstraint idConstraint, TypeConstraint typeConstraint) {
+	public TypedIdResource(SecurityContext securityContext, IdResource idResource, TypeResource typeResource) {
 		this.securityContext = securityContext;
-		this.typeConstraint = typeConstraint;
-		this.idConstraint = idConstraint;
+		this.typeResource = typeResource;
+		this.idResource = idResource;
 	}
 
 	@Override
@@ -77,10 +77,10 @@ public class TypedIdConstraint extends FilterableConstraint {
 
 	public AbstractNode getTypesafeNode() throws FrameworkException {
 		
-		AbstractNode node = idConstraint.getNode();
-//		String type = typeConstraint.getType();
+		AbstractNode node = idResource.getNode();
+//		String type = typeResource.getType();
 
-		// logger.log(Level.INFO, "type from TypeConstraint: {0}, type from node: {1}", new Object[] { type, node != null ? node.getType() : "null" } );
+		// logger.log(Level.INFO, "type from TypeResource: {0}, type from node: {1}", new Object[] { type, node != null ? node.getType() : "null" } );
 		
 		if(node != null) { //  && type.equalsIgnoreCase(node.getType())) {
 			return node;
@@ -90,43 +90,43 @@ public class TypedIdConstraint extends FilterableConstraint {
 		throw new NotFoundException();
 	}
 	
-	public TypeConstraint getTypeConstraint() {
-		return typeConstraint;
+	public TypeResource getTypeResource() {
+		return typeResource;
 	}
 
-	public IdConstraint getIdConstraint() {
-		return idConstraint;
+	public IdResource getIdResource() {
+		return idResource;
 	}
 
 	@Override
-	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws FrameworkException {
+	public Resource tryCombineWith(Resource next) throws FrameworkException {
 
-		if(next instanceof TypeConstraint) {
+		if(next instanceof TypeResource) {
 
 			// next constraint is a type constraint
 			// => follow predefined statc relationship
 			//    between the two types
-			StaticRelationshipConstraint constraint = new StaticRelationshipConstraint(securityContext, this, (TypeConstraint)next);
-			constraint.configureIdProperty(idProperty);
-			return constraint;
+			StaticRelationshipResource resource = new StaticRelationshipResource(securityContext, this, (TypeResource)next);
+			resource.configureIdProperty(idProperty);
+			return resource;
 
-		} else if(next instanceof TypedIdConstraint) {
+		} else if(next instanceof TypedIdResource) {
 
-			RelationshipFollowingConstraint constraint = new RelationshipFollowingConstraint(securityContext, this);
-			constraint.configureIdProperty(idProperty);
-			constraint.addTypedIdConstraint((TypedIdConstraint)next);
+			RelationshipFollowingResource resource = new RelationshipFollowingResource(securityContext, this);
+			resource.configureIdProperty(idProperty);
+			resource.addTypedIdResource((TypedIdResource)next);
 
-			return constraint;
+			return resource;
 
-		} else if(next instanceof RelationshipConstraint) {
+		} else if(next instanceof RelationshipResource) {
 
 			// make rel constraint wrap this
-			((RelationshipConstraint)next).wrapConstraint(this);
+			((RelationshipResource)next).wrapResource(this);
 			return next;
 
-		} else if(next instanceof RelationshipIdConstraint) {
+		} else if(next instanceof RelationshipIdResource) {
 
-			((RelationshipIdConstraint)next).getRelationshipConstraint().wrapConstraint(this);
+			((RelationshipIdResource)next).getRelationshipResource().wrapResource(this);
 			return next;
 		}
 
@@ -135,7 +135,7 @@ public class TypedIdConstraint extends FilterableConstraint {
 
 	@Override
 	public String getUriPart() {
-		return typeConstraint.getUriPart().concat("/").concat(idConstraint.getUriPart());
+		return typeResource.getUriPart().concat("/").concat(idResource.getUriPart());
 	}
 
 	@Override

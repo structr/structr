@@ -38,15 +38,15 @@ import org.structr.core.PropertySetGSONAdapter;
 import org.structr.core.Services;
 import org.structr.core.Value;
 import org.structr.core.node.NodeAttribute;
-import org.structr.rest.ResourceConstraintProvider;
+import org.structr.rest.ResourceProvider;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.adapter.FrameworkExceptionGSONAdapter;
 import org.structr.rest.adapter.ResultGSONAdapter;
-import org.structr.rest.constraint.PagingConstraint;
-import org.structr.rest.constraint.RelationshipFollowingConstraint;
-import org.structr.rest.constraint.ResourceConstraint;
-import org.structr.rest.constraint.Result;
-import org.structr.rest.constraint.SortConstraint;
+import org.structr.rest.resource.PagingResource;
+import org.structr.rest.resource.RelationshipFollowingResource;
+import org.structr.rest.resource.Resource;
+import org.structr.rest.resource.Result;
+import org.structr.rest.resource.SortResource;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NoResultsException;
 
@@ -76,7 +76,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.structr.rest.constraint.ViewFilterConstraint;
+import org.structr.rest.resource.ViewFilterResource;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -96,7 +96,7 @@ public class JsonRestServlet extends HttpServlet {
 	public static final String REQUEST_PARAMETER_PAGE_SIZE              = "pageSize";
 	public static final String REQUEST_PARAMETER_SORT_KEY               = "sort";
 	public static final String REQUEST_PARAMETER_SORT_ORDER             = "order";
-	private static final String SERVLET_PARAMETER_CONSTRAINT_PROVIDER   = "ConstraintProvider";
+	private static final String SERVLET_PARAMETER_RESOURCE_PROVIDER     = "ResourceProvider";
 	private static final String SERVLET_PARAMETER_DEFAULT_PROPERTY_VIEW = "DefaultPropertyView";
 	private static final String SERVLET_PARAMETER_ID_PROPERTY           = "IdProperty";
 	private static final String SERVLET_PARAMETER_PROPERTY_FORMAT       = "PropertyFormat";
@@ -105,7 +105,7 @@ public class JsonRestServlet extends HttpServlet {
 
 	//~--- fields ---------------------------------------------------------
 
-	private Map<Pattern, Class> constraintMap         = null;
+	private Map<Pattern, Class> resourceMap           = null;
 	private String defaultIdProperty                  = null;
 	private String defaultPropertyView                = PropertyView.Public;
 	private Gson gson                                 = null;
@@ -120,11 +120,11 @@ public class JsonRestServlet extends HttpServlet {
 	public void init() {
 
 		// initialize variables
-		this.constraintMap = new LinkedHashMap<Pattern, Class>();
+		this.resourceMap = new LinkedHashMap<Pattern, Class>();
 		this.propertyView  = new ThreadLocalPropertyView();
 
 		// external resource constraint initialization
-		String externalProviderName = this.getInitParameter(SERVLET_PARAMETER_CONSTRAINT_PROVIDER);
+		String externalProviderName = this.getInitParameter(SERVLET_PARAMETER_RESOURCE_PROVIDER);
 
 		if (externalProviderName != null) {
 
@@ -134,16 +134,16 @@ public class JsonRestServlet extends HttpServlet {
 
 				try {
 
-					logger.log(Level.FINE, "Injecting constraints from provider {0}", part);
+					logger.log(Level.FINE, "Injecting resources from provider {0}", part);
 
-					Class providerClass                 = Class.forName(part);
-					ResourceConstraintProvider provider = (ResourceConstraintProvider) providerClass.newInstance();
+					Class providerClass       = Class.forName(part);
+					ResourceProvider provider = (ResourceProvider) providerClass.newInstance();
 
 					// inject constraints
-					constraintMap.putAll(provider.getConstraints());
+					resourceMap.putAll(provider.getResources());
 
 				} catch (Throwable t) {
-					logger.log(Level.WARNING, "Unable to inject external resource constraints", t);
+					logger.log(Level.WARNING, "Unable to inject external resources", t);
 				}
 
 			}
@@ -235,8 +235,8 @@ public class JsonRestServlet extends HttpServlet {
 			if (securityContext != null) {
 
 				// evaluate constraint chain
-				List<ResourceConstraint> chain        = parsePath(securityContext, request);
-				ResourceConstraint resourceConstraint = optimizeConstraintChain(chain);
+				List<Resource> chain        = parsePath(securityContext, request);
+				Resource resourceConstraint = optimizeConstraintChain(chain);
 
 				// do action
 				RestMethodResult result = resourceConstraint.doDelete();
@@ -305,7 +305,7 @@ public class JsonRestServlet extends HttpServlet {
 
 			// evaluate constraints and measure query time
 			double queryTimeStart                 = System.nanoTime();
-			ResourceConstraint resourceConstraint = addSortingAndPaging(request, securityContext, optimizeConstraintChain(parsePath(securityContext, request)));
+			Resource resourceConstraint = addSortingAndPaging(request, securityContext, optimizeConstraintChain(parsePath(securityContext, request)));
 			double queryTimeEnd                   = System.nanoTime();
 
 			// create result set
@@ -387,8 +387,8 @@ public class JsonRestServlet extends HttpServlet {
 			response.setContentType("application/json; charset=UTF-8");
 
 			SecurityContext securityContext       = getSecurityContext(request);
-			List<ResourceConstraint> chain        = parsePath(securityContext, request);
-			ResourceConstraint resourceConstraint = optimizeConstraintChain(chain);
+			List<Resource> chain        = parsePath(securityContext, request);
+			Resource resourceConstraint = optimizeConstraintChain(chain);
 			RestMethodResult result               = resourceConstraint.doHead();
 
 			result.commitResponse(gson, response);
@@ -442,8 +442,8 @@ public class JsonRestServlet extends HttpServlet {
 			response.setContentType("application/json; charset=UTF-8");
 
 			SecurityContext securityContext       = getSecurityContext(request);
-			List<ResourceConstraint> chain        = parsePath(securityContext, request);
-			ResourceConstraint resourceConstraint = optimizeConstraintChain(chain);
+			List<Resource> chain        = parsePath(securityContext, request);
+			Resource resourceConstraint = optimizeConstraintChain(chain);
 			RestMethodResult result               = resourceConstraint.doOptions();
 
 			result.commitResponse(gson, response);
@@ -502,8 +502,8 @@ public class JsonRestServlet extends HttpServlet {
 			if (securityContext != null) {
 
 				// evaluate constraint chain
-				List<ResourceConstraint> chain        = parsePath(securityContext, request);
-				ResourceConstraint resourceConstraint = optimizeConstraintChain(chain);
+				List<Resource> chain        = parsePath(securityContext, request);
+				Resource resourceConstraint = optimizeConstraintChain(chain);
 				Map<String, Object> properties        = convertPropertySetToMap(propertySet);
 
 				// do action
@@ -585,8 +585,8 @@ public class JsonRestServlet extends HttpServlet {
 			if (securityContext != null) {
 
 				// evaluate constraint chain
-				List<ResourceConstraint> chain        = parsePath(securityContext, request);
-				ResourceConstraint resourceConstraint = optimizeConstraintChain(chain);
+				List<Resource> chain        = parsePath(securityContext, request);
+				Resource resourceConstraint = optimizeConstraintChain(chain);
 				Map<String, Object> properties        = convertPropertySetToMap(propertySet);
 
 				// do action
@@ -654,7 +654,7 @@ public class JsonRestServlet extends HttpServlet {
 
 	// </editor-fold>
 	// <editor-fold defaultstate="collapsed" desc="private methods">
-	private List<ResourceConstraint> parsePath(SecurityContext securityContext, HttpServletRequest request) throws FrameworkException {
+	private List<Resource> parsePath(SecurityContext securityContext, HttpServletRequest request) throws FrameworkException {
 
 		String path = request.getPathInfo();
 
@@ -669,7 +669,7 @@ public class JsonRestServlet extends HttpServlet {
 		String[] pathParts = path.split("[/]+");
 
 		// 2.: create container for resource constraints
-		List<ResourceConstraint> constraintChain = new ArrayList<ResourceConstraint>(pathParts.length);
+		List<Resource> constraintChain = new ArrayList<Resource>(pathParts.length);
 
 		// 3.: try to assign resource constraints for each URI part
 		for (int i = 0; i < pathParts.length; i++) {
@@ -682,7 +682,7 @@ public class JsonRestServlet extends HttpServlet {
 				boolean found = false;
 
 				// look for matching pattern
-				for (Entry<Pattern, Class> entry : constraintMap.entrySet()) {
+				for (Entry<Pattern, Class> entry : resourceMap.entrySet()) {
 
 					Pattern pattern = entry.getKey();
 					Matcher matcher = pattern.matcher(pathParts[i]);
@@ -694,7 +694,7 @@ public class JsonRestServlet extends HttpServlet {
 							Class type = entry.getValue();
 
 							// instantiate resource constraint
-							ResourceConstraint constraint = (ResourceConstraint) type.newInstance();
+							Resource constraint = (Resource) type.newInstance();
 
 							// set security context
 							constraint.setSecurityContext(securityContext);
@@ -737,9 +737,9 @@ public class JsonRestServlet extends HttpServlet {
 		return constraintChain;
 	}
 
-	private ResourceConstraint optimizeConstraintChain(List<ResourceConstraint> constraintChain) throws FrameworkException {
+	private Resource optimizeConstraintChain(List<Resource> constraintChain) throws FrameworkException {
 
-		ViewFilterConstraint view = null;
+		ViewFilterResource view = null;
 		int num                   = constraintChain.size();
 		boolean found             = false;
 		int iterations            = 0;
@@ -748,15 +748,15 @@ public class JsonRestServlet extends HttpServlet {
 
 			StringBuilder chain = new StringBuilder();
 
-			for(Iterator<ResourceConstraint> it = constraintChain.iterator(); it.hasNext();) {
+			for(Iterator<Resource> it = constraintChain.iterator(); it.hasNext();) {
 				
-				ResourceConstraint constr = it.next();
+				Resource constr = it.next();
 
 				chain.append(constr.getClass().getSimpleName());
 				chain.append(", ");
 				
-				if(constr instanceof ViewFilterConstraint) {
-					view = (ViewFilterConstraint)constr;
+				if(constr instanceof ViewFilterResource) {
+					view = (ViewFilterResource)constr;
 					it.remove();
 				}
 
@@ -769,9 +769,9 @@ public class JsonRestServlet extends HttpServlet {
 			try {
 				
 				for(int i=0; i<num; i++) {
-					ResourceConstraint firstElement       = constraintChain.get(i);
-					ResourceConstraint secondElement      = constraintChain.get(i + 1);
-					ResourceConstraint combinedConstraint = firstElement.tryCombineWith(secondElement);
+					Resource firstElement       = constraintChain.get(i);
+					Resource secondElement      = constraintChain.get(i + 1);
+					Resource combinedConstraint = firstElement.tryCombineWith(secondElement);
 
 					if (combinedConstraint != null) {
 
@@ -787,7 +787,7 @@ public class JsonRestServlet extends HttpServlet {
 						// signal success
 						found = true;
 
-						if (combinedConstraint instanceof RelationshipFollowingConstraint) {
+						if (combinedConstraint instanceof RelationshipFollowingResource) {
 
 							break;
 
@@ -805,7 +805,7 @@ public class JsonRestServlet extends HttpServlet {
 
 		StringBuilder chain = new StringBuilder();
 
-		for (ResourceConstraint constr : constraintChain) {
+		for (Resource constr : constraintChain) {
 
 			chain.append(constr.getClass().getSimpleName());
 			chain.append(", ");
@@ -816,7 +816,7 @@ public class JsonRestServlet extends HttpServlet {
 
 		if (constraintChain.size() == 1) {
 
-			ResourceConstraint finalConstraint = constraintChain.get(0);
+			Resource finalConstraint = constraintChain.get(0);
 			if(view != null) {
 				finalConstraint = finalConstraint.tryCombineWith(view);
 			}
@@ -878,9 +878,9 @@ public class JsonRestServlet extends HttpServlet {
 		}
 	}
 
-	private ResourceConstraint addSortingAndPaging(HttpServletRequest request, SecurityContext securityContext, ResourceConstraint finalConstraint) throws FrameworkException {
+	private Resource addSortingAndPaging(HttpServletRequest request, SecurityContext securityContext, Resource finalConstraint) throws FrameworkException {
 
-		ResourceConstraint pagedSortedConstraint = finalConstraint;
+		Resource pagedSortedConstraint = finalConstraint;
 
 		// sorting
 		String sortKey = request.getParameter(REQUEST_PARAMETER_SORT_KEY);
@@ -896,7 +896,7 @@ public class JsonRestServlet extends HttpServlet {
 			}
 
 			// combine sort constraint
-			pagedSortedConstraint = pagedSortedConstraint.tryCombineWith(new SortConstraint(securityContext, sortKey, sortOrder));
+			pagedSortedConstraint = pagedSortedConstraint.tryCombineWith(new SortResource(securityContext, sortKey, sortOrder));
 
 		}
 
@@ -915,7 +915,7 @@ public class JsonRestServlet extends HttpServlet {
 
 			}
 
-			pagedSortedConstraint = pagedSortedConstraint.tryCombineWith(new PagingConstraint(securityContext, page, pageSize));
+			pagedSortedConstraint = pagedSortedConstraint.tryCombineWith(new PagingResource(securityContext, page, pageSize));
 
 		}
 

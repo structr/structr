@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.structr.rest.constraint;
+package org.structr.rest.resource;
 
 import org.structr.common.error.FrameworkException;
 
@@ -13,13 +13,13 @@ import org.structr.common.error.FrameworkException;
  *
  * @author Christian Morgner
  */
-public abstract class SortableConstraint extends PageableConstraint {
+public abstract class PageableResource extends FilterableResource {
 
 	@Override
-	public ResourceConstraint tryCombineWith(ResourceConstraint next) throws FrameworkException {
+	public Resource tryCombineWith(Resource next) throws FrameworkException {
 
-		if(next instanceof SortConstraint) {
-			((SortConstraint)next).wrapConstraint(this);
+		if(next instanceof PagingResource) {
+			((PagingResource)next).wrapResource(this);
 			return next;
 		}
 

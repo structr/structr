@@ -3,7 +3,7 @@
 * To change this template, choose Tools | Templates
 * and open the template in the editor.
  */
-package org.structr.rest.constraint;
+package org.structr.rest.resource;
 
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.SecurityContext;
@@ -43,9 +43,9 @@ import org.structr.core.entity.DirectedRelationship;
  *
  * @author Christian Morgner
  */
-public abstract class ResourceConstraint {
+public abstract class Resource {
 
-	private static final Logger logger = Logger.getLogger(ResourceConstraint.class.getName());
+	private static final Logger logger = Logger.getLogger(Resource.class.getName());
 
 	//~--- fields ---------------------------------------------------------
 
@@ -64,7 +64,7 @@ public abstract class ResourceConstraint {
 
 	public abstract RestMethodResult doOptions() throws FrameworkException;
 
-	public abstract ResourceConstraint tryCombineWith(ResourceConstraint next) throws FrameworkException;
+	public abstract Resource tryCombineWith(Resource next) throws FrameworkException;
 
 	// ----- methods -----
 	public RestMethodResult doDelete() throws FrameworkException {
@@ -162,19 +162,19 @@ public abstract class ResourceConstraint {
 	}
 
 	// ----- protected methods -----
-	protected DirectedRelationship findDirectedRelationship(TypedIdConstraint constraint1, TypeConstraint constraint2) {
-		return findDirectedRelationship(constraint1.getTypeConstraint(), constraint2);
+	protected DirectedRelationship findDirectedRelationship(TypedIdResource constraint1, TypeResource constraint2) {
+		return findDirectedRelationship(constraint1.getTypeResource(), constraint2);
 	}
 
-	protected DirectedRelationship findDirectedRelationship(TypeConstraint constraint1, TypedIdConstraint constraint2) {
-		return findDirectedRelationship(constraint1, constraint2.getTypeConstraint());
+	protected DirectedRelationship findDirectedRelationship(TypeResource constraint1, TypedIdResource constraint2) {
+		return findDirectedRelationship(constraint1, constraint2.getTypeResource());
 	}
 
-	protected DirectedRelationship findDirectedRelationship(TypedIdConstraint constraint1, TypedIdConstraint constraint2) {
-		return findDirectedRelationship(constraint1.getTypeConstraint(), constraint2.getTypeConstraint());
+	protected DirectedRelationship findDirectedRelationship(TypedIdResource constraint1, TypedIdResource constraint2) {
+		return findDirectedRelationship(constraint1.getTypeResource(), constraint2.getTypeResource());
 	}
 
-	protected DirectedRelationship findDirectedRelationship(TypeConstraint constraint1, TypeConstraint constraint2) {
+	protected DirectedRelationship findDirectedRelationship(TypeResource constraint1, TypeResource constraint2) {
 
 		String type1             = constraint1.getRawType();
 		String type2             = constraint2.getRawType();

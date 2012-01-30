@@ -14,8 +14,8 @@
             <param-value>FlatNameValue</param-value>
         </init-param>
         <init-param>
-            <param-name>ConstraintProvider</param-name>
-            <param-value>org.structr.rest.constraint.StructrConstraintProvider</param-value>
+            <param-name>ResourceProvider</param-name>
+            <param-value>org.structr.rest.resource.StructrResourceProvider</param-value>
         </init-param>
         <init-param>
             <param-name>Authenticator</param-name>
