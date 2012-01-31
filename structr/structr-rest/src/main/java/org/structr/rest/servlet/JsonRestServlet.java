@@ -706,6 +706,7 @@ public class JsonRestServlet extends HttpServlet {
 
 								// allow constraint to modify context
 								constraint.configurePropertyView(propertyView);
+								constraint.configureIdProperty(defaultIdProperty);
 
 								// add constraint and go on
 								constraintChain.add(constraint);
