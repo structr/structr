@@ -35,6 +35,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.Value;
 import org.structr.rest.resource.Result;
 import org.structr.core.PropertySet.PropertyFormat;
+import org.structr.core.entity.AbstractNode;
 
 /**
  * Controls deserialization of property sets.
@@ -90,6 +91,19 @@ public class ResultGSONAdapter implements JsonSerializer<Result>, JsonDeserializ
 			if(results.isEmpty()) {
 
 				result.add("result", new JsonArray());
+
+			} else if(src.isPrimitiveArray()) {
+
+				JsonArray resultArray = new JsonArray();
+				for(GraphObject graphObject : results) {
+					Object value = graphObject.getProperty(AbstractNode.Key.uuid.name());	// FIXME: UUID key hard-coded, use variable in Result here!
+					if(value != null) {
+						resultArray.add(new JsonPrimitive(value.toString()));
+					}
+				}
+
+				result.add("result", resultArray);
+
 
 			} else {
 
