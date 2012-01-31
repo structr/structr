@@ -295,7 +295,7 @@ public class StaticRelationshipResource extends SortableResource {
 								} else {
 
 									// Remove id from set because there's already an existing relationship
-									propertySet.remove(id);
+									propertySet.values().remove(id);
 								}
 
 							}
