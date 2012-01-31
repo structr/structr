@@ -80,7 +80,7 @@ public class RestMethodResult {
 			if(content != null) {
 
 				// create result set
-				Result result = new Result(this.content, this.content.size() > 1);
+				Result result = new Result(this.content, this.content.size() > 1, false);
 
 				// serialize result set
 				gson.toJson(result, writer);

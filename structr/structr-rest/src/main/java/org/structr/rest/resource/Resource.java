@@ -161,6 +161,10 @@ public abstract class Resource {
 		this.idProperty = idProperty;
 	}
 
+	public boolean isPrimitiveArray() {
+		return false;
+	}
+
 	// ----- protected methods -----
 	protected DirectedRelationship findDirectedRelationship(TypedIdResource constraint1, TypeResource constraint2) {
 		return findDirectedRelationship(constraint1.getTypeResource(), constraint2);

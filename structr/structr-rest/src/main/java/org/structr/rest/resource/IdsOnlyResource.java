@@ -35,7 +35,7 @@ import org.structr.rest.exception.IllegalPathException;
  *
  * @author Christian Morgner
  */
-public class IdsOnlyResource extends WrappingResource {
+public class IdsOnlyResource extends ViewFilterResource {
 
 	private static final Logger logger = Logger.getLogger(IdsOnlyResource.class.getName());
 
@@ -47,18 +47,16 @@ public class IdsOnlyResource extends WrappingResource {
 
 	@Override
 	public List<? extends GraphObject> doGet() throws FrameworkException {
+
 		if(wrappedResource != null) {
 			return wrappedResource.doGet();
 		}
+
 		throw new IllegalPathException();
 	}
 
 	@Override
 	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
-
-		for(Object o : propertySet.values()) {
-			logger.log(Level.INFO, "Property Set contains value {0}", o);
-		}
 
 		if(wrappedResource != null) {
 			return wrappedResource.doPost(propertySet);
@@ -99,6 +97,11 @@ public class IdsOnlyResource extends WrappingResource {
 
 	@Override
 	public boolean isCollectionResource() {
+		return true;
+	}
+
+	@Override
+	public boolean isPrimitiveArray() {
 		return true;
 	}
 

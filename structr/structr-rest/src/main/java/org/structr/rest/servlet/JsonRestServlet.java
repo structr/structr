@@ -304,12 +304,12 @@ public class JsonRestServlet extends HttpServlet {
 			propertyView.set(defaultPropertyView);
 
 			// evaluate constraints and measure query time
-			double queryTimeStart                 = System.nanoTime();
-			Resource resourceConstraint = addSortingAndPaging(request, securityContext, optimizeConstraintChain(parsePath(securityContext, request)));
-			double queryTimeEnd                   = System.nanoTime();
+			double queryTimeStart = System.nanoTime();
+			Resource resource     = addSortingAndPaging(request, securityContext, optimizeConstraintChain(parsePath(securityContext, request)));
+			double queryTimeEnd   = System.nanoTime();
 
 			// create result set
-			Result result = new Result(resourceConstraint.doGet(), resourceConstraint.isCollectionResource());
+			Result result = new Result(resource.doGet(), resource.isCollectionResource(), resource.isPrimitiveArray());
 
 			if (result != null) {
 

@@ -18,6 +18,7 @@ public class Result {
 
 	private List<? extends GraphObject> results = null;
 	private boolean isCollectionResource = false;
+	private boolean isPrimitiveArray = false;
 	private PropertyView propertyView = null;
 
 	private String searchString = null;
@@ -30,8 +31,9 @@ public class Result {
 	private Integer pageSize = null;
 	private Integer page = null;
 
-	public Result(List<? extends GraphObject> listResult, boolean isCollectionResource) {
+	public Result(List<? extends GraphObject> listResult, boolean isCollectionResource, boolean isPrimitiveArray) {
 		this.isCollectionResource = isCollectionResource;
+		this.isPrimitiveArray = isPrimitiveArray;
 		this.results = listResult;
 	}
 
@@ -117,5 +119,9 @@ public class Result {
 
 	public boolean isCollectionResource() {
 		return isCollectionResource;
+	}
+
+	public boolean isPrimitiveArray() {
+		return isPrimitiveArray;
 	}
 }
