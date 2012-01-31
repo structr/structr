@@ -21,18 +21,25 @@
 
 package org.structr.rest.resource;
 
+import org.structr.common.CaseHelper;
 import org.structr.common.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.TypeToken;
 import org.structr.core.*;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.DirectedRelationship;
 import org.structr.core.entity.StructrRelationship;
+import org.structr.core.node.FindNodeCommand;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
+import org.structr.core.node.search.Search;
+import org.structr.core.node.search.SearchAttribute;
+import org.structr.core.node.search.SearchNodeCommand;
 import org.structr.core.notion.Notion;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
+import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.exception.SystemException;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -47,7 +54,6 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.structr.common.CaseHelper;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -68,7 +74,7 @@ public class StaticRelationshipResource extends SortableResource {
 
 	public StaticRelationshipResource(SecurityContext securityContext, TypedIdResource typedIdResource, TypeResource typeResource) {
 
-		this.securityContext   = securityContext;
+		this.securityContext = securityContext;
 		this.typedIdResource = typedIdResource;
 		this.typeResource    = typeResource;
 	}
@@ -110,8 +116,9 @@ public class StaticRelationshipResource extends SortableResource {
 				// we need to use the raw type of the second type constraint
 				// as the property key for getProperty
 				// look for a property converter for the given type and key
-				Class type                  = sourceNode.getClass();
-				//String key                  = typeResource.getRawType();
+				Class type = sourceNode.getClass();
+
+				// String key                  = typeResource.getRawType();
 				String key                  = CaseHelper.toLowerCamelCase(typeResource.getRawType());
 				PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
 
@@ -233,10 +240,101 @@ public class StaticRelationshipResource extends SortableResource {
 	@Override
 	public RestMethodResult doPut(final Map<String, Object> propertySet) throws FrameworkException {
 
-		// in this case, PUT is just the concatenation of DELETE and POST
-		doDelete();
+		List<GraphObject> results = typedIdResource.doGet();
+		final Command searchNode        = Services.command(securityContext, SearchNodeCommand.class);
 
-		return doPost(propertySet);
+		if (results != null) {
+
+			// fetch static relationship definition
+			final DirectedRelationship staticRel = findDirectedRelationship(typedIdResource, typeResource);
+
+			if (staticRel != null) {
+
+				final AbstractNode startNode = typedIdResource.getTypesafeNode();
+
+				if (startNode != null) {
+
+					if (EntityContext.isReadOnlyProperty(startNode.getClass(), typeResource.getRawType())) {
+
+						logger.log(Level.INFO, "Read-only property on {1}: {0}", new Object[] { startNode.getClass(), typeResource.getRawType() });
+
+						return new RestMethodResult(HttpServletResponse.SC_FORBIDDEN);
+
+					}
+
+					final List<StructrRelationship> rels = startNode.getRelationships(staticRel.getRelType(), staticRel.getDirection());
+					StructrTransaction transaction       = new StructrTransaction() {
+
+						@Override
+						public Object execute() throws FrameworkException {
+
+							for (StructrRelationship rel : rels) {
+
+								AbstractNode otherNode = rel.getOtherNode(startNode);
+								String id              = otherNode.getStringProperty(AbstractNode.Key.uuid.name());
+
+								// Delete relationship only if not contained in property set
+								if (!propertySet.containsValue(id)) {
+
+									rel.delete(securityContext);
+
+								} else {
+
+									// Remove id from set because there's already an existing relationship
+									propertySet.remove(id);
+								}
+
+							}
+
+							// Now add new relationships for any new id: This should be the rest of the property set
+							for (Object obj : propertySet.values()) {
+
+								String uuid = (String) obj;
+
+								List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
+
+								attrs.add(Search.andExactUuid(uuid));
+
+								List<AbstractNode> results = (List<AbstractNode>) searchNode.execute(null, false, false, attrs);
+
+								if (results.isEmpty()) {
+
+									throw new NotFoundException();
+
+								}
+
+								if (results.size() > 1) {
+
+									throw new SystemException("More than one result found for uuid " + uuid + "!");
+
+								}
+
+								AbstractNode targetNode = (AbstractNode) results.get(0);
+								String type             = EntityContext.normalizeEntityName(typeResource.getRawType());
+
+								if (!type.equals(targetNode.getType())) {
+
+									throw new FrameworkException(startNode.getType(), new TypeToken(uuid, type));
+
+								}
+
+								staticRel.createRelationship(securityContext, startNode, targetNode);
+
+							}
+
+							return null;
+						}
+					};
+
+					// execute transaction
+					Services.command(securityContext, TransactionCommand.class).execute(transaction);
+
+				}
+
+			}
+		}
+
+		return new RestMethodResult(HttpServletResponse.SC_OK);
 	}
 
 	@Override
