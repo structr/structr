@@ -30,7 +30,6 @@ import org.structr.core.*;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.DirectedRelationship;
 import org.structr.core.entity.StructrRelationship;
-import org.structr.core.node.FindNodeCommand;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 import org.structr.core.node.search.Search;
@@ -54,6 +53,7 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.collections.ListUtils;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -101,10 +101,24 @@ public class StaticRelationshipResource extends SortableResource {
 
 					List<AbstractNode> relatedNodes = staticRel.getRelatedNodes(securityContext, sourceNode);
 
-					if (!relatedNodes.isEmpty()) {
+					// check for search keys in request first..
+					List<SearchAttribute> dummyList = new LinkedList<SearchAttribute>();
+					if(typeResource.hasSearchableAttributes(dummyList)) {
 
+						// use result list of doGet from typeResource and intersect with relatedNodes list.
+						List<GraphObject> typeNodes    = typeResource.doGet();
+
+						List intersection = ListUtils.intersection(relatedNodes, typeNodes);
+						if (!intersection.isEmpty()) {
+
+							return intersection;
+
+						}
+					}
+
+					// return non-empty list
+					if(!relatedNodes.isEmpty()) {
 						return relatedNodes;
-
 					}
 
 					// do not return empty collection here, try getProperty

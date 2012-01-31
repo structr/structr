@@ -855,30 +855,6 @@ public class JsonRestServlet extends HttpServlet {
 		return propertyFormat;
 	}
 
-	private void handleValidationError(IllegalArgumentException illegalArgumentException, HttpServletResponse response) {
-
-		// illegal state exception, return error
-		StringBuilder errorBuffer = new StringBuilder(100);
-
-		errorBuffer.append(illegalArgumentException.getMessage());
-
-		final int code = HttpServletResponse.SC_BAD_REQUEST;
-
-		// send response
-		response.setStatus(code);
-		response.setContentType("application/json; charset=UTF-8");
-
-		try {
-
-			response.getWriter().append(jsonError(code, errorBuffer.toString()));
-			response.getWriter().flush();
-			response.getWriter().close();
-
-		} catch (Throwable t) {
-			logger.log(Level.WARNING, "Unable to commit response", t);
-		}
-	}
-
 	private Resource addSortingAndPaging(HttpServletRequest request, SecurityContext securityContext, Resource finalConstraint) throws FrameworkException {
 
 		Resource pagedSortedConstraint = finalConstraint;
