@@ -126,8 +126,8 @@ public class DirectedRelationship {
 						{
 							String destType = finalTargetNode.getType();
 
-							// delete previous incoming relationships to nodes of the same destination type
-							List<StructrRelationship> rels = sourceNode.getRelationships(relType, Direction.INCOMING);
+							// delete previous relationships to nodes of the same destination type and direction
+							List<StructrRelationship> rels = sourceNode.getRelationships(relType, direction);
 
 							for (StructrRelationship rel : rels) {
 
