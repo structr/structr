@@ -85,7 +85,7 @@ public class StaticRelationshipResource extends SortableResource {
 	public List<? extends GraphObject> doGet() throws FrameworkException {
 
 		// fetch results from typedIdResource (should be a single node)
-		List<GraphObject> results = typedIdResource.doGet();
+		List<? extends GraphObject> results = typedIdResource.doGet();
 
 		if (results != null) {
 
@@ -132,8 +132,8 @@ public class StaticRelationshipResource extends SortableResource {
 				// look for a property converter for the given type and key
 				Class type = sourceNode.getClass();
 
-				// String key                  = typeResource.getRawType();
-				String key                  = CaseHelper.toLowerCamelCase(typeResource.getRawType());
+				String key                  = typeResource.getRawType();
+				//String key                  = CaseHelper.toLowerCamelCase(typeResource.getRawType());
 				PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
 
 				if (converter != null) {
@@ -185,6 +185,7 @@ public class StaticRelationshipResource extends SortableResource {
 
 							return propertyListResult;
 						}
+
 					} else {
 
 						logger.log(Level.SEVERE, msg);
