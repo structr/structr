@@ -71,19 +71,19 @@ public class ResultGSONAdapter implements JsonSerializer<Result>, JsonDeserializ
 		}
 
 		if(pageCount != null) {
-			result.add("pageCount", new JsonPrimitive(pageCount));
+			result.add("page_count", new JsonPrimitive(pageCount));
 		}
 
 		if(pageSize != null) {
-			result.add("pageSize", new JsonPrimitive(pageSize));
+			result.add("page_size", new JsonPrimitive(pageSize));
 		}
 
 		if(queryTime != null) {
-			result.add("queryTime", new JsonPrimitive(queryTime));
+			result.add("query_time", new JsonPrimitive(queryTime));
 		}
 
 		if(resultCount != null) {
-			result.add("resultCount", new JsonPrimitive(resultCount));
+			result.add("result_count", new JsonPrimitive(resultCount));
 		}
 
 		if(results != null) {
@@ -130,15 +130,15 @@ public class ResultGSONAdapter implements JsonSerializer<Result>, JsonDeserializ
 		}
 
 		if(searchString != null) {
-			result.add("searchString", new JsonPrimitive(searchString));
+			result.add("search_string", new JsonPrimitive(searchString));
 		}
 
 		if(sortKey != null) {
-			result.add("sortKey", new JsonPrimitive(sortKey));
+			result.add("sort_key", new JsonPrimitive(sortKey));
 		}
 
 		if(sortOrder != null) {
-			result.add("sortOrder", new JsonPrimitive(sortOrder));
+			result.add("sort_order", new JsonPrimitive(sortOrder));
 		}
 
 
