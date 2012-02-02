@@ -19,33 +19,28 @@
 
 package org.structr.common;
 
-import java.util.UUID;
-import org.apache.commons.lang.StringUtils;
-import org.structr.common.error.FrameworkException;
+import org.structr.core.Transformation;
 import org.structr.core.entity.AbstractNode;
 
 /**
  *
- * @author Christian Morgner
+ * @author Axel Morgner
  */
-public class UuidCreationTransformation extends AbstractNodeTransformation {
+public abstract class AbstractNodeTransformation implements Comparable, Transformation<AbstractNode> {
 
 	@Override
-	public void apply(SecurityContext securityContext, AbstractNode obj) throws FrameworkException {
-
-		// create uuid if not set
-		String uuid = (String)obj.getProperty(AbstractNode.Key.uuid.name());
-		if(StringUtils.isBlank(uuid)) {
-			synchronized(obj) {
-				obj.setProperty(AbstractNode.Key.uuid.name(), UUID.randomUUID().toString().replaceAll("[\\-]+", ""));
-			}
+	public int compareTo(Object t) {
+		if (t == null || !(t instanceof Transformation)) {
+			return -1;
 		}
-	}
+
+		return ((Integer) this.getOrder()).compareTo(
+			(Integer) (((Transformation) t).getOrder())
+			);
+	}	
 
 	@Override
 	public int getOrder() {
-		
-		// first
-		return 0;
+		return 10;
 	}
 }
