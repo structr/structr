@@ -132,8 +132,8 @@ public class StaticRelationshipResource extends SortableResource {
 				// look for a property converter for the given type and key
 				Class type = sourceNode.getClass();
 
-				//String key                  = typeResource.getRawType();
-				String key                  = CaseHelper.toLowerCamelCase(typeResource.getRawType());
+				String key                  = typeResource.getRawType();
+				//String key                  = CaseHelper.toLowerCamelCase(typeResource.getRawType());
 				PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
 
 				if (converter != null) {
