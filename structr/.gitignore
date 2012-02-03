@@ -2,3 +2,10 @@
 .project
 .classpath
 target
+structr-ui/webapps
+structr-ui/db
+structr-ui/files
+structr-ui/modules
+structr-ui/jsp
+structr-ui/logs
+structr-ui/structr.conf
