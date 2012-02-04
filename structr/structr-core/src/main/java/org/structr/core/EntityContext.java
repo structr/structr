@@ -282,7 +282,7 @@ public class EntityContext {
 
 			}
 
-			logger.log(Level.INFO, "String {0} normalized to {1}", new Object[] { possibleEntityName, normalizedType });
+			// logger.log(Level.INFO, "String {0} normalized to {1}", new Object[] { possibleEntityName, normalizedType });
 			normalizedEntityNameCache.put(possibleEntityName, normalizedType);
 
 		}
