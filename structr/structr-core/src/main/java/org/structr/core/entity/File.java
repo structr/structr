@@ -64,14 +64,15 @@ public class File extends AbstractNode {
 
 	static {
 
+		EntityContext.registerEntityRelation(File.class, Folder.class, RelType.HAS_CHILD, Direction.INCOMING, Cardinality.ManyToOne);
 		EntityContext.registerPropertySet(File.class, PropertyView.All, Key.values());
-		EntityContext.registerPropertyRelation(File.class, Key.parentFolder, Folder.class, RelType.HAS_CHILD, Direction.INCOMING, Cardinality.ManyToOne);
+//		EntityContext.registerPropertyRelation(File.class, Key.parentFolder, Folder.class, RelType.HAS_CHILD, Direction.INCOMING, Cardinality.ManyToOne);
 
 	}
 
 	//~--- constant enums -------------------------------------------------
 
-	public enum Key implements PropertyKey{ contentType, relativeFilePath, size, url, parentFolder; }
+	public enum Key implements PropertyKey{ contentType, relativeFilePath, size, url, folder }
 
 	//~--- methods --------------------------------------------------------
 

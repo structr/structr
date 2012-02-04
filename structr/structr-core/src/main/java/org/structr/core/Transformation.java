@@ -12,4 +12,6 @@ import org.structr.common.error.FrameworkException;
 
 public interface Transformation<T> {
 	public void apply(SecurityContext securityContext, T obj) throws FrameworkException;
+	public int getOrder();
+	
 }

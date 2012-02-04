@@ -21,6 +21,7 @@
 
 package org.structr.core;
 
+import java.util.*;
 import org.apache.commons.lang.StringUtils;
 
 import org.neo4j.graphdb.Direction;
@@ -46,11 +47,6 @@ import org.structr.core.notion.ObjectNotion;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.error.FrameworkException;
@@ -317,7 +313,7 @@ public class EntityContext {
 
 	public static Set<Transformation<AbstractNode>> getPostCreationTransformations(Class type) {
 
-		Set<Transformation<AbstractNode>> transformations = new LinkedHashSet<Transformation<AbstractNode>>();
+		Set<Transformation<AbstractNode>> transformations = new TreeSet<Transformation<AbstractNode>>();
 		Class localType                                   = type;
 
 		// collect for all superclasses
@@ -329,6 +325,7 @@ public class EntityContext {
 
 		}
 
+//		return new TreeSet<Transformation<AbstractNode>>(transformations).descendingSet();
 		return transformations;
 	}
 
