@@ -325,7 +325,8 @@ public class StaticRelationshipResource extends SortableResource {
 								}
 
 								AbstractNode targetNode = (AbstractNode) results.get(0);
-								String type             = EntityContext.normalizeEntityName(typeResource.getRawType());
+//								String type             = EntityContext.normalizeEntityName(typeResource.getRawType());
+								String type             = staticRel.getDestType();
 
 								if (!type.equals(targetNode.getType())) {
 
