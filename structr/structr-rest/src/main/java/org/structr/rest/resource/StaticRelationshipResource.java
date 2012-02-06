@@ -379,7 +379,8 @@ public class StaticRelationshipResource extends SortableResource {
 					Notion notion                  = rel.getNotion();
 					PropertyKey primaryPropertyKey = notion.getPrimaryPropertyKey();
 
-					if ((primaryPropertyKey != null) && propertySet.containsKey(primaryPropertyKey.name())) {
+					// apply notion if the property set contains the ID property as the only element
+					if ((primaryPropertyKey != null) && (propertySet.containsKey(primaryPropertyKey.name()) && propertySet.size() == 1)) {
 
 						// the notion that is defined for this relationship can deserialize
 						// objects with a single key (uuid for example), and the POSTed
