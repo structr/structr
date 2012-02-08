@@ -173,7 +173,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.uuid.name(), Key.uuid);
 
 		// register transformation for automatic uuid creation
-		EntityContext.registerPostCreationTransformation(AbstractNode.class, new UuidCreationTransformation());
+		EntityContext.registerEntityCreationTransformation(AbstractNode.class, new UuidCreationTransformation());
 
 	}
 

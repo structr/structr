@@ -158,7 +158,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 			node.onNodeCreation();
 			
 			// iterate post creation transformations
-			for(Transformation<AbstractNode> transformation : EntityContext.getPostCreationTransformations(node.getClass())) {
+			for(Transformation<AbstractNode> transformation : EntityContext.getEntityCreationTransformations(node.getClass())) {
 				transformation.apply(securityContext, node);
 			}
 

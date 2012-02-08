@@ -77,8 +77,8 @@ public class AgentService extends Thread implements RunnableService {
 
 		synchronized (taskQueue) {
 
-			logger.log(Level.INFO, "Task {0} added to task queue", task);
 			taskQueue.add(task);
+			logger.log(Level.FINE, "Task {0} added to task queue", task);
 		}
 	}
 
@@ -115,12 +115,12 @@ public class AgentService extends Thread implements RunnableService {
 				if (nextTask != null) {
 					assignNextAgentForTask(nextTask);
 				}
-
-				// sleep a bit waiting for tasks..
-				try {
-					Thread.sleep(10);
-				} catch (Exception ex) {}
 			}
+
+			// sleep a bit waiting for tasks..
+			try {
+				Thread.sleep(10);
+			} catch (Exception ex) {}
 		}
 	}
 
@@ -189,7 +189,7 @@ public class AgentService extends Thread implements RunnableService {
 				if (agent.assignTask(nextTask)) {
 
 					// ok, task is assigned
-					logger.log(Level.INFO, "Task assigned to agent {0}", agent.getName());
+					logger.log(Level.FINE, "Task assigned to agent {0}", agent.getName());
 
 					return;
 				}
