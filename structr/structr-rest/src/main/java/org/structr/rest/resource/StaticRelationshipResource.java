@@ -286,10 +286,13 @@ public class StaticRelationshipResource extends SortableResource {
 							for (StructrRelationship rel : rels) {
 
 								AbstractNode otherNode = rel.getOtherNode(startNode);
+								String otherNodeType   = otherNode.getType();
 								String id              = otherNode.getStringProperty(AbstractNode.Key.uuid.name());
 
 								// Delete relationship only if not contained in property set
-								if (!propertySet.containsValue(id)) {
+								// check type of other node as well, there can be relationships
+								// of the same type to more than one destTypes!
+								if (staticRel.getDestType().equals(otherNodeType) && !propertySet.containsValue(id)) {
 
 									rel.delete(securityContext);
 
