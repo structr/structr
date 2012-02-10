@@ -74,13 +74,15 @@ public class EntityContext {
 	private static final Map<Class, Set<String>> globalReadOnlyPropertyMap                                                 = new LinkedHashMap<Class, Set<String>>();
 	private static final Map<String, String> normalizedEntityNameCache                                                     = new LinkedHashMap<String, String>();
 	private static final Set<VetoableGraphObjectListener> modificationListeners                                            = new LinkedHashSet<VetoableGraphObjectListener>();
-	private static final Map<Thread, Long> transactionKeyMap                                                               = new LinkedHashMap<Thread, Long>();
 	private static final Map<Long, FrameworkException> exceptionMap                                                        = new LinkedHashMap<Long, FrameworkException>();
 	private static final Logger logger                                                                                     = Logger.getLogger(EntityContext.class.getName());
 
 	private static final Map<String, Set<Transformation<StructrRelationship>>> globalRelationshipCreationTransformationMap = new LinkedHashMap<String, Set<Transformation<StructrRelationship>>>();
 	private static final Map<Class, Set<Transformation<AbstractNode>>> globalEntityCreationTransformationMap               = new LinkedHashMap<Class, Set<Transformation<AbstractNode>>>();
 	private static final EntityContextModificationListener globalModificationListener                                      = new EntityContextModificationListener();
+
+	private static final Map<Thread, SecurityContext> securityContextMap                                                   = Collections.synchronizedMap(new WeakHashMap<Thread, SecurityContext>());
+	private static final Map<Thread, Long> transactionKeyMap                                                               = Collections.synchronizedMap(new WeakHashMap<Thread, Long>());
 
 	//~--- methods --------------------------------------------------------
 
@@ -726,6 +728,14 @@ public class EntityContext {
 
 	//~--- set methods ----------------------------------------------------
 
+	public static synchronized void setSecurityContext(SecurityContext securityContext) {
+		securityContextMap.put(Thread.currentThread(), securityContext);
+	}
+
+	public static synchronized void removeSecurityContext() {
+		securityContextMap.remove(Thread.currentThread());
+	}
+
 	public static synchronized void setTransactionKey(Long transactionKey) {
 		transactionKeyMap.put(Thread.currentThread(), transactionKey);
 	}
@@ -740,7 +750,8 @@ public class EntityContext {
 		@Override
 		public Long beforeCommit(TransactionData data) throws Exception {
 			
-			Command indexCommand = Services.command(SecurityContext.getSuperUserInstance(), IndexNodeCommand.class);
+			Command indexCommand            = Services.command(SecurityContext.getSuperUserInstance(), IndexNodeCommand.class);
+			SecurityContext securityContext = securityContextMap.get(Thread.currentThread());
 
 			long transactionKey = transactionKeyMap.get(Thread.currentThread());
 
@@ -749,7 +760,6 @@ public class EntityContext {
 				ErrorBuffer errorBuffer                          = new ErrorBuffer();
 				boolean hasError                                 = false;
 				Map<Node, Map<String, Object>> removedProperties = new LinkedHashMap<Node, Map<String, Object>>();
-				SecurityContext securityContext                  = SecurityContext.getSuperUserInstance();
 				StructrNodeFactory factory                       = new StructrNodeFactory(securityContext);
 				Set<AbstractNode> modifiedNodes                  = new LinkedHashSet<AbstractNode>();
 				Set<AbstractNode> createdNodes                   = new LinkedHashSet<AbstractNode>();
@@ -875,7 +885,7 @@ public class EntityContext {
 		@Override
 		public void afterCommit(TransactionData data, Long transactionKey) {
 
-			SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+			SecurityContext securityContext = securityContextMap.get(Thread.currentThread());
 
 			// call RelationshipCreation
 			for(Relationship rel : data.createdRelationships()) {

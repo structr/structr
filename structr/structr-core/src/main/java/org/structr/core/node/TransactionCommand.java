@@ -78,6 +78,7 @@ public class TransactionCommand extends NodeServiceCommand {
 				} finally {
 
 					long transactionKey = nextLong();
+					EntityContext.setSecurityContext(securityContext);
 					EntityContext.setTransactionKey(transactionKey);
 
 					try {
@@ -86,8 +87,9 @@ public class TransactionCommand extends NodeServiceCommand {
 
 						// transaction failed, look for "real" cause..
 						exception = EntityContext.getFrameworkException(transactionKey);
-						EntityContext.removeTransactionKey();
 					}
+					EntityContext.removeTransactionKey();
+					EntityContext.removeSecurityContext();
 				}
 
 			}
