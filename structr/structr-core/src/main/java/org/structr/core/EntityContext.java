@@ -750,8 +750,8 @@ public class EntityContext {
 		@Override
 		public Long beforeCommit(TransactionData data) throws Exception {
 			
-			Command indexCommand            = Services.command(SecurityContext.getSuperUserInstance(), IndexNodeCommand.class);
 			SecurityContext securityContext = securityContextMap.get(Thread.currentThread());
+			Command indexCommand            = Services.command(securityContext, IndexNodeCommand.class);
 
 			long transactionKey = transactionKeyMap.get(Thread.currentThread());
 
@@ -897,10 +897,10 @@ public class EntityContext {
 				if(transformations != null) {
 
 					for(Transformation<StructrRelationship> transformation : transformations) {
-						StructrRelationship strucrtRelationship = new StructrRelationship(securityContext, rel);
+						StructrRelationship structrRelationship = new StructrRelationship(securityContext, rel);
 
 						try {
-							transformation.apply(securityContext, strucrtRelationship);
+							transformation.apply(securityContext, structrRelationship);
 
 						} catch(FrameworkException fex) {
 							logger.log(Level.WARNING, "Unable to execute relationship creation transformation", fex);

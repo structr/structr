@@ -22,6 +22,9 @@
 package org.structr.core.node;
 
 
+import java.util.Collections;
+import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
@@ -30,6 +33,8 @@ import org.neo4j.graphdb.Transaction;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.lang.StringUtils;
+import org.neo4j.kernel.DeadlockDetectedException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 
@@ -41,8 +46,11 @@ import org.structr.core.EntityContext;
  */
 public class TransactionCommand extends NodeServiceCommand {
 
-	private static final Logger logger = Logger.getLogger(TransactionCommand.class.getName());
 	private static final AtomicLong transactionCounter = new AtomicLong(0);
+	private static final Logger logger                 = Logger.getLogger(TransactionCommand.class.getName());
+	private static final boolean threadDebugging       = false;
+
+	private static final Map<Thread, Integer> indents = Collections.synchronizedMap(new WeakHashMap<Thread, Integer>());
 
 	//~--- methods --------------------------------------------------------
 
@@ -57,6 +65,21 @@ public class TransactionCommand extends NodeServiceCommand {
 
 			StructrTransaction transaction = (StructrTransaction) parameters[0];
 			if (graphDb != null) {
+
+				if(threadDebugging) {
+					synchronized(TransactionCommand.class) {
+
+						int indent = getIndent();
+
+						System.out.print("################################# ");
+						System.out.print(StringUtils.leftPad(new Long(Thread.currentThread().getId()).toString(), 5));
+						System.out.print(" ");
+						for(int i=0; i<indent; i++) System.out.print("  ");
+						System.out.println("Starting  transaction " + transaction.toString() + " at " + System.currentTimeMillis());
+
+						incIndent();
+					}
+				}
 
 				Transaction tx = graphDb.beginTx();
 
@@ -75,6 +98,16 @@ public class TransactionCommand extends NodeServiceCommand {
 					// store exception for later use
 					exception = frameworkException;
 
+				} catch(DeadlockDetectedException ddex) {
+					
+					tx.failure();
+
+					logger.log(Level.SEVERE, "Neo4j detected a deadlock, enable thread debugging here and try to modify entity/relationship creation order!", ddex.getMessage());
+
+					/*
+					 * Maybe the transaction can be restarted here
+					 */
+
 				} finally {
 
 					long transactionKey = nextLong();
@@ -92,6 +125,20 @@ public class TransactionCommand extends NodeServiceCommand {
 					EntityContext.removeSecurityContext();
 				}
 
+				if(threadDebugging) {
+					synchronized(TransactionCommand.class) {
+
+						decIndent();
+
+						int indent = getIndent();
+
+						System.out.print("################################# ");
+						System.out.print(StringUtils.leftPad(new Long(Thread.currentThread().getId()).toString(), 5));
+						System.out.print(" ");
+						for(int i=0; i<indent; i++) System.out.print("  ");
+						System.out.println("Finishing transaction " + transaction.toString() + " at " + System.currentTimeMillis());
+					}
+				}
 			}
 
 		} else if ((parameters.length > 0) && (parameters[0] instanceof BatchTransaction)) {
@@ -140,5 +187,36 @@ public class TransactionCommand extends NodeServiceCommand {
 
 	private long nextLong() {
 		return transactionCounter.incrementAndGet();
+	}
+
+	private synchronized void incIndent() {
+
+		Integer val = indents.get(Thread.currentThread());
+		if(val == null) {
+			val = new Integer(0);
+		}
+
+		indents.put(Thread.currentThread(), new Integer(val.intValue() + 1));
+	}
+
+	private synchronized void decIndent() {
+
+		Integer val = indents.get(Thread.currentThread());
+		if(val == null) {
+			val = new Integer(0);
+		}
+
+		indents.put(Thread.currentThread(), new Integer(val.intValue() - 1));
+
+	}
+
+	private synchronized int getIndent() {
+
+		Integer val = indents.get(Thread.currentThread());
+		if(val == null) {
+			return 0;
+		}
+
+		return val.intValue();
 	}
 }

@@ -25,7 +25,6 @@ import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.RelationshipType;
 
-import org.structr.common.RelType;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.Services;
@@ -38,6 +37,9 @@ import org.structr.core.entity.StructrRelationship;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
+import org.structr.common.RelType;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -164,23 +166,22 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 		return null;
 	}
 
-	private StructrRelationship createRelationship(final AbstractNode fromNode, final AbstractNode toNode, final RelationshipType relType) throws FrameworkException {
+	private synchronized StructrRelationship createRelationship(final AbstractNode fromNode, final AbstractNode toNode, final RelationshipType relType) throws FrameworkException {
 
-		final Command transactionCommand    = Services.command(securityContext, TransactionCommand.class);
-		StructrRelationship newRelationship = (StructrRelationship) transactionCommand.execute(new StructrTransaction() {
+		return (StructrRelationship)Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
 			@Override
 			public Object execute() throws FrameworkException {
 
-				StructrRelationship relationship = new StructrRelationship(securityContext, fromNode.getNode().createRelationshipTo(toNode.getNode(), relType));
+				Relationship neoRelationship = null;
+				Node startNode = fromNode.getNode();
+				Node endNode   = toNode.getNode();
 
-				// EntityContext.getGlobalModificationListener().relationshipCreated(securityContext, fromNode, toNode, relationship);
-				return relationship;
+				neoRelationship = startNode.createRelationshipTo(endNode, relType);
+
+				return new StructrRelationship(securityContext, neoRelationship);
 			}
-
 		});
-
-		return newRelationship;
 	}
 
 	//~--- get methods ----------------------------------------------------
