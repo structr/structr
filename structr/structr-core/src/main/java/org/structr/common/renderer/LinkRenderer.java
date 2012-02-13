@@ -5,16 +5,16 @@ import org.structr.common.SecurityContext;
 import org.structr.common.StructrOutputStream;
 import org.structr.core.NodeRenderer;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Link;
+import org.structr.core.entity.NodeLink;
 
 /**
  *
  * @author Christian Morgner
  */
-public class LinkRenderer implements NodeRenderer<Link>
+public class LinkRenderer implements NodeRenderer<NodeLink>
 {
 	@Override
-	public void renderNode(StructrOutputStream out, Link currentNode, AbstractNode startNode, String editUrl, Long editNodeId, RenderMode renderMode)
+	public void renderNode(StructrOutputStream out, NodeLink currentNode, AbstractNode startNode, String editUrl, Long editNodeId, RenderMode renderMode)
 	{
 		AbstractNode structrNode = currentNode.getStructrNode();
 		structrNode.setTemplate(currentNode.getTemplate());
@@ -36,7 +36,7 @@ public class LinkRenderer implements NodeRenderer<Link>
 	}
 
 	@Override
-	public String getContentType(Link node)
+	public String getContentType(NodeLink node)
 	{
 		return("text/html");
 	}

@@ -19,16 +19,25 @@
 
 package org.structr.web.entity.html;
 
+import org.neo4j.graphdb.Direction;
 import org.structr.common.PropertyView;
+import org.structr.common.RelType;
 import org.structr.core.EntityContext;
+import org.structr.core.entity.DirectedRelationship;
 
 /**
  * @author Axel Morgner
  */
 public class Ol extends HtmlElement {
 
+	private static final String[] htmlAttributes = new String[] { "reversed", "start" };
+	
 	static {
 		EntityContext.registerPropertySet(Ol.class, PropertyView.All,		HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Ol.class, PropertyView.Public,	HtmlElement.UiKey.values());
+		EntityContext.registerPropertySet(Ol.class, PropertyView.Html, true,	htmlAttributes);
+
+		EntityContext.registerEntityRelation(Ol.class, Div.class,	RelType.CONTAINS, Direction.INCOMING, DirectedRelationship.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Ol.class, Li.class,	RelType.CONTAINS, Direction.OUTGOING, DirectedRelationship.Cardinality.ManyToMany);
 	}
 }

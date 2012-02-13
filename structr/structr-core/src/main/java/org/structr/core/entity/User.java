@@ -239,7 +239,7 @@ public class User extends Person {
 										  new NodeAttribute(AbstractNode.Key.type.name(), Category.class.getSimpleName()),
 										  true);
 
-						// Link category to user
+						// NodeLink category to user
 						createRel.execute(user, cat, RelType.HAS_CHILD, true);
 					} else {
 
@@ -384,15 +384,15 @@ public class User extends Person {
 				@Override
 				public int compare(AbstractNode nodeOne, AbstractNode nodeTwo) {
 
-					if (nodeOne instanceof Link) {
+					if (nodeOne instanceof NodeLink) {
 
-						nodeOne = ((Link) nodeOne).getStructrNode();
+						nodeOne = ((NodeLink) nodeOne).getStructrNode();
 
 					}
 
-					if (nodeTwo instanceof Link) {
+					if (nodeTwo instanceof NodeLink) {
 
-						nodeTwo = ((Link) nodeTwo).getStructrNode();
+						nodeTwo = ((NodeLink) nodeTwo).getStructrNode();
 
 					}
 

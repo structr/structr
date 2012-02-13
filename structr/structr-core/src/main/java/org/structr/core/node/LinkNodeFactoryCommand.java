@@ -20,7 +20,7 @@
 package org.structr.core.node;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.Link;
+import org.structr.core.entity.NodeLink;
 import org.structr.core.entity.AbstractNode;
 
 /**
@@ -34,7 +34,7 @@ public class LinkNodeFactoryCommand extends NodeFactoryCommand
 	{
                 AbstractNode sNode = (AbstractNode) super.execute(parameters);
 
-                Link linkNode = new Link();
+                NodeLink linkNode = new NodeLink();
                 linkNode.init(securityContext, sNode);
 
 		return linkNode;

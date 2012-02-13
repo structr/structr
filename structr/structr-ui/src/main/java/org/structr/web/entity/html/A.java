@@ -52,6 +52,7 @@ public class A extends HtmlElement {
 
 		EntityContext.registerEntityRelation(A.class, Div.class,	RelType.CONTAINS, Direction.INCOMING, DirectedRelationship.Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(A.class, P.class,		RelType.CONTAINS, Direction.INCOMING, DirectedRelationship.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(A.class, Li.class,		RelType.CONTAINS, Direction.INCOMING, DirectedRelationship.Cardinality.ManyToMany);
 
 	}
 

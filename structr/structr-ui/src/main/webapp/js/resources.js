@@ -215,7 +215,8 @@ var _Resources = {
             var iframe = $(this).contents()[0];
             var iframeWindow = this.contentWindow;
 				
-            $(this).contents().find('body').children().each(function(i,element) {
+//            $(this).contents().find('body').children().each(function(i,element) {
+            $(this).contents().find('[structr_id]').each(function(i,element) {
                 if (debug) console.log(element);
                 var el = $(element);
                 var structrId = el.attr('structr_id');
@@ -232,7 +233,9 @@ var _Resources = {
                                 selEnd = sel.getRangeAt(0).endOffset;
                                 console.log(selStart, selEnd);
                                 $('.link_icon').show();
-                                sourceId = structrId;
+//                                sourceId = structrId;
+                                sourceId = self.attr('structr_id');
+								if (debug) console.log('sourceId: ' + sourceId);
                                 var rootResourceElement = self.closest('html')[0];
                                 console.log(rootResourceElement);
                                 if (rootResourceElement) {
@@ -245,7 +248,8 @@ var _Resources = {
                             var self = $(this);
                             self.attr('contenteditable', false);
                             //self.removeClass('structr-editable-area-active');
-                            _Resources.updateContent(structrId, self.text());
+							if (debug) console.log('sourceId: ' + sourceId);
+                            _Resources.updateContent(sourceId, self.text());
                         //$('.link_icon').hide();
                         //Resources.reloadPreviews();
                         }

@@ -39,13 +39,13 @@ import java.util.Map;
  * @author amorgner
  *
  */
-public class Link extends AbstractNode {
+public class NodeLink extends AbstractNode {
 
     private final static String ICON_SRC = "/images/linked.png";
 
     static {
 
-	EntityContext.registerPropertySet(Link.class,
+	EntityContext.registerPropertySet(NodeLink.class,
 					  PropertyView.All,
 					  Key.values());
     }

@@ -19,16 +19,29 @@
 
 package org.structr.web.entity.html;
 
+import org.neo4j.graphdb.Direction;
 import org.structr.common.PropertyView;
+import org.structr.common.RelType;
 import org.structr.core.EntityContext;
+import org.structr.core.entity.DirectedRelationship;
+import org.structr.web.entity.Content;
 
 /**
  * @author Axel Morgner
  */
 public class Li extends HtmlElement {
 
+	private static final String[] htmlAttributes = new String[] { "value" };
+
 	static {
 		EntityContext.registerPropertySet(Li.class, PropertyView.All,		HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Li.class, PropertyView.Public,	HtmlElement.UiKey.values());
+		EntityContext.registerPropertySet(Li.class, PropertyView.Html, true, htmlAttributes);
+		
+		EntityContext.registerEntityRelation(Li.class, Content.class,	RelType.CONTAINS, Direction.OUTGOING, DirectedRelationship.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Li.class, A.class,		RelType.CONTAINS, Direction.OUTGOING, DirectedRelationship.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Li.class, Span.class,	RelType.CONTAINS, Direction.OUTGOING, DirectedRelationship.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Li.class, Div.class,	RelType.CONTAINS, Direction.OUTGOING, DirectedRelationship.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Li.class, Img.class,	RelType.CONTAINS, Direction.OUTGOING, DirectedRelationship.Cardinality.ManyToMany);
 	}
 }

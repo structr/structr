@@ -116,7 +116,7 @@ var _Elements = {
         
         parent.append('<div class="element ' + element.id + '_">'
             + '<img class="typeIcon" src="'+ _Elements.icon + '">'
-            + '<b class="tag_">' + element.tag + '</b> <!--span class="id">' + element.id + '</span-->'
+            + '<b class="tag_">' + element.tag + '</b> <span class="id">' + element.id + '</span>'
             + (element._html_id ? 'id=' + element._html_id : '')
             + (element._html_class ? 'class=' + element._html_class : '')
             + '</div>');
