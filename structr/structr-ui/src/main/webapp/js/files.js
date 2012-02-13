@@ -23,10 +23,10 @@ var chunkSize = 1024*64;
 var sizeLimit = 1024*1024*42;
 
 $(document).ready(function() {
-    Structr.registerModule('files', Files);
+    Structr.registerModule('files', _Files);
 });
 
-var Files = {
+var _Files = {
 
     icon : 'icon/page_white.png',
     add_file_icon : 'icon/page_white_add.png',
@@ -48,8 +48,8 @@ var Files = {
         folders = $('#folders');
         files = $('#files');
         
-        Files.refreshFiles();
-        Files.refreshFolders();
+        _Files.refreshFiles();
+        _Files.refreshFolders();
     },
 
     refreshFiles : function() {
@@ -92,13 +92,13 @@ var Files = {
                         $.unblockUI();
                         $(filesToUpload).each(function(i, file) {
                             if (debug) console.log(file);
-                            if (file) Files.createFile(file);
+                            if (file) _Files.createFile(file);
                         });
                     })
                 } else {
                     $(fileList).each(function(i, file) {
                         if (debug) console.log(file);
-                        if (file) Files.createFile(file);
+                        if (file) _Files.createFile(file);
                     });
 
                 }
@@ -106,25 +106,25 @@ var Files = {
                 return false;
             });
         }
-        Files.showFiles();
+        _Files.showFiles();
     },
 	
     refreshFolders : function() {
         folders.empty();
-        if (Files.showFolders()) {
-            folders.append('<button class="add_folder_icon button"><img title="Add Folder" alt="Add Folder" src="' + Files.add_folder_icon + '"> Add Folder</button>');
+        if (_Files.showFolders()) {
+            folders.append('<button class="add_folder_icon button"><img title="Add Folder" alt="Add Folder" src="' + _Files.add_folder_icon + '"> Add Folder</button>');
             $('.add_folder_icon', main).on('click', function() {
-                Files.addFolder(this);
+                _Files.addFolder(this);
             });
         }
     },
 	
     showFolders : function() {
-        return Entities.showEntities('Folder');
+        return _Entities.showEntities('Folder');
     },
 
     showFiles : function() {
-        return Entities.showEntities('File');
+        return _Entities.showEntities('File');
     },
 
     appendFileElement : function(file, parentId) {
@@ -133,7 +133,7 @@ var Files = {
 
         var parent = Structr.findParent(parentId, null, files);
         
-        var icon = Files.icon; // default
+        var icon = _Files.icon; // default
         if (debug) console.log(file.contentType);
         if (file.contentType) {
 
@@ -161,16 +161,16 @@ var Files = {
 		
         if (parentId) {
 
-            div.append('<img title="Remove file \'' + file.name + '\' from folder ' + parentId + '" alt="Remove file \'' + file.name + '\' from folder" class="delete_icon button" src="' + Files.delete_file_icon + '">');
+            div.append('<img title="Remove file \'' + file.name + '\' from folder ' + parentId + '" alt="Remove file \'' + file.name + '\' from folder" class="delete_icon button" src="' + _Files.delete_file_icon + '">');
             $('.delete_icon', div).on('click', function() {
-                Files.removeFileFromFolder(file.id, parentId);
+                _Files.removeFileFromFolder(file.id, parentId);
             });
 			
         } else {
 		
             div.append('<img title="Delete file \'' + file.name + '\'" alt="Delete file \'' + file.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
             $('.delete_icon', div).on('click', function() {
-                Files.deleteFile(this, file);
+                _Files.deleteFile(this, file);
             });
 		
         }
@@ -179,7 +179,7 @@ var Files = {
         //            Resources.addElement(this, resource);
         //        });
         $('b', div).on('click', function() {
-            Entities.showProperties(this, file, 'all', $('.' + file.id + '_', files));
+            _Entities.showProperties(this, file, 'all', $('.' + file.id + '_', files));
         });
 		
         div.draggable({
@@ -202,29 +202,30 @@ var Files = {
         }
         
         parent.append('<div structr_type="folder" class="folder ' + folder.id + '_">'
-            + '<img class="typeIcon" src="'+ Files.folder_icon + '">'
+            + '<img class="typeIcon" src="'+ _Files.folder_icon + '">'
             + '<b class="name_">' + folder.name + '</b> <span class="id">' + folder.id + '</span>'
             + '</div>');
         var div = $('.' + folder.id + '_', parent);
         div.append('<img title="Delete content \'' + folder.name + '\'" alt="Delete content \'' + folder.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
         $('.delete_icon', div).on('click', function() {
-            Files.deleteFolder(this, folder);
+            _Files.deleteFolder(this, folder);
         });
         //        div.append('<img class="add_icon button" title="Add Element" alt="Add Element" src="icon/add.png">');
         //        $('.add_icon', div).on('click', function() {
         //            Resources.addElement(this, resource);
         //        });
         $('b', div).on('click', function() {
-            Entities.showProperties(this, folder, 'all', $('.' + folder.id + '_', folders));
+            _Entities.showProperties(this, folder, 'all', $('.' + folder.id + '_', folders));
         });
 		
         div.droppable({
             accept: '.file',
+            greedy: true,
             hoverClass: 'folderHover',
             drop: function(event, ui) {
                 var fileId = getIdFromClassString(ui.draggable.attr('class'));
                 var folderId = getIdFromClassString($(this).attr('class'));
-                Entities.addSourceToTarget(fileId, folderId);
+                _Entities.addSourceToTarget(fileId, folderId);
             }
         });
 		
@@ -240,9 +241,9 @@ var Files = {
 
         $('.delete_icon', file).remove();
         file.append('<img title="Remove file ' + fileId + ' from folder ' + folderId + '" '
-            + 'alt="Remove file ' + fileId + ' from folder ' + folderId + '" class="delete_icon button" src="' + Files.delete_file_icon + '">');
+            + 'alt="Remove file ' + fileId + ' from folder ' + folderId + '" class="delete_icon button" src="' + _Files.delete_file_icon + '">');
         $('.delete_icon', file).on('click', function() {
-            Files.removeFileFromFolder(fileId, folderId)
+            _Files.removeFileFromFolder(fileId, folderId)
         });
         file.draggable('destroy');
 
@@ -263,7 +264,7 @@ var Files = {
         file.append('<img title="Delete file ' + fileId + '" '
             + 'alt="Delete file ' + fileId + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
         $('.delete_icon', file).on('click', function() {
-            Files.deleteFile(this, Structr.entity(fileId));
+            _Files.deleteFile(this, Structr.entity(fileId));
         });
         
         file.draggable({
@@ -279,15 +280,15 @@ var Files = {
         }
 
         if (debug) console.log('removeFileFromFolder: fileId=' + fileId + ', folderId=' + folderId);
-        Entities.removeSourceFromTarget(fileId, folderId);
+        _Entities.removeSourceFromTarget(fileId, folderId);
     },
 	
     addFolder : function(button) {
-        return Entities.add(button, 'Folder');
+        return _Entities.add(button, 'Folder');
     },
 	
     addFile : function(button) {
-        return Entities.add(button, 'File');
+        return _Entities.add(button, 'File');
     },
 
     deleteFolder : function(button, folder) {
@@ -301,7 +302,7 @@ var Files = {
     },
 
     createFile : function(fileObj) {
-        Entities.create($.parseJSON('{ "type" : "File", "name" : "' + fileObj.name + '", "contentType" : "' + fileObj.type + '", "size" : "' + fileObj.size + '" }'));
+        _Entities.create($.parseJSON('{ "type" : "File", "name" : "' + fileObj.name + '", "contentType" : "' + fileObj.type + '", "size" : "' + fileObj.size + '" }'));
 
     },
 

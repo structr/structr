@@ -20,71 +20,128 @@
 var elements;
 
 $(document).ready(function() {
-	Structr.registerModule('elements', Elements);
+    Structr.registerModule('elements', _Elements);
 });
 
-var Elements = {
+var _Elements = {
 
-	icon : 'icon/brick.png',
-	add_icon : 'icon/brick_add.png',
-	delete_icon : 'icon/delete.png',
+    icon : 'icon/brick.png',
+    add_icon : 'icon/brick_add.png',
+    delete_icon : 'icon/brick_delete.png',
+
+    elementNames : [
+
+    // The root element
+    'html',
+
+    // Document metadata
+    'head', 'title', 'base', 'link', 'meta', 'style',
+
+    // Scripting
+    'script', 'noscript',
+
+    // Sections
+    'body', 'section', 'nav', 'article', 'aside', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hgroup', 'header', 'footer', 'address',
+
+    // Grouping content
+    'p', 'hr', 'pre', 'blockquote', 'ol', 'ul', 'li', 'dl', 'dt', 'dd', 'figure', 'figcaption', 'div',
+
+    // Text-level semantics
+    'a', 'em', 'strong', 'small', 's', 'cite', 'g', 'dfn', 'abbr', 'time', 'code', 'var', 'samp', 'kbd', 'sub', 'sup',
+    'i', 'b', 'u', 'mark', 'ruby', 'rt', 'rp', 'bdi', 'bdo', 'span', 'br', 'wbr',
+
+    // Edits
+    'ins', 'del',
+
+    // Embedded content
+    'img', 'iframe', 'embed', 'object', 'param', 'video', 'audio', 'source', 'track', 'canvas', 'map', 'area',
+
+    // Tabular data
+    'table', 'caption', 'colgroup', 'col', 'tbody', 'thead', 'tfoot', 'tr', 'td', 'th',
+
+    // Forms
+    'form', 'fieldset', 'legend', 'label', 'input', 'button', 'select', 'datalist', 'optgroup', 'option', 'textarea', 'keygen', 'output',
+    'progress', 'meter',
+
+    // Interactive elements
+    'details', 'summary', 'command', 'menu'
+    ],
 	
-	init : function() {
-		Structr.classes.push('element');
-	},
+    init : function() {
+        Structr.classes.push('element');
+    },
 
-	onload : function() {
-		if (debug) console.log('onload');
-		main.append('<div id="elements"></div>');
-		elements = $('#elements');
-		Elements.refresh();
-	},
+    onload : function() {
+        if (debug) console.log('onload');
+        main.append('<div id="elements"></div>');
+        elements = $('#elements');
+        _Elements.refresh();
+    },
 
-	refresh : function() {
-		elements.empty();
-		if (Elements.show()) {
-			elements.append('<button class="add_element_icon button"><img title="Add Element" alt="Add Element" src="' + Elements.add_icon + '"> Add Element</button>');
-			$('.add_element_icon', main).on('click', function() {
-				Elements.addElement(this);
-			});
-		}
-	},
+    refresh : function() {
+        elements.empty();
+        if (_Elements.show()) {
+            elements.append('<button class="add_element_icon button"><img title="Add Element" alt="Add Element" src="' + _Elements.add_icon + '"> Add Element</button>');
 
-	show : function() {
-		return Entities.showEntities('Element');
-	},
+            $('.add_element_icon', main).on('click', function() {
+                var button = $(this);
 
-	appendElementElement : function(element, parentId, resourceId) {
-		if (debug) console.log('Elements.appendElementElement: parentId: ' + parentId + ', resourceId: ' + resourceId);
+                buttonClicked = button;
+                if (isDisabled(button)) return;
 
-		var parent = Structr.findParent(parentId, resourceId, elements);
+                button.append('<div id="elementNames"></div>');
+                var list = $('#elementNames', button);
+                $(_Elements.elementNames).each(function(i,v) {
+                    //console.log('Element: ', v);
+                    list.append('<div id="add_' + v + '">' + v + '</div>');
+                    $('#add_' + v).on('click', function() {
+                        _Elements.addElement(button, v.capitalize(), '"tag":"' + v + '"');
+                        list.remove();
+                    });
+                    
+                });
+                //_Elements.addElement(this);
+            });
+        }
+    },
+
+    show : function() {
+        return _Entities.showEntities('Element');
+    },
+
+    appendElementElement : function(element, parentId, resourceId) {
+        if (debug) console.log('Elements.appendElementElement: parentId: ' + parentId + ', resourceId: ' + resourceId);
+
+        var parent = Structr.findParent(parentId, resourceId, elements);
         
-		parent.append('<div class="element ' + element.id + '_">'
-			+ '<img class="typeIcon" src="'+ Elements.icon + '">'
-			+ '<b class="name_">' + element.name + '</b> <span class="id">' + element.id + '</span>'
-			+ '</div>');
-		var div = $('.' + element.id + '_', parent);
-		div.append('<img title="Delete element \'' + element.name + '\'" alt="Delete element \'' + element.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
-		$('.delete_icon', div).on('click', function() {
-			Elements.deleteElement(this, element);
-		});
-		//        div.append('<img class="add_icon button" title="Add Element" alt="Add Element" src="icon/add.png">');
-		//        $('.add_icon', div).on('click', function() {
-		//            Resources.addElement(this, resource);
-		//        });
-		$('b', div).on('click', function() {
-			Entities.showProperties(this, element, 'all', $('.' + element.id + '_', elements));
-		});
-		return div;
-	},
+        parent.append('<div class="element ' + element.id + '_">'
+            + '<img class="typeIcon" src="'+ _Elements.icon + '">'
+            + '<b class="tag_">' + element.tag + '</b> <!--span class="id">' + element.id + '</span-->'
+            + (element._html_id ? 'id=' + element._html_id : '')
+            + (element._html_class ? 'class=' + element._html_class : '')
+            + '</div>');
+        var div = $('.' + element.id + '_', parent);
+        div.append('<img title="Delete ' + element.tag + ' element ' + element.id + '" alt="Delete ' + element.tag + ' element ' + element.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
+        $('.delete_icon', div).on('click', function() {
+            _Elements.deleteElement(this, element);
+        });
+        //        div.append('<img class="add_icon button" title="Add Element" alt="Add Element" src="icon/add.png">');
+        //        $('.add_icon', div).on('click', function() {
+        //            Resources.addElement(this, resource);
+        //        });
+        $('b', div).on('click', function() {
+            _Entities.showProperties(this, element, '_html_', $('.' + element.id + '_', elements));
+        });
+        return div;
+    },
 
-	addElement : function(button) {
-		return Entities.add(button, 'Element');
-	},
+    addElement : function(button, type, props) {
+        return _Entities.add(button, type, props);
+    },
 
-	deleteElement : function(button, element) {
-		if (debug) console.log('delete element ' + element);
-		deleteNode(button, element);
-	}
+    deleteElement : function(button, element) {
+        if (debug) console.log('delete element ' + element);
+        deleteNode(button, element);
+    }
 
 };

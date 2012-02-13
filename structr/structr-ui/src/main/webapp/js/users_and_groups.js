@@ -20,10 +20,10 @@
 var groups, users;
 
 $(document).ready(function() {
-    Structr.registerModule('usersAndGroups', UsersAndGroups);
+    Structr.registerModule('usersAndGroups', _UsersAndGroups);
 });
 
-var UsersAndGroups = {
+var _UsersAndGroups = {
 
     init : function() {
 		Structr.classes.push('user');
@@ -36,22 +36,22 @@ var UsersAndGroups = {
         main.append('<table><tr><td id="groups"></td><td id="users"></td></tr></table>');
         groups = $('#groups');
         users = $('#users');
-        UsersAndGroups.refreshGroups();
-        UsersAndGroups.refreshUsers();
+        _UsersAndGroups.refreshGroups();
+        _UsersAndGroups.refreshUsers();
     },
 	
     showUsers : function() {
         if (debug) console.log('showUsers()');
-        return Entities.showEntities('User');
+        return _Entities.showEntities('User');
     },
 
     showGroups : function() {
         if (debug) console.log('showGroups()');
-        return Entities.showEntities('Group');
+        return _Entities.showEntities('Group');
     },
 
     addGroup : function(button) {
-        return Entities.add(button, 'Group');
+        return _Entities.add(button, 'Group');
     //		if (isDisabled(button)) return false;
     //		disable(button);
     //		buttonClicked = button;
@@ -61,7 +61,7 @@ var UsersAndGroups = {
     },
 
     addUser : function(button) {
-        return Entities.add(button, 'User');
+        return _Entities.add(button, 'User');
     //		if (debug) console.log('addUser to group + ' + group);
     //		if (isDisabled(button)) return false;
     //		disable(button);
@@ -83,7 +83,7 @@ var UsersAndGroups = {
         user.append('<img title="Remove user ' + userId + ' from group ' + groupId + '" '
             + 'alt="Remove user ' + userId + ' from group ' + groupId + '" class="delete_icon button" src="icon/user_delete.png">');
         $('.delete_icon', user).on('click', function() {
-            UsersAndGroups.removeUserFromGroup(userId, groupId)
+            _UsersAndGroups.removeUserFromGroup(userId, groupId)
         //deleteUser(this, user);
         });
         user.draggable('destroy');
@@ -105,7 +105,7 @@ var UsersAndGroups = {
         user.append('<img title="Delete user ' + user.name + '" '
             + 'alt="Delete user ' + user.name + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
         $('.delete_icon', user).on('click', function() {
-            UsersAndGroups.deleteUser(this, Structr.entity(userId));
+            _UsersAndGroups.deleteUser(this, Structr.entity(userId));
         });
         
         user.draggable({
@@ -121,7 +121,7 @@ var UsersAndGroups = {
         }
 
         if (debug) console.log('removeUserFromGroup: userId=' + userId + ', groupId=' + groupId);
-        Entities.removeSourceFromTarget(userId, groupId);
+        _Entities.removeSourceFromTarget(userId, groupId);
     },
 
     deleteUser : function(button, user) {
@@ -141,20 +141,20 @@ var UsersAndGroups = {
 
     refreshGroups : function() {
         groups.empty();
-        if (UsersAndGroups.showGroups()) {
+        if (_UsersAndGroups.showGroups()) {
             groups.append('<button class="add_group_icon button"><img title="Add Group" alt="Add Group" src="icon/group_add.png"> Add Group</button>');
             $('.add_group_icon', main).on('click', function() {
-                UsersAndGroups.addGroup(this);
+                _UsersAndGroups.addGroup(this);
             });
         }
     },
 
     refreshUsers : function() {
         users.empty();
-        if (UsersAndGroups.showUsers()) {
+        if (_UsersAndGroups.showUsers()) {
             users.append('<button class="add_user_icon button"><img title="Add User" alt="Add User" src="icon/user_add.png"> Add User</button>');
             $('.add_user_icon', main).on('click', function() {
-                UsersAndGroups.addUser(this);
+                _UsersAndGroups.addUser(this);
             });
         }
     },
@@ -168,19 +168,20 @@ var UsersAndGroups = {
         div.append('<img title="Delete Group ' + group.id + '" alt="Delete Group ' + group.id + '" class="delete_icon button" src="icon/group_delete.png">');
 
         $('.delete_icon', div).on('click', function() {
-            UsersAndGroups.deleteGroup(this, group)
+            _UsersAndGroups.deleteGroup(this, group)
         });
         $('b', div).on('click', function() {
-            Entities.showProperties(this, group, 'all', $('.' + group.id + '_', groups));
+            _Entities.showProperties(this, group, 'all', $('.' + group.id + '_', groups));
         });
 	
         div.droppable({
             accept: '.user',
+            greedy: true,
             hoverClass: 'groupHover',
             drop: function(event, ui) {
                 var userId = getIdFromClassString(ui.draggable.attr('class'));
                 var groupId = getIdFromClassString($(this).attr('class'));
-                Entities.addSourceToTarget(userId, groupId);
+                _Entities.addSourceToTarget(userId, groupId);
             }
         });
 
@@ -200,10 +201,10 @@ var UsersAndGroups = {
             div.append('<img title="Remove user \'' + user.name + '\' from group ' + groupId + '" '
                 + 'alt="Remove user ' + user.name + ' from group ' + groupId + '" class="delete_icon button" src="icon/user_delete.png">');
             $('.delete_icon', div).on('click', function() {
-                UsersAndGroups.removeUserFromGroup(user.id, groupId)
+                _UsersAndGroups.removeUserFromGroup(user.id, groupId)
             });
             $('b', div).on('click', function() {
-                UsersAndGroups.editUserProperties(this, user, groupId);
+                _UsersAndGroups.editUserProperties(this, user, groupId);
             });
         } else {
             users.append('<div class="user ' + user.id + '_">'
@@ -215,10 +216,10 @@ var UsersAndGroups = {
             div.append('<img title="Delete user \'' + user.name + '\'" '
                 + 'alt="Delete user \'' + user.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
             $('.delete_icon', div).on('click', function() {
-                UsersAndGroups.deleteUser(this, user)
+                _UsersAndGroups.deleteUser(this, user)
             });
             $('b', div).on('click', function() {
-                UsersAndGroups.editUserProperties(this, user);
+                _UsersAndGroups.editUserProperties(this, user);
             });
             div.draggable({
                 revert: 'invalid',
@@ -229,7 +230,7 @@ var UsersAndGroups = {
     },
 
     editUserProperties : function(button, user) {
-        Entities.showProperties(button, user, 'all', $('.' + user.id + '_'));
+        _Entities.showProperties(button, user, 'all', $('.' + user.id + '_'));
     }
 
 };

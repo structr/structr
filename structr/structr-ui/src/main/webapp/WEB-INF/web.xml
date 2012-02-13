@@ -57,10 +57,10 @@
         <url-pattern>/ws/*</url-pattern>
     </servlet-mapping>
     <!--  custom context parameter start -->
-    <context-param>
+<!--    <context-param>
         <description>structr config file path</description>
         <param-name>configfile.path</param-name>
         <param-value>/opt/structr/structr.conf</param-value>
-    </context-param>
+    </context-param>-->
     <!--  custom context parameter end -->
 </web-app>

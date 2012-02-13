@@ -27,7 +27,9 @@ import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.DirectedRelationship;
 import org.structr.core.entity.DirectedRelationship.Cardinality;
+import org.structr.web.entity.html.Html;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -38,17 +40,21 @@ import org.structr.core.entity.DirectedRelationship.Cardinality;
  */
 public class Resource extends AbstractNode {
 
-	public enum Key implements PropertyKey {
-		name, tag, elements
+	public enum UiKey implements PropertyKey {
+		name, tag, components, elements, linkingElements
 	}
 
 	static {
 
-		EntityContext.registerPropertySet(Resource.class,	PropertyView.All,	Key.values());
-		EntityContext.registerPropertySet(Resource.class,	PropertyView.Public,	Key.values());
-		EntityContext.registerPropertySet(Resource.class,	"ui",			Key.values());
+		EntityContext.registerPropertySet(Resource.class,	PropertyView.All,	UiKey.values());
+		EntityContext.registerPropertySet(Resource.class,	PropertyView.Public,	UiKey.values());
+		EntityContext.registerPropertySet(Resource.class,	PropertyView.Ui,	UiKey.values());
 		
-		EntityContext.registerEntityRelation(Resource.class,	Element.class,	RelType.CONTAINS,	Direction.OUTGOING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Resource.class,	Component.class,	RelType.CONTAINS,	Direction.OUTGOING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Resource.class,	Element.class,		RelType.CONTAINS,	Direction.OUTGOING, Cardinality.ManyToMany);
+//		EntityContext.registerEntityRelation(Resource.class,	Element.class,		RelType.LINK,		Direction.INCOMING, Cardinality.OneToMany);
+
+		EntityContext.registerEntityRelation(Resource.class, Html.class, RelType.CONTAINS, Direction.OUTGOING, DirectedRelationship.Cardinality.ManyToOne);
 	}
 
 	//~--- get methods ----------------------------------------------------

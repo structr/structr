@@ -31,4 +31,6 @@ public interface PropertyView {
 	public static final String Protected =	"protected";
 	public static final String Private =	"private";
 	public static final String Owner =	"owner";
+	public static final String Ui	=	"ui";
+	public static final String Html =	"_html_";
 }

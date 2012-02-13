@@ -27,7 +27,7 @@ var headers = {
 /********************************************************************/
 
 var main;
-var debug = false;
+var debug = true;
 //var onload = [];
 var lastMenuEntry;
 
@@ -71,6 +71,12 @@ $(document).ready(function() {
         main.empty();
         Structr.activateMenuEntry('resources');
         Structr.modules['resources'].onload();
+    });
+
+    $('#components_').on('click', function() {
+        main.empty();
+        Structr.activateMenuEntry('components');
+        Structr.modules['components'].onload();
     });
 
     $('#elements_').on('click', function() {
@@ -124,7 +130,7 @@ var Structr = {
     delete_icon : 'icon/delete.png',
     edit_icon : 'icon/pencil.png',
     expand_icon: 'icon/tree_arrow_right.png',
-	link_icon: 'icon/link.png',
+    link_icon: 'icon/link.png',
 		
     init : function() {
         
@@ -157,6 +163,7 @@ var Structr = {
                 if (lastMenuEntry) {
                     if (debug) console.log('Last menu entry found: ' + lastMenuEntry);
                     Structr.activateMenuEntry(lastMenuEntry);
+                    console.log(Structr.modules);
                     var module = Structr.modules[lastMenuEntry];
                     if (module) {
                         module.init();
@@ -328,4 +335,8 @@ var Structr = {
 String.prototype.endsWith = function(pattern) {
     var d = this.length - pattern.length;
     return d >= 0 && this.lastIndexOf(pattern) === d;
+};
+
+String.prototype.capitalize = function() {
+    return this.charAt(0).toUpperCase() + this.slice(1);
 };

@@ -148,11 +148,21 @@ public class EntityContext {
 	// ----- property set methods -----
 	public static void registerPropertySet(Class type, String propertyView, PropertyKey... propertySet) {
 
+		registerPropertySet(type, propertyView, false, propertySet);
+	}
+
+	public static void registerPropertySet(Class type, String propertyView, String[] propertySet) {
+
+		registerPropertySet(type, propertyView, false, propertySet);
+	}
+
+	public static void registerPropertySet(Class type, String propertyView,  boolean useViewPrefix, PropertyKey... propertySet) {
+
 		Set<String> properties = getPropertySet(type, propertyView);
 
 		for (PropertyKey property : propertySet) {
 
-			properties.add(property.name());
+			properties.add((useViewPrefix ? propertyView : "").concat(property.name()));
 
 		}
 
@@ -170,7 +180,32 @@ public class EntityContext {
 
 		}
 	}
+	
+	public static void registerPropertySet(Class type, String propertyView, boolean useViewPrefix, String[] propertySet) {
 
+		Set<String> properties = getPropertySet(type, propertyView);
+
+		for (String property : propertySet) {
+
+			properties.add((useViewPrefix ? propertyView : "").concat(property));
+
+		}
+
+		// include property sets from superclass
+		Class superClass = type.getSuperclass();
+
+		while ((superClass != null) &&!superClass.equals(Object.class)) {
+
+			Set<String> superProperties = getPropertySet(superClass, propertyView);
+
+			properties.addAll(superProperties);
+
+			// one level up :)
+			superClass = superClass.getSuperclass();
+
+		}
+	}
+	
 	public static void clearPropertySet(Class type, String propertyView) {
 		getPropertySet(type, propertyView).clear();
 	}

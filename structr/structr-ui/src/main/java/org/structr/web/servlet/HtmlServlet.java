@@ -21,7 +21,7 @@
 
 package org.structr.web.servlet;
 
-import org.apache.commons.io.IOUtils;
+import org.apache.commons.compress.utils.IOUtils;
 
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
@@ -32,11 +32,14 @@ import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.kernel.Traversal;
 import org.neo4j.kernel.Uniqueness;
 
+import org.structr.common.*;
 import org.structr.common.RelType;
 import org.structr.common.ResourceExpander;
 import org.structr.common.SecurityContext;
 import org.structr.common.TreeNode;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
+import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Image;
@@ -54,14 +57,13 @@ import org.structr.core.node.search.SearchNodeCommand;
 import org.structr.core.node.search.SearchOperator;
 import org.structr.web.entity.Content;
 import org.structr.web.entity.Resource;
+import org.structr.web.entity.html.HtmlElement;
+
+import org.w3c.tidy.Tidy;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -71,13 +73,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.structr.common.error.FrameworkException;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -89,6 +91,7 @@ import org.structr.common.error.FrameworkException;
  * resources, see log during "create" for IDs of the created resources.
  *
  * @author Christian Morgner
+ * @author Axel Morgner
  */
 public class HtmlServlet extends HttpServlet {
 
@@ -97,7 +100,7 @@ public class HtmlServlet extends HttpServlet {
 	//~--- fields ---------------------------------------------------------
 
 	private TraversalDescription desc = null;
-	private boolean edit;
+	private boolean edit, tidy;
 
 	//~--- methods --------------------------------------------------------
 
@@ -105,7 +108,7 @@ public class HtmlServlet extends HttpServlet {
 	public void init() {
 
 		// create prototype traversal description
-		desc = Traversal.description().depthFirst().uniqueness(Uniqueness.NODE_GLOBAL);
+		desc = Traversal.description().depthFirst().uniqueness(Uniqueness.RELATIONSHIP_PATH);    // .uniqueness(Uniqueness.NODE_GLOBAL);
 	}
 
 	@Override
@@ -117,12 +120,13 @@ public class HtmlServlet extends HttpServlet {
 		SecurityContext securityContext = SecurityContext.getSuperUserInstance();
 
 		edit = false;
+		tidy = false;
 
 		if (request.getParameter("create") != null) {
 
 			try {
 				createTestStructure();
-			} catch(FrameworkException fex) {}
+			} catch (FrameworkException fex) {}
 
 			response.setStatus(HttpServletResponse.SC_CREATED);
 
@@ -134,7 +138,8 @@ public class HtmlServlet extends HttpServlet {
 
 			try {
 				createEditorStructure();
-			} catch(FrameworkException fex) {}
+			} catch (FrameworkException fex) {}
+
 			response.setStatus(HttpServletResponse.SC_CREATED);
 
 			return;
@@ -144,6 +149,12 @@ public class HtmlServlet extends HttpServlet {
 		if (request.getParameter("edit") != null) {
 
 			edit = true;
+
+		}
+
+		if (request.getParameter("tidy") != null) {
+
+			tidy = true;
 
 		}
 
@@ -222,8 +233,22 @@ public class HtmlServlet extends HttpServlet {
 					response.setContentType("text/html; charset=utf-8");
 				}
 
+				if (tidy) {
+
+					StringWriter tidyOutput = new StringWriter();
+					Tidy tidy               = new Tidy();
+					Properties tidyProps    = new Properties();
+
+					tidyProps.setProperty("indent", "auto");
+					tidy.getConfiguration().addProps(tidyProps);
+					tidy.parse(new StringReader(content), tidyOutput);
+
+					content = tidyOutput.toString();
+
+				}
+
 				// 3: output content
-				response.getWriter().append(content);
+				response.getWriter().append("<!DOCTYPE html>\n").append(content);
 				response.getWriter().flush();
 				response.getWriter().close();
 				response.setStatus(HttpServletResponse.SC_OK);
@@ -448,7 +473,7 @@ public class HtmlServlet extends HttpServlet {
 		return rel;
 	}
 
-	private void printNodes(StringBuilder buffer, TreeNode root, int depth) {
+	private void printNodes(StringBuilder buffer, TreeNode root, int depth, boolean inBody) {
 
 		AbstractNode node        = root.getData();
 		String content           = null;
@@ -461,6 +486,24 @@ public class HtmlServlet extends HttpServlet {
 
 				content = node.getStringProperty("content");
 
+//                              OutputStream out    = new ByteArrayOutputStream();
+//                              String rawContent   = node.getStringProperty("content");
+//                              Converter converter = new DefaultConverter();
+//
+//                              try {
+//
+//                                      InputReaderWrapper input   = InputReaderWrapper.valueOf(new StringReader(rawContent), "apt", converter.getInputFormats());
+//                                      OutputStreamWrapper output = OutputStreamWrapper.valueOf(out, "xhtml", "UTF-8", converter.getOutputFormats());
+//
+//                                      converter.convert(input, output);
+//
+//                                      content = out.toString();
+//
+//                              } catch (UnsupportedFormatException e) {
+//                                      e.printStackTrace();
+//                              } catch (Exception e) {
+//                                      e.printStackTrace();
+//                              }
 				List<StructrRelationship> links = node.getOutgoingLinkRelationships();
 
 				if ((links != null) &&!links.isEmpty()) {
@@ -479,10 +522,24 @@ public class HtmlServlet extends HttpServlet {
 
 			tag = node.getStringProperty("tag");
 
+			// In edit mode, add an artificial 'div' tag around content nodes within body
+			// to make them editable
+			if (inBody && (tag == null) && (node instanceof Content)) {
+
+				tag = "div";
+
+			}
+
 			if (tag != null) {
 
-				String onload = node.getStringProperty("onload");
-				String id     = node.getStringProperty("uuid");
+				if (tag.equals("body")) {
+
+					inBody = true;
+
+				}
+
+//                              String onload = node.getStringProperty("onload");
+				String id = node.getStringProperty("uuid");
 
 				buffer.append("<").append(tag);
 
@@ -492,12 +549,27 @@ public class HtmlServlet extends HttpServlet {
 
 				}
 
-				if (onload != null) {
+				if (node instanceof HtmlElement) {
 
-					buffer.append(" onload='").append(onload).append("'");
+					for (String attribute : EntityContext.getPropertySet(node.getClass(), PropertyView.Html)) {
+
+						if (node.getProperty(attribute) != null) {
+
+							String key = attribute.substring(PropertyView.Html.length());
+
+							buffer.append(" ").append(key).append("=\"").append(node.getProperty(attribute)).append("\"");
+
+						}
+
+					}
 
 				}
 
+//                              if (onload != null) {
+//
+//                                      buffer.append(" onload='").append(onload).append("'");
+//
+//                              }
 				buffer.append(">");
 
 			}
@@ -513,7 +585,7 @@ public class HtmlServlet extends HttpServlet {
 		// render children
 		for (TreeNode subNode : root.getChildren()) {
 
-			printNodes(buffer, subNode, depth + 1);
+			printNodes(buffer, subNode, depth + 1, inBody);
 
 		}
 
@@ -549,6 +621,7 @@ public class HtmlServlet extends HttpServlet {
 				if (node.hasProperty(AbstractNode.Key.type.name())) {
 
 					try {
+
 						String type          = (String) node.getProperty(AbstractNode.Key.type.name());
 						TreeNode newTreeNode = new TreeNode(factory.createNode(securityContext, node, type));
 						Relationship rel     = path.lastRelationship();
@@ -568,7 +641,8 @@ public class HtmlServlet extends HttpServlet {
 
 								parentTreeNode.addChild(newTreeNode);
 								logger.log(Level.FINEST, "New tree node: {0} --> {1}", new Object[] { newTreeNode, parentTreeNode });
-								logger.log(Level.FINE, "New tree node: {0} --> {1}", new Object[] { newTreeNode.getData().getName(), parentTreeNode.getData().getName() });
+								logger.log(Level.FINE, "New tree node: {0} --> {1}", new Object[] { newTreeNode.getData().getName(),
+									parentTreeNode.getData().getName() });
 
 							}
 
@@ -579,7 +653,7 @@ public class HtmlServlet extends HttpServlet {
 
 						}
 
-					} catch(FrameworkException fex) {
+					} catch (FrameworkException fex) {
 						logger.log(Level.WARNING, "Unable to instantiate node", fex);
 					}
 
@@ -601,13 +675,13 @@ public class HtmlServlet extends HttpServlet {
 				      ? (String) node.getProperty("name")
 				      : "unknown";
 
-			System.out.println(node.getProperty("type") + "[" + node.getProperty("uuid") + "]: " + name);
+			// System.out.println(node.getProperty("type") + "[" + node.getProperty("uuid") + "]: " + name);
 
 		}
 
 		StringBuilder buffer = new StringBuilder(10000);    // FIXME: use sensible initial size..
 
-		printNodes(buffer, root, 0);
+		printNodes(buffer, root, 0, false);
 
 		return buffer.toString();
 	}

@@ -76,8 +76,6 @@ public class StructrServer {
 		String modulesPath = basePath + "/modules";
 		File modulesDir    = new File(modulesPath);
 
-		modulesPath = modulesDir.getAbsolutePath();
-
 		if (!modulesDir.exists()) {
 
 			modulesDir.mkdir();
@@ -115,8 +113,11 @@ public class StructrServer {
 		if (directoryWhichMustNotExist.exists()) {
 
 			System.err.println("Directory " + directoryWhichMustNotExist + " must not exist.");
-			System.err.println("Delete it or move WAR file to another directory and start from there.");
-			System.exit(1);
+
+			// System.err.println("Delete it or move WAR file to another directory and start from there.");
+			// System.exit(1);
+			directoryWhichMustNotExist.delete();
+			System.err.println("Deleted " + directoryWhichMustNotExist);
 
 		}
 
@@ -261,7 +262,6 @@ public class StructrServer {
 		server.setGracefulShutdown(1000);
 		server.setStopAtShutdown(true);
 		System.out.println();
-
 		System.out.println("structr UI:        http://" + host + ":" + port + "/structr");
 		System.out.println();
 		server.start();

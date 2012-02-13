@@ -151,6 +151,7 @@ img.disabled {
 
 #resources, #previews,
 #elements,
+#components,
 #contents,
 #folders,
 #files,
@@ -167,23 +168,23 @@ img.disabled {
 /*    display: none;*/
 }
 
-.group, .user, .resource, .element, .content, .folder, .file {
+.node, .group, .user, .resource, .component, .element, .content, .folder, .file {
     background-color: #fff;
     margin-bottom: 12px ! important;
 }
 
-.group b, .user b, .resource b, .element b, .content b, .folder b, .file b {
+.node b, .group b, .user b, .resource b, .component b, .element b, .content b, .folder b, .file b {
     cursor: pointer;
 }
 
-.resource, .element, .content, .folder, .file {
+.node, .resource, .component, .element, .content, .folder, .file {
     background-color: #eee;
     background: -webkit-gradient(linear, left bottom, left top, from(#ddd), to(#eee)) no-repeat;
     background: -moz-linear-gradient(90deg, #ddd, #eee) no-repeat;
     filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#eeeeee', EndColorStr='#dddddd', GradientType=0);
 }
 
-.resource .element {
+.node, .resource .element, .component {
 /*    display: none;*/
 }
 
@@ -272,7 +273,7 @@ tr:nth-child(even) {
 }
 
 .preview_box iframe {
-	/*    width: 1000px;*/
+    width: 1000px;
     height: 1024px;
     border: 0;
     /*zoom: 0.75;
@@ -299,10 +300,18 @@ tr:nth-child(even) {
 }
 
 span.id {
-	display: none;
+/*    display: none;*/
+    color: #999;
+/*    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    -o-text-overflow: ellipsis;
+    -moz-binding: url('assets/xml/ellipsis.xml#ellipsis');*/
 }
 
+.node,
 .resource,
+.component,
 .element,
 .content,
 .user,
@@ -315,11 +324,11 @@ span.id {
     border: 1px solid #a5a5a5;
     padding: 4px 12px;
     margin: 12px 0 0 0;
-	background-color: #eee;
+    background-color: #eee;
     background: -webkit-gradient(linear, left bottom, left top, from(#ddd), to(#eee)) no-repeat;
     background: -moz-linear-gradient(90deg, #ddd, #eee) no-repeat;
     filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#eeeeee', EndColorStr='#dddddd', GradientType=0);
-	min-width: 200px;
+/*    min-width: 200px;*/
 }
 
 .content:hover,
@@ -336,7 +345,7 @@ span.id {
     filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#e7e7e7', EndColorStr='#e3e3e3', GradientType=0);
 }
 
-.element:hover {
+.element:hover, .component:hover {
     color: #000;
     border: 1px solid #bbb;
     background-color: #f5f5f5;
@@ -366,7 +375,7 @@ div.nested img:hover {
      visibility: visible;
 }*/
 
-.groupHover, .resourceHover, .elementHover, .folderHover {
+.groupHover, .resourceHover, .componentHover, .elementHover, .folderHover {
     border: 1px solid #bbb ! important;
     /*    padding-bottom: 40px ! important;*/
     background-color: #f5f5f5;
@@ -399,6 +408,7 @@ button:hover {
     background: -webkit-gradient(linear, left bottom, left top, from(#e3e3e3), to(#f7f7f7)) no-repeat;
     background: -moz-linear-gradient(90deg, #e3e3e3, #f7f7f7) no-repeat;
     filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#f7f7f7', EndColorStr='#e3e3e3', GradientType=0);
+    cursor: pointer ! important;
 }
 
 button img {

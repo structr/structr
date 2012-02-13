@@ -22,6 +22,7 @@
 package org.structr.web.entity;
 
 import org.neo4j.graphdb.Direction;
+
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
@@ -32,25 +33,30 @@ import org.structr.core.entity.DirectedRelationship.Cardinality;
 //~--- classes ----------------------------------------------------------------
 
 /**
- * Represents a web resource which is addressable by a URI
+ * Represents a web element
  *
  * @author axel
  */
 public class Element extends AbstractNode {
 
-	public enum Key implements PropertyKey {
-		name, tag, contents, elements
-	}
-
 	static {
 
-		EntityContext.registerPropertySet(Element.class,	PropertyView.All,	Key.values());
-		EntityContext.registerPropertySet(Element.class,	PropertyView.Public,	Key.values());
-		EntityContext.registerPropertySet(Resource.class,	"ui",			Key.values());
+		EntityContext.registerPropertySet(Element.class, PropertyView.All, UiKey.values());
+		EntityContext.registerPropertySet(Element.class, PropertyView.Public, UiKey.values());
+		EntityContext.registerPropertySet(Element.class, PropertyView.Ui, UiKey.values());
+		EntityContext.registerEntityRelation(Element.class, Component.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Element.class, Resource.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Element.class, Element.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Element.class, Content.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
 
-		EntityContext.registerEntityRelation(Element.class,	Resource.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Element.class,	Element.class,	RelType.CONTAINS,	Direction.OUTGOING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Element.class,	Content.class,	RelType.CONTAINS,	Direction.OUTGOING, Cardinality.ManyToMany);
+//              EntityContext.registerEntityRelation(Element.class,     Resource.class,         RelType.LINK,           Direction.OUTGOING, Cardinality.ManyToOne);
+
+	}
+
+	//~--- constant enums -------------------------------------------------
+
+	public enum UiKey implements PropertyKey {
+		name, tag, contents, elements, components, resource
 	}
 
 	//~--- get methods ----------------------------------------------------

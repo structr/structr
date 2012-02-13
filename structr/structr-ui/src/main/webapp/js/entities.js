@@ -19,18 +19,18 @@
 
 var buttonClicked;
 
-var Entities = {
+var _Entities = {
 	
     refreshEntities : function(type) {
         if (debug) console.log('refreshEntities(' + type + ')');
         var types = plural(type);
         var parentElement = $('#' + types);
         parentElement.empty();
-        Entities.showEntities(type);
+        _Entities.showEntities(type);
         parentElement.append('<div style="clear: both"></div>');
         parentElement.append('<img title="Add ' + type + '" alt="Add ' + type + '" class="add_icon button" src="' + Structr.add_icon + '">');
         $('.add_icon', main).on('click', function() {
-            Entities.addEntity(this, type);
+            _Entities.addEntity(this, type);
         });
         parentElement.append('<img title="Delete all ' + types + '" alt="Delete all ' + types + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
         $('.delete_icon', main).on('click', function() {
@@ -58,27 +58,35 @@ var Entities = {
             $(children).each(function(i,child) {
                 if (debug) console.log(child);
                 if (child.type == "Resource") {
-                    Resources.appendResourceElement(child, parent.id, rootId);
-                } else if (child.type == "Element") {
-                    Resources.appendElementElement(child, parent.id, rootId);
+                    _Resources.appendResourceElement(child, parent.id, rootId);
+                } else if (child.type == "Component") {
+                    _Resources.appendComponentElement(child, parent.id, rootId);
                 } else if (child.type == "Content") {
-                    Resources.appendContentElement(child, parent.id, rootId);
+                    _Resources.appendContentElement(child, parent.id, rootId);
+//                } else if (child.type == "Element") {
+                } else {
+                    _Resources.appendElementElement(child, parent.id, rootId);
                 }		
 				
-                Entities.renderTree(child, rootId);
+                _Entities.renderTree(child, rootId);
             });
         }
     },
 	
     appendEntityElement : function(entity, parentElement) {
+        if (debug) console.log(entity);
         var element;
         if (parentElement) {
             element = parentElement;
         } else {
-            element = $('#' + plural(entity.type.toLowerCase()));
+            element = elements;
+            //element = $('#' + plural(entity.type.toLowerCase()));
         }
+
+        var type = entity.type ? entity.type : 'unknown';
+
         //    console.log(element);
-        element.append('<div class="' + entity.type.toLowerCase() + ' ' + entity.id + '_">'
+        element.append('<div class="node ' + type.toLowerCase() + ' ' + entity.id + '_">'
             + (entity.iconUrl ? '<img class="typeIcon" src="' + entity.iconUrl + '">' : '')
             + '<b class="name_">' + entity.name + '</b> '
             + '<span class="id">' + entity.id + '</span>'
@@ -91,7 +99,7 @@ var Entities = {
         });
         div.append('<img title="Edit ' + entity.name + ' [' + entity.id + ']" alt="Edit ' + entity.name + ' [' + entity.id + ']" class="edit_icon button" src="icon/pencil.png">');
         $('.edit_icon', div).on('click', function() {
-            Entities.showProperties(this, entity, 'all', $('.' + entity.id + '_', element));
+            _Entities.showProperties(this, entity, 'all', $('.' + entity.id + '_', element));
         });
     },
 
@@ -115,28 +123,80 @@ var Entities = {
         return send($.toJSON(toSend));
     },
 
-    add : function(button, type) {
+    add : function(button, type, props) {
         if (debug) console.log('add new ' + type);
         if (isDisabled(button)) return false;
         disable(button);
         buttonClicked = button;
         disable(button);
-        return Entities.create($.parseJSON('{ "type" : "' + type + '", "name" : "New ' + type + ' ' + Math.floor(Math.random() * (999999 - 1)) + '" }'));
+        return _Entities.create($.parseJSON('{ "type" : "' + type + '", "name" : "New ' + type + ' ' + Math.floor(Math.random() * (999999 - 1)) + '" ' + (props ? ',' + props : '') + '}'));
     },
 
     hideProperties : function(button, entity, view, element) {
         element.children('.sep').remove();
         element.children('.props').remove();
         enable(button, function() {
-            Entities.showProperties(button, entity, view, element);
+            _Entities.showProperties(button, entity, view, element);
         });
     },
 
     showProperties : function(button, entity, view, element) {
         if (isDisabled(button)) return;
         disable(button, function() {
-            Entities.hideProperties(button, entity, view, element);
+            _Entities.hideProperties(button, entity, view, element);
         });
+
+        element.append('<div class="sep"></div>');
+        element.append('<table class="props"></table>');
+
+//        $('.props', element).append('<tr><td class="newKey"><input type="text"></td><td class="newValue"><input type="text"><img class="button icon add" src="icon/add.png"></td></tr>');
+//        $('.props tr td.newValue input', element).each(function(i,v) {
+//            var input = $(v);
+//            var oldVal = input.val();
+//
+//
+//            input.on('focus', function() {
+//                input.addClass('active');
+//                input.parent().append('<img class="button icon cancel" src="icon/cross.png">');
+//                input.parent().append('<img class="button icon save" src="icon/tick.png">');
+//
+//                $('.cancel', input.parent()).on('click', function() {
+//                    input.val(oldVal);
+//                    input.removeClass('active');
+//                });
+//
+//                $('.save', input.parent()).on('click', function() {
+//                    //var key = input.attr('name');
+//                    var key = input.parent().parent().children('.newKey').children('input').val();
+//                    var value = input.val();
+//                    send('{ "command" : "UPDATE" , "id" : "' + entity.id + '", "' + key + '" : "' + value + '" }');
+//                });
+//            });
+//
+//            input.on('change', function() {
+//                input.data('changed', true);
+//            });
+//
+//            input.on('focusout', function() {
+//
+//                //if (input.data('changed') && confirm('Save changes?')) {
+//
+//                    //var key = input.attr('name');
+//                    var key = input.parent().parent().children('.newKey').children('input').val();
+//                    var value = input.val();
+//                    var data = '{ "command" : "UPDATE" , "id" : "' + entity.id + '", "data" : { "' + key + '" : "' + value + '" } }';
+//                    if (debug) console.log(data);
+//                    send(data);
+//                //}
+//                input.removeClass('active');
+//                input.parent().children('.icon').each(function(i, img) {
+//                    $(img).remove();
+//                });
+//            });
+//
+//        });
+
+
         //console.log(element);
         $.ajax({
             url: rootUrl + entity.id + (view ? '/' + view : ''),
@@ -145,42 +205,47 @@ var Entities = {
             contentType: 'application/json; charset=utf-8',
             headers: headers,
             success: function(data) {
-                element.append('<div class="sep"></div>');
-                element.append('<table class="props"></table>');
+                //element.append('<div class="sep"></div>');
+                //element.append('<table class="props"></table>');
                 var keys = Object.keys(data.result);
                 $(keys).each(function(i, key) {
-                    $('.props', element).append('<tr><td class="key">' + formatKey(key) + '</td><td class="value ' + key + '_">' + formatValue(key, data.result[key]) + '</td></tr>');
+
+                    if (view == '_html_') {
+                        $('.props', element).append('<tr><td class="key">' + key.replace(view, '') + '</td><td class="value ' + key + '_">' + formatValue(key, data.result[key]) + '</td></tr>');
+                    } else {
+                        $('.props', element).append('<tr><td class="key">' + formatKey(key) + '</td><td class="value ' + key + '_">' + formatValue(key, data.result[key]) + '</td></tr>');
+                    }
                 });
-        
+
                 $('.props tr td.value input', element).each(function(i,v) {
                     var input = $(v);
                     var oldVal = input.val();
-          
+
                     input.on('focus', function() {
                         input.addClass('active');
                         input.parent().append('<img class="button icon cancel" src="icon/cross.png">');
                         input.parent().append('<img class="button icon save" src="icon/tick.png">');
-            
+
                         $('.cancel', input.parent()).on('click', function() {
                             input.val(oldVal);
                             input.removeClass('active');
                         });
-                                          
+
                         $('.save', input.parent()).on('click', function() {
                             var key = input.attr('name');
                             var value = input.val();
                             send('{ "command" : "UPDATE" , "id" : "' + entity.id + '", "' + key + '" : "' + value + '" }');
                         });
                     });
-          
+
                     input.on('change', function() {
                         input.data('changed', true);
                     });
-                   
+
                     input.on('focusout', function() {
-            
+
                         //if (input.data('changed') && confirm('Save changes?')) {
-              
+
                             var key = input.attr('name');
                             var value = input.val();
                             var data = '{ "command" : "UPDATE" , "id" : "' + entity.id + '", "data" : { "' + key + '" : "' + value + '" } }';

@@ -28,6 +28,7 @@ import org.structr.common.RelType;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.DirectedRelationship.Cardinality;
+import org.structr.web.entity.html.*;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -38,14 +39,58 @@ import org.structr.core.entity.DirectedRelationship.Cardinality;
  */
 public class Content extends AbstractNode {
 
-	public enum Key implements PropertyKey{ name, tag, elements, content, contentType, size; }
+	public enum UiKey implements PropertyKey{ name, tag, elements, content, contentType, size; }
 
 	static {
-		EntityContext.registerPropertySet(Content.class,	PropertyView.All,	Key.values());
-		EntityContext.registerPropertySet(Content.class,	PropertyView.Public,	Key.values());
-		EntityContext.registerPropertySet(Resource.class,	"ui",			Key.values());
+		EntityContext.registerPropertySet(Content.class,	PropertyView.All,	UiKey.values());
+		EntityContext.registerPropertySet(Content.class,	PropertyView.Public,	UiKey.values());
+		EntityContext.registerPropertySet(Content.class,	PropertyView.Ui,	UiKey.values());
 
 		EntityContext.registerEntityRelation(Content.class,	Element.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
+		
+		EntityContext.registerEntityRelation(Content.class,	org.structr.web.entity.html.Title.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Content.class,	Body.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Content.class,	Style.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Content.class,	Script.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Content.class,	P.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Content.class,	Div.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Content.class,	H1.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Content.class,	H2.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Content.class,	H3.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Content.class,	H4.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Content.class,	H5.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Content.class,	H6.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
+	
+		
+		EntityContext.registerEntityRelation(Content.class,	A.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Content.class,	Em.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Content.class,	Strong.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Content.class,	Small.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Content.class,	S.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Content.class,	Cite.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Content.class,	G.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Content.class,	Dfn.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Content.class,	Abbr.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Content.class,	Time.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Content.class,	Code.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Content.class,	Var.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Content.class,	Samp.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Content.class,	Kbd.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Content.class,	Sub.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Content.class,	Sup.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Content.class,	I.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Content.class,	B.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Content.class,	U.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Content.class,	Mark.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Content.class,	Ruby.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Content.class,	Rt.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Content.class,	Rp.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Content.class,	Bdi.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Content.class,	Bdo.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Content.class,	Span.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Content.class,	Br.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Content.class,	Wbr.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
+
 	}
 
 

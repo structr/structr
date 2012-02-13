@@ -21,6 +21,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <structr.version>0.4.6-SNAPSHOT</structr.version>
         <jetty.version>8.1.0.RC2</jetty.version>
+        <netbeans.hint.deploy.server>gfv3ee6</netbeans.hint.deploy.server>
     </properties>
     <repositories>
         <repository>
@@ -31,6 +32,10 @@
         <repository>
             <id>structr-public-repository</id>
             <url>http://maven.structr.org</url>
+        </repository>
+        <repository>
+            <id>jboss</id>
+            <url>https://repository.jboss.org/nexus/content/repositories/releases</url>
         </repository>
     </repositories>
     <dependencies>
@@ -68,6 +73,18 @@
             <type>jar</type>
             <version>3.2.0</version>
         </dependency>
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>jtidy</artifactId>
+            <version>r8-20060801</version>
+        </dependency>
+
+<!--        <dependency>
+            <groupId>org.apache.maven.doxia</groupId>
+            <artifactId>doxia-converter</artifactId>
+            <version>1.2</version>
+        </dependency>-->
+
     </dependencies>
     <build>
         <plugins>
@@ -78,6 +95,7 @@
                 <configuration>
                     <source>1.6</source>
                     <target>1.6</target>
+                    <debug>true</debug>
                 </configuration>
             </plugin>
             <plugin>
@@ -162,7 +180,7 @@
             <name>GNU General Public License, Version 3</name>
             <url>http://www.gnu.org/licenses/gpl-3.0-standalone.html</url>
             <comments>
-                Copyright (C) 2011 Axel Morgner, structr &lt;structr@structr.org&gt;
+                Copyright (C) 2011-2012 Axel Morgner, structr &lt;structr@structr.org&gt;
 
                 This file is part of structr &lt;http://structr.org&gt;.
 

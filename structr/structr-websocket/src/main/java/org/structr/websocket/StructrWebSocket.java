@@ -86,17 +86,39 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 	static {
 
 		// initialize command set
-		addCommand(CreateCommand.class);
-		addCommand(UpdateCommand.class);
-		addCommand(DeleteCommand.class);
-		addCommand(LogoutCommand.class);
-		addCommand(RemoveCommand.class);
+
+		// login and logout
 		addCommand(LoginCommand.class);
-		addCommand(ChunkCommand.class);
+		addCommand(LogoutCommand.class);
+
+		// list objects
 		addCommand(ListCommand.class);
+		
+		// get (read) single object
 		addCommand(GetCommand.class);
+
+		// create a new object
+		addCommand(CreateCommand.class);
+
+		// update an object
+		addCommand(UpdateCommand.class);
+
+		// delete an object
+		addCommand(DeleteCommand.class);
+
+		// add an object to another (create relationship)
 		addCommand(AddCommand.class);
+		
+		// remove an object from another (remove relationship)
+		addCommand(RemoveCommand.class);
+
+		// get a chunk (part) of an object
+		addCommand(ChunkCommand.class);
+
+		// render an object tree
 		addCommand(TreeCommand.class);
+
+		// create a link between objects
 		addCommand(LinkCommand.class);
 	}
 

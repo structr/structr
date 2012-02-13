@@ -19,7 +19,6 @@
         <module>structr-rest</module>
         <module>structr-websocket</module>
         <module>structr-ui</module>
-        <module>structr-test-suite</module>
   </modules>
 
     <build>
@@ -43,7 +42,7 @@
             <name>GNU General Public License, Version 3</name>
             <url>http://www.gnu.org/licenses/gpl-3.0-standalone.html</url>
             <comments>
-Copyright (C) 2011 Axel Morgner, structr &lt;structr@structr.org&gt;
+Copyright (C) 2011-2012 Axel Morgner, structr &lt;structr@structr.org&gt;
 
  This file is part of structr &lt;http://structr.org&gt;.
 

@@ -51,17 +51,19 @@ var Contents = {
     },
 
     show : function() {
-        return Entities.showEntities('Content');
+        return _Entities.showEntities('Content');
     },
 
     appendContentElement : function(content, parentId, resourceId) {
         if (debug) console.log('Contents.appendContentElement: parentId: ' + parentId + ', resourceId: ' + resourceId);
 
         var parent = Structr.findParent(parentId, resourceId, contents);
-        
+
+        var text = (content.content ? content.content.substring(0,200) : '-- empty --');
+
         parent.append('<div class="content ' + content.id + '_">'
             + '<img class="typeIcon" src="'+ Contents.icon + '">'
-            + '<b class="name_">' + content.name + '</b> <span class="id">' + content.id + '</span>'
+            + '<b class="content_">' + text + '</b> <span class="id">' + content.id + '</span>'
             + '</div>');
         var div = $('.' + content.id + '_', parent);
         div.append('<img title="Delete content \'' + content.name + '\'" alt="Delete content \'' + content.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
@@ -73,7 +75,7 @@ var Contents = {
         //            Resources.addElement(this, resource);
         //        });
         $('b', div).on('click', function() {
-            Entities.showProperties(this, content, 'all', $('.' + content.id + '_', contents));
+            _Entities.showProperties(this, content, 'all', $('.' + content.id + '_', contents));
         });
 
         $.ajax({
@@ -92,7 +94,7 @@ var Contents = {
     },
 
     addContent : function(button) {
-        return Entities.add(button, 'Content');
+        return _Entities.add(button, 'Content');
     },
 
     deleteContent : function(button, content) {
