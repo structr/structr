@@ -208,8 +208,8 @@ var _Entities = {
 				var keys = Object.keys(data.result);
 				
 				if (keys.length > 1) {
-					$('.delete_icon', element).after('<div class="sep"></div>');
-					$('.sep', element).after('<table class="props"></table>');
+					if (debug) console.log('element', element);
+					element.children('.delete_icon').after('<table class="props"></table>');
 				}				
 				
 				$(keys).each(function(i, key) {
@@ -297,9 +297,7 @@ var _Entities = {
 				var keys = Object.keys(data.result);
 				
 				if (keys.length > 1) {
-//					$('.delete_icon', element).after('<div class="sep"></div>');
-//					$('.delete_icon', element).after('<div class="sep"></div>');
-					$('.delete_icon', element).after('<table class="props"></table>');
+					element.children('.delete_icon').after('<table class="props"></table>');
 				}
 				
 				$(keys).each(function(i, key) {

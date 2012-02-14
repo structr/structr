@@ -133,17 +133,18 @@ var _Elements = {
 			div.off('mouseover');
 			div.off('mouseout');
 			e.stopPropagation();
-            _Entities.showProperties(this, element, '_html_', $(this).closest('div'));
+			if (debug) console.log('parent', parent)
+            _Entities.showProperties(this, element, '_html_', $('.' + element.id + '_', parent));
         });
 		
 		div.on('mouseover', function(e) {
 			e.stopPropagation();
-            _Entities.showNonEmptyProperties(this, element, '_html_', $(this));
+            _Entities.showNonEmptyProperties(this, element, '_html_', $('.' + element.id + '_', parent));
         });		
 
 		div.on('mouseout', function(e) {
 			e.stopPropagation();
-            _Entities.hideNonEmptyProperties(this, element, '_html_', $(this));
+            _Entities.hideNonEmptyProperties(this, element, '_html_', $('.' + element.id + '_', parent));
         });		
 
 		return div;
