@@ -129,10 +129,24 @@ var _Elements = {
         //        $('.add_icon', div).on('click', function() {
         //            Resources.addElement(this, resource);
         //        });
-        $('b', div).on('click', function() {
-            _Entities.showProperties(this, element, '_html_', $('.' + element.id + '_', elements));
+        $('b', div).on('click', function(e) {
+			div.off('mouseover');
+			div.off('mouseout');
+			e.stopPropagation();
+            _Entities.showProperties(this, element, '_html_', $(this).closest('div'));
         });
-        return div;
+		
+		div.on('mouseover', function(e) {
+			e.stopPropagation();
+            _Entities.showNonEmptyProperties(this, element, '_html_', $(this));
+        });		
+
+		div.on('mouseout', function(e) {
+			e.stopPropagation();
+            _Entities.hideNonEmptyProperties(this, element, '_html_', $(this));
+        });		
+
+		return div;
     },
 
     addElement : function(button, type, props) {

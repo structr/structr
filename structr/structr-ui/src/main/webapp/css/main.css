@@ -189,6 +189,7 @@ img.disabled {
 }
 
 .sep {
+	clear: both;
     height: 4px;
     /*	width: 105%;*/
     /*border-bottom: 1px solid #ccc;*/
@@ -196,9 +197,11 @@ img.disabled {
 }
 
 .props {
-    width: 100%;
+	position: absolute;
+/*    width: 100%;*/
     border-collapse: collapse;
     margin-bottom: 12px;
+	border: 1px solid #b5b5b5;
 }
 
 #users .props {
