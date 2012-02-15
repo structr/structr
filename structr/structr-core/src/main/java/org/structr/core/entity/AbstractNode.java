@@ -3911,12 +3911,29 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 		}
 
-		// static relationship detected, create relationship
+		// static relationship detected, create or remove relationship
 		DirectedRelationship rel = EntityContext.getDirectedRelationship(type, key);
 		if (rel != null) {
-
-			GraphObject graphObject = rel.getNotion().getAdapterForSetter(securityContext).adapt(value);
-			rel.createRelationship(securityContext, this, graphObject);
+		
+			if (value != null) {
+				GraphObject graphObject = rel.getNotion().getAdapterForSetter(securityContext).adapt(value);
+				rel.createRelationship(securityContext, this, graphObject);
+			} else {
+				
+				Object existingValue = getProperty(key);
+				
+				// support collection resources, too
+				if (existingValue instanceof IterableAdapter) {
+					for (Object val : ((IterableAdapter) existingValue)) {
+						GraphObject graphObject = rel.getNotion().getAdapterForSetter(securityContext).adapt(val);
+						rel.removeRelationship(securityContext, this, graphObject);
+					}
+				} else {
+					GraphObject graphObject = rel.getNotion().getAdapterForSetter(securityContext).adapt(existingValue);
+					rel.removeRelationship(securityContext, this, graphObject);				
+				}
+				
+			}
 
 		} else {
 
