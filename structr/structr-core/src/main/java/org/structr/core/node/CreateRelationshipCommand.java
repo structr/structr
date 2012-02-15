@@ -23,9 +23,13 @@ package org.structr.core.node;
 
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 
+import org.structr.common.RelType;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.*;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.UnsupportedArgumentError;
@@ -37,9 +41,6 @@ import org.structr.core.entity.StructrRelationship;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.structr.common.RelType;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -168,19 +169,33 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 
 	private synchronized StructrRelationship createRelationship(final AbstractNode fromNode, final AbstractNode toNode, final RelationshipType relType) throws FrameworkException {
 
-		return (StructrRelationship)Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+		return (StructrRelationship) Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
 			@Override
 			public Object execute() throws FrameworkException {
 
+				StructrRelationship newRel = null;
 				Relationship neoRelationship = null;
-				Node startNode = fromNode.getNode();
-				Node endNode   = toNode.getNode();
+				Node startNode               = fromNode.getNode();
+				Node endNode                 = toNode.getNode();
 
 				neoRelationship = startNode.createRelationshipTo(endNode, relType);
+				newRel          = new StructrRelationship(securityContext, neoRelationship);
 
-				return new StructrRelationship(securityContext, neoRelationship);
+				if (newRel != null) {
+
+					// iterate post creation transformations
+					for (Transformation<StructrRelationship> transformation : EntityContext.getRelationshipCreationTransformations(relType, fromNode.getClass(), toNode.getClass())) {
+
+						transformation.apply(securityContext, newRel);
+
+					}
+					
+				}
+				
+				return newRel;
 			}
+
 		});
 	}
 

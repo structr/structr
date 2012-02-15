@@ -20,6 +20,7 @@
 package org.structr.common.error;
 
 import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import java.util.Map;
@@ -48,8 +49,12 @@ public class PropertiesNotFoundToken extends NotFoundToken {
 
 			String key = entry.getKey();
 			Object value = entry.getValue();
-
-			vals.add(key, new JsonPrimitive(value.toString()));
+			
+			if (value == null) {
+				vals.add(key, new JsonNull());
+			} else {
+				vals.add(key, new JsonPrimitive(value.toString()));
+			}
 		}
 
 		obj.add(getErrorToken(), vals);

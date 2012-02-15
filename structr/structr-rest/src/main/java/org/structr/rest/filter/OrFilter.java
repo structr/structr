@@ -17,37 +17,27 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.structr.common.error;
+package org.structr.rest.filter;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
+import org.structr.core.GraphObject;
 
 /**
  *
- * @author Christian Morgner
+ * @author Axel Morgner
  */
-public class ChronologicalOrderToken extends SemanticErrorToken {
+public class OrFilter implements Filter {
 
-	private String propertyKey2 = null;
+	private Filter filter1 = null;
+	private Filter filter2 = null;
 
-	public ChronologicalOrderToken(String propertyKey1, String propertyKey2) {
-		super(propertyKey1);
-		this.propertyKey2 = propertyKey2;
+	public OrFilter(Filter filter1, Filter filter2) {
+		this.filter1 = filter1;
+		this.filter2 = filter2;
 	}
 
 	@Override
-	public JsonElement getContent() {
-
-		JsonObject obj = new JsonObject();
-
-		obj.add(getErrorToken(), new JsonPrimitive(propertyKey2));
-
-		return obj;
+	public boolean includeInResultSet(GraphObject object) {
+		return filter1.includeInResultSet(object) || filter2.includeInResultSet(object);
 	}
 
-	@Override
-	public String getErrorToken() {
-		return "must_lie_before";
-	}
 }
