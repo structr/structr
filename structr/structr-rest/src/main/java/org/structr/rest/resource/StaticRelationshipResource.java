@@ -28,7 +28,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.TypeToken;
 import org.structr.core.*;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.DirectedRelationship;
+import org.structr.core.entity.DirectedRelation;
 import org.structr.core.entity.StructrRelationship;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
@@ -95,7 +95,7 @@ public class StaticRelationshipResource extends SortableResource {
 			if (sourceNode != null) {
 
 				// fetch static relationship definition
-				DirectedRelationship staticRel = findDirectedRelationship(typedIdResource, typeResource);
+				DirectedRelation staticRel = findDirectedRelationship(typedIdResource, typeResource);
 
 				if (staticRel != null) {
 
@@ -209,7 +209,7 @@ public class StaticRelationshipResource extends SortableResource {
 //		if (results != null) {
 //
 //			// fetch static relationship definition
-//			DirectedRelationship staticRel = findDirectedRelationship(typedIdResource, typeResource);
+//			DirectedRelation staticRel = findDirectedRelationship(typedIdResource, typeResource);
 //
 //			if (staticRel != null) {
 //
@@ -261,7 +261,7 @@ public class StaticRelationshipResource extends SortableResource {
 		if (results != null) {
 
 			// fetch static relationship definition
-			final DirectedRelationship staticRel = findDirectedRelationship(typedIdResource, typeResource);
+			final DirectedRelation staticRel = findDirectedRelationship(typedIdResource, typeResource);
 
 			if (staticRel != null) {
 
@@ -366,7 +366,7 @@ public class StaticRelationshipResource extends SortableResource {
 			public Object execute() throws FrameworkException {
 
 				AbstractNode sourceNode  = typedIdResource.getIdResource().getNode();
-				DirectedRelationship rel = EntityContext.getDirectedRelationship(sourceNode.getClass(), typeResource.getRawType());
+				DirectedRelation rel = EntityContext.getDirectedRelationship(sourceNode.getClass(), typeResource.getRawType());
 
 				if ((sourceNode != null) && (rel != null)) {
 

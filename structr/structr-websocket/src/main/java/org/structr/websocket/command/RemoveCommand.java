@@ -25,7 +25,7 @@ import org.structr.common.SecurityContext;
 import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.DirectedRelationship;
+import org.structr.core.entity.DirectedRelation;
 import org.structr.core.entity.StructrRelationship;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
@@ -61,7 +61,7 @@ public class RemoveCommand extends AbstractCommand {
 
 			if ((sourceNode != null) && (targetNode != null)) {
 
-				DirectedRelationship rel = EntityContext.getDirectedRelationship(sourceNode.getClass(), targetNode.getClass());
+				DirectedRelation rel = EntityContext.getDirectedRelationship(sourceNode.getClass(), targetNode.getClass());
 
 				if (rel != null) {
 

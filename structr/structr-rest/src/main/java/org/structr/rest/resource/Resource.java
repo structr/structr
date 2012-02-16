@@ -31,7 +31,7 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.DirectedRelationship;
+import org.structr.core.entity.DirectedRelation;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -166,19 +166,19 @@ public abstract class Resource {
 	}
 
 	// ----- protected methods -----
-	protected DirectedRelationship findDirectedRelationship(TypedIdResource constraint1, TypeResource constraint2) {
+	protected DirectedRelation findDirectedRelationship(TypedIdResource constraint1, TypeResource constraint2) {
 		return findDirectedRelationship(constraint1.getTypeResource(), constraint2);
 	}
 
-	protected DirectedRelationship findDirectedRelationship(TypeResource constraint1, TypedIdResource constraint2) {
+	protected DirectedRelation findDirectedRelationship(TypeResource constraint1, TypedIdResource constraint2) {
 		return findDirectedRelationship(constraint1, constraint2.getTypeResource());
 	}
 
-	protected DirectedRelationship findDirectedRelationship(TypedIdResource constraint1, TypedIdResource constraint2) {
+	protected DirectedRelation findDirectedRelationship(TypedIdResource constraint1, TypedIdResource constraint2) {
 		return findDirectedRelationship(constraint1.getTypeResource(), constraint2.getTypeResource());
 	}
 
-	protected DirectedRelationship findDirectedRelationship(TypeResource constraint1, TypeResource constraint2) {
+	protected DirectedRelation findDirectedRelationship(TypeResource constraint1, TypeResource constraint2) {
 
 		String type1             = constraint1.getRawType();
 		String type2             = constraint2.getRawType();

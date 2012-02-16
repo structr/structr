@@ -1919,7 +1919,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		} else {
 
 			// ----- BEGIN automatic property resolution (check for static relationships and return related nodes) -----
-			DirectedRelationship rel = EntityContext.getDirectedRelationship(type, key);
+			DirectedRelation rel = EntityContext.getDirectedRelationship(type, key);
 
 			if (rel != null) {
 
@@ -3912,7 +3912,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		}
 
 		// static relationship detected, create or remove relationship
-		DirectedRelationship rel = EntityContext.getDirectedRelationship(type, key);
+		DirectedRelation rel = EntityContext.getDirectedRelationship(type, key);
 		if (rel != null) {
 		
 			if (value != null) {

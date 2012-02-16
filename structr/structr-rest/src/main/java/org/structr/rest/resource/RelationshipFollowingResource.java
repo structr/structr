@@ -33,7 +33,7 @@ import org.neo4j.kernel.Uniqueness;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.DirectedRelationship;
+import org.structr.core.entity.DirectedRelation;
 import org.structr.core.node.StructrNodeFactory;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
@@ -75,14 +75,14 @@ public class RelationshipFollowingResource extends SortableResource implements E
 	private int pathLength                                 = 0;
 	private TraversalDescription traversalDescription      = null;
 	private List<String> uriParts                          = null;
-	private Set<DirectedRelationship> visitedRelationships = null;
+	private Set<DirectedRelation> visitedRelationships = null;
 
 	//~--- constructors ---------------------------------------------------
 
 	public RelationshipFollowingResource(SecurityContext securityContext, TypedIdResource typedIdResource) {
 
 		this.traversalDescription = Traversal.description().depthFirst().uniqueness(Uniqueness.NODE_GLOBAL).evaluator(Evaluators.excludeStartPosition());
-		this.visitedRelationships = new LinkedHashSet<DirectedRelationship>();
+		this.visitedRelationships = new LinkedHashSet<DirectedRelation>();
 		this.securityContext      = securityContext;
 		this.idSet                = new LinkedHashSet<Object>();
 		this.uriParts             = new LinkedList<String>();
@@ -146,7 +146,7 @@ public class RelationshipFollowingResource extends SortableResource implements E
 		uriParts.add(typedIdResource.getUriPart());
 
 		// find static relationship between the two types
-		DirectedRelationship rel = findDirectedRelationship(lastResource, typedIdResource);
+		DirectedRelation rel = findDirectedRelationship(lastResource, typedIdResource);
 		if (rel != null) {
 
 			if (!visitedRelationships.contains(rel)) {
@@ -253,7 +253,7 @@ public class RelationshipFollowingResource extends SortableResource implements E
 				
 				if ((startNode != null) && (endNode != null)) {
 
-					final DirectedRelationship directedRelationship = EntityContext.getDirectedRelationship(startNode.getClass(), property);
+					final DirectedRelation directedRelationship = EntityContext.getDirectedRelationship(startNode.getClass(), property);
 					if(directedRelationship != null) {
 
 						// relationship found!

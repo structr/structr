@@ -117,17 +117,6 @@ public class TypedIdResource extends FilterableResource {
 			resource.addTypedIdResource((TypedIdResource)next);
 
 			return resource;
-
-		} else if(next instanceof RelationshipResource) {
-
-			// make rel constraint wrap this
-			((RelationshipResource)next).wrapResource(this);
-			return next;
-
-		} else if(next instanceof RelationshipIdResource) {
-
-			((RelationshipIdResource)next).getRelationshipResource().wrapResource(this);
-			return next;
 		}
 
 		return super.tryCombineWith(next);
