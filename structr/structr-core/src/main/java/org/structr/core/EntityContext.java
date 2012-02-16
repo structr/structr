@@ -73,6 +73,7 @@ public class EntityContext {
 	private static final Map<Class, Set<String>> globalWriteOncePropertyMap                                                = new LinkedHashMap<Class, Set<String>>();
 	private static final Map<Class, Set<String>> globalReadOnlyPropertyMap                                                 = new LinkedHashMap<Class, Set<String>>();
 	private static final Map<String, String> normalizedEntityNameCache                                                     = new LinkedHashMap<String, String>();
+	private static final Map<String, DirectedRelationship> globalRelationshipNameMap                                       = new LinkedHashMap<String, DirectedRelationship>();
 	private static final Set<VetoableGraphObjectListener> modificationListeners                                            = new LinkedHashSet<VetoableGraphObjectListener>();
 	private static final Map<Long, FrameworkException> exceptionMap                                                        = new LinkedHashMap<Long, FrameworkException>();
 	private static final Logger logger                                                                                     = Logger.getLogger(EntityContext.class.getName());
@@ -130,19 +131,19 @@ public class EntityContext {
 		registerPropertyRelationInternal(sourceType.getSimpleName(), property, destType.getSimpleName(), relType, direction, cardinality, notion);
 	}
 
-	public static void registerEntityRelation(Class sourceType, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality) {
+	public static void registerEntityRelation(String relationName, Class sourceType, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality) {
 
 		// need to set type here
 		Notion objectNotion = new ObjectNotion();
 
 		objectNotion.setType(destType);
-		registerEntityRelationInternal(sourceType.getSimpleName(), destType.getSimpleName(), relType, direction, cardinality, objectNotion);
+		registerEntityRelationInternal(relationName, sourceType.getSimpleName(), destType.getSimpleName(), relType, direction, cardinality, objectNotion);
 	}
 
-	public static void registerEntityRelation(Class sourceType, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion) {
+	public static void registerEntityRelation(String relationName, Class sourceType, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion) {
 
 		notion.setType(destType);
-		registerEntityRelationInternal(sourceType.getSimpleName(), destType.getSimpleName(), relType, direction, cardinality, notion);
+		registerEntityRelationInternal(relationName, sourceType.getSimpleName(), destType.getSimpleName(), relType, direction, cardinality, notion);
 	}
 
 	// ----- property set methods -----
@@ -302,11 +303,13 @@ public class EntityContext {
 		typeMap.put(property, new DirectedRelationship(destType, relType, direction, cardinality, notion));
 	}
 
-	private static void registerEntityRelationInternal(String sourceType, String destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion) {
+	private static void registerEntityRelationInternal(String relationName, String sourceType, String destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion) {
 
 		Map<String, DirectedRelationship> typeMap = getEntityRelationshipMapForType(sourceType);
 
-		typeMap.put(destType, new DirectedRelationship(destType, relType, direction, cardinality, notion));
+		DirectedRelationship directedRelation = new DirectedRelationship(destType, relType, direction, cardinality, notion);
+		globalRelationshipNameMap.put(relationName, directedRelation);
+		typeMap.put(destType, directedRelation);
 	}
 
 	public static synchronized void removeTransactionKey() {
