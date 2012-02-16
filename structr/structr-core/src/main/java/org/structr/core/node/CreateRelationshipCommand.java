@@ -182,16 +182,16 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 				neoRelationship = startNode.createRelationshipTo(endNode, relType);
 				newRel          = new StructrRelationship(securityContext, neoRelationship);
 
-				if (newRel != null) {
-
-					// iterate post creation transformations
-					for (Transformation<StructrRelationship> transformation : EntityContext.getRelationshipCreationTransformations(relType, fromNode.getClass(), toNode.getClass())) {
-
-						transformation.apply(securityContext, newRel);
-
-					}
-					
-				}
+//				if (newRel != null) {
+//
+//					// iterate post creation transformations
+//					for (Transformation<StructrRelationship> transformation : EntityContext.getRelationshipCreationTransformations(relType, fromNode.getClass(), toNode.getClass())) {
+//
+//						transformation.apply(securityContext, newRel);
+//
+//					}
+//					
+//				}
 				
 				return newRel;
 			}

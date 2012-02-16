@@ -21,7 +21,6 @@
 
 package org.structr.core;
 
-import java.util.*;
 import org.apache.commons.lang.StringUtils;
 
 import org.neo4j.graphdb.Direction;
@@ -33,9 +32,10 @@ import org.neo4j.graphdb.event.TransactionData;
 import org.neo4j.graphdb.event.TransactionEventHandler;
 
 import org.structr.common.CaseHelper;
-import org.structr.common.error.ErrorBuffer;
 import org.structr.common.PropertyKey;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.DirectedRelationship;
 import org.structr.core.entity.DirectedRelationship.Cardinality;
@@ -47,9 +47,9 @@ import org.structr.core.notion.ObjectNotion;
 
 //~--- JDK imports ------------------------------------------------------------
 
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.error.FrameworkException;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -74,13 +74,11 @@ public class EntityContext {
 	private static final Map<Class, Set<String>> globalReadOnlyPropertyMap                                                 = new LinkedHashMap<Class, Set<String>>();
 	private static final Map<String, String> normalizedEntityNameCache                                                     = new LinkedHashMap<String, String>();
 	private static final Set<VetoableGraphObjectListener> modificationListeners                                            = new LinkedHashSet<VetoableGraphObjectListener>();
-	private static final Map<Long, FrameworkException> exceptionMap                                                        = new LinkedHashMap<Long, FrameworkException>();
 	private static final Logger logger                                                                                     = Logger.getLogger(EntityContext.class.getName());
-
 	private static final Map<String, Set<Transformation<StructrRelationship>>> globalRelationshipCreationTransformationMap = new LinkedHashMap<String, Set<Transformation<StructrRelationship>>>();
-	private static final Map<Class, Set<Transformation<AbstractNode>>> globalEntityCreationTransformationMap               = new LinkedHashMap<Class, Set<Transformation<AbstractNode>>>();
 	private static final EntityContextModificationListener globalModificationListener                                      = new EntityContextModificationListener();
-
+	private static final Map<Class, Set<Transformation<AbstractNode>>> globalEntityCreationTransformationMap               = new LinkedHashMap<Class, Set<Transformation<AbstractNode>>>();
+	private static final Map<Long, FrameworkException> exceptionMap                                                        = new LinkedHashMap<Long, FrameworkException>();
 	private static final Map<Thread, SecurityContext> securityContextMap                                                   = Collections.synchronizedMap(new WeakHashMap<Thread, SecurityContext>());
 	private static final Map<Thread, Long> transactionKeyMap                                                               = Collections.synchronizedMap(new WeakHashMap<Thread, Long>());
 
@@ -186,9 +184,13 @@ public class EntityContext {
 
 		// fetch or create validator set
 		Set<PropertyValidator> validators = validatorMap.get(propertyKey);
-		if(validators == null) {
+
+		if (validators == null) {
+
 			validators = new LinkedHashSet<PropertyValidator>();
+
 			validatorMap.put(propertyKey, validators);
+
 		}
 
 		validators.add(validator);
@@ -313,6 +315,24 @@ public class EntityContext {
 		transactionKeyMap.remove(Thread.currentThread());
 	}
 
+	// ----- private methods -----
+	private static String createTripleKey(String key1, String key2, String key3) {
+
+		StringBuilder buf = new StringBuilder();
+
+		buf.append(key1);
+		buf.append(":");
+		buf.append(key2);
+		buf.append(":");
+		buf.append(key3);
+
+		return buf.toString();
+	}
+
+	public static synchronized void removeSecurityContext() {
+		securityContextMap.remove(Thread.currentThread());
+	}
+
 	//~--- get methods ----------------------------------------------------
 
 	public static Set<VetoableGraphObjectListener> getModificationListeners() {
@@ -333,7 +353,7 @@ public class EntityContext {
 
 		}
 
-//		return new TreeSet<Transformation<AbstractNode>>(transformations).descendingSet();
+//              return new TreeSet<Transformation<AbstractNode>>(transformations).descendingSet();
 		return transformations;
 	}
 
@@ -342,16 +362,20 @@ public class EntityContext {
 	}
 
 	public static Set<Transformation<StructrRelationship>> getRelationshipCreationTransformations(RelationshipType relType, String startNodeType, String endNodeType) {
+
 		String key = createTripleKey(relType.name(), normalizeEntityName(startNodeType), normalizeEntityName(endNodeType));
+
 		return getRelationshipCreationTransformations(key);
 	}
 
 	private static Set<Transformation<StructrRelationship>> getRelationshipCreationTransformations(String key) {
 
 		Set<Transformation<StructrRelationship>> transformations = globalRelationshipCreationTransformationMap.get(key);
+
 		if (transformations == null) {
 
 			transformations = new LinkedHashSet<Transformation<StructrRelationship>>();
+
 			globalRelationshipCreationTransformationMap.put(key, transformations);
 
 		}
@@ -545,6 +569,7 @@ public class EntityContext {
 		if (validatorMap == null) {
 
 			validatorMap = new LinkedHashMap<String, Set<PropertyValidator>>();
+
 			globalValidatorMap.put(type, validatorMap);
 
 		}
@@ -713,27 +738,10 @@ public class EntityContext {
 		return isWriteOnce;
 	}
 
-	// ----- private methods -----
-	private static String createTripleKey(String key1, String key2, String key3) {
-
-		StringBuilder buf = new StringBuilder();
-		buf.append(key1);
-		buf.append(":");
-		buf.append(key2);
-		buf.append(":");
-		buf.append(key3);
-
-		return buf.toString();
-	}
-
 	//~--- set methods ----------------------------------------------------
 
 	public static synchronized void setSecurityContext(SecurityContext securityContext) {
 		securityContextMap.put(Thread.currentThread(), securityContext);
-	}
-
-	public static synchronized void removeSecurityContext() {
-		securityContextMap.remove(Thread.currentThread());
 	}
 
 	public static synchronized void setTransactionKey(Long transactionKey) {
@@ -745,15 +753,13 @@ public class EntityContext {
 	// <editor-fold defaultstate="collapsed" desc="EntityContextModificationListener">
 	public static class EntityContextModificationListener implements VetoableGraphObjectListener, TransactionEventHandler<Long> {
 
-		
 		// ----- interface TransactionEventHandler -----
 		@Override
 		public Long beforeCommit(TransactionData data) throws Exception {
-			
+
 			SecurityContext securityContext = securityContextMap.get(Thread.currentThread());
 			Command indexCommand            = Services.command(securityContext, IndexNodeCommand.class);
-
-			long transactionKey = transactionKeyMap.get(Thread.currentThread());
+			long transactionKey             = transactionKeyMap.get(Thread.currentThread());
 
 			try {
 
@@ -837,9 +843,13 @@ public class EntityContext {
 
 					// iterate over validators
 					Set<PropertyValidator> validators = EntityContext.getPropertyValidators(securityContext, entity.getClass(), key);
+
 					if (validators != null) {
-						for(PropertyValidator validator : validators) {
+
+						for (PropertyValidator validator : validators) {
+
 							hasError |= !(validator.isValid(entity, key, value, errorBuffer));
+
 						}
 
 					}
@@ -863,6 +873,29 @@ public class EntityContext {
 					}
 				}
 
+				// 8: apply transformations triggered by created relationships
+				for (StructrRelationship rel : createdRels) {
+
+					String startNodeType                                     = (String) rel.getStartNode().getProperty(AbstractNode.Key.type.name());
+					String endNodeType                                       = (String) rel.getEndNode().getProperty(AbstractNode.Key.type.name());
+					Set<Transformation<StructrRelationship>> transformations = EntityContext.getRelationshipCreationTransformations(rel.getRelType(), startNodeType, endNodeType);
+
+					if (transformations != null) {
+
+						for (Transformation<StructrRelationship> transformation : transformations) {
+
+							try {
+								transformation.apply(securityContext, rel);
+							} catch (FrameworkException fex) {
+								logger.log(Level.WARNING, "Unable to execute relationship creation transformation", fex);
+							}
+
+						}
+
+					}
+
+				}
+
 				// notify listeners of commit
 				hasError |= commit(securityContext, transactionKey, errorBuffer);
 
@@ -883,33 +916,7 @@ public class EntityContext {
 		}
 
 		@Override
-		public void afterCommit(TransactionData data, Long transactionKey) {
-
-			SecurityContext securityContext = securityContextMap.get(Thread.currentThread());
-
-			// call RelationshipCreation
-			for(Relationship rel : data.createdRelationships()) {
-
-				String startNodeType = (String)rel.getStartNode().getProperty(AbstractNode.Key.type.name());
-				String endNodeType   = (String)rel.getEndNode().getProperty(AbstractNode.Key.type.name());
-
-				Set<Transformation<StructrRelationship>> transformations = EntityContext.getRelationshipCreationTransformations(rel.getType(), startNodeType, endNodeType);
-				if(transformations != null) {
-
-					for(Transformation<StructrRelationship> transformation : transformations) {
-						StructrRelationship structrRelationship = new StructrRelationship(securityContext, rel);
-
-						try {
-							transformation.apply(securityContext, structrRelationship);
-
-						} catch(FrameworkException fex) {
-							logger.log(Level.WARNING, "Unable to execute relationship creation transformation", fex);
-						}
-					}
-				}
-			}
-
-		}
+		public void afterCommit(TransactionData data, Long transactionKey) {}
 
 		@Override
 		public void afterRollback(TransactionData data, Long transactionKey) {
