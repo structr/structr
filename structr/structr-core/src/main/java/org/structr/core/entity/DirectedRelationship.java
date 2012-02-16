@@ -203,6 +203,119 @@ public class DirectedRelationship {
 		}
 	}
 
+	public void removeRelationship(final SecurityContext securityContext, final AbstractNode sourceNode, final Object value) throws FrameworkException {
+
+		AbstractNode targetNode = null;
+
+		if (value instanceof AbstractNode) {
+
+			targetNode = (AbstractNode) value;
+
+		} else {
+
+			targetNode = (AbstractNode) Services.command(securityContext, FindNodeCommand.class).execute(value);
+
+		}
+
+		if ((sourceNode != null) && (targetNode != null)) {
+
+			final AbstractNode finalTargetNode = targetNode;
+			StructrTransaction transaction     = new StructrTransaction() {
+
+				@Override
+				public Object execute() throws FrameworkException {
+
+					switch (cardinality) {
+
+						case ManyToOne :
+						case OneToOne :
+
+						{
+							String destType = finalTargetNode.getType();
+
+							// delete previous relationships to nodes of the same destination type and direction
+							List<StructrRelationship> rels = sourceNode.getRelationships(relType, direction);
+
+							for (StructrRelationship rel : rels) {
+
+								if (rel.getOtherNode(sourceNode).getType().equals(destType)) {
+
+									rel.delete(securityContext);
+
+								}
+
+							}
+
+							break;
+
+						}
+
+						case OneToMany :
+
+						{
+							// Here, we have a OneToMany with OUTGOING Rel, so we need to remove all relationships
+							// of the same type incoming to the target node
+							
+							List<StructrRelationship> rels = finalTargetNode.getRelationships(relType, Direction.INCOMING);
+
+							for (StructrRelationship rel : rels) {
+
+								if (rel.getOtherNode(finalTargetNode).getType().equals(sourceNode.getType())) {
+
+									rel.delete(securityContext);
+
+								}
+
+							}
+						}
+
+						case ManyToMany :
+
+						{
+							// In this case, remove exact the relationship of the given type
+							// between source and target node
+							
+							List<StructrRelationship> rels = finalTargetNode.getRelationships(relType, Direction.BOTH);
+
+							for (StructrRelationship rel : rels) {
+
+								if (rel.getOtherNode(finalTargetNode).equals(sourceNode)) {
+
+									rel.delete(securityContext);
+
+								}
+
+							}
+						}
+
+					}
+
+					return null;
+				}
+			};
+
+			// execute transaction
+			Services.command(securityContext, TransactionCommand.class).execute(transaction);
+
+		} else {
+
+			String type = "unknown";
+
+			if (sourceNode != null) {
+
+				type = sourceNode.getType();
+
+			} else if (targetNode != null) {
+
+				type = targetNode.getType();
+
+			}
+
+			throw new FrameworkException(type, new IdNotFoundToken(value));
+
+		}
+	}
+
 	//~--- get methods ----------------------------------------------------
 
 	public String getDestType() {
