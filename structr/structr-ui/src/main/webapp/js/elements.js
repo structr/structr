@@ -130,6 +130,7 @@ var _Elements = {
         //            Resources.addElement(this, resource);
         //        });
         $('b', div).on('click', function(e) {
+			div.off('click');
 			div.off('mouseover');
 			div.off('mouseout');
 			e.stopPropagation();

@@ -149,7 +149,11 @@ img.disabled {
     overflow: hidden;*/
 }
 
-#resources, #previews,
+#resources {
+	width: 1000px;
+}
+
+#previews,
 #elements,
 #components,
 #contents,
@@ -166,6 +170,10 @@ img.disabled {
 
 #resourcesEditor .id {
 /*    display: none;*/
+}
+
+.content .id {
+	display: none;
 }
 
 .node, .group, .user, .resource, .component, .element, .content, .folder, .file {
