@@ -51,6 +51,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.NamedRelation;
+import org.structr.core.node.IndexRelationshipCommand;
 import org.structr.core.node.RelationshipFactory;
 
 //~--- classes ----------------------------------------------------------------
@@ -806,7 +807,8 @@ public class EntityContext {
 		public Long beforeCommit(TransactionData data) throws Exception {
 
 			SecurityContext securityContext = securityContextMap.get(Thread.currentThread());
-			Command indexCommand            = Services.command(securityContext, IndexNodeCommand.class);
+			Command indexNodeCommand            = Services.command(securityContext, IndexNodeCommand.class);
+			Command indexRelationshipCommand    = Services.command(securityContext, IndexRelationshipCommand.class);
 			long transactionKey             = transactionKeyMap.get(Thread.currentThread());
 
 			try {
@@ -906,7 +908,7 @@ public class EntityContext {
 					hasError |= propertyModified(securityContext, transactionKey, errorBuffer, entity, key, entry.previouslyCommitedValue(), value);
 
 					// after successful validation, add node to index to make uniqueness constraints work
-					indexCommand.execute(entity, key);
+					indexRelationshipCommand.execute(entity, key);
 					modifiedNodes.add(entity);
 
 				}
@@ -943,6 +945,13 @@ public class EntityContext {
 
 					}
 
+				}
+
+				// 9: index relationships
+				for (AbstractRelationship rel : createdRels) {
+
+					indexRelationshipCommand.execute(rel);
+					
 				}
 
 				// notify listeners of commit

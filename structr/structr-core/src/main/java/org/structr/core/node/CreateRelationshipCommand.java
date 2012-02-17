@@ -183,13 +183,13 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 				Relationship rel = startNode.createRelationshipTo(endNode, relType);
 				AbstractRelationship newRel  = relationshipFactory.createRelationship(securityContext, rel);
 
-				if (newRel != null) {
-
-					// iterate post creation transformations
-					for (Transformation<GraphObject> transformation : EntityContext.getEntityCreationTransformations(newRel.getClass())) {
-						transformation.apply(securityContext, newRel);
-					}
-				}
+//				if (newRel != null) {
+//
+//					// iterate post creation transformations
+//					for (Transformation<GraphObject> transformation : EntityContext.getEntityCreationTransformations(newRel.getClass())) {
+//						transformation.apply(securityContext, newRel);
+//					}
+//				}
 				
 				return newRel;
 			}

@@ -69,9 +69,9 @@ public class SearchRelationshipCommand extends NodeServiceCommand {
 	@Override
 	public Object execute(Object... parameters) throws FrameworkException {
 
-		if ((parameters == null) || (parameters.length < 1)) {
+		if (parameters == null || parameters.length < 1 || parameters.length > 1) {
 
-			logger.log(Level.WARNING, "One or more parameters are required for relationship search.");
+			logger.log(Level.WARNING, "Exactly one parameter of type 'List<SearchAttribute>' is required for relationship search.");
 
 			return Collections.emptyList();
 
@@ -79,32 +79,13 @@ public class SearchRelationshipCommand extends NodeServiceCommand {
 
 		List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
 
-		if (parameters[3] instanceof List) {
+		if (parameters[0] instanceof List) {
 
-			searchAttrs = (List<SearchAttribute>) parameters[3];
-
-		}
-
-		String propertyKey = null;
-		String type        = null;
-
-		if (parameters.length >= 3) {
-
-			if (parameters[1] instanceof String) {
-
-				type = (String) parameters[1];
-
-			}
-
-			if (parameters[2] instanceof String) {
-
-				propertyKey = (String) parameters[2];
-
-			}
+			searchAttrs = (List<SearchAttribute>) parameters[0];
 
 		}
 
-		return search(securityContext, searchAttrs, type, propertyKey);
+		return search(securityContext, searchAttrs);
 	}
 
 	/**
@@ -114,7 +95,7 @@ public class SearchRelationshipCommand extends NodeServiceCommand {
 	 * @param searchAttrs           List with search attributes
 	 * @return
 	 */
-	private List<AbstractRelationship> search(final SecurityContext securityContext, final List<SearchAttribute> searchAttrs, final String type, final String propertyKey) throws FrameworkException {
+	private List<AbstractRelationship> search(final SecurityContext securityContext, final List<SearchAttribute> searchAttrs) throws FrameworkException {
 
 		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
 		Index<Relationship> index;
