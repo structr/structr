@@ -65,11 +65,7 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 
 	public AbstractRelationship createRelationship(SecurityContext securityContext, final Relationship relationship) throws FrameworkException {
 
-		String nodeType = relationship.hasProperty(AbstractNode.Key.type.name())
-				  ? (String) relationship.getProperty(AbstractNode.Key.type.name())
-				  : "";
-
-		return createRelationship(securityContext, relationship, nodeType);
+		return createRelationship(securityContext, relationship, relationship.getType().name());
 	}
 
 	public AbstractRelationship createRelationship(final SecurityContext securityContext, final Relationship relationship, final String relType) throws FrameworkException {
