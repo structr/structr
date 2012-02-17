@@ -188,7 +188,6 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 //						transformation.apply(securityContext, newRel);
 //
 //					}
-//
 //				}
 				
 				return newRel;
