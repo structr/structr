@@ -30,16 +30,13 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
 
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.index.lucene.QueryContext;
 
 import org.structr.common.SecurityContext;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.node.NodeService.NodeIndex;
 import org.structr.core.node.NodeServiceCommand;
-import org.structr.core.node.NodeFactory;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -48,67 +45,35 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.neo4j.graphdb.Relationship;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.node.NodeService.RelationshipIndex;
+import org.structr.core.node.RelationshipFactory;
 
 //~--- classes ----------------------------------------------------------------
 
 /**
- * <b>Search for nodes by attributes</b>
- * <p>
- * The execute method takes four parameters:
- * <p>
- * <ol>
- * <li>{@see AbstractNode} top node: search only below this node
- *     <p>if null, search everywhere (top node = root node)
- * <li>boolean include deleted: if true, return deleted nodes as well
- * <li>boolean public only: if true, return only public nodes
- * <li>List<{@see TextualSearchAttribute}> search attributes: key/value pairs with search operator
- *    <p>if no TextualSearchAttribute is given, return any node matching the other
- *       search criteria
- * </ol>
+ * <b>Search for relationships by attributes</b>
  *
  * @author amorgner
  */
-public class SearchNodeCommand extends NodeServiceCommand {
+public class SearchRelationshipCommand extends NodeServiceCommand {
 
 	private static String IMPROBABLE_SEARCH_VALUE = "xeHfc6OG30o3YQzX57_8____r-Wx-RW_70r84_71D-g--P9-3K";
-	private static final Logger logger            = Logger.getLogger(SearchNodeCommand.class.getName());
+	private static final Logger logger            = Logger.getLogger(SearchRelationshipCommand.class.getName());
 
 	//~--- methods --------------------------------------------------------
 
 	@Override
 	public Object execute(Object... parameters) throws FrameworkException {
 
-		if ((parameters == null) || (parameters.length < 4)) {
+		if ((parameters == null) || (parameters.length < 1)) {
 
-			logger.log(Level.WARNING, "4 or more parameters are required for advanced search.");
+			logger.log(Level.WARNING, "One or more parameters are required for relationship search.");
 
 			return Collections.emptyList();
-
-		}
-
-		AbstractNode topNode = null;
-
-		if (parameters[0] instanceof AbstractNode) {
-
-			topNode = (AbstractNode) parameters[0];
-
-		}
-
-		boolean includeDeleted = false;
-
-		if (parameters[1] instanceof Boolean) {
-
-			includeDeleted = (Boolean) parameters[1];
-
-		}
-
-		boolean publicOnly = false;
-
-		if (parameters[2] instanceof Boolean) {
-
-			publicOnly = (Boolean) parameters[2];
 
 		}
 
@@ -123,42 +88,38 @@ public class SearchNodeCommand extends NodeServiceCommand {
 		String propertyKey = null;
 		String type        = null;
 
-		if (parameters.length >= 6) {
+		if (parameters.length >= 3) {
 
-			if (parameters[4] instanceof String) {
+			if (parameters[1] instanceof String) {
 
-				type = (String) parameters[4];
+				type = (String) parameters[1];
 
 			}
 
-			if (parameters[5] instanceof String) {
+			if (parameters[2] instanceof String) {
 
-				propertyKey = (String) parameters[5];
+				propertyKey = (String) parameters[2];
 
 			}
 
 		}
 
-		return search(securityContext, topNode, includeDeleted, publicOnly, searchAttrs, type, propertyKey);
+		return search(securityContext, searchAttrs, type, propertyKey);
 	}
 
 	/**
-	 * Return a list of nodes which fit to all search criteria.
+	 * Return a list of relationships which fit to all search criteria.
 	 *
 	 * @param securityContext       Search in this security context
-	 * @param topNode               If set, return only search results below this top node (follows the HAS_CHILD relationship)
-	 * @param includeDeleted        If true, include nodes marked as deleted or contained in a Trash node as well
-	 * @param publicOnly            If true, don't include nodes which are not public
 	 * @param searchAttrs           List with search attributes
 	 * @return
 	 */
-	private List<AbstractNode> search(final SecurityContext securityContext, final AbstractNode topNode, final boolean includeDeleted,
-					  final boolean publicOnly, final List<SearchAttribute> searchAttrs, final String type, final String propertyKey) throws FrameworkException {
+	private List<AbstractRelationship> search(final SecurityContext securityContext, final List<SearchAttribute> searchAttrs, final String type, final String propertyKey) throws FrameworkException {
 
 		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
-		Index<Node> index;
-		NodeFactory nodeFactory = (NodeFactory) arguments.get("nodeFactory");
-		List<AbstractNode> finalResult = new LinkedList<AbstractNode>();
+		Index<Relationship> index;
+		RelationshipFactory relationshipFactory = (RelationshipFactory) arguments.get("relationshipFactory");
+		List<AbstractRelationship> finalResult = new LinkedList<AbstractRelationship>();
 		boolean allExactMatch          = true;
 
 		// boolean allFulltext = false;
@@ -231,19 +192,11 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 			}
 
-			List<AbstractNode> intermediateResult;
+			List<AbstractRelationship> intermediateResult;
 
 			if (searchAttrs.isEmpty() || StringUtils.isBlank(textualQueryString)) {
 
-				if (topNode != null) {
-
-					intermediateResult = topNode.getAllChildren();
-
-				} else {
-
-					intermediateResult = new LinkedList<AbstractNode>();
-
-				}
+				intermediateResult = new LinkedList<AbstractRelationship>();
 
 			} else {
 
@@ -254,20 +207,20 @@ public class SearchNodeCommand extends NodeServiceCommand {
 				QueryContext queryContext = new QueryContext(textualQueryString);
 				IndexHits hits;
 
-				if ((textualAttributes.size() == 1) && textualAttributes.get(0).getKey().equals(AbstractNode.Key.uuid.name())) {
+				if ((textualAttributes.size() == 1) && textualAttributes.get(0).getKey().equals(AbstractRelationship.Key.uuid.name())) {
 
 					// Search for uuid only: Use UUID index
-					index = (Index<Node>) arguments.get(NodeIndex.uuid.name());
+					index = (Index<Relationship>) arguments.get(RelationshipIndex.rel_uuid.name());
 					hits  = index.get(AbstractNode.Key.uuid.name(), decodeExactMatch(textualAttributes.get(0).getValue()));
 				} else if ((textualAttributes.size() > 1) && allExactMatch) {
 
 					// Only exact machtes: Use keyword index
-					index = (Index<Node>) arguments.get(NodeIndex.keyword.name());
+					index = (Index<Relationship>) arguments.get(RelationshipIndex.rel_keyword.name());
 					hits  = index.query(queryContext);
 				} else {
 
 					// Default: Mixed or fulltext-only search: Use fulltext index
-					index = (Index<Node>) arguments.get(NodeIndex.fulltext.name());
+					index = (Index<Relationship>) arguments.get(RelationshipIndex.rel_fulltext.name());
 					hits  = index.query(queryContext);
 				}
 
@@ -276,12 +229,12 @@ public class SearchNodeCommand extends NodeServiceCommand {
 				logger.log(Level.FINE, "Querying index took {0} ms, {1} results retrieved.", new Object[] { t1 - t0, hits.size() });
 
 //                              IndexHits hits = index.query(new QueryContext(query.toString()));//.sort("name"));
-				intermediateResult = nodeFactory.createNodes(securityContext, hits, includeDeleted, publicOnly);
+				intermediateResult = relationshipFactory.createRelationships(securityContext, hits);
 
 //                              hits.close();
 				long t2 = System.currentTimeMillis();
 
-				logger.log(Level.FINE, "Creating structr nodes took {0} ms, {1} nodes made.", new Object[] { t2 - t1,
+				logger.log(Level.FINE, "Creating structr relationships took {0} ms, {1} relationships made.", new Object[] { t2 - t1,
 					intermediateResult.size() });
 
 			}
@@ -291,20 +244,20 @@ public class SearchNodeCommand extends NodeServiceCommand {
 			if (!booleanAttributes.isEmpty()) {
 
 				// Filter intermediate result
-				for (AbstractNode node : intermediateResult) {
+				for (AbstractRelationship rel : intermediateResult) {
 
 					for (BooleanSearchAttribute attr : booleanAttributes) {
 
 						String key          = attr.getKey();
 						Boolean searchValue = attr.getValue();
 						SearchOperator op   = attr.getSearchOperator();
-						Object nodeValue    = node.getProperty(key);
+						Object nodeValue    = rel.getProperty(key);
 
 						if (op.equals(SearchOperator.NOT)) {
 
 							if ((nodeValue != null) &&!(nodeValue.equals(searchValue))) {
 
-								attr.addToResult(node);
+								attr.addToResult(rel);
 
 							}
 
@@ -312,13 +265,13 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 							if ((nodeValue == null) && (searchValue == null)) {
 
-								attr.addToResult(node);
+								attr.addToResult(rel);
 
 							}
 
 							if ((nodeValue != null) && nodeValue.equals(searchValue)) {
 
-								attr.addToResult(node);
+								attr.addToResult(rel);
 
 							}
 
@@ -365,7 +318,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 		long t5 = System.currentTimeMillis();
 
-		logger.log(Level.FINE, "Sorting nodes took {0} ms.", new Object[] { t5 - t4 });
+		logger.log(Level.FINE, "Sorting relationships took {0} ms.", new Object[] { t5 - t4 });
 
 		return finalResult;
 	}
@@ -488,34 +441,34 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 		return result;
 	}
-
-	private List<AbstractNode> filterNotExactMatches(final List<AbstractNode> result, TextualSearchAttribute attr) {
-
-		List<AbstractNode> notMatchingNodes = new LinkedList<AbstractNode>();
-
-		// Filter not exact matches
-		for (AbstractNode node : result) {
-
-			String value = attr.getValue();
-
-			if ((value != null) && isExactMatch(value)) {
-
-				String key          = attr.getKey();
-				String nodeValue    = node.getStringProperty(key);
-				String decodedValue = decodeExactMatch(value);
-
-				if (!nodeValue.equals(decodedValue)) {
-
-					notMatchingNodes.add(node);
-
-				}
-
-			}
-
-		}
-
-		return ListUtils.subtract(result, notMatchingNodes);
-	}
+//
+//	private List<AbstractNode> filterNotExactMatches(final List<AbstractNode> result, TextualSearchAttribute attr) {
+//
+//		List<AbstractNode> notMatchingNodes = new LinkedList<AbstractNode>();
+//
+//		// Filter not exact matches
+//		for (AbstractNode node : result) {
+//
+//			String value = attr.getValue();
+//
+//			if ((value != null) && isExactMatch(value)) {
+//
+//				String key          = attr.getKey();
+//				String nodeValue    = node.getStringProperty(key);
+//				String decodedValue = decodeExactMatch(value);
+//
+//				if (!nodeValue.equals(decodedValue)) {
+//
+//					notMatchingNodes.add(node);
+//
+//				}
+//
+//			}
+//
+//		}
+//
+//		return ListUtils.subtract(result, notMatchingNodes);
+//	}
 
 	private String decodeExactMatch(final String value) {
 		return StringUtils.strip(value, "\"");

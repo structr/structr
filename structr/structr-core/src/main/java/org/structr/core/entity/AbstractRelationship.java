@@ -59,7 +59,7 @@ import org.structr.core.node.NodeService.NodeIndex;
  * @author amorgner
  *
  */
-public abstract class AbstractRelationship implements GraphObject {
+public abstract class AbstractRelationship implements GraphObject, Comparable<AbstractRelationship> {
 
 	private static final Logger logger = Logger.getLogger(AbstractRelationship.class.getName());
 
@@ -405,7 +405,27 @@ public abstract class AbstractRelationship implements GraphObject {
 
 		}
 	}
+	/**
+	 * Return all property keys.
+	 *
+	 * @return
+	 */
+	public Iterable<String> getPropertyKeys() {
+		return getPropertyKeys(PropertyView.All);
+	}
 
+	/**
+	 * Return property value which is used for indexing.
+	 *
+	 * This is useful f.e. to filter markup from HTML to index only text
+	 *
+	 * @param key
+	 * @return
+	 */
+	public Object getPropertyForIndexing(final String key) {
+		return getProperty(key);
+	}
+	
 	// ----- interface GraphObject -----
 	@Override
 	public Iterable<String> getPropertyKeys(final String propertyView) {
@@ -716,5 +736,18 @@ public abstract class AbstractRelationship implements GraphObject {
 			dbRelationship.setProperty(AbstractRelationship.Permission.denied.name(), denied);
 
 		}
+	}
+
+	@Override
+	public int compareTo(final AbstractRelationship rel) {
+
+		// TODO: implement finer compare methods, e.g. taking title and position into account
+		if (rel == null) {
+
+			return -1;
+
+		}
+
+		return ((Long) this.getId()).compareTo((Long) rel.getId());
 	}
 }

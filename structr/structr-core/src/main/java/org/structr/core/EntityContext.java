@@ -424,11 +424,29 @@ public class EntityContext {
 
 	// ----- static relationship methods -----
 	public static DirectedRelation getDirectedRelationship(Class sourceType, Class destType) {
-		return getDirectedRelationship(sourceType.getSimpleName(), destType.getSimpleName());
+
+		DirectedRelation relation = null;
+		Class localType = sourceType;
+
+		while(relation == null && !localType.equals(Object.class)) {
+			relation = getDirectedRelationship(localType.getSimpleName(), destType.getSimpleName());
+			localType = localType.getSuperclass();
+		}
+
+		return relation;
 	}
 
 	public static DirectedRelation getDirectedRelationship(Class sourceType, String key) {
-		return getDirectedRelationship(sourceType.getSimpleName(), key);
+
+		DirectedRelation relation = null;
+		Class localType = sourceType;
+
+		while(relation == null && !localType.equals(Object.class)) {
+			relation = getDirectedRelationship(localType.getSimpleName(), key);
+			localType = localType.getSuperclass();
+		}
+
+		return relation;
 	}
 
 	public static DirectedRelation getDirectedRelationship(String sourceType, String key) {

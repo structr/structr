@@ -42,6 +42,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.neo4j.graphdb.Relationship;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -62,6 +63,9 @@ public class NodeService implements SingletonService {
 	private RelationshipFactory relationshipFactory = null;
 	private Index<Node> userIndex                   = null;
 	private Index<Node> uuidIndex                   = null;
+	private Index<Relationship> relUuidIndex	= null;
+	private Index<Relationship> relFulltextIndex	= null;
+	private Index<Relationship> relKeywordIndex	= null;
 
 	/** Dependent services */
 	private Set<RunnableService> registeredServices = new HashSet<RunnableService>();
@@ -69,6 +73,7 @@ public class NodeService implements SingletonService {
 	//~--- constant enums -------------------------------------------------
 
 	public static enum NodeIndex { uuid, user, keyword, fulltext; }
+	public static enum RelationshipIndex { rel_uuid, rel_keyword, rel_fulltext; }
 
 	//~--- methods --------------------------------------------------------
 
@@ -83,10 +88,14 @@ public class NodeService implements SingletonService {
 			command.setArgument(NodeIndex.fulltext.name(), fulltextIndex);
 			command.setArgument(NodeIndex.user.name(), userIndex);
 			command.setArgument(NodeIndex.keyword.name(), keywordIndex);
+			command.setArgument(RelationshipIndex.rel_uuid.name(), relUuidIndex);
+			command.setArgument(RelationshipIndex.rel_fulltext.name(), relFulltextIndex);
+			command.setArgument(RelationshipIndex.rel_keyword.name(), relKeywordIndex);
 			command.setArgument("nodeFactory", nodeFactory);
 			command.setArgument("relationshipFactory", relationshipFactory);
 			command.setArgument("filesPath", Services.getFilesPath());
 			command.setArgument("indices", NodeIndex.values());
+			command.setArgument("relationshipIndices", RelationshipIndex.values());
 
 		}
 	}
@@ -158,6 +167,22 @@ public class NodeService implements SingletonService {
 			nodeFactory = new NodeFactory();
 
 			logger.log(Level.FINE, "Node factory ready.");
+			logger.log(Level.FINE, "Initializing UUID relationship index...");
+
+			relUuidIndex = graphDb.index().forRelationships("uuidAllRelationships", LuceneIndexImplementation.EXACT_CONFIG);
+
+			logger.log(Level.FINE, "Relationship UUID index ready.");
+			logger.log(Level.FINE, "Initializing relationship index...");
+
+			relFulltextIndex = graphDb.index().forRelationships("fulltextAllNodes", LuceneIndexImplementation.FULLTEXT_CONFIG);
+
+			logger.log(Level.FINE, "Relationship index ready.");
+			logger.log(Level.FINE, "Initializing relationship index...");
+
+			relKeywordIndex = graphDb.index().forRelationships("keywordAllNodes", LuceneIndexImplementation.EXACT_CONFIG);
+
+			logger.log(Level.FINE, "Relationship index ready.");
+			logger.log(Level.FINE, "Initializing relationship factory...");
 
 			relationshipFactory = new RelationshipFactory();
 

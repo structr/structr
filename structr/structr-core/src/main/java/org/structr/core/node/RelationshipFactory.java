@@ -22,6 +22,8 @@
 package org.structr.core.node;
 
 
+import java.util.LinkedList;
+import java.util.List;
 import org.structr.common.SecurityContext;
 import org.structr.core.Adapter;
 import org.structr.core.Services;
@@ -33,6 +35,7 @@ import org.structr.core.module.GetEntityClassCommand;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
@@ -109,6 +112,29 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 			logger.log(Level.WARNING, "Unable to adapt relationship", fex);
 		}
 		return null;
+	}
+
+	/**
+	 * Create structr relationship from all given underlying database rels
+	 *
+	 * @param input
+	 * @return
+	 */
+	public List<AbstractRelationship> createRelationships(final SecurityContext securityContext, final Iterable<Relationship> input) throws FrameworkException {
+
+		List<AbstractRelationship> rels = new LinkedList<AbstractRelationship>();
+
+		if ((input != null) && input.iterator().hasNext()) {
+
+			for (Relationship rel : input) {
+
+				AbstractRelationship n = createRelationship(securityContext, rel);
+
+				rels.add(n);
+			}
+		}
+
+		return rels;
 	}
 
 	public AbstractRelationship createRelationship(final SecurityContext securityContext, final RelationshipDataContainer data) throws FrameworkException {
