@@ -93,9 +93,7 @@ public class UuidResource extends FilterableResource {
 		List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
 		attrs.add(Search.andExactUuid(uuid));
 
-		List<AbstractRelationship> results = (List<AbstractRelationship>)Services.command(securityContext, SearchRelationshipCommand.class).execute(
-			attrs
-		);
+		List<AbstractRelationship> results = (List<AbstractRelationship>)Services.command(securityContext, SearchRelationshipCommand.class).execute(attrs);
 
 		int size = results.size();
 

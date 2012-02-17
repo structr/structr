@@ -53,6 +53,11 @@ public class GenericRelationship extends AbstractRelationship {
 
 	//~--- constructors ---------------------------------------------------
 
+	static {
+		EntityContext.registerPropertySet(GenericRelationship.class, PropertyView.All,		Key.values());
+
+	}
+
 	public GenericRelationship() {}
 
 	public GenericRelationship(SecurityContext securityContext, Relationship dbRelationship) {
