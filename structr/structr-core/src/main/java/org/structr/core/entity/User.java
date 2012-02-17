@@ -137,10 +137,10 @@ public class User extends Person {
 
 			}
 
-			StructrRelationship relationshipToRemove        = null;
-			List<StructrRelationship> outgoingRelationships = cat.getOutgoingLinkRelationships();
+			AbstractRelationship relationshipToRemove        = null;
+			List<AbstractRelationship> outgoingRelationships = cat.getOutgoingLinkRelationships();
 
-			for (StructrRelationship rel : outgoingRelationships) {
+			for (AbstractRelationship rel : outgoingRelationships) {
 
 				AbstractNode endNode = rel.getEndNode();
 
@@ -154,7 +154,7 @@ public class User extends Person {
 
 			if (relationshipToRemove != null) {
 
-				final StructrRelationship relToDel = relationshipToRemove;
+				final AbstractRelationship relToDel = relationshipToRemove;
 
 				Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
@@ -277,11 +277,11 @@ public class User extends Person {
 	 */
 	public AbstractNode getRootNode() {
 
-		List<StructrRelationship> outRels = getRelationships(RelType.ROOT_NODE, Direction.OUTGOING);
+		List<AbstractRelationship> outRels = getRelationships(RelType.ROOT_NODE, Direction.OUTGOING);
 
 		if (outRels != null) {
 
-			for (StructrRelationship r : outRels) {
+			for (AbstractRelationship r : outRels) {
 
 				return r.getEndNode();
 

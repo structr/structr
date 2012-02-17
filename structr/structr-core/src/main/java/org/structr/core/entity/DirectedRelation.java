@@ -40,7 +40,7 @@ import org.structr.core.Services;
 import org.structr.core.module.GetEntityClassCommand;
 import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.FindNodeCommand;
-import org.structr.core.node.StructrNodeFactory;
+import org.structr.core.node.NodeFactory;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 import org.structr.core.notion.Notion;
@@ -127,9 +127,9 @@ public class DirectedRelation {
 							String destType = finalTargetNode.getType();
 
 							// delete previous relationships to nodes of the same destination type and direction
-							List<StructrRelationship> rels = sourceNode.getRelationships(relType, direction);
+							List<AbstractRelationship> rels = sourceNode.getRelationships(relType, direction);
 
-							for (StructrRelationship rel : rels) {
+							for (AbstractRelationship rel : rels) {
 
 								if (rel.getOtherNode(sourceNode).getType().equals(destType)) {
 
@@ -149,9 +149,9 @@ public class DirectedRelation {
 							// Here, we have a OneToMany with OUTGOING Rel, so we need to remove all relationships
 							// of the same type incoming to the target node
 							
-							List<StructrRelationship> rels = finalTargetNode.getRelationships(relType, Direction.INCOMING);
+							List<AbstractRelationship> rels = finalTargetNode.getRelationships(relType, Direction.INCOMING);
 
-							for (StructrRelationship rel : rels) {
+							for (AbstractRelationship rel : rels) {
 
 								if (rel.getOtherNode(finalTargetNode).getType().equals(sourceNode.getType())) {
 
@@ -163,15 +163,15 @@ public class DirectedRelation {
 						}
 					}
 
-					StructrRelationship newRel;
+					AbstractRelationship newRel;
 
 					if (direction.equals(Direction.OUTGOING)) {
 
-						newRel = (StructrRelationship) createRel.execute(sourceNode, finalTargetNode, relType);
+						newRel = (AbstractRelationship) createRel.execute(sourceNode, finalTargetNode, relType);
 
 					} else {
 
-						newRel = (StructrRelationship) createRel.execute(finalTargetNode, sourceNode, relType);
+						newRel = (AbstractRelationship) createRel.execute(finalTargetNode, sourceNode, relType);
 
 					}
 
@@ -234,9 +234,9 @@ public class DirectedRelation {
 							String destType = finalTargetNode.getType();
 
 							// delete previous relationships to nodes of the same destination type and direction
-							List<StructrRelationship> rels = sourceNode.getRelationships(relType, direction);
+							List<AbstractRelationship> rels = sourceNode.getRelationships(relType, direction);
 
-							for (StructrRelationship rel : rels) {
+							for (AbstractRelationship rel : rels) {
 
 								if (rel.getOtherNode(sourceNode).getType().equals(destType)) {
 
@@ -256,9 +256,9 @@ public class DirectedRelation {
 							// Here, we have a OneToMany with OUTGOING Rel, so we need to remove all relationships
 							// of the same type incoming to the target node
 							
-							List<StructrRelationship> rels = finalTargetNode.getRelationships(relType, Direction.INCOMING);
+							List<AbstractRelationship> rels = finalTargetNode.getRelationships(relType, Direction.INCOMING);
 
-							for (StructrRelationship rel : rels) {
+							for (AbstractRelationship rel : rels) {
 
 								if (rel.getOtherNode(finalTargetNode).getType().equals(sourceNode.getType())) {
 
@@ -275,9 +275,9 @@ public class DirectedRelation {
 							// In this case, remove exact the relationship of the given type
 							// between source and target node
 							
-							List<StructrRelationship> rels = finalTargetNode.getRelationships(relType, Direction.BOTH);
+							List<AbstractRelationship> rels = finalTargetNode.getRelationships(relType, Direction.BOTH);
 
-							for (StructrRelationship rel : rels) {
+							for (AbstractRelationship rel : rels) {
 
 								if (rel.getOtherNode(finalTargetNode).equals(sourceNode)) {
 
@@ -383,7 +383,7 @@ public class DirectedRelation {
 		try {
 
 			final Class realType                 = (Class) Services.command(securityContext, GetEntityClassCommand.class).execute(StringUtils.capitalize(destType));
-			final StructrNodeFactory nodeFactory = new StructrNodeFactory<AbstractNode>(securityContext);
+			final NodeFactory nodeFactory = new NodeFactory<AbstractNode>(securityContext);
 			final List<AbstractNode> nodeList    = new LinkedList<AbstractNode>();
 
 			// use traverser

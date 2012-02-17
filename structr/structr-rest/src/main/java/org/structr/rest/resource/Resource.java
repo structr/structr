@@ -13,7 +13,7 @@ import org.structr.core.Services;
 import org.structr.core.Value;
 import org.structr.core.VetoableGraphObjectListener;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.StructrRelationship;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.node.RemoveNodeFromIndex;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
@@ -95,9 +95,9 @@ public abstract class Resource {
 						// 2: delete relationships
 						if (obj instanceof AbstractNode) {
 
-							List<StructrRelationship> rels = ((AbstractNode) obj).getRelationships();
+							List<AbstractRelationship> rels = ((AbstractNode) obj).getRelationships();
 
-							for (StructrRelationship rel : rels) {
+							for (AbstractRelationship rel : rels) {
 
 								rel.delete(securityContext);
 

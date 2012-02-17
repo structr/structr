@@ -28,7 +28,7 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.StructrRelationship;
+import org.structr.core.entity.AbstractRelationship;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.GenericRelationship;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -68,7 +69,7 @@ public class NodeRelationshipsCommand extends NodeServiceCommand {
 		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
 
 		// Avoid to return null
-		List<StructrRelationship> result = new LinkedList<StructrRelationship>();
+		List<AbstractRelationship> result = new LinkedList<AbstractRelationship>();
 
 		if (parameters.length == 3) {
 
@@ -109,7 +110,7 @@ public class NodeRelationshipsCommand extends NodeServiceCommand {
 			try {
 
 				for (Relationship r : rels) {
-					result.add(new StructrRelationship(securityContext, r));
+					result.add(new GenericRelationship(securityContext, r));
 				}
 
 			} catch (RuntimeException e) {

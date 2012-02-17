@@ -35,7 +35,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.DirectedRelation.Cardinality;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
-import org.structr.core.entity.StructrRelationship;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
 
@@ -65,7 +65,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 	public Object execute(Object... parameters) throws FrameworkException {
 
 		GraphDatabaseService graphDb   = (GraphDatabaseService) arguments.get("graphDb");
-		StructrNodeFactory nodeFactory = (StructrNodeFactory) arguments.get("nodeFactory");
+		NodeFactory nodeFactory = (NodeFactory) arguments.get("nodeFactory");
 		User user                      = securityContext.getUser();
 		AbstractNode node              = null;
 
@@ -146,10 +146,10 @@ public class CreateNodeCommand extends NodeServiceCommand {
 					principal = user;
 				}
 
-				StructrRelationship securityRel = (StructrRelationship) createRel.execute(principal,
+				AbstractRelationship securityRel = (AbstractRelationship) createRel.execute(principal,
 									  node, RelType.SECURITY, true);    // avoid duplicates
 
-				securityRel.setAllowed(StructrRelationship.Permission.values());
+				securityRel.setAllowed(AbstractRelationship.Permission.values());
 				logger.log(Level.FINEST, "All permissions given to {0}", principal.getName());
 				node.unlockReadOnlyPropertiesOnce();
 				node.setProperty(AbstractNode.Key.createdBy.name(),

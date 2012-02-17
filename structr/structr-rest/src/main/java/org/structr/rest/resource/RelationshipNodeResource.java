@@ -28,7 +28,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.entity.StructrRelationship;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
 
@@ -64,9 +64,9 @@ public class RelationshipNodeResource extends WrappingResource {
 				List<GraphObject> resultList = new LinkedList<GraphObject>();
 				for(GraphObject obj : results) {
 
-					if(obj instanceof StructrRelationship) {
+					if(obj instanceof AbstractRelationship) {
 
-						StructrRelationship rel = (StructrRelationship)obj;
+						AbstractRelationship rel = (AbstractRelationship)obj;
 						if(startNode) {
 
 							resultList.add(rel.getStartNode());

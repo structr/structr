@@ -35,7 +35,7 @@ import org.structr.core.Services;
 import org.structr.core.UnsupportedArgumentError;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.File;
-import org.structr.core.entity.StructrRelationship;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.node.FindNodeCommand;
 import org.structr.core.notification.AddNotificationCommand;
 import org.structr.core.notification.ProgressBarNotification;
@@ -203,8 +203,8 @@ public class PushNodes extends CloudServiceCommand
 					for(AbstractNode n : nodes)
 					{
 						// Collect all relationships whose start and end nodes are contained in the above list
-						List<StructrRelationship> rels = n.getOutgoingRelationships();
-						for(StructrRelationship r : rels)
+						List<AbstractRelationship> rels = n.getOutgoingRelationships();
+						for(AbstractRelationship r : rels)
 						{
 
 							if(nodes.contains(r.getStartNode()) && nodes.contains(r.getEndNode()))

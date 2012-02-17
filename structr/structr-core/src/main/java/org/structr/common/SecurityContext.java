@@ -26,7 +26,7 @@ import org.structr.core.Services;
 import org.structr.core.auth.AuthenticationException;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.AuthenticatorCommand;
-import org.structr.core.entity.StructrRelationship;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
 
@@ -335,7 +335,7 @@ public class SecurityContext {
 			// frontend user
 			if (user.isFrontendUser()) {
 
-				return node.hasPermission(StructrRelationship.Permission.read.name(),
+				return node.hasPermission(AbstractRelationship.Permission.read.name(),
 							  user);
 			}
 		}
@@ -373,7 +373,7 @@ public class SecurityContext {
 					return true;
 				}
 
-				StructrRelationship r = null;
+				AbstractRelationship r = null;
 
 				// owner has always access control
 				if (user.equals(node.getOwnerNode())) {
@@ -382,46 +382,46 @@ public class SecurityContext {
 
 				r = node.getSecurityRelationship(user);
 
-				if ((r != null) && r.isAllowed(StructrRelationship.Permission.accessControl.name())) {
+				if ((r != null) && r.isAllowed(AbstractRelationship.Permission.accessControl.name())) {
 					return true;
 				}
 
 				return false;
 
 			case CreateNode :
-				return node.hasPermission(StructrRelationship.Permission.createNode.name(),
+				return node.hasPermission(AbstractRelationship.Permission.createNode.name(),
 							  user);
 
 			case CreateRelationship :
-				return node.hasPermission(StructrRelationship.Permission.addRelationship.name(),
+				return node.hasPermission(AbstractRelationship.Permission.addRelationship.name(),
 							  user);
 
 			case DeleteNode :
-				return node.hasPermission(StructrRelationship.Permission.deleteNode.name(),
+				return node.hasPermission(AbstractRelationship.Permission.deleteNode.name(),
 							  user);
 
 			case DeleteRelationship :
-				return node.hasPermission(StructrRelationship.Permission.removeRelationship.name(),
+				return node.hasPermission(AbstractRelationship.Permission.removeRelationship.name(),
 							  user);
 
 			case EditProperty :
-				return node.hasPermission(StructrRelationship.Permission.editProperties.name(),
+				return node.hasPermission(AbstractRelationship.Permission.editProperties.name(),
 							  user);
 
 			case Execute :
-				return node.hasPermission(StructrRelationship.Permission.execute.name(),
+				return node.hasPermission(AbstractRelationship.Permission.execute.name(),
 							  user);
 
 			case Read :
-				return node.hasPermission(StructrRelationship.Permission.read.name(),
+				return node.hasPermission(AbstractRelationship.Permission.read.name(),
 							  user);
 
 			case ShowTree :
-				return node.hasPermission(StructrRelationship.Permission.showTree.name(),
+				return node.hasPermission(AbstractRelationship.Permission.showTree.name(),
 							  user);
 
 			case Write :
-				return node.hasPermission(StructrRelationship.Permission.write.name(),
+				return node.hasPermission(AbstractRelationship.Permission.write.name(),
 							  user);
 		}
 
@@ -445,7 +445,7 @@ public class SecurityContext {
 			case Read :
 				return isVisibleInFrontend(node);    // Read permission in frontend is equivalent to visibility
 
-			// return node.hasPermission(StructrRelationship.READ_KEY, user);
+			// return node.hasPermission(AbstractRelationship.READ_KEY, user);
 			default :
 				return false;
 		}

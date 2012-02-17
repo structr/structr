@@ -36,7 +36,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.StructrRelationship;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.User;
 import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.FindNodeCommand;
@@ -301,9 +301,9 @@ public class ConnectionListener extends Listener implements CloudTransmission {
 		return (newNode);
 	}
 
-	private StructrRelationship storeRelationship(final DataContainer receivedData) throws FrameworkException {
+	private AbstractRelationship storeRelationship(final DataContainer receivedData) throws FrameworkException {
 		RelationshipDataContainer receivedRelationshipData = (RelationshipDataContainer)receivedData;
-		StructrRelationship newRelationship = null;
+		AbstractRelationship newRelationship = null;
 
 		long sourceStartNodeId = receivedRelationshipData.getSourceStartNodeId();
 		long sourceEndNodeId = receivedRelationshipData.getSourceEndNodeId();
@@ -321,7 +321,7 @@ public class ConnectionListener extends Listener implements CloudTransmission {
 			String name = receivedRelationshipData.getName();
 
 			if(targetStartNode != null && targetEndNode != null && StringUtils.isNotEmpty(name)) {
-				newRelationship = (StructrRelationship)createRel.execute(targetStartNode, targetEndNode, name);
+				newRelationship = (AbstractRelationship)createRel.execute(targetStartNode, targetEndNode, name);
 
 				// add properties to newly created relationship
 				for(Entry<String, Object> entry : receivedRelationshipData.getProperties().entrySet()) {

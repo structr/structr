@@ -21,6 +21,7 @@
 
 package org.structr.core.entity;
 
+import java.util.*;
 import org.neo4j.graphdb.*;
 
 import org.structr.common.PropertyKey;
@@ -38,13 +39,10 @@ import org.structr.core.node.TransactionCommand;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.cloud.RelationshipDataContainer;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -53,9 +51,9 @@ import org.structr.common.error.FrameworkException;
  * @author amorgner
  *
  */
-public class StructrRelationship implements GraphObject {
+public abstract class AbstractRelationship implements GraphObject {
 
-	private static final Logger logger = Logger.getLogger(StructrRelationship.class.getName());
+	private static final Logger logger = Logger.getLogger(AbstractRelationship.class.getName());
 
 //      public final static String ALLOWED_KEY = "allowed";
 //      public final static String DENIED_KEY = "denied";
@@ -81,6 +79,9 @@ public class StructrRelationship implements GraphObject {
 	// reference to database relationship
 	protected Relationship dbRelationship;
 
+	protected Map<String, Object> properties;
+	protected boolean isDirty;
+
 	//~--- constant enums -------------------------------------------------
 
 	public enum Permission implements PropertyKey {
@@ -89,18 +90,97 @@ public class StructrRelationship implements GraphObject {
 
 	//~--- constructors ---------------------------------------------------
 
-	public StructrRelationship() {}
-
-	public StructrRelationship(SecurityContext securityContext, Relationship dbRelationship) {
-		init(securityContext, dbRelationship);
+	public AbstractRelationship() {
+		this.properties = new HashMap<String, Object>();
+		isDirty         = true;
 	}
 
+	public AbstractRelationship(final Map<String, Object> properties) {
+
+		this.properties = properties;
+		isDirty         = true;
+	}
+
+	public AbstractRelationship(final SecurityContext securityContext, final Relationship dbRel) {
+		init(securityContext, dbRel);
+	}
+
+	public AbstractRelationship(final SecurityContext securityContext, final RelationshipDataContainer data) {
+
+		if (data != null) {
+
+			this.securityContext = securityContext;
+			this.properties      = data.getProperties();
+			this.isDirty = true;
+
+		}
+	}
 	//~--- methods --------------------------------------------------------
+/**
+	 * Commit unsaved property values to the relationship node.
+	 */
+	public void commit() throws FrameworkException {
 
-	public void init(final SecurityContext securityContext, final Relationship dbRelationship) {
+		isDirty = false;
 
+		// Create an outer transaction to combine any inner neo4j transactions
+		// to one single transaction
+		Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
+
+		transactionCommand.execute(new StructrTransaction() {
+
+			@Override
+			public Object execute() throws FrameworkException {
+
+				Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
+				AbstractRelationship rel     = (AbstractRelationship) createRel.execute();
+
+				init(securityContext, rel.getRelationship());
+
+				Set<String> keys = properties.keySet();
+
+				for (String key : keys) {
+
+					Object value = properties.get(key);
+
+					if ((key != null) && (value != null)) {
+
+						setProperty(key, value);
+
+					}
+
+				}
+
+				return null;
+			}
+
+		});
+	}
+	
+	public void init(final SecurityContext securityContext, final Relationship dbRel) {
+
+		this.dbRelationship          = dbRel;
+		this.isDirty         = false;
 		this.securityContext = securityContext;
-		this.dbRelationship  = dbRelationship;
+
+	}
+
+	private void init(final SecurityContext securityContext, final AbstractRelationship rel) {
+
+		this.dbRelationship          = rel.dbRelationship;
+		this.isDirty         = false;
+		this.securityContext = securityContext;
+	}
+
+	public void init(final SecurityContext securityContext, final RelationshipDataContainer data) {
+
+		if (data != null) {
+
+			this.properties      = data.getProperties();
+			this.isDirty         = true;
+			this.securityContext = securityContext;
+
+		}
 	}
 
 	@Override
@@ -221,10 +301,10 @@ public class StructrRelationship implements GraphObject {
 
 	public String getAllowed() {
 
-		if (dbRelationship.hasProperty(StructrRelationship.Permission.allowed.name())) {
+		if (dbRelationship.hasProperty(AbstractRelationship.Permission.allowed.name())) {
 
 			String result              = "";
-			String[] allowedProperties = (String[]) dbRelationship.getProperty(StructrRelationship.Permission.allowed.name());
+			String[] allowedProperties = (String[]) dbRelationship.getProperty(AbstractRelationship.Permission.allowed.name());
 
 			if (allowedProperties != null) {
 
@@ -247,10 +327,10 @@ public class StructrRelationship implements GraphObject {
 
 	public String getDenied() {
 
-		if (dbRelationship.hasProperty(StructrRelationship.Permission.denied.name())) {
+		if (dbRelationship.hasProperty(AbstractRelationship.Permission.denied.name())) {
 
 			String result             = "";
-			String[] deniedProperties = (String[]) dbRelationship.getProperty(StructrRelationship.Permission.denied.name());
+			String[] deniedProperties = (String[]) dbRelationship.getProperty(AbstractRelationship.Permission.denied.name());
 
 			if (deniedProperties != null) {
 
@@ -283,7 +363,7 @@ public class StructrRelationship implements GraphObject {
 	}
 
 	@Override
-	public List<StructrRelationship> getRelationships(RelationshipType type, Direction dir) {
+	public List<AbstractRelationship> getRelationships(RelationshipType type, Direction dir) {
 		return null;
 	}
 
@@ -312,9 +392,9 @@ public class StructrRelationship implements GraphObject {
 
 	public boolean isAllowed(final String action) {
 
-		if (dbRelationship.hasProperty(StructrRelationship.Permission.allowed.name())) {
+		if (dbRelationship.hasProperty(AbstractRelationship.Permission.allowed.name())) {
 
-			String[] allowedProperties = (String[]) dbRelationship.getProperty(StructrRelationship.Permission.allowed.name());
+			String[] allowedProperties = (String[]) dbRelationship.getProperty(AbstractRelationship.Permission.allowed.name());
 
 			if (allowedProperties != null) {
 
@@ -337,9 +417,9 @@ public class StructrRelationship implements GraphObject {
 
 	public boolean isDenied(final String action) {
 
-		if (dbRelationship.hasProperty(StructrRelationship.Permission.denied.name())) {
+		if (dbRelationship.hasProperty(AbstractRelationship.Permission.denied.name())) {
 
-			String[] deniedProperties = (String[]) dbRelationship.getProperty(StructrRelationship.Permission.denied.name());
+			String[] deniedProperties = (String[]) dbRelationship.getProperty(AbstractRelationship.Permission.denied.name());
 
 			if (deniedProperties != null) {
 
@@ -411,7 +491,7 @@ public class StructrRelationship implements GraphObject {
 
 						deleteRel.execute(dbRelationship);
 
-						dbRelationship = ((StructrRelationship) createRel.execute(type, startNode, newEndNode)).getRelationship();
+						dbRelationship = ((AbstractRelationship) createRel.execute(type, startNode, newEndNode)).getRelationship();
 
 					}
 
@@ -452,7 +532,7 @@ public class StructrRelationship implements GraphObject {
 
 						deleteRel.execute(dbRelationship);
 
-						dbRelationship = ((StructrRelationship) createRel.execute(type, startNode, endNode)).getRelationship();
+						dbRelationship = ((AbstractRelationship) createRel.execute(type, startNode, endNode)).getRelationship();
 
 						return (null);
 					}
@@ -469,7 +549,7 @@ public class StructrRelationship implements GraphObject {
 
 		String[] allowedActions = (String[]) allowed.toArray(new String[allowed.size()]);
 
-		dbRelationship.setProperty(StructrRelationship.Permission.allowed.name(), allowedActions);
+		dbRelationship.setProperty(AbstractRelationship.Permission.allowed.name(), allowedActions);
 	}
 
 	public void setAllowed(final PropertyKey[] allowed) {
@@ -487,9 +567,9 @@ public class StructrRelationship implements GraphObject {
 
 	public void setDenied(final List<String> denied) {
 
-		if (dbRelationship.hasProperty(StructrRelationship.Permission.denied.name())) {
+		if (dbRelationship.hasProperty(AbstractRelationship.Permission.denied.name())) {
 
-			dbRelationship.setProperty(StructrRelationship.Permission.denied.name(), denied);
+			dbRelationship.setProperty(AbstractRelationship.Permission.denied.name(), denied);
 
 		}
 	}

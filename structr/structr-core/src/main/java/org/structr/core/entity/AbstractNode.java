@@ -179,22 +179,22 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 	//~--- fields ---------------------------------------------------------
 
-	private List<StructrRelationship> allRelationships           = null;
-	private List<StructrRelationship> incomingChildRelationships = null;
-	private List<StructrRelationship> incomingDataRelationships  = null;
-	private List<StructrRelationship> incomingLinkRelationships  = null;
-	private List<StructrRelationship> incomingRelationships      = null;
-	private List<StructrRelationship> outgoingChildRelationships = null;
-	private List<StructrRelationship> outgoingDataRelationships  = null;
-	private List<StructrRelationship> outgoingLinkRelationships  = null;
-	private List<StructrRelationship> outgoingRelationships      = null;
+	private List<AbstractRelationship> allRelationships           = null;
+	private List<AbstractRelationship> incomingChildRelationships = null;
+	private List<AbstractRelationship> incomingDataRelationships  = null;
+	private List<AbstractRelationship> incomingLinkRelationships  = null;
+	private List<AbstractRelationship> incomingRelationships      = null;
+	private List<AbstractRelationship> outgoingChildRelationships = null;
+	private List<AbstractRelationship> outgoingDataRelationships  = null;
+	private List<AbstractRelationship> outgoingLinkRelationships  = null;
+	private List<AbstractRelationship> outgoingRelationships      = null;
 
 	// request parameters
 	// private HttpServletRequest request = null;
 	// private HttpSession session = null;
 	private final Map<RenderMode, NodeRenderer> rendererMap      = new EnumMap<RenderMode, NodeRenderer>(RenderMode.class);
 	protected SecurityContext securityContext                    = null;
-	private Map<Long, StructrRelationship> securityRelationships = null;
+	private Map<Long, AbstractRelationship> securityRelationships = null;
 	private boolean renderersInitialized                         = false;
 	private boolean readOnlyPropertiesUnlocked                   = false;
 
@@ -737,12 +737,12 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 		if (securityRelationships == null) {
 
-			securityRelationships = new HashMap<Long, StructrRelationship>();
+			securityRelationships = new HashMap<Long, AbstractRelationship>();
 
 		}
 
 		// Fill cache map
-		for (StructrRelationship r : getRelationships(RelType.SECURITY, Direction.INCOMING)) {
+		for (AbstractRelationship r : getRelationships(RelType.SECURITY, Direction.INCOMING)) {
 
 			securityRelationships.put(r.getStartNode().getId(), r);
 
@@ -764,7 +764,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		}
 
 		// Then check per-user permissions
-		return hasPermission(StructrRelationship.Permission.read.name(), user);
+		return hasPermission(AbstractRelationship.Permission.read.name(), user);
 	}
 
 	/**
@@ -773,7 +773,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * @return
 	 */
 	public boolean showTreeAllowed() {
-		return hasPermission(StructrRelationship.Permission.showTree.name(), user);
+		return hasPermission(AbstractRelationship.Permission.showTree.name(), user);
 	}
 
 	/**
@@ -782,7 +782,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * @return
 	 */
 	public boolean writeAllowed() {
-		return hasPermission(StructrRelationship.Permission.showTree.name(), user);
+		return hasPermission(AbstractRelationship.Permission.showTree.name(), user);
 	}
 
 	/**
@@ -791,7 +791,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * @return
 	 */
 	public boolean createSubnodeAllowed() {
-		return hasPermission(StructrRelationship.Permission.createNode.name(), user);
+		return hasPermission(AbstractRelationship.Permission.createNode.name(), user);
 	}
 
 	/**
@@ -800,7 +800,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * @return
 	 */
 	public boolean deleteNodeAllowed() {
-		return hasPermission(StructrRelationship.Permission.deleteNode.name(), user);
+		return hasPermission(AbstractRelationship.Permission.deleteNode.name(), user);
 	}
 
 	/**
@@ -809,7 +809,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * @return
 	 */
 	public boolean addRelationshipAllowed() {
-		return hasPermission(StructrRelationship.Permission.addRelationship.name(), user);
+		return hasPermission(AbstractRelationship.Permission.addRelationship.name(), user);
 	}
 
 	/**
@@ -818,7 +818,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * @return
 	 */
 	public boolean editPropertiesAllowed() {
-		return hasPermission(StructrRelationship.Permission.editProperties.name(), user);
+		return hasPermission(AbstractRelationship.Permission.editProperties.name(), user);
 	}
 
 	/**
@@ -827,7 +827,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * @return
 	 */
 	public boolean removeRelationshipAllowed() {
-		return hasPermission(StructrRelationship.Permission.removeRelationship.name(), user);
+		return hasPermission(AbstractRelationship.Permission.removeRelationship.name(), user);
 	}
 
 	/**
@@ -858,7 +858,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 		}
 
-		StructrRelationship r = null;
+		AbstractRelationship r = null;
 
 		// owner has always access control
 		if (user.equals(getOwnerNode())) {
@@ -869,7 +869,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 		r = getSecurityRelationship(user);
 
-		if ((r != null) && r.isAllowed(StructrRelationship.Permission.accessControl.name())) {
+		if ((r != null) && r.isAllowed(AbstractRelationship.Permission.accessControl.name())) {
 
 			return true;
 
@@ -1097,7 +1097,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * @param depth
 	 * @param maxDepth
 	 */
-	private void collectRelatedNodes(Set<AbstractNode> nodes, Set<StructrRelationship> rels, Set<AbstractNode> visitedNodes, AbstractNode currentNode, int depth, int maxDepth, int maxNum,
+	private void collectRelatedNodes(Set<AbstractNode> nodes, Set<AbstractRelationship> rels, Set<AbstractNode> visitedNodes, AbstractNode currentNode, int depth, int maxDepth, int maxNum,
 					 RelationshipType... relTypes) {
 
 		if (depth >= maxDepth) {
@@ -1111,7 +1111,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 			nodes.add(currentNode);
 
 			// collect incoming relationships
-			List<StructrRelationship> inRels = new LinkedList<StructrRelationship>();
+			List<AbstractRelationship> inRels = new LinkedList<AbstractRelationship>();
 
 			if ((relTypes != null) && (relTypes.length > 0)) {
 
@@ -1127,7 +1127,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 			}
 
-			for (StructrRelationship rel : inRels) {
+			for (AbstractRelationship rel : inRels) {
 
 				AbstractNode startNode = rel.getStartNode();
 
@@ -1142,7 +1142,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 			}
 
 			// collect outgoing relationships
-			List<StructrRelationship> outRels = new LinkedList<StructrRelationship>();
+			List<AbstractRelationship> outRels = new LinkedList<AbstractRelationship>();
 
 			if ((relTypes != null) && (relTypes.length > 0)) {
 
@@ -1158,7 +1158,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 			}
 
-			for (StructrRelationship rel : outRels) {
+			for (AbstractRelationship rel : outRels) {
 
 				AbstractNode endNode = rel.getEndNode();
 
@@ -1477,7 +1477,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 		while ((startNode != null) &&!(startNode.isRootNode())) {
 
-			List<StructrRelationship> templateRelationships = startNode.getRelationships(RelType.USE_TEMPLATE, Direction.OUTGOING);
+			List<AbstractRelationship> templateRelationships = startNode.getRelationships(RelType.USE_TEMPLATE, Direction.OUTGOING);
 
 			if ((templateRelationships != null) &&!(templateRelationships.isEmpty())) {
 
@@ -2452,7 +2452,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * @return incoming security relationship
 	 */
 	@Override
-	public StructrRelationship getSecurityRelationship(final Principal principal) {
+	public AbstractRelationship getSecurityRelationship(final Principal principal) {
 
 		if (principal == null) {
 
@@ -2464,7 +2464,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 		if (securityRelationships == null) {
 
-			securityRelationships = new HashMap<Long, StructrRelationship>();
+			securityRelationships = new HashMap<Long, AbstractRelationship>();
 
 		}
 
@@ -2483,9 +2483,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * @return list with relationships
 	 */
 	@Override
-	public List<StructrRelationship> getRelationships(RelationshipType type, Direction dir) {
+	public List<AbstractRelationship> getRelationships(RelationshipType type, Direction dir) {
 		try {
-			return (List<StructrRelationship>) Services.command(securityContext, NodeRelationshipsCommand.class).execute(this, type, dir);
+			return (List<AbstractRelationship>) Services.command(securityContext, NodeRelationshipsCommand.class).execute(this, type, dir);
 		} catch(FrameworkException fex) {
 			logger.log(Level.WARNING, "Unable to get relationships", fex);
 		}
@@ -2630,9 +2630,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 			try {
 				Command nodeFactory            = Services.command(securityContext, NodeFactoryCommand.class);
 				Command relsCommand            = Services.command(securityContext, NodeRelationshipsCommand.class);
-				List<StructrRelationship> rels = (List<StructrRelationship>) relsCommand.execute(parentNode, RelType.HAS_CHILD, Direction.OUTGOING);
+				List<AbstractRelationship> rels = (List<AbstractRelationship>) relsCommand.execute(parentNode, RelType.HAS_CHILD, Direction.OUTGOING);
 
-				for (StructrRelationship r : rels) {
+				for (AbstractRelationship r : rels) {
 
 					AbstractNode s = (AbstractNode) nodeFactory.execute(r.getEndNode());
 
@@ -2692,9 +2692,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 		List<AbstractNode> nodes       = new LinkedList<AbstractNode>();
 		Command nodeFactory            = Services.command(securityContext, NodeFactoryCommand.class);
-		List<StructrRelationship> rels = getIncomingChildRelationships();
+		List<AbstractRelationship> rels = getIncomingChildRelationships();
 
-		for (StructrRelationship r : rels) {
+		for (AbstractRelationship r : rels) {
 
 			try {
 				AbstractNode s = (AbstractNode) nodeFactory.execute(r.getStartNode());
@@ -2722,9 +2722,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 		List<AbstractNode> nodes       = new LinkedList<AbstractNode>();
 		Command nodeFactory            = Services.command(securityContext, NodeFactoryCommand.class);
-		List<StructrRelationship> rels = getIncomingChildRelationships();
+		List<AbstractRelationship> rels = getIncomingChildRelationships();
 
-		for (StructrRelationship r : rels) {
+		for (AbstractRelationship r : rels) {
 
 			try {
 				AbstractNode s = (AbstractNode) nodeFactory.execute(r.getStartNode());
@@ -2744,7 +2744,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 *
 	 * @return
 	 */
-	public List<StructrRelationship> getRelationships() {
+	public List<AbstractRelationship> getRelationships() {
 
 		if (allRelationships == null) {
 
@@ -2760,7 +2760,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 *
 	 * @return
 	 */
-	public List<StructrRelationship> getRelationships(Direction dir) {
+	public List<AbstractRelationship> getRelationships(Direction dir) {
 		return getRelationships(null, dir);
 	}
 
@@ -2769,7 +2769,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 *
 	 * @return
 	 */
-	public List<StructrRelationship> getIncomingRelationships() {
+	public List<AbstractRelationship> getIncomingRelationships() {
 
 		if (incomingRelationships == null) {
 
@@ -2785,7 +2785,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 *
 	 * @return
 	 */
-	public List<StructrRelationship> getOutgoingRelationships() {
+	public List<AbstractRelationship> getOutgoingRelationships() {
 
 		if (outgoingRelationships == null) {
 
@@ -2807,7 +2807,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 *
 	 * @return
 	 */
-	public List<StructrRelationship> getOutgoingRelationships(final RelationshipType type) {
+	public List<AbstractRelationship> getOutgoingRelationships(final RelationshipType type) {
 		return getRelationships(type, Direction.OUTGOING);
 	}
 
@@ -2816,7 +2816,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 *
 	 * @return
 	 */
-	public List<StructrRelationship> getIncomingLinkRelationships() {
+	public List<AbstractRelationship> getIncomingLinkRelationships() {
 
 		if (incomingLinkRelationships == null) {
 
@@ -2832,7 +2832,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 *
 	 * @return
 	 */
-	public List<StructrRelationship> getOutgoingDataRelationships() {
+	public List<AbstractRelationship> getOutgoingDataRelationships() {
 
 		if (outgoingDataRelationships == null) {
 
@@ -2848,7 +2848,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 *
 	 * @return
 	 */
-	public List<StructrRelationship> getIncomingDataRelationships() {
+	public List<AbstractRelationship> getIncomingDataRelationships() {
 
 		if (incomingDataRelationships == null) {
 
@@ -2864,7 +2864,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 *
 	 * @return
 	 */
-	public List<StructrRelationship> getOutgoingLinkRelationships() {
+	public List<AbstractRelationship> getOutgoingLinkRelationships() {
 
 		if (outgoingLinkRelationships == null) {
 
@@ -2880,7 +2880,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 *
 	 * @return
 	 */
-	public List<StructrRelationship> getIncomingChildRelationships() {
+	public List<AbstractRelationship> getIncomingChildRelationships() {
 
 		if (incomingChildRelationships == null) {
 
@@ -2896,7 +2896,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 *
 	 * @return
 	 */
-	public List<StructrRelationship> getOutgoingChildRelationships() {
+	public List<AbstractRelationship> getOutgoingChildRelationships() {
 
 		if (outgoingChildRelationships == null) {
 
@@ -2970,9 +2970,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 				}
 
-				List<StructrRelationship> rels = node.getOutgoingRelationships();
+				List<AbstractRelationship> rels = node.getOutgoingRelationships();
 
-				for (StructrRelationship r : rels) {
+				for (AbstractRelationship r : rels) {
 
 					if (list.contains(r.getStartNode()) && list.contains(r.getEndNode())) {
 
@@ -3039,10 +3039,10 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 */
 	public List<AbstractNode> getDirectChildren(final RelationshipType relType, final String nodeType) {
 
-		List<StructrRelationship> rels = this.getOutgoingRelationships(relType);
+		List<AbstractRelationship> rels = this.getOutgoingRelationships(relType);
 		List<AbstractNode> nodes       = new LinkedList<AbstractNode>();
 
-		for (StructrRelationship r : rels) {
+		for (AbstractRelationship r : rels) {
 
 			AbstractNode s = r.getEndNode();
 
@@ -3067,12 +3067,12 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 */
 	public List<AbstractNode> getDirectChildrenIgnorePermissions(final RelationshipType relType, final String nodeType) {
 
-		List<StructrRelationship> rels = this.getOutgoingRelationships(relType);
+		List<AbstractRelationship> rels = this.getOutgoingRelationships(relType);
 
 //              SecurityContext securityContext = CurrentRequest.getSecurityContext();
 		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
 
-		for (StructrRelationship r : rels) {
+		for (AbstractRelationship r : rels) {
 
 			AbstractNode s = r.getEndNode();
 
@@ -3264,7 +3264,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	@Override
 	public User getOwnerNode() {
 
-		for (StructrRelationship s : getRelationships(RelType.OWNS, Direction.INCOMING)) {
+		for (AbstractRelationship s : getRelationships(RelType.OWNS, Direction.INCOMING)) {
 
 			AbstractNode n = s.getStartNode();
 
@@ -3308,7 +3308,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		List<AbstractNode> principalList = new LinkedList<AbstractNode>();
 
 		// check any security relationships
-		for (StructrRelationship r : getRelationships(RelType.SECURITY, Direction.INCOMING)) {
+		for (AbstractRelationship r : getRelationships(RelType.SECURITY, Direction.INCOMING)) {
 
 			// check security properties
 			AbstractNode principalNode = r.getEndNode();
@@ -3373,30 +3373,30 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 		Set<AbstractNode> visitedNodes = new LinkedHashSet<AbstractNode>();
 		Set<AbstractNode> nodes        = new LinkedHashSet<AbstractNode>();
-		Set<StructrRelationship> rels  = new LinkedHashSet<StructrRelationship>();
+		Set<AbstractRelationship> rels  = new LinkedHashSet<AbstractRelationship>();
 
 		collectRelatedNodes(nodes, rels, visitedNodes, this, 0, maxDepth, maxNum, splitRelationshipTypes(relTypes));
 
 		return (nodes);
 	}
 
-	public Set<StructrRelationship> getRelatedRels(int maxDepth) {
+	public Set<AbstractRelationship> getRelatedRels(int maxDepth) {
 		return (getRelatedRels(maxDepth, 20 /* Integer.MAX_VALUE */, null));
 	}
 
-	public Set<StructrRelationship> getRelatedRels(int maxDepth, String relTypes) {
+	public Set<AbstractRelationship> getRelatedRels(int maxDepth, String relTypes) {
 		return (getRelatedRels(maxDepth, 20 /* Integer.MAX_VALUE */, relTypes));
 	}
 
-	public Set<StructrRelationship> getRelatedRels(int maxDepth, int maxNum) {
+	public Set<AbstractRelationship> getRelatedRels(int maxDepth, int maxNum) {
 		return (getRelatedRels(maxDepth, maxNum, null));
 	}
 
-	public Set<StructrRelationship> getRelatedRels(int maxDepth, int maxNum, String relTypes) {
+	public Set<AbstractRelationship> getRelatedRels(int maxDepth, int maxNum, String relTypes) {
 
 		Set<AbstractNode> visitedNodes = new LinkedHashSet<AbstractNode>();
 		Set<AbstractNode> nodes        = new LinkedHashSet<AbstractNode>();
-		Set<StructrRelationship> rels  = new LinkedHashSet<StructrRelationship>();
+		Set<AbstractRelationship> rels  = new LinkedHashSet<AbstractRelationship>();
 
 		collectRelatedNodes(nodes, rels, visitedNodes, this, 0, maxDepth, maxNum, splitRelationshipTypes(relTypes));
 
@@ -3405,10 +3405,10 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 	protected AbstractNode getNodeFromLoader(HttpServletRequest request) {
 
-		List<StructrRelationship> rels = getIncomingDataRelationships();
+		List<AbstractRelationship> rels = getIncomingDataRelationships();
 		AbstractNode node              = null;
 
-		for (StructrRelationship rel : rels) {
+		for (AbstractRelationship rel : rels) {
 
 			// first one wins
 			AbstractNode startNode = rel.getStartNode();
@@ -3488,7 +3488,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 */
 	public boolean hasRelationship(final RelType type, final Direction dir) {
 
-		List<StructrRelationship> rels = this.getRelationships(type, dir);
+		List<AbstractRelationship> rels = this.getRelationships(type, dir);
 
 		return ((rels != null) &&!(rels.isEmpty()));
 	}
@@ -3533,7 +3533,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 		}
 
-		StructrRelationship r = getSecurityRelationship(principal);
+		AbstractRelationship r = getSecurityRelationship(principal);
 
 		if ((r != null) && r.isAllowed(permission)) {
 
@@ -3544,9 +3544,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		// Check group
 		// We cannot use getParent() here because it uses hasPermission itself,
 		// that would lead to an infinite loop
-		List<StructrRelationship> rels = principal.getIncomingChildRelationships();
+		List<AbstractRelationship> rels = principal.getIncomingChildRelationships();
 
-		for (StructrRelationship sr : rels) {
+		for (AbstractRelationship sr : rels) {
 
 			AbstractNode node = sr.getStartNode();
 
@@ -3724,12 +3724,12 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 			Template templateNode = (Template) findNode.execute(value);
 
 			// delete existing template relationships
-			List<StructrRelationship> templateRels = this.getOutgoingRelationships(RelType.USE_TEMPLATE);
+			List<AbstractRelationship> templateRels = this.getOutgoingRelationships(RelType.USE_TEMPLATE);
 			Command delRel                         = Services.command(securityContext, DeleteRelationshipCommand.class);
 
 			if (templateRels != null) {
 
-				for (StructrRelationship r : templateRels) {
+				for (AbstractRelationship r : templateRels) {
 
 					delRel.execute(r);
 

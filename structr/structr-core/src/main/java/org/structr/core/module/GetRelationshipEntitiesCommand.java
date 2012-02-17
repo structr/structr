@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2011 Axel Morgner, structr <structr@structr.org>
+ *  Copyright (C) 2012 Axel Morgner, structr <structr@structr.org>
  * 
  *  This file is part of structr <http://structr.org>.
  * 
@@ -19,23 +19,23 @@
 
 package org.structr.core.module;
 
-import java.util.Set;
+import java.util.Map;
 
 /**
  *
- * @author chrisi
+ * @author amorgner
  */
-public class GetEntityPackagesCommand extends ModuleServiceCommand
+public class GetRelationshipEntitiesCommand extends ModuleServiceCommand
 {
 	@Override
 	public Object execute(Object... parameters)
 	{
 		ModuleService service = (ModuleService)getArgument("moduleService");
-		Set<String> ret = null;
+		Map<String, Class> ret = null;
 
 		if(service != null)
 		{
-			ret = service.getNodeEntityPackages();
+			ret = service.getCachedRelationships();
 		}
 
 		return(ret);

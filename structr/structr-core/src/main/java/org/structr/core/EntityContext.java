@@ -39,9 +39,9 @@ import org.structr.common.SecurityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.DirectedRelation;
 import org.structr.core.entity.DirectedRelation.Cardinality;
-import org.structr.core.entity.StructrRelationship;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.node.IndexNodeCommand;
-import org.structr.core.node.StructrNodeFactory;
+import org.structr.core.node.NodeFactory;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.ObjectNotion;
 
@@ -51,6 +51,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.NamedRelation;
+import org.structr.core.node.RelationshipFactory;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -78,11 +79,9 @@ public class EntityContext {
 	private static final Set<VetoableGraphObjectListener> modificationListeners                                            = new LinkedHashSet<VetoableGraphObjectListener>();
 	private static final Map<Long, FrameworkException> exceptionMap                                                        = new LinkedHashMap<Long, FrameworkException>();
 	private static final Logger logger                                                                                     = Logger.getLogger(EntityContext.class.getName());
-
-	private static final Map<String, Set<Transformation<StructrRelationship>>> globalRelationshipCreationTransformationMap = new LinkedHashMap<String, Set<Transformation<StructrRelationship>>>();
-	private static final Map<Class, Set<Transformation<AbstractNode>>> globalEntityCreationTransformationMap               = new LinkedHashMap<Class, Set<Transformation<AbstractNode>>>();
+	private static final Map<String, Set<Transformation<AbstractRelationship>>> globalRelationshipCreationTransformationMap = new LinkedHashMap<String, Set<Transformation<AbstractRelationship>>>();
 	private static final EntityContextModificationListener globalModificationListener                                      = new EntityContextModificationListener();
-
+	private static final Map<Class, Set<Transformation<AbstractNode>>> globalEntityCreationTransformationMap               = new LinkedHashMap<Class, Set<Transformation<AbstractNode>>>();
 	private static final Map<Thread, SecurityContext> securityContextMap                                                   = Collections.synchronizedMap(new WeakHashMap<Thread, SecurityContext>());
 	private static final Map<Thread, Long> transactionKeyMap                                                               = Collections.synchronizedMap(new WeakHashMap<Thread, Long>());
 
@@ -100,7 +99,7 @@ public class EntityContext {
 		getEntityCreationTransformationsForType(type).add(transformation);
 	}
 
-	public static void registerRelationshipCreationTransformation(RelationshipType relType, Class startNodeType, Class endNodeType, Transformation<StructrRelationship> transformation) {
+	public static void registerRelationshipCreationTransformation(RelationshipType relType, Class startNodeType, Class endNodeType, Transformation<AbstractRelationship> transformation) {
 		getRelationshipCreationTransformations(relType, startNodeType, endNodeType).add(transformation);
 	}
 
@@ -353,21 +352,24 @@ public class EntityContext {
 		return transformations;
 	}
 
-	public static Set<Transformation<StructrRelationship>> getRelationshipCreationTransformations(RelationshipType relType, Class startNodeType, Class endNodeType) {
+	public static Set<Transformation<AbstractRelationship>> getRelationshipCreationTransformations(RelationshipType relType, Class startNodeType, Class endNodeType) {
 		return getRelationshipCreationTransformations(relType, startNodeType.getSimpleName(), endNodeType.getSimpleName());
 	}
 
-	public static Set<Transformation<StructrRelationship>> getRelationshipCreationTransformations(RelationshipType relType, String startNodeType, String endNodeType) {
+	public static Set<Transformation<AbstractRelationship>> getRelationshipCreationTransformations(RelationshipType relType, String startNodeType, String endNodeType) {
+
 		String key = createTripleKey(relType.name(), normalizeEntityName(startNodeType), normalizeEntityName(endNodeType));
 		return getRelationshipCreationTransformations(key);
 	}
 
-	private static Set<Transformation<StructrRelationship>> getRelationshipCreationTransformations(String key) {
+	private static Set<Transformation<AbstractRelationship>> getRelationshipCreationTransformations(String key) {
 
-		Set<Transformation<StructrRelationship>> transformations = globalRelationshipCreationTransformationMap.get(key);
+		Set<Transformation<AbstractRelationship>> transformations = globalRelationshipCreationTransformationMap.get(key);
+
 		if (transformations == null) {
 
-			transformations = new LinkedHashSet<Transformation<StructrRelationship>>();
+			transformations = new LinkedHashSet<Transformation<AbstractRelationship>>();
+
 			globalRelationshipCreationTransformationMap.put(key, transformations);
 
 		}
@@ -776,11 +778,12 @@ public class EntityContext {
 				ErrorBuffer errorBuffer                          = new ErrorBuffer();
 				boolean hasError                                 = false;
 				Map<Node, Map<String, Object>> removedProperties = new LinkedHashMap<Node, Map<String, Object>>();
-				StructrNodeFactory factory                       = new StructrNodeFactory(securityContext);
-				Set<AbstractNode> modifiedNodes                  = new LinkedHashSet<AbstractNode>();
-				Set<AbstractNode> createdNodes                   = new LinkedHashSet<AbstractNode>();
-				Set<StructrRelationship> createdRels             = new LinkedHashSet<StructrRelationship>();
-				Set<StructrRelationship> deletedRels             = new LinkedHashSet<StructrRelationship>();
+				NodeFactory nodeFactory				= new NodeFactory(securityContext);
+				RelationshipFactory relFactory                  = new RelationshipFactory(securityContext);
+				Set<AbstractNode> modifiedNodes                 = new LinkedHashSet<AbstractNode>();
+				Set<AbstractNode> createdNodes                  = new LinkedHashSet<AbstractNode>();
+				Set<AbstractRelationship> createdRels           = new LinkedHashSet<AbstractRelationship>();
+				Set<AbstractRelationship> deletedRels           = new LinkedHashSet<AbstractRelationship>();
 
 				// 0: notify listeners of beginning commit
 				begin(securityContext, transactionKey, errorBuffer);
@@ -806,7 +809,7 @@ public class EntityContext {
 				// 2: notify listeners of node creation (so the modifications can later be tracked)
 				for (Node node : data.createdNodes()) {
 
-					AbstractNode entity = factory.createNode(securityContext, node);
+					AbstractNode entity = nodeFactory.createNode(securityContext, node);
 
 					hasError |= graphObjectCreated(securityContext, transactionKey, errorBuffer, entity);
 
@@ -817,7 +820,7 @@ public class EntityContext {
 				// 3: notify listeners of relationship creation
 				for (Relationship rel : data.createdRelationships()) {
 
-					StructrRelationship relationship = new StructrRelationship(securityContext, rel);
+					AbstractRelationship relationship = relFactory.createRelationship(securityContext, rel);
 
 					hasError |= relationshipCreated(securityContext, transactionKey, errorBuffer, relationship);
 
@@ -828,7 +831,7 @@ public class EntityContext {
 				// 4: notify listeners of relationship deletion
 				for (Relationship rel : data.deletedRelationships()) {
 
-					StructrRelationship relationship = new StructrRelationship(securityContext, rel);
+					AbstractRelationship relationship = relFactory.createRelationship(securityContext, rel);
 
 					hasError |= relationshipDeleted(securityContext, transactionKey, errorBuffer, relationship);
 
@@ -847,7 +850,7 @@ public class EntityContext {
 				// notify listeners of property modifications
 				for (PropertyEntry<Node> entry : data.assignedNodeProperties()) {
 
-					AbstractNode entity = factory.createNode(securityContext, entry.entity());
+					AbstractNode entity = nodeFactory.createNode(securityContext, entry.entity());
 					String key          = entry.key();
 					Object value        = entry.value();
 
@@ -879,6 +882,29 @@ public class EntityContext {
 					}
 				}
 
+				// 8: apply transformations triggered by created relationships
+				for (AbstractRelationship rel : createdRels) {
+
+					String startNodeType                                     = (String) rel.getStartNode().getProperty(AbstractNode.Key.type.name());
+					String endNodeType                                       = (String) rel.getEndNode().getProperty(AbstractNode.Key.type.name());
+					Set<Transformation<AbstractRelationship>> transformations = EntityContext.getRelationshipCreationTransformations(rel.getRelType(), startNodeType, endNodeType);
+
+					if (transformations != null) {
+
+						for (Transformation<AbstractRelationship> transformation : transformations) {
+
+							try {
+								transformation.apply(securityContext, rel);
+							} catch (FrameworkException fex) {
+								logger.log(Level.WARNING, "Unable to execute relationship creation transformation", fex);
+							}
+
+						}
+
+					}
+
+				}
+
 				// notify listeners of commit
 				hasError |= commit(securityContext, transactionKey, errorBuffer);
 
@@ -900,30 +926,6 @@ public class EntityContext {
 
 		@Override
 		public void afterCommit(TransactionData data, Long transactionKey) {
-
-			SecurityContext securityContext = securityContextMap.get(Thread.currentThread());
-
-			// call RelationshipCreation
-			for(Relationship rel : data.createdRelationships()) {
-
-				String startNodeType = (String)rel.getStartNode().getProperty(AbstractNode.Key.type.name());
-				String endNodeType   = (String)rel.getEndNode().getProperty(AbstractNode.Key.type.name());
-
-				Set<Transformation<StructrRelationship>> transformations = EntityContext.getRelationshipCreationTransformations(rel.getType(), startNodeType, endNodeType);
-				if(transformations != null) {
-
-					for(Transformation<StructrRelationship> transformation : transformations) {
-						StructrRelationship structrRelationship = new StructrRelationship(securityContext, rel);
-
-						try {
-							transformation.apply(securityContext, structrRelationship);
-
-						} catch(FrameworkException fex) {
-							logger.log(Level.WARNING, "Unable to execute relationship creation transformation", fex);
-						}
-					}
-				}
-			}
 
 		}
 
@@ -996,7 +998,7 @@ public class EntityContext {
 		}
 
 		@Override
-		public boolean relationshipCreated(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, StructrRelationship relationship) {
+		public boolean relationshipCreated(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, AbstractRelationship relationship) {
 
 			boolean hasError = false;
 
@@ -1010,7 +1012,7 @@ public class EntityContext {
 		}
 
 		@Override
-		public boolean relationshipDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, StructrRelationship relationship) {
+		public boolean relationshipDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, AbstractRelationship relationship) {
 
 			boolean hasError = false;
 

@@ -39,7 +39,7 @@ import org.structr.common.SecurityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.NodeService.NodeIndex;
 import org.structr.core.node.NodeServiceCommand;
-import org.structr.core.node.StructrNodeFactory;
+import org.structr.core.node.NodeFactory;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -156,7 +156,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
 		Index<Node> index;
-		StructrNodeFactory nodeFactory = (StructrNodeFactory) arguments.get("nodeFactory");
+		NodeFactory nodeFactory = (NodeFactory) arguments.get("nodeFactory");
 		List<AbstractNode> finalResult = new LinkedList<AbstractNode>();
 		boolean allExactMatch          = true;
 

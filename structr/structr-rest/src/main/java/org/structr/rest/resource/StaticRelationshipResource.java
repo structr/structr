@@ -28,8 +28,13 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.TypeToken;
 import org.structr.core.*;
 import org.structr.core.entity.AbstractNode;
+<<<<<<< Updated upstream
 import org.structr.core.entity.DirectedRelation;
 import org.structr.core.entity.StructrRelationship;
+=======
+import org.structr.core.entity.DirectedRelationship;
+import org.structr.core.entity.AbstractRelationship;
+>>>>>>> Stashed changes
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 import org.structr.core.node.search.Search;
@@ -231,7 +236,7 @@ public class StaticRelationshipResource extends SortableResource {
 //						@Override
 //						public Object execute() throws FrameworkException {
 //
-//							for (StructrRelationship rel : rels) {
+//							for (AbstractRelationship rel : rels) {
 //
 //								rel.delete(securityContext);
 //
@@ -277,13 +282,13 @@ public class StaticRelationshipResource extends SortableResource {
 
 					}
 
-					final List<StructrRelationship> rels = startNode.getRelationships(staticRel.getRelType(), staticRel.getDirection());
+					final List<AbstractRelationship> rels = startNode.getRelationships(staticRel.getRelType(), staticRel.getDirection());
 					StructrTransaction transaction       = new StructrTransaction() {
 
 						@Override
 						public Object execute() throws FrameworkException {
 
-							for (StructrRelationship rel : rels) {
+							for (AbstractRelationship rel : rels) {
 
 								AbstractNode otherNode = rel.getOtherNode(startNode);
 								String otherNodeType   = otherNode.getType();

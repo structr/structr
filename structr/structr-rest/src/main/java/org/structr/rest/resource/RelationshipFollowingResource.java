@@ -33,8 +33,13 @@ import org.neo4j.kernel.Uniqueness;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
+<<<<<<< Updated upstream
 import org.structr.core.entity.DirectedRelation;
 import org.structr.core.node.StructrNodeFactory;
+=======
+import org.structr.core.entity.DirectedRelationship;
+import org.structr.core.node.NodeFactory;
+>>>>>>> Stashed changes
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
@@ -184,7 +189,7 @@ public class RelationshipFollowingResource extends SortableResource implements E
 
 		if (path != null) {
 
-			StructrNodeFactory nodeFactory = new StructrNodeFactory<AbstractNode>(securityContext);
+			NodeFactory nodeFactory = new NodeFactory<AbstractNode>(securityContext);
 			List<GraphObject> nodeList     = new LinkedList<GraphObject>();
 
 			// traverse path to force evaluation
@@ -229,7 +234,7 @@ public class RelationshipFollowingResource extends SortableResource implements E
 		Path path = getValidatedPath();
 		if (path != null) {
 
-			StructrNodeFactory nodeFactory = new StructrNodeFactory<AbstractNode>(securityContext);
+			NodeFactory nodeFactory = new NodeFactory<AbstractNode>(securityContext);
 			List<GraphObject> nodeList     = new LinkedList<GraphObject>();
 
 			// traverse path to force evaluation, add nodes in reverse order

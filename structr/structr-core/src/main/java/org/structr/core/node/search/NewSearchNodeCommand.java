@@ -29,7 +29,7 @@ import org.neo4j.graphdb.index.IndexHits;
 
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.NodeServiceCommand;
-import org.structr.core.node.StructrNodeFactory;
+import org.structr.core.node.NodeFactory;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -102,7 +102,7 @@ public class NewSearchNodeCommand extends NodeServiceCommand {
 
 			Index<Node> fulltextIndex      = (Index<Node>) arguments.get("index");
 			Index<Node> exactIndex         = (Index<Node>) arguments.get("exactIndex");
-			StructrNodeFactory nodeFactory = (StructrNodeFactory) arguments.get("nodeFactory");
+			NodeFactory nodeFactory = (NodeFactory) arguments.get("nodeFactory");
 			List<AbstractNode> finalResult = new LinkedList<AbstractNode>();
 
 			// configure query context

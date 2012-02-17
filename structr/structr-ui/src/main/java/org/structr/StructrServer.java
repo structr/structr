@@ -114,9 +114,10 @@ public class StructrServer {
 
 		if (directoryWhichMustNotExist.exists()) {
 
-			System.err.println("Directory " + directoryWhichMustNotExist + " must not exist.");
-			System.err.println("Delete it or move WAR file to another directory and start from there.");
-			System.exit(1);
+//			System.err.println("Directory " + directoryWhichMustNotExist + " must not exist.");
+//			System.err.println("Delete it or move WAR file to another directory and start from there.");
+//			System.exit(1);
+			directoryWhichMustNotExist.delete();
 
 		}
 

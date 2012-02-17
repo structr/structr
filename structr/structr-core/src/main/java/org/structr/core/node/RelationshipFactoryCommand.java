@@ -24,44 +24,46 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.cloud.NodeDataContainer;
+import org.structr.core.cloud.RelationshipDataContainer;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
 
 /**
  *
- * @author cmorgner
+ * @author amorgner
  */
-public class NodeFactoryCommand extends NodeServiceCommand {
+public class RelationshipFactoryCommand extends NodeServiceCommand {
 
-    private static final Logger logger = Logger.getLogger(NodeFactoryCommand.class.getName());
+    private static final Logger logger = Logger.getLogger(RelationshipFactoryCommand.class.getName());
 
     @Override
     public Object execute(Object... parameters) throws FrameworkException {
 
         GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
-
-        NodeFactory nodeFactory = (NodeFactory) arguments.get("nodeFactory");
+        RelationshipFactory relFactory = (RelationshipFactory) arguments.get("relationshipFactory");
+	
         Object ret = null;
 
-        if (nodeFactory != null) {
+        if (relFactory != null) {
             if (parameters.length > 0) {
                 if (parameters.length > 1) {
 
-                    // create multiple nodes and return a Collection of it
-                    Collection<AbstractNode> collection = new LinkedList<AbstractNode>();
+                    // create multiple relationships and return a Collection of it
+                    Collection<AbstractRelationship> collection = new LinkedList<AbstractRelationship>();
 
                     for (Object o : parameters) {
-                        Node node = null;
+                        Relationship rel = null;
                         if (o instanceof AbstractNode) {
-                            node = graphDb.getNodeById(((AbstractNode) o).getId());
-                        } else if (o instanceof Node) {
-                            node = (Node) o;
+                            rel = graphDb.getRelationshipById(((AbstractRelationship) o).getId());
+                        } else if (o instanceof Relationship) {
+                            rel = (Relationship) o;
                         } else {
                             logger.log(Level.WARNING, "Unknown parameter of type {0}", o.getClass().getName());
                             return null;
                         }
-                        collection.add(nodeFactory.createNode(securityContext, node));
+                        collection.add(relFactory.createRelationship(securityContext, rel));
                     }
 
                     ret = collection;
@@ -69,26 +71,26 @@ public class NodeFactoryCommand extends NodeServiceCommand {
                 } else {
 
                     // create a single node and return it
-                    Node node = null;
-                    if (parameters[0] instanceof AbstractNode) {
+                    Relationship rel = null;
+                    if (parameters[0] instanceof AbstractRelationship) {
 
-                        node = graphDb.getNodeById(((AbstractNode) parameters[0]).getId());
+                        rel = graphDb.getRelationshipById(((AbstractRelationship) parameters[0]).getId());
 
-                    } else if (parameters[0] instanceof Node) {
+                    } else if (parameters[0] instanceof Relationship) {
 
-                        node = (Node) parameters[0];
+                        rel = (Relationship) parameters[0];
                         
-                    } else if (parameters[0] instanceof NodeDataContainer) {
+                    } else if (parameters[0] instanceof RelationshipDataContainer) {
 
-                        NodeDataContainer nodeData = (NodeDataContainer) parameters[0];
-                        return nodeFactory.createNode(securityContext, nodeData);
+                        RelationshipDataContainer relData = (RelationshipDataContainer) parameters[0];
+                        return relFactory.createRelationship(securityContext, relData);
 
                     } else {
 
                         logger.log(Level.WARNING, "Unknown parameter of type {0}", parameters[0].getClass().getName());
                         return null;
                     }
-                    ret = nodeFactory.createNode(securityContext, node);
+                    ret = relFactory.createRelationship(securityContext, rel);
 
                 }
             } else {
@@ -96,7 +98,7 @@ public class NodeFactoryCommand extends NodeServiceCommand {
             }
 
         } else {
-            logger.log(Level.WARNING, "NodeFactory argument missing from service");
+            logger.log(Level.WARNING, "RelationshipFactory argument missing from service");
         }
 
         return (ret);

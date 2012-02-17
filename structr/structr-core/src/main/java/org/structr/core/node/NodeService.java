@@ -28,6 +28,7 @@ import org.neo4j.index.impl.lucene.LuceneIndexImplementation;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
 
 import org.structr.core.Command;
+import org.structr.core.EntityContext;
 import org.structr.core.RunnableService;
 import org.structr.core.Services;
 import org.structr.core.SingletonService;
@@ -41,7 +42,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.EntityContext;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -55,12 +55,13 @@ public class NodeService implements SingletonService {
 
 	//~--- fields ---------------------------------------------------------
 
-	private Index<Node> fulltextIndex      = null;
-	private GraphDatabaseService graphDb   = null;
-	private Index<Node> keywordIndex       = null;
-	private StructrNodeFactory nodeFactory = null;
-	private Index<Node> userIndex          = null;
-	private Index<Node> uuidIndex          = null;
+	private Index<Node> fulltextIndex               = null;
+	private GraphDatabaseService graphDb            = null;
+	private Index<Node> keywordIndex                = null;
+	private NodeFactory nodeFactory                 = null;
+	private RelationshipFactory relationshipFactory = null;
+	private Index<Node> userIndex                   = null;
+	private Index<Node> uuidIndex                   = null;
 
 	/** Dependent services */
 	private Set<RunnableService> registeredServices = new HashSet<RunnableService>();
@@ -83,6 +84,7 @@ public class NodeService implements SingletonService {
 			command.setArgument(NodeIndex.user.name(), userIndex);
 			command.setArgument(NodeIndex.keyword.name(), keywordIndex);
 			command.setArgument("nodeFactory", nodeFactory);
+			command.setArgument("relationshipFactory", relationshipFactory);
 			command.setArgument("filesPath", Services.getFilesPath());
 			command.setArgument("indices", NodeIndex.values());
 
@@ -113,8 +115,10 @@ public class NodeService implements SingletonService {
 				graphDb = new EmbeddedGraphDatabase(dbPath);
 			}
 
-			if(graphDb != null) {
+			if (graphDb != null) {
+
 				graphDb.registerTransactionEventHandler(EntityContext.getTransactionEventHandler());
+
 			}
 
 			String filesPath = Services.getFilesPath();
@@ -151,9 +155,13 @@ public class NodeService implements SingletonService {
 			logger.log(Level.FINE, "Keyword index ready.");
 			logger.log(Level.FINE, "Initializing node factory...");
 
-			nodeFactory = new StructrNodeFactory();
+			nodeFactory = new NodeFactory();
 
 			logger.log(Level.FINE, "Node factory ready.");
+
+			relationshipFactory = new RelationshipFactory();
+
+			logger.log(Level.FINE, "Relationship factory ready.");
 
 		} catch (Exception e) {
 
@@ -209,7 +217,6 @@ public class NodeService implements SingletonService {
 	}
 
 	// </editor-fold>
-
 	@Override
 	public boolean isRunning() {
 		return (graphDb != null);

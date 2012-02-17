@@ -33,7 +33,7 @@ import org.neo4j.kernel.Uniqueness;
 import org.structr.common.SecurityContext;
 import org.structr.common.TreeNode;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.node.StructrNodeFactory;
+import org.structr.core.node.NodeFactory;
 import org.structr.websocket.message.WebSocketMessage;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -62,7 +62,7 @@ public class TreeCommand extends AbstractCommand {
 		AbstractNode rootNode                 = getNode(webSocketData.getId());
 		TraversalDescription localDesc        =
 			Traversal.description().depthFirst().uniqueness(Uniqueness.NODE_GLOBAL).expand(new ResourceExpander(rootNode.getStringProperty(AbstractNode.Key.uuid.name())));
-		final StructrNodeFactory factory = new StructrNodeFactory(securityContext);
+		final NodeFactory factory = new NodeFactory(securityContext);
 		final TreeNode root              = new TreeNode(null);
 
 		localDesc = localDesc.evaluator(new Evaluator() {

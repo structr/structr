@@ -35,7 +35,7 @@ public class GetEntitiesCommand extends ModuleServiceCommand
 
 		if(service != null)
 		{
-			ret = service.getCachedEntities();
+			ret = service.getCachedNodeEntities();
 		}
 
 		return(ret);

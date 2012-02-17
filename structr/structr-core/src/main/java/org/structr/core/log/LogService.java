@@ -29,7 +29,7 @@ import org.structr.common.RelType;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.StructrRelationship;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
 import org.structr.core.entity.log.Activity;
@@ -266,7 +266,7 @@ public class LogService extends RunnableNodeService {
 
 		if (userLogNodeList == null) {
 
-			for (StructrRelationship rel : user.getOutgoingChildRelationships()) {
+			for (AbstractRelationship rel : user.getOutgoingChildRelationships()) {
 
 				if (rel.getEndNode() instanceof LogNodeList) {
 
@@ -339,7 +339,7 @@ public class LogService extends RunnableNodeService {
 
 			if (rootNode != null) {
 
-				for (StructrRelationship rel : rootNode.getOutgoingChildRelationships()) {
+				for (AbstractRelationship rel : rootNode.getOutgoingChildRelationships()) {
 
 					if (rel.getEndNode() instanceof LogNodeList) {
 
