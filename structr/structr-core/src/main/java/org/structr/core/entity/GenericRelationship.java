@@ -26,7 +26,10 @@ package org.structr.core.entity;
 
 import java.util.logging.Logger;
 import org.neo4j.graphdb.Relationship;
+import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.core.EntityContext;
+import org.structr.core.node.NodeService.RelationshipIndex;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -38,6 +41,15 @@ import org.structr.common.SecurityContext;
 public class GenericRelationship extends AbstractRelationship {
 
 	private static final Logger logger = Logger.getLogger(GenericRelationship.class.getName());
+
+
+	static {
+
+		EntityContext.registerPropertySet(GenericRelationship.class, PropertyView.All, Key.values());
+
+		EntityContext.registerSearchablePropertySet(GenericRelationship.class, RelationshipIndex.rel_uuid.name(), Key.uuid);
+	}
+
 
 	//~--- constructors ---------------------------------------------------
 

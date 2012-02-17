@@ -64,31 +64,30 @@ import org.structr.core.node.RelationshipFactory;
  */
 public class EntityContext {
 
-	private static final Logger logger                                                                                      = Logger.getLogger(EntityContext.class.getName());
+	private static final Logger logger                                                                          = Logger.getLogger(EntityContext.class.getName());
 
-	private static final Map<String, Set<Transformation<AbstractRelationship>>> globalRelationshipCreationTransformationMap = new LinkedHashMap<String, Set<Transformation<AbstractRelationship>>>();
-	private static final Map<Class, Map<String, Class<? extends PropertyConverter>>> globalPropertyConverterMap             = new LinkedHashMap<Class, Map<String, Class<? extends PropertyConverter>>>();
-	private static final Map<Class, Set<Transformation<GraphObject>>> globalEntityCreationTransformationMap                 = new LinkedHashMap<Class, Set<Transformation<GraphObject>>>();
-	private static final Map<String, Map<String, DirectedRelation>> globalPropertyRelationshipMap                           = new LinkedHashMap<String, Map<String, DirectedRelation>>();
-	private static final Map<String, Map<String, DirectedRelation>> globalEntityRelationshipMap                             = new LinkedHashMap<String, Map<String, DirectedRelation>>();
-	private static final Map<Class, Map<String, Set<PropertyValidator>>> globalValidatorMap                                 = new LinkedHashMap<Class, Map<String, Set<PropertyValidator>>>();
-	private static final Map<String, Map<String, Set<String>>> globalSearchablePropertyMap                                  = new LinkedHashMap<String, Map<String, Set<String>>>();
-	private static final Map<Class, Map<String, Set<String>>> globalPropertyViewMap                                         = new LinkedHashMap<Class, Map<String, Set<String>>>();
-	private static final Map<Class, Map<String, PropertyGroup>> globalPropertyGroupMap                                      = new LinkedHashMap<Class, Map<String, PropertyGroup>>();
-	private static final Map<Class, Map<String, Value>> globalConversionParameterMap                                        = new LinkedHashMap<Class, Map<String, Value>>();
-	private static final Map<Class, Set<String>> globalWriteOncePropertyMap                                                 = new LinkedHashMap<Class, Set<String>>();
-	private static final Map<Class, Set<String>> globalReadOnlyPropertyMap                                                  = new LinkedHashMap<Class, Set<String>>();
-	private static final Map<String, String> normalizedEntityNameCache                                                      = new LinkedHashMap<String, String>();
-	private static final Map<String, NamedRelation> globalRelationshipNameMap                                               = new LinkedHashMap<String, NamedRelation>();
-	private static final Map<String, Class> globalRelationshipClassMap                                                      = new LinkedHashMap<String, Class>();
-	private static final Set<VetoableGraphObjectListener> modificationListeners                                             = new LinkedHashSet<VetoableGraphObjectListener>();
+	private static final Map<Class, Map<String, Class<? extends PropertyConverter>>> globalPropertyConverterMap = new LinkedHashMap<Class, Map<String, Class<? extends PropertyConverter>>>();
+	private static final Map<Class, Set<Transformation<GraphObject>>> globalEntityCreationTransformationMap     = new LinkedHashMap<Class, Set<Transformation<GraphObject>>>();
+	private static final Map<String, Map<String, DirectedRelation>> globalPropertyRelationshipMap               = new LinkedHashMap<String, Map<String, DirectedRelation>>();
+	private static final Map<String, Map<String, DirectedRelation>> globalEntityRelationshipMap                 = new LinkedHashMap<String, Map<String, DirectedRelation>>();
+	private static final Map<Class, Map<String, Set<PropertyValidator>>> globalValidatorMap                     = new LinkedHashMap<Class, Map<String, Set<PropertyValidator>>>();
+	private static final Map<String, Map<String, Set<String>>> globalSearchablePropertyMap                      = new LinkedHashMap<String, Map<String, Set<String>>>();
+	private static final Map<Class, Map<String, Set<String>>> globalPropertyViewMap                             = new LinkedHashMap<Class, Map<String, Set<String>>>();
+	private static final Map<Class, Map<String, PropertyGroup>> globalPropertyGroupMap                          = new LinkedHashMap<Class, Map<String, PropertyGroup>>();
+	private static final Map<Class, Map<String, Value>> globalConversionParameterMap                            = new LinkedHashMap<Class, Map<String, Value>>();
+	private static final Map<Class, Set<String>> globalWriteOncePropertyMap                                     = new LinkedHashMap<Class, Set<String>>();
+	private static final Map<Class, Set<String>> globalReadOnlyPropertyMap                                      = new LinkedHashMap<Class, Set<String>>();
+	private static final Map<String, String> normalizedEntityNameCache                                          = new LinkedHashMap<String, String>();
+	private static final Map<String, NamedRelation> globalRelationshipNameMap                                   = new LinkedHashMap<String, NamedRelation>();
+	private static final Map<String, Class> globalRelationshipClassMap                                          = new LinkedHashMap<String, Class>();
+	private static final Set<VetoableGraphObjectListener> modificationListeners                                 = new LinkedHashSet<VetoableGraphObjectListener>();
 
-	private static final EntityContextModificationListener globalModificationListener                                       = new EntityContextModificationListener();
+	private static final EntityContextModificationListener globalModificationListener                           = new EntityContextModificationListener();
 	
-	private static final Map<Long, FrameworkException> exceptionMap                                                         = new LinkedHashMap<Long, FrameworkException>();
+	private static final Map<Long, FrameworkException> exceptionMap                                             = new LinkedHashMap<Long, FrameworkException>();
 
-	private static final Map<Thread, SecurityContext> securityContextMap                                                    = Collections.synchronizedMap(new WeakHashMap<Thread, SecurityContext>());
-	private static final Map<Thread, Long> transactionKeyMap                                                                = Collections.synchronizedMap(new WeakHashMap<Thread, Long>());
+	private static final Map<Thread, SecurityContext> securityContextMap                                        = Collections.synchronizedMap(new WeakHashMap<Thread, SecurityContext>());
+	private static final Map<Thread, Long> transactionKeyMap                                                    = Collections.synchronizedMap(new WeakHashMap<Thread, Long>());
 
 	//~--- methods --------------------------------------------------------
 
@@ -102,10 +101,6 @@ public class EntityContext {
 
 	public static void registerEntityCreationTransformation(Class type, Transformation<GraphObject> transformation) {
 		getEntityCreationTransformationsForType(type).add(transformation);
-	}
-
-	public static void registerRelationshipCreationTransformation(RelationshipType relType, Class startNodeType, Class endNodeType, Transformation<AbstractRelationship> transformation) {
-		getRelationshipCreationTransformations(relType, startNodeType, endNodeType).add(transformation);
 	}
 
 	public static void registerPropertyGroup(Class type, PropertyKey key, PropertyGroup propertyGroup) {
@@ -385,32 +380,6 @@ public class EntityContext {
 		}
 
 //              return new TreeSet<Transformation<AbstractNode>>(transformations).descendingSet();
-		return transformations;
-	}
-
-	public static Set<Transformation<AbstractRelationship>> getRelationshipCreationTransformations(RelationshipType relType, Class startNodeType, Class endNodeType) {
-		return getRelationshipCreationTransformations(relType, startNodeType.getSimpleName(), endNodeType.getSimpleName());
-	}
-
-	public static Set<Transformation<AbstractRelationship>> getRelationshipCreationTransformations(RelationshipType relType, String startNodeType, String endNodeType) {
-
-		String key = createTripleKey(relType.name(), normalizeEntityName(startNodeType), normalizeEntityName(endNodeType));
-
-		return getRelationshipCreationTransformations(key);
-	}
-
-	private static Set<Transformation<AbstractRelationship>> getRelationshipCreationTransformations(String key) {
-
-		Set<Transformation<AbstractRelationship>> transformations = globalRelationshipCreationTransformationMap.get(key);
-
-		if (transformations == null) {
-
-			transformations = new LinkedHashSet<Transformation<AbstractRelationship>>();
-
-			globalRelationshipCreationTransformationMap.put(key, transformations);
-
-		}
-
 		return transformations;
 	}
 
@@ -908,7 +877,7 @@ public class EntityContext {
 					hasError |= propertyModified(securityContext, transactionKey, errorBuffer, entity, key, entry.previouslyCommitedValue(), value);
 
 					// after successful validation, add node to index to make uniqueness constraints work
-					indexRelationshipCommand.execute(entity, key);
+					indexNodeCommand.execute(entity, key);
 					modifiedNodes.add(entity);
 
 				}
@@ -924,34 +893,9 @@ public class EntityContext {
 					}
 				}
 
-				// 8: apply transformations triggered by created relationships
+				// 8: index relationships
 				for (AbstractRelationship rel : createdRels) {
-
-					String startNodeType                                     = (String) rel.getStartNode().getProperty(AbstractNode.Key.type.name());
-					String endNodeType                                       = (String) rel.getEndNode().getProperty(AbstractNode.Key.type.name());
-					Set<Transformation<AbstractRelationship>> transformations = EntityContext.getRelationshipCreationTransformations(rel.getRelType(), startNodeType, endNodeType);
-
-					if (transformations != null) {
-
-						for (Transformation<AbstractRelationship> transformation : transformations) {
-
-							try {
-								transformation.apply(securityContext, rel);
-							} catch (FrameworkException fex) {
-								logger.log(Level.WARNING, "Unable to execute relationship creation transformation", fex);
-							}
-
-						}
-
-					}
-
-				}
-
-				// 9: index relationships
-				for (AbstractRelationship rel : createdRels) {
-
 					indexRelationshipCommand.execute(rel);
-					
 				}
 
 				// notify listeners of commit

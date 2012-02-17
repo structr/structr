@@ -78,7 +78,7 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 
 		try {
 			String sourceNodeType = (String)relationship.getStartNode().getProperty(AbstractNode.Key.type.name());
-			String destNodeType = (String)relationship.getStartNode().getProperty(AbstractNode.Key.type.name());
+			String destNodeType = (String)relationship.getEndNode().getProperty(AbstractNode.Key.type.name());
 
 			Class relClass      = EntityContext.getNamedRelationClass(sourceNodeType, destNodeType, relType);
 

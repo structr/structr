@@ -35,7 +35,7 @@ import org.structr.rest.exception.NotFoundException;
  *
  * @author Christian Morgner
  */
-public class NamedRelationIdResource extends Resource {
+public class NamedRelationIdResource extends WrappingResource {
 
 	private static final Logger logger = Logger.getLogger(NamedRelationIdResource.class.getName());
 

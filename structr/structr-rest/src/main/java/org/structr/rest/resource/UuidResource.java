@@ -33,6 +33,7 @@ import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
+import org.structr.core.node.search.SearchRelationshipCommand;
 import org.structr.rest.exception.NotFoundException;
 
 /**
@@ -89,12 +90,11 @@ public class UuidResource extends FilterableResource {
 
 	public AbstractRelationship getRelationship() throws FrameworkException {
 
-		/*
 		List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
 		attrs.add(Search.andExactUuid(uuid));
 
-		List<AbstractNode> results = (List<AbstractNode>)Services.command(securityContext, Search
-			null, false, false, attrs
+		List<AbstractRelationship> results = (List<AbstractRelationship>)Services.command(securityContext, SearchRelationshipCommand.class).execute(
+			attrs
 		);
 
 		int size = results.size();
@@ -110,12 +110,6 @@ public class UuidResource extends FilterableResource {
 				logger.log(Level.WARNING, "Got more than one result for UUID {0}, this is very likely to be a UUID collision!", uuid);
 				return results.get(0);
 		}
-		 *
-		 */
-
-		// FIXME!!!
-
-		return null;
 	}
 
 	@Override

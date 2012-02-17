@@ -50,7 +50,7 @@ import org.structr.core.PropertyConverter;
 import org.structr.core.PropertyGroup;
 import org.structr.core.Value;
 import org.structr.core.cloud.RelationshipDataContainer;
-import org.structr.core.node.NodeService.NodeIndex;
+import org.structr.core.node.NodeService.RelationshipIndex;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -96,7 +96,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 		EntityContext.registerPropertySet(AbstractRelationship.class, PropertyView.All, Key.values());
 
-		EntityContext.registerSearchablePropertySet(AbstractRelationship.class, NodeIndex.uuid.name(), Key.uuid);
+		EntityContext.registerSearchablePropertySet(AbstractRelationship.class, RelationshipIndex.rel_uuid.name(), Key.uuid);
 
 		// register transformation for automatic uuid creation
 		EntityContext.registerEntityCreationTransformation(AbstractRelationship.class, new UuidCreationTransformation());
