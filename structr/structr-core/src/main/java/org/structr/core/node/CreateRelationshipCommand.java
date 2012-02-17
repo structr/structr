@@ -58,7 +58,7 @@ import org.structr.core.entity.GenericRelationship;
 public class CreateRelationshipCommand extends NodeServiceCommand {
 
 	private static final Logger logger = Logger.getLogger(CreateRelationshipCommand.class.getName());
-		RelationshipFactory relationshipFactory = (RelationshipFactory) arguments.get("relationshipFactoryo");
+	private RelationshipFactory relationshipFactory;
 
 	//~--- methods --------------------------------------------------------
 
@@ -66,6 +66,7 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 	public Object execute(Object... parameters) throws FrameworkException {
 
 		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
+		relationshipFactory = (RelationshipFactory) arguments.get("relationshipFactory");
 
 		if ((graphDb != null) && (parameters.length == 3)) {
 
