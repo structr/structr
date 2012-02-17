@@ -908,7 +908,7 @@ public class EntityContext {
 					hasError |= propertyModified(securityContext, transactionKey, errorBuffer, entity, key, entry.previouslyCommitedValue(), value);
 
 					// after successful validation, add node to index to make uniqueness constraints work
-					indexRelationshipCommand.execute(entity, key);
+					indexNodeCommand.execute(entity, key);
 					modifiedNodes.add(entity);
 
 				}

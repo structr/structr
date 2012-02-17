@@ -167,21 +167,21 @@ public class NodeService implements SingletonService {
 			nodeFactory = new NodeFactory();
 
 			logger.log(Level.FINE, "Node factory ready.");
-			logger.log(Level.FINE, "Initializing UUID relationship index...");
+			logger.log(Level.FINE, "Initializing relationship UUID index...");
 
 			relUuidIndex = graphDb.index().forRelationships("uuidAllRelationships", LuceneIndexImplementation.EXACT_CONFIG);
 
-			logger.log(Level.FINE, "Relationship UUID index ready.");
+			logger.log(Level.FINE, "Relationship relationship UUID index ready.");
 			logger.log(Level.FINE, "Initializing relationship index...");
 
 			relFulltextIndex = graphDb.index().forRelationships("fulltextAllNodes", LuceneIndexImplementation.FULLTEXT_CONFIG);
 
 			logger.log(Level.FINE, "Relationship index ready.");
-			logger.log(Level.FINE, "Initializing relationship index...");
+			logger.log(Level.FINE, "Initializing relationship keyword index...");
 
 			relKeywordIndex = graphDb.index().forRelationships("keywordAllNodes", LuceneIndexImplementation.EXACT_CONFIG);
 
-			logger.log(Level.FINE, "Relationship index ready.");
+			logger.log(Level.FINE, "Relationship keyword index ready.");
 			logger.log(Level.FINE, "Initializing relationship factory...");
 
 			relationshipFactory = new RelationshipFactory();

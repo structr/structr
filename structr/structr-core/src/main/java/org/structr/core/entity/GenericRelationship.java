@@ -26,7 +26,9 @@ package org.structr.core.entity;
 
 import java.util.logging.Logger;
 import org.neo4j.graphdb.Relationship;
+import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.core.EntityContext;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -40,6 +42,11 @@ public class GenericRelationship extends AbstractRelationship {
 	private static final Logger logger = Logger.getLogger(GenericRelationship.class.getName());
 
 	//~--- constructors ---------------------------------------------------
+
+	static {
+		EntityContext.registerPropertySet(GenericRelationship.class, PropertyView.All,		Key.values());
+
+	}
 
 	public GenericRelationship() {}
 
