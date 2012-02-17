@@ -28,7 +28,7 @@ public class InheritingTypedIdResource extends TypedIdResource {
 		super(securityContext);
 	}
 
-	public InheritingTypedIdResource(SecurityContext securityContext, IdResource idResource, InheritingTypeResource typeResource) {
+	public InheritingTypedIdResource(SecurityContext securityContext, UuidResource idResource, InheritingTypeResource typeResource) {
 		super(securityContext, idResource, typeResource);
 	}
 

@@ -22,16 +22,17 @@ package org.structr.common;
 import java.util.UUID;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 
 /**
  *
  * @author Christian Morgner
  */
-public class UuidCreationTransformation extends AbstractNodeTransformation {
+public class UuidCreationTransformation extends GraphObjectTransformation {
 
 	@Override
-	public void apply(SecurityContext securityContext, AbstractNode obj) throws FrameworkException {
+	public void apply(SecurityContext securityContext, GraphObject obj) throws FrameworkException {
 
 		// create uuid if not set
 		String uuid = (String)obj.getProperty(AbstractNode.Key.uuid.name());

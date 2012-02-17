@@ -35,7 +35,6 @@ import org.structr.common.CaseHelper;
 import org.structr.common.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.DirectedRelation;
 import org.structr.core.entity.DirectedRelation.Cardinality;
@@ -64,27 +63,31 @@ import org.structr.core.node.RelationshipFactory;
  */
 public class EntityContext {
 
-	public static final String GLOBAL_UNIQUENESS                                                                           = "global_uniqueness_key";
-	private static final Map<Class, Map<String, Class<? extends PropertyConverter>>> globalPropertyConverterMap            = new LinkedHashMap<Class, Map<String, Class<? extends PropertyConverter>>>();
-	private static final Map<Class, Map<String, Set<PropertyValidator>>> globalValidatorMap                                = new LinkedHashMap<Class, Map<String, Set<PropertyValidator>>>();
-	private static final Map<String, Map<String, Set<String>>> globalSearchablePropertyMap                                 = new LinkedHashMap<String, Map<String, Set<String>>>();
-	private static final Map<Class, Map<String, Set<String>>> globalPropertyViewMap                                        = new LinkedHashMap<Class, Map<String, Set<String>>>();
-	private static final Map<String, Map<String, DirectedRelation>> globalPropertyRelationshipMap                          = new LinkedHashMap<String, Map<String, DirectedRelation>>();
-	private static final Map<Class, Map<String, PropertyGroup>> globalPropertyGroupMap                                     = new LinkedHashMap<Class, Map<String, PropertyGroup>>();
-	private static final Map<String, Map<String, DirectedRelation>> globalEntityRelationshipMap                            = new LinkedHashMap<String, Map<String, DirectedRelation>>();
-	private static final Map<Class, Map<String, Value>> globalConversionParameterMap                                       = new LinkedHashMap<Class, Map<String, Value>>();
-	private static final Map<Class, Set<String>> globalWriteOncePropertyMap                                                = new LinkedHashMap<Class, Set<String>>();
-	private static final Map<Class, Set<String>> globalReadOnlyPropertyMap                                                 = new LinkedHashMap<Class, Set<String>>();
-	private static final Map<String, String> normalizedEntityNameCache                                                     = new LinkedHashMap<String, String>();
-	private static final Map<String, NamedRelation> globalRelationshipNameMap                                              = new LinkedHashMap<String, NamedRelation>();
-	private static final Set<VetoableGraphObjectListener> modificationListeners                                            = new LinkedHashSet<VetoableGraphObjectListener>();
-	private static final Logger logger                                                                                     = Logger.getLogger(EntityContext.class.getName());
+	private static final Logger logger                                                                                      = Logger.getLogger(EntityContext.class.getName());
+
 	private static final Map<String, Set<Transformation<AbstractRelationship>>> globalRelationshipCreationTransformationMap = new LinkedHashMap<String, Set<Transformation<AbstractRelationship>>>();
-	private static final EntityContextModificationListener globalModificationListener                                      = new EntityContextModificationListener();
-	private static final Map<Class, Set<Transformation<AbstractNode>>> globalEntityCreationTransformationMap               = new LinkedHashMap<Class, Set<Transformation<AbstractNode>>>();
-	private static final Map<Long, FrameworkException> exceptionMap                                                        = new LinkedHashMap<Long, FrameworkException>();
-	private static final Map<Thread, SecurityContext> securityContextMap                                                   = Collections.synchronizedMap(new WeakHashMap<Thread, SecurityContext>());
-	private static final Map<Thread, Long> transactionKeyMap                                                               = Collections.synchronizedMap(new WeakHashMap<Thread, Long>());
+	private static final Map<Class, Map<String, Class<? extends PropertyConverter>>> globalPropertyConverterMap             = new LinkedHashMap<Class, Map<String, Class<? extends PropertyConverter>>>();
+	private static final Map<Class, Set<Transformation<GraphObject>>> globalEntityCreationTransformationMap                 = new LinkedHashMap<Class, Set<Transformation<GraphObject>>>();
+	private static final Map<String, Map<String, DirectedRelation>> globalPropertyRelationshipMap                           = new LinkedHashMap<String, Map<String, DirectedRelation>>();
+	private static final Map<String, Map<String, DirectedRelation>> globalEntityRelationshipMap                             = new LinkedHashMap<String, Map<String, DirectedRelation>>();
+	private static final Map<Class, Map<String, Set<PropertyValidator>>> globalValidatorMap                                 = new LinkedHashMap<Class, Map<String, Set<PropertyValidator>>>();
+	private static final Map<String, Map<String, Set<String>>> globalSearchablePropertyMap                                  = new LinkedHashMap<String, Map<String, Set<String>>>();
+	private static final Map<Class, Map<String, Set<String>>> globalPropertyViewMap                                         = new LinkedHashMap<Class, Map<String, Set<String>>>();
+	private static final Map<Class, Map<String, PropertyGroup>> globalPropertyGroupMap                                      = new LinkedHashMap<Class, Map<String, PropertyGroup>>();
+	private static final Map<Class, Map<String, Value>> globalConversionParameterMap                                        = new LinkedHashMap<Class, Map<String, Value>>();
+	private static final Map<Class, Set<String>> globalWriteOncePropertyMap                                                 = new LinkedHashMap<Class, Set<String>>();
+	private static final Map<Class, Set<String>> globalReadOnlyPropertyMap                                                  = new LinkedHashMap<Class, Set<String>>();
+	private static final Map<String, String> normalizedEntityNameCache                                                      = new LinkedHashMap<String, String>();
+	private static final Map<String, NamedRelation> globalRelationshipNameMap                                               = new LinkedHashMap<String, NamedRelation>();
+	private static final Map<String, Class> globalRelationshipClassMap                                                      = new LinkedHashMap<String, Class>();
+	private static final Set<VetoableGraphObjectListener> modificationListeners                                             = new LinkedHashSet<VetoableGraphObjectListener>();
+
+	private static final EntityContextModificationListener globalModificationListener                                       = new EntityContextModificationListener();
+	
+	private static final Map<Long, FrameworkException> exceptionMap                                                         = new LinkedHashMap<Long, FrameworkException>();
+
+	private static final Map<Thread, SecurityContext> securityContextMap                                                    = Collections.synchronizedMap(new WeakHashMap<Thread, SecurityContext>());
+	private static final Map<Thread, Long> transactionKeyMap                                                                = Collections.synchronizedMap(new WeakHashMap<Thread, Long>());
 
 	//~--- methods --------------------------------------------------------
 
@@ -96,7 +99,7 @@ public class EntityContext {
 		modificationListeners.remove(listener);
 	}
 
-	public static void registerEntityCreationTransformation(Class type, Transformation<AbstractNode> transformation) {
+	public static void registerEntityCreationTransformation(Class type, Transformation<GraphObject> transformation) {
 		getEntityCreationTransformationsForType(type).add(transformation);
 	}
 
@@ -109,12 +112,21 @@ public class EntityContext {
 	}
 
 	// ----- named relations -----
-	public static void registerNamedRelation(String relationName, Class sourceType, Class destType, RelationshipType relType) {
+	public static void registerNamedRelation(String relationName, Class relationshipEntityType, Class sourceType, Class destType, RelationshipType relType) {
+		registerNamedRelation(relationName, relationshipEntityType, sourceType.getSimpleName(), destType.getSimpleName(), relType);
+	}
+
+	public static void registerNamedRelation(String relationName, Class relationshipEntityType, String sourceType, String destType, RelationshipType relType) {
 		globalRelationshipNameMap.put(relationName, new NamedRelation(relationName, sourceType, destType, relType));
+		globalRelationshipClassMap.put(createTripleKey(sourceType, destType, relType.name()), relationshipEntityType);
 	}
 
 	public static NamedRelation getNamedRelation(String relationName) {
 		return globalRelationshipNameMap.get(relationName);
+	}
+
+	public static Class getNamedRelationClass(String sourceType, String destType, String relType) {
+		return globalRelationshipClassMap.get(createTripleKey(sourceType, destType, relType));
 	}
 
 	public static Collection<NamedRelation> getNamedRelations() {
@@ -357,10 +369,10 @@ public class EntityContext {
 		return modificationListeners;
 	}
 
-	public static Set<Transformation<AbstractNode>> getEntityCreationTransformations(Class type) {
+	public static Set<Transformation<GraphObject>> getEntityCreationTransformations(Class type) {
 
-		Set<Transformation<AbstractNode>> transformations = new TreeSet<Transformation<AbstractNode>>();
-		Class localType                                   = type;
+		Set<Transformation<GraphObject>> transformations = new TreeSet<Transformation<GraphObject>>();
+		Class localType                                  = type;
 
 		// collect for all superclasses
 		while (!localType.equals(Object.class)) {
@@ -685,13 +697,13 @@ public class EntityContext {
 		return groupMap;
 	}
 
-	private static Set<Transformation<AbstractNode>> getEntityCreationTransformationsForType(Class type) {
+	private static Set<Transformation<GraphObject>> getEntityCreationTransformationsForType(Class type) {
 
-		Set<Transformation<AbstractNode>> transformations = globalEntityCreationTransformationMap.get(type);
+		Set<Transformation<GraphObject>> transformations = globalEntityCreationTransformationMap.get(type);
 
 		if (transformations == null) {
 
-			transformations = new LinkedHashSet<Transformation<AbstractNode>>();
+			transformations = new LinkedHashSet<Transformation<GraphObject>>();
 
 			globalEntityCreationTransformationMap.put(type, transformations);
 

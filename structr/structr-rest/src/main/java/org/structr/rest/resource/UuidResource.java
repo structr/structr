@@ -26,25 +26,43 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
 import org.structr.rest.exception.NotFoundException;
 
 /**
- * Represents an exact UUID match and behaves like an {@see IdResource} otherwise.
+ * Represents an exact UUID match.
  *
  * @author Christian Morgner
  */
-public class UuidResource extends IdResource {
+public class UuidResource extends FilterableResource {
 
 	private static final Logger logger = Logger.getLogger(UuidResource.class.getName());
 
 	private String uuid = null;
 
 	@Override
+	public List<? extends GraphObject> doGet() throws FrameworkException {
+
+		GraphObject obj = getNode();
+
+		if (obj != null) {
+
+			List<GraphObject> results = new LinkedList<GraphObject>();
+
+			results.add(obj);
+
+			return results;
+		}
+
+		throw new NotFoundException();
+	}
+
 	public AbstractNode getNode() throws FrameworkException {
 
 		List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
@@ -69,6 +87,37 @@ public class UuidResource extends IdResource {
 		}
 	}
 
+	public AbstractRelationship getRelationship() throws FrameworkException {
+
+		/*
+		List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
+		attrs.add(Search.andExactUuid(uuid));
+
+		List<AbstractNode> results = (List<AbstractNode>)Services.command(securityContext, Search
+			null, false, false, attrs
+		);
+
+		int size = results.size();
+
+		switch(size) {
+			case 0:
+				throw new NotFoundException();
+
+			case 1:
+				return results.get(0);
+
+			default:
+				logger.log(Level.WARNING, "Got more than one result for UUID {0}, this is very likely to be a UUID collision!", uuid);
+				return results.get(0);
+		}
+		 *
+		 */
+
+		// FIXME!!!
+
+		return null;
+	}
+
 	@Override
 	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) {
 
@@ -80,6 +129,10 @@ public class UuidResource extends IdResource {
 
 	public void setUuid(String uuid) {
 		this.uuid = uuid;
+	}
+
+	public String getUuid() {
+		return uuid;
 	}
 
 	@Override

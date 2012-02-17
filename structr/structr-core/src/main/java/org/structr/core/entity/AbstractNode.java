@@ -1910,7 +1910,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 			}
 
-			if ((key != null) && (dbNode != null) && dbNode.hasProperty(key)) {
+			if ((key != null) && (dbNode != null)) {
 
 				value = dbNode.getProperty(key);
 

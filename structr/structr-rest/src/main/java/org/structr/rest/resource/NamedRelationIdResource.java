@@ -27,8 +27,9 @@ import javax.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.rest.RestMethodResult;
+import org.structr.rest.exception.NotFoundException;
 
 /**
  *
@@ -39,9 +40,9 @@ public class NamedRelationIdResource extends Resource {
 	private static final Logger logger = Logger.getLogger(NamedRelationIdResource.class.getName());
 
 	private NamedRelationResource namedRelationResource = null;
-	private IdResource idResource = null;
+	private UuidResource idResource = null;
 
-	public NamedRelationIdResource(NamedRelationResource namedRelationResource, IdResource idResource, SecurityContext securityContext) {
+	public NamedRelationIdResource(NamedRelationResource namedRelationResource, UuidResource idResource, SecurityContext securityContext) {
 		this.namedRelationResource = namedRelationResource;
 		this.idResource = idResource;
 
@@ -56,25 +57,22 @@ public class NamedRelationIdResource extends Resource {
 	@Override
 	public List<? extends GraphObject> doGet() throws FrameworkException {
 
-		List<? extends GraphObject> results = namedRelationResource.doGet();
-		List<GraphObject> relationResults = new LinkedList<GraphObject>();
-		String uuid = idResource.getUriPart();
+		List<GraphObject> uuidResult = new LinkedList<GraphObject>();
 
-		// StructrRelationship relationship = idResource.getRelationship();
+		AbstractRelationship rel = idResource.getRelationship();
 
-		// use uuid to filter results from namedRelationResource
+		if(rel != null) {
 
-		// TODO: we need a relationship index
+			// TODO: do additional type check here!
 
-		// for now, we have no other choice as to iterate over the relationships
-		for(GraphObject obj : results) {
-			if(uuid.equals(obj.getProperty(AbstractNode.Key.uuid.name()))) {
-				relationResults.add(obj);
-				break;
-			}
+			uuidResult.add(rel);
+			return uuidResult;
+
+		} else {
+
+			throw new NotFoundException();
 		}
 
-		return relationResults;
 	}
 
 	@Override
@@ -111,7 +109,7 @@ public class NamedRelationIdResource extends Resource {
 		return namedRelationResource;
 	}
 
-	public IdResource getIdResource() {
+	public UuidResource getIdResource() {
 		return idResource;
 	}
 

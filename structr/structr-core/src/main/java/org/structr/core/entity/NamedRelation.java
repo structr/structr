@@ -19,8 +19,6 @@
 
 package org.structr.core.entity;
 
-import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.RelationshipType;
@@ -34,11 +32,11 @@ import org.structr.core.GraphObject;
 public class NamedRelation {
 
 	private RelationshipType relType = null;
-	private Class sourceType = null;
-	private Class destType = null;
+	private String sourceType = null;
+	private String destType = null;
 	private String name = null;
 
-	public NamedRelation(String name, Class sourceType, Class destType, RelationshipType relType) {
+	public NamedRelation(String name, String sourceType, String destType, RelationshipType relType) {
 		this.sourceType = sourceType;
 		this.destType = destType;
 		this.relType = relType;
@@ -53,19 +51,19 @@ public class NamedRelation {
 		this.relType = relType;
 	}
 
-	public Class getSourceType() {
+	public String getSourceType() {
 		return sourceType;
 	}
 
-	public void setSourceType(Class sourceType) {
+	public void setSourceType(String sourceType) {
 		this.sourceType = sourceType;
 	}
 
-	public Class getDestType() {
+	public String getDestType() {
 		return destType;
 	}
 
-	public void setDestType(Class destType) {
+	public void setDestType(String destType) {
 		this.destType = destType;
 	}
 
@@ -78,11 +76,11 @@ public class NamedRelation {
 	}
 
 	public List<? extends GraphObject> getRelationships(GraphObject obj) throws FrameworkException {
-		return obj.getRelationships(relType, getDirectionForType(obj.getClass()));
+		return obj.getRelationships(relType, getDirectionForType(obj.getProperty(AbstractNode.Key.type.name())));
 	}
 
 	// ----- private methods -----
-	private Direction getDirectionForType(Class type) {
+	private Direction getDirectionForType(Object type) {
 
 		if(type.equals(sourceType)) {
 			return Direction.OUTGOING;

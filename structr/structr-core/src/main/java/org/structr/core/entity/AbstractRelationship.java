@@ -41,8 +41,16 @@ import org.structr.core.node.TransactionCommand;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.PropertyView;
+import org.structr.common.UuidCreationTransformation;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.ReadOnlyPropertyToken;
+import org.structr.core.EntityContext;
+import org.structr.core.PropertyConverter;
+import org.structr.core.PropertyGroup;
+import org.structr.core.Value;
 import org.structr.core.cloud.RelationshipDataContainer;
+import org.structr.core.node.NodeService.NodeIndex;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -82,7 +90,24 @@ public abstract class AbstractRelationship implements GraphObject {
 	protected Map<String, Object> properties;
 	protected boolean isDirty;
 
+	private boolean readOnlyPropertiesUnlocked                   = false;
+
+	static {
+
+		EntityContext.registerPropertySet(AbstractRelationship.class, PropertyView.All, Key.values());
+
+		EntityContext.registerSearchablePropertySet(AbstractRelationship.class, NodeIndex.uuid.name(), Key.uuid);
+
+		// register transformation for automatic uuid creation
+		EntityContext.registerEntityCreationTransformation(AbstractRelationship.class, new UuidCreationTransformation());
+
+	}
+
 	//~--- constant enums -------------------------------------------------
+
+	public enum Key implements PropertyKey {
+		uuid
+	}
 
 	public enum Permission implements PropertyKey {
 		allowed, denied, read, showTree, write, execute, createNode, deleteNode, editProperties, addRelationship, removeRelationship, accessControl;
@@ -183,6 +208,10 @@ public abstract class AbstractRelationship implements GraphObject {
 		}
 	}
 
+	public void unlockReadOnlyPropertiesOnce() {
+		this.readOnlyPropertiesUnlocked = true;
+	}
+
 	@Override
 	public void removeProperty(final String key) {
 		dbRelationship.removeProperty(key);
@@ -242,12 +271,38 @@ public abstract class AbstractRelationship implements GraphObject {
 	}
 
 	public Object getProperty(final PropertyKey propertyKey) {
-		return dbRelationship.getProperty(propertyKey.name(), null);
+		return getProperty(propertyKey.name());
 	}
 
 	@Override
 	public Object getProperty(final String key) {
-		return dbRelationship.getProperty(key, null);
+
+		Class type = this.getClass();
+		Object value = null;
+
+		// ----- BEGIN property group resolution -----
+		PropertyGroup propertyGroup = EntityContext.getPropertyGroup(type, key);
+		if (propertyGroup != null) {
+
+			return propertyGroup.getGroupedProperties(this);
+		}
+
+		if(dbRelationship.hasProperty(key)) {
+			value = dbRelationship.getProperty(key);
+
+		}
+
+		// apply property converters
+		PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
+
+		if (converter != null) {
+
+			Value conversionValue = EntityContext.getPropertyConversionParameter(type, key);
+			value = converter.convertForGetter(value, conversionValue);
+
+		}
+
+		return value;
 	}
 
 	/**
@@ -353,8 +408,8 @@ public abstract class AbstractRelationship implements GraphObject {
 
 	// ----- interface GraphObject -----
 	@Override
-	public Iterable<String> getPropertyKeys(String propertyView) {
-		return getProperties().keySet();
+	public Iterable<String> getPropertyKeys(final String propertyView) {
+		return EntityContext.getPropertySet(this.getClass(), propertyView);
 	}
 
 	@Override
@@ -382,6 +437,7 @@ public abstract class AbstractRelationship implements GraphObject {
 		return this.getEndNode().getId();
 	}
 
+	@Override
 	public Long getOtherNodeId(final AbstractNode node) {
 		return this.getOtherNode(node).getId();
 	}
@@ -442,7 +498,7 @@ public abstract class AbstractRelationship implements GraphObject {
 
 	//~--- set methods ----------------------------------------------------
 
-	public void setProperties(final Map<String, Object> properties) {
+	public void setProperties(final Map<String, Object> properties) throws FrameworkException {
 
 		for (String key : properties.keySet()) {
 
@@ -451,13 +507,101 @@ public abstract class AbstractRelationship implements GraphObject {
 		}
 	}
 
-	public void setProperty(final PropertyKey propertyKey, final Object value) {
-		dbRelationship.setProperty(propertyKey.name(), value);
+	public void setProperty(final PropertyKey propertyKey, final Object value) throws FrameworkException {
+		setProperty(propertyKey.name(), value);
 	}
 
 	@Override
-	public void setProperty(final String key, final Object value) {
-		dbRelationship.setProperty(key, value);
+	public void setProperty(final String key, final Object value) throws FrameworkException {
+
+		Class type = this.getClass();
+
+		// check for read-only properties
+		if (EntityContext.isReadOnlyProperty(type, key) || (EntityContext.isWriteOnceProperty(type, key) && (dbRelationship != null) && dbRelationship.hasProperty(key))) {
+
+			if (readOnlyPropertiesUnlocked) {
+
+				// permit write operation once and
+				// lock read-only properties again
+				readOnlyPropertiesUnlocked = false;
+
+			} else {
+				throw new FrameworkException(type.getSimpleName(), new ReadOnlyPropertyToken(key));
+			}
+
+		}
+
+		// ----- BEGIN property group resolution -----
+		PropertyGroup propertyGroup = EntityContext.getPropertyGroup(type, key);
+
+		if (propertyGroup != null) {
+
+			propertyGroup.setGroupedProperties(value, this);
+
+			return;
+
+		}
+
+		PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
+		final Object convertedValue;
+
+		if (converter != null) {
+
+			Value conversionValue = EntityContext.getPropertyConversionParameter(type, key);
+			convertedValue = converter.convertForSetter(value, conversionValue);
+
+		} else {
+
+			convertedValue = value;
+
+		}
+
+		final Object oldValue = getProperty(key);
+
+		// don't make any changes if
+		// - old and new value both are null
+		// - old and new value are not null but equal
+		if (((convertedValue == null) && (oldValue == null)) || ((convertedValue != null) && (oldValue != null) && convertedValue.equals(oldValue))) {
+
+			return;
+
+		}
+
+		// Commit value directly to database
+		StructrTransaction transaction = new StructrTransaction() {
+
+			@Override
+			public Object execute() throws FrameworkException {
+
+				try {
+
+					// save space
+					if (convertedValue == null) {
+
+						dbRelationship.removeProperty(key);
+
+					} else {
+
+						if (convertedValue instanceof Date) {
+
+							dbRelationship.setProperty(key, ((Date) convertedValue).getTime());
+
+						} else {
+
+							dbRelationship.setProperty(key, convertedValue);
+
+						}
+					}
+
+
+				} finally {}
+
+				return null;
+			}
+		};
+
+		// execute transaction
+		Services.command(securityContext, TransactionCommand.class).execute(transaction);
 	}
 
 	/**

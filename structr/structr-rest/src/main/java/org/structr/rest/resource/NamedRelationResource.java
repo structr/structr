@@ -28,7 +28,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.NamedRelation;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
@@ -97,8 +96,8 @@ public class NamedRelationResource extends WrappingResource {
 	@Override
 	public Resource tryCombineWith(Resource next) throws FrameworkException {
 
-		if(next instanceof IdResource) {
-			return new NamedRelationIdResource(this, (IdResource)next, securityContext);
+		if(next instanceof UuidResource) {
+			return new NamedRelationIdResource(this, (UuidResource)next, securityContext);
 		}
 
 		return super.tryCombineWith(next);

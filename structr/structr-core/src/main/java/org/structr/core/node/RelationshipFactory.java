@@ -35,6 +35,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.Relationship;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.EntityContext;
 import org.structr.core.cloud.RelationshipDataContainer;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.GenericRelationship;
@@ -70,16 +71,20 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 
 	public AbstractRelationship createRelationship(final SecurityContext securityContext, final Relationship relationship, final String relType) throws FrameworkException {
 
-		Class relClass      = (Class) Services.command(securityContext, GetEntityClassCommand.class).execute(relType);
 		AbstractRelationship newRel = null;
 
-		if (relClass != null) {
+		try {
+			String sourceNodeType = (String)relationship.getStartNode().getProperty(AbstractNode.Key.type.name());
+			String destNodeType = (String)relationship.getStartNode().getProperty(AbstractNode.Key.type.name());
 
-			try {
+			Class relClass      = EntityContext.getNamedRelationClass(sourceNodeType, destNodeType, relType);
+
+			if (relClass != null) {
 				newRel = (AbstractRelationship) relClass.newInstance();
-			} catch (Throwable t) {
-				newRel = null;
 			}
+
+		} catch (Throwable t) {
+			newRel = null;
 		}
 
 		if (newRel == null) {

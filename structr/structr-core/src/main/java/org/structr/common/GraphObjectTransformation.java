@@ -19,14 +19,14 @@
 
 package org.structr.common;
 
+import org.structr.core.GraphObject;
 import org.structr.core.Transformation;
-import org.structr.core.entity.AbstractNode;
 
 /**
  *
  * @author Axel Morgner
  */
-public abstract class AbstractNodeTransformation implements Comparable, Transformation<AbstractNode> {
+public abstract class GraphObjectTransformation implements Comparable, Transformation<GraphObject> {
 
 	@Override
 	public int compareTo(Object t) {

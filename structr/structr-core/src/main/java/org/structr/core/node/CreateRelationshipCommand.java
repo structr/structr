@@ -39,7 +39,9 @@ import org.structr.core.entity.AbstractRelationship;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.entity.GenericRelationship;
+import org.structr.core.EntityContext;
+import org.structr.core.GraphObject;
+import org.structr.core.Transformation;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -181,15 +183,13 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 				Relationship rel = startNode.createRelationshipTo(endNode, relType);
 				AbstractRelationship newRel  = relationshipFactory.createRelationship(securityContext, rel);
 
-//				if (newRel != null) {
-//
-//					// iterate post creation transformations
-//					for (Transformation<StructrRelationship> transformation : EntityContext.getRelationshipCreationTransformations(relType, fromNode.getClass(), toNode.getClass())) {
-//
-//						transformation.apply(securityContext, newRel);
-//
-//					}
-//				}
+				if (newRel != null) {
+
+					// iterate post creation transformations
+					for (Transformation<GraphObject> transformation : EntityContext.getEntityCreationTransformations(newRel.getClass())) {
+						transformation.apply(securityContext, newRel);
+					}
+				}
 				
 				return newRel;
 			}

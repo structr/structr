@@ -56,7 +56,7 @@ public class StructrResourceProvider implements ResourceProvider {
 
 		resourceMap.put(Pattern.compile("[a-zA-Z]+"),		MaintenanceParameterResource.class);	// maintenance parameter
 		resourceMap.put(Pattern.compile("[a-z_]+"),		TypeResource.class);			// any type match
-		resourceMap.put(Pattern.compile("[0-9]+"),		IdResource.class);			// this matches the ID resource 
+		resourceMap.put(Pattern.compile("[0-9]+"),		UuidResource.class);			// this matches the ID resource
 
 		return resourceMap;
 	}
