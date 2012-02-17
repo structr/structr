@@ -33,13 +33,8 @@ import org.neo4j.kernel.Uniqueness;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
-<<<<<<< Updated upstream
 import org.structr.core.entity.DirectedRelation;
-import org.structr.core.node.StructrNodeFactory;
-=======
-import org.structr.core.entity.DirectedRelationship;
 import org.structr.core.node.NodeFactory;
->>>>>>> Stashed changes
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;

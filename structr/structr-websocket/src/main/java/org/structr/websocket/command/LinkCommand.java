@@ -28,15 +28,9 @@ import org.structr.common.SecurityContext;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-<<<<<<< Updated upstream
 import org.structr.core.entity.DirectedRelation;
 import org.structr.core.entity.DirectedRelation.Cardinality;
-import org.structr.core.entity.StructrRelationship;
-=======
-import org.structr.core.entity.DirectedRelationship;
-import org.structr.core.entity.DirectedRelationship.Cardinality;
 import org.structr.core.entity.AbstractRelationship;
->>>>>>> Stashed changes
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.NodeAttribute;
 import org.structr.core.node.StructrTransaction;

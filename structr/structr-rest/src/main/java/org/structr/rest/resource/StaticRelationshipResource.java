@@ -21,20 +21,14 @@
 
 package org.structr.rest.resource;
 
-import org.structr.common.CaseHelper;
 import org.structr.common.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.TypeToken;
 import org.structr.core.*;
 import org.structr.core.entity.AbstractNode;
-<<<<<<< Updated upstream
 import org.structr.core.entity.DirectedRelation;
-import org.structr.core.entity.StructrRelationship;
-=======
-import org.structr.core.entity.DirectedRelationship;
 import org.structr.core.entity.AbstractRelationship;
->>>>>>> Stashed changes
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 import org.structr.core.node.search.Search;

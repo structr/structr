@@ -21,10 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.StructrRelationship;
-import org.structr.core.node.GraphDatabaseCommand;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -110,7 +107,7 @@ public class IdResource extends FilterableResource {
 		return (AbstractNode) Services.command(securityContext, FindNodeCommand.class).execute(getId());
 	}
 
-	public StructrRelationship getRelationship() throws FrameworkException {
+	public AbstractNode getRelationship() throws FrameworkException {
 
 		// find relationship by id!
 		return null;
