@@ -365,9 +365,9 @@ public class EntityContext {
 		StringBuilder buf = new StringBuilder();
 
 		buf.append(key1);
-		buf.append(":");
+		buf.append(" ");
 		buf.append(key2);
-		buf.append(":");
+		buf.append(" ");
 		buf.append(key3);
 
 		return buf.toString();
