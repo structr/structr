@@ -227,7 +227,7 @@ public abstract class Resource {
 
 	public abstract String getUriPart();
 
-	public abstract boolean isCollectionResource();
+	public abstract boolean isCollectionResource() throws FrameworkException;
 
 	//~--- set methods ----------------------------------------------------
 

@@ -28,9 +28,13 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
+import org.structr.core.Services;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.NamedRelation;
+import org.structr.core.node.search.Search;
+import org.structr.core.node.search.SearchAttribute;
+import org.structr.core.node.search.SearchRelationshipCommand;
 import org.structr.rest.RestMethodResult;
-import org.structr.rest.exception.IllegalPathException;
 
 /**
  *
@@ -53,33 +57,50 @@ public class NamedRelationResource extends WrappingResource {
 	@Override
 	public List<? extends GraphObject> doGet() throws FrameworkException {
 
+		List<GraphObject> relationResults = new LinkedList<GraphObject>();
 		if(wrappedResource != null) {
-			
-			List<? extends GraphObject> results = wrappedResource.doGet();
-			List<GraphObject> relationResults = new LinkedList<GraphObject>();
 
+			// extract relationships from wrapped resource
+			List<? extends GraphObject> results = wrappedResource.doGet();
 			for(GraphObject obj : results) {
 				relationResults.addAll(namedRelation.getRelationships(obj));
 			}
 
-			return relationResults;
+		} else {
+
+			// fetch all relationships of a specific type and return them
+			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+			searchAttributes.add(Search.andExactRelType(namedRelation));
+
+			relationResults.addAll((List<AbstractRelationship>)Services.command(securityContext, SearchRelationshipCommand.class).execute(searchAttributes));
+
 		}
 		
-		throw new IllegalPathException();
+		return relationResults;
 	}
 
 	@Override
 	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
+
+		// create new relationship of specified type here
+
 		return new RestMethodResult(200);
 	}
 
 	@Override
 	public RestMethodResult doPut(Map<String, Object> propertySet) throws FrameworkException {
-		return new RestMethodResult(200);
+
+		doDelete();
+
+		return doPost(propertySet);
 	}
 
 	@Override
 	public RestMethodResult doDelete() throws FrameworkException {
+
+		// delete results of doGet()
+
+
 		return new RestMethodResult(200);
 	}
 

@@ -67,6 +67,7 @@ public class NodeRelationshipsCommand extends NodeServiceCommand {
 	public Object execute(Object... parameters) throws FrameworkException {
 
 		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
+		RelationshipFactory factory  = new RelationshipFactory(securityContext);
 
 		// Avoid to return null
 		List<AbstractRelationship> result = new LinkedList<AbstractRelationship>();
@@ -110,7 +111,7 @@ public class NodeRelationshipsCommand extends NodeServiceCommand {
 			try {
 
 				for (Relationship r : rels) {
-					result.add(new GenericRelationship(securityContext, r));
+					result.add(factory.createRelationship(securityContext, r));
 				}
 
 			} catch (RuntimeException e) {

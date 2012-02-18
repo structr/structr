@@ -19,10 +19,12 @@
 
 package org.structr.core.entity;
 
+import java.util.LinkedList;
 import java.util.List;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 
 /**
@@ -76,7 +78,18 @@ public class NamedRelation {
 	}
 
 	public List<? extends GraphObject> getRelationships(GraphObject obj) throws FrameworkException {
-		return obj.getRelationships(relType, getDirectionForType(obj.getProperty(AbstractNode.Key.type.name())));
+
+		Class namedRelationType = EntityContext.getNamedRelationClass(sourceType, destType, relType.name());
+		List<GraphObject> typeFilteredResults = new LinkedList<GraphObject>();
+
+		// filter relationships for correct type
+		for(GraphObject o : obj.getRelationships(relType, getDirectionForType(obj.getProperty(AbstractNode.Key.type.name())))) {
+			if(o.getClass().equals(namedRelationType)) {
+				typeFilteredResults.add(o);
+			}
+		}
+
+		return typeFilteredResults;
 	}
 
 	// ----- private methods -----

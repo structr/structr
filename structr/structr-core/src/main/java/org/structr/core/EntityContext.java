@@ -377,14 +377,14 @@ public class EntityContext {
 	}
 
 	// ----- private methods -----
-	private static String createTripleKey(String key1, String key2, String key3) {
+	public static String createTripleKey(String key1, String key2, String key3) {
 
 		StringBuilder buf = new StringBuilder();
 
 		buf.append(key1);
-		buf.append(":");
+		buf.append(" ");
 		buf.append(key2);
-		buf.append(":");
+		buf.append(" ");
 		buf.append(key3);
 
 		return buf.toString();

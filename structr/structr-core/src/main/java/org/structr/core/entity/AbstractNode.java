@@ -1962,8 +1962,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		if (converter != null) {
 
 			Value conversionValue = EntityContext.getPropertyConversionParameter(type, key);
-
-			converter.setCurrentNode(this);
+			converter.setCurrentObject(this);
 
 			value = converter.convertForGetter(value, conversionValue);
 
@@ -3943,8 +3942,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 			if (converter != null) {
 
 				Value conversionValue = EntityContext.getPropertyConversionParameter(type, key);
-
-				converter.setCurrentNode(this);
+				converter.setCurrentObject(this);
 
 				convertedValue = converter.convertForSetter(value, conversionValue);
 
