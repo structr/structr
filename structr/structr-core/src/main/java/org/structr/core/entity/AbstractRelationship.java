@@ -294,10 +294,10 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 		// apply property converters
 		PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
-
 		if (converter != null) {
 
 			Value conversionValue = EntityContext.getPropertyConversionParameter(type, key);
+			converter.setCurrentObject(this);
 			value = converter.convertForGetter(value, conversionValue);
 
 		}
