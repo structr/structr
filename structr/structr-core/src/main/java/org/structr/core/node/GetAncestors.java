@@ -46,7 +46,7 @@ public class GetAncestors extends NodeServiceCommand {
     public Object execute(Object... parameters) throws FrameworkException {
 
         GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
-        StructrNodeFactory nodeFactory = (StructrNodeFactory) arguments.get("nodeFactory");
+        NodeFactory nodeFactory = (NodeFactory) arguments.get("nodeFactory");
 
         if (graphDb != null) {
 
@@ -73,7 +73,7 @@ public class GetAncestors extends NodeServiceCommand {
         return Collections.emptyList();
     }
 
-    private List<AbstractNode> getAncestors(SecurityContext securityContext, GraphDatabaseService graphDb, StructrNodeFactory nodeFactory, Object argument) throws FrameworkException {
+    private List<AbstractNode> getAncestors(SecurityContext securityContext, GraphDatabaseService graphDb, NodeFactory nodeFactory, Object argument) throws FrameworkException {
 
         Node node = null;
         

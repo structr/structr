@@ -40,7 +40,7 @@ import org.structr.core.Services;
 import org.structr.core.module.GetEntityClassCommand;
 import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.FindNodeCommand;
-import org.structr.core.node.StructrNodeFactory;
+import org.structr.core.node.NodeFactory;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 import org.structr.core.notion.Notion;
@@ -61,9 +61,9 @@ import java.util.logging.Logger;
  *
  * @author Christian Morgner
  */
-public class DirectedRelationship {
+public class DirectedRelation {
 
-	private static final Logger logger = Logger.getLogger(DirectedRelationship.class.getName());
+	private static final Logger logger = Logger.getLogger(DirectedRelation.class.getName());
 
 	//~--- fields ---------------------------------------------------------
 
@@ -79,7 +79,7 @@ public class DirectedRelationship {
 
 	//~--- constructors ---------------------------------------------------
 
-	public DirectedRelationship(String destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion) {
+	public DirectedRelation(String destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion) {
 
 		this.cardinality = cardinality;
 		this.direction   = direction;
@@ -127,9 +127,9 @@ public class DirectedRelationship {
 							String destType = finalTargetNode.getType();
 
 							// delete previous relationships to nodes of the same destination type and direction
-							List<StructrRelationship> rels = sourceNode.getRelationships(relType, direction);
+							List<AbstractRelationship> rels = sourceNode.getRelationships(relType, direction);
 
-							for (StructrRelationship rel : rels) {
+							for (AbstractRelationship rel : rels) {
 
 								if (rel.getOtherNode(sourceNode).getType().equals(destType)) {
 
@@ -149,9 +149,9 @@ public class DirectedRelationship {
 							// Here, we have a OneToMany with OUTGOING Rel, so we need to remove all relationships
 							// of the same type incoming to the target node
 							
-							List<StructrRelationship> rels = finalTargetNode.getRelationships(relType, Direction.INCOMING);
+							List<AbstractRelationship> rels = finalTargetNode.getRelationships(relType, Direction.INCOMING);
 
-							for (StructrRelationship rel : rels) {
+							for (AbstractRelationship rel : rels) {
 
 								if (rel.getOtherNode(finalTargetNode).getType().equals(sourceNode.getType())) {
 
@@ -163,21 +163,134 @@ public class DirectedRelationship {
 						}
 					}
 
-					StructrRelationship newRel;
+					AbstractRelationship newRel;
 
 					if (direction.equals(Direction.OUTGOING)) {
 
-						newRel = (StructrRelationship) createRel.execute(sourceNode, finalTargetNode, relType);
+						newRel = (AbstractRelationship) createRel.execute(sourceNode, finalTargetNode, relType);
 
 					} else {
 
-						newRel = (StructrRelationship) createRel.execute(finalTargetNode, sourceNode, relType);
+						newRel = (AbstractRelationship) createRel.execute(finalTargetNode, sourceNode, relType);
 
 					}
 
 					newRel.setProperties(properties);
 
 					return newRel;
+				}
+			};
+
+			// execute transaction
+			Services.command(securityContext, TransactionCommand.class).execute(transaction);
+
+		} else {
+
+			String type = "unknown";
+
+			if (sourceNode != null) {
+
+				type = sourceNode.getType();
+
+			} else if (targetNode != null) {
+
+				type = targetNode.getType();
+
+			}
+
+			throw new FrameworkException(type, new IdNotFoundToken(value));
+
+		}
+	}
+
+	public void removeRelationship(final SecurityContext securityContext, final AbstractNode sourceNode, final Object value) throws FrameworkException {
+
+		AbstractNode targetNode = null;
+
+		if (value instanceof AbstractNode) {
+
+			targetNode = (AbstractNode) value;
+
+		} else {
+
+			targetNode = (AbstractNode) Services.command(securityContext, FindNodeCommand.class).execute(value);
+
+		}
+
+		if ((sourceNode != null) && (targetNode != null)) {
+
+			final AbstractNode finalTargetNode = targetNode;
+			StructrTransaction transaction     = new StructrTransaction() {
+
+				@Override
+				public Object execute() throws FrameworkException {
+
+					switch (cardinality) {
+
+						case ManyToOne :
+						case OneToOne :
+
+						{
+							String destType = finalTargetNode.getType();
+
+							// delete previous relationships to nodes of the same destination type and direction
+							List<AbstractRelationship> rels = sourceNode.getRelationships(relType, direction);
+
+							for (AbstractRelationship rel : rels) {
+
+								if (rel.getOtherNode(sourceNode).getType().equals(destType)) {
+
+									rel.delete(securityContext);
+
+								}
+
+							}
+
+							break;
+
+						}
+
+						case OneToMany :
+
+						{
+							// Here, we have a OneToMany with OUTGOING Rel, so we need to remove all relationships
+							// of the same type incoming to the target node
+							
+							List<AbstractRelationship> rels = finalTargetNode.getRelationships(relType, Direction.INCOMING);
+
+							for (AbstractRelationship rel : rels) {
+
+								if (rel.getOtherNode(finalTargetNode).getType().equals(sourceNode.getType())) {
+
+									rel.delete(securityContext);
+
+								}
+
+							}
+						}
+
+						case ManyToMany :
+
+						{
+							// In this case, remove exact the relationship of the given type
+							// between source and target node
+							
+							List<AbstractRelationship> rels = finalTargetNode.getRelationships(relType, Direction.BOTH);
+
+							for (AbstractRelationship rel : rels) {
+
+								if (rel.getOtherNode(finalTargetNode).equals(sourceNode)) {
+
+									rel.delete(securityContext);
+
+								}
+
+							}
+						}
+
+					}
+
+					return null;
 				}
 			};
 
@@ -270,7 +383,7 @@ public class DirectedRelationship {
 		try {
 
 			final Class realType                 = (Class) Services.command(securityContext, GetEntityClassCommand.class).execute(StringUtils.capitalize(destType));
-			final StructrNodeFactory nodeFactory = new StructrNodeFactory<AbstractNode>(securityContext);
+			final NodeFactory nodeFactory = new NodeFactory<AbstractNode>(securityContext);
 			final List<AbstractNode> nodeList    = new LinkedList<AbstractNode>();
 
 			// use traverser

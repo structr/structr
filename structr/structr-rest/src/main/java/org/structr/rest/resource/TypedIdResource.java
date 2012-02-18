@@ -27,14 +27,14 @@ public class TypedIdResource extends FilterableResource {
 	private static final Logger logger = Logger.getLogger(TypedIdResource.class.getName());
 
 	protected TypeResource typeResource = null;
-	protected IdResource idResource = null;
+	protected UuidResource idResource = null;
 
 	protected TypedIdResource(SecurityContext securityContext) {
 		this.securityContext = securityContext;
 		// empty protected constructor
 	}
 
-	public TypedIdResource(SecurityContext securityContext, IdResource idResource, TypeResource typeResource) {
+	public TypedIdResource(SecurityContext securityContext, UuidResource idResource, TypeResource typeResource) {
 		this.securityContext = securityContext;
 		this.typeResource = typeResource;
 		this.idResource = idResource;
@@ -94,7 +94,7 @@ public class TypedIdResource extends FilterableResource {
 		return typeResource;
 	}
 
-	public IdResource getIdResource() {
+	public UuidResource getIdResource() {
 		return idResource;
 	}
 
@@ -117,17 +117,6 @@ public class TypedIdResource extends FilterableResource {
 			resource.addTypedIdResource((TypedIdResource)next);
 
 			return resource;
-
-		} else if(next instanceof RelationshipResource) {
-
-			// make rel constraint wrap this
-			((RelationshipResource)next).wrapResource(this);
-			return next;
-
-		} else if(next instanceof RelationshipIdResource) {
-
-			((RelationshipIdResource)next).getRelationshipResource().wrapResource(this);
-			return next;
 		}
 
 		return super.tryCombineWith(next);

@@ -41,7 +41,7 @@ public class NodeFactoryCommand extends NodeServiceCommand {
 
         GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
 
-        StructrNodeFactory nodeFactory = (StructrNodeFactory) arguments.get("nodeFactory");
+        NodeFactory nodeFactory = (NodeFactory) arguments.get("nodeFactory");
         Object ret = null;
 
         if (nodeFactory != null) {

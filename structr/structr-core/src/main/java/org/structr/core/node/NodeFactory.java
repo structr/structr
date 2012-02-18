@@ -54,16 +54,16 @@ import org.structr.core.entity.GenericNode;
  *
  * @author cmorgner
  */
-public class StructrNodeFactory<T extends AbstractNode> implements Adapter<Node, T> {
+public class NodeFactory<T extends AbstractNode> implements Adapter<Node, T> {
 
-	private static final Logger logger = Logger.getLogger(StructrNodeFactory.class.getName());
+	private static final Logger logger = Logger.getLogger(NodeFactory.class.getName());
 	private SecurityContext securityContext = null;
 	//~--- constructors ---------------------------------------------------
 
 	// private Map<String, Class> nodeTypeCache = new ConcurrentHashMap<String, Class>();
-	public StructrNodeFactory() {}
+	public NodeFactory() {}
 
-	public StructrNodeFactory(SecurityContext securityContext) {
+	public NodeFactory(SecurityContext securityContext) {
 		this.securityContext = securityContext;
 	}
 

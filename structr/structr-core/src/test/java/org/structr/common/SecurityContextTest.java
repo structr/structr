@@ -21,7 +21,7 @@ package org.structr.common;
 import java.util.Date;
 import junit.framework.TestCase;
 import org.structr.core.entity.Principal;
-import org.structr.core.entity.StructrRelationship;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
 
@@ -77,9 +77,9 @@ public class SecurityContextTest extends TestCase {
 		*/
 
 
-		AccessControllable publicNode =		new MockAccessControllable( true, false,  true, StructrRelationship.Permission.read.name());
-		AccessControllable privateNode =	new MockAccessControllable(false,  true,  true, StructrRelationship.Permission.read.name());
-		AccessControllable publicHiddenNode =	new MockAccessControllable( true,  true,  true, StructrRelationship.Permission.read.name());
+		AccessControllable publicNode =		new MockAccessControllable( true, false,  true, AbstractRelationship.Permission.read.name());
+		AccessControllable privateNode =	new MockAccessControllable(false,  true,  true, AbstractRelationship.Permission.read.name());
+		AccessControllable publicHiddenNode =	new MockAccessControllable( true,  true,  true, AbstractRelationship.Permission.read.name());
 
 
 		assertTrue(frontendUserSecurityContext.isVisible(publicNode));
@@ -144,7 +144,7 @@ public class SecurityContextTest extends TestCase {
 		}
 
 		@Override
-		public StructrRelationship getSecurityRelationship(Principal principal) {
+		public AbstractRelationship getSecurityRelationship(Principal principal) {
 			return(null);
 		}
 

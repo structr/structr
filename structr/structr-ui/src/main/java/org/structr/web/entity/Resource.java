@@ -27,8 +27,8 @@ import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.DirectedRelationship;
-import org.structr.core.entity.DirectedRelationship.Cardinality;
+import org.structr.core.entity.DirectedRelation;
+import org.structr.core.entity.DirectedRelation.Cardinality;
 import org.structr.web.entity.html.Html;
 
 //~--- classes ----------------------------------------------------------------
@@ -54,7 +54,7 @@ public class Resource extends AbstractNode {
 		EntityContext.registerEntityRelation(Resource.class,	Element.class,		RelType.CONTAINS,	Direction.OUTGOING, Cardinality.ManyToMany);
 //		EntityContext.registerEntityRelation(Resource.class,	Element.class,		RelType.LINK,		Direction.INCOMING, Cardinality.OneToMany);
 
-		EntityContext.registerEntityRelation(Resource.class, Html.class, RelType.CONTAINS, Direction.OUTGOING, DirectedRelationship.Cardinality.ManyToOne);
+		EntityContext.registerEntityRelation(Resource.class, Html.class, RelType.CONTAINS, Direction.OUTGOING, DirectedRelation.Cardinality.ManyToOne);
 	}
 
 	//~--- get methods ----------------------------------------------------

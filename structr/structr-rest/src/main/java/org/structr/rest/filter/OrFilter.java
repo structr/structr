@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2011 Axel Morgner
+ *  Copyright (C) 2012 Axel Morgner
  * 
  *  This file is part of structr <http://structr.org>.
  * 
@@ -17,30 +17,27 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.structr.common;
+package org.structr.rest.filter;
 
-import org.structr.core.Transformation;
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.GraphObject;
 
 /**
  *
  * @author Axel Morgner
  */
-public abstract class AbstractNodeTransformation implements Comparable, Transformation<AbstractNode> {
+public class OrFilter implements Filter {
 
-	@Override
-	public int compareTo(Object t) {
-		if (t == null || !(t instanceof Transformation)) {
-			return -1;
-		}
+	private Filter filter1 = null;
+	private Filter filter2 = null;
 
-		return ((Integer) this.getOrder()).compareTo(
-			(Integer) (((Transformation) t).getOrder())
-			);
-	}	
-
-	@Override
-	public int getOrder() {
-		return 10;
+	public OrFilter(Filter filter1, Filter filter2) {
+		this.filter1 = filter1;
+		this.filter2 = filter2;
 	}
+
+	@Override
+	public boolean includeInResultSet(GraphObject object) {
+		return filter1.includeInResultSet(object) || filter2.includeInResultSet(object);
+	}
+
 }

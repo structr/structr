@@ -149,7 +149,7 @@ public class IndexNodeCommand extends NodeServiceCommand {
 				break;
 
 			default :
-				logger.log(Level.SEVERE, "Wrong number of parameters for the index property command: {0}", parameters);
+				logger.log(Level.SEVERE, "Wrong number of parameters for the index node command: {0}", parameters);
 
 				return null;
 

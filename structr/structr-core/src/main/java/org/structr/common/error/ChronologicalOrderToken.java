@@ -48,6 +48,6 @@ public class ChronologicalOrderToken extends SemanticErrorToken {
 
 	@Override
 	public String getErrorToken() {
-		return "must_lie_after";
+		return "must_lie_before";
 	}
 }

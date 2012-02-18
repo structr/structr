@@ -24,7 +24,7 @@ import java.util.Map;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.SecurityContext;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.StructrRelationship;
+import org.structr.core.entity.AbstractRelationship;
 
 /**
  * An interface that allows you to be notified when a
@@ -42,8 +42,8 @@ public interface VetoableGraphObjectListener {
 
 	public boolean propertyModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, AbstractNode entity, String key, Object oldValue, Object newValue);
 
-	public boolean relationshipCreated(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, StructrRelationship relationship);
-	public boolean relationshipDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, StructrRelationship relationship);
+	public boolean relationshipCreated(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, AbstractRelationship relationship);
+	public boolean relationshipDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, AbstractRelationship relationship);
 
 	public boolean graphObjectCreated(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject);
 	public boolean graphObjectModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject);

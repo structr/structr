@@ -13,7 +13,7 @@ import org.structr.core.Services;
 import org.structr.core.Value;
 import org.structr.core.VetoableGraphObjectListener;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.StructrRelationship;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.node.RemoveNodeFromIndex;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
@@ -31,7 +31,7 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.DirectedRelationship;
+import org.structr.core.entity.DirectedRelation;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -95,9 +95,9 @@ public abstract class Resource {
 						// 2: delete relationships
 						if (obj instanceof AbstractNode) {
 
-							List<StructrRelationship> rels = ((AbstractNode) obj).getRelationships();
+							List<AbstractRelationship> rels = ((AbstractNode) obj).getRelationships();
 
-							for (StructrRelationship rel : rels) {
+							for (AbstractRelationship rel : rels) {
 
 								rel.delete(securityContext);
 
@@ -166,25 +166,25 @@ public abstract class Resource {
 	}
 
 	// ----- protected methods -----
-	protected DirectedRelationship findDirectedRelationship(TypedIdResource constraint1, TypeResource constraint2) {
-		return findDirectedRelationship(constraint1.getTypeResource(), constraint2);
+	protected DirectedRelation findDirectedRelation(TypedIdResource constraint1, TypeResource constraint2) {
+		return findDirectedRelation(constraint1.getTypeResource(), constraint2);
 	}
 
-	protected DirectedRelationship findDirectedRelationship(TypeResource constraint1, TypedIdResource constraint2) {
-		return findDirectedRelationship(constraint1, constraint2.getTypeResource());
+	protected DirectedRelation findDirectedRelation(TypeResource constraint1, TypedIdResource constraint2) {
+		return findDirectedRelation(constraint1, constraint2.getTypeResource());
 	}
 
-	protected DirectedRelationship findDirectedRelationship(TypedIdResource constraint1, TypedIdResource constraint2) {
-		return findDirectedRelationship(constraint1.getTypeResource(), constraint2.getTypeResource());
+	protected DirectedRelation findDirectedRelation(TypedIdResource constraint1, TypedIdResource constraint2) {
+		return findDirectedRelation(constraint1.getTypeResource(), constraint2.getTypeResource());
 	}
 
-	protected DirectedRelationship findDirectedRelationship(TypeResource constraint1, TypeResource constraint2) {
+	protected DirectedRelation findDirectedRelation(TypeResource constraint1, TypeResource constraint2) {
 
 		String type1             = constraint1.getRawType();
 		String type2             = constraint2.getRawType();
 
 		// try raw type first..
-		return EntityContext.getDirectedRelationship(type1, type2);
+		return EntityContext.getDirectedRelation(type1, type2);
 
 	}
 

@@ -27,7 +27,7 @@ import org.neo4j.graphdb.Direction;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.core.EntityContext;
-import org.structr.core.entity.DirectedRelationship;
+import org.structr.core.entity.DirectedRelation;
 import org.structr.web.entity.Content;
 
 //~--- classes ----------------------------------------------------------------
@@ -47,8 +47,8 @@ public class Script extends HtmlElement {
 		EntityContext.registerPropertySet(Script.class, PropertyView.Public, HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Script.class, PropertyView.Html, true, htmlAttributes);
 	
-		EntityContext.registerEntityRelation(Script.class, Content.class,	RelType.CONTAINS, Direction.OUTGOING, DirectedRelationship.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Script.class, Head.class,		RelType.CONTAINS, Direction.INCOMING, DirectedRelationship.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Script.class, Content.class,	RelType.CONTAINS, Direction.OUTGOING, DirectedRelation.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Script.class, Head.class,		RelType.CONTAINS, Direction.INCOMING, DirectedRelation.Cardinality.ManyToMany);
 	}
 
 	//~--- get methods ----------------------------------------------------

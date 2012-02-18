@@ -43,7 +43,7 @@ public class StructrServer {
 
 	public static void main(String[] args) throws Exception {
 
-		String appName        = "structr UI 0.4.6";
+		String appName        = "structr UI 0.4.7";
 		String host           = System.getProperty("host", "0.0.0.0");
 		int port              = Integer.parseInt(System.getProperty("port", "8080"));
 		int maxIdleTime       = Integer.parseInt(System.getProperty("maxIdleTime", "30000"));
@@ -113,7 +113,6 @@ public class StructrServer {
 		if (directoryWhichMustNotExist.exists()) {
 
 			System.err.println("Directory " + directoryWhichMustNotExist + " must not exist.");
-
 			// System.err.println("Delete it or move WAR file to another directory and start from there.");
 			// System.exit(1);
 			directoryWhichMustNotExist.delete();

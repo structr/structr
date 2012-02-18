@@ -21,15 +21,14 @@
 
 package org.structr.rest.resource;
 
-import org.structr.common.CaseHelper;
 import org.structr.common.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.TypeToken;
 import org.structr.core.*;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.DirectedRelationship;
-import org.structr.core.entity.StructrRelationship;
+import org.structr.core.entity.DirectedRelation;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 import org.structr.core.node.search.Search;
@@ -95,7 +94,7 @@ public class StaticRelationshipResource extends SortableResource {
 			if (sourceNode != null) {
 
 				// fetch static relationship definition
-				DirectedRelationship staticRel = findDirectedRelationship(typedIdResource, typeResource);
+				DirectedRelation staticRel = findDirectedRelation(typedIdResource, typeResource);
 
 				if (staticRel != null) {
 
@@ -209,7 +208,7 @@ public class StaticRelationshipResource extends SortableResource {
 //		if (results != null) {
 //
 //			// fetch static relationship definition
-//			DirectedRelationship staticRel = findDirectedRelationship(typedIdResource, typeResource);
+//			DirectedRelation staticRel = findDirectedRelation(typedIdResource, typeResource);
 //
 //			if (staticRel != null) {
 //
@@ -231,7 +230,7 @@ public class StaticRelationshipResource extends SortableResource {
 //						@Override
 //						public Object execute() throws FrameworkException {
 //
-//							for (StructrRelationship rel : rels) {
+//							for (AbstractRelationship rel : rels) {
 //
 //								rel.delete(securityContext);
 //
@@ -261,7 +260,7 @@ public class StaticRelationshipResource extends SortableResource {
 		if (results != null) {
 
 			// fetch static relationship definition
-			final DirectedRelationship staticRel = findDirectedRelationship(typedIdResource, typeResource);
+			final DirectedRelation staticRel = findDirectedRelation(typedIdResource, typeResource);
 
 			if (staticRel != null) {
 
@@ -277,13 +276,13 @@ public class StaticRelationshipResource extends SortableResource {
 
 					}
 
-					final List<StructrRelationship> rels = startNode.getRelationships(staticRel.getRelType(), staticRel.getDirection());
+					final List<AbstractRelationship> rels = startNode.getRelationships(staticRel.getRelType(), staticRel.getDirection());
 					StructrTransaction transaction       = new StructrTransaction() {
 
 						@Override
 						public Object execute() throws FrameworkException {
 
-							for (StructrRelationship rel : rels) {
+							for (AbstractRelationship rel : rels) {
 
 								AbstractNode otherNode = rel.getOtherNode(startNode);
 								String otherNodeType   = otherNode.getType();
@@ -366,7 +365,7 @@ public class StaticRelationshipResource extends SortableResource {
 			public Object execute() throws FrameworkException {
 
 				AbstractNode sourceNode  = typedIdResource.getIdResource().getNode();
-				DirectedRelationship rel = EntityContext.getDirectedRelationship(sourceNode.getClass(), typeResource.getRawType());
+				DirectedRelation rel = EntityContext.getDirectedRelation(sourceNode.getClass(), typeResource.getRawType());
 
 				if ((sourceNode != null) && (rel != null)) {
 

@@ -28,9 +28,9 @@ import org.structr.common.SecurityContext;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.DirectedRelationship;
-import org.structr.core.entity.DirectedRelationship.Cardinality;
-import org.structr.core.entity.StructrRelationship;
+import org.structr.core.entity.DirectedRelation;
+import org.structr.core.entity.DirectedRelation.Cardinality;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.NodeAttribute;
 import org.structr.core.node.StructrTransaction;
@@ -92,9 +92,9 @@ public class LinkCommand extends AbstractCommand {
 
 					// As an element can be contained in multiple resources, we have
 					// to do the following for each incoming CONTAINS relationship
-					List<StructrRelationship> relsIn = sourceNode.getIncomingRelationships();
+					List<AbstractRelationship> relsIn = sourceNode.getIncomingRelationships();
 
-					for (StructrRelationship relIn : relsIn) {
+					for (AbstractRelationship relIn : relsIn) {
 
 						if (relIn.getType().equals(RelType.CONTAINS.name())) {
 
@@ -173,7 +173,7 @@ public class LinkCommand extends AbstractCommand {
 								thirdNode = (AbstractNode) transactionCommand.execute(transaction);
 
 								// Create a CONTAINS relationship
-								DirectedRelationship rel                      = new DirectedRelationship(null, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany, null);
+								DirectedRelation rel                      = new DirectedRelation(null, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany, null);
 								Map<String, Object> newRelationshipProperties = new HashMap<String, Object>();
 
 								newRelationshipProperties.put(resourceIdFromRel, 0);
@@ -184,7 +184,7 @@ public class LinkCommand extends AbstractCommand {
 								rel.createRelationship(securityContext, sourceNode, thirdNode, newRelationshipProperties);
 
 								// Create a LINK relationship
-								rel = new DirectedRelationship(resourceNode.getType(), RelType.LINK, Direction.OUTGOING, Cardinality.ManyToMany, null);
+								rel = new DirectedRelation(resourceNode.getType(), RelType.LINK, Direction.OUTGOING, Cardinality.ManyToMany, null);
 
 								rel.createRelationship(securityContext, secondNode, resourceNode);
 							}

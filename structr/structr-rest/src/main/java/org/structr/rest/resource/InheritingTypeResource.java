@@ -86,7 +86,7 @@ public class InheritingTypeResource extends TypeResource {
 	@Override
 	public Resource tryCombineWith(Resource next) throws FrameworkException {
 
-		if(next instanceof IdResource)	return new InheritingTypedIdResource(securityContext, (IdResource)next, this); else
+		if(next instanceof UuidResource)	return new InheritingTypedIdResource(securityContext, (UuidResource)next, this); else
 		if(next instanceof TypeResource)	throw new IllegalPathException();
 		
 		return super.tryCombineWith(next);

@@ -32,7 +32,7 @@ import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.common.RelType;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.StructrRelationship;
+import org.structr.core.entity.AbstractRelationship;
 
 /**
  * Deletes a node, or removes a LINK relationship respectively.
@@ -251,8 +251,8 @@ public class DeleteNodeCommand extends NodeServiceCommand {
                             parentRel.delete();
                         }
                         // delete other incoming relationships
-                        List<StructrRelationship> incomingRels = structrNode.getIncomingRelationships();
-                        for (StructrRelationship r : incomingRels) {
+                        List<AbstractRelationship> incomingRels = structrNode.getIncomingRelationships();
+                        for (AbstractRelationship r : incomingRels) {
                             r.getRelationship().delete();
                         }
 

@@ -37,17 +37,14 @@ import org.structr.common.RelType;
 import org.structr.common.ResourceExpander;
 import org.structr.common.SecurityContext;
 import org.structr.common.TreeNode;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Image;
-import org.structr.core.entity.StructrRelationship;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.NodeAttribute;
-import org.structr.core.node.StructrNodeFactory;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 import org.structr.core.node.search.Search;
@@ -80,6 +77,9 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.node.NodeFactory;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -462,11 +462,11 @@ public class HtmlServlet extends HttpServlet {
 		return node;
 	}
 
-	private StructrRelationship linkNodes(AbstractNode startNode, AbstractNode endNode, String resourceId, int index) throws FrameworkException {
+	private AbstractRelationship linkNodes(AbstractNode startNode, AbstractNode endNode, String resourceId, int index) throws FrameworkException {
 
 		SecurityContext context  = SecurityContext.getSuperUserInstance();
 		Command createRelCommand = Services.command(context, CreateRelationshipCommand.class);
-		StructrRelationship rel  = (StructrRelationship) createRelCommand.execute(startNode, endNode, RelType.CONTAINS);
+		AbstractRelationship rel  = (AbstractRelationship) createRelCommand.execute(startNode, endNode, RelType.CONTAINS);
 
 		rel.setProperty(resourceId, index);
 
@@ -478,7 +478,7 @@ public class HtmlServlet extends HttpServlet {
 		AbstractNode node        = root.getData();
 		String content           = null;
 		String tag               = null;
-		StructrRelationship link = null;
+		AbstractRelationship link = null;
 
 		if (node != null) {
 
@@ -504,7 +504,7 @@ public class HtmlServlet extends HttpServlet {
 //                              } catch (Exception e) {
 //                                      e.printStackTrace();
 //                              }
-				List<StructrRelationship> links = node.getOutgoingLinkRelationships();
+				List<AbstractRelationship> links = node.getOutgoingLinkRelationships();
 
 				if ((links != null) &&!links.isEmpty()) {
 
@@ -608,7 +608,7 @@ public class HtmlServlet extends HttpServlet {
 	private String getContent(final SecurityContext securityContext, final Resource resource) {
 
 		TraversalDescription localDesc   = desc.expand(new ResourceExpander(resource.getStringProperty(AbstractNode.Key.uuid.name())));
-		final StructrNodeFactory factory = new StructrNodeFactory(securityContext);
+		final NodeFactory factory = new NodeFactory(securityContext);
 		final TreeNode root              = new TreeNode(null);
 
 		localDesc = localDesc.evaluator(new Evaluator() {
