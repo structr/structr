@@ -292,15 +292,6 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 
 		}
 
-		/*
-		String type = src.getType();
-		if (type != null) {
-
-			jsonObject.add("type", new JsonPrimitive(type));
-
-		}
-		*/
-
 		// property keys
 		for (String key : src.getPropertyKeys(localPropertyView)) {
 
@@ -367,24 +358,6 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 				jsonObject.add(key, new JsonNull());
 
 			}
-
-		}
-
-		// start node id (for relationships)
-		Long startNodeId = src.getStartNodeId();
-
-		if (startNodeId != null) {
-
-			jsonObject.add("startNodeId", new JsonPrimitive(startNodeId));
-
-		}
-
-		// end node id (for relationships)
-		Long endNodeId = src.getEndNodeId();
-
-		if (endNodeId != null) {
-
-			jsonObject.add("endNodeId", new JsonPrimitive(endNodeId));
 
 		}
 

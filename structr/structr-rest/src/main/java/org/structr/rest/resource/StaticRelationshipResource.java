@@ -139,7 +139,7 @@ public class StaticRelationshipResource extends SortableResource {
 
 					Value conversionValue = EntityContext.getPropertyConversionParameter(type, key);
 
-					converter.setCurrentNode(sourceNode);
+					converter.setCurrentObject(sourceNode);
 					converter.setRawMode(true);    // disable notion
 
 					Object value = converter.convertForGetter(null, conversionValue);
