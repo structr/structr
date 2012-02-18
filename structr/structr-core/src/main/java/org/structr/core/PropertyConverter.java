@@ -20,8 +20,6 @@
 package org.structr.core;
 
 import org.structr.common.SecurityContext;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 
 /**
  * A generic converter interface that can be used to convert

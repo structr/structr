@@ -17,34 +17,30 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.structr.core.converter;
+package org.structr.core.notion;
 
-import org.structr.core.GraphObject;
-import org.structr.core.PropertyConverter;
-import org.structr.core.Value;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
+import org.structr.common.PropertyKey;
 
 /**
  *
  * @author Christian Morgner
  */
-public class RelationshipStartNodeIdProvider extends PropertyConverter<GraphObject, String> {
+public class RelationshipNotion extends Notion {
 
-	@Override
-	public GraphObject convertForSetter(String source, Value value) {
-		throw new UnsupportedOperationException("Not supported yet.");
+	private PropertyKey propertyKey = null;
+
+	public RelationshipNotion(PropertyKey propertyKey) {
+
+		super(
+			new PropertySerializationStrategy(propertyKey),
+			new IdDeserializationStrategy()
+		);
+
+		this.propertyKey = propertyKey;
 	}
 
 	@Override
-	public String convertForGetter(GraphObject source, Value value) {
-
-		if(currentObject instanceof AbstractRelationship) {
-
-			AbstractRelationship rel = (AbstractRelationship)currentObject;
-			return rel.getStartNode().getStringProperty(AbstractNode.Key.uuid);
-		}
-
-		return null;
+	public PropertyKey getPrimaryPropertyKey() {
+		return propertyKey;
 	}
 }

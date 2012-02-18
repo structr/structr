@@ -19,6 +19,7 @@
 
 package org.structr.core;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import org.neo4j.graphdb.Direction;
@@ -42,6 +43,8 @@ public interface GraphObject {
 	public Iterable<String> getPropertyKeys(String propertyView);
 	public void setProperty(String key, Object value) throws FrameworkException;
 	public Object getProperty(String key);
+	public String getStringProperty(String key);
+	public Date getDateProperty(String key);
 	public void removeProperty(String key) throws FrameworkException;
 
 	// ----- rels only -----

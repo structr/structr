@@ -24,17 +24,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
+import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Command;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.NamedRelation;
+import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchRelationshipCommand;
 import org.structr.rest.RestMethodResult;
+import org.structr.rest.exception.IllegalMethodException;
 
 /**
  *
@@ -70,7 +75,7 @@ public class NamedRelationResource extends WrappingResource {
 
 			// fetch all relationships of a specific type and return them
 			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
-			searchAttributes.add(Search.andExactRelType(namedRelation));
+			searchAttributes.add(Search.andRelType(namedRelation));
 
 			relationResults.addAll((List<AbstractRelationship>)Services.command(securityContext, SearchRelationshipCommand.class).execute(searchAttributes));
 
@@ -84,24 +89,33 @@ public class NamedRelationResource extends WrappingResource {
 
 		// create new relationship of specified type here
 
-		return new RestMethodResult(200);
+		AbstractRelationship relationshipEntity = namedRelation.newEntityClass();
+		if(relationshipEntity != null) {
+
+			// initialize entity temporarily
+			relationshipEntity.init(securityContext);
+
+			Command createRel        = Services.command(securityContext, CreateRelationshipCommand.class);
+			AbstractNode startNode   = relationshipEntity.identifyStartNode(namedRelation, propertySet);
+			AbstractNode endNode     = relationshipEntity.identifyEndNode(namedRelation, propertySet);
+			RelationshipType relType = namedRelation.getRelType();
+
+			AbstractRelationship newRel = (AbstractRelationship)createRel.execute(startNode, endNode, relType);
+			newRel.setProperties(propertySet);
+
+			RestMethodResult result = new RestMethodResult(201);
+			result.addHeader("Location", buildLocationHeader(newRel));
+
+			return result;
+
+		}
+
+		throw new FrameworkException(422, "FIXME");
 	}
 
 	@Override
 	public RestMethodResult doPut(Map<String, Object> propertySet) throws FrameworkException {
-
-		doDelete();
-
-		return doPost(propertySet);
-	}
-
-	@Override
-	public RestMethodResult doDelete() throws FrameworkException {
-
-		// delete results of doGet()
-
-
-		return new RestMethodResult(200);
+		throw new IllegalMethodException();
 	}
 
 	@Override

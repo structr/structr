@@ -103,7 +103,7 @@ public abstract class Search {
 	}
 
 	public static SearchAttribute andRelType(final NamedRelation namedRelation) {
-		return andRelType(namedRelation.getRelType().name(), namedRelation.getSourceType(), namedRelation.getDestType());
+		return andRelType(namedRelation.getRelType().name(), namedRelation.getSourceType().getSimpleName(), namedRelation.getDestType().getSimpleName());
 	}
 
 	public static SearchAttribute andRelType(final String relType, final String sourceType, final String destType) {
@@ -115,7 +115,7 @@ public abstract class Search {
 	}
 
 	public static SearchAttribute orRelType(final NamedRelation namedRelation) {
-		return orRelType(namedRelation.getRelType().name(), namedRelation.getSourceType(), namedRelation.getDestType());
+		return orRelType(namedRelation.getRelType().name(), namedRelation.getSourceType().getSimpleName(), namedRelation.getDestType().getSimpleName());
 	}
 
 	public static SearchAttribute orRelType(final String relType, final String sourceType, final String destType) {
@@ -197,7 +197,7 @@ public abstract class Search {
 	}
 
 	public static SearchAttribute andExactRelType(final NamedRelation namedRelation) {
-		return andExactRelType(namedRelation.getRelType().name(), namedRelation.getSourceType(), namedRelation.getDestType());
+		return andExactRelType(namedRelation.getRelType().name(), namedRelation.getSourceType().getSimpleName(), namedRelation.getDestType().getSimpleName());
 	}
 
 	public static SearchAttribute andExactRelType(final String relType, final String sourceType, final String destType) {
@@ -209,7 +209,7 @@ public abstract class Search {
 	}
 
 	public static SearchAttribute orExactRelType(final NamedRelation namedRelation) {
-		return orRelType(namedRelation.getRelType().name(), namedRelation.getSourceType(), namedRelation.getDestType());
+		return orRelType(namedRelation.getRelType().name(), namedRelation.getSourceType().getSimpleName(), namedRelation.getDestType().getSimpleName());
 	}
 	
 	public static SearchAttribute orExactRelType(final String relType, final String sourceType, final String destType) {

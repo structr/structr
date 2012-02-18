@@ -132,7 +132,6 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 		return false;
 	}
 
-	@Override
 	public boolean relationshipCreated(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, AbstractRelationship relationship) {
 
 		AbstractNode startNode = relationship.getStartNode();
@@ -154,7 +153,6 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 		return false;
 	}
 
-	@Override
 	public boolean relationshipDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, AbstractRelationship relationship) {
 
 		AbstractNode startNode = relationship.getStartNode();
@@ -180,20 +178,27 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 	@Override
 	public boolean graphObjectCreated(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject) {
 
-		WebSocketMessage message = messageMap.get(transactionKey);
-		if(message != null) {
+		if(graphObject instanceof AbstractRelationship) {
 
-			message.setCommand("CREATE");
-			message.setGraphObject(graphObject);
-			
-			List<GraphObject> list = new LinkedList<GraphObject>();
-			list.add(graphObject);
-			message.setResult(list);
-			
+			return relationshipCreated(securityContext, transactionKey, errorBuffer, (AbstractRelationship)graphObject);
+
 		} else {
-			logger.log(Level.WARNING, "No message found for transaction key {0}", transactionKey);
+
+			WebSocketMessage message = messageMap.get(transactionKey);
+			if(message != null) {
+
+				message.setCommand("CREATE");
+				message.setGraphObject(graphObject);
+
+				List<GraphObject> list = new LinkedList<GraphObject>();
+				list.add(graphObject);
+				message.setResult(list);
+
+			} else {
+				logger.log(Level.WARNING, "No message found for transaction key {0}", transactionKey);
+			}
+			return false;
 		}
-		return false;
 	}
 
 	@Override
@@ -214,7 +219,7 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 	}
 
 	@Override
-	public boolean graphObjectDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, long id, Map<String, Object> properties) {
+	public boolean graphObjectDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, Map<String, Object> properties) {
 
 		WebSocketMessage message = messageMap.get(transactionKey);
 		if(message != null) {

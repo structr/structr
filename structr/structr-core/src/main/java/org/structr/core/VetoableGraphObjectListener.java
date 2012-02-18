@@ -42,12 +42,9 @@ public interface VetoableGraphObjectListener {
 
 	public boolean propertyModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, AbstractNode entity, String key, Object oldValue, Object newValue);
 
-	public boolean relationshipCreated(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, AbstractRelationship relationship);
-	public boolean relationshipDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, AbstractRelationship relationship);
-
 	public boolean graphObjectCreated(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject);
 	public boolean graphObjectModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject);
-	public boolean graphObjectDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, long id, Map<String, Object> properties);
+	public boolean graphObjectDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, Map<String, Object> properties);
 
 	public boolean wasVisited(List<GraphObject> traversedNodes, long transactionKey, ErrorBuffer errorBuffer, SecurityContext securityContext);
 }

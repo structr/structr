@@ -22,6 +22,7 @@ package org.structr.rest.resource;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
@@ -74,6 +75,24 @@ public class NamedRelationIdResource extends WrappingResource {
 			throw new NotFoundException();
 		}
 
+	}
+
+	@Override
+	public RestMethodResult doPut(Map<String, Object> propertySet) throws FrameworkException {
+
+		List<? extends GraphObject> results = doGet();
+		for(GraphObject o : results) {
+
+			for(Entry<String, Object> entry : propertySet.entrySet()) {
+
+				String key = entry.getKey();
+				Object val = entry.getValue();
+
+				o.setProperty(key, val);
+			}
+		}
+
+		return new RestMethodResult(200);
 	}
 
 	@Override
