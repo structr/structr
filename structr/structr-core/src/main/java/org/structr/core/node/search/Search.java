@@ -197,7 +197,7 @@ public abstract class Search {
 	}
 
 	public static SearchAttribute andExactRelType(final NamedRelation namedRelation) {
-		return andRelType(namedRelation.getRelType().name(), namedRelation.getSourceType(), namedRelation.getDestType());
+		return andExactRelType(namedRelation.getRelType().name(), namedRelation.getSourceType(), namedRelation.getDestType());
 	}
 
 	public static SearchAttribute andExactRelType(final String relType, final String sourceType, final String destType) {

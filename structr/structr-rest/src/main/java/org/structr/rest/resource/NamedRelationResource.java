@@ -70,7 +70,7 @@ public class NamedRelationResource extends WrappingResource {
 
 			// fetch all relationships of a specific type and return them
 			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
-			searchAttributes.add(Search.andRelType(namedRelation));
+			searchAttributes.add(Search.andExactRelType(namedRelation));
 
 			relationResults.addAll((List<AbstractRelationship>)Services.command(securityContext, SearchRelationshipCommand.class).execute(searchAttributes));
 
