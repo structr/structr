@@ -40,6 +40,8 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.EntityContext;
+import org.structr.core.entity.AbstractRelationship;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -95,6 +97,22 @@ public abstract class Search {
 	public static SearchAttribute andType(final String searchString) {
 
 		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.Key.type.name(), searchString, SearchOperator.AND);
+
+		return attr;
+	}
+
+	public static SearchAttribute andRelType(final String relType, final String sourceType, final String destType) {
+
+		String searchString = EntityContext.createTripleKey(sourceType, relType, destType);
+		SearchAttribute attr = new TextualSearchAttribute(AbstractRelationship.HiddenKey.type.name(), searchString, SearchOperator.AND);
+
+		return attr;
+	}
+
+	public static SearchAttribute orRelType(final String relType, final String sourceType, final String destType) {
+
+		String searchString = EntityContext.createTripleKey(sourceType, relType, destType);
+		SearchAttribute attr = new TextualSearchAttribute(AbstractRelationship.HiddenKey.type.name(), searchString, SearchOperator.OR);
 
 		return attr;
 	}

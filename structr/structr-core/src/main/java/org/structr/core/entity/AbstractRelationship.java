@@ -109,6 +109,10 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		uuid
 	}
 
+	public enum HiddenKey implements PropertyKey {
+		type // internal type, see IndexRelationshipCommand#indexRelationship method
+	}
+
 	public enum Permission implements PropertyKey {
 		allowed, denied, read, showTree, write, execute, createNode, deleteNode, editProperties, addRelationship, removeRelationship, accessControl;
 	}

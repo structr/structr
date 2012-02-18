@@ -75,8 +75,11 @@ public abstract class WrappingResource extends Resource {
 	}
 
 	@Override
-	public boolean isCollectionResource() {
-		return wrappedResource.isCollectionResource();
+	public boolean isCollectionResource()  throws FrameworkException {
+		if(wrappedResource != null) {
+			return wrappedResource.isCollectionResource();
+		}
+		throw new IllegalPathException();
 	}
 
 	@Override

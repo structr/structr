@@ -39,6 +39,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.Relationship;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.node.NodeService.RelationshipIndex;
 
@@ -152,7 +153,7 @@ public class IndexRelationshipCommand extends NodeServiceCommand {
 		return null;
 	}
 
-	private void indexRelationships(final List<AbstractRelationship> rels) {
+	private void indexRelationships(final List<AbstractRelationship> rels)  throws FrameworkException {
 
 		for (AbstractRelationship rel : rels) {
 
@@ -161,13 +162,20 @@ public class IndexRelationshipCommand extends NodeServiceCommand {
 		}
 	}
 
-	private void indexRelationship(final AbstractRelationship rel) {
+	private void indexRelationship(final AbstractRelationship rel) throws FrameworkException {
+
+		// add a special type key, consisting of the relationship type, the type of the start node and the type of the end node
+		String tripleKey = EntityContext.createTripleKey(rel.getStartNode().getType(), rel.getType(), rel.getEndNode().getType());
+		rel.setProperty(AbstractRelationship.HiddenKey.type.name(), tripleKey);
+		indexProperty(rel, tripleKey);
 
 		for (String key : rel.getPropertyKeys()) {
 
 			indexProperty(rel, key);
 
 		}
+
+
 	}
 
 	private void indexProperty(final AbstractRelationship rel, final String key) {
