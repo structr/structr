@@ -174,12 +174,12 @@ public class NodeService implements SingletonService {
 			logger.log(Level.FINE, "Relationship relationship UUID index ready.");
 			logger.log(Level.FINE, "Initializing relationship index...");
 
-			relFulltextIndex = graphDb.index().forRelationships("fulltextAllNodes", LuceneIndexImplementation.FULLTEXT_CONFIG);
+			relFulltextIndex = graphDb.index().forRelationships("fulltextAllRelationships", LuceneIndexImplementation.FULLTEXT_CONFIG);
 
 			logger.log(Level.FINE, "Relationship index ready.");
 			logger.log(Level.FINE, "Initializing relationship keyword index...");
 
-			relKeywordIndex = graphDb.index().forRelationships("keywordAllNodes", LuceneIndexImplementation.EXACT_CONFIG);
+			relKeywordIndex = graphDb.index().forRelationships("keywordAllRelationships", LuceneIndexImplementation.EXACT_CONFIG);
 
 			logger.log(Level.FINE, "Relationship keyword index ready.");
 			logger.log(Level.FINE, "Initializing relationship factory...");

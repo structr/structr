@@ -42,6 +42,7 @@ import java.util.logging.Logger;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.entity.NamedRelation;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -99,6 +100,10 @@ public abstract class Search {
 		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.Key.type.name(), searchString, SearchOperator.AND);
 
 		return attr;
+	}
+
+	public static SearchAttribute andRelType(final NamedRelation namedRelation) {
+		return andRelType(namedRelation.getRelType().name(), namedRelation.getSourceType(), namedRelation.getDestType());
 	}
 
 	public static SearchAttribute andRelType(final String relType, final String sourceType, final String destType) {

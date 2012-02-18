@@ -29,6 +29,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.rest.RestMethodResult;
+import org.structr.rest.exception.IllegalMethodException;
 import org.structr.rest.exception.NotFoundException;
 
 /**
@@ -77,7 +78,7 @@ public class NamedRelationIdResource extends WrappingResource {
 
 	@Override
 	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
-		throw new UnsupportedOperationException("Not supported yet.");
+		throw new IllegalMethodException();
 	}
 
 	@Override
