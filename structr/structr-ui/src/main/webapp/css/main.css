@@ -149,7 +149,13 @@ img.disabled {
     overflow: hidden;*/
 }
 
-#resources, #previews,
+
+#resources, #previews {
+    vertical-align: top;
+    width: 1000px;
+    padding-right: 12px;
+}
+
 #elements,
 #components,
 #contents,
@@ -168,9 +174,13 @@ img.disabled {
 /*    display: none;*/
 }
 
+.content .id {
+    display: none;
+}
+
 .node, .group, .user, .resource, .component, .element, .content, .folder, .file {
     background-color: #fff;
-    margin-bottom: 12px ! important;
+    margin-bottom: 6px ! important;
 }
 
 .node b, .group b, .user b, .resource b, .component b, .element b, .content b, .folder b, .file b {
@@ -221,7 +231,7 @@ tr:nth-child(even) {
 }
 
 .props td, .props th {
-    padding: 4px 6px;;
+    padding: 4px 6px;
     line-height: 1.7em;
 }
 
@@ -236,7 +246,7 @@ tr:nth-child(even) {
 }
 
 .props tr td.value {
-    padding: 4px 4px 4px 5px;
+    padding: 2px 2px 2px 3px;
     margin: 0;
 }
 
@@ -266,8 +276,8 @@ tr:nth-child(even) {
 }
 
 .preview_box {
-    width: 488px;
-    height: 488px;
+    width: 1000px;
+    height: 1000px;
     float: left;
     background: #fff;
 	/*    margin-left: 12px;*/
@@ -277,7 +287,7 @@ tr:nth-child(even) {
 
 .preview_box iframe {
     width: 1000px;
-    height: 1024px;
+    height: 1000px;
     border: 0;
     /*zoom: 0.75;
     -moz-transform: scale(0.75);
@@ -325,8 +335,8 @@ span.id {
     line-height: 1.7em;
     border-radius: 5px;
     border: 1px solid #a5a5a5;
-    padding: 4px 12px;
-    margin: 12px 0 0 0;
+    padding: 3px 6px;
+    margin: 6px 0 0 0;
     background-color: #eee;
     background: -webkit-gradient(linear, left bottom, left top, from(#ddd), to(#eee)) no-repeat;
     background: -moz-linear-gradient(90deg, #ddd, #eee) no-repeat;

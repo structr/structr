@@ -100,7 +100,7 @@ var _Elements = {
                     });
                     
                 });
-                //_Elements.addElement(this);
+            //_Elements.addElement(this);
             });
         }
     },
@@ -130,24 +130,25 @@ var _Elements = {
         //            Resources.addElement(this, resource);
         //        });
         $('b', div).on('click', function(e) {
-			div.off('mouseover');
-			div.off('mouseout');
-			e.stopPropagation();
-			if (debug) console.log('parent', parent)
+            div.off('click');
+            div.off('mouseover');
+            div.off('mouseout');
+            e.stopPropagation();
+            if (debug) console.log('parent', parent)
             _Entities.showProperties(this, element, '_html_', $('.' + element.id + '_', parent));
         });
 		
-		div.on('mouseover', function(e) {
-			e.stopPropagation();
+        div.on('mouseover', function(e) {
+            e.stopPropagation();
             _Entities.showNonEmptyProperties(this, element, '_html_', $('.' + element.id + '_', parent));
         });		
 
-		div.on('mouseout', function(e) {
-			e.stopPropagation();
+        div.on('mouseout', function(e) {
+            e.stopPropagation();
             _Entities.hideNonEmptyProperties(this, element, '_html_', $('.' + element.id + '_', parent));
         });		
 
-		return div;
+        return div;
     },
 
     addElement : function(button, type, props) {
