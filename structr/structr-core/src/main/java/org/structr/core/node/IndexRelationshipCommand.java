@@ -42,6 +42,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.node.NodeService.RelationshipIndex;
+import org.structr.core.node.search.Search;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -166,7 +167,7 @@ public class IndexRelationshipCommand extends NodeServiceCommand {
 
 		// add a special type key, consisting of the relationship type, the type of the start node and the type of the end node
 		String tripleKey = EntityContext.createTripleKey(rel.getStartNode().getType(), rel.getType(), rel.getEndNode().getType());
-		rel.setProperty(AbstractRelationship.HiddenKey.type.name(), tripleKey);
+		rel.setProperty(AbstractRelationship.HiddenKey.type.name(), Search.clean(tripleKey));
 		indexProperty(rel, AbstractRelationship.HiddenKey.type.name());
 
 		for (String key : rel.getPropertyKeys()) {
