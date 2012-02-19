@@ -49,6 +49,7 @@ public class Script extends HtmlElement {
 	
 		EntityContext.registerEntityRelation(Script.class, Content.class,	RelType.CONTAINS, Direction.OUTGOING, DirectedRelation.Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Script.class, Head.class,		RelType.CONTAINS, Direction.INCOMING, DirectedRelation.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Script.class, Div.class,		RelType.CONTAINS, Direction.INCOMING, DirectedRelation.Cardinality.ManyToMany);
 	}
 
 	//~--- get methods ----------------------------------------------------

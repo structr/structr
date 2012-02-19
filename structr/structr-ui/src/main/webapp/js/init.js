@@ -26,7 +26,7 @@ var headers = {
 };
 /********************************************************************/
 
-var main;
+var header, main;
 var debug = true;
 //var onload = [];
 var lastMenuEntry;
@@ -40,8 +40,12 @@ $(window).unload(function() {
 	
 $(document).ready(function() {
 	if (debug) console.log('Debug mode');
-	
+
+        header = $('#header');
 	main = $('#main');
+        
+//        main.height($(window).height()-header.height());
+
 	//main.height($(window.document).height() - $('#header').height() - 13);
 	$('#import_json').on('click', function() {
 		var jsonArray = $.parseJSON($('#json_input').val());

@@ -20,10 +20,10 @@
 var contents;
 
 $(document).ready(function() {
-    Structr.registerModule('contents', Contents);
+    Structr.registerModule('contents', _Contents);
 });
 
-var Contents = {
+var _Contents = {
 
     icon : 'icon/page_white.png',
     add_icon : 'icon/page_white_add.png',
@@ -35,17 +35,19 @@ var Contents = {
 
     onload : function() {
         if (debug) console.log('onload');
+        if (palette) palette.remove();
         main.append('<div id="contents"></div>');
+
         contents = $('#contents');
-        Contents.refresh();
+        _Contents.refresh();
     },
 
     refresh : function() {
         contents.empty();
-        if (Contents.show()) {
-            contents.append('<button class="add_content_icon button"><img title="Add Content" alt="Add Content" src="' + Contents.add_icon + '"> Add Content</button>');
+        if (_Contents.show()) {
+            contents.append('<button class="add_content_icon button"><img title="Add Content" alt="Add Content" src="' + _Contents.add_icon + '"> Add Content</button>');
             $('.add_content_icon', main).on('click', function() {
-                Contents.addContent(this);
+                _Contents.addContent(this);
             });
         }
     },
@@ -61,14 +63,20 @@ var Contents = {
 
         var text = (content.content ? content.content.substring(0,200) : '-- empty --');
 
-        parent.append('<div class="content ' + content.id + '_">'
-            + '<img class="typeIcon" src="'+ Contents.icon + '">'
+        parent.append('<div class="node content ' + content.id + '_">'
+            + '<img class="typeIcon" src="'+ _Contents.icon + '">'
             + '<b class="content_">' + text + '</b> <span class="id">' + content.id + '</span>'
             + '</div>');
         var div = $('.' + content.id + '_', parent);
+
+        div.append('<img title="Edit ' + content.name + ' [' + content.id + ']" alt="Edit ' + content.name + ' [' + content.id + ']" class="edit_icon button" src="icon/pencil.png">');
+        $('.edit_icon', div).on('click', function() {
+            _Contents.editContent(this, content, 'all', $('.' + content.id + '_', contents));
+        });
+
         div.append('<img title="Delete content \'' + content.name + '\'" alt="Delete content \'' + content.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
         $('.delete_icon', div).on('click', function() {
-            Contents.deleteContent(this, content);
+            _Contents.deleteContent(this, content);
         });
         //        div.append('<img class="add_icon button" title="Add Element" alt="Add Element" src="icon/add.png">');
         //        $('.add_icon', div).on('click', function() {
@@ -100,6 +108,62 @@ var Contents = {
     deleteContent : function(button, content) {
         if (debug) console.log('delete content ' + content);
         deleteNode(button, content);
-    }
+    },
 
+    editContent : function (button, entity, view, element) {
+        if (isDisabled(button)) return;
+        var div = element.children('.delete_icon').after('<div class="editor"></div>');
+        if (debug) console.log(div);
+        //var div = $('.' + resourceId + '_ .' + contentId + '_');
+        var contentBox = $('.editor', element);
+        disable(button, function() {
+            contentBox.remove();
+            enable(button, function() {
+                //editContent(button, resourceId, contentId);
+            });
+        });
+        var codeMirror;
+        var url = rootUrl + 'content' + '/' + entity.id;
+        if (debug) console.log(url);
+        $.ajax({
+            url: url,
+            dataType: 'json',
+            contentType: 'application/json; charset=utf-8',
+            headers: headers,
+            success: function(data) {
+                codeMirror = CodeMirror(contentBox.get(0), {
+                    value: unescapeTags(data.result.content),
+                    mode:  "htmlmixed",
+                    lineNumbers: true,
+                    onKeyEvent: function() {
+                        //console.log(keyEventBlocked);
+                        if (keyEventBlocked) {
+                            clearTimeout(keyEventTimeout);
+                            keyEventTimeout = setTimeout(function() {
+                                var fromCodeMirror = escapeTags(codeMirror.getValue());
+                                var content = $.quoteString(fromCodeMirror);
+                                var data = '{ "content" : ' + content + ' }';
+                                //console.log(data);
+                                $.ajax({
+                                    url: url,
+                                    //async: false,
+                                    type: 'PUT',
+                                    dataType: 'json',
+                                    contentType: 'application/json; charset=utf-8',
+                                    headers: headers,
+                                    data: data,
+                                    success: function(data) {
+                                        refreshIframes();
+                                        keyEventBlocked = true;
+                                    //enable(button);
+                                    }
+                                });
+                            }, 500);
+                            return;
+                        }
+                    }
+                });
+            }
+        });
+    }
 };

@@ -105,7 +105,7 @@ var _Entities = {
 
 	addSourceToTarget : function(sourceId, targetId, props) {
 		if (debug) console.log('Add ' + sourceId + ' to ' + targetId + ' with additional properties: ' + props);
-		var data = '{ "command" : "ADD" , "id" : "' + targetId + '" , "data" : { "id" : "' + sourceId + '" ' + (props ? ',' + props : '') + '} }';
+		var data = '{ "command" : "ADD" , "id" : "' + targetId + '" , "data" : { ' + (sourceId ? '"id" : "' + sourceId + '" ' : '') + (props ? (sourceId ? ',' : '') + props : '') + '} }';
 		return send(data);
 	},
 

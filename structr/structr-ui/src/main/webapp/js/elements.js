@@ -18,6 +18,7 @@
  */
 
 var elements;
+var palette;
 
 $(document).ready(function() {
     Structr.registerModule('elements', _Elements);
@@ -66,6 +67,49 @@ var _Elements = {
     // Interactive elements
     'details', 'summary', 'command', 'menu'
     ],
+
+    elementGroups : [
+    {
+        'name' : 'Metadata',
+        'elements' : ['head', 'title', 'base', 'link', 'meta', 'style']
+    },
+    {
+        'name' : 'Sections',
+        'elements' : ['body', 'section', 'nav', 'article', 'aside', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hgroup', 'header', 'footer', 'address']
+    },
+    {
+        'name' : 'Grouping',
+        'elements' : ['div', 'p', 'hr', 'ol', 'ul', 'li', 'dl', 'dt', 'dd', 'pre', 'blockquote', 'figure', 'figcaption' ]
+    },
+    {
+        'name' : 'Scripting',
+        'elements' : ['script', 'noscript']
+    },
+    {
+        'name' : 'Tabular',
+        'elements' : ['table', 'tr', 'td', 'th', 'caption', 'colgroup', 'col', 'tbody', 'thead', 'tfoot']
+    },
+    {
+        'name' : 'Text',
+        'elements' : ['a', 'em', 'strong', 'small', 's', 'cite', 'g', 'dfn', 'abbr', 'time', 'code', 'var', 'samp', 'kbd', 'sub', 'sup', 'i', 'b', 'u', 'mark', 'ruby', 'rt', 'rp', 'bdi', 'bdo', 'span', 'br', 'wbr']
+    },
+    {
+        'name' : 'Edits',
+        'elements' : ['ins', 'del']
+    },
+    {
+        'name' : 'Embedded',
+        'elements' : ['img', 'video', 'audio', 'source', 'track', 'canvas', 'map', 'area', 'iframe', 'embed', 'object', 'param']
+    },
+    {
+        'name' : 'Forms',
+        'elements' : ['form', 'input', 'button', 'select', 'datalist', 'optgroup', 'option', 'textarea', 'fieldset', 'legend', 'label', 'keygen', 'output', 'progress', 'meter']
+    },
+    {
+        'name' : 'Interactive',
+        'elements' : ['details', 'summary', 'command', 'menu']
+    }
+    ],
 	
     init : function() {
         Structr.classes.push('element');
@@ -74,10 +118,35 @@ var _Elements = {
     onload : function() {
         if (debug) console.log('onload');
         main.append('<div id="elements"></div>');
-        elements = $('#elements');
-        _Elements.refresh();
+        if (palette) palette.remove();
+        main.before('<div id="palette"></div>');
+        elements = $('#elements', main);
+        palette = $('#palette');
+        //_Elements.refresh();
+        _Elements.showPalette();
     },
 
+    showPalette : function() {
+//        var palette = $('#palette');
+        palette.empty();
+        $(_Elements.elementGroups).each(function(i,group) {
+            console.log(group);
+            palette.append('<div class="elementGroup" id="group_' + group.name + '"><h3>' + group.name + '</h3></div>');
+            $(group.elements).each(function(j,elem) {
+                var div = $('#group_' + group.name);
+                div.append('<div class="draggable element" id="add_' + elem + '">' + elem + '</div>');
+                $('#add_' + elem, div).draggable({
+                    revert: 'invalid',
+                    containment: '#main',
+                    zIndex: 1,
+                    helper: 'clone'
+                });
+            });
+
+        });
+
+    },
+    
     refresh : function() {
         elements.empty();
         if (_Elements.show()) {
@@ -98,7 +167,6 @@ var _Elements = {
                         _Elements.addElement(button, v.capitalize(), '"tag":"' + v + '"');
                         list.remove();
                     });
-                    
                 });
             //_Elements.addElement(this);
             });
@@ -114,7 +182,7 @@ var _Elements = {
 
         var parent = Structr.findParent(parentId, resourceId, elements);
         
-        parent.append('<div class="element ' + element.id + '_">'
+        parent.append('<div class="node element ' + element.id + '_">'
             + '<img class="typeIcon" src="'+ _Elements.icon + '">'
             + '<b class="tag_">' + element.tag + '</b> <span class="id">' + element.id + '</span>'
             + (element._html_id ? 'id=' + element._html_id : '')
@@ -130,10 +198,14 @@ var _Elements = {
         //            Resources.addElement(this, resource);
         //        });
         $('b', div).on('click', function(e) {
+            e.stopPropagation();
             div.off('click');
             div.off('mouseover');
             div.off('mouseout');
-            e.stopPropagation();
+            $(this).off('click');
+            $(this).off('mouseover');
+            $(this).off('mouseout');
+
             if (debug) console.log('parent', parent)
             _Entities.showProperties(this, element, '_html_', $('.' + element.id + '_', parent));
         });

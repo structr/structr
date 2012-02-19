@@ -21,21 +21,38 @@
 
 package org.structr.websocket.command;
 
-import java.util.Map;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
+import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.DirectedRelation;
+import org.structr.core.entity.File;
+import org.structr.core.node.CreateNodeCommand;
+import org.structr.core.node.StructrTransaction;
+import org.structr.core.node.TransactionCommand;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
+
+//~--- JDK imports ------------------------------------------------------------
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 //~--- classes ----------------------------------------------------------------
 
 /**
  *
  * @author Christian Morgner
+ * @author Axel Morgner
  */
 public class AddCommand extends AbstractCommand {
+
+	private static final Logger logger = Logger.getLogger(AddCommand.class.getName());
+
+	//~--- methods --------------------------------------------------------
 
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
@@ -43,15 +60,57 @@ public class AddCommand extends AbstractCommand {
 		SecurityContext securityContext = SecurityContext.getSuperUserInstance();
 
 		// create static relationship
-		String sourceId = webSocketData.getId();
+		String sourceId                = webSocketData.getId();
 		Map<String, Object> properties = webSocketData.getData();
-		String targetId = (String) properties.get("id");
+		String targetId                = (String) properties.get("id");
+
 		properties.remove("id");
 
-		if ((sourceId != null) && (targetId != null)) {
+		if (sourceId != null) {
 
 			AbstractNode sourceNode = getNode(sourceId);
-			AbstractNode targetNode = getNode(targetId);
+			AbstractNode targetNode = null;
+
+			if (targetId != null) {
+
+				targetNode = getNode(targetId);
+
+			} else {
+
+				String type = (String) properties.get("type");
+				properties.remove("type");
+
+				String tag = (String) properties.get("tag");
+				properties.remove("tag");
+
+				String name = (String) properties.get("name");
+				properties.remove("name");
+
+				final Map<String, Object> props = new HashMap<String, Object>();
+
+				props.put("tag", tag);
+				props.put("type", type);
+				props.put("name", name);
+
+				StructrTransaction transaction = new StructrTransaction() {
+
+					@Override
+					public Object execute() throws FrameworkException {
+						return Services.command(SecurityContext.getSuperUserInstance(), CreateNodeCommand.class).execute(props);
+					}
+				};
+
+				try {
+
+					// create node in transaction
+					targetNode = (AbstractNode) Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(transaction);
+				} catch (FrameworkException fex) {
+
+					logger.log(Level.WARNING, "Could not create node.", fex);
+					getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
+				}
+
+			}
 
 			if ((sourceNode != null) && (targetNode != null)) {
 

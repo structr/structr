@@ -142,60 +142,6 @@ function refresh(parentId, id) {
 var keyEventBlocked = true;
 var keyEventTimeout;
 
-function editContent(button, resourceId, contentId) {
-    if (isDisabled(button)) return;
-    var div = $('.' + resourceId + '_ .' + contentId + '_');
-    div.append('<div class="editor"></div>');
-    var contentBox = $('.editor', div);
-    disable(button, function() {
-        contentBox.remove();
-        enable(button, function() {
-            editContent(button, resourceId, contentId);
-        });
-    });
-    var codeMirror;
-    var url = rootUrl + 'content' + '/' + contentId;
-    $.ajax({
-        url: url,
-        dataType: 'json',
-        contentType: 'application/json; charset=utf-8',
-        headers: headers,
-        success: function(data) {
-            codeMirror = CodeMirror(contentBox.get(0), {
-                value: unescapeTags(data.result.content),
-                mode:  "htmlmixed",
-                lineNumbers: true,
-                onKeyEvent: function() {
-                    //console.log(keyEventBlocked);
-                    if (keyEventBlocked) {
-                        clearTimeout(keyEventTimeout);
-                        keyEventTimeout = setTimeout(function() {
-                            var fromCodeMirror = escapeTags(codeMirror.getValue());
-                            var content = $.quoteString(fromCodeMirror);
-                            var data = '{ "content" : ' + content + ' }';
-                            //console.log(data);
-                            $.ajax({
-                                url: url,
-                                //async: false,
-                                type: 'PUT',
-                                dataType: 'json',
-                                contentType: 'application/json; charset=utf-8',
-                                headers: headers,
-                                data: data,
-                                success: function(data) {
-                                    refreshIframes();
-                                    keyEventBlocked = true;
-                                //enable(button);
-                                }
-                            });
-                        }, 500);
-                        return;
-                    }
-                }
-            });
-        }
-    });
-}
 
 function getIdFromClassString(classString) {
     var classes = classString.split(' ');

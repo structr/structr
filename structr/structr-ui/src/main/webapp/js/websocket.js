@@ -137,7 +137,7 @@ function connect() {
                         if (resources) {
                             _Resources.appendContentElement(entity);
                         } else {
-                            Contents.appendContentElement(entity);
+                            _Contents.appendContentElement(entity);
                         }
                         if (debug) console.log('Content element appended');
                         if (buttonClicked) enable(buttonClicked);

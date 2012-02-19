@@ -47,11 +47,21 @@ var _Resources = {
         elements = $('#elements');
         contents = $('#contents');
         previews = $('#previews');
+        if (palette) palette.remove();
+        main.before('<div id="palette"></div>');
+        palette = $('#palette');
+        elements = $('#elements', main);
+        main.before('<div id="hoverStatus">Hover status</div>');
 
         _Resources.refresh();
         _Resources.refreshComponents();
         _Resources.refreshElements();
-        Contents.refresh();
+        _Elements.showPalette();
+
+        _Contents.refresh();
+
+//        main.height($(window).height()-header.height()-palette.height()-24);
+
     },
 
     refresh : function() {
@@ -161,7 +171,7 @@ var _Resources = {
     },
 	
     appendResourceElement : function(resource, resourceId) {
-        resources.append('<div class="resource ' + resource.id + '_"></div>');
+        resources.append('<div class="node resource ' + resource.id + '_"></div>');
         var div = $('.' + resource.id + '_', resources);
 		
         div.append('<img title="Expand resource \'' + resource.name + '\'" alt="Expand resource \'' + resource.name + '\'" class="expand_icon button" src="' + Structr.expand_icon + '">');
@@ -212,7 +222,7 @@ var _Resources = {
                 + '.link-hover { border: 1px solid #00c }'
                 + '</style>');
 	
-            var iframe = $(this).contents()[0];
+            //var iframe = $(this).contents()[0];
             var iframeWindow = this.contentWindow;
 				
 //            $(this).contents().find('body').children().each(function(i,element) {
@@ -223,6 +233,21 @@ var _Resources = {
                 if (structrId) {
                     el.addClass('structr-editable-area');
                     el.on({
+                        mouseover: function(e) {
+                            e.stopPropagation();
+                            var self = $(this);
+                            //self.addClass('structr-editable-area');
+                            //self.attr('contenteditable', true);
+                            if (debug) console.log(self);
+                            $('#hoverStatus').text(this.nodeName + ', ' + self.attr('structr_id'));
+                        },
+                        mouseout: function(e) {
+                            e.stopPropagation();
+                            var self = $(this);
+                            //self.removeClass('structr-editable-area');
+                            //self.attr('contenteditable', false);
+                            $('#hoverStatus').text('-- non-editable --');
+                        },
                         click: function() {
                             var self = $(this);
                             self.attr('contenteditable', true);
@@ -235,7 +260,7 @@ var _Resources = {
                                 $('.link_icon').show();
 //                                sourceId = structrId;
                                 sourceId = self.attr('structr_id');
-								if (debug) console.log('sourceId: ' + sourceId);
+				if (debug) console.log('sourceId: ' + sourceId);
                                 var rootResourceElement = self.closest('html')[0];
                                 console.log(rootResourceElement);
                                 if (rootResourceElement) {
@@ -247,8 +272,8 @@ var _Resources = {
                         blur: function() {
                             var self = $(this);
                             self.attr('contenteditable', false);
-                            //self.removeClass('structr-editable-area-active');
-							if (debug) console.log('sourceId: ' + sourceId);
+                            self.removeClass('structr-editable-area-active');
+                            if (debug) console.log('sourceId: ' + sourceId);
                             _Resources.updateContent(sourceId, self.text());
                         //$('.link_icon').hide();
                         //Resources.reloadPreviews();
@@ -386,6 +411,18 @@ var _Resources = {
                 if (debug) console.log(resource);
                 var contentId = getIdFromClassString(ui.draggable.attr('class'));
                 var elementId = getIdFromClassString($(this).attr('class'));
+
+                if (debug) console.log('Content Id: ' + contentId);
+                if (!contentId) {
+                    // create element on the fly
+                    //var el = _Elements.addElement(null, 'element', null);
+                    var tag = $(ui.draggable).text();
+                    //var el = _Elements.addElement(null, 'Element', '"tag":"' + tag + '"');
+                    //if (debug) console.log(el);
+                    //contentId = el.id;
+                    //if (debug) console.log('Created new element on the fly: ' + contentId);
+                }
+
                 var pos = $('.content, .element', $(this)).length;
                 if (debug) console.log(pos);
                 var props;
@@ -395,6 +432,11 @@ var _Resources = {
                 } else {
                     props = '"*" : "' + pos + '"';
                 }
+
+                if (!contentId) {
+                    props += ', "name" : "New ' + tag + ' ' + Math.floor(Math.random() * (999999 - 1)) + '", "type" : "' + tag.capitalize() + '", "tag" : "' + tag + '"';
+                }
+
                 if (debug) console.log(props);
                 _Entities.addSourceToTarget(contentId, elementId, props);
             }
@@ -473,12 +515,12 @@ var _Resources = {
     appendContentElement : function(content, parentId, resourceId) {
         console.log('Resources.appendContentElement');
 		
-        var div = Contents.appendContentElement(content, parentId, resourceId);
+        var div = _Contents.appendContentElement(content, parentId, resourceId);
 
         if (parentId) {
             $('.delete_icon', div).remove();
             div.append('<img title="Remove element \'' + content.name + '\' from resource ' + parentId + '" '
-                + 'alt="Remove content ' + content.name + ' from element ' + parentId + '" class="delete_icon button" src="' + Contents.delete_icon + '">');
+                + 'alt="Remove content ' + content.name + ' from element ' + parentId + '" class="delete_icon button" src="' + _Contents.delete_icon + '">');
             $('.delete_icon', div).on('click', function() {
                 _Entities.removeSourceFromTarget(content.id, parentId)
             });
@@ -599,7 +641,7 @@ var _Resources = {
 
         $('.delete_icon', content).remove();
         content.append('<img title="Remove content ' + contentId + ' from element ' + elementId + '" '
-            + 'alt="Remove content ' + contentId + ' from element ' + elementId + '" class="delete_icon button" src="' + Contents.delete_icon + '">');
+            + 'alt="Remove content ' + contentId + ' from element ' + elementId + '" class="delete_icon button" src="' + _Contents.delete_icon + '">');
         $('.delete_icon', content).on('click', function() {
             _Resources.removeElementFromResource(contentId, elementId)
         });
