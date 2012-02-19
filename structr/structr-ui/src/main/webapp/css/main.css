@@ -573,3 +573,8 @@ button img {
 .ui-draggable {
     cursor: move;
 }
+
+#offset-tester {
+    border: 1px solid red;
+    position: absolute;
+}

@@ -394,7 +394,9 @@ function connect() {
         }
 
         ws.onclose = function() {
-            Structr.confirmation('Connection lost or timed out.<br>Reconnect?', Structr.init);
+            //Structr.confirmation('Connection lost or timed out.<br>Reconnect?', Structr.init);
+            log('Connection was lost or timed out. Trying automatic reconnect');
+            Structr.init();
         }
 
     } catch (exception) {

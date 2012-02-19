@@ -130,14 +130,15 @@ var _Elements = {
 //        var palette = $('#palette');
         palette.empty();
         $(_Elements.elementGroups).each(function(i,group) {
-            console.log(group);
+            if (debug) console.log(group);
             palette.append('<div class="elementGroup" id="group_' + group.name + '"><h3>' + group.name + '</h3></div>');
             $(group.elements).each(function(j,elem) {
                 var div = $('#group_' + group.name);
                 div.append('<div class="draggable element" id="add_' + elem + '">' + elem + '</div>');
                 $('#add_' + elem, div).draggable({
+                    iframeFix: true,
                     revert: 'invalid',
-                    containment: '#main',
+                    containment: 'body',
                     zIndex: 1,
                     helper: 'clone'
                 });

@@ -543,9 +543,13 @@ public class HtmlServlet extends HttpServlet {
 
 				buffer.append("<").append(tag);
 
-				if (edit && (node instanceof Content) && (id != null)) {
-
-					buffer.append(" structr_id='").append(id).append("'");
+				if (edit && (id != null)) {
+					
+					if (node instanceof Content) {
+						buffer.append(" class=\"structrContentContainer\" structr_content_id='").append(id).append("'");
+					} else {
+						buffer.append(" structr_element_id='").append(id).append("'");
+					}
 
 				}
 
