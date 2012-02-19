@@ -312,28 +312,31 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 
 					for (Object o : (Iterable) value) {
 
-						if (o instanceof GraphObject) {
+						// non-null check in case a lazy evaluator returns null
+						if(o != null) {
 
-							GraphObject obj                      = (GraphObject) o;
-							JsonElement recursiveSerializedValue = this.serializeFlatNameValue(obj, typeOfSrc, context, localPropertyView, depth + 1);
+							if (o instanceof GraphObject) {
 
-							if (recursiveSerializedValue != null) {
+								GraphObject obj                      = (GraphObject) o;
+								JsonElement recursiveSerializedValue = this.serializeFlatNameValue(obj, typeOfSrc, context, localPropertyView, depth + 1);
 
-								property.add(recursiveSerializedValue);
+								if (recursiveSerializedValue != null) {
 
+									property.add(recursiveSerializedValue);
+
+								}
+
+							} else if (o instanceof Map) {
+
+								property.add(serializeMap((Map) o, typeOfSrc, context, localPropertyView, false, false, depth));
+
+							} else {
+
+								// serialize primitive, this is for PropertyNotion
+	//                                                      property.add(new JsonPrimitive(o.toString()));
+								property.add(primitive(o));
 							}
-
-						} else if (o instanceof Map) {
-
-							property.add(serializeMap((Map) o, typeOfSrc, context, localPropertyView, false, false, depth));
-
-						} else {
-
-							// serialize primitive, this is for PropertyNotion
-//                                                      property.add(new JsonPrimitive(o.toString()));
-							property.add(primitive(o));
 						}
-
 					}
 
 					jsonObject.add(key, property);

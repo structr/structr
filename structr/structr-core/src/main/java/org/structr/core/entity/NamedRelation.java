@@ -106,7 +106,7 @@ public class NamedRelation {
 		List<GraphObject> typeFilteredResults = new LinkedList<GraphObject>();
 
 		// filter relationships for correct type
-		for(GraphObject o : obj.getRelationships(relType, getDirectionForType(obj.getProperty(AbstractNode.Key.type.name())))) {
+		for(GraphObject o : obj.getRelationships(relType, getDirectionForType(obj.getStringProperty(AbstractNode.Key.type.name())))) {
 			if(o.getClass().equals(namedRelationType)) {
 				typeFilteredResults.add(o);
 			}
@@ -116,13 +116,13 @@ public class NamedRelation {
 	}
 
 	// ----- private methods -----
-	private Direction getDirectionForType(Object type) {
+	private Direction getDirectionForType(String type) {
 
-		if(type.equals(sourceType)) {
+		if(type.equals(sourceType.getSimpleName())) {
 			return Direction.OUTGOING;
 		}
 
-		if(type.equals(destType)) {
+		if(type.equals(destType.getSimpleName())) {
 			return Direction.INCOMING;
 		}
 
