@@ -27,7 +27,7 @@ import org.structr.common.RelType;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.StructrRelationship;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.User;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -123,7 +123,7 @@ public class SetOwnerCommand extends NodeServiceCommand {
 		Command delRel = Services.command(securityContext, DeleteRelationshipCommand.class);
 
 		// Remove any existing OWNS relationships
-		for (StructrRelationship s : node.getRelationships(RelType.OWNS, Direction.INCOMING)) {
+		for (AbstractRelationship s : node.getRelationships(RelType.OWNS, Direction.INCOMING)) {
 
 			long id = s.getId();
 

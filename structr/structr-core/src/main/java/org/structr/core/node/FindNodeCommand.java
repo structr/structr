@@ -71,7 +71,7 @@ public class FindNodeCommand extends NodeServiceCommand {
     public Object execute(Object... parameters) throws FrameworkException {
 
         GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
-        StructrNodeFactory nodeFactory = (StructrNodeFactory) arguments.get("nodeFactory");
+        NodeFactory nodeFactory = (NodeFactory) arguments.get("nodeFactory");
 
         if (graphDb != null) {
             switch (parameters.length) {
@@ -96,7 +96,7 @@ public class FindNodeCommand extends NodeServiceCommand {
     }
 
     // <editor-fold defaultstate="collapsed" desc="private methods">
-    private Object handleSingleArgument(GraphDatabaseService graphDb, StructrNodeFactory nodeFactory, Object argument) throws FrameworkException {
+    private Object handleSingleArgument(GraphDatabaseService graphDb, NodeFactory nodeFactory, Object argument) throws FrameworkException {
 
         Object result = null;
 
@@ -199,7 +199,7 @@ public class FindNodeCommand extends NodeServiceCommand {
         return result;
     }
 
-    private Object handleMultipleArguments(GraphDatabaseService graphDb, StructrNodeFactory nodeFactory, Object[] parameters) throws FrameworkException {
+    private Object handleMultipleArguments(GraphDatabaseService graphDb, NodeFactory nodeFactory, Object[] parameters) throws FrameworkException {
         // at this point, we're sure there are at least 2 elements in the array
         // (so, no check here :))
 

@@ -21,7 +21,7 @@ var resources;
 var previews;
 var selStart, selEnd;
 var sel;
-var sourceId, rootId;
+var contentSourceId, elementSourceId, rootId;
 
 $(document).ready(function() {
     Structr.registerModule('resources', _Resources);
@@ -47,11 +47,21 @@ var _Resources = {
         elements = $('#elements');
         contents = $('#contents');
         previews = $('#previews');
+        if (palette) palette.remove();
+        main.before('<div id="palette"></div>');
+        palette = $('#palette');
+        elements = $('#elements', main);
+        main.before('<div id="hoverStatus">Hover status</div>');
 
         _Resources.refresh();
-        _Resources.refreshComponents();
-        _Resources.refreshElements();
-        Contents.refresh();
+        //_Resources.refreshComponents();
+        //_Resources.refreshElements();
+        _Elements.showPalette();
+
+        //_Contents.refresh();
+
+    //        main.height($(window).height()-header.height()-palette.height()-24);
+
     },
 
     refresh : function() {
@@ -161,7 +171,7 @@ var _Resources = {
     },
 	
     appendResourceElement : function(resource, resourceId) {
-        resources.append('<div class="resource ' + resource.id + '_"></div>');
+        resources.append('<div class="node resource ' + resource.id + '_"></div>');
         var div = $('.' + resource.id + '_', resources);
 		
         div.append('<img title="Expand resource \'' + resource.name + '\'" alt="Expand resource \'' + resource.name + '\'" class="expand_icon button" src="' + Structr.expand_icon + '">');
@@ -203,53 +213,205 @@ var _Resources = {
             + resource.id + '" src="' + viewRootUrl + resource.name + '?edit"></iframe></div><div style="clear: both"></div>');
 		
         $('#preview_' + resource.id).load(function() {
+
+            //console.log('Preview ' + resource.id + ' offset: ', $(this).offset());
+            var offset = $(this).offset();
+
             //console.log(this);
             var doc = $(this).contents();
             var head = $(doc).find('head');
             if (head) head.append('<style type="text/css">'
-                + '.structr-editable-area { border: 1px dotted #a5a5a5 ! important; margin: 2px; padding: 2px; }\n'
-                + '.structr-editable-area-active { border: 1px dotted orange; margin: 2px; padding: 2px; }'
+                + '* { z-index: 0}\n'
+                + '.structrContentContainer { display: inline; border: none; margin: 0; padding: 0; }\n'
+                + '.structr-droppable-area { border: 1px dotted red; }\n'
+                + '.structr-editable-area { border: 1px dotted orange; margin: -1px; padding: 0; }\n'
+                + '.structr-editable-area-active { background-color: #ffe; border: 1px solid orange; color: #333; margin: -1px; padding: 0; }'
                 + '.link-hover { border: 1px solid #00c }'
                 + '</style>');
 	
-            var iframe = $(this).contents()[0];
+            //var iframe = $(this).contents()[0];
             var iframeWindow = this.contentWindow;
-				
-//            $(this).contents().find('body').children().each(function(i,element) {
-            $(this).contents().find('[structr_id]').each(function(i,element) {
+
+            var droppables = $(this).contents().find('[structr_element_id]');
+            //console.log(droppables);
+
+            droppables.each(function(i,element) {
+                //console.log(element);
+                var el = $(element);
+
+                //var depth = el.parents().length;
+                //console.log('depth: ' + depth);
+                //console.log('z-index before: ' + el.css('z-index'));
+                //el.css('z-index', depth);
+                //console.log('z-index after: ' + el.css('z-index'));
+                
+                el.droppable({
+                    accept: '.element, .content',
+                    greedy: true,
+                    hoverClass: 'structr-droppable-area',
+                    iframeOffset: {'top' : offset.top, 'left' : offset.left},
+                    drop: function(event, ui) {
+                        var resource = $(this).closest( '.resource')[0];
+                        var resourceId;
+                        var pos;
+
+                        if (resource) {
+
+                            // we're in the main page
+                            resourceId = getIdFromClassString($(resource).attr('class'));
+                            pos = $('.content, .element', $(this)).length;
+
+                        } else {
+                            
+                            // we're in the iframe
+                            resource = $(this).closest('html')[0];
+                            resourceId = $(resource).attr('structr_element_id');
+                            pos = $('[structr_element_id]', $(this)).length;
+                        }
+                        
+                        console.log('this: ' , $(this));
+                        //console.log('ui: ' , ui);
+                        //console.log('Resource: ' , resource);
+                        //console.log('ResourceId: ' + resourceId);
+                        var contentId = getIdFromClassString(ui.draggable.attr('class'));
+                        var elementId = getIdFromClassString($(this).attr('class'));
+
+                        if (!elementId) elementId = $(this).attr('structr_element_id');
+
+                        if (!contentId) {
+                            // create element on the fly
+                            //var el = _Elements.addElement(null, 'element', null);
+                            var tag = $(ui.draggable).text();
+                        //var el = _Elements.addElement(null, 'Element', '"tag":"' + tag + '"');
+                        //if (debug) console.log(el);
+                        //contentId = el.id;
+                        //if (debug) console.log('Created new element on the fly: ' + contentId);
+                        }
+                        
+
+                        
+                        if (resourceId) {
+                            props = '"' + resourceId + '" : "' + pos + '"';
+                        } else {
+                            props = '"*" : "' + pos + '"';
+                        }
+
+                        var props;
+
+                        if (!contentId) {
+                            props += ', "name" : "New ' + tag + ' ' + Math.floor(Math.random() * (999999 - 1)) + '", "type" : "' + tag.capitalize() + '", "tag" : "' + tag + '"';
+                        }
+                        //console.log('Content Id: ' + contentId);
+                        //console.log('Target Id: ' + elementId);
+                        //console.log('Position: ' + pos);
+                        //console.log(props);
+                        //_Entities.addSourceToTarget(contentId, elementId, props);
+                    }
+                });
+
+                var structrId = el.attr('structr_element_id');
+                if (structrId) {
+                    el.on({
+                        mouseover: function(e) {
+                            e.stopPropagation();
+                            var self = $(this);
+                            //self.addClass('structr-editable-area');
+                            //self.attr('contenteditable', true);
+                            //if (debug) console.log(self);
+                            $('#hoverStatus').text(element.nodeName + ': ' + self.attr('structr_element_id'));
+                        },
+                        mouseout: function(e) {
+                            e.stopPropagation();
+                            var self = $(this);
+                            //self.removeClass('structr-editable-area');
+                            //self.attr('contenteditable', false);
+                            $('#hoverStatus').text('-- non-editable --');
+                        }
+                    //                        ,
+                    //                        click: function() {
+                    //                            var self = $(this);
+                    //                            //self.addClass('structr-editable-area-active');
+                    //                            sel = iframeWindow.getSelection();
+                    //                            if (sel.rangeCount) {
+                    //                                selStart = sel.getRangeAt(0).startOffset;
+                    //                                selEnd = sel.getRangeAt(0).endOffset;
+                    //                                console.log(selStart, selEnd);
+                    //                                $('.link_icon').show();
+                    //                                //                                sourceId = structrId;
+                    //                                elementSourceId = self.attr('structr_element_id');
+                    //                                if (debug) console.log('sourceId: ' + elementSourceId);
+                    //                                var rootResourceElement = self.closest('html')[0];
+                    //                                console.log(rootResourceElement);
+                    //                                if (rootResourceElement) {
+                    //                                    rootId = $(rootResourceElement).attr('structr_element_id');
+                    //                                }
+                    //
+                    //                            }
+                    //                        }
+                    });
+
+                }
+            });
+
+            $(this).contents().find('[structr_content_id]').each(function(i,element) {
                 if (debug) console.log(element);
                 var el = $(element);
-                var structrId = el.attr('structr_id');
+                var structrId = el.attr('structr_content_id');
                 if (structrId) {
-                    el.addClass('structr-editable-area');
+                    
                     el.on({
-                        click: function() {
+                        mouseover: function(e) {
+                            e.stopPropagation();
                             var self = $(this);
+                            self.addClass('structr-editable-area');
                             self.attr('contenteditable', true);
-                            //self.addClass('structr-editable-area-active');
+                            //swapFgBg(self);
+                            //self.addClass('structr-editable-area');
+                            //self.attr('contenteditable', true);
+                            //if (debug) console.log(self);
+                            $('#hoverStatus').text('Editable content element: ' + self.attr('structr_content_id'));
+                        },
+                        mouseout: function(e) {
+                            e.stopPropagation();
+                            var self = $(this);
+                            //swapFgBg(self);
+                            self.removeClass('structr-editable-area');
+                            //self.attr('contenteditable', false);
+                            $('#hoverStatus').text('-- non-editable --');
+                        },
+                        click: function(e) {
+                            e.stopPropagation();
+                            var self = $(this);
+                            self.removeClass('structr-editable-area');
+                            self.addClass('structr-editable-area-active');
+
+                            //swapFgBg(self);
                             sel = iframeWindow.getSelection();
                             if (sel.rangeCount) {
                                 selStart = sel.getRangeAt(0).startOffset;
                                 selEnd = sel.getRangeAt(0).endOffset;
-                                console.log(selStart, selEnd);
+                                if (debug) console.log(selStart, selEnd);
                                 $('.link_icon').show();
-//                                sourceId = structrId;
-                                sourceId = self.attr('structr_id');
-								if (debug) console.log('sourceId: ' + sourceId);
+                                //                                sourceId = structrId;
+                                contentSourceId = self.attr('structr_content_id');
+                                if (debug) console.log('click contentSourceId: ' + contentSourceId);
                                 var rootResourceElement = self.closest('html')[0];
-                                console.log(rootResourceElement);
+                                if (debug) console.log(rootResourceElement);
                                 if (rootResourceElement) {
-                                    rootId = $(rootResourceElement).attr('structr_id');
+                                    rootId = $(rootResourceElement).attr('structr_content_id');
                                 }
 								
                             }
                         },
-                        blur: function() {
+                        blur: function(e) {
+                            e.stopPropagation();
                             var self = $(this);
+                            if (debug) console.log('blur contentSourceId: ' + contentSourceId);
+                            _Resources.updateContent(contentSourceId, self.text());
+                            contentSourceId = null;
                             self.attr('contenteditable', false);
-                            //self.removeClass('structr-editable-area-active');
-							if (debug) console.log('sourceId: ' + sourceId);
-                            _Resources.updateContent(sourceId, self.text());
+                            self.removeClass('structr-editable-area-active');
+                        //sswapFgBg(self);
                         //$('.link_icon').hide();
                         //Resources.reloadPreviews();
                         }
@@ -318,23 +480,23 @@ var _Resources = {
         //        //            }
         //        });
         
-        div.droppable({
-            accept: '.component, .element',
-            greedy: true,
-            hoverClass: 'resourceHover',
-            drop: function(event, ui) {
-                var componentId = getIdFromClassString(ui.draggable.attr('class'));
-                var resourceId = getIdFromClassString($(this).attr('class'));
-				
-                if (!resourceId) resourceId = '*';
-				
-                var pos = $('.component, .element', $(this)).length;
-                if (debug) console.log(pos);
-                var props = '"' + resourceId + '" : "' + pos + '"';
-                if (debug) console.log(props);
-                _Entities.addSourceToTarget(componentId, resourceId, props);
-            }
-        });
+//        div.droppable({
+//            accept: '.component, .element',
+//            greedy: true,
+//            hoverClass: 'resourceHover',
+//            drop: function(event, ui) {
+//                var componentId = getIdFromClassString(ui.draggable.attr('class'));
+//                var resourceId = getIdFromClassString($(this).attr('class'));
+//
+//                if (!resourceId) resourceId = '*';
+//
+//                var pos = $('.component, .element', $(this)).length;
+//                if (debug) console.log(pos);
+//                var props = '"' + resourceId + '" : "' + pos + '"';
+//                if (debug) console.log(props);
+//                _Entities.addSourceToTarget(componentId, resourceId, props);
+//            }
+//        });
 
         return div;
     },
@@ -386,6 +548,18 @@ var _Resources = {
                 if (debug) console.log(resource);
                 var contentId = getIdFromClassString(ui.draggable.attr('class'));
                 var elementId = getIdFromClassString($(this).attr('class'));
+
+                if (debug) console.log('Content Id: ' + contentId);
+                if (!contentId) {
+                    // create element on the fly
+                    //var el = _Elements.addElement(null, 'element', null);
+                    var tag = $(ui.draggable).text();
+                //var el = _Elements.addElement(null, 'Element', '"tag":"' + tag + '"');
+                //if (debug) console.log(el);
+                //contentId = el.id;
+                //if (debug) console.log('Created new element on the fly: ' + contentId);
+                }
+
                 var pos = $('.content, .element', $(this)).length;
                 if (debug) console.log(pos);
                 var props;
@@ -395,6 +569,11 @@ var _Resources = {
                 } else {
                     props = '"*" : "' + pos + '"';
                 }
+
+                if (!contentId) {
+                    props += ', "name" : "New ' + tag + ' ' + Math.floor(Math.random() * (999999 - 1)) + '", "type" : "' + tag.capitalize() + '", "tag" : "' + tag + '"';
+                }
+
                 if (debug) console.log(props);
                 _Entities.addSourceToTarget(contentId, elementId, props);
             }
@@ -471,20 +650,21 @@ var _Resources = {
     },
 
     appendContentElement : function(content, parentId, resourceId) {
-        console.log('Resources.appendContentElement');
+        if (debug) console.log('Resources.appendContentElement');
 		
-        var div = Contents.appendContentElement(content, parentId, resourceId);
+        var div = _Contents.appendContentElement(content, parentId, resourceId);
 
         if (parentId) {
             $('.delete_icon', div).remove();
             div.append('<img title="Remove element \'' + content.name + '\' from resource ' + parentId + '" '
-                + 'alt="Remove content ' + content.name + ' from element ' + parentId + '" class="delete_icon button" src="' + Contents.delete_icon + '">');
+                + 'alt="Remove content ' + content.name + ' from element ' + parentId + '" class="delete_icon button" src="' + _Contents.delete_icon + '">');
             $('.delete_icon', div).on('click', function() {
                 _Entities.removeSourceFromTarget(content.id, parentId)
             });
         }
 
         div.draggable({
+            iframeFix: true,
             revert: 'invalid',
             containment: '#main',
             zIndex: 1,
@@ -599,7 +779,7 @@ var _Resources = {
 
         $('.delete_icon', content).remove();
         content.append('<img title="Remove content ' + contentId + ' from element ' + elementId + '" '
-            + 'alt="Remove content ' + contentId + ' from element ' + elementId + '" class="delete_icon button" src="' + Contents.delete_icon + '">');
+            + 'alt="Remove content ' + contentId + ' from element ' + elementId + '" class="delete_icon button" src="' + _Contents.delete_icon + '">');
         $('.delete_icon', content).on('click', function() {
             _Resources.removeElementFromResource(contentId, elementId)
         });
@@ -631,7 +811,11 @@ var _Resources = {
     updateContent : function(contentId, content) {
         //console.log('update ' + contentId + ' with ' + content);
         var url = rootUrl + 'content' + '/' + contentId;
-        var data = '{ "content" : ' + $.quoteString(content) + ' }';
+        if (debug) console.log(content);
+        var text = content.replace(/\n/g, '<br>');
+        if (debug) console.log(text);
+        text = $.quoteString(text);
+        var data = '{ "content" : ' + text + ' }';
         $.ajax({
             url: url,
             //async: false,

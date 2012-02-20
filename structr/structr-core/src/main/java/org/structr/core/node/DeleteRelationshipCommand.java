@@ -27,7 +27,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.UnsupportedArgumentError;
-import org.structr.core.entity.StructrRelationship;
+import org.structr.core.entity.AbstractRelationship;
 
 /**
  *
@@ -78,9 +78,9 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
                 logger.log(Level.SEVERE, "Relationship {0} not found, cannot delete.", id);
             }
 
-        } else if (argument instanceof StructrRelationship) {
+        } else if (argument instanceof AbstractRelationship) {
 
-            StructrRelationship r = (StructrRelationship) argument;
+            AbstractRelationship r = (AbstractRelationship) argument;
             rel = r.getRelationship();
 
         } else if (argument instanceof Relationship) {

@@ -23,7 +23,7 @@ import org.neo4j.graphdb.Direction;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.core.EntityContext;
-import org.structr.core.entity.DirectedRelationship;
+import org.structr.core.entity.DirectedRelation;
 
 /**
  * @author Axel Morgner
@@ -34,11 +34,11 @@ public class Head extends HtmlElement {
 		EntityContext.registerPropertySet(Head.class, PropertyView.All,		HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Head.class, PropertyView.Public,	HtmlElement.UiKey.values());
 
-		EntityContext.registerEntityRelation(Head.class, Html.class,	RelType.CONTAINS, Direction.INCOMING, DirectedRelationship.Cardinality.OneToOne);
-		EntityContext.registerEntityRelation(Head.class, Title.class,	RelType.CONTAINS, Direction.OUTGOING, DirectedRelationship.Cardinality.OneToOne);
-		EntityContext.registerEntityRelation(Head.class, Style.class,	RelType.CONTAINS, Direction.OUTGOING, DirectedRelationship.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Head.class, Script.class,	RelType.CONTAINS, Direction.OUTGOING, DirectedRelationship.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Head.class, Link.class,	RelType.CONTAINS, Direction.OUTGOING, DirectedRelationship.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Head.class, Meta.class,	RelType.CONTAINS, Direction.OUTGOING, DirectedRelationship.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Head.class, Html.class,	RelType.CONTAINS, Direction.INCOMING, DirectedRelation.Cardinality.OneToOne);
+		EntityContext.registerEntityRelation(Head.class, Title.class,	RelType.CONTAINS, Direction.OUTGOING, DirectedRelation.Cardinality.OneToOne);
+		EntityContext.registerEntityRelation(Head.class, Style.class,	RelType.CONTAINS, Direction.OUTGOING, DirectedRelation.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Head.class, Script.class,	RelType.CONTAINS, Direction.OUTGOING, DirectedRelation.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Head.class, Link.class,	RelType.CONTAINS, Direction.OUTGOING, DirectedRelation.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Head.class, Meta.class,	RelType.CONTAINS, Direction.OUTGOING, DirectedRelation.Cardinality.ManyToMany);
 	}
 }

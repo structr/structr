@@ -32,10 +32,10 @@ import org.structr.core.Services;
 import org.structr.core.Transformation;
 import org.structr.core.entity.*;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.DirectedRelationship.Cardinality;
+import org.structr.core.entity.DirectedRelation.Cardinality;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
-import org.structr.core.entity.StructrRelationship;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
 
@@ -48,6 +48,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.GraphObject;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -65,7 +66,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 	public Object execute(Object... parameters) throws FrameworkException {
 
 		GraphDatabaseService graphDb   = (GraphDatabaseService) arguments.get("graphDb");
-		StructrNodeFactory nodeFactory = (StructrNodeFactory) arguments.get("nodeFactory");
+		NodeFactory nodeFactory = (NodeFactory) arguments.get("nodeFactory");
 		User user                      = securityContext.getUser();
 		AbstractNode node              = null;
 
@@ -129,7 +130,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 
 			if ((user != null) &&!(user instanceof SuperUser)) {
 
-				DirectedRelationship rel = new DirectedRelationship(null, RelType.OWNS,
+				DirectedRelation rel = new DirectedRelation(null, RelType.OWNS,
 								   Direction.OUTGOING, Cardinality.OneToMany, null);
 
 				rel.createRelationship(securityContext, user, node);
@@ -146,10 +147,10 @@ public class CreateNodeCommand extends NodeServiceCommand {
 					principal = user;
 				}
 
-				StructrRelationship securityRel = (StructrRelationship) createRel.execute(principal,
+				AbstractRelationship securityRel = (AbstractRelationship) createRel.execute(principal,
 									  node, RelType.SECURITY, true);    // avoid duplicates
 
-				securityRel.setAllowed(StructrRelationship.Permission.values());
+				securityRel.setAllowed(AbstractRelationship.Permission.values());
 				logger.log(Level.FINEST, "All permissions given to {0}", principal.getName());
 				node.unlockReadOnlyPropertiesOnce();
 				node.setProperty(AbstractNode.Key.createdBy.name(),
@@ -169,7 +170,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 			node.onNodeCreation();
 
 			// iterate post creation transformations
-			for (Transformation<AbstractNode> transformation :
+			for (Transformation<GraphObject> transformation :
 				EntityContext.getEntityCreationTransformations(node.getClass())) {
 				transformation.apply(securityContext, node);
 			}

@@ -21,7 +21,7 @@ package org.structr.common;
 
 import java.util.Date;
 import org.structr.core.entity.Principal;
-import org.structr.core.entity.StructrRelationship;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.User;
 
 /**
@@ -55,7 +55,7 @@ public interface AccessControllable {
 	 * @param principal
 	 * @return incoming security relationship
 	 */
-	public StructrRelationship getSecurityRelationship(final Principal principal);
+	public AbstractRelationship getSecurityRelationship(final Principal principal);
 
 	// visibility
 	public boolean isVisibleToPublicUsers();

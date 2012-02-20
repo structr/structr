@@ -33,6 +33,8 @@ var _UsersAndGroups = {
     onload : function() {
         //Structr.activateMenuEntry('usersAndGroups');
         if (debug) console.log('onload');
+        if (palette) palette.remove();
+
         main.append('<table><tr><td id="groups"></td><td id="users"></td></tr></table>');
         groups = $('#groups');
         users = $('#users');

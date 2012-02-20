@@ -99,8 +99,8 @@ public class RelationshipResource extends WrappingResource {
 	@Override
 	public Resource tryCombineWith(Resource next) throws FrameworkException {
 
-		if(next instanceof IdResource) {
-			return new RelationshipIdResource(securityContext, this, (IdResource)next);
+		if(next instanceof UuidResource) {
+			return new RelationshipIdResource(securityContext, this, (UuidResource)next);
 		}
 
 		return super.tryCombineWith(next);

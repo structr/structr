@@ -29,7 +29,7 @@ import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.renderer.RenderContext;
 import org.structr.core.EntityContext;
-import org.structr.core.entity.DirectedRelationship.Cardinality;
+import org.structr.core.entity.DirectedRelation.Cardinality;
 import org.structr.help.Container;
 import org.structr.help.Content;
 import org.structr.help.Paragraph;

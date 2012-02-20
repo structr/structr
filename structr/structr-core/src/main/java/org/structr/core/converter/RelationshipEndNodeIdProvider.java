@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2011 Axel Morgner
+ *  Copyright (C) 2012 Axel Morgner
  * 
  *  This file is part of structr <http://structr.org>.
  * 
@@ -17,30 +17,34 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.structr.common;
+package org.structr.core.converter;
 
-import org.structr.core.Transformation;
+import org.structr.core.PropertyConverter;
+import org.structr.core.Value;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
 
 /**
  *
- * @author Axel Morgner
+ * @author Christian Morgner
  */
-public abstract class AbstractNodeTransformation implements Comparable, Transformation<AbstractNode> {
+public class RelationshipEndNodeIdProvider extends PropertyConverter {
 
 	@Override
-	public int compareTo(Object t) {
-		if (t == null || !(t instanceof Transformation)) {
-			return -1;
+	public Object convertForSetter(Object source, Value value) {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public Object convertForGetter(Object source, Value value) {
+
+		if(currentObject != null && currentObject instanceof AbstractRelationship) {
+
+			AbstractRelationship rel = (AbstractRelationship)currentObject;
+			return rel.getEndNode().getStringProperty(AbstractNode.Key.uuid);
 		}
 
-		return ((Integer) this.getOrder()).compareTo(
-			(Integer) (((Transformation) t).getOrder())
-			);
-	}	
-
-	@Override
-	public int getOrder() {
-		return 10;
+		return null;
 	}
+
 }

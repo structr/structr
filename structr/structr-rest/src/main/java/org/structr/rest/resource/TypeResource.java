@@ -192,9 +192,9 @@ public class TypeResource extends SortableResource {
 	@Override
 	public Resource tryCombineWith(Resource next) throws FrameworkException {
 
-		if (next instanceof IdResource) {
+		if (next instanceof UuidResource) {
 
-			TypedIdResource constraint = new TypedIdResource(securityContext, (IdResource) next, this);
+			TypedIdResource constraint = new TypedIdResource(securityContext, (UuidResource) next, this);
 
 			constraint.configureIdProperty(idProperty);
 

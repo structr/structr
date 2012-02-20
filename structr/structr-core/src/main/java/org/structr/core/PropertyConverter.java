@@ -21,6 +21,7 @@ package org.structr.core;
 
 import org.structr.common.SecurityContext;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
 
 /**
  * A generic converter interface that can be used to convert
@@ -32,7 +33,7 @@ import org.structr.core.entity.AbstractNode;
 public abstract class PropertyConverter<S, T> {
 
 	protected SecurityContext securityContext = null;
-	protected AbstractNode currentNode = null;
+	protected GraphObject currentObject = null;
 	protected boolean rawMode = false;
 
 	/**
@@ -58,10 +59,10 @@ public abstract class PropertyConverter<S, T> {
 		this.securityContext = securityContext;
 	}
 	
-	public void setCurrentNode(AbstractNode currentNode) {
-		this.currentNode = currentNode;
+	public void setCurrentObject(GraphObject currentObject) {
+		this.currentObject = currentObject;
 	}
-	
+
 	public void setRawMode(boolean rawMode) {
 		this.rawMode = rawMode;
 	}

@@ -40,6 +40,9 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.EntityContext;
+import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.entity.NamedRelation;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -95,6 +98,30 @@ public abstract class Search {
 	public static SearchAttribute andType(final String searchString) {
 
 		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.Key.type.name(), searchString, SearchOperator.AND);
+
+		return attr;
+	}
+
+	public static SearchAttribute andRelType(final NamedRelation namedRelation) {
+		return andRelType(namedRelation.getRelType().name(), namedRelation.getSourceType(), namedRelation.getDestType());
+	}
+
+	public static SearchAttribute andRelType(final String relType, final String sourceType, final String destType) {
+
+		String searchString = EntityContext.createTripleKey(sourceType, relType, destType);
+		SearchAttribute attr = new TextualSearchAttribute(AbstractRelationship.HiddenKey.type.name(), searchString, SearchOperator.AND);
+
+		return attr;
+	}
+
+	public static SearchAttribute orRelType(final NamedRelation namedRelation) {
+		return orRelType(namedRelation.getRelType().name(), namedRelation.getSourceType(), namedRelation.getDestType());
+	}
+
+	public static SearchAttribute orRelType(final String relType, final String sourceType, final String destType) {
+
+		String searchString = EntityContext.createTripleKey(sourceType, relType, destType);
+		SearchAttribute attr = new TextualSearchAttribute(AbstractRelationship.HiddenKey.type.name(), searchString, SearchOperator.OR);
 
 		return attr;
 	}
@@ -165,6 +192,30 @@ public abstract class Search {
 	public static SearchAttribute andExactType(final String searchString) {
 
 		SearchAttribute attr = new TextualSearchAttribute(AbstractNode.Key.type.name(), exactMatch(searchString), SearchOperator.AND);
+
+		return attr;
+	}
+
+	public static SearchAttribute andExactRelType(final NamedRelation namedRelation) {
+		return andExactRelType(namedRelation.getRelType().name(), namedRelation.getSourceType(), namedRelation.getDestType());
+	}
+
+	public static SearchAttribute andExactRelType(final String relType, final String sourceType, final String destType) {
+
+		String searchString = EntityContext.createTripleKey(sourceType, relType, destType);
+		SearchAttribute attr = new TextualSearchAttribute(AbstractRelationship.HiddenKey.type.name(), exactMatch(searchString), SearchOperator.AND);
+
+		return attr;
+	}
+
+	public static SearchAttribute orExactRelType(final NamedRelation namedRelation) {
+		return orRelType(namedRelation.getRelType().name(), namedRelation.getSourceType(), namedRelation.getDestType());
+	}
+	
+	public static SearchAttribute orExactRelType(final String relType, final String sourceType, final String destType) {
+
+		String searchString = EntityContext.createTripleKey(sourceType, relType, destType);
+		SearchAttribute attr = new TextualSearchAttribute(AbstractRelationship.HiddenKey.type.name(), exactMatch(searchString), SearchOperator.OR);
 
 		return attr;
 	}

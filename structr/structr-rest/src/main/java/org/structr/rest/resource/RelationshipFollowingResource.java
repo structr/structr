@@ -33,8 +33,8 @@ import org.neo4j.kernel.Uniqueness;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.DirectedRelationship;
-import org.structr.core.node.StructrNodeFactory;
+import org.structr.core.entity.DirectedRelation;
+import org.structr.core.node.NodeFactory;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
@@ -75,14 +75,14 @@ public class RelationshipFollowingResource extends SortableResource implements E
 	private int pathLength                                 = 0;
 	private TraversalDescription traversalDescription      = null;
 	private List<String> uriParts                          = null;
-	private Set<DirectedRelationship> visitedRelationships = null;
+	private Set<DirectedRelation> visitedRelationships = null;
 
 	//~--- constructors ---------------------------------------------------
 
 	public RelationshipFollowingResource(SecurityContext securityContext, TypedIdResource typedIdResource) {
 
 		this.traversalDescription = Traversal.description().depthFirst().uniqueness(Uniqueness.NODE_GLOBAL).evaluator(Evaluators.excludeStartPosition());
-		this.visitedRelationships = new LinkedHashSet<DirectedRelationship>();
+		this.visitedRelationships = new LinkedHashSet<DirectedRelation>();
 		this.securityContext      = securityContext;
 		this.idSet                = new LinkedHashSet<Object>();
 		this.uriParts             = new LinkedList<String>();
@@ -95,21 +95,21 @@ public class RelationshipFollowingResource extends SortableResource implements E
 		firstResource = typedIdResource;
 		lastResource  = typedIdResource;
 
-		IdResource idConstraint = typedIdResource.getIdResource();
+		UuidResource idResource = typedIdResource.getIdResource();
 
-		if (idConstraint instanceof UuidResource) {
+		if (idResource instanceof UuidResource) {
 
-			logger.log(Level.FINE, "Adding id {0} to id set", idConstraint.getUriPart());
+			logger.log(Level.FINE, "Adding id {0} to id set", idResource.getUriPart());
 
 			// add uuid from TypedIdResource to idSet
-			idSet.add(((UuidResource) idConstraint).getUriPart());
+			idSet.add(((UuidResource) idResource).getUriPart());
 
 		} else {
 
-			logger.log(Level.FINE, "Adding id {0} to id set", idConstraint.getUriPart());
+			logger.log(Level.FINE, "Adding id {0} to id set", idResource.getUriPart());
 
 			// add id from TypedIdResource to idSet
-			idSet.add(idConstraint.getId());
+			idSet.add(idResource.getUuid());
 
 		}
 	}
@@ -120,8 +120,8 @@ public class RelationshipFollowingResource extends SortableResource implements E
 
 		logger.log(Level.FINE, "Adding id {0} to id set", typedIdResource.getIdResource().getUriPart());
 
-		// we need to differentiate between UuidResource and IdResource
-		IdResource idResource = typedIdResource.getIdResource();
+		// we need to differentiate between UuidResource and UuidResource
+		UuidResource idResource = typedIdResource.getIdResource();
 
 		if (idResource instanceof UuidResource) {
 
@@ -134,7 +134,7 @@ public class RelationshipFollowingResource extends SortableResource implements E
 		} else {
 
 			// add id from TypedIdResource to idSet
-			if (!idSet.add(idResource.getId())) {
+			if (!idSet.add(idResource.getUuid())) {
 
 				// id alread in set, this is an illegal path!
 				throw new IllegalPathException();
@@ -146,7 +146,7 @@ public class RelationshipFollowingResource extends SortableResource implements E
 		uriParts.add(typedIdResource.getUriPart());
 
 		// find static relationship between the two types
-		DirectedRelationship rel = findDirectedRelationship(lastResource, typedIdResource);
+		DirectedRelation rel = findDirectedRelation(lastResource, typedIdResource);
 		if (rel != null) {
 
 			if (!visitedRelationships.contains(rel)) {
@@ -184,7 +184,7 @@ public class RelationshipFollowingResource extends SortableResource implements E
 
 		if (path != null) {
 
-			StructrNodeFactory nodeFactory = new StructrNodeFactory<AbstractNode>(securityContext);
+			NodeFactory nodeFactory = new NodeFactory<AbstractNode>(securityContext);
 			List<GraphObject> nodeList     = new LinkedList<GraphObject>();
 
 			// traverse path to force evaluation
@@ -229,7 +229,7 @@ public class RelationshipFollowingResource extends SortableResource implements E
 		Path path = getValidatedPath();
 		if (path != null) {
 
-			StructrNodeFactory nodeFactory = new StructrNodeFactory<AbstractNode>(securityContext);
+			NodeFactory nodeFactory = new NodeFactory<AbstractNode>(securityContext);
 			List<GraphObject> nodeList     = new LinkedList<GraphObject>();
 
 			// traverse path to force evaluation, add nodes in reverse order
@@ -253,8 +253,8 @@ public class RelationshipFollowingResource extends SortableResource implements E
 				
 				if ((startNode != null) && (endNode != null)) {
 
-					final DirectedRelationship directedRelationship = EntityContext.getDirectedRelationship(startNode.getClass(), property);
-					if(directedRelationship != null) {
+					final DirectedRelation DirectedRelation = EntityContext.getDirectedRelation(startNode.getClass(), property);
+					if(DirectedRelation != null) {
 
 						// relationship found!
 						StructrTransaction transaction = new StructrTransaction() {
@@ -262,18 +262,18 @@ public class RelationshipFollowingResource extends SortableResource implements E
 							@Override
 							public Object execute() throws FrameworkException {
 
-								for (StructrRelationship rel : startNode.getRelationships(directedRelationship.getRelType(), directedRelationship.getDirection())) {
+								for (StructrRelationship rel : startNode.getRelationships(DirectedRelation.getRelType(), DirectedRelation.getDirection())) {
 
-									switch(directedRelationship.getDirection()) {
+									switch(DirectedRelation.getDirection()) {
 										
 										case INCOMING:
-											if (rel.getStartNodeId().equals(endNode.getId()) && rel.getEndNodeId().equals(startNode.getId())) {
+											if (rel.getStartNodeId().equals(endNode.getUuid()) && rel.getEndNodeId().equals(startNode.getUuid())) {
 												rel.delete(securityContext);
 											}
 											break;
 											
 										case OUTGOING:
-											if (rel.getStartNodeId().equals(startNode.getId()) && rel.getEndNodeId().equals(endNode.getId())) {
+											if (rel.getStartNodeId().equals(startNode.getUuid()) && rel.getEndNodeId().equals(endNode.getUuid())) {
 												rel.delete(securityContext);
 											}
 											break;

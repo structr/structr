@@ -76,6 +76,9 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.structr.core.EntityContext;
+import org.structr.core.entity.NamedRelation;
+import org.structr.rest.resource.NamedRelationResource;
 import org.structr.rest.resource.ViewFilterResource;
 
 //~--- classes ----------------------------------------------------------------
@@ -122,6 +125,11 @@ public class JsonRestServlet extends HttpServlet {
 		// initialize variables
 		this.resourceMap = new LinkedHashMap<Pattern, Class>();
 		this.propertyView  = new ThreadLocalPropertyView();
+
+		// initialize internal resources with exact matching from EntityContext
+		for(NamedRelation namedRelation : EntityContext.getNamedRelations()) {
+			resourceMap.put(Pattern.compile(namedRelation.getName()), NamedRelationResource.class);
+		}
 
 		// external resource constraint initialization
 		String externalProviderName = this.getInitParameter(SERVLET_PARAMETER_RESOURCE_PROVIDER);

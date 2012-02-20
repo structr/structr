@@ -156,7 +156,7 @@ public class CustomTypeNode extends AbstractNode {
 			return typeNode;
 		}
 
-		for (StructrRelationship s : getRelationships(RelType.TYPE, Direction.OUTGOING)) {
+		for (AbstractRelationship s : getRelationships(RelType.TYPE, Direction.OUTGOING)) {
 
 			AbstractNode n = s.getEndNode();
 
@@ -178,11 +178,11 @@ public class CustomTypeNode extends AbstractNode {
 			NodeType newTypeNode = (NodeType) findNode.execute(value);
 
 			// delete existing type node relationships
-			List<StructrRelationship> templateRels = this.getOutgoingRelationships(RelType.TYPE);
+			List<AbstractRelationship> templateRels = this.getOutgoingRelationships(RelType.TYPE);
 			Command delRel = Services.command(securityContext, DeleteRelationshipCommand.class);
 			if (templateRels != null) {
 
-				for (StructrRelationship r : templateRels) {
+				for (AbstractRelationship r : templateRels) {
 					delRel.execute(r);
 				}
 			}

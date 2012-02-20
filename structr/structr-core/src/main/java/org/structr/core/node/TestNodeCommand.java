@@ -40,7 +40,7 @@ public class TestNodeCommand extends NodeServiceCommand
 	public Object execute(final Object... parameters) throws FrameworkException
 	{
 		final GraphDatabaseService graphDb = (GraphDatabaseService)arguments.get("graphDb");
-		final StructrNodeFactory nodeFactory = (StructrNodeFactory)arguments.get("nodeFactory");
+		final NodeFactory nodeFactory = (NodeFactory)arguments.get("nodeFactory");
 
 		Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
 		return(transactionCommand.execute(new StructrTransaction()

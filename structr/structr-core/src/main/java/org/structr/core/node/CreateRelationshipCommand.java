@@ -29,18 +29,19 @@ import org.neo4j.graphdb.RelationshipType;
 
 import org.structr.common.RelType;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.*;
-import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.UnsupportedArgumentError;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.StructrRelationship;
+import org.structr.core.entity.AbstractRelationship;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.EntityContext;
+import org.structr.core.GraphObject;
+import org.structr.core.Transformation;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -59,6 +60,7 @@ import java.util.logging.Logger;
 public class CreateRelationshipCommand extends NodeServiceCommand {
 
 	private static final Logger logger = Logger.getLogger(CreateRelationshipCommand.class.getName());
+	private RelationshipFactory relationshipFactory;
 
 	//~--- methods --------------------------------------------------------
 
@@ -66,6 +68,7 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 	public Object execute(Object... parameters) throws FrameworkException {
 
 		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
+		relationshipFactory = (RelationshipFactory) arguments.get("relationshipFactory");
 
 		if ((graphDb != null) && (parameters.length == 3)) {
 
@@ -138,9 +141,9 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 
 				if (checkDuplicates) {
 
-					List<StructrRelationship> incomingRels = endNode.getIncomingRelationships();
+					List<AbstractRelationship> incomingRels = endNode.getIncomingRelationships();
 
-					for (StructrRelationship rel : incomingRels) {
+					for (AbstractRelationship rel : incomingRels) {
 
 						if (rel.getRelType().equals(relType) && rel.getStartNode().equals(startNode)) {
 
@@ -167,30 +170,25 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 		return null;
 	}
 
-	private synchronized StructrRelationship createRelationship(final AbstractNode fromNode, final AbstractNode toNode, final RelationshipType relType) throws FrameworkException {
+	private synchronized AbstractRelationship createRelationship(final AbstractNode fromNode, final AbstractNode toNode, final RelationshipType relType) throws FrameworkException {
 
-		return (StructrRelationship) Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+		return (AbstractRelationship) Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
 			@Override
 			public Object execute() throws FrameworkException {
 
-				StructrRelationship newRel = null;
-				Relationship neoRelationship = null;
 				Node startNode               = fromNode.getNode();
 				Node endNode                 = toNode.getNode();
 
-				neoRelationship = startNode.createRelationshipTo(endNode, relType);
-				newRel          = new StructrRelationship(securityContext, neoRelationship);
+				Relationship rel = startNode.createRelationshipTo(endNode, relType);
+				AbstractRelationship newRel  = relationshipFactory.createRelationship(securityContext, rel);
 
 				if (newRel != null) {
 
 					// iterate post creation transformations
-					for (Transformation<StructrRelationship> transformation : EntityContext.getRelationshipCreationTransformations(relType, fromNode.getClass(), toNode.getClass())) {
-
+					for (Transformation<GraphObject> transformation : EntityContext.getEntityCreationTransformations(newRel.getClass())) {
 						transformation.apply(securityContext, newRel);
-
 					}
-					
 				}
 				
 				return newRel;

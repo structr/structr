@@ -42,7 +42,7 @@ import org.structr.core.Services;
 import org.structr.core.node.Evaluable;
 import org.structr.core.IterableAdapter;
 import org.structr.core.node.NodeFactoryCommand;
-import org.structr.core.node.StructrNodeFactory;
+import org.structr.core.node.NodeFactory;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 
@@ -934,7 +934,7 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 	private Iterable<AbstractNode> getNodes() {
 
 		return (new IterableAdapter<Node, AbstractNode>(getRawNodes(),
-			new StructrNodeFactory()));
+			new NodeFactory()));
 	}
 
 	private Iterable<Node> getRawNodes() {

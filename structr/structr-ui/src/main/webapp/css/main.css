@@ -68,6 +68,12 @@ h2 {
     filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#666666', EndColorStr='#363636', GradientType=0);
 }		
 
+/*#main {
+    overflow: auto;
+    height: 1000px;
+    padding: 0;
+    margin: 0;
+}*/
 
 #header .logo {
     position: absolute;
@@ -117,7 +123,7 @@ h2 {
 .menu .active {
     color: #333 ! important;
     padding: 3px 6px 4px 6px;
-/*    border: 1px solid #81ce25;*/
+    /*    border: 1px solid #81ce25;*/
     border: 1px solid #333;
     border-radius: 5px;
     background-color: #81ce25;
@@ -145,8 +151,8 @@ img.disabled {
 
 #main {
     margin: 12px;
-/*    width: 1000px;
-    overflow: hidden;*/
+    /*    width: 1000px;
+        overflow: hidden;*/
 }
 
 #resources {
@@ -159,17 +165,22 @@ img.disabled {
 #contents,
 #folders,
 #files,
-#groups, #users {
+#groups,
+#users {
     /*    float: left;*/
     vertical-align: top;
     width: 400px;
     padding-right: 12px;
-/*	overflow: auto;
-	height: 600px;*/
+/*    overflow: auto;*/
+/*    height: 800px;*/
 }
 
-#resourcesEditor .id {
-/*    display: none;*/
+#resourcesEditor {
+    height: 1000px;
+}
+
+.node .id {
+    display: none;
 }
 
 .content .id {
@@ -178,7 +189,7 @@ img.disabled {
 
 .node, .group, .user, .resource, .component, .element, .content, .folder, .file {
     background-color: #fff;
-    margin-bottom: 12px ! important;
+    margin-bottom: 6px ! important;
 }
 
 .node b, .group b, .user b, .resource b, .component b, .element b, .content b, .folder b, .file b {
@@ -193,11 +204,76 @@ img.disabled {
 }
 
 .node, .resource .element, .component {
-/*    display: none;*/
+    /*    display: none;*/
+}
+
+.content b {
+    font-weight: normal;
+}
+
+#palette {
+    /*    width: 100%;*/
+/*    height: 200px;*/
+    /*	background-color: #f0f0f0;
+            background: -webkit-gradient(linear, left bottom, left top, from(#d5d5d5), to(#f5f5f5)) no-repeat;
+            background: -moz-linear-gradient(90deg, #d5d5d5, #f5f5f5) no-repeat;
+            filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#f5f5f5', EndColorStr='#d5d5d5', GradientType=0);*/
+    /*    border-top  : 1px solid #ccc;*/
+    border-bottom: 1px solid #a5a5a5;
+    font-size: 1.25em;
+    line-height: 2em;
+    background-color: #c5c5c5;
+    background: -webkit-gradient(linear, left bottom, left top, from(#cccccc), to(#dddddd)) no-repeat;
+    background: -moz-linear-gradient(90deg, #cccccc, #dddddd) no-repeat;
+    filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#dddddd', EndColorStr='#cccccc', GradientType=0);
+    overflow: hidden;
+    padding-bottom: 6px;
+}
+
+#palette .elementGroup {
+    float: left;
+    padding: 0;
+    margin: 0 0 0 12px;
+}
+
+#palette h2 {
+    padding: 0;
+    margin: 0;
+    color: #333;
+}
+
+#palette h3 {
+    font-size: 10pt;
+    color: #333;
+    padding: 2px 0 0 0;
+    margin: 0 0 0 2px;
+}
+
+#palette .draggable {
+    float: left;
+    color: #333;
+    border-radius: 5px;
+    border: 1px solid #a5a5a5;
+    padding: 0px 4px;
+    margin: 0px 2px;
+    background-color: #eee;
+    background: -webkit-gradient(linear, left bottom, left top, from(#ddd), to(#eee)) no-repeat;
+    background: -moz-linear-gradient(90deg, #ddd, #eee) no-repeat;
+    filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#eeeeee', EndColorStr='#dddddd', GradientType=0);
+}
+
+#palette .draggable:hover {
+    cursor: move;
+    color: #000;
+    border: 1px solid #bbb;
+    background-color: #f5f5f5;
+    background: -webkit-gradient(linear, left bottom, left top, from(#f3f3f3), to(#f7f7f7)) no-repeat;
+    background: -moz-linear-gradient(90deg, #f3f3f3, #f7f7f7) no-repeat;
+    filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#f7f7f7', EndColorStr='#f3f3f3', GradientType=0);
 }
 
 .sep {
-	clear: both;
+    clear: both;
     height: 4px;
     /*	width: 105%;*/
     /*border-bottom: 1px solid #ccc;*/
@@ -205,11 +281,11 @@ img.disabled {
 }
 
 .props {
-	position: absolute;
-/*    width: 100%;*/
+    position: absolute;
+    /*    width: 100%;*/
     border-collapse: collapse;
     margin-bottom: 12px;
-	border: 1px solid #b5b5b5;
+    border: 1px solid #b5b5b5;
 }
 
 #users .props {
@@ -229,7 +305,7 @@ tr:nth-child(even) {
 }
 
 .props td, .props th {
-    padding: 4px 6px;;
+    padding: 4px 6px;
     line-height: 1.7em;
 }
 
@@ -244,7 +320,7 @@ tr:nth-child(even) {
 }
 
 .props tr td.value {
-    padding: 4px 4px 4px 5px;
+    padding: 2px 2px 2px 3px;
     margin: 0;
 }
 
@@ -274,18 +350,18 @@ tr:nth-child(even) {
 }
 
 .preview_box {
-    width: 488px;
-    height: 488px;
+    width: 1000px;
+    height: 1000px;
     float: left;
     background: #fff;
-	/*    margin-left: 12px;*/
+    /*    margin-left: 12px;*/
     border: 1px solid #a5a5a5;
     overflow: auto;
 }
 
 .preview_box iframe {
     width: 1000px;
-    height: 1024px;
+    height: 1000px;
     border: 0;
     /*zoom: 0.75;
     -moz-transform: scale(0.75);
@@ -307,17 +383,17 @@ tr:nth-child(even) {
 }
 
 .link_icon {
-	display: none;
+    display: none;
 }
 
 span.id {
-/*    display: none;*/
+    /*    display: none;*/
     color: #999;
-/*    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    -o-text-overflow: ellipsis;
-    -moz-binding: url('assets/xml/ellipsis.xml#ellipsis');*/
+    /*    white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        -o-text-overflow: ellipsis;
+        -moz-binding: url('assets/xml/ellipsis.xml#ellipsis');*/
 }
 
 .node,
@@ -333,13 +409,13 @@ span.id {
     line-height: 1.7em;
     border-radius: 5px;
     border: 1px solid #a5a5a5;
-    padding: 4px 12px;
-    margin: 12px 0 0 0;
+    padding: 3px 6px;
+    margin: 6px 0 0 0;
     background-color: #eee;
     background: -webkit-gradient(linear, left bottom, left top, from(#ddd), to(#eee)) no-repeat;
     background: -moz-linear-gradient(90deg, #ddd, #eee) no-repeat;
     filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#eeeeee', EndColorStr='#dddddd', GradientType=0);
-/*    min-width: 200px;*/
+    /*    min-width: 200px;*/
 }
 
 .content:hover,
@@ -460,7 +536,7 @@ button img {
 }
 
 #login {
-	padding-top: 16px;
+    padding-top: 16px;
 }
 
 #login table, #login tr, #login td {
@@ -493,7 +569,7 @@ button img {
 #filesDropArea {
     color: #999;
     font-size: 16px;
-	font-weight: bold;
+    font-weight: bold;
     height: 22px;
     padding: 7px 12px 3px 12px;
     border-radius: 5px;
@@ -502,4 +578,9 @@ button img {
 
 .ui-draggable {
     cursor: move;
+}
+
+#offset-tester {
+    border: 1px solid red;
+    position: absolute;
 }
