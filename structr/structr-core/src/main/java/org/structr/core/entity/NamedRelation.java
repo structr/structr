@@ -23,8 +23,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.servlet.http.HttpServletResponse;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.RelationshipType;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
@@ -116,7 +118,7 @@ public class NamedRelation {
 	}
 
 	// ----- private methods -----
-	private Direction getDirectionForType(String type) {
+	private Direction getDirectionForType(String type) throws FrameworkException {
 
 		if(type.equals(sourceType.getSimpleName())) {
 			return Direction.OUTGOING;
@@ -126,6 +128,6 @@ public class NamedRelation {
 			return Direction.INCOMING;
 		}
 
-		return null;
+		throw new FrameworkException(HttpServletResponse.SC_BAD_REQUEST, new ErrorBuffer());
 	}
 }
