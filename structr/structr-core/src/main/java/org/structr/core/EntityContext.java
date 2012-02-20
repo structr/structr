@@ -50,6 +50,8 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.converter.RelationshipEndNodeIdProvider;
+import org.structr.core.converter.RelationshipStartNodeIdProvider;
 import org.structr.core.entity.NamedRelation;
 import org.structr.core.node.IndexRelationshipCommand;
 import org.structr.core.node.RelationshipFactory;
@@ -75,6 +77,7 @@ public class EntityContext {
 	private static final Map<Class, Map<String, Set<String>>> globalPropertyViewMap                             = new LinkedHashMap<Class, Map<String, Set<String>>>();
 	private static final Map<Class, Map<String, PropertyGroup>> globalPropertyGroupMap                          = new LinkedHashMap<Class, Map<String, PropertyGroup>>();
 	private static final Map<Class, Map<String, Value>> globalConversionParameterMap                            = new LinkedHashMap<Class, Map<String, Value>>();
+	private static final Map<Class, Map<String, Object>> globalDefaultValueMap                                  = new LinkedHashMap<Class, Map<String, Object>>();
 	private static final Map<Class, Set<String>> globalWriteOncePropertyMap                                     = new LinkedHashMap<Class, Set<String>>();
 	private static final Map<Class, Set<String>> globalReadOnlyPropertyMap                                      = new LinkedHashMap<Class, Set<String>>();
 	private static final Map<String, String> normalizedEntityNameCache                                          = new LinkedHashMap<String, String>();
@@ -107,14 +110,39 @@ public class EntityContext {
 		getPropertyGroupMapForType(type).put(key.name(), propertyGroup);
 	}
 
-	// ----- named relations -----
-	public static void registerNamedRelation(String relationName, Class relationshipEntityType, Class sourceType, Class destType, RelationshipType relType) {
-		registerNamedRelation(relationName, relationshipEntityType, sourceType.getSimpleName(), destType.getSimpleName(), relType);
+	// ----- default values -----
+	public static void registerDefaultValue(Class type, PropertyKey propertyKey, Object defaultValue) {
+		getGlobalDefaultValueMapForType(type).put(propertyKey.name(), defaultValue);
 	}
 
-	public static void registerNamedRelation(String relationName, Class relationshipEntityType, String sourceType, String destType, RelationshipType relType) {
+	public static Object getDefaultValue(Class type, String propertyKey) {
+		return getGlobalDefaultValueMapForType(type).get(propertyKey);
+	}
+
+	// ----- named relations -----
+	public static void registerNamedRelation(String relationName, Class relationshipEntityType, Class sourceType, Class destType, RelationshipType relType) {
+
 		globalRelationshipNameMap.put(relationName, new NamedRelation(relationName, sourceType, destType, relType));
-		globalRelationshipClassMap.put(createTripleKey(sourceType, destType, relType.name()), relationshipEntityType);
+		globalRelationshipClassMap.put(createTripleKey(sourceType.getSimpleName(), destType.getSimpleName(), relType.name()), relationshipEntityType);
+
+		// automatically register start and end node providers
+		try {
+			AbstractRelationship rel = (AbstractRelationship)relationshipEntityType.newInstance();
+			PropertyKey startNodeIdentifierKey = rel.getStartNodeIdentifier();
+			PropertyKey endNodeIdentifierKey   = rel.getEndNodeIdentifier();
+
+			if(startNodeIdentifierKey != null && endNodeIdentifierKey != null) {
+
+				String startNodeIdentifier = startNodeIdentifierKey.name();
+				String endNodeIdentifier = endNodeIdentifierKey.name();
+
+				EntityContext.registerPropertyConverter(relationshipEntityType, startNodeIdentifier, RelationshipStartNodeIdProvider.class);
+				EntityContext.registerPropertyConverter(relationshipEntityType, endNodeIdentifier,   RelationshipEndNodeIdProvider.class);
+			}
+
+		} catch(Throwable t) {
+			logger.log(Level.WARNING, "Unable to register start and/or end node provider for named relation.", t);
+		}
 	}
 
 	public static NamedRelation getNamedRelation(String relationName) {
@@ -645,6 +673,20 @@ public class EntityContext {
 		return PropertyConverterMap;
 	}
 
+	private static Map<String, Object> getGlobalDefaultValueMapForType(Class type) {
+
+		Map<String, Object> defaultValueMap = globalDefaultValueMap.get(type);
+
+		if (defaultValueMap == null) {
+
+			defaultValueMap = new LinkedHashMap<String, Object>();
+			globalDefaultValueMap.put(type, defaultValueMap);
+
+		}
+
+		return defaultValueMap;
+	}
+
 	private static Map<String, Value> getPropertyConversionParameterMapForType(Class type) {
 
 		Map<String, Value> conversionParameterMap = globalConversionParameterMap.get(type);
@@ -817,30 +859,48 @@ public class EntityContext {
 
 			try {
 
-				ErrorBuffer errorBuffer                          = new ErrorBuffer();
-				boolean hasError                                 = false;
-				Map<Node, Map<String, Object>> removedProperties = new LinkedHashMap<Node, Map<String, Object>>();
-				NodeFactory nodeFactory				= new NodeFactory(securityContext);
-				RelationshipFactory relFactory                  = new RelationshipFactory(securityContext);
-				Set<AbstractNode> modifiedNodes                 = new LinkedHashSet<AbstractNode>();
-				Set<AbstractNode> createdNodes                  = new LinkedHashSet<AbstractNode>();
-				Set<AbstractRelationship> createdRels           = new LinkedHashSet<AbstractRelationship>();
-				Set<AbstractRelationship> deletedRels           = new LinkedHashSet<AbstractRelationship>();
+				ErrorBuffer errorBuffer						= new ErrorBuffer();
+				boolean hasError						= false;
+				Map<Node, Map<String, Object>> removedNodeProperties		= new LinkedHashMap<Node, Map<String, Object>>();
+				Map<Relationship, Map<String, Object>> removedRelProperties	= new LinkedHashMap<Relationship, Map<String, Object>>();
+				NodeFactory nodeFactory						= new NodeFactory(securityContext);
+				RelationshipFactory relFactory					= new RelationshipFactory(securityContext);
+				Set<AbstractNode> modifiedNodes					= new LinkedHashSet<AbstractNode>();
+				Set<AbstractNode> createdNodes					= new LinkedHashSet<AbstractNode>();
+				Set<AbstractRelationship> modifiedRels				= new LinkedHashSet<AbstractRelationship>();
+				Set<AbstractRelationship> createdRels				= new LinkedHashSet<AbstractRelationship>();
+				Set<AbstractRelationship> deletedRels				= new LinkedHashSet<AbstractRelationship>();
 
 				// 0: notify listeners of beginning commit
 				begin(securityContext, transactionKey, errorBuffer);
 
-				// 1: collect properties of deleted nodes
+				// 1.1: collect properties of deleted nodes
 				for (PropertyEntry<Node> entry : data.removedNodeProperties()) {
 
 					Node node                       = entry.entity();
-					Map<String, Object> propertyMap = removedProperties.get(node);
+					Map<String, Object> propertyMap = removedNodeProperties.get(node);
 
 					if (propertyMap == null) {
 
 						propertyMap = new LinkedHashMap<String, Object>();
+						removedNodeProperties.put(node, propertyMap);
 
-						removedProperties.put(node, propertyMap);
+					}
+
+					propertyMap.put(entry.key(), entry.previouslyCommitedValue());
+
+				}
+
+				// 1.2: collect properties of deleted relationships
+				for (PropertyEntry<Relationship> entry : data.removedRelationshipProperties()) {
+
+					Relationship rel                = entry.entity();
+					Map<String, Object> propertyMap = removedRelProperties.get(rel);
+
+					if (propertyMap == null) {
+
+						propertyMap = new LinkedHashMap<String, Object>();
+						removedRelProperties.put(rel, propertyMap);
 
 					}
 
@@ -864,7 +924,7 @@ public class EntityContext {
 
 					AbstractRelationship relationship = relFactory.createRelationship(securityContext, rel);
 
-					hasError |= relationshipCreated(securityContext, transactionKey, errorBuffer, relationship);
+					hasError |= graphObjectCreated(securityContext, transactionKey, errorBuffer, relationship);
 
 					createdRels.add(relationship);
 
@@ -875,7 +935,7 @@ public class EntityContext {
 
 					AbstractRelationship relationship = relFactory.createRelationship(securityContext, rel);
 
-					hasError |= relationshipDeleted(securityContext, transactionKey, errorBuffer, relationship);
+					hasError |= graphObjectDeleted(securityContext, transactionKey, errorBuffer, removedRelProperties.get(rel));
 
 					deletedRels.add(relationship);
 
@@ -884,7 +944,7 @@ public class EntityContext {
 				// 5: notify listeners of node deletion
 				for (Node node : data.deletedNodes()) {
 
-					hasError |= graphObjectDeleted(securityContext, transactionKey, errorBuffer, node.getId(), removedProperties.get(node));
+					hasError |= graphObjectDeleted(securityContext, transactionKey, errorBuffer, removedNodeProperties.get(node));
 
 				}
 
@@ -917,6 +977,30 @@ public class EntityContext {
 
 				}
 
+				for (PropertyEntry<Relationship> entry : data.assignedRelationshipProperties()) {
+
+					AbstractRelationship entity = relFactory.createRelationship(securityContext, entry.entity());
+					String key          = entry.key();
+					Object value        = entry.value();
+
+					// iterate over validators
+					Set<PropertyValidator> validators = EntityContext.getPropertyValidators(securityContext, entity.getClass(), key);
+					if (validators != null) {
+
+						for (PropertyValidator validator : validators) {
+
+							hasError |= !(validator.isValid(entity, key, value, errorBuffer));
+						}
+
+					}
+
+					hasError |= propertyModified(securityContext, transactionKey, errorBuffer, entity, key, entry.previouslyCommitedValue(), value);
+
+					// after successful validation, add relationship to index to make uniqueness constraints work
+					indexRelationshipCommand.execute(entity, key);
+					modifiedRels.add(entity);
+				}
+
 				// 7: notify listeners of modified nodes (to check for non-existing properties etc)
 				for (AbstractNode node : modifiedNodes) {
 
@@ -928,9 +1012,17 @@ public class EntityContext {
 					}
 				}
 
-				// 8: index relationships
-				for (AbstractRelationship rel : createdRels) {
-					indexRelationshipCommand.execute(rel);
+				for (AbstractRelationship rel : modifiedRels) {
+
+					// only send UPDATE if node was not created in this transaction
+					if (!createdRels.contains(rel)) {
+
+						hasError |= graphObjectModified(securityContext, transactionKey, errorBuffer, rel);
+
+					} else {
+
+						indexRelationshipCommand.execute(rel);
+					}
 				}
 
 				// notify listeners of commit
@@ -1010,41 +1102,13 @@ public class EntityContext {
 		}
 
 		@Override
-		public boolean propertyModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, AbstractNode entity, String key, Object oldValue, Object newValue) {
+		public boolean propertyModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject entity, String key, Object oldValue, Object newValue) {
 
 			boolean hasError = false;
 
 			for (VetoableGraphObjectListener listener : modificationListeners) {
 
 				hasError |= listener.propertyModified(securityContext, transactionKey, errorBuffer, entity, key, oldValue, newValue);
-
-			}
-
-			return hasError;
-		}
-
-		@Override
-		public boolean relationshipCreated(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, AbstractRelationship relationship) {
-
-			boolean hasError = false;
-
-			for (VetoableGraphObjectListener listener : modificationListeners) {
-
-				hasError |= listener.relationshipCreated(securityContext, transactionKey, errorBuffer, relationship);
-
-			}
-
-			return hasError;
-		}
-
-		@Override
-		public boolean relationshipDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, AbstractRelationship relationship) {
-
-			boolean hasError = false;
-
-			for (VetoableGraphObjectListener listener : modificationListeners) {
-
-				hasError |= listener.relationshipDeleted(securityContext, transactionKey, errorBuffer, relationship);
 
 			}
 
@@ -1094,13 +1158,13 @@ public class EntityContext {
 		}
 
 		@Override
-		public boolean graphObjectDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, long id, Map<String, Object> properties) {
+		public boolean graphObjectDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, Map<String, Object> properties) {
 
 			boolean hasError = false;
 
 			for (VetoableGraphObjectListener listener : modificationListeners) {
 
-				hasError |= listener.graphObjectDeleted(securityContext, transactionKey, errorBuffer, id, properties);
+				hasError |= listener.graphObjectDeleted(securityContext, transactionKey, errorBuffer, properties);
 
 			}
 

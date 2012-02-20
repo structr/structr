@@ -17,31 +17,30 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.structr.rest.filter;
+package org.structr.core.notion;
 
-import org.structr.core.BinaryPredicate;
-import org.structr.core.GraphObject;
-import org.structr.core.Value;
+import org.structr.common.PropertyKey;
 
 /**
  *
  * @author Christian Morgner
  */
-public class PropertyValueFilter<T> extends Filter {
+public class RelationshipNotion extends Notion {
 
-	private BinaryPredicate<T> predicate = null;
-	private String propertyKey = null;
-	private Value<T> value = null;
+	private PropertyKey propertyKey = null;
 
-	public PropertyValueFilter(String propertyKey, BinaryPredicate<T> predicate, Value<T> value) {
+	public RelationshipNotion(PropertyKey propertyKey) {
+
+		super(
+			new PropertySerializationStrategy(propertyKey),
+			new IdDeserializationStrategy()
+		);
+
 		this.propertyKey = propertyKey;
-		this.predicate = predicate;
-		this.value = value;
 	}
 
 	@Override
-	public boolean includeInResultSet(GraphObject object) {
-		T t = (T)object.getProperty(propertyKey);
-		return predicate.evaluate(t, value.get());
+	public PropertyKey getPrimaryPropertyKey() {
+		return propertyKey;
 	}
 }

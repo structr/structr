@@ -126,7 +126,7 @@ public class IndexRelationshipCommand extends NodeServiceCommand {
 
 					rel = (AbstractRelationship) findRel.execute(id);
 
-				} else if (parameters[0] instanceof AbstractNode) {
+				} else if (parameters[0] instanceof AbstractRelationship) {
 
 					rel = (AbstractRelationship) parameters[0];
 

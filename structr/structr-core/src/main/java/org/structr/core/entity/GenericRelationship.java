@@ -26,6 +26,7 @@ package org.structr.core.entity;
 
 import java.util.logging.Logger;
 import org.neo4j.graphdb.Relationship;
+import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.core.EntityContext;
@@ -62,5 +63,15 @@ public class GenericRelationship extends AbstractRelationship {
 
 	public GenericRelationship(SecurityContext securityContext, Relationship dbRelationship) {
 		init(securityContext, dbRelationship);
+	}
+
+	@Override
+	public PropertyKey getStartNodeIdentifier() {
+		return null;
+	}
+
+	@Override
+	public PropertyKey getEndNodeIdentifier() {
+		return null;
 	}
 }

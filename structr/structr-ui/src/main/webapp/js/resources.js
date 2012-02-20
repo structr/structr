@@ -544,6 +544,9 @@ var _Resources = {
             greedy: true,
             hoverClass: 'elementHover',
             drop: function(event, ui) {
+
+                console.log('appendElementElement', $(this));
+
                 var resource = $(this).closest( '.resource')[0];
                 if (debug) console.log(resource);
                 var contentId = getIdFromClassString(ui.draggable.attr('class'));

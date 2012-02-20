@@ -21,8 +21,12 @@ package org.structr.core.entity;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.servlet.http.HttpServletResponse;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.RelationshipType;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
@@ -33,12 +37,14 @@ import org.structr.core.GraphObject;
  */
 public class NamedRelation {
 
+	private static final Logger logger = Logger.getLogger(NamedRelation.class.getName());
+
 	private RelationshipType relType = null;
-	private String sourceType = null;
-	private String destType = null;
+	private Class sourceType = null;
+	private Class destType = null;
 	private String name = null;
 
-	public NamedRelation(String name, String sourceType, String destType, RelationshipType relType) {
+	public NamedRelation(String name, Class sourceType, Class destType, RelationshipType relType) {
 		this.sourceType = sourceType;
 		this.destType = destType;
 		this.relType = relType;
@@ -53,19 +59,19 @@ public class NamedRelation {
 		this.relType = relType;
 	}
 
-	public String getSourceType() {
+	public Class getSourceType() {
 		return sourceType;
 	}
 
-	public void setSourceType(String sourceType) {
+	public void setSourceType(Class sourceType) {
 		this.sourceType = sourceType;
 	}
 
-	public String getDestType() {
+	public Class getDestType() {
 		return destType;
 	}
 
-	public void setDestType(String destType) {
+	public void setDestType(Class destType) {
 		this.destType = destType;
 	}
 
@@ -77,13 +83,32 @@ public class NamedRelation {
 		this.name = name;
 	}
 
+	public Class getEntityClass() {
+		return EntityContext.getNamedRelationClass(sourceType.getSimpleName(), destType.getSimpleName(), relType.name());
+	}
+
+	public AbstractRelationship newEntityClass() {
+
+		AbstractRelationship rel = null;
+		Class type = getEntityClass();
+
+		try {
+			rel = (AbstractRelationship)type.newInstance();
+
+		} catch(Throwable t) {
+			logger.log(Level.WARNING, "Unable to instantiate relationship entity class", t);
+		}
+
+		return rel;
+	}
+
 	public List<? extends GraphObject> getRelationships(GraphObject obj) throws FrameworkException {
 
-		Class namedRelationType = EntityContext.getNamedRelationClass(sourceType, destType, relType.name());
+		Class namedRelationType = getEntityClass();
 		List<GraphObject> typeFilteredResults = new LinkedList<GraphObject>();
 
 		// filter relationships for correct type
-		for(GraphObject o : obj.getRelationships(relType, getDirectionForType(obj.getProperty(AbstractNode.Key.type.name())))) {
+		for(GraphObject o : obj.getRelationships(relType, getDirectionForType(obj.getStringProperty(AbstractNode.Key.type.name())))) {
 			if(o.getClass().equals(namedRelationType)) {
 				typeFilteredResults.add(o);
 			}
@@ -93,16 +118,16 @@ public class NamedRelation {
 	}
 
 	// ----- private methods -----
-	private Direction getDirectionForType(Object type) {
+	private Direction getDirectionForType(String type) throws FrameworkException {
 
-		if(type.equals(sourceType)) {
+		if(type.equals(sourceType.getSimpleName())) {
 			return Direction.OUTGOING;
 		}
 
-		if(type.equals(destType)) {
+		if(type.equals(destType.getSimpleName())) {
 			return Direction.INCOMING;
 		}
 
-		return null;
+		throw new FrameworkException(HttpServletResponse.SC_BAD_REQUEST, new ErrorBuffer());
 	}
 }

@@ -21,6 +21,7 @@
 
 package org.structr.core.entity;
 
+import java.text.ParseException;
 import java.util.*;
 import org.neo4j.graphdb.*;
 
@@ -41,6 +42,7 @@ import org.structr.core.node.TransactionCommand;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.lang.time.DateUtils;
 import org.structr.common.PropertyView;
 import org.structr.common.UuidCreationTransformation;
 import org.structr.common.error.FrameworkException;
@@ -51,6 +53,8 @@ import org.structr.core.PropertyGroup;
 import org.structr.core.Value;
 import org.structr.core.cloud.RelationshipDataContainer;
 import org.structr.core.node.NodeService.RelationshipIndex;
+import org.structr.core.notion.Notion;
+import org.structr.core.notion.RelationshipNotion;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -101,6 +105,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		// register transformation for automatic uuid creation
 		EntityContext.registerEntityCreationTransformation(AbstractRelationship.class, new UuidCreationTransformation());
 
+
 	}
 
 	//~--- constant enums -------------------------------------------------
@@ -145,7 +150,45 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		}
 	}
 	//~--- methods --------------------------------------------------------
-/**
+	public abstract PropertyKey getStartNodeIdentifier();
+	public abstract PropertyKey getEndNodeIdentifier();
+
+	public AbstractNode identifyStartNode(NamedRelation namedRelation, Map<String, Object> propertySet) throws FrameworkException {
+
+		Notion startNodeNotion = new RelationshipNotion(getStartNodeIdentifier());
+		startNodeNotion.setType(namedRelation.getSourceType());
+
+		PropertyKey startNodeIdentifier = startNodeNotion.getPrimaryPropertyKey();
+		if(startNodeIdentifier != null) {
+
+			Object identifierValue = propertySet.get(startNodeIdentifier.name());
+			propertySet.remove(startNodeIdentifier.name());
+
+			return (AbstractNode)startNodeNotion.getAdapterForSetter(securityContext).adapt(identifierValue);
+		}
+
+		return null;
+	}
+
+	public AbstractNode identifyEndNode(NamedRelation namedRelation, Map<String, Object> propertySet) throws FrameworkException {
+
+		Notion endNodeNotion = new RelationshipNotion(getEndNodeIdentifier());
+		endNodeNotion.setType(namedRelation.getDestType());
+		
+		PropertyKey endNodeIdentifier = endNodeNotion.getPrimaryPropertyKey();
+		if(endNodeIdentifier != null) {
+
+			Object identifierValue = propertySet.get(endNodeIdentifier.name());
+			propertySet.remove(endNodeIdentifier.name());
+
+			return (AbstractNode)endNodeNotion.getAdapterForSetter(securityContext).adapt(identifierValue);
+		}
+
+		return null;
+	}
+
+
+	/**
 	 * Commit unsaved property values to the relationship node.
 	 */
 	public void commit() throws FrameworkException {
@@ -188,15 +231,21 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	
 	public void init(final SecurityContext securityContext, final Relationship dbRel) {
 
-		this.dbRelationship          = dbRel;
+		this.dbRelationship  = dbRel;
 		this.isDirty         = false;
 		this.securityContext = securityContext;
 
 	}
 
-	private void init(final SecurityContext securityContext, final AbstractRelationship rel) {
+	public void init(final SecurityContext securityContext) {
 
-		this.dbRelationship          = rel.dbRelationship;
+		this.securityContext = securityContext;
+		this.isDirty         = false;
+	}
+
+	public void init(final SecurityContext securityContext, final AbstractRelationship rel) {
+
+		this.dbRelationship  = rel.dbRelationship;
 		this.isDirty         = false;
 		this.securityContext = securityContext;
 	}
@@ -296,6 +345,11 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 		}
 
+		// no value found, use schema default
+		if(value == null) {
+			value = EntityContext.getDefaultValue(type, key);
+		}
+
 		// apply property converters
 		PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
 		if (converter != null) {
@@ -307,6 +361,79 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		}
 
 		return value;
+	}
+
+	@Override
+	public String getStringProperty(final String key) {
+
+		Object propertyValue = getProperty(key);
+		String result        = null;
+
+		if (propertyValue == null) {
+
+			return null;
+
+		}
+
+		if (propertyValue instanceof String) {
+
+			result = ((String) propertyValue);
+
+		}
+
+		return result;
+	}
+
+	@Override
+	public Date getDateProperty(final String key) {
+
+		Object propertyValue = getProperty(key);
+
+		if (propertyValue != null) {
+
+			if (propertyValue instanceof Date) {
+
+				return (Date) propertyValue;
+
+			} else if (propertyValue instanceof Long) {
+
+				return new Date((Long) propertyValue);
+
+			} else if (propertyValue instanceof String) {
+
+				try {
+
+					// try to parse as a number
+					return new Date(Long.parseLong((String) propertyValue));
+				} catch (NumberFormatException nfe) {
+
+					try {
+
+						Date date = DateUtils.parseDate(((String) propertyValue), new String[] { "yyyy-MM-dd'T'HH:mm:ssZ", "yyyy-MM-dd'T'HH:mm:ss", "yyyymmdd", "yyyymm",
+							"yyyy" });
+
+						return date;
+
+					} catch (ParseException ex2) {
+						logger.log(Level.WARNING, "Could not parse " + propertyValue + " to date", ex2);
+					}
+
+					logger.log(Level.WARNING, "Can''t parse String {0} to a Date.", propertyValue);
+
+					return null;
+				}
+
+			} else {
+
+				logger.log(Level.WARNING, "Date property is not null, but type is neither Long nor String, returning null");
+
+				return null;
+
+			}
+
+		}
+
+		return null;
 	}
 
 	/**

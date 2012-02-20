@@ -199,57 +199,6 @@ public class StaticRelationshipResource extends SortableResource {
 
 		return Collections.emptyList();
 	}
-//
-//	@Override
-//	public RestMethodResult doDelete() throws FrameworkException {
-//
-//		List<GraphObject> results = typedIdResource.doGet();
-//
-//		if (results != null) {
-//
-//			// fetch static relationship definition
-//			DirectedRelation staticRel = findDirectedRelation(typedIdResource, typeResource);
-//
-//			if (staticRel != null) {
-//
-//				AbstractNode startNode = typedIdResource.getTypesafeNode();
-//
-//				if (startNode != null) {
-//
-//					if (EntityContext.isReadOnlyProperty(startNode.getClass(), typeResource.getRawType())) {
-//
-//						logger.log(Level.INFO, "Read-only property on {1}: {0}", new Object[] { startNode.getClass(), typeResource.getRawType() });
-//
-//						return new RestMethodResult(HttpServletResponse.SC_FORBIDDEN);
-//
-//					}
-//
-//					final List<StructrRelationship> rels = startNode.getRelationships(staticRel.getRelType(), staticRel.getDirection());
-//					StructrTransaction transaction       = new StructrTransaction() {
-//
-//						@Override
-//						public Object execute() throws FrameworkException {
-//
-//							for (AbstractRelationship rel : rels) {
-//
-//								rel.delete(securityContext);
-//
-//							}
-//
-//							return null;
-//						}
-//					};
-//
-//					// execute transaction
-//					Services.command(securityContext, TransactionCommand.class).execute(transaction);
-//
-//				}
-//
-//			}
-//		}
-//
-//		return new RestMethodResult(HttpServletResponse.SC_OK);
-//	}
 
 	@Override
 	public RestMethodResult doPut(final Map<String, Object> propertySet) throws FrameworkException {

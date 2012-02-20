@@ -19,6 +19,7 @@
 
 package org.structr.core.converter;
 
+import org.structr.core.GraphObject;
 import org.structr.core.PropertyConverter;
 import org.structr.core.Value;
 import org.structr.core.entity.AbstractNode;
@@ -26,19 +27,19 @@ import org.structr.core.entity.AbstractRelationship;
 
 /**
  *
- * @author Christian Morgner
+ * @author chrisi
  */
-public class RelationshipEndNodeIdProvider extends PropertyConverter {
+public class RelationshipEndNodeIdProvider extends PropertyConverter<GraphObject, String> {
 
 	@Override
-	public Object convertForSetter(Object source, Value value) {
+	public GraphObject convertForSetter(String source, Value value) {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
-	public Object convertForGetter(Object source, Value value) {
+	public String convertForGetter(GraphObject source, Value value) {
 
-		if(currentObject != null && currentObject instanceof AbstractRelationship) {
+		if(currentObject instanceof AbstractRelationship) {
 
 			AbstractRelationship rel = (AbstractRelationship)currentObject;
 			return rel.getEndNode().getStringProperty(AbstractNode.Key.uuid);
@@ -46,5 +47,4 @@ public class RelationshipEndNodeIdProvider extends PropertyConverter {
 
 		return null;
 	}
-
 }
