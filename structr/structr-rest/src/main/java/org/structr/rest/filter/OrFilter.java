@@ -25,7 +25,7 @@ import org.structr.core.GraphObject;
  *
  * @author Axel Morgner
  */
-public class OrFilter implements Filter {
+public class OrFilter extends Filter {
 
 	private Filter filter1 = null;
 	private Filter filter2 = null;

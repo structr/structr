@@ -41,7 +41,6 @@ public class InheritingTypeResource extends TypeResource {
 	public List<GraphObject> doGet() throws FrameworkException {
 
 		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
-		boolean hasSearchableAttributes = false;
 		AbstractNode topNode = null;
 		boolean includeDeleted = false;
 		boolean publicOnly = false;
@@ -52,7 +51,7 @@ public class InheritingTypeResource extends TypeResource {
 			searchAttributes.addAll(Search.andExactTypeAndSubtypes(EntityContext.normalizeEntityName(rawType)));
 
 			// searchable attributes from EntityContext
-			hasSearchableAttributes = hasSearchableAttributes(searchAttributes);
+			hasSearchableAttributes(searchAttributes);
 
 			// do search
 			List<GraphObject> results = (List<GraphObject>)Services.command(securityContext, SearchNodeCommand.class).execute(
@@ -71,16 +70,7 @@ public class InheritingTypeResource extends TypeResource {
 			logger.log(Level.WARNING, "type was null");
 		}
 
-		// return 404 if search attributes were posted
-		if(hasSearchableAttributes) {
-
-			throw new NotFoundException();
-
-		} else {
-
-			// throw new NoResultsException();
-			return Collections.emptyList();
-		}
+		return Collections.emptyList();
 	}
 
 	@Override

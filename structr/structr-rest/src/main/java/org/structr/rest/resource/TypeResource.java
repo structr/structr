@@ -92,7 +92,6 @@ public class TypeResource extends SortableResource {
 
 		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 
-		boolean hasSearchableAttributes = false;
 		AbstractNode topNode   = null;
 		boolean includeDeleted = false;
 		boolean publicOnly     = false;
@@ -111,7 +110,7 @@ public class TypeResource extends SortableResource {
 			searchAttributes.add(Search.andExactType(EntityContext.normalizeEntityName(rawType)));
 
 			// searchable attributes from EntityContext
-			hasSearchableAttributes = hasSearchableAttributes(searchAttributes);
+			hasSearchableAttributes(searchAttributes);
 			// do search
 			List<GraphObject> results = (List<GraphObject>) Services.command(securityContext, SearchNodeCommand.class).execute(topNode, includeDeleted, publicOnly, searchAttributes);
 
