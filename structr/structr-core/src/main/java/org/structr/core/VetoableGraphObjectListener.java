@@ -23,8 +23,6 @@ import java.util.List;
 import java.util.Map;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.SecurityContext;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 
 /**
  * An interface that allows you to be notified when a
@@ -40,7 +38,7 @@ public interface VetoableGraphObjectListener {
 	public boolean commit(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer);
 	public boolean rollback(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer);
 
-	public boolean propertyModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, AbstractNode entity, String key, Object oldValue, Object newValue);
+	public boolean propertyModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject, String key, Object oldValue, Object newValue);
 
 	public boolean graphObjectCreated(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject);
 	public boolean graphObjectModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject);

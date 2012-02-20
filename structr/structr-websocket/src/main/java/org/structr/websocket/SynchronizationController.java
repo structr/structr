@@ -120,7 +120,7 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 	}
 
 	@Override
-	public boolean propertyModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, AbstractNode entity, String key, Object oldValue, Object newValue) {
+	public boolean propertyModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject, String key, Object oldValue, Object newValue) {
 
 		WebSocketMessage message = messageMap.get(transactionKey);
 		if(message != null) {

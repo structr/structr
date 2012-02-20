@@ -77,6 +77,7 @@ public class EntityContext {
 	private static final Map<Class, Map<String, Set<String>>> globalPropertyViewMap                             = new LinkedHashMap<Class, Map<String, Set<String>>>();
 	private static final Map<Class, Map<String, PropertyGroup>> globalPropertyGroupMap                          = new LinkedHashMap<Class, Map<String, PropertyGroup>>();
 	private static final Map<Class, Map<String, Value>> globalConversionParameterMap                            = new LinkedHashMap<Class, Map<String, Value>>();
+	private static final Map<Class, Map<String, Object>> globalDefaultValueMap                                  = new LinkedHashMap<Class, Map<String, Object>>();
 	private static final Map<Class, Set<String>> globalWriteOncePropertyMap                                     = new LinkedHashMap<Class, Set<String>>();
 	private static final Map<Class, Set<String>> globalReadOnlyPropertyMap                                      = new LinkedHashMap<Class, Set<String>>();
 	private static final Map<String, String> normalizedEntityNameCache                                          = new LinkedHashMap<String, String>();
@@ -107,6 +108,15 @@ public class EntityContext {
 
 	public static void registerPropertyGroup(Class type, PropertyKey key, PropertyGroup propertyGroup) {
 		getPropertyGroupMapForType(type).put(key.name(), propertyGroup);
+	}
+
+	// ----- default values -----
+	public static void registerDefaultValue(Class type, PropertyKey propertyKey, Object defaultValue) {
+		getGlobalDefaultValueMapForType(type).put(propertyKey.name(), defaultValue);
+	}
+
+	public static Object getDefaultValue(Class type, String propertyKey) {
+		return getGlobalDefaultValueMapForType(type).get(propertyKey);
 	}
 
 	// ----- named relations -----
@@ -628,6 +638,20 @@ public class EntityContext {
 		return PropertyConverterMap;
 	}
 
+	private static Map<String, Object> getGlobalDefaultValueMapForType(Class type) {
+
+		Map<String, Object> defaultValueMap = globalDefaultValueMap.get(type);
+
+		if (defaultValueMap == null) {
+
+			defaultValueMap = new LinkedHashMap<String, Object>();
+			globalDefaultValueMap.put(type, defaultValueMap);
+
+		}
+
+		return defaultValueMap;
+	}
+
 	private static Map<String, Value> getPropertyConversionParameterMapForType(Class type) {
 
 		Map<String, Value> conversionParameterMap = globalConversionParameterMap.get(type);
@@ -808,6 +832,7 @@ public class EntityContext {
 				RelationshipFactory relFactory					= new RelationshipFactory(securityContext);
 				Set<AbstractNode> modifiedNodes					= new LinkedHashSet<AbstractNode>();
 				Set<AbstractNode> createdNodes					= new LinkedHashSet<AbstractNode>();
+				Set<AbstractRelationship> modifiedRels				= new LinkedHashSet<AbstractRelationship>();
 				Set<AbstractRelationship> createdRels				= new LinkedHashSet<AbstractRelationship>();
 				Set<AbstractRelationship> deletedRels				= new LinkedHashSet<AbstractRelationship>();
 
@@ -917,6 +942,30 @@ public class EntityContext {
 
 				}
 
+				for (PropertyEntry<Relationship> entry : data.assignedRelationshipProperties()) {
+
+					AbstractRelationship entity = relFactory.createRelationship(securityContext, entry.entity());
+					String key          = entry.key();
+					Object value        = entry.value();
+
+					// iterate over validators
+					Set<PropertyValidator> validators = EntityContext.getPropertyValidators(securityContext, entity.getClass(), key);
+					if (validators != null) {
+
+						for (PropertyValidator validator : validators) {
+
+							hasError |= !(validator.isValid(entity, key, value, errorBuffer));
+						}
+
+					}
+
+					hasError |= propertyModified(securityContext, transactionKey, errorBuffer, entity, key, entry.previouslyCommitedValue(), value);
+
+					// after successful validation, add relationship to index to make uniqueness constraints work
+					indexRelationshipCommand.execute(entity, key);
+					modifiedRels.add(entity);
+				}
+
 				// 7: notify listeners of modified nodes (to check for non-existing properties etc)
 				for (AbstractNode node : modifiedNodes) {
 
@@ -928,9 +977,14 @@ public class EntityContext {
 					}
 				}
 
-				// 8: index relationships
-				for (AbstractRelationship rel : createdRels) {
-					indexRelationshipCommand.execute(rel);
+				for (AbstractRelationship rel : modifiedRels) {
+
+					// only send UPDATE if node was not created in this transaction
+					if (!createdRels.contains(rel)) {
+
+						hasError |= graphObjectModified(securityContext, transactionKey, errorBuffer, rel);
+
+					}
 				}
 
 				// notify listeners of commit
@@ -1010,7 +1064,7 @@ public class EntityContext {
 		}
 
 		@Override
-		public boolean propertyModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, AbstractNode entity, String key, Object oldValue, Object newValue) {
+		public boolean propertyModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject entity, String key, Object oldValue, Object newValue) {
 
 			boolean hasError = false;
 

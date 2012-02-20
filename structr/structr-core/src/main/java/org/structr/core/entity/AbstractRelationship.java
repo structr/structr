@@ -345,6 +345,11 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 		}
 
+		// no value found, use schema default
+		if(value == null) {
+			value = EntityContext.getDefaultValue(type, key);
+		}
+
 		// apply property converters
 		PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
 		if (converter != null) {

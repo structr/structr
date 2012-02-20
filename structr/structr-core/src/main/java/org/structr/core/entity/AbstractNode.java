@@ -123,7 +123,7 @@ import org.structr.common.error.ReadOnlyPropertyToken;
  * @author amorgner
  *
  */
-public abstract class AbstractNode implements Comparable<AbstractNode>, RenderController, AccessControllable, GraphObject {
+public abstract class AbstractNode implements GraphObject, Comparable<AbstractNode>, RenderController, AccessControllable {
 
 //      public final static String CATEGORIES_KEY         = "categories";
 //      public final static String CREATED_BY_KEY         = "createdBy";
@@ -1954,6 +1954,11 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 			}
 
 			// ----- END automatic property resolution -----
+		}
+
+		// no value found, use schema default
+		if(value == null) {
+			value = EntityContext.getDefaultValue(type, key);
 		}
 
 		// apply property converters
