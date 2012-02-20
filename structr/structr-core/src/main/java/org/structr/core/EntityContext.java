@@ -984,6 +984,9 @@ public class EntityContext {
 
 						hasError |= graphObjectModified(securityContext, transactionKey, errorBuffer, rel);
 
+					} else {
+
+						indexRelationshipCommand.execute(rel);
 					}
 				}
 
