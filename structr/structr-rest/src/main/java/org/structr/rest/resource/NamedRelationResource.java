@@ -100,9 +100,8 @@ public class NamedRelationResource extends WrappingResource {
 			AbstractNode endNode     = relationshipEntity.identifyEndNode(namedRelation, propertySet);
 			RelationshipType relType = namedRelation.getRelType();
 
-			AbstractRelationship newRel = (AbstractRelationship)createRel.execute(startNode, endNode, relType);
-			newRel.setProperties(propertySet);
-
+			// create new relationship with startNode, endNode, relType and propertySet
+			AbstractRelationship newRel = (AbstractRelationship)createRel.execute(startNode, endNode, relType, propertySet);
 			RestMethodResult result = new RestMethodResult(201);
 			result.addHeader("Location", buildLocationHeader(newRel));
 
