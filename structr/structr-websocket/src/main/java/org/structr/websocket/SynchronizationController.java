@@ -132,6 +132,7 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 		return false;
 	}
 
+	@Override
 	public boolean relationshipCreated(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, AbstractRelationship relationship) {
 
 		AbstractNode startNode = relationship.getStartNode();
@@ -153,6 +154,7 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 		return false;
 	}
 
+	@Override
 	public boolean relationshipDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, AbstractRelationship relationship) {
 
 		AbstractNode startNode = relationship.getStartNode();

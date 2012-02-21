@@ -123,7 +123,7 @@ public class EntityContext {
 	public static void registerNamedRelation(String relationName, Class relationshipEntityType, Class sourceType, Class destType, RelationshipType relType) {
 
 		globalRelationshipNameMap.put(relationName, new NamedRelation(relationName, sourceType, destType, relType));
-		globalRelationshipClassMap.put(createTripleKey(sourceType.getSimpleName(), destType.getSimpleName(), relType.name()), relationshipEntityType);
+		globalRelationshipClassMap.put(combinedRelType(sourceType, destType, relType), relationshipEntityType);
 
 		// automatically register start and end node providers
 		try {
@@ -149,8 +149,24 @@ public class EntityContext {
 		return globalRelationshipNameMap.get(relationName);
 	}
 
+	
 	public static Class getNamedRelationClass(String sourceType, String destType, String relType) {
-		return globalRelationshipClassMap.get(createTripleKey(sourceType, destType, relType));
+		return globalRelationshipClassMap.get(combinedRelType(sourceType, destType, relType));
+	}
+
+	public static Class getNamedRelationClass(Class sourceType, Class destType, RelationshipType relType) {
+		Class namedRelationClass = null;
+
+		Class superClass = sourceType;
+
+		while (namedRelationClass == null && !superClass.equals(Object.class)) {
+
+			namedRelationClass = globalRelationshipClassMap.get(combinedRelType(superClass, destType, relType));
+			// one level up :)
+			superClass = superClass.getSuperclass();
+		}
+
+		return globalRelationshipClassMap.get(combinedRelType(sourceType, destType, relType));
 	}
 
 	public static Collection<NamedRelation> getNamedRelations() {
@@ -404,16 +420,20 @@ public class EntityContext {
 		transactionKeyMap.remove(Thread.currentThread());
 	}
 
+	public static String combinedRelType(Class sourceType, Class destType, RelationshipType relType) {
+		return combinedRelType(sourceType.getSimpleName(), relType.name(), destType.getSimpleName());
+	}
+
 	// ----- private methods -----
-	public static String createTripleKey(String key1, String key2, String key3) {
+	public static String combinedRelType(String sourceType, String destType, String relType) {
 
 		StringBuilder buf = new StringBuilder();
 
-		buf.append(key1);
+		buf.append(sourceType);
 		buf.append(" ");
-		buf.append(key2);
+		buf.append(relType);
 		buf.append(" ");
-		buf.append(key3);
+		buf.append(destType);
 
 		return buf.toString();
 	}
@@ -924,7 +944,8 @@ public class EntityContext {
 
 					AbstractRelationship relationship = relFactory.createRelationship(securityContext, rel);
 
-					hasError |= graphObjectCreated(securityContext, transactionKey, errorBuffer, relationship);
+					//hasError |= graphObjectCreated(securityContext, transactionKey, errorBuffer, relationship);
+					hasError |= relationshipCreated(securityContext, transactionKey, errorBuffer, relationship);
 
 					createdRels.add(relationship);
 
@@ -935,7 +956,8 @@ public class EntityContext {
 
 					AbstractRelationship relationship = relFactory.createRelationship(securityContext, rel);
 
-					hasError |= graphObjectDeleted(securityContext, transactionKey, errorBuffer, removedRelProperties.get(rel));
+					//hasError |= graphObjectDeleted(securityContext, transactionKey, errorBuffer, removedRelProperties.get(rel));
+					hasError |= relationshipDeleted(securityContext, transactionKey, errorBuffer, relationship);
 
 					deletedRels.add(relationship);
 
@@ -1165,6 +1187,34 @@ public class EntityContext {
 			for (VetoableGraphObjectListener listener : modificationListeners) {
 
 				hasError |= listener.graphObjectDeleted(securityContext, transactionKey, errorBuffer, properties);
+
+			}
+
+			return hasError;
+		}
+
+		@Override
+		public boolean relationshipDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, AbstractRelationship relationship) {
+
+			boolean hasError = false;
+
+			for (VetoableGraphObjectListener listener : modificationListeners) {
+
+				hasError |= listener.relationshipDeleted(securityContext, transactionKey, errorBuffer, relationship);
+
+			}
+
+			return hasError;
+		}
+
+		@Override
+		public boolean relationshipCreated(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, AbstractRelationship relationship) {
+
+			boolean hasError = false;
+
+			for (VetoableGraphObjectListener listener : modificationListeners) {
+
+				hasError |= listener.relationshipCreated(securityContext, transactionKey, errorBuffer, relationship);
 
 			}
 

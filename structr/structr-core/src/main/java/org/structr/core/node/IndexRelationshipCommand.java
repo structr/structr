@@ -166,7 +166,7 @@ public class IndexRelationshipCommand extends NodeServiceCommand {
 	private void indexRelationship(final AbstractRelationship rel) throws FrameworkException {
 
 		// add a special type key, consisting of the relationship type, the type of the start node and the type of the end node
-		String tripleKey = EntityContext.createTripleKey(rel.getStartNode().getType(), rel.getType(), rel.getEndNode().getType());
+		String tripleKey = EntityContext.combinedRelType(rel.getStartNode().getType(), rel.getType(), rel.getEndNode().getType());
 		rel.setProperty(AbstractRelationship.HiddenKey.type.name(), Search.clean(tripleKey));
 		indexProperty(rel, AbstractRelationship.HiddenKey.type.name());
 
