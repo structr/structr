@@ -84,7 +84,7 @@ public class NamedRelation {
 	}
 
 	public Class getEntityClass() {
-		return EntityContext.getNamedRelationClass(sourceType.getSimpleName(), destType.getSimpleName(), relType.name());
+		return EntityContext.getNamedRelationClass(sourceType, destType, relType);
 	}
 
 	public AbstractRelationship newEntityClass() {

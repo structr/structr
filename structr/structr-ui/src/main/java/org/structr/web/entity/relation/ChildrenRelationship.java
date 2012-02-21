@@ -32,19 +32,13 @@ import org.structr.web.entity.html.HtmlElement;
  */
 public class ChildrenRelationship extends AbstractRelationship {
 
-	private enum Role {
-		athlete, trainer
-	}
-
 	public enum Key implements PropertyKey {
 		parent_id, child_id
 	}
 
 	static {
-
 			EntityContext.registerNamedRelation("children", ChildrenRelationship.class, HtmlElement.class, HtmlElement.class, RelType.CONTAINS);
 			EntityContext.registerPropertySet(ChildrenRelationship.class, PropertyView.All,           Key.values());
-
 	}
 
 	@Override
