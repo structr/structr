@@ -24,22 +24,22 @@ import org.neo4j.tooling.GlobalGraphOperations;
 import org.structr.common.error.FrameworkException;
 
 /**
- * Get all nodes in the database.
+ * Get all relationships in the database.
  *
  * This command takes no parameters.
  *
  * @author amorgner
  */
-public class GetAllNodes extends NodeServiceCommand {
+public class GetAllRelationships extends NodeServiceCommand {
 
     @Override
     public Object execute(Object... parameters) throws FrameworkException {
 
         GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
-        NodeFactory nodeFactory = (NodeFactory) arguments.get("nodeFactory");
+        RelationshipFactory relationshipFactory = (RelationshipFactory) arguments.get("relationshipFactory");
 
         if (graphDb != null) {
-            return nodeFactory.createNodes(securityContext, GlobalGraphOperations.at(graphDb).getAllNodes());
+            return relationshipFactory.createRelationships(securityContext, GlobalGraphOperations.at(graphDb).getAllRelationships());
         }
         
         return Collections.emptyList();
