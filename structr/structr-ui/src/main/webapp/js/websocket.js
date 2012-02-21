@@ -255,13 +255,14 @@ function connect() {
 
                         //						Entities.getTree(entity.id);
                         var elementElement = _Resources.appendElementElement(entity);
-                        var elements = entity.elements;
-                        if (elements && elements.length > 0) {
+                        var elem = entity.elements;
+                        if (elem && elem.length > 0) {
+                            if (debug) console.log(elem);
                             disable($('.delete_icon', elementElement)[0]);
-                            $(elements).each(function(i, element) {
-                                if (element.type == 'Element') {
+                            $(elem).each(function(i, element) {
+                                if (elem.type == 'Element') {
                                     _Resources.appendElementElement(element, entity.id);
-                                } else if (element.type == 'Content') {
+                                } else if (elem.type == 'Content') {
                                     _Resources.appendContentElement(element, entity.id);
                                 }
                             });

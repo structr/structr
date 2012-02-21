@@ -159,6 +159,7 @@ img.disabled {
 	width: 1000px;
 }
 
+#resources,
 #previews,
 #elements,
 #components,
@@ -180,7 +181,7 @@ img.disabled {
 }
 
 .node .id {
-    display: none;
+/*    display: none;*/
 }
 
 .content .id {

@@ -52,13 +52,13 @@ var _Resources = {
         palette = $('#palette');
         elements = $('#elements', main);
         main.before('<div id="hoverStatus">Hover status</div>');
+//        main.before('<div id="offset">Offset</div>');
 
         _Resources.refresh();
-        //_Resources.refreshComponents();
-        //_Resources.refreshElements();
+        _Resources.refreshComponents();
+        _Resources.refreshElements();
         _Elements.showPalette();
-
-        //_Contents.refresh();
+        _Contents.refresh();
 
     //        main.height($(window).height()-header.height()-palette.height()-24);
 
@@ -196,7 +196,11 @@ var _Resources = {
             }
         });
 		
-        $('.delete_icon', div).on('click', function() {
+        $('.delete_icon', div).on('click', function(e) {
+            e.stopPropagation();
+            var self = $(this);
+            self.off('click');
+            self.off('mouseover');
             _Resources.deleteResource(this, resource);
         });
         //        div.append('<img class="add_icon button" title="Add Element" alt="Add Element" src="icon/add.png">');
@@ -204,6 +208,10 @@ var _Resources = {
         //            Resources.addElement(this, resource);
         //        });
         $('b', div).on('click', function() {
+            e.stopPropagation();
+            var self = $(this);
+            self.off('click');
+            self.off('mouseover');
             _Entities.showProperties(this, resource, 'all', $('.' + resource.id + '_', resources));
         });
 		
@@ -222,7 +230,8 @@ var _Resources = {
             var head = $(doc).find('head');
             if (head) head.append('<style type="text/css">'
                 + '* { z-index: 0}\n'
-                + '.structrContentContainer { display: inline; border: none; margin: 0; padding: 0; }\n'
+                + '.structr-content-container { display: inline; border: none; margin: 0; padding: 0; }\n'
+                + '.structr-element-container:hover { border: 1px dotted red; }\n'
                 + '.structr-droppable-area { border: 1px dotted red; }\n'
                 + '.structr-editable-area { border: 1px dotted orange; margin: -1px; padding: 0; }\n'
                 + '.structr-editable-area-active { background-color: #ffe; border: 1px solid orange; color: #333; margin: -1px; padding: 0; }'
@@ -249,7 +258,10 @@ var _Resources = {
                     accept: '.element, .content',
                     greedy: true,
                     hoverClass: 'structr-droppable-area',
-                    iframeOffset: {'top' : offset.top, 'left' : offset.left},
+                    iframeOffset: {
+                        'top' : offset.top,
+                        'left' : offset.left
+                        },
                     drop: function(event, ui) {
                         var resource = $(this).closest( '.resource')[0];
                         var resourceId;
@@ -269,7 +281,7 @@ var _Resources = {
                             pos = $('[structr_element_id]', $(this)).length;
                         }
                         
-                        console.log('this: ' , $(this));
+                        console.log('Dropped on: ' , $(this));
                         //console.log('ui: ' , ui);
                         //console.log('Resource: ' , resource);
                         //console.log('ResourceId: ' + resourceId);
@@ -282,10 +294,10 @@ var _Resources = {
                             // create element on the fly
                             //var el = _Elements.addElement(null, 'element', null);
                             var tag = $(ui.draggable).text();
-                        //var el = _Elements.addElement(null, 'Element', '"tag":"' + tag + '"');
-                        //if (debug) console.log(el);
-                        //contentId = el.id;
-                        //if (debug) console.log('Created new element on the fly: ' + contentId);
+                            //var el = _Elements.addElement(null, 'Element', '"tag":"' + tag + '"');
+                            //if (debug) console.log(el);
+                            //contentId = el.id;
+                            //console.log('Created new element on the fly: ' + contentId);
                         }
                         
 
@@ -301,11 +313,11 @@ var _Resources = {
                         if (!contentId) {
                             props += ', "name" : "New ' + tag + ' ' + Math.floor(Math.random() * (999999 - 1)) + '", "type" : "' + tag.capitalize() + '", "tag" : "' + tag + '"';
                         }
-                        //console.log('Content Id: ' + contentId);
-                        //console.log('Target Id: ' + elementId);
-                        //console.log('Position: ' + pos);
-                        //console.log(props);
-                        //_Entities.addSourceToTarget(contentId, elementId, props);
+                    console.log('Content Id: ' + contentId);
+                    console.log('Target Id: ' + elementId);
+                    console.log('Position: ' + pos);
+                    console.log(props);
+                    _Entities.addSourceToTarget(contentId, elementId, props);
                     }
                 });
 
@@ -480,23 +492,23 @@ var _Resources = {
         //        //            }
         //        });
         
-//        div.droppable({
-//            accept: '.component, .element',
-//            greedy: true,
-//            hoverClass: 'resourceHover',
-//            drop: function(event, ui) {
-//                var componentId = getIdFromClassString(ui.draggable.attr('class'));
-//                var resourceId = getIdFromClassString($(this).attr('class'));
-//
-//                if (!resourceId) resourceId = '*';
-//
-//                var pos = $('.component, .element', $(this)).length;
-//                if (debug) console.log(pos);
-//                var props = '"' + resourceId + '" : "' + pos + '"';
-//                if (debug) console.log(props);
-//                _Entities.addSourceToTarget(componentId, resourceId, props);
-//            }
-//        });
+        //        div.droppable({
+        //            accept: '.component, .element',
+        //            greedy: true,
+        //            hoverClass: 'resourceHover',
+        //            drop: function(event, ui) {
+        //                var componentId = getIdFromClassString(ui.draggable.attr('class'));
+        //                var resourceId = getIdFromClassString($(this).attr('class'));
+        //
+        //                if (!resourceId) resourceId = '*';
+        //
+        //                var pos = $('.component, .element', $(this)).length;
+        //                if (debug) console.log(pos);
+        //                var props = '"' + resourceId + '" : "' + pos + '"';
+        //                if (debug) console.log(props);
+        //                _Entities.addSourceToTarget(componentId, resourceId, props);
+        //            }
+        //        });
 
         return div;
     },
@@ -510,7 +522,11 @@ var _Resources = {
             $('.delete_icon', div).remove();
             div.append('<img title="Remove element \'' + element.name + '\' from resource ' + parentId + '" '
                 + 'alt="Remove element ' + element.name + ' from ' + parentId + '" class="delete_icon button" src="icon/brick_delete.png">');
-            $('.delete_icon', div).on('click', function() {
+            $('.delete_icon', div).on('click', function(e) {
+                e.stopPropagation();
+                var self = $(this);
+                self.off('click');
+                self.off('mouseover');
                 _Entities.removeSourceFromTarget(element.id, parentId);
             });
         }
@@ -661,7 +677,11 @@ var _Resources = {
             $('.delete_icon', div).remove();
             div.append('<img title="Remove element \'' + content.name + '\' from resource ' + parentId + '" '
                 + 'alt="Remove content ' + content.name + ' from element ' + parentId + '" class="delete_icon button" src="' + _Contents.delete_icon + '">');
-            $('.delete_icon', div).on('click', function() {
+            $('.delete_icon', div).on('click', function(e) {
+                e.stopPropagation();
+                var self = $(this);
+                self.off('click');
+                self.off('mouseover');
                 _Entities.removeSourceFromTarget(content.id, parentId)
             });
         }

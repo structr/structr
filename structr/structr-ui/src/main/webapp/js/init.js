@@ -39,7 +39,6 @@ $(window).unload(function() {
 	
 	
 $(document).ready(function() {
-    $('body').append('<div id="offset-tester">x</div>');
     if (debug) console.log('Debug mode');
 
     header = $('#header');

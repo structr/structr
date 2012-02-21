@@ -191,7 +191,11 @@ var _Elements = {
             + '</div>');
         var div = $('.' + element.id + '_', parent);
         div.append('<img title="Delete ' + element.tag + ' element ' + element.id + '" alt="Delete ' + element.tag + ' element ' + element.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
-        $('.delete_icon', div).on('click', function() {
+        $('.delete_icon', div).on('click', function(e) {
+            e.stopPropagation();
+            var self = $(this);
+            self.off('click');
+            self.off('mouseover');
             _Elements.deleteElement(this, element);
         });
         //        div.append('<img class="add_icon button" title="Add Element" alt="Add Element" src="icon/add.png">');
