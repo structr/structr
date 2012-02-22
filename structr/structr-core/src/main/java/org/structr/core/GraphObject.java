@@ -20,10 +20,6 @@
 package org.structr.core;
 
 import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
@@ -48,13 +44,13 @@ public interface GraphObject {
 	public void removeProperty(String key) throws FrameworkException;
 
 	// ----- rels only -----
-	public Long getStartNodeId();
-	public Long getEndNodeId();
-	public Long getOtherNodeId(final AbstractNode node);
+//	public Long getStartNodeId();
+//	public Long getEndNodeId();
+//	public Long getOtherNodeId(final AbstractNode node);
 
 	// ----- nodes only -----
-	public Map<RelationshipType, Long> getRelationshipInfo(Direction direction);
-	public List<AbstractRelationship> getRelationships(RelationshipType type, Direction dir);
+//	public Map<RelationshipType, Long> getRelationshipInfo(Direction direction);
+//	public List<AbstractRelationship> getRelationships(RelationshipType type, Direction dir);
 
 	// ----- editing methods -----
 	public void delete(SecurityContext seucrityContext);

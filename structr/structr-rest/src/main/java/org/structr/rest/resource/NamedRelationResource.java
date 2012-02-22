@@ -68,7 +68,9 @@ public class NamedRelationResource extends WrappingResource {
 			// extract relationships from wrapped resource
 			List<? extends GraphObject> results = wrappedResource.doGet();
 			for(GraphObject obj : results) {
-				relationResults.addAll(namedRelation.getRelationships(obj));
+				if (obj instanceof AbstractNode) {
+					relationResults.addAll(namedRelation.getRelationships((AbstractNode) obj));
+				}
 			}
 
 		} else {

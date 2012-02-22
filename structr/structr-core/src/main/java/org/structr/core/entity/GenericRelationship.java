@@ -66,12 +66,12 @@ public class GenericRelationship extends AbstractRelationship {
 	}
 
 	@Override
-	public PropertyKey getStartNodeIdentifier() {
+	public PropertyKey getStartNodeIdKey() {
 		return null;
 	}
 
 	@Override
-	public PropertyKey getEndNodeIdentifier() {
+	public PropertyKey getEndNodeIdKey() {
 		return null;
 	}
 }
