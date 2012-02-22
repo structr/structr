@@ -31,7 +31,10 @@ import com.google.gson.JsonSerializer;
 
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.RelationshipType;
+
 import org.structr.core.PropertySet.PropertyFormat;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -126,13 +129,13 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 		}
 
 		/*
-		String type = src.getType();
-		if (type != null) {
-
-			jsonObject.add("type", new JsonPrimitive(type));
-
-		}
-		*/
+		 * String type = src.getType();
+		 * if (type != null) {
+		 *
+		 *       jsonObject.add("type", new JsonPrimitive(type));
+		 *
+		 * }
+		 */
 
 		// property keys
 		JsonArray properties = new JsonArray();
@@ -195,68 +198,72 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 
 		jsonObject.add("properties", properties);
 
-		// outgoing relationships
-		Map<RelationshipType, Long> outRelStatistics = src.getRelationshipInfo(Direction.OUTGOING);
+		if (src instanceof AbstractNode) {
 
-		if (outRelStatistics != null) {
+			// outgoing relationships
+			Map<RelationshipType, Long> outRelStatistics = ((AbstractNode) src).getRelationshipInfo(Direction.OUTGOING);
 
-			JsonArray outRels = new JsonArray();
+			if (outRelStatistics != null) {
 
-			for (Entry<RelationshipType, Long> entry : outRelStatistics.entrySet()) {
+				JsonArray outRels = new JsonArray();
 
-				RelationshipType relType = entry.getKey();
-				Long count               = entry.getValue();
-				JsonObject outRelEntry   = new JsonObject();
+				for (Entry<RelationshipType, Long> entry : outRelStatistics.entrySet()) {
 
-				outRelEntry.add("type", new JsonPrimitive(relType.name()));
-				outRelEntry.add("count", new JsonPrimitive(count));
-				outRels.add(outRelEntry);
+					RelationshipType relType = entry.getKey();
+					Long count               = entry.getValue();
+					JsonObject outRelEntry   = new JsonObject();
 
-			}
+					outRelEntry.add("type", new JsonPrimitive(relType.name()));
+					outRelEntry.add("count", new JsonPrimitive(count));
+					outRels.add(outRelEntry);
 
-			jsonObject.add("out", outRels);
+				}
 
-		}
-
-		// incoming relationships
-		Map<RelationshipType, Long> inRelStatistics = src.getRelationshipInfo(Direction.INCOMING);
-
-		if (inRelStatistics != null) {
-
-			JsonArray inRels = new JsonArray();
-
-			for (Entry<RelationshipType, Long> entry : inRelStatistics.entrySet()) {
-
-				RelationshipType relType = entry.getKey();
-				Long count               = entry.getValue();
-				JsonObject inRelEntry    = new JsonObject();
-
-				inRelEntry.add("type", new JsonPrimitive(relType.name()));
-				inRelEntry.add("count", new JsonPrimitive(count));
-				inRels.add(inRelEntry);
+				jsonObject.add("out", outRels);
 
 			}
 
-			jsonObject.add("in", inRels);
+			// incoming relationships
+			Map<RelationshipType, Long> inRelStatistics = ((AbstractNode) src).getRelationshipInfo(Direction.INCOMING);
 
-		}
+			if (inRelStatistics != null) {
 
-		// start node id (for relationships)
-		Long startNodeId = src.getStartNodeId();
+				JsonArray inRels = new JsonArray();
 
-		if (startNodeId != null) {
+				for (Entry<RelationshipType, Long> entry : inRelStatistics.entrySet()) {
 
-			jsonObject.add("startNodeId", new JsonPrimitive(startNodeId));
+					RelationshipType relType = entry.getKey();
+					Long count               = entry.getValue();
+					JsonObject inRelEntry    = new JsonObject();
 
-		}
+					inRelEntry.add("type", new JsonPrimitive(relType.name()));
+					inRelEntry.add("count", new JsonPrimitive(count));
+					inRels.add(inRelEntry);
 
-		// end node id (for relationships)
-		Long endNodeId = src.getEndNodeId();
+				}
 
-		if (endNodeId != null) {
+				jsonObject.add("in", inRels);
 
-			jsonObject.add("endNodeId", new JsonPrimitive(endNodeId));
+			}
+		} else if (src instanceof AbstractRelationship) {
 
+			// start node id (for relationships)
+			String startNodeId = ((AbstractRelationship) src).getStartNodeId();
+
+			if (startNodeId != null) {
+
+				jsonObject.add("startNodeId", new JsonPrimitive(startNodeId));
+
+			}
+
+			// end node id (for relationships)
+			String endNodeId = ((AbstractRelationship) src).getEndNodeId();
+
+			if (endNodeId != null) {
+
+				jsonObject.add("endNodeId", new JsonPrimitive(endNodeId));
+
+			}
 		}
 
 		return jsonObject;
@@ -313,7 +320,7 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 					for (Object o : (Iterable) value) {
 
 						// non-null check in case a lazy evaluator returns null
-						if(o != null) {
+						if (o != null) {
 
 							if (o instanceof GraphObject) {
 
@@ -333,9 +340,10 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 							} else {
 
 								// serialize primitive, this is for PropertyNotion
-	//                                                      property.add(new JsonPrimitive(o.toString()));
+								// property.add(new JsonPrimitive(o.toString()));
 								property.add(primitive(o));
 							}
+
 						}
 					}
 

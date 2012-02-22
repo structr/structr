@@ -26,6 +26,12 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipExpander;
 
+import org.structr.common.error.FrameworkException;
+import org.structr.core.Services;
+import org.structr.core.node.CreateNodeCommand;
+import org.structr.core.node.StructrTransaction;
+import org.structr.core.node.TransactionCommand;
+
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.Map;
@@ -66,26 +72,33 @@ public class ResourceExpander implements RelationshipExpander {
 		 */
 		Map<Integer, Relationship> sortedRelationshipMap = new TreeMap<Integer, Relationship>();
 
-		for (Relationship rel : node.getRelationships(RelType.CONTAINS, direction)) {
+		for (final Relationship rel : node.getRelationships(RelType.CONTAINS, direction)) {
 
 			try {
 
-				Integer position = null;
-				Object prop      = null;
+				Integer position;
+				Object prop = null;
+				final String key;
 
 				// "*" is a wildcard for "matches any resource id"
 				// TOOD: use pattern matching here?
 				if (rel.hasProperty("*")) {
 
 					prop = rel.getProperty("*");
+					key  = "*";
 
 				} else if (rel.hasProperty(resourceId)) {
 
 					prop = rel.getProperty(resourceId);
+					key  = resourceId;
+
+				} else {
+
+					key = null;
 
 				}
 
-				if (prop != null) {
+				if ((key != null) && (prop != null)) {
 
 					if (prop instanceof Integer) {
 
@@ -101,7 +114,36 @@ public class ResourceExpander implements RelationshipExpander {
 
 					}
 
+					Integer originalPos = position;
+
+					// find free slot
+					while (sortedRelationshipMap.containsKey(position)) {
+
+						position++;
+
+					}
+
 					sortedRelationshipMap.put(position, rel);
+
+					if (originalPos != position) {
+
+						final Integer newPos = position;
+
+						Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(new StructrTransaction() {
+
+							@Override
+							public Object execute() throws FrameworkException {
+
+								rel.setProperty(key, newPos);
+
+								return null;
+							}
+
+						});
+
+					}
+
+					logger.log(Level.INFO, "Node {0}: Put relationship {1} into map at position {2}", new Object[] { node, rel, position });
 
 				}
 

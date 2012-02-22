@@ -153,7 +153,7 @@ var _Contents = {
                                     headers: headers,
                                     data: data,
                                     success: function(data) {
-                                        refreshIframes();
+                                        _Resources.reloadPreviews();
                                         keyEventBlocked = true;
                                     //enable(button);
                                     }

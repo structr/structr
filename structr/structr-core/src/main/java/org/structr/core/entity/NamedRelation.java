@@ -102,15 +102,22 @@ public class NamedRelation {
 		return rel;
 	}
 
-	public List<? extends GraphObject> getRelationships(GraphObject obj) throws FrameworkException {
+	public List<? extends GraphObject> getRelationships(AbstractNode obj) throws FrameworkException {
 
 		Class namedRelationType = getEntityClass();
 		List<GraphObject> typeFilteredResults = new LinkedList<GraphObject>();
 
+		if (!(obj instanceof AbstractNode)) {
+			logger.log(Level.SEVERE, "Requested relationships of a non-node object");
+			throw new FrameworkException(HttpServletResponse.SC_BAD_REQUEST, new ErrorBuffer()); 
+		}
+		
+		AbstractNode node = (AbstractNode) obj;
+		
 		// filter relationships for correct type
-		for(GraphObject o : obj.getRelationships(relType, getDirectionForType(obj.getStringProperty(AbstractNode.Key.type.name())))) {
-			if(o.getClass().equals(namedRelationType)) {
-				typeFilteredResults.add(o);
+		for (AbstractRelationship rel : node.getRelationships(relType, getDirectionForType(obj.getStringProperty(AbstractNode.Key.type.name())))) {
+			if(rel.getClass().equals(namedRelationType)) {
+				typeFilteredResults.add(rel);
 			}
 		}
 

@@ -50,8 +50,6 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.converter.RelationshipEndNodeIdProvider;
-import org.structr.core.converter.RelationshipStartNodeIdProvider;
 import org.structr.core.entity.NamedRelation;
 import org.structr.core.node.IndexRelationshipCommand;
 import org.structr.core.node.RelationshipFactory;
@@ -124,25 +122,6 @@ public class EntityContext {
 
 		globalRelationshipNameMap.put(relationName, new NamedRelation(relationName, sourceType, destType, relType));
 		globalRelationshipClassMap.put(combinedRelType(sourceType, destType, relType), relationshipEntityType);
-
-		// automatically register start and end node providers
-		try {
-			AbstractRelationship rel = (AbstractRelationship)relationshipEntityType.newInstance();
-			PropertyKey startNodeIdentifierKey = rel.getStartNodeIdentifier();
-			PropertyKey endNodeIdentifierKey   = rel.getEndNodeIdentifier();
-
-			if(startNodeIdentifierKey != null && endNodeIdentifierKey != null) {
-
-				String startNodeIdentifier = startNodeIdentifierKey.name();
-				String endNodeIdentifier = endNodeIdentifierKey.name();
-
-				EntityContext.registerPropertyConverter(relationshipEntityType, startNodeIdentifier, RelationshipStartNodeIdProvider.class);
-				EntityContext.registerPropertyConverter(relationshipEntityType, endNodeIdentifier,   RelationshipEndNodeIdProvider.class);
-			}
-
-		} catch(Throwable t) {
-			logger.log(Level.WARNING, "Unable to register start and/or end node provider for named relation.", t);
-		}
 	}
 
 	public static NamedRelation getNamedRelation(String relationName) {

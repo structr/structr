@@ -2486,7 +2486,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 *
 	 * @return list with relationships
 	 */
-	@Override
 	public List<AbstractRelationship> getRelationships(RelationshipType type, Direction dir) {
 		try {
 			return (List<AbstractRelationship>) Services.command(securityContext, NodeRelationshipsCommand.class).execute(this, type, dir);
@@ -2501,7 +2500,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 *
 	 * @return number of relationships
 	 */
-	@Override
 	public Map<RelationshipType, Long> getRelationshipInfo(Direction dir) {
 		try {
 			return (Map<RelationshipType, Long>) Services.command(securityContext, NodeRelationshipStatisticsCommand.class).execute(this, dir);
@@ -3455,21 +3453,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		return (null);
 	}
 
-	@Override
-	public Long getStartNodeId() {
-		return null;
-	}
-
-	@Override
-	public Long getEndNodeId() {
-		return null;
-	}
-
-	@Override
-	public Long getOtherNodeId(final AbstractNode node) {
-		return null;
-	}
-
 	private String getSingularTypeName(String key) {
 
 		return (key.endsWith("ies")
@@ -3924,7 +3907,11 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 				rel.createRelationship(securityContext, this, graphObject);
 			} else {
 				
+				// new value is null
 				Object existingValue = getProperty(key);
+				
+				// do nothing if value is already null
+				if (existingValue == null) return;
 				
 				// support collection resources, too
 				if (existingValue instanceof IterableAdapter) {

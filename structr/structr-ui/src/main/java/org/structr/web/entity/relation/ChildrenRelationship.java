@@ -42,12 +42,12 @@ public class ChildrenRelationship extends AbstractRelationship {
 	}
 
 	@Override
-	public PropertyKey getStartNodeIdentifier() {
+	public PropertyKey getStartNodeIdKey() {
 		return Key.parent_id;
 	}
 
 	@Override
-	public PropertyKey getEndNodeIdentifier() {
+	public PropertyKey getEndNodeIdKey() {
 		return Key.child_id;
 	}
 

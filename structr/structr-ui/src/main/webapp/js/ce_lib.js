@@ -218,10 +218,12 @@ function isIn(id, ids) {
 }
 
 function escapeTags(str) {
+	if (!str) return str;
     return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 function unescapeTags(str) {
+	if (!str) return str;
     return str.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
 }
 
