@@ -53,12 +53,24 @@ var _Resources = {
         elements = $('#elements', main);
         main.before('<div id="hoverStatus">Hover status</div>');
 //        main.before('<div id="offset">Offset</div>');
+		previews.append('<div id="sliderBox"><div id="sliderValue"></div><div id="slider"></div></div>');
+		console.log($("#slider"));
+		$("#slider").slider({
+			value: 100,
+			min: 0,
+			max: 100,
+			slide: function(event,ui) {
+				//$('#sliderValue').text(ui.value);
+				_Resources.zoomPreviews(ui.value);
+			}
+		});
 
         _Resources.refresh();
         _Resources.refreshComponents();
         _Resources.refreshElements();
         _Elements.showPalette();
         _Contents.refresh();
+
 
     //        main.height($(window).height()-header.height()-palette.height()-24);
 
@@ -1057,7 +1069,16 @@ var _Resources = {
             this.contentDocument.location.reload(true);
         });
     },
-
+    
+	zoomPreviews : function(value) {
+        $('iframe', $('#previews')).each(function() {
+			var val = value/100;
+		    $(this).css('-moz-transform',    'scale(' + val + ')');
+			$(this).css('-o-transform',      'scale(' + val + ')');
+			$(this).css('-webkit-transform', 'scale(' + val + ')');
+		});
+    },
+	
     linkSelectionToResource : function(rootResourceId, sourceId, linkedResourceId, startOffset, endOffset) {
         console.log('linkResourcesToSelection(' + rootResourceId + ', ' + sourceId + ', ' + linkedResourceId + ', ' + startOffset + ', ' + endOffset + ')');
         var data = '{ "command" : "LINK" , "id" : "' + sourceId + '" , "data" : { "rootResourceId" : "' + rootResourceId + '", "resourceId" : "' + linkedResourceId + '", "startOffset" : ' + startOffset + ', "endOffset" : ' + endOffset + '} }';

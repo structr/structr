@@ -155,9 +155,9 @@ img.disabled {
         overflow: hidden;*/
 }
 
-#resources {
+/*#resources, #previews {
 	width: 1000px;
-}
+}*/
 
 #resources,
 #previews,
@@ -355,22 +355,23 @@ tr:nth-child(even) {
     height: 1000px;
     float: left;
     background: #fff;
-    /*    margin-left: 12px;*/
+        margin-left: 12px;
     border: 1px solid #a5a5a5;
     overflow: auto;
 }
 
 .preview_box iframe {
+	float: left;
     width: 1000px;
     height: 1000px;
     border: 0;
-    /*zoom: 0.75;
-    -moz-transform: scale(0.75);
-    -moz-transform-origin: 0 0;
+/*    zoom: 0.75;*/
+/*    -moz-transform: scale(0.75);
     -o-transform: scale(0.75);
+    -webkit-transform: scale(0.75);*/
+    -moz-transform-origin: 0 0;
     -o-transform-origin: 0 0;
-    -webkit-transform: scale(0.75);
-    -webkit-transform-origin: 0 0*/;
+    -webkit-transform-origin: 0 0;
 }
 
 .CodeMirror {
@@ -588,4 +589,8 @@ button img {
 
 .added {
     background-color: green;
+}
+
+#sliderBox {
+	padding: 10px ! important;
 }
