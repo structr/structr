@@ -585,3 +585,7 @@ button img {
     border: 1px solid red;
     position: absolute;
 }
+
+.added {
+    background-color: green;
+}

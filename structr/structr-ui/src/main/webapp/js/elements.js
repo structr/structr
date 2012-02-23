@@ -70,6 +70,10 @@ var _Elements = {
 
     elementGroups : [
     {
+        'name' : 'Root',
+        'elements' : ['html']
+    },
+    {
         'name' : 'Metadata',
         'elements' : ['head', 'title', 'base', 'link', 'meta', 'style']
     },

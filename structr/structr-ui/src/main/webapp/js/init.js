@@ -251,6 +251,8 @@ var Structr = {
         $.blockUI.defaults.overlayCSS.opacity = .6;
         $.blockUI.defaults.applyPlatformOpacityRules = false;
         $.blockUI({
+            fadeIn: 50,
+            fadeOut: 50,
             message: $('#infoBox'),
             css: {
                 border: 'none',

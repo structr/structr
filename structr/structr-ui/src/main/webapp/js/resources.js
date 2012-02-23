@@ -276,8 +276,8 @@ var _Resources = {
                         } else {
                             
                             // we're in the iframe
-                            resource = $(this).closest('html')[0];
-                            resourceId = $(resource).attr('structr_element_id');
+                            resource = $(this).closest('[structr_resource_id]')[0];
+                            resourceId = $(resource).attr('structr_resource_id');
                             pos = $('[structr_element_id]', $(this)).length;
                         }
                         
@@ -303,7 +303,7 @@ var _Resources = {
 
                         
                         if (resourceId) {
-                            props = '"' + resourceId + '" : "' + pos + '"';
+                            props = '"resourceId" : "' + resourceId + '", "' + resourceId + '" : "' + pos + '"';
                         } else {
                             props = '"*" : "' + pos + '"';
                         }
@@ -584,7 +584,7 @@ var _Resources = {
                 var props;
                 if (resource) {
                     var resourceId = getIdFromClassString($(resource).attr('class'));
-                    props = '"' + resourceId + '" : "' + pos + '"';
+                    props = '"resourceId" : "' + resourceId + '", "' + resourceId + '" : "' + pos + '"';
                 } else {
                     props = '"*" : "' + pos + '"';
                 }
@@ -656,7 +656,7 @@ var _Resources = {
                 var props;
                 if (resource) {
                     var resourceId = getIdFromClassString($(resource).attr('class'));
-                    props = '"' + resourceId + '" : "' + pos + '"';
+                    props = '"resourceId" : "' + resourceId + '", "' + resourceId + '" : "' + pos + '"';
                 } else {
                     props = '"*" : "' + pos + '"';
                 }
@@ -729,33 +729,81 @@ var _Resources = {
 
     },
 
-    addElementToResource : function(elementId, resourceId) {
+    addElementToResource : function(elementId, parentId) {
         if (debug) console.log('Resources.appendElementToResource');
 
-        var resource = $('.' + resourceId + '_');
+        var parent = $('.' + parentId + '_', resources);
         var element = $('.' + elementId + '_', elements);
 
-        var existing = $('.' + elementId + '_', resource);
+        //var existing = $('.' + elementId + '_', resource);
 
-        if (existing.length) return;
+        //if (existing.length) return;
 
-        if (debug) console.log(resource, element);
+        if (debug) console.log(parent, element);
         
         var div = element.clone();
-        resource.append(div);
+        parent.append(div);
 
         $('.delete_icon', div).remove();
-        div.append('<img title="Remove element ' + elementId + ' from resource ' + resourceId + '" '
-            + 'alt="Remove element ' + elementId + ' from resource ' + resourceId + '" class="delete_icon button" src="' + _Elements.delete_icon + '">');
-        $('.delete_icon', div).on('click', function() {
-            _Resources.removeElementFromResource(elementId, resourceId);
+
+        div.append('<img title="Remove element ' + elementId + ' from resource ' + parentId + '" '
+            + 'alt="Remove element ' + elementId + ' from resource ' + parentId + '" class="delete_icon button" src="' + _Elements.delete_icon + '">');
+        $('.delete_icon', div).on('click', function(e) {
+            e.stopPropagation();
+            var self = $(this);
+            self.off('click');
+            self.off('mouseover');
+            _Resources.removeElementFromResource(elementId, parentId);
         });
         //element.draggable('destroy');
 
-        var numberOfElements = $('.element', resource).size();
+        div.droppable({
+            accept: '.element, .content',
+            greedy: true,
+            hoverClass: 'elementHover',
+            drop: function(event, ui) {
+
+                console.log('appendElementElement', $(this));
+
+                var resource = $(this).closest( '.resource')[0];
+                if (debug) console.log(resource);
+                var contentId = getIdFromClassString(ui.draggable.attr('class'));
+                var elementId = getIdFromClassString($(this).attr('class'));
+
+                if (debug) console.log('Content Id: ' + contentId);
+                if (!contentId) {
+                    // create element on the fly
+                    //var el = _Elements.addElement(null, 'element', null);
+                    var tag = $(ui.draggable).text();
+                //var el = _Elements.addElement(null, 'Element', '"tag":"' + tag + '"');
+                //if (debug) console.log(el);
+                //contentId = el.id;
+                //if (debug) console.log('Created new element on the fly: ' + contentId);
+                }
+
+                var pos = $('.content, .element', $(this)).length;
+                if (debug) console.log(pos);
+                var props;
+                if (resource) {
+                    var resourceId = getIdFromClassString($(resource).attr('class'));
+                    props = '"resourceId" : "' + resourceId + '", "' + resourceId + '" : "' + pos + '"';
+                } else {
+                    props = '"*" : "' + pos + '"';
+                }
+
+                if (!contentId) {
+                    props += ', "name" : "New ' + tag + ' ' + Math.floor(Math.random() * (999999 - 1)) + '", "type" : "' + tag.capitalize() + '", "tag" : "' + tag + '"';
+                }
+
+                if (debug) console.log(props);
+                _Entities.addSourceToTarget(contentId, elementId, props);
+            }
+        });
+
+        var numberOfElements = $('.element', parent).size();
         if (debug) console.log(numberOfElements);
         if (numberOfElements > 0) {
-            disable($('.delete_icon', resource)[0]);
+            disable($('.delete_icon', parent)[0]);
         }
 
     },

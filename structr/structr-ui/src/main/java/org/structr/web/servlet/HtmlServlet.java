@@ -473,12 +473,13 @@ public class HtmlServlet extends HttpServlet {
 		return rel;
 	}
 
-	private void printNodes(StringBuilder buffer, TreeNode root, int depth, boolean inBody) {
+	private void printNodes(String resourceId, StringBuilder buffer, TreeNode root, int depth, boolean inBody) {
 
 		AbstractNode node        = root.getData();
 		String content           = null;
 		String tag               = null;
 		AbstractRelationship link = null;
+
 
 		if (node != null) {
 
@@ -544,11 +545,16 @@ public class HtmlServlet extends HttpServlet {
 				buffer.append("<").append(tag);
 
 				if (edit && (id != null)) {
-					
+
+					if (depth == 1) {
+						buffer.append(" structr_resource_id='").append(resourceId).append("'");
+					}
+
 					if (node instanceof Content) {
 						buffer.append(" class=\"structr-content-container\" structr_content_id='").append(id).append("'");
 					} else {
-						buffer.append(" class=\"structr-element-container ").append(node.getProperty("_html_class")).append("\" structr_element_id='").append(id).append("'");
+						String htmlClass = node.getStringProperty("_html_class");
+						buffer.append(" class=\"structr-element-container ").append(htmlClass != null ? htmlClass : "").append("\" structr_element_id='").append(id).append("'");
 					}
 
 				}
@@ -589,7 +595,7 @@ public class HtmlServlet extends HttpServlet {
 		// render children
 		for (TreeNode subNode : root.getChildren()) {
 
-			printNodes(buffer, subNode, depth + 1, inBody);
+			printNodes(resourceId, buffer, subNode, depth + 1, inBody);
 
 		}
 
@@ -613,7 +619,7 @@ public class HtmlServlet extends HttpServlet {
 
 		TraversalDescription localDesc   = desc.expand(new ResourceExpander(resource.getStringProperty(AbstractNode.Key.uuid.name())));
 		final NodeFactory factory = new NodeFactory(securityContext);
-		final TreeNode root              = new TreeNode(null);
+		final TreeNode root              = new TreeNode(resource);
 
 		localDesc = localDesc.evaluator(new Evaluator() {
 
@@ -675,9 +681,9 @@ public class HtmlServlet extends HttpServlet {
 		// do traversal to retrieve paths
 		for (Node node : localDesc.traverse(resource.getNode()).nodes()) {
 
-			String name = node.hasProperty("name")
-				      ? (String) node.getProperty("name")
-				      : "unknown";
+//			String name = node.hasProperty("name")
+//				      ? (String) node.getProperty("name")
+//				      : "unknown";
 
 			// System.out.println(node.getProperty("type") + "[" + node.getProperty("uuid") + "]: " + name);
 
@@ -685,7 +691,7 @@ public class HtmlServlet extends HttpServlet {
 
 		StringBuilder buffer = new StringBuilder(10000);    // FIXME: use sensible initial size..
 
-		printNodes(buffer, root, 0, false);
+		printNodes(resource.getStringProperty(Resource.Key.uuid), buffer, root, 0, false);
 
 		return buffer.toString();
 	}

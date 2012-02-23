@@ -329,6 +329,7 @@ function connect() {
 
                 parentId = data.id;
                 entityId = data.data.id;
+                var resourceId = data.data.resourceId;
 
                 parent = $('.' + parentId + '_');
                 entity = $('.' + entityId + '_');
