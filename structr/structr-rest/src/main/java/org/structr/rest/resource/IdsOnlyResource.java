@@ -57,17 +57,27 @@ public class IdsOnlyResource extends ViewFilterResource {
 
 	@Override
 	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
-		throw new IllegalMethodException();
+
+		if(wrappedResource != null) {
+			return wrappedResource.doPost(propertySet);
+		}
+		throw new IllegalPathException();
 	}
 
 	@Override
 	public RestMethodResult doPut(Map<String, Object> propertySet) throws FrameworkException {
-		throw new IllegalMethodException();
+		if(wrappedResource != null) {
+			return wrappedResource.doPut(propertySet);
+		}
+		throw new IllegalPathException();
 	}
 
 	@Override
 	public RestMethodResult doDelete() throws FrameworkException {
-		throw new IllegalMethodException();
+		if(wrappedResource != null) {
+			return wrappedResource.doDelete();
+		}
+		throw new IllegalPathException();
 	}
 
 	@Override
