@@ -103,7 +103,7 @@ public class JsonRestServlet extends HttpServlet {
 	private static final String SERVLET_PARAMETER_DEFAULT_PROPERTY_VIEW = "DefaultPropertyView";
 	private static final String SERVLET_PARAMETER_ID_PROPERTY           = "IdProperty";
 	private static final String SERVLET_PARAMETER_PROPERTY_FORMAT       = "PropertyFormat";
-	private static final String SERVLET_PARAMETER_REQUEST_LOGGING       = "RequestLogging";
+//	private static final String SERVLET_PARAMETER_REQUEST_LOGGING       = "RequestLogging";
 	private static final Logger logger                                  = Logger.getLogger(JsonRestServlet.class.getName());
 
 	//~--- fields ---------------------------------------------------------
@@ -190,25 +190,25 @@ public class JsonRestServlet extends HttpServlet {
 		this.gson = new GsonBuilder().setPrettyPrinting().serializeNulls().registerTypeHierarchyAdapter(FrameworkException.class,
 			new FrameworkExceptionGSONAdapter()).registerTypeAdapter(PropertySet.class, propertySetAdapter).registerTypeAdapter(Result.class, resultGsonAdapter).create();
 
-		String requestLoggingParameter = this.getInitParameter(SERVLET_PARAMETER_REQUEST_LOGGING);
-
-		if ((requestLoggingParameter != null) && "true".equalsIgnoreCase(requestLoggingParameter)) {
-
-			// initialize access log
-			String logFileName = Services.getBasePath().concat("/logs/access.log");
-
-			try {
-
-				File logFile = new File(logFileName);
-
-				logFile.getParentFile().mkdir();
-
-				logWriter = new FileWriter(logFileName);
-
-			} catch (IOException ioex) {
-				logger.log(Level.WARNING, "Could not open access log file {0}: {1}", new Object[] { logFileName, ioex.getMessage() });
-			}
-		}
+//		String requestLoggingParameter = this.getInitParameter(SERVLET_PARAMETER_REQUEST_LOGGING);
+//
+//		if ((requestLoggingParameter != null) && "true".equalsIgnoreCase(requestLoggingParameter)) {
+//
+//			// initialize access log
+//			String logFileName = Services.getBasePath().concat("/logs/access.log");
+//
+//			try {
+//
+//				File logFile = new File(logFileName);
+//
+//				logFile.getParentFile().mkdir();
+//
+//				logWriter = new FileWriter(logFileName);
+//
+//			} catch (IOException ioex) {
+//				logger.log(Level.WARNING, "Could not open access log file {0}: {1}", new Object[] { logFileName, ioex.getMessage() });
+//			}
+//		}
 	}
 
 	@Override
@@ -234,7 +234,7 @@ public class JsonRestServlet extends HttpServlet {
 
 		try {
 
-			logRequest("DELETE", request);
+//			logRequest("DELETE", request);
 			request.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=utf-8");
 
@@ -302,7 +302,7 @@ public class JsonRestServlet extends HttpServlet {
 
 		try {
 
-			logRequest("GET", request);
+//			logRequest("GET", request);
 			request.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=utf-8");
 
@@ -390,7 +390,7 @@ public class JsonRestServlet extends HttpServlet {
 
 		try {
 
-			logRequest("HEAD", request);
+//			logRequest("HEAD", request);
 			request.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=UTF-8");
 
@@ -445,7 +445,7 @@ public class JsonRestServlet extends HttpServlet {
 
 		try {
 
-			logRequest("OPTIONS", request);
+//			logRequest("OPTIONS", request);
 			request.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=UTF-8");
 
@@ -500,7 +500,7 @@ public class JsonRestServlet extends HttpServlet {
 
 		try {
 
-			logRequest("POST", request);
+//			logRequest("POST", request);
 			request.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=UTF-8");
 
@@ -583,7 +583,7 @@ public class JsonRestServlet extends HttpServlet {
 
 		try {
 
-			logRequest("PUT", request);
+//			logRequest("PUT", request);
 			request.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=UTF-8");
 
@@ -651,7 +651,7 @@ public class JsonRestServlet extends HttpServlet {
 	@Override
 	protected void doTrace(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-		logRequest("TRACE", request);
+//		logRequest("TRACE", request);
 		response.setContentType("application/json; charset=UTF-8");
 
 		int code = HttpServletResponse.SC_METHOD_NOT_ALLOWED;
@@ -992,40 +992,40 @@ public class JsonRestServlet extends HttpServlet {
 		return properties;
 	}
 
-	private void logRequest(String method, HttpServletRequest request) {
-
+//	private void logRequest(String method, HttpServletRequest request) {
 //
-//              if(logWriter != null) {
-//
-//                      try {
-//                              logWriter.append(accessLogDateFormat.format(System.currentTimeMillis()));
-//                              logWriter.append(" ");
-//                              logWriter.append(StringUtils.rightPad(method, 8));
-//                              logWriter.append(request.getRequestURI());
-//                              logWriter.append("\n");
-//
-//                              BufferedReader reader = request.getReader();
-//                              if(reader.markSupported()) {
-//                                      reader.mark(65535);
-//                              }
-//
-//                              String line = reader.readLine();
-//                              while(line != null) {
-//                                      logWriter.append("        ");
-//                                      logWriter.append(line);
-//                                      line = reader.readLine();
-//                                      logWriter.append("\n");
-//                              }
-//
-//                              reader.reset();
-//
-//                              logWriter.flush();
-//
-//                      } catch(IOException ioex) {
-//                              // ignore
-//                      }
-//              }
-	}
+////
+////              if(logWriter != null) {
+////
+////                      try {
+////                              logWriter.append(accessLogDateFormat.format(System.currentTimeMillis()));
+////                              logWriter.append(" ");
+////                              logWriter.append(StringUtils.rightPad(method, 8));
+////                              logWriter.append(request.getRequestURI());
+////                              logWriter.append("\n");
+////
+////                              BufferedReader reader = request.getReader();
+////                              if(reader.markSupported()) {
+////                                      reader.mark(65535);
+////                              }
+////
+////                              String line = reader.readLine();
+////                              while(line != null) {
+////                                      logWriter.append("        ");
+////                                      logWriter.append(line);
+////                                      line = reader.readLine();
+////                                      logWriter.append("\n");
+////                              }
+////
+////                              reader.reset();
+////
+////                              logWriter.flush();
+////
+////                      } catch(IOException ioex) {
+////                              // ignore
+////                      }
+////              }
+//	}
 
 	// </editor-fold>
 
