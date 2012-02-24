@@ -1870,6 +1870,15 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		Object value = null;
 		Class type   = this.getClass();
 
+		if(key == null) {
+			logger.log(Level.SEVERE, "Invalid property key: null");
+			return null;
+		}
+
+		if(dbNode == null) {
+			return null;
+		}
+
 		// ----- BEGIN property group resolution -----
 		PropertyGroup propertyGroup = EntityContext.getPropertyGroup(type, key);
 		if (propertyGroup != null) {
