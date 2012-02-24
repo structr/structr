@@ -31,12 +31,6 @@ import org.structr.common.SecurityContext;
 import org.structr.core.Command;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
-import org.structr.core.node.CreateRelationshipCommand;
-import org.structr.core.node.DeleteRelationshipCommand;
-import org.structr.core.node.FindNodeCommand;
-import org.structr.core.node.NodeFactoryCommand;
-import org.structr.core.node.StructrTransaction;
-import org.structr.core.node.TransactionCommand;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -59,6 +53,7 @@ import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.RelationshipNotion;
+import org.structr.core.validator.SimpleRegexValidator;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -108,8 +103,9 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 		// register transformation for automatic uuid creation
 		EntityContext.registerEntityCreationTransformation(AbstractRelationship.class, new UuidCreationTransformation());
-
-
+		
+		// register uuid validator
+		EntityContext.registerPropertyValidator(AbstractRelationship.class, AbstractNode.Key.uuid, new SimpleRegexValidator("[a-zA-Z0-9]{32}"));
 	}
 
 	//~--- constant enums -------------------------------------------------

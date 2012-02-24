@@ -114,6 +114,7 @@ import javax.servlet.http.HttpSession;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.NullArgumentToken;
 import org.structr.common.error.ReadOnlyPropertyToken;
+import org.structr.core.validator.SimpleRegexValidator;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -174,7 +175,9 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 		// register transformation for automatic uuid creation
 		EntityContext.registerEntityCreationTransformation(AbstractNode.class, new UuidCreationTransformation());
-
+		
+		// register uuid validator
+		EntityContext.registerPropertyValidator(AbstractNode.class, AbstractNode.Key.uuid, new SimpleRegexValidator("[a-zA-Z0-9]{32}"));
 	}
 
 	//~--- fields ---------------------------------------------------------

@@ -283,6 +283,13 @@ public abstract class Search {
 		return attr;
 	}
 
+	public static SearchAttribute orExactProperty(final PropertyKey propertyKey, final String searchString) {
+
+		SearchAttribute attr = new TextualSearchAttribute(propertyKey.name(), exactMatch(searchString), SearchOperator.OR);
+
+		return attr;
+	}
+
 	public static SearchAttribute andExactProperty(final String key, final String searchString) {
 
 		SearchAttribute attr = new TextualSearchAttribute(key, exactMatch(searchString), SearchOperator.AND);
