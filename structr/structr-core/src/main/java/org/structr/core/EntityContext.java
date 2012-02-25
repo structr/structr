@@ -879,7 +879,7 @@ public class EntityContext {
 
 					AbstractRelationship relationship = relFactory.createRelationship(securityContext, rel);
 
-					hasError |= graphObjectDeleted(securityContext, transactionKey, errorBuffer, removedRelProperties.get(rel));
+					hasError |= graphObjectDeleted(securityContext, transactionKey, errorBuffer, relationship, removedRelProperties.get(rel));
 
 					deletedRels.add(relationship);
 
@@ -888,7 +888,7 @@ public class EntityContext {
 				// 5: notify listeners of node deletion
 				for (Node node : data.deletedNodes()) {
 
-					hasError |= graphObjectDeleted(securityContext, transactionKey, errorBuffer, removedNodeProperties.get(node));
+					hasError |= graphObjectDeleted(securityContext, transactionKey, errorBuffer, null, removedNodeProperties.get(node));
 
 				}
 
@@ -1102,13 +1102,13 @@ public class EntityContext {
 		}
 
 		@Override
-		public boolean graphObjectDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, Map<String, Object> properties) {
+		public boolean graphObjectDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject, Map<String, Object> properties) {
 
 			boolean hasError = false;
 
 			for (VetoableGraphObjectListener listener : modificationListeners) {
 
-				hasError |= listener.graphObjectDeleted(securityContext, transactionKey, errorBuffer, properties);
+				hasError |= listener.graphObjectDeleted(securityContext, transactionKey, errorBuffer, graphObject, properties);
 
 			}
 

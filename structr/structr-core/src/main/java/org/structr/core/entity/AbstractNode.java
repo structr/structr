@@ -1287,7 +1287,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		}
 	}
 
-	// ----- protected methods -----
 	protected String createUniqueIdentifier(String prefix) {
 
 		StringBuilder identifier = new StringBuilder(100);
@@ -1341,6 +1340,36 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		}
 
 		return (count);
+	}
+
+	protected Set toSet(Object source) {
+
+		if(source instanceof Iterable) {
+
+			Iterable<AbstractNode> iterable = (Iterable<AbstractNode>)source;
+			Set<AbstractNode> nodes = new LinkedHashSet();
+			for(AbstractNode node : iterable) {
+				nodes.add(node);
+			}
+			return nodes;
+		}
+
+		return null;
+	}
+
+	protected List toList(Object source) {
+
+		if(source instanceof Iterable) {
+
+			Iterable<AbstractNode> iterable = (Iterable<AbstractNode>)source;
+			List<AbstractNode> nodes = new LinkedList();
+			for(AbstractNode node : iterable) {
+				nodes.add(node);
+			}
+			return nodes;
+		}
+
+		return null;
 	}
 
 	@Override
