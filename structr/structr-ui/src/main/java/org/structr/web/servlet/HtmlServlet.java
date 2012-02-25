@@ -525,7 +525,7 @@ public class HtmlServlet extends HttpServlet {
 
 			// In edit mode, add an artificial 'div' tag around content nodes within body
 			// to make them editable
-			if (edit && inBody && (tag == null) && (node instanceof Content)) {
+			if (edit && inBody && (node instanceof Content)) {
 
 				tag = "div";
 
@@ -556,6 +556,9 @@ public class HtmlServlet extends HttpServlet {
 						String htmlClass = node.getStringProperty("_html_class");
 						buffer.append(" class=\"structr-element-container ").append(htmlClass != null ? htmlClass : "").append("\" structr_element_id='").append(id).append("'");
 					}
+
+					buffer.append(" structr_type='").append(node.getType()).append("'");
+					buffer.append(" structr_name='").append(node.getName()).append("'");
 
 				}
 

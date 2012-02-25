@@ -53,6 +53,16 @@ var _Contents = {
     },
 
     show : function() {
+
+        palette.append('<div class="elementGroup"><h3>Content</h3><div class="draggable content" id="add_content">content</div></div>');
+        $('#add_content', palette).draggable({
+            iframeFix: true,
+            revert: 'invalid',
+            containment: 'body',
+            zIndex: 1,
+            helper: 'clone'
+        });
+
         return _Entities.showEntities('Content');
     },
 
@@ -120,7 +130,7 @@ var _Contents = {
             contentBox.remove();
             enable(button, function() {
                 //editContent(button, resourceId, contentId);
-            });
+                });
         });
         var codeMirror;
         var url = rootUrl + 'content' + '/' + entity.id;

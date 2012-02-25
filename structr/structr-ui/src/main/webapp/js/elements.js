@@ -154,6 +154,7 @@ var _Elements = {
     
     refresh : function() {
         elements.empty();
+
         if (_Elements.show()) {
             elements.append('<button class="add_element_icon button"><img title="Add Element" alt="Add Element" src="' + _Elements.add_icon + '"> Add Element</button>');
 

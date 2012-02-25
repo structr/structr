@@ -18,7 +18,7 @@
  */
 
 var resources;
-var previews;
+var previews, previewTabs;
 var selStart, selEnd;
 var sel;
 var contentSourceId, elementSourceId, rootId;
@@ -51,19 +51,50 @@ var _Resources = {
         main.before('<div id="palette"></div>');
         palette = $('#palette');
         elements = $('#elements', main);
-        main.before('<div id="hoverStatus">Hover status</div>');
-//        main.before('<div id="offset">Offset</div>');
-		previews.append('<div id="sliderBox"><div id="sliderValue"></div><div id="slider"></div></div>');
-		console.log($("#slider"));
-		$("#slider").slider({
-			value: 100,
-			min: 0,
-			max: 100,
-			slide: function(event,ui) {
-				//$('#sliderValue').text(ui.value);
-				_Resources.zoomPreviews(ui.value);
-			}
-		});
+        //main.before('<div id="hoverStatus">Hover status</div>');
+        $('#controls', main).remove();
+        main.children().first().before('<div id="controls"><input type="checkbox" id="toggleResources">Show Resource Tree <input type="checkbox" id="toggleComponents">Show Components <input type="checkbox" id="toggleElements">Show Elements <input type="checkbox" id="toggleContents">Show Contents</div>');
+
+        previews.append('<div id="previewTabs"></div>');
+        previewTabs = $('#previewTabs', previews);
+
+        $('#toggleResources').on('click', function(){
+            resources.children().each(function(i,v) {
+                $(this).toggle();
+            });
+        });
+
+        $('#toggleComponents').on('click', function(){
+            components.children().each(function(i,v) {
+                $(this).toggle();
+            });
+        });
+
+        $('#toggleElements').on('click', function(){
+            elements.children().each(function(i,v) {
+                $(this).toggle();
+            });
+        });
+
+        $('#toggleContents').on('click', function(){
+            contents.children().each(function(i,v) {
+                $(this).toggle();
+            });
+        });
+
+
+        //        main.before('<div id="offset">Offset</div>');
+//        previews.append('<div id="sliderBox"><div id="sliderValue"></div><div id="slider"></div></div>');
+//        console.log($("#slider"));
+//        $("#slider").slider({
+//            value: 100,
+//            min: 0,
+//            max: 100,
+//            slide: function(event,ui) {
+//                //$('#sliderValue').text(ui.value);
+//                _Resources.zoomPreviews(ui.value);
+//            }
+//        });
 
         _Resources.refresh();
         _Resources.refreshComponents();
@@ -71,6 +102,10 @@ var _Resources = {
         _Elements.showPalette();
         _Contents.refresh();
 
+        previewTabs.append('<button id="add_resource" class="view_resource_icon button"><img class="add_button icon" src="icon/add.png"></button>');
+        $('#add_resource', previewTabs).on('click', function() {
+            _Resources.addResource(this);
+        });
 
     //        main.height($(window).height()-header.height()-palette.height()-24);
 
@@ -84,6 +119,7 @@ var _Resources = {
                 _Resources.addResource(this);
             });
         }
+
     },
 
     refreshComponents : function() {
@@ -183,6 +219,11 @@ var _Resources = {
     },
 	
     appendResourceElement : function(resource, resourceId) {
+
+        previewTabs.children('button').each(function() {
+            $(this).removeClass('active');
+        });
+
         resources.append('<div class="node resource ' + resource.id + '_"></div>');
         var div = $('.' + resource.id + '_', resources);
 		
@@ -200,7 +241,7 @@ var _Resources = {
 
         div.append('<img title="Link resource \'' + resource.name + '\' to current selection" alt="Link resource \'' + resource.name + '\' to current selection" class="link_icon button" src="' + Structr.link_icon + '">');
         $('.link_icon', div).on('click', function() {
-            console.log(rootId, sourceId);
+            //console.log(rootId, sourceId);
             if (sourceId && selStart && selEnd) {
                 // function(resourceId, sourceId, linkedResourceId, startOffset, endOffset)
                 _Resources.linkSelectionToResource(rootId, sourceId, resource.id, selStart, selEnd);
@@ -226,13 +267,78 @@ var _Resources = {
             self.off('mouseover');
             _Entities.showProperties(this, resource, 'all', $('.' + resource.id + '_', resources));
         });
-		
-        previews.append('<a target="_blank" href="' + viewRootUrl + resource.name + '">'
-            + '<button class="view_resource_icon button"><img title="View ' + resource.name + ' in new window" alt="View ' + resource.name + ' in new window" src="icon/eye.png"> ' + resource.name + '</button>'
-            + '</a><br><div class="preview_box"><iframe id="preview_'
+
+
+        
+        previewTabs.children().last().before(''
+            + '<button id="show_' + resource.id + '" class="view_resource_icon button active">' + resource.name + ' <!--a target="_blank" href="' + viewRootUrl + resource.name + '"><img title="View ' + resource.name + ' in new window" alt="View ' + resource.name + ' in new window" src="icon/eye.png">'
+            + '</a--></button>');
+
+
+        previews.append('<div class="preview_box"><iframe id="preview_'
             + resource.id + '" src="' + viewRootUrl + resource.name + '?edit"></iframe></div><div style="clear: both"></div>');
-		
+
+        $('#show_' + resource.id, previews).on('dblclick', function(e) {
+            e.stopPropagation();
+            window.open(viewRootUrl + resource.name);
+        });
+
+        $('#show_' + resource.id, previews).on('click', function(e) {
+            e.stopPropagation();
+            var self = $(this);
+            if (self.hasClass('active')) {
+                self.off('click');
+                var oldName = self.text();
+                console.log('name change', oldName);
+                self.text('');
+                self.append('<input class="newName" type="text" value="' + oldName + '">');
+                $('.newName', self).on('change', function() {
+                    var input = $(this);
+                    var newName = input.val();
+                    console.log('new name', newName);
+                    self.children('.newName').remove();
+                    self.text(newName);
+                    self.on('click', function() {
+                        previewTabs.children('button').each(function() {
+                            $(this).removeClass('active');
+                        });
+                        $(this).addClass('active');
+                        var id = $(this).attr('id').substring(5);
+                        console.log($('#preview_' + id).parent());
+                        $('#preview_' + id).parent().show();
+                    });
+
+                });
+
+            }
+        });
+
+        $('#show_' + resource.id, previews).on('click', function(e) {
+            //e.stopPropagation();
+            previewTabs.children('button').each(function() {
+                $(this).removeClass('active');
+            });
+            
+            $(this).addClass('active');
+            $('.preview_box', previews).each(function() {
+                $(this).hide();
+            });
+            //var id = $(this).attr('id').substring(5);
+            $('#preview_' + resource.id).parent().show();
+            //console.log(id, resource.id);
+        });
+
+        $('#preview_' + resource.id).on('mouseout', function() {
+            $(this).find('.structr-element-container-header').remove();
+        });
+
         $('#preview_' + resource.id).load(function() {
+
+//            previewTabs.children('button').each(function() {
+//                $(this).removeClass('active');
+//            });
+//
+//            previewTabs.children('#show_' + resource.id).addClass('active');
 
             //console.log('Preview ' + resource.id + ' offset: ', $(this).offset());
             var offset = $(this).offset();
@@ -242,12 +348,15 @@ var _Resources = {
             var head = $(doc).find('head');
             if (head) head.append('<style type="text/css">'
                 + '* { z-index: 0}\n'
-                + '.structr-content-container { display: inline; border: none; margin: 0; padding: 0; }\n'
+                + '.structr-content-container { display: inline-block; border: none; margin: 0; padding: 0; min-height: 10px; min-width: 10px; }\n'
+                + '.structr-element-container { display; inline-block; border: 1px dotted #e5e5e5; min-height: 10px; min-width: 10px; }\n'
                 + '.structr-element-container:hover { border: 1px dotted red; }\n'
                 + '.structr-droppable-area { border: 1px dotted red; }\n'
                 + '.structr-editable-area { border: 1px dotted orange; margin: -1px; padding: 0; }\n'
                 + '.structr-editable-area-active { background-color: #ffe; border: 1px solid orange; color: #333; margin: -1px; padding: 0; }'
-                + '.link-hover { border: 1px solid #00c }'
+                + '.structr-element-container-header { float: right; font-size: 8pt; }'
+                + '.structr-element-container-header img { float: right; padding-top: -16px; padding-right: -16px; filter: alpha(opacity=80); -khtml-opacity: 0.8; -moz-opacity: 0.8; opacity: 0.8; }'
+                + '.link-hover { border: 1px solid #00c; }'
                 + '</style>');
 	
             //var iframe = $(this).contents()[0];
@@ -273,7 +382,7 @@ var _Resources = {
                     iframeOffset: {
                         'top' : offset.top,
                         'left' : offset.left
-                        },
+                    },
                     drop: function(event, ui) {
                         var resource = $(this).closest( '.resource')[0];
                         var resourceId;
@@ -293,7 +402,7 @@ var _Resources = {
                             pos = $('[structr_element_id]', $(this)).length;
                         }
                         
-                        console.log('Dropped on: ' , $(this));
+                        //console.log('Dropped on: ' , $(this));
                         //console.log('ui: ' , ui);
                         //console.log('Resource: ' , resource);
                         //console.log('ResourceId: ' + resourceId);
@@ -306,10 +415,10 @@ var _Resources = {
                             // create element on the fly
                             //var el = _Elements.addElement(null, 'element', null);
                             var tag = $(ui.draggable).text();
-                            //var el = _Elements.addElement(null, 'Element', '"tag":"' + tag + '"');
-                            //if (debug) console.log(el);
-                            //contentId = el.id;
-                            //console.log('Created new element on the fly: ' + contentId);
+                        //var el = _Elements.addElement(null, 'Element', '"tag":"' + tag + '"');
+                        //if (debug) console.log(el);
+                        //contentId = el.id;
+                        //console.log('Created new element on the fly: ' + contentId);
                         }
                         
 
@@ -325,32 +434,54 @@ var _Resources = {
                         if (!contentId) {
                             props += ', "name" : "New ' + tag + ' ' + Math.floor(Math.random() * (999999 - 1)) + '", "type" : "' + tag.capitalize() + '", "tag" : "' + tag + '"';
                         }
-                    console.log('Content Id: ' + contentId);
-                    console.log('Target Id: ' + elementId);
-                    console.log('Position: ' + pos);
-                    console.log(props);
-                    _Entities.addSourceToTarget(contentId, elementId, props);
+                        //console.log('Content Id: ' + contentId);
+                        //console.log('Target Id: ' + elementId);
+                        //console.log('Position: ' + pos);
+                        //console.log(props);
+                        _Entities.addSourceToTarget(contentId, elementId, props);
                     }
                 });
 
                 var structrId = el.attr('structr_element_id');
                 if (structrId) {
-                    el.on({
-                        mouseover: function(e) {
+//                    el.on('mouseout', function() {
+//                        $(this).find('.structr-element-container-header').remove();
+//                    });
+                    el.hoverIntent(function(e) {
                             e.stopPropagation();
                             var self = $(this);
+
+                            //self.parent().parent().children('.structr-element-container-header').remove();
+
+                            //console.log(self, self.children().length, self.text());
+                            if (self.children().length == 0 && self.text() == '') {
+                                //self.children().first().before('<div class="structr-element-container-header"><img title="Delete ' + structrId + '" alt="Delete ' + structrId + '" src="/structr/icon/delete.png"></div>');
+                                self.append('<div class="structr-element-container-header"><img class="icon_delete" title="Delete ' + structrId + '" alt="Delete ' + structrId + '" src="/structr/icon/delete.png"></div>');
+                                $('.structr-element-container-header > img.icon_delete', self).on('click', function() {
+                                    var parent = self.parent();
+                                    var entity = Structr.entity(structrId, parent.attr('structr_element_id'));
+                                    entity.type = self.attr('structr_type');
+                                    entity.name = self.attr('structr_name');
+                                    //console.log(entity);
+                                    var parentId = self.parent().attr('structr_element_id');
+                                    _Entities.removeSourceFromTarget(entity.id, parentId);
+                                    deleteNode(this, entity);
+                                });
+                            }
                             //self.addClass('structr-editable-area');
                             //self.attr('contenteditable', true);
                             //if (debug) console.log(self);
-                            $('#hoverStatus').text(element.nodeName + ': ' + self.attr('structr_element_id'));
+                            //$('#hoverStatus').text(element.nodeName + ': ' + self.attr('structr_element_id'));
                         },
-                        mouseout: function(e) {
+                        function(e) {
                             e.stopPropagation();
                             var self = $(this);
+                            $('.structr-element-container-header', self).remove();
                             //self.removeClass('structr-editable-area');
                             //self.attr('contenteditable', false);
-                            $('#hoverStatus').text('-- non-editable --');
+                            //$('#hoverStatus').text('-- non-editable --');
                         }
+                    );
                     //                        ,
                     //                        click: function() {
                     //                            var self = $(this);
@@ -372,7 +503,6 @@ var _Resources = {
                     //
                     //                            }
                     //                        }
-                    });
 
                 }
             });
@@ -1070,14 +1200,34 @@ var _Resources = {
         });
     },
     
-	zoomPreviews : function(value) {
-        $('iframe', $('#previews')).each(function() {
-			var val = value/100;
-		    $(this).css('-moz-transform',    'scale(' + val + ')');
-			$(this).css('-o-transform',      'scale(' + val + ')');
-			$(this).css('-webkit-transform', 'scale(' + val + ')');
-		});
+    zoomPreviews : function(value) {
+        $('.preview_box', previews).each(function() {
+            var val = value/100;
+            var box = $(this);
+
+//            self.css('-moz-transform',    'scale(' + val + ')');
+//            self.css('-o-transform',      'scale(' + val + ')');
+//            self.css('-webkit-transform', 'scale(' + val + ')');
+
+            box.css('-moz-transform',    'scale(' + val + ')');
+            box.css('-o-transform',      'scale(' + val + ')');
+            box.css('-webkit-transform', 'scale(' + val + ')');
+
+            var w = origWidth * val;
+            var h = origHeight * val;
+
+            box.width(w);
+            box.height(h);
+
+            $('iframe', box).width(w);
+            $('iframe', box).height(h);
+
+            console.log("box,w,h", box, w, h);
+
+        });
+
     },
+
 	
     linkSelectionToResource : function(rootResourceId, sourceId, linkedResourceId, startOffset, endOffset) {
         console.log('linkResourcesToSelection(' + rootResourceId + ', ' + sourceId + ', ' + linkedResourceId + ', ' + startOffset + ', ' + endOffset + ')');
