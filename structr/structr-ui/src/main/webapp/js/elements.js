@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2011 Axel Morgner
+ *  Copyright (C) 2012 Axel Morgner
  *
  *  This file is part of structr <http://structr.org>.
  *
@@ -132,7 +132,8 @@ var _Elements = {
 
     showPalette : function() {
 //        var palette = $('#palette');
-        palette.empty();
+        palette.empty().hide();
+
         $(_Elements.elementGroups).each(function(i,group) {
             if (debug) console.log(group);
             palette.append('<div class="elementGroup" id="group_' + group.name + '"><h3>' + group.name + '</h3></div>');
@@ -148,6 +149,10 @@ var _Elements = {
                 });
             });
 
+        });
+
+        palette.slideDown('slow', function() {
+            console.log('palette ready');
         });
 
     },
@@ -183,25 +188,25 @@ var _Elements = {
         return _Entities.showEntities('Element');
     },
 
-    appendElementElement : function(element, parentId, resourceId) {
+    appendElementElement : function(entity, parentId, resourceId) {
         if (debug) console.log('Elements.appendElementElement: parentId: ' + parentId + ', resourceId: ' + resourceId);
 
         var parent = Structr.findParent(parentId, resourceId, elements);
         
-        parent.append('<div class="node element ' + element.id + '_">'
+        parent.append('<div class="node element ' + entity.id + '_">'
             + '<img class="typeIcon" src="'+ _Elements.icon + '">'
-            + '<b class="tag_">' + element.tag + '</b> <span class="id">' + element.id + '</span>'
-            + (element._html_id ? 'id=' + element._html_id : '')
-            + (element._html_class ? 'class=' + element._html_class : '')
+            + '<b class="tag_">' + entity.tag + '</b> <span class="id">' + entity.id + '</span>'
+            + (entity._html_id ? 'id=' + entity._html_id : '')
+            + (entity._html_class ? 'class=' + entity._html_class : '')
             + '</div>');
-        var div = $('.' + element.id + '_', parent);
-        div.append('<img title="Delete ' + element.tag + ' element ' + element.id + '" alt="Delete ' + element.tag + ' element ' + element.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
+        var div = $('.' + entity.id + '_', parent);
+        div.append('<img title="Delete ' + entity.tag + ' element ' + entity.id + '" alt="Delete ' + entity.tag + ' element ' + entity.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
         $('.delete_icon', div).on('click', function(e) {
             e.stopPropagation();
             var self = $(this);
             self.off('click');
             self.off('mouseover');
-            _Elements.deleteElement(this, element);
+            _Elements.deleteElement(this, entity);
         });
         //        div.append('<img class="add_icon button" title="Add Element" alt="Add Element" src="icon/add.png">');
         //        $('.add_icon', div).on('click', function() {
@@ -217,17 +222,20 @@ var _Elements = {
             $(this).off('mouseout');
 
             if (debug) console.log('parent', parent);
-            _Entities.showProperties(this, element, '_html_', $('.' + element.id + '_', parent));
+            //_Entities.showProperties(this, entity, '_html_', $('.' + entity.id + '_', parent));
+            Structr.dialog('Edit Properties of ' + entity.id, function() { console.log('save')}, function() { console.log('cancelled')});
+ //           _Entities.showProperties(this, entity, 'all', $('#dialogText'));
+            _Entities.showProperties(this, entity, '_html_', $('#dialogText'));
         });
 		
         div.on('mouseover', function(e) {
             e.stopPropagation();
-            _Entities.showNonEmptyProperties(this, element, '_html_', $('.' + element.id + '_', parent));
+            _Entities.showNonEmptyProperties(this, entity, '_html_', $('.' + entity.id + '_', parent));
         });		
 
         div.on('mouseout', function(e) {
             e.stopPropagation();
-            _Entities.hideNonEmptyProperties(this, element, '_html_', $('.' + element.id + '_', parent));
+            _Entities.hideNonEmptyProperties(this, entity, '_html_', $('.' + entity.id + '_', parent));
         });		
 
         return div;

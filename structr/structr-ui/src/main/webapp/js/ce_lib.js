@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2011 Axel Morgner
+ *  Copyright (C) 2012 Axel Morgner
  *
  *  This file is part of structr <http://structr.org>.
  *
@@ -153,6 +153,10 @@ function getIdFromClassString(classString) {
         }
     });
     return id;
+}
+
+function getId(element) {
+    return getIdFromClassString(element.attr('class'));
 }
 
 function lastPart(id, separator) {

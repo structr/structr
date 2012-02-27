@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2011 Axel Morgner
+ *  Copyright (C) 2012 Axel Morgner
  *
  *  This file is part of structr <http://structr.org>.
  *
@@ -38,6 +38,9 @@ var _Resources = {
     },
 
     onload : function() {
+        activeTab = $.cookie('structrActiveTab');
+        console.log('value read from cookie', activeTab);
+
         //Structr.activateMenuEntry('resources');
         if (debug) console.log('onload');
         main.append('<table id="resourcesEditor"><tr><td id="previews"></td><td id="resources"></td><td id="components"></td><td id="elements"></td><td id="contents"></td></tr></table>');
@@ -55,7 +58,7 @@ var _Resources = {
         $('#controls', main).remove();
         main.children().first().before('<div id="controls"><input type="checkbox" id="toggleResources">Show Resource Tree <input type="checkbox" id="toggleComponents">Show Components <input type="checkbox" id="toggleElements">Show Elements <input type="checkbox" id="toggleContents">Show Contents</div>');
 
-        previews.append('<div id="previewTabs"></div>');
+        previews.append('<ul id="previewTabs"></ul>');
         previewTabs = $('#previewTabs', previews);
 
         $('#toggleResources').on('click', function(){
@@ -84,17 +87,17 @@ var _Resources = {
 
 
         //        main.before('<div id="offset">Offset</div>');
-//        previews.append('<div id="sliderBox"><div id="sliderValue"></div><div id="slider"></div></div>');
-//        console.log($("#slider"));
-//        $("#slider").slider({
-//            value: 100,
-//            min: 0,
-//            max: 100,
-//            slide: function(event,ui) {
-//                //$('#sliderValue').text(ui.value);
-//                _Resources.zoomPreviews(ui.value);
-//            }
-//        });
+        //        previews.append('<div id="sliderBox"><div id="sliderValue"></div><div id="slider"></div></div>');
+        //        console.log($("#slider"));
+        //        $("#slider").slider({
+        //            value: 100,
+        //            min: 0,
+        //            max: 100,
+        //            slide: function(event,ui) {
+        //                //$('#sliderValue').text(ui.value);
+        //                _Resources.zoomPreviews(ui.value);
+        //            }
+        //        });
 
         _Resources.refresh();
         _Resources.refreshComponents();
@@ -102,7 +105,7 @@ var _Resources = {
         _Elements.showPalette();
         _Contents.refresh();
 
-        previewTabs.append('<button id="add_resource" class="view_resource_icon button"><img class="add_button icon" src="icon/add.png"></button>');
+        previewTabs.append('<li id="add_resource" class="button"><img class="add_button icon" src="icon/add.png"></li>');
         $('#add_resource', previewTabs).on('click', function() {
             _Resources.addResource(this);
         });
@@ -138,113 +141,134 @@ var _Resources = {
 
     show : function() {
         return _Entities.showEntities('Resource');
-
-    //        $.ajax({
-    //            url: rootUrl + 'resources',
-    //            dataType: 'json',
-    //            contentType: 'application/json; charset=utf-8',
-    //            //headers: { 'X-User' : 457 },
-    //            success: function(data) {
-    //                if (!data || data.length == 0 || !data.result) return;
-    //                if ($.isArray(data.result)) {
-    //
-    //                    for (var i=0; i<data.result.length; i++) {
-    //                        var resource = data.result[i];
-    //
-    //                        Resources.appendResourceElement(resource);
-    //
-    //                        var resourceId = resource.id;
-    //                        //          $('#resources').append('<div class="editor_box"><div class="resource" id="resource_' + id + '">'
-    //                        //                              + '<b>' + resource.name + '</b>'
-    //                        //                              //+ ' [' + id + ']'
-    //                        //                              + '<img class="add_icon button" title="Add Element" alt="Add Element" src="icon/add.png" onclick="addElement(' + id + ', \'#resource_' + id + '\')">'
-    //                        //                              + '<img class="delete_icon button" title="Delete '
-    //                        //                              + resource.name + '" alt="Delete '
-    //                        //                              + resource.name + '" src="icon/delete.png" onclick="deleteNode(' + id + ', \'#resource_' + id + '\')">'
-    //                        //                              + '</div></div>');
-    //                        Resources.showSubEntities(resourceId, null);
-    //
-    //                        $('#previews').append('<a target="_blank" href="' + viewRootUrl + resource.name + '">' + viewRootUrl + resource.name + '</a><br><div class="preview_box"><iframe id="preview_'
-    //                            + resourceId + '" src="' + viewRootUrl + resource.name + '?edit"></iframe></div><div style="clear: both"></div>');
-    //
-    //                        $('#preview_' + resourceId).load(function() {
-    //                            //console.log(this);
-    //                            var doc = $(this).contents();
-    //                            var head = $(doc).find('head');
-    //                            head.append('<style type="text/css">'
-    //                                + '.structr-editable-area {'
-    //                                + 'border: 1px dotted #a5a5a5;'
-    //                                + 'margin: 2px;'
-    //                                + 'padding: 2px;'
-    //                                + '}'
-    //                                + '.structr-editable-area-active {'
-    //                                + 'border: 1px dotted #orange;'
-    //                                + 'margin: 2px;'
-    //                                + 'padding: 2px;'
-    //                                + '}'
-    //                                + '</style>');
-    //
-    //
-    //                            $(this).contents().find('.structr-editable-area').each(function(i,element) {
-    //                                //console.log(element);
-    //                                $(element).addClass('structr-editable-area');
-    //                                $(element).on({
-    //                                    mouseenter: function() {
-    //                                        var self = $(this);
-    //                                        self.attr('contenteditable', true);
-    //                                        self.addClass('structr-editable-area-active');
-    //                                    },
-    //                                    mouseleave: function() {
-    //                                        var self = $(this);
-    //                                        self.attr('contenteditable', true);
-    //                                        self.removeClass('structr-editable-area-active');
-    //                                        var id = self.attr('id');
-    //                                        id = lastPart(id, '-');
-    //                                        Resources.updateContent(id, this.innerHTML);
-    //                                    }
-    //                                });
-    //                            });
-    //                        });
-    //
-    //                    }
-    //                }
-    //            }
-    //        });
-    //
-    //        return true;
     },
 
     showElements : function() {
         return _Resources.showEntities('Element');
     },
-	
-    appendResourceElement : function(resource, resourceId) {
 
-        previewTabs.children('button').each(function() {
+    resetTab : function(element, name) {
+
+        //console.log('resetTab', element);
+
+        element.children('input').hide();
+        element.children('.name_').show();
+        
+        var icon = $('.delete_icon', element);
+        //icon.hide();
+
+        element.hover(function(e) {
+            icon.show();
+        },
+        function(e) {
+            icon.hide();
+        });
+
+        element.on('dblclick', function(e) {
+            var self = $(this);
+            self.off('click');
+            e.stopPropagation();
+            _Resources.resetTab(self);
+            window.open(viewRootUrl + name);
+        });
+
+        element.on('click', function(e) {
+            var self = $(this);
+            //console.log('click', self, self.css('z-index'));
+            if (self.hasClass('active')) {
+                _Resources.makeTabEditable(self);
+            } else {
+                _Resources.activateTab(self);
+            }
+        });
+
+        if (getId(element) == activeTab) {
+            _Resources.activateTab(element);
+        }
+    },
+
+    activateTab : function(element) {
+        
+        var name = $.trim(element.children('b.name_').text());
+        console.log('activateTab', element, name);
+
+        previewTabs.children('li').each(function() {
             $(this).removeClass('active');
         });
 
-        resources.append('<div class="node resource ' + resource.id + '_"></div>');
-        var div = $('.' + resource.id + '_', resources);
+        $('.preview_box', previews).each(function() {
+            $(this).hide();
+        });
+        //var id = $(this).attr('id').substring(5);
+
+        var id = getId(element);
+        activeTab = id;
+
+        var iframe = $('#preview_' + id);
+        console.log(iframe);
+        iframe.attr('src', viewRootUrl + name + '?edit');
+        iframe.parent().show();
+
+        element.addClass('active');
+
+    },
+
+    makeTabEditable : function(element) {
+        //element.off('dblclick');
+        element.off('hover');
+        var oldName = $.trim(element.children('b').text());
+        //console.log('oldName', oldName);
+        element.children('b').hide();
+        element.children('img').hide();
+        element.append('<input type="text" size="' + (oldName.length+4) + '" class="newName_" value="' + oldName + '">');
+
+        var input = $('input', element);
+//        input.on('focus', function(e) {
+//            e.preventDefault();
+//            $(this).select();
+//        });
+
+        input.focus().select();
+
+        //        input.on('blur', function() {
+        //            _Resources.resetTab(element, oldName);
+        //        });
+
+        input.on('blur', function() {
+            var self = $(this);
+            //self.off('dblclick');
+            var newName = self.val();
+            //console.log('new name', $.trim(newName));
+            _Entities.setProperty(getId(element), "name", newName);
+            _Resources.resetTab(element, newName);
+        });
+        element.off('click');
+
+    },
+
+    appendResourceElement : function(entity, resourceId, rootId) {
+
+        resources.append('<div class="node resource ' + entity.id + '_"></div>');
+        var div = $('.' + entity.id + '_', resources);
 		
-        div.append('<img title="Expand resource \'' + resource.name + '\'" alt="Expand resource \'' + resource.name + '\'" class="expand_icon button" src="' + Structr.expand_icon + '">');
+        div.append('<img title="Expand resource \'' + entity.name + '\'" alt="Expand resource \'' + entity.name + '\'" class="expand_icon button" src="' + Structr.expand_icon + '">');
 
         $('.expand_icon', div).on('click', function() {
-            _Resources.toggleResource(this, resource);
+            _Resources.toggleResource(this, entity);
         });
 
 
         div.append('<img class="typeIcon" src="icon/page.png">'
-            + '<b class="name_">' + resource.name + '</b> <span class="id">' + resource.id + '</span>');
+            + '<b class="name_">' + entity.name + '</b> <span class="id">' + entity.id + '</span>');
 		
-        div.append('<img title="Delete resource \'' + resource.name + '\'" alt="Delete resource \'' + resource.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
+        div.append('<img title="Delete resource \'' + entity.name + '\'" alt="Delete resource \'' + entity.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
 
-        div.append('<img title="Link resource \'' + resource.name + '\' to current selection" alt="Link resource \'' + resource.name + '\' to current selection" class="link_icon button" src="' + Structr.link_icon + '">');
+        div.append('<img title="Link resource \'' + entity.name + '\' to current selection" alt="Link resource \'' + entity.name + '\' to current selection" class="link_icon button" src="' + Structr.link_icon + '">');
         $('.link_icon', div).on('click', function() {
             //console.log(rootId, sourceId);
             if (sourceId && selStart && selEnd) {
                 // function(resourceId, sourceId, linkedResourceId, startOffset, endOffset)
-                _Resources.linkSelectionToResource(rootId, sourceId, resource.id, selStart, selEnd);
+                _Resources.linkSelectionToResource(rootId, sourceId, entity.id, selStart, selEnd);
             //$('.link_icon').hide();
             }
         });
@@ -254,7 +278,7 @@ var _Resources = {
             var self = $(this);
             self.off('click');
             self.off('mouseover');
-            _Resources.deleteResource(this, resource);
+            _Resources.deleteResource(this, entity);
         });
         //        div.append('<img class="add_icon button" title="Add Element" alt="Add Element" src="icon/add.png">');
         //        $('.add_icon', div).on('click', function() {
@@ -265,80 +289,111 @@ var _Resources = {
             var self = $(this);
             self.off('click');
             self.off('mouseover');
-            _Entities.showProperties(this, resource, 'all', $('.' + resource.id + '_', resources));
+            Structr.dialog('Edit Properties of ' + entity.id, function() { console.log('save')}, function() { console.log('cancelled')});
+            _Entities.showProperties(this, entity, 'all', $('#dialogText'));
         });
 
+//        previewTabs.children('li').each(function() {
+//            $(this).removeClass('active');
+//        });
 
-        
         previewTabs.children().last().before(''
-            + '<button id="show_' + resource.id + '" class="view_resource_icon button active">' + resource.name + ' <!--a target="_blank" href="' + viewRootUrl + resource.name + '"><img title="View ' + resource.name + ' in new window" alt="View ' + resource.name + ' in new window" src="icon/eye.png">'
-            + '</a--></button>');
+            + '<li id="show_' + entity.id + '" class="button '
+            + entity.id + '_'
+            + '"><b class="name_">' + entity.name + '</b><!--a target="_blank" href="' + viewRootUrl + entity.name + '"><img title="View ' + entity.name + ' in new window" alt="View ' + entity.name + ' in new window" src="icon/eye.png">'
+            + '</a--></li>');
 
+        var tab = $('#show_' + entity.id, previews);
+        tab.append('<img title="Delete resource \'' + name + '\'" alt="Delete resource \'' + name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
+        var icon = $('.delete_icon', tab);
+        icon.hide();
+        icon.on('click', function(e) {
+            e.stopPropagation();
+            //var self = $(this);
+            //console.log('delete icon clicked', self);
+            //e.stopPropagation();
+            //icon.off('click');
+            //icon.off('mouseover');
+            _Resources.deleteResource(this, entity);
+        });
+        icon.on('mouseover', function(e) {
+            var self = $(this);
+            self.show();
+            //e.stopPropagation();
+            //var icon = $(this);
+            //console.log('icon', self);
+        //e.stopPropagation();
+        //icon.off('click');
+        //icon.off('mouseover');
+        });
 
         previews.append('<div class="preview_box"><iframe id="preview_'
-            + resource.id + '" src="' + viewRootUrl + resource.name + '?edit"></iframe></div><div style="clear: both"></div>');
+            + entity.id + '"></iframe></div><div style="clear: both"></div>');
 
-        $('#show_' + resource.id, previews).on('dblclick', function(e) {
-            e.stopPropagation();
-            window.open(viewRootUrl + resource.name);
-        });
+        _Resources.resetTab(tab, entity.name);
 
-        $('#show_' + resource.id, previews).on('click', function(e) {
-            e.stopPropagation();
+        //        $('#show_' + entity.id, previews).on('dblclick', function(e) {
+        //            var self = $(this);
+        //            self.off('click');
+        //            e.stopPropagation();
+        //            _Resources.resetTab(self);
+        //            window.open(viewRootUrl + entity.name);
+        //        });
+
+        //        tab.on('click', function(e) {
+        //            e.stopPropagation();
+        //            e.preventDefault();
+        //            var self = $(this);
+        //
+        //            if (self.hasClass('active')) {
+        //                _Resources.makeTabEditable(self);
+        //            } else {
+        //                _Resources.activateTab(self);
+        //            }
+        //        });
+        //
+        //        tab.hover(function(e) {
+        //            //e.stopPropagation();
+        //            var self = $(this);
+        //            //            console.log('in', self);
+        //            self.append('<img title="Delete resource \'' + entity.name + '\'" alt="Delete resource \'' + entity.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
+        //            self.children('.delete_icon').on('click', function(e) {
+        //                var icon = $(this);
+        //                console.log('icon', icon);
+        //                //e.stopPropagation();
+        //                icon.off('click');
+        //                icon.off('mouseover');
+        //                _Resources.deleteResource(this, entity);
+        //            });
+        //        },
+        //        function(e) {
+        //            e.stopPropagation();
+        //            var self = $(this);
+        //            //            console.log('out', self);
+        //            self.find('.delete_icon').remove();
+        //        });
+        $('#preview_' + entity.id).hover(function() {
             var self = $(this);
-            if (self.hasClass('active')) {
-                self.off('click');
-                var oldName = self.text();
-                console.log('name change', oldName);
-                self.text('');
-                self.append('<input class="newName" type="text" value="' + oldName + '">');
-                $('.newName', self).on('change', function() {
-                    var input = $(this);
-                    var newName = input.val();
-                    console.log('new name', newName);
-                    self.children('.newName').remove();
-                    self.text(newName);
-                    self.on('click', function() {
-                        previewTabs.children('button').each(function() {
-                            $(this).removeClass('active');
-                        });
-                        $(this).addClass('active');
-                        var id = $(this).attr('id').substring(5);
-                        console.log($('#preview_' + id).parent());
-                        $('#preview_' + id).parent().show();
-                    });
-
-                });
-
-            }
+            var elementContainer = self.contents().find('.structr-element-container');
+            //console.log(self, elementContainer);
+            elementContainer.addClass('structr-element-container-active');
+            elementContainer.removeClass('structr-element-container');
+        }, function() {
+            var self = $(this);
+            var elementContainer = self.contents().find('.structr-element-container-active');
+            //console.log(elementContainer);
+            elementContainer.addClass('structr-element-container');
+            elementContainer.removeClass('structr-element-container-active');
+            //self.find('.structr-element-container-header').remove();
         });
 
-        $('#show_' + resource.id, previews).on('click', function(e) {
-            //e.stopPropagation();
-            previewTabs.children('button').each(function() {
-                $(this).removeClass('active');
-            });
-            
-            $(this).addClass('active');
-            $('.preview_box', previews).each(function() {
-                $(this).hide();
-            });
-            //var id = $(this).attr('id').substring(5);
-            $('#preview_' + resource.id).parent().show();
-            //console.log(id, resource.id);
-        });
+        $('#preview_' + entity.id).load(function() {
 
-        $('#preview_' + resource.id).on('mouseout', function() {
-            $(this).find('.structr-element-container-header').remove();
-        });
-
-        $('#preview_' + resource.id).load(function() {
-
-//            previewTabs.children('button').each(function() {
-//                $(this).removeClass('active');
-//            });
-//
-//            previewTabs.children('#show_' + resource.id).addClass('active');
+            //            previewTabs.children('button').each(function() {
+            //                $(this).removeClass('active');
+            //            });
+            //
+            //            previewTabs.children('#show_' + resource.id).addClass('active');
 
             //console.log('Preview ' + resource.id + ' offset: ', $(this).offset());
             var offset = $(this).offset();
@@ -349,8 +404,9 @@ var _Resources = {
             if (head) head.append('<style type="text/css">'
                 + '* { z-index: 0}\n'
                 + '.structr-content-container { display: inline-block; border: none; margin: 0; padding: 0; min-height: 10px; min-width: 10px; }\n'
-                + '.structr-element-container { display; inline-block; border: 1px dotted #e5e5e5; min-height: 10px; min-width: 10px; }\n'
-                + '.structr-element-container:hover { border: 1px dotted red; }\n'
+                + '.structr-element-container-active { display; inline-block; border: 1px dotted #e5e5e5; min-height: 10px; min-width: 10px; }\n'
+                + '.structr-element-container { }\n'
+                + '.structr-element-container-active:hover { border: 1px dotted red; }\n'
                 + '.structr-droppable-area { border: 1px dotted red; }\n'
                 + '.structr-editable-area { border: 1px dotted orange; margin: -1px; padding: 0; }\n'
                 + '.structr-editable-area-active { background-color: #ffe; border: 1px solid orange; color: #333; margin: -1px; padding: 0; }'
@@ -359,11 +415,26 @@ var _Resources = {
                 + '.link-hover { border: 1px solid #00c; }'
                 + '</style>');
 	
-            //var iframe = $(this).contents()[0];
+            var iframeDocument = $(this).contents();
             var iframeWindow = this.contentWindow;
 
-            var droppables = $(this).contents().find('[structr_element_id]');
-            //console.log(droppables);
+            var droppables = iframeDocument.find('[structr_element_id]');
+            console.log('droppables', droppables);
+
+            if (droppables.length == 0) {
+
+                //iframeDocument.append('<html structr_element_id="' + entity.id + '">dummy element</html>');
+                var html = iframeDocument.find('html');
+                html.attr('structr_element_id', entity.id);
+                html.addClass('structr-element-container');
+
+                console.log(iframeDocument.find('html'));
+                // add a dummy element to allow adding the html root element
+
+
+            }
+            droppables = iframeDocument.find('[structr_element_id]');
+            console.log('droppables', droppables);
 
             droppables.each(function(i,element) {
                 //console.log(element);
@@ -432,7 +503,7 @@ var _Resources = {
                         var props;
 
                         if (!contentId) {
-                            props += ', "name" : "New ' + tag + ' ' + Math.floor(Math.random() * (999999 - 1)) + '", "type" : "' + tag.capitalize() + '", "tag" : "' + tag + '"';
+                            props += ', "name" : "New ' + tag + ' ' + Math.floor(Math.random() * (999999 - 1)) + '", "type" : "' + tag.capitalize() + '"' + (tag != 'content' ? ', "tag" : "' + tag + '"' : '');
                         }
                         //console.log('Content Id: ' + contentId);
                         //console.log('Target Id: ' + elementId);
@@ -444,65 +515,72 @@ var _Resources = {
 
                 var structrId = el.attr('structr_element_id');
                 if (structrId) {
-//                    el.on('mouseout', function() {
-//                        $(this).find('.structr-element-container-header').remove();
-//                    });
-                    el.hoverIntent(function(e) {
-                            e.stopPropagation();
-                            var self = $(this);
-
-                            //self.parent().parent().children('.structr-element-container-header').remove();
-
-                            //console.log(self, self.children().length, self.text());
-                            if (self.children().length == 0 && self.text() == '') {
-                                //self.children().first().before('<div class="structr-element-container-header"><img title="Delete ' + structrId + '" alt="Delete ' + structrId + '" src="/structr/icon/delete.png"></div>');
-                                self.append('<div class="structr-element-container-header"><img class="icon_delete" title="Delete ' + structrId + '" alt="Delete ' + structrId + '" src="/structr/icon/delete.png"></div>');
-                                $('.structr-element-container-header > img.icon_delete', self).on('click', function() {
-                                    var parent = self.parent();
-                                    var entity = Structr.entity(structrId, parent.attr('structr_element_id'));
-                                    entity.type = self.attr('structr_type');
-                                    entity.name = self.attr('structr_name');
-                                    //console.log(entity);
-                                    var parentId = self.parent().attr('structr_element_id');
-                                    _Entities.removeSourceFromTarget(entity.id, parentId);
-                                    deleteNode(this, entity);
-                                });
-                            }
-                            //self.addClass('structr-editable-area');
-                            //self.attr('contenteditable', true);
-                            //if (debug) console.log(self);
-                            //$('#hoverStatus').text(element.nodeName + ': ' + self.attr('structr_element_id'));
-                        },
-                        function(e) {
-                            e.stopPropagation();
-                            var self = $(this);
-                            $('.structr-element-container-header', self).remove();
-                            //self.removeClass('structr-editable-area');
-                            //self.attr('contenteditable', false);
-                            //$('#hoverStatus').text('-- non-editable --');
-                        }
+                    
+                    el.append('<div class="structr-element-container-header">'
+                        + '<img class="delete_icon structr-container-button" title="Delete ' + structrId + '" alt="Delete ' + structrId + '" src="/structr/icon/delete.png">'
+                        + '<img class="edit_icon structr-container-button" title="Edit properties of ' + structrId + '" alt="Edit properties of ' + structrId + '" src="/structr/icon/application_view_detail.png"></div>'
                     );
-                    //                        ,
-                    //                        click: function() {
-                    //                            var self = $(this);
-                    //                            //self.addClass('structr-editable-area-active');
-                    //                            sel = iframeWindow.getSelection();
-                    //                            if (sel.rangeCount) {
-                    //                                selStart = sel.getRangeAt(0).startOffset;
-                    //                                selEnd = sel.getRangeAt(0).endOffset;
-                    //                                console.log(selStart, selEnd);
-                    //                                $('.link_icon').show();
-                    //                                //                                sourceId = structrId;
-                    //                                elementSourceId = self.attr('structr_element_id');
-                    //                                if (debug) console.log('sourceId: ' + elementSourceId);
-                    //                                var rootResourceElement = self.closest('html')[0];
-                    //                                console.log(rootResourceElement);
-                    //                                if (rootResourceElement) {
-                    //                                    rootId = $(rootResourceElement).attr('structr_element_id');
-                    //                                }
-                    //
-                    //                            }
-                    //                        }
+
+                    $('.edit_icon', el).on('click', function(e) {
+                        e.stopPropagation();
+                        var self = $(this);
+                        var element = self.closest('[structr_element_id]');
+                        var entity = Structr.entity(structrId, element.attr('structr_element_id'));
+                        entity.type = element.attr('structr_type');
+                        entity.name = element.attr('structr_name');
+                        console.log('edit', entity);
+                        //var parentId = element.attr('structr_element_id');
+                        console.log(element);
+                        Structr.dialog('Edit Properties of ' + entity.id, function() { console.log('save')}, function() { console.log('cancelled')});
+                        _Entities.showProperties(this, entity, 'all', $('#dialogText'));
+                    });
+
+                    $('.delete_icon', el).on('click', function(e) {
+                        e.stopPropagation();
+                        var self = $(this);
+                        var element = self.closest('[structr_element_id]');
+                        var entity = Structr.entity(structrId, element.attr('structr_element_id'));
+                        entity.type = element.attr('structr_type');
+                        entity.name = element.attr('structr_name');
+                        console.log('delete', entity);
+                        var parentId = element.attr('structr_element_id');
+
+                        _Entities.removeSourceFromTarget(entity.id, parentId);
+                        deleteNode(this, entity);
+                    });
+                    $('.structr-element-container-header', el).hide();
+
+                    el.hover(function(e) {
+                        e.stopPropagation();
+                        var header = $(this).children('.structr-element-container-header');
+                        header.show();
+                    },
+                    function(e) {
+                        e.stopPropagation();
+                        var header = $(this).children('.structr-element-container-header');
+                        header.hide();
+                    });
+                //                        ,
+                //                        click: function() {
+                //                            var self = $(this);
+                //                            //self.addClass('structr-editable-area-active');
+                //                            sel = iframeWindow.getSelection();
+                //                            if (sel.rangeCount) {
+                //                                selStart = sel.getRangeAt(0).startOffset;
+                //                                selEnd = sel.getRangeAt(0).endOffset;
+                //                                console.log(selStart, selEnd);
+                //                                $('.link_icon').show();
+                //                                //                                sourceId = structrId;
+                //                                elementSourceId = self.attr('structr_element_id');
+                //                                if (debug) console.log('sourceId: ' + elementSourceId);
+                //                                var rootResourceElement = self.closest('html')[0];
+                //                                console.log(rootResourceElement);
+                //                                if (rootResourceElement) {
+                //                                    rootId = $(rootResourceElement).attr('structr_element_id');
+                //                                }
+                //
+                //                            }
+                //                        }
 
                 }
             });
@@ -655,21 +733,21 @@ var _Resources = {
         return div;
     },
 
-    appendElementElement : function(element, parentId, resourceId) {
+    appendElementElement : function(entity, parentId, resourceId) {
         if (debug) console.log('Resources.appendElementElement');
-        var div = _Elements.appendElementElement(element, parentId, resourceId);
+        var div = _Elements.appendElementElement(entity, parentId, resourceId);
         //console.log(div);
         if (parentId) {
 
             $('.delete_icon', div).remove();
-            div.append('<img title="Remove element \'' + element.name + '\' from resource ' + parentId + '" '
-                + 'alt="Remove element ' + element.name + ' from ' + parentId + '" class="delete_icon button" src="icon/brick_delete.png">');
+            div.append('<img title="Remove element \'' + entity.name + '\' from resource ' + parentId + '" '
+                + 'alt="Remove element ' + entity.name + ' from ' + parentId + '" class="delete_icon button" src="icon/brick_delete.png">');
             $('.delete_icon', div).on('click', function(e) {
                 e.stopPropagation();
                 var self = $(this);
                 self.off('click');
                 self.off('mouseover');
-                _Entities.removeSourceFromTarget(element.id, parentId);
+                _Entities.removeSourceFromTarget(entity.id, parentId);
             });
         }
         //        var elements = element.children;
@@ -691,7 +769,7 @@ var _Resources = {
             div.draggable({
                 revert: 'invalid',
                 containment: '#main',
-                zIndex: 1,
+                zIndex: 4,
                 helper: 'clone'
             });
 
@@ -1205,9 +1283,9 @@ var _Resources = {
             var val = value/100;
             var box = $(this);
 
-//            self.css('-moz-transform',    'scale(' + val + ')');
-//            self.css('-o-transform',      'scale(' + val + ')');
-//            self.css('-webkit-transform', 'scale(' + val + ')');
+            //            self.css('-moz-transform',    'scale(' + val + ')');
+            //            self.css('-o-transform',      'scale(' + val + ')');
+            //            self.css('-webkit-transform', 'scale(' + val + ')');
 
             box.css('-moz-transform',    'scale(' + val + ')');
             box.css('-o-transform',      'scale(' + val + ')');

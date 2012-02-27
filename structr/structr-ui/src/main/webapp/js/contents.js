@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2011 Axel Morgner
+ *  Copyright (C) 2012 Axel Morgner
  *
  *  This file is part of structr <http://structr.org>.
  *
@@ -93,21 +93,22 @@ var _Contents = {
         //            Resources.addElement(this, resource);
         //        });
         $('b', div).on('click', function() {
-            _Entities.showProperties(this, content, 'all', $('.' + content.id + '_', contents));
+            Structr.dialog('Edit Properties of ' + content.id, function() { console.log('save')}, function() { console.log('cancelled')});
+            _Entities.showProperties(this, content, 'all', $('#dialogText'));
         });
 
-        $.ajax({
-            url: rootUrl + 'contents/' + content.id + '/out',
-            dataType: 'json',
-            contentType: 'application/json; charset=utf-8',
-            success: function(data) {
-                if (debug) console.log(data);
-                $(data).each(function(i,v) {
-                    if (debug) console.log(v); //TODO: display information about relationship
-                });
-
-            }
-        });
+//        $.ajax({
+//            url: rootUrl + 'contents/' + content.id + '/out',
+//            dataType: 'json',
+//            contentType: 'application/json; charset=utf-8',
+//            success: function(data) {
+//                if (debug) console.log(data);
+//                $(data).each(function(i,v) {
+//                    if (debug) console.log(v); //TODO: display information about relationship
+//                });
+//
+//            }
+//        });
         return div;
     },
 

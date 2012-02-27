@@ -44,10 +44,11 @@
                     <li><a id="contents_" href="#contents">Contents</a></li>
                     <li><a id="files_" href="#files">Files</a></li>
                     <li><a id="usersAndGroups_" href="#usersAndGroups">Users and Groups</a></li>
-                    <li><a id="logout_" href="#logout">Login</a></li>
+                    <li><a id="logout_" href="#">Login</a></li>
                 </ul>
             </div>
         </div>
+
         <div id="main">
             <!--      <textarea id="json_input" rows="10" cols="80">
                   </textarea>
@@ -57,7 +58,7 @@
         <div id="footer">
         </div>
 
-        <div id="login">
+        <div id="login" class="dialog">
             <table>
                 <tr><td><label for="username">Username:</label></td><td><input id="usernameField" type="text" name="username"></td></tr>
                 <tr><td><label for="password">Password:</label></td><td><input id="passwordField" type="password" name="password"></td></tr>
@@ -66,15 +67,22 @@
             </table>
         </div>
 
-        <div id="confirmation">
+        <div id="confirmation" class="dialog">
             <div id="confirmationText"></div>
             <button id="yesButton"><img src="icon/tick.png">Yes</button>
             <button id="noButton"><img src="icon/cross.png">No</button>
         </div>
 
-        <div id="infoBox">
+        <div id="infoBox" class="dialog">
             <div id="infoText"></div>
-            <button id="okButton"> OK</button>
+            <button id="okButton">OK</button>
+        </div>
+
+        <div id="dialogBox" class="dialog">
+            <h2 id="dialogTitle"></h2>
+            <div id="dialogText"></div>
+<!--            <button id="dialogOkButton">OK</button>-->
+            <button id="dialogCancelButton">Done</button>
         </div>
 
     </body>

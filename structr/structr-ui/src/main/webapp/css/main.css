@@ -133,21 +133,18 @@ h2 {
 }
 
 .edit_icon, .add_icon, .delete_icon, .close_icon {
-    margin-left: 4px;
+/*    margin-left: 4px;*/
     cursor: pointer;
+    heigth: 16px;
+    width: 16px;
+    vertical-align: top;
+    float: right;
+    position: relative;
 }
 
 .expand_icon {
     margin-left: -4px;
     float: left ! important;
-}
-
-.view_resource_icon,
-.view_resource_icon:hover {
-    border-bottom: none;
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
-    margin: 0;
 }
 
 img.disabled {
@@ -245,6 +242,8 @@ img.disabled {
     filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#dddddd', EndColorStr='#cccccc', GradientType=0);
     overflow: hidden;
     padding-bottom: 6px;
+/*    position: absolute;
+    z-index: 3;*/
 }
 
 #palette .elementGroup {
@@ -298,8 +297,8 @@ img.disabled {
 }
 
 .props {
-    position: absolute;
-    /*    width: 100%;*/
+/*    position: absolute;*/
+    width: 462px;
     border-collapse: collapse;
     margin-bottom: 12px;
     border: 1px solid #b5b5b5;
@@ -345,7 +344,7 @@ tr:nth-child(even) {
     margin: -3px;
     border: none;
     font-size: inherit;
-    background: transparent;
+/*    background: transparent;*/
     width: 180px;
 }
 
@@ -353,6 +352,7 @@ tr:nth-child(even) {
     margin: -3px;
     border: none;
     font-size: inherit;
+    width: 180px;
 }
 
 .props tr td.value input.active {
@@ -366,26 +366,51 @@ tr:nth-child(even) {
     position: absolute;
 }
 
-#previewTabs button {
-    display: inline;
-    margin-right: 4px;
-    padding-left: 8px;
-    color: #333;
-}
-
-#previewTabs button#add_resource {
-    display: inline;
+ul#previewTabs {
     margin: 0;
-    padding-right: 0;
-    padding-left: 2px;
-    color: #333;
-}
-
-#previewTabs {
+    padding: 0;
+    border: none;
     width: 1400px;
+    height: 25px;
 }
 
-#previewTabs .active {
+#previewTabs li {
+    list-style-type: none;
+    display: inline;
+    float: left;
+    border-bottom: none ! important;
+    border-bottom-left-radius: 0 ! important;
+    border-bottom-right-radius: 0 ! important;
+
+/*    display: inline;*/
+    margin: 0 4px 0 0 ! important;
+    padding: 2px 8px 0 8px ! important;
+    color: #333;
+    font-size: 1.2em;
+    height: 22px;
+/*    text-align: left;*/
+/*    white-space: nobr;*/
+/*    overflow: hidden;*/
+    position: relative;
+    z-index: 1;
+}
+
+#previewTabs img {
+    position: relative;
+    z-index: 2;
+    border: none;
+    margin: 1px 0 0 0;
+}
+#previewTabs .delete_icon {
+    margin: 1px 0 0 4px;
+}
+
+#previewTabs li input[type=text] {
+    border: 1px solid #b5b5b5;
+    margin: 0;
+}
+
+#previewTabs li.active {
     color: #333 ! important;
     background-color: #81ce25;
     background: -webkit-gradient(linear, left bottom, left top, from(#73b821), to(#90e629)) no-repeat;
@@ -507,7 +532,7 @@ img.typeIcon {
 }
 
 img.button {
-    float: right;
+/*    float: right;*/
 }
 
 /*
@@ -526,7 +551,7 @@ div.nested img:hover {
     filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#f7f7f7', EndColorStr='#f3f3f3', GradientType=0) ! important;
 }
 
-button {
+#previewTabs li, button {
     color: #222;
     font-weight: bold;
     padding: 2px 8px 2px 4px;
@@ -541,7 +566,7 @@ button {
     filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#e7e7e7', EndColorStr='#cccccc', GradientType=0);
 }
 
-button:hover {
+#previewTabs li, button:hover {
     color: #333;
     font-weight: bold;
     border-radius: 5px;
@@ -553,9 +578,10 @@ button:hover {
     cursor: pointer ! important;
 }
 
-button img {
-    padding: 2px 4px 0 2px;
-    vertical-align: top;
+#previewTabs li, button img {
+    padding: 0;
+    margin: 0;
+    vertical-align: middle;
 }
 
 #json_input {
@@ -563,7 +589,7 @@ button img {
     height: 500px;
 }
 
-#login, #confirmation, #infoBox {
+.dialog {
     display: none;
     font-size: 11pt;
     width: 240px;
@@ -581,12 +607,30 @@ button img {
     width: 360px;
 }
 
-#confirmationText, #infoText {
+#dialogBox {
+    width: 480px;
+}
+
+#dialogTitle {
+    font-size: 11pt;
+    text-align: center;
+    color: #333;
+}
+
+#dialogText {
+    text-align: left;
+    font-size: 9pt;
+    height: 478px;
+    width: 478px;
+    overflow: auto;
+}
+
+#confirmationText, #infoText, #dialogText {
     margin-bottom: 12px;
     vertical-align: top;
 }
 
-#okButton {
+#okButton, #dialogOkButton, #dialogCancelButton {
     padding-left: 8px ! important;
 }
 
@@ -617,7 +661,7 @@ button img {
     text-decoration: none;
 }
 
-#confirmation button:focus, #infoBox button:focus {
+.dialog button:focus {
     border: 1px solid #666;
 }
 
@@ -646,4 +690,12 @@ button img {
 
 #sliderBox {
 	padding: 10px ! important;
+}
+
+.highlight {
+    color: #81ce25;
+    transition: color 0.1s 0.1s;
+    -moz-transition: color 0.1s 0.1s;
+    -webkit-transition: color 0.1s 0.1s;
+    -o-transition: color 0.1s 0;
 }
