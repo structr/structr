@@ -212,7 +212,8 @@ var Structr = {
         console.log('anchor', anchor);
 
         lastMenuEntry = ((anchor && anchor != 'logout') ? anchor : $.cookie('structrLastMenuEntry'));
-        if (lastMenuEntry) {
+        if (!lastMenuEntry) lastMenuEntry = 'dashboard';
+        {
             if (debug) console.log('Last menu entry found: ' + lastMenuEntry);
             Structr.activateMenuEntry(lastMenuEntry);
             if (debug) console.log(Structr.modules);

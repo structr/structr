@@ -413,13 +413,13 @@ var _Resources = {
                 + '.structr-element-container-header { float: right; font-size: 8pt; }'
                 + '.structr-element-container-header img { float: right; padding-top: -16px; padding-right: -16px; filter: alpha(opacity=80); -khtml-opacity: 0.8; -moz-opacity: 0.8; opacity: 0.8; }'
                 + '.link-hover { border: 1px solid #00c; }'
+                + '.structr-node { color: #333; line-height: 1.7em; border-radius: 5px; border: 1px solid #a5a5a5; padding: 3px 6px; margin: 6px 0 0 0; background-color: #eee; background: -webkit-gradient(linear, left bottom, left top, from(#ddd), to(#eee)) no-repeat; background: -moz-linear-gradient(90deg, #ddd, #eee) no-repeat; filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr="#eeeeee", EndColorStr="#dddddd", GradientType=0);'
                 + '</style>');
 	
             var iframeDocument = $(this).contents();
             var iframeWindow = this.contentWindow;
 
             var droppables = iframeDocument.find('[structr_element_id]');
-            console.log('droppables', droppables);
 
             if (droppables.length == 0) {
 
@@ -428,13 +428,8 @@ var _Resources = {
                 html.attr('structr_element_id', entity.id);
                 html.addClass('structr-element-container');
 
-                console.log(iframeDocument.find('html'));
-                // add a dummy element to allow adding the html root element
-
-
             }
             droppables = iframeDocument.find('[structr_element_id]');
-            console.log('droppables', droppables);
 
             droppables.each(function(i,element) {
                 //console.log(element);
@@ -514,12 +509,33 @@ var _Resources = {
                 });
 
                 var structrId = el.attr('structr_element_id');
+                var type = el.attr('structr_type');
+                var name = el.attr('structr_name');
                 if (structrId) {
                     
                     el.append('<div class="structr-element-container-header">'
                         + '<img class="delete_icon structr-container-button" title="Delete ' + structrId + '" alt="Delete ' + structrId + '" src="/structr/icon/delete.png">'
-                        + '<img class="edit_icon structr-container-button" title="Edit properties of ' + structrId + '" alt="Edit properties of ' + structrId + '" src="/structr/icon/application_view_detail.png"></div>'
+                        + '<img class="edit_icon structr-container-button" title="Edit properties of ' + structrId + '" alt="Edit properties of ' + structrId + '" src="/structr/icon/application_view_detail.png">'
+                        + '<img class="move_icon structr-container-button" title="Move ' + structrId + '" alt="Move ' + structrId + '" src="/structr/icon/arrow_move.png">'
+                        + '<div class="structr-node ' + type + '">' + name + '</div>'
+                        + '</div>'
                     );
+
+                    el.find('.structr-node').hide();
+
+                    $('.move_icon', el).on('mousedown', function(e) {
+                        e.stopPropagation();
+                        var self = $(this);
+                        var element = self.closest('[structr_element_id]');
+                        //var element = self.children('.structr-node');
+                        console.log(element);
+                        var entity = Structr.entity(structrId, element.attr('structr_element_id'));
+                        entity.type = element.attr('structr_type');
+                        entity.name = element.attr('structr_name');
+                        console.log('move', entity);
+                        //var parentId = element.attr('structr_element_id');
+                        self.parent().children('.structr-node').show();
+                    });
 
                     $('.edit_icon', el).on('click', function(e) {
                         e.stopPropagation();
