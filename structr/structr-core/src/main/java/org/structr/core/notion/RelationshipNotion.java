@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2011 Axel Morgner
+ *  Copyright (C) 2012 Axel Morgner
  * 
  *  This file is part of structr <http://structr.org>.
  * 
@@ -17,30 +17,30 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.structr.common;
+package org.structr.core.notion;
 
-import org.structr.core.Transformation;
-import org.structr.core.entity.AbstractNode;
+import org.structr.common.PropertyKey;
 
 /**
  *
- * @author Axel Morgner
+ * @author Christian Morgner
  */
-public abstract class AbstractNodeTransformation implements Comparable, Transformation<AbstractNode> {
+public class RelationshipNotion extends Notion {
+
+	private PropertyKey propertyKey = null;
+
+	public RelationshipNotion(PropertyKey propertyKey) {
+
+		super(
+			new PropertySerializationStrategy(propertyKey),
+			new IdDeserializationStrategy()
+		);
+
+		this.propertyKey = propertyKey;
+	}
 
 	@Override
-	public int compareTo(Object t) {
-		if (t == null || !(t instanceof Transformation)) {
-			return -1;
-		}
-
-		return ((Integer) this.getOrder()).compareTo(
-			(Integer) (((Transformation) t).getOrder())
-			);
-	}	
-
-	@Override
-	public int getOrder() {
-		return 10;
+	public PropertyKey getPrimaryPropertyKey() {
+		return propertyKey;
 	}
 }

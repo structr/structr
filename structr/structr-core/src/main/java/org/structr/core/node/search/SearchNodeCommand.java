@@ -39,7 +39,7 @@ import org.structr.common.SecurityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.NodeService.NodeIndex;
 import org.structr.core.node.NodeServiceCommand;
-import org.structr.core.node.StructrNodeFactory;
+import org.structr.core.node.NodeFactory;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -49,6 +49,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -156,7 +157,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
 		Index<Node> index;
-		StructrNodeFactory nodeFactory = (StructrNodeFactory) arguments.get("nodeFactory");
+		NodeFactory nodeFactory = (NodeFactory) arguments.get("nodeFactory");
 		List<AbstractNode> finalResult = new LinkedList<AbstractNode>();
 		boolean allExactMatch          = true;
 
@@ -331,7 +332,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 				for (BooleanSearchAttribute attr : booleanAttributes) {
 
 					SearchOperator op         = attr.getSearchOperator();
-					List<AbstractNode> result = attr.getResult();
+					List<GraphObject> result = attr.getResult();
 
 					if (op.equals(SearchOperator.AND)) {
 

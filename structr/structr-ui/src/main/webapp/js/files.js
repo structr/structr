@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2011 Axel Morgner
+ *  Copyright (C) 2012 Axel Morgner
  *
  *  This file is part of structr <http://structr.org>.
  *
@@ -43,7 +43,8 @@ var _Files = {
 
     onload : function() {
         if (debug) console.log('onload');
-		
+        if (palette) palette.remove();
+
         main.append('<table><tr><td id="folders"></td><td id="files"></td></tr></table>');
         folders = $('#folders');
         files = $('#files');

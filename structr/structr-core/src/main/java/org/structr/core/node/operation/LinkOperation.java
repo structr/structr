@@ -26,7 +26,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.StructrRelationship;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.FindNodeCommand;
 import org.structr.core.node.NodeAttribute;
@@ -70,7 +70,7 @@ public class LinkOperation implements PrimaryOperation, NodeRelationshipOperatio
 
 				try {
 
-					final StructrRelationship newRel = (StructrRelationship)createRelationshipCommand.execute(startNode, endNode, rel);
+					final AbstractRelationship newRel = (AbstractRelationship)createRelationshipCommand.execute(startNode, endNode, rel);
 
 					if(newRel != null) {
 

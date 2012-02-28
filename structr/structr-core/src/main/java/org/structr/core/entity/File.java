@@ -34,7 +34,7 @@ import org.structr.common.renderer.FileStreamRenderer;
 import org.structr.core.EntityContext;
 import org.structr.core.NodeRenderer;
 import org.structr.core.Services;
-import org.structr.core.entity.DirectedRelationship.Cardinality;
+import org.structr.core.entity.DirectedRelation.Cardinality;
 
 //~--- JDK imports ------------------------------------------------------------
 

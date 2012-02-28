@@ -19,17 +19,14 @@
 
 package org.structr.core;
 
-import java.util.List;
-import java.util.Map;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.RelationshipType;
+import java.util.Date;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.StructrRelationship;
+import org.structr.core.entity.AbstractRelationship;
 
 /**
- * A common base class for {@see AbstractNode} and {@see StructrRelationship}.
+ * A common base class for {@see AbstractNode} and {@see AbstractRelationship}.
  *
  * @author Christian Morgner
  */
@@ -42,16 +39,18 @@ public interface GraphObject {
 	public Iterable<String> getPropertyKeys(String propertyView);
 	public void setProperty(String key, Object value) throws FrameworkException;
 	public Object getProperty(String key);
+	public String getStringProperty(String key);
+	public Date getDateProperty(String key);
 	public void removeProperty(String key) throws FrameworkException;
 
 	// ----- rels only -----
-	public Long getStartNodeId();
-	public Long getEndNodeId();
-	public Long getOtherNodeId(final AbstractNode node);
+//	public Long getStartNodeId();
+//	public Long getEndNodeId();
+//	public Long getOtherNodeId(final AbstractNode node);
 
 	// ----- nodes only -----
-	public Map<RelationshipType, Long> getRelationshipInfo(Direction direction);
-	public List<StructrRelationship> getRelationships(RelationshipType type, Direction dir);
+//	public Map<RelationshipType, Long> getRelationshipInfo(Direction direction);
+//	public List<AbstractRelationship> getRelationships(RelationshipType type, Direction dir);
 
 	// ----- editing methods -----
 	public void delete(SecurityContext seucrityContext);

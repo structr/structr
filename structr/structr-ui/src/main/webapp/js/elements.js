@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2011 Axel Morgner
+ *  Copyright (C) 2012 Axel Morgner
  *
  *  This file is part of structr <http://structr.org>.
  *
@@ -18,6 +18,7 @@
  */
 
 var elements;
+var palette;
 
 $(document).ready(function() {
     Structr.registerModule('elements', _Elements);
@@ -66,6 +67,53 @@ var _Elements = {
     // Interactive elements
     'details', 'summary', 'command', 'menu'
     ],
+
+    elementGroups : [
+    {
+        'name' : 'Root',
+        'elements' : ['html']
+    },
+    {
+        'name' : 'Metadata',
+        'elements' : ['head', 'title', 'base', 'link', 'meta', 'style']
+    },
+    {
+        'name' : 'Sections',
+        'elements' : ['body', 'section', 'nav', 'article', 'aside', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hgroup', 'header', 'footer', 'address']
+    },
+    {
+        'name' : 'Grouping',
+        'elements' : ['div', 'p', 'hr', 'ol', 'ul', 'li', 'dl', 'dt', 'dd', 'pre', 'blockquote', 'figure', 'figcaption' ]
+    },
+    {
+        'name' : 'Scripting',
+        'elements' : ['script', 'noscript']
+    },
+    {
+        'name' : 'Tabular',
+        'elements' : ['table', 'tr', 'td', 'th', 'caption', 'colgroup', 'col', 'tbody', 'thead', 'tfoot']
+    },
+    {
+        'name' : 'Text',
+        'elements' : ['a', 'em', 'strong', 'small', 's', 'cite', 'g', 'dfn', 'abbr', 'time', 'code', 'var', 'samp', 'kbd', 'sub', 'sup', 'i', 'b', 'u', 'mark', 'ruby', 'rt', 'rp', 'bdi', 'bdo', 'span', 'br', 'wbr']
+    },
+    {
+        'name' : 'Edits',
+        'elements' : ['ins', 'del']
+    },
+    {
+        'name' : 'Embedded',
+        'elements' : ['img', 'video', 'audio', 'source', 'track', 'canvas', 'map', 'area', 'iframe', 'embed', 'object', 'param']
+    },
+    {
+        'name' : 'Forms',
+        'elements' : ['form', 'input', 'button', 'select', 'datalist', 'optgroup', 'option', 'textarea', 'fieldset', 'legend', 'label', 'keygen', 'output', 'progress', 'meter']
+    },
+    {
+        'name' : 'Interactive',
+        'elements' : ['details', 'summary', 'command', 'menu']
+    }
+    ],
 	
     init : function() {
         Structr.classes.push('element');
@@ -74,12 +122,45 @@ var _Elements = {
     onload : function() {
         if (debug) console.log('onload');
         main.append('<div id="elements"></div>');
-        elements = $('#elements');
-        _Elements.refresh();
+        if (palette) palette.remove();
+        main.before('<div id="palette"></div>');
+        elements = $('#elements', main);
+        palette = $('#palette');
+        //_Elements.refresh();
+        _Elements.showPalette();
     },
 
+    showPalette : function() {
+        //        var palette = $('#palette');
+        palette.empty().hide();
+
+        $(_Elements.elementGroups).each(function(i,group) {
+            if (debug) console.log(group);
+            palette.append('<div class="elementGroup" id="group_' + group.name + '"><h3>' + group.name + '</h3></div>');
+            $(group.elements).each(function(j,elem) {
+                var div = $('#group_' + group.name);
+                div.append('<div class="draggable element" id="add_' + elem + '">' + elem + '</div>');
+                $('#add_' + elem, div).draggable({
+                    iframeFix: true,
+                    revert: 'invalid',
+                    containment: 'body',
+                    zIndex: 1,
+                    helper: 'clone'
+                });
+            });
+
+        });
+
+        header.on('click', function() {
+            console.log('slide palette down');
+            palette.slideToggle('fast');
+        });
+
+    },
+    
     refresh : function() {
         elements.empty();
+
         if (_Elements.show()) {
             elements.append('<button class="add_element_icon button"><img title="Add Element" alt="Add Element" src="' + _Elements.add_icon + '"> Add Element</button>');
 
@@ -98,9 +179,8 @@ var _Elements = {
                         _Elements.addElement(button, v.capitalize(), '"tag":"' + v + '"');
                         list.remove();
                     });
-                    
                 });
-                //_Elements.addElement(this);
+            //_Elements.addElement(this);
             });
         }
     },
@@ -109,45 +189,61 @@ var _Elements = {
         return _Entities.showEntities('Element');
     },
 
-    appendElementElement : function(element, parentId, resourceId) {
+    appendElementElement : function(entity, parentId, resourceId) {
         if (debug) console.log('Elements.appendElementElement: parentId: ' + parentId + ', resourceId: ' + resourceId);
 
         var parent = Structr.findParent(parentId, resourceId, elements);
         
-        parent.append('<div class="element ' + element.id + '_">'
+        parent.append('<div class="node element ' + entity.id + '_">'
             + '<img class="typeIcon" src="'+ _Elements.icon + '">'
-            + '<b class="tag_">' + element.tag + '</b> <span class="id">' + element.id + '</span>'
-            + (element._html_id ? 'id=' + element._html_id : '')
-            + (element._html_class ? 'class=' + element._html_class : '')
+            + '<b class="tag_">' + entity.tag + '</b> <span class="id">' + entity.id + '</span>'
+            + (entity._html_id ? 'id=' + entity._html_id : '')
+            + (entity._html_class ? 'class=' + entity._html_class : '')
             + '</div>');
-        var div = $('.' + element.id + '_', parent);
-        div.append('<img title="Delete ' + element.tag + ' element ' + element.id + '" alt="Delete ' + element.tag + ' element ' + element.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
-        $('.delete_icon', div).on('click', function() {
-            _Elements.deleteElement(this, element);
+        var div = $('.' + entity.id + '_', parent);
+        div.append('<img title="Delete ' + entity.tag + ' element ' + entity.id + '" alt="Delete ' + entity.tag + ' element ' + entity.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
+        $('.delete_icon', div).on('click', function(e) {
+            e.stopPropagation();
+            var self = $(this);
+            self.off('click');
+            self.off('mouseover');
+            _Elements.deleteElement(this, entity);
         });
         //        div.append('<img class="add_icon button" title="Add Element" alt="Add Element" src="icon/add.png">');
         //        $('.add_icon', div).on('click', function() {
         //            Resources.addElement(this, resource);
         //        });
         $('b', div).on('click', function(e) {
-			div.off('mouseover');
-			div.off('mouseout');
-			e.stopPropagation();
-			if (debug) console.log('parent', parent)
-            _Entities.showProperties(this, element, '_html_', $('.' + element.id + '_', parent));
+            e.stopPropagation();
+            div.off('click');
+            div.off('mouseover');
+            div.off('mouseout');
+            $(this).off('click');
+            $(this).off('mouseover');
+            $(this).off('mouseout');
+
+            if (debug) console.log('parent', parent);
+            //_Entities.showProperties(this, entity, '_html_', $('.' + entity.id + '_', parent));
+            Structr.dialog('Edit Properties of ' + entity.id, function() {
+                console.log('save')
+                }, function() {
+                console.log('cancelled')
+                });
+            //           _Entities.showProperties(this, entity, 'all', $('#dialogText'));
+            _Entities.showProperties(this, entity, '_html_', $('#dialogText'));
         });
 		
-		div.on('mouseover', function(e) {
-			e.stopPropagation();
-            _Entities.showNonEmptyProperties(this, element, '_html_', $('.' + element.id + '_', parent));
+        div.on('mouseover', function(e) {
+            e.stopPropagation();
+            _Entities.showNonEmptyProperties(this, entity, '_html_', $('.' + entity.id + '_', parent));
         });		
 
-		div.on('mouseout', function(e) {
-			e.stopPropagation();
-            _Entities.hideNonEmptyProperties(this, element, '_html_', $('.' + element.id + '_', parent));
+        div.on('mouseout', function(e) {
+            e.stopPropagation();
+            _Entities.hideNonEmptyProperties(this, entity, '_html_', $('.' + entity.id + '_', parent));
         });		
 
-		return div;
+        return div;
     },
 
     addElement : function(button, type, props) {

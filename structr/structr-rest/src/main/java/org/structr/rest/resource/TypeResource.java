@@ -92,7 +92,6 @@ public class TypeResource extends SortableResource {
 
 		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 
-		boolean hasSearchableAttributes = false;
 		AbstractNode topNode   = null;
 		boolean includeDeleted = false;
 		boolean publicOnly     = false;
@@ -111,7 +110,7 @@ public class TypeResource extends SortableResource {
 			searchAttributes.add(Search.andExactType(EntityContext.normalizeEntityName(rawType)));
 
 			// searchable attributes from EntityContext
-			hasSearchableAttributes = hasSearchableAttributes(searchAttributes);
+			hasSearchableAttributes(searchAttributes);
 			// do search
 			List<GraphObject> results = (List<GraphObject>) Services.command(securityContext, SearchNodeCommand.class).execute(topNode, includeDeleted, publicOnly, searchAttributes);
 
@@ -192,9 +191,9 @@ public class TypeResource extends SortableResource {
 	@Override
 	public Resource tryCombineWith(Resource next) throws FrameworkException {
 
-		if (next instanceof IdResource) {
+		if (next instanceof UuidResource) {
 
-			TypedIdResource constraint = new TypedIdResource(securityContext, (IdResource) next, this);
+			TypedIdResource constraint = new TypedIdResource(securityContext, (UuidResource) next, this);
 
 			constraint.configureIdProperty(idProperty);
 

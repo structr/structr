@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2011 Axel Morgner
+ *  Copyright (C) 2012 Axel Morgner
  *
  *  This file is part of structr <http://structr.org>.
  *
@@ -142,60 +142,6 @@ function refresh(parentId, id) {
 var keyEventBlocked = true;
 var keyEventTimeout;
 
-function editContent(button, resourceId, contentId) {
-    if (isDisabled(button)) return;
-    var div = $('.' + resourceId + '_ .' + contentId + '_');
-    div.append('<div class="editor"></div>');
-    var contentBox = $('.editor', div);
-    disable(button, function() {
-        contentBox.remove();
-        enable(button, function() {
-            editContent(button, resourceId, contentId);
-        });
-    });
-    var codeMirror;
-    var url = rootUrl + 'content' + '/' + contentId;
-    $.ajax({
-        url: url,
-        dataType: 'json',
-        contentType: 'application/json; charset=utf-8',
-        headers: headers,
-        success: function(data) {
-            codeMirror = CodeMirror(contentBox.get(0), {
-                value: unescapeTags(data.result.content),
-                mode:  "htmlmixed",
-                lineNumbers: true,
-                onKeyEvent: function() {
-                    //console.log(keyEventBlocked);
-                    if (keyEventBlocked) {
-                        clearTimeout(keyEventTimeout);
-                        keyEventTimeout = setTimeout(function() {
-                            var fromCodeMirror = escapeTags(codeMirror.getValue());
-                            var content = $.quoteString(fromCodeMirror);
-                            var data = '{ "content" : ' + content + ' }';
-                            //console.log(data);
-                            $.ajax({
-                                url: url,
-                                //async: false,
-                                type: 'PUT',
-                                dataType: 'json',
-                                contentType: 'application/json; charset=utf-8',
-                                headers: headers,
-                                data: data,
-                                success: function(data) {
-                                    refreshIframes();
-                                    keyEventBlocked = true;
-                                //enable(button);
-                                }
-                            });
-                        }, 500);
-                        return;
-                    }
-                }
-            });
-        }
-    });
-}
 
 function getIdFromClassString(classString) {
     var classes = classString.split(' ');
@@ -207,6 +153,10 @@ function getIdFromClassString(classString) {
         }
     });
     return id;
+}
+
+function getId(element) {
+    return getIdFromClassString(element.attr('class'));
 }
 
 function lastPart(id, separator) {
@@ -272,9 +222,212 @@ function isIn(id, ids) {
 }
 
 function escapeTags(str) {
+	if (!str) return str;
     return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 function unescapeTags(str) {
+	if (!str) return str;
     return str.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
 }
+
+
+////(function( $, undefined ) {
+//
+//    $.widget("ui.droppable")._drop = function(event, custom) {
+////        _drop: function(event,custom) {
+//
+//            var draggable = custom || $.ui.ddmanager.current;
+//            if (!draggable || (draggable.currentItem || draggable.element)[0] == this.element[0]) return false; // Bail if draggable and droppable are same element
+//
+//
+//
+//            var childrenIntersection = false;
+//            this.element.find(":data(droppable)").not(".ui-draggable-dragging").each(function() {
+//                var inst = $.data(this, 'droppable');
+//                console.log('*********************** _drop ***********************************');
+//                if(
+//                    inst.options.greedy
+//                    && !inst.options.disabled
+//                    && inst.options.scope == draggable.options.scope
+//                    && inst.accept.call(inst.element[0], (draggable.currentItem || draggable.element))
+//                    && $.ui.intersect(draggable, $.extend(inst, {
+//                        offset: inst.element.offset()
+//                    }), inst.options.tolerance, inst.options.iframeOffset)
+//                    ) {
+//                    childrenIntersection = true;
+//                    return false;
+//                }
+//            });
+//            if(childrenIntersection) return false;
+//
+//            if(this.accept.call(this.element[0],(draggable.currentItem || draggable.element))) {
+//                if(this.options.activeClass) this.element.removeClass(this.options.activeClass);
+//                if(this.options.hoverClass) this.element.removeClass(this.options.hoverClass);
+//                this._trigger('drop', event, this.ui(draggable));
+//                return this.element;
+//            }
+//
+//            return false;
+//        }
+//
+////    }
+////);
+////});
+//
+//$.ui.ddmanager.drop = function(draggable, event) {
+//    console.log('########################## dropped ###########################');
+//
+//    var dropped = false;
+//    $.each($.ui.ddmanager.droppables[draggable.options.scope] || [], function() {
+//
+//        if(!this.options) return;
+//        if (!this.options.disabled && this.visible && $.ui.intersect(draggable, this, this.options.tolerance, this.options.iframeOffset))
+//            dropped = this._drop.call(this, event) || dropped;
+//
+//        if (!this.options.disabled && this.visible && this.accept.call(this.element[0],(draggable.currentItem || draggable.element))) {
+//            this.isout = 1;
+//            this.isover = 0;
+//            this._deactivate.call(this, event);
+//        }
+//
+//    });
+//    return dropped;
+//
+//}
+//
+//$.ui.ddmanager.drag = function(draggable, event) {
+//
+//    //If you have a highly dynamic page, you might try this option. It renders positions every time you move the mouse.
+//    if(draggable.options.refreshPositions) $.ui.ddmanager.prepareOffsets(draggable, event);
+//
+//    //Run through all droppables and check their positions based on specific tolerance options
+//    $.each($.ui.ddmanager.droppables[draggable.options.scope] || [], function() {
+//
+//        //console.log('dropppable', this);
+//        console.log('greedy child? ' + this.greedyChild);
+//        if(this.options.disabled || this.greedyChild || !this.visible) return;
+//        var intersects = $.ui.intersect(draggable, this, this.options.tolerance, this.options.iframeOffset);
+//
+//        var c = !intersects && this.isover == 1 ? 'isout' : (intersects && this.isover == 0 ? 'isover' : null);
+//        console.log('c', c);
+//        if(!c) return;
+//        //console.log('c', c);
+//
+//        var parentInstance;
+//        if (this.options.greedy) {
+//            var parent = this.element.parents(':data(droppable):eq(0)');
+//            if (parent.length) {
+//                parentInstance = $.data(parent[0], 'droppable');
+//                parentInstance.greedyChild = (c == 'isover' ? 1 : 0);
+//            }
+//        }
+//
+//        // we just moved into a greedy child
+//        if (parentInstance && c == 'isover') {
+//            parentInstance['isover'] = 0;
+//            parentInstance['isout'] = 1;
+//            parentInstance._out.call(parentInstance, event);
+//        }
+//
+//        this[c] = 1;
+//        this[c == 'isout' ? 'isover' : 'isout'] = 0;
+//        this[c == "isover" ? "_over" : "_out"].call(this, event);
+//
+//        // we just moved out of a greedy child
+//        if (parentInstance && c == 'isout') {
+//            parentInstance['isout'] = 0;
+//            parentInstance['isover'] = 1;
+//            parentInstance._over.call(parentInstance, event);
+//        }
+//    });
+//
+//}
+
+//$.ui.intersect = function(draggable, droppable, toleranceMode, iframeOffset) {
+//
+//    var x1,x2,y1,y2,l,r,t,b;
+//
+//    if (!droppable.offset) return false;
+//
+//    if (iframeOffset) {
+//        x1 = (draggable.positionAbs || draggable.position.absolute).left - iframeOffset.left;
+//        y1 = (draggable.positionAbs || draggable.position.absolute).top - iframeOffset.top;
+//        x2 = x1 + draggable.helperProportions.width;
+//        y2 = y1 + draggable.helperProportions.height;
+////        x2 -= iframeOffset.left;
+////        y2 -= iframeOffset.top;
+////        l -= iframeOffset.left;
+////        r -= iframeOffset.left;
+////        t -= iframeOffset.top;
+////        b -= iframeOffset.top;
+//
+//        l = droppable.offset.left;
+//        t = droppable.offset.top;
+//
+////        l = droppable.offset.left - iframeOffset.left;
+////        t = droppable.offset.top - iframeOffset.top;
+//
+//    } else {
+//        x1 = (draggable.positionAbs || draggable.position.absolute).left;
+//        y1 = (draggable.positionAbs || draggable.position.absolute).top;
+//        x2 = x1 + draggable.helperProportions.width;
+//        y2 = y1 + draggable.helperProportions.height;
+//        l = droppable.offset.left;
+//        t = droppable.offset.top;
+//    }
+//
+//    r = l + droppable.proportions.width;
+//    b = t + droppable.proportions.height;
+//
+//
+//
+//    var returnValue;
+//
+//    switch (toleranceMode) {
+//        case 'fit':
+//            returnValue = (l <= x1 && x2 <= r
+//                && t <= y1 && y2 <= b);
+//            break;
+//        case 'intersect':
+//            returnValue = (l < x1 + (draggable.helperProportions.width / 2) // Right Half
+//                && x2 - (draggable.helperProportions.width / 2) < r // Left Half
+//                && t < y1 + (draggable.helperProportions.height / 2) // Bottom Half
+//                && y2 - (draggable.helperProportions.height / 2) < b ); // Top Half
+//            break;
+//        case 'pointer':
+//            var draggableLeft = ((draggable.positionAbs || draggable.position.absolute).left + (draggable.clickOffset || draggable.offset.click).left),
+//            draggableTop = ((draggable.positionAbs || draggable.position.absolute).top + (draggable.clickOffset || draggable.offset.click).top),
+//            isOver = $.ui.isOver(draggableTop, draggableLeft, t, l, droppable.proportions.height, droppable.proportions.width);
+//            returnValue = isOver;
+//            break;
+//        case 'touch':
+//            returnValue = (
+//                (y1 >= t && y1 <= b) ||	// Top edge touching
+//                (y2 >= t && y2 <= b) ||	// Bottom edge touching
+//                (y1 < t && y2 > b)		// Surrounded vertically
+//                ) && (
+//                (x1 >= l && x1 <= r) ||	// Left edge touching
+//                (x2 >= l && x2 <= r) ||	// Right edge touching
+//                (x1 < l && x2 > r)		// Surrounded horizontally
+//                );
+//            break;
+//        default:
+//            returnValue = false;
+//            break;
+//    }
+//    //$('#offset').append('x1,y1,x2,y2 => intersect? ' + x1 + ',' + y1 + ',' + x2 + ',' + y2 + ' => ' + returnValue);
+//    if (returnValue) console.log('droppable,x1,y1,x2,y2 => intersect? ' + droppable.element.attr('structr_element_id') + ',' + x1 + ',' + y1 + ',' + x2 + ',' + y2 + ':' + toleranceMode);
+//
+////    if (returnValue) {
+////        console.log('draggable', draggable);
+////        console.log('droppable', droppable);
+////        console.log('toleranceMode', toleranceMode);
+////        console.log('iframeOffset', iframeOffset);
+////    }
+//
+//    return returnValue;
+//
+//};
+
+$.fn.reverse = [].reverse;

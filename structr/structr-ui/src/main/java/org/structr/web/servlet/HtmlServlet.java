@@ -22,6 +22,7 @@
 package org.structr.web.servlet;
 
 import org.apache.commons.compress.utils.IOUtils;
+import org.apache.commons.lang.ArrayUtils;
 
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
@@ -42,12 +43,12 @@ import org.structr.core.Command;
 import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Image;
-import org.structr.core.entity.StructrRelationship;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.NodeAttribute;
-import org.structr.core.node.StructrNodeFactory;
+import org.structr.core.node.NodeFactory;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 import org.structr.core.node.search.Search;
@@ -100,6 +101,14 @@ public class HtmlServlet extends HttpServlet {
 	//~--- fields ---------------------------------------------------------
 
 	private TraversalDescription desc = null;
+	private String[] html5VoidTags    = new String[] {
+
+		"area", "base", "br", "col", "command", "embed", "hr", "img", "input", "keygen", "link", "meta", "param", "source", "track", "wbr"
+
+	};
+
+	// area, base, br, col, command, embed, hr, img, input, keygen, link, meta, param, source, track, wbr
+
 	private boolean edit, tidy;
 
 	//~--- methods --------------------------------------------------------
@@ -462,23 +471,23 @@ public class HtmlServlet extends HttpServlet {
 		return node;
 	}
 
-	private StructrRelationship linkNodes(AbstractNode startNode, AbstractNode endNode, String resourceId, int index) throws FrameworkException {
+	private AbstractRelationship linkNodes(AbstractNode startNode, AbstractNode endNode, String resourceId, int index) throws FrameworkException {
 
 		SecurityContext context  = SecurityContext.getSuperUserInstance();
 		Command createRelCommand = Services.command(context, CreateRelationshipCommand.class);
-		StructrRelationship rel  = (StructrRelationship) createRelCommand.execute(startNode, endNode, RelType.CONTAINS);
+		AbstractRelationship rel = (AbstractRelationship) createRelCommand.execute(startNode, endNode, RelType.CONTAINS);
 
 		rel.setProperty(resourceId, index);
 
 		return rel;
 	}
 
-	private void printNodes(StringBuilder buffer, TreeNode root, int depth, boolean inBody) {
+	private void printNodes(String resourceId, StringBuilder buffer, TreeNode root, int depth, boolean inBody) {
 
-		AbstractNode node        = root.getData();
-		String content           = null;
-		String tag               = null;
-		StructrRelationship link = null;
+		AbstractNode node         = root.getData();
+		String content            = null;
+		String tag                = null;
+		AbstractRelationship link = null;
 
 		if (node != null) {
 
@@ -504,7 +513,7 @@ public class HtmlServlet extends HttpServlet {
 //                              } catch (Exception e) {
 //                                      e.printStackTrace();
 //                              }
-				List<StructrRelationship> links = node.getOutgoingLinkRelationships();
+				List<AbstractRelationship> links = node.getOutgoingLinkRelationships();
 
 				if ((links != null) &&!links.isEmpty()) {
 
@@ -524,7 +533,7 @@ public class HtmlServlet extends HttpServlet {
 
 			// In edit mode, add an artificial 'div' tag around content nodes within body
 			// to make them editable
-			if (edit && inBody && (tag == null) && (node instanceof Content)) {
+			if (edit && inBody && (node instanceof Content)) {
 
 				tag = "div";
 
@@ -543,9 +552,30 @@ public class HtmlServlet extends HttpServlet {
 
 				buffer.append("<").append(tag);
 
-				if (edit && (node instanceof Content) && (id != null)) {
+				if (edit && (id != null)) {
 
-					buffer.append(" structr_id='").append(id).append("'");
+					if (depth == 1) {
+
+						buffer.append(" structr_resource_id='").append(resourceId).append("'");
+
+					}
+
+					if (node instanceof Content) {
+
+						buffer.append(" class=\"structr-content-container\" structr_content_id='").append(id).append("'");
+
+					} else {
+
+						String htmlClass = node.getStringProperty("_html_class");
+
+						buffer.append(" class=\"structr-element-container ").append((htmlClass != null)
+							? htmlClass
+							: "").append("\" structr_element_id='").append(id).append("'");
+
+					}
+
+					buffer.append(" structr_type='").append(node.getType()).append("'");
+					buffer.append(" structr_name='").append(node.getName()).append("'");
 
 				}
 
@@ -585,12 +615,12 @@ public class HtmlServlet extends HttpServlet {
 		// render children
 		for (TreeNode subNode : root.getChildren()) {
 
-			printNodes(buffer, subNode, depth + 1, inBody);
+			printNodes(resourceId, buffer, subNode, depth + 1, inBody);
 
 		}
 
-		// render end tag
-		if (tag != null) {
+		// render end tag, if needed (= if not singleton tags)
+		if ((tag != null) &&!(ArrayUtils.contains(html5VoidTags, tag))) {
 
 			buffer.append("</").append(tag).append(">");
 
@@ -607,9 +637,9 @@ public class HtmlServlet extends HttpServlet {
 
 	private String getContent(final SecurityContext securityContext, final Resource resource) {
 
-		TraversalDescription localDesc   = desc.expand(new ResourceExpander(resource.getStringProperty(AbstractNode.Key.uuid.name())));
-		final StructrNodeFactory factory = new StructrNodeFactory(securityContext);
-		final TreeNode root              = new TreeNode(null);
+		TraversalDescription localDesc = desc.expand(new ResourceExpander(resource.getStringProperty(AbstractNode.Key.uuid.name())));
+		final NodeFactory factory      = new NodeFactory(securityContext);
+		final TreeNode root            = new TreeNode(resource);
 
 		localDesc = localDesc.evaluator(new Evaluator() {
 
@@ -671,17 +701,15 @@ public class HtmlServlet extends HttpServlet {
 		// do traversal to retrieve paths
 		for (Node node : localDesc.traverse(resource.getNode()).nodes()) {
 
-			String name = node.hasProperty("name")
-				      ? (String) node.getProperty("name")
-				      : "unknown";
-
+//                      String name = node.hasProperty("name")
+//                                    ? (String) node.getProperty("name")
+//                                    : "unknown";
 			// System.out.println(node.getProperty("type") + "[" + node.getProperty("uuid") + "]: " + name);
-
 		}
 
 		StringBuilder buffer = new StringBuilder(10000);    // FIXME: use sensible initial size..
 
-		printNodes(buffer, root, 0, false);
+		printNodes(resource.getStringProperty(Resource.Key.uuid), buffer, root, 0, false);
 
 		return buffer.toString();
 	}

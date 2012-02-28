@@ -135,9 +135,9 @@ public abstract class ApplicationNode extends AbstractNode {
 		return null;
 	}
 
-	protected StructrRelationship linkNodes(AbstractNode startNode, AbstractNode endNode, RelType relType) {
+	protected AbstractRelationship linkNodes(AbstractNode startNode, AbstractNode endNode, RelType relType) {
 		try {
-			return((StructrRelationship)Services.command(securityContext, CreateRelationshipCommand.class).execute(startNode, endNode, relType));
+			return((AbstractRelationship)Services.command(securityContext, CreateRelationshipCommand.class).execute(startNode, endNode, relType));
 
 		} catch(FrameworkException fex) {
 			logger.log(Level.WARNING, "Unable to link nodes", fex);

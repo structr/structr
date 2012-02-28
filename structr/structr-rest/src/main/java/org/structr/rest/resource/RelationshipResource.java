@@ -72,7 +72,7 @@ public class RelationshipResource extends WrappingResource {
 
 					if(obj instanceof AbstractNode) {
 
-						List relationships = obj.getRelationships(null, direction);
+						List relationships = ((AbstractNode) obj).getRelationships(null, direction);
 						if(relationships != null) {
 
 							resultList.addAll(relationships);
@@ -99,8 +99,8 @@ public class RelationshipResource extends WrappingResource {
 	@Override
 	public Resource tryCombineWith(Resource next) throws FrameworkException {
 
-		if(next instanceof IdResource) {
-			return new RelationshipIdResource(securityContext, this, (IdResource)next);
+		if(next instanceof UuidResource) {
+			return new RelationshipIdResource(securityContext, this, (UuidResource)next);
 		}
 
 		return super.tryCombineWith(next);

@@ -76,6 +76,9 @@ public class CronService extends Thread implements RunnableService {
 						cronEntries.add(entry);
 
 						logger.log(Level.FINEST, "Task {0} re-inserted, queue now contains {1} entries.", new Object[] {  taskClassName, cronEntries.size() } );
+						
+						// wait one step to avoid multiple tasks to be started
+						Thread.sleep(GRANULARITY_UNIT.toMillis(GRANULARITY));
 
 					} catch(Throwable t) {
 						logger.log(Level.WARNING, "Could not start task {0}: {1}", new Object[] { taskClassName, t.getMessage() } );
@@ -137,6 +140,8 @@ public class CronService extends Thread implements RunnableService {
 				CronEntry entry = CronEntry.parse(task, expression);
 				if(entry != null) {
 
+					logger.log(Level.INFO, "Adding cron entry {0}", entry);
+					
 					cronEntries.add(entry);
 
 				} else {

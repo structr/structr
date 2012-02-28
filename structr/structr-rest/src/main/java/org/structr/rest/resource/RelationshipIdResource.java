@@ -27,6 +27,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.NotFoundException;
 
@@ -39,14 +40,14 @@ public class RelationshipIdResource extends FilterableResource {
 	private static final Logger logger = Logger.getLogger(TypedIdResource.class.getName());
 
 	protected RelationshipResource relationshipResource = null;
-	protected IdResource idResource = null;
+	protected UuidResource idResource = null;
 
 	protected RelationshipIdResource(SecurityContext securityContext) {
 		this.securityContext = securityContext;
 		// empty protected constructor
 	}
 
-	public RelationshipIdResource(SecurityContext securityContext, RelationshipResource relationshipResource, IdResource idResource) {
+	public RelationshipIdResource(SecurityContext securityContext, RelationshipResource relationshipResource, UuidResource idResource) {
 		this.securityContext = securityContext;
 		this.relationshipResource = relationshipResource;
 		this.idResource = idResource;
@@ -60,8 +61,27 @@ public class RelationshipIdResource extends FilterableResource {
 	@Override
 	public List<GraphObject> doGet() throws FrameworkException {
 
+		List<GraphObject> uuidResult = new LinkedList<GraphObject>();
+
+		AbstractRelationship rel = idResource.getRelationship();
+
+		if(rel != null) {
+
+			// TODO: do additional type check here!
+			
+			uuidResult.add(rel);
+			return uuidResult;
+
+		} else {
+
+			throw new NotFoundException();
+		}
+
+
+		/*
+
 		List<? extends GraphObject> results = relationshipResource.doGet();
-		long desiredId = idResource.getId();
+		String desiredId = idResource.getUuid();
 		GraphObject desiredObject = null;
 
 		for(GraphObject obj : results) {
@@ -80,6 +100,7 @@ public class RelationshipIdResource extends FilterableResource {
 		}
 
 		throw new NotFoundException();
+		*/
 	}
 
 	@Override
@@ -101,7 +122,7 @@ public class RelationshipIdResource extends FilterableResource {
 		return relationshipResource;
 	}
 
-	public IdResource getIdResource() {
+	public UuidResource getIdResource() {
 		return idResource;
 	}
 

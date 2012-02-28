@@ -80,7 +80,7 @@ public class Image extends File {
 	//~--- fields ---------------------------------------------------------
 
 	// Cached list with relationships to thumbnails
-	private List<StructrRelationship> thumbnailRelationships = null;
+	private List<AbstractRelationship> thumbnailRelationships = null;
 
 	//~--- constant enums -------------------------------------------------
 
@@ -102,7 +102,7 @@ public class Image extends File {
 		Command deleteRelationship = Services.command(securityContext, DeleteRelationshipCommand.class);
 		Command deleteNode         = Services.command(securityContext, DeleteNodeCommand.class);
 
-		for (StructrRelationship s : getThumbnailRelationships()) {
+		for (AbstractRelationship s : getThumbnailRelationships()) {
 
 			AbstractNode thumbnail = s.getEndNode();
 
@@ -147,7 +147,7 @@ public class Image extends File {
 
 		List<Image> thumbnails = new LinkedList<Image>();
 
-		for (StructrRelationship s : getThumbnailRelationships()) {
+		for (AbstractRelationship s : getThumbnailRelationships()) {
 			thumbnails.add((Image) s.getEndNode());
 		}
 
@@ -159,7 +159,7 @@ public class Image extends File {
 	 *
 	 * @return
 	 */
-	public List<StructrRelationship> getThumbnailRelationships() {
+	public List<AbstractRelationship> getThumbnailRelationships() {
 
 		if (thumbnailRelationships == null) {
 			thumbnailRelationships = getRelationships(RelType.THUMBNAIL, Direction.OUTGOING);
@@ -226,7 +226,7 @@ public class Image extends File {
 
 			if ((thumbnailRelationships != null) &&!(thumbnailRelationships.isEmpty())) {
 
-				for (StructrRelationship r : thumbnailRelationships) {
+				for (AbstractRelationship r : thumbnailRelationships) {
 
 					Integer w = (Integer) r.getProperty(Key.width.name());
 					Integer h = (Integer) r.getProperty(Key.height.name());
@@ -305,8 +305,8 @@ public class Image extends File {
 						if (thumbnail != null) {
 
 							// Create a thumbnail relationship
-							StructrRelationship thumbnailRelationship =
-								(StructrRelationship) createRel.execute(originalImage,
+							AbstractRelationship thumbnailRelationship =
+								(AbstractRelationship) createRel.execute(originalImage,
 								thumbnail,
 								RelType.THUMBNAIL);
 

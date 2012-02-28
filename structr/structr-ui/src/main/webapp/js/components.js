@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2011 Axel Morgner
+ *  Copyright (C) 2012 Axel Morgner
  *
  *  This file is part of structr <http://structr.org>.
  *
@@ -36,6 +36,7 @@ var _Components = {
     onload : function() {
         //Structr.activateMenuEntry('resources');
         if (debug) console.log('onload');
+        if (palette) palette.remove();
 
         main.append('<table id="resourcesEditor"><tr><td id="components"></td><td id="elements"></td></tr></table>');
 

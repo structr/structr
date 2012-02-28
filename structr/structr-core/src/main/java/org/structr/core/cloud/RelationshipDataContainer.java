@@ -18,12 +18,12 @@
  */
 package org.structr.core.cloud;
 
-import org.structr.core.entity.StructrRelationship;
+import org.structr.core.entity.AbstractRelationship;
 
 /**
  * Serializable data container for a relationship to be transported over network.
  *
- * To be initialized with {@link StructrRelationship} in constructor.
+ * To be initialized with {@link AbstractRelationship} in constructor.
  *
  * @author axel
  */
@@ -35,7 +35,7 @@ public class RelationshipDataContainer extends DataContainer implements Comparab
 
     public RelationshipDataContainer() {};
 
-    public RelationshipDataContainer(final StructrRelationship relationship) {
+    public RelationshipDataContainer(final AbstractRelationship relationship) {
 
         name = relationship.getRelType().name();
         properties.putAll(relationship.getProperties());

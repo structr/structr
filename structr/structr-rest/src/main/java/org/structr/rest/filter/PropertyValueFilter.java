@@ -27,7 +27,7 @@ import org.structr.core.Value;
  *
  * @author Christian Morgner
  */
-public class PropertyValueFilter<T> implements Filter {
+public class PropertyValueFilter<T> extends Filter {
 
 	private BinaryPredicate<T> predicate = null;
 	private String propertyKey = null;

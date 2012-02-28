@@ -63,6 +63,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import javax.servlet.ServletContext;
+import org.structr.core.entity.AbstractRelationship;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -84,8 +85,10 @@ public class ModuleService implements SingletonService {
 
 	private static final String MODULES_CONF                 = "modules.conf";
 	private static final Logger logger                       = Logger.getLogger(ModuleService.class.getName());
-	private static final Set<String> entityPackages          = new LinkedHashSet<String>();
-	private static final Map<String, Class> entityClassCache = new ConcurrentHashMap<String, Class>(100, 0.9f, 8);
+	private static final Set<String> nodeEntityPackages		= new LinkedHashSet<String>();
+	private static final Set<String> relationshipPackages		= new LinkedHashSet<String>();
+	private static final Map<String, Class> nodeEntityClassCache	= new ConcurrentHashMap<String, Class>(100, 0.9f, 8);
+	private static final Map<String, Class> relationshipClassCache	= new ConcurrentHashMap<String, Class>(10, 0.9f, 8);
 	private static final Map<String, Class> agentClassCache  = new ConcurrentHashMap<String, Class>(10, 0.9f, 8);
 	private static final Set<String> pagePackages            = new LinkedHashSet<String>();
 	private static final Set<String> agentPackages           = new LinkedHashSet<String>();
@@ -132,7 +135,8 @@ public class ModuleService implements SingletonService {
 		// reload everything..
 		initialized = false;
 
-		entityClassCache.clear();
+		nodeEntityClassCache.clear();
+		relationshipClassCache.clear();
 		agentClassCache.clear();
 		initializeModules();
 	}
@@ -262,7 +266,8 @@ public class ModuleService implements SingletonService {
 	@Override
 	public void shutdown() {
 
-		entityClassCache.clear();
+		nodeEntityClassCache.clear();
+		relationshipClassCache.clear();
 		agentClassCache.clear();
 	}
 
@@ -497,14 +502,25 @@ public class ModuleService implements SingletonService {
 
 				if (!Modifier.isAbstract(clazz.getModifiers())) {
 
-					// register entity classes
+					// register node entity classes
 					if (AbstractNode.class.isAssignableFrom(clazz)) {
 
 						String simpleName = clazz.getSimpleName();
 						String fullName   = clazz.getName();
 
-						entityClassCache.put(simpleName, clazz);
-						entityPackages.add(fullName.substring(0, fullName.lastIndexOf(".")));
+						nodeEntityClassCache.put(simpleName, clazz);
+						nodeEntityPackages.add(fullName.substring(0, fullName.lastIndexOf(".")));
+
+					}
+
+					// register entity classes
+					if (AbstractRelationship.class.isAssignableFrom(clazz)) {
+
+						String simpleName = clazz.getSimpleName();
+						String fullName   = clazz.getName();
+
+						relationshipClassCache.put(simpleName, clazz);
+						relationshipPackages.add(fullName.substring(0, fullName.lastIndexOf(".")));
 
 					}
 
@@ -621,8 +637,13 @@ public class ModuleService implements SingletonService {
 
 				if (AbstractNode.class.isAssignableFrom(clazz)) {
 
-					entityClassCache.remove(simpleName);
-					entityPackages.remove(fullName.substring(0, fullName.lastIndexOf(".")));
+					nodeEntityClassCache.remove(simpleName);
+					nodeEntityPackages.remove(fullName.substring(0, fullName.lastIndexOf(".")));
+
+				} else if (AbstractRelationship.class.isAssignableFrom(clazz)) {
+
+					relationshipClassCache.remove(simpleName);
+					relationshipPackages.remove(fullName.substring(0, fullName.lastIndexOf(".")));
 
 				} else if (Agent.class.isAssignableFrom(clazz)) {
 
@@ -944,41 +965,53 @@ public class ModuleService implements SingletonService {
 
 	//~--- get methods ----------------------------------------------------
 
-	public Set<String> getEntityPackages() {
-		return entityPackages;
+	public Set<String> getNodeEntityPackages() {
+		return nodeEntityPackages;
 	}
 
 	public Set<String> getAgentPackages() {
 		return agentPackages;
 	}
 
-	public Set<String> getCachedEntityTypes() {
-		return entityClassCache.keySet();
+	public Set<String> getCachedNodeEntityTypes() {
+		return nodeEntityClassCache.keySet();
 	}
 
 	public Set<String> getCachedAgentTypes() {
 		return agentClassCache.keySet();
 	}
 
-	public Map<String, Class> getCachedEntities() {
-		return entityClassCache;
+	public Map<String, Class> getCachedNodeEntities() {
+		return nodeEntityClassCache;
 	}
 
 	public Map<String, Class> getCachedAgents() {
 		return agentClassCache;
 	}
 
-	public Class getEntityClass(final String name) {
+	public Set<String> getRelationshipPackages() {
+		return relationshipPackages;
+	}
+
+	public Set<String> getCachedRelationshipTypes() {
+		return relationshipClassCache.keySet();
+	}
+
+	public Map<String, Class> getCachedRelationships() {
+		return relationshipClassCache;
+	}
+
+	public Class getNodeEntityClass(final String name) {
 
 		Class ret = GenericNode.class;
 
 		if ((name != null) && (name.length() > 0)) {
 
-			ret = entityClassCache.get(name);
+			ret = nodeEntityClassCache.get(name);
 
 			if (ret == null) {
 
-				for (String possiblePath : entityPackages) {
+				for (String possiblePath : nodeEntityPackages) {
 
 					if (possiblePath != null) {
 
@@ -988,7 +1021,50 @@ public class ModuleService implements SingletonService {
 
 							if (!Modifier.isAbstract(nodeClass.getModifiers())) {
 
-								entityClassCache.put(name, nodeClass);
+								nodeEntityClassCache.put(name, nodeClass);
+
+								// first match wins
+								break;
+
+							}
+
+						} catch (ClassNotFoundException ex) {
+
+							// ignore
+						}
+
+					}
+
+				}
+
+			}
+
+		}
+
+		return (ret);
+	}
+
+	public Class getRelationshipClass(final String name) {
+
+		Class ret = AbstractNode.class;
+
+		if ((name != null) && (name.length() > 0)) {
+
+			ret = relationshipClassCache.get(name);
+
+			if (ret == null) {
+
+				for (String possiblePath : relationshipPackages) {
+
+					if (possiblePath != null) {
+
+						try {
+
+							Class nodeClass = Class.forName(possiblePath + "." + name);
+
+							if (!Modifier.isAbstract(nodeClass.getModifiers())) {
+
+								relationshipClassCache.put(name, nodeClass);
 
 								// first match wins
 								break;

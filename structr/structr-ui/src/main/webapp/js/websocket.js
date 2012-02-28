@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2011 Axel Morgner
+ *  Copyright (C) 2012 Axel Morgner
  *
  *  This file is part of structr <http://structr.org>.
  *
@@ -83,7 +83,7 @@ function connect() {
                     $.unblockUI();
                     $('#logout_').html('Logout <span class="username">' + user + '</span>');
 
-                    //Structr.init();
+                    Structr.loadInitialModule();
 					
                 } else {
                     $.cookie('structrSessionToken', '');
@@ -137,7 +137,7 @@ function connect() {
                         if (resources) {
                             _Resources.appendContentElement(entity);
                         } else {
-                            Contents.appendContentElement(entity);
+                            _Contents.appendContentElement(entity);
                         }
                         if (debug) console.log('Content element appended');
                         if (buttonClicked) enable(buttonClicked);
@@ -255,13 +255,14 @@ function connect() {
 
                         //						Entities.getTree(entity.id);
                         var elementElement = _Resources.appendElementElement(entity);
-                        var elements = entity.elements;
-                        if (elements && elements.length > 0) {
+                        var elem = entity.elements;
+                        if (elem && elem.length > 0) {
+                            if (debug) console.log(elem);
                             disable($('.delete_icon', elementElement)[0]);
-                            $(elements).each(function(i, element) {
-                                if (element.type == 'Element') {
+                            $(elem).each(function(i, element) {
+                                if (elem.type == 'Element') {
                                     _Resources.appendElementElement(element, entity.id);
-                                } else if (element.type == 'Content') {
+                                } else if (elem.type == 'Content') {
                                     _Resources.appendContentElement(element, entity.id);
                                 }
                             });
@@ -328,6 +329,7 @@ function connect() {
 
                 parentId = data.id;
                 entityId = data.data.id;
+                var resourceId = data.data.resourceId;
 
                 parent = $('.' + parentId + '_');
                 entity = $('.' + entityId + '_');
@@ -362,20 +364,38 @@ function connect() {
             } else if (command == 'UPDATE') {
                 var element = $( '.' + data.id + '_');
                 var input = $('.props tr td.value input', element);
-                if (debug) console.log(element);
+                console.log(element);
 
+                // remove save and cancel icons
                 input.parent().children('.icon').each(function(i, img) {
                     $(img).remove();
                 });
+
+                // make inactive
                 input.removeClass('active');
-                if (debug) console.log(element);//.children('.' + key));
-                
+                if (debug) console.log(element);
+
+                // update values with given key
                 for (key in data.data) {
-                    element.children('.' + key + '_').text(data.data[key]);
-                    if (debug) console.log($('.props tr td.' + key + ' input', element));
-                    $('.props tr td.' + key + ' input', element).val(data.data[key]);
+                    var attrElement = element.children('.' + key + '_');
+                    var inputElement = element.children('.props tr td.' + key + ' input');
+                    if (debug) console.log(attrElement, inputElement);
+                    var newValue = data.data[key];
+
+                    attrElement.animate({
+                        color: '#81ce25'
+                    }, 100, function() {
+                        $(this).animate({
+                            color: '#333333'
+                        }, 200);
+                    });
+                    
+                    attrElement.text(newValue);
+                    inputElement.val(newValue);
+                    //attrElement.removeClass('highlight');
                 }
 
+                // refresh preview iframe
                 input.data('changed', false);
                 _Resources.reloadPreviews();
 
@@ -394,7 +414,9 @@ function connect() {
         }
 
         ws.onclose = function() {
-            Structr.confirmation('Connection lost or timed out.<br>Reconnect?', Structr.init);
+            //Structr.confirmation('Connection lost or timed out.<br>Reconnect?', Structr.init);
+            log('Connection was lost or timed out. Trying automatic reconnect');
+            Structr.init();
         }
 
     } catch (exception) {

@@ -27,8 +27,8 @@ import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.DirectedRelationship.Cardinality;
 import org.structr.web.entity.html.*;
+import org.structr.core.entity.DirectedRelation.Cardinality;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -60,8 +60,6 @@ public class Content extends AbstractNode {
 		EntityContext.registerEntityRelation(Content.class,	H4.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Content.class,	H5.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Content.class,	H6.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
-	
-		
 		EntityContext.registerEntityRelation(Content.class,	A.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Content.class,	Em.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Content.class,	Strong.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
@@ -88,8 +86,6 @@ public class Content extends AbstractNode {
 		EntityContext.registerEntityRelation(Content.class,	Bdi.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Content.class,	Bdo.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Content.class,	Span.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Content.class,	Br.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Content.class,	Wbr.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
 
 	}
 
