@@ -19,8 +19,9 @@
 
 
 
-package org.structr;
+package org.structr.common;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 
 import org.jsoup.Jsoup;
@@ -30,11 +31,6 @@ import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
 import org.jsoup.nodes.TextNode;
 
-import org.structr.common.CaseHelper;
-import org.structr.common.PropertyView;
-import org.structr.common.RelType;
-import org.structr.common.SecurityContext;
-import org.structr.common.StandaloneTestHelper;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.Services;
@@ -47,11 +43,14 @@ import org.structr.core.node.NodeAttribute;
 
 //~--- JDK imports ------------------------------------------------------------
 
+import java.io.IOException;
+
 import java.net.URL;
 
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jsoup.nodes.*;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -59,13 +58,14 @@ import java.util.logging.Logger;
  *
  * @author axel
  */
-public class Slurp {
+public class Importer {
 
-	private static final Logger logger = Logger.getLogger(Slurp.class.getName());
+	private static String[] ignoreElementNames = new String[] { "#declaration", "#comment", "#doctype" };
+	private static final Logger logger         = Logger.getLogger(Importer.class.getName());
 
 	//~--- constructors ---------------------------------------------------
 
-	public Slurp() {}
+	public Importer() {}
 
 	//~--- methods --------------------------------------------------------
 
@@ -73,15 +73,28 @@ public class Slurp {
 
 		StandaloneTestHelper.prepareStandaloneTest("/home/axel/NetBeansProjects/structr/structr/structr-ui/db");
 
-		String address      = "http://www.morgner.de/index";
-		final Document page = Jsoup.parse(new URL(address), 5000);
+		String address = "http://structr.org";
+
+		start(address, "index", 5000);
+		StandaloneTestHelper.finishStandaloneTest();
+	}
+
+	public static void start(final String address, final String name, final int timeout) throws FrameworkException {
+
+		final Document page;
+
+		try {
+			page = Jsoup.parse(new URL(address), timeout);
+		} catch (IOException ioe) {
+			throw new FrameworkException(500, "Error while importing content from " + address);
+		}
 
 		Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(new StructrTransaction() {
 
 			@Override
 			public Object execute() throws FrameworkException {
 
-				AbstractNode page1 = createNode("Resource", "slurp14");
+				AbstractNode page1 = createNode("Resource", name);
 
 				createChildNodes(page, page1, page1.getStringProperty(AbstractNode.Key.uuid));
 
@@ -89,7 +102,6 @@ public class Slurp {
 			}
 
 		});
-		StandaloneTestHelper.finishStandaloneTest();
 	}
 
 	private static void createChildNodes(final Node startNode, final AbstractNode parent, final String resourceId) throws FrameworkException {
@@ -105,7 +117,7 @@ public class Slurp {
 			String id                 = null;
 			StringBuilder classString = new StringBuilder();
 
-			if (type.equals("#declaration") || type.equals("#comment") || type.equals("#data")) {
+			if (ArrayUtils.contains(ignoreElementNames, type)) {
 
 				continue;
 
@@ -124,6 +136,18 @@ public class Slurp {
 
 				id = el.id();
 
+			}
+			
+			if (type.equals("#data")) {
+				type = "Content";
+				tag = "";
+				content = ((DataNode) node).getWholeData();
+				// Don't add content node for whitespace
+				if (StringUtils.isBlank(content)) {
+
+					continue;
+
+				}
 			}
 
 			if (type.equals("#text")) {
@@ -159,7 +183,7 @@ public class Slurp {
 
 			if (StringUtils.isNotBlank(classString.toString())) {
 
-				attrs.add(new NodeAttribute(PropertyView.Html + "class", classString.toString()));
+				attrs.add(new NodeAttribute(PropertyView.Html + "class", StringUtils.trim(classString.toString())));
 
 			}
 
@@ -202,7 +226,7 @@ public class Slurp {
 
 		if (node != null) {
 
-			logger.log(Level.INFO, "Created node with name {0}, type {1} and id {2}", new Object[] { node.getName(), node.getType(), node.getId() });
+			logger.log(Level.INFO, "Created node with name {0}, type {1}", new Object[] { node.getName(), node.getType() });
 
 		} else {
 

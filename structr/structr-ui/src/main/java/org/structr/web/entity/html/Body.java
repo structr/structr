@@ -39,7 +39,7 @@ public class Body extends HtmlElement {
 
 		EntityContext.registerPropertySet(Body.class, PropertyView.All, HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Body.class, PropertyView.Public, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Div.class, PropertyView.Html, true,	HtmlElement.htmlAttributes);
+		EntityContext.registerPropertySet(Body.class, PropertyView.Html, true,	HtmlElement.htmlAttributes);
 		
 		EntityContext.registerEntityRelation(Body.class, Html.class,		RelType.CONTAINS, Direction.INCOMING, DirectedRelation.Cardinality.OneToOne);
 

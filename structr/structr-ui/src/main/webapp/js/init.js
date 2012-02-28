@@ -287,11 +287,13 @@ var Structr = {
         if (text) $('#dialogTitle').html(text);
         if (callbackOk) $('#dialogOkButton').on('click', function() {
             callbackOk();
+			$('#dialogText').empty();
+			$.unblockUI();
         });
         if (callbackCancel) $('#dialogCancelButton').on('click', function() {
             callbackCancel();
-            $('#dialogText').empty();
-            $.unblockUI();
+			$('#dialogText').empty();
+			$.unblockUI();
         });
         $.blockUI.defaults.overlayCSS.opacity = .6;
         $.blockUI.defaults.applyPlatformOpacityRules = false;

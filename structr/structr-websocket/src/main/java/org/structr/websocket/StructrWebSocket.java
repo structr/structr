@@ -61,12 +61,7 @@ import javax.servlet.ServletConfig;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.File;
-import org.structr.websocket.command.AddCommand;
-import org.structr.websocket.command.ChunkCommand;
-import org.structr.websocket.command.FileUploadHandler;
-import org.structr.websocket.command.LinkCommand;
-import org.structr.websocket.command.RemoveCommand;
-import org.structr.websocket.command.TreeCommand;
+import org.structr.websocket.command.*;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -120,6 +115,9 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 
 		// create a link between objects
 		addCommand(LinkCommand.class);
+
+		// import a web page
+		addCommand(ImportCommand.class);
 	}
 
 	//~--- fields ---------------------------------------------------------
