@@ -923,8 +923,8 @@ public class EntityContext {
 
 					AbstractRelationship relationship = relFactory.createRelationship(securityContext, rel);
 
-					//hasError |= graphObjectCreated(securityContext, transactionKey, errorBuffer, relationship);
-					hasError |= relationshipCreated(securityContext, transactionKey, errorBuffer, relationship);
+					hasError |= graphObjectCreated(securityContext, transactionKey, errorBuffer, relationship);
+					//hasError |= relationshipCreated(securityContext, transactionKey, errorBuffer, relationship);
 
 					createdRels.add(relationship);
 
@@ -936,8 +936,8 @@ public class EntityContext {
 					AbstractRelationship relationship = relFactory.createRelationship(securityContext, rel);
 
 					//hasError |= graphObjectDeleted(securityContext, transactionKey, errorBuffer, removedRelProperties.get(rel));
-					hasError |= relationshipDeleted(securityContext, transactionKey, errorBuffer, relationship);
-
+//					hasError |= relationshipDeleted(securityContext, transactionKey, errorBuffer, relationship);
+					hasError |= graphObjectDeleted(securityContext, transactionKey, errorBuffer, relationship, removedRelProperties.get(rel));
 					deletedRels.add(relationship);
 
 				}
@@ -945,7 +945,7 @@ public class EntityContext {
 				// 5: notify listeners of node deletion
 				for (Node node : data.deletedNodes()) {
 
-					hasError |= graphObjectDeleted(securityContext, transactionKey, errorBuffer, removedNodeProperties.get(node));
+					hasError |= graphObjectDeleted(securityContext, transactionKey, errorBuffer, null, removedNodeProperties.get(node));
 
 				}
 
@@ -1159,46 +1159,46 @@ public class EntityContext {
 		}
 
 		@Override
-		public boolean graphObjectDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, Map<String, Object> properties) {
+		public boolean graphObjectDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject, Map<String, Object> properties) {
 
 			boolean hasError = false;
 
 			for (VetoableGraphObjectListener listener : modificationListeners) {
 
-				hasError |= listener.graphObjectDeleted(securityContext, transactionKey, errorBuffer, properties);
+				hasError |= listener.graphObjectDeleted(securityContext, transactionKey, errorBuffer, graphObject, properties);
 
 			}
 
 			return hasError;
 		}
 
-		@Override
-		public boolean relationshipDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, AbstractRelationship relationship) {
-
-			boolean hasError = false;
-
-			for (VetoableGraphObjectListener listener : modificationListeners) {
-
-				hasError |= listener.relationshipDeleted(securityContext, transactionKey, errorBuffer, relationship);
-
-			}
-
-			return hasError;
-		}
-
-		@Override
-		public boolean relationshipCreated(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, AbstractRelationship relationship) {
-
-			boolean hasError = false;
-
-			for (VetoableGraphObjectListener listener : modificationListeners) {
-
-				hasError |= listener.relationshipCreated(securityContext, transactionKey, errorBuffer, relationship);
-
-			}
-
-			return hasError;
-		}
+//		@Override
+//		public boolean relationshipDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, AbstractRelationship relationship) {
+//
+//			boolean hasError = false;
+//
+//			for (VetoableGraphObjectListener listener : modificationListeners) {
+//
+//				hasError |= listener.relationshipDeleted(securityContext, transactionKey, errorBuffer, relationship);
+//
+//			}
+//
+//			return hasError;
+//		}
+//
+//		@Override
+//		public boolean relationshipCreated(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, AbstractRelationship relationship) {
+//
+//			boolean hasError = false;
+//
+//			for (VetoableGraphObjectListener listener : modificationListeners) {
+//
+//				hasError |= listener.relationshipCreated(securityContext, transactionKey, errorBuffer, relationship);
+//
+//			}
+//
+//			return hasError;
+//		}
 	}
 
 	// </editor-fold>

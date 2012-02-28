@@ -131,7 +131,7 @@ var _Elements = {
     },
 
     showPalette : function() {
-//        var palette = $('#palette');
+        //        var palette = $('#palette');
         palette.empty().hide();
 
         $(_Elements.elementGroups).each(function(i,group) {
@@ -151,8 +151,9 @@ var _Elements = {
 
         });
 
-        palette.slideDown('slow', function() {
-            console.log('palette ready');
+        header.on('click', function() {
+            console.log('slide palette down');
+            palette.slideToggle('fast');
         });
 
     },
@@ -223,8 +224,12 @@ var _Elements = {
 
             if (debug) console.log('parent', parent);
             //_Entities.showProperties(this, entity, '_html_', $('.' + entity.id + '_', parent));
-            Structr.dialog('Edit Properties of ' + entity.id, function() { console.log('save')}, function() { console.log('cancelled')});
- //           _Entities.showProperties(this, entity, 'all', $('#dialogText'));
+            Structr.dialog('Edit Properties of ' + entity.id, function() {
+                console.log('save')
+                }, function() {
+                console.log('cancelled')
+                });
+            //           _Entities.showProperties(this, entity, 'all', $('#dialogText'));
             _Entities.showProperties(this, entity, '_html_', $('#dialogText'));
         });
 		

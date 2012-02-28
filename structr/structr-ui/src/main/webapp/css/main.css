@@ -242,8 +242,9 @@ img.disabled {
     filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#dddddd', EndColorStr='#cccccc', GradientType=0);
     overflow: hidden;
     padding-bottom: 6px;
-/*    position: absolute;
-    z-index: 3;*/
+/*    height: 360px;*/
+    position: absolute;
+/*    z-index: 3;*/
 }
 
 #palette .elementGroup {
@@ -698,4 +699,8 @@ div.nested img:hover {
     -moz-transition: color 0.1s 0.1s;
     -webkit-transition: color 0.1s 0.1s;
     -o-transition: color 0.1s 0;
+}
+
+#controls {
+    float: right;
 }
