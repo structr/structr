@@ -199,4 +199,8 @@ public class File extends AbstractNode {
 	public void setSize(final long size) throws FrameworkException {
 		setProperty(Key.size.name(), size);
 	}
+	
+	public static String getDirectoryPath(final String uuid) {
+		return uuid != null ? uuid.substring(0,1) + "/" + uuid.substring(1,2) + "/" + uuid.substring(2,3) + "/" + uuid.substring(3,4) : null;
+	}
 }

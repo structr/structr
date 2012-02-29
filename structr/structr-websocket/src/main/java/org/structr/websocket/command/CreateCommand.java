@@ -61,8 +61,7 @@ public class CreateCommand extends AbstractCommand {
 				File fileNode = (File) newNode;
 
 				String uuid = newNode.getStringProperty(AbstractNode.Key.uuid);
-				String directory = uuid.substring(0,1) + "/" + uuid.substring(1,2) + "/" + uuid.substring(2,3) + "/" + uuid.substring(3,4);
-				fileNode.setRelativeFilePath(directory + "/" + uuid);
+				fileNode.setRelativeFilePath(File.getDirectoryPath(uuid) + "/" + uuid);
 
 				getWebSocket().handleFileCreation((File)newNode);
 			}
