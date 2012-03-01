@@ -30,6 +30,7 @@ import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.RenderMode;
+import org.structr.common.error.FrameworkException;
 import org.structr.common.renderer.FileStreamRenderer;
 import org.structr.core.EntityContext;
 import org.structr.core.NodeRenderer;
@@ -47,7 +48,6 @@ import java.net.URL;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.error.FrameworkException;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -66,13 +66,16 @@ public class File extends AbstractNode {
 
 		EntityContext.registerEntityRelation(File.class, Folder.class, RelType.HAS_CHILD, Direction.INCOMING, Cardinality.ManyToOne);
 		EntityContext.registerPropertySet(File.class, PropertyView.All, Key.values());
-//		EntityContext.registerPropertyRelation(File.class, Key.parentFolder, Folder.class, RelType.HAS_CHILD, Direction.INCOMING, Cardinality.ManyToOne);
+
+//              EntityContext.registerPropertyRelation(File.class, Key.parentFolder, Folder.class, RelType.HAS_CHILD, Direction.INCOMING, Cardinality.ManyToOne);
 
 	}
 
 	//~--- constant enums -------------------------------------------------
 
-	public enum Key implements PropertyKey{ contentType, relativeFilePath, size, url, folder }
+	public enum Key implements PropertyKey {
+		contentType, relativeFilePath, size, url, folder, checksum
+	}
 
 	//~--- methods --------------------------------------------------------
 
@@ -131,7 +134,43 @@ public class File extends AbstractNode {
 
 		}
 
-		return 0;
+		return -1;
+	}
+
+	public String getChecksum() {
+
+		String storedChecksum = getStringProperty(Key.checksum);
+
+		if (storedChecksum != null) {
+
+			return storedChecksum;
+
+		}
+
+		String relativeFilePath = getRelativeFilePath();
+
+		if (relativeFilePath != null) {
+
+			String filePath         = Services.getFilePath(Path.Files, relativeFilePath);
+			java.io.File fileOnDisk = new java.io.File(filePath);
+			String checksum;
+
+			try {
+
+				checksum = String.valueOf(FileUtils.checksumCRC32(fileOnDisk));
+
+				logger.log(Level.FINE, "Checksum of file {0} ({1}): {2}", new Object[] { getId(), filePath, checksum });
+				setChecksum(checksum);
+
+				return checksum;
+
+			} catch (Exception ex) {
+				logger.log(Level.WARNING, "Could not calculate checksum of file " + filePath, ex);
+			}
+
+		}
+
+		return null;
 	}
 
 	public String getFormattedSize() {
@@ -182,6 +221,13 @@ public class File extends AbstractNode {
 		return null;
 	}
 
+	public static String getDirectoryPath(final String uuid) {
+
+		return (uuid != null)
+		       ? uuid.substring(0, 1) + "/" + uuid.substring(1, 2) + "/" + uuid.substring(2, 3) + "/" + uuid.substring(3, 4)
+		       : null;
+	}
+
 	//~--- set methods ----------------------------------------------------
 
 	public void setRelativeFilePath(final String filePath) throws FrameworkException {
@@ -199,8 +245,8 @@ public class File extends AbstractNode {
 	public void setSize(final long size) throws FrameworkException {
 		setProperty(Key.size.name(), size);
 	}
-	
-	public static String getDirectoryPath(final String uuid) {
-		return uuid != null ? uuid.substring(0,1) + "/" + uuid.substring(1,2) + "/" + uuid.substring(2,3) + "/" + uuid.substring(3,4) : null;
+
+	public void setChecksum(final String checksum) throws FrameworkException {
+		setProperty(Key.checksum.name(), checksum);
 	}
 }

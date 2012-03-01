@@ -610,6 +610,7 @@ div.nested img:hover {
 
 #dialogBox {
     width: 480px;
+    margin-top: -70%;
 }
 
 #dialogTitle {
@@ -621,7 +622,7 @@ div.nested img:hover {
 #dialogText {
     text-align: left;
     font-size: 9pt;
-    height: 478px;
+    height: 450px;
     width: 478px;
     overflow: auto;
 }

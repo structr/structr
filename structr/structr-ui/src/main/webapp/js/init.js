@@ -306,6 +306,7 @@ var Structr = {
                 backgroundColor: 'transparent'
             }
         });
+//        $('.blockUI.blockMsg').center();
 
     },
 

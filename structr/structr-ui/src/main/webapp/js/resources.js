@@ -287,59 +287,49 @@ var _Resources = {
 
 	appendResourceElement : function(entity, resourceId, rootId) {
 
-		resources.append('<div class="node resource ' + entity.id + '_"></div>');
-		var div = $('.' + entity.id + '_', resources);
-		
-		div.append('<img title="Expand resource \'' + entity.name + '\'" alt="Expand resource \'' + entity.name + '\'" class="expand_icon button" src="' + Structr.expand_icon + '">');
-
-		$('.expand_icon', div).on('click', function() {
-			_Resources.toggleResource(this, entity);
-		});
-
-
-		div.append('<img class="typeIcon" src="icon/page.png">'
-			+ '<b class="name_">' + entity.name + '</b> <span class="id">' + entity.id + '</span>');
-		
-		div.append('<img title="Delete resource \'' + entity.name + '\'" alt="Delete resource \'' + entity.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
-
-		div.append('<img title="Link resource \'' + entity.name + '\' to current selection" alt="Link resource \'' + entity.name + '\' to current selection" class="link_icon button" src="' + Structr.link_icon + '">');
-		$('.link_icon', div).on('click', function() {
-			//console.log(rootId, sourceId);
-			if (sourceId && selStart && selEnd) {
-				// function(resourceId, sourceId, linkedResourceId, startOffset, endOffset)
-				_Resources.linkSelectionToResource(rootId, sourceId, entity.id, selStart, selEnd);
-			//$('.link_icon').hide();
-			}
-		});
-		
-		$('.delete_icon', div).on('click', function(e) {
-			e.stopPropagation();
-			var self = $(this);
-			self.off('click');
-			self.off('mouseover');
-			_Resources.deleteResource(this, entity);
-		});
-		//        div.append('<img class="add_icon button" title="Add Element" alt="Add Element" src="icon/add.png">');
-		//        $('.add_icon', div).on('click', function() {
-		//            Resources.addElement(this, resource);
-		//        });
-		$('b', div).on('click', function() {
-			e.stopPropagation();
-			var self = $(this);
-			self.off('click');
-			self.off('mouseover');
-			var dialog = $('#dialogText');
-			dialog.empty();
-			Structr.dialog('Edit Properties of ' + entity.id,
-				function() {
-					return true;
-				},
-				function() {
-					return true;
-				}
-			);
-			_Entities.showProperties(this, entity, 'all', dialog);
-		});
+//		resources.append('<div class="node resource ' + entity.id + '_"></div>');
+//		var div = $('.' + entity.id + '_', resources);
+//
+//		div.append('<img title="Expand resource \'' + entity.name + '\'" alt="Expand resource \'' + entity.name + '\'" class="expand_icon button" src="' + Structr.expand_icon + '">');
+//
+//		$('.expand_icon', div).on('click', function() {
+//			_Resources.toggleResource(this, entity);
+//		});
+//
+//
+//		div.append('<img class="typeIcon" src="icon/page.png">'
+//			+ '<b class="name_">' + entity.name + '</b> <span class="id">' + entity.id + '</span>');
+//
+//		div.append('<img title="Delete resource \'' + entity.name + '\'" alt="Delete resource \'' + entity.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
+//
+//		div.append('<img title="Link resource \'' + entity.name + '\' to current selection" alt="Link resource \'' + entity.name + '\' to current selection" class="link_icon button" src="' + Structr.link_icon + '">');
+//		$('.link_icon', div).on('click', function() {
+//			//console.log(rootId, sourceId);
+//			if (sourceId && selStart && selEnd) {
+//				// function(resourceId, sourceId, linkedResourceId, startOffset, endOffset)
+//				_Resources.linkSelectionToResource(rootId, sourceId, entity.id, selStart, selEnd);
+//			//$('.link_icon').hide();
+//			}
+//		});
+//
+//		$('.delete_icon', div).on('click', function(e) {
+//			e.stopPropagation();
+//			var self = $(this);
+//			self.off('click');
+//			self.off('mouseover');
+//			_Resources.deleteResource(this, entity);
+//		});
+//		//        div.append('<img class="add_icon button" title="Add Element" alt="Add Element" src="icon/add.png">');
+//		//        $('.add_icon', div).on('click', function() {
+//		//            Resources.addElement(this, resource);
+//		//        });
+//		$('b', div).on('click', function() {
+//			e.stopPropagation();
+//			var self = $(this);
+//			self.off('click');
+//			self.off('mouseover');
+//			_Entities.showProperties(this, entity, 'all');
+//		});
 
 		//        previewTabs.children('li').each(function() {
 		//            $(this).removeClass('active');

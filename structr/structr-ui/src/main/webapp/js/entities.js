@@ -156,11 +156,24 @@ var _Entities = {
         });
     },
 
-    showProperties : function(button, entity, view, element) {
+    showProperties : function(button, entity, view, dialog) {
+
+        var dialog = $('#dialogText');
+        dialog.empty();
+        Structr.dialog('Edit Properties of ' + entity.id,
+            function() {
+                return true;
+            },
+            function() {
+                return true;
+            }
+        );
+
+
         var debug = true
         if (isDisabled(button)) return;
         disable(button, function() {
-            _Entities.hideProperties(button, entity, view, element);
+            _Entities.hideProperties(button, entity, view, dialog);
         });
 
         if (debug) console.log('showProperties URL: ' + rootUrl + entity.id + (view ? '/' + view : ''));
@@ -176,20 +189,20 @@ var _Entities = {
                 var keys = Object.keys(data.result);
 				
                 if (keys.length > 1) {
-                    if (debug) console.log('element', element);
-                    element.append('<table class="props"></table>');
+                    if (debug) console.log('element', dialog);
+                    dialog.append('<table class="props"></table>');
                 }
 				
                 $(keys).each(function(i, key) {
 
                     if (view == '_html_') {
-                        $('.props', element).append('<tr><td class="key">' + key.replace(view, '') + '</td><td class="value ' + key + '_">' + formatValue(key, data.result[key]) + '</td></tr>');
+                        $('.props', dialog).append('<tr><td class="key">' + key.replace(view, '') + '</td><td class="value ' + key + '_">' + formatValue(key, data.result[key]) + '</td></tr>');
                     } else {
-                        $('.props', element).append('<tr><td class="key">' + formatKey(key) + '</td><td class="value ' + key + '_">' + formatValue(key, data.result[key]) + '</td></tr>');
+                        $('.props', dialog).append('<tr><td class="key">' + formatKey(key) + '</td><td class="value ' + key + '_">' + formatValue(key, data.result[key]) + '</td></tr>');
                     }
                 });
 
-                $('.props tr td.value input', element).each(function(i,v) {
+                $('.props tr td.value input', dialog).each(function(i,v) {
                     var input = $(v);
                     var oldVal = input.val();
 
