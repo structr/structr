@@ -109,6 +109,10 @@ function connect() {
                     Structr.login('Session invalid');
                 }
 
+            } else if (command == 'IMPORT') {
+                
+                if (debug) console.log('Imported ', result);
+
             } else if (command == 'CREATE') {
 				
                 $(result).each(function(i, entity) {

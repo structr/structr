@@ -100,16 +100,11 @@ var _Resources = {
 		//        });
 
 		_Resources.refresh();
-		_Resources.refreshComponents();
-		_Resources.refreshElements();
-		_Elements.showPalette();
-		_Contents.refresh();
+		//_Resources.refreshComponents();
+		//_Resources.refreshElements();
+		//_Elements.showPalette();
+		//_Contents.refresh();
 
-		previewTabs.append('<li id="add_resource" class="button"><img class="add_button icon" src="icon/add.png"></li>');
-		$('#add_resource', previewTabs).on('click', function() {
-			_Resources.addResource(this);
-		});
-		
 		previewTabs.append('<li id="import_page" class="button"><img class="add_button icon" src="icon/page_white_put.png"></li>');
 		$('#import_page', previewTabs).on('click', function() {
 			
@@ -136,11 +131,17 @@ var _Resources = {
 					console.log('Page import cancelled');
 					return true;
 				}
-				);
+			);
 				
 			
             
 		});
+
+                previewTabs.append('<li id="add_resource" class="button"><img class="add_button icon" src="icon/add.png"></li>');
+		$('#add_resource', previewTabs).on('click', function() {
+			_Resources.addResource(this);
+		});
+
 
 	//        main.height($(window).height()-header.height()-palette.height()-24);
 
