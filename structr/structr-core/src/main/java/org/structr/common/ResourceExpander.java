@@ -143,7 +143,7 @@ public class ResourceExpander implements RelationshipExpander {
 
 					}
 
-					logger.log(Level.INFO, "Node {0}: Put relationship {1} into map at position {2}", new Object[] { node, rel, position });
+					logger.log(Level.FINEST, "Node {0}: Put relationship {1} into map at position {2}", new Object[] { node, rel, position });
 
 				}
 
