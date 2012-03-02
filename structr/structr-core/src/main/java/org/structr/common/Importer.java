@@ -72,7 +72,7 @@ public class Importer {
 	};
 	private static final Logger logger                               = Logger.getLogger(Importer.class.getName());
 	private static final Map<String, String> contentTypeForExtension = new HashMap<String, String>();
-	private static final Command searchNode;
+	private static Command searchNode;
 
 	//~--- static initializers --------------------------------------------
 
@@ -80,8 +80,6 @@ public class Importer {
 
 		contentTypeForExtension.put("css", "text/css");
 		contentTypeForExtension.put("js", "text/javascript");
-
-		searchNode = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class);
 
 	}
 
@@ -102,6 +100,9 @@ public class Importer {
 	}
 
 	public static void start(final String address, final String name, final int timeout) throws FrameworkException {
+
+		searchNode = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class);
+
 
 		final Document page;
 
