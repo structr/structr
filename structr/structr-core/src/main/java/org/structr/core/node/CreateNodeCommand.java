@@ -109,6 +109,11 @@ public class CreateNodeCommand extends NodeServiceCommand {
 
 			// Create node with type
 			node = nodeFactory.createNode(securityContext, graphDb.createNode(), nodeType);
+
+			node.unlockReadOnlyPropertiesOnce();
+			node.setProperty(AbstractNode.Key.createdDate.name(), now, false);
+			node.setProperty(AbstractNode.Key.lastModifiedDate.name(), now, false);
+
 			logger.log(Level.FINE, "Node {0} created", node.getId());
 
 //                      EntityContext.getGlobalModificationListener().newNode(securityContext, node.getId());
@@ -159,9 +164,6 @@ public class CreateNodeCommand extends NodeServiceCommand {
 				user.getProperty(AbstractNode.Key.uuid), false);
 			}
 
-			node.unlockReadOnlyPropertiesOnce();
-			node.setProperty(AbstractNode.Key.createdDate.name(), now, false);
-			node.setProperty(AbstractNode.Key.lastModifiedDate.name(), now, false);
 		}
 
 		if (node != null) {
