@@ -21,7 +21,7 @@
 
 package org.structr.websocket.command;
 
-import org.structr.common.Importer;
+import org.structr.web.Importer;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
@@ -35,6 +35,7 @@ import org.structr.websocket.message.WebSocketMessage;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.websocket.StructrWebSocket;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -45,6 +46,12 @@ import java.util.logging.Logger;
 public class ImportCommand extends AbstractCommand {
 
 	private static final Logger logger = Logger.getLogger(ImportCommand.class.getName());
+
+	static {
+		// import a web page
+		StructrWebSocket.addCommand(ImportCommand.class);
+
+	}
 
 	//~--- methods --------------------------------------------------------
 

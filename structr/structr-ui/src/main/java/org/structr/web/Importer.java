@@ -19,15 +19,23 @@
 
 
 
-package org.structr.common;
+package org.structr.web;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.*;
 
+import org.structr.common.CaseHelper;
+import org.structr.common.FileHelper;
+import org.structr.common.Path;
+import org.structr.common.PropertyView;
+import org.structr.common.RelType;
+import org.structr.common.SecurityContext;
+import org.structr.common.StandaloneTestHelper;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.Services;
@@ -45,6 +53,7 @@ import org.structr.core.node.search.SearchNodeCommand;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.io.IOException;
+import java.io.StringWriter;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -52,6 +61,8 @@ import java.net.URL;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -95,6 +106,7 @@ public class Importer {
 
 		start(address, "index", 5000);
 		StandaloneTestHelper.finishStandaloneTest();
+
 	}
 
 	public static void start(final String address, final String name, final int timeout) throws FrameworkException {
@@ -120,7 +132,12 @@ public class Importer {
 				@Override
 				public Object execute() throws FrameworkException {
 
-					AbstractNode page1 = createNode("Resource", name);
+					List<NodeAttribute> attrs = new LinkedList<NodeAttribute>();
+
+					attrs.add(new NodeAttribute("type", "Resource"));
+					attrs.add(new NodeAttribute("name", name));
+
+					AbstractNode page1 = createNode(attrs);
 
 					createChildNodes(page, page1, page1.getStringProperty(AbstractNode.Key.uuid), baseUrl);
 
@@ -134,7 +151,7 @@ public class Importer {
 		}
 	}
 
-	private static void createChildNodes(final Node startNode, final AbstractNode parent, final String resourceId, final URL url) throws FrameworkException {
+	private static void createChildNodes(final Node startNode, final AbstractNode parent, final String resourceId, final URL baseUrl) throws FrameworkException {
 
 		List<Node> children = startNode.childNodes();
 		int localIndex      = 0;
@@ -175,84 +192,15 @@ public class Importer {
 				if ((downloadAddressAttr != null) && StringUtils.isNotBlank(node.attr(downloadAddressAttr))) {
 
 					String downloadAddress = node.attr(downloadAddressAttr);
-					final String uuid      = UUID.randomUUID().toString().replaceAll("[\\-]+", "");
-					String contentType;
 
-					// Create temporary file with new uuid
-					// FIXME: This is much too dangerous!
-					String relativeFilePath = org.structr.core.entity.File.getDirectoryPath(uuid) + "/" + uuid;
-					String filePath         = Services.getFilePath(Path.Files, relativeFilePath);
-					java.io.File fileOnDisk = new java.io.File(filePath);
-
-					fileOnDisk.getParentFile().mkdirs();
-
-					try {
-
-						URL downloadUrl = new URL(url, downloadAddress);
-
-//                                              if (downloadAddress.startsWith("http")) {
-//                                                      urlString = downloadAddress;
-//                                              } else {
-//                                                      urlString = baseAddress + "/" + downloadAddress;
-//                                              }
-						// TODO: Add security features like null/integrity/virus checking before copying it to
-						// the files repo
-						FileUtils.copyURLToFile(downloadUrl, fileOnDisk);
-
-					} catch (IOException ioe) {
-						logger.log(Level.WARNING, "Unable to download from " + downloadAddress, ioe);
-					}
-
-					contentType     = FileHelper.getContentMimeType(fileOnDisk);
-					downloadAddress = StringUtils.substringBefore(downloadAddress, "?");
-
-					final String name = (downloadAddress.indexOf("/") > -1)
-							    ? StringUtils.substringAfterLast(downloadAddress, "/")
-							    : downloadAddress;
-
-					if (contentType.equals("text/plain")) {
-
-						contentType = contentTypeForExtension.get(StringUtils.substringAfterLast(name, "."));
-
-					}
-
-					final String ct                = contentType;
-					StructrTransaction transaction = new StructrTransaction() {
-
-						@Override
-						public Object execute() throws FrameworkException {
-
-							return Services.command(SecurityContext.getSuperUserInstance(),
-										CreateNodeCommand.class).execute(new NodeAttribute(AbstractNode.Key.uuid.name(), uuid),
-											new NodeAttribute(AbstractNode.Key.type.name(), File.class.getSimpleName()),
-											new NodeAttribute(AbstractNode.Key.name.name(), name), new NodeAttribute(File.Key.contentType.name(), ct));
-						}
-					};
-
-					try {
-
-						if (!(fileExists(name, FileUtils.checksumCRC32(fileOnDisk)))) {
-
-							// create node in transaction
-							File fileNode = (File) Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(transaction);
-
-							fileNode.setRelativeFilePath(relativeFilePath);
-							fileNode.getChecksum();    // calculates and stores checksum
-						} else {
-
-							fileOnDisk.delete();
-
-						}
-
-					} catch (Exception fex) {
-						logger.log(Level.WARNING, "Could not create node.", fex);
-					}
+					downloadFiles(downloadAddress, baseUrl);
 
 				}
 
 			}
 
-			if (type.equals("#data")) {
+			// Data and comment nodes: Just put the text into the "content" field without changes
+			if (type.equals("#data") || type.equals("#comment")) {
 
 				type    = "Content";
 				tag     = "";
@@ -267,6 +215,7 @@ public class Importer {
 
 			}
 
+			// Text-only nodes: Put the text content into the "content" field
 			if (type.equals("#text")) {
 
 				type    = "Content";
@@ -284,62 +233,62 @@ public class Importer {
 
 			List<NodeAttribute> attrs = new LinkedList<NodeAttribute>();
 
+			// In case of a content node, put content into the "content" field
 			if (content != null) {
 
 				attrs.add(new NodeAttribute("content", content));
 
 			}
 
+			// Type and name
+			attrs.add(new NodeAttribute(AbstractNode.Key.type.name(), type));
+			attrs.add(new NodeAttribute(AbstractNode.Key.name.name(), "New " + type + " " + Math.random()));
+
+			// Tag name
 			attrs.add(new NodeAttribute("tag", tag));
 
+			// "id" attribute: Put it into the "_html_id" field
 			if (StringUtils.isNotBlank(id)) {
 
 				attrs.add(new NodeAttribute(PropertyView.Html + "id", id));
 
 			}
 
+			// "class" attribute: Put it into the "_html_class" field
 			if (StringUtils.isNotBlank(classString.toString())) {
 
 				attrs.add(new NodeAttribute(PropertyView.Html + "class", StringUtils.trim(classString.toString())));
 
 			}
 
+			// Other attributes: Put them into the respective fields with "_html_" prefix
 			for (Attribute nodeAttr : node.attributes()) {
 
 				attrs.add(new NodeAttribute(PropertyView.Html + nodeAttr.getKey(), nodeAttr.getValue()));
 
 			}
 
-			AbstractNode newNode = createNode(type, "New " + type + " " + Math.random(), (NodeAttribute[]) attrs.toArray(new NodeAttribute[attrs.size()]));
+			// create node
+			// TODO: Do we need the name here?
+			AbstractNode newNode = createNode(attrs);
 
+			// Link new node to its parent node
 			linkNodes(parent, newNode, resourceId, localIndex);
-			createChildNodes(node, newNode, resourceId, url);
 
+			// Step down and process child nodes
+			createChildNodes(node, newNode, resourceId, baseUrl);
+
+			// Count up position index
 			localIndex++;
 
 		}
 	}
 
-	private static AbstractNode createNode(String type, String name, NodeAttribute... attributes) throws FrameworkException {
+	private static AbstractNode createNode(List<NodeAttribute> attributes) throws FrameworkException {
 
 		SecurityContext context   = SecurityContext.getSuperUserInstance();
 		Command createNodeCommand = Services.command(context, CreateNodeCommand.class);
-		Map<String, Object> attrs = new HashMap<String, Object>();
-
-		attrs.put(AbstractNode.Key.type.name(), type);
-		attrs.put(AbstractNode.Key.name.name(), name);
-
-		if (attributes != null) {
-
-			for (NodeAttribute attr : attributes) {
-
-				attrs.put(attr.getKey(), attr.getValue());
-
-			}
-
-		}
-
-		AbstractNode node = (AbstractNode) createNodeCommand.execute(attrs);
+		AbstractNode node         = (AbstractNode) createNodeCommand.execute(attributes);
 
 		if (node != null) {
 
@@ -347,7 +296,7 @@ public class Importer {
 
 		} else {
 
-			logger.log(Level.WARNING, "Could not create node with name {0} and type {1}", new Object[] { name, type });
+			logger.log(Level.WARNING, "Could not create node");
 
 		}
 
@@ -379,5 +328,115 @@ public class Importer {
 		List<File> files = (List<File>) searchNode.execute(null, false, false, searchAttrs);
 
 		return !files.isEmpty();
+	}
+
+	private static void downloadFiles(String downloadAddress, final URL baseUrl) {
+
+		final String uuid = UUID.randomUUID().toString().replaceAll("[\\-]+", "");
+		String contentType;
+
+		// Create temporary file with new uuid
+		// FIXME: This is much too dangerous!
+		String relativeFilePath = org.structr.core.entity.File.getDirectoryPath(uuid) + "/" + uuid;
+		String filePath         = Services.getFilePath(Path.Files, relativeFilePath);
+		java.io.File fileOnDisk = new java.io.File(filePath);
+
+		fileOnDisk.getParentFile().mkdirs();
+
+		URL downloadUrl = null;
+
+		try {
+
+			downloadUrl = new URL(baseUrl, downloadAddress);
+
+			logger.log(Level.INFO, "Starting download from {0}", downloadUrl);
+
+			// TODO: Add security features like null/integrity/virus checking before copying it to
+			// the files repo
+			FileUtils.copyURLToFile(downloadUrl, fileOnDisk);
+
+		} catch (IOException ioe) {
+			logger.log(Level.WARNING, "Unable to download from " + downloadAddress, ioe);
+
+			return;
+
+		}
+
+		contentType     = FileHelper.getContentMimeType(fileOnDisk);
+		downloadAddress = StringUtils.substringBefore(downloadAddress, "?");
+
+		final String name = (downloadAddress.indexOf("/") > -1)
+				    ? StringUtils.substringAfterLast(downloadAddress, "/")
+				    : downloadAddress;
+
+		if (contentType.equals("text/plain")) {
+
+			contentType = contentTypeForExtension.get(StringUtils.substringAfterLast(name, "."));
+
+		}
+
+		final String ct                = contentType;
+		StructrTransaction transaction = new StructrTransaction() {
+
+			@Override
+			public Object execute() throws FrameworkException {
+
+				return Services.command(SecurityContext.getSuperUserInstance(), CreateNodeCommand.class).execute(new NodeAttribute(AbstractNode.Key.uuid.name(), uuid),
+							new NodeAttribute(AbstractNode.Key.type.name(), File.class.getSimpleName()), new NodeAttribute(AbstractNode.Key.name.name(), name),
+							new NodeAttribute(File.Key.contentType.name(), ct));
+			}
+		};
+
+		try {
+
+			if (!(fileExists(name, FileUtils.checksumCRC32(fileOnDisk)))) {
+
+				// create node in transaction
+				File fileNode = (File) Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(transaction);
+
+				fileNode.setRelativeFilePath(relativeFilePath);
+				fileNode.getChecksum();    // calculates and stores checksum
+
+				if (contentType.equals("text/css")) {
+
+					processsCssFileNode(fileNode, downloadUrl);
+
+				}
+			} else {
+
+				fileOnDisk.delete();
+
+			}
+
+		} catch (Exception fex) {
+			logger.log(Level.WARNING, "Could not create node.", fex);
+		}
+	}
+
+	private static void processsCssFileNode(File fileNode, final URL baseUrl) throws IOException {
+
+		StringWriter sw = new StringWriter();
+
+		IOUtils.copy(fileNode.getInputStream(), sw, "UTF-8");
+
+		String css = sw.toString();
+
+		processCss(css, baseUrl);
+	}
+
+	private static void processCss(final String css, final URL baseUrl) throws IOException {
+
+		Pattern pattern = Pattern.compile("url\\((.*)\\)");
+		Matcher matcher = pattern.matcher(css);
+
+		while (matcher.find()) {
+
+			String url = StringUtils.strip(matcher.group(1), "'\"");
+
+			logger.log(Level.INFO, "Trying to download form URL found in CSS: {0}", url);
+
+			downloadFiles(url, baseUrl);
+
+		}
 	}
 }

@@ -233,7 +233,7 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 
 			}
 
-			logger.log(Level.INFO, "Relationship created: {0}({1} -> {2}{3}", new Object[] { startNode.getId(), startNode.getStringProperty(AbstractNode.Key.uuid), endNode.getStringProperty(AbstractNode.Key.uuid) });
+			logger.log(Level.FINE, "Relationship created: {0}({1} -> {2}{3}", new Object[] { startNode.getId(), startNode.getStringProperty(AbstractNode.Key.uuid), endNode.getStringProperty(AbstractNode.Key.uuid) });
 
 			return false;
 
@@ -257,7 +257,7 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 
 			}
 
-			logger.log(Level.INFO, "Node created: {0}", ((AbstractNode) graphObject).getStringProperty(AbstractNode.Key.uuid));
+			logger.log(Level.FINE, "Node created: {0}", ((AbstractNode) graphObject).getStringProperty(AbstractNode.Key.uuid));
 			return false;
 
 		}
@@ -311,7 +311,7 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 
 			}
 
-			logger.log(Level.INFO, "{0} -> {1}", new Object[] { startNode.getId(), endNode.getId() });
+			logger.log(Level.FINE, "{0} -> {1}", new Object[] { startNode.getId(), endNode.getId() });
 
 			return false;
 

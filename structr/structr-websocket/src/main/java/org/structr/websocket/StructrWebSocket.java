@@ -116,8 +116,6 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 		// create a link between objects
 		addCommand(LinkCommand.class);
 
-		// import a web page
-		addCommand(ImportCommand.class);
 	}
 
 	//~--- fields ---------------------------------------------------------
@@ -321,7 +319,7 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 	}
 
 	// ----- private static methods -----
-	private static final void addCommand(final Class command) {
+	public static final void addCommand(final Class command) {
 
 		try {
 
