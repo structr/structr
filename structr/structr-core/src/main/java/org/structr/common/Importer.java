@@ -34,7 +34,6 @@ import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.File;
-import org.structr.core.entity.Group;
 import org.structr.core.node.*;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;
@@ -48,7 +47,6 @@ import org.structr.core.node.search.SearchNodeCommand;
 import java.io.IOException;
 
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URL;
 
 import java.util.*;
@@ -102,7 +100,6 @@ public class Importer {
 	public static void start(final String address, final String name, final int timeout) throws FrameworkException {
 
 		searchNode = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class);
-
 
 		final Document page;
 
@@ -177,8 +174,8 @@ public class Importer {
 
 				if ((downloadAddressAttr != null) && StringUtils.isNotBlank(node.attr(downloadAddressAttr))) {
 
-					final String downloadAddress = node.attr(downloadAddressAttr);
-					final String uuid            = UUID.randomUUID().toString().replaceAll("[\\-]+", "");
+					String downloadAddress = node.attr(downloadAddressAttr);
+					final String uuid      = UUID.randomUUID().toString().replaceAll("[\\-]+", "");
 					String contentType;
 
 					// Create temporary file with new uuid
@@ -206,18 +203,20 @@ public class Importer {
 						logger.log(Level.WARNING, "Unable to download from " + downloadAddress, ioe);
 					}
 
-					contentType = FileHelper.getContentMimeType(fileOnDisk);
+					contentType     = FileHelper.getContentMimeType(fileOnDisk);
+					downloadAddress = StringUtils.substringBefore(downloadAddress, "?");
+
+					final String name = (downloadAddress.indexOf("/") > -1)
+							    ? StringUtils.substringAfterLast(downloadAddress, "/")
+							    : downloadAddress;
 
 					if (contentType.equals("text/plain")) {
 
-						contentType = contentTypeForExtension.get(StringUtils.substringAfterLast(downloadAddress, "."));
+						contentType = contentTypeForExtension.get(StringUtils.substringAfterLast(name, "."));
 
 					}
 
 					final String ct                = contentType;
-					final String name              = (downloadAddress.indexOf("/") > 0)
-									 ? StringUtils.substringAfterLast(downloadAddress, "/")
-									 : downloadAddress;
 					StructrTransaction transaction = new StructrTransaction() {
 
 						@Override
@@ -234,12 +233,14 @@ public class Importer {
 
 						if (!(fileExists(name, FileUtils.checksumCRC32(fileOnDisk)))) {
 
-
-						// create node in transaction
-						File fileNode = (File) Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(transaction);
+							// create node in transaction
+							File fileNode = (File) Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(transaction);
 
 							fileNode.setRelativeFilePath(relativeFilePath);
-							fileNode.getChecksum();    // calculates and stored checksum
+							fileNode.getChecksum();    // calculates and stores checksum
+						} else {
+
+							fileOnDisk.delete();
 
 						}
 

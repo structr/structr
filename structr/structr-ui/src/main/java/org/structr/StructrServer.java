@@ -31,6 +31,9 @@ import org.structr.websocket.servlet.WebSocketServlet;
 import java.io.File;
 
 import java.util.*;
+import javax.servlet.DispatcherType;
+import org.eclipse.jetty.servlet.FilterHolder;
+import org.tuckey.web.filters.urlrewrite.UrlRewriteFilter;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -48,6 +51,8 @@ public class StructrServer {
 		int port              = Integer.parseInt(System.getProperty("port", "8080"));
 		int maxIdleTime       = Integer.parseInt(System.getProperty("maxIdleTime", "30000"));
 		int requestHeaderSize = Integer.parseInt(System.getProperty("requestHeaderSize", "8192"));
+
+		String contextPath    = System.getProperty("contextPath", "/");
 
 		System.out.println();
 		System.out.println("Starting " + appName + " (host=" + host + ":" + port + ", maxIdleTime=" + maxIdleTime + ", requestHeaderSize=" + requestHeaderSize + ")");
@@ -98,10 +103,15 @@ public class StructrServer {
 
 		WebAppContext webapp = new WebAppContext();
 
+
 		webapp.setDescriptor(webapp + "/WEB-INF/web.xml");
 		webapp.setTempDirectory(baseDir);
 		webapp.setWar(warPath);
 		System.out.println("Using WAR file " + warPath);
+
+		FilterHolder rewriteFilter = webapp.addFilter(UrlRewriteFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
+		//rewriteFilter.setInitParameter("logLevel", "DEBUG");
+
 
 		// Strange behaviour of jetty:
 		// If there's a directory with the same name like the WAR file in the same directory,
@@ -187,7 +197,7 @@ public class StructrServer {
 		}
 
 		webapp.setInitParameter("configfile.path", confFile.getAbsolutePath());
-		webapp.setContextPath("/structr");
+		webapp.setContextPath(contextPath);
 		webapp.setParentLoaderPriority(true);
 
 		// JSON REST Servlet
@@ -202,8 +212,8 @@ public class StructrServer {
 		initParams.put("DefaultPropertyView", "default");
 		initParams.put("IdProperty", "uuid");
 		holder.setInitParameters(initParams);
-		holder.setInitOrder(1);
-		webapp.addServlet(holder, "/json/*");
+		holder.setInitOrder(2);
+		webapp.addServlet(holder, "/structr/rest/*");
 		webapp.addEventListener(new ApplicationContextListener());
 
 		// HTML Servlet
@@ -214,8 +224,8 @@ public class StructrServer {
 		htmlInitParams.put("Authenticator", "org.structr.core.auth.StructrAuthenticator");
 		htmlInitParams.put("IdProperty", "uuid");
 		htmlServletHolder.setInitParameters(htmlInitParams);
-		htmlServletHolder.setInitOrder(1);
-		webapp.addServlet(htmlServletHolder, "/html/*");
+		htmlServletHolder.setInitOrder(3);
+		webapp.addServlet(htmlServletHolder, "/structr/html/*");
 		webapp.addEventListener(new ApplicationContextListener());
 
 		// WebSocket Servlet
@@ -226,11 +236,11 @@ public class StructrServer {
 		wsInitParams.put("Authenticator", "org.structr.core.auth.StructrAuthenticator");
 		wsInitParams.put("IdProperty", "uuid");
 		wsServletHolder.setInitParameters(wsInitParams);
-		wsServletHolder.setInitOrder(1);
-		webapp.addServlet(wsServletHolder, "/ws/*");
+		wsServletHolder.setInitOrder(4);
+		webapp.addServlet(wsServletHolder, "/structr/ws/*");
 		webapp.addEventListener(new ApplicationContextListener());
 
-//              webapp.addFilter(UrlRewriteFilter.class, "/json/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
+
 		// enable request logging
 		RequestLogHandler requestLogHandler = new RequestLogHandler();
 		String logPath                      = basePath + "/logs";
@@ -261,7 +271,7 @@ public class StructrServer {
 		server.setGracefulShutdown(1000);
 		server.setStopAtShutdown(true);
 		System.out.println();
-		System.out.println("structr UI:        http://" + host + ":" + port + "/structr");
+		System.out.println("structr UI:        http://" + host + ":" + port + contextPath);
 		System.out.println();
 		server.start();
 		server.join();

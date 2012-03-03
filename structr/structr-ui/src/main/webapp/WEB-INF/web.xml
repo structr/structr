@@ -28,7 +28,7 @@
     </servlet>
     <servlet-mapping>
         <servlet-name>StructrRestServlet</servlet-name>
-        <url-pattern>/json/*</url-pattern>
+        <url-pattern>/structr/rest/*</url-pattern>
     </servlet-mapping>
     <servlet>
         <servlet-name>HtmlServlet</servlet-name>
@@ -37,7 +37,7 @@
     </servlet>
     <servlet-mapping>
         <servlet-name>HtmlServlet</servlet-name>
-        <url-pattern>/html/*</url-pattern>
+        <url-pattern>/structr/html/*</url-pattern>
     </servlet-mapping>
     <servlet>
         <servlet-name>WebSocketServlet</servlet-name>
@@ -54,7 +54,7 @@
     </servlet>
     <servlet-mapping>
         <servlet-name>WebSocketServlet</servlet-name>
-        <url-pattern>/ws/*</url-pattern>
+        <url-pattern>/structr/ws/*</url-pattern>
     </servlet-mapping>
     <!--  custom context parameter start -->
 <!--    <context-param>

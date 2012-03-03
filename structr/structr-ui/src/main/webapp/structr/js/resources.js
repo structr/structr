@@ -115,6 +115,17 @@ var _Resources = {
 				+ '<tr><td><label for="address">Name of new page:</label></td><td><input id="_name" name="name" size="20"></td></tr>'
 				+ '<tr><td><label for="address">Timeout (ms)</label></td><td><input id="_timeout" name="timeout" size="20" value="5000"></td></tr></table>');
 
+                        var addressField = $('#_address', dialog);
+
+                        console.log('addressField', addressField);
+
+                        addressField.on('blur', function() {
+                            var addr = $(this).val().replace(/\/+$/, "");
+                            console.log(addr);
+                            $('#_name', dialog).val(addr.substring(addr.lastIndexOf("/")+1));
+                        });
+
+
 			Structr.dialog('Import page from URL',
 			 
 				function() {
@@ -788,7 +799,7 @@ var _Resources = {
 		//            }
 		//        });
 
-		return div;
+		//return div;
 	},
 
 	appendElementElement : function(entity, parentId, resourceId) {

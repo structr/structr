@@ -18,8 +18,8 @@
  */
 
 /**************** config parameter **********************************/
-var rootUrl =     '/structr/json/';
-var viewRootUrl = '/structr/html/';
+var rootUrl =     '/structr/rest/';
+var viewRootUrl = '/';
 var wsRoot = '/structr/ws';
 var headers = {
     'X-User' : 0

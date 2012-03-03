@@ -101,7 +101,7 @@ public class TreeCommand extends AbstractCommand {
 						} else {
 
 							root.addChild(newTreeNode);
-							logger.log(Level.INFO, "Added {0} to root", newTreeNode);
+							logger.log(Level.FINE, "Added {0} to root", newTreeNode);
 
 						}
 
@@ -120,7 +120,7 @@ public class TreeCommand extends AbstractCommand {
 		// do traversal
 		for (Node node : localDesc.traverse(rootNode.getNode()).nodes()) {
 
-			System.out.println(node.getProperty("type") + "[" + node.getProperty("uuid") + "]: " + node.getProperty("name"));
+			//System.out.println(node.getProperty("type") + "[" + node.getProperty("uuid") + "]: " + node.getProperty("name"));
 
 		}
 
