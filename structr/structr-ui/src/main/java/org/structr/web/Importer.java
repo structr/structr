@@ -81,6 +81,8 @@ public class Importer {
 	};
 	private static final Logger logger                               = Logger.getLogger(Importer.class.getName());
 	private static final Map<String, String> contentTypeForExtension = new HashMap<String, String>();
+	private static Command createNode;
+	private static Command createRel;
 	private static Command searchNode;
 
 	//~--- static initializers --------------------------------------------
@@ -106,12 +108,15 @@ public class Importer {
 
 		start(address, "index", 5000);
 		StandaloneTestHelper.finishStandaloneTest();
-
 	}
 
 	public static void start(final String address, final String name, final int timeout) throws FrameworkException {
 
-		searchNode = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class);
+		SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+
+		searchNode = Services.command(securityContext, SearchNodeCommand.class);
+		createNode = Services.command(securityContext, CreateNodeCommand.class);
+		createRel  = Services.command(securityContext, CreateRelationshipCommand.class);
 
 		final Document page;
 
@@ -242,7 +247,7 @@ public class Importer {
 
 			// Type and name
 			attrs.add(new NodeAttribute(AbstractNode.Key.type.name(), type));
-			attrs.add(new NodeAttribute(AbstractNode.Key.name.name(), "New " + type + " " + Math.random()));
+			attrs.add(new NodeAttribute(AbstractNode.Key.name.name(), "New " + type));
 
 			// Tag name
 			attrs.add(new NodeAttribute("tag", tag));
@@ -284,11 +289,45 @@ public class Importer {
 		}
 	}
 
+	private static AbstractNode findExistingNode(List<NodeAttribute> attrs) throws FrameworkException {
+
+		List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
+
+		for (NodeAttribute attr : attrs) {
+			searchAttrs.add(Search.andExactProperty(attr.getKey(), attr.getValue().toString()));
+		}
+
+
+		List<AbstractNode> nodes = (List<AbstractNode>) searchNode.execute(null, false, false, searchAttrs);
+
+		if (nodes.size() > 0) {
+
+			logger.log(Level.WARNING, "More than one node found, returning only the first one.");
+
+			return nodes.get(0);
+
+		} else if (nodes.size() == 1) {
+
+			return nodes.get(0);
+
+		} else {
+
+			return null;
+
+		}
+	}
+
 	private static AbstractNode createNode(List<NodeAttribute> attributes) throws FrameworkException {
 
-		SecurityContext context   = SecurityContext.getSuperUserInstance();
-		Command createNodeCommand = Services.command(context, CreateNodeCommand.class);
-		AbstractNode node         = (AbstractNode) createNodeCommand.execute(attributes);
+		AbstractNode node = findExistingNode(attributes);
+
+		if (node != null) {
+
+			return node;
+
+		}
+
+		node = (AbstractNode) createNode.execute(attributes);
 
 		if (node != null) {
 
@@ -305,9 +344,7 @@ public class Importer {
 
 	private static AbstractRelationship linkNodes(AbstractNode startNode, AbstractNode endNode, String resourceId, int index) throws FrameworkException {
 
-		SecurityContext context  = SecurityContext.getSuperUserInstance();
-		Command createRelCommand = Services.command(context, CreateRelationshipCommand.class);
-		AbstractRelationship rel = (AbstractRelationship) createRelCommand.execute(startNode, endNode, RelType.CONTAINS);
+		AbstractRelationship rel = (AbstractRelationship) createRel.execute(startNode, endNode, RelType.CONTAINS);
 
 		rel.setProperty(resourceId, index);
 
@@ -356,10 +393,10 @@ public class Importer {
 			FileUtils.copyURLToFile(downloadUrl, fileOnDisk);
 
 		} catch (IOException ioe) {
+
 			logger.log(Level.WARNING, "Unable to download from " + downloadAddress, ioe);
 
 			return;
-
 		}
 
 		contentType     = FileHelper.getContentMimeType(fileOnDisk);
@@ -381,9 +418,8 @@ public class Importer {
 			@Override
 			public Object execute() throws FrameworkException {
 
-				return Services.command(SecurityContext.getSuperUserInstance(), CreateNodeCommand.class).execute(new NodeAttribute(AbstractNode.Key.uuid.name(), uuid),
-							new NodeAttribute(AbstractNode.Key.type.name(), File.class.getSimpleName()), new NodeAttribute(AbstractNode.Key.name.name(), name),
-							new NodeAttribute(File.Key.contentType.name(), ct));
+				return createNode.execute(new NodeAttribute(AbstractNode.Key.uuid.name(), uuid), new NodeAttribute(AbstractNode.Key.type.name(), File.class.getSimpleName()),
+							  new NodeAttribute(AbstractNode.Key.name.name(), name), new NodeAttribute(File.Key.contentType.name(), ct));
 			}
 		};
 
@@ -434,7 +470,6 @@ public class Importer {
 			String url = StringUtils.strip(matcher.group(1), "'\"");
 
 			logger.log(Level.INFO, "Trying to download form URL found in CSS: {0}", url);
-
 			downloadFiles(url, baseUrl);
 
 		}

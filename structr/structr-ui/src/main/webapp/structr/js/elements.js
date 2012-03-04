@@ -233,15 +233,15 @@ var _Elements = {
             _Entities.showProperties(this, entity, '_html_', $('#dialogText'));
         });
 		
-        div.on('mouseover', function(e) {
-            e.stopPropagation();
-            _Entities.showNonEmptyProperties(this, entity, '_html_', $('.' + entity.id + '_', parent));
-        });		
-
-        div.on('mouseout', function(e) {
-            e.stopPropagation();
-            _Entities.hideNonEmptyProperties(this, entity, '_html_', $('.' + entity.id + '_', parent));
-        });		
+//        div.on('mouseover', function(e) {
+//            e.stopPropagation();
+//            _Entities.showNonEmptyProperties(this, entity, '_html_', $('.' + entity.id + '_', parent));
+//        });
+//
+//        div.on('mouseout', function(e) {
+//            e.stopPropagation();
+//            _Entities.hideNonEmptyProperties(this, entity, '_html_', $('.' + entity.id + '_', parent));
+//        });
 
         return div;
     },
