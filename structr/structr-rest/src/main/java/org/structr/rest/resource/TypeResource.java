@@ -274,9 +274,9 @@ public class TypeResource extends SortableResource {
 
 			}
 
-			checkForIllegalSearchKeys(searchableProperties);
-
 			if (searchableProperties != null) {
+
+				checkForIllegalSearchKeys(searchableProperties);
 
 				for (String key : searchableProperties) {
 
