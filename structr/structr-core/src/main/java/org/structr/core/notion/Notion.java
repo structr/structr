@@ -19,6 +19,9 @@
 
 package org.structr.core.notion;
 
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 import org.structr.common.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -75,6 +78,42 @@ public abstract class Notion {
 			@Override
 			public GraphObject adapt(Object s) throws FrameworkException {
 				return deserializationStrategy.deserialize(securityContext, type, s);
+			}
+		};
+	}
+
+	public Adapter<Collection<GraphObject>, Object> getCollectionAdapterForGetter(final SecurityContext securityContext) {
+		return new Adapter<Collection<GraphObject>, Object>() {
+			@Override
+			public Object adapt(Collection<GraphObject> s) throws FrameworkException {
+				
+				List list = new LinkedList();
+				if(s instanceof Iterable) {
+					Iterable<GraphObject> iterable = (Iterable)s;
+					for(GraphObject o : iterable) {
+						list.add(serializationStrategy.serialize(securityContext, type, o));
+					}
+				}
+
+				return list;
+			}
+		};
+	}
+
+	public Adapter<Object, Collection<GraphObject>> getCollectionAdapterForSetter(final SecurityContext securityContext) {
+		return new Adapter<Object, Collection<GraphObject>>() {
+			@Override
+			public Collection<GraphObject> adapt(Object s) throws FrameworkException {
+				
+				List<GraphObject> list = new LinkedList<GraphObject>();
+				if(s instanceof Iterable) {
+					Iterable iterable = (Iterable)s;
+					for(Object o : iterable) {
+						list.add(deserializationStrategy.deserialize(securityContext, type, o));
+					}
+				}
+
+				return list;
 			}
 		};
 	}

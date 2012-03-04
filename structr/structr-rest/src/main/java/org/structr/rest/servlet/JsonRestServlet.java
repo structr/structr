@@ -35,7 +35,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.PropertySet;
 import org.structr.core.PropertySet.PropertyFormat;
 import org.structr.core.PropertySetGSONAdapter;
-import org.structr.core.Services;
 import org.structr.core.Value;
 import org.structr.core.node.NodeAttribute;
 import org.structr.rest.ResourceProvider;
@@ -52,8 +51,6 @@ import org.structr.rest.exception.NoResultsException;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 
@@ -184,7 +181,7 @@ public class JsonRestServlet extends HttpServlet {
 
 		// initialize adapters
 		this.resultGsonAdapter  = new ResultGSONAdapter(propertyFormat, propertyView, defaultIdProperty);
-		this.propertySetAdapter = new PropertySetGSONAdapter(propertyFormat, defaultIdProperty);
+		this.propertySetAdapter = new PropertySetGSONAdapter(propertyFormat, propertyView, defaultIdProperty);
 
 		// create GSON serializer
 		this.gson = new GsonBuilder().setPrettyPrinting().serializeNulls().registerTypeHierarchyAdapter(FrameworkException.class,

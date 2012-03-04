@@ -95,6 +95,7 @@ import java.text.ParseException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -3944,8 +3945,22 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		if (rel != null) {
 		
 			if (value != null) {
-				GraphObject graphObject = rel.getNotion().getAdapterForSetter(securityContext).adapt(value);
-				rel.createRelationship(securityContext, this, graphObject);
+
+				// TODO: check cardinality here
+//				if(value instanceof Iterable) {
+//					
+//					Collection<GraphObject> collection = rel.getNotion().getCollectionAdapterForSetter(securityContext).adapt(value);
+//					for(GraphObject graphObject : collection) {
+//						rel.createRelationship(securityContext, this, graphObject);
+//					}
+//					
+//				} else {
+
+					GraphObject graphObject = rel.getNotion().getAdapterForSetter(securityContext).adapt(value);
+					rel.createRelationship(securityContext, this, graphObject);
+					
+//				}
+				
 			} else {
 				
 				// new value is null

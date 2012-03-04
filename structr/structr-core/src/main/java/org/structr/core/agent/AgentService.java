@@ -214,7 +214,7 @@ public class AgentService extends Thread implements RunnableService {
 			}
 		} else {
 
-			logger.log(Level.FINE, "Overall agents limit readed, re-queueing task");
+			logger.log(Level.FINE, "Overall agents limit reached, re-queueing task");
 
 			// re-add task..
 			synchronized (taskQueue) {
