@@ -57,15 +57,17 @@ public class PropertySetGSONAdapter implements InstanceCreator<PropertySet>, Jso
 
 	//~--- fields ---------------------------------------------------------
 
-	private String idProperty             = null;
-	private PropertyFormat propertyFormat = null;
+	private GraphObjectGSONAdapter adapter = null;
+	private String idProperty              = null;
+	private PropertyFormat propertyFormat  = null;
 
 	//~--- constructors ---------------------------------------------------
 
 	public PropertySetGSONAdapter() {}
 
-	public PropertySetGSONAdapter(PropertyFormat propertyFormat, String idProperty) {
+	public PropertySetGSONAdapter(PropertyFormat propertyFormat, Value<String> propertyView, String idProperty) {
 
+		this.adapter        = new GraphObjectGSONAdapter(propertyFormat, propertyView, idProperty);
 		this.propertyFormat = propertyFormat;
 		this.idProperty     = idProperty;
 	}
@@ -164,6 +166,9 @@ public class PropertySetGSONAdapter implements InstanceCreator<PropertySet>, Jso
 					for(JsonElement element : array) {
 						if (element.isJsonPrimitive()) {
 							list.add(fromPrimitive((element.getAsJsonPrimitive())));
+						} else if(element.isJsonObject()) {
+							// create map of values
+							list.add(deserializeFlatNameValue(element, typeOfT, context));
 						}
 					}
 

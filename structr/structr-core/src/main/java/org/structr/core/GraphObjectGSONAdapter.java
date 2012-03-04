@@ -21,13 +21,7 @@
 
 package org.structr.core;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonNull;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
-import com.google.gson.JsonSerializationContext;
-import com.google.gson.JsonSerializer;
+import com.google.gson.*;
 
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.RelationshipType;
@@ -42,6 +36,8 @@ import java.lang.reflect.Type;
 
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -51,8 +47,9 @@ import java.util.Map.Entry;
  *
  * @author Christian Morgner
  */
-public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
+public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject>, JsonDeserializer<GraphObject> {
 
+	private static final Logger logger    = Logger.getLogger(GraphObjectGSONAdapter.class.getName());
 	private String idProperty             = null;
 	private int outputNestingDepth        = 1;
 	private PropertyFormat propertyFormat = null;
@@ -97,6 +94,35 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 		return serializedOutput;
 	}
 
+	@Override
+	public GraphObject deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+
+		String localPropertyView       = propertyView.get();
+		GraphObject deserializedOutput = null;
+
+		switch (propertyFormat) {
+
+			case NestedKeyValueType :
+				deserializedOutput = deserializeNestedKeyValueType(json, typeOfT, context, true, localPropertyView, 0);
+
+				break;
+
+			case NestedKeyValue :
+				deserializedOutput = deserializeNestedKeyValueType(json, typeOfT, context, false, localPropertyView, 0);
+
+				break;
+
+			case FlatNameValue :
+				deserializedOutput = deserializeFlatNameValue(json, typeOfT, context, localPropertyView, 0);
+
+				break;
+
+		}
+
+		return deserializedOutput;
+	}
+	
+	
 	// ----- private methods -----
 	private JsonElement serializeNestedKeyValueType(GraphObject src, Type typeOfSrc, JsonSerializationContext context, boolean includeTypeInOutput, String localPropertyView, int depth) {
 
@@ -374,6 +400,17 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject> {
 
 		return jsonObject;
 	}
+	
+	private GraphObject deserializeFlatNameValue(JsonElement json, Type typeOfT, JsonDeserializationContext context, String localPropertyView, int depth) throws JsonParseException {
+		logger.log(Level.WARNING, "Deserialization of nested (key,value,type) objects not supported yet.");
+		return null;
+	}
+	
+	private GraphObject deserializeNestedKeyValueType(JsonElement json, Type typeOfT, JsonDeserializationContext context, boolean includeTypeInOutput, String localPropertyView, int depth) {
+		logger.log(Level.WARNING, "Deserialization of nested (key,value,type) objects not supported yet.");
+		return null;
+	}
+	
 
 	private JsonObject serializePrimitive(String key, Object value, boolean includeTypeInOutput) {
 

@@ -21,7 +21,7 @@
 
 package org.structr.core.notion;
 
-import java.util.LinkedHashMap;
+import java.util.*;
 import org.structr.common.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
@@ -33,9 +33,6 @@ import org.structr.core.node.search.SearchNodeCommand;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.PropertiesNotFoundToken;
 import org.structr.core.PropertySet;
