@@ -3947,19 +3947,19 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 			if (value != null) {
 
 				// TODO: check cardinality here
-//				if(value instanceof Iterable) {
-//					
-//					Collection<GraphObject> collection = rel.getNotion().getCollectionAdapterForSetter(securityContext).adapt(value);
-//					for(GraphObject graphObject : collection) {
-//						rel.createRelationship(securityContext, this, graphObject);
-//					}
-//					
-//				} else {
+				if(value instanceof Iterable) {
+					
+					Collection<GraphObject> collection = rel.getNotion().getCollectionAdapterForSetter(securityContext).adapt(value);
+					for(GraphObject graphObject : collection) {
+						rel.createRelationship(securityContext, this, graphObject);
+					}
+					
+				} else {
 
 					GraphObject graphObject = rel.getNotion().getAdapterForSetter(securityContext).adapt(value);
 					rel.createRelationship(securityContext, this, graphObject);
 					
-//				}
+				}
 				
 			} else {
 				
