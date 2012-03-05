@@ -53,6 +53,7 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.collections.ListUtils;
+import org.structr.core.node.DeleteRelationshipCommand;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -224,7 +225,9 @@ public class StaticRelationshipResource extends SortableResource {
 						return new RestMethodResult(HttpServletResponse.SC_FORBIDDEN);
 
 					}
-
+					
+					final Command deleteRel		= Services.command(securityContext, DeleteRelationshipCommand.class);
+					
 					final List<AbstractRelationship> rels = startNode.getRelationships(staticRel.getRelType(), staticRel.getDirection());
 					StructrTransaction transaction       = new StructrTransaction() {
 
@@ -242,7 +245,7 @@ public class StaticRelationshipResource extends SortableResource {
 								// of the same type to more than one destTypes!
 								if (staticRel.getDestType().equals(otherNodeType) && !propertySet.containsValue(id)) {
 
-									rel.delete(securityContext);
+									deleteRel.execute(rel);
 
 								} else {
 

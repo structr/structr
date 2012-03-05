@@ -67,7 +67,7 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 
 	//~--- methods --------------------------------------------------------
 
-	public AbstractRelationship createRelationship(SecurityContext securityContext, final Relationship relationship) throws FrameworkException {
+		public AbstractRelationship createRelationship(SecurityContext securityContext, final Relationship relationship) throws FrameworkException {
 
 		return createRelationship(securityContext, relationship, relationship.getType().name());
 	}

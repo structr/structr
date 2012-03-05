@@ -1373,13 +1373,13 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		return null;
 	}
 
-	@Override
-	public void delete(SecurityContext securityContext) {
-
-		dbNode.delete();
-
-		// EntityContext.getGlobalModificationListener().graphObjectDeleted(securityContext, this);
-	}
+//	@Override
+//	public void delete(SecurityContext securityContext) {
+//
+//		dbNode.delete();
+//
+//		// EntityContext.getGlobalModificationListener().graphObjectDeleted(securityContext, this);
+//	}
 
 	/**
 	 * Can be used to permit the setting of a read-only

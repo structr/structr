@@ -116,8 +116,7 @@ public class Image extends File {
 
 			try {
 				deleteRelationship.execute(s);
-				deleteNode.execute(thumbnail,
-						   new SuperUser());
+				deleteNode.execute(thumbnail);
 
 			} catch(FrameworkException fex) {
 				logger.log(Level.WARNING, "Unable to remove thumbnail", fex);

@@ -287,13 +287,13 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		return (new Long(dbRelationship.getId()).hashCode());
 	}
 
-	@Override
-	public void delete(SecurityContext securityContext) {
-
-		dbRelationship.delete();
-
-		// EntityContext.getGlobalModificationListener().relationshipDeleted(securityContext, this);
-	}
+//	@Override
+//	public void delete(SecurityContext securityContext) {
+//
+//		dbRelationship.delete();
+//
+//		// EntityContext.getGlobalModificationListener().relationshipDeleted(securityContext, this);
+//	}
 
 	//~--- get methods ----------------------------------------------------
 
@@ -446,7 +446,35 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 		return null;
 	}
+	
+	public boolean getBooleanProperty(final PropertyKey propertyKey) {
+		return (getBooleanProperty(propertyKey.name()));
+	}
 
+	public boolean getBooleanProperty(final String key) {
+
+		Object propertyValue = getProperty(key);
+		Boolean result       = false;
+
+		if (propertyValue == null) {
+
+			return Boolean.FALSE;
+
+		}
+
+		if (propertyValue instanceof Boolean) {
+
+			result = ((Boolean) propertyValue).booleanValue();
+
+		} else if (propertyValue instanceof String) {
+
+			result = Boolean.parseBoolean(((String) propertyValue));
+
+		}
+
+		return result;
+	}
+	
 	/**
 	 * Return database relationship
 	 *
@@ -979,4 +1007,11 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		}
 	}
 
+	/**
+	 * Overload and return true if you wish to have all end nodes of this
+	 * node deleted in a cascade.
+	 */
+	public boolean cascadeDelete() {
+		return false;
+	}
 }

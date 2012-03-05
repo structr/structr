@@ -88,7 +88,7 @@ public class ClearLogsAgent extends Agent {
 
                         try {
 
-                            deleteNode.execute(s, null, true, new SuperUser());
+                            deleteNode.execute(s, true);
                             count++;
 
                         } catch (Throwable ignore) {

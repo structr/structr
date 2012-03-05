@@ -1,27 +1,26 @@
 /*
  *  Copyright (C) 2011 Axel Morgner
- * 
+ *
  *  This file is part of structr <http://structr.org>.
- * 
+ *
  *  structr is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
- * 
+ *
  *  structr is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- * 
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+
+
 package org.structr.core.node.operation;
 
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
@@ -30,158 +29,192 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.DeleteNodeCommand;
 import org.structr.core.node.FindNodeCommand;
 
+//~--- JDK imports ------------------------------------------------------------
+
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
+
+//~--- classes ----------------------------------------------------------------
+
 /**
  *
  * @author Christian Morgner
  */
 public class DeleteOperation implements PrimaryOperation {
 
-	private List<Callback> callbacks = new LinkedList<Callback>();
-	private List<String> parameters = new LinkedList<String>();
+	private List<Callback> callbacks        = new LinkedList<Callback>();
+	private AbstractNode currentNode        = null;
+	private List<String> parameters         = new LinkedList<String>();
 	private SecurityContext securityContext = null;
-	private AbstractNode currentNode = null;
-	private boolean recursive = false;
+	private boolean recursive               = false;
+
+	//~--- methods --------------------------------------------------------
 
 	@Override
 	public boolean executeOperation(StringBuilder stdOut) throws NodeCommandException {
 
-		Command deleteCommand = Services.command(securityContext, DeleteNodeCommand.class);
+		Command deleteCommand       = Services.command(securityContext, DeleteNodeCommand.class);
 		List<AbstractNode> toDelete = new LinkedList<AbstractNode>();
-		AbstractNode newParentNode = currentNode;
+		AbstractNode newParentNode  = currentNode;
 
-		for(String param : parameters) {
+		for (String param : parameters) {
 
-			if(".".equals(param)) {
+			if (".".equals(param)) {
 
 				stdOut.append("Cannot delete current node");
 
 			} else {
 
 				try {
+
 					Object findNodeResult = Services.command(securityContext, FindNodeCommand.class).execute(currentNode, param);
-					if(findNodeResult != null) {
 
-						if(findNodeResult instanceof Collection) {
+					if (findNodeResult != null) {
 
-							toDelete.addAll((Collection)findNodeResult);
+						if (findNodeResult instanceof Collection) {
 
-						} else if(findNodeResult instanceof AbstractNode) {
+							toDelete.addAll((Collection) findNodeResult);
 
-							toDelete.add((AbstractNode)findNodeResult);
+						} else if (findNodeResult instanceof AbstractNode) {
+
+							toDelete.add((AbstractNode) findNodeResult);
+
 						}
+
 					}
 
-					for(AbstractNode node : toDelete) {
+					for (AbstractNode node : toDelete) {
 
-						try
-						{
+						try {
+
+							// FIXME: The DeleteCommand has changed (no parentNode any more)
+							// so we throw an Exception. This has to be fixed.
+							throw new NodeCommandException("DeleteCommand has changed. This command has to be re-implemented");
+							
+							
 							// execute delete node command and call callbacks
-							deleteCommand.execute(node, currentNode, recursive, securityContext.getUser());
+//							deleteCommand.execute(node, recursive);
 
-							if(deleteCommand.getExitCode().equals(Command.exitCode.FAILURE)) {
-								stdOut.append(deleteCommand.getErrorMessage());
-							}
-
-						} catch(Throwable t) {
-
+//							if (deleteCommand.getExitCode().equals(Command.exitCode.FAILURE)) {
+//
+//								stdOut.append(deleteCommand.getErrorMessage());
+//
+//							}
+						} catch (Throwable t) {
 							stdOut.append(t.getMessage());
 						}
+
 					}
 
-				} catch(FrameworkException fex) {
+				} catch (FrameworkException fex) {
 					stdOut.append(fex.getMessage());
 				}
+
 			}
 
 		}
 
 		// call callbacks
-		if(newParentNode != null) {
+		if (newParentNode != null) {
 
-			for(Callback callback : callbacks) callback.callback(newParentNode.getId());
-			return(true);
+			for (Callback callback : callbacks) {
+
+				callback.callback(newParentNode.getId());
+
+			}
+
+			return (true);
+
 		}
 
-		return(false);
+		return (false);
 	}
 
 	@Override
 	public String help() {
 
 		StringBuilder ret = new StringBuilder(100);
+
 		ret.append("usage: rm [-r] [node(s)] - remove nodes, -r toggles recursive delete, wildcards allowed");
 
-		return(ret.toString());
-	}
-
-	@Override
-	public void setCurrentNode(AbstractNode currentNode) {
-		this.currentNode = currentNode;
+		return (ret.toString());
 	}
 
 	@Override
 	public void addCallback(Callback callback) {
-
 		callbacks.add(callback);
 	}
 
 	@Override
-	public int getParameterCount() {
-
-		return(1);
-	}
-
-	@Override
-	public String getKeyword() {
-
-		return("rm");
-	}
-
-	@Override
 	public boolean canExecute() {
-
-		return(!parameters.isEmpty());
+		return (!parameters.isEmpty());
 	}
 
 	@Override
 	public void addSwitch(String switches) throws InvalidSwitchException {
 
-		if(switches.startsWith("-") && switches.length() > 1) {
+		if (switches.startsWith("-") && (switches.length() > 1)) {
 
 			String sw = switches.substring(1);
-			int len = sw.length();
+			int len   = sw.length();
 
-			for(int i=0; i<len; i++) {
+			for (int i = 0; i < len; i++) {
 
 				char ch = sw.charAt(i);
-				switch(ch) {
 
-					case 'r':
+				switch (ch) {
+
+					case 'r' :
 						recursive = true;
+
 						break;
 
-					default:
+					default :
 						throw new InvalidSwitchException("Invalid switch " + ch);
+
 				}
+
 			}
 
 		} else {
 
 			throw new InvalidSwitchException("Invalid switch " + switches);
+
 		}
 	}
 
 	@Override
 	public void addParameter(Object parameter) throws InvalidParameterException {
 
-		if(parameter instanceof Collection) {
+		if (parameter instanceof Collection) {
 
-			parameters.addAll((Collection<String>)parameter);
+			parameters.addAll((Collection<String>) parameter);
 
 		} else {
 
 			parameters.add(parameter.toString());
+
 		}
+	}
+
+	//~--- get methods ----------------------------------------------------
+
+	@Override
+	public int getParameterCount() {
+		return (1);
+	}
+
+	@Override
+	public String getKeyword() {
+		return ("rm");
+	}
+
+	//~--- set methods ----------------------------------------------------
+
+	@Override
+	public void setCurrentNode(AbstractNode currentNode) {
+		this.currentNode = currentNode;
 	}
 
 	@Override

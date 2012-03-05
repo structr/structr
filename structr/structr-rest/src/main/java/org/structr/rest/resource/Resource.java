@@ -31,7 +31,9 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.*;
 import org.structr.core.entity.DirectedRelation;
+import org.structr.core.node.*;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -69,6 +71,9 @@ public abstract class Resource {
 	// ----- methods -----
 	public RestMethodResult doDelete() throws FrameworkException {
 
+		final Command deleteNode	= Services.command(securityContext, DeleteNodeCommand.class);
+		final Command deleteRel		= Services.command(securityContext, DeleteRelationshipCommand.class);
+		
 		Iterable<? extends GraphObject> results;
 
 		// catch 204, DELETE must return 200 if resource is empty
@@ -89,24 +94,33 @@ public abstract class Resource {
 
 					for (GraphObject obj : finalResults) {
 
-						// 1: remove node from index
-						Services.command(securityContext, RemoveNodeFromIndex.class).execute(obj);
+						if (obj instanceof AbstractRelationship) {
+							
+							// remove object from index
+							Services.command(securityContext, RemoveRelationshipFromIndex.class).execute(obj);
 
-						// 2: delete relationships
-						if (obj instanceof AbstractNode) {
+							deleteRel.execute(obj);
+							
+						} else if (obj instanceof AbstractNode) {
+						
+							// remove object from index
+							Services.command(securityContext, RemoveNodeFromIndex.class).execute(obj);
 
-							List<AbstractRelationship> rels = ((AbstractNode) obj).getRelationships();
-
-							for (AbstractRelationship rel : rels) {
-
-								rel.delete(securityContext);
-
-							}
-
+//							// 2: delete relationships
+//							if (obj instanceof AbstractNode) {
+//
+//								List<AbstractRelationship> rels = ((AbstractNode) obj).getRelationships();
+//
+//								for (AbstractRelationship rel : rels) {
+//
+//									deleteRel.execute(rel);
+//
+//								}
+//
+//							}
+							// delete cascading
+							deleteNode.execute(obj, true);
 						}
-
-						// 3: delete object
-						obj.delete(securityContext);
 					}
 
 					return null;

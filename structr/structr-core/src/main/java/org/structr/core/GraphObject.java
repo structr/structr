@@ -53,6 +53,6 @@ public interface GraphObject {
 //	public List<AbstractRelationship> getRelationships(RelationshipType type, Direction dir);
 
 	// ----- editing methods -----
-	public void delete(SecurityContext seucrityContext);
+//	public void delete(SecurityContext seucrityContext);
 
 }
