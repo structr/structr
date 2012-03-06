@@ -146,17 +146,13 @@ public class EntityContext {
 		Notion objectNotion = new ObjectNotion();
 
 		objectNotion.setType(destType);
-		registerEntityRelationInternal(sourceType.getSimpleName(), destType.getSimpleName(), relType, direction, cardinality, objectNotion, false);
+		registerEntityRelationInternal(sourceType.getSimpleName(), destType.getSimpleName(), relType, direction, cardinality, objectNotion);
 	}
 
 	public static void registerEntityRelation(Class sourceType, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion) {
-		registerEntityRelation(sourceType, destType, relType, direction, cardinality, notion, false);
-	}
-
-	public static void registerEntityRelation(Class sourceType, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion, boolean cascadeDelete) {
 
 		notion.setType(destType);
-		registerEntityRelationInternal(sourceType.getSimpleName(), destType.getSimpleName(), relType, direction, cardinality, notion, cascadeDelete);
+		registerEntityRelationInternal(sourceType.getSimpleName(), destType.getSimpleName(), relType, direction, cardinality, notion);
 	}
 
 	// ----- property set methods -----
@@ -314,22 +310,16 @@ public class EntityContext {
 
 	private static void registerPropertyRelationInternal(String sourceType, String property, String destType, RelationshipType relType, Direction direction, Cardinality cardinality,
 		Notion notion) {
-		registerPropertyRelationInternal(sourceType, property, destType, relType, direction, cardinality, notion, false);
-	}
-
-	private static void registerPropertyRelationInternal(String sourceType, String property, String destType, RelationshipType relType, Direction direction, Cardinality cardinality,
-		Notion notion, boolean cascadeDelete) {
 
 		Map<String, DirectedRelation> typeMap = getPropertyRelationshipMapForType(sourceType);
 
-		typeMap.put(property, new DirectedRelation(destType, relType, direction, cardinality, notion, cascadeDelete));
+		typeMap.put(property, new DirectedRelation(destType, relType, direction, cardinality, notion));
 	}
 
-	private static void registerEntityRelationInternal(String sourceType, String destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion,
-		boolean cascadeDelete) {
+	private static void registerEntityRelationInternal(String sourceType, String destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion) {
 
 		Map<String, DirectedRelation> typeMap = getEntityRelationshipMapForType(sourceType);
-		DirectedRelation directedRelation     = new DirectedRelation(destType, relType, direction, cardinality, notion, cascadeDelete);
+		DirectedRelation directedRelation     = new DirectedRelation(destType, relType, direction, cardinality, notion);
 
 		typeMap.put(destType, directedRelation);
 	}
@@ -452,26 +442,6 @@ public class EntityContext {
 
 		return rel;
 	}
-
-//	public static List<DirectedRelation> getOutgoingCascadingRelations(Class sourceType) {
-//
-//		Map<String, DirectedRelation> typeMap      = getEntityRelationshipMapForType(sourceType.getSimpleName());
-//		LinkedList<DirectedRelation> cascadingRels = new LinkedList<DirectedRelation>();
-//
-//		for (Map.Entry type : typeMap.entrySet()) {
-//
-//			DirectedRelation rel = (DirectedRelation) type.getValue();
-//
-//			if (rel.getDirection().equals(Direction.OUTGOING) && rel.getCascadeDelete()) {
-//
-//				cascadingRels.add(rel);
-//
-//			}
-//
-//		}
-//
-//		return cascadingRels;
-//	}
 	
 	// ----- property set methods -----
 	public static Set<String> getPropertySet(Class type, String propertyView) {

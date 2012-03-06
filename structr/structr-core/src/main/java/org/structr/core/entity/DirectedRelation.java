@@ -61,7 +61,6 @@ import java.util.logging.Logger;
  * Defines a class of relations between a source class and a target class with a direction and a cardinality.
  *
  * @author Christian Morgner
- * @author Axel Morgner
  */
 public class DirectedRelation {
 
@@ -74,7 +73,6 @@ public class DirectedRelation {
 	private Direction direction      = null;
 	private Notion notion            = null;
 	private RelationshipType relType = null;
-	private boolean cascadeDelete    = false;
 
 	//~--- constant enums -------------------------------------------------
 
@@ -89,17 +87,6 @@ public class DirectedRelation {
 		this.destType      = destType;
 		this.relType       = relType;
 		this.notion        = notion;
-		this.cascadeDelete = false;
-	}
-
-	public DirectedRelation(String destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion, boolean cascadeDelete) {
-
-		this.cardinality   = cardinality;
-		this.direction     = direction;
-		this.destType      = destType;
-		this.relType       = relType;
-		this.notion        = notion;
-		this.cascadeDelete = cascadeDelete;
 	}
 
 	//~--- methods --------------------------------------------------------
@@ -190,14 +177,6 @@ public class DirectedRelation {
 
 					newRel.setProperties(properties);
 					
-					if (cascadeDelete) {
-						if (newRel instanceof GenericRelationship) {
-							
-							((GenericRelationship) newRel).setCascadeDelete(true);
-							
-						}
-					}
-
 					return newRel;
 				}
 			};

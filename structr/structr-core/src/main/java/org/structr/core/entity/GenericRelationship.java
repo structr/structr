@@ -29,7 +29,6 @@ import org.neo4j.graphdb.Relationship;
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.node.NodeService.RelationshipIndex;
 
@@ -80,12 +79,4 @@ public class GenericRelationship extends AbstractRelationship {
 		return null;
 	}
 	
-	@Override
-	public boolean cascadeDelete() {
-		return getBooleanProperty(HiddenKey.cascadeDelete);
-	}
-	
-	public void setCascadeDelete(final boolean cascadeDelete) throws FrameworkException {
-		setProperty(HiddenKey.cascadeDelete, cascadeDelete);
-	}
 }
