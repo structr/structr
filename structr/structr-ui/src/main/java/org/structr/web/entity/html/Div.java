@@ -47,6 +47,7 @@ public class Div extends HtmlElement {
 		EntityContext.registerEntityRelation(Div.class, Address.class,	RelType.CONTAINS, Direction.OUTGOING, DirectedRelation.Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Div.class, Footer.class,	RelType.CONTAINS, Direction.OUTGOING, DirectedRelation.Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Div.class, Br.class,	RelType.CONTAINS, Direction.OUTGOING, DirectedRelation.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Div.class, Hr.class,	RelType.CONTAINS, Direction.OUTGOING, DirectedRelation.Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Div.class, A.class,	RelType.CONTAINS, Direction.OUTGOING, DirectedRelation.Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Div.class, H1.class,	RelType.CONTAINS, Direction.OUTGOING, DirectedRelation.Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Div.class, H2.class,	RelType.CONTAINS, Direction.OUTGOING, DirectedRelation.Cardinality.ManyToMany);

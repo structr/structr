@@ -64,6 +64,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import net.sf.jmimemagic.MagicMatchNotFoundException;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -476,6 +477,7 @@ public class Importer {
 		}
 
 		contentType     = FileHelper.getContentMimeType(fileOnDisk);
+
 		downloadAddress = StringUtils.substringBefore(downloadAddress, "?");
 
 		final String name = (downloadAddress.indexOf("/") > -1)
@@ -557,10 +559,10 @@ public class Importer {
 
 		Node n      = node;
 		String path = "";
-
-		while ((n.nodeName() != null) &&!n.nodeName().equals("html")) {
-
-			path = n.nodeName() + "/" + path;
+		
+		while ((n.nodeName() != null) && !n.nodeName().equals("html")) {
+			int index = n.siblingIndex();
+			path = n.nodeName() + "[" + index + "]" + "/" + path;
 			n    = n.parent();
 
 		}
