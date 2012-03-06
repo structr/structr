@@ -18,6 +18,7 @@ import org.eclipse.jetty.server.handler.DefaultHandler;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.server.handler.RequestLogHandler;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
+import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.webapp.WebAppContext;
 
@@ -26,14 +27,15 @@ import org.structr.rest.servlet.JsonRestServlet;
 import org.structr.web.servlet.HtmlServlet;
 import org.structr.websocket.servlet.WebSocketServlet;
 
+import org.tuckey.web.filters.urlrewrite.UrlRewriteFilter;
+
 //~--- JDK imports ------------------------------------------------------------
 
 import java.io.File;
 
 import java.util.*;
+
 import javax.servlet.DispatcherType;
-import org.eclipse.jetty.servlet.FilterHolder;
-import org.tuckey.web.filters.urlrewrite.UrlRewriteFilter;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -51,7 +53,6 @@ public class StructrServer {
 		int port              = Integer.parseInt(System.getProperty("port", "8080"));
 		int maxIdleTime       = Integer.parseInt(System.getProperty("maxIdleTime", "30000"));
 		int requestHeaderSize = Integer.parseInt(System.getProperty("requestHeaderSize", "8192"));
-
 		String contextPath    = System.getProperty("contextPath", "/");
 
 		System.out.println();
@@ -103,16 +104,14 @@ public class StructrServer {
 
 		WebAppContext webapp = new WebAppContext();
 
-
 		webapp.setDescriptor(webapp + "/WEB-INF/web.xml");
 		webapp.setTempDirectory(baseDir);
 		webapp.setWar(warPath);
 		System.out.println("Using WAR file " + warPath);
 
 		FilterHolder rewriteFilter = webapp.addFilter(UrlRewriteFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
-		//rewriteFilter.setInitParameter("logLevel", "DEBUG");
 
-
+		// rewriteFilter.setInitParameter("logLevel", "DEBUG");
 		// Strange behaviour of jetty:
 		// If there's a directory with the same name like the WAR file in the same directory,
 		// jetty will extract the classes into this directory and not into 'webapp'.
@@ -123,6 +122,7 @@ public class StructrServer {
 		if (directoryWhichMustNotExist.exists()) {
 
 			System.err.println("Directory " + directoryWhichMustNotExist + " must not exist.");
+
 			// System.err.println("Delete it or move WAR file to another directory and start from there.");
 			// System.exit(1);
 			directoryWhichMustNotExist.delete();
@@ -239,7 +239,6 @@ public class StructrServer {
 		wsServletHolder.setInitOrder(4);
 		webapp.addServlet(wsServletHolder, "/structr/ws/*");
 		webapp.addEventListener(new ApplicationContextListener());
-
 
 		// enable request logging
 		RequestLogHandler requestLogHandler = new RequestLogHandler();

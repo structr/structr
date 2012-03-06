@@ -29,8 +29,6 @@ import org.apache.commons.lang.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.*;
 
-import org.neo4j.graphdb.Direction;
-
 import org.structr.common.CaseHelper;
 import org.structr.common.FileHelper;
 import org.structr.common.Path;
@@ -51,6 +49,7 @@ import org.structr.core.node.NodeAttribute;
 import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
+import org.structr.web.entity.html.HtmlElement;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -144,7 +143,7 @@ public class Importer {
 					attrs.add(new NodeAttribute("type", "Resource"));
 					attrs.add(new NodeAttribute("name", name));
 
-					AbstractNode page1 = findOrCreateNode(attrs, null);
+					AbstractNode page1 = findOrCreateNode(attrs, "/");
 
 					createChildNodes(page, page1, page1.getStringProperty(AbstractNode.Key.uuid), baseUrl);
 
@@ -158,7 +157,7 @@ public class Importer {
 		}
 	}
 
-	private static void createChildNodes(final Node startNode, final AbstractNode parent, final String resourceId, final URL baseUrl) throws FrameworkException {
+	private static void createChildNodes(final Node startNode, final AbstractNode parent, String resourceId, final URL baseUrl) throws FrameworkException {
 
 		List<Node> children = startNode.childNodes();
 		int localIndex      = 0;
@@ -275,9 +274,11 @@ public class Importer {
 
 			}
 
+			String nodePath = getNodePath(node);
+
 			// create node
 			// TODO: Do we need the name here?
-			AbstractNode newNode = findOrCreateNode(attrs, parent.getStringProperty(AbstractNode.Key.uuid));
+			AbstractNode newNode = findOrCreateNode(attrs, nodePath);
 
 			// Link new node to its parent node
 			linkNodes(parent, newNode, resourceId, localIndex);
@@ -304,7 +305,7 @@ public class Importer {
 	 * @return
 	 * @throws FrameworkException
 	 */
-	private static AbstractNode findExistingNode(List<NodeAttribute> attrs, final String parentNodeId) throws FrameworkException {
+	private static AbstractNode findExistingNode(List<NodeAttribute> attrs, final String nodePath) throws FrameworkException {
 
 		List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
 
@@ -315,74 +316,84 @@ public class Importer {
 		}
 
 		List<AbstractNode> nodes = (List<AbstractNode>) searchNode.execute(null, false, false, searchAttrs);
-		AbstractNode foundNode;
 
-		if (nodes.size() > 0) {
+		if (nodes.size() > 1) {
 
-			logger.log(Level.WARNING, "More than one node found, returning only the first one.");
+			logger.log(Level.WARNING, "More than one node found.");
 
-			foundNode = nodes.get(0);
+		}
 
-		} else if (nodes.size() == 1) {
-
-			foundNode = nodes.get(0);
-
-		} else {
+		if (nodes.isEmpty()) {
 
 			return null;
 
 		}
 
-		// Node found which matches all the attributes?
-		if (foundNode == null) {
+		for (AbstractNode foundNode : nodes) {
 
-			return null;
+			String foundNodePath = foundNode.getStringProperty(HtmlElement.UiKey.path);
 
-		}
+			logger.log(Level.INFO, "Found a node with path {0}", foundNodePath);
 
-		// Does found node have any incoming contains relationships?
-		if (!foundNode.hasRelationship(RelType.CONTAINS, Direction.INCOMING)) {
+			if (foundNodePath.equals(nodePath)) {
 
-			logger.log(Level.INFO, "No INCOMING CONTAINS relationships.");
+				logger.log(Level.INFO, "MATCH!");
 
-			return null;
-
-		}
-
-		List<AbstractRelationship> rels = foundNode.getRelationships(RelType.CONTAINS, Direction.INCOMING);
-
-		if (rels.isEmpty()) {
-
-			logger.log(Level.INFO, "No INCOMING CONTAINS relationships.");
-
-			return null;
-
-		} else if (rels.size() > 1) {
-
-			logger.log(Level.INFO, "Too many INCOMING CONTAINS relationships: {0}", rels.size());
-
-			return null;
-
-		} else {
-
-			String parentId = rels.get(0).getStartNode().getStringProperty(AbstractNode.Key.uuid);
-
-			if (parentId.equals(parentNodeId)) {
-
+				// First match wins
 				return foundNode;
 
 			}
 
-			logger.log(Level.INFO, "Parent node id doesn't match");
-
-			return null;
-
 		}
+
+		logger.log(Level.INFO, "Does not match expected path {0}", nodePath);
+
+		return null;
+
+//
+//              // Does found node have any incoming contains relationships?
+//              if (!foundNode.hasRelationship(RelType.CONTAINS, Direction.INCOMING)) {
+//
+//                      logger.log(Level.INFO, "No INCOMING CONTAINS relationships.");
+//
+//                      return null;
+//
+//              }
+//
+//              List<AbstractRelationship> rels = foundNode.getRelationships(RelType.CONTAINS, Direction.INCOMING);
+//
+//              if (rels.isEmpty()) {
+//
+//                      logger.log(Level.INFO, "No INCOMING CONTAINS relationships.");
+//
+//                      return null;
+//
+//              } else if (rels.size() > 1) {
+//
+//                      logger.log(Level.INFO, "Too many INCOMING CONTAINS relationships: {0}", rels.size());
+//
+//                      return null;
+//
+//              } else {
+//
+//                      String parentId = rels.get(0).getStartNode().getStringProperty(AbstractNode.Key.uuid);
+//
+//                      if (parentId.equals(parentNodeId)) {
+//
+//                              return foundNode;
+//
+//                      }
+//
+//                      logger.log(Level.INFO, "Parent node id doesn't match");
+//
+//                      return null;
+//
+//              }
 	}
 
-	private static AbstractNode findOrCreateNode(List<NodeAttribute> attributes, final String parentId) throws FrameworkException {
+	private static AbstractNode findOrCreateNode(List<NodeAttribute> attributes, final String nodePath) throws FrameworkException {
 
-		AbstractNode node = findExistingNode(attributes, parentId);
+		AbstractNode node = findExistingNode(attributes, nodePath);
 
 		if (node != null) {
 
@@ -391,6 +402,8 @@ public class Importer {
 		}
 
 		node = (AbstractNode) createNode.execute(attributes);
+
+		node.setProperty(HtmlElement.UiKey.path, nodePath);
 
 		if (node != null) {
 
@@ -536,5 +549,22 @@ public class Importer {
 			downloadFiles(url, baseUrl);
 
 		}
+	}
+
+	//~--- get methods ----------------------------------------------------
+
+	private static String getNodePath(final Node node) {
+
+		Node n      = node;
+		String path = "";
+
+		while ((n.nodeName() != null) &&!n.nodeName().equals("html")) {
+
+			path = n.nodeName() + "/" + path;
+			n    = n.parent();
+
+		}
+
+		return "html/" + path;
 	}
 }
