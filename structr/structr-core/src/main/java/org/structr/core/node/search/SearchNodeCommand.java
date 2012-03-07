@@ -120,26 +120,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 		}
 
-		String propertyKey = null;
-		String type        = null;
-
-		if (parameters.length >= 6) {
-
-			if (parameters[4] instanceof String) {
-
-				type = (String) parameters[4];
-
-			}
-
-			if (parameters[5] instanceof String) {
-
-				propertyKey = (String) parameters[5];
-
-			}
-
-		}
-
-		return search(securityContext, topNode, includeDeleted, publicOnly, searchAttrs, type, propertyKey);
+		return search(securityContext, topNode, includeDeleted, publicOnly, searchAttrs);
 	}
 
 	/**
@@ -153,7 +134,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 	 * @return
 	 */
 	private List<AbstractNode> search(final SecurityContext securityContext, final AbstractNode topNode, final boolean includeDeleted,
-					  final boolean publicOnly, final List<SearchAttribute> searchAttrs, final String type, final String propertyKey) throws FrameworkException {
+					  final boolean publicOnly, final List<SearchAttribute> searchAttrs) throws FrameworkException {
 
 		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
 		Index<Node> index;

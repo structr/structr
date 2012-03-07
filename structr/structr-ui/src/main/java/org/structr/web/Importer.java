@@ -21,10 +21,13 @@
 
 package org.structr.web;
 
+import net.sf.jmimemagic.MagicMatchNotFoundException;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.lucene.queryParser.QueryParser;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.*;
@@ -49,6 +52,7 @@ import org.structr.core.node.NodeAttribute;
 import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
+import org.structr.web.entity.Content;
 import org.structr.web.entity.html.HtmlElement;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -64,7 +68,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import net.sf.jmimemagic.MagicMatchNotFoundException;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -93,6 +96,8 @@ public class Importer {
 
 		contentTypeForExtension.put("css", "text/css");
 		contentTypeForExtension.put("js", "text/javascript");
+		contentTypeForExtension.put("xml", "text/xml");
+		contentTypeForExtension.put("php", "application/x-php");
 
 	}
 
@@ -113,6 +118,8 @@ public class Importer {
 	}
 
 	public static void start(final String address, final String name, final int timeout) throws FrameworkException {
+
+		logger.log(Level.INFO, "##### Start fetching {0} for resource {1} #####", new Object[] { address, name });
 
 		SecurityContext securityContext = SecurityContext.getSuperUserInstance();
 
@@ -144,7 +151,7 @@ public class Importer {
 					attrs.add(new NodeAttribute("type", "Resource"));
 					attrs.add(new NodeAttribute("name", name));
 
-					AbstractNode page1 = findOrCreateNode(attrs, "/");
+					AbstractNode page1 = findOrCreateNode("Resource", attrs, "/");
 
 					createChildNodes(page, page1, page1.getStringProperty(AbstractNode.Key.uuid), baseUrl);
 
@@ -156,6 +163,8 @@ public class Importer {
 		} catch (MalformedURLException ex) {
 			logger.log(Level.SEVERE, "Could not resolve address " + address, ex);
 		}
+
+		logger.log(Level.INFO, "##### Finished fetching {0} for resource {1} #####", new Object[] { address, name });
 	}
 
 	private static void createChildNodes(final Node startNode, final AbstractNode parent, String resourceId, final URL baseUrl) throws FrameworkException {
@@ -279,7 +288,7 @@ public class Importer {
 
 			// create node
 			// TODO: Do we need the name here?
-			AbstractNode newNode = findOrCreateNode(attrs, nodePath);
+			AbstractNode newNode = findOrCreateNode(type, attrs, nodePath);
 
 			// Link new node to its parent node
 			linkNodes(parent, newNode, resourceId, localIndex);
@@ -306,13 +315,27 @@ public class Importer {
 	 * @return
 	 * @throws FrameworkException
 	 */
-	private static AbstractNode findExistingNode(List<NodeAttribute> attrs, final String nodePath) throws FrameworkException {
+	private static AbstractNode findExistingNode(String type, List<NodeAttribute> attrs, final String nodePath) throws FrameworkException {
 
 		List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
 
 		for (NodeAttribute attr : attrs) {
 
-			searchAttrs.add(Search.andExactProperty(attr.getKey(), attr.getValue().toString()));
+			String key   = attr.getKey();
+			String value = attr.getValue().toString();
+
+			if (type.equals("Content") && key.equals(Content.UiKey.content.name())) {
+
+				// value = Search.escapeForLucene(value);
+				value = Search.clean(value);
+			}
+
+			// Exclude data attribute because it may contain code with special characters, too
+			if (!key.equals(PropertyView.Html.concat("data"))) {
+
+				searchAttrs.add(Search.andExactProperty(key, value));
+
+			}
 
 		}
 
@@ -392,9 +415,9 @@ public class Importer {
 //              }
 	}
 
-	private static AbstractNode findOrCreateNode(List<NodeAttribute> attributes, final String nodePath) throws FrameworkException {
+	private static AbstractNode findOrCreateNode(String type, List<NodeAttribute> attributes, final String nodePath) throws FrameworkException {
 
-		AbstractNode node = findExistingNode(attributes, nodePath);
+		AbstractNode node = findExistingNode(type, attributes, nodePath);
 
 		if (node != null) {
 
@@ -477,7 +500,6 @@ public class Importer {
 		}
 
 		contentType     = FileHelper.getContentMimeType(fileOnDisk);
-
 		downloadAddress = StringUtils.substringBefore(downloadAddress, "?");
 
 		final String name = (downloadAddress.indexOf("/") > -1)
@@ -486,7 +508,7 @@ public class Importer {
 
 		if (contentType.equals("text/plain")) {
 
-			contentType = contentTypeForExtension.get(StringUtils.substringAfterLast(name, "."));
+			contentType = StringUtils.defaultIfBlank(contentTypeForExtension.get(StringUtils.substringAfterLast(name, ".")), "text/plain");
 
 		}
 
@@ -559,9 +581,11 @@ public class Importer {
 
 		Node n      = node;
 		String path = "";
-		
-		while ((n.nodeName() != null) && !n.nodeName().equals("html")) {
+
+		while ((n.nodeName() != null) &&!n.nodeName().equals("html")) {
+
 			int index = n.siblingIndex();
+
 			path = n.nodeName() + "[" + index + "]" + "/" + path;
 			n    = n.parent();
 

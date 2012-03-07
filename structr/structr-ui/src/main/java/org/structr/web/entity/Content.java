@@ -21,6 +21,7 @@
 
 package org.structr.web.entity;
 
+import org.apache.lucene.queryParser.QueryParser;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
@@ -29,6 +30,7 @@ import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.web.entity.html.*;
 import org.structr.core.entity.DirectedRelation.Cardinality;
+import org.structr.core.node.search.Search;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -95,5 +97,20 @@ public class Content extends AbstractNode {
 	@Override
 	public String getIconSrc() {
 		return "";
+	}
+
+	@Override
+	public java.lang.Object getPropertyForIndexing(final String key) {
+
+		if (key.equals(Content.UiKey.content.name())) {
+
+			String value = getStringProperty(key);
+			return Search.clean(value);
+
+
+		} else {
+
+		return getProperty(key);
+		}
 	}
 }

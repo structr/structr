@@ -224,7 +224,7 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 					abstractCommand.processMessage(webSocketData);
 
 				} catch(Throwable t) {
-
+					t.printStackTrace(System.out);
 					// send 400 Bad Request
 					send(MessageBuilder.status().code(400).message(t.getMessage()).build(), true);
 				}
