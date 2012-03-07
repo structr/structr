@@ -5,6 +5,8 @@
  */
 package org.structr.rest.resource;
 
+import org.structr.common.AbstractGraphObjectComparator;
+import org.structr.common.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -28,13 +30,7 @@ import org.structr.rest.servlet.JsonRestServlet;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -91,10 +87,9 @@ public class TypeResource extends SortableResource {
 	public List<GraphObject> doGet() throws FrameworkException {
 
 		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
-
-		AbstractNode topNode   = null;
-		boolean includeDeleted = false;
-		boolean publicOnly     = false;
+		AbstractNode topNode                   = null;
+		boolean includeDeleted                 = false;
+		boolean publicOnly                     = false;
 
 		if (rawType != null) {
 
@@ -111,10 +106,13 @@ public class TypeResource extends SortableResource {
 
 			// searchable attributes from EntityContext
 			hasSearchableAttributes(searchAttributes);
+
 			// do search
 			List<GraphObject> results = (List<GraphObject>) Services.command(securityContext, SearchNodeCommand.class).execute(topNode, includeDeleted, publicOnly, searchAttributes);
 
 			if (!results.isEmpty()) {
+
+				applyDefaultSorting(results);
 
 				return results;
 

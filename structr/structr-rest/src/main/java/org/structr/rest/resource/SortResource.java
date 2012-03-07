@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
+import org.structr.common.AbstractGraphObjectComparator;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -48,44 +49,46 @@ public class SortResource extends WrappingResource {
 		if(wrappedResource != null) {
 			
 			List<? extends GraphObject> results = wrappedResource.doGet();
+			
+			Collections.sort(results, new AbstractGraphObjectComparator(sortKey, sortOrder));
 			Comparator<GraphObject> comparator = null;
 
-			try {
-				if("desc".equals(sortOrder)) {
-
-					comparator = new Comparator<GraphObject>() {
-						@Override
-						public int compare(GraphObject n1, GraphObject n2) {
-							Comparable c1 = (Comparable)n1.getProperty(sortKey);
-							Comparable c2 = (Comparable)n2.getProperty(sortKey);
-							return(c2.compareTo(c1));
-						}
-					};
-
-				} else {
-
-					comparator = new Comparator<GraphObject>() {
-						@Override
-						public int compare(GraphObject n1, GraphObject n2) {
-							Comparable c1 = (Comparable)n1.getProperty(sortKey);
-							Comparable c2 = (Comparable)n2.getProperty(sortKey);
-							return(c1.compareTo(c2));
-						}
-					};
-				}
-
-				if(comparator != null) {
-					Collections.sort(results, comparator);
-
-				} else {
-
-					logger.log(Level.WARNING, "Comparator was null, no sorting applied");
-				}
-
-			} catch(Throwable t) {
-
-				logger.log(Level.WARNING, "Error while sorting result set with {0}", sortKey);
-			}
+//			try {
+//				if("desc".equals(sortOrder)) {
+//
+//					comparator = new Comparator<GraphObject>() {
+//						@Override
+//						public int compare(GraphObject n1, GraphObject n2) {
+//							Comparable c1 = (Comparable)n1.getProperty(sortKey);
+//							Comparable c2 = (Comparable)n2.getProperty(sortKey);
+//							return(c2.compareTo(c1));
+//						}
+//					};
+//
+//				} else {
+//
+//					comparator = new Comparator<GraphObject>() {
+//						@Override
+//						public int compare(GraphObject n1, GraphObject n2) {
+//							Comparable c1 = (Comparable)n1.getProperty(sortKey);
+//							Comparable c2 = (Comparable)n2.getProperty(sortKey);
+//							return(c1.compareTo(c2));
+//						}
+//					};
+//				}
+//
+//				if(comparator != null) {
+//					Collections.sort(results, comparator);
+//
+//				} else {
+//
+//					logger.log(Level.WARNING, "Comparator was null, no sorting applied");
+//				}
+//
+//			} catch(Throwable t) {
+//
+//				logger.log(Level.WARNING, "Error while sorting result set with {0}", sortKey);
+//			}
 
 			return results;
 		}

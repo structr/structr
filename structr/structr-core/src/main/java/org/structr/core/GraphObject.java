@@ -20,7 +20,7 @@
 package org.structr.core;
 
 import java.util.Date;
-import org.structr.common.SecurityContext;
+import org.structr.common.PropertyKey;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
@@ -43,6 +43,9 @@ public interface GraphObject {
 	public Date getDateProperty(String key);
 	public void removeProperty(String key) throws FrameworkException;
 
+	public PropertyKey getDefaultSortKey();
+	public String getDefaultSortOrder();
+	
 	// ----- rels only -----
 //	public Long getStartNodeId();
 //	public Long getEndNodeId();

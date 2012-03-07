@@ -5,6 +5,7 @@
  */
 package org.structr.rest.resource;
 
+import java.util.Collections;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.SecurityContext;
 import org.structr.core.EntityContext;
@@ -30,6 +31,8 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.structr.common.AbstractGraphObjectComparator;
+import org.structr.common.PropertyKey;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.*;
 import org.structr.core.entity.DirectedRelation;
@@ -235,6 +238,23 @@ public abstract class Resource {
 		}
 
 		return uriBuilder.toString();
+	}
+
+	protected void applyDefaultSorting(List<GraphObject> list) {
+
+		if (!list.isEmpty()) {
+
+			// Apply default sorting, if defined
+			PropertyKey defaultSort = list.get(0).getDefaultSortKey();
+
+			if (defaultSort != null) {
+
+				String defaultOrder = list.get(0).getDefaultSortOrder();
+
+				Collections.sort(list, new AbstractGraphObjectComparator(defaultSort.name(), defaultOrder));
+
+			}
+		}
 	}
 
 	//~--- get methods ----------------------------------------------------

@@ -21,14 +21,18 @@
 
 package org.structr.rest.resource;
 
+import org.apache.commons.collections.ListUtils;
+
+import org.structr.common.AbstractGraphObjectComparator;
 import org.structr.common.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.TypeToken;
 import org.structr.core.*;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.DirectedRelation;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.entity.DirectedRelation;
+import org.structr.core.node.DeleteRelationshipCommand;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 import org.structr.core.node.search.Search;
@@ -52,8 +56,6 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.apache.commons.collections.ListUtils;
-import org.structr.core.node.DeleteRelationshipCommand;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -99,17 +101,20 @@ public class StaticRelationshipResource extends SortableResource {
 
 				if (staticRel != null) {
 
-					List<AbstractNode> relatedNodes = staticRel.getRelatedNodes(securityContext, sourceNode);
+					List relatedNodes = staticRel.getRelatedNodes(securityContext, sourceNode);
 
 					// check for search keys in request first..
 					List<SearchAttribute> dummyList = new LinkedList<SearchAttribute>();
-					if(typeResource.hasSearchableAttributes(dummyList)) {
+
+					if (typeResource.hasSearchableAttributes(dummyList)) {
 
 						// use result list of doGet from typeResource and intersect with relatedNodes list.
-						List<GraphObject> typeNodes    = typeResource.doGet();
+						List<GraphObject> typeNodes = typeResource.doGet();
+						List intersection           = ListUtils.intersection(relatedNodes, typeNodes);
 
-						List intersection = ListUtils.intersection(relatedNodes, typeNodes);
 						if (!intersection.isEmpty()) {
+							
+							applyDefaultSorting(intersection);
 
 							return intersection;
 
@@ -117,7 +122,10 @@ public class StaticRelationshipResource extends SortableResource {
 					}
 
 					// return non-empty list
-					if(!relatedNodes.isEmpty()) {
+					if (!relatedNodes.isEmpty()) {
+
+						applyDefaultSorting(relatedNodes);
+
 						return relatedNodes;
 					}
 
@@ -131,9 +139,9 @@ public class StaticRelationshipResource extends SortableResource {
 				// as the property key for getProperty
 				// look for a property converter for the given type and key
 				Class type = sourceNode.getClass();
+				String key = typeResource.getRawType();
 
-				String key                  = typeResource.getRawType();
-				//String key                  = CaseHelper.toLowerCamelCase(typeResource.getRawType());
+				// String key                  = CaseHelper.toLowerCamelCase(typeResource.getRawType());
 				PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
 
 				if (converter != null) {
@@ -161,7 +169,11 @@ public class StaticRelationshipResource extends SortableResource {
 						// check for non-empty list of GraphObjects
 						if ((value instanceof List) &&!((List) value).isEmpty() && ((List) value).get(0) instanceof GraphObject) {
 
-							return (List<GraphObject>) value;
+							List<GraphObject> list = (List<GraphObject>) value;
+
+							applyDefaultSorting(list);
+
+							return list;
 
 						} else if (value instanceof Iterable) {
 
@@ -185,7 +197,6 @@ public class StaticRelationshipResource extends SortableResource {
 
 							return propertyListResult;
 						}
-
 					} else {
 
 						logger.log(Level.SEVERE, msg);
@@ -205,7 +216,7 @@ public class StaticRelationshipResource extends SortableResource {
 	public RestMethodResult doPut(final Map<String, Object> propertySet) throws FrameworkException {
 
 		List<GraphObject> results = typedIdResource.doGet();
-		final Command searchNode        = Services.command(securityContext, SearchNodeCommand.class);
+		final Command searchNode  = Services.command(securityContext, SearchNodeCommand.class);
 
 		if (results != null) {
 
@@ -225,11 +236,10 @@ public class StaticRelationshipResource extends SortableResource {
 						return new RestMethodResult(HttpServletResponse.SC_FORBIDDEN);
 
 					}
-					
-					final Command deleteRel		= Services.command(securityContext, DeleteRelationshipCommand.class);
-					
+
+					final Command deleteRel               = Services.command(securityContext, DeleteRelationshipCommand.class);
 					final List<AbstractRelationship> rels = startNode.getRelationships(staticRel.getRelType(), staticRel.getDirection());
-					StructrTransaction transaction       = new StructrTransaction() {
+					StructrTransaction transaction        = new StructrTransaction() {
 
 						@Override
 						public Object execute() throws FrameworkException {
@@ -243,7 +253,7 @@ public class StaticRelationshipResource extends SortableResource {
 								// Delete relationship only if not contained in property set
 								// check type of other node as well, there can be relationships
 								// of the same type to more than one destTypes!
-								if (staticRel.getDestType().equals(otherNodeType) && !propertySet.containsValue(id)) {
+								if (staticRel.getDestType().equals(otherNodeType) &&!propertySet.containsValue(id)) {
 
 									deleteRel.execute(rel);
 
@@ -258,8 +268,7 @@ public class StaticRelationshipResource extends SortableResource {
 							// Now add new relationships for any new id: This should be the rest of the property set
 							for (Object obj : propertySet.values()) {
 
-								String uuid = (String) obj;
-
+								String uuid                 = (String) obj;
 								List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
 
 								attrs.add(Search.andExactUuid(uuid));
@@ -279,8 +288,9 @@ public class StaticRelationshipResource extends SortableResource {
 								}
 
 								AbstractNode targetNode = (AbstractNode) results.get(0);
-//								String type             = EntityContext.normalizeEntityName(typeResource.getRawType());
-								String type             = staticRel.getDestType();
+
+//                                                              String type             = EntityContext.normalizeEntityName(typeResource.getRawType());
+								String type = staticRel.getDestType();
 
 								if (!type.equals(targetNode.getType())) {
 
@@ -316,8 +326,8 @@ public class StaticRelationshipResource extends SortableResource {
 			@Override
 			public Object execute() throws FrameworkException {
 
-				AbstractNode sourceNode  = typedIdResource.getIdResource().getNode();
-				DirectedRelation rel = EntityContext.getDirectedRelationship(sourceNode.getClass(), typeResource.getRawType());
+				AbstractNode sourceNode = typedIdResource.getIdResource().getNode();
+				DirectedRelation rel    = EntityContext.getDirectedRelationship(sourceNode.getClass(), typeResource.getRawType());
 
 				if ((sourceNode != null) && (rel != null)) {
 
@@ -334,7 +344,7 @@ public class StaticRelationshipResource extends SortableResource {
 					PropertyKey primaryPropertyKey = notion.getPrimaryPropertyKey();
 
 					// apply notion if the property set contains the ID property as the only element
-					if ((primaryPropertyKey != null) && (propertySet.containsKey(primaryPropertyKey.name()) && propertySet.size() == 1)) {
+					if ((primaryPropertyKey != null) && (propertySet.containsKey(primaryPropertyKey.name()) && (propertySet.size() == 1))) {
 
 						// the notion that is defined for this relationship can deserialize
 						// objects with a single key (uuid for example), and the POSTed
