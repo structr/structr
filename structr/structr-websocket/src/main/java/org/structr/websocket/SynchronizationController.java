@@ -35,12 +35,7 @@ import org.structr.websocket.message.WebSocketMessage;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -56,9 +51,10 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 
 	//~--- fields ---------------------------------------------------------
 
-	private Set<StructrWebSocket> clients          = null;
-	private Gson gson                              = null;
-	private Map<Long, WebSocketMessage> messageMap = new LinkedHashMap<Long, WebSocketMessage>();
+	private Set<StructrWebSocket> clients                    = null;
+	private Gson gson                                        = null;
+	private Map<Long, List<WebSocketMessage>> messageStackMap = new LinkedHashMap<Long, List<WebSocketMessage>>();
+	private List<WebSocketMessage> messageStack;
 
 	//~--- constructors ---------------------------------------------------
 
@@ -112,7 +108,9 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 	@Override
 	public boolean begin(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer) {
 
-		messageMap.put(transactionKey, new WebSocketMessage());
+		messageStack = new LinkedList<WebSocketMessage>();
+
+		messageStackMap.put(transactionKey, messageStack);
 
 		return false;
 	}
@@ -120,11 +118,15 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 	@Override
 	public boolean commit(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer) {
 
-		WebSocketMessage message = messageMap.get(transactionKey);
+		messageStack = messageStackMap.get(transactionKey);
 
-		if (message != null) {
+		if (messageStack != null) {
 
-			broadcast(message);
+			for (WebSocketMessage message : messageStack) {
+
+				broadcast(message);
+
+			}
 
 		} else {
 
@@ -132,7 +134,7 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 
 		}
 
-		messageMap.remove(transactionKey);
+		messageStackMap.remove(transactionKey);
 
 		return false;
 	}
@@ -141,7 +143,7 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 	public boolean rollback(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer) {
 
 		// roll back transaction
-		messageMap.remove(transactionKey);
+		messageStackMap.remove(transactionKey);
 
 		return false;
 	}
@@ -149,67 +151,23 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 	@Override
 	public boolean propertyModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject, String key, Object oldValue, Object newValue) {
 
-		WebSocketMessage message = messageMap.get(transactionKey);
+		messageStack = messageStackMap.get(transactionKey);
+		
+		WebSocketMessage message = new WebSocketMessage();
 
-		if (message != null) {
-
-			// message.setData(key, newValue != null ? newValue.toString() : "null");
-			message.getModifiedProperties().add(key);
-		} else {
-
-			logger.log(Level.WARNING, "No message found for transaction key {0}", transactionKey);
-
-		}
+		message.setCommand("UPDATE");
+		message.setGraphObject(graphObject);
+		message.getModifiedProperties().add(key);
+		messageStack.add(message);
 
 		return false;
 	}
 
-//      @Override
-//      public boolean relationshipCreated(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, AbstractRelationship relationship) {
-//
-//              AbstractNode startNode = relationship.getStartNode();
-//              AbstractNode endNode = relationship.getEndNode();
-//
-//              WebSocketMessage message = messageMap.get(transactionKey);
-//              if(message != null) {
-//
-//                      message.setCommand("ADD");
-//                      message.setGraphObject(relationship);
-//                      message.setId(startNode.getStringProperty("uuid"));
-//                      message.setData("id", endNode.getStringProperty("uuid"));
-//
-//              } else {
-//                      logger.log(Level.WARNING, "No message found for transaction key {0}", transactionKey);
-//              }
-//
-//              logger.log(Level.INFO, "{0} -> {1}", new Object[] { startNode.getId(), endNode.getId() } );
-//              return false;
-//      }
-//      @Override
-//      public boolean relationshipDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, AbstractRelationship relationship) {
-//
-//              AbstractNode startNode = relationship.getStartNode();
-//              AbstractNode endNode = relationship.getEndNode();
-//
-//              WebSocketMessage message = messageMap.get(transactionKey);
-//              if(message != null) {
-//
-//                      message.setCommand("REMOVE");
-//                      message.setGraphObject(relationship);
-//                      message.setId(startNode.getStringProperty("uuid"));
-//                      message.setData("id", endNode.getStringProperty("uuid"));
-//
-//
-//              } else {
-//                      logger.log(Level.WARNING, "No message found for transaction key {0}", transactionKey);
-//              }
-//
-//              logger.log(Level.INFO, "{0} -> {1}", new Object[] { startNode.getId(), endNode.getId() } );
-//              return false;
-//      }
 	@Override
 	public boolean graphObjectCreated(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject) {
 
+		messageStack = messageStackMap.get(transactionKey);
+		
 		AbstractRelationship relationship;
 
 		if (graphObject instanceof AbstractRelationship) {
@@ -218,46 +176,32 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 
 			AbstractNode startNode   = relationship.getStartNode();
 			AbstractNode endNode     = relationship.getEndNode();
-			WebSocketMessage message = messageMap.get(transactionKey);
+			WebSocketMessage message = new WebSocketMessage();
 
-			if (message != null) {
-
-				message.setCommand("ADD");
-				message.setGraphObject(relationship);
-				message.setId(startNode.getStringProperty("uuid"));
-				message.setData("id", endNode.getStringProperty("uuid"));
-
-			} else {
-
-				logger.log(Level.WARNING, "No message found for transaction key {0}", transactionKey);
-
-			}
-
-			logger.log(Level.FINE, "Relationship created: {0}({1} -> {2}{3}", new Object[] { startNode.getId(), startNode.getStringProperty(AbstractNode.Key.uuid), endNode.getStringProperty(AbstractNode.Key.uuid) });
+			message.setCommand("ADD");
+			message.setGraphObject(relationship);
+			message.setId(startNode.getStringProperty("uuid"));
+			message.setData("id", endNode.getStringProperty("uuid"));
+			messageStack.add(message);
+			logger.log(Level.FINE, "Relationship created: {0}({1} -> {2}{3}", new Object[] { startNode.getId(), startNode.getStringProperty(AbstractNode.Key.uuid),
+				endNode.getStringProperty(AbstractNode.Key.uuid) });
 
 			return false;
 
 		} else {
 
-			WebSocketMessage message = messageMap.get(transactionKey);
+			WebSocketMessage message = new WebSocketMessage();
 
-			if (message != null) {
+			message.setCommand("CREATE");
+			message.setGraphObject(graphObject);
 
-				message.setCommand("CREATE");
-				message.setGraphObject(graphObject);
+			List<GraphObject> list = new LinkedList<GraphObject>();
 
-				List<GraphObject> list = new LinkedList<GraphObject>();
-
-				list.add(graphObject);
-				message.setResult(list);
-
-			} else {
-
-				logger.log(Level.WARNING, "No message found for transaction key {0}", transactionKey);
-
-			}
-
+			list.add(graphObject);
+			message.setResult(list);
+			messageStack.add(message);
 			logger.log(Level.FINE, "Node created: {0}", ((AbstractNode) graphObject).getStringProperty(AbstractNode.Key.uuid));
+
 			return false;
 
 		}
@@ -266,21 +210,15 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 	@Override
 	public boolean graphObjectModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject) {
 
-		WebSocketMessage message = messageMap.get(transactionKey);
+		messageStack = messageStackMap.get(transactionKey);
 
-		if (message != null) {
+		WebSocketMessage message = new WebSocketMessage();
+		String uuid              = graphObject.getProperty("uuid").toString();
 
-			String uuid = graphObject.getProperty("uuid").toString();
-
-			message.setId(uuid);
-			message.setCommand("UPDATE");
-			message.setGraphObject(graphObject);
-
-		} else {
-
-			logger.log(Level.WARNING, "No message found for transaction key {0}", transactionKey);
-
-		}
+		message.setId(uuid);
+		message.setCommand("UPDATE");
+		message.setGraphObject(graphObject);
+		messageStack.add(message);
 
 		return false;
 	}
@@ -288,6 +226,8 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 	@Override
 	public boolean graphObjectDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject obj, Map<String, Object> properties) {
 
+		messageStack = messageStackMap.get(transactionKey);
+		
 		AbstractRelationship relationship;
 
 		if ((obj != null) && (obj instanceof AbstractRelationship)) {
@@ -296,41 +236,25 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 
 			AbstractNode startNode   = relationship.getStartNode();
 			AbstractNode endNode     = relationship.getEndNode();
-			WebSocketMessage message = messageMap.get(transactionKey);
+			WebSocketMessage message = new WebSocketMessage();
 
-			if (message != null) {
-
-				message.setCommand("REMOVE");
-				message.setGraphObject(relationship);
-				message.setId(startNode.getStringProperty("uuid"));
-				message.setData("id", endNode.getStringProperty("uuid"));
-
-			} else {
-
-				logger.log(Level.WARNING, "No message found for transaction key {0}", transactionKey);
-
-			}
-
+			message.setCommand("REMOVE");
+			message.setGraphObject(relationship);
+			message.setId(startNode.getStringProperty("uuid"));
+			message.setData("id", endNode.getStringProperty("uuid"));
+			messageStack.add(message);
 			logger.log(Level.FINE, "{0} -> {1}", new Object[] { startNode.getId(), endNode.getId() });
 
 			return false;
 
 		} else {
 
-			WebSocketMessage message = messageMap.get(transactionKey);
+			WebSocketMessage message = new WebSocketMessage();
+			String uuid              = properties.get("uuid").toString();
 
-			if (message != null) {
-
-				String uuid = properties.get("uuid").toString();
-
-				message.setId(uuid);
-				message.setCommand("DELETE");
-
-			} else {
-
-				logger.log(Level.WARNING, "No message found for transaction key {0}", transactionKey);
-
-			}
+			message.setId(uuid);
+			message.setCommand("DELETE");
+			messageStack.add(message);
 
 			return false;
 

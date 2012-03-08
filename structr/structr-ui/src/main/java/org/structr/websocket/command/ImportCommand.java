@@ -21,6 +21,7 @@
 
 package org.structr.websocket.command;
 
+import java.util.HashMap;
 import org.structr.web.Importer;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -68,7 +69,27 @@ public class ImportCommand extends AbstractCommand {
 			@Override
 			public Object execute() throws FrameworkException {
 
-				Importer.start(address, name, timeout);
+				Importer pageImporter = new Importer(address, name, timeout);
+
+				boolean parseOk = pageImporter.parse();
+
+				if (parseOk) {
+					logger.log(Level.INFO, "Sucessfully parsed {0}", address);
+
+					getWebSocket().send(MessageBuilder.status().code(200).message("Sucessfully parsed address " + address).build(), true);
+
+					String resourceId = pageImporter.readResource();
+
+					Map<String, Object> resultData = new HashMap<String, Object>();
+
+					if (resourceId != null) {
+						resultData.put("id", resourceId);
+
+						getWebSocket().send(MessageBuilder.status().code(200).message("Sucessfully created resource " + name).data(resultData).build(), true);
+					} else {
+						getWebSocket().send(MessageBuilder.status().code(400).message("Error while creating resource " + name).data(resultData).build(), true);
+					}
+				}
 
 				return null;
 			}

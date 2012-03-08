@@ -90,6 +90,12 @@ public class Importer {
 	private static Command createRel;
 	private static Command searchNode;
 
+	private Document parsedDocument;
+	private String address;
+	private String name;
+	private int timeout;
+
+
 	//~--- static initializers --------------------------------------------
 
 	static {
@@ -103,21 +109,17 @@ public class Importer {
 
 	//~--- constructors ---------------------------------------------------
 
-	public Importer() {}
+	public Importer(final String address, final String name, final int timeout) {
+		this.address = address;
+		this.name = name;
+		this.timeout = timeout;
+	}
 
 	//~--- methods --------------------------------------------------------
 
-	public static void main(String[] args) throws Exception {
 
-		StandaloneTestHelper.prepareStandaloneTest("/home/axel/NetBeansProjects/structr/structr/structr-ui/db");
 
-		String address = "http://structr.org";
-
-		start(address, "index", 5000);
-		StandaloneTestHelper.finishStandaloneTest();
-	}
-
-	public static void start(final String address, final String name, final int timeout) throws FrameworkException {
+	public boolean parse() throws FrameworkException {
 
 		logger.log(Level.INFO, "##### Start fetching {0} for resource {1} #####", new Object[] { address, name });
 
@@ -127,13 +129,18 @@ public class Importer {
 		createNode = Services.command(securityContext, CreateNodeCommand.class);
 		createRel  = Services.command(securityContext, CreateRelationshipCommand.class);
 
-		final Document page;
-
 		try {
-			page = Jsoup.parse(new URL(address), timeout);
+			parsedDocument = Jsoup.parse(new URL(address), timeout);
+
+			return true;
+
 		} catch (IOException ioe) {
 			throw new FrameworkException(500, "Error while importing content from " + address);
 		}
+	}
+
+
+	public String readResource() throws FrameworkException {
 
 		final URL baseUrl;
 
@@ -141,7 +148,7 @@ public class Importer {
 
 			baseUrl = new URL(address);
 
-			Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(new StructrTransaction() {
+			AbstractNode res = (AbstractNode) Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(new StructrTransaction() {
 
 				@Override
 				public Object execute() throws FrameworkException {
@@ -151,23 +158,29 @@ public class Importer {
 					attrs.add(new NodeAttribute("type", "Resource"));
 					attrs.add(new NodeAttribute("name", name));
 
-					AbstractNode page1 = findOrCreateNode("Resource", attrs, "/");
+					AbstractNode resource = findOrCreateNode("Resource", attrs, "/");
 
-					createChildNodes(page, page1, page1.getStringProperty(AbstractNode.Key.uuid), baseUrl);
+					createChildNodes(parsedDocument, resource, resource.getStringProperty(AbstractNode.Key.uuid), baseUrl);
 
-					return null;
+					return resource;
 				}
 
 			});
+
+			if (res != null) {
+				logger.log(Level.INFO, "##### Finished fetching {0} for resource {1} #####", new Object[] { address, name });
+				return res.getStringProperty(AbstractNode.Key.uuid);
+			}
 
 		} catch (MalformedURLException ex) {
 			logger.log(Level.SEVERE, "Could not resolve address " + address, ex);
 		}
 
-		logger.log(Level.INFO, "##### Finished fetching {0} for resource {1} #####", new Object[] { address, name });
+		return null;
+
 	}
 
-	private static void createChildNodes(final Node startNode, final AbstractNode parent, String resourceId, final URL baseUrl) throws FrameworkException {
+	private void createChildNodes(final Node startNode, final AbstractNode parent, String resourceId, final URL baseUrl) throws FrameworkException {
 
 		List<Node> children = startNode.childNodes();
 		int localIndex      = 0;
@@ -315,7 +328,7 @@ public class Importer {
 	 * @return
 	 * @throws FrameworkException
 	 */
-	private static AbstractNode findExistingNode(String type, List<NodeAttribute> attrs, final String nodePath) throws FrameworkException {
+	private AbstractNode findExistingNode(String type, List<NodeAttribute> attrs, final String nodePath) throws FrameworkException {
 
 		List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
 
@@ -415,7 +428,7 @@ public class Importer {
 //              }
 	}
 
-	private static AbstractNode findOrCreateNode(String type, List<NodeAttribute> attributes, final String nodePath) throws FrameworkException {
+	private AbstractNode findOrCreateNode(String type, List<NodeAttribute> attributes, final String nodePath) throws FrameworkException {
 
 		AbstractNode node = findExistingNode(type, attributes, nodePath);
 
@@ -442,7 +455,7 @@ public class Importer {
 		return node;
 	}
 
-	private static AbstractRelationship linkNodes(AbstractNode startNode, AbstractNode endNode, String resourceId, int index) throws FrameworkException {
+	private AbstractRelationship linkNodes(AbstractNode startNode, AbstractNode endNode, String resourceId, int index) throws FrameworkException {
 
 		AbstractRelationship rel = (AbstractRelationship) createRel.execute(startNode, endNode, RelType.CONTAINS);
 
@@ -454,7 +467,7 @@ public class Importer {
 	/**
 	 * Check whether a file with given checksum already exists
 	 */
-	private static boolean fileExists(final String name, final long checksum) throws FrameworkException {
+	private boolean fileExists(final String name, final long checksum) throws FrameworkException {
 
 		List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
 
@@ -467,7 +480,7 @@ public class Importer {
 		return !files.isEmpty();
 	}
 
-	private static void downloadFiles(String downloadAddress, final URL baseUrl) {
+	private void downloadFiles(String downloadAddress, final URL baseUrl) {
 
 		final String uuid = UUID.randomUUID().toString().replaceAll("[\\-]+", "");
 		String contentType;
@@ -549,7 +562,7 @@ public class Importer {
 		}
 	}
 
-	private static void processsCssFileNode(File fileNode, final URL baseUrl) throws IOException {
+	private void processsCssFileNode(File fileNode, final URL baseUrl) throws IOException {
 
 		StringWriter sw = new StringWriter();
 
@@ -560,7 +573,7 @@ public class Importer {
 		processCss(css, baseUrl);
 	}
 
-	private static void processCss(final String css, final URL baseUrl) throws IOException {
+	private void processCss(final String css, final URL baseUrl) throws IOException {
 
 		Pattern pattern = Pattern.compile("url\\((.*)\\)");
 		Matcher matcher = pattern.matcher(css);
@@ -577,7 +590,7 @@ public class Importer {
 
 	//~--- get methods ----------------------------------------------------
 
-	private static String getNodePath(final Node node) {
+	private String getNodePath(final Node node) {
 
 		Node n      = node;
 		String path = "";
