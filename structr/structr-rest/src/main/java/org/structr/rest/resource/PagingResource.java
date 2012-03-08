@@ -76,4 +76,18 @@ public class PagingResource extends WrappingResource {
 	public int getPageCount() {
 		return (int)Math.rint(Math.ceil((double)getResultCount() / (double)getPageSize()));
 	}
+	
+	@Override
+	public void postProcessResultSet(Result result) {
+		
+		result.setResultCount(getResultCount());
+		result.setPage(getPage());
+		result.setPageSize(getPageSize());
+		result.setPageCount(getPageCount());
+		
+		// add sorting parameters
+		if(wrappedResource != null && wrappedResource instanceof SortResource) {
+			((SortResource)wrappedResource).postProcessResultSet(result);
+		}
+	}
 }

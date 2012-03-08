@@ -317,14 +317,8 @@ public class JsonRestServlet extends HttpServlet {
 			Result result = new Result(resource.doGet(), resource.isCollectionResource(), resource.isPrimitiveArray());
 			if (result != null) {
 
-				// set correct result count for paging
-				if(resource instanceof PagingResource) {
-					PagingResource pagingResource = (PagingResource)resource;
-					result.setResultCount(pagingResource.getResultCount());
-					result.setPage(pagingResource.getPage());
-					result.setPageSize(pagingResource.getPageSize());
-					result.setPageCount(pagingResource.getPageCount());
-				}
+				// allow resource to modify result set
+				resource.postProcessResultSet(result);
 				
 				DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 
@@ -754,9 +748,9 @@ public class JsonRestServlet extends HttpServlet {
 	private Resource optimizeConstraintChain(List<Resource> constraintChain) throws FrameworkException {
 
 		ViewFilterResource view = null;
-		int num                   = constraintChain.size();
-		boolean found             = false;
-		int iterations            = 0;
+		int num                 = constraintChain.size();
+		boolean found           = false;
+		int iterations          = 0;
 
 		do {
 

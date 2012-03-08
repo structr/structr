@@ -181,6 +181,10 @@ public abstract class Resource {
 	public boolean isPrimitiveArray() {
 		return false;
 	}
+	
+	public void postProcessResultSet(Result result) {
+		// override me
+	}
 
 	// ----- protected methods -----
 	protected DirectedRelation findDirectedRelationship(TypedIdResource constraint1, TypeResource constraint2) {
