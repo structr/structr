@@ -21,13 +21,11 @@
 
 package org.structr.web;
 
-import net.sf.jmimemagic.MagicMatchNotFoundException;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.lucene.queryParser.QueryParser;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.*;
@@ -38,7 +36,6 @@ import org.structr.common.Path;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
-import org.structr.common.StandaloneTestHelper;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.Services;
@@ -52,7 +49,6 @@ import org.structr.core.node.NodeAttribute;
 import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
-import org.structr.web.entity.Content;
 import org.structr.web.entity.html.HtmlElement;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -89,6 +85,7 @@ public class Importer {
 	private static Command createNode;
 	private static Command createRel;
 	private static Command searchNode;
+	private static Command indexNode;
 
 	private Document parsedDocument;
 	private String address;
@@ -128,6 +125,7 @@ public class Importer {
 		searchNode = Services.command(securityContext, SearchNodeCommand.class);
 		createNode = Services.command(securityContext, CreateNodeCommand.class);
 		createRel  = Services.command(securityContext, CreateRelationshipCommand.class);
+		indexNode  = Services.command(securityContext, IndexNodeCommand.class);
 
 		try {
 			parsedDocument = Jsoup.parse(new URL(address), timeout);
@@ -332,25 +330,25 @@ public class Importer {
 
 		List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
 
-		for (NodeAttribute attr : attrs) {
-
-			String key   = attr.getKey();
-			String value = attr.getValue().toString();
-
-			if (type.equals("Content") && key.equals(Content.UiKey.content.name())) {
-
-				// value = Search.escapeForLucene(value);
-				value = Search.clean(value);
-			}
-
-			// Exclude data attribute because it may contain code with special characters, too
-			if (!key.equals(PropertyView.Html.concat("data"))) {
-
-				searchAttrs.add(Search.andExactProperty(key, value));
-
-			}
-
-		}
+//		for (NodeAttribute attr : attrs) {
+//
+//			String key   = attr.getKey();
+//			String value = attr.getValue().toString();
+//
+//			if (type.equals("Content") && key.equals(Content.UiKey.content.name())) {
+//
+//				value = Search.escapeForLucene(value);
+//				//value = Search.clean(value);
+//			}
+//
+//			// Exclude data attribute because it may contain code with special characters, too
+//			if (!key.equals(PropertyView.Html.concat("data"))) {
+//
+//				searchAttrs.add(Search.andExactProperty(key, value));
+//
+//			}
+//
+//		}
 
 		List<AbstractNode> nodes = (List<AbstractNode>) searchNode.execute(null, false, false, searchAttrs);
 
@@ -526,25 +524,34 @@ public class Importer {
 		}
 
 		final String ct                = contentType;
-		StructrTransaction transaction = new StructrTransaction() {
-
-			@Override
-			public Object execute() throws FrameworkException {
-
-				return createNode.execute(new NodeAttribute(AbstractNode.Key.uuid.name(), uuid), new NodeAttribute(AbstractNode.Key.type.name(), File.class.getSimpleName()),
-							  new NodeAttribute(AbstractNode.Key.name.name(), name), new NodeAttribute(File.Key.contentType.name(), ct));
-			}
-		};
+		
+//		StructrTransaction transaction = new StructrTransaction() {
+//
+//			@Override
+//			public Object execute() throws FrameworkException {
+//
+//				return createNode.execute(new NodeAttribute(AbstractNode.Key.uuid.name(), uuid), new NodeAttribute(AbstractNode.Key.type.name(), File.class.getSimpleName()),
+//							  new NodeAttribute(AbstractNode.Key.name.name(), name), new NodeAttribute(File.Key.contentType.name(), ct));
+//			}
+//		};
 
 		try {
 
 			if (!(fileExists(name, FileUtils.checksumCRC32(fileOnDisk)))) {
 
 				// create node in transaction
-				File fileNode = (File) Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(transaction);
+				//File fileNode = (File) Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(transaction);
+
+				File fileNode = (File) createNode.execute(
+					new NodeAttribute(AbstractNode.Key.uuid.name(), uuid),
+					new NodeAttribute(AbstractNode.Key.type.name(), File.class.getSimpleName()),
+					new NodeAttribute(AbstractNode.Key.name.name(), name),
+					new NodeAttribute(File.Key.contentType.name(), ct));
 
 				fileNode.setRelativeFilePath(relativeFilePath);
 				fileNode.getChecksum();    // calculates and stores checksum
+
+				indexNode.execute(fileNode);
 
 				if (contentType.equals("text/css")) {
 

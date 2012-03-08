@@ -422,6 +422,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 		}
 
 		String stringValue = null;
+		String escapedKey = Search.escapeForLucene(key);
 
 		if (value instanceof String) {
 
@@ -440,14 +441,15 @@ public class SearchNodeCommand extends NodeServiceCommand {
 		if ((stringValue == null) || stringValue.startsWith("\"") || stringValue.startsWith("[") || stringValue.startsWith("NOT")
 			|| stringValue.startsWith("AND") || stringValue.startsWith("OR")) {
 
-			return " " + key + ":" + value + " ";
+			return " " + escapedKey + ":" + value + " ";
 
 		}
 
 		String result = "( ";
 
 		// Clean string
-		stringValue = Search.clean(stringValue);
+		//stringValue = Search.clean(stringValue);
+		stringValue = Search.escapeForLucene(stringValue);
 
 		// Split string into words
 		String[] words = StringUtils.split(stringValue, " ");
@@ -460,7 +462,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 //                      String cleanWord = Search.clean(word);
 //                      result += " (" + key + ":" + cleanWord + "* OR " + key + ":\"" + cleanWord + "\")" + (i<words.length ? " AND " : " ) ");
 //                      result += " (" + key + ":" + word + "* OR " + key + ":\"" + word + "\")" + (i < words.length ? " AND " : " ) ");
-			result += " (" + key + ":*" + word + "* OR " + key + ":\"" + word + "\")" + ((i < words.length)
+			result += " (" + escapedKey + ":*" + word + "* OR " + escapedKey + ":\"" + word + "\")" + ((i < words.length)
 				? " AND "
 				: " ) ");
 

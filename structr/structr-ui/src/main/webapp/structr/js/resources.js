@@ -109,7 +109,7 @@ var _Resources = {
         $('#import_page', previewTabs).on('click', function() {
 			
             var dialog = $('#dialogText');
-            var dialogMsg = $('#dialogError');
+            var dialogMsg = $('#dialogMsg');
 			
             dialog.empty();
             dialogMsg.empty();
@@ -257,21 +257,29 @@ var _Resources = {
             icon.hide();
         });
 
-        element.on('dblclick', function(e) {
-            var self = $(this);
-            self.off('click');
-            e.stopPropagation();
-            _Resources.resetTab(self);
-            window.open(viewRootUrl + name);
-        });
+//        element.on('dblclick', function(e) {
+//            var self = $(this);
+//            self.off('click');
+//            e.stopPropagation();
+//            _Resources.resetTab(self);
+//            window.open(viewRootUrl + name);
+//        });
 
         element.on('click', function(e) {
             var self = $(this);
-            console.log('click', self, self.css('z-index'));
-            if (self.hasClass('active')) {
-                _Resources.makeTabEditable(self);
-            } else {
-                _Resources.activateTab(self);
+            var clicks = e.originalEvent.detail;
+            if (clicks == 1) {
+                console.log('click', self, self.css('z-index'));
+                if (self.hasClass('active')) {
+                    _Resources.makeTabEditable(self);
+                } else {
+                    _Resources.activateTab(self);
+                }
+            } else if (clicks == 2) {
+                self.off('click');
+                e.stopPropagation();
+                _Resources.resetTab(self);
+                window.open(viewRootUrl + name);
             }
         });
 
@@ -302,7 +310,7 @@ var _Resources = {
         iframe.attr('src', viewRootUrl + name + '?edit');
         iframe.parent().show();
         iframe.on('load', function() {
-           console.log('iframe loaded', $(this));
+            console.log('iframe loaded', $(this));
         });
 
         element.addClass('active');

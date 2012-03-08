@@ -105,7 +105,7 @@ public class Content extends AbstractNode {
 		if (key.equals(Content.UiKey.content.name())) {
 
 			String value = getStringProperty(key);
-			return Search.clean(value);
+			return Search.escapeForLucene(value);
 
 
 		} else {
