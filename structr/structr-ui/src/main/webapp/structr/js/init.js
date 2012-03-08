@@ -285,11 +285,11 @@ var Structr = {
 
     dialog : function(text, callbackOk, callbackCancel) {
         if (text) $('#dialogTitle').html(text);
-        if (callbackOk) $('#dialogOkButton').on('click', function() {
-            callbackOk();
-			$('#dialogText').empty();
-			$.unblockUI();
-        });
+//        if (callbackOk) $('#dialogOkButton').on('click', function() {
+//            callbackOk();
+//			$('#dialogText').empty();
+//			$.unblockUI();
+//        });
         if (callbackCancel) $('#dialogCancelButton').on('click', function() {
             callbackCancel();
 			$('#dialogText').empty();

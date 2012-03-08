@@ -59,12 +59,13 @@ function connect() {
             //var msg = $.parseJSON(message);
             var type = data.type;
             var command = data.command;
+            var msg = data.message;
             var result = data.result;
             var sessionValid = data.sessionValid;
             var code = data.code;
             var callback = data.callback;
 
-            if (debug) console.log('command: ' + command);
+            console.log('command: ' + command);
             if (debug) console.log('type: ' + type);
             if (debug) console.log('code: ' + code);
             if (debug) console.log('callback: ' + callback);
@@ -107,13 +108,24 @@ function connect() {
                     Structr.login('Wrong username or password!');
                 } else if (code == 401) {
                     Structr.login('Session invalid');
+                } else {
+                    var msgClass;
+                    var codeStr = code.toString();
+                    if (codeStr.startsWith('20')) {
+                        msgClass = 'success';
+                    } else if (codeStr.startsWith('30')) {
+                        msgClass = 'info';
+                    } else if (codeStr.startsWith('40')) {
+                        msgClass = 'warning';
+                    } else {
+                        msgClass = 'error';
+                    }
+
+
+                    $('#dialogError').html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
                 }
 
-            } else if (command == 'IMPORT') {
-                
-                if (debug) console.log('Imported ', result);
-
-            } else if (command == 'CREATE') {
+            } else if (command == 'CREATE' || command == 'IMPORT') {
 				
                 $(result).each(function(i, entity) {
                     if (entity.type == 'User') {
@@ -133,7 +145,9 @@ function connect() {
                     } else if (entity.type == 'Resource') {
 
                         _Resources.appendResourceElement(entity);
-                        _Resources.reloadPreviews();
+                        var tab = $('#show_' + entity.id, previews);
+                        _Resources.activateTab(tab);
+                        //_Resources.reloadPreviews();
                         if (debug) console.log('Resource element appended');
                         if (buttonClicked) enable(buttonClicked);
 

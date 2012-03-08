@@ -622,7 +622,7 @@ div.nested img:hover {
 #dialogText {
     text-align: left;
     font-size: 9pt;
-    height: 450px;
+/*    height: 450px;*/
     width: 478px;
     overflow: auto;
 }
@@ -704,4 +704,41 @@ div.nested img:hover {
 
 #controls {
     float: right;
+}
+
+div.infoBox {
+    width: 240px;
+    min-height: 12px;
+    margin: 12px auto;
+    text-align: left;
+    padding: 6px 28px;
+    font-size: 10pt;
+}
+
+.warning {
+    background: #feefb3 url('../icon/error.png') 6px 6px no-repeat;
+    color: #9f6000;
+    border: 1px solid #9f6000;
+    font-size: 10pt;
+}
+
+.error {
+    background: #ffbaba url('../icon/exclamation.png') 6px 6px no-repeat;
+    color: #d8000c;
+    border: 1px solid #d8000c;
+    font-size: 10pt;
+}
+
+.success {
+    background: #dff2bf url('../icon/accept.png') 6px 6px no-repeat;
+    color: #4f8a10;
+    border: 1px solid #4f8a10;
+    font-size: 10pt;
+}
+
+.info {
+    background: #bde5f8 url('../icon/information.png') 6px 6px no-repeat;
+    color: #00592b;
+    border: 1px solid #00592b;
+    font-size: 10pt;
 }
