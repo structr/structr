@@ -315,9 +315,17 @@ public class JsonRestServlet extends HttpServlet {
 
 			// create result set
 			Result result = new Result(resource.doGet(), resource.isCollectionResource(), resource.isPrimitiveArray());
-
 			if (result != null) {
 
+				// set correct result count for paging
+				if(resource instanceof PagingResource) {
+					PagingResource pagingResource = (PagingResource)resource;
+					result.setResultCount(pagingResource.getResultCount());
+					result.setPage(pagingResource.getPage());
+					result.setPageSize(pagingResource.getPageSize());
+					result.setPageCount(pagingResource.getPageCount());
+				}
+				
 				DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 
 				result.setQueryTime(decimalFormat.format((queryTimeEnd - queryTimeStart) / 1000000000.0));

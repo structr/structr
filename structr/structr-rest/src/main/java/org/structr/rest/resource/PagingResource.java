@@ -39,13 +39,6 @@ public class PagingResource extends WrappingResource {
 	@Override
 	public List<? extends GraphObject> doGet() throws FrameworkException {
 
-		/*
-		 * page 1: 0 -> pageSize-1
-		 * page 2: pageSize -> (2*pageSize)-1
-		 * page 3: (2*pageSize) -> (3*pageSize)-1
-		 * page n: ((n-1) * pageSize) -> (n * pageSize) - 1
-		 */
-
 		List<? extends GraphObject> results = wrappedResource.doGet();
 		resultCount = results.size();
 
