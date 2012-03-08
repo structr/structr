@@ -21,6 +21,7 @@ package org.structr.core;
 
 import java.util.Date;
 import org.structr.common.PropertyKey;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
@@ -45,6 +46,8 @@ public interface GraphObject {
 
 	public PropertyKey getDefaultSortKey();
 	public String getDefaultSortOrder();
+
+	public abstract boolean isValid(ErrorBuffer errorBuffer);
 	
 	// ----- rels only -----
 //	public Long getStartNodeId();

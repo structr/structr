@@ -112,6 +112,8 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import org.structr.common.*;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.NullArgumentToken;
 import org.structr.common.error.ReadOnlyPropertyToken;
@@ -179,6 +181,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		
 		// register uuid validator
 		EntityContext.registerPropertyValidator(AbstractNode.class, AbstractNode.Key.uuid, new SimpleRegexValidator("[a-zA-Z0-9]{32}"));
+		
 	}
 
 	//~--- fields ---------------------------------------------------------
@@ -684,7 +687,20 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 		return (String[]) props.toArray(new String[props.size()]);
 	}
+	
+	@Override
+	public boolean isValid(ErrorBuffer errorBuffer) {
 
+		boolean error = false;
+
+		error |= ValidationHelper.checkStringNotBlank(this, Key.uuid, errorBuffer);
+		error |= ValidationHelper.checkStringNotBlank(this, Key.type, errorBuffer);
+
+		return !error;
+	}
+
+	public abstract String getIconSrc();
+		
 	/**
 	 * Discard changes and overwrite the properties map with the values
 	 * from database
@@ -1447,13 +1463,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	}
 
 	//~--- get methods ----------------------------------------------------
-
-	/**
-	 * Returns the icon src attribute for this node type.
-	 *
-	 * @return the icon src attribute, for use in the HTML img element
-	 */
-	public abstract String getIconSrc();
 
 	public Long getTemplateId() {
 
@@ -3683,7 +3692,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	public boolean isVisible() {
 		return securityContext.isVisible(this);
 	}
-
+	
 	//~--- set methods ----------------------------------------------------
 
 	/**

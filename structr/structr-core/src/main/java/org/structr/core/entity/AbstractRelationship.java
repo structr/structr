@@ -59,6 +59,7 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.*;
+import org.structr.common.error.*;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -158,6 +159,16 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	//~--- methods --------------------------------------------------------
 	
+	@Override
+	public boolean isValid(ErrorBuffer errorBuffer) {
+
+		boolean error = false;
+
+		error |= ValidationHelper.checkStringNotBlank(this, AbstractNode.Key.uuid, errorBuffer);
+
+		return !error;
+	}
+
 	@Override
 	public PropertyKey getDefaultSortKey() {
 		return null;
