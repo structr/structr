@@ -1,11 +1,10 @@
+
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+* To change this template, choose Tools | Templates
+* and open the template in the editor.
  */
 package org.structr.core.converter;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.structr.common.PropertyKey;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
@@ -14,6 +13,13 @@ import org.structr.core.Value;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.DirectedRelation;
 
+//~--- JDK imports ------------------------------------------------------------
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+//~--- classes ----------------------------------------------------------------
+
 /**
  *
  * @author Christian Morgner
@@ -21,82 +27,117 @@ import org.structr.core.entity.DirectedRelation;
 public class RelatedNodePropertyMapper extends PropertyConverter {
 
 	private static final Logger logger = Logger.getLogger(RelatedNodePropertyMapper.class.getName());
-	
+
+	//~--- methods --------------------------------------------------------
+
 	@Override
 	public Object convertForSetter(Object source, Value value) {
 
-		if(value != null) {
-			
-			Object param = value.get();
-			if(param != null && param instanceof ParameterHolder) {
-				
-				ParameterHolder holder = (ParameterHolder)param;
-				PropertyKey targetKey  = holder.getTargetKey();
-				Class targetType       = holder.getTargetType();
+		if (value != null) {
 
+			Object param = value.get();
+
+			if ((param != null) && (param instanceof ParameterHolder)) {
+
+				ParameterHolder holder   = (ParameterHolder) param;
+				PropertyKey targetKey    = holder.getTargetKey();
+				Class targetType         = holder.getTargetType();
 				AbstractNode relatedNode = getRelatedNode(targetType);
-				if(relatedNode != null) {
+
+				if (relatedNode != null) {
 
 					try {
 						relatedNode.setProperty(targetKey, source);
+					} catch (FrameworkException fex) {
 
-					} catch(FrameworkException fex) {
-						logger.log(Level.WARNING, "Unable to set remote node property {0} on type {1}", new Object[] { targetKey.name(), targetType } );
+						logger.log(Level.WARNING, "Unable to set remote node property {0} on type {1}", new Object[] { targetKey.name(),
+							targetType });
 					}
+
 				}
+
 			}
+
 		}
-		
+
 		return null;
 	}
 
 	@Override
 	public Object convertForGetter(Object source, Value value) {
 
-		if(value != null) {
-			
-			Object param = value.get();
-			if(param != null && param instanceof ParameterHolder) {
-				
-				ParameterHolder holder = (ParameterHolder)param;
-				PropertyKey targetKey  = holder.getTargetKey();
-				Class targetType       = holder.getTargetType();
+		if (value != null) {
 
+			Object param = value.get();
+
+			if ((param != null) && (param instanceof ParameterHolder)) {
+
+				ParameterHolder holder   = (ParameterHolder) param;
+				PropertyKey targetKey    = holder.getTargetKey();
+				Class targetType         = holder.getTargetType();
 				AbstractNode relatedNode = getRelatedNode(targetType);
-				if(relatedNode != null) {
+
+				if (relatedNode != null) {
 
 					return relatedNode.getProperty(targetKey);
+
 				}
+
 			}
+
 		}
-		
+
 		return null;
 	}
-	
+
+	//~--- get methods ----------------------------------------------------
+
 	private AbstractNode getRelatedNode(Class targetType) {
 
-		if(currentObject != null && currentObject instanceof AbstractNode) {
-			
-			AbstractNode localNode = (AbstractNode)currentObject;
+		AbstractNode relatedNode = null;
 
-			DirectedRelation rel = EntityContext.getDirectedRelationship(localNode.getClass(), targetType);
-			if(rel != null) {
-				return rel.getRelatedNode(securityContext, localNode);
+		if ((currentObject != null) && (currentObject instanceof AbstractNode)) {
+
+			AbstractNode localNode = (AbstractNode) currentObject;
+			DirectedRelation rel   = EntityContext.getDirectedRelationship(localNode.getClass(), targetType);
+
+			if (rel != null) {
+
+				relatedNode = rel.getRelatedNode(securityContext, localNode);
+
+				if (relatedNode == null) {
+
+					try {
+						relatedNode = rel.addRelatedNode(securityContext, localNode);
+					} catch (FrameworkException ex) {
+						logger.log(Level.WARNING, "Could not add related node", ex);
+					}
+
+				}
+
 			}
+
 		}
-		
-		return null;
+
+		return relatedNode;
 	}
-	
+
+	//~--- inner classes --------------------------------------------------
+
 	public static class ParameterHolder {
 
 		private PropertyKey targetKey = null;
-		private Class targetType = null;
-		
+		private Class targetType      = null;
+
+		//~--- constructors -------------------------------------------
+
 		public ParameterHolder(PropertyKey targetKey, Class targetType) {
-			this.targetKey = targetKey;
+
+			this.targetKey  = targetKey;
 			this.targetType = targetType;
 		}
+
+		//~--- get methods --------------------------------------------
 
 		public PropertyKey getTargetKey() {
 			return targetKey;

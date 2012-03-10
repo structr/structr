@@ -53,8 +53,10 @@ import java.util.logging.Logger;
 //~--- classes ----------------------------------------------------------------
 
 /**
+ * Helper class to create location nodes from coordinates or by using
+ * online geocoding service
  *
- * @author axel
+ * @author Axel Morgner
  */
 public class GeoHelper {
 
@@ -62,9 +64,30 @@ public class GeoHelper {
 
 	//~--- methods --------------------------------------------------------
 
-	public static Location geocode(final String address) throws FrameworkException {
+	public static Location createLocation(final Coordinates coords) throws FrameworkException {
 
-		String type = Location.class.getSimpleName();
+		double latitude                 = coords.getLatitude();
+		double longitude                = coords.getLongitude();
+		String type                     = Location.class.getSimpleName();
+		final Map<String, Object> props = new HashMap<String, Object>();
+
+		props.put(AbstractNode.Key.type.name(), type);
+		props.put(Location.Key.latitude.name(), latitude);
+		props.put(Location.Key.longitude.name(), longitude);
+
+		StructrTransaction transaction = new StructrTransaction() {
+
+			@Override
+			public Object execute() throws FrameworkException {
+				return Services.command(SecurityContext.getSuperUserInstance(), CreateNodeCommand.class).execute(props);
+			}
+		};
+
+		return (Location) Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(transaction);
+	}
+
+	public static Coordinates geocode(final String address) throws FrameworkException {
+
 		String encodedAddress;
 
 		try {
@@ -72,8 +95,8 @@ public class GeoHelper {
 		} catch (UnsupportedEncodingException ex) {
 
 			logger.log(Level.WARNING, "Unsupported Encoding", ex);
-			return null;
 
+			return null;
 		}
 
 		Document xmlDoc;
@@ -97,11 +120,13 @@ public class GeoHelper {
 		} catch (IOException ioe) {
 
 			logger.log(Level.WARNING, "Connection to geocoding service failed", ioe);
+
 			return null;
 
 		} catch (DocumentException de) {
 
 			logger.log(Level.WARNING, "Could not read result document", de);
+
 			return null;
 		}
 
@@ -113,7 +138,7 @@ public class GeoHelper {
 
 		if (!ok) {
 
-			logger.log(Level.WARNING, "Status not OK for address {0}: {1}", new Object[]{address, status});
+			logger.log(Level.WARNING, "Status not OK for address {0}: {1}", new Object[] { address, status });
 
 			return null;
 
@@ -124,25 +149,9 @@ public class GeoHelper {
 			double lat       = Double.parseDouble(latitude);
 			double lon       = Double.parseDouble(longitude);
 
-			logger.log(Level.INFO, "Coordinates found for address {0}: lat= {1}, lon={2}", new Object[]{address, lat, lon});
+			logger.log(Level.INFO, "Coordinates found for address {0}: lat= {1}, lon={2}", new Object[] { address, lat, lon });
 
-			final Map<String, Object> props = new HashMap<String, Object>();
-
-			props.put(AbstractNode.Key.type.name(), Location.class.getSimpleName());
-			props.put(Location.Key.latitude.name(), latitude);
-			props.put(Location.Key.longitude.name(), longitude);
-
-			StructrTransaction transaction = new StructrTransaction() {
-
-				@Override
-				public Object execute() throws FrameworkException {
-					return Services.command(SecurityContext.getSuperUserInstance(), CreateNodeCommand.class).execute(props);
-				}
-			};
-			
-			Location location = (Location) Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(transaction);		
-			
-			return location;
+			return new Coordinates(lat, lon);
 
 		}
 	}
@@ -155,6 +164,54 @@ public class GeoHelper {
 			geocode(address);
 		} catch (Exception ex) {
 			Logger.getLogger(GeoHelper.class.getName()).log(Level.SEVERE, null, ex);
+		}
+	}
+
+	//~--- inner classes --------------------------------------------------
+
+	public static class Coordinates {
+
+		private double latitude;
+		private double longitude;
+
+		//~--- constructors -------------------------------------------
+
+		public Coordinates(final double latitude, final double longitude) {
+
+			this.latitude  = latitude;
+			this.longitude = longitude;
+		}
+
+		//~--- get methods --------------------------------------------
+
+		/**
+		 * @return the latitude
+		 */
+		public double getLatitude() {
+			return latitude;
+		}
+
+		/**
+		 * @return the longitude
+		 */
+		public double getLongitude() {
+			return longitude;
+		}
+
+		//~--- set methods --------------------------------------------
+
+		/**
+		 * @param latitude the latitude to set
+		 */
+		public void setLatitude(double latitude) {
+			this.latitude = latitude;
+		}
+
+		/**
+		 * @param longitude the longitude to set
+		 */
+		public void setLongitude(double longitude) {
+			this.longitude = longitude;
 		}
 	}
 }

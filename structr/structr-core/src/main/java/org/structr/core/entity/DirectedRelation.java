@@ -372,6 +372,26 @@ public class DirectedRelation {
 
 		return null;
 	}
+	
+	public AbstractNode addRelatedNode(final SecurityContext securityContext, final AbstractNode node) throws FrameworkException {
+
+			return (AbstractNode) Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws FrameworkException {
+
+						AbstractNode relatedNode = (AbstractNode) Services.command(securityContext, CreateNodeCommand.class).execute(new NodeAttribute(AbstractNode.Key.type.name(), getDestType()));		
+					
+					// Create new relationship between facility and location nodes
+					Command createRel = Services.command(SecurityContext.getSuperUserInstance(), CreateRelationshipCommand.class);
+
+					createRel.execute(node, relatedNode, getRelType());
+
+					return relatedNode;
+				}
+
+			});
+	}	
 
 	// ----- private methods -----
 	private List<AbstractNode> getTraversalResults(final SecurityContext securityContext, final AbstractNode node) {
