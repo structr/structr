@@ -201,6 +201,7 @@ public class IndexNodeCommand extends NodeServiceCommand {
 
 		}
 
+		/*
 		if (!(dbNode.hasProperty(key))) {
 
 			removeNodePropertyFromAllIndices(dbNode, key);
@@ -208,8 +209,9 @@ public class IndexNodeCommand extends NodeServiceCommand {
 			return;
 
 		}
-
-		Object value            = dbNode.getProperty(key);
+		*/
+		
+		Object value            = node.getProperty(key); //dbNode.getProperty(key);
 		Object valueForIndexing = node.getPropertyForIndexing(key);
 		boolean emptyValue      = ((value instanceof String) && StringUtils.isEmpty((String) value));
 

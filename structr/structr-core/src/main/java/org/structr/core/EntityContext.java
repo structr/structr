@@ -881,7 +881,6 @@ public class EntityContext {
 					hasError |= graphObjectCreated(securityContext, transactionKey, errorBuffer, entity);
 
 					createdNodes.add(entity);
-
 				}
 
 				// 3: notify listeners of relationship creation
@@ -976,7 +975,9 @@ public class EntityContext {
 					if (!createdNodes.contains(node)) {
 
 						hasError |= graphObjectModified(securityContext, transactionKey, errorBuffer, node);
-
+						
+					} else {
+						indexNodeCommand.execute(node);
 					}
 				}
 
@@ -994,6 +995,14 @@ public class EntityContext {
 					}
 				}
 
+				for(AbstractNode node : createdNodes) {
+					indexNodeCommand.execute(node);
+				}
+				
+				for(AbstractRelationship rel : createdRels) {
+					indexRelationshipCommand.execute(rel);
+				}
+				
 				// notify listeners of commit
 				hasError |= commit(securityContext, transactionKey, errorBuffer);
 

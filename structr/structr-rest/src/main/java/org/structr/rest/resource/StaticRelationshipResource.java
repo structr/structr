@@ -112,13 +112,13 @@ public class StaticRelationshipResource extends SortableResource {
 						List<GraphObject> typeNodes = typeResource.doGet();
 						List intersection           = ListUtils.intersection(relatedNodes, typeNodes);
 
-						if (!intersection.isEmpty()) {
+						
+						
+						// Caution: intersection may not be empty
+						// if (!intersection.isEmpty()) {
 							
-							applyDefaultSorting(intersection);
-
-							return intersection;
-
-						}
+						applyDefaultSorting(intersection);
+						return intersection;
 					}
 
 					// return non-empty list
