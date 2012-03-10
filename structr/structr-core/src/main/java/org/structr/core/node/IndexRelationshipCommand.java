@@ -204,6 +204,7 @@ public class IndexRelationshipCommand extends NodeServiceCommand {
 
 		}
 
+		/*
 		if (!(dbRel.hasProperty(key))) {
 
 			removeRelationshipPropertyFromAllIndices(dbRel, key);
@@ -211,8 +212,9 @@ public class IndexRelationshipCommand extends NodeServiceCommand {
 			return;
 
 		}
-
-		Object value            = dbRel.getProperty(key);
+		*/
+		
+		Object value            = rel.getProperty(key); // dbRel.getProperty(key);
 		Object valueForIndexing = rel.getPropertyForIndexing(key);
 		boolean emptyValue      = ((value instanceof String) && StringUtils.isEmpty((String) value));
 
