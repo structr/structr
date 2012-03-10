@@ -49,8 +49,8 @@ public class Location extends AbstractNode {
 
 		boolean error = false;
 
-		error |= ValidationHelper.checkPropertyNotNull(this, Key.latitude, errorBuffer);
-		error |= ValidationHelper.checkPropertyNotNull(this, Key.longitude, errorBuffer);
+//		error |= ValidationHelper.checkPropertyNotNull(this, Key.latitude, errorBuffer);
+//		error |= ValidationHelper.checkPropertyNotNull(this, Key.longitude, errorBuffer);
 
 		return !error;
 	}

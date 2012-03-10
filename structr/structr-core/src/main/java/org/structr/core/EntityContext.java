@@ -130,6 +130,12 @@ public class EntityContext {
 		registerPropertyRelationInternal(sourceType.getSimpleName(), property, destType.getSimpleName(), relType, direction, cardinality, objectNotion);
 	}
 
+	public static void registerPropertyRelation(Class sourceType, PropertyKey[] propertySet, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion) {
+
+		notion.setType(destType);
+		registerPropertyRelationInternal(sourceType.getSimpleName(), propertySet, destType.getSimpleName(), relType, direction, cardinality, notion);
+	}
+
 	public static void registerPropertyRelation(Class sourceType, PropertyKey propertyKey, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion) {
 		registerPropertyRelation(sourceType, propertyKey.name(), destType, relType, direction, cardinality, notion);
 	}
@@ -306,6 +312,18 @@ public class EntityContext {
 		}
 
 		return normalizedType;
+	}
+
+	private static void registerPropertyRelationInternal(String sourceType, PropertyKey[] properties, String destType, RelationshipType relType, Direction direction, Cardinality cardinality,
+		Notion notion) {
+
+		Map<String, DirectedRelation> typeMap = getPropertyRelationshipMapForType(sourceType);
+
+		DirectedRelation rel = new DirectedRelation(destType, relType, direction, cardinality, notion);
+
+		for (PropertyKey prop : properties) {
+			typeMap.put(prop.name(), rel);
+		}
 	}
 
 	private static void registerPropertyRelationInternal(String sourceType, String property, String destType, RelationshipType relType, Direction direction, Cardinality cardinality,
