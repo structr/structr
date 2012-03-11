@@ -41,6 +41,7 @@ import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.DirectedRelation;
 import org.structr.core.entity.DirectedRelation.Cardinality;
 import org.structr.core.entity.NamedRelation;
+import org.structr.core.node.*;
 import org.structr.core.node.IndexNodeCommand;
 import org.structr.core.node.IndexRelationshipCommand;
 import org.structr.core.node.NodeFactory;
@@ -87,6 +88,45 @@ public class EntityContext {
 	private static final Map<Thread, Long> transactionKeyMap                                                    = Collections.synchronizedMap(new WeakHashMap<Thread, Long>());
 
 	//~--- methods --------------------------------------------------------
+
+	/**
+	 * Initialize the entity context for the given class.
+	 * This method sets defaults common for any class, f.e. registers any of its parent properties.
+	 *
+	 * @param type
+	 */
+	public static void init(Class type) {
+
+		// 1. Register searchable keys of superclasses
+		for (Enum index : NodeService.NodeIndex.values()) {
+
+			String indexName                                      = index.name();
+			Map<String, Set<String>> searchablePropertyMapForType = getSearchablePropertyMapForType(type.getSimpleName());
+			Set<String> searchablePropertySet                     = searchablePropertyMapForType.get(indexName);
+
+			if (searchablePropertySet == null) {
+
+				searchablePropertySet = new LinkedHashSet<String>();
+
+				searchablePropertyMapForType.put(indexName, searchablePropertySet);
+
+			}
+
+			Class superClass = type.getSuperclass();
+
+			while ((superClass != null) &&!superClass.equals(Object.class)) {
+
+				Set<String> superProperties = getSearchableProperties(superClass, indexName);
+
+				searchablePropertySet.addAll(superProperties);
+
+				// one level up :)
+				superClass = superClass.getSuperclass();
+
+			}
+
+		}
+	}
 
 	public static void registerModificationListener(VetoableGraphObjectListener listener) {
 		modificationListeners.add(listener);
@@ -296,9 +336,9 @@ public class EntityContext {
 	}
 
 //
-//	public static void registerSearchableProperty(String type, String index, String key) {
-//		registerSearchableProperty(type.getSimpleName(), index, key);
-//	}
+//      public static void registerSearchableProperty(String type, String index, String key) {
+//              registerSearchableProperty(type.getSimpleName(), index, key);
+//      }
 
 	public static void registerSearchableProperty(Class type, String index, String key) {
 
@@ -314,22 +354,6 @@ public class EntityContext {
 		}
 
 		searchablePropertySet.add(key);
-
-
-		// include properties from superclass
-		Class superClass = type.getSuperclass();
-
-		while ((superClass != null) &&!superClass.equals(Object.class)) {
-
-			Set<String> superProperties = getSearchableProperties(superClass, index);
-
-			searchablePropertySet.addAll(superProperties);
-
-			// one level up :)
-			superClass = superClass.getSuperclass();
-
-		}
-
 	}
 
 	// ----- write-once property map -----
@@ -967,6 +991,7 @@ public class EntityContext {
 					hasError |= graphObjectCreated(securityContext, transactionKey, errorBuffer, entity);
 
 					createdNodes.add(entity);
+
 				}
 
 				// 3: notify listeners of relationship creation
@@ -1061,9 +1086,11 @@ public class EntityContext {
 					if (!createdNodes.contains(node)) {
 
 						hasError |= graphObjectModified(securityContext, transactionKey, errorBuffer, node);
-						
+
 					} else {
+
 						indexNodeCommand.execute(node);
+
 					}
 				}
 
