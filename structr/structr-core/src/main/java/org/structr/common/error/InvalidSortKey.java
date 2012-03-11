@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2011 Axel Morgner, structr <structr@structr.org>
+ *  Copyright (C) 2012 Axel Morgner
  * 
  *  This file is part of structr <http://structr.org>.
  * 
@@ -16,40 +16,35 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.common;
 
-import org.neo4j.graphdb.RelationshipType;
+package org.structr.common.error;
+
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 
 /**
- * Contains all application-specific relationship types
- * 
- * @author amorgner
  *
+ * @author Christian Morgner
  */
-public enum RelType implements RelationshipType {
-	HAS_CHILD, // IS_CHILD,
-	IS_MEMBER_OF_GROUP,
-	UNDEFINED, LINK, PAGE_LINK,
-	SECURITY,
-        USE_TEMPLATE,
-        OWNS,
-        ROOT_NODE,
-        THUMBNAIL,
-	NEXT_LIST_ENTRY,
-	LAST_LIST_ENTRY,
-	IS_AT,
+public class InvalidSortKey extends SemanticErrorToken {
 
-	// application relationships
-	DATA,
-	SUBMIT,
-	ERROR_DESTINATION,
-	SUCCESS_DESTINATION,
-	CREATE_DESTINATION,
-        
-        // type relationships
-        TYPE,
-        SUBTYPE,
+	public InvalidSortKey(String propertyKey) {
+		super(propertyKey);
+	}
 
-	// web
-	CONTAINS
+	@Override
+	public JsonElement getContent() {
+
+		JsonObject obj = new JsonObject();
+
+		obj.add(getErrorToken(), new JsonPrimitive(getKey() ));
+
+		return obj;
+	}
+
+	@Override
+	public String getErrorToken() {
+		return "invalid_sort_key";
+	}
 }

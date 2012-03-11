@@ -35,12 +35,16 @@ import org.structr.common.CaseHelper;
 import org.structr.common.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.DirectedRelation;
 import org.structr.core.entity.DirectedRelation.Cardinality;
-import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.entity.NamedRelation;
 import org.structr.core.node.IndexNodeCommand;
+import org.structr.core.node.IndexRelationshipCommand;
 import org.structr.core.node.NodeFactory;
+import org.structr.core.node.RelationshipFactory;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.ObjectNotion;
 
@@ -49,10 +53,6 @@ import org.structr.core.notion.ObjectNotion;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.NamedRelation;
-import org.structr.core.node.IndexRelationshipCommand;
-import org.structr.core.node.RelationshipFactory;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -65,28 +65,24 @@ import org.structr.core.node.RelationshipFactory;
 public class EntityContext {
 
 	private static final Logger logger                                                                          = Logger.getLogger(EntityContext.class.getName());
-
-	private static final Map<Class, Map<String, Class<? extends PropertyConverter>>> globalPropertyConverterMap = new LinkedHashMap<Class, Map<String, Class<? extends PropertyConverter>>>();
-	private static final Map<Class, Set<Transformation<GraphObject>>> globalEntityCreationTransformationMap     = new LinkedHashMap<Class, Set<Transformation<GraphObject>>>();
-	private static final Map<String, Map<String, DirectedRelation>> globalPropertyRelationshipMap               = new LinkedHashMap<String, Map<String, DirectedRelation>>();
-	private static final Map<String, Map<String, DirectedRelation>> globalEntityRelationshipMap                 = new LinkedHashMap<String, Map<String, DirectedRelation>>();
+	private static final Map<Class, Set<String>> globalWriteOncePropertyMap                                     = new LinkedHashMap<Class, Set<String>>();
 	private static final Map<Class, Map<String, Set<PropertyValidator>>> globalValidatorMap                     = new LinkedHashMap<Class, Map<String, Set<PropertyValidator>>>();
 	private static final Map<String, Map<String, Set<String>>> globalSearchablePropertyMap                      = new LinkedHashMap<String, Map<String, Set<String>>>();
-	private static final Map<Class, Map<String, Set<String>>> globalPropertyViewMap                             = new LinkedHashMap<Class, Map<String, Set<String>>>();
-	private static final Map<Class, Map<String, PropertyGroup>> globalPropertyGroupMap                          = new LinkedHashMap<Class, Map<String, PropertyGroup>>();
-	private static final Map<Class, Map<String, Value>> globalConversionParameterMap                            = new LinkedHashMap<Class, Map<String, Value>>();
-	private static final Map<Class, Map<String, Object>> globalDefaultValueMap                                  = new LinkedHashMap<Class, Map<String, Object>>();
-	private static final Map<Class, Set<String>> globalWriteOncePropertyMap                                     = new LinkedHashMap<Class, Set<String>>();
 	private static final Map<Class, Set<String>> globalReadOnlyPropertyMap                                      = new LinkedHashMap<Class, Set<String>>();
+	private static final Map<Class, Map<String, Set<String>>> globalPropertyViewMap                             = new LinkedHashMap<Class, Map<String, Set<String>>>();
+	private static final Map<String, Map<String, DirectedRelation>> globalPropertyRelationshipMap               = new LinkedHashMap<String, Map<String, DirectedRelation>>();
+	private static final Map<Class, Map<String, PropertyGroup>> globalPropertyGroupMap                          = new LinkedHashMap<Class, Map<String, PropertyGroup>>();
+	private static final Map<Class, Map<String, Class<? extends PropertyConverter>>> globalPropertyConverterMap = new LinkedHashMap<Class, Map<String, Class<? extends PropertyConverter>>>();
+	private static final Map<String, Map<String, DirectedRelation>> globalEntityRelationshipMap                 = new LinkedHashMap<String, Map<String, DirectedRelation>>();
+	private static final Map<Class, Set<Transformation<GraphObject>>> globalEntityCreationTransformationMap     = new LinkedHashMap<Class, Set<Transformation<GraphObject>>>();
+	private static final Map<Class, Map<String, Object>> globalDefaultValueMap                                  = new LinkedHashMap<Class, Map<String, Object>>();
+	private static final Map<Class, Map<String, Value>> globalConversionParameterMap                            = new LinkedHashMap<Class, Map<String, Value>>();
 	private static final Map<String, String> normalizedEntityNameCache                                          = new LinkedHashMap<String, String>();
+	private static final Set<VetoableGraphObjectListener> modificationListeners                                 = new LinkedHashSet<VetoableGraphObjectListener>();
 	private static final Map<String, NamedRelation> globalRelationshipNameMap                                   = new LinkedHashMap<String, NamedRelation>();
 	private static final Map<String, Class> globalRelationshipClassMap                                          = new LinkedHashMap<String, Class>();
-	private static final Set<VetoableGraphObjectListener> modificationListeners                                 = new LinkedHashSet<VetoableGraphObjectListener>();
-
 	private static final EntityContextModificationListener globalModificationListener                           = new EntityContextModificationListener();
-	
 	private static final Map<Long, FrameworkException> exceptionMap                                             = new LinkedHashMap<Long, FrameworkException>();
-
 	private static final Map<Thread, SecurityContext> securityContextMap                                        = Collections.synchronizedMap(new WeakHashMap<Thread, SecurityContext>());
 	private static final Map<Thread, Long> transactionKeyMap                                                    = Collections.synchronizedMap(new WeakHashMap<Thread, Long>());
 
@@ -113,43 +109,11 @@ public class EntityContext {
 		getGlobalDefaultValueMapForType(type).put(propertyKey.name(), defaultValue);
 	}
 
-	public static Object getDefaultValue(Class type, String propertyKey) {
-		return getGlobalDefaultValueMapForType(type).get(propertyKey);
-	}
-
 	// ----- named relations -----
 	public static void registerNamedRelation(String relationName, Class relationshipEntityType, Class sourceType, Class destType, RelationshipType relType) {
 
 		globalRelationshipNameMap.put(relationName, new NamedRelation(relationName, sourceType, destType, relType));
-		globalRelationshipClassMap.put(combinedRelType(sourceType, destType, relType), relationshipEntityType);
-	}
-
-	public static NamedRelation getNamedRelation(String relationName) {
-		return globalRelationshipNameMap.get(relationName);
-	}
-
-	
-	public static Class getNamedRelationClass(String sourceType, String destType, String relType) {
-		return globalRelationshipClassMap.get(combinedRelType(sourceType, destType, relType));
-	}
-
-	public static Class getNamedRelationClass(Class sourceType, Class destType, RelationshipType relType) {
-		Class namedRelationClass = null;
-
-		Class superClass = sourceType;
-
-		while (namedRelationClass == null && !superClass.equals(Object.class)) {
-
-			namedRelationClass = globalRelationshipClassMap.get(combinedRelType(superClass, destType, relType));
-			// one level up :)
-			superClass = superClass.getSuperclass();
-		}
-
-		return globalRelationshipClassMap.get(combinedRelType(sourceType, destType, relType));
-	}
-
-	public static Collection<NamedRelation> getNamedRelations() {
-		return globalRelationshipNameMap.values();
+		globalRelationshipClassMap.put(createCombinedRelationshipType(sourceType, destType, relType), relationshipEntityType);
 	}
 
 	// ----- property and entity relationships -----
@@ -164,6 +128,13 @@ public class EntityContext {
 
 		objectNotion.setType(destType);
 		registerPropertyRelationInternal(sourceType.getSimpleName(), property, destType.getSimpleName(), relType, direction, cardinality, objectNotion);
+	}
+
+	public static void registerPropertyRelation(Class sourceType, PropertyKey[] propertySet, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality,
+		Notion notion) {
+
+		notion.setType(destType);
+		registerPropertyRelationInternal(sourceType.getSimpleName(), propertySet, destType.getSimpleName(), relType, direction, cardinality, notion);
 	}
 
 	public static void registerPropertyRelation(Class sourceType, PropertyKey propertyKey, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion) {
@@ -193,22 +164,22 @@ public class EntityContext {
 
 	// ----- property set methods -----
 	public static void registerPropertySet(Class type, String propertyView, PropertyKey... propertySet) {
-
 		registerPropertySet(type, propertyView, false, propertySet);
 	}
 
 	public static void registerPropertySet(Class type, String propertyView, String[] propertySet) {
-
 		registerPropertySet(type, propertyView, false, propertySet);
 	}
 
-	public static void registerPropertySet(Class type, String propertyView,  boolean useViewPrefix, PropertyKey... propertySet) {
+	public static void registerPropertySet(Class type, String propertyView, boolean useViewPrefix, PropertyKey... propertySet) {
 
 		Set<String> properties = getPropertySet(type, propertyView);
 
 		for (PropertyKey property : propertySet) {
 
-			properties.add((useViewPrefix ? propertyView : "").concat(property.name()));
+			properties.add((useViewPrefix
+					? propertyView
+					: "").concat(property.name()));
 
 		}
 
@@ -226,14 +197,16 @@ public class EntityContext {
 
 		}
 	}
-	
+
 	public static void registerPropertySet(Class type, String propertyView, boolean useViewPrefix, String[] propertySet) {
 
 		Set<String> properties = getPropertySet(type, propertyView);
 
 		for (String property : propertySet) {
 
-			properties.add((useViewPrefix ? propertyView : "").concat(property));
+			properties.add((useViewPrefix
+					? propertyView
+					: "").concat(property));
 
 		}
 
@@ -251,7 +224,7 @@ public class EntityContext {
 
 		}
 	}
-	
+
 	public static void clearPropertySet(Class type, String propertyView) {
 		getPropertySet(type, propertyView).clear();
 	}
@@ -313,22 +286,23 @@ public class EntityContext {
 
 		for (PropertyKey key : keys) {
 
-			registerSearchablePropertySet(type, index, key);
+			registerSearchableProperty(type, index, key);
 
 		}
 	}
 
-	public static void registerSearchablePropertySet(Class type, String index, PropertyKey key) {
-		registerSearchablePropertySet(type, index, key.name());
+	public static void registerSearchableProperty(Class type, String index, PropertyKey key) {
+		registerSearchableProperty(type, index, key.name());
 	}
 
-	public static void registerSearchablePropertySet(Class type, String index, String key) {
-		registerSearchablePropertySet(type.getSimpleName(), index, key);
-	}
+//
+//	public static void registerSearchableProperty(String type, String index, String key) {
+//		registerSearchableProperty(type.getSimpleName(), index, key);
+//	}
 
-	public static void registerSearchablePropertySet(String type, String index, String key) {
+	public static void registerSearchableProperty(Class type, String index, String key) {
 
-		Map<String, Set<String>> searchablePropertyMapForType = getSearchablePropertyMapForType(type);
+		Map<String, Set<String>> searchablePropertyMapForType = getSearchablePropertyMapForType(type.getSimpleName());
 		Set<String> searchablePropertySet                     = searchablePropertyMapForType.get(index);
 
 		if (searchablePropertySet == null) {
@@ -340,6 +314,22 @@ public class EntityContext {
 		}
 
 		searchablePropertySet.add(key);
+
+
+		// include properties from superclass
+		Class superClass = type.getSuperclass();
+
+		while ((superClass != null) &&!superClass.equals(Object.class)) {
+
+			Set<String> superProperties = getSearchableProperties(superClass, index);
+
+			searchablePropertySet.addAll(superProperties);
+
+			// one level up :)
+			superClass = superClass.getSuperclass();
+
+		}
+
 	}
 
 	// ----- write-once property map -----
@@ -379,6 +369,19 @@ public class EntityContext {
 		return normalizedType;
 	}
 
+	private static void registerPropertyRelationInternal(String sourceType, PropertyKey[] properties, String destType, RelationshipType relType, Direction direction, Cardinality cardinality,
+		Notion notion) {
+
+		Map<String, DirectedRelation> typeMap = getPropertyRelationshipMapForType(sourceType);
+		DirectedRelation rel                  = new DirectedRelation(destType, relType, direction, cardinality, notion);
+
+		for (PropertyKey prop : properties) {
+
+			typeMap.put(prop.name(), rel);
+
+		}
+	}
+
 	private static void registerPropertyRelationInternal(String sourceType, String property, String destType, RelationshipType relType, Direction direction, Cardinality cardinality,
 		Notion notion) {
 
@@ -390,8 +393,8 @@ public class EntityContext {
 	private static void registerEntityRelationInternal(String sourceType, String destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion) {
 
 		Map<String, DirectedRelation> typeMap = getEntityRelationshipMapForType(sourceType);
+		DirectedRelation directedRelation     = new DirectedRelation(destType, relType, direction, cardinality, notion);
 
-		DirectedRelation directedRelation = new DirectedRelation(destType, relType, direction, cardinality, notion);
 		typeMap.put(destType, directedRelation);
 	}
 
@@ -399,12 +402,12 @@ public class EntityContext {
 		transactionKeyMap.remove(Thread.currentThread());
 	}
 
-	public static String combinedRelType(Class sourceType, Class destType, RelationshipType relType) {
-		return combinedRelType(sourceType.getSimpleName(), relType.name(), destType.getSimpleName());
+	public static String createCombinedRelationshipType(Class sourceType, Class destType, RelationshipType relType) {
+		return createCombinedRelationshipType(sourceType.getSimpleName(), relType.name(), destType.getSimpleName());
 	}
 
 	// ----- private methods -----
-	public static String combinedRelType(String sourceType, String destType, String relType) {
+	public static String createCombinedRelationshipType(String sourceType, String relType, String destType) {
 
 		StringBuilder buf = new StringBuilder();
 
@@ -422,6 +425,39 @@ public class EntityContext {
 	}
 
 	//~--- get methods ----------------------------------------------------
+
+	public static NamedRelation getNamedRelation(String relationName) {
+		return globalRelationshipNameMap.get(relationName);
+	}
+
+	public static Class getNamedRelationClass(String sourceType, String destType, String relType) {
+		return globalRelationshipClassMap.get(createCombinedRelationshipType(sourceType, destType, relType));
+	}
+
+	public static Class getNamedRelationClass(Class sourceType, Class destType, RelationshipType relType) {
+
+		Class namedRelationClass = null;
+		Class superClass         = sourceType;
+
+		while ((namedRelationClass == null) &&!superClass.equals(Object.class)) {
+
+			namedRelationClass = globalRelationshipClassMap.get(createCombinedRelationshipType(superClass, destType, relType));
+
+			// one level up :)
+			superClass = superClass.getSuperclass();
+
+		}
+
+		return globalRelationshipClassMap.get(createCombinedRelationshipType(sourceType, destType, relType));
+	}
+
+	public static Collection<NamedRelation> getNamedRelations() {
+		return globalRelationshipNameMap.values();
+	}
+
+	public static Object getDefaultValue(Class type, String propertyKey) {
+		return getGlobalDefaultValueMapForType(type).get(propertyKey);
+	}
 
 	public static Set<VetoableGraphObjectListener> getModificationListeners() {
 		return modificationListeners;
@@ -455,36 +491,40 @@ public class EntityContext {
 	}
 
 	// ----- static relationship methods -----
-	public static DirectedRelation getDirectedRelation(Class sourceType, Class destType) {
+	public static DirectedRelation getDirectedRelationship(Class sourceType, Class destType) {
 
 		DirectedRelation relation = null;
-		Class localType = sourceType;
+		Class localType           = sourceType;
 
-		while(relation == null && !localType.equals(Object.class)) {
-			relation = getDirectedRelation(localType.getSimpleName(), destType.getSimpleName());
+		while ((relation == null) &&!localType.equals(Object.class)) {
+
+			relation  = getDirectedRelationship(localType.getSimpleName(), destType.getSimpleName());
 			localType = localType.getSuperclass();
+
 		}
 
 		return relation;
 	}
 
-	public static DirectedRelation getDirectedRelation(Class sourceType, String key) {
+	public static DirectedRelation getDirectedRelationship(Class sourceType, String key) {
 
 		DirectedRelation relation = null;
-		Class localType = sourceType;
+		Class localType           = sourceType;
 
-		while(relation == null && !localType.equals(Object.class)) {
-			relation = getDirectedRelation(localType.getSimpleName(), key);
+		while ((relation == null) &&!localType.equals(Object.class)) {
+
+			relation  = getDirectedRelationship(localType.getSimpleName(), key);
 			localType = localType.getSuperclass();
+
 		}
 
 		return relation;
 	}
 
-	public static DirectedRelation getDirectedRelation(String sourceType, String key) {
+	public static DirectedRelation getDirectedRelationship(String sourceType, String key) {
 
 		String normalizedSourceType = normalizeEntityName(sourceType);
-		DirectedRelation rel    = null;
+		DirectedRelation rel        = null;
 
 		// try property relations with EXACT MATCH first
 		rel = getPropertyRelationshipMapForType(normalizedSourceType).get(key);
@@ -594,7 +634,16 @@ public class EntityContext {
 	}
 
 	public static Set<String> getSearchableProperties(String type, String index) {
-		return getSearchablePropertyMapForType(type).get(index);
+
+		Set<String> searchablePropertyMap = getSearchablePropertyMapForType(type).get(index);
+
+		if (searchablePropertyMap == null) {
+
+			searchablePropertyMap = new HashSet<String>();
+
+		}
+
+		return searchablePropertyMap;
 	}
 
 	private static Map<String, DirectedRelation> getPropertyRelationshipMapForType(String sourceType) {
@@ -679,6 +728,7 @@ public class EntityContext {
 		if (defaultValueMap == null) {
 
 			defaultValueMap = new LinkedHashMap<String, Object>();
+
 			globalDefaultValueMap.put(type, defaultValueMap);
 
 		}
@@ -851,24 +901,24 @@ public class EntityContext {
 		@Override
 		public Long beforeCommit(TransactionData data) throws Exception {
 
-			SecurityContext securityContext = securityContextMap.get(Thread.currentThread());
-			Command indexNodeCommand            = Services.command(securityContext, IndexNodeCommand.class);
-			Command indexRelationshipCommand    = Services.command(securityContext, IndexRelationshipCommand.class);
-			long transactionKey             = transactionKeyMap.get(Thread.currentThread());
+			SecurityContext securityContext  = securityContextMap.get(Thread.currentThread());
+			Command indexNodeCommand         = Services.command(securityContext, IndexNodeCommand.class);
+			Command indexRelationshipCommand = Services.command(securityContext, IndexRelationshipCommand.class);
+			long transactionKey              = transactionKeyMap.get(Thread.currentThread());
 
 			try {
 
-				ErrorBuffer errorBuffer						= new ErrorBuffer();
-				boolean hasError						= false;
-				Map<Node, Map<String, Object>> removedNodeProperties		= new LinkedHashMap<Node, Map<String, Object>>();
-				Map<Relationship, Map<String, Object>> removedRelProperties	= new LinkedHashMap<Relationship, Map<String, Object>>();
-				NodeFactory nodeFactory						= new NodeFactory(securityContext);
-				RelationshipFactory relFactory					= new RelationshipFactory(securityContext);
-				Set<AbstractNode> modifiedNodes					= new LinkedHashSet<AbstractNode>();
-				Set<AbstractNode> createdNodes					= new LinkedHashSet<AbstractNode>();
-				Set<AbstractRelationship> modifiedRels				= new LinkedHashSet<AbstractRelationship>();
-				Set<AbstractRelationship> createdRels				= new LinkedHashSet<AbstractRelationship>();
-				Set<AbstractRelationship> deletedRels				= new LinkedHashSet<AbstractRelationship>();
+				ErrorBuffer errorBuffer                                     = new ErrorBuffer();
+				boolean hasError                                            = false;
+				Map<Node, Map<String, Object>> removedNodeProperties        = new LinkedHashMap<Node, Map<String, Object>>();
+				Map<Relationship, Map<String, Object>> removedRelProperties = new LinkedHashMap<Relationship, Map<String, Object>>();
+				NodeFactory nodeFactory                                     = new NodeFactory(securityContext);
+				RelationshipFactory relFactory                              = new RelationshipFactory(securityContext);
+				Set<AbstractNode> modifiedNodes                             = new LinkedHashSet<AbstractNode>();
+				Set<AbstractNode> createdNodes                              = new LinkedHashSet<AbstractNode>();
+				Set<AbstractRelationship> modifiedRels                      = new LinkedHashSet<AbstractRelationship>();
+				Set<AbstractRelationship> createdRels                       = new LinkedHashSet<AbstractRelationship>();
+				Set<AbstractRelationship> deletedRels                       = new LinkedHashSet<AbstractRelationship>();
 
 				// 0: notify listeners of beginning commit
 				begin(securityContext, transactionKey, errorBuffer);
@@ -882,6 +932,7 @@ public class EntityContext {
 					if (propertyMap == null) {
 
 						propertyMap = new LinkedHashMap<String, Object>();
+
 						removedNodeProperties.put(node, propertyMap);
 
 					}
@@ -899,6 +950,7 @@ public class EntityContext {
 					if (propertyMap == null) {
 
 						propertyMap = new LinkedHashMap<String, Object>();
+
 						removedRelProperties.put(rel, propertyMap);
 
 					}
@@ -915,7 +967,6 @@ public class EntityContext {
 					hasError |= graphObjectCreated(securityContext, transactionKey, errorBuffer, entity);
 
 					createdNodes.add(entity);
-
 				}
 
 				// 3: notify listeners of relationship creation
@@ -924,7 +975,6 @@ public class EntityContext {
 					AbstractRelationship relationship = relFactory.createRelationship(securityContext, rel);
 
 					hasError |= graphObjectCreated(securityContext, transactionKey, errorBuffer, relationship);
-					//hasError |= relationshipCreated(securityContext, transactionKey, errorBuffer, relationship);
 
 					createdRels.add(relationship);
 
@@ -935,9 +985,8 @@ public class EntityContext {
 
 					AbstractRelationship relationship = relFactory.createRelationship(securityContext, rel);
 
-					//hasError |= graphObjectDeleted(securityContext, transactionKey, errorBuffer, removedRelProperties.get(rel));
-//					hasError |= relationshipDeleted(securityContext, transactionKey, errorBuffer, relationship);
 					hasError |= graphObjectDeleted(securityContext, transactionKey, errorBuffer, relationship, removedRelProperties.get(rel));
+
 					deletedRels.add(relationship);
 
 				}
@@ -981,16 +1030,18 @@ public class EntityContext {
 				for (PropertyEntry<Relationship> entry : data.assignedRelationshipProperties()) {
 
 					AbstractRelationship entity = relFactory.createRelationship(securityContext, entry.entity());
-					String key          = entry.key();
-					Object value        = entry.value();
+					String key                  = entry.key();
+					Object value                = entry.value();
 
 					// iterate over validators
 					Set<PropertyValidator> validators = EntityContext.getPropertyValidators(securityContext, entity.getClass(), key);
+
 					if (validators != null) {
 
 						for (PropertyValidator validator : validators) {
 
 							hasError |= !(validator.isValid(entity, key, value, errorBuffer));
+
 						}
 
 					}
@@ -1000,6 +1051,7 @@ public class EntityContext {
 					// after successful validation, add relationship to index to make uniqueness constraints work
 					indexRelationshipCommand.execute(entity, key);
 					modifiedRels.add(entity);
+
 				}
 
 				// 7: notify listeners of modified nodes (to check for non-existing properties etc)
@@ -1009,7 +1061,9 @@ public class EntityContext {
 					if (!createdNodes.contains(node)) {
 
 						hasError |= graphObjectModified(securityContext, transactionKey, errorBuffer, node);
-
+						
+					} else {
+						indexNodeCommand.execute(node);
 					}
 				}
 
@@ -1023,7 +1077,20 @@ public class EntityContext {
 					} else {
 
 						indexRelationshipCommand.execute(rel);
+
 					}
+				}
+
+				for (AbstractNode node : createdNodes) {
+
+					indexNodeCommand.execute(node);
+
+				}
+
+				for (AbstractRelationship rel : createdRels) {
+
+					indexRelationshipCommand.execute(rel);
+
 				}
 
 				// notify listeners of commit
@@ -1171,34 +1238,6 @@ public class EntityContext {
 
 			return hasError;
 		}
-
-//		@Override
-//		public boolean relationshipDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, AbstractRelationship relationship) {
-//
-//			boolean hasError = false;
-//
-//			for (VetoableGraphObjectListener listener : modificationListeners) {
-//
-//				hasError |= listener.relationshipDeleted(securityContext, transactionKey, errorBuffer, relationship);
-//
-//			}
-//
-//			return hasError;
-//		}
-//
-//		@Override
-//		public boolean relationshipCreated(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, AbstractRelationship relationship) {
-//
-//			boolean hasError = false;
-//
-//			for (VetoableGraphObjectListener listener : modificationListeners) {
-//
-//				hasError |= listener.relationshipCreated(securityContext, transactionKey, errorBuffer, relationship);
-//
-//			}
-//
-//			return hasError;
-//		}
 	}
 
 	// </editor-fold>

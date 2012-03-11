@@ -21,14 +21,14 @@
 
 package org.structr.core.node;
 
-import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.index.Index;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.node.NodeService.NodeIndex;
+import org.structr.core.entity.AbstractRelationship;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -41,13 +41,13 @@ import java.util.logging.Logger;
 //~--- classes ----------------------------------------------------------------
 
 /**
- * Command for removing nodes from the index
+ * Command for removing relationship from the index
  *
  * @author axel
  */
-public class RemoveNodeFromIndex extends NodeServiceCommand {
+public class RemoveRelationshipFromIndex extends NodeServiceCommand {
 
-	private static final Logger logger = Logger.getLogger(RemoveNodeFromIndex.class.getName());
+	private static final Logger logger = Logger.getLogger(RemoveRelationshipFromIndex.class.getName());
 
 	//~--- fields ---------------------------------------------------------
 
@@ -58,14 +58,16 @@ public class RemoveNodeFromIndex extends NodeServiceCommand {
 	@Override
 	public Object execute(Object... parameters) throws FrameworkException {
 
-		for (Enum indexName : (NodeIndex[]) arguments.get("indices")) {
+		Command findRel = Services.command(securityContext, FindRelationshipCommand.class);
 
-			indices.put(indexName, (Index<Node>) arguments.get(indexName.name()));
+		for (Enum indexName : (NodeService.RelationshipIndex[]) arguments.get("relationshipIndices")) {
+
+			indices.put(indexName, (Index<Relationship>) arguments.get(indexName.name()));
 
 		}
 
-		long id           = 0;
-		AbstractNode node = null;
+		long id                  = 0;
+		AbstractRelationship rel = null;
 
 		switch (parameters.length) {
 
@@ -74,40 +76,34 @@ public class RemoveNodeFromIndex extends NodeServiceCommand {
 				// remove this node from index
 				if (parameters[0] instanceof Long) {
 
-					id = ((Long) parameters[0]).longValue();
+					id  = ((Long) parameters[0]).longValue();
+					rel = (AbstractRelationship) findRel.execute(id);
 
-					Command findNode = Services.command(securityContext, FindNodeCommand.class);
-
-					node = (AbstractNode) findNode.execute(id);
-
-					removeNodeFromAllIndices(node);
+					removeRelationshipFromAllIndices(rel);
 
 				} else if (parameters[0] instanceof String) {
 
-					id = Long.parseLong((String) parameters[0]);
+					id  = Long.parseLong((String) parameters[0]);
+					rel = (AbstractRelationship) findRel.execute(id);
 
-					Command findNode = Services.command(securityContext, FindNodeCommand.class);
-
-					node = (AbstractNode) findNode.execute(id);
-
-					removeNodeFromAllIndices(node);
+					removeRelationshipFromAllIndices(rel);
 
 				} else if (parameters[0] instanceof AbstractNode) {
 
-					node = (AbstractNode) parameters[0];
+					rel = (AbstractRelationship) parameters[0];
 
-					removeNodeFromAllIndices(node);
+					removeRelationshipFromAllIndices(rel);
 
 				} else if (parameters[0] instanceof List) {
 
-					removeNodesFromIndex((List<AbstractNode>) parameters[0]);
+					removeNodesFromIndex((List<AbstractRelationship>) parameters[0]);
 
 				}
 
 				break;
 
 			default :
-				logger.log(Level.SEVERE, "Wrong number of parameters for the remove node from index command: {0}", parameters);
+				logger.log(Level.SEVERE, "Wrong number of parameters for the remove relationship from index command: {0}", parameters);
 
 				return null;
 
@@ -116,20 +112,20 @@ public class RemoveNodeFromIndex extends NodeServiceCommand {
 		return null;
 	}
 
-	private void removeNodesFromIndex(final List<AbstractNode> nodes) {
+	private void removeNodesFromIndex(final List<AbstractRelationship> rels) {
 
-		for (AbstractNode node : nodes) {
+		for (AbstractRelationship rel : rels) {
 
-			removeNodeFromAllIndices(node);
+			removeRelationshipFromAllIndices(rel);
 
 		}
 	}
 
-	private void removeNodeFromAllIndices(final AbstractNode node) {
+	private void removeRelationshipFromAllIndices(final AbstractRelationship rel) {
 
-		for (Enum indexName : (NodeIndex[]) arguments.get("indices")) {
+		for (Enum indexName : indices.keySet()) {
 
-			indices.get(indexName).remove(node.getNode());
+			indices.get(indexName).remove(rel.getRelationship());
 
 		}
 	}

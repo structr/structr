@@ -315,9 +315,11 @@ public class JsonRestServlet extends HttpServlet {
 
 			// create result set
 			Result result = new Result(resource.doGet(), resource.isCollectionResource(), resource.isPrimitiveArray());
-
 			if (result != null) {
 
+				// allow resource to modify result set
+				resource.postProcessResultSet(result);
+				
 				DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 
 				result.setQueryTime(decimalFormat.format((queryTimeEnd - queryTimeStart) / 1000000000.0));
@@ -746,9 +748,9 @@ public class JsonRestServlet extends HttpServlet {
 	private Resource optimizeConstraintChain(List<Resource> constraintChain) throws FrameworkException {
 
 		ViewFilterResource view = null;
-		int num                   = constraintChain.size();
-		boolean found             = false;
-		int iterations            = 0;
+		int num                 = constraintChain.size();
+		boolean found           = false;
+		int iterations          = 0;
 
 		do {
 

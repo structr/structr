@@ -27,12 +27,12 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.IdNotFoundToken;
 import org.structr.core.GraphObject;
+import org.structr.core.PropertySet;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.FindNodeCommand;
-import org.structr.core.node.search.Search;
-import org.structr.core.node.search.SearchAttribute;
-import org.structr.core.node.search.SearchNodeCommand;
+import org.structr.core.node.NodeAttribute;
+import org.structr.core.node.search.*;
 
 /**
  *
@@ -47,9 +47,19 @@ public class IdDeserializationStrategy implements DeserializationStrategy {
 
 		if(source != null) {
 
-			// try uuid first
 			List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
-			attrs.add(Search.andExactUuid(source.toString()));
+
+			// FIXME: use uuid only here?
+			if(source instanceof PropertySet) {
+				PropertySet properties = (PropertySet)source;
+				for(NodeAttribute attr : properties.getAttributes()) {
+					attrs.add(Search.andExactProperty(attr.getKey(), attr.getValue().toString()));
+				}
+				
+			} else {
+
+				attrs.add(Search.andExactUuid(source.toString()));
+			}
 
 			List<AbstractNode> results = (List<AbstractNode>)Services.command(securityContext, SearchNodeCommand.class).execute(
 				null, false, false, attrs

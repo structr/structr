@@ -38,6 +38,7 @@ import org.structr.common.error.IdNotFoundToken;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.module.GetEntityClassCommand;
+import org.structr.core.node.*;
 import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.FindNodeCommand;
 import org.structr.core.node.NodeFactory;
@@ -57,7 +58,7 @@ import java.util.logging.Logger;
 //~--- classes ----------------------------------------------------------------
 
 /**
- * A relationship with a direction and a cardinality.
+ * Defines a class of relations between a source class and a target class with a direction and a cardinality.
  *
  * @author Christian Morgner
  */
@@ -81,11 +82,11 @@ public class DirectedRelation {
 
 	public DirectedRelation(String destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion) {
 
-		this.cardinality = cardinality;
-		this.direction   = direction;
-		this.destType    = destType;
-		this.relType     = relType;
-		this.notion      = notion;
+		this.cardinality   = cardinality;
+		this.direction     = direction;
+		this.destType      = destType;
+		this.relType       = relType;
+		this.notion        = notion;
 	}
 
 	//~--- methods --------------------------------------------------------
@@ -98,7 +99,8 @@ public class DirectedRelation {
 
 		// create relationship if it does not already exist
 		final Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
-		AbstractNode targetNode = null;
+		final Command deleteRel = Services.command(securityContext, DeleteRelationshipCommand.class);
+		AbstractNode targetNode;
 
 		if (value instanceof AbstractNode) {
 
@@ -121,9 +123,8 @@ public class DirectedRelation {
 					switch (cardinality) {
 
 						case ManyToOne :
-						case OneToOne :
+						case OneToOne : {
 
-						{
 							String destType = finalTargetNode.getType();
 
 							// delete previous relationships to nodes of the same destination type and direction
@@ -133,7 +134,7 @@ public class DirectedRelation {
 
 								if (rel.getOtherNode(sourceNode).getType().equals(destType)) {
 
-									rel.delete(securityContext);
+									deleteRel.execute(rel);
 
 								}
 
@@ -143,24 +144,23 @@ public class DirectedRelation {
 
 						}
 
-						case OneToMany :
+						case OneToMany : {
 
-						{
 							// Here, we have a OneToMany with OUTGOING Rel, so we need to remove all relationships
 							// of the same type incoming to the target node
-							
 							List<AbstractRelationship> rels = finalTargetNode.getRelationships(relType, Direction.INCOMING);
 
 							for (AbstractRelationship rel : rels) {
 
 								if (rel.getOtherNode(finalTargetNode).getType().equals(sourceNode.getType())) {
 
-									rel.delete(securityContext);
+									deleteRel.execute(rel);
 
 								}
 
 							}
 						}
+
 					}
 
 					AbstractRelationship newRel;
@@ -176,7 +176,7 @@ public class DirectedRelation {
 					}
 
 					newRel.setProperties(properties);
-
+					
 					return newRel;
 				}
 			};
@@ -205,6 +205,7 @@ public class DirectedRelation {
 
 	public void removeRelationship(final SecurityContext securityContext, final AbstractNode sourceNode, final Object value) throws FrameworkException {
 
+		final Command deleteRel = Services.command(securityContext, DeleteRelationshipCommand.class);
 		AbstractNode targetNode = null;
 
 		if (value instanceof AbstractNode) {
@@ -228,9 +229,8 @@ public class DirectedRelation {
 					switch (cardinality) {
 
 						case ManyToOne :
-						case OneToOne :
+						case OneToOne : {
 
-						{
 							String destType = finalTargetNode.getType();
 
 							// delete previous relationships to nodes of the same destination type and direction
@@ -240,7 +240,7 @@ public class DirectedRelation {
 
 								if (rel.getOtherNode(sourceNode).getType().equals(destType)) {
 
-									rel.delete(securityContext);
+									deleteRel.execute(rel);
 
 								}
 
@@ -250,38 +250,34 @@ public class DirectedRelation {
 
 						}
 
-						case OneToMany :
+						case OneToMany : {
 
-						{
 							// Here, we have a OneToMany with OUTGOING Rel, so we need to remove all relationships
 							// of the same type incoming to the target node
-							
 							List<AbstractRelationship> rels = finalTargetNode.getRelationships(relType, Direction.INCOMING);
 
 							for (AbstractRelationship rel : rels) {
 
 								if (rel.getOtherNode(finalTargetNode).getType().equals(sourceNode.getType())) {
 
-									rel.delete(securityContext);
+									deleteRel.execute(rel);
 
 								}
 
 							}
 						}
 
-						case ManyToMany :
+						case ManyToMany : {
 
-						{
 							// In this case, remove exact the relationship of the given type
 							// between source and target node
-							
 							List<AbstractRelationship> rels = finalTargetNode.getRelationships(relType, Direction.BOTH);
 
 							for (AbstractRelationship rel : rels) {
 
 								if (rel.getOtherNode(finalTargetNode).equals(sourceNode)) {
 
-									rel.delete(securityContext);
+									deleteRel.execute(rel);
 
 								}
 
@@ -376,15 +372,35 @@ public class DirectedRelation {
 
 		return null;
 	}
+	
+	public AbstractNode addRelatedNode(final SecurityContext securityContext, final AbstractNode node) throws FrameworkException {
+
+			return (AbstractNode) Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws FrameworkException {
+
+						AbstractNode relatedNode = (AbstractNode) Services.command(securityContext, CreateNodeCommand.class).execute(new NodeAttribute(AbstractNode.Key.type.name(), getDestType()));		
+					
+					// Create new relationship between facility and location nodes
+					Command createRel = Services.command(SecurityContext.getSuperUserInstance(), CreateRelationshipCommand.class);
+
+					createRel.execute(node, relatedNode, getRelType());
+
+					return relatedNode;
+				}
+
+			});
+	}	
 
 	// ----- private methods -----
 	private List<AbstractNode> getTraversalResults(final SecurityContext securityContext, final AbstractNode node) {
 
 		try {
 
-			final Class realType                 = (Class) Services.command(securityContext, GetEntityClassCommand.class).execute(StringUtils.capitalize(destType));
-			final NodeFactory nodeFactory = new NodeFactory<AbstractNode>(securityContext);
-			final List<AbstractNode> nodeList    = new LinkedList<AbstractNode>();
+			final Class realType              = (Class) Services.command(securityContext, GetEntityClassCommand.class).execute(StringUtils.capitalize(destType));
+			final NodeFactory nodeFactory     = new NodeFactory<AbstractNode>(securityContext);
+			final List<AbstractNode> nodeList = new LinkedList<AbstractNode>();
 
 			// use traverser
 			Iterable<Node> nodes = Traversal.description().uniqueness(Uniqueness.NODE_PATH).breadthFirst().relationships(relType, direction).evaluator(new Evaluator() {

@@ -6,20 +6,20 @@
     <parent>
         <groupId>org.structr</groupId>
         <artifactId>structr</artifactId>
-        <version>0.4.7-SNAPSHOT</version>
+        <version>0.4.8-SNAPSHOT</version>
     </parent>
 
     <groupId>org.structr</groupId>
     <artifactId>structr-ui</artifactId>
     <packaging>war</packaging>
-    <version>0.4.7-SNAPSHOT</version>
+    <version>0.4.8-SNAPSHOT</version>
     <name>structr-ui</name>
     <url>http://structr.org</url>
 
     <properties>
         <netbeans.hint.license>structr-gpl30</netbeans.hint.license>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <structr.version>0.4.7-SNAPSHOT</structr.version>
+        <structr.version>0.4.8-SNAPSHOT</structr.version>
         <jetty.version>8.1.0.RC2</jetty.version>
     </properties>
     <repositories>

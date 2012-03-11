@@ -40,7 +40,7 @@ import org.neo4j.graphdb.traversal.Evaluator;
 import org.neo4j.kernel.Traversal;
 
 import org.structr.common.AbstractComponent;
-import org.structr.common.AbstractNodeComparator;
+import org.structr.common.AbstractGraphObjectComparator;
 import org.structr.common.AccessControllable;
 import org.structr.common.PathHelper;
 import org.structr.common.Permission;
@@ -112,6 +112,8 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import org.structr.common.*;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.NullArgumentToken;
 import org.structr.common.error.ReadOnlyPropertyToken;
@@ -172,13 +174,14 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		EntityContext.registerPropertyConverter(AbstractNode.class, Key.ownerId, NodeIdNodeConverter.class);
 		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.fulltext.name(), Key.values());
 		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.keyword.name(), Key.values());
-		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.uuid.name(), Key.uuid);
+		EntityContext.registerSearchableProperty(AbstractNode.class, NodeIndex.uuid.name(), Key.uuid);
 
 		// register transformation for automatic uuid creation
 		EntityContext.registerEntityCreationTransformation(AbstractNode.class, new UuidCreationTransformation());
 		
 		// register uuid validator
 		EntityContext.registerPropertyValidator(AbstractNode.class, AbstractNode.Key.uuid, new SimpleRegexValidator("[a-zA-Z0-9]{32}"));
+		
 	}
 
 	//~--- fields ---------------------------------------------------------
@@ -251,7 +254,17 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	}
 
 	//~--- methods --------------------------------------------------------
-
+	
+	@Override
+	public PropertyKey getDefaultSortKey() {
+		return null;
+	}
+	
+	@Override
+	public String getDefaultSortOrder() {
+		return AbstractGraphObjectComparator.ASCENDING;
+	}
+	
 	/**
 	 * Implement this method to specify renderers for the different rendering modes.
 	 *
@@ -674,7 +687,20 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 		return (String[]) props.toArray(new String[props.size()]);
 	}
+	
+	@Override
+	public boolean isValid(ErrorBuffer errorBuffer) {
 
+		boolean error = false;
+
+		error |= ValidationHelper.checkStringNotBlank(this, Key.uuid, errorBuffer);
+		error |= ValidationHelper.checkStringNotBlank(this, Key.type, errorBuffer);
+
+		return !error;
+	}
+
+	public abstract String getIconSrc();
+		
 	/**
 	 * Discard changes and overwrite the properties map with the values
 	 * from database
@@ -1373,13 +1399,13 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		return null;
 	}
 
-	@Override
-	public void delete(SecurityContext securityContext) {
-
-		dbNode.delete();
-
-		// EntityContext.getGlobalModificationListener().graphObjectDeleted(securityContext, this);
-	}
+//	@Override
+//	public void delete(SecurityContext securityContext) {
+//
+//		dbNode.delete();
+//
+//		// EntityContext.getGlobalModificationListener().graphObjectDeleted(securityContext, this);
+//	}
 
 	/**
 	 * Can be used to permit the setting of a read-only
@@ -1437,13 +1463,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	}
 
 	//~--- get methods ----------------------------------------------------
-
-	/**
-	 * Returns the icon src attribute for this node type.
-	 *
-	 * @return the icon src attribute, for use in the HTML img element
-	 */
-	public abstract String getIconSrc();
 
 	public Long getTemplateId() {
 
@@ -1961,7 +1980,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		} else {
 
 			// ----- BEGIN automatic property resolution (check for static relationships and return related nodes) -----
-			DirectedRelation rel = EntityContext.getDirectedRelation(type, key);
+			DirectedRelation rel = EntityContext.getDirectedRelationship(type, key);
 
 			if (rel != null) {
 
@@ -3191,8 +3210,8 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 		nodes.addAll(getDirectChildNodes());
 
-		// sort by key, order by order {@see AbstractNodeComparator.ASCENDING} or {@see AbstractNodeComparator.DESCENDING}
-		Collections.sort(nodes, new AbstractNodeComparator(sortKey, sortOrder));
+		// sort by key, order by order {@see AbstractGraphObjectComparator.ASCENDING} or {@see AbstractGraphObjectComparator.DESCENDING}
+		Collections.sort(nodes, new AbstractGraphObjectComparator(sortKey, sortOrder));
 
 		return nodes;
 	}
@@ -3673,7 +3692,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	public boolean isVisible() {
 		return securityContext.isVisible(this);
 	}
-
+	
 	//~--- set methods ----------------------------------------------------
 
 	/**
@@ -3941,7 +3960,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		}
 
 		// static relationship detected, create or remove relationship
-		DirectedRelation rel = EntityContext.getDirectedRelation(type, key);
+		DirectedRelation rel = EntityContext.getDirectedRelationship(type, key);
 		if (rel != null) {
 		
 			if (value != null) {

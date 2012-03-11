@@ -4,14 +4,14 @@
     <groupId>org.structr</groupId>
     <artifactId>structr</artifactId>
     <packaging>pom</packaging>
-    <version>0.4.7-SNAPSHOT</version>
+    <version>0.4.8-SNAPSHOT</version>
     <name>structr</name>
     <url>http://structr.org</url>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <netbeans.hint.license>structr-gpl30</netbeans.hint.license>
-        <structr.version>0.4.7-SNAPSHOT</structr.version>
+        <structr.version>0.4.8-SNAPSHOT</structr.version>
     </properties>
 
     <modules>
@@ -19,7 +19,7 @@
         <module>structr-rest</module>
         <module>structr-websocket</module>
         <module>structr-ui</module>
-  </modules>
+    </modules>
 
     <build>
         <plugins>
@@ -42,22 +42,22 @@
             <name>GNU General Public License, Version 3</name>
             <url>http://www.gnu.org/licenses/gpl-3.0-standalone.html</url>
             <comments>
-Copyright (C) 2011-2012 Axel Morgner, structr &lt;structr@structr.org&gt;
+                Copyright (C) 2011-2012 Axel Morgner, structr &lt;structr@structr.org&gt;
 
- This file is part of structr &lt;http://structr.org&gt;.
+                This file is part of structr &lt;http://structr.org&gt;.
 
- structr is free software: you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
+                structr is free software: you can redistribute it and/or modify
+                it under the terms of the GNU General Public License as published by
+                the Free Software Foundation, either version 3 of the License, or
+                (at your option) any later version.
 
- structr is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
+                structr is distributed in the hope that it will be useful,
+                but WITHOUT ANY WARRANTY; without even the implied warranty of
+                MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+                GNU General Public License for more details.
 
- You should have received a copy of the GNU General Public License
- along with structr.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+                You should have received a copy of the GNU General Public License
+                along with structr.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
             </comments>
         </license>
     </licenses>
@@ -65,5 +65,16 @@ Copyright (C) 2011-2012 Axel Morgner, structr &lt;structr@structr.org&gt;
     <scm>
         <url>https://github.com/structr/structr/tree/master/structr</url>
     </scm>
-
+    <distributionManagement>
+        <repository>
+            <id>maven.structr.org</id>
+            <name>structr releases maven repository</name>
+            <url>scp://maven.structr.org/repository/release</url>
+        </repository>
+        <snapshotRepository>
+            <id>maven.structr.org</id>
+            <name>structr snapshots maven repository</name>
+            <url>scp://maven.structr.org/repository/snapshot</url>
+        </snapshotRepository>
+    </distributionManagement>
 </project>

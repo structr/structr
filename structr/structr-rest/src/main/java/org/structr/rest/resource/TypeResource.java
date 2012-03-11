@@ -6,16 +6,13 @@
 package org.structr.rest.resource;
 
 import org.structr.common.SecurityContext;
-import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.InvalidSearchField;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.module.GetEntitiesCommand;
 import org.structr.core.node.CreateNodeCommand;
-import org.structr.core.node.NodeService.NodeIndex;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 import org.structr.core.node.search.Search;
@@ -24,17 +21,10 @@ import org.structr.core.node.search.SearchNodeCommand;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
-import org.structr.rest.servlet.JsonRestServlet;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -55,20 +45,6 @@ import javax.servlet.http.HttpServletResponse;
 public class TypeResource extends SortableResource {
 
 	private static final Logger logger                 = Logger.getLogger(TypeResource.class.getName());
-	private static final Set<String> NON_SEARCH_FIELDS = new LinkedHashSet<String>();
-
-	//~--- static initializers --------------------------------------------
-
-	static {
-
-		// create static Set with non-searchable request parameters
-		// to identify search requests quickly
-		NON_SEARCH_FIELDS.add(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH);
-		NON_SEARCH_FIELDS.add(JsonRestServlet.REQUEST_PARAMETER_PAGE_NUMBER);
-		NON_SEARCH_FIELDS.add(JsonRestServlet.REQUEST_PARAMETER_PAGE_SIZE);
-		NON_SEARCH_FIELDS.add(JsonRestServlet.REQUEST_PARAMETER_SORT_KEY);
-		NON_SEARCH_FIELDS.add(JsonRestServlet.REQUEST_PARAMETER_SORT_ORDER);
-	}
 
 	//~--- fields ---------------------------------------------------------
 
@@ -91,10 +67,9 @@ public class TypeResource extends SortableResource {
 	public List<GraphObject> doGet() throws FrameworkException {
 
 		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
-
-		AbstractNode topNode   = null;
-		boolean includeDeleted = false;
-		boolean publicOnly     = false;
+		AbstractNode topNode                   = null;
+		boolean includeDeleted                 = false;
+		boolean publicOnly                     = false;
 
 		if (rawType != null) {
 
@@ -110,11 +85,14 @@ public class TypeResource extends SortableResource {
 			searchAttributes.add(Search.andExactType(EntityContext.normalizeEntityName(rawType)));
 
 			// searchable attributes from EntityContext
-			hasSearchableAttributes(searchAttributes);
+			hasSearchableAttributes(rawType, request, searchAttributes);
+
 			// do search
 			List<GraphObject> results = (List<GraphObject>) Services.command(securityContext, SearchNodeCommand.class).execute(topNode, includeDeleted, publicOnly, searchAttributes);
 
 			if (!results.isEmpty()) {
+
+				applyDefaultSorting(results);
 
 				return results;
 
@@ -208,40 +186,10 @@ public class TypeResource extends SortableResource {
 		return super.tryCombineWith(next);
 	}
 
-	// ----- private methods -----
-	private int parseInteger(Object source) {
-
-		try {
-			return Integer.parseInt(source.toString());
-		} catch (Throwable t) {}
-
-		return -1;
+	public boolean hasSearchableAttributes(List<SearchAttribute> attributes) throws FrameworkException {
+		return hasSearchableAttributes(rawType, request, attributes);
 	}
-
-	private void checkForIllegalSearchKeys(Set<String> searchableProperties) throws FrameworkException {
-
-		ErrorBuffer errorBuffer = new ErrorBuffer();
-
-		// try to identify invalid search properties and throw an exception
-		for (Enumeration<String> e = request.getParameterNames(); e.hasMoreElements(); ) {
-
-			String requestParameterName = e.nextElement();
-
-			if (!searchableProperties.contains(requestParameterName) &&!NON_SEARCH_FIELDS.contains(requestParameterName)) {
-
-				errorBuffer.add("base", new InvalidSearchField(requestParameterName));
-
-			}
-
-		}
-
-		if (errorBuffer.hasError()) {
-
-			throw new FrameworkException(422, errorBuffer);
-
-		}
-	}
-
+	
 	//~--- get methods ----------------------------------------------------
 
 	@Override
@@ -251,60 +199,6 @@ public class TypeResource extends SortableResource {
 
 	public String getRawType() {
 		return rawType;
-	}
-
-	// ----- protected methods -----
-	protected boolean hasSearchableAttributes(List<SearchAttribute> searchAttributes) throws FrameworkException {
-
-		boolean hasSearchableAttributes = false;
-
-		// searchable attributes
-		if ((rawType != null) && (request != null) &&!request.getParameterMap().isEmpty()) {
-
-			boolean looseSearch              = parseInteger(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH)) == 1;
-			Set<String> searchableProperties = null;
-
-			if (looseSearch) {
-
-				searchableProperties = EntityContext.getSearchableProperties(rawType, NodeIndex.fulltext.name());
-
-			} else {
-
-				searchableProperties = EntityContext.getSearchableProperties(rawType, NodeIndex.keyword.name());
-
-			}
-
-			if (searchableProperties != null) {
-
-				checkForIllegalSearchKeys(searchableProperties);
-
-				for (String key : searchableProperties) {
-
-					String searchValue = request.getParameter(key);
-
-					if (searchValue != null) {
-
-						if (looseSearch) {
-
-							searchAttributes.add(Search.andProperty(key, searchValue));
-
-						} else {
-
-							searchAttributes.add(Search.andExactProperty(key, searchValue));
-
-						}
-
-						hasSearchableAttributes = true;
-
-					}
-
-				}
-
-			}
-
-		}
-
-		return hasSearchableAttributes;
 	}
 
 	@Override

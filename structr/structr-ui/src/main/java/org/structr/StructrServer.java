@@ -48,7 +48,7 @@ public class StructrServer {
 
 	public static void main(String[] args) throws Exception {
 
-		String appName        = "structr UI 0.4.7";
+		String appName        = "structr UI 0.4.8";
 		String host           = System.getProperty("host", "0.0.0.0");
 		int port              = Integer.parseInt(System.getProperty("port", "8080"));
 		int maxIdleTime       = Integer.parseInt(System.getProperty("maxIdleTime", "30000"));

@@ -21,29 +21,25 @@
 
 package org.structr.core.entity;
 
-import java.text.ParseException;
-import java.util.*;
+import org.apache.commons.lang.time.DateUtils;
+
 import org.neo4j.graphdb.*;
 
 import org.structr.common.PropertyKey;
+import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
-import org.structr.core.Command;
-import org.structr.core.GraphObject;
-import org.structr.core.Services;
-
-//~--- JDK imports ------------------------------------------------------------
-
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.apache.commons.lang.time.DateUtils;
-import org.structr.common.PropertyView;
 import org.structr.common.UuidCreationTransformation;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.IdNotFoundToken;
+import org.structr.common.error.NullPropertyToken;
 import org.structr.common.error.ReadOnlyPropertyToken;
+import org.structr.core.Command;
 import org.structr.core.EntityContext;
+import org.structr.core.GraphObject;
 import org.structr.core.PropertyConverter;
 import org.structr.core.PropertyGroup;
+import org.structr.core.Services;
 import org.structr.core.Value;
 import org.structr.core.cloud.RelationshipDataContainer;
 import org.structr.core.node.*;
@@ -55,6 +51,16 @@ import org.structr.core.notion.Notion;
 import org.structr.core.notion.RelationshipNotion;
 import org.structr.core.validator.SimpleRegexValidator;
 
+//~--- JDK imports ------------------------------------------------------------
+
+import java.text.ParseException;
+
+import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.structr.common.*;
+import org.structr.common.error.*;
+
 //~--- classes ----------------------------------------------------------------
 
 /**
@@ -65,6 +71,23 @@ import org.structr.core.validator.SimpleRegexValidator;
 public abstract class AbstractRelationship implements GraphObject, Comparable<AbstractRelationship> {
 
 	private static final Logger logger = Logger.getLogger(AbstractRelationship.class.getName());
+
+	//~--- static initializers --------------------------------------------
+
+	static {
+
+		EntityContext.registerPropertySet(AbstractRelationship.class, PropertyView.All, Key.values());
+		EntityContext.registerSearchableProperty(AbstractRelationship.class, RelationshipIndex.rel_uuid.name(), Key.uuid);
+
+		// register transformation for automatic uuid creation
+		EntityContext.registerEntityCreationTransformation(AbstractRelationship.class, new UuidCreationTransformation());
+
+		// register uuid validator
+		EntityContext.registerPropertyValidator(AbstractRelationship.class, AbstractRelationship.Key.uuid, new SimpleRegexValidator("[a-zA-Z0-9]{32}"));
+
+	}
+
+	//~--- fields ---------------------------------------------------------
 
 //      public final static String ALLOWED_KEY = "allowed";
 //      public final static String DENIED_KEY = "denied";
@@ -85,38 +108,21 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 //              ADD_RELATIONSHIP_KEY, REMOVE_RELATIONSHIP_KEY,
 //              EDIT_PROPERTIES_KEY, ACCESS_CONTROL_KEY
 //      };
-	protected SecurityContext securityContext = null;
+	protected SecurityContext securityContext  = null;
+	private boolean readOnlyPropertiesUnlocked = false;
 
 	// reference to database relationship
 	protected Relationship dbRelationship;
-
-	protected Map<String, Object> properties;
 	protected boolean isDirty;
-
-	private boolean readOnlyPropertiesUnlocked                   = false;
-
-	static {
-
-		EntityContext.registerPropertySet(AbstractRelationship.class, PropertyView.All, Key.values());
-
-		EntityContext.registerSearchablePropertySet(AbstractRelationship.class, RelationshipIndex.rel_uuid.name(), Key.uuid);
-
-		// register transformation for automatic uuid creation
-		EntityContext.registerEntityCreationTransformation(AbstractRelationship.class, new UuidCreationTransformation());
-		
-		// register uuid validator
-		EntityContext.registerPropertyValidator(AbstractRelationship.class, AbstractNode.Key.uuid, new SimpleRegexValidator("[a-zA-Z0-9]{32}"));
-	}
+	protected Map<String, Object> properties;
 
 	//~--- constant enums -------------------------------------------------
 
-	public enum Key implements PropertyKey {
-		uuid
+	public enum HiddenKey implements PropertyKey {
+		type    // internal type, see IndexRelationshipCommand#indexRelationship method
 	}
 
-	public enum HiddenKey implements PropertyKey {
-		type // internal type, see IndexRelationshipCommand#indexRelationship method
-	}
+	public enum Key implements PropertyKey{ uuid }
 
 	public enum Permission implements PropertyKey {
 		allowed, denied, read, showTree, write, execute, createNode, deleteNode, editProperties, addRelationship, removeRelationship, accessControl;
@@ -125,6 +131,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	//~--- constructors ---------------------------------------------------
 
 	public AbstractRelationship() {
+
 		this.properties = new HashMap<String, Object>();
 		isDirty         = true;
 	}
@@ -145,26 +152,49 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 			this.securityContext = securityContext;
 			this.properties      = data.getProperties();
-			this.isDirty = true;
+			this.isDirty         = true;
 
 		}
 	}
-	//~--- methods --------------------------------------------------------
-	public abstract PropertyKey getStartNodeIdKey();
-	public abstract PropertyKey getEndNodeIdKey();
 
+	//~--- methods --------------------------------------------------------
+	
+	@Override
+	public boolean isValid(ErrorBuffer errorBuffer) {
+
+		boolean error = false;
+
+		error |= ValidationHelper.checkStringNotBlank(this, AbstractNode.Key.uuid, errorBuffer);
+
+		return !error;
+	}
+
+	@Override
+	public PropertyKey getDefaultSortKey() {
+		return null;
+	}
+	
+	@Override
+	public String getDefaultSortOrder() {
+		return AbstractGraphObjectComparator.ASCENDING;
+	}
+	
 	public AbstractNode identifyStartNode(NamedRelation namedRelation, Map<String, Object> propertySet) throws FrameworkException {
 
 		Notion startNodeNotion = new RelationshipNotion(getStartNodeIdKey());
+
 		startNodeNotion.setType(namedRelation.getSourceType());
 
 		PropertyKey startNodeIdentifier = startNodeNotion.getPrimaryPropertyKey();
-		if(startNodeIdentifier != null) {
+
+		if (startNodeIdentifier != null) {
 
 			Object identifierValue = propertySet.get(startNodeIdentifier.name());
+
 			propertySet.remove(startNodeIdentifier.name());
 
-			return (AbstractNode)startNodeNotion.getAdapterForSetter(securityContext).adapt(identifierValue);
+			return (AbstractNode) startNodeNotion.getAdapterForSetter(securityContext).adapt(identifierValue);
+
 		}
 
 		return null;
@@ -173,20 +203,23 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	public AbstractNode identifyEndNode(NamedRelation namedRelation, Map<String, Object> propertySet) throws FrameworkException {
 
 		Notion endNodeNotion = new RelationshipNotion(getEndNodeIdKey());
+
 		endNodeNotion.setType(namedRelation.getDestType());
-		
+
 		PropertyKey endNodeIdentifier = endNodeNotion.getPrimaryPropertyKey();
-		if(endNodeIdentifier != null) {
+
+		if (endNodeIdentifier != null) {
 
 			Object identifierValue = propertySet.get(endNodeIdentifier.name());
+
 			propertySet.remove(endNodeIdentifier.name());
 
-			return (AbstractNode)endNodeNotion.getAdapterForSetter(securityContext).adapt(identifierValue);
+			return (AbstractNode) endNodeNotion.getAdapterForSetter(securityContext).adapt(identifierValue);
+
 		}
 
 		return null;
 	}
-
 
 	/**
 	 * Commit unsaved property values to the relationship node.
@@ -204,8 +237,8 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 			@Override
 			public Object execute() throws FrameworkException {
 
-				Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
-				AbstractRelationship rel     = (AbstractRelationship) createRel.execute();
+				Command createRel        = Services.command(securityContext, CreateRelationshipCommand.class);
+				AbstractRelationship rel = (AbstractRelationship) createRel.execute();
 
 				init(securityContext, rel.getRelationship());
 
@@ -228,13 +261,12 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 		});
 	}
-	
+
 	public void init(final SecurityContext securityContext, final Relationship dbRel) {
 
 		this.dbRelationship  = dbRel;
 		this.isDirty         = false;
 		this.securityContext = securityContext;
-
 	}
 
 	public void init(final SecurityContext securityContext) {
@@ -288,15 +320,39 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	}
 
 	@Override
-	public void delete(SecurityContext securityContext) {
+	public int compareTo(final AbstractRelationship rel) {
 
-		dbRelationship.delete();
+		// TODO: implement finer compare methods, e.g. taking title and position into account
+		if (rel == null) {
 
-		// EntityContext.getGlobalModificationListener().relationshipDeleted(securityContext, this);
+			return -1;
+
+		}
+
+		return ((Long) this.getId()).compareTo((Long) rel.getId());
+	}
+
+	/**
+	 * Overload and return true if you wish to have all end nodes of this
+	 * node deleted in a cascade.
+	 */
+	public boolean cascadeDelete() {
+		return false;
 	}
 
 	//~--- get methods ----------------------------------------------------
 
+	public abstract PropertyKey getStartNodeIdKey();
+
+	public abstract PropertyKey getEndNodeIdKey();
+
+//      @Override
+//      public void delete(SecurityContext securityContext) {
+//
+//              dbRelationship.delete();
+//
+//              // EntityContext.getGlobalModificationListener().relationshipDeleted(securityContext, this);
+//      }
 	@Override
 	public long getId() {
 		return getInternalId();
@@ -331,42 +387,62 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	public Object getProperty(final String key) {
 
 		PropertyKey startNodeIdKey = getStartNodeIdKey();
-		PropertyKey endNodeIdKey = getEndNodeIdKey();
-		
+		PropertyKey endNodeIdKey   = getEndNodeIdKey();
+
 		if (startNodeIdKey != null) {
-			if (key.equals(startNodeIdKey.name())) return getStartNodeId();
+
+			if (key.equals(startNodeIdKey.name())) {
+
+				return getStartNodeId();
+
+			}
+
 		}
 
 		if (endNodeIdKey != null) {
-			if (key.equals(endNodeIdKey.name())) return getEndNodeId();
+
+			if (key.equals(endNodeIdKey.name())) {
+
+				return getEndNodeId();
+
+			}
+
 		}
-		
-		Class type = this.getClass();
+
+		Class type   = this.getClass();
 		Object value = null;
 
 		// ----- BEGIN property group resolution -----
 		PropertyGroup propertyGroup = EntityContext.getPropertyGroup(type, key);
+
 		if (propertyGroup != null) {
 
 			return propertyGroup.getGroupedProperties(this);
+
 		}
 
-		if(dbRelationship.hasProperty(key)) {
+		if (dbRelationship.hasProperty(key)) {
+
 			value = dbRelationship.getProperty(key);
 
 		}
 
 		// no value found, use schema default
-		if(value == null) {
+		if (value == null) {
+
 			value = EntityContext.getDefaultValue(type, key);
+
 		}
 
 		// apply property converters
 		PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
+
 		if (converter != null) {
 
 			Value conversionValue = EntityContext.getPropertyConversionParameter(type, key);
+
 			converter.setCurrentObject(this);
+
 			value = converter.convertForGetter(value, conversionValue);
 
 		}
@@ -447,6 +523,34 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		return null;
 	}
 
+	public boolean getBooleanProperty(final PropertyKey propertyKey) {
+		return (getBooleanProperty(propertyKey.name()));
+	}
+
+	public boolean getBooleanProperty(final String key) {
+
+		Object propertyValue = getProperty(key);
+		Boolean result       = false;
+
+		if (propertyValue == null) {
+
+			return Boolean.FALSE;
+
+		}
+
+		if (propertyValue instanceof Boolean) {
+
+			result = ((Boolean) propertyValue).booleanValue();
+
+		} else if (propertyValue instanceof String) {
+
+			result = Boolean.parseBoolean(((String) propertyValue));
+
+		}
+
+		return result;
+	}
+
 	/**
 	 * Return database relationship
 	 *
@@ -459,36 +563,45 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	public AbstractNode getEndNode() {
 
 		try {
+
 			Command nodeFactory = Services.command(securityContext, NodeFactoryCommand.class);
+
 			return (AbstractNode) nodeFactory.execute(dbRelationship.getEndNode());
 
-		} catch(FrameworkException fex) {
+		} catch (FrameworkException fex) {
 			logger.log(Level.WARNING, "Unable to instantiate node", fex);
 		}
+
 		return null;
 	}
 
 	public AbstractNode getStartNode() {
 
 		try {
+
 			Command nodeFactory = Services.command(securityContext, NodeFactoryCommand.class);
+
 			return (AbstractNode) nodeFactory.execute(dbRelationship.getStartNode());
 
-		} catch(FrameworkException fex) {
+		} catch (FrameworkException fex) {
 			logger.log(Level.WARNING, "Unable to instantiate node", fex);
 		}
+
 		return null;
 	}
 
 	public AbstractNode getOtherNode(final AbstractNode node) {
 
 		try {
+
 			Command nodeFactory = Services.command(securityContext, NodeFactoryCommand.class);
+
 			return (AbstractNode) nodeFactory.execute(dbRelationship.getOtherNode(node.getNode()));
 
-		} catch(FrameworkException fex) {
+		} catch (FrameworkException fex) {
 			logger.log(Level.WARNING, "Unable to instantiate node", fex);
 		}
+
 		return null;
 	}
 
@@ -547,7 +660,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 		}
 	}
-	
+
 	/**
 	 * Return all property keys.
 	 *
@@ -556,7 +669,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	public Iterable<String> getPropertyKeys() {
 		return getPropertyKeys(PropertyView.All);
 	}
-	
+
 	/**
 	 * Return property value which is used for indexing.
 	 *
@@ -568,7 +681,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	public Object getPropertyForIndexing(final String key) {
 		return getProperty(key);
 	}
-	
+
 	// ----- interface GraphObject -----
 	@Override
 	public Iterable<String> getPropertyKeys(final String propertyView) {
@@ -598,6 +711,31 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	public String getOtherNodeId(final AbstractNode node) {
 		return getOtherNode(node).getStringProperty(AbstractRelationship.Key.uuid);
+	}
+
+	private AbstractNode getNodeByUuid(final String uuid) throws FrameworkException {
+
+		List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
+
+		attrs.add(Search.andExactUuid(uuid));
+
+		List<AbstractNode> results = (List<AbstractNode>) Services.command(securityContext, SearchNodeCommand.class).execute(null, false, false, attrs);
+		int size                   = results.size();
+
+		switch (size) {
+
+			case 0 :
+				return null;
+
+			case 1 :
+				return results.get(0);
+
+			default :
+				logger.log(Level.WARNING, "Got more than one result for UUID {0}, this is very likely to be a UUID collision!", uuid);
+
+				return results.get(0);
+
+		}
 	}
 
 	public boolean isType(RelType type) {
@@ -671,20 +809,26 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	@Override
 	public void setProperty(final String key, final Object value) throws FrameworkException {
-				
+
 		PropertyKey startNodeIdKey = getStartNodeIdKey();
-		PropertyKey endNodeIdKey = getEndNodeIdKey();
-		
-		if (startNodeIdKey != null && key.equals(startNodeIdKey.name())) {
+		PropertyKey endNodeIdKey   = getEndNodeIdKey();
+
+		if ((startNodeIdKey != null) && key.equals(startNodeIdKey.name())) {
+
 			setStartNodeId((String) value);
+
 			return;
+
 		}
-		
-		if (endNodeIdKey != null && key.equals(endNodeIdKey.name())) {
+
+		if ((endNodeIdKey != null) && key.equals(endNodeIdKey.name())) {
+
 			setEndNodeId((String) value);
+
 			return;
-		}	
-		
+
+		}
+
 		Class type = this.getClass();
 
 		// check for read-only properties
@@ -695,9 +839,10 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 				// permit write operation once and
 				// lock read-only properties again
 				readOnlyPropertiesUnlocked = false;
-
 			} else {
+
 				throw new FrameworkException(type.getSimpleName(), new ReadOnlyPropertyToken(key));
+
 			}
 
 		}
@@ -719,7 +864,9 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		if (converter != null) {
 
 			Value conversionValue = EntityContext.getPropertyConversionParameter(type, key);
+
 			converter.setCurrentObject(this);
+
 			convertedValue = converter.convertForSetter(value, conversionValue);
 
 		} else {
@@ -763,9 +910,8 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 							dbRelationship.setProperty(key, convertedValue);
 
 						}
+
 					}
-
-
 				} finally {}
 
 				return null;
@@ -775,6 +921,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		// execute transaction
 		Services.command(securityContext, TransactionCommand.class).execute(transaction);
 	}
+
 	/**
 	 * Set node id of start node.
 	 *
@@ -783,44 +930,54 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	 * but starting from the node with startNodeId
 	 *
 	 */
-	public void setStartNodeId(final String startNodeId) {
+	public void setStartNodeId(final String startNodeId) throws FrameworkException {
+
+		final String type = this.getClass().getSimpleName();
+		final String key  = getStartNodeIdKey().name();
+
+		// May never be null!!
+		if (startNodeId == null) {
+
+			throw new FrameworkException(type, new NullPropertyToken(key));
+
+		}
 
 		Command transaction = Services.command(securityContext, TransactionCommand.class);
 
-		try {
-			transaction.execute(new StructrTransaction() {
+		transaction.execute(new StructrTransaction() {
 
-				@Override
-				public Object execute() throws FrameworkException {
+			@Override
+			public Object execute() throws FrameworkException {
 
-					Command findNode		= Services.command(securityContext, FindNodeCommand.class);
-					Command deleteRel		= Services.command(securityContext, DeleteRelationshipCommand.class);
-					Command createRel		= Services.command(securityContext, CreateRelationshipCommand.class);
-					Command nodeFactory		= Services.command(securityContext, NodeFactoryCommand.class);
-					AbstractNode newStartNode	= getNodeByUuid(startNodeId);
-					AbstractNode endNode		= (AbstractNode) nodeFactory.execute(getEndNode());
+				Command findNode          = Services.command(securityContext, FindNodeCommand.class);
+				Command deleteRel         = Services.command(securityContext, DeleteRelationshipCommand.class);
+				Command createRel         = Services.command(securityContext, CreateRelationshipCommand.class);
+				Command nodeFactory       = Services.command(securityContext, NodeFactoryCommand.class);
+				AbstractNode newStartNode = getNodeByUuid(startNodeId);
+				AbstractNode endNode      = (AbstractNode) nodeFactory.execute(getEndNode());
 
-					if (newStartNode != null) {
+				if (newStartNode == null) {
 
-						RelationshipType type = dbRelationship.getType();
-						properties = getProperties();
+					throw new FrameworkException(type, new IdNotFoundToken(startNodeId));
 
-						deleteRel.execute(dbRelationship);
-
-						AbstractRelationship newRel = (AbstractRelationship) createRel.execute(newStartNode, endNode, type);
-						newRel.setProperties(properties);
-						
-						dbRelationship = newRel.getRelationship();
-					}
-
-					return (null);
 				}
 
-			});
+				RelationshipType type = dbRelationship.getType();
 
-		} catch(FrameworkException fex) {
-			logger.log(Level.WARNING, "Unable to set start node id", fex);
-		}
+				properties = getProperties();
+
+				deleteRel.execute(dbRelationship);
+
+				AbstractRelationship newRel = (AbstractRelationship) createRel.execute(newStartNode, endNode, type);
+
+				newRel.setProperties(properties);
+
+				dbRelationship = newRel.getRelationship();
+
+				return (null);
+			}
+
+		});
 	}
 
 	/**
@@ -831,45 +988,54 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	 * but pointing to the node with endNodeId
 	 *
 	 */
-	public void setEndNodeId(final String endNodeId) {
+	public void setEndNodeId(final String endNodeId) throws FrameworkException {
+
+		final String type = this.getClass().getSimpleName();
+		final String key  = getStartNodeIdKey().name();
+
+		// May never be null!!
+		if (endNodeId == null) {
+
+			throw new FrameworkException(type, new NullPropertyToken(key));
+
+		}
 
 		Command transaction = Services.command(securityContext, TransactionCommand.class);
 
-		try {
-			transaction.execute(new StructrTransaction() {
+		transaction.execute(new StructrTransaction() {
 
-				@Override
-				public Object execute() throws FrameworkException {
+			@Override
+			public Object execute() throws FrameworkException {
 
-					Command findNode        = Services.command(securityContext, FindNodeCommand.class);
-					Command deleteRel       = Services.command(securityContext, DeleteRelationshipCommand.class);
-					Command createRel       = Services.command(securityContext, CreateRelationshipCommand.class);
-					Command nodeFactory     = Services.command(securityContext, NodeFactoryCommand.class);
-					AbstractNode startNode  = (AbstractNode) nodeFactory.execute(getStartNode());
-					AbstractNode newEndNode = getNodeByUuid(endNodeId);
+				Command findNode        = Services.command(securityContext, FindNodeCommand.class);
+				Command deleteRel       = Services.command(securityContext, DeleteRelationshipCommand.class);
+				Command createRel       = Services.command(securityContext, CreateRelationshipCommand.class);
+				Command nodeFactory     = Services.command(securityContext, NodeFactoryCommand.class);
+				AbstractNode startNode  = (AbstractNode) nodeFactory.execute(getStartNode());
+				AbstractNode newEndNode = getNodeByUuid(endNodeId);
 
-					if (newEndNode != null) {
+				if (newEndNode == null) {
 
-						RelationshipType type = dbRelationship.getType();
-						properties = getProperties();
+					throw new FrameworkException(type, new IdNotFoundToken(endNodeId));
 
-						deleteRel.execute(dbRelationship);
-
-						AbstractRelationship newRel = (AbstractRelationship) createRel.execute(startNode, newEndNode, type);
-						newRel.setProperties(properties);
-						
-						dbRelationship = newRel.getRelationship();
-
-					}
-
-					return (null);
 				}
 
-			});
+				RelationshipType type = dbRelationship.getType();
 
-		} catch(FrameworkException fex) {
-			logger.log(Level.WARNING, "Unable to set end node id", fex);
-		}
+				properties = getProperties();
+
+				deleteRel.execute(dbRelationship);
+
+				AbstractRelationship newRel = (AbstractRelationship) createRel.execute(startNode, newEndNode, type);
+
+				newRel.setProperties(properties);
+
+				dbRelationship = newRel.getRelationship();
+
+				return (null);
+			}
+
+		});
 	}
 
 	/**
@@ -885,7 +1051,9 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		if (type != null) {
 
 			try {
+
 				Command transacted = Services.command(securityContext, TransactionCommand.class);
+
 				transacted.execute(new StructrTransaction() {
 
 					@Override
@@ -906,9 +1074,10 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 				});
 
-			} catch(FrameworkException fex) {
+			} catch (FrameworkException fex) {
 				logger.log(Level.WARNING, "Unable to set relationship type", fex);
 			}
+
 		}
 	}
 
@@ -940,43 +1109,4 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 		}
 	}
-
-	@Override
-	public int compareTo(final AbstractRelationship rel) {
-
-		// TODO: implement finer compare methods, e.g. taking title and position into account
-		if (rel == null) {
-
-			return -1;
-
-		}
-
-		return ((Long) this.getId()).compareTo((Long) rel.getId());
-	}
-
-
-	private AbstractNode getNodeByUuid(final String uuid) throws FrameworkException {
-
-		List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
-		attrs.add(Search.andExactUuid(uuid));
-
-		List<AbstractNode> results = (List<AbstractNode>)Services.command(securityContext, SearchNodeCommand.class).execute(
-			null, false, false, attrs
-		);
-
-		int size = results.size();
-
-		switch(size) {
-			case 0:
-				throw new NotFoundException();
-
-			case 1:
-				return results.get(0);
-
-			default:
-				logger.log(Level.WARNING, "Got more than one result for UUID {0}, this is very likely to be a UUID collision!", uuid);
-				return results.get(0);
-		}
-	}
-
 }

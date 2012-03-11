@@ -39,13 +39,6 @@ public class PagingResource extends WrappingResource {
 	@Override
 	public List<? extends GraphObject> doGet() throws FrameworkException {
 
-		/*
-		 * page 1: 0 -> pageSize-1
-		 * page 2: pageSize -> (2*pageSize)-1
-		 * page 3: (2*pageSize) -> (3*pageSize)-1
-		 * page n: ((n-1) * pageSize) -> (n * pageSize) - 1
-		 */
-
 		List<? extends GraphObject> results = wrappedResource.doGet();
 		resultCount = results.size();
 
@@ -82,5 +75,19 @@ public class PagingResource extends WrappingResource {
 
 	public int getPageCount() {
 		return (int)Math.rint(Math.ceil((double)getResultCount() / (double)getPageSize()));
+	}
+	
+	@Override
+	public void postProcessResultSet(Result result) {
+		
+		result.setResultCount(getResultCount());
+		result.setPage(getPage());
+		result.setPageSize(getPageSize());
+		result.setPageCount(getPageCount());
+		
+		// add sorting parameters
+		if(wrappedResource != null && wrappedResource instanceof SortResource) {
+			((SortResource)wrappedResource).postProcessResultSet(result);
+		}
 	}
 }
