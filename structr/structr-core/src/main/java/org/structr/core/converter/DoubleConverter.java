@@ -46,9 +46,9 @@ public class DoubleConverter extends PropertyConverter {
 	@Override
 	public Object convertForGetter(Object source, Value value) {
 
-		if(source != null) {
-			return source.toString();
-		}
+//		if(source != null) {
+//			return source.toString();
+//		}
 
 		return source;
 	}
