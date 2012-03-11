@@ -77,7 +77,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	static {
 
 		EntityContext.registerPropertySet(AbstractRelationship.class, PropertyView.All, Key.values());
-		EntityContext.registerSearchablePropertySet(AbstractRelationship.class, RelationshipIndex.rel_uuid.name(), Key.uuid);
+		EntityContext.registerSearchableProperty(AbstractRelationship.class, RelationshipIndex.rel_uuid.name(), Key.uuid);
 
 		// register transformation for automatic uuid creation
 		EntityContext.registerEntityCreationTransformation(AbstractRelationship.class, new UuidCreationTransformation());

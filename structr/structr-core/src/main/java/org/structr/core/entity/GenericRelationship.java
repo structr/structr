@@ -48,7 +48,7 @@ public class GenericRelationship extends AbstractRelationship {
 
 		EntityContext.registerPropertySet(GenericRelationship.class, PropertyView.All, Key.values());
 
-		EntityContext.registerSearchablePropertySet(GenericRelationship.class, RelationshipIndex.rel_uuid.name(), Key.uuid);
+		EntityContext.registerSearchableProperty(GenericRelationship.class, RelationshipIndex.rel_uuid.name(), Key.uuid);
 	}
 
 

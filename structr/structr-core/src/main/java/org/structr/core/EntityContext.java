@@ -248,22 +248,22 @@ public class EntityContext {
 
 		for (PropertyKey key : keys) {
 
-			registerSearchablePropertySet(type, index, key);
+			registerSearchableProperty(type, index, key);
 
 		}
 	}
 
-	public static void registerSearchablePropertySet(Class type, String index, PropertyKey key) {
-		registerSearchablePropertySet(type, index, key.name());
+	public static void registerSearchableProperty(Class type, String index, PropertyKey key) {
+		registerSearchableProperty(type, index, key.name());
 	}
+//
+//	public static void registerSearchableProperty(String type, String index, String key) {
+//		registerSearchableProperty(type.getSimpleName(), index, key);
+//	}
 
-	public static void registerSearchablePropertySet(Class type, String index, String key) {
-		registerSearchablePropertySet(type.getSimpleName(), index, key);
-	}
+	public static void registerSearchableProperty(Class type, String index, String key) {
 
-	public static void registerSearchablePropertySet(String type, String index, String key) {
-
-		Map<String, Set<String>> searchablePropertyMapForType = getSearchablePropertyMapForType(type);
+		Map<String, Set<String>> searchablePropertyMapForType = getSearchablePropertyMapForType(type.getSimpleName());
 		Set<String> searchablePropertySet                     = searchablePropertyMapForType.get(index);
 
 		if (searchablePropertySet == null) {
@@ -275,6 +275,22 @@ public class EntityContext {
 		}
 
 		searchablePropertySet.add(key);
+
+
+		// include properties from superclass
+		Class superClass = type.getSuperclass();
+
+		while ((superClass != null) &&!superClass.equals(Object.class)) {
+
+			Set<String> superProperties = getSearchableProperties(superClass, index);
+
+			searchablePropertySet.addAll(superProperties);
+
+			// one level up :)
+			superClass = superClass.getSuperclass();
+
+		}
+
 	}
 
 	// ----- write-once property map -----
@@ -557,7 +573,16 @@ public class EntityContext {
 	}
 
 	public static Set<String> getSearchableProperties(String type, String index) {
-		return getSearchablePropertyMapForType(type).get(index);
+
+		Set<String> searchablePropertyMap = getSearchablePropertyMapForType(type).get(index);
+
+		if (searchablePropertyMap == null) {
+
+			searchablePropertyMap = new HashSet<String>();
+
+		}
+
+		return searchablePropertyMap;
 	}
 
 	private static Map<String, DirectedRelation> getPropertyRelationshipMapForType(String sourceType) {
