@@ -41,6 +41,7 @@ import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.DirectedRelation;
 import org.structr.core.entity.DirectedRelation.Cardinality;
 import org.structr.core.entity.NamedRelation;
+import org.structr.core.node.*;
 import org.structr.core.node.IndexNodeCommand;
 import org.structr.core.node.IndexRelationshipCommand;
 import org.structr.core.node.NodeFactory;
@@ -88,6 +89,45 @@ public class EntityContext {
 
 	//~--- methods --------------------------------------------------------
 
+	/**
+	 * Initialize the entity context for the given class.
+	 * This method sets defaults common for any class, f.e. registers any of its parent properties.
+	 *
+	 * @param type
+	 */
+	public static void init(Class type) {
+
+		// 1. Register searchable keys of superclasses
+		for (Enum index : NodeService.NodeIndex.values()) {
+
+			String indexName                                      = index.name();
+			Map<String, Set<String>> searchablePropertyMapForType = getSearchablePropertyMapForType(type.getSimpleName());
+			Set<String> searchablePropertySet                     = searchablePropertyMapForType.get(indexName);
+
+			if (searchablePropertySet == null) {
+
+				searchablePropertySet = new LinkedHashSet<String>();
+
+				searchablePropertyMapForType.put(indexName, searchablePropertySet);
+
+			}
+
+			Class superClass = type.getSuperclass();
+
+			while ((superClass != null) &&!superClass.equals(Object.class)) {
+
+				Set<String> superProperties = getSearchableProperties(superClass, indexName);
+
+				searchablePropertySet.addAll(superProperties);
+
+				// one level up :)
+				superClass = superClass.getSuperclass();
+
+			}
+
+		}
+	}
+
 	public static void registerModificationListener(VetoableGraphObjectListener listener) {
 		modificationListeners.add(listener);
 	}
@@ -130,7 +170,8 @@ public class EntityContext {
 		registerPropertyRelationInternal(sourceType.getSimpleName(), property, destType.getSimpleName(), relType, direction, cardinality, objectNotion);
 	}
 
-	public static void registerPropertyRelation(Class sourceType, PropertyKey[] propertySet, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion) {
+	public static void registerPropertyRelation(Class sourceType, PropertyKey[] propertySet, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality,
+		Notion notion) {
 
 		notion.setType(destType);
 		registerPropertyRelationInternal(sourceType.getSimpleName(), propertySet, destType.getSimpleName(), relType, direction, cardinality, notion);
@@ -256,10 +297,11 @@ public class EntityContext {
 	public static void registerSearchableProperty(Class type, String index, PropertyKey key) {
 		registerSearchableProperty(type, index, key.name());
 	}
+
 //
-//	public static void registerSearchableProperty(String type, String index, String key) {
-//		registerSearchableProperty(type.getSimpleName(), index, key);
-//	}
+//      public static void registerSearchableProperty(String type, String index, String key) {
+//              registerSearchableProperty(type.getSimpleName(), index, key);
+//      }
 
 	public static void registerSearchableProperty(Class type, String index, String key) {
 
@@ -275,22 +317,6 @@ public class EntityContext {
 		}
 
 		searchablePropertySet.add(key);
-
-
-		// include properties from superclass
-		Class superClass = type.getSuperclass();
-
-		while ((superClass != null) &&!superClass.equals(Object.class)) {
-
-			Set<String> superProperties = getSearchableProperties(superClass, index);
-
-			searchablePropertySet.addAll(superProperties);
-
-			// one level up :)
-			superClass = superClass.getSuperclass();
-
-		}
-
 	}
 
 	// ----- write-once property map -----
@@ -334,11 +360,12 @@ public class EntityContext {
 		Notion notion) {
 
 		Map<String, DirectedRelation> typeMap = getPropertyRelationshipMapForType(sourceType);
-
-		DirectedRelation rel = new DirectedRelation(destType, relType, direction, cardinality, notion);
+		DirectedRelation rel                  = new DirectedRelation(destType, relType, direction, cardinality, notion);
 
 		for (PropertyKey prop : properties) {
+
 			typeMap.put(prop.name(), rel);
+
 		}
 	}
 
@@ -476,7 +503,7 @@ public class EntityContext {
 
 		return rel;
 	}
-	
+
 	// ----- property set methods -----
 	public static Set<String> getPropertySet(Class type, String propertyView) {
 
@@ -906,6 +933,7 @@ public class EntityContext {
 					hasError |= graphObjectCreated(securityContext, transactionKey, errorBuffer, entity);
 
 					createdNodes.add(entity);
+
 				}
 
 				// 3: notify listeners of relationship creation
@@ -1000,9 +1028,11 @@ public class EntityContext {
 					if (!createdNodes.contains(node)) {
 
 						hasError |= graphObjectModified(securityContext, transactionKey, errorBuffer, node);
-						
+
 					} else {
+
 						indexNodeCommand.execute(node);
+
 					}
 				}
 
@@ -1020,14 +1050,18 @@ public class EntityContext {
 					}
 				}
 
-				for(AbstractNode node : createdNodes) {
+				for (AbstractNode node : createdNodes) {
+
 					indexNodeCommand.execute(node);
+
 				}
-				
-				for(AbstractRelationship rel : createdRels) {
+
+				for (AbstractRelationship rel : createdRels) {
+
 					indexRelationshipCommand.execute(rel);
+
 				}
-				
+
 				// notify listeners of commit
 				hasError |= commit(securityContext, transactionKey, errorBuffer);
 

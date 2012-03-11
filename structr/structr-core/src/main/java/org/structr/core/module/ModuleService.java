@@ -63,6 +63,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import javax.servlet.ServletContext;
+import org.structr.core.*;
 import org.structr.core.entity.AbstractRelationship;
 
 //~--- classes ----------------------------------------------------------------
@@ -504,6 +505,8 @@ public class ModuleService implements SingletonService {
 
 					// register node entity classes
 					if (AbstractNode.class.isAssignableFrom(clazz)) {
+
+						EntityContext.init(clazz);
 
 						String simpleName = clazz.getSimpleName();
 						String fullName   = clazz.getName();
