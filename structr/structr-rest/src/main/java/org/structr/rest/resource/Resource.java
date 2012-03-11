@@ -5,7 +5,7 @@
  */
 package org.structr.rest.resource;
 
-import java.util.Collections;
+import java.util.*;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.SecurityContext;
 import org.structr.core.EntityContext;
@@ -24,8 +24,6 @@ import org.structr.rest.exception.NoResultsException;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
 
@@ -34,9 +32,13 @@ import javax.servlet.http.HttpServletResponse;
 import org.structr.common.AbstractGraphObjectComparator;
 import org.structr.common.PropertyKey;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.InvalidSearchField;
 import org.structr.core.*;
 import org.structr.core.entity.DirectedRelation;
 import org.structr.core.node.*;
+import org.structr.core.node.search.Search;
+import org.structr.core.node.search.SearchAttribute;
+import org.structr.rest.servlet.JsonRestServlet;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -51,6 +53,20 @@ import org.structr.core.node.*;
 public abstract class Resource {
 
 	private static final Logger logger = Logger.getLogger(Resource.class.getName());
+	private static final Set<String> NON_SEARCH_FIELDS = new LinkedHashSet<String>();
+
+	//~--- static initializers --------------------------------------------
+
+	static {
+
+		// create static Set with non-searchable request parameters
+		// to identify search requests quickly
+		NON_SEARCH_FIELDS.add(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH);
+		NON_SEARCH_FIELDS.add(JsonRestServlet.REQUEST_PARAMETER_PAGE_NUMBER);
+		NON_SEARCH_FIELDS.add(JsonRestServlet.REQUEST_PARAMETER_PAGE_SIZE);
+		NON_SEARCH_FIELDS.add(JsonRestServlet.REQUEST_PARAMETER_SORT_KEY);
+		NON_SEARCH_FIELDS.add(JsonRestServlet.REQUEST_PARAMETER_SORT_ORDER);
+	}
 
 	//~--- fields ---------------------------------------------------------
 
@@ -258,6 +274,94 @@ public abstract class Resource {
 				Collections.sort(list, new AbstractGraphObjectComparator(defaultSort.name(), defaultOrder));
 
 			}
+		}
+		
+	}
+	
+	protected boolean hasSearchableAttributes(final String rawType, final HttpServletRequest request, final List<SearchAttribute> searchAttributes) throws FrameworkException {
+
+		boolean hasSearchableAttributes = false;
+
+		// searchable attributes
+		if ((rawType != null) && (request != null) &&!request.getParameterMap().isEmpty()) {
+
+			boolean looseSearch              = parseInteger(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH)) == 1;
+			Set<String> searchableProperties = null;
+
+			if (looseSearch) {
+
+				searchableProperties = EntityContext.getSearchableProperties(rawType, NodeService.NodeIndex.fulltext.name());
+
+			} else {
+
+				searchableProperties = EntityContext.getSearchableProperties(rawType, NodeService.NodeIndex.keyword.name());
+
+			}
+
+			if (searchableProperties != null) {
+
+				checkForIllegalSearchKeys(request, searchableProperties);
+
+				for (String key : searchableProperties) {
+
+					String searchValue = request.getParameter(key);
+
+					if (searchValue != null) {
+
+						if (looseSearch) {
+
+							searchAttributes.add(Search.andProperty(key, searchValue));
+
+						} else {
+
+							searchAttributes.add(Search.andExactProperty(key, searchValue));
+
+						}
+
+						hasSearchableAttributes = true;
+
+					}
+
+				}
+
+			}
+
+		}
+
+		return hasSearchableAttributes;
+	}
+
+	// ----- private methods -----
+	private int parseInteger(Object source) {
+
+		try {
+			return Integer.parseInt(source.toString());
+		} catch (Throwable t) {}
+
+		return -1;
+	}
+
+	private void checkForIllegalSearchKeys(final HttpServletRequest request, final Set<String> searchableProperties) throws FrameworkException {
+
+		ErrorBuffer errorBuffer = new ErrorBuffer();
+
+		// try to identify invalid search properties and throw an exception
+		for (Enumeration<String> e = request.getParameterNames(); e.hasMoreElements(); ) {
+
+			String requestParameterName = e.nextElement();
+
+			if (!searchableProperties.contains(requestParameterName) &&!NON_SEARCH_FIELDS.contains(requestParameterName)) {
+
+				errorBuffer.add("base", new InvalidSearchField(requestParameterName));
+
+			}
+
+		}
+
+		if (errorBuffer.hasError()) {
+
+			throw new FrameworkException(422, errorBuffer);
+
 		}
 	}
 

@@ -50,11 +50,14 @@ public class NamedRelationResource extends WrappingResource {
 	private static final Logger logger = Logger.getLogger(NamedRelationResource.class.getName());
 
 	private NamedRelation namedRelation = null;
+	private HttpServletRequest request = null;
 
 	@Override
 	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) {
-		this.securityContext = securityContext;
+		
 		this.namedRelation = EntityContext.getNamedRelation(part);
+		this.securityContext = securityContext;
+		this.request = request;
 
 		return namedRelation != null;
 	}
@@ -78,6 +81,9 @@ public class NamedRelationResource extends WrappingResource {
 			// fetch all relationships of a specific type and return them
 			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 			searchAttributes.add(Search.andRelType(namedRelation));
+			
+			// add searchable attributes from EntityContext
+			hasSearchableAttributes(namedRelation.getName(), request, searchAttributes);
 
 			relationResults.addAll((List<AbstractRelationship>)Services.command(securityContext, SearchRelationshipCommand.class).execute(searchAttributes));
 
