@@ -19,7 +19,6 @@
         <module>structr-rest</module>
         <module>structr-websocket</module>
         <module>structr-ui</module>
-        <module>structr-test-suite</module>
     </modules>
 
     <build>
