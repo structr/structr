@@ -153,7 +153,7 @@ public class EntityContext {
 	public static void registerNamedRelation(String relationName, Class relationshipEntityType, Class sourceType, Class destType, RelationshipType relType) {
 
 		globalRelationshipNameMap.put(relationName, new NamedRelation(relationName, sourceType, destType, relType));
-		globalRelationshipClassMap.put(createCombinedRelationshipType(sourceType.getSimpleName(), destType.getSimpleName(), relType.name()), relationshipEntityType);
+		globalRelationshipClassMap.put(createCombinedRelationshipType(sourceType.getSimpleName(), relType.name(), destType.getSimpleName()), relationshipEntityType);
 	}
 
 	// ----- property and entity relationships -----
@@ -413,15 +413,15 @@ public class EntityContext {
 	}
 
 	// ----- private methods -----
-	public static String createCombinedRelationshipType(String key1, String key2, String key3) {
+	public static String createCombinedRelationshipType(String sourceType, String relType, String destType) {
 
 		StringBuilder buf = new StringBuilder();
 
-		buf.append(key1);
+		buf.append(sourceType);
 		buf.append(" ");
-		buf.append(key2);
+		buf.append(relType);
 		buf.append(" ");
-		buf.append(key3);
+		buf.append(destType);
 
 		return buf.toString();
 	}
@@ -441,7 +441,7 @@ public class EntityContext {
 	}
 
 	public static Class getNamedRelationClass(String sourceType, String destType, String relType) {
-		return globalRelationshipClassMap.get(createCombinedRelationshipType(sourceType, destType, relType));
+		return globalRelationshipClassMap.get(createCombinedRelationshipType(sourceType, relType, destType));
 	}
 
 	public static Collection<NamedRelation> getNamedRelations() {
