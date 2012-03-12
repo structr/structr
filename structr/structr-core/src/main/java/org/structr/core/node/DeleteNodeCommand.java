@@ -31,17 +31,17 @@ import org.neo4j.kernel.Traversal;
 import org.structr.common.RelType;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
+import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.entity.DirectedRelation;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.EntityContext;
-import org.structr.core.entity.DirectedRelation;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -165,21 +165,23 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 					// Delete all end nodes of outgoing relationships which are connected
 					// by relationships which have the cascadeDelete switch set to true
-					
 					List<AbstractRelationship> relationships = node.getOutgoingRelationships();
 
 					for (AbstractRelationship rel : relationships) {
 
 						if (rel.cascadeDelete()) {
 
-							doDeleteNode(rel.getEndNode(), cascade);
+							try {
+								doDeleteNode(rel.getEndNode(), cascade);
+							} catch (Throwable t) {
+								logger.log(Level.WARNING, "Exception while deleting connected node: {0}", t);
+							}
 
 						}
 
 					}
-					
-					//List<DirectedRelation> cascadingRels = EntityContext.getOutgoingCascadingRelations(node.getClass());
 
+					// List<DirectedRelation> cascadingRels = EntityContext.getOutgoingCascadingRelations(node.getClass());
 				}
 
 				// Delete any relationship

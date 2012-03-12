@@ -119,7 +119,8 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	//~--- constant enums -------------------------------------------------
 
 	public enum HiddenKey implements PropertyKey {
-		type    // internal type, see IndexRelationshipCommand#indexRelationship method
+		type,    // internal type, see IndexRelationshipCommand#indexRelationship method
+		cascadeDelete
 	}
 
 	public enum Key implements PropertyKey{ uuid }
@@ -337,7 +338,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	 * node deleted in a cascade.
 	 */
 	public boolean cascadeDelete() {
-		return false;
+		return getBooleanProperty(AbstractRelationship.HiddenKey.cascadeDelete.name());
 	}
 
 	//~--- get methods ----------------------------------------------------
