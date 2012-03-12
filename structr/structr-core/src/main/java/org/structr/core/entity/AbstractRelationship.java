@@ -119,7 +119,8 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	//~--- constant enums -------------------------------------------------
 
 	public enum HiddenKey implements PropertyKey {
-		type    // internal type, see IndexRelationshipCommand#indexRelationship method
+		type,    // internal type, see IndexRelationshipCommand#indexRelationship method
+		cascadeDelete
 	}
 
 	public enum Key implements PropertyKey{ uuid }
@@ -179,7 +180,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		return AbstractGraphObjectComparator.ASCENDING;
 	}
 	
-	public AbstractNode identifyStartNode(NamedRelation namedRelation, Map<String, Object> propertySet) throws FrameworkException {
+	public AbstractNode identifyStartNode(RelationshipMapping namedRelation, Map<String, Object> propertySet) throws FrameworkException {
 
 		Notion startNodeNotion = new RelationshipNotion(getStartNodeIdKey());
 
@@ -200,7 +201,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		return null;
 	}
 
-	public AbstractNode identifyEndNode(NamedRelation namedRelation, Map<String, Object> propertySet) throws FrameworkException {
+	public AbstractNode identifyEndNode(RelationshipMapping namedRelation, Map<String, Object> propertySet) throws FrameworkException {
 
 		Notion endNodeNotion = new RelationshipNotion(getEndNodeIdKey());
 
@@ -332,12 +333,10 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		return ((Long) this.getId()).compareTo((Long) rel.getId());
 	}
 
-	/**
-	 * Overload and return true if you wish to have all end nodes of this
-	 * node deleted in a cascade.
-	 */
-	public boolean cascadeDelete() {
-		return false;
+
+	public int cascadeDelete() {
+		Integer cd = getIntProperty(AbstractRelationship.HiddenKey.cascadeDelete);
+		return cd != null ? cd : 0;
 	}
 
 	//~--- get methods ----------------------------------------------------
@@ -470,7 +469,41 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 		return result;
 	}
+	
+	public Integer getIntProperty(final PropertyKey propertyKey) {
+		return (getIntProperty(propertyKey.name()));
+	}
 
+	public Integer getIntProperty(final String key) {
+
+		Object propertyValue = getProperty(key);
+		Integer result       = null;
+
+		if (propertyValue == null) {
+
+			return null;
+
+		}
+
+		if (propertyValue instanceof Integer) {
+
+			result = ((Integer) propertyValue);
+
+		} else if (propertyValue instanceof String) {
+
+			if ("".equals((String) propertyValue)) {
+
+				return null;
+
+			}
+
+			result = Integer.parseInt(((String) propertyValue));
+
+		}
+
+		return result;
+	}
+	
 	@Override
 	public Date getDateProperty(final String key) {
 

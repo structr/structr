@@ -34,7 +34,7 @@ import org.structr.common.PropertyKey;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidSearchField;
 import org.structr.core.*;
-import org.structr.core.entity.DirectedRelation;
+import org.structr.core.entity.RelationClass;
 import org.structr.core.node.*;
 import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
@@ -203,19 +203,19 @@ public abstract class Resource {
 	}
 
 	// ----- protected methods -----
-	protected DirectedRelation findDirectedRelation(TypedIdResource constraint1, TypeResource constraint2) {
-		return findDirectedRelation(constraint1.getTypeResource(), constraint2);
+	protected RelationClass findRelationClass(TypedIdResource constraint1, TypeResource constraint2) {
+		return findRelationClass(constraint1.getTypeResource(), constraint2);
 	}
 
-	protected DirectedRelation findDirectedRelation(TypeResource constraint1, TypedIdResource constraint2) {
-		return findDirectedRelation(constraint1, constraint2.getTypeResource());
+	protected RelationClass findRelationClass(TypeResource constraint1, TypedIdResource constraint2) {
+		return findRelationClass(constraint1, constraint2.getTypeResource());
 	}
 
-	protected DirectedRelation findDirectedRelation(TypedIdResource constraint1, TypedIdResource constraint2) {
-		return findDirectedRelation(constraint1.getTypeResource(), constraint2.getTypeResource());
+	protected RelationClass findRelationClass(TypedIdResource constraint1, TypedIdResource constraint2) {
+		return findRelationClass(constraint1.getTypeResource(), constraint2.getTypeResource());
 	}
 
-	protected DirectedRelation findDirectedRelation(TypeResource constraint1, TypeResource constraint2) {
+	protected RelationClass findRelationClass(TypeResource constraint1, TypeResource constraint2) {
 
 		String type1             = constraint1.getRawType();
 		String type2             = constraint2.getRawType();

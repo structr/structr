@@ -27,7 +27,7 @@ import org.neo4j.graphdb.Direction;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.core.EntityContext;
-import org.structr.core.entity.DirectedRelation;
+import org.structr.core.entity.RelationClass;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -46,7 +46,7 @@ public class Meta extends HtmlElement {
 		EntityContext.registerPropertySet(Meta.class, PropertyView.Public, HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Meta.class, PropertyView.Html, true, htmlAttributes);
 
-		EntityContext.registerEntityRelation(Meta.class, Head.class,	RelType.CONTAINS, Direction.INCOMING, DirectedRelation.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Meta.class, Head.class,	RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
 
 	}
 

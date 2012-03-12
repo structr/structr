@@ -28,7 +28,6 @@ import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.DirectedRelation;
 import org.structr.core.node.DeleteRelationshipCommand;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
@@ -38,6 +37,7 @@ import org.structr.websocket.message.WebSocketMessage;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.List;
+import org.structr.core.entity.RelationClass;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -63,7 +63,7 @@ public class RemoveCommand extends AbstractCommand {
 
 			if ((sourceNode != null) && (targetNode != null)) {
 
-				DirectedRelation rel = EntityContext.getDirectedRelationship(sourceNode.getClass(), targetNode.getClass());
+				RelationClass rel = EntityContext.getDirectedRelationship(sourceNode.getClass(), targetNode.getClass());
 
 				if (rel != null) {
 

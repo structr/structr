@@ -23,7 +23,7 @@ import org.neo4j.graphdb.Direction;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.core.EntityContext;
-import org.structr.core.entity.DirectedRelation;
+import org.structr.core.entity.RelationClass;
 
 /**
  * @author Axel Morgner
@@ -37,7 +37,7 @@ public class Ol extends HtmlElement {
 		EntityContext.registerPropertySet(Ol.class, PropertyView.Public,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Ol.class, PropertyView.Html, true,	htmlAttributes);
 
-		EntityContext.registerEntityRelation(Ol.class, Div.class,	RelType.CONTAINS, Direction.INCOMING, DirectedRelation.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Ol.class, Li.class,	RelType.CONTAINS, Direction.OUTGOING, DirectedRelation.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Ol.class, Div.class,	RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Ol.class, Li.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
 	}
 }

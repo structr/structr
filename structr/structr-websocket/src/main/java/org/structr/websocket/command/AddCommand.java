@@ -26,11 +26,10 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.DirectedRelation;
-import org.structr.core.entity.File;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
+import org.structr.core.entity.RelationClass;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
@@ -114,7 +113,7 @@ public class AddCommand extends AbstractCommand {
 
 			if ((sourceNode != null) && (targetNode != null)) {
 
-				DirectedRelation rel = EntityContext.getDirectedRelationship(sourceNode.getClass(), targetNode.getClass());
+				RelationClass rel = EntityContext.getDirectedRelationship(sourceNode.getClass(), targetNode.getClass());
 
 				if (rel != null) {
 

@@ -23,7 +23,7 @@ import org.neo4j.graphdb.Direction;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.core.EntityContext;
-import org.structr.core.entity.DirectedRelation;
+import org.structr.core.entity.RelationClass;
 import org.structr.web.entity.Content;
 
 /**
@@ -38,14 +38,14 @@ public class Form extends HtmlElement {
 		EntityContext.registerPropertySet(Form.class, PropertyView.Public,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Form.class, PropertyView.Html, true,	htmlAttributes);
 
-		EntityContext.registerEntityRelation(Form.class, Div.class,	RelType.CONTAINS, Direction.INCOMING, DirectedRelation.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Form.class, Div.class,	RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
 
-		EntityContext.registerEntityRelation(Form.class, Content.class,	RelType.CONTAINS, Direction.OUTGOING, DirectedRelation.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Form.class, Div.class,	RelType.CONTAINS, Direction.OUTGOING, DirectedRelation.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Form.class, Input.class,	RelType.CONTAINS, Direction.OUTGOING, DirectedRelation.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Form.class, Button.class,	RelType.CONTAINS, Direction.OUTGOING, DirectedRelation.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Form.class, Select.class,	RelType.CONTAINS, Direction.OUTGOING, DirectedRelation.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Form.class, Label.class,	RelType.CONTAINS, Direction.OUTGOING, DirectedRelation.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Form.class, Content.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Form.class, Div.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Form.class, Input.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Form.class, Button.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Form.class, Select.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Form.class, Label.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
 		
 	}
 }

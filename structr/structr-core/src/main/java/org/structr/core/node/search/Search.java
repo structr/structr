@@ -26,12 +26,8 @@ import org.apache.commons.lang.StringUtils;
 
 import org.structr.common.PropertyKey;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.NamedRelation;
 import org.structr.core.entity.PlainText;
 import org.structr.core.module.GetEntitiesCommand;
 
@@ -44,6 +40,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.EntityContext;
+import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.entity.RelationshipMapping;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -112,7 +112,7 @@ public abstract class Search {
 		return attr;
 	}
 
-	public static SearchAttribute andRelType(final NamedRelation namedRelation) {
+	public static SearchAttribute andRelType(final RelationshipMapping namedRelation) {
 		return andRelType(namedRelation.getRelType().name(), namedRelation.getSourceType().getSimpleName(), namedRelation.getDestType().getSimpleName());
 	}
 
@@ -124,7 +124,7 @@ public abstract class Search {
 		return attr;
 	}
 
-	public static SearchAttribute orRelType(final NamedRelation namedRelation) {
+	public static SearchAttribute orRelType(final RelationshipMapping namedRelation) {
 		return orRelType(namedRelation.getRelType().name(), namedRelation.getSourceType().getSimpleName(), namedRelation.getDestType().getSimpleName());
 	}
 
@@ -206,7 +206,7 @@ public abstract class Search {
 		return attr;
 	}
 
-	public static SearchAttribute andExactRelType(final NamedRelation namedRelation) {
+	public static SearchAttribute andExactRelType(final RelationshipMapping namedRelation) {
 		return andExactRelType(namedRelation.getRelType().name(), namedRelation.getSourceType().getSimpleName(), namedRelation.getDestType().getSimpleName());
 	}
 
@@ -218,7 +218,7 @@ public abstract class Search {
 		return attr;
 	}
 
-	public static SearchAttribute orExactRelType(final NamedRelation namedRelation) {
+	public static SearchAttribute orExactRelType(final RelationshipMapping namedRelation) {
 		return orRelType(namedRelation.getRelType().name(), namedRelation.getSourceType().getSimpleName(), namedRelation.getDestType().getSimpleName());
 	}
 

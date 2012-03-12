@@ -27,7 +27,7 @@ import org.neo4j.graphdb.Direction;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.core.EntityContext;
-import org.structr.core.entity.DirectedRelation;
+import org.structr.core.entity.RelationClass;
 import org.structr.web.entity.Resource;
 
 //~--- classes ----------------------------------------------------------------
@@ -47,10 +47,10 @@ public class Html extends HtmlElement {
 		EntityContext.registerPropertySet(Html.class, PropertyView.Public, HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Html.class, PropertyView.Html, true, htmlAttributes);
 
-		EntityContext.registerEntityRelation(Html.class, Resource.class, RelType.CONTAINS, Direction.INCOMING, DirectedRelation.Cardinality.OneToMany);
+		EntityContext.registerEntityRelation(Html.class, Resource.class, RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.OneToMany);
 
-		EntityContext.registerEntityRelation(Html.class, Head.class, RelType.CONTAINS, Direction.OUTGOING, DirectedRelation.Cardinality.OneToOne);
-		EntityContext.registerEntityRelation(Html.class, Body.class, RelType.CONTAINS, Direction.OUTGOING, DirectedRelation.Cardinality.OneToOne);
+		EntityContext.registerEntityRelation(Html.class, Head.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.OneToOne);
+		EntityContext.registerEntityRelation(Html.class, Body.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.OneToOne);
 
 	}
 

@@ -62,9 +62,14 @@ import java.util.logging.Logger;
  *
  * @author Christian Morgner
  */
-public class DirectedRelation {
+public class RelationClass {
 
-	private static final Logger logger = Logger.getLogger(DirectedRelation.class.getName());
+	public static final int DELETE_NONE = 0;
+	public static final int DELETE_OUTGOING = 1;
+	public static final int DELETE_INCOMING = 2;
+	public static final int DELETE_BOTH = 3;
+	
+	private static final Logger logger = Logger.getLogger(RelationClass.class.getName());
 
 	//~--- fields ---------------------------------------------------------
 
@@ -73,6 +78,7 @@ public class DirectedRelation {
 	private Direction direction      = null;
 	private Notion notion            = null;
 	private RelationshipType relType = null;
+	private int cascadeDelete    = DELETE_NONE;
 
 	//~--- constant enums -------------------------------------------------
 
@@ -80,8 +86,9 @@ public class DirectedRelation {
 
 	//~--- constructors ---------------------------------------------------
 
-	public DirectedRelation(String destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion) {
+	public RelationClass(String destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion, int cascadeDelete) {
 
+		this.cascadeDelete = cascadeDelete;
 		this.cardinality   = cardinality;
 		this.direction     = direction;
 		this.destType      = destType;
@@ -176,6 +183,11 @@ public class DirectedRelation {
 					}
 
 					newRel.setProperties(properties);
+					
+					// set cascade delete value
+					if (cascadeDelete > 0) {
+						newRel.setProperty(AbstractRelationship.HiddenKey.cascadeDelete, cascadeDelete);
+					}
 					
 					return newRel;
 				}
@@ -380,12 +392,15 @@ public class DirectedRelation {
 				@Override
 				public Object execute() throws FrameworkException {
 
-						AbstractNode relatedNode = (AbstractNode) Services.command(securityContext, CreateNodeCommand.class).execute(new NodeAttribute(AbstractNode.Key.type.name(), getDestType()));		
+					AbstractNode relatedNode = (AbstractNode) Services.command(securityContext, CreateNodeCommand.class).execute(new NodeAttribute(AbstractNode.Key.type.name(), getDestType()));		
 					
 					// Create new relationship between facility and location nodes
-					Command createRel = Services.command(SecurityContext.getSuperUserInstance(), CreateRelationshipCommand.class);
+					Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
 
-					createRel.execute(node, relatedNode, getRelType());
+					AbstractRelationship newRel = (AbstractRelationship)createRel.execute(node, relatedNode, getRelType());
+					if (cascadeDelete > 0) {
+						newRel.setProperty(AbstractRelationship.HiddenKey.cascadeDelete, cascadeDelete);
+					}
 
 					return relatedNode;
 				}

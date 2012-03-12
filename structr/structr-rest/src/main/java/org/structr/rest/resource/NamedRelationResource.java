@@ -33,7 +33,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.NamedRelation;
+import org.structr.core.entity.RelationshipMapping;
 import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
@@ -49,7 +49,7 @@ public class NamedRelationResource extends WrappingResource {
 
 	private static final Logger logger = Logger.getLogger(NamedRelationResource.class.getName());
 
-	private NamedRelation namedRelation = null;
+	private RelationshipMapping namedRelation = null;
 	private HttpServletRequest request = null;
 
 	@Override

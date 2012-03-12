@@ -28,8 +28,6 @@ import org.structr.common.SecurityContext;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.DirectedRelation;
-import org.structr.core.entity.DirectedRelation.Cardinality;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.NodeAttribute;
@@ -45,6 +43,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.RelationClass;
+import org.structr.core.entity.RelationClass.Cardinality;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -173,7 +173,7 @@ public class LinkCommand extends AbstractCommand {
 								thirdNode = (AbstractNode) transactionCommand.execute(transaction);
 
 								// Create a CONTAINS relationship
-								DirectedRelation rel                      = new DirectedRelation(null, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany, null);
+								RelationClass rel                      = new RelationClass(null, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany, null, RelationClass.DELETE_NONE);
 								Map<String, Object> newRelationshipProperties = new HashMap<String, Object>();
 
 								newRelationshipProperties.put(resourceIdFromRel, 0);
@@ -184,7 +184,7 @@ public class LinkCommand extends AbstractCommand {
 								rel.createRelationship(securityContext, sourceNode, thirdNode, newRelationshipProperties);
 
 								// Create a LINK relationship
-								rel = new DirectedRelation(resourceNode.getType(), RelType.LINK, Direction.OUTGOING, Cardinality.ManyToMany, null);
+								rel = new RelationClass(resourceNode.getType(), RelType.LINK, Direction.OUTGOING, Cardinality.ManyToMany, null, RelationClass.DELETE_NONE);
 
 								rel.createRelationship(securityContext, secondNode, resourceNode);
 							}

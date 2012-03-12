@@ -33,7 +33,6 @@ import org.neo4j.kernel.Uniqueness;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.DirectedRelation;
 import org.structr.core.node.NodeFactory;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
@@ -53,6 +52,7 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.RelationClass;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -75,14 +75,14 @@ public class RelationshipFollowingResource extends SortableResource implements E
 	private int pathLength                                 = 0;
 	private TraversalDescription traversalDescription      = null;
 	private List<String> uriParts                          = null;
-	private Set<DirectedRelation> visitedRelationships = null;
+	private Set<RelationClass> visitedRelationships = null;
 
 	//~--- constructors ---------------------------------------------------
 
 	public RelationshipFollowingResource(SecurityContext securityContext, TypedIdResource typedIdResource) {
 
 		this.traversalDescription = Traversal.description().depthFirst().uniqueness(Uniqueness.NODE_GLOBAL).evaluator(Evaluators.excludeStartPosition());
-		this.visitedRelationships = new LinkedHashSet<DirectedRelation>();
+		this.visitedRelationships = new LinkedHashSet<RelationClass>();
 		this.securityContext      = securityContext;
 		this.idSet                = new LinkedHashSet<Object>();
 		this.uriParts             = new LinkedList<String>();
@@ -146,7 +146,7 @@ public class RelationshipFollowingResource extends SortableResource implements E
 		uriParts.add(typedIdResource.getUriPart());
 
 		// find static relationship between the two types
-		DirectedRelation rel = findDirectedRelation(lastResource, typedIdResource);
+		RelationClass rel = findRelationClass(lastResource, typedIdResource);
 		if (rel != null) {
 
 			if (!visitedRelationships.contains(rel)) {
@@ -253,8 +253,8 @@ public class RelationshipFollowingResource extends SortableResource implements E
 				
 				if ((startNode != null) && (endNode != null)) {
 
-					final DirectedRelation DirectedRelation = EntityContext.getDirectedRelation(startNode.getClass(), property);
-					if(DirectedRelation != null) {
+					final RelationClass RelationClass = EntityContext.getDirectedRelation(startNode.getClass(), property);
+					if(RelationClass != null) {
 
 						// relationship found!
 						StructrTransaction transaction = new StructrTransaction() {
@@ -262,9 +262,9 @@ public class RelationshipFollowingResource extends SortableResource implements E
 							@Override
 							public Object execute() throws FrameworkException {
 
-								for (StructrRelationship rel : startNode.getRelationships(DirectedRelation.getRelType(), DirectedRelation.getDirection())) {
+								for (StructrRelationship rel : startNode.getRelationships(RelationClass.getRelType(), RelationClass.getDirection())) {
 
-									switch(DirectedRelation.getDirection()) {
+									switch(RelationClass.getDirection()) {
 										
 										case INCOMING:
 											if (rel.getStartNodeId().equals(endNode.getUuid()) && rel.getEndNodeId().equals(startNode.getUuid())) {

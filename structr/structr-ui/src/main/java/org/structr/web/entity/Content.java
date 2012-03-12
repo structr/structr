@@ -29,9 +29,10 @@ import org.structr.common.RelType;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.web.entity.html.*;
-import org.structr.core.entity.DirectedRelation.Cardinality;
+import org.structr.core.entity.RelationClass.Cardinality;
 import org.structr.core.node.NodeService;
 import org.structr.core.node.search.Search;
+import org.structr.core.entity.RelationClass.Cardinality;
 
 //~--- classes ----------------------------------------------------------------
 
