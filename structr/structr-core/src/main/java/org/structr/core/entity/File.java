@@ -48,6 +48,7 @@ import java.net.URL;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.node.NodeService.NodeIndex;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -68,6 +69,9 @@ public class File extends AbstractNode {
 		EntityContext.registerPropertySet(File.class, PropertyView.All, Key.values());
 
 //              EntityContext.registerPropertyRelation(File.class, Key.parentFolder, Folder.class, RelType.HAS_CHILD, Direction.INCOMING, Cardinality.ManyToOne);
+
+		EntityContext.registerSearchablePropertySet(File.class, NodeIndex.fulltext.name(), Key.values());
+		EntityContext.registerSearchablePropertySet(File.class, NodeIndex.keyword.name(), Key.values());
 
 	}
 

@@ -30,6 +30,7 @@ import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.web.entity.html.*;
 import org.structr.core.entity.DirectedRelation.Cardinality;
+import org.structr.core.node.NodeService;
 import org.structr.core.node.search.Search;
 
 //~--- classes ----------------------------------------------------------------
@@ -88,6 +89,9 @@ public class Content extends AbstractNode {
 		EntityContext.registerEntityRelation(Content.class,	Bdi.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Content.class,	Bdo.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Content.class,	Span.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
+
+		EntityContext.registerSearchablePropertySet(Content.class, NodeService.NodeIndex.fulltext.name(), Element.UiKey.values());
+		EntityContext.registerSearchablePropertySet(Content.class, NodeService.NodeIndex.keyword.name(), Element.UiKey.values());
 
 	}
 

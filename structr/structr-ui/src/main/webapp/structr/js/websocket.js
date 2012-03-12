@@ -122,7 +122,7 @@ function connect() {
                     }
 
 
-                    $('#dialogError').html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
+                    $('#dialogMsg').html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
                 }
 
             } else if (command == 'CREATE' || command == 'IMPORT') {

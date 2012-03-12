@@ -29,6 +29,7 @@ import org.structr.common.RelType;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.DirectedRelation.Cardinality;
+import org.structr.core.node.NodeService.NodeIndex;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -48,6 +49,9 @@ public class Element extends AbstractNode {
 		EntityContext.registerEntityRelation(Element.class, Resource.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Element.class, Element.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Element.class, Content.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
+
+		EntityContext.registerSearchablePropertySet(Element.class, NodeIndex.fulltext.name(), UiKey.values());
+		EntityContext.registerSearchablePropertySet(Element.class, NodeIndex.keyword.name(), UiKey.values());
 
 //              EntityContext.registerEntityRelation(Element.class,     Resource.class,         RelType.LINK,           Direction.OUTGOING, Cardinality.ManyToOne);
 

@@ -25,6 +25,7 @@ package org.structr.web.entity.html;
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.core.EntityContext;
+import org.structr.core.node.NodeService.NodeIndex;
 import org.structr.web.entity.Element;
 
 //~--- classes ----------------------------------------------------------------
@@ -55,6 +56,9 @@ public abstract class HtmlElement extends Element {
 		EntityContext.registerPropertySet(HtmlElement.class, PropertyView.Public, UiKey.values());
 		EntityContext.registerPropertySet(HtmlElement.class, PropertyView.Ui, UiKey.values());
 		EntityContext.registerPropertySet(HtmlElement.class, PropertyView.Html, true, htmlAttributes);
+
+		EntityContext.registerSearchablePropertySet(HtmlElement.class, NodeIndex.fulltext.name(), UiKey.values());
+		EntityContext.registerSearchablePropertySet(HtmlElement.class, NodeIndex.keyword.name(), UiKey.values());
 	}
 
 	//~--- constant enums -------------------------------------------------

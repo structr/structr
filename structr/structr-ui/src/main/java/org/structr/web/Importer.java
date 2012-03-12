@@ -64,6 +64,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.structr.web.entity.Content;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -330,25 +331,25 @@ public class Importer {
 
 		List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
 
-//		for (NodeAttribute attr : attrs) {
-//
-//			String key   = attr.getKey();
-//			String value = attr.getValue().toString();
-//
-//			if (type.equals("Content") && key.equals(Content.UiKey.content.name())) {
-//
-//				value = Search.escapeForLucene(value);
-//				//value = Search.clean(value);
-//			}
-//
-//			// Exclude data attribute because it may contain code with special characters, too
-//			if (!key.equals(PropertyView.Html.concat("data"))) {
-//
-//				searchAttrs.add(Search.andExactProperty(key, value));
-//
-//			}
-//
-//		}
+		for (NodeAttribute attr : attrs) {
+
+			String key   = attr.getKey();
+			String value = attr.getValue().toString();
+
+			if (type.equals("Content") && key.equals(Content.UiKey.content.name())) {
+
+				value = Search.escapeForLucene(value);
+				//value = Search.clean(value);
+			}
+
+			// Exclude data attribute because it may contain code with special characters, too
+			if (!key.equals(PropertyView.Html.concat("data"))) {
+
+				searchAttrs.add(Search.andExactProperty(key, value));
+
+			}
+
+		}
 
 		List<AbstractNode> nodes = (List<AbstractNode>) searchNode.execute(null, false, false, searchAttrs);
 

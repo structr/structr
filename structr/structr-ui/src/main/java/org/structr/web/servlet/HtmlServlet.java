@@ -81,6 +81,7 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.lang.StringUtils;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -357,7 +358,7 @@ public class HtmlServlet extends HttpServlet {
 
 			}
 
-			if (tag != null) {
+			if (StringUtils.isNotBlank(tag)) {
 
 				if (tag.equals("body")) {
 
@@ -438,7 +439,7 @@ public class HtmlServlet extends HttpServlet {
 		}
 
 		// render end tag, if needed (= if not singleton tags)
-		if ((tag != null) &&!(ArrayUtils.contains(html5VoidTags, tag))) {
+		if (StringUtils.isNotBlank(tag) &&!(ArrayUtils.contains(html5VoidTags, tag))) {
 
 			buffer.append("</").append(tag).append(">");
 
