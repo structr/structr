@@ -173,7 +173,7 @@ public class LinkCommand extends AbstractCommand {
 								thirdNode = (AbstractNode) transactionCommand.execute(transaction);
 
 								// Create a CONTAINS relationship
-								RelationClass rel                      = new RelationClass(null, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany, null, false);
+								RelationClass rel                      = new RelationClass(null, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany, null, RelationClass.DELETE_NONE);
 								Map<String, Object> newRelationshipProperties = new HashMap<String, Object>();
 
 								newRelationshipProperties.put(resourceIdFromRel, 0);
@@ -184,7 +184,7 @@ public class LinkCommand extends AbstractCommand {
 								rel.createRelationship(securityContext, sourceNode, thirdNode, newRelationshipProperties);
 
 								// Create a LINK relationship
-								rel = new RelationClass(resourceNode.getType(), RelType.LINK, Direction.OUTGOING, Cardinality.ManyToMany, null, false);
+								rel = new RelationClass(resourceNode.getType(), RelType.LINK, Direction.OUTGOING, Cardinality.ManyToMany, null, RelationClass.DELETE_NONE);
 
 								rel.createRelationship(securityContext, secondNode, resourceNode);
 							}

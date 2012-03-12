@@ -164,12 +164,14 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 				if (cascade) {
 
 					// Delete all end nodes of outgoing relationships which are connected
-					// by relationships which have the cascadeDelete switch set to true
-					List<AbstractRelationship> relationships = node.getOutgoingRelationships();
+					// by relationships which have a cascadeDelete value of DELETE_OUTGOING or DELETE_INCOMING
+					List<AbstractRelationship> outgoingRels = node.getOutgoingRelationships();
 
-					for (AbstractRelationship rel : relationships) {
+					for (AbstractRelationship rel : outgoingRels) {
+						
+						int cascadeDelete = rel.cascadeDelete();
 
-						if (rel.cascadeDelete()) {
+						if (cascadeDelete == RelationClass.DELETE_OUTGOING || cascadeDelete == RelationClass.DELETE_BOTH) {
 
 							try {
 								doDeleteNode(rel.getEndNode(), cascade);
@@ -181,7 +183,25 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 					}
 
-					// List<DirectedRelation> cascadingRels = EntityContext.getOutgoingCascadingRelations(node.getClass());
+					// Delete all start nodes of incoming relationships which are connected
+					// by relationships which have a cascadeDelete value of DELETE_INCOMING or DELETE_INCOMING
+					List<AbstractRelationship> incomingRels = node.getIncomingRelationships();
+
+					for (AbstractRelationship rel : incomingRels) {
+						
+						int cascadeDelete = rel.cascadeDelete();
+
+						if (cascadeDelete == RelationClass.DELETE_INCOMING || cascadeDelete == RelationClass.DELETE_INCOMING) {
+
+							try {
+								doDeleteNode(rel.getStartNode(), cascade);
+							} catch (Throwable t) {
+								logger.log(Level.WARNING, "Exception while deleting connected node: {0}", t);
+							}
+
+						}
+
+					}
 				}
 
 				// Delete any relationship

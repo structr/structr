@@ -64,6 +64,11 @@ import java.util.logging.Logger;
  */
 public class RelationClass {
 
+	public static final int DELETE_NONE = 0;
+	public static final int DELETE_OUTGOING = 1;
+	public static final int DELETE_INCOMING = 2;
+	public static final int DELETE_BOTH = 3;
+	
 	private static final Logger logger = Logger.getLogger(RelationClass.class.getName());
 
 	//~--- fields ---------------------------------------------------------
@@ -73,7 +78,7 @@ public class RelationClass {
 	private Direction direction      = null;
 	private Notion notion            = null;
 	private RelationshipType relType = null;
-	private boolean cascadeDelete    = false;
+	private int cascadeDelete    = DELETE_NONE;
 
 	//~--- constant enums -------------------------------------------------
 
@@ -81,7 +86,7 @@ public class RelationClass {
 
 	//~--- constructors ---------------------------------------------------
 
-	public RelationClass(String destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion, boolean cascadeDelete) {
+	public RelationClass(String destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion, int cascadeDelete) {
 
 		this.cascadeDelete = cascadeDelete;
 		this.cardinality   = cardinality;
@@ -179,9 +184,9 @@ public class RelationClass {
 
 					newRel.setProperties(properties);
 					
-					// set cascade delete flag
-					if(cascadeDelete) {
-						newRel.setProperty(AbstractRelationship.HiddenKey.cascadeDelete, true);
+					// set cascade delete value
+					if (cascadeDelete > 0) {
+						newRel.setProperty(AbstractRelationship.HiddenKey.cascadeDelete, cascadeDelete);
 					}
 					
 					return newRel;
@@ -393,8 +398,8 @@ public class RelationClass {
 					Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
 
 					AbstractRelationship newRel = (AbstractRelationship)createRel.execute(node, relatedNode, getRelType());
-					if(cascadeDelete) {
-						newRel.setProperty(AbstractRelationship.HiddenKey.cascadeDelete, true);
+					if (cascadeDelete > 0) {
+						newRel.setProperty(AbstractRelationship.HiddenKey.cascadeDelete, cascadeDelete);
 					}
 
 					return relatedNode;
