@@ -156,6 +156,9 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 		WebSocketMessage message = new WebSocketMessage();
 
 		message.setCommand("UPDATE");
+		String uuid              = graphObject.getStringProperty(AbstractNode.Key.uuid.name());
+
+		message.setId(uuid);
 		message.setGraphObject(graphObject);
 		message.getModifiedProperties().add(key);
 		messageStack.add(message);
@@ -209,16 +212,16 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 
 	@Override
 	public boolean graphObjectModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject) {
-
-		messageStack = messageStackMap.get(transactionKey);
-
-		WebSocketMessage message = new WebSocketMessage();
-		String uuid              = graphObject.getProperty("uuid").toString();
-
-		message.setId(uuid);
-		message.setCommand("UPDATE");
-		message.setGraphObject(graphObject);
-		messageStack.add(message);
+//
+//		messageStack = messageStackMap.get(transactionKey);
+//
+//		WebSocketMessage message = new WebSocketMessage();
+//		String uuid              = graphObject.getProperty("uuid").toString();
+//
+//		message.setId(uuid);
+//		message.setCommand("UPDATE");
+//		message.setGraphObject(graphObject);
+//		messageStack.add(message);
 
 		return false;
 	}

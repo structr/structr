@@ -388,7 +388,7 @@ var _Resources = {
         //        $('.add_icon', div).on('click', function() {
         //            Resources.addElement(this, resource);
         //        });
-        $('b', div).on('click', function() {
+        $('b', div).on('click', function(e) {
             e.stopPropagation();
             var self = $(this);
             self.off('click');
