@@ -136,7 +136,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 			if ((user != null) &&!(user instanceof SuperUser)) {
 
 				DirectedRelation rel = new DirectedRelation(null, RelType.OWNS,
-								   Direction.OUTGOING, Cardinality.OneToMany, null);
+								   Direction.OUTGOING, Cardinality.OneToMany, null, false);
 
 				rel.createRelationship(securityContext, user, node);
 

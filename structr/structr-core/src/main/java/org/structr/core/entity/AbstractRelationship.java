@@ -119,7 +119,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	//~--- constant enums -------------------------------------------------
 
 	public enum HiddenKey implements PropertyKey {
-		type    // internal type, see IndexRelationshipCommand#indexRelationship method
+		type, cascadeDelete    // internal type, see IndexRelationshipCommand#indexRelationship method
 	}
 
 	public enum Key implements PropertyKey{ uuid }

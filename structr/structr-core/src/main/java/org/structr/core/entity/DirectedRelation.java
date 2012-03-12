@@ -73,6 +73,7 @@ public class DirectedRelation {
 	private Direction direction      = null;
 	private Notion notion            = null;
 	private RelationshipType relType = null;
+	private boolean cascadeDelete    = false;
 
 	//~--- constant enums -------------------------------------------------
 
@@ -80,8 +81,9 @@ public class DirectedRelation {
 
 	//~--- constructors ---------------------------------------------------
 
-	public DirectedRelation(String destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion) {
+	public DirectedRelation(String destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion, boolean cascadeDelete) {
 
+		this.cascadeDelete = cascadeDelete;
 		this.cardinality   = cardinality;
 		this.direction     = direction;
 		this.destType      = destType;
@@ -176,6 +178,11 @@ public class DirectedRelation {
 					}
 
 					newRel.setProperties(properties);
+					
+					// set cascade delete flag
+					if(cascadeDelete) {
+						newRel.setProperty(AbstractRelationship.HiddenKey.cascadeDelete, true);
+					}
 					
 					return newRel;
 				}
@@ -380,12 +387,15 @@ public class DirectedRelation {
 				@Override
 				public Object execute() throws FrameworkException {
 
-						AbstractNode relatedNode = (AbstractNode) Services.command(securityContext, CreateNodeCommand.class).execute(new NodeAttribute(AbstractNode.Key.type.name(), getDestType()));		
+					AbstractNode relatedNode = (AbstractNode) Services.command(securityContext, CreateNodeCommand.class).execute(new NodeAttribute(AbstractNode.Key.type.name(), getDestType()));		
 					
 					// Create new relationship between facility and location nodes
-					Command createRel = Services.command(SecurityContext.getSuperUserInstance(), CreateRelationshipCommand.class);
+					Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
 
-					createRel.execute(node, relatedNode, getRelType());
+					AbstractRelationship newRel = (AbstractRelationship)createRel.execute(node, relatedNode, getRelType());
+					if(cascadeDelete) {
+						newRel.setProperty(AbstractRelationship.HiddenKey.cascadeDelete, true);
+					}
 
 					return relatedNode;
 				}
