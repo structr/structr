@@ -62,9 +62,9 @@ import java.util.logging.Logger;
  *
  * @author Christian Morgner
  */
-public class DirectedRelation {
+public class RelationClass {
 
-	private static final Logger logger = Logger.getLogger(DirectedRelation.class.getName());
+	private static final Logger logger = Logger.getLogger(RelationClass.class.getName());
 
 	//~--- fields ---------------------------------------------------------
 
@@ -80,7 +80,7 @@ public class DirectedRelation {
 
 	//~--- constructors ---------------------------------------------------
 
-	public DirectedRelation(String destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion) {
+	public RelationClass(String destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion) {
 
 		this.cardinality   = cardinality;
 		this.direction     = direction;

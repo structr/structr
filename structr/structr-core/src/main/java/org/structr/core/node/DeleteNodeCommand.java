@@ -35,7 +35,7 @@ import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.DirectedRelation;
+import org.structr.core.entity.RelationClass;
 
 //~--- JDK imports ------------------------------------------------------------
 

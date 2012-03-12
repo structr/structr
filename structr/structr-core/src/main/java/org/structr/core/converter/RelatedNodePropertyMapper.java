@@ -11,7 +11,7 @@ import org.structr.core.EntityContext;
 import org.structr.core.PropertyConverter;
 import org.structr.core.Value;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.DirectedRelation;
+import org.structr.core.entity.RelationClass;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -99,7 +99,7 @@ public class RelatedNodePropertyMapper extends PropertyConverter {
 		if ((currentObject != null) && (currentObject instanceof AbstractNode)) {
 
 			AbstractNode localNode = (AbstractNode) currentObject;
-			DirectedRelation rel   = EntityContext.getDirectedRelationship(localNode.getClass(), targetType);
+			RelationClass rel   = EntityContext.getDirectedRelationship(localNode.getClass(), targetType);
 
 			if (rel != null) {
 

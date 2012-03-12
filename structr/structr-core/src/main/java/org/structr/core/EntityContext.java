@@ -38,9 +38,9 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.DirectedRelation;
-import org.structr.core.entity.DirectedRelation.Cardinality;
-import org.structr.core.entity.NamedRelation;
+import org.structr.core.entity.RelationClass;
+import org.structr.core.entity.RelationClass.Cardinality;
+import org.structr.core.entity.RelationshipMapping;
 import org.structr.core.node.*;
 import org.structr.core.node.IndexNodeCommand;
 import org.structr.core.node.IndexRelationshipCommand;
@@ -71,16 +71,16 @@ public class EntityContext {
 	private static final Map<String, Map<String, Set<String>>> globalSearchablePropertyMap                      = new LinkedHashMap<String, Map<String, Set<String>>>();
 	private static final Map<Class, Set<String>> globalReadOnlyPropertyMap                                      = new LinkedHashMap<Class, Set<String>>();
 	private static final Map<Class, Map<String, Set<String>>> globalPropertyViewMap                             = new LinkedHashMap<Class, Map<String, Set<String>>>();
-	private static final Map<String, Map<String, DirectedRelation>> globalPropertyRelationshipMap               = new LinkedHashMap<String, Map<String, DirectedRelation>>();
+	private static final Map<String, Map<String, RelationClass>> globalPropertyRelationshipMap               = new LinkedHashMap<String, Map<String, RelationClass>>();
 	private static final Map<Class, Map<String, PropertyGroup>> globalPropertyGroupMap                          = new LinkedHashMap<Class, Map<String, PropertyGroup>>();
 	private static final Map<Class, Map<String, Class<? extends PropertyConverter>>> globalPropertyConverterMap = new LinkedHashMap<Class, Map<String, Class<? extends PropertyConverter>>>();
-	private static final Map<String, Map<String, DirectedRelation>> globalEntityRelationshipMap                 = new LinkedHashMap<String, Map<String, DirectedRelation>>();
+	private static final Map<String, Map<String, RelationClass>> globalEntityRelationshipMap                 = new LinkedHashMap<String, Map<String, RelationClass>>();
 	private static final Map<Class, Set<Transformation<GraphObject>>> globalEntityCreationTransformationMap     = new LinkedHashMap<Class, Set<Transformation<GraphObject>>>();
 	private static final Map<Class, Map<String, Object>> globalDefaultValueMap                                  = new LinkedHashMap<Class, Map<String, Object>>();
 	private static final Map<Class, Map<String, Value>> globalConversionParameterMap                            = new LinkedHashMap<Class, Map<String, Value>>();
 	private static final Map<String, String> normalizedEntityNameCache                                          = new LinkedHashMap<String, String>();
 	private static final Set<VetoableGraphObjectListener> modificationListeners                                 = new LinkedHashSet<VetoableGraphObjectListener>();
-	private static final Map<String, NamedRelation> globalRelationshipNameMap                                   = new LinkedHashMap<String, NamedRelation>();
+	private static final Map<String, RelationshipMapping> globalRelationshipNameMap                                   = new LinkedHashMap<String, RelationshipMapping>();
 	private static final Map<String, Class> globalRelationshipClassMap                                          = new LinkedHashMap<String, Class>();
 	private static final EntityContextModificationListener globalModificationListener                           = new EntityContextModificationListener();
 	private static final Map<Long, FrameworkException> exceptionMap                                             = new LinkedHashMap<Long, FrameworkException>();
@@ -152,7 +152,7 @@ public class EntityContext {
 	// ----- named relations -----
 	public static void registerNamedRelation(String relationName, Class relationshipEntityType, Class sourceType, Class destType, RelationshipType relType) {
 
-		globalRelationshipNameMap.put(relationName, new NamedRelation(relationName, sourceType, destType, relType));
+		globalRelationshipNameMap.put(relationName, new RelationshipMapping(relationName, sourceType, destType, relType));
 		globalRelationshipClassMap.put(createCombinedRelationshipType(sourceType.getSimpleName(), relType.name(), destType.getSimpleName()), relationshipEntityType);
 	}
 
@@ -359,8 +359,8 @@ public class EntityContext {
 	private static void registerPropertyRelationInternal(String sourceType, PropertyKey[] properties, String destType, RelationshipType relType, Direction direction, Cardinality cardinality,
 		Notion notion) {
 
-		Map<String, DirectedRelation> typeMap = getPropertyRelationshipMapForType(sourceType);
-		DirectedRelation rel                  = new DirectedRelation(destType, relType, direction, cardinality, notion);
+		Map<String, RelationClass> typeMap = getPropertyRelationshipMapForType(sourceType);
+		RelationClass rel                  = new RelationClass(destType, relType, direction, cardinality, notion);
 
 		for (PropertyKey prop : properties) {
 
@@ -372,15 +372,15 @@ public class EntityContext {
 	private static void registerPropertyRelationInternal(String sourceType, String property, String destType, RelationshipType relType, Direction direction, Cardinality cardinality,
 		Notion notion) {
 
-		Map<String, DirectedRelation> typeMap = getPropertyRelationshipMapForType(sourceType);
+		Map<String, RelationClass> typeMap = getPropertyRelationshipMapForType(sourceType);
 
-		typeMap.put(property, new DirectedRelation(destType, relType, direction, cardinality, notion));
+		typeMap.put(property, new RelationClass(destType, relType, direction, cardinality, notion));
 	}
 
 	private static void registerEntityRelationInternal(String sourceType, String destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion) {
 
-		Map<String, DirectedRelation> typeMap = getEntityRelationshipMapForType(sourceType);
-		DirectedRelation directedRelation     = new DirectedRelation(destType, relType, direction, cardinality, notion);
+		Map<String, RelationClass> typeMap = getEntityRelationshipMapForType(sourceType);
+		RelationClass directedRelation     = new RelationClass(destType, relType, direction, cardinality, notion);
 
 		typeMap.put(destType, directedRelation);
 	}
@@ -413,7 +413,7 @@ public class EntityContext {
 		return getGlobalDefaultValueMapForType(type).get(propertyKey);
 	}
 
-	public static NamedRelation getNamedRelation(String relationName) {
+	public static RelationshipMapping getNamedRelation(String relationName) {
 		return globalRelationshipNameMap.get(relationName);
 	}
 
@@ -421,7 +421,7 @@ public class EntityContext {
 		return globalRelationshipClassMap.get(createCombinedRelationshipType(sourceType, relType, destType));
 	}
 
-	public static Collection<NamedRelation> getNamedRelations() {
+	public static Collection<RelationshipMapping> getNamedRelations() {
 		return globalRelationshipNameMap.values();
 	}
 
@@ -457,9 +457,9 @@ public class EntityContext {
 	}
 
 	// ----- static relationship methods -----
-	public static DirectedRelation getDirectedRelationship(Class sourceType, Class destType) {
+	public static RelationClass getDirectedRelationship(Class sourceType, Class destType) {
 
-		DirectedRelation relation = null;
+		RelationClass relation = null;
 		Class localType           = sourceType;
 
 		while ((relation == null) &&!localType.equals(Object.class)) {
@@ -472,9 +472,9 @@ public class EntityContext {
 		return relation;
 	}
 
-	public static DirectedRelation getDirectedRelationship(Class sourceType, String key) {
+	public static RelationClass getDirectedRelationship(Class sourceType, String key) {
 
-		DirectedRelation relation = null;
+		RelationClass relation = null;
 		Class localType           = sourceType;
 
 		while ((relation == null) &&!localType.equals(Object.class)) {
@@ -487,10 +487,10 @@ public class EntityContext {
 		return relation;
 	}
 
-	public static DirectedRelation getDirectedRelationship(String sourceType, String key) {
+	public static RelationClass getDirectedRelationship(String sourceType, String key) {
 
 		String normalizedSourceType = normalizeEntityName(sourceType);
-		DirectedRelation rel        = null;
+		RelationClass rel        = null;
 
 		// try property relations with EXACT MATCH first
 		rel = getPropertyRelationshipMapForType(normalizedSourceType).get(key);
@@ -612,13 +612,13 @@ public class EntityContext {
 		return searchablePropertyMap;
 	}
 
-	private static Map<String, DirectedRelation> getPropertyRelationshipMapForType(String sourceType) {
+	private static Map<String, RelationClass> getPropertyRelationshipMapForType(String sourceType) {
 
-		Map<String, DirectedRelation> typeMap = globalPropertyRelationshipMap.get(normalizeEntityName(sourceType));
+		Map<String, RelationClass> typeMap = globalPropertyRelationshipMap.get(normalizeEntityName(sourceType));
 
 		if (typeMap == null) {
 
-			typeMap = new LinkedHashMap<String, DirectedRelation>();
+			typeMap = new LinkedHashMap<String, RelationClass>();
 
 			globalPropertyRelationshipMap.put(normalizeEntityName(sourceType), typeMap);
 
@@ -627,13 +627,13 @@ public class EntityContext {
 		return (typeMap);
 	}
 
-	private static Map<String, DirectedRelation> getEntityRelationshipMapForType(String sourceType) {
+	private static Map<String, RelationClass> getEntityRelationshipMapForType(String sourceType) {
 
-		Map<String, DirectedRelation> typeMap = globalEntityRelationshipMap.get(normalizeEntityName(sourceType));
+		Map<String, RelationClass> typeMap = globalEntityRelationshipMap.get(normalizeEntityName(sourceType));
 
 		if (typeMap == null) {
 
-			typeMap = new LinkedHashMap<String, DirectedRelation>();
+			typeMap = new LinkedHashMap<String, RelationClass>();
 
 			globalEntityRelationshipMap.put(normalizeEntityName(sourceType), typeMap);
 

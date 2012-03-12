@@ -32,7 +32,7 @@ import org.structr.core.Services;
 import org.structr.core.Transformation;
 import org.structr.core.entity.*;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.DirectedRelation.Cardinality;
+import org.structr.core.entity.RelationClass.Cardinality;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.AbstractRelationship;
@@ -135,7 +135,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 
 			if ((user != null) &&!(user instanceof SuperUser)) {
 
-				DirectedRelation rel = new DirectedRelation(null, RelType.OWNS,
+				RelationClass rel = new RelationClass(null, RelType.OWNS,
 								   Direction.OUTGOING, Cardinality.OneToMany, null);
 
 				rel.createRelationship(securityContext, user, node);

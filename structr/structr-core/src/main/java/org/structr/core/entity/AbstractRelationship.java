@@ -180,7 +180,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		return AbstractGraphObjectComparator.ASCENDING;
 	}
 	
-	public AbstractNode identifyStartNode(NamedRelation namedRelation, Map<String, Object> propertySet) throws FrameworkException {
+	public AbstractNode identifyStartNode(RelationshipMapping namedRelation, Map<String, Object> propertySet) throws FrameworkException {
 
 		Notion startNodeNotion = new RelationshipNotion(getStartNodeIdKey());
 
@@ -201,7 +201,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		return null;
 	}
 
-	public AbstractNode identifyEndNode(NamedRelation namedRelation, Map<String, Object> propertySet) throws FrameworkException {
+	public AbstractNode identifyEndNode(RelationshipMapping namedRelation, Map<String, Object> propertySet) throws FrameworkException {
 
 		Notion endNodeNotion = new RelationshipNotion(getEndNodeIdKey());
 

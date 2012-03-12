@@ -27,7 +27,7 @@ import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.DirectedRelation.Cardinality;
+import org.structr.core.entity.RelationClass.Cardinality;
 
 //~--- classes ----------------------------------------------------------------
 

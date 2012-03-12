@@ -74,7 +74,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.structr.core.EntityContext;
-import org.structr.core.entity.NamedRelation;
+import org.structr.core.entity.RelationshipMapping;
 import org.structr.rest.resource.NamedRelationResource;
 import org.structr.rest.resource.ViewFilterResource;
 
@@ -124,8 +124,8 @@ public class JsonRestServlet extends HttpServlet {
 		this.propertyView  = new ThreadLocalPropertyView();
 
 		// initialize internal resources with exact matching from EntityContext
-		for(NamedRelation namedRelation : EntityContext.getNamedRelations()) {
-			resourceMap.put(Pattern.compile(namedRelation.getName()), NamedRelationResource.class);
+		for(RelationshipMapping relMapping : EntityContext.getNamedRelations()) {
+			resourceMap.put(Pattern.compile(relMapping.getName()), NamedRelationResource.class);
 		}
 
 		// external resource constraint initialization

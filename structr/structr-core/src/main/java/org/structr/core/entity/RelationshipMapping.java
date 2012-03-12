@@ -47,16 +47,16 @@ import javax.servlet.http.HttpServletResponse;
  *
  * Direction is always OUTGOING from source to destination by definition.
  *
- * A @see NamedRelation is marked with a combined key with name "type" of the form
+ * A @see RelationshipMapping is marked with a combined key with name "type" of the form
  * "SourceType RELTYPE DestType".
  *
  *
  * @author Christian Morgner
  * @author Axel Morgner
  */
-public class NamedRelation {
+public class RelationshipMapping {
 
-	private static final Logger logger = Logger.getLogger(NamedRelation.class.getName());
+	private static final Logger logger = Logger.getLogger(RelationshipMapping.class.getName());
 
 	//~--- fields ---------------------------------------------------------
 
@@ -67,7 +67,7 @@ public class NamedRelation {
 
 	//~--- constructors ---------------------------------------------------
 
-	public NamedRelation(String name, Class sourceType, Class destType, RelationshipType relType) {
+	public RelationshipMapping(String name, Class sourceType, Class destType, RelationshipType relType) {
 
 		this.sourceType = sourceType;
 		this.destType   = destType;

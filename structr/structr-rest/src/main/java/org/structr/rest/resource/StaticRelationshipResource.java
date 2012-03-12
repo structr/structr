@@ -23,7 +23,6 @@ package org.structr.rest.resource;
 
 import org.apache.commons.collections.ListUtils;
 
-import org.structr.common.AbstractGraphObjectComparator;
 import org.structr.common.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -31,7 +30,6 @@ import org.structr.common.error.TypeToken;
 import org.structr.core.*;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.DirectedRelation;
 import org.structr.core.node.DeleteRelationshipCommand;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
@@ -56,6 +54,7 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.structr.core.entity.RelationClass;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -97,7 +96,7 @@ public class StaticRelationshipResource extends SortableResource {
 			if (sourceNode != null) {
 
 				// fetch static relationship definition
-				DirectedRelation staticRel = findDirectedRelationship(typedIdResource, typeResource);
+				RelationClass staticRel = findRelationClass(typedIdResource, typeResource);
 
 				if (staticRel != null) {
 
@@ -221,7 +220,7 @@ public class StaticRelationshipResource extends SortableResource {
 		if (results != null) {
 
 			// fetch static relationship definition
-			final DirectedRelation staticRel = findDirectedRelationship(typedIdResource, typeResource);
+			final RelationClass staticRel = findRelationClass(typedIdResource, typeResource);
 
 			if (staticRel != null) {
 
@@ -327,7 +326,7 @@ public class StaticRelationshipResource extends SortableResource {
 			public Object execute() throws FrameworkException {
 
 				AbstractNode sourceNode = typedIdResource.getIdResource().getNode();
-				DirectedRelation rel    = EntityContext.getDirectedRelationship(sourceNode.getClass(), typeResource.getRawType());
+				RelationClass rel    = EntityContext.getDirectedRelationship(sourceNode.getClass(), typeResource.getRawType());
 
 				if ((sourceNode != null) && (rel != null)) {
 

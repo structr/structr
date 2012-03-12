@@ -30,7 +30,7 @@ import org.structr.core.Command;
 import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.converter.PasswordConverter;
-import org.structr.core.entity.DirectedRelation.Cardinality;
+import org.structr.core.entity.RelationClass.Cardinality;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.DeleteRelationshipCommand;
