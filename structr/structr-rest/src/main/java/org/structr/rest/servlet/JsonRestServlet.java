@@ -1030,10 +1030,14 @@ public class JsonRestServlet extends HttpServlet {
 
 	//~--- get methods ----------------------------------------------------
 
-	private SecurityContext getSecurityContext(HttpServletRequest request) {
+	private SecurityContext getSecurityContext(HttpServletRequest request) throws FrameworkException {
 
-		// return SecurityContext.getSuperUserInstance();
-		return SecurityContext.getInstance(this.getServletConfig(), request, AccessMode.Frontend);
+		SecurityContext securityContext = SecurityContext.getInstance(this.getServletConfig(), request, AccessMode.Frontend);
+		
+		// let module-specific authenticator examine the request first
+		securityContext.examineRequest(request);
+		
+		return securityContext;
 	}
 
 	//~--- inner classes --------------------------------------------------

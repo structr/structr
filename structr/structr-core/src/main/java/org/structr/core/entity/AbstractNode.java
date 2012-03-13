@@ -3923,6 +3923,28 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * @param updateIndex
 	 */
 	public void setProperty(final String key, final Object value, final boolean updateIndex) throws FrameworkException {
+		
+		Object oldValue = getProperty(key);
+		
+		// check null cases
+		if(oldValue == null && value == null) {
+			return;
+		}
+		
+		// no old value exists, set property
+		if(oldValue == null && value != null) {
+			setPropertyInternal(key, value, updateIndex);
+			return;
+		}
+	
+		// old value exists and is NOT equal
+		if(oldValue != null && value != null && !oldValue.equals(value)) {
+			setPropertyInternal(key, value, updateIndex);
+			return;
+		}
+	}
+	
+	private void setPropertyInternal(final String key, final Object value, final boolean updateIndex) throws FrameworkException {
 
 		final Class type = this.getClass();
 

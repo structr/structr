@@ -21,6 +21,7 @@ package org.structr.web.auth;
 
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.auth.AuthenticationException;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.entity.SuperUser;
@@ -33,20 +34,20 @@ import org.structr.core.entity.User;
 public class HttpAuthenticator implements Authenticator {
 
 	@Override
-	public void setSecurityContext(SecurityContext securityContext) {
+	public void examineRequest(SecurityContext securityContext, HttpServletRequest request) throws FrameworkException {
 	}
 
 	@Override
-	public User doLogin(HttpServletRequest request, String userName, String password) throws AuthenticationException {
-		return getUser(request);
+	public User doLogin(SecurityContext securityContext, HttpServletRequest request, String userName, String password) throws AuthenticationException {
+		return getUser(securityContext, request);
 	}
 
 	@Override
-	public void doLogout(HttpServletRequest request) {
+	public void doLogout(SecurityContext securityContext, HttpServletRequest request) {
 	}
 
 	@Override
-	public User getUser(HttpServletRequest request) {
+	public User getUser(SecurityContext securityContext, HttpServletRequest request) {
 		return new SuperUser();
 	}
 }

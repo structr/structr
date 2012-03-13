@@ -108,6 +108,9 @@ public abstract class Agent extends Thread implements StatusInfo {
 
         } while (acceptingTasks.get());
 
+	// call beforeShutdown to allow agents to clean up
+	beforeShutdown();
+	
         agentService.notifyAgentStop(this);
     }
 
@@ -200,6 +203,9 @@ public abstract class Agent extends Thread implements StatusInfo {
     // <editor-fold defaultstate="collapsed" desc="protected methods">
     protected AgentService getBlackboardService() {
         return (agentService);
+    }
+    protected void beforeShutdown() {
+	    // override me
     }
     // </editor-fold>
 
