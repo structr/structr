@@ -3927,18 +3927,18 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		Object oldValue = getProperty(key);
 		
 		// check null cases
-		if(oldValue == null && value == null) {
+		if (oldValue == null && value == null) {
 			return;
 		}
 		
 		// no old value exists, set property
-		if(oldValue == null && value != null) {
+		if (oldValue == null && value != null) {
 			setPropertyInternal(key, value, updateIndex);
 			return;
 		}
 	
 		// old value exists and is NOT equal
-		if(oldValue != null && value != null && !oldValue.equals(value)) {
+		if (oldValue != null && !oldValue.equals(value)) {
 			setPropertyInternal(key, value, updateIndex);
 			return;
 		}
