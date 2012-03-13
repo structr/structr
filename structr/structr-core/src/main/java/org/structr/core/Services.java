@@ -286,6 +286,13 @@ public class Services {
 		}
 	}
 
+	public static Object getConfigurationValue(String key) {
+		if(context != null) {
+			return context.get(key);
+		}
+		return null;
+	}
+	
 	// <editor-fold defaultstate="collapsed" desc="private methods">
 	private static Service createService(Class serviceClass) throws InstantiationException, IllegalAccessException {
 

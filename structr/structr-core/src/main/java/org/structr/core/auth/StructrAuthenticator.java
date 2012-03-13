@@ -54,14 +54,14 @@ public class StructrAuthenticator implements Authenticator {
 	public static final String USER_NODE_KEY       = "userNode";
 	private static final Logger logger             = Logger.getLogger(StructrAuthenticator.class.getName());
 
-	//~--- fields ---------------------------------------------------------
-
-	private SecurityContext securityContext = null;
-
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public User doLogin(HttpServletRequest request, String userName, String password) throws AuthenticationException {
+	public void examineRequest(SecurityContext securityContext, HttpServletRequest request) throws FrameworkException {
+	}
+
+	@Override
+	public User doLogin(SecurityContext securityContext, HttpServletRequest request, String userName, String password) throws AuthenticationException {
 
 		String errorMsg = null;
 		User user       = null;
@@ -148,7 +148,7 @@ public class StructrAuthenticator implements Authenticator {
 	}
 
 	@Override
-	public void doLogout(HttpServletRequest request) {
+	public void doLogout(SecurityContext securityContext, HttpServletRequest request) {
 
 		HttpSession session = request.getSession();
 		Long sessionIdValue = (Long) session.getAttribute(SessionMonitor.SESSION_ID);
@@ -168,14 +168,7 @@ public class StructrAuthenticator implements Authenticator {
 	//~--- get methods ----------------------------------------------------
 
 	@Override
-	public User getUser(HttpServletRequest request) {
+	public User getUser(SecurityContext securityContext, HttpServletRequest request) {
 		return (User) request.getSession().getAttribute(USER_NODE_KEY);
-	}
-
-	//~--- set methods ----------------------------------------------------
-
-	@Override
-	public void setSecurityContext(SecurityContext securityContext) {
-		this.securityContext = securityContext;
 	}
 }

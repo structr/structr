@@ -21,6 +21,7 @@ package org.structr.rest.auth;
 
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.auth.AuthenticationException;
 import org.structr.core.auth.Authenticator;
@@ -36,26 +37,21 @@ import org.structr.rest.servlet.JsonRestServlet;
  */
 public class RestAuthenticator implements Authenticator {
 
-	private SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+	@Override
+	public void examineRequest(SecurityContext securityContext, HttpServletRequest request) throws FrameworkException {
+	}
 
 	@Override
-	public User doLogin(HttpServletRequest request, String userName, String password) throws AuthenticationException {
-
+	public User doLogin(SecurityContext securityContext, HttpServletRequest request, String userName, String password) throws AuthenticationException {
 		return null;
 	}
 
 	@Override
-	public void doLogout(HttpServletRequest request) {
+	public void doLogout(SecurityContext securityContext, HttpServletRequest request) {
 	}
 
 	@Override
-	public void setSecurityContext(SecurityContext securityContext) {
-		// do not overwrite superuser context
-		// this.securityContext = securityContext;
-	}
-
-	@Override
-	public User getUser(HttpServletRequest request) {
+	public User getUser(SecurityContext securityContext, HttpServletRequest request) {
 
 		String userHeader = request.getHeader("X-User");
 		User user = null;
