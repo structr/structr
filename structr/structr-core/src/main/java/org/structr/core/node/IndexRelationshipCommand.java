@@ -24,11 +24,17 @@ package org.structr.core.node;
 import org.apache.commons.lang.StringUtils;
 
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.index.Index;
 
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
+import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.node.NodeService.RelationshipIndex;
+import org.structr.core.node.search.Search;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -37,12 +43,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.graphdb.Relationship;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
-import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.node.NodeService.RelationshipIndex;
-import org.structr.core.node.search.Search;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -65,16 +65,16 @@ public class IndexRelationshipCommand extends NodeServiceCommand {
 	public Object execute(Object... parameters) throws FrameworkException {
 
 		Command findRel = Services.command(securityContext, FindRelationshipCommand.class);
-		
+
 		for (Enum indexName : (RelationshipIndex[]) arguments.get("relationshipIndices")) {
 
 			indices.put(indexName.name(), (Index<Relationship>) arguments.get(indexName.name()));
 
 		}
 
-		long id           = 0;
+		long id                  = 0;
 		AbstractRelationship rel = null;
-		String key        = null;
+		String key               = null;
 
 		switch (parameters.length) {
 
@@ -83,16 +83,14 @@ public class IndexRelationshipCommand extends NodeServiceCommand {
 				// index all properties of this relationship
 				if (parameters[0] instanceof Long) {
 
-					id = ((Long) parameters[0]).longValue();
-
+					id  = ((Long) parameters[0]).longValue();
 					rel = (AbstractRelationship) findRel.execute(id);
 
 					indexRelationship(rel);
 
 				} else if (parameters[0] instanceof String) {
 
-					id = Long.parseLong((String) parameters[0]);
-
+					id  = Long.parseLong((String) parameters[0]);
 					rel = (AbstractRelationship) findRel.execute(id);
 
 					indexRelationship(rel);
@@ -116,14 +114,12 @@ public class IndexRelationshipCommand extends NodeServiceCommand {
 				// index a certain property
 				if (parameters[0] instanceof Long) {
 
-					id = ((Long) parameters[0]).longValue();
-
+					id  = ((Long) parameters[0]).longValue();
 					rel = (AbstractRelationship) findRel.execute(id);
 
 				} else if (parameters[0] instanceof String) {
 
-					id = Long.parseLong((String) parameters[0]);
-
+					id  = Long.parseLong((String) parameters[0]);
 					rel = (AbstractRelationship) findRel.execute(id);
 
 				} else if (parameters[0] instanceof AbstractRelationship) {
@@ -154,7 +150,7 @@ public class IndexRelationshipCommand extends NodeServiceCommand {
 		return null;
 	}
 
-	private void indexRelationships(final List<AbstractRelationship> rels)  throws FrameworkException {
+	private void indexRelationships(final List<AbstractRelationship> rels) throws FrameworkException {
 
 		for (AbstractRelationship rel : rels) {
 
@@ -165,25 +161,29 @@ public class IndexRelationshipCommand extends NodeServiceCommand {
 
 	private void indexRelationship(final AbstractRelationship rel) throws FrameworkException {
 
-		// add a special type key, consisting of the relationship type, the type of the start node and the type of the end node
-		String tripleKey = EntityContext.createCombinedRelationshipType(rel.getStartNode().getType(), rel.getType(), rel.getEndNode().getType());
-		rel.setProperty(AbstractRelationship.HiddenKey.type.name(), Search.clean(tripleKey));
-		indexProperty(rel, AbstractRelationship.HiddenKey.type.name());
+		String combinedKey = rel.getStringProperty(AbstractRelationship.HiddenKey.type.name());
+
+		if (combinedKey == null) {
+
+			// add a special type key, consisting of the relationship type, the type of the start node and the type of the end node
+			String tripleKey = EntityContext.createCombinedRelationshipType(rel.getStartNode().getType(), rel.getType(), rel.getEndNode().getType());
+
+			rel.setProperty(AbstractRelationship.HiddenKey.type.name(), Search.clean(tripleKey));
+			indexProperty(rel, AbstractRelationship.HiddenKey.type.name());
+		}
 
 		for (String key : rel.getPropertyKeys()) {
 
 			indexProperty(rel, key);
 
 		}
-
-
 	}
 
 	private void indexProperty(final AbstractRelationship rel, final String key) {
 
 		// String type = node.getClass().getSimpleName();
 		Relationship dbRel = rel.getRelationship();
-		long id     = rel.getId();
+		long id            = rel.getId();
 
 		if (key == null) {
 
@@ -205,16 +205,15 @@ public class IndexRelationshipCommand extends NodeServiceCommand {
 		}
 
 		/*
-		if (!(dbRel.hasProperty(key))) {
-
-			removeRelationshipPropertyFromAllIndices(dbRel, key);
-			logger.log(Level.FINE, "Relationship {0} has no key {1}, to be sure, it was removed from all indices", new Object[] { id, key });
-			return;
-
-		}
-		*/
-		
-		Object value            = rel.getProperty(key); // dbRel.getProperty(key);
+		 * if (!(dbRel.hasProperty(key))) {
+		 *
+		 *       removeRelationshipPropertyFromAllIndices(dbRel, key);
+		 *       logger.log(Level.FINE, "Relationship {0} has no key {1}, to be sure, it was removed from all indices", new Object[] { id, key });
+		 *       return;
+		 *
+		 * }
+		 */
+		Object value            = rel.getProperty(key);    // dbRel.getProperty(key);
 		Object valueForIndexing = rel.getPropertyForIndexing(key);
 		boolean emptyValue      = ((value instanceof String) && StringUtils.isEmpty((String) value));
 
@@ -268,5 +267,4 @@ public class IndexRelationshipCommand extends NodeServiceCommand {
 	private void addRelationshipPropertyToKeywordIndex(final Relationship rel, final String key, final Object value) {
 		indices.get(RelationshipIndex.rel_keyword.name()).add(rel, key, value);
 	}
-
 }

@@ -54,6 +54,7 @@ import org.structr.core.notion.ObjectNotion;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.cloud.RelationshipDataContainer;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -412,7 +413,10 @@ public class EntityContext {
 		transactionKeyMap.remove(Thread.currentThread());
 	}
 
-	// ----- private methods -----
+	public static String createCombinedRelationshipType(Class sourceType, RelationshipType relType, Class destType) {
+		return createCombinedRelationshipType(sourceType.getSimpleName(), relType.name(), destType.getSimpleName());
+	}
+
 	public static String createCombinedRelationshipType(String sourceType, String relType, String destType) {
 
 		StringBuilder buf = new StringBuilder();
@@ -442,6 +446,10 @@ public class EntityContext {
 
 	public static Class getNamedRelationClass(String sourceType, String destType, String relType) {
 		return globalRelationshipClassMap.get(createCombinedRelationshipType(sourceType, relType, destType));
+	}
+
+	public static Class getNamedRelationClass(String combinedRelationshipType) {
+		return globalRelationshipClassMap.get(combinedRelationshipType);
 	}
 
 	public static Collection<RelationshipMapping> getNamedRelations() {
@@ -974,6 +982,7 @@ public class EntityContext {
 				for (Relationship rel : data.deletedRelationships()) {
 
 					AbstractRelationship relationship = relFactory.createRelationship(securityContext, rel);
+//					AbstractRelationship relationship = relFactory.createRelationship(securityContext, removedRelProperties.get(rel));
 
 					hasError |= graphObjectDeleted(securityContext, transactionKey, errorBuffer, relationship, removedRelProperties.get(rel));
 
