@@ -132,7 +132,7 @@ var _Elements = {
 
     showPalette : function() {
         //        var palette = $('#palette');
-        palette.empty().hide();
+//        palette.empty().hide();
 
         $(_Elements.elementGroups).each(function(i,group) {
             if (debug) console.log(group);
@@ -144,17 +144,17 @@ var _Elements = {
                     iframeFix: true,
                     revert: 'invalid',
                     containment: 'body',
-                    zIndex: 1,
+                    zIndex: 2,
                     helper: 'clone'
                 });
             });
 
         });
 
-        header.on('click', function() {
-            console.log('slide palette down');
-            palette.slideToggle('fast');
-        });
+//        header.on('click', function() {
+//            console.log('slide palette down');
+//            palette.slideToggle('fast');
+//        });
 
     },
     

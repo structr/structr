@@ -105,13 +105,13 @@ $(document).ready(function() {
     });
 
     $('#usernameField').keypress(function(e) {
-        if(e.which == 13) {
+        if (e.which == 13) {
             jQuery(this).blur();
             jQuery('#loginButton').focus().click();
         }
     });
     $('#passwordField').keypress(function(e) {
-        if(e.which == 13) {
+        if (e.which == 13) {
             jQuery(this).blur();
             jQuery('#loginButton').focus().click();
         }
@@ -139,7 +139,6 @@ var Structr = {
 
         connect();
 	
-	
         main.empty();
         user = $.cookie('structrUser');
 
@@ -159,7 +158,6 @@ var Structr = {
                 //				UsersAndGroups.onload();
 				
                 Structr.loadInitialModule();
-
 				
             }
         }
@@ -227,15 +225,13 @@ var Structr = {
 
     saveSession : function() {
         if (lastMenuEntry && lastMenuEntry != 'logout') {
-            $.cookie('structrLastMenuEntry', lastMenuEntry, {
-                expires: 7,
-                path: '/'
-            });
+            $.cookie('structrLastMenuEntry', lastMenuEntry, { expires: 7, path: '/' });
             console.log('set cookie for active tab', activeTab);
-            $.cookie('structrActiveTab', activeTab, {
-                expires: 7,
-                path: '/'
-            });
+            $.cookie('structrActiveTab', activeTab, { expires: 7, path: '/' });
+            $.cookie('structrResourcesVisible', resources.is(':visible'), { expires: 7, path: '/' });
+            $.cookie('structrComponentsVisible', components.is(':visible'), { expires: 7, path: '/' });
+            $.cookie('structrElementsVisible', elements.is(':visible'), { expires: 7, path: '/' });
+            $.cookie('structrContentsVisible', contents.is(':visible'), { expires: 7, path: '/' });
         }
     //console.log('cooke value now: ', $.cookie('structrActiveTab'));
     },
