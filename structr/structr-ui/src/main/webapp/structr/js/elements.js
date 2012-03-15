@@ -225,9 +225,9 @@ var _Elements = {
             if (debug) console.log('parent', parent);
             //_Entities.showProperties(this, entity, '_html_', $('.' + entity.id + '_', parent));
             Structr.dialog('Edit Properties of ' + entity.id, function() {
-                console.log('save')
+                if (debug) console.log('save')
                 }, function() {
-                console.log('cancelled')
+                if (debug) console.log('cancelled')
                 });
             //           _Entities.showProperties(this, entity, 'all', $('#dialogText'));
             _Entities.showProperties(this, entity, '_html_', $('#dialogText'));

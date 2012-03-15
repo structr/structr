@@ -205,16 +205,16 @@ img.disabled {
 	display: none;
 }
 
-.node, .group, .user, .resource, .component, .element, .content, .folder, .file {
+.node, .group, .user, .resource, .component, .element, .content, .folder, .file, .image {
     background-color: #fff;
     margin-bottom: 6px ! important;
 }
 
-.node b, .group b, .user b, .resource b, .component b, .element b, .content b, .folder b, .file b {
+.node b, .group b, .user b, .resource b, .component b, .element b, .content b, .folder b, .file b, .image b {
     cursor: pointer;
 }
 
-.node, .resource, .component, .element, .content, .folder, .file {
+.node, .resource, .component, .element, .content, .folder, .file, .image {
     background-color: #eee;
     background: -webkit-gradient(linear, left bottom, left top, from(#ddd), to(#eee)) no-repeat;
     background: -moz-linear-gradient(90deg, #ddd, #eee) no-repeat;
@@ -492,7 +492,8 @@ span.id {
 .user,
 .group,
 .folder,
-.file {
+.file,
+.image {
     color: #333;
     line-height: 1.7em;
     border-radius: 5px;
@@ -511,7 +512,8 @@ span.id {
 #groups .group:hover,
 #users .user:hover,
 #folders .folder:hover,
-#files .file:hover {
+#files .file:hover
+#images .image:hover {
     color: #000;
     border: 1px solid #bbb;
     background-color: #e5e5e5;

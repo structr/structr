@@ -21,7 +21,6 @@
 
 package org.structr.web;
 
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.ArrayUtils;
@@ -32,6 +31,7 @@ import org.jsoup.nodes.*;
 
 import org.structr.common.CaseHelper;
 import org.structr.common.FileHelper;
+import org.structr.common.ImageHelper;
 import org.structr.common.Path;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
@@ -42,6 +42,8 @@ import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.File;
+import org.structr.core.entity.Folder;
+import org.structr.core.entity.Image;
 import org.structr.core.node.*;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;
@@ -49,6 +51,7 @@ import org.structr.core.node.NodeAttribute;
 import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
+import org.structr.web.entity.Content;
 import org.structr.web.entity.html.HtmlElement;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -64,7 +67,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.structr.web.entity.Content;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -85,14 +87,8 @@ public class Importer {
 	private static final Map<String, String> contentTypeForExtension = new HashMap<String, String>();
 	private static Command createNode;
 	private static Command createRel;
-	private static Command searchNode;
 	private static Command indexNode;
-
-	private Document parsedDocument;
-	private String address;
-	private String name;
-	private int timeout;
-
+	private static Command searchNode;
 
 	//~--- static initializers --------------------------------------------
 
@@ -105,17 +101,23 @@ public class Importer {
 
 	}
 
+	//~--- fields ---------------------------------------------------------
+
+	private String address;
+	private String name;
+	private Document parsedDocument;
+	private int timeout;
+
 	//~--- constructors ---------------------------------------------------
 
 	public Importer(final String address, final String name, final int timeout) {
+
 		this.address = address;
-		this.name = name;
+		this.name    = name;
 		this.timeout = timeout;
 	}
 
 	//~--- methods --------------------------------------------------------
-
-
 
 	public boolean parse() throws FrameworkException {
 
@@ -129,6 +131,7 @@ public class Importer {
 		indexNode  = Services.command(securityContext, IndexNodeCommand.class);
 
 		try {
+
 			parsedDocument = Jsoup.parse(new URL(address), timeout);
 
 			return true;
@@ -137,7 +140,6 @@ public class Importer {
 			throw new FrameworkException(500, "Error while importing content from " + address);
 		}
 	}
-
 
 	public String readResource() throws FrameworkException {
 
@@ -167,8 +169,11 @@ public class Importer {
 			});
 
 			if (res != null) {
+
 				logger.log(Level.INFO, "##### Finished fetching {0} for resource {1} #####", new Object[] { address, name });
+
 				return res.getStringProperty(AbstractNode.Key.uuid);
+
 			}
 
 		} catch (MalformedURLException ex) {
@@ -176,7 +181,6 @@ public class Importer {
 		}
 
 		return null;
-
 	}
 
 	private void createChildNodes(final Node startNode, final AbstractNode parent, String resourceId, final URL baseUrl) throws FrameworkException {
@@ -339,7 +343,9 @@ public class Importer {
 			if (type.equals("Content") && key.equals(Content.UiKey.content.name())) {
 
 				value = Search.escapeForLucene(value);
-				//value = Search.clean(value);
+
+				// value = Search.clean(value);
+
 			}
 
 			// Exclude data attribute because it may contain code with special characters, too
@@ -385,46 +391,6 @@ public class Importer {
 		logger.log(Level.INFO, "Does not match expected path {0}", nodePath);
 
 		return null;
-
-//
-//              // Does found node have any incoming contains relationships?
-//              if (!foundNode.hasRelationship(RelType.CONTAINS, Direction.INCOMING)) {
-//
-//                      logger.log(Level.INFO, "No INCOMING CONTAINS relationships.");
-//
-//                      return null;
-//
-//              }
-//
-//              List<AbstractRelationship> rels = foundNode.getRelationships(RelType.CONTAINS, Direction.INCOMING);
-//
-//              if (rels.isEmpty()) {
-//
-//                      logger.log(Level.INFO, "No INCOMING CONTAINS relationships.");
-//
-//                      return null;
-//
-//              } else if (rels.size() > 1) {
-//
-//                      logger.log(Level.INFO, "Too many INCOMING CONTAINS relationships: {0}", rels.size());
-//
-//                      return null;
-//
-//              } else {
-//
-//                      String parentId = rels.get(0).getStartNode().getStringProperty(AbstractNode.Key.uuid);
-//
-//                      if (parentId.equals(parentNodeId)) {
-//
-//                              return foundNode;
-//
-//                      }
-//
-//                      logger.log(Level.INFO, "Parent node id doesn't match");
-//
-//                      return null;
-//
-//              }
 	}
 
 	private AbstractNode findOrCreateNode(String type, List<NodeAttribute> attributes, final String nodePath) throws FrameworkException {
@@ -514,51 +480,56 @@ public class Importer {
 		contentType     = FileHelper.getContentMimeType(fileOnDisk);
 		downloadAddress = StringUtils.substringBefore(downloadAddress, "?");
 
-		final String name = (downloadAddress.indexOf("/") > -1)
-				    ? StringUtils.substringAfterLast(downloadAddress, "/")
-				    : downloadAddress;
+		final String fileName = (downloadAddress.indexOf("/") > -1)
+					? StringUtils.substringAfterLast(downloadAddress, "/")
+					: downloadAddress;
+		String httpPrefix     = "http://";
+		String path           = StringUtils.substringBefore(((downloadAddress.indexOf(httpPrefix) > -1)
+			? StringUtils.substringAfter(downloadAddress, "http://")
+			: downloadAddress), fileName);
 
 		if (contentType.equals("text/plain")) {
 
-			contentType = StringUtils.defaultIfBlank(contentTypeForExtension.get(StringUtils.substringAfterLast(name, ".")), "text/plain");
+			contentType = StringUtils.defaultIfBlank(contentTypeForExtension.get(StringUtils.substringAfterLast(fileName, ".")), "text/plain");
 
 		}
 
-		final String ct                = contentType;
-		
-//		StructrTransaction transaction = new StructrTransaction() {
-//
-//			@Override
-//			public Object execute() throws FrameworkException {
-//
-//				return createNode.execute(new NodeAttribute(AbstractNode.Key.uuid.name(), uuid), new NodeAttribute(AbstractNode.Key.type.name(), File.class.getSimpleName()),
-//							  new NodeAttribute(AbstractNode.Key.name.name(), name), new NodeAttribute(File.Key.contentType.name(), ct));
-//			}
-//		};
+		final String ct = contentType;
 
 		try {
 
-			if (!(fileExists(name, FileUtils.checksumCRC32(fileOnDisk)))) {
+			if (!(fileExists(fileName, FileUtils.checksumCRC32(fileOnDisk)))) {
 
-				// create node in transaction
-				//File fileNode = (File) Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(transaction);
+				File fileNode;
 
-				File fileNode = (File) createNode.execute(
-					new NodeAttribute(AbstractNode.Key.uuid.name(), uuid),
-					new NodeAttribute(AbstractNode.Key.type.name(), File.class.getSimpleName()),
-					new NodeAttribute(AbstractNode.Key.name.name(), name),
-					new NodeAttribute(File.Key.contentType.name(), ct));
+				if (ImageHelper.isImageType(fileName)) {
 
-				fileNode.setRelativeFilePath(relativeFilePath);
-				fileNode.getChecksum();    // calculates and stores checksum
+					fileNode = createImageNode(uuid, fileName, ct);
 
-				indexNode.execute(fileNode);
+				} else {
 
-				if (contentType.equals("text/css")) {
-
-					processsCssFileNode(fileNode, downloadUrl);
+					fileNode = createFileNode(uuid, fileName, ct);
 
 				}
+
+				if (fileNode != null) {
+
+					Folder parent = createFolderPath(path);
+
+					if (parent != null) {
+
+						createRel.execute(parent, fileNode, RelType.HAS_CHILD);
+
+					}
+
+					if (contentType.equals("text/css")) {
+
+						processCssFileNode(fileNode, downloadUrl);
+
+					}
+
+				}
+
 			} else {
 
 				fileOnDisk.delete();
@@ -566,11 +537,77 @@ public class Importer {
 			}
 
 		} catch (Exception fex) {
-			logger.log(Level.WARNING, "Could not create node.", fex);
+			logger.log(Level.WARNING, "Could not create file node.", fex);
 		}
 	}
 
-	private void processsCssFileNode(File fileNode, final URL baseUrl) throws IOException {
+	/**
+	 * Create one folder per path item and return the last folder.
+	 *
+	 * F.e.: /a/b/c  => Folder["name":"a"] --HAS_CHILD--> Folder["name":"b"] --HAS_CHILD--> Folder["name":"c"],
+	 * returns Folder["name":"c"]
+	 *
+	 * @param path
+	 * @return
+	 * @throws FrameworkException
+	 */
+	private Folder createFolderPath(final String path) throws FrameworkException {
+
+		if (path == null) {
+
+			return null;
+
+		}
+
+		String[] parts = StringUtils.split(path, "/");
+		Folder folder  = null;
+
+		for (String part : parts) {
+
+			Folder parent = folder;
+
+			folder = (Folder) createNode.execute(new NodeAttribute(AbstractNode.Key.type.name(), Folder.class.getSimpleName()), new NodeAttribute(AbstractNode.Key.name.name(), part));
+
+			if (parent != null) {
+
+				createRel.execute(parent, folder, RelType.HAS_CHILD);
+
+			}
+
+			indexNode.execute(folder);
+
+		}
+
+		return folder;
+	}
+
+	private File createFileNode(final String uuid, final String name, final String contentType) throws FrameworkException {
+
+		String relativeFilePath = File.getDirectoryPath(uuid) + "/" + uuid;
+		File fileNode           = (File) createNode.execute(new NodeAttribute(AbstractNode.Key.uuid.name(), uuid), new NodeAttribute(AbstractNode.Key.type.name(), File.class.getSimpleName()),
+					new NodeAttribute(AbstractNode.Key.name.name(), name), new NodeAttribute(File.Key.relativeFilePath.name(), relativeFilePath),
+					new NodeAttribute(File.Key.contentType.name(), contentType));
+
+		fileNode.getChecksum();    // calculates and stores checksum
+		indexNode.execute(fileNode);
+
+		return fileNode;
+	}
+
+	private Image createImageNode(final String uuid, final String name, final String contentType) throws FrameworkException {
+
+		String relativeFilePath = Image.getDirectoryPath(uuid) + "/" + uuid;
+		Image imageNode         = (Image) createNode.execute(new NodeAttribute(AbstractNode.Key.uuid.name(), uuid), new NodeAttribute(AbstractNode.Key.type.name(), Image.class.getSimpleName()),
+					  new NodeAttribute(AbstractNode.Key.name.name(), name), new NodeAttribute(File.Key.relativeFilePath.name(), relativeFilePath),
+					  new NodeAttribute(File.Key.contentType.name(), contentType));
+
+		imageNode.getChecksum();    // calculates and stores checksum
+		indexNode.execute(imageNode);
+
+		return imageNode;
+	}
+
+	private void processCssFileNode(File fileNode, final URL baseUrl) throws IOException {
 
 		StringWriter sw = new StringWriter();
 
@@ -583,7 +620,7 @@ public class Importer {
 
 	private void processCss(final String css, final URL baseUrl) throws IOException {
 
-		Pattern pattern = Pattern.compile("url\\((.*)\\)");
+		Pattern pattern = Pattern.compile("url\\((.*)\\)");    // FIXME: pattern does not supprt multiple url('...') in same line
 		Matcher matcher = pattern.matcher(css);
 
 		while (matcher.find()) {

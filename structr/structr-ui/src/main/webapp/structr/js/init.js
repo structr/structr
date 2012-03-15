@@ -172,6 +172,7 @@ var Structr = {
         $.blockUI.defaults.applyPlatformOpacityRules = false;
         $.blockUI({
             message: $('#login'),
+			forceInput: true,
             css: {
                 border: 'none',
                 backgroundColor: 'transparent'
@@ -207,7 +208,7 @@ var Structr = {
     loadInitialModule : function() {
         var browserUrl = window.location.href;
         var anchor = getAnchorFromUrl(browserUrl);
-        console.log('anchor', anchor);
+        if (debug) console.log('anchor', anchor);
 
         lastMenuEntry = ((anchor && anchor != 'logout') ? anchor : $.cookie('structrLastMenuEntry'));
         if (!lastMenuEntry) lastMenuEntry = 'dashboard';
@@ -226,12 +227,12 @@ var Structr = {
     saveSession : function() {
         if (lastMenuEntry && lastMenuEntry != 'logout') {
             $.cookie('structrLastMenuEntry', lastMenuEntry, { expires: 7, path: '/' });
-            console.log('set cookie for active tab', activeTab);
+            if (debug) console.log('set cookie for active tab', activeTab);
             $.cookie('structrActiveTab', activeTab, { expires: 7, path: '/' });
-            $.cookie('structrResourcesVisible', resources.is(':visible'), { expires: 7, path: '/' });
-            $.cookie('structrComponentsVisible', components.is(':visible'), { expires: 7, path: '/' });
-            $.cookie('structrElementsVisible', elements.is(':visible'), { expires: 7, path: '/' });
-            $.cookie('structrContentsVisible', contents.is(':visible'), { expires: 7, path: '/' });
+            if (resources) $.cookie('structrResourcesVisible', resources.is(':visible'), { expires: 7, path: '/' });
+            if (components) $.cookie('structrComponentsVisible', components.is(':visible'), { expires: 7, path: '/' });
+            if (elements) $.cookie('structrElementsVisible', elements.is(':visible'), { expires: 7, path: '/' });
+            if (contents) $.cookie('structrContentsVisible', contents.is(':visible'), { expires: 7, path: '/' });
         }
     //console.log('cooke value now: ', $.cookie('structrActiveTab'));
     },
@@ -362,7 +363,7 @@ var Structr = {
         if (debug) console.log(entity.type);
         entity.name = $('.name_', entityElement).text();
 
-        console.log(entityElement);
+        if (debug) console.log(entityElement);
 	
         return entity;
     },
@@ -431,3 +432,6 @@ function swapFgBg(el) {
 
 }
 
+function isImage(contentType) {
+	return (contentType.indexOf('image') > -1);
+}

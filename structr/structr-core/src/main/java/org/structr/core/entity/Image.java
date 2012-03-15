@@ -72,6 +72,8 @@ public class Image extends File {
 
 	static {
 
+		EntityContext.registerEntityRelation(Image.class, Folder.class, RelType.HAS_CHILD, Direction.INCOMING, DirectedRelation.Cardinality.ManyToOne);
+
 		EntityContext.registerPropertySet(Image.class,
 						  PropertyView.All,
 						  Key.values());

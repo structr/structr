@@ -54,7 +54,7 @@ function connect() {
 		ws.onmessage = function(message) {
 
 			var data = $.parseJSON(message.data);
-			console.log(data);
+			if (debug) console.log(data);
 
 			//var msg = $.parseJSON(message);
 			var type = data.type;
@@ -65,7 +65,7 @@ function connect() {
 			var code = data.code;
 			var callback = data.callback;
 
-			if (true) {
+			if (debug) {
 				console.log('command: ' + command);
 				console.log('type: ' + type);
 				console.log('code: ' + code);
@@ -205,7 +205,7 @@ function connect() {
 				
 				$(result).each(function(i, entity) {
 
-					//                    if (debug) console.log('LIST: ' + entity.type);
+					if (debug) console.log('LIST: ' + entity.type);
 
 					if (entity.type == 'User') {
 						var groups = entity.groups;
@@ -262,7 +262,8 @@ function connect() {
 						}
 						
 
-					} else if (entity.type == 'File') {
+					} else if (entity.type == 'File' || entity.type == 'Image') {
+						console.log(entity);
 						var parentFolder = entity.folder;
 						if (!parentFolder || parentFolder.length == 0) {
 							_Files.appendFileElement(entity);
@@ -332,7 +333,7 @@ function connect() {
 					_Resources.removeContentFromElement(entityId, parentId);
 					_Resources.reloadPreviews();
 
-				} else if (entity.hasClass('file')) {
+				} else if (entity.hasClass('file') || entity.hasClass('image')) {
 					if (debug) console.log('remove file from folder');
 					_Files.removeFileFromFolder(entityId, parentId);
 
@@ -346,7 +347,7 @@ function connect() {
 
 			} else if (command == 'ADD') {
 
-				console.log('ADD tag', data.data.tag);
+				if (debug) console.log('ADD tag', data.data.tag);
 				parentId = data.id;
 				entityId = data.data.id;
 				var resourceId = data.data.resourceId;
@@ -391,7 +392,7 @@ function connect() {
 			} else if (command == 'UPDATE') {
 				var element = $( '.' + data.id + '_');
 				var input = $('.props tr td.value input', element);
-				console.log(element);
+				if (debug) console.log(element);
 
 				// remove save and cancel icons
 				input.parent().children('.icon').each(function(i, img) {
