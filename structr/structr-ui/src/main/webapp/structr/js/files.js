@@ -142,9 +142,9 @@ var _Files = {
 
     appendFileElement : function(file, parentId) {
 
-        if (debug) console.log('Files.appendFileElement: parentId: ' + parentId + ', file: ', file);
+        console.log('Files.appendFileElement: parentId: ' + parentId + ', file: ', file);
 
-		console.log('File: ', file);
+		//console.log('File: ', file);
 		
 		var fileClass = 'file';
 
@@ -210,6 +210,54 @@ var _Files = {
         return div;
     },
 	
+    appendImageElement : function(file, parentId) {
+        console.log('Files.appendImageElement: parentId: ' + parentId + ', file: ', file);
+		var	icon = viewRootUrl + file.name;
+		var parent = Structr.findParent(parentId, null, images);
+        
+        parent.append('<div class="image ' + file.id + '_">'
+            + '<img class="typeIcon" src="'+ icon + '">'
+            + '<b class="name_">' + file.name + '</b> <span class="id">' + file.id + '</span>'
+            + '</div>');
+		
+        var div = $('.' + file.id + '_', parent);
+
+        $('.typeIcon', div).on('click', function() {
+           window.open(viewRootUrl + file.name, 'Download ' + file.name);
+        });
+		
+        if (parentId) {
+
+            div.append('<img title="Remove file \'' + file.name + '\' from folder ' + parentId + '" alt="Remove file \'' + file.name + '\' from folder" class="delete_icon button" src="' + _Files.delete_file_icon + '">');
+            $('.delete_icon', div).on('click', function() {
+                _Files.removeFileFromFolder(file.id, parentId);
+            });
+			
+        } else {
+		
+            div.append('<img title="Delete file \'' + file.name + '\'" alt="Delete file \'' + file.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
+            $('.delete_icon', div).on('click', function() {
+                _Files.deleteFile(this, file);
+            });
+		
+        }
+        //        div.append('<img class="add_icon button" title="Add Element" alt="Add Element" src="icon/add.png">');
+        //        $('.add_icon', div).on('click', function() {
+        //            Resources.addElement(this, resource);
+        //        });
+        $('b', div).on('click', function() {
+            _Entities.showProperties(this, file, 'all', $('.' + file.id + '_', files));
+        });
+		
+        div.draggable({
+            revert: 'invalid',
+            containment: '#main',
+            zIndex: 1
+        });
+		
+        return div;
+    },
+		
     appendFolderElement : function(folder, parentId) {
 //        var parent;
 //        if (debug) console.log(parentId);
@@ -329,8 +377,9 @@ var _Files = {
 
     createFile : function(fileObj) {
 		var contentType = fileObj.type;
-		var type = isImage(contentType) ? 'Image' : 'File';
-        _Entities.create($.parseJSON('{ "type" : "' + type + '", "name" : "' + fileObj.name + '", "contentType" : "' + fileObj.type + '", "size" : "' + fileObj.size + '" }'));
+//		var type = isImage(contentType) ? 'Image' : 'File';
+		type = 'File';
+        _Entities.create($.parseJSON('{ "type" : "' + type + '", "name" : "' + fileObj.name + '", "contentType" : "' + contentType + '", "size" : "' + fileObj.size + '" }'));
 
     },
 

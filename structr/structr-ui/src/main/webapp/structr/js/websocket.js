@@ -173,6 +173,13 @@ function connect() {
 						_Files.appendFileElement(entity);
 						if (debug) console.log('File uploaded');
 						if (buttonClicked) enable(buttonClicked);
+						
+					} else if (entity.type == 'Image') {
+
+						_Files.uploadImage(entity);
+						_Files.appendImageElement(entity);
+						if (debug) console.log('Image uploaded');
+						if (buttonClicked) enable(buttonClicked);
 
 					//                    } else if (entity.type == 'Element') {
 					} else {
@@ -262,11 +269,18 @@ function connect() {
 						}
 						
 
-					} else if (entity.type == 'File' || entity.type == 'Image') {
+					} else if (entity.type == 'File') {
 						console.log(entity);
 						var parentFolder = entity.folder;
 						if (!parentFolder || parentFolder.length == 0) {
 							_Files.appendFileElement(entity);
+						}
+
+					} else if (entity.type == 'Image') {
+						console.log(entity);
+						var imageFolder = entity.folder;
+						if (!imageFolder || imageFolder.length == 0) {
+							_Files.appendImageElement(entity);
 						}
 
 					} else {
