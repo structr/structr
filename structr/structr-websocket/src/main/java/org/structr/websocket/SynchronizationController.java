@@ -185,6 +185,7 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 			message.setGraphObject(relationship);
 			message.setId(startNode.getStringProperty("uuid"));
 			message.setData("id", endNode.getStringProperty("uuid"));
+			message.setData("tag", endNode.getStringProperty("tag"));
 			messageStack.add(message);
 			logger.log(Level.FINE, "Relationship created: {0}({1} -> {2}{3}", new Object[] { startNode.getId(), startNode.getStringProperty(AbstractNode.Key.uuid),
 				endNode.getStringProperty(AbstractNode.Key.uuid) });

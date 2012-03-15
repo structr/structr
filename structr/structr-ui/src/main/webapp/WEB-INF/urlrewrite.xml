@@ -9,7 +9,7 @@
     <rule match-type="regex">
         <name>RedirectToHtmlServlet</name>
 <!--        <condition type="request-uri" operator="notequal">^/$</condition>-->
-        <condition type="request-uri" operator="notequal">^/structr</condition>
+        <condition type="request-uri" operator="notequal">^/structr/</condition>
         <from>^/(.*)$</from>
         <to type="forward" last="true">/structr/html/$1</to>
     </rule>

@@ -17,7 +17,7 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var files, folders, drop;
+var images, files, folders, drop;
 var fileList;
 var chunkSize = 1024*64;
 var sizeLimit = 1024*1024*42;
@@ -39,17 +39,20 @@ var _Files = {
     init : function() {
         Structr.classes.push('file');
         Structr.classes.push('folder');
+		Structr.classes.push('image');
     },
 
     onload : function() {
         if (debug) console.log('onload');
         if (palette) palette.remove();
 
-        main.append('<table><tr><td id="folders"></td><td id="files"></td></tr></table>');
-        folders = $('#folders');
+        main.append('<table><tr><td id="folders"></td><td id="images"></td><td id="files"></td></tr></table>');
+		folders = $('#folders');
         files = $('#files');
+        images = $('#images');
         
         _Files.refreshFiles();
+		_Files.refreshImages();
         _Files.refreshFolders();
     },
 
@@ -110,6 +113,11 @@ var _Files = {
         _Files.showFiles();
     },
 	
+	refreshImages : function() {
+        images.empty();
+        _Files.showImages();
+    },
+	
     refreshFolders : function() {
         folders.empty();
         if (_Files.showFolders()) {
@@ -128,18 +136,25 @@ var _Files = {
         return _Entities.showEntities('File');
     },
 
+    showImages : function() {
+        return _Entities.showEntities('Image');
+    },
+
     appendFileElement : function(file, parentId) {
 
-        if (debug) console.log('Files.appendFileElement: parentId: ' + parentId + ', file: ', file);
+        console.log('Files.appendFileElement: parentId: ' + parentId + ', file: ', file);
 
-        var parent = Structr.findParent(parentId, null, files);
-        
+		//console.log('File: ', file);
+		
+		var fileClass = 'file';
+
         var icon = _Files.icon; // default
-        if (debug) console.log(file.contentType);
         if (file.contentType) {
 
-            if (file.contentType.indexOf('image') > -1) {
-                icon = 'icon/image.png';
+            if (isImage(file.contentType)) {
+                //icon = 'icon/image.png';
+				icon = viewRootUrl + file.name;
+				fileClass = 'image';
             } else if (file.contentType.indexOf('pdf') > -1) {
                 icon = 'icon/page_white_acrobat.png';
             } else if (file.contentType.indexOf('text') > -1) {
@@ -149,11 +164,14 @@ var _Files = {
             }
 
         }
-		
-        parent.append('<div class="file ' + file.id + '_">'
+
+		var parent = Structr.findParent(parentId, null, fileClass == 'image' ? images : files);
+        
+        parent.append('<div class="' + fileClass + ' ' + file.id + '_">'
             + '<img class="typeIcon" src="'+ icon + '">'
             + '<b class="name_">' + file.name + '</b> <span class="id">' + file.id + '</span>'
             + '</div>');
+		
         var div = $('.' + file.id + '_', parent);
 
         $('.typeIcon', div).on('click', function() {
@@ -192,16 +210,67 @@ var _Files = {
         return div;
     },
 	
-    appendFolderElement : function(folder, parentId) {
-        var parent;
-        if (debug) console.log(parentId);
-        if (parentId) {
-            parent = $('.' + parentId + '_');
-            if (debug) console.log(parent);
-        } else {
-            parent = folders;
-        }
+    appendImageElement : function(file, parentId) {
+        console.log('Files.appendImageElement: parentId: ' + parentId + ', file: ', file);
+		var	icon = viewRootUrl + file.name;
+		var parent = Structr.findParent(parentId, null, images);
         
+        parent.append('<div class="image ' + file.id + '_">'
+            + '<img class="typeIcon" src="'+ icon + '">'
+            + '<b class="name_">' + file.name + '</b> <span class="id">' + file.id + '</span>'
+            + '</div>');
+		
+        var div = $('.' + file.id + '_', parent);
+
+        $('.typeIcon', div).on('click', function() {
+           window.open(viewRootUrl + file.name, 'Download ' + file.name);
+        });
+		
+        if (parentId) {
+
+            div.append('<img title="Remove file \'' + file.name + '\' from folder ' + parentId + '" alt="Remove file \'' + file.name + '\' from folder" class="delete_icon button" src="' + _Files.delete_file_icon + '">');
+            $('.delete_icon', div).on('click', function() {
+                _Files.removeFileFromFolder(file.id, parentId);
+            });
+			
+        } else {
+		
+            div.append('<img title="Delete file \'' + file.name + '\'" alt="Delete file \'' + file.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
+            $('.delete_icon', div).on('click', function() {
+                _Files.deleteFile(this, file);
+            });
+		
+        }
+        //        div.append('<img class="add_icon button" title="Add Element" alt="Add Element" src="icon/add.png">');
+        //        $('.add_icon', div).on('click', function() {
+        //            Resources.addElement(this, resource);
+        //        });
+        $('b', div).on('click', function() {
+            _Entities.showProperties(this, file, 'all', $('.' + file.id + '_', files));
+        });
+		
+        div.draggable({
+            revert: 'invalid',
+            containment: '#main',
+            zIndex: 1
+        });
+		
+        return div;
+    },
+		
+    appendFolderElement : function(folder, parentId) {
+//        var parent;
+//        if (debug) console.log(parentId);
+//        if (parentId) {
+//            parent = $('.' + parentId + '_');
+//            if (debug) console.log(parent);
+//        } else {
+//            parent = folders;
+//        }
+		
+        console.log('Folder: ', folder);
+		var parent = Structr.findParent(parentId, null, folders);
+		
         parent.append('<div structr_type="folder" class="folder ' + folder.id + '_">'
             + '<img class="typeIcon" src="'+ _Files.folder_icon + '">'
             + '<b class="name_">' + folder.name + '</b> <span class="id">' + folder.id + '</span>'
@@ -220,7 +289,7 @@ var _Files = {
         });
 		
         div.droppable({
-            accept: '.file',
+            accept: '.file, .image',
             greedy: true,
             hoverClass: 'folderHover',
             drop: function(event, ui) {
@@ -284,12 +353,16 @@ var _Files = {
         _Entities.removeSourceFromTarget(fileId, folderId);
     },
 	
-    addFolder : function(button) {
+	addFolder : function(button) {
         return _Entities.add(button, 'Folder');
     },
-	
+		
     addFile : function(button) {
         return _Entities.add(button, 'File');
+    },
+
+	addImage : function(button) {
+        return _Entities.add(button, 'Image');
     },
 
     deleteFolder : function(button, folder) {
@@ -303,7 +376,10 @@ var _Files = {
     },
 
     createFile : function(fileObj) {
-        _Entities.create($.parseJSON('{ "type" : "File", "name" : "' + fileObj.name + '", "contentType" : "' + fileObj.type + '", "size" : "' + fileObj.size + '" }'));
+		var contentType = fileObj.type;
+//		var type = isImage(contentType) ? 'Image' : 'File';
+		type = 'File';
+        _Entities.create($.parseJSON('{ "type" : "' + type + '", "name" : "' + fileObj.name + '", "contentType" : "' + contentType + '", "size" : "' + fileObj.size + '" }'));
 
     },
 
