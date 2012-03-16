@@ -60,7 +60,7 @@ public class Folder extends AbstractNode {
 
 	//~--- constant enums -------------------------------------------------
 
-	public enum Key implements PropertyKey{ name, parentFolder, folders, files }
+	public enum Key implements PropertyKey{ name, parentFolder, folders, files, images }
 
 	//~--- methods --------------------------------------------------------
 

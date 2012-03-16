@@ -159,7 +159,10 @@ public class HtmlServlet extends HttpServlet {
 
 			logger.log(Level.INFO, "Path info {0}", path);
 
-			String name = path.substring(path.lastIndexOf("/") + 1);
+			// Remove trailing /
+			path = StringUtils.stripEnd(path, "/");
+
+			String name = StringUtils.substringAfterLast(path, "/");
 
 			if (name.length() > 0) {
 

@@ -39,7 +39,7 @@ var _Files = {
     init : function() {
         Structr.classes.push('file');
         Structr.classes.push('folder');
-		Structr.classes.push('image');
+        Structr.classes.push('image');
     },
 
     onload : function() {
@@ -47,12 +47,12 @@ var _Files = {
         if (palette) palette.remove();
 
         main.append('<table><tr><td id="folders"></td><td id="images"></td><td id="files"></td></tr></table>');
-		folders = $('#folders');
+        folders = $('#folders');
         files = $('#files');
         images = $('#images');
         
         _Files.refreshFiles();
-		_Files.refreshImages();
+        _Files.refreshImages();
         _Files.refreshFolders();
     },
 
@@ -113,7 +113,7 @@ var _Files = {
         _Files.showFiles();
     },
 	
-	refreshImages : function() {
+    refreshImages : function() {
         images.empty();
         _Files.showImages();
     },
@@ -144,18 +144,10 @@ var _Files = {
 
         console.log('Files.appendFileElement: parentId: ' + parentId + ', file: ', file);
 
-		//console.log('File: ', file);
-		
-		var fileClass = 'file';
-
         var icon = _Files.icon; // default
         if (file.contentType) {
 
-            if (isImage(file.contentType)) {
-                //icon = 'icon/image.png';
-				icon = viewRootUrl + file.name;
-				fileClass = 'image';
-            } else if (file.contentType.indexOf('pdf') > -1) {
+            if (file.contentType.indexOf('pdf') > -1) {
                 icon = 'icon/page_white_acrobat.png';
             } else if (file.contentType.indexOf('text') > -1) {
                 icon = 'icon/page_white_text.png';
@@ -165,9 +157,9 @@ var _Files = {
 
         }
 
-		var parent = Structr.findParent(parentId, null, fileClass == 'image' ? images : files);
+        var parent = Structr.findParent(parentId, null, files);
         
-        parent.append('<div class="' + fileClass + ' ' + file.id + '_">'
+        parent.append('<div class="file ' + file.id + '_">'
             + '<img class="typeIcon" src="'+ icon + '">'
             + '<b class="name_">' + file.name + '</b> <span class="id">' + file.id + '</span>'
             + '</div>');
@@ -175,7 +167,7 @@ var _Files = {
         var div = $('.' + file.id + '_', parent);
 
         $('.typeIcon', div).on('click', function() {
-           window.open(viewRootUrl + file.name, 'Download ' + file.name);
+            window.open(viewRootUrl + file.name, 'Download ' + file.name);
         });
 		
         if (parentId) {
@@ -212,9 +204,9 @@ var _Files = {
 	
     appendImageElement : function(file, parentId) {
         console.log('Files.appendImageElement: parentId: ' + parentId + ', file: ', file);
-		var	icon = viewRootUrl + file.name;
-		var parent = Structr.findParent(parentId, null, images);
-        
+        var	icon = viewRootUrl + file.name;
+        var parent = Structr.findParent(parentId, null, images);
+
         parent.append('<div class="image ' + file.id + '_">'
             + '<img class="typeIcon" src="'+ icon + '">'
             + '<b class="name_">' + file.name + '</b> <span class="id">' + file.id + '</span>'
@@ -223,14 +215,14 @@ var _Files = {
         var div = $('.' + file.id + '_', parent);
 
         $('.typeIcon', div).on('click', function() {
-           window.open(viewRootUrl + file.name, 'Download ' + file.name);
+            window.open(viewRootUrl + file.name, 'Download ' + file.name);
         });
 		
         if (parentId) {
 
             div.append('<img title="Remove file \'' + file.name + '\' from folder ' + parentId + '" alt="Remove file \'' + file.name + '\' from folder" class="delete_icon button" src="' + _Files.delete_file_icon + '">');
             $('.delete_icon', div).on('click', function() {
-                _Files.removeFileFromFolder(file.id, parentId);
+                _Files.removeImageFromFolder(file.id, parentId);
             });
 			
         } else {
@@ -246,7 +238,7 @@ var _Files = {
         //            Resources.addElement(this, resource);
         //        });
         $('b', div).on('click', function() {
-            _Entities.showProperties(this, file, 'all', $('.' + file.id + '_', files));
+            _Entities.showProperties(this, file, 'all', $('.' + file.id + '_', images));
         });
 		
         div.draggable({
@@ -259,17 +251,17 @@ var _Files = {
     },
 		
     appendFolderElement : function(folder, parentId) {
-//        var parent;
-//        if (debug) console.log(parentId);
-//        if (parentId) {
-//            parent = $('.' + parentId + '_');
-//            if (debug) console.log(parent);
-//        } else {
-//            parent = folders;
-//        }
+        //        var parent;
+        //        if (debug) console.log(parentId);
+        //        if (parentId) {
+        //            parent = $('.' + parentId + '_');
+        //            if (debug) console.log(parent);
+        //        } else {
+        //            parent = folders;
+        //        }
 		
         console.log('Folder: ', folder);
-		var parent = Structr.findParent(parentId, null, folders);
+        var parent = Structr.findParent(parentId, null, folders);
 		
         parent.append('<div structr_type="folder" class="folder ' + folder.id + '_">'
             + '<img class="typeIcon" src="'+ _Files.folder_icon + '">'
@@ -325,6 +317,29 @@ var _Files = {
 
     },
 
+    addImageToFolder : function(imageId, folderId) {
+
+        var folder = $('.' + folderId + '_');
+        var image = $('.' + imageId + '_');
+
+        folder.append(image);
+
+        $('.delete_icon', image).remove();
+        image.append('<img title="Remove image ' + imageId + ' from folder ' + folderId + '" '
+            + 'alt="Remove image ' + imageId + ' from folder ' + folderId + '" class="delete_icon button" src="' + _Files.delete_file_icon + '">');
+        $('.delete_icon', image).on('click', function() {
+            _Files.removeImageFromFolder(imageId, folderId)
+        });
+        image.draggable('destroy');
+
+        var numberOfImages = $('.image', folder).size();
+        if (debug) console.log(numberOfImages);
+        if (numberOfImages > 0) {
+            disable($('.delete_icon', folder)[0]);
+        }
+
+    },
+
     removeFileFromFolder : function(fileId, folderId) {
 
         var folder = $('.' + folderId + '_');
@@ -352,8 +367,36 @@ var _Files = {
         if (debug) console.log('removeFileFromFolder: fileId=' + fileId + ', folderId=' + folderId);
         _Entities.removeSourceFromTarget(fileId, folderId);
     },
-	
-	addFolder : function(button) {
+    
+    removeImageFromFolder : function(imageId, folderId) {
+
+        var folder = $('.' + folderId + '_');
+        var image = $('.' + imageId + '_', folder);
+        images.append(image);//.animate();
+        $('.delete_icon', image).remove();
+        image.append('<img title="Delete image ' + imageId + '" '
+            + 'alt="Delete image ' + imageId + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
+        $('.delete_icon', image).on('click', function() {
+            _Files.deleteFile(this, Structr.entity(imageId));
+        });
+
+        image.draggable({
+            revert: 'invalid',
+            containment: '#main',
+            zIndex: 1
+        });
+
+        var numberOfImages = $('.file', folder).size();
+        if (debug) console.log(numberOfImages);
+        if (numberOfImages == 0) {
+            enable($('.delete_icon', folder)[0]);
+        }
+
+        if (debug) console.log('removeImageFromFolder: imageId=' + imageId + ', folderId=' + folderId);
+        _Entities.removeSourceFromTarget(imageId, folderId);
+    },
+    
+    addFolder : function(button) {
         return _Entities.add(button, 'Folder');
     },
 		
@@ -361,7 +404,7 @@ var _Files = {
         return _Entities.add(button, 'File');
     },
 
-	addImage : function(button) {
+    addImage : function(button) {
         return _Entities.add(button, 'Image');
     },
 
@@ -376,9 +419,8 @@ var _Files = {
     },
 
     createFile : function(fileObj) {
-		var contentType = fileObj.type;
-//		var type = isImage(contentType) ? 'Image' : 'File';
-		type = 'File';
+        var contentType = fileObj.type;
+        var type = isImage(contentType) ? 'Image' : 'File';
         _Entities.create($.parseJSON('{ "type" : "' + type + '", "name" : "' + fileObj.name + '", "contentType" : "' + contentType + '", "size" : "' + fileObj.size + '" }'));
 
     },
@@ -440,6 +482,10 @@ var _Files = {
                         send(data);
 
                     }
+
+                    var iconSrc = $('.' + file.id + '_').find('.typeIcon').attr('src');
+                    console.log('Icon src: ', iconSrc);
+                    $('.' + file.id + '_').find('.typeIcon').attr('src', iconSrc + '?' + new Date().getTime());
 
                 }
             }

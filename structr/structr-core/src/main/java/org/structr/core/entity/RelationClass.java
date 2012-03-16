@@ -439,8 +439,11 @@ public class RelationClass {
 
 								AbstractNode abstractNode = (AbstractNode) nodeFactory.createNode(securityContext, path.endNode());
 
-								// use inheritance
-								if ((realType != null) && realType.isAssignableFrom(abstractNode.getClass())) {
+//								// use inheritance
+//								if ((realType != null) && realType.isAssignableFrom(abstractNode.getClass())) {
+
+								// don't use inheritance!!!
+								if ((realType != null) && realType.equals(abstractNode.getClass())) {
 
 									nodeList.add(abstractNode);
 

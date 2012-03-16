@@ -56,6 +56,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.RelationClass.Cardinality;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -72,7 +73,7 @@ public class Image extends File {
 
 	static {
 
-		EntityContext.registerEntityRelation(Image.class, Folder.class, RelType.HAS_CHILD, Direction.INCOMING, DirectedRelation.Cardinality.ManyToOne);
+		EntityContext.registerEntityRelation(Image.class, Folder.class, RelType.HAS_CHILD, Direction.INCOMING, Cardinality.ManyToOne);
 
 		EntityContext.registerPropertySet(Image.class,
 						  PropertyView.All,

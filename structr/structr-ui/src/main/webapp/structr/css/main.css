@@ -176,6 +176,7 @@ img.disabled {
 #folders,
 #files,
 #groups,
+#images,
 #users {
     /*    float: left;*/
     vertical-align: top;
