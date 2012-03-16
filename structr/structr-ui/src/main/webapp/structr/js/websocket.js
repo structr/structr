@@ -34,7 +34,7 @@ function connect() {
 
     try {
         var host = document.location.host;
-        var wsUrl = 'ws://' + host + wsRoot;
+        var wsUrl = 'wss://' + host + wsRoot;
         if (debug) console.log(wsUrl);
         if ('WebSocket' in window) {
             ws = new WebSocket(wsUrl, 'structr');

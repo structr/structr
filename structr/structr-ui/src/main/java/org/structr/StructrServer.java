@@ -17,7 +17,6 @@ import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.handler.DefaultHandler;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.server.handler.RequestLogHandler;
-import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.webapp.WebAppContext;
@@ -36,6 +35,8 @@ import java.io.File;
 import java.util.*;
 
 import javax.servlet.DispatcherType;
+import org.eclipse.jetty.util.ssl.SslContextFactory;
+import org.eclipse.jetty.server.ssl.SslSelectChannelConnector;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -50,6 +51,7 @@ public class StructrServer {
 
 		String appName        = "structr UI 0.4.8";
 		String host           = System.getProperty("host", "0.0.0.0");
+		String keyStorePath   = System.getProperty("keyStorePath", "keystore.jks");
 		int port              = Integer.parseInt(System.getProperty("port", "8080"));
 		int maxIdleTime       = Integer.parseInt(System.getProperty("maxIdleTime", "30000"));
 		int requestHeaderSize = Integer.parseInt(System.getProperty("requestHeaderSize", "8192"));
@@ -62,14 +64,23 @@ public class StructrServer {
 		Server server                     = new Server(port);
 		HandlerCollection handlers        = new HandlerCollection();
 		ContextHandlerCollection contexts = new ContextHandlerCollection();
-
+		
+		// setup HTTP connector
+		SslContextFactory factory = new SslContextFactory(keyStorePath);
+		factory.setKeyStorePassword("structrKeystore");
+		
+		SslSelectChannelConnector httpsConnector = new SslSelectChannelConnector(factory);
+		httpsConnector.setHost(host);
+		httpsConnector.setPort(port);
+		httpsConnector.setMaxIdleTime(maxIdleTime);
+		httpsConnector.setRequestHeaderSize(requestHeaderSize);
 		// ServletContextHandler context0    = new ServletContextHandler(ServletContextHandler.SESSIONS);
-		SelectChannelConnector connector0 = new SelectChannelConnector();
+		//SelectChannelConnector connector0 = new SelectChannelConnector();
 
-		connector0.setHost(host);
-		connector0.setPort(port);
-		connector0.setMaxIdleTime(maxIdleTime);
-		connector0.setRequestHeaderSize(requestHeaderSize);
+		httpsConnector.setHost(host);
+		httpsConnector.setPort(port);
+		httpsConnector.setMaxIdleTime(maxIdleTime);
+		httpsConnector.setRequestHeaderSize(requestHeaderSize);
 
 		String basePath = System.getProperty("home", "");
 		File baseDir    = new File(basePath);
@@ -89,7 +100,7 @@ public class StructrServer {
 		}
 
 		modulesPath = modulesDir.getAbsolutePath();
-
+			
 		File modulesConfFile     = new File(modulesPath + "/modules.conf");
 		String warPath           = StructrServer.class.getProtectionDomain().getCodeSource().getLocation().getPath();
 		List<String> modulesConf = new LinkedList<String>();
@@ -266,7 +277,7 @@ public class StructrServer {
 		contexts.setHandlers(new Handler[] { webapp, requestLogHandler });
 		handlers.setHandlers(new Handler[] { contexts, new DefaultHandler(), requestLogHandler });
 		server.setHandler(handlers);
-		server.setConnectors(new Connector[] { connector0 });
+		server.setConnectors(new Connector[] { httpsConnector });
 		server.setGracefulShutdown(1000);
 		server.setStopAtShutdown(true);
 		System.out.println();
