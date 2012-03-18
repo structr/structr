@@ -35,6 +35,7 @@ import java.io.File;
 import java.util.*;
 
 import javax.servlet.DispatcherType;
+import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.server.ssl.SslSelectChannelConnector;
 
@@ -52,16 +53,17 @@ public class StructrServer {
 		String appName        = "structr UI 0.4.8";
 		String host           = System.getProperty("host", "0.0.0.0");
 		String keyStorePath   = System.getProperty("keyStorePath", "keystore.jks");
-		int port              = Integer.parseInt(System.getProperty("port", "8080"));
+		int httpPort          = Integer.parseInt(System.getProperty("port", "8080"));
+		int httpsPort         = Integer.parseInt(System.getProperty("httpsPort", "8081"));
 		int maxIdleTime       = Integer.parseInt(System.getProperty("maxIdleTime", "30000"));
 		int requestHeaderSize = Integer.parseInt(System.getProperty("requestHeaderSize", "8192"));
 		String contextPath    = System.getProperty("contextPath", "/");
 
 		System.out.println();
-		System.out.println("Starting " + appName + " (host=" + host + ":" + port + ", maxIdleTime=" + maxIdleTime + ", requestHeaderSize=" + requestHeaderSize + ")");
+		System.out.println("Starting " + appName + " (host=" + host + ":" + httpPort + ", maxIdleTime=" + maxIdleTime + ", requestHeaderSize=" + requestHeaderSize + ")");
 		System.out.println();
 
-		Server server                     = new Server(port);
+		Server server                     = new Server(httpPort);
 		HandlerCollection handlers        = new HandlerCollection();
 		ContextHandlerCollection contexts = new ContextHandlerCollection();
 		
@@ -71,16 +73,17 @@ public class StructrServer {
 		
 		SslSelectChannelConnector httpsConnector = new SslSelectChannelConnector(factory);
 		httpsConnector.setHost(host);
-		httpsConnector.setPort(port);
+		httpsConnector.setPort(httpsPort);
 		httpsConnector.setMaxIdleTime(maxIdleTime);
 		httpsConnector.setRequestHeaderSize(requestHeaderSize);
 		// ServletContextHandler context0    = new ServletContextHandler(ServletContextHandler.SESSIONS);
 		//SelectChannelConnector connector0 = new SelectChannelConnector();
 
-		httpsConnector.setHost(host);
-		httpsConnector.setPort(port);
-		httpsConnector.setMaxIdleTime(maxIdleTime);
-		httpsConnector.setRequestHeaderSize(requestHeaderSize);
+		SelectChannelConnector httpConnector = new SelectChannelConnector();
+		httpConnector.setHost(host);
+		httpConnector.setPort(httpPort);
+		httpConnector.setMaxIdleTime(maxIdleTime);
+		httpConnector.setRequestHeaderSize(requestHeaderSize);
 
 		String basePath = System.getProperty("home", "");
 		File baseDir    = new File(basePath);
@@ -277,11 +280,11 @@ public class StructrServer {
 		contexts.setHandlers(new Handler[] { webapp, requestLogHandler });
 		handlers.setHandlers(new Handler[] { contexts, new DefaultHandler(), requestLogHandler });
 		server.setHandler(handlers);
-		server.setConnectors(new Connector[] { httpsConnector });
+		server.setConnectors(new Connector[] { httpConnector, httpsConnector });
 		server.setGracefulShutdown(1000);
 		server.setStopAtShutdown(true);
 		System.out.println();
-		System.out.println("structr UI:        http://" + host + ":" + port + contextPath);
+		System.out.println("structr UI:        http://" + host + ":" + httpPort + contextPath);
 		System.out.println();
 		server.start();
 		server.join();

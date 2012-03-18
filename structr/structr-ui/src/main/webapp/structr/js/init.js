@@ -282,7 +282,7 @@ var Structr = {
 
     dialog : function(text, callbackOk, callbackCancel) {
 
-        $('#dialogInfo').empty();
+        $('#dialogMsg').empty();
 
         if (text) $('#dialogTitle').html(text);
 //        if (callbackOk) $('#dialogOkButton').on('click', function() {
