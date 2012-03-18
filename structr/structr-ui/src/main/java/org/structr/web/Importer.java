@@ -430,7 +430,7 @@ public class Importer {
 	}
 
 	/**
-	 * Check whether a file with given checksum already exists
+	 * Check whether a file with given name and checksum already exists
 	 */
 	private boolean fileExists(final String name, final long checksum) throws FrameworkException {
 
@@ -438,11 +438,33 @@ public class Importer {
 
 		searchAttrs.add(Search.andExactProperty(AbstractNode.Key.name.name(), name));
 		searchAttrs.add(Search.andExactProperty(File.Key.checksum.name(), String.valueOf(checksum)));
-		searchAttrs.add(Search.andExactType(File.class.getSimpleName()));
+		searchAttrs.addAll(Search.andExactTypeAndSubtypes(File.class.getSimpleName()));
 
 		List<File> files = (List<File>) searchNode.execute(null, false, false, searchAttrs);
 
 		return !files.isEmpty();
+	}
+
+	/**
+	 * Return an eventually existing folder with given name,
+	 * or create a new one.
+	 */
+	private Folder findOrCreateFolder(final String name) throws FrameworkException {
+
+		List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
+
+		searchAttrs.add(Search.andExactProperty(AbstractNode.Key.name.name(), name));
+		searchAttrs.add(Search.andExactType(Folder.class.getSimpleName()));
+
+		List<Folder> folders = (List<Folder>) searchNode.execute(null, false, false, searchAttrs);
+
+		if (!folders.isEmpty()) {
+
+			return folders.get(0);
+
+		}
+
+		return (Folder) createNode.execute(new NodeAttribute(AbstractNode.Key.type.name(), Folder.class.getSimpleName()), new NodeAttribute(AbstractNode.Key.name.name(), name));
 	}
 
 	private void downloadFiles(String downloadAddress, final URL baseUrl) {
@@ -566,7 +588,7 @@ public class Importer {
 
 			Folder parent = folder;
 
-			folder = (Folder) createNode.execute(new NodeAttribute(AbstractNode.Key.type.name(), Folder.class.getSimpleName()), new NodeAttribute(AbstractNode.Key.name.name(), part));
+			folder = findOrCreateFolder(part);
 
 			if (parent != null) {
 
@@ -620,14 +642,15 @@ public class Importer {
 
 	private void processCss(final String css, final URL baseUrl) throws IOException {
 
-		Pattern pattern = Pattern.compile("url\\((.*)\\)");    // FIXME: pattern does not supprt multiple url('...') in same line
+		Pattern pattern = Pattern.compile("(url\\(['|\"]?)([^'|\"]*)");
 		Matcher matcher = pattern.matcher(css);
 
 		while (matcher.find()) {
 
-			String url = StringUtils.strip(matcher.group(1), "'\"");
 
+			String url = matcher.group(2);
 			logger.log(Level.INFO, "Trying to download form URL found in CSS: {0}", url);
+
 			downloadFiles(url, baseUrl);
 
 		}
