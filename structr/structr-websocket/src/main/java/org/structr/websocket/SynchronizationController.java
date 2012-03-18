@@ -95,6 +95,8 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 
 				try {
 					socketConnection.sendMessage(message);
+				} catch (org.eclipse.jetty.io.EofException eof) {
+					logger.log(Level.FINE, "EofException irgnored, may occour on SSL connections.", eof);
 				} catch (Throwable t) {
 					logger.log(Level.WARNING, "Error sending message to client.", t);
 				}
