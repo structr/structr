@@ -453,7 +453,7 @@ function connect() {
 
                 // refresh preview iframe
                 input.data('changed', false);
-                _Resources.reloadPreviews();
+                //_Resources.reloadPreviews();
 
             } else {
                 if (debug) console.log('Received unknown command: ' + command);

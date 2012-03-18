@@ -65,7 +65,7 @@ var _Files = {
             
             drop = $('#filesDropArea');
 
-            drop.on('dragover', function(event) {
+			drop.on('dragover', function(event) {
                 event.originalEvent.dataTransfer.dropEffect = 'copy';
                 return false;
             });
