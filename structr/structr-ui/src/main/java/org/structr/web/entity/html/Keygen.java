@@ -30,5 +30,6 @@ public class Keygen extends HtmlElement {
 	static {
 		EntityContext.registerPropertySet(Keygen.class, PropertyView.All,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Keygen.class, PropertyView.Public,	HtmlElement.UiKey.values());
+		EntityContext.registerPropertySet(Keygen.class, PropertyView.Html, true, htmlAttributes);
 	}
 }

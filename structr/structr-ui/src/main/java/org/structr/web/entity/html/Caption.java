@@ -30,5 +30,6 @@ public class Caption extends HtmlElement {
 	static {
 		EntityContext.registerPropertySet(Caption.class, PropertyView.All,		HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Caption.class, PropertyView.Public,	HtmlElement.UiKey.values());
+		EntityContext.registerPropertySet(Caption.class, PropertyView.Html, true, htmlAttributes);
 	}
 }

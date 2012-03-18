@@ -30,5 +30,6 @@ public class Figcaption extends HtmlElement {
 	static {
 		EntityContext.registerPropertySet(Figcaption.class, PropertyView.All,		HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Figcaption.class, PropertyView.Public,	HtmlElement.UiKey.values());
+		EntityContext.registerPropertySet(Figcaption.class, PropertyView.Html, true, htmlAttributes);
 	}
 }

@@ -30,5 +30,6 @@ public class Pre extends HtmlElement {
 	static {
 		EntityContext.registerPropertySet(Pre.class, PropertyView.All,		HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Pre.class, PropertyView.Public,	HtmlElement.UiKey.values());
+		EntityContext.registerPropertySet(Pre.class, PropertyView.Html, true, htmlAttributes);
 	}
 }

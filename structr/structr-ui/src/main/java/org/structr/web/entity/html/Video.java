@@ -30,5 +30,6 @@ public class Video extends HtmlElement {
 	static {
 		EntityContext.registerPropertySet(Video.class, PropertyView.All,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Video.class, PropertyView.Public,	HtmlElement.UiKey.values());
+		EntityContext.registerPropertySet(Video.class, PropertyView.Html, true, htmlAttributes);
 	}
 }

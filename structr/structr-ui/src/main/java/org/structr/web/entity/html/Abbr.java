@@ -30,5 +30,6 @@ public class Abbr extends HtmlElement {
 	static {
 		EntityContext.registerPropertySet(Abbr.class, PropertyView.All,		HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Abbr.class, PropertyView.Public,	HtmlElement.UiKey.values());
+		EntityContext.registerPropertySet(Abbr.class, PropertyView.Html, true, htmlAttributes);
 	}
 }

@@ -30,6 +30,7 @@ public class Aside extends HtmlElement {
 	static {
 		EntityContext.registerPropertySet(Aside.class, PropertyView.All,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Aside.class, PropertyView.Public,	HtmlElement.UiKey.values());
+		EntityContext.registerPropertySet(Aside.class, PropertyView.Html, true, htmlAttributes);
 	}
 
 }

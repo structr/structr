@@ -30,5 +30,6 @@ public class Samp extends HtmlElement {
 	static {
 		EntityContext.registerPropertySet(Samp.class, PropertyView.All,		HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Samp.class, PropertyView.Public,	HtmlElement.UiKey.values());
+		EntityContext.registerPropertySet(Samp.class, PropertyView.Html, true, htmlAttributes);
 	}
 }

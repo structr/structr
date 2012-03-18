@@ -30,5 +30,6 @@ public class Section extends HtmlElement {
 	static {
 		EntityContext.registerPropertySet(Section.class, PropertyView.All,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Section.class, PropertyView.Public,	HtmlElement.UiKey.values());
+		EntityContext.registerPropertySet(Section.class, PropertyView.Html, true, htmlAttributes);
 	}
 }

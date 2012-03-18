@@ -30,5 +30,6 @@ public class Cite extends HtmlElement {
 	static {
 		EntityContext.registerPropertySet(Cite.class, PropertyView.All,		HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Cite.class, PropertyView.Public,	HtmlElement.UiKey.values());
+		EntityContext.registerPropertySet(Cite.class, PropertyView.Html, true, htmlAttributes);
 	}
 }

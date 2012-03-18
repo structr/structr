@@ -25,7 +25,6 @@ import org.structr.common.RelType;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.RelationClass;
 import org.structr.web.entity.Content;
-import org.structr.web.entity.Element;
 
 /**
  * @author Axel Morgner
@@ -35,6 +34,7 @@ public class Title extends HtmlElement {
 	static {
 		EntityContext.registerPropertySet(org.structr.web.entity.html.Title.class, PropertyView.All,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(org.structr.web.entity.html.Title.class, PropertyView.Public,	HtmlElement.UiKey.values());
+		EntityContext.registerPropertySet(org.structr.web.entity.html.Title.class, PropertyView.Html, true, htmlAttributes);
 		EntityContext.registerEntityRelation(org.structr.web.entity.html.Title.class, Head.class, RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.OneToOne);
 		EntityContext.registerEntityRelation(org.structr.web.entity.html.Title.class, Content.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
 	}

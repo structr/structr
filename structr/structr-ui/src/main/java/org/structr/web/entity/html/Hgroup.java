@@ -30,5 +30,6 @@ public class Hgroup extends HtmlElement {
 	static {
 		EntityContext.registerPropertySet(Hgroup.class, PropertyView.All,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Hgroup.class, PropertyView.Public,	HtmlElement.UiKey.values());
+		EntityContext.registerPropertySet(Hgroup.class, PropertyView.Html, true, htmlAttributes);
 	}
 }

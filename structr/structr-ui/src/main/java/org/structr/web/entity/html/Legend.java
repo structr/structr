@@ -30,5 +30,6 @@ public class Legend extends HtmlElement {
 	static {
 		EntityContext.registerPropertySet(Legend.class, PropertyView.All,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Legend.class, PropertyView.Public,	HtmlElement.UiKey.values());
+		EntityContext.registerPropertySet(Legend.class, PropertyView.Html, true, htmlAttributes);
 	}
 }

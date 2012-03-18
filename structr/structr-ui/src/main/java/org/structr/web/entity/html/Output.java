@@ -30,5 +30,6 @@ public class Output extends HtmlElement {
 	static {
 		EntityContext.registerPropertySet(Output.class, PropertyView.All,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Output.class, PropertyView.Public,	HtmlElement.UiKey.values());
+		EntityContext.registerPropertySet(Output.class, PropertyView.Html, true, htmlAttributes);
 	}
 }

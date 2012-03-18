@@ -30,5 +30,6 @@ public class Map extends HtmlElement {
 	static {
 		EntityContext.registerPropertySet(Map.class, PropertyView.All,		HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Map.class, PropertyView.Public,	HtmlElement.UiKey.values());
+		EntityContext.registerPropertySet(Map.class, PropertyView.Html, true, htmlAttributes);
 	}
 }

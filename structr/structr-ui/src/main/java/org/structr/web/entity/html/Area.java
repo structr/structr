@@ -30,6 +30,7 @@ public class Area extends HtmlElement {
 	static {
 		EntityContext.registerPropertySet(Area.class, PropertyView.All,		HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Area.class, PropertyView.Public,	HtmlElement.UiKey.values());
+		EntityContext.registerPropertySet(Area.class, PropertyView.Html, true, htmlAttributes);
 	}
 
 }

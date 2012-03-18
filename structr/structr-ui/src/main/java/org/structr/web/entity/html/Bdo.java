@@ -30,5 +30,6 @@ public class Bdo extends HtmlElement {
 	static {
 		EntityContext.registerPropertySet(Bdo.class, PropertyView.All,		HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Bdo.class, PropertyView.Public,	HtmlElement.UiKey.values());
+		EntityContext.registerPropertySet(Bdo.class, PropertyView.Html, true, htmlAttributes);
 	}
 }

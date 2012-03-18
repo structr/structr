@@ -30,5 +30,6 @@ public class Param extends HtmlElement {
 	static {
 		EntityContext.registerPropertySet(Param.class, PropertyView.All,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Param.class, PropertyView.Public,	HtmlElement.UiKey.values());
+		EntityContext.registerPropertySet(Param.class, PropertyView.Html, true, htmlAttributes);
 	}
 }

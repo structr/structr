@@ -30,5 +30,6 @@ public class Select extends HtmlElement {
 	static {
 		EntityContext.registerPropertySet(Select.class, PropertyView.All,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Select.class, PropertyView.Public,	HtmlElement.UiKey.values());
+		EntityContext.registerPropertySet(Select.class, PropertyView.Html, true, htmlAttributes);
 	}
 }

@@ -30,5 +30,6 @@ public class Dt extends HtmlElement {
 	static {
 		EntityContext.registerPropertySet(Dt.class, PropertyView.All,		HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Dt.class, PropertyView.Public,	HtmlElement.UiKey.values());
+		EntityContext.registerPropertySet(Dt.class, PropertyView.Html, true, htmlAttributes);
 	}
 }

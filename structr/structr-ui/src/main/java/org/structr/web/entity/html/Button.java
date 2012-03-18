@@ -30,5 +30,6 @@ public class Button extends HtmlElement {
 	static {
 		EntityContext.registerPropertySet(Button.class, PropertyView.All,		HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Button.class, PropertyView.Public,	HtmlElement.UiKey.values());
+		EntityContext.registerPropertySet(Button.class, PropertyView.Html, true, htmlAttributes);
 	}
 }

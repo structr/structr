@@ -30,5 +30,6 @@ public class Noscript extends HtmlElement {
 	static {
 		EntityContext.registerPropertySet(Noscript.class, PropertyView.All,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Noscript.class, PropertyView.Public,	HtmlElement.UiKey.values());
+		EntityContext.registerPropertySet(Noscript.class, PropertyView.Html, true, htmlAttributes);
 	}
 }

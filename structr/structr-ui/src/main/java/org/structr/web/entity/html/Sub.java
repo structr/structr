@@ -30,5 +30,6 @@ public class Sub extends HtmlElement {
 	static {
 		EntityContext.registerPropertySet(Sub.class, PropertyView.All,		HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Sub.class, PropertyView.Public,	HtmlElement.UiKey.values());
+		EntityContext.registerPropertySet(Sub.class, PropertyView.Html, true, htmlAttributes);
 	}
 }

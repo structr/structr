@@ -30,5 +30,6 @@ public class Dfn extends HtmlElement {
 	static {
 		EntityContext.registerPropertySet(Dfn.class, PropertyView.All,		HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Dfn.class, PropertyView.Public,	HtmlElement.UiKey.values());
+		EntityContext.registerPropertySet(Dfn.class, PropertyView.Html, true, htmlAttributes);
 	}
 }

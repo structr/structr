@@ -30,5 +30,6 @@ public class Progress extends HtmlElement {
 	static {
 		EntityContext.registerPropertySet(Progress.class, PropertyView.All,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Progress.class, PropertyView.Public,	HtmlElement.UiKey.values());
+		EntityContext.registerPropertySet(Progress.class, PropertyView.Html, true, htmlAttributes);
 	}
 }

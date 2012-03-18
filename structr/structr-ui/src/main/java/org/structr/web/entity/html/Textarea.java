@@ -30,5 +30,6 @@ public class Textarea extends HtmlElement {
 	static {
 		EntityContext.registerPropertySet(Textarea.class, PropertyView.All,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Textarea.class, PropertyView.Public,	HtmlElement.UiKey.values());
+		EntityContext.registerPropertySet(Textarea.class, PropertyView.Html, true, htmlAttributes);
 	}
 }

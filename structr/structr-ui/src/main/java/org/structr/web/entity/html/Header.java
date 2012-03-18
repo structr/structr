@@ -30,5 +30,6 @@ public class Header extends HtmlElement {
 	static {
 		EntityContext.registerPropertySet(Header.class, PropertyView.All,		HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Header.class, PropertyView.Public,	HtmlElement.UiKey.values());
+		EntityContext.registerPropertySet(Header.class, PropertyView.Html, true, htmlAttributes);
 	}
 }

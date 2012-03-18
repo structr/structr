@@ -30,5 +30,6 @@ public class Footer extends HtmlElement {
 	static {
 		EntityContext.registerPropertySet(Footer.class, PropertyView.All,		HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Footer.class, PropertyView.Public,	HtmlElement.UiKey.values());
+		EntityContext.registerPropertySet(Footer.class, PropertyView.Html, true, htmlAttributes);
 	}
 }

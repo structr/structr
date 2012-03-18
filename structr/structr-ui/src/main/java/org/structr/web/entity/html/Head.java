@@ -33,6 +33,7 @@ public class Head extends HtmlElement {
 	static {
 		EntityContext.registerPropertySet(Head.class, PropertyView.All,		HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Head.class, PropertyView.Public,	HtmlElement.UiKey.values());
+		EntityContext.registerPropertySet(Head.class, PropertyView.Html, true, htmlAttributes);
 
 		EntityContext.registerEntityRelation(Head.class, Html.class,	RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.OneToOne);
 		EntityContext.registerEntityRelation(Head.class, Title.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.OneToOne);

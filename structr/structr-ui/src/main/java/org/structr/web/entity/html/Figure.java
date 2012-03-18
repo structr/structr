@@ -30,5 +30,6 @@ public class Figure extends HtmlElement {
 	static {
 		EntityContext.registerPropertySet(Figure.class, PropertyView.All,		HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Figure.class, PropertyView.Public,	HtmlElement.UiKey.values());
+		EntityContext.registerPropertySet(Figure.class, PropertyView.Html, true, htmlAttributes);
 	}
 }

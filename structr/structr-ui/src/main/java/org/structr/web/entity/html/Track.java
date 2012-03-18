@@ -30,5 +30,6 @@ public class Track extends HtmlElement {
 	static {
 		EntityContext.registerPropertySet(Track.class, PropertyView.All,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Track.class, PropertyView.Public,	HtmlElement.UiKey.values());
+		EntityContext.registerPropertySet(Track.class, PropertyView.Html, true, htmlAttributes);
 	}
 }

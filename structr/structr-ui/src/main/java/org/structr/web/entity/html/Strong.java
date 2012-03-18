@@ -30,5 +30,6 @@ public class Strong extends HtmlElement {
 	static {
 		EntityContext.registerPropertySet(Strong.class, PropertyView.All,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Strong.class, PropertyView.Public,	HtmlElement.UiKey.values());
+		EntityContext.registerPropertySet(Strong.class, PropertyView.Html, true, htmlAttributes);
 	}
 }

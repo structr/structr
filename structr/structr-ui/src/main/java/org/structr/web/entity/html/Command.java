@@ -30,5 +30,6 @@ public class Command extends HtmlElement {
 	static {
 		EntityContext.registerPropertySet(Command.class, PropertyView.All,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Command.class, PropertyView.Public,	HtmlElement.UiKey.values());
+		EntityContext.registerPropertySet(Command.class, PropertyView.Html, true, htmlAttributes);
 	}
 }

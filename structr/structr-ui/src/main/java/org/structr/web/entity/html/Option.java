@@ -30,5 +30,6 @@ public class Option extends HtmlElement {
 	static {
 		EntityContext.registerPropertySet(Option.class, PropertyView.All,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Option.class, PropertyView.Public,	HtmlElement.UiKey.values());
+		EntityContext.registerPropertySet(Option.class, PropertyView.Html, true, htmlAttributes);
 	}
 }
