@@ -33,8 +33,13 @@ function connect() {
     }
 
     try {
+
+        var isEnc = (window.location.protocol == 'https:');
+
         var host = document.location.host;
-        var wsUrl = 'wss://' + host + wsRoot;
+        
+        var wsUrl = 'ws' + (isEnc ? 's' : '') + '://' + host + wsRoot;
+
         if (debug) console.log(wsUrl);
         if ('WebSocket' in window) {
             ws = new WebSocket(wsUrl, 'structr');
@@ -208,7 +213,7 @@ function connect() {
 
             } else if (command == 'LIST') {
 				
-                console.log('LIST:', result);
+                if (debug) console.log('LIST:', result);
                 				
                 $(result).each(function(i, entity) {
 
@@ -277,14 +282,14 @@ function connect() {
 						
 
                     } else if (entity.type == 'Image') {
-                        console.log('Image:', entity);
+                        if (debug) console.log('Image:', entity);
                         var imageFolder = entity.folder;
                         if (!imageFolder || imageFolder.length == 0) {
                             _Files.appendImageElement(entity);
                         }
 
                     } else if (entity.type == 'File') {
-                        console.log('File: ', entity);
+                        if (debug) console.log('File: ', entity);
                         var parentFolder = entity.folder;
                         if (!parentFolder || parentFolder.length == 0) {
                             _Files.appendFileElement(entity);
@@ -448,7 +453,13 @@ function connect() {
                     
                     attrElement.text(newValue);
                     inputElement.val(newValue);
-                //attrElement.removeClass('highlight');
+
+                    // hook for CodeMirror edit areas
+                    if (editor && editor.id == data.id && key == 'content') {
+                        console.log(editor.id);
+                        editor.setValue(newValue);
+                    }
+
                 }
 
                 // refresh preview iframe

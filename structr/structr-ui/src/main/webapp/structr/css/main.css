@@ -198,6 +198,10 @@ img.disabled {
     height: 1000px;
 }
 
+#images > div:first-child {
+    margin-top: 0px ! important;
+}
+
 .node .id {
 /*    display: none;*/
 }

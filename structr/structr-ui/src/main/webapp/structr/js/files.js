@@ -46,7 +46,7 @@ var _Files = {
         if (debug) console.log('onload');
         if (palette) palette.remove();
 
-        main.append('<table><tr><td id="folders"></td><td id="images"></td><td id="files"></td></tr></table>');
+        main.append('<table><tr><td id="folders"></td><td id="files"></td><td id="images"></td></tr></table>');
         folders = $('#folders');
         files = $('#files');
         images = $('#images');
@@ -65,14 +65,17 @@ var _Files = {
             
             drop = $('#filesDropArea');
 
-			drop.on('dragover', function(event) {
+            drop.on('dragover', function(event) {
                 event.originalEvent.dataTransfer.dropEffect = 'copy';
                 return false;
             });
             
             drop.on('drop', function(event) {
+                event.stopPropagation()
+                event.preventDefault();
+//                console.log(event);
                 fileList = event.originalEvent.dataTransfer.files;
-
+                console.log(fileList);
                 var filesToUpload = [];
                 var tooLargeFiles = [];
 
@@ -142,7 +145,7 @@ var _Files = {
 
     appendFileElement : function(file, parentId) {
 
-        console.log('Files.appendFileElement: parentId: ' + parentId + ', file: ', file);
+        if (debug) console.log('Files.appendFileElement: parentId: ' + parentId + ', file: ', file);
 
         var icon = _Files.icon; // default
         if (file.contentType) {
@@ -203,7 +206,7 @@ var _Files = {
     },
 	
     appendImageElement : function(file, parentId) {
-        console.log('Files.appendImageElement: parentId: ' + parentId + ', file: ', file);
+        if (debug) console.log('Files.appendImageElement: parentId: ' + parentId + ', file: ', file);
         var	icon = viewRootUrl + file.name;
         var parent = Structr.findParent(parentId, null, images);
 
@@ -260,7 +263,7 @@ var _Files = {
         //            parent = folders;
         //        }
 		
-        console.log('Folder: ', folder);
+        if (debug) console.log('Folder: ', folder);
         var parent = Structr.findParent(parentId, null, folders);
 		
         parent.append('<div structr_type="folder" class="folder ' + folder.id + '_">'
