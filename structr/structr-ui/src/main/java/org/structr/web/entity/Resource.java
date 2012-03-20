@@ -35,7 +35,7 @@ import org.structr.core.entity.RelationClass.Cardinality;
 //~--- classes ----------------------------------------------------------------
 
 /**
- * Represents an arbitrary element
+ * Represents a resource
  *
  * @author axel
  */

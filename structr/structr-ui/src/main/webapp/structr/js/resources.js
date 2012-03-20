@@ -525,7 +525,7 @@ var _Resources = {
 				//console.log('z-index after: ' + el.css('z-index'));
                 
 				el.droppable({
-					accept: '.element, .content',
+					accept: '.element, .content, .component',
 					greedy: true,
 					hoverClass: 'structr-droppable-area',
 					iframeOffset: {

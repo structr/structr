@@ -51,6 +51,7 @@ public class Component extends AbstractNode {
 
 		EntityContext.registerEntityRelation(Component.class,	Resource.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Component.class,	Element.class,	RelType.CONTAINS,	Direction.OUTGOING, Cardinality.ManyToMany);
+		
 		EntityContext.registerSearchablePropertySet(Component.class, NodeService.NodeIndex.fulltext.name(), Element.UiKey.values());
 		EntityContext.registerSearchablePropertySet(Component.class, NodeService.NodeIndex.keyword.name(), Element.UiKey.values());
 	}
