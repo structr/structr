@@ -19,8 +19,12 @@
 
 package org.structr.web.entity.html;
 
+import org.neo4j.graphdb.Direction;
 import org.structr.common.PropertyView;
+import org.structr.common.RelType;
 import org.structr.core.EntityContext;
+import org.structr.core.entity.RelationClass;
+import org.structr.web.entity.Component;
 
 /**
  * @author Axel Morgner
@@ -31,6 +35,15 @@ public class Article extends HtmlElement {
 		EntityContext.registerPropertySet(Article.class, PropertyView.All,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Article.class, PropertyView.Public,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Article.class, PropertyView.Html, true, htmlAttributes);
+
+		EntityContext.registerEntityRelation(Article.class,	H1.class,	RelType.CONTAINS,	Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Article.class,	H2.class,	RelType.CONTAINS,	Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Article.class,	H3.class,	RelType.CONTAINS,	Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Article.class,	H4.class,	RelType.CONTAINS,	Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Article.class,	H5.class,	RelType.CONTAINS,	Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Article.class,	H6.class,	RelType.CONTAINS,	Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Article.class,	P.class,	RelType.CONTAINS,	Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Article.class,	Div.class,	RelType.CONTAINS,	Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
 	}
 
 }

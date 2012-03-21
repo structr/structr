@@ -29,6 +29,10 @@ import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.RelationClass.Cardinality;
 import org.structr.core.node.NodeService;
+import org.structr.web.entity.html.Article;
+import org.structr.web.entity.html.Div;
+import org.structr.web.entity.html.H1;
+import org.structr.web.entity.html.P;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -51,6 +55,10 @@ public class Component extends AbstractNode {
 
 		EntityContext.registerEntityRelation(Component.class,	Resource.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Component.class,	Element.class,	RelType.CONTAINS,	Direction.OUTGOING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Component.class,	H1.class,	RelType.CONTAINS,	Direction.OUTGOING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Component.class,	P.class,	RelType.CONTAINS,	Direction.OUTGOING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Component.class,	Article.class,	RelType.CONTAINS,	Direction.OUTGOING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Component.class,	Div.class,	RelType.CONTAINS,	Direction.OUTGOING, Cardinality.ManyToMany);
 		
 		EntityContext.registerSearchablePropertySet(Component.class, NodeService.NodeIndex.fulltext.name(), Element.UiKey.values());
 		EntityContext.registerSearchablePropertySet(Component.class, NodeService.NodeIndex.keyword.name(), Element.UiKey.values());
