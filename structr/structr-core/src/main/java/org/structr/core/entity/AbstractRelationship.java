@@ -44,9 +44,6 @@ import org.structr.core.Value;
 import org.structr.core.cloud.RelationshipDataContainer;
 import org.structr.core.node.*;
 import org.structr.core.node.NodeService.RelationshipIndex;
-import org.structr.core.node.search.Search;
-import org.structr.core.node.search.SearchAttribute;
-import org.structr.core.node.search.SearchNodeCommand;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.RelationshipNotion;
 import org.structr.core.validator.SimpleRegexValidator;
@@ -747,28 +744,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	}
 
 	private AbstractNode getNodeByUuid(final String uuid) throws FrameworkException {
-
-		List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
-
-		attrs.add(Search.andExactUuid(uuid));
-
-		List<AbstractNode> results = (List<AbstractNode>) Services.command(securityContext, SearchNodeCommand.class).execute(null, false, false, attrs);
-		int size                   = results.size();
-
-		switch (size) {
-
-			case 0 :
-				return null;
-
-			case 1 :
-				return results.get(0);
-
-			default :
-				logger.log(Level.WARNING, "Got more than one result for UUID {0}, this is very likely to be a UUID collision!", uuid);
-
-				return results.get(0);
-
-		}
+		return (AbstractNode)Services.command(securityContext, GetNodeByIdCommand.class).execute(uuid);
 	}
 
 	public boolean isType(RelType type) {
