@@ -21,4 +21,5 @@ public interface TraverserInterface {
 	public Comparator<AbstractNode> getComparator();
 	public Notion getNotion();
 	public void cleanup();
+	public boolean collapseSingleResult();
 }

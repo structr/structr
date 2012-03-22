@@ -50,6 +50,11 @@ public class TraversingConverter extends PropertyConverter {
 
 					try {
 						List<AbstractNode> nodes = getTraversalResults(comparator, description, currentNode);
+						
+						if (traverserInterface.collapseSingleResult() && nodes.isEmpty()) {
+							return null;
+						}
+						
 						List<GraphObject> transformedNodes = traverserInterface.transformResult(nodes);
 
 						Notion notion = traverserInterface.getNotion();
@@ -65,7 +70,7 @@ public class TraversingConverter extends PropertyConverter {
 							// important: remove results from this iteration
 							traverserInterface.cleanup();
 
-							return results;
+							return (traverserInterface.collapseSingleResult() && results.size() == 1) ? results.get(0) : results;
 
 						} else {
 
