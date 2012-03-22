@@ -34,23 +34,16 @@ import org.neo4j.kernel.Traversal;
 import org.neo4j.kernel.Uniqueness;
 
 import org.structr.common.*;
-import org.structr.common.RelType;
 import org.structr.common.ResourceExpander;
 import org.structr.common.SecurityContext;
 import org.structr.common.TreeNode;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Command;
 import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Image;
-import org.structr.core.node.CreateNodeCommand;
-import org.structr.core.node.CreateRelationshipCommand;
-import org.structr.core.node.NodeAttribute;
 import org.structr.core.node.NodeFactory;
-import org.structr.core.node.StructrTransaction;
-import org.structr.core.node.TransactionCommand;
 import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchAttributeGroup;
@@ -69,11 +62,9 @@ import java.io.*;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -210,8 +201,7 @@ public class HtmlServlet extends HttpServlet {
 
 				logger.log(Level.INFO, "Content collected in {0} seconds", decimalFormat.format((end - start) / 1000000000.0));
 
-				String contentType = resource.getContentType();
-
+				String contentType = resource.getStringProperty(Resource.UiKey.contentType);
 				if (contentType != null) {
 
 					response.setContentType(contentType);
@@ -220,6 +210,7 @@ public class HtmlServlet extends HttpServlet {
 
 					// Default
 					response.setContentType("text/html; charset=utf-8");
+					response.getWriter().append("<!DOCTYPE html>\n");
 				}
 
 				if (tidy) {
@@ -237,7 +228,7 @@ public class HtmlServlet extends HttpServlet {
 				}
 
 				// 3: output content
-				response.getWriter().append("<!DOCTYPE html>\n").append(content);
+				response.getWriter().append(content);
 				response.getWriter().flush();
 				response.getWriter().close();
 				response.setStatus(HttpServletResponse.SC_OK);

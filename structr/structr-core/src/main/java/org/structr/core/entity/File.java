@@ -117,7 +117,6 @@ public class File extends AbstractNode {
 		return getStringProperty(Key.url.name());
 	}
 
-	@Override
 	public String getContentType() {
 		return getStringProperty(Key.contentType.name());
 	}

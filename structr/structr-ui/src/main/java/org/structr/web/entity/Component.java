@@ -21,12 +21,16 @@
 
 package org.structr.web.entity;
 
+import java.lang.Object;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.RelationClass.Cardinality;
 import org.structr.core.node.NodeService;
 import org.structr.web.entity.html.Article;
@@ -44,7 +48,7 @@ import org.structr.web.entity.html.P;
 public class Component extends AbstractNode {
 
 	public enum UiKey implements PropertyKey {
-		name, elements
+		id, type, name, elements
 	}
 
 	static {
@@ -69,5 +73,65 @@ public class Component extends AbstractNode {
 	@Override
 	public String getIconSrc() {
 		return "";
+	}
+	
+	@Override
+	public Iterable<String> getPropertyKeys(final String propertyView) {
+		
+		collectProperties(this, 0, 5);
+
+		// test: add "other" properties & keys
+		for(String key : super.getPropertyKeys(propertyView)) {
+			test.put(key, super.getProperty(key));
+		}
+		
+		return test.keySet();
+	}
+	
+	@Override
+	public Object getProperty(String key) {
+		
+		if(test.containsKey(key)) {
+			return test.get(key);
+		}
+		
+		return super.getProperty(key);
+	}
+	
+	private Map<String, Object> test = new LinkedHashMap<String, Object>();
+
+	// recursive structr-component-class collector
+	private void collectProperties(AbstractNode startNode, int depth, int maxDepth) {
+		
+		if(depth > maxDepth) {
+			return;
+		}
+		
+		String componentClass = startNode.getStringProperty("_html_structr-component-class");
+		if(componentClass != null) {
+			test.put(componentClass, getChildContent(startNode));
+		}
+		
+		for(AbstractRelationship rel : startNode.getOutgoingRelationships(RelType.CONTAINS)) {
+			
+			AbstractNode endNode = rel.getEndNode();
+			collectProperties(endNode, depth, maxDepth+1);
+		}
+		
+		
+	}
+	
+	private String getChildContent(AbstractNode node) {
+		
+		for(AbstractRelationship rel : node.getOutgoingRelationships(RelType.CONTAINS)) {
+			
+			AbstractNode endNode = rel.getEndNode();
+			
+			if(endNode instanceof Content) {
+				return endNode.getStringProperty("content");
+			}
+		}
+		
+		return null;
 	}
 }
