@@ -31,11 +31,11 @@ import java.util.logging.Logger;
  *
  * @author axel
  */
-public class AbstractGraphObjectComparator implements Comparator {
+public class GraphObjectComparator implements Comparator<GraphObject> {
 
 	public static final String ASCENDING  = "asc";
 	public static final String DESCENDING = "desc";
-	private static final Logger logger    = Logger.getLogger(AbstractGraphObjectComparator.class.getName());
+	private static final Logger logger    = Logger.getLogger(GraphObjectComparator.class.getName());
 
 	//~--- fields ---------------------------------------------------------
 
@@ -44,8 +44,8 @@ public class AbstractGraphObjectComparator implements Comparator {
 
 	//~--- constructors ---------------------------------------------------
 
-	// public AbstractGraphObjectComparator() {};
-	public AbstractGraphObjectComparator(final String sortKey, final String sortOrder) {
+	// public GraphObjectComparator() {};
+	public GraphObjectComparator(final String sortKey, final String sortOrder) {
 
 		this.sortKey   = sortKey;
 		this.sortOrder = sortOrder;
@@ -54,13 +54,7 @@ public class AbstractGraphObjectComparator implements Comparator {
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public int compare(Object o1, Object o2) {
-		return compare((GraphObject) o1, (GraphObject) o2);
-	};
-
-	//~--- methods --------------------------------------------------------
-
-	private int compare(GraphObject n1, GraphObject n2) {
+	public int compare(GraphObject n1, GraphObject n2) {
 
 		Comparable c1 = (Comparable) n1.getProperty(sortKey);
 		Comparable c2 = (Comparable) n2.getProperty(sortKey);

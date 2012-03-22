@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
-import org.structr.common.AbstractGraphObjectComparator;
+import org.structr.common.GraphObjectComparator;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidSortKey;
@@ -52,7 +52,7 @@ public class SortResource extends WrappingResource {
 			List<? extends GraphObject> results = wrappedResource.doGet();
 
 			try {
-				Collections.sort(results, new AbstractGraphObjectComparator(sortKey, sortOrder));
+				Collections.sort(results, new GraphObjectComparator(sortKey, sortOrder));
 				
 			} catch(Throwable t) {
 				

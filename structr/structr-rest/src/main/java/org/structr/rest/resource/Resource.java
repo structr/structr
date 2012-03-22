@@ -29,7 +29,7 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.structr.common.AbstractGraphObjectComparator;
+import org.structr.common.GraphObjectComparator;
 import org.structr.common.PropertyKey;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidSearchField;
@@ -271,7 +271,7 @@ public abstract class Resource {
 
 				String defaultOrder = list.get(0).getDefaultSortOrder();
 
-				Collections.sort(list, new AbstractGraphObjectComparator(defaultSort.name(), defaultOrder));
+				Collections.sort(list, new GraphObjectComparator(defaultSort.name(), defaultOrder));
 
 			}
 		}
