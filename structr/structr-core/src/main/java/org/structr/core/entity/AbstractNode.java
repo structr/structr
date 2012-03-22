@@ -40,7 +40,7 @@ import org.neo4j.graphdb.traversal.Evaluator;
 import org.neo4j.kernel.Traversal;
 
 import org.structr.common.AbstractComponent;
-import org.structr.common.AbstractGraphObjectComparator;
+import org.structr.common.GraphObjectComparator;
 import org.structr.common.AccessControllable;
 import org.structr.common.PathHelper;
 import org.structr.common.Permission;
@@ -262,7 +262,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	
 	@Override
 	public String getDefaultSortOrder() {
-		return AbstractGraphObjectComparator.ASCENDING;
+		return GraphObjectComparator.ASCENDING;
 	}
 	
 	/**
@@ -3210,8 +3210,8 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 		nodes.addAll(getDirectChildNodes());
 
-		// sort by key, order by order {@see AbstractGraphObjectComparator.ASCENDING} or {@see AbstractGraphObjectComparator.DESCENDING}
-		Collections.sort(nodes, new AbstractGraphObjectComparator(sortKey, sortOrder));
+		// sort by key, order by order {@see GraphObjectComparator.ASCENDING} or {@see GraphObjectComparator.DESCENDING}
+		Collections.sort(nodes, new GraphObjectComparator(sortKey, sortOrder));
 
 		return nodes;
 	}

@@ -177,7 +177,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	
 	@Override
 	public String getDefaultSortOrder() {
-		return AbstractGraphObjectComparator.ASCENDING;
+		return GraphObjectComparator.ASCENDING;
 	}
 	
 	public AbstractNode identifyStartNode(RelationshipMapping namedRelation, Map<String, Object> propertySet) throws FrameworkException {
