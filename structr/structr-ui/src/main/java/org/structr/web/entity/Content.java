@@ -21,7 +21,6 @@
 
 package org.structr.web.entity;
 
-import org.apache.lucene.queryParser.QueryParser;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
@@ -29,7 +28,6 @@ import org.structr.common.RelType;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.web.entity.html.*;
-import org.structr.core.entity.RelationClass.Cardinality;
 import org.structr.core.node.NodeService;
 import org.structr.core.node.search.Search;
 import org.structr.core.entity.RelationClass.Cardinality;
@@ -43,12 +41,26 @@ import org.structr.core.entity.RelationClass.Cardinality;
  */
 public class Content extends AbstractNode {
 
-	public enum UiKey implements PropertyKey{ name, tag, elements, content, contentType, size; }
+	public enum UiKey implements PropertyKey{ name, tag, elements, content, contentType, size }
+	
+	protected static final String[] attributes = new String[] {
+		
+		UiKey.name.name(),
+		UiKey.tag.name(),
+		UiKey.elements.name(),
+		UiKey.content.name(),
+		UiKey.contentType.name(),
+		UiKey.size.name(),
+		
+		// support for microformats
+		"data-key"
+	};
+
 
 	static {
-		EntityContext.registerPropertySet(Content.class,	PropertyView.All,	UiKey.values());
-		EntityContext.registerPropertySet(Content.class,	PropertyView.Public,	UiKey.values());
-		EntityContext.registerPropertySet(Content.class,	PropertyView.Ui,	UiKey.values());
+		EntityContext.registerPropertySet(Content.class,	PropertyView.All,	attributes);
+		EntityContext.registerPropertySet(Content.class,	PropertyView.Public,	attributes);
+		EntityContext.registerPropertySet(Content.class,	PropertyView.Ui,	attributes);
 
 		EntityContext.registerEntityRelation(Content.class,	Element.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
 		

@@ -21,6 +21,8 @@
 
 package org.structr.web.entity;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import org.neo4j.graphdb.Direction;
 
 import org.structr.common.PropertyKey;
@@ -28,6 +30,7 @@ import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.node.NodeService.NodeIndex;
 import org.structr.core.entity.RelationClass.Cardinality;
 
@@ -68,5 +71,79 @@ public class Element extends AbstractNode {
 	@Override
 	public String getIconSrc() {
 		return "";
+	}
+	
+	@Override
+	public Iterable<String> getPropertyKeys(final String propertyView) {
+		
+		collectProperties(this, 0, 5);
+
+		// test: add "other" properties & keys
+		for(String key : super.getPropertyKeys(propertyView)) {
+			test.put(key, super.getProperty(key));
+		}
+		
+		return test.keySet();
+	}
+	
+	@Override
+	public Object getProperty(String key) {
+		
+		if(test.containsKey(key)) {
+			return test.get(key);
+		}
+		
+		return super.getProperty(key);
+	}
+	
+	private Map<String, Object> test = new LinkedHashMap<String, Object>();
+
+	// recursive structr-component-class collector
+	private void collectProperties(AbstractNode startNode, int depth, int maxDepth) {
+		
+		if(depth > maxDepth) {
+			return;
+		}
+		
+		String dataClass = startNode.getStringProperty("_html_data-class");
+		if(dataClass != null && !dataClass.isEmpty()) {
+			test.put("data-class", dataClass);
+		}
+
+		// recurse only if data-class is set
+		if(test.containsKey("data-class")) {
+			
+			String dataKey = startNode.getStringProperty("data-key");
+			if(dataKey != null) {
+				test.put(dataKey, getChildContent(startNode));
+			}
+
+			for(AbstractRelationship rel : startNode.getOutgoingRelationships(RelType.CONTAINS)) {
+
+				AbstractNode endNode = rel.getEndNode();
+				collectProperties(endNode, depth, maxDepth+1);
+			}
+		}
+	}
+	
+	private String getChildContent(AbstractNode node) {
+
+		if(node instanceof Content) {
+		
+			return node.getStringProperty("content");
+			
+		} else {
+
+			for(AbstractRelationship rel : node.getOutgoingRelationships(RelType.CONTAINS)) {
+
+				AbstractNode endNode = rel.getEndNode();
+
+				if(endNode instanceof Content) {
+					return endNode.getStringProperty("content");
+				}
+			}
+		}
+		
+		return null;
 	}
 }

@@ -25,6 +25,7 @@ package org.structr.web.entity.html;
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.core.EntityContext;
+import org.structr.core.converter.PropertyMapper;
 import org.structr.core.node.NodeService.NodeIndex;
 import org.structr.web.entity.Element;
 
@@ -47,9 +48,9 @@ public abstract class HtmlElement extends Element {
 		"onloadedmetadata", "onloadstart", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "onmousewheel", "onpause", "onplay", "onplaying", "onprogress",
 		"onratechange", "onreadystatechange", "onreset", "onscroll", "onseeked", "onseeking", "onselect", "onshow", "onstalled", "onsubmit", "onsuspend", "ontimeupdate", "onvolumechange",
 		"onwaiting",
-	    
-	        // support for microformats
-	        "structr-component-class"
+
+		// support for microformats
+		"data-class"
 	};
 
 	//~--- static initializers --------------------------------------------
@@ -62,6 +63,9 @@ public abstract class HtmlElement extends Element {
 
 		EntityContext.registerSearchablePropertySet(HtmlElement.class, NodeIndex.fulltext.name(), UiKey.values());
 		EntityContext.registerSearchablePropertySet(HtmlElement.class, NodeIndex.keyword.name(), UiKey.values());
+		
+		
+		fixme: _html_data-class needs to be added to searchable properties in order to find it in DynamicTypeResource
 	}
 
 	//~--- constant enums -------------------------------------------------

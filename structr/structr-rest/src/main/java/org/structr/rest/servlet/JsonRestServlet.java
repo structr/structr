@@ -139,7 +139,7 @@ public class JsonRestServlet extends HttpServlet {
 
 				try {
 
-					logger.log(Level.FINE, "Injecting resources from provider {0}", part);
+					logger.log(Level.INFO, "Injecting resources from provider {0}", part);
 
 					Class providerClass       = Class.forName(part);
 					ResourceProvider provider = (ResourceProvider) providerClass.newInstance();
