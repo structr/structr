@@ -117,7 +117,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	public enum HiddenKey implements PropertyKey {
 		type,    // internal type, see IndexRelationshipCommand#indexRelationship method
-		cascadeDelete
+		cascadeDelete, createdDate
 	}
 
 	public enum Key implements PropertyKey{ uuid }
@@ -163,6 +163,9 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		boolean error = false;
 
 		error |= ValidationHelper.checkStringNotBlank(this, AbstractNode.Key.uuid, errorBuffer);
+		
+//		error |= (this.getStartNode() != null);
+//		error |= (this.getEndNode() != null);
 
 		return !error;
 	}

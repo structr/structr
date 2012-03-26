@@ -21,6 +21,7 @@
 
 package org.structr.core.node;
 
+import java.util.Date;
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
@@ -189,6 +190,8 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 
 				Relationship rel = startNode.createRelationshipTo(endNode, relType);
 				AbstractRelationship newRel  = relationshipFactory.createRelationship(securityContext, rel);
+				
+				newRel.setProperty(AbstractRelationship.HiddenKey.createdDate.name(), new Date());
 
 				if (newRel != null) {
 

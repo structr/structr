@@ -8,12 +8,7 @@ package org.structr.common;
 import java.util.Arrays;
 import java.util.Date;
 import org.apache.commons.lang.StringUtils;
-import org.structr.common.PropertyKey;
-import org.structr.common.error.ChronologicalOrderToken;
-import org.structr.common.error.EmptyPropertyToken;
-import org.structr.common.error.ErrorBuffer;
-import org.structr.common.error.TooShortToken;
-import org.structr.common.error.ValueToken;
+import org.structr.common.error.*;
 import org.structr.core.GraphObject;
 import org.structr.core.IterableAdapter;
 
@@ -64,9 +59,15 @@ public class ValidationHelper {
 	}
 
 	public static boolean checkPropertyNotNull(GraphObject node, PropertyKey key, ErrorBuffer errorBuffer) {
+		
+		String type  = node.getType();
+
+		if (key == null) {
+			errorBuffer.add(type, new EmptyPropertyToken("unknown type"));
+			return true;
+		}
 
 		Object value = node.getProperty(key.name());
-		String type  = node.getType();
 
 		if (value != null) {
 
