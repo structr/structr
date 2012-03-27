@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractRelationship;
@@ -118,6 +119,10 @@ public abstract class Search {
 		return orRelType(namedRelation.getRelType().name(), namedRelation.getSourceType().getSimpleName(), namedRelation.getDestType().getSimpleName());
 	}
 
+	public static SearchAttribute orRelType(final RelationshipType relType, final Class sourceType, final Class destType) {
+		return orRelType(relType.name(), sourceType.getSimpleName(), destType.getSimpleName());
+	}
+	
 	public static SearchAttribute orRelType(final String relType, final String sourceType, final String destType) {
 
 		String searchString = EntityContext.createCombinedRelationshipType(sourceType, relType, destType);
