@@ -23,7 +23,9 @@ package org.structr.common;
 
 import org.structr.core.GraphObject;
 import java.util.Comparator;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.entity.AbstractNode;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -56,9 +58,35 @@ public class GraphObjectComparator implements Comparator<GraphObject> {
 	@Override
 	public int compare(GraphObject n1, GraphObject n2) {
 
+		if(n1 == null || n2 == null) {
+			logger.log(Level.WARNING, "Cannot compare null objects!");
+			return -1;
+		}
+		
 		Comparable c1 = (Comparable) n1.getProperty(sortKey);
 		Comparable c2 = (Comparable) n2.getProperty(sortKey);
 
+		if(c1 == null || c2 == null) {
+			
+			try {
+				logger.log(Level.WARNING, "Cannot compare {0} of type {1} to {2} of type {3}, sort key {4} not found.",
+					new Object[] {
+						n1.getStringProperty(AbstractNode.Key.uuid.name()),
+						n1.getStringProperty(AbstractNode.Key.type.name()),
+	//					n1.getClass().getSimpleName(),
+						n2.getStringProperty(AbstractNode.Key.uuid.name()),
+						n2.getStringProperty(AbstractNode.Key.type.name()),
+						n2.getClass().getSimpleName(),
+						sortKey
+					});
+				
+			} catch(Throwable t) {
+				logger.log(Level.SEVERE, "Error in comparator", t);
+			}
+			
+			return -1;
+		}
+		
 		if (DESCENDING.equals(sortOrder)) {
 
 			return (c2.compareTo(c1));
