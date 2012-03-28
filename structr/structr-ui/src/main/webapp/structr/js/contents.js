@@ -131,6 +131,12 @@ var _Contents = {
         if (debug) console.log('delete content ' + content);
         deleteNode(button, content);
     },
+	
+    patch : function(id, patch) {
+        var command = '{ "command" : "PATCH" , "id" : "' + id + '", "data" : { "patch" : ' + patch + '} }';
+        if (debug) console.log(command);
+        return send(command);
+    },
 
     editContent : function (button, entity, view, element) {
         if (isDisabled(button)) return;
@@ -148,23 +154,31 @@ var _Contents = {
             value: unescapeTags(entity.content),
             mode:  "htmlmixed",
             lineNumbers: true,
-            onKeyEvent: function() {
+            onChange: function(cm, changes) {
+				
+				var text1 = entity.content;
+				var text2 = editor.getValue();
+				
+				var p = dmp.patch_make(text1, text2);
+				var strp = dmp.patch_toText(p);
+				console.log(strp, $.quoteString(strp));
+				_Contents.patch(entity.id, $.quoteString(strp));
+//
+//                var selection = window.getSelection();
+//                console.log(selection);
+//                if (selection.rangeCount) {
+//					console.log(selection.rangeCount);
+//                    selStart = selection.getRangeAt(selection.rangeCount).startOffset;
+//                    selEnd = selection.getRangeAt(selection.rangeCount).endOffset;
+//                    console.log(selStart, selEnd);
+//                }
 
 
-                var selection = window.getSelection();
-                console.log(selection);
-                if (selection.rangeCount) {
-                    selStart = selection.getRangeAt(selection.rangeCount).startOffset;
-                    selEnd = selection.getRangeAt(selection.rangeCount).endOffset;
-                    console.log(selStart, selEnd);
-                }
 
 
 
-
-
-                var content = escapeTags(editor.getValue());
-                _Entities.setProperty(entity.id, 'content', content);
+                //var content = escapeTags(editor.getValue());
+                //_Entities.setProperty(entity.id, 'content', content);
             }
         });
 

@@ -49,9 +49,8 @@ public class ImportCommand extends AbstractCommand {
 	private static final Logger logger = Logger.getLogger(ImportCommand.class.getName());
 
 	static {
-		// import a web page
 		StructrWebSocket.addCommand(ImportCommand.class);
-
+		StructrWebSocket.addCommand(PatchCommand.class);
 	}
 
 	//~--- methods --------------------------------------------------------

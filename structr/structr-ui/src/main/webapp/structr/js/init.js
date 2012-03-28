@@ -30,6 +30,8 @@ var header, main;
 var debug = false;
 //var onload = [];
 var lastMenuEntry, activeTab;
+var dmp;;
+
 
 $(window).unload(function() {
     Structr.saveSession();
@@ -37,6 +39,7 @@ $(window).unload(function() {
 	
 	
 $(document).ready(function() {
+	dmp = new diff_match_patch()
     if (debug) console.log('Debug mode');
     header = $('#header');
     main = $('#main');

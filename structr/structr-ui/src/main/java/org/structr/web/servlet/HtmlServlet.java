@@ -313,6 +313,8 @@ public class HtmlServlet extends HttpServlet {
 
 		if (node != null) {
 
+			String id = node.getStringProperty("uuid");
+
 			if (node instanceof Content) {
 
 				content = node.getStringProperty("content");
@@ -357,7 +359,14 @@ public class HtmlServlet extends HttpServlet {
 			// to make them editable
 			if (edit && inBody && (node instanceof Content)) {
 
-				tag = "div";
+				//tag = "div";
+				// Instead of adding a div tag, we mark the parent node with
+				// the structr_element_id of this Content node
+				
+				// remove last character in buffer (should be '>')
+				buffer.delete(buffer.length()-1, buffer.length());
+				
+				buffer.append(" structr_content_id=\"").append(id).append("\">");
 
 			}
 
@@ -370,7 +379,6 @@ public class HtmlServlet extends HttpServlet {
 				}
 
 //                              String onload = node.getStringProperty("onload");
-				String id = node.getStringProperty("uuid");
 
 				buffer.append("<").append(tag);
 
@@ -384,7 +392,7 @@ public class HtmlServlet extends HttpServlet {
 
 					if (node instanceof Content) {
 
-						buffer.append(" class=\"structr-content-container\" structr_content_id='").append(id).append("'");
+						//buffer.append(" class=\"structr-content-container\" structr_content_id='").append(id).append("'");
 
 					} else {
 
@@ -394,10 +402,10 @@ public class HtmlServlet extends HttpServlet {
 							? htmlClass
 							: "").append("\" structr_element_id='").append(id).append("'");
 
+						buffer.append(" structr_type='").append(node.getType()).append("'");
+						buffer.append(" structr_name='").append(node.getName()).append("'");
 					}
 
-					buffer.append(" structr_type='").append(node.getType()).append("'");
-					buffer.append(" structr_name='").append(node.getName()).append("'");
 
 				}
 
