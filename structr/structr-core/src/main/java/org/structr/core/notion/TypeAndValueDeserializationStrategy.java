@@ -75,7 +75,7 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 			attrs.add(Search.andExactProperty(propertyKey, source.toString()));
 		}
 
-		attrs.add(Search.andExactType(type.getSimpleName()));
+		// FIXME: check type here! attrs.addAll(Search.andExactTypeAndSubtypes(type.getSimpleName()));
 
 		// just check for existance
 		List<AbstractNode> nodes = (List<AbstractNode>) Services.command(securityContext,

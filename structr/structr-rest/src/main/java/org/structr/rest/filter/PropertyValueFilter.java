@@ -19,9 +19,12 @@
 
 package org.structr.rest.filter;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.structr.core.BinaryPredicate;
 import org.structr.core.GraphObject;
 import org.structr.core.Value;
+import org.structr.core.entity.AbstractNode;
 
 /**
  *
@@ -29,6 +32,8 @@ import org.structr.core.Value;
  */
 public class PropertyValueFilter<T> extends Filter {
 
+	private static final Logger logger = Logger.getLogger(PropertyValueFilter.class.getName());
+	
 	private BinaryPredicate<T> predicate = null;
 	private String propertyKey = null;
 	private Value<T> value = null;
@@ -41,7 +46,14 @@ public class PropertyValueFilter<T> extends Filter {
 
 	@Override
 	public boolean includeInResultSet(GraphObject object) {
+		
 		T t = (T)object.getProperty(propertyKey);
-		return predicate.evaluate(t, value.get());
+		if(t != null) {
+			return predicate.evaluate(t, value.get());
+		} else {
+			logger.log(Level.WARNING, "Null property for key {0} on ID {1}", new Object[] { propertyKey, object.getProperty(AbstractNode.Key.uuid.name()) });
+		}
+		
+		return false;
 	}
 }
