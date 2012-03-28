@@ -21,26 +21,18 @@ package org.structr.web.resource;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.servlet.http.HttpServletResponse;
-import org.structr.common.RelType;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Command;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.node.*;
 import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.resource.TypeResource;
-import org.structr.web.entity.Content;
-import org.structr.web.entity.Element;
+import org.structr.web.entity.html.HtmlElement;
 
 /**
  *
@@ -61,7 +53,7 @@ public class DynamicTypeResource extends TypeResource {
 
 		if (rawType != null) {
 
-			searchAttributes.add(Search.andExactProperty("data-class", EntityContext.normalizeEntityName(rawType)));
+			searchAttributes.add(Search.andExactProperty(HtmlElement.UiKey.structrclass.name(), EntityContext.normalizeEntityName(rawType)));
 			
 			// searchable attributes from EntityContext
 			hasSearchableAttributes(rawType, request, searchAttributes);
@@ -102,51 +94,51 @@ public class DynamicTypeResource extends TypeResource {
 		List<GraphObject> templates = doGet();
 		if(!templates.isEmpty()) {
 			
-			final Element template                       = (Element)templates.get(0);   
-			final Map<String, AbstractNode> contentNodes = template.getContentNodes();
-			final Command createNodeCommand              = Services.command(securityContext, CreateNodeCommand.class);
-			final Command createRelCommand               = Services.command(securityContext, CreateRelationshipCommand.class);
-			
-			// TODO: find resourceId for template and modify it
-			
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-				@Override
-				public Object execute() throws FrameworkException {
-					
-					if(!propertySet.isEmpty()) {
-						
-						for(String key : propertySet.keySet()) {
-
-							AbstractNode node = contentNodes.get(key);
-							if(node != null && node instanceof Content) {
-								
-								Content content = (Content)node;
-								AbstractNode newNode = (AbstractNode)createNodeCommand.execute(new NodeAttribute(AbstractNode.Key.type.name(), content.getType()));
-								for(Entry<String, Object> entry : propertySet.entrySet()) {
-									newNode.setProperty(entry.getKey(), entry.getValue());
-								}
-
-								// get parent & rel to parent
-								AbstractRelationship parentRel = content.getRelToParent();
-								Element parent = content.getParent();
-								
-								// duplicate relationship to parent & properties
-								AbstractRelationship newRel = (AbstractRelationship)createRelCommand.execute(parent, content, RelType.CONTAINS);
-								for(Entry<String, Object> entry : parentRel.getProperties().entrySet()) {
-									newRel.setProperty(entry.getKey(), entry.getValue());
-								}
-								
-								newRel.setProperty(template.getStringProperty(AbstractNode.Key.uuid), 0);
-							}
-						}
-					}
-					
-					return null;
-				}
-				
-			});
-			
+//			final Element template                       = (Element)templates.get(0);   
+//			final Map<String, AbstractNode> contentNodes = template.getContentNodes();
+//			final Command createNodeCommand              = Services.command(securityContext, CreateNodeCommand.class);
+//			final Command createRelCommand               = Services.command(securityContext, CreateRelationshipCommand.class);
+//			
+//			// TODO: find resourceId for template and modify it
+//			
+//			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+//
+//				@Override
+//				public Object execute() throws FrameworkException {
+//					
+//					if(!propertySet.isEmpty()) {
+//						
+//						for(String key : propertySet.keySet()) {
+//
+//							AbstractNode node = contentNodes.get(key);
+//							if(node != null && node instanceof Content) {
+//								
+//								Content content = (Content)node;
+//								AbstractNode newNode = (AbstractNode)createNodeCommand.execute(new NodeAttribute(AbstractNode.Key.type.name(), content.getType()));
+//								for(Entry<String, Object> entry : propertySet.entrySet()) {
+//									newNode.setProperty(entry.getKey(), entry.getValue());
+//								}
+//
+//								// get parent & rel to parent
+//								AbstractRelationship parentRel = content.getRelToParent();
+//								Element parent = content.getParent();
+//								
+//								// duplicate relationship to parent & properties
+//								AbstractRelationship newRel = (AbstractRelationship)createRelCommand.execute(parent, content, RelType.CONTAINS);
+//								for(Entry<String, Object> entry : parentRel.getProperties().entrySet()) {
+//									newRel.setProperty(entry.getKey(), entry.getValue());
+//								}
+//								
+//								newRel.setProperty(template.getStringProperty(AbstractNode.Key.uuid), 0);
+//							}
+//						}
+//					}
+//					
+//					return null;
+//				}
+//				
+//			});
+//			
 			RestMethodResult result = new RestMethodResult(201);
 			return result;
 			

@@ -25,7 +25,6 @@ package org.structr.web.entity.html;
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.core.EntityContext;
-import org.structr.core.converter.PropertyMapper;
 import org.structr.core.node.NodeService.NodeIndex;
 import org.structr.web.entity.Element;
 
@@ -65,7 +64,7 @@ public abstract class HtmlElement extends Element {
 	//~--- constant enums -------------------------------------------------
 
 	public enum UiKey implements PropertyKey {
-		name, tag, path, contents, elements, components, resource
+		name, tag, path, contents, elements, components, resource, structrclass
 	}
 
 	//~--- get methods ----------------------------------------------------

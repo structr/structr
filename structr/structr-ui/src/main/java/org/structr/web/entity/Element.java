@@ -21,20 +21,13 @@
 
 package org.structr.web.entity;
 
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.WeakHashMap;
 import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.Relationship;
 
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.node.NodeService.NodeIndex;
 import org.structr.core.entity.RelationClass.Cardinality;
 
@@ -48,7 +41,7 @@ import org.structr.core.entity.RelationClass.Cardinality;
 public class Element extends AbstractNode {
 
 	protected static final String[] uiAttributes = {
-		UiKey.name.name(), UiKey.tag.name(), UiKey.contents.name(), UiKey.elements.name(), UiKey.components.name(), UiKey.resource.name(), "data-class"
+		UiKey.name.name(), UiKey.tag.name(), UiKey.contents.name(), UiKey.elements.name(), UiKey.components.name(), UiKey.resource.name()
 	};
 
 	static {
@@ -67,8 +60,6 @@ public class Element extends AbstractNode {
 //              EntityContext.registerEntityRelation(Element.class,     Resource.class,         RelType.LINK,           Direction.OUTGOING, Cardinality.ManyToOne);
 
 	}
-
-	private Map<String, AbstractNode> contentNodes = new WeakHashMap<String, AbstractNode>();
 	
 	//~--- constant enums -------------------------------------------------
 
@@ -81,87 +72,5 @@ public class Element extends AbstractNode {
 	@Override
 	public String getIconSrc() {
 		return "";
-	}
-	
-	@Override
-	public void onNodeInstantiation() {
-		
-		collectProperties(this, 0, 10);
-	}
-	
-	@Override
-	public Iterable<String> getPropertyKeys(final String propertyView) {
-
-		Set<String> augmentedPropertyKeys = new LinkedHashSet<String>();
-		
-		for(String key : super.getPropertyKeys(propertyView)) {
-			augmentedPropertyKeys.add(key);
-		}
-		
-		augmentedPropertyKeys.addAll(contentNodes.keySet());
-		
-		return augmentedPropertyKeys;
-	}
-	
-	@Override
-	public Object getProperty(String key) {
-		
-		if(contentNodes.containsKey(key)) {
-			AbstractNode node = contentNodes.get(key);
-			if(node != null && node != this) {
-				return node.getStringProperty("content");
-			}
-		}
-		
-		return super.getProperty(key);
-	}
-	
-	@Override
-	public void setProperty(String key, Object value) throws FrameworkException {
-
-		if(contentNodes.containsKey(key)) {
-			
-			AbstractNode node = contentNodes.get(key);
-			if(node != null) {
-				node.setProperty("content", value);
-			}
-			
-		} else {
-			
-			super.setProperty(key, value);
-		}
-	}
-	
-	public Map<String, AbstractNode> getContentNodes() {
-		return contentNodes;
-	}
-	
-	// ----- private methods ----
-	private void collectProperties(AbstractNode startNode, int depth, int maxDepth) {
-		
-		if(depth > maxDepth) {
-			return;
-		}
-		
-		String dataClass = startNode.getStringProperty("data-class");
-		if(dataClass != null && !dataClass.isEmpty()) {
-			contentNodes.put("data-class", this);
-		}
-
-		// recurse only if data-class is set
-		if(contentNodes.containsKey("data-class")) {
-			
-			String dataKey = startNode.getStringProperty("data-key");
-			if(dataKey != null) {
-				contentNodes.put(dataKey, startNode);
-			}
-
-			for(AbstractRelationship rel : startNode.getOutgoingRelationships(RelType.CONTAINS)) {
-
-				// type cast is safe her, as this will only work with Elements anyway
-				AbstractNode endNode = rel.getEndNode();
-				collectProperties(endNode, depth, maxDepth+1);
-			}
-		}
 	}
 }
