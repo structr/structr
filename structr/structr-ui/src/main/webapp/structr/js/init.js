@@ -30,7 +30,8 @@ var header, main;
 var debug = false;
 //var onload = [];
 var lastMenuEntry, activeTab;
-var dmp;;
+var dmp;
+var editorCursor;
 
 
 $(window).unload(function() {

@@ -456,8 +456,9 @@ function connect() {
 
                     // hook for CodeMirror edit areas
                     if (editor && editor.id == data.id && key == 'content') {
-                        console.log(editor.id);
+                        if (debug) console.log(editor.id);
                         editor.setValue(newValue);
+						editor.setCursor(editorCursor);
                     }
 
                 }

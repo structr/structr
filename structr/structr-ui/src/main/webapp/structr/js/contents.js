@@ -150,19 +150,31 @@ var _Contents = {
         //                //editContent(button, resourceId, contentId);
         //                });
         //        });
+		var cursor = {};
         editor = CodeMirror(contentBox.get(0), {
             value: unescapeTags(entity.content),
             mode:  "htmlmixed",
             lineNumbers: true,
             onChange: function(cm, changes) {
 				
-				var text1 = entity.content;
+				var element = $( '.' + entity.id + '_')[0];
+				var text1 = $(element).children('.content_').text();
 				var text2 = editor.getValue();
+				
+				console.log(element);
+				console.log(text1, text2);
+				
+				if (text1 == text2) return;
 				
 				var p = dmp.patch_make(text1, text2);
 				var strp = dmp.patch_toText(p);
 				console.log(strp, $.quoteString(strp));
+				
+				editorCursor = cm.getCursor();
+				console.log(editorCursor);
+				
 				_Contents.patch(entity.id, $.quoteString(strp));
+				
 //
 //                var selection = window.getSelection();
 //                console.log(selection);
