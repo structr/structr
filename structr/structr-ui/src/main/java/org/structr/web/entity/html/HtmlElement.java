@@ -48,9 +48,6 @@ public abstract class HtmlElement extends Element {
 		"onloadedmetadata", "onloadstart", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "onmousewheel", "onpause", "onplay", "onplaying", "onprogress",
 		"onratechange", "onreadystatechange", "onreset", "onscroll", "onseeked", "onseeking", "onselect", "onshow", "onstalled", "onsubmit", "onsuspend", "ontimeupdate", "onvolumechange",
 		"onwaiting",
-
-		// support for microformats
-		"data-class"
 	};
 
 	//~--- static initializers --------------------------------------------
@@ -63,9 +60,6 @@ public abstract class HtmlElement extends Element {
 
 		EntityContext.registerSearchablePropertySet(HtmlElement.class, NodeIndex.fulltext.name(), UiKey.values());
 		EntityContext.registerSearchablePropertySet(HtmlElement.class, NodeIndex.keyword.name(), UiKey.values());
-		
-		
-		fixme: _html_data-class needs to be added to searchable properties in order to find it in DynamicTypeResource
 	}
 
 	//~--- constant enums -------------------------------------------------

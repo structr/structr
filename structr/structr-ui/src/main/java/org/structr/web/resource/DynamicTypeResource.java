@@ -21,17 +21,26 @@ package org.structr.web.resource;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import org.dom4j.tree.AbstractNode;
+import java.util.Map.Entry;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.servlet.http.HttpServletResponse;
+import org.structr.common.RelType;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Command;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.node.*;
 import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
 import org.structr.rest.RestMethodResult;
-import org.structr.rest.exception.IllegalMethodException;
 import org.structr.rest.resource.TypeResource;
+import org.structr.web.entity.Content;
+import org.structr.web.entity.Element;
 
 /**
  *
@@ -39,6 +48,8 @@ import org.structr.rest.resource.TypeResource;
  */
 public class DynamicTypeResource extends TypeResource {
 
+	private static final Logger logger = Logger.getLogger(DynamicTypeResource.class.getName());
+	
 	@Override
 	public List<GraphObject> doGet() throws FrameworkException {
 
@@ -50,7 +61,7 @@ public class DynamicTypeResource extends TypeResource {
 
 		if (rawType != null) {
 
-			searchAttributes.add(Search.andExactProperty("_html_data-class", EntityContext.normalizeEntityName(rawType)));
+			searchAttributes.add(Search.andExactProperty("data-class", EntityContext.normalizeEntityName(rawType)));
 			
 			// searchable attributes from EntityContext
 			hasSearchableAttributes(rawType, request, searchAttributes);
@@ -58,6 +69,13 @@ public class DynamicTypeResource extends TypeResource {
 			// do search
 			List<GraphObject> results = (List<GraphObject>) Services.command(securityContext, SearchNodeCommand.class).execute(topNode, includeDeleted, publicOnly, searchAttributes);
 			if (!results.isEmpty()) {
+			
+				
+				/*
+				TODO: if template is found, collect different content elements!
+				we need to synthesize elements here if thereis more than one!
+				*/
+				
 				return results;
 
 			}
@@ -70,8 +88,83 @@ public class DynamicTypeResource extends TypeResource {
 	@Override
 	public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
 		
-		// TODO: implement POSTing of dynamic types
 		
-		throw new IllegalMethodException();
+		// TODO: implement POSTing of dynamic types
+
+		/**
+		 * - rawType contains the desired data-class to duplicate
+		 * - we can not create entities without a "template, so there
+		 *   must be at least one object of the desired type already in the database
+		 * - we need to load a template instance
+		 * - there will be only a single template node in the whole graph!
+		 * - this template can contain many different content elements
+		 */
+		List<GraphObject> templates = doGet();
+		if(!templates.isEmpty()) {
+			
+			final Element template                       = (Element)templates.get(0);   
+			final Map<String, AbstractNode> contentNodes = template.getContentNodes();
+			final Command createNodeCommand              = Services.command(securityContext, CreateNodeCommand.class);
+			final Command createRelCommand               = Services.command(securityContext, CreateRelationshipCommand.class);
+			
+			// TODO: find resourceId for template and modify it
+			
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws FrameworkException {
+					
+					if(!propertySet.isEmpty()) {
+						
+						for(String key : propertySet.keySet()) {
+
+							AbstractNode node = contentNodes.get(key);
+							if(node != null && node instanceof Content) {
+								
+								Content content = (Content)node;
+								AbstractNode newNode = (AbstractNode)createNodeCommand.execute(new NodeAttribute(AbstractNode.Key.type.name(), content.getType()));
+								for(Entry<String, Object> entry : propertySet.entrySet()) {
+									newNode.setProperty(entry.getKey(), entry.getValue());
+								}
+
+								// get parent & rel to parent
+								AbstractRelationship parentRel = content.getRelToParent();
+								Element parent = content.getParent();
+								
+								// duplicate relationship to parent & properties
+								AbstractRelationship newRel = (AbstractRelationship)createRelCommand.execute(parent, content, RelType.CONTAINS);
+								for(Entry<String, Object> entry : parentRel.getProperties().entrySet()) {
+									newRel.setProperty(entry.getKey(), entry.getValue());
+								}
+								
+								newRel.setProperty(template.getStringProperty(AbstractNode.Key.uuid), 0);
+							}
+						}
+					}
+					
+					return null;
+				}
+				
+			});
+			
+			RestMethodResult result = new RestMethodResult(201);
+			return result;
+			
+		} else {
+			
+			return super.doPost(propertySet);
+		}
 	}
 }
+
+
+
+
+
+
+
+
+
+
+
+

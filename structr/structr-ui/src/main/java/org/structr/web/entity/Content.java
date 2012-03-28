@@ -27,6 +27,7 @@ import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.web.entity.html.*;
 import org.structr.core.node.NodeService;
 import org.structr.core.node.search.Search;
@@ -129,5 +130,15 @@ public class Content extends AbstractNode {
 
 		return getProperty(key);
 		}
+	}
+	
+	public Element getParent() {
+		// FIXME: this is an ugly hack :)
+		return (Element)getRelToParent().getStartNode();
+	}
+	
+	public AbstractRelationship getRelToParent() {
+		// FIXME: this is an ugly hack :)
+		return getRelationships(RelType.CONTAINS, Direction.INCOMING).get(0);
 	}
 }

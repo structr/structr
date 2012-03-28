@@ -21,13 +21,17 @@
 
 package org.structr.web.entity;
 
-import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
+import java.util.WeakHashMap;
 import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.Relationship;
 
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
@@ -43,23 +47,29 @@ import org.structr.core.entity.RelationClass.Cardinality;
  */
 public class Element extends AbstractNode {
 
+	protected static final String[] uiAttributes = {
+		UiKey.name.name(), UiKey.tag.name(), UiKey.contents.name(), UiKey.elements.name(), UiKey.components.name(), UiKey.resource.name(), "data-class"
+	};
+
 	static {
 
-		EntityContext.registerPropertySet(Element.class, PropertyView.All, UiKey.values());
-		EntityContext.registerPropertySet(Element.class, PropertyView.Public, UiKey.values());
-		EntityContext.registerPropertySet(Element.class, PropertyView.Ui, UiKey.values());
+		EntityContext.registerPropertySet(Element.class, PropertyView.All, uiAttributes);
+		EntityContext.registerPropertySet(Element.class, PropertyView.Public, uiAttributes);
+		EntityContext.registerPropertySet(Element.class, PropertyView.Ui, uiAttributes);
 		EntityContext.registerEntityRelation(Element.class, Component.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Element.class, Resource.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Element.class, Element.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Element.class, Content.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
 
-		EntityContext.registerSearchablePropertySet(Element.class, NodeIndex.fulltext.name(), UiKey.values());
-		EntityContext.registerSearchablePropertySet(Element.class, NodeIndex.keyword.name(), UiKey.values());
+		EntityContext.registerSearchablePropertySet(Element.class, NodeIndex.fulltext.name(), uiAttributes);
+		EntityContext.registerSearchablePropertySet(Element.class, NodeIndex.keyword.name(), uiAttributes);
 
 //              EntityContext.registerEntityRelation(Element.class,     Resource.class,         RelType.LINK,           Direction.OUTGOING, Cardinality.ManyToOne);
 
 	}
 
+	private Map<String, AbstractNode> contentNodes = new WeakHashMap<String, AbstractNode>();
+	
 	//~--- constant enums -------------------------------------------------
 
 	public enum UiKey implements PropertyKey {
@@ -74,76 +84,84 @@ public class Element extends AbstractNode {
 	}
 	
 	@Override
-	public Iterable<String> getPropertyKeys(final String propertyView) {
+	public void onNodeInstantiation() {
 		
-		collectProperties(this, 0, 5);
+		collectProperties(this, 0, 10);
+	}
+	
+	@Override
+	public Iterable<String> getPropertyKeys(final String propertyView) {
 
-		// test: add "other" properties & keys
+		Set<String> augmentedPropertyKeys = new LinkedHashSet<String>();
+		
 		for(String key : super.getPropertyKeys(propertyView)) {
-			test.put(key, super.getProperty(key));
+			augmentedPropertyKeys.add(key);
 		}
 		
-		return test.keySet();
+		augmentedPropertyKeys.addAll(contentNodes.keySet());
+		
+		return augmentedPropertyKeys;
 	}
 	
 	@Override
 	public Object getProperty(String key) {
 		
-		if(test.containsKey(key)) {
-			return test.get(key);
+		if(contentNodes.containsKey(key)) {
+			AbstractNode node = contentNodes.get(key);
+			if(node != null && node != this) {
+				return node.getStringProperty("content");
+			}
 		}
 		
 		return super.getProperty(key);
 	}
 	
-	private Map<String, Object> test = new LinkedHashMap<String, Object>();
+	@Override
+	public void setProperty(String key, Object value) throws FrameworkException {
 
-	// recursive structr-component-class collector
+		if(contentNodes.containsKey(key)) {
+			
+			AbstractNode node = contentNodes.get(key);
+			if(node != null) {
+				node.setProperty("content", value);
+			}
+			
+		} else {
+			
+			super.setProperty(key, value);
+		}
+	}
+	
+	public Map<String, AbstractNode> getContentNodes() {
+		return contentNodes;
+	}
+	
+	// ----- private methods ----
 	private void collectProperties(AbstractNode startNode, int depth, int maxDepth) {
 		
 		if(depth > maxDepth) {
 			return;
 		}
 		
-		String dataClass = startNode.getStringProperty("_html_data-class");
+		String dataClass = startNode.getStringProperty("data-class");
 		if(dataClass != null && !dataClass.isEmpty()) {
-			test.put("data-class", dataClass);
+			contentNodes.put("data-class", this);
 		}
 
 		// recurse only if data-class is set
-		if(test.containsKey("data-class")) {
+		if(contentNodes.containsKey("data-class")) {
 			
 			String dataKey = startNode.getStringProperty("data-key");
 			if(dataKey != null) {
-				test.put(dataKey, getChildContent(startNode));
+				contentNodes.put(dataKey, startNode);
 			}
 
 			for(AbstractRelationship rel : startNode.getOutgoingRelationships(RelType.CONTAINS)) {
 
+				// type cast is safe her, as this will only work with Elements anyway
 				AbstractNode endNode = rel.getEndNode();
 				collectProperties(endNode, depth, maxDepth+1);
 			}
 		}
-	}
-	
-	private String getChildContent(AbstractNode node) {
-
-		if(node instanceof Content) {
-		
-			return node.getStringProperty("content");
-			
-		} else {
-
-			for(AbstractRelationship rel : node.getOutgoingRelationships(RelType.CONTAINS)) {
-
-				AbstractNode endNode = rel.getEndNode();
-
-				if(endNode instanceof Content) {
-					return endNode.getStringProperty("content");
-				}
-			}
-		}
-		
-		return null;
 	}
 }

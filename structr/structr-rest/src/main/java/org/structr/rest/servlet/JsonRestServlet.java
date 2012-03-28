@@ -311,10 +311,9 @@ public class JsonRestServlet extends HttpServlet {
 			// evaluate constraints and measure query time
 			double queryTimeStart = System.nanoTime();
 			Resource resource     = addSortingAndPaging(request, securityContext, optimizeConstraintChain(parsePath(securityContext, request)));
+			Result result = new Result(resource.doGet(), resource.isCollectionResource(), resource.isPrimitiveArray());
 			double queryTimeEnd   = System.nanoTime();
 
-			// create result set
-			Result result = new Result(resource.doGet(), resource.isCollectionResource(), resource.isPrimitiveArray());
 			if (result != null) {
 
 				// allow resource to modify result set
