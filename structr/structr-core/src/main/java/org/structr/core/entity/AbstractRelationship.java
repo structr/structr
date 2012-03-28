@@ -182,7 +182,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	
 	public AbstractNode identifyStartNode(RelationshipMapping namedRelation, Map<String, Object> propertySet) throws FrameworkException {
 
-		Notion startNodeNotion = new RelationshipNotion(getStartNodeIdKey());
+		Notion startNodeNotion = getStartNodeNotion(); //new RelationshipNotion(getStartNodeIdKey());
 
 		startNodeNotion.setType(namedRelation.getSourceType());
 
@@ -203,7 +203,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	public AbstractNode identifyEndNode(RelationshipMapping namedRelation, Map<String, Object> propertySet) throws FrameworkException {
 
-		Notion endNodeNotion = new RelationshipNotion(getEndNodeIdKey());
+		Notion endNodeNotion = getEndNodeNotion(); //new RelationshipNotion(getEndNodeIdKey());
 
 		endNodeNotion.setType(namedRelation.getDestType());
 
@@ -344,6 +344,14 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	public abstract PropertyKey getStartNodeIdKey();
 
 	public abstract PropertyKey getEndNodeIdKey();
+	
+	public Notion getEndNodeNotion() {
+		return new RelationshipNotion(getEndNodeIdKey());
+	}
+
+	public Notion getStartNodeNotion() {
+		return new RelationshipNotion(getStartNodeIdKey());
+	}
 
 //      @Override
 //      public void delete(SecurityContext securityContext) {

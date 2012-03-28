@@ -35,6 +35,7 @@ import org.structr.core.node.search.SearchNodeCommand;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.PropertiesNotFoundToken;
+import org.structr.common.error.TypeToken;
 import org.structr.core.PropertySet;
 import org.structr.core.node.NodeAttribute;
 
@@ -76,6 +77,12 @@ public class TypeAndPropertySetDeserializationStrategy implements Deserializatio
 			// just check for existance
 			List<AbstractNode> nodes = (List<AbstractNode>) Services.command(securityContext, SearchNodeCommand.class).execute(null, false, false, attrs);
 			if(nodes.size() == 1) {
+				
+				AbstractNode node = nodes.get(0);
+				
+				if(!type.isAssignableFrom(node.getClass())) {
+					throw new FrameworkException(type.getSimpleName(), new TypeToken("base", type.getSimpleName()));
+				}
 				return nodes.get(0);
 			}
 
