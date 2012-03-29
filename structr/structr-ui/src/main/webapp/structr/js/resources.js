@@ -741,8 +741,9 @@ var _Resources = {
 						blur: function(e) {
 							e.stopPropagation();
 							var self = $(this);
+							console.log(self.contents().first());
 							if (debug) console.log('blur contentSourceId: ' + contentSourceId);
-							_Resources.updateContent(contentSourceId, self.text());
+							_Resources.updateContent(contentSourceId, self.contents().first().text());
 							contentSourceId = null;
 							self.attr('contenteditable', false);
 							self.removeClass('structr-editable-area-active');
