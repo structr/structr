@@ -73,10 +73,8 @@ public class GraphObjectComparator implements Comparator<GraphObject> {
 					new Object[] {
 						n1.getStringProperty(AbstractNode.Key.uuid.name()),
 						n1.getStringProperty(AbstractNode.Key.type.name()),
-	//					n1.getClass().getSimpleName(),
 						n2.getStringProperty(AbstractNode.Key.uuid.name()),
 						n2.getStringProperty(AbstractNode.Key.type.name()),
-						n2.getClass().getSimpleName(),
 						sortKey
 					});
 				
@@ -86,15 +84,31 @@ public class GraphObjectComparator implements Comparator<GraphObject> {
 			
 			return -1;
 		}
-		
-		if (DESCENDING.equals(sortOrder)) {
+	
+		try {
+			
+			if (DESCENDING.equals(sortOrder)) {
 
-			return (c2.compareTo(c1));
+				return (c2.compareTo(c1));
 
-		} else {
+			} else {
 
-			return (c1.compareTo(c2));
+				return (c1.compareTo(c2));
 
+			}
+			
+		} catch(Throwable t) {
+			
+			logger.log(Level.WARNING, "Cannot compare properties {0} of type {1} to {2} of type {3}, property {4} error.",
+				new Object[] {
+					n1.getStringProperty(AbstractNode.Key.uuid.name()),
+					n1.getStringProperty(AbstractNode.Key.type.name()),
+					n2.getStringProperty(AbstractNode.Key.uuid.name()),
+					n2.getStringProperty(AbstractNode.Key.type.name()),
+					sortKey
+				});
 		}
+		
+		return 0;
 	}
 }
