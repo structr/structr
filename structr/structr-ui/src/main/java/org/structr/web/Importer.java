@@ -72,7 +72,7 @@ import java.util.regex.Pattern;
 
 /**
  *
- * @author axel
+ * @author Axel Morgner
  */
 public class Importer {
 
@@ -110,6 +110,23 @@ public class Importer {
 
 	//~--- constructors ---------------------------------------------------
 
+//      public static void main(String[] args) throws Exception {
+//              
+//              String css = "background: url(\"/images/common/menu-bg.png\") repeat-x;\nbackground: url('/images/common/menu-bg.png') repeat-x;\nbackground: url(/images/common/menu-bg.png) repeat-x;";
+//
+//              Pattern pattern = Pattern.compile("(url\\(['|\"]?)([^'|\"|)]*)");
+//              Matcher matcher = pattern.matcher(css);
+//
+//              while (matcher.find()) {
+//
+//
+//                      String url = matcher.group(2);
+//                      logger.log(Level.INFO, "Trying to download form URL found in CSS: {0}", url);
+//
+//
+//              }
+//              
+//      }
 	public Importer(final String address, final String name, final int timeout) {
 
 		this.address = address;
@@ -252,7 +269,7 @@ public class Importer {
 
 				type    = "Content";
 				tag     = "";
-				content = ((TextNode) node).text();
+				content = ((TextNode) node).toString();
 
 				// Don't add content node for whitespace
 				if (StringUtils.isBlank(content)) {
@@ -296,7 +313,14 @@ public class Importer {
 			// Other attributes: Put them into the respective fields with "_html_" prefix
 			for (Attribute nodeAttr : node.attributes()) {
 
-				attrs.add(new NodeAttribute(PropertyView.Html + nodeAttr.getKey(), nodeAttr.getValue()));
+				String key = nodeAttr.getKey();
+
+				// Don't add text attribute as _html_text because the text is already contained in the 'content' attribute
+				if (!key.equals("text")) {
+
+					attrs.add(new NodeAttribute(PropertyView.Html + nodeAttr.getKey(), nodeAttr.getValue()));
+
+				}
 
 			}
 
@@ -338,15 +362,15 @@ public class Importer {
 		for (NodeAttribute attr : attrs) {
 
 			String key   = attr.getKey();
-			String value = attr.getValue().toString();
+			String value = Search.escapeForLucene(attr.getValue().toString());
 
-			if (type.equals("Content") && key.equals(Content.UiKey.content.name())) {
-
-				value = Search.escapeForLucene(value);
-
-				// value = Search.clean(value);
-
-			}
+//			if (type.equals("Content") && key.equals(Content.UiKey.content.name())) {
+//
+//				value = Search.escapeForLucene(value);
+//
+//				// value = Search.clean(value);
+//
+//			}
 
 			// Exclude data attribute because it may contain code with special characters, too
 			if (!key.equals(PropertyView.Html.concat("data"))) {
@@ -642,15 +666,14 @@ public class Importer {
 
 	private void processCss(final String css, final URL baseUrl) throws IOException {
 
-		Pattern pattern = Pattern.compile("(url\\(['|\"]?)([^'|\"]*)");
+		Pattern pattern = Pattern.compile("(url\\(['|\"]?)([^'|\"|)]*)");
 		Matcher matcher = pattern.matcher(css);
 
 		while (matcher.find()) {
 
-
 			String url = matcher.group(2);
-			logger.log(Level.INFO, "Trying to download form URL found in CSS: {0}", url);
 
+			logger.log(Level.INFO, "Trying to download form URL found in CSS: {0}", url);
 			downloadFiles(url, baseUrl);
 
 		}
