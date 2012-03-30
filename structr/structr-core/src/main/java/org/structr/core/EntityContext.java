@@ -585,9 +585,18 @@ public class EntityContext {
 		if (propertySet == null) {
 
 			propertySet = new LinkedHashSet<String>();
-
 			propertyViewMap.put(propertyView, propertySet);
 
+			// test: fill property set with values from supertypes
+			Class superClass = type.getSuperclass();
+			while ((superClass != null) &&!superClass.equals(Object.class)) {
+
+				Set<String> superProperties = getPropertySet(superClass, propertyView);
+				propertySet.addAll(superProperties);
+
+				// one level up :)
+				superClass = superClass.getSuperclass();
+			}
 		}
 
 		return propertySet;
