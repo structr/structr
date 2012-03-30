@@ -64,21 +64,20 @@ import java.util.logging.Logger;
  */
 public class RelationClass {
 
-	public static final int DELETE_NONE = 0;
-	public static final int DELETE_OUTGOING = 1;
+	public static final int DELETE_BOTH     = 3;
 	public static final int DELETE_INCOMING = 2;
-	public static final int DELETE_BOTH = 3;
-	
-	private static final Logger logger = Logger.getLogger(RelationClass.class.getName());
+	public static final int DELETE_NONE     = 0;
+	public static final int DELETE_OUTGOING = 1;
+	private static final Logger logger      = Logger.getLogger(RelationClass.class.getName());
 
 	//~--- fields ---------------------------------------------------------
 
 	private Cardinality cardinality  = null;
-	private String destType          = null;
+	private Class destType           = null;
 	private Direction direction      = null;
 	private Notion notion            = null;
 	private RelationshipType relType = null;
-	private int cascadeDelete    = DELETE_NONE;
+	private int cascadeDelete        = DELETE_NONE;
 
 	//~--- constant enums -------------------------------------------------
 
@@ -86,7 +85,7 @@ public class RelationClass {
 
 	//~--- constructors ---------------------------------------------------
 
-	public RelationClass(String destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion, int cascadeDelete) {
+	public RelationClass(Class destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion, int cascadeDelete) {
 
 		this.cascadeDelete = cascadeDelete;
 		this.cardinality   = cardinality;
@@ -183,12 +182,14 @@ public class RelationClass {
 					}
 
 					newRel.setProperties(properties);
-					
+
 					// set cascade delete value
 					if (cascadeDelete > 0) {
+
 						newRel.setProperty(AbstractRelationship.HiddenKey.cascadeDelete, cascadeDelete);
+
 					}
-					
+
 					return newRel;
 				}
 			};
@@ -324,9 +325,35 @@ public class RelationClass {
 		}
 	}
 
+	public AbstractNode addRelatedNode(final SecurityContext securityContext, final AbstractNode node) throws FrameworkException {
+
+		return (AbstractNode) Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+			@Override
+			public Object execute() throws FrameworkException {
+
+				AbstractNode relatedNode = (AbstractNode) Services.command(securityContext,
+								   CreateNodeCommand.class).execute(new NodeAttribute(AbstractNode.Key.type.name(), getDestType().getSimpleName()));
+
+				// Create new relationship between facility and location nodes
+				Command createRel           = Services.command(securityContext, CreateRelationshipCommand.class);
+				AbstractRelationship newRel = (AbstractRelationship) createRel.execute(node, relatedNode, getRelType());
+
+				if (cascadeDelete > 0) {
+
+					newRel.setProperty(AbstractRelationship.HiddenKey.cascadeDelete, cascadeDelete);
+
+				}
+
+				return relatedNode;
+			}
+
+		});
+	}
+
 	//~--- get methods ----------------------------------------------------
 
-	public String getDestType() {
+	public Class getDestType() {
 		return destType;
 	}
 
@@ -384,102 +411,71 @@ public class RelationClass {
 
 		return null;
 	}
-	
-	public AbstractNode addRelatedNode(final SecurityContext securityContext, final AbstractNode node) throws FrameworkException {
-
-			return (AbstractNode) Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-				@Override
-				public Object execute() throws FrameworkException {
-
-					AbstractNode relatedNode = (AbstractNode) Services.command(securityContext, CreateNodeCommand.class).execute(new NodeAttribute(AbstractNode.Key.type.name(), getDestType()));		
-					
-					// Create new relationship between facility and location nodes
-					Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
-
-					AbstractRelationship newRel = (AbstractRelationship)createRel.execute(node, relatedNode, getRelType());
-					if (cascadeDelete > 0) {
-						newRel.setProperty(AbstractRelationship.HiddenKey.cascadeDelete, cascadeDelete);
-					}
-
-					return relatedNode;
-				}
-
-			});
-	}	
 
 	// ----- private methods -----
 	private List<AbstractNode> getTraversalResults(final SecurityContext securityContext, final AbstractNode node) {
 
-		try {
+		// final Class realType              = (Class) Services.command(securityContext, GetEntityClassCommand.class).execute(StringUtils.capitalize(destType));
+		final NodeFactory nodeFactory     = new NodeFactory<AbstractNode>(securityContext);
+		final List<AbstractNode> nodeList = new LinkedList<AbstractNode>();
 
-			final Class realType              = (Class) Services.command(securityContext, GetEntityClassCommand.class).execute(StringUtils.capitalize(destType));
-			final NodeFactory nodeFactory     = new NodeFactory<AbstractNode>(securityContext);
-			final List<AbstractNode> nodeList = new LinkedList<AbstractNode>();
+		// use traverser
+		Iterable<Node> nodes = Traversal.description().uniqueness(Uniqueness.NODE_PATH).breadthFirst().relationships(relType, direction).evaluator(new Evaluator() {
 
-			// use traverser
-			Iterable<Node> nodes = Traversal.description().uniqueness(Uniqueness.NODE_PATH).breadthFirst().relationships(relType, direction).evaluator(new Evaluator() {
+			@Override
+			public Evaluation evaluate(Path path) {
 
-				@Override
-				public Evaluation evaluate(Path path) {
+				int len = path.length();
 
-					int len = path.length();
+				if (len <= 1) {
 
-					if (len <= 1) {
+					if (len == 0) {
 
-						if (len == 0) {
+						// do not include start node (which is the
+						// index node in this case), but continue
+						// traversal
+						return Evaluation.EXCLUDE_AND_CONTINUE;
+					} else {
 
-							// do not include start node (which is the
-							// index node in this case), but continue
-							// traversal
-							return Evaluation.EXCLUDE_AND_CONTINUE;
-						} else {
+						try {
 
-							try {
+							AbstractNode abstractNode = (AbstractNode) nodeFactory.createNode(securityContext, path.endNode());
 
-								AbstractNode abstractNode = (AbstractNode) nodeFactory.createNode(securityContext, path.endNode());
+							// use inheritance
+							if ((destType != null) && destType.isAssignableFrom(abstractNode.getClass())) {
 
-								// use inheritance
-								if ((realType != null) && realType.isAssignableFrom(abstractNode.getClass())) {
+								nodeList.add(abstractNode);
 
-									nodeList.add(abstractNode);
+								return Evaluation.INCLUDE_AND_CONTINUE;
 
-									return Evaluation.INCLUDE_AND_CONTINUE;
+							} else {
 
-								} else {
+								return Evaluation.EXCLUDE_AND_CONTINUE;
 
-									return Evaluation.EXCLUDE_AND_CONTINUE;
-
-								}
-
-							} catch (FrameworkException fex) {
-								logger.log(Level.WARNING, "Unable to instantiate node", fex);
 							}
 
+						} catch (FrameworkException fex) {
+							logger.log(Level.WARNING, "Unable to instantiate node", fex);
 						}
 
 					}
 
-					return Evaluation.EXCLUDE_AND_PRUNE;
 				}
 
-			}).traverse(node.getNode()).nodes();
+				return Evaluation.EXCLUDE_AND_PRUNE;
+			}
 
-			// iterate nodes to evaluate traversal
-			for (Node n : nodes) {}
+		}).traverse(node.getNode()).nodes();
 
-			return nodeList;
+		// iterate nodes to evaluate traversal
+		for (Node n : nodes) {}
 
-		} catch (FrameworkException fex) {
-			logger.log(Level.WARNING, "Unable to get traversal results", fex);
-		}
-
-		return Collections.emptyList();
+		return nodeList;
 	}
 
 	//~--- set methods ----------------------------------------------------
 
-	public void setDestType(String destType) {
+	public void setDestType(Class destType) {
 		this.destType = destType;
 	}
 

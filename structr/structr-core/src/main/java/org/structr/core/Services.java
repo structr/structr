@@ -233,6 +233,8 @@ public class Services {
 
 		logger.log(Level.INFO, "{0} service(s) processed", serviceCache.size());
 		registeredServiceClasses.clear();
+		EntityContext.init();
+
 		logger.log(Level.INFO, "Initialization complete");
 	}
 

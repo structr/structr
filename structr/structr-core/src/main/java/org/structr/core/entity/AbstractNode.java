@@ -1980,7 +1980,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		} else {
 
 			// ----- BEGIN automatic property resolution (check for static relationships and return related nodes) -----
-			RelationClass rel = EntityContext.getDirectedRelationship(type, key);
+			RelationClass rel = EntityContext.getRelationClass(type, key);
 
 			if (rel != null) {
 
@@ -3982,7 +3982,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		}
 
 		// static relationship detected, create or remove relationship
-		RelationClass rel = EntityContext.getDirectedRelationship(type, key);
+		RelationClass rel = EntityContext.getRelationClass(type, key);
 		if (rel != null) {
 		
 			if (value != null) {
