@@ -39,7 +39,7 @@ var _Resources = {
 
 	onload : function() {
 		activeTab = $.cookie('structrActiveTab');
-		console.log('value read from cookie', activeTab);
+		if (debug) console.log('value read from cookie', activeTab);
 
 		//Structr.activateMenuEntry('resources');
 		if (debug) console.log('onload');
@@ -251,7 +251,7 @@ var _Resources = {
 
 	resetTab : function(element, name) {
 
-		console.log('resetTab', element);
+		if (debug) console.log('resetTab', element);
 
 		element.children('input').hide();
 		element.children('.name_').show();
@@ -278,7 +278,7 @@ var _Resources = {
 			var self = $(this);
 			var clicks = e.originalEvent.detail;
 			if (clicks == 1) {
-				console.log('click', self, self.css('z-index'));
+				if (debug) console.log('click', self, self.css('z-index'));
 				if (self.hasClass('active')) {
 					_Resources.makeTabEditable(self);
 				} else {
@@ -300,7 +300,7 @@ var _Resources = {
 	activateTab : function(element) {
         
 		var name = $.trim(element.children('b.name_').text());
-		console.log('activateTab', element, name);
+		if (debug) console.log('activateTab', element, name);
 
 		previewTabs.children('li').each(function() {
 			$(this).removeClass('active');
@@ -315,11 +315,11 @@ var _Resources = {
 		activeTab = id;
 
 		var iframe = $('#preview_' + id);
-		console.log(iframe);
+		if (debug) console.log(iframe);
 		iframe.attr('src', viewRootUrl + name + '?edit');
 		iframe.parent().show();
 		iframe.on('load', function() {
-			console.log('iframe loaded', $(this));
+			if (debug) console.log('iframe loaded', $(this));
 		});
 
 		element.addClass('active');
@@ -492,11 +492,11 @@ var _Resources = {
 				+ '.structr-element-container-active:hover { border: 1px dotted red; }\n'
 				+ '.structr-droppable-area { border: 1px dotted red; }\n'
 				+ '.structr-editable-area { border: 1px dotted orange; margin: -1px; padding: 0; }\n'
-				+ '.structr-editable-area-active { background-color: #ffe; border: 1px solid orange; color: #333; margin: -1px; padding: 0; }'
-				+ '.structr-element-container-header { float: right; font-size: 8pt; }'
-				+ '.structr-element-container-header img { float: right; padding-top: -16px; padding-right: -16px; filter: alpha(opacity=80); -khtml-opacity: 0.8; -moz-opacity: 0.8; opacity: 0.8; }'
-				+ '.link-hover { border: 1px solid #00c; }'
-				+ '.structr-node { color: #333; line-height: 1.7em; border-radius: 5px; border: 1px solid #a5a5a5; padding: 3px 6px; margin: 6px 0 0 0; background-color: #eee; background: -webkit-gradient(linear, left bottom, left top, from(#ddd), to(#eee)) no-repeat; background: -moz-linear-gradient(90deg, #ddd, #eee) no-repeat; filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr="#eeeeee", EndColorStr="#dddddd", GradientType=0);'
+				+ '.structr-editable-area-active { background-color: #ffe; border: 1px solid orange; color: #333; margin: -1px; padding: 0; }\n'
+				+ '.structr-element-container-header { position: absolute; font-size: 8pt; }\n'
+				+ '.structr-element-container-header img { filter: alpha(opacity=80); -khtml-opacity: 0.8; -moz-opacity: 0.8; opacity: 0.8; }\n'
+				+ '.link-hover { border: 1px solid #00c; }\n'
+				+ '.structr-node { color: #333; line-height: 1.7em; border-radius: 5px; border: 1px solid #a5a5a5; padding: 3px 6px; margin: 6px 0 0 0; background-color: #eee; background: -webkit-gradient(linear, left bottom, left top, from(#ddd), to(#eee)) no-repeat; background: -moz-linear-gradient(90deg, #ddd, #eee) no-repeat; filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr="#eeeeee", EndColorStr="#dddddd", GradientType=0);\n'
 				+ '</style>');
 	
 			var iframeDocument = $(this).contents();
@@ -603,7 +603,7 @@ var _Resources = {
 						+ '<div class="structr-node ' + type + '">' + name + '</div>'
 						+ '</div>'
 						);
-
+                                        
 					el.find('.structr-node').hide();
 
 					$('.move_icon', el).on('mousedown', function(e) {
@@ -655,8 +655,15 @@ var _Resources = {
 
 					el.hover(function(e) {
 						e.stopPropagation();
-						var header = $(this).children('.structr-element-container-header');
+                                                var self = $(this);
+                                                var pos = self.position();
+						var header = self.children('.structr-element-container-header');
 						header.show();
+                                                header.css({
+                                                    top: pos.top + 'px',
+                                                    left: pos.left + 'px'
+                                                });
+                                                console.log(header);
 					},
 					function(e) {
 						e.stopPropagation();
