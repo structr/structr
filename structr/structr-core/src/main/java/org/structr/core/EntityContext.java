@@ -567,7 +567,7 @@ public class EntityContext {
 
 		while ((relation == null) &&!localType.equals(Object.class)) {
 
-			relation  = getRelationClassMapForType(sourceType).get(destType);
+			relation  = getRelationClassMapForType(localType).get(destType);
 			localType = localType.getSuperclass();
 
 		}
@@ -590,10 +590,17 @@ public class EntityContext {
 
 	public static RelationClass getRelationClassForProperty(Class sourceType, String propertyKey) {
 
-		// try property relations with EXACT MATCH first
-		RelationClass rel = getPropertyRelationshipMapForType(sourceType).get(propertyKey);
+		RelationClass relation = null;
+		Class localType        = sourceType;
 
-		return rel;
+		while ((relation == null) &&!localType.equals(Object.class)) {
+
+			relation  = getPropertyRelationshipMapForType(localType).get(propertyKey);
+			localType = localType.getSuperclass();
+
+		}
+
+		return relation;
 	}
 
 	// ----- property set methods -----
