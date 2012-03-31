@@ -72,30 +72,30 @@ public class SecurityContext {
 		this.accessMode = accessMode;
 		this.request    = request;
 
+		// the authenticator does not have a security context
 		try {
-			// the authenticator does not have a security context
 			this.authenticator = (Authenticator) Services.command(null, AuthenticatorCommand.class).execute(config);
-
-		} catch(FrameworkException fex) {
-			fex.printStackTrace();
+			
+		} catch(Throwable t) {
+			logger.log(Level.SEVERE, "Could not instantiate security context!");
 		}
 	}
 
 	//~--- methods --------------------------------------------------------
+	public void examineRequest(HttpServletRequest request) throws FrameworkException {
+		this.authenticator.examineRequest(this, request);
+	}
 
 	public User doLogin(String userName, String password) throws AuthenticationException {
 
-		authenticator.setSecurityContext(this);
-
-		return authenticator.doLogin(request,
+		return authenticator.doLogin(this, request,
 					     userName,
 					     password);
 	}
 
 	public void doLogout() {
 
-		authenticator.setSecurityContext(this);
-		authenticator.doLogout(request);
+		authenticator.doLogout(this, request);
 	}
 
 	//~--- get methods ----------------------------------------------------
@@ -105,7 +105,7 @@ public class SecurityContext {
 	}
 
 	public static SecurityContext getInstance(ServletConfig config, HttpServletRequest request,
-		AccessMode accessMode) {
+		AccessMode accessMode) throws FrameworkException {
 
 		return new SecurityContext(config,
 					   request,
@@ -117,10 +117,7 @@ public class SecurityContext {
 	}
 
 	public User getUser() {
-
-		authenticator.setSecurityContext(this);
-
-		return authenticator.getUser(request);
+		return authenticator.getUser(this, request);
 	}
 
 	public String getUserName() {

@@ -246,7 +246,7 @@ public class StaticRelationshipResource extends SortableResource {
 							for (AbstractRelationship rel : rels) {
 
 								AbstractNode otherNode = rel.getOtherNode(startNode);
-								String otherNodeType   = otherNode.getType();
+								Class otherNodeType    = otherNode.getClass();
 								String id              = otherNode.getStringProperty(AbstractNode.Key.uuid.name());
 
 								// Delete relationship only if not contained in property set
@@ -289,11 +289,11 @@ public class StaticRelationshipResource extends SortableResource {
 								AbstractNode targetNode = (AbstractNode) results.get(0);
 
 //                                                              String type             = EntityContext.normalizeEntityName(typeResource.getRawType());
-								String type = staticRel.getDestType();
+								Class type = staticRel.getDestType();
 
-								if (!type.equals(targetNode.getType())) {
+								if (!type.equals(targetNode.getClass())) {
 
-									throw new FrameworkException(startNode.getType(), new TypeToken(uuid, type));
+									throw new FrameworkException(startNode.getClass().getSimpleName(), new TypeToken(uuid, type.getSimpleName()));
 
 								}
 
@@ -326,7 +326,7 @@ public class StaticRelationshipResource extends SortableResource {
 			public Object execute() throws FrameworkException {
 
 				AbstractNode sourceNode = typedIdResource.getIdResource().getNode();
-				RelationClass rel    = EntityContext.getDirectedRelationship(sourceNode.getClass(), typeResource.getRawType());
+				RelationClass rel    = EntityContext.getRelationClass(sourceNode.getClass(), typeResource.getEntityClass());
 
 				if ((sourceNode != null) && (rel != null)) {
 

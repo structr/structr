@@ -20,7 +20,6 @@ import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
 import org.structr.rest.exception.IllegalPathException;
-import org.structr.rest.exception.NotFoundException;
 
 /**
  * Like {@link TypeResource} but matches inheriting subclasses as well
@@ -32,7 +31,7 @@ public class InheritingTypeResource extends TypeResource {
 	private static final Logger logger = Logger.getLogger(InheritingTypeResource.class.getName());
 
 	@Override
-	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) {
+	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) throws FrameworkException {
 
 		return super.checkAndConfigure(part, securityContext, request);
 	}

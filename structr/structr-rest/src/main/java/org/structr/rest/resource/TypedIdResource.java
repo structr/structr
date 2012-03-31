@@ -42,7 +42,7 @@ public class TypedIdResource extends FilterableResource {
 	}
 
 	@Override
-	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) {
+	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) throws FrameworkException {
 		return false;	// we will not accept URI parts directly
 	}
 

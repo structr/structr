@@ -99,7 +99,7 @@ public class RelatedNodePropertyMapper extends PropertyConverter {
 		if ((currentObject != null) && (currentObject instanceof AbstractNode)) {
 
 			AbstractNode localNode = (AbstractNode) currentObject;
-			RelationClass rel   = EntityContext.getDirectedRelationship(localNode.getClass(), targetType);
+			RelationClass rel   = EntityContext.getRelationClass(localNode.getClass(), targetType);
 
 			if (rel != null) {
 

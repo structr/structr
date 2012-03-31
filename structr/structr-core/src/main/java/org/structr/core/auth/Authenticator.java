@@ -21,6 +21,7 @@ package org.structr.core.auth;
 
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.User;
 
 /**
@@ -31,12 +32,19 @@ import org.structr.core.entity.User;
  */
 public interface Authenticator {
 
-	public void setSecurityContext(SecurityContext securityContext);
-
+	/**
+	 * 
+	 * @param securityContext the security context
+	 * @param request
+	 * @throws FrameworkException 
+	 */
+	public void examineRequest(SecurityContext securityContext, HttpServletRequest request) throws FrameworkException;
+	
 	/**
 	 *
 	 * Tries to authenticate the given HttpServletRequest.
 	 *
+	 * @param securityContext the security context
 	 * @param request the request to authenticate
 	 * @param userName the (optional) username
 	 * @param password the (optional) password
@@ -44,21 +52,23 @@ public interface Authenticator {
 	 * @return the user that was just logged in
 	 * @throws AuthenticationException
 	 */
-	public User doLogin(HttpServletRequest request, String userName, String password) throws AuthenticationException;
+	public User doLogin(SecurityContext securityContext, HttpServletRequest request, String userName, String password) throws AuthenticationException;
 
 	/**
 	 * Logs the given request out.
 	 *
+	 * @param securityContext the security context
 	 * @param request the request to log out
 	 */
-	public void doLogout(HttpServletRequest request);
+	public void doLogout(SecurityContext securityContext, HttpServletRequest request);
 
 	/**
 	 * Returns the user that is currently logged into the system,
 	 * or null if the session is not authenticated.
 	 *
+	 * @param securityContext the security context
 	 * @param request the request
 	 * @return the logged-in user or null
 	 */
-	public User getUser(HttpServletRequest request);
+	public User getUser(SecurityContext securityContext, HttpServletRequest request);
 }

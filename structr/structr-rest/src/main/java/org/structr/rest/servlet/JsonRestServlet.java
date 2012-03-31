@@ -311,10 +311,9 @@ public class JsonRestServlet extends HttpServlet {
 			// evaluate constraints and measure query time
 			double queryTimeStart = System.nanoTime();
 			Resource resource     = addSortingAndPaging(request, securityContext, optimizeConstraintChain(parsePath(securityContext, request)));
+			Result result = new Result(resource.doGet(), resource.isCollectionResource(), resource.isPrimitiveArray());
 			double queryTimeEnd   = System.nanoTime();
 
-			// create result set
-			Result result = new Result(resource.doGet(), resource.isCollectionResource(), resource.isPrimitiveArray());
 			if (result != null) {
 
 				// allow resource to modify result set
@@ -1030,10 +1029,14 @@ public class JsonRestServlet extends HttpServlet {
 
 	//~--- get methods ----------------------------------------------------
 
-	private SecurityContext getSecurityContext(HttpServletRequest request) {
+	private SecurityContext getSecurityContext(HttpServletRequest request) throws FrameworkException {
 
-		// return SecurityContext.getSuperUserInstance();
-		return SecurityContext.getInstance(this.getServletConfig(), request, AccessMode.Frontend);
+		SecurityContext securityContext = SecurityContext.getInstance(this.getServletConfig(), request, AccessMode.Frontend);
+		
+		// let module-specific authenticator examine the request first
+		securityContext.examineRequest(request);
+		
+		return securityContext;
 	}
 
 	//~--- inner classes --------------------------------------------------

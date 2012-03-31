@@ -40,7 +40,7 @@ import org.neo4j.graphdb.traversal.Evaluator;
 import org.neo4j.kernel.Traversal;
 
 import org.structr.common.AbstractComponent;
-import org.structr.common.AbstractGraphObjectComparator;
+import org.structr.common.GraphObjectComparator;
 import org.structr.common.AccessControllable;
 import org.structr.common.PathHelper;
 import org.structr.common.Permission;
@@ -262,7 +262,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	
 	@Override
 	public String getDefaultSortOrder() {
-		return AbstractGraphObjectComparator.ASCENDING;
+		return GraphObjectComparator.ASCENDING;
 	}
 	
 	/**
@@ -1980,7 +1980,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		} else {
 
 			// ----- BEGIN automatic property resolution (check for static relationships and return related nodes) -----
-			RelationClass rel = EntityContext.getDirectedRelationship(type, key);
+			RelationClass rel = EntityContext.getRelationClass(type, key);
 
 			if (rel != null) {
 
@@ -3210,8 +3210,8 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 		nodes.addAll(getDirectChildNodes());
 
-		// sort by key, order by order {@see AbstractGraphObjectComparator.ASCENDING} or {@see AbstractGraphObjectComparator.DESCENDING}
-		Collections.sort(nodes, new AbstractGraphObjectComparator(sortKey, sortOrder));
+		// sort by key, order by order {@see GraphObjectComparator.ASCENDING} or {@see GraphObjectComparator.DESCENDING}
+		Collections.sort(nodes, new GraphObjectComparator(sortKey, sortOrder));
 
 		return nodes;
 	}
@@ -3923,6 +3923,28 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * @param updateIndex
 	 */
 	public void setProperty(final String key, final Object value, final boolean updateIndex) throws FrameworkException {
+		
+		Object oldValue = getProperty(key);
+		
+		// check null cases
+		if (oldValue == null && value == null) {
+			return;
+		}
+		
+		// no old value exists, set property
+		if (oldValue == null && value != null) {
+			setPropertyInternal(key, value, updateIndex);
+			return;
+		}
+	
+		// old value exists and is NOT equal
+		if (oldValue != null && !oldValue.equals(value)) {
+			setPropertyInternal(key, value, updateIndex);
+			return;
+		}
+	}
+	
+	private void setPropertyInternal(final String key, final Object value, final boolean updateIndex) throws FrameworkException {
 
 		final Class type = this.getClass();
 
@@ -3960,7 +3982,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		}
 
 		// static relationship detected, create or remove relationship
-		RelationClass rel = EntityContext.getDirectedRelationship(type, key);
+		RelationClass rel = EntityContext.getRelationClass(type, key);
 		if (rel != null) {
 		
 			if (value != null) {

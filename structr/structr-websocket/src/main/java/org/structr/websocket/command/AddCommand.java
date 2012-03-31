@@ -113,7 +113,7 @@ public class AddCommand extends AbstractCommand {
 
 			if ((sourceNode != null) && (targetNode != null)) {
 
-				RelationClass rel = EntityContext.getDirectedRelationship(sourceNode.getClass(), targetNode.getClass());
+				RelationClass rel = EntityContext.getRelationClass(sourceNode.getClass(), targetNode.getClass());
 
 				if (rel != null) {
 

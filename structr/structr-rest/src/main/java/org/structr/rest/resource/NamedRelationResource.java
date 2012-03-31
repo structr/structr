@@ -108,6 +108,12 @@ public class NamedRelationResource extends WrappingResource {
 			AbstractNode endNode     = relationshipEntity.identifyEndNode(namedRelation, propertySet);
 			RelationshipType relType = namedRelation.getRelType();
 
+			Class sourceType = namedRelation.getSourceType();
+			Class destType = namedRelation.getDestType();
+
+
+			propertySet.put(AbstractRelationship.HiddenKey.type.name(), EntityContext.createCombinedRelationshipType(sourceType, relType, destType));
+
 			// create new relationship with startNode, endNode, relType and propertySet
 			AbstractRelationship newRel = (AbstractRelationship)createRel.execute(startNode, endNode, relType, propertySet);
 			RestMethodResult result = new RestMethodResult(201);

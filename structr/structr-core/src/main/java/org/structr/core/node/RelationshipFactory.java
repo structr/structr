@@ -21,27 +21,27 @@
 
 package org.structr.core.node;
 
+import org.neo4j.graphdb.Relationship;
 
-import java.util.LinkedList;
-import java.util.List;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Adapter;
+import org.structr.core.EntityContext;
 import org.structr.core.Services;
+import org.structr.core.cloud.RelationshipDataContainer;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.entity.GenericRelationship;
+import org.structr.core.entity.RelationshipMapping;
 import org.structr.core.module.GetEntityClassCommand;
 
 //~--- JDK imports ------------------------------------------------------------
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
-import org.structr.core.cloud.RelationshipDataContainer;
-import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.GenericRelationship;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -55,7 +55,11 @@ import org.structr.core.entity.GenericRelationship;
 public class RelationshipFactory<T extends AbstractRelationship> implements Adapter<Relationship, T> {
 
 	private static final Logger logger = Logger.getLogger(RelationshipFactory.class.getName());
+
+	//~--- fields ---------------------------------------------------------
+
 	private SecurityContext securityContext = null;
+
 	//~--- constructors ---------------------------------------------------
 
 	// private Map<String, Class> nodeTypeCache = new ConcurrentHashMap<String, Class>();
@@ -67,31 +71,80 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 
 	//~--- methods --------------------------------------------------------
 
-		public AbstractRelationship createRelationship(SecurityContext securityContext, final Relationship relationship) throws FrameworkException {
-
-		return createRelationship(securityContext, relationship, relationship.getType().name());
-	}
-
-	public AbstractRelationship createRelationship(final SecurityContext securityContext, final Relationship relationship, final String relType) throws FrameworkException {
+	public AbstractRelationship createRelationship(final SecurityContext securityContext, final String combinedRelType) throws FrameworkException {
 
 		AbstractRelationship newRel = null;
+		Class relClass              = EntityContext.getNamedRelationClass(combinedRelType);
 
-		try {
-			String sourceNodeType = (String)relationship.getStartNode().getProperty(AbstractNode.Key.type.name());
-			String destNodeType = (String)relationship.getEndNode().getProperty(AbstractNode.Key.type.name());
+		if (relClass != null) {
 
-			Class relClass      = EntityContext.getNamedRelationClass(sourceNodeType, destNodeType, relType);
-
-			if (relClass != null) {
+			try {
 				newRel = (AbstractRelationship) relClass.newInstance();
+			} catch (InstantiationException ex) {
+				logger.log(Level.FINE, "Could not instantiate relationship", ex);
+			} catch (IllegalAccessException ex) {
+				logger.log(Level.SEVERE, "Could not access relationship", ex);
 			}
 
-		} catch (Throwable t) {
-			newRel = null;
 		}
 
+		return newRel;
+	}
+
+	public AbstractRelationship createRelationship(final SecurityContext securityContext, final Map properties) throws FrameworkException {
+
+		String combinedRelType      = (String) properties.get(AbstractRelationship.HiddenKey.type.name());
+		AbstractRelationship newRel = createRelationship(securityContext, combinedRelType);
+
+		newRel.setProperties(properties);
+
+		return newRel;
+	}
+
+	public AbstractRelationship createRelationship(final SecurityContext securityContext, final Relationship relationship) throws FrameworkException {
+
+		AbstractRelationship newRel = null;
+		Class relClass;
+
+		try {
+
+			String sourceNodeType = (String) relationship.getStartNode().getProperty(AbstractNode.Key.type.name());
+			String destNodeType   = (String) relationship.getEndNode().getProperty(AbstractNode.Key.type.name());
+
+			relClass = EntityContext.getNamedRelationClass(sourceNodeType, destNodeType, relationship.getType().name());
+
+			if (relClass != null) {
+
+				try {
+					newRel = (AbstractRelationship) relClass.newInstance();
+				} catch (Throwable t2) {
+					newRel = null;
+				}
+
+			} else {
+
+				if (relationship.hasProperty(AbstractRelationship.HiddenKey.type.name())) {
+
+					String combinedRelType = (String) relationship.getProperty(AbstractRelationship.HiddenKey.type.name());
+
+					relClass = EntityContext.getNamedRelationClass(combinedRelType);
+
+					if (relClass != null) {
+
+						newRel = createRelationship(securityContext, combinedRelType);
+
+					}
+
+				}
+
+			}
+
+		} catch (Throwable t) {}
+
 		if (newRel == null) {
+
 			newRel = new GenericRelationship();
+
 		}
 
 		newRel.init(securityContext, relationship);
@@ -99,18 +152,19 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 		return newRel;
 	}
 
-
 //      @Override
 //      protected void finalize() throws Throwable {
 //          nodeTypeCache.clear();
 //      }
 	@Override
 	public T adapt(Relationship s) {
+
 		try {
 			return ((T) createRelationship(securityContext, s));
-		} catch(FrameworkException fex) {
+		} catch (FrameworkException fex) {
 			logger.log(Level.WARNING, "Unable to adapt relationship", fex);
 		}
+
 		return null;
 	}
 
@@ -131,7 +185,9 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 				AbstractRelationship n = createRelationship(securityContext, rel);
 
 				rels.add(n);
+
 			}
+
 		}
 
 		return rels;
@@ -144,26 +200,30 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 			logger.log(Level.SEVERE, "Could not create relationship: Empty data container.");
 
 			return null;
+
 		}
 
-		Map properties       = data.getProperties();
-		String nodeType      = properties.containsKey(AbstractNode.Key.type.name())
-				       ? (String) properties.get(AbstractNode.Key.type.name())
-				       : null;
-		Class nodeClass      = (Class) Services.command(securityContext, GetEntityClassCommand.class).execute(nodeType);
+		Map properties              = data.getProperties();
+		String combinedRelType      = properties.containsKey(AbstractRelationship.HiddenKey.type.name())
+					      ? (String) properties.get(AbstractRelationship.HiddenKey.type.name())
+					      : null;
+		Class relClass              = EntityContext.getNamedRelationClass(combinedRelType);
 		AbstractRelationship newRel = null;
 
-		if (nodeClass != null) {
+		if (relClass != null) {
 
 			try {
-				newRel = (AbstractRelationship) nodeClass.newInstance();
+				newRel = (AbstractRelationship) relClass.newInstance();
 			} catch (Throwable t) {
 				newRel = null;
 			}
+
 		}
 
 		if (newRel == null) {
+
 			newRel = new GenericRelationship();
+
 		}
 
 		newRel.init(securityContext, data);

@@ -39,6 +39,7 @@ import org.structr.core.node.search.SearchNodeCommand;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.error.TypeToken;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -75,7 +76,8 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 			attrs.add(Search.andExactProperty(propertyKey, source.toString()));
 		}
 
-		attrs.add(Search.andExactType(type.getSimpleName()));
+		// FIXME: type check omitted here!
+		// attrs.addAll(Search.andExactTypeAndSubtypes(type.getSimpleName()));
 
 		// just check for existance
 		List<AbstractNode> nodes = (List<AbstractNode>) Services.command(securityContext,
@@ -109,7 +111,11 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 				break;
 
 			case 1 :
-				return nodes.get(0);
+				AbstractNode node = nodes.get(0);
+				if(!type.getSimpleName().equals(node.getType())) {
+					throw new FrameworkException("base", new TypeToken(propertyKey.name(), type.getSimpleName()));
+				}
+				return node;
 		}
 
 		if (source != null) {

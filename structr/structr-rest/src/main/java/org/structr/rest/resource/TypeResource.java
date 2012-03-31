@@ -44,21 +44,34 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class TypeResource extends SortableResource {
 
-	private static final Logger logger                 = Logger.getLogger(TypeResource.class.getName());
+	private static final Logger logger = Logger.getLogger(TypeResource.class.getName());
 
 	//~--- fields ---------------------------------------------------------
 
+	protected Class entityClass          = null;
 	protected String rawType             = null;
 	protected HttpServletRequest request = null;
 
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) {
+	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) throws FrameworkException {
 
 		this.securityContext = securityContext;
 		this.request         = request;
 		this.rawType         = part;
+
+		if (rawType != null) {
+
+			// test if resource class exists
+			entityClass = EntityContext.getEntityClassForRawType(rawType);
+
+			if (entityClass == null) {
+
+				// test if key is a known property
+				if (!EntityContext.isKnownProperty(part)) return false;
+			}
+		}
 
 		return true;
 	}
@@ -73,10 +86,21 @@ public class TypeResource extends SortableResource {
 
 		if (rawType != null) {
 
-			// test if resource class exists
-			Map cachedEntities = (Map<String, Class>) Services.command(securityContext, GetEntitiesCommand.class).execute();
-
-			if (!cachedEntities.containsKey(EntityContext.normalizeEntityName(rawType))) {
+//                      // test if resource class exists
+			// test moved to checkAndConfigure
+//                      Map cachedEntities = (Map<String, Class>) Services.command(securityContext, GetEntitiesCommand.class).execute();
+//                      
+//                      String normalizedEntityName = EntityContext.normalizeEntityName(rawType);
+//
+//                      if (!cachedEntities.containsKey(normalizedEntityName)) {
+//
+//                              throw new NotFoundException();
+//
+//                      }
+//
+//                      entityClass = (Class) cachedEntities.get(normalizedEntityName);
+//                      
+			if (entityClass == null) {
 
 				throw new NotFoundException();
 
@@ -186,10 +210,6 @@ public class TypeResource extends SortableResource {
 		return super.tryCombineWith(next);
 	}
 
-	public boolean hasSearchableAttributes(List<SearchAttribute> attributes) throws FrameworkException {
-		return hasSearchableAttributes(rawType, request, attributes);
-	}
-	
 	//~--- get methods ----------------------------------------------------
 
 	@Override
@@ -199,6 +219,14 @@ public class TypeResource extends SortableResource {
 
 	public String getRawType() {
 		return rawType;
+	}
+
+	public Class getEntityClass() {
+		return entityClass;
+	}
+
+	public boolean hasSearchableAttributes(List<SearchAttribute> attributes) throws FrameworkException {
+		return hasSearchableAttributes(rawType, request, attributes);
 	}
 
 	@Override

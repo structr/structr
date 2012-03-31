@@ -184,7 +184,7 @@ public class LinkCommand extends AbstractCommand {
 								rel.createRelationship(securityContext, sourceNode, thirdNode, newRelationshipProperties);
 
 								// Create a LINK relationship
-								rel = new RelationClass(resourceNode.getType(), RelType.LINK, Direction.OUTGOING, Cardinality.ManyToMany, null, RelationClass.DELETE_NONE);
+								rel = new RelationClass(resourceNode.getClass(), RelType.LINK, Direction.OUTGOING, Cardinality.ManyToMany, null, RelationClass.DELETE_NONE);
 
 								rel.createRelationship(securityContext, secondNode, resourceNode);
 							}

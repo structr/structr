@@ -16,97 +16,77 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package org.structr.rest.resource;
 
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Command;
 import org.structr.core.GraphObject;
-import org.structr.core.Value;
+import org.structr.core.Services;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.node.GetNodeByIdCommand;
 import org.structr.rest.RestMethodResult;
-import org.structr.rest.exception.IllegalPathException;
+import org.structr.rest.exception.IllegalMethodException;
 
 /**
  *
  * @author Christian Morgner
  */
-public class IdsOnlyResource extends ViewFilterResource {
-
-	private static final Logger logger = Logger.getLogger(IdsOnlyResource.class.getName());
+public class EntityResolverResource extends SortableResource {
 
 	@Override
 	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) {
-		this.securityContext = securityContext;
+		
 		return true;
 	}
 
 	@Override
 	public List<? extends GraphObject> doGet() throws FrameworkException {
-
-		if(wrappedResource != null) {
-			return wrappedResource.doGet();
-		}
-
-		throw new IllegalPathException();
+		throw new IllegalMethodException();
 	}
-
+	
 	@Override
-	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
+	public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
+		
+		Command searchCommand = Services.command(securityContext, GetNodeByIdCommand.class);
+		RestMethodResult result = new RestMethodResult(200);
 
-		if(wrappedResource != null) {
-			return wrappedResource.doPost(propertySet);
+		for(Object o : propertySet.values()) {
+			
+			if(o instanceof String) {
+				
+				String id = (String)o;
+				
+				AbstractNode node = (AbstractNode)searchCommand.execute(id);
+				if(node != null) {
+					result.addContent(node);
+				}
+			}
 		}
-		throw new IllegalPathException();
-	}
-
-	@Override
-	public RestMethodResult doPut(Map<String, Object> propertySet) throws FrameworkException {
-		if(wrappedResource != null) {
-			return wrappedResource.doPut(propertySet);
-		}
-		throw new IllegalPathException();
-	}
-
-	@Override
-	public RestMethodResult doDelete() throws FrameworkException {
-		if(wrappedResource != null) {
-			return wrappedResource.doDelete();
-		}
-		throw new IllegalPathException();
+		
+		return result;
 	}
 
 	@Override
 	public RestMethodResult doHead() throws FrameworkException {
-		throw new UnsupportedOperationException("Not supported yet.");
+		throw new IllegalMethodException();
 	}
 
 	@Override
 	public RestMethodResult doOptions() throws FrameworkException {
-		throw new UnsupportedOperationException("Not supported yet.");
+		throw new IllegalMethodException();
 	}
 
 	@Override
-	public String getUriPart() {
-		return "ids";
+	public RestMethodResult doDelete() throws FrameworkException {
+		throw new IllegalMethodException();
 	}
 
 	@Override
-	public boolean isCollectionResource() {
-		return true;
+	public RestMethodResult doPut(final Map<String, Object> propertySet) throws FrameworkException {
+		throw new IllegalMethodException();
 	}
-
-	@Override
-	public boolean isPrimitiveArray() {
-		return true;
-	}
-
-	@Override
-	public void configurePropertyView(Value<String> propertyView) {
-		propertyView.set("ids");
-	}
-
 }

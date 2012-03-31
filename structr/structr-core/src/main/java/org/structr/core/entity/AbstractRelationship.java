@@ -44,9 +44,6 @@ import org.structr.core.Value;
 import org.structr.core.cloud.RelationshipDataContainer;
 import org.structr.core.node.*;
 import org.structr.core.node.NodeService.RelationshipIndex;
-import org.structr.core.node.search.Search;
-import org.structr.core.node.search.SearchAttribute;
-import org.structr.core.node.search.SearchNodeCommand;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.RelationshipNotion;
 import org.structr.core.validator.SimpleRegexValidator;
@@ -120,7 +117,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	public enum HiddenKey implements PropertyKey {
 		type,    // internal type, see IndexRelationshipCommand#indexRelationship method
-		cascadeDelete
+		cascadeDelete, createdDate
 	}
 
 	public enum Key implements PropertyKey{ uuid }
@@ -166,6 +163,9 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		boolean error = false;
 
 		error |= ValidationHelper.checkStringNotBlank(this, AbstractNode.Key.uuid, errorBuffer);
+		
+//		error |= (this.getStartNode() != null);
+//		error |= (this.getEndNode() != null);
 
 		return !error;
 	}
@@ -177,12 +177,12 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	
 	@Override
 	public String getDefaultSortOrder() {
-		return AbstractGraphObjectComparator.ASCENDING;
+		return GraphObjectComparator.ASCENDING;
 	}
 	
 	public AbstractNode identifyStartNode(RelationshipMapping namedRelation, Map<String, Object> propertySet) throws FrameworkException {
 
-		Notion startNodeNotion = new RelationshipNotion(getStartNodeIdKey());
+		Notion startNodeNotion = getStartNodeNotion(); //new RelationshipNotion(getStartNodeIdKey());
 
 		startNodeNotion.setType(namedRelation.getSourceType());
 
@@ -203,7 +203,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	public AbstractNode identifyEndNode(RelationshipMapping namedRelation, Map<String, Object> propertySet) throws FrameworkException {
 
-		Notion endNodeNotion = new RelationshipNotion(getEndNodeIdKey());
+		Notion endNodeNotion = getEndNodeNotion(); //new RelationshipNotion(getEndNodeIdKey());
 
 		endNodeNotion.setType(namedRelation.getDestType());
 
@@ -344,6 +344,14 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	public abstract PropertyKey getStartNodeIdKey();
 
 	public abstract PropertyKey getEndNodeIdKey();
+	
+	public Notion getEndNodeNotion() {
+		return new RelationshipNotion(getEndNodeIdKey());
+	}
+
+	public Notion getStartNodeNotion() {
+		return new RelationshipNotion(getStartNodeIdKey());
+	}
 
 //      @Override
 //      public void delete(SecurityContext securityContext) {
@@ -747,28 +755,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	}
 
 	private AbstractNode getNodeByUuid(final String uuid) throws FrameworkException {
-
-		List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
-
-		attrs.add(Search.andExactUuid(uuid));
-
-		List<AbstractNode> results = (List<AbstractNode>) Services.command(securityContext, SearchNodeCommand.class).execute(null, false, false, attrs);
-		int size                   = results.size();
-
-		switch (size) {
-
-			case 0 :
-				return null;
-
-			case 1 :
-				return results.get(0);
-
-			default :
-				logger.log(Level.WARNING, "Got more than one result for UUID {0}, this is very likely to be a UUID collision!", uuid);
-
-				return results.get(0);
-
-		}
+		return (AbstractNode)Services.command(securityContext, GetNodeByIdCommand.class).execute(uuid);
 	}
 
 	public boolean isType(RelType type) {

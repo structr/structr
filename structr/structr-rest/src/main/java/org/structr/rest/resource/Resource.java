@@ -5,9 +5,13 @@
  */
 package org.structr.rest.resource;
 
-import java.util.*;
-import org.structr.common.error.ErrorBuffer;
+import org.structr.common.GraphObjectComparator;
+import org.structr.common.PropertyKey;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
+import org.structr.common.error.InvalidSearchField;
+import org.structr.core.*;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
@@ -15,30 +19,26 @@ import org.structr.core.Value;
 import org.structr.core.VetoableGraphObjectListener;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.entity.RelationClass;
+import org.structr.core.node.*;
 import org.structr.core.node.RemoveNodeFromIndex;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
+import org.structr.core.node.search.Search;
+import org.structr.core.node.search.SearchAttribute;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NoResultsException;
+import org.structr.rest.servlet.JsonRestServlet;
 
 //~--- JDK imports ------------------------------------------------------------
 
+import java.util.*;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.structr.common.AbstractGraphObjectComparator;
-import org.structr.common.PropertyKey;
-import org.structr.common.error.FrameworkException;
-import org.structr.common.error.InvalidSearchField;
-import org.structr.core.*;
-import org.structr.core.entity.RelationClass;
-import org.structr.core.node.*;
-import org.structr.core.node.search.Search;
-import org.structr.core.node.search.SearchAttribute;
-import org.structr.rest.servlet.JsonRestServlet;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -52,7 +52,7 @@ import org.structr.rest.servlet.JsonRestServlet;
  */
 public abstract class Resource {
 
-	private static final Logger logger = Logger.getLogger(Resource.class.getName());
+	private static final Logger logger                 = Logger.getLogger(Resource.class.getName());
 	private static final Set<String> NON_SEARCH_FIELDS = new LinkedHashSet<String>();
 
 	//~--- static initializers --------------------------------------------
@@ -75,7 +75,7 @@ public abstract class Resource {
 
 	//~--- methods --------------------------------------------------------
 
-	public abstract boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request);
+	public abstract boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) throws FrameworkException;
 
 	public abstract List<? extends GraphObject> doGet() throws FrameworkException;
 
@@ -90,9 +90,8 @@ public abstract class Resource {
 	// ----- methods -----
 	public RestMethodResult doDelete() throws FrameworkException {
 
-		final Command deleteNode	= Services.command(securityContext, DeleteNodeCommand.class);
-		final Command deleteRel		= Services.command(securityContext, DeleteRelationshipCommand.class);
-		
+		final Command deleteNode = Services.command(securityContext, DeleteNodeCommand.class);
+		final Command deleteRel  = Services.command(securityContext, DeleteRelationshipCommand.class);
 		Iterable<? extends GraphObject> results;
 
 		// catch 204, DELETE must return 200 if resource is empty
@@ -114,32 +113,31 @@ public abstract class Resource {
 					for (GraphObject obj : finalResults) {
 
 						if (obj instanceof AbstractRelationship) {
-							
+
 							// remove object from index
 							Services.command(securityContext, RemoveRelationshipFromIndex.class).execute(obj);
-
 							deleteRel.execute(obj);
-							
 						} else if (obj instanceof AbstractNode) {
-						
+
 							// remove object from index
 							Services.command(securityContext, RemoveNodeFromIndex.class).execute(obj);
 
-//							// 2: delete relationships
-//							if (obj instanceof AbstractNode) {
+//                                                      // 2: delete relationships
+//                                                      if (obj instanceof AbstractNode) {
 //
-//								List<AbstractRelationship> rels = ((AbstractNode) obj).getRelationships();
+//                                                              List<AbstractRelationship> rels = ((AbstractNode) obj).getRelationships();
 //
-//								for (AbstractRelationship rel : rels) {
+//                                                              for (AbstractRelationship rel : rels) {
 //
-//									deleteRel.execute(rel);
+//                                                                      deleteRel.execute(rel);
 //
-//								}
+//                                                              }
 //
-//							}
+//                                                      }
 							// delete cascading
 							deleteNode.execute(obj, true);
 						}
+
 					}
 
 					return null;
@@ -166,8 +164,11 @@ public abstract class Resource {
 					for (GraphObject obj : results) {
 
 						for (Entry<String, Object> attr : propertySet.entrySet()) {
+
 							obj.setProperty(attr.getKey(), attr.getValue());
+
 						}
+
 					}
 
 					return null;
@@ -194,45 +195,54 @@ public abstract class Resource {
 		this.idProperty = idProperty;
 	}
 
-	public boolean isPrimitiveArray() {
-		return false;
-	}
-	
 	public void postProcessResultSet(Result result) {
+
 		// override me
 	}
 
 	// ----- protected methods -----
-	protected RelationClass findRelationClass(TypedIdResource constraint1, TypeResource constraint2) {
-		return findRelationClass(constraint1.getTypeResource(), constraint2);
+	protected RelationClass findRelationClass(TypedIdResource typedIdResource, TypeResource typeResource) {
+		return findRelationClass(typedIdResource.getTypeResource(), typeResource);
 	}
 
-	protected RelationClass findRelationClass(TypeResource constraint1, TypedIdResource constraint2) {
-		return findRelationClass(constraint1, constraint2.getTypeResource());
+	protected RelationClass findRelationClass(TypeResource typeResource, TypedIdResource typedIdResource) {
+		return findRelationClass(typeResource, typedIdResource.getTypeResource());
 	}
 
-	protected RelationClass findRelationClass(TypedIdResource constraint1, TypedIdResource constraint2) {
-		return findRelationClass(constraint1.getTypeResource(), constraint2.getTypeResource());
+	protected RelationClass findRelationClass(TypedIdResource typedIdResource1, TypedIdResource typedIdResource2) {
+		return findRelationClass(typedIdResource1.getTypeResource(), typedIdResource2.getTypeResource());
 	}
 
-	protected RelationClass findRelationClass(TypeResource constraint1, TypeResource constraint2) {
+	protected RelationClass findRelationClass(TypeResource typeResource1, TypeResource typeResource2) {
 
-		String type1             = constraint1.getRawType();
-		String type2             = constraint2.getRawType();
+		Class type1 = typeResource1.getEntityClass();
+		Class type2 = typeResource2.getEntityClass();
 
-		// try raw type first..
-		return EntityContext.getDirectedRelationship(type1, type2);
+		if ((type1 != null) && (type2 != null)) {
 
+			return EntityContext.getRelationClass(type1, type2);
+
+		}
+
+		if (type1 != null) {
+
+			return EntityContext.getRelationClassForProperty(type1, typeResource2.getRawType());
+
+		}
+
+		return null;
 	}
 
 	protected boolean notifyOfTraversal(List<GraphObject> traversedNodes, ErrorBuffer errorBuffer) {
 
 		boolean hasError = false;
+
 		for (VetoableGraphObjectListener listener : EntityContext.getModificationListeners()) {
 
 			hasError |= listener.wasVisited(traversedNodes, -1, errorBuffer, securityContext);
 
 		}
+
 		return hasError;
 	}
 
@@ -271,13 +281,50 @@ public abstract class Resource {
 
 				String defaultOrder = list.get(0).getDefaultSortOrder();
 
-				Collections.sort(list, new AbstractGraphObjectComparator(defaultSort.name(), defaultOrder));
+				Collections.sort(list, new GraphObjectComparator(defaultSort.name(), defaultOrder));
 
 			}
 		}
-		
 	}
-	
+
+	// ----- private methods -----
+	private int parseInteger(Object source) {
+
+		try {
+			return Integer.parseInt(source.toString());
+		} catch (Throwable t) {}
+
+		return -1;
+	}
+
+	private void checkForIllegalSearchKeys(final HttpServletRequest request, final Set<String> searchableProperties) throws FrameworkException {
+
+		ErrorBuffer errorBuffer = new ErrorBuffer();
+
+		// try to identify invalid search properties and throw an exception
+		for (Enumeration<String> e = request.getParameterNames(); e.hasMoreElements(); ) {
+
+			String requestParameterName = e.nextElement();
+
+			if (!searchableProperties.contains(requestParameterName) &&!NON_SEARCH_FIELDS.contains(requestParameterName)) {
+
+				errorBuffer.add("base", new InvalidSearchField(requestParameterName));
+
+			}
+
+		}
+
+		if (errorBuffer.hasError()) {
+
+			throw new FrameworkException(422, errorBuffer);
+
+		}
+	}
+
+	//~--- get methods ----------------------------------------------------
+
+	public abstract String getUriPart();
+
 	protected boolean hasSearchableAttributes(final String rawType, final HttpServletRequest request, final List<SearchAttribute> searchAttributes) throws FrameworkException {
 
 		boolean hasSearchableAttributes = false;
@@ -331,43 +378,9 @@ public abstract class Resource {
 		return hasSearchableAttributes;
 	}
 
-	// ----- private methods -----
-	private int parseInteger(Object source) {
-
-		try {
-			return Integer.parseInt(source.toString());
-		} catch (Throwable t) {}
-
-		return -1;
+	public boolean isPrimitiveArray() {
+		return false;
 	}
-
-	private void checkForIllegalSearchKeys(final HttpServletRequest request, final Set<String> searchableProperties) throws FrameworkException {
-
-		ErrorBuffer errorBuffer = new ErrorBuffer();
-
-		// try to identify invalid search properties and throw an exception
-		for (Enumeration<String> e = request.getParameterNames(); e.hasMoreElements(); ) {
-
-			String requestParameterName = e.nextElement();
-
-			if (!searchableProperties.contains(requestParameterName) &&!NON_SEARCH_FIELDS.contains(requestParameterName)) {
-
-				errorBuffer.add("base", new InvalidSearchField(requestParameterName));
-
-			}
-
-		}
-
-		if (errorBuffer.hasError()) {
-
-			throw new FrameworkException(422, errorBuffer);
-
-		}
-	}
-
-	//~--- get methods ----------------------------------------------------
-
-	public abstract String getUriPart();
 
 	public abstract boolean isCollectionResource() throws FrameworkException;
 

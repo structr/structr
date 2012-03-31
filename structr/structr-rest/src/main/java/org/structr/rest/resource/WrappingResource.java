@@ -107,6 +107,16 @@ public abstract class WrappingResource extends Resource {
 	}
 
 	@Override
+	public boolean isPrimitiveArray() {
+		if (wrappedResource != null) {
+
+			return wrappedResource.isPrimitiveArray();
+
+		}
+		return false;
+	}
+	
+	@Override
 	public boolean isCollectionResource() throws FrameworkException {
 
 		if (wrappedResource != null) {

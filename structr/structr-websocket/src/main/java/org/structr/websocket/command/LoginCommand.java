@@ -52,6 +52,7 @@ public class LoginCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
+		SecurityContext securityContext = SecurityContext.getSuperUserInstance();
 		String username = (String) webSocketData.getData().get("username");
 		String password = (String) webSocketData.getData().get("password");
 		User user       = null;
@@ -61,9 +62,9 @@ public class LoginCommand extends AbstractCommand {
 			try {
 
 				StructrWebSocket socket = this.getWebSocket();
-				Authenticator auth      = (Authenticator) Services.command(SecurityContext.getSuperUserInstance(), AuthenticatorCommand.class).execute(socket.getConfig());
+				Authenticator auth      = (Authenticator) Services.command(securityContext, AuthenticatorCommand.class).execute(socket.getConfig());
 
-				user = auth.doLogin(socket.getRequest(), username, password);
+				user = auth.doLogin(securityContext, socket.getRequest(), username, password);
 				if (user != null) {
 
 					String token = StructrWebSocket.secureRandomString();
