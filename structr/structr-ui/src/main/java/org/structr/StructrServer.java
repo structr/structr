@@ -222,7 +222,7 @@ public class StructrServer {
 		initParams.put("RequestLogging", "true");
 		initParams.put("PropertyFormat", "FlatNameValue");
 		initParams.put("ResourceProvider", "org.structr.rest.resource.StructrResourceProvider");
-		initParams.put("Authenticator", "org.structr.core.auth.StructrAuthenticator");
+		initParams.put("Authenticator", "org.structr.rest.auth.RestAuthenticator");
 		initParams.put("DefaultPropertyView", "default");
 		initParams.put("IdProperty", "uuid");
 		holder.setInitParameters(initParams);
