@@ -198,8 +198,8 @@ public class StructrServer {
 			config.add("modules.path = " + basePath + "/modules");
 			config.add("smtp.host = localhost");
 			config.add("smtp.port = 25");
-			config.add("superuser.username = admin");
-			config.add("superuser.password = admin");
+			config.add("superuser.username = superadmin");
+			config.add("superuser.password = s3hrg3h37m");
 			config.add("configured.services = ModuleService NodeService AgentService");
 
 			// don't start cron service without config file
