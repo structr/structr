@@ -21,12 +21,16 @@
 
 package org.structr.web.entity;
 
+import java.lang.Object;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.RelationClass.Cardinality;
 import org.structr.core.node.NodeService;
 import org.structr.web.entity.html.Article;
@@ -44,7 +48,7 @@ import org.structr.web.entity.html.P;
 public class Component extends AbstractNode {
 
 	public enum UiKey implements PropertyKey {
-		name, elements
+		id, type, name, elements
 	}
 
 	static {

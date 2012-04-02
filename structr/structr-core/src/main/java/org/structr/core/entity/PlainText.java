@@ -73,7 +73,6 @@ public class PlainText extends AbstractNode {
 		return getStringProperty(Key.content.name());
 	}
 
-	@Override
 	public String getContentType() {
 		return getStringProperty(Key.contentType.name());
 	}

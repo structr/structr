@@ -46,7 +46,7 @@ public abstract class HtmlElement extends Element {
 		"ondragstart", "ondrop", "ondurationchange", "onemptied", "onended", "onerror", "onfocus", "oninput", "oninvalid", "onkeydown", "onkeypress", "onkeyup", "onload", "onloadeddata",
 		"onloadedmetadata", "onloadstart", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "onmousewheel", "onpause", "onplay", "onplaying", "onprogress",
 		"onratechange", "onreadystatechange", "onreset", "onscroll", "onseeked", "onseeking", "onselect", "onshow", "onstalled", "onsubmit", "onsuspend", "ontimeupdate", "onvolumechange",
-		"onwaiting"
+		"onwaiting",
 	};
 
 	//~--- static initializers --------------------------------------------
@@ -64,7 +64,7 @@ public abstract class HtmlElement extends Element {
 	//~--- constant enums -------------------------------------------------
 
 	public enum UiKey implements PropertyKey {
-		name, tag, path, contents, elements, components, resource
+		name, tag, path, contents, elements, components, resource, structrclass
 	}
 
 	//~--- get methods ----------------------------------------------------
