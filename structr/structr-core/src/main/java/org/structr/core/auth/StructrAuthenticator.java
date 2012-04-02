@@ -24,9 +24,12 @@ package org.structr.core.auth;
 import org.apache.commons.codec.digest.DigestUtils;
 
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.context.SessionMonitor;
 import org.structr.core.Command;
 import org.structr.core.Services;
+import org.structr.core.auth.exception.AuthenticationException;
+import org.structr.core.auth.exception.UnauthorizedException;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
 import org.structr.core.node.FindUserCommand;
@@ -38,7 +41,6 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import org.structr.common.error.FrameworkException;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -49,76 +51,20 @@ import org.structr.common.error.FrameworkException;
  */
 public class StructrAuthenticator implements Authenticator {
 
-	private static final String STANDARD_ERROR_MSG = "Wrong username or password, or user is blocked. Check caps lock. Note: Username is case sensitive!";
-	public static final String USERNAME_KEY        = "username";
-	public static final String USER_NODE_KEY       = "userNode";
-	private static final Logger logger             = Logger.getLogger(StructrAuthenticator.class.getName());
+	public static final String USERNAME_KEY  = "username";
+	public static final String USER_NODE_KEY = "userNode";
+	private static final Logger logger       = Logger.getLogger(StructrAuthenticator.class.getName());
 
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public void examineRequest(SecurityContext securityContext, HttpServletRequest request) throws FrameworkException {
-	}
+	public void examineRequest(SecurityContext securityContext, HttpServletRequest request) throws FrameworkException {}
 
 	@Override
 	public User doLogin(SecurityContext securityContext, HttpServletRequest request, String userName, String password) throws AuthenticationException {
 
 		String errorMsg = null;
-		User user       = null;
-
-		if (Services.SUPERUSER_USERNAME.equals(userName) && Services.SUPERUSER_PASSWORD.equals(password)) {
-
-			logger.log(Level.INFO, "############# Logged in as superadmin! ############");
-
-			user = new SuperUser();
-
-		} else {
-
-			try {
-				Command findUser = Services.command(securityContext, FindUserCommand.class);
-				user = (User) findUser.execute(userName);
-
-				if (user == null) {
-
-					logger.log(Level.INFO, "No user found for name {0}", user);
-
-					errorMsg = STANDARD_ERROR_MSG;
-
-				} else {
-
-					if (user.isBlocked()) {
-
-						logger.log(Level.INFO, "User {0} is blocked", user);
-
-						errorMsg = STANDARD_ERROR_MSG;
-
-					}
-
-					if (password == null) {
-
-						logger.log(Level.INFO, "Password for user {0} is null", user);
-
-						errorMsg = "You should enter a password.";
-
-					}
-
-					String encryptedPasswordValue = DigestUtils.sha512Hex(password);
-
-					if (!encryptedPasswordValue.equals(user.getEncryptedPassword())) {
-
-						logger.log(Level.INFO, "Wrong password for user {0}", user);
-
-						errorMsg = STANDARD_ERROR_MSG;
-
-					}
-
-				}
-
-			} catch(FrameworkException fex) {
-				fex.printStackTrace();
-			}
-
-		}
+		User user       = AuthHelper.getUserForUsernameAndPassword(securityContext, userName, password);
 
 		if (errorMsg != null) {
 

@@ -35,8 +35,8 @@ public class Head extends HtmlElement {
 		EntityContext.registerPropertySet(Head.class, PropertyView.Public,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Head.class, PropertyView.Html, true, htmlAttributes);
 
-		EntityContext.registerEntityRelation(Head.class, Html.class,	RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.OneToOne);
-		EntityContext.registerEntityRelation(Head.class, Title.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.OneToOne);
+		EntityContext.registerEntityRelation(Head.class, Html.class,	RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Head.class, Title.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Head.class, Style.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Head.class, Script.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Head.class, Link.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);

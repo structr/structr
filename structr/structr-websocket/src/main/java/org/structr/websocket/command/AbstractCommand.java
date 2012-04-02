@@ -85,6 +85,8 @@ public abstract class AbstractCommand {
 	 * @return the node
 	 */
 	public AbstractNode getNode(final String id) {
+		
+		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 
 		try {
 			if(idProperty != null) {
@@ -92,14 +94,14 @@ public abstract class AbstractCommand {
 				List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
 				attrs.add(Search.andExactProperty(idProperty, id));
 
-				List<AbstractNode> results = (List<AbstractNode>)Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(null, false, false, attrs);
+				List<AbstractNode> results = (List<AbstractNode>)Services.command(securityContext, SearchNodeCommand.class).execute(null, false, false, attrs);
 				if(!results.isEmpty()) {
 					return results.get(0);
 				}
 
 			} else {
 
-				List<AbstractNode> results = (List<AbstractNode>)Services.command(SecurityContext.getSuperUserInstance(), FindNodeCommand.class).execute(id);
+				List<AbstractNode> results = (List<AbstractNode>)Services.command(securityContext, FindNodeCommand.class).execute(id);
 				if(!results.isEmpty()) {
 					return results.get(0);
 				}

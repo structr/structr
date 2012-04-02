@@ -42,7 +42,7 @@ import org.structr.core.entity.RelationClass.Cardinality;
 public class Resource extends AbstractNode {
 
 	public enum UiKey implements PropertyKey {
-		name, tag, components, elements, linkingElements
+		name, tag, components, elements, linkingElements, contentType
 	}
 
 	static {
@@ -53,6 +53,7 @@ public class Resource extends AbstractNode {
 		
 		EntityContext.registerEntityRelation(Resource.class,	Component.class,	RelType.CONTAINS,	Direction.OUTGOING, Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Resource.class,	Element.class,		RelType.CONTAINS,	Direction.OUTGOING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Resource.class,	Content.class,		RelType.CONTAINS,	Direction.OUTGOING, Cardinality.ManyToMany);
 //		EntityContext.registerEntityRelation(Resource.class,	Element.class,		RelType.LINK,		Direction.INCOMING, Cardinality.OneToMany);
 
 		EntityContext.registerEntityRelation(Resource.class, Html.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToOne);

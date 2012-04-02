@@ -50,7 +50,7 @@ public class RemoveCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 
 		// create static relationship
 		String sourceId = webSocketData.getId();

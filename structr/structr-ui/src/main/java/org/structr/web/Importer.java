@@ -200,7 +200,7 @@ public class Importer {
 		return null;
 	}
 
-	private void createChildNodes(final Node startNode, final AbstractNode parent, String resourceId, final URL baseUrl) throws FrameworkException {
+	public void createChildNodes(final Node startNode, final AbstractNode parent, String resourceId, final URL baseUrl) throws FrameworkException {
 
 		List<Node> children = startNode.childNodes();
 		int localIndex      = 0;

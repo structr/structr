@@ -618,7 +618,7 @@ div.nested img:hover {
     filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#e7e7e7', EndColorStr='#cccccc', GradientType=0);
 }
 
-#confirmation, #infoBox {
+#confirmation, #infoBox, #errorBox {
     width: 360px;
 }
 
@@ -627,13 +627,13 @@ div.nested img:hover {
     margin-top: -70%;
 }
 
-#dialogTitle {
+.dialogTitle {
     font-size: 11pt;
     text-align: center;
     color: #333;
 }
 
-#dialogText {
+.dialogText {
     text-align: left;
     font-size: 9pt;
 	height: 450px;
@@ -641,12 +641,12 @@ div.nested img:hover {
     overflow: auto;
 }
 
-#confirmationText, #infoText, #dialogText {
+#confirmationText, #infoText, #dialogBox .dialogText {
     margin-bottom: 12px;
     vertical-align: top;
 }
 
-#okButton, #dialogOkButton, #dialogCancelButton {
+.okButton, .dialogOkButton, .dialogCancelButton {
     padding-left: 8px ! important;
 }
 

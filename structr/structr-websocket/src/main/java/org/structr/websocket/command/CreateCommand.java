@@ -42,18 +42,20 @@ public class CreateCommand extends AbstractCommand {
 
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
+		
+		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 
 		StructrTransaction transaction = new StructrTransaction() {
 
 			@Override
 			public Object execute() throws FrameworkException {
-				return Services.command(SecurityContext.getSuperUserInstance(), CreateNodeCommand.class).execute(webSocketData.getData());
+				return Services.command(securityContext, CreateNodeCommand.class).execute(webSocketData.getData());
 			}
 		};
 
 		try {
 			// create node in transaction
-			AbstractNode newNode = (AbstractNode)Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(transaction);
+			AbstractNode newNode = (AbstractNode)Services.command(securityContext, TransactionCommand.class).execute(transaction);
 
 			// check for File node and store in WebSocket to receive chunks
 			if(newNode instanceof File) {

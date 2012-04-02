@@ -56,7 +56,7 @@ public class AddCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 
 		// create static relationship
 		String sourceId                = webSocketData.getId();
@@ -95,14 +95,14 @@ public class AddCommand extends AbstractCommand {
 
 					@Override
 					public Object execute() throws FrameworkException {
-						return Services.command(SecurityContext.getSuperUserInstance(), CreateNodeCommand.class).execute(props);
+						return Services.command(securityContext, CreateNodeCommand.class).execute(props);
 					}
 				};
 
 				try {
 
 					// create node in transaction
-					targetNode = (AbstractNode) Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(transaction);
+					targetNode = (AbstractNode) Services.command(securityContext, TransactionCommand.class).execute(transaction);
 				} catch (FrameworkException fex) {
 
 					logger.log(Level.WARNING, "Could not create node.", fex);

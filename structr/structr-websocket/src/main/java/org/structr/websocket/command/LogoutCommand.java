@@ -45,7 +45,7 @@ public class LogoutCommand extends AbstractCommand {
 			// TODO: remove lastAccessedAt property
 			// user.setProperty(User.Key.session, null);
 
-			getWebSocket().setAuthenticated(null);
+			getWebSocket().setAuthenticated(null, null);
 		}
 	}
 

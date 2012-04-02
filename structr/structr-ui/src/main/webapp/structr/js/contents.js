@@ -88,7 +88,7 @@ var _Contents = {
             }, function() {
                 console.log('cancelled')
             });
-            _Contents.editContent(this, content, 'all', $('#dialogText'));
+            _Contents.editContent(this, content, 'all', $('#dialogBox .dialogText'));
         });
 
         div.append('<img title="Delete content \'' + content.name + '\'" alt="Delete content \'' + content.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
@@ -105,7 +105,7 @@ var _Contents = {
             }, function() {
                 console.log('cancelled')
             });
-            _Entities.showProperties(this, content, 'all', $('#dialogText'));
+            _Entities.showProperties(this, content, 'all', $('#dialogBox .dialogText'));
         });
 
         //        $.ajax({

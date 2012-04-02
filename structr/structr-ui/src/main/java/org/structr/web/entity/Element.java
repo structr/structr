@@ -40,23 +40,27 @@ import org.structr.core.entity.RelationClass.Cardinality;
  */
 public class Element extends AbstractNode {
 
+	protected static final String[] uiAttributes = {
+		UiKey.name.name(), UiKey.tag.name(), UiKey.contents.name(), UiKey.elements.name(), UiKey.components.name(), UiKey.resource.name()
+	};
+
 	static {
 
-		EntityContext.registerPropertySet(Element.class, PropertyView.All, UiKey.values());
-		EntityContext.registerPropertySet(Element.class, PropertyView.Public, UiKey.values());
-		EntityContext.registerPropertySet(Element.class, PropertyView.Ui, UiKey.values());
+		EntityContext.registerPropertySet(Element.class, PropertyView.All, uiAttributes);
+		EntityContext.registerPropertySet(Element.class, PropertyView.Public, uiAttributes);
+		EntityContext.registerPropertySet(Element.class, PropertyView.Ui, uiAttributes);
 		EntityContext.registerEntityRelation(Element.class, Component.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Element.class, Resource.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Element.class, Element.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Element.class, Content.class, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
 
-		EntityContext.registerSearchablePropertySet(Element.class, NodeIndex.fulltext.name(), UiKey.values());
-		EntityContext.registerSearchablePropertySet(Element.class, NodeIndex.keyword.name(), UiKey.values());
+		EntityContext.registerSearchablePropertySet(Element.class, NodeIndex.fulltext.name(), uiAttributes);
+		EntityContext.registerSearchablePropertySet(Element.class, NodeIndex.keyword.name(), uiAttributes);
 
 //              EntityContext.registerEntityRelation(Element.class,     Resource.class,         RelType.LINK,           Direction.OUTGOING, Cardinality.ManyToOne);
 
 	}
-
+	
 	//~--- constant enums -------------------------------------------------
 
 	public enum UiKey implements PropertyKey {

@@ -376,6 +376,15 @@ public class EntityContext {
 		}
 	}
 
+	public static void registerSearchablePropertySet(Class type, String index, String... keys) {
+
+		for (String key : keys) {
+
+			registerSearchableProperty(type, index, key);
+
+		}
+	}
+
 	public static void registerSearchableProperty(Class type, String index, PropertyKey key) {
 		registerSearchableProperty(type, index, key.name());
 	}

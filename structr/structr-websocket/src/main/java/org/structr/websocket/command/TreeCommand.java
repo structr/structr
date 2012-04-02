@@ -58,7 +58,7 @@ public class TreeCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 		AbstractNode rootNode                 = getNode(webSocketData.getId());
 		TraversalDescription localDesc        =
 			Traversal.description().depthFirst().uniqueness(Uniqueness.NODE_GLOBAL).expand(new ResourceExpander(rootNode.getStringProperty(AbstractNode.Key.uuid.name())));

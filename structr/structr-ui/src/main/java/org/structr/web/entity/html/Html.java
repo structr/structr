@@ -47,10 +47,10 @@ public class Html extends HtmlElement {
 		EntityContext.registerPropertySet(Html.class, PropertyView.Public, HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Html.class, PropertyView.Html, true, htmlAttributes);
 
-		EntityContext.registerEntityRelation(Html.class, Resource.class, RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.OneToMany);
+		EntityContext.registerEntityRelation(Html.class, Resource.class, RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
 
-		EntityContext.registerEntityRelation(Html.class, Head.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.OneToOne);
-		EntityContext.registerEntityRelation(Html.class, Body.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.OneToOne);
+		EntityContext.registerEntityRelation(Html.class, Head.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Html.class, Body.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
 
 	}
 

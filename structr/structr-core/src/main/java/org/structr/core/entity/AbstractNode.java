@@ -2502,14 +2502,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 //      }
 
 	/**
-	 * Return null mime type. Method has to be overwritten,
-	 * returning real mime type
-	 */
-	public String getContentType() {
-		return null;
-	}
-
-	/**
 	 * Return the (cached) incoming relationship between this node and the
 	 * given principal which holds the security information.
 	 *

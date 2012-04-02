@@ -42,6 +42,8 @@ public class ListCommand extends AbstractCommand {
 
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
+		
+		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 
 		String type = (String) webSocketData.getData().get("type");
 
@@ -54,7 +56,7 @@ public class ListCommand extends AbstractCommand {
 
 		try {
 			// do search
-			List<GraphObject> results = (List<GraphObject>)Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(
+			List<GraphObject> results = (List<GraphObject>)Services.command(securityContext, SearchNodeCommand.class).execute(
 				topNode,
 				includeDeleted,
 				publicOnly,

@@ -57,7 +57,7 @@ public class LinkCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 
 		// create static relationship
 		String sourceId                = webSocketData.getId();
@@ -88,7 +88,7 @@ public class LinkCommand extends AbstractCommand {
 
 				try {
 
-					Command transactionCommand = Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class);
+					Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
 
 					// As an element can be contained in multiple resources, we have
 					// to do the following for each incoming CONTAINS relationship
@@ -120,7 +120,7 @@ public class LinkCommand extends AbstractCommand {
 
 									@Override
 									public Object execute() throws FrameworkException {
-										return Services.command(SecurityContext.getSuperUserInstance(), CreateNodeCommand.class).execute(attrsFirstNode);
+										return Services.command(securityContext, CreateNodeCommand.class).execute(attrsFirstNode);
 									}
 								};
 
@@ -144,7 +144,7 @@ public class LinkCommand extends AbstractCommand {
 
 									@Override
 									public Object execute() throws FrameworkException {
-										return Services.command(SecurityContext.getSuperUserInstance(), CreateNodeCommand.class).execute(attrsSecondNode);
+										return Services.command(securityContext, CreateNodeCommand.class).execute(attrsSecondNode);
 									}
 								};
 								secondNode = (AbstractNode) transactionCommand.execute(transaction);
@@ -167,7 +167,7 @@ public class LinkCommand extends AbstractCommand {
 
 									@Override
 									public Object execute() throws FrameworkException {
-										return Services.command(SecurityContext.getSuperUserInstance(), CreateNodeCommand.class).execute(attrsThirdNode);
+										return Services.command(securityContext, CreateNodeCommand.class).execute(attrsThirdNode);
 									}
 								};
 								thirdNode = (AbstractNode) transactionCommand.execute(transaction);

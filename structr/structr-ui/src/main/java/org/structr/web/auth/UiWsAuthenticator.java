@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2011 Axel Morgner
+ *  Copyright (C) 2012 Axel Morgner, structr <structr@structr.org>
  *
  *  This file is part of structr <http://structr.org>.
  *
@@ -23,9 +23,9 @@ package org.structr.web.auth;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.auth.AuthHelper;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.exception.AuthenticationException;
-import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -36,16 +36,26 @@ import javax.servlet.http.HttpServletRequest;
 
 /**
  *
- * @author Christian Morgner
+ * @author Axel Morgner
  */
-public class HttpAuthenticator implements Authenticator {
+public class UiWsAuthenticator implements Authenticator {
 
 	@Override
 	public void examineRequest(SecurityContext securityContext, HttpServletRequest request) throws FrameworkException {}
 
 	@Override
 	public User doLogin(SecurityContext securityContext, HttpServletRequest request, String userName, String password) throws AuthenticationException {
-		return getUser(securityContext, request);
+
+		String errorMsg = null;
+		User user       = AuthHelper.getUserForUsernameAndPassword(securityContext, userName, password);
+
+		if (errorMsg != null) {
+
+			throw new AuthenticationException(errorMsg);
+
+		}
+
+		return user;
 	}
 
 	@Override
@@ -54,7 +64,7 @@ public class HttpAuthenticator implements Authenticator {
 	//~--- get methods ----------------------------------------------------
 
 	@Override
-	public User getUser(SecurityContext securityContext, HttpServletRequest request) {
-		return new SuperUser();
+	public User getUser(SecurityContext securityContext, HttpServletRequest request) throws FrameworkException {
+		return null;    // In WS context, there's no classic HTTP request/session/servlet context available
 	}
 }

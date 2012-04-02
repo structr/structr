@@ -120,16 +120,20 @@ function connect() {
                     var codeStr = code.toString();
                     if (codeStr.startsWith('20')) {
                         msgClass = 'success';
+						$('#dialogBox .infoMsg').html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
                     } else if (codeStr.startsWith('30')) {
                         msgClass = 'info';
+						$('#dialogBox .infoMsg').html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
                     } else if (codeStr.startsWith('40')) {
                         msgClass = 'warning';
+						$('#dialogBox .infoMsg').html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
                     } else {
+						Structr.error("Error", true);
                         msgClass = 'error';
+						$('#errorBox .errorMsg').html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
                     }
 
-
-                    $('#dialogMsg').html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
+                    
                 }
 
             } else if (command == 'CREATE' || command == 'IMPORT') {

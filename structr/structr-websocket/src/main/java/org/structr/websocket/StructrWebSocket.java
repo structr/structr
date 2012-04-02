@@ -29,13 +29,8 @@ import org.apache.commons.codec.binary.Base64;
 
 import org.eclipse.jetty.websocket.WebSocket;
 
-import org.structr.common.SecurityContext;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.User;
-import org.structr.core.node.search.Search;
-import org.structr.core.node.search.SearchAttribute;
-import org.structr.core.node.search.SearchNodeCommand;
 import org.structr.websocket.command.AbstractCommand;
 import org.structr.websocket.command.CreateCommand;
 import org.structr.websocket.command.DeleteCommand;
@@ -51,15 +46,16 @@ import org.structr.websocket.message.MessageBuilder;
 import java.security.SecureRandom;
 
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.http.HttpServletRequest;
+import org.structr.common.AccessMode;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.auth.AuthHelper;
 import org.structr.core.entity.File;
 import org.structr.websocket.command.*;
 
@@ -129,6 +125,7 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 	private HttpServletRequest request               = null;
 	private String token                             = null;
 	private String callback                          = null;
+	private SecurityContext securityContext		 = null;
 
 	//~--- constructors ---------------------------------------------------
 
@@ -309,12 +306,12 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 	// ----- private methods -----
 	private void authenticateToken(final String messageToken) {
 
-		User user = getUserForToken(messageToken);
+		User user = AuthHelper.getUserForToken(messageToken);
 
 		if (user != null) {
 
 			// TODO: session timeout!
-			this.setAuthenticated(messageToken);
+			this.setAuthenticated(messageToken, user);
 		}
 	}
 
@@ -347,40 +344,15 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 	}
 
 	public User getCurrentUser() {
-		return getUserForToken(token);
+		return AuthHelper.getUserForToken(token);
+	}
+	
+	public SecurityContext getSecurityContext() {
+		return securityContext;
 	}
 
 	public String getCallback() {
 		return callback;
-	}
-
-	private User getUserForToken(final String messageToken) {
-
-		List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
-
-		attrs.add(Search.andExactProperty(User.Key.sessionId, messageToken));
-		attrs.add(Search.andExactType("User"));
-
-		try {
-			// we need to search with a super user security context here..
-			List<AbstractNode> results = (List<AbstractNode>) Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(null, false, false, attrs);
-
-			if (!results.isEmpty()) {
-
-				User user = (User) results.get(0);
-
-				if (user != null && messageToken.equals(user.getProperty(User.Key.sessionId))) {
-
-					return user;
-
-				}
-
-			}
-		} catch(FrameworkException fex) {
-			logger.log(Level.WARNING, "Error while executing SearchNodeCommand", fex);
-		}
-
-		return null;
 	}
 
 	public boolean isAuthenticated() {
@@ -389,7 +361,12 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 
 	//~--- set methods ----------------------------------------------------
 
-	public void setAuthenticated(final String token) {
+	public void setAuthenticated(final String token, final User user) {
 		this.token = token;
+		try {
+			this.securityContext = SecurityContext.getInstance(user, AccessMode.Backend);
+		} catch (FrameworkException ex) {
+			logger.log(Level.WARNING, "Could not get security context instance", ex);
+		}
 	}
 }
