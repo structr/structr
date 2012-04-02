@@ -41,16 +41,16 @@ public class Body extends HtmlElement {
 		EntityContext.registerPropertySet(Body.class, PropertyView.Public, HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Body.class, PropertyView.Html, true,	HtmlElement.htmlAttributes);
 		
-		EntityContext.registerEntityRelation(Body.class, Html.class,		RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.OneToOne);
+		EntityContext.registerEntityRelation(Body.class, Html.class,		RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
 
-		EntityContext.registerEntityRelation(Body.class, Div.class,		RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.OneToMany);
-		EntityContext.registerEntityRelation(Body.class, P.class,		RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.OneToMany);
-		EntityContext.registerEntityRelation(Body.class, Span.class,		RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.OneToMany);
-		EntityContext.registerEntityRelation(Body.class, Table.class,		RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.OneToMany);
-		EntityContext.registerEntityRelation(Body.class, Header.class,		RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.OneToMany);
-		EntityContext.registerEntityRelation(Body.class, Footer.class,		RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.OneToMany);
-		EntityContext.registerEntityRelation(Body.class, Article.class,		RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.OneToMany);
-		EntityContext.registerEntityRelation(Body.class, Blockquote.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.OneToMany);
+		EntityContext.registerEntityRelation(Body.class, Div.class,		RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Body.class, P.class,		RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Body.class, Span.class,		RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Body.class, Table.class,		RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Body.class, Header.class,		RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Body.class, Footer.class,		RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Body.class, Article.class,		RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Body.class, Blockquote.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
 
 	}
 }
