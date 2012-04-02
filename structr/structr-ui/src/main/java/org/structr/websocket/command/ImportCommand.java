@@ -58,7 +58,7 @@ public class ImportCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 		Map<String, Object> properties        = webSocketData.getData();
 		final String address                  = (String) properties.get("address");
 		final String name                     = (String) properties.get("name");
@@ -68,7 +68,7 @@ public class ImportCommand extends AbstractCommand {
 			@Override
 			public Object execute() throws FrameworkException {
 
-				Importer pageImporter = new Importer(address, name, timeout);
+				Importer pageImporter = new Importer(securityContext, address, name, timeout);
 
 				boolean parseOk = pageImporter.parse();
 

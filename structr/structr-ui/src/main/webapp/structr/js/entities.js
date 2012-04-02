@@ -64,23 +64,23 @@ var _Entities = {
                 } else if (child.type == "Content") {
                     _Resources.appendContentElement(child, parent.id, rootId);
                 } else if (child.type == "Folder") {
-					var entity = child;
-					console.log('Render Tree: ' , entity);
-					var folderElement = _Files.appendFolderElement(child, parent.id);
-//					var folders = entity.folders;
-//					if (folders && folders.length > 0) {
-//						disable($('.delete_icon', folderElement)[0]);
-//						$(folders).each(function(i, folder) {
-//							_Files.appendFolderElement(file, entity.id);
-//						});
-//					}
-					var files = entity.files;
-					if (files && files.length > 0) {
-						disable($('.delete_icon', folderElement)[0]);
-						$(files).each(function(i, file) {
-							_Files.appendFileElement(file, entity.id);
-						});
-					}					
+                    var entity = child;
+                    console.log('Render Tree: ' , entity);
+                    var folderElement = _Files.appendFolderElement(child, parent.id);
+                    //					var folders = entity.folders;
+                    //					if (folders && folders.length > 0) {
+                    //						disable($('.delete_icon', folderElement)[0]);
+                    //						$(folders).each(function(i, folder) {
+                    //							_Files.appendFolderElement(file, entity.id);
+                    //						});
+                    //					}
+                    var files = entity.files;
+                    if (files && files.length > 0) {
+                        disable($('.delete_icon', folderElement)[0]);
+                        $(files).each(function(i, file) {
+                            _Files.appendFileElement(file, entity.id);
+                        });
+                    }
                 } else {
                     _Resources.appendElementElement(child, parent.id, rootId);
                 }
@@ -184,7 +184,7 @@ var _Entities = {
             function() {
                 return true;
             }
-        );
+            );
 
 
         var debug = true
@@ -192,8 +192,10 @@ var _Entities = {
         disable(button, function() {
             _Entities.hideProperties(button, entity, view, dialog);
         });
-
-        if (debug) console.log('showProperties URL: ' + rootUrl + entity.id + (view ? '/' + view : ''));
+        var headers = {
+            'X-StructrSessionToken' : token
+        };
+        if (debug) console.log('showProperties URL: ' + rootUrl + entity.id + (view ? '/' + view : ''), headers);
         $.ajax({
             url: rootUrl + entity.id + (view ? '/' + view : ''),
             async: false,

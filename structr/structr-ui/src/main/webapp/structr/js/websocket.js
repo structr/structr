@@ -120,17 +120,17 @@ function connect() {
                     var codeStr = code.toString();
                     if (codeStr.startsWith('20')) {
                         msgClass = 'success';
-						$('#dialogBox .infoMsg').html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
+                        $('#dialogBox .dialogMsg').html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
                     } else if (codeStr.startsWith('30')) {
                         msgClass = 'info';
-						$('#dialogBox .infoMsg').html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
+                        $('#dialogBox .dialogMsg').html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
                     } else if (codeStr.startsWith('40')) {
                         msgClass = 'warning';
-						$('#dialogBox .infoMsg').html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
+                        $('#dialogBox .dialogMsg').html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
                     } else {
-						Structr.error("Error", true);
+                        Structr.error("Error", true);
                         msgClass = 'error';
-						$('#errorBox .errorMsg').html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
+                        $('#errorBox .errorMsg').html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
                     }
 
                     
@@ -221,7 +221,7 @@ function connect() {
                 				
                 $(result).each(function(i, entity) {
 
-//                    console.log('LIST: ' + entity.type);
+                    //                    console.log('LIST: ' + entity.type);
 
                     if (entity.type == 'User') {
                         var groups = entity.groups;
@@ -462,14 +462,14 @@ function connect() {
                     if (editor && editor.id == data.id && key == 'content') {
                         if (debug) console.log(editor.id);
                         editor.setValue(newValue);
-						editor.setCursor(editorCursor);
+                        editor.setCursor(editorCursor);
                     }
 
                 }
 
                 // refresh preview iframe
                 input.data('changed', false);
-                //_Resources.reloadPreviews();
+            //_Resources.reloadPreviews();
 
             } else {
                 if (debug) console.log('Received unknown command: ' + command);

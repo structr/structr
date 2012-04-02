@@ -67,6 +67,15 @@ public class SecurityContext {
 
 	//~--- constructors ---------------------------------------------------
 
+	/*
+	 * Alternative constructor for stateful context, e.g. WebSocket
+	 */
+	private SecurityContext(User user, AccessMode accessMode) {
+
+		this.user       = user;
+		this.accessMode = accessMode;
+	}
+
 	private SecurityContext(ServletConfig config, HttpServletRequest request, AccessMode accessMode) {
 
 		this.attrs      = Collections.synchronizedMap(new LinkedHashMap<String, Object>());
@@ -80,16 +89,7 @@ public class SecurityContext {
 			logger.log(Level.SEVERE, "Could not instantiate security context!");
 		}
 	}
-	
-	/*
-	 * Alternative constructor for stateful context, e.g. WebSocket
-	 */
-	private SecurityContext(User user, AccessMode accessMode) {
 
-		this.user = user;
-		this.accessMode = accessMode;
-	}
-	
 	//~--- methods --------------------------------------------------------
 
 	public void examineRequest(HttpServletRequest request) throws FrameworkException {
@@ -113,11 +113,11 @@ public class SecurityContext {
 	public static SecurityContext getInstance(ServletConfig config, HttpServletRequest request, AccessMode accessMode) throws FrameworkException {
 		return new SecurityContext(config, request, accessMode);
 	}
-	
+
 	public static SecurityContext getInstance(User user, AccessMode accessMode) throws FrameworkException {
 		return new SecurityContext(user, accessMode);
 	}
-	
+
 	public HttpSession getSession() {
 		return request.getSession();
 	}
@@ -191,6 +191,15 @@ public class SecurityContext {
 
 		}
 
+		user = getUser();
+
+		// owner is always allowed to do anything with its nodes
+		if (user != null && (user.equals(node) || user.equals(node.getOwnerNode()))) {
+
+			return true;
+
+		}
+
 		boolean isAllowed = false;
 
 		switch (accessMode) {
@@ -208,8 +217,6 @@ public class SecurityContext {
 		}
 
 		if (node != null) {
-
-			user = getUser();
 
 			logger.log(Level.FINEST, "Returning {0} for user {1}, access mode {2}, node {3}, permission {4}", new Object[] { isAllowed, (user != null)
 				? user.getName()
@@ -506,6 +513,10 @@ public class SecurityContext {
 
 	public void setAccessMode(AccessMode accessMode) {
 		this.accessMode = accessMode;
+	}
+
+	public void setUser(final User user) {
+		this.user = user;
 	}
 
 	//~--- inner classes --------------------------------------------------

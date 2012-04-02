@@ -224,12 +224,11 @@ public class StructrServer {
 		initParams.put("PropertyFormat", "FlatNameValue");
 		initParams.put("ResourceProvider", "org.structr.web.common.UiResourceProvider");
 //		initParams.put("ResourceProvider", "org.structr.rest.resource.StructrResourceProvider");
-		initParams.put("Authenticator", "org.structr.web.auth.UiRestAuthenticator");
+		initParams.put("Authenticator", "org.structr.web.auth.UiAuthenticator");
 		initParams.put("IdProperty", "uuid");
 		holder.setInitParameters(initParams);
 		holder.setInitOrder(2);
 		webapp.addServlet(holder, "/structr/rest/*");
-		webapp.addEventListener(new ApplicationContextListener());
 
 		// HTML Servlet
 		HtmlServlet htmlServlet            = new HtmlServlet();
@@ -241,14 +240,13 @@ public class StructrServer {
 		htmlServletHolder.setInitParameters(htmlInitParams);
 		htmlServletHolder.setInitOrder(3);
 		webapp.addServlet(htmlServletHolder, "/structr/html/*");
-		webapp.addEventListener(new ApplicationContextListener());
 
 		// WebSocket Servlet
 		WebSocketServlet wsServlet       = new WebSocketServlet();
 		ServletHolder wsServletHolder    = new ServletHolder(wsServlet);
 		Map<String, String> wsInitParams = new HashMap<String, String>();
 
-		wsInitParams.put("Authenticator", "org.structr.web.auth.UiWsAuthenticator");
+		wsInitParams.put("Authenticator", "org.structr.web.auth.UiAuthenticator");
 		wsInitParams.put("IdProperty", "uuid");
 		wsServletHolder.setInitParameters(wsInitParams);
 		wsServletHolder.setInitOrder(4);

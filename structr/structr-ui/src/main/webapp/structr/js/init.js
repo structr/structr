@@ -21,13 +21,10 @@
 var rootUrl =     '/structr/rest/';
 var viewRootUrl = '/';
 var wsRoot = '/structr/ws';
-var headers = {
-    'X-User' : 0
-};
 /********************************************************************/
 
 var header, main;
-var debug = true;
+var debug = false;
 //var onload = [];
 var lastMenuEntry, activeTab;
 var dmp;

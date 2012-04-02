@@ -38,10 +38,12 @@ import javax.servlet.http.HttpServletRequest;
  *
  * @author Axel Morgner
  */
-public class UiWsAuthenticator implements Authenticator {
+public class UiAuthenticator implements Authenticator {
 
 	@Override
-	public void examineRequest(SecurityContext securityContext, HttpServletRequest request) throws FrameworkException {}
+	public void examineRequest(SecurityContext securityContext, HttpServletRequest request) throws FrameworkException {
+		getUser(securityContext, request);
+	}
 
 	@Override
 	public User doLogin(SecurityContext securityContext, HttpServletRequest request, String userName, String password) throws AuthenticationException {
@@ -65,6 +67,29 @@ public class UiWsAuthenticator implements Authenticator {
 
 	@Override
 	public User getUser(SecurityContext securityContext, HttpServletRequest request) throws FrameworkException {
-		return null;    // In WS context, there's no classic HTTP request/session/servlet context available
+
+		String userName = request.getHeader("X-User");
+		String password = request.getHeader("X-Password");
+		String token    = request.getHeader("X-StructrSessionToken");
+		User user       = null;
+
+		// Try to authorize with a session token first
+		if (token != null) {
+
+			user = AuthHelper.getUserForToken(token);
+
+		} else if ((userName != null) && (password != null)) {
+
+			user = AuthHelper.getUserForUsernameAndPassword(securityContext, userName, password);
+
+		}
+
+		if (user != null) {
+
+			securityContext.setUser(user);
+
+		}
+
+		return user;
 	}
 }

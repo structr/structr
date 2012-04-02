@@ -107,6 +107,7 @@ public class Importer {
 	private String name;
 	private Document parsedDocument;
 	private int timeout;
+	private SecurityContext securityContext;
 
 	//~--- constructors ---------------------------------------------------
 
@@ -127,11 +128,12 @@ public class Importer {
 //              }
 //              
 //      }
-	public Importer(final String address, final String name, final int timeout) {
+	public Importer(final SecurityContext securityContext, final String address, final String name, final int timeout) {
 
 		this.address = address;
 		this.name    = name;
 		this.timeout = timeout;
+		this.securityContext = securityContext;
 	}
 
 	//~--- methods --------------------------------------------------------
@@ -139,8 +141,6 @@ public class Importer {
 	public boolean parse() throws FrameworkException {
 
 		logger.log(Level.INFO, "##### Start fetching {0} for resource {1} #####", new Object[] { address, name });
-
-		SecurityContext securityContext = SecurityContext.getSuperUserInstance();
 
 		searchNode = Services.command(securityContext, SearchNodeCommand.class);
 		createNode = Services.command(securityContext, CreateNodeCommand.class);
@@ -166,7 +166,7 @@ public class Importer {
 
 			baseUrl = new URL(address);
 
-			AbstractNode res = (AbstractNode) Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(new StructrTransaction() {
+			AbstractNode res = (AbstractNode) Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
 				@Override
 				public Object execute() throws FrameworkException {
