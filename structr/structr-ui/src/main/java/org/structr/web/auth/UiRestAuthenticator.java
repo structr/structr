@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2011 Axel Morgner
+ *  Copyright (C) 2012 Axel Morgner, structr <structr@structr.org>
  *
  *  This file is part of structr <http://structr.org>.
  *
@@ -21,14 +21,15 @@
 
 package org.structr.web.auth;
 
+
+import java.util.logging.Level;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.auth.AuthHelper;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.exception.AuthenticationException;
-import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
-
-//~--- JDK imports ------------------------------------------------------------
+import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -36,16 +37,29 @@ import javax.servlet.http.HttpServletRequest;
 
 /**
  *
- * @author Christian Morgner
+ * @author Axel Morgner
  */
-public class HttpAuthenticator implements Authenticator {
+public class UiRestAuthenticator implements Authenticator {
+
+	private static final Logger logger = Logger.getLogger(UiRestAuthenticator.class.getName());
+
+	//~--- methods --------------------------------------------------------
 
 	@Override
-	public void examineRequest(SecurityContext securityContext, HttpServletRequest request) throws FrameworkException {}
+	public void examineRequest(SecurityContext securityContext, HttpServletRequest request) throws FrameworkException {
+		getUser(securityContext, request);
+	}
 
 	@Override
 	public User doLogin(SecurityContext securityContext, HttpServletRequest request, String userName, String password) throws AuthenticationException {
-		return getUser(securityContext, request);
+
+		try {
+			return getUser(securityContext, request);
+		} catch (Throwable t) {
+			logger.log(Level.WARNING, t.getMessage());
+		}
+
+		return null;
 	}
 
 	@Override
@@ -54,7 +68,24 @@ public class HttpAuthenticator implements Authenticator {
 	//~--- get methods ----------------------------------------------------
 
 	@Override
-	public User getUser(SecurityContext securityContext, HttpServletRequest request) {
-		return new SuperUser();
+	public User getUser(SecurityContext securityContext, HttpServletRequest request) throws FrameworkException {
+
+		String userName = request.getHeader("X-User");
+		String password = request.getHeader("X-Password");
+		String token    = request.getHeader("X-StructrSessionToken");
+		User user       = null;
+
+		// Try to authorize with a session token first
+		if (token != null) {
+
+			user = AuthHelper.getUserForToken(token);
+
+		} else if ((userName != null) && (password != null)) {
+
+			user = AuthHelper.getUserForUsernameAndPassword(securityContext, userName, password);
+
+		}
+
+		return user;
 	}
 }

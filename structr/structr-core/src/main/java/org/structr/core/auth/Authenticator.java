@@ -22,6 +22,7 @@ package org.structr.core.auth;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.entity.User;
 
 /**
@@ -70,5 +71,5 @@ public interface Authenticator {
 	 * @param request the request
 	 * @return the logged-in user or null
 	 */
-	public User getUser(SecurityContext securityContext, HttpServletRequest request);
+	public User getUser(SecurityContext securityContext, HttpServletRequest request) throws FrameworkException;
 }

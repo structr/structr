@@ -229,8 +229,8 @@ var _Elements = {
                 }, function() {
                 if (debug) console.log('cancelled')
                 });
-            //           _Entities.showProperties(this, entity, 'all', $('#dialogText'));
-            _Entities.showProperties(this, entity, '_html_', $('#dialogText'));
+            //           _Entities.showProperties(this, entity, 'all', $('#dialogBox .dialogText'));
+            _Entities.showProperties(this, entity, '_html_', $('#dialogBox .dialogText'));
         });
 		
 //        div.on('mouseover', function(e) {

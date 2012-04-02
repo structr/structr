@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2011 Axel Morgner
+ *  Copyright (C) 2012 Axel Morgner
  * 
  *  This file is part of structr <http://structr.org>.
  * 
@@ -17,24 +17,23 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.structr.core.auth;
+package org.structr.core.auth.exception;
+
+import javax.servlet.http.HttpServletResponse;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
 
 /**
- * An exception that is thrown when authentication fails.
  *
  * @author Christian Morgner
  */
-public class AuthenticationException extends Throwable {
+public class UnauthorizedException extends FrameworkException {
 
-	public AuthenticationException(String msg) {
-		super(msg);
+	public UnauthorizedException() {
+		super(HttpServletResponse.SC_UNAUTHORIZED, new ErrorBuffer());
 	}
-
-	public AuthenticationException(Throwable cause) {
-		super(cause);
-	}
-
-	public AuthenticationException(String msg, Throwable cause) {
-		super(msg, cause);
+	
+	public UnauthorizedException(final String msg) {
+		super(HttpServletResponse.SC_UNAUTHORIZED, msg);
 	}
 }

@@ -48,13 +48,15 @@ public class DeleteCommand extends AbstractCommand {
 
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
+		
+		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 
 		AbstractNode node = getNode(webSocketData.getId());
 
 		if (node != null) {
 
 			try {
-				Services.command(SecurityContext.getSuperUserInstance(), DeleteNodeCommand.class).execute(node);
+				Services.command(securityContext, DeleteNodeCommand.class).execute(node);
 			} catch (FrameworkException fex) {
 				logger.log(Level.WARNING, "Unable to delete node", fex);
 			}

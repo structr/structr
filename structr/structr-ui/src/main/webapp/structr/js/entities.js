@@ -175,7 +175,7 @@ var _Entities = {
 
     showProperties : function(button, entity, view, dialog) {
 
-        var dialog = $('#dialogText');
+        var dialog = $('#dialogBox .dialogText');
         dialog.empty();
         Structr.dialog('Edit Properties of ' + entity.id,
             function() {

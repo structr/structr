@@ -122,7 +122,7 @@ var _Resources = {
 		previewTabs.append('<li id="import_page" class="button"><img class="add_button icon" src="icon/page_white_put.png"></li>');
 		$('#import_page', previewTabs).on('click', function() {
 			
-			var dialog = $('#dialogText');
+			var dialog = $('#dialogBox .dialogText');
 			var dialogMsg = $('#dialogMsg');
 			
 			dialog.empty();
@@ -635,7 +635,7 @@ var _Resources = {
 						}, function() {
 							console.log('cancelled')
 						});
-						_Entities.showProperties(this, entity, 'all', $('#dialogText'));
+						_Entities.showProperties(this, entity, 'all', $('#dialogBox .dialogText'));
 					});
 
 					$('.delete_icon', el).on('click', function(e) {

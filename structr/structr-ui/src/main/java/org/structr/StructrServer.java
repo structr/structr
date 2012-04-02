@@ -36,6 +36,7 @@ import java.util.*;
 
 import javax.servlet.DispatcherType;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
+import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.server.ssl.SslSelectChannelConnector;
 
@@ -223,7 +224,7 @@ public class StructrServer {
 		initParams.put("PropertyFormat", "FlatNameValue");
 		initParams.put("ResourceProvider", "org.structr.web.common.UiResourceProvider");
 //		initParams.put("ResourceProvider", "org.structr.rest.resource.StructrResourceProvider");
-		initParams.put("Authenticator", "org.structr.web.auth.HttpAuthenticator");
+		initParams.put("Authenticator", "org.structr.web.auth.UiRestAuthenticator");
 		initParams.put("IdProperty", "uuid");
 		holder.setInitParameters(initParams);
 		holder.setInitOrder(2);
@@ -235,7 +236,7 @@ public class StructrServer {
 		ServletHolder htmlServletHolder    = new ServletHolder(htmlServlet);
 		Map<String, String> htmlInitParams = new HashMap<String, String>();
 
-		htmlInitParams.put("Authenticator", "org.structr.core.auth.StructrAuthenticator");
+		htmlInitParams.put("Authenticator", "org.structr.web.auth.HttpAuthenticator");
 		htmlInitParams.put("IdProperty", "uuid");
 		htmlServletHolder.setInitParameters(htmlInitParams);
 		htmlServletHolder.setInitOrder(3);
@@ -247,10 +248,11 @@ public class StructrServer {
 		ServletHolder wsServletHolder    = new ServletHolder(wsServlet);
 		Map<String, String> wsInitParams = new HashMap<String, String>();
 
-		wsInitParams.put("Authenticator", "org.structr.core.auth.StructrAuthenticator");
+		wsInitParams.put("Authenticator", "org.structr.web.auth.UiWsAuthenticator");
 		wsInitParams.put("IdProperty", "uuid");
 		wsServletHolder.setInitParameters(wsInitParams);
 		wsServletHolder.setInitOrder(4);
+		
 		webapp.addServlet(wsServletHolder, "/structr/ws/*");
 		webapp.addEventListener(new ApplicationContextListener());
 
@@ -276,7 +278,6 @@ public class StructrServer {
 		requestLog.setLogTimeZone("GMT");
 		requestLogHandler.setRequestLog(requestLog);
 
-//              contexts.setHandlers(new Handler[] { context0, webapp, requestLogHandler });
 		contexts.setHandlers(new Handler[] { webapp, requestLogHandler });
 		handlers.setHandlers(new Handler[] { contexts, new DefaultHandler(), requestLogHandler });
 		server.setHandler(handlers);

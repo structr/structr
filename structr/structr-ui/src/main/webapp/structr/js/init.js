@@ -27,7 +27,7 @@ var headers = {
 /********************************************************************/
 
 var header, main;
-var debug = false;
+var debug = true;
 //var onload = [];
 var lastMenuEntry, activeTab;
 var dmp;
@@ -286,17 +286,17 @@ var Structr = {
 
     dialog : function(text, callbackOk, callbackCancel) {
 
-        $('#dialogMsg').empty();
+        $('#dialogBox .dialogMsg').empty();
 
-        if (text) $('#dialogTitle').html(text);
+        if (text) $('#dialogBox .dialogTitle').html(text);
 //        if (callbackOk) $('#dialogOkButton').on('click', function() {
 //            callbackOk();
-//			$('#dialogText').empty();
+//			$('#dialogBox .dialogText').empty();
 //			$.unblockUI();
 //        });
-        if (callbackCancel) $('#dialogCancelButton').on('click', function() {
+        if (callbackCancel) $('#dialogBox .dialogCancelButton').on('click', function() {
             callbackCancel();
-			$('#dialogText').empty();
+			$('#dialogBox .dialogText').empty();
 			$.unblockUI();
         });
         $.blockUI.defaults.overlayCSS.opacity = .6;
@@ -315,14 +315,18 @@ var Structr = {
     },
 
     error : function(text, callback) {
-        if (text) $('#infoText').html('<img src="icon/error.png"> ' + text);
-        if (callback) $('#okButton').on('click', function() {
-            callback();
+        if (text) $('#errorBox .errorText').html('<img src="icon/error.png"> ' + text);
+		console.log(callback);
+        if (callback) $('#errorBox .okButton').on('click', function() {
+            //callback();
+			console.log(callback);
+			
+			$.unblockUI();
         });
         $.blockUI.defaults.overlayCSS.opacity = .6;
         $.blockUI.defaults.applyPlatformOpacityRules = false;
         $.blockUI({
-            message: $('#infoBox'),
+            message: $('#errorBox'),
             css: {
                 border: 'none',
                 backgroundColor: 'transparent'

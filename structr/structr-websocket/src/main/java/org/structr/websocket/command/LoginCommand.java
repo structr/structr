@@ -22,20 +22,20 @@
 package org.structr.websocket.command;
 
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
-import org.structr.core.auth.AuthenticationException;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.AuthenticatorCommand;
+import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.entity.User;
 import org.structr.websocket.StructrWebSocket;
+import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.error.FrameworkException;
-import org.structr.websocket.message.MessageBuilder;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -53,9 +53,9 @@ public class LoginCommand extends AbstractCommand {
 	public void processMessage(WebSocketMessage webSocketData) {
 
 		SecurityContext securityContext = SecurityContext.getSuperUserInstance();
-		String username = (String) webSocketData.getData().get("username");
-		String password = (String) webSocketData.getData().get("password");
-		User user       = null;
+		String username                 = (String) webSocketData.getData().get("username");
+		String password                 = (String) webSocketData.getData().get("password");
+		User user                       = null;
 
 		if ((username != null) && (password != null)) {
 
@@ -65,6 +65,7 @@ public class LoginCommand extends AbstractCommand {
 				Authenticator auth      = (Authenticator) Services.command(securityContext, AuthenticatorCommand.class).execute(socket.getConfig());
 
 				user = auth.doLogin(securityContext, socket.getRequest(), username, password);
+
 				if (user != null) {
 
 					String token = StructrWebSocket.secureRandomString();
@@ -77,7 +78,7 @@ public class LoginCommand extends AbstractCommand {
 					webSocketData.setToken(token);
 
 					// authenticate socket
-					this.getWebSocket().setAuthenticated(token);
+					this.getWebSocket().setAuthenticated(token, user);
 
 					// send data..
 					this.getWebSocket().send(webSocketData, false);
@@ -89,9 +90,10 @@ public class LoginCommand extends AbstractCommand {
 				logger.log(Level.INFO, "Could not login {0} with {1}", new Object[] { username, password });
 				this.getWebSocket().send(MessageBuilder.status().code(403).build(), true);
 
-			} catch(FrameworkException fex) {
+			} catch (FrameworkException fex) {
 				logger.log(Level.WARNING, "Unable to execute command", fex);
 			}
+
 		}
 	}
 
