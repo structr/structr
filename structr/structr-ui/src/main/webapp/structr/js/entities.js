@@ -50,6 +50,20 @@ var _Entities = {
         return send(data);
     },
 
+    changeBooleanAttribute : function(attrElement, value) {
+
+        console.log('Change boolean attribute ', attrElement, ' to ', value);
+
+        if (value == true) {
+            attrElement.removeClass('disabled');
+            attrElement.addClass('enabled')
+        } else {
+            attrElement.removeClass('enabled');
+            attrElement.addClass('disabled')
+        }
+
+    },
+
     getTree : function(id) {
         if (debug) console.log('renderTree(' + id + ')');
         var data = '{ "command" : "TREE", "id" : "' + id + '" }';
@@ -142,9 +156,15 @@ var _Entities = {
         return send(command);
     },
 
+    getProperty : function(id, key, elementId) {
+        var command = '{ "command" : "GET" , "id" : "' + id + '", "data" : { "key" : "' + key + '", "displayElementId" : "' + elementId + '" } }';
+        if (debug) console.log(command);
+        return send(command);
+    },
+
     setProperty : function(id, key, value) {
         var command = '{ "command" : "UPDATE" , "id" : "' + id + '", "data" : { "' + key + '" : "' + value + '" } }';
-        if (debug) console.log(command);
+        console.log(command);
         return send(command);
     },
 
@@ -181,7 +201,7 @@ var _Entities = {
 
     showProperties : function(button, entity, view, dialog) {
 
-        var dialog = $('#dialogBox .dialogText');
+        //var dialog = $('#dialogBox .dialogText');
         dialog.empty();
         Structr.dialog('Edit Properties of ' + entity.id,
             function() {
@@ -198,7 +218,9 @@ var _Entities = {
         disable(button, function() {
             _Entities.hideProperties(button, entity, view, dialog);
         });
-        var headers = {'X-StructrSessionToken' : token };
+        var headers = {
+            'X-StructrSessionToken' : token
+        };
         if (debug) console.log('showProperties URL: ' + rootUrl + entity.id + (view ? '/' + view : ''), headers);
         $.ajax({
             url: rootUrl + entity.id + (view ? '/' + view : ''),
@@ -277,7 +299,9 @@ var _Entities = {
             });
 			
         });
-        var headers = {'X-StructrSessionToken' : token };
+        var headers = {
+            'X-StructrSessionToken' : token
+        };
         //console.log(element);
         $.ajax({
             url: rootUrl + entity.id + (view ? '/' + view : ''),

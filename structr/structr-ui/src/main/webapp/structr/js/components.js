@@ -90,7 +90,8 @@ var _Components = {
         //            Resources.addComponent(this, resource);
         //        });
         $('b', div).on('click', function() {
-            _Entities.showProperties(this, component, 'all', $('.' + component.id + '_', components));
+            //_Entities.showProperties(this, component, 'all', $('.' + component.id + '_', components));
+            _Entities.showProperties(this, component, 'all', $('#dialogBox .dialogText'));
         });
 
         div.droppable({

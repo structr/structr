@@ -31,6 +31,8 @@ import org.structr.core.entity.RelationClass;
 import org.structr.core.node.NodeService;
 import org.structr.web.entity.html.Html;
 import org.structr.core.entity.RelationClass.Cardinality;
+import org.structr.core.entity.User;
+import org.structr.core.notion.PropertyNotion;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -42,10 +44,11 @@ import org.structr.core.entity.RelationClass.Cardinality;
 public class Resource extends AbstractNode {
 
 	public enum UiKey implements PropertyKey {
-		name, tag, components, elements, linkingElements, contentType
+		name, tag, components, elements, linkingElements, contentType, ownerId, visibleToPublicUsers, visibleToAuthenticatedUsers
 	}
 
 	static {
+		EntityContext.registerPropertyRelation(AbstractNode.class, AbstractNode.Key.ownerId, User.class, RelType.OWNS, Direction.INCOMING, RelationClass.Cardinality.ManyToOne, new PropertyNotion(AbstractNode.Key.uuid));
 
 		EntityContext.registerPropertySet(Resource.class,	PropertyView.All,	UiKey.values());
 		EntityContext.registerPropertySet(Resource.class,	PropertyView.Public,	UiKey.values());

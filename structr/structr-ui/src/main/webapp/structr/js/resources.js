@@ -224,10 +224,30 @@ var _Resources = {
         keyIcon.hide();
         keyIcon.on('click', function(e) {
             e.stopPropagation();
-            Structr.dialog('Access Control and Visibilty', function() {}, function() {});
+            Structr.dialog('Access Control and Visibility', function() {}, function() {});
             var dt = $('#dialogBox .dialogText');
-            dt.append('<h3>Owner</h3><p class="owner"></p>');
-            dt.append('<h3>Visible To</h3><p class="visiblePublic"><input type="checkbox">Anyone</p><p class="visibleAuth"><input type="checkbox">Authenticated Users Only</p>');
+
+            dt.append('<h3>Owner</h3><p class="nodeSelectBox" id="ownersBox"></p>');
+            _Entities.getProperty(entity.id, 'ownerId', '#ownersBox');
+
+            dt.append('<h3>Visibility</h3><div class="' + entity.id + '_"><button class="switch disabled visibleToPublicUsers_">Public (visible to anyone)</button><button class="switch disabled visibleToAuthenticatedUsers_">Authenticated Users</button></div>');
+            var publicSwitch = $('.visibleToPublicUsers_');
+            var authSwitch = $('.visibleToAuthenticatedUsers_');
+            console.log(publicSwitch);
+
+            _Entities.getProperty(entity.id, 'visibleToPublicUsers', '#dialogBox');
+            _Entities.getProperty(entity.id, 'visibleToAuthenticatedUsers', '#dialogBox');
+
+            publicSwitch.on('click', function() {
+                console.log('Toggle switch', publicSwitch.hasClass('disabled'))
+                _Entities.setProperty(entity.id, 'visibleToPublicUsers', publicSwitch.hasClass('disabled'));
+            });
+
+            authSwitch.on('click', function() {
+                console.log('Toggle switch', authSwitch.hasClass('disabled'))
+                _Entities.setProperty(entity.id, 'visibleToAuthenticatedUsers', authSwitch.hasClass('disabled'));
+            });
+
         });
         keyIcon.on('mouseover', function(e) {
             var self = $(this);
@@ -670,7 +690,7 @@ var _Resources = {
         }
 
         div.droppable({
-            accept: '.element, .content',
+            accept: '.element, .content, .component',
             greedy: true,
             hoverClass: 'elementHover',
             drop: function(event, ui) {

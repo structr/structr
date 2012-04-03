@@ -44,17 +44,17 @@ public class GetCommand extends AbstractCommand {
 
 			if (view == null) {
 
-				view = PropertyView.All;
+				view = PropertyView.Ui;
 
 			}
 
 			for (String key : node.getPropertyKeys(view)) {
 
-				webSocketData.setData(key, node.getStringProperty(key));
+				webSocketData.setData(key, node.getProperty(key));
 
 			}
 
-			// send only over local connection
+			// send only over local connection (no broadcast)
 			getWebSocket().send(webSocketData, true);
 
 		} else {

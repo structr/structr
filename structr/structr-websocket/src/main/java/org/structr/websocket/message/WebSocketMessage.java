@@ -156,11 +156,11 @@ public class WebSocketMessage {
 		this.id = id;
 	}
 
-	public void setData(String key, String value) {
+	public void setData(String key, Object value) {
 		data.put(key, value);
 	}
 
-	public void setData(Map<String, String> data) {
+	public void setData(Map<String, Object> data) {
 		this.data.putAll(data);
 	}
 

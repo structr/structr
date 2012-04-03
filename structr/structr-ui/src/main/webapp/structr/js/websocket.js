@@ -215,6 +215,47 @@ function connect() {
 				
                 _Entities.renderTree(data.root, data.id);
 
+            } else if (command == 'GET') {
+
+                console.log('GET:', data);
+
+                var d = data.data.displayElementId;
+                console.log('displayElementId', d);
+
+                var parentElement = $(d);
+                console.log('parentElement', parentElement);
+                console.log('attrElement', attrElement);
+                var key = data.data.key;
+                var value = data.data[key];
+                console.log(key, value);
+                var attrElement = parentElement.find('.' + key + '_');
+
+                if (attrElement) {
+
+                    if (typeof value  == 'boolean') {
+
+                        _Entities.changeBooleanAttribute(attrElement, value);
+
+                    } else if (key == 'ownerId') {
+                        // append whole node
+
+                        var user = {};
+                        user.id = value;
+                        user.type = 'User';
+                        user.name = 'testuser';
+
+                        parentElement.append('<div class="user ' + user.id + '_">'
+                            + '<img class="typeIcon" src="icon/user.png">'
+                            + ' <b class="name_">' + user.name + '</b> <span class="id">' + user.id + '</span>'
+                            + '</div>');
+                        
+                    } else {
+
+                        parentElement.append(value);
+                        parentElement.val(value);
+                    }
+                }
+                
             } else if (command == 'LIST') {
 				
                 if (debug) console.log('LIST:', result);
@@ -447,22 +488,30 @@ function connect() {
                     if (debug) console.log(attrElement, inputElement);
                     var newValue = data.data[key];
 
-                    attrElement.animate({
-                        color: '#81ce25'
-                    }, 100, function() {
-                        $(this).animate({
-                            color: '#333333'
-                        }, 200);
-                    });
-                    
-                    attrElement.text(newValue);
-                    inputElement.val(newValue);
+                    console.log(key, newValue, typeof newValue);
+                    if (typeof newValue  == 'boolean') {
 
-                    // hook for CodeMirror edit areas
-                    if (editor && editor.id == data.id && key == 'content') {
-                        if (debug) console.log(editor.id);
-                        editor.setValue(newValue);
-                        editor.setCursor(editorCursor);
+                        _Entities.changeBooleanAttribute(attrElement, newValue);
+                        
+                    } else {
+
+                        attrElement.animate({
+                            color: '#81ce25'
+                        }, 100, function() {
+                            $(this).animate({
+                                color: '#333333'
+                            }, 200);
+                        });
+                    
+                        attrElement.text(newValue);
+                        inputElement.val(newValue);
+
+                        // hook for CodeMirror edit areas
+                        if (editor && editor.id == data.id && key == 'content') {
+                            if (debug) console.log(editor.id);
+                            editor.setValue(newValue);
+                            editor.setCursor(editorCursor);
+                        }
                     }
 
                 }

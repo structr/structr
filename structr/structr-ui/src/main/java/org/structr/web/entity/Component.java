@@ -48,7 +48,7 @@ import org.structr.web.entity.html.P;
 public class Component extends AbstractNode {
 
 	public enum UiKey implements PropertyKey {
-		id, type, name, elements
+		type, name, elements
 	}
 
 	static {

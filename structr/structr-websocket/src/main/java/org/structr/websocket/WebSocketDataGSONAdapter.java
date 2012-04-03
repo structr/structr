@@ -164,7 +164,7 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 				if (newValue != null) {
 
-					src.getData().put(modifiedKey, newValue.toString());
+					src.getData().put(modifiedKey, newValue);
 
 				}
 

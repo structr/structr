@@ -68,7 +68,6 @@ import org.structr.core.Services;
 import org.structr.core.Value;
 import org.structr.core.cloud.NodeDataContainer;
 import org.structr.core.converter.LongDateConverter;
-import org.structr.core.converter.NodeIdNodeConverter;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.DeleteRelationshipCommand;
@@ -117,6 +116,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.NullArgumentToken;
 import org.structr.common.error.ReadOnlyPropertyToken;
+import org.structr.core.converter.BooleanConverter;
 import org.structr.core.validator.SimpleRegexValidator;
 
 //~--- classes ----------------------------------------------------------------
@@ -129,36 +129,12 @@ import org.structr.core.validator.SimpleRegexValidator;
  */
 public abstract class AbstractNode implements GraphObject, Comparable<AbstractNode>, RenderController, AccessControllable {
 
-//      public final static String CATEGORIES_KEY         = "categories";
-//      public final static String CREATED_BY_KEY         = "createdBy";
-//      public final static String CREATED_DATE_KEY       = "createdDate";
-//      public final static String DELETED_KEY            = "deleted";
-//      public final static String HIDDEN_KEY             = "hidden";
-//      public final static String LAST_MODIFIED_DATE_KEY = "lastModifiedDate";
-//      public final static String NAME_KEY               = "name";
-//      public final static String NODE_ID_KEY            = "nodeId";
-//      public final static String ACL_KEY = "acl";
-	// private final static String keyPrefix = "${";
-	// private final static String keySuffix = "}";
 	private final static String NODE_KEY_PREFIX = "%{";
 	private final static String NODE_KEY_SUFFIX = "}";
 
-//      public final static String OWNER_ID_KEY                   = "ownerId";
-//      public final static String OWNER_KEY                      = "owner";
-//      public final static String POSITION_KEY                   = "position";
-//      public final static String PUBLIC_KEY                     = "public";
 	private final static String SUBNODES_AND_LINKED_NODES_KEY = "#";
 	private final static String SUBNODES_KEY                  = "*";
 
-//      public final static String TEMPLATE_ID_KEY                = "templateId";
-//      public final static String LOCALE_KEY = "locale";
-//      public final static String TITLES_KEY = "titles";
-//      public final static String TITLE_KEY  = "title";
-	// keys for basic properties (any node should have at least all of the following properties)
-//      public final static String TYPE_KEY                           = "type";
-//      public final static String VISIBILITY_END_DATE_KEY            = "visibilityEndDate";
-//      public final static String VISIBILITY_START_DATE_KEY          = "visibilityStartDate";
-//      public final static String VISIBLE_TO_AUTHENTICATED_USERS_KEY = "visibleToAuthenticatedUsers";
 	private static final Logger logger              = Logger.getLogger(AbstractNode.class.getName());
 	private static final boolean updateIndexDefault = true;
 
@@ -171,7 +147,11 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		EntityContext.registerPropertyConverter(AbstractNode.class, Key.visibilityEndDate, LongDateConverter.class);
 		EntityContext.registerPropertyConverter(AbstractNode.class, Key.lastModifiedDate, LongDateConverter.class);
 		EntityContext.registerPropertyConverter(AbstractNode.class, Key.createdDate, LongDateConverter.class);
-		EntityContext.registerPropertyConverter(AbstractNode.class, Key.ownerId, NodeIdNodeConverter.class);
+
+		EntityContext.registerPropertyConverter(AbstractNode.class, Key.visibleToPublicUsers, BooleanConverter.class);
+		EntityContext.registerPropertyConverter(AbstractNode.class, Key.visibleToAuthenticatedUsers, BooleanConverter.class);
+
+		//EntityContext.registerPropertyConverter(AbstractNode.class, Key.ownerId, NodeIdNodeConverter.class);
 		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.fulltext.name(), Key.values());
 		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.keyword.name(), Key.values());
 		EntityContext.registerSearchableProperty(AbstractNode.class, NodeIndex.uuid.name(), Key.uuid);
@@ -2039,6 +2019,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		return null;
 	}
 
+	@Override
 	public String getStringProperty(final String key) {
 
 		Object propertyValue = getProperty(key);

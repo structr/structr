@@ -346,8 +346,8 @@ var Structr = {
         Structr.modules[name] = module;
         if (debug) console.log('Module ' + name + ' registered');
     },
-	
-    entity : function(id, parentId) {
+
+    node : function(id, parentId) {
         var entityElement, parentElement;
         if (parentId) {
             parentElement = $('.' + parentId + '_');
@@ -355,6 +355,11 @@ var Structr = {
         } else {
             entityElement = $('.' + id + '_');
         }
+        return entityElement;
+    },
+    
+    entity : function(id, parentId) {
+        var entityElement = Structr.node(id, parentId);
 
         var entity = {};
 		
