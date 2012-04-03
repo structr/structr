@@ -61,6 +61,7 @@ function deleteAll(button, type, callback) {
     if (isDisabled(button)) return;
     var con = confirm('Delete all ' + types + '?');
     if (!con) return;
+    var headers = {'X-StructrSessionToken' : token };
     $.ajax({
         url: rootUrl + type.toLowerCase(),
         type: "DELETE",
@@ -78,10 +79,11 @@ function deleteAll(button, type, callback) {
 function deleteNode(button, entity) {
     buttonClicked = button;
     if (isDisabled(button)) return;
+    console.log('deleteNode');
     var con = Structr.confirmation('Delete ' + entity.type.toLowerCase() + ' \'' + entity.name + '\' <span class="id">' + entity.id + '</span>?', function() {
         //	var toSend = '{ "command" : "DELETE" , "id" : "' + entity.id + '", "data" : { "callback" : "' + callback + '" } }';
         var toSend = '{ "command" : "DELETE" , "id" : "' + entity.id + '" }';
-        //if (debug) console.log(toSend);
+        //console.log(toSend);
         if (send(toSend)) {
             disable(button);
             $.unblockUI();
@@ -118,6 +120,7 @@ function enable(button, func) {
 function setPosition(parentId, nodeUrl, pos) {
     var toPut = '{ "' + parentId + '" : ' + pos + ' }';
     //console.log(toPut);
+    var headers = {'X-StructrSessionToken' : token };
     $.ajax({
         url: nodeUrl + '/in',
         type: 'PUT',
@@ -181,6 +184,7 @@ function followIds(resourceId, entity) {
     var entityId = (entity ? entity.id : resourceId);
     var url = rootUrl + entityId + '/' + 'out';
     //console.log(url);
+    var headers = {'X-StructrSessionToken' : token };
     var ids = [];
     $.ajax({
         url: url,

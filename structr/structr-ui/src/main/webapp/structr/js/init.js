@@ -243,11 +243,11 @@ var Structr = {
     },
 
     confirmation : function(text, callback) {
-        if (text) $('#confirmationText').html(text);
-        if (callback) $('#yesButton').on('click', function() {
+        if (text) $('#confirmation .confirmationText').html(text);
+        if (callback) $('#confirmation .yesButton').on('click', function() {
             callback();
         });
-        $('#noButton').on('click', function() {
+        $('#confirmation .noButton').on('click', function() {
             $.unblockUI();
         });
         $.blockUI.defaults.overlayCSS.opacity = .6;

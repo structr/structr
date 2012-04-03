@@ -192,9 +192,7 @@ var _Entities = {
         disable(button, function() {
             _Entities.hideProperties(button, entity, view, dialog);
         });
-        var headers = {
-            'X-StructrSessionToken' : token
-        };
+        var headers = {'X-StructrSessionToken' : token };
         if (debug) console.log('showProperties URL: ' + rootUrl + entity.id + (view ? '/' + view : ''), headers);
         $.ajax({
             url: rootUrl + entity.id + (view ? '/' + view : ''),
@@ -273,7 +271,7 @@ var _Entities = {
             });
 			
         });
-
+        var headers = {'X-StructrSessionToken' : token };
         //console.log(element);
         $.ajax({
             url: rootUrl + entity.id + (view ? '/' + view : ''),
