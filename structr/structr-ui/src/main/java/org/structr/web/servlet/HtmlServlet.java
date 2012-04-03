@@ -24,26 +24,17 @@ package org.structr.web.servlet;
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.lang.ArrayUtils;
 
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Path;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.traversal.Evaluation;
-import org.neo4j.graphdb.traversal.Evaluator;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.kernel.Traversal;
 import org.neo4j.kernel.Uniqueness;
 
 import org.structr.common.*;
-import org.structr.common.ResourceExpander;
 import org.structr.common.SecurityContext;
-import org.structr.common.TreeNode;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Image;
-import org.structr.core.node.NodeFactory;
 import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchAttributeGroup;
@@ -62,10 +53,7 @@ import java.io.*;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Properties;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -73,6 +61,11 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang.StringUtils;
+import org.neo4j.graphdb.Relationship;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.node.StructrTransaction;
+import org.structr.core.node.TransactionCommand;
+import org.structr.web.entity.Component;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -118,8 +111,6 @@ public class HtmlServlet extends HttpServlet {
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) {
 
-		SecurityContext securityContext = SecurityContext.getSuperUserInstance();
-
 		edit = false;
 		tidy = false;
 
@@ -145,7 +136,6 @@ public class HtmlServlet extends HttpServlet {
 			// 1: find entry point (Resource, File or Image)
 			Resource resource                 = null;
 			org.structr.core.entity.File file = null;
-			Image image                       = null;
 			String path                       = request.getPathInfo();
 
 			logger.log(Level.INFO, "Path info {0}", path);
@@ -195,8 +185,13 @@ public class HtmlServlet extends HttpServlet {
 
 			if (resource != null) {
 
-				// 2a: do a traversal and collect content
-				String content = getContent(securityContext, resource);
+				String uuid                    = resource.getStringProperty(Resource.Key.uuid);
+				final Set<String> componentIds = new LinkedHashSet<String>();
+				final StringBuilder buffer     = new StringBuilder(10000);
+
+				getContent(uuid, componentIds, buffer, resource, 0, false);
+
+				String content = buffer.toString();
 				double end     = System.nanoTime();
 
 				logger.log(Level.INFO, "Content collected in {0} seconds", decimalFormat.format((end - start) / 1000000000.0));
@@ -261,43 +256,10 @@ public class HtmlServlet extends HttpServlet {
 			logger.log(Level.WARNING, "Exception while processing request", t);
 		}
 	}
-//
-//	private AbstractNode createNode(String type, String name, NodeAttribute... attributes) throws FrameworkException {
-//
-//		SecurityContext context   = SecurityContext.getSuperUserInstance();
-//		Command createNodeCommand = Services.command(context, CreateNodeCommand.class);
-//		Map<String, Object> attrs = new HashMap<String, Object>();
-//
-//		attrs.put(AbstractNode.Key.type.name(), type);
-//		attrs.put(AbstractNode.Key.name.name(), name);
-//
-//		for (NodeAttribute attr : attributes) {
-//
-//			attrs.put(attr.getKey(), attr.getValue());
-//
-//		}
-//
-//		AbstractNode node = (AbstractNode) createNodeCommand.execute(attrs);
-//
-//		logger.log(Level.INFO, "Created node with name {0} and id {1}", new Object[] { node.getName(), node.getId() });
-//
-//		return node;
-//	}
-//
-//	private AbstractRelationship linkNodes(AbstractNode startNode, AbstractNode endNode, String resourceId, int index) throws FrameworkException {
-//
-//		SecurityContext context  = SecurityContext.getSuperUserInstance();
-//		Command createRelCommand = Services.command(context, CreateRelationshipCommand.class);
-//		AbstractRelationship rel = (AbstractRelationship) createRelCommand.execute(startNode, endNode, RelType.CONTAINS);
-//
-//		rel.setProperty(resourceId, index);
-//
-//		return rel;
-//	}
 
-	private void printNodes(String resourceId, StringBuilder buffer, TreeNode root, int depth, boolean inBody) {
+	private void getContent(final String resourceId, Set<String> componentIds, final StringBuilder buffer, final AbstractNode node, final int depth, boolean inBody) {
 
-		AbstractNode node         = root.getData();
+		String componentId        = null;
 		String content            = null;
 		String tag                = null;
 		AbstractRelationship link = null;
@@ -310,24 +272,6 @@ public class HtmlServlet extends HttpServlet {
 
 				content = node.getStringProperty("content");
 
-//                              OutputStream out    = new ByteArrayOutputStream();
-//                              String rawContent   = node.getStringProperty("content");
-//                              Converter converter = new DefaultConverter();
-//
-//                              try {
-//
-//                                      InputReaderWrapper input   = InputReaderWrapper.valueOf(new StringReader(rawContent), "apt", converter.getInputFormats());
-//                                      OutputStreamWrapper output = OutputStreamWrapper.valueOf(out, "xhtml", "UTF-8", converter.getOutputFormats());
-//
-//                                      converter.convert(input, output);
-//
-//                                      content = out.toString();
-//
-//                              } catch (UnsupportedFormatException e) {
-//                                      e.printStackTrace();
-//                              } catch (Exception e) {
-//                                      e.printStackTrace();
-//                              }
 				List<AbstractRelationship> links = node.getOutgoingLinkRelationships();
 
 				if ((links != null) &&!links.isEmpty()) {
@@ -335,8 +279,14 @@ public class HtmlServlet extends HttpServlet {
 					link = links.get(0);    // first link wins
 
 				}
-
 			}
+			
+			// check for component
+			if(node instanceof Component) {
+				componentId = node.getStringProperty(AbstractNode.Key.uuid);
+				componentIds.add(componentId);
+			}
+			
 
 			if (link != null) {
 
@@ -416,11 +366,6 @@ public class HtmlServlet extends HttpServlet {
 
 				}
 
-//                              if (onload != null) {
-//
-//                                      buffer.append(" onload='").append(onload).append("'");
-//
-//                              }
 				buffer.append(">");
 
 			}
@@ -433,10 +378,40 @@ public class HtmlServlet extends HttpServlet {
 
 		}
 
-		// render children
-		for (TreeNode subNode : root.getChildren()) {
+		// collect children
+		List<AbstractRelationship> rels = new LinkedList<AbstractRelationship>();
+		
+		for(AbstractRelationship abstractRelationship : node.getOutgoingRelationships(RelType.CONTAINS)) {
+			
+			Relationship rel = abstractRelationship.getRelationship();
+			boolean hasComponentId = rel.hasProperty("componentId");
+			
+			if(rel.hasProperty(resourceId) || rel.hasProperty("*") || !componentIds.isEmpty()) {
 
-			printNodes(resourceId, buffer, subNode, depth + 1, inBody);
+				// only add rel if either no componentId is set, or if the componentId matches an already traversed componend
+				if(!hasComponentId || (hasComponentId && componentIds.contains((String)rel.getProperty("componentId")))) {
+					rels.add(abstractRelationship);
+				}
+			}
+		}
+		
+		Collections.sort(rels, new Comparator<AbstractRelationship>() {
+
+			@Override
+			public int compare(AbstractRelationship o1, AbstractRelationship o2) {
+				
+				Integer pos1 = getPosition(o1, resourceId);
+				Integer pos2 = getPosition(o2, resourceId);
+				
+				return pos1.compareTo(pos2);
+			}
+			
+		});
+
+		// recursively render children
+		for(AbstractRelationship rel : rels) {
+			AbstractNode subNode = rel.getEndNode();
+			getContent(resourceId, componentIds, buffer, subNode, depth + 1, inBody);
 
 		}
 
@@ -448,90 +423,97 @@ public class HtmlServlet extends HttpServlet {
 		}
 
 		if (link != null) {
-
 			buffer.append("</a>");
-
+		}
+		
+		// remove component ID if we "leave" the component
+		if(componentId != null) {
+			componentIds.remove(componentId);
 		}
 	}
+	
+	private int getPosition(final AbstractRelationship relationship, final String resourceId) {
+		
+		final Relationship rel = relationship.getRelationship();
+		Integer position = 0;
+		
+		try {
 
-	//~--- get methods ----------------------------------------------------
+			Map<Integer, Relationship> sortedRelationshipMap = new TreeMap<Integer, Relationship>();
+			Object prop = null;
+			final String key;
 
-	private String getContent(final SecurityContext securityContext, final Resource resource) {
+			// "*" is a wildcard for "matches any resource id"
+			// TOOD: use pattern matching here?
+			if (rel.hasProperty("*")) {
 
-		TraversalDescription localDesc = desc.expand(new ResourceExpander(resource.getStringProperty(AbstractNode.Key.uuid.name())));
-		final NodeFactory factory      = new NodeFactory(securityContext);
-		final TreeNode root            = new TreeNode(resource);
+				prop = rel.getProperty("*");
+				key  = "*";
 
-		localDesc = localDesc.evaluator(new Evaluator() {
+			} else if (rel.hasProperty(resourceId)) {
 
-			@Override
-			public Evaluation evaluate(Path path) {
+				prop = rel.getProperty(resourceId);
+				key  = resourceId;
 
-				Node node = path.endNode();
+			} else {
 
-				if (node.hasProperty(AbstractNode.Key.type.name())) {
+				key = null;
 
-					try {
+			}
 
-						String type          = (String) node.getProperty(AbstractNode.Key.type.name());
-						TreeNode newTreeNode = new TreeNode(factory.createNode(securityContext, node, type));
-						Relationship rel     = path.lastRelationship();
+			if ((key != null) && (prop != null)) {
 
-						if (rel != null) {
+				if (prop instanceof Integer) {
 
-							Node parentNode         = rel.getStartNode();
-							TreeNode parentTreeNode = root.getNode((String) parentNode.getProperty("uuid"));
+					position = (Integer) prop;
 
-							if (parentTreeNode == null) {
+				} else if (prop instanceof String) {
 
-								root.addChild(newTreeNode);
-								logger.log(Level.FINEST, "New tree node: {0} --> {1}", new Object[] { newTreeNode, root });
-								logger.log(Level.FINE, "New tree node: {0} --> {1}", new Object[] { newTreeNode.getData().getName(), "root" });
-
-							} else {
-
-								parentTreeNode.addChild(newTreeNode);
-								logger.log(Level.FINEST, "New tree node: {0} --> {1}", new Object[] { newTreeNode, parentTreeNode });
-								logger.log(Level.FINE, "New tree node: {0} --> {1}", new Object[] { newTreeNode.getData().getName(),
-									parentTreeNode.getData().getName() });
-
-							}
-
-						} else {
-
-							root.addChild(newTreeNode);
-							logger.log(Level.FINE, "Added {0} to root", newTreeNode);
-
-						}
-
-					} catch (FrameworkException fex) {
-						logger.log(Level.WARNING, "Unable to instantiate node", fex);
-					}
-
-					return Evaluation.INCLUDE_AND_CONTINUE;
+					position = Integer.parseInt((String) prop);
 
 				} else {
 
-					return Evaluation.EXCLUDE_AND_CONTINUE;
+					throw new java.lang.IllegalArgumentException("Expected Integer or String");
+
+				}
+
+				Integer originalPos = position;
+
+				// find free slot
+				while (sortedRelationshipMap.containsKey(position)) {
+
+					position++;
+
+				}
+
+				sortedRelationshipMap.put(position, rel);
+
+				if (originalPos != position) {
+
+					final Integer newPos = position;
+
+					Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(new StructrTransaction() {
+
+						@Override
+						public Object execute() throws FrameworkException {
+
+							rel.setProperty(key, newPos);
+
+							return null;
+						}
+
+					});
 
 				}
 			}
 
-		});
+		} catch (Throwable t) {
 
-		// do traversal to retrieve paths
-		for (Node node : localDesc.traverse(resource.getNode()).nodes()) {
-
-//                      String name = node.hasProperty("name")
-//                                    ? (String) node.getProperty("name")
-//                                    : "unknown";
-			// System.out.println(node.getProperty("type") + "[" + node.getProperty("uuid") + "]: " + name);
+			// fail fast, no check
+			logger.log(Level.SEVERE, "While reading property " + resourceId, t);
 		}
+		
+		return position;
 
-		StringBuilder buffer = new StringBuilder(10000);    // FIXME: use sensible initial size..
-
-		printNodes(resource.getStringProperty(Resource.Key.uuid), buffer, root, 0, false);
-
-		return buffer.toString();
 	}
 }

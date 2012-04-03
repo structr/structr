@@ -116,7 +116,7 @@ public class DynamicTypeResource extends TypeResource {
 				public Object execute() throws FrameworkException {
 					
 					Component comp = (Component)createNodeCommand.execute(templateProperties);
-					copyRelationships(template, comp, componentId, position);
+					copyRelationships(template, comp, null, position);
 					
 					Map<String, Object> contentTemplateProperties = new LinkedHashMap<String, Object>();
 					for(AbstractNode node : template.getContentNodes().values()) {
@@ -176,7 +176,11 @@ public class DynamicTypeResource extends TypeResource {
 			
 			AbstractRelationship newInRel = (AbstractRelationship)createRel.execute(startNode, targetNode, relType);
 			newInRel.setProperty("type", in.getStringProperty("type"));
-			newInRel.setProperty("componentId", componentId);
+			
+			// only set componentId if set
+			if(componentId != null) {
+				newInRel.setProperty("componentId", componentId);
+			}
 			
 			String resourceId = in.getStringProperty("resourceId");
 			if(resourceId != null) {
