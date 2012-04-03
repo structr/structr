@@ -18,21 +18,27 @@
  */
 package org.structr.web.resource;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Logger;
+import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Command;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.node.CreateNodeCommand;
+import org.structr.core.node.CreateRelationshipCommand;
+import org.structr.core.node.StructrTransaction;
+import org.structr.core.node.TransactionCommand;
 import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.resource.TypeResource;
-import org.structr.web.entity.html.HtmlElement;
+import org.structr.web.entity.Component;
+import org.structr.web.entity.Content;
 
 /**
  *
@@ -41,6 +47,7 @@ import org.structr.web.entity.html.HtmlElement;
 public class DynamicTypeResource extends TypeResource {
 
 	private static final Logger logger = Logger.getLogger(DynamicTypeResource.class.getName());
+	private boolean parentResults = false;
 	
 	@Override
 	public List<GraphObject> doGet() throws FrameworkException {
@@ -53,7 +60,8 @@ public class DynamicTypeResource extends TypeResource {
 
 		if (rawType != null) {
 
-			searchAttributes.add(Search.andExactProperty(HtmlElement.UiKey.structrclass.name(), EntityContext.normalizeEntityName(rawType)));
+			searchAttributes.add(Search.andExactProperty(Component.UiKey.structrclass.name(), EntityContext.normalizeEntityName(rawType)));
+			searchAttributes.add(Search.andExactType(Component.class.getSimpleName()));
 			
 			// searchable attributes from EntityContext
 			hasSearchableAttributes(rawType, request, searchAttributes);
@@ -61,18 +69,12 @@ public class DynamicTypeResource extends TypeResource {
 			// do search
 			List<GraphObject> results = (List<GraphObject>) Services.command(securityContext, SearchNodeCommand.class).execute(topNode, includeDeleted, publicOnly, searchAttributes);
 			if (!results.isEmpty()) {
-			
-				
-				/*
-				TODO: if template is found, collect different content elements!
-				we need to synthesize elements here if thereis more than one!
-				*/
-				
 				return results;
 
 			}
 		}
-
+		
+		parentResults = true;
 			
 		return super.doGet();
 	}
@@ -81,65 +83,78 @@ public class DynamicTypeResource extends TypeResource {
 	public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
 		
 		
-		// TODO: implement POSTing of dynamic types
-
-		/**
-		 * - rawType contains the desired data-class to duplicate
-		 * - we can not create entities without a "template, so there
-		 *   must be at least one object of the desired type already in the database
-		 * - we need to load a template instance
-		 * - there will be only a single template node in the whole graph!
-		 * - this template can contain many different content elements
+		/*
+		 * - create new Component (=> new ID)
+		 * - for each ContentRelationship:
+		 *	- duplicate rel
+		 *	- store componentId
 		 */
+
+		
 		List<GraphObject> templates = doGet();
-		if(!templates.isEmpty()) {
+		
+		if(parentResults) {
 			
-//			final Element template                       = (Element)templates.get(0);   
-//			final Map<String, AbstractNode> contentNodes = template.getContentNodes();
-//			final Command createNodeCommand              = Services.command(securityContext, CreateNodeCommand.class);
-//			final Command createRelCommand               = Services.command(securityContext, CreateRelationshipCommand.class);
+			return super.doPost(propertySet);
+			
+		} else if(!templates.isEmpty()) {
 //			
-//			// TODO: find resourceId for template and modify it
-//			
-//			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-//
-//				@Override
-//				public Object execute() throws FrameworkException {
-//					
-//					if(!propertySet.isEmpty()) {
-//						
-//						for(String key : propertySet.keySet()) {
-//
-//							AbstractNode node = contentNodes.get(key);
-//							if(node != null && node instanceof Content) {
-//								
-//								Content content = (Content)node;
-//								AbstractNode newNode = (AbstractNode)createNodeCommand.execute(new NodeAttribute(AbstractNode.Key.type.name(), content.getType()));
-//								for(Entry<String, Object> entry : propertySet.entrySet()) {
-//									newNode.setProperty(entry.getKey(), entry.getValue());
-//								}
-//
-//								// get parent & rel to parent
-//								AbstractRelationship parentRel = content.getRelToParent();
-//								Element parent = content.getParent();
-//								
-//								// duplicate relationship to parent & properties
-//								AbstractRelationship newRel = (AbstractRelationship)createRelCommand.execute(parent, content, RelType.CONTAINS);
-//								for(Entry<String, Object> entry : parentRel.getProperties().entrySet()) {
-//									newRel.setProperty(entry.getKey(), entry.getValue());
-//								}
-//								
-//								newRel.setProperty(template.getStringProperty(AbstractNode.Key.uuid), 0);
-//							}
-//						}
-//					}
-//					
-//					return null;
-//				}
-//				
-//			});
-//			
+			final Command createNodeCommand = Services.command(securityContext, CreateNodeCommand.class);
+			final Map<String, Object> templateProperties = new LinkedHashMap<String, Object>();
+			final String componentId = UUID.randomUUID().toString().replaceAll("[\\-]+", "");
+			final Component template = (Component)templates.get(0);
+			final int position = templates.size();
+
+			// copy properties to map
+			templateProperties.put(AbstractNode.Key.type.name(), Component.class.getSimpleName());
+			templateProperties.put("structrclass", template.getStringProperty("structrclass"));
+			templateProperties.put("uuid", componentId);
+
+			Component newComponent = (Component)Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws FrameworkException {
+					
+					Component comp = (Component)createNodeCommand.execute(templateProperties);
+					copyRelationships(template, comp, null, position);
+					
+					Map<String, Object> contentTemplateProperties = new LinkedHashMap<String, Object>();
+					for(AbstractNode node : template.getContentNodes().values()) {
+						
+						// copy content properties
+						if(node instanceof Content) {
+							
+							Content contentTemplate = (Content)node;
+							String dataKey = contentTemplate.getStringProperty("data-key");
+			
+							// create new content node with content from property set
+							contentTemplateProperties.clear();
+							contentTemplateProperties.put(AbstractNode.Key.type.name(), "Content");
+							contentTemplateProperties.put("data-key", dataKey);
+							contentTemplateProperties.put("content", propertySet.get(dataKey));
+							Content newContent = (Content)createNodeCommand.execute(contentTemplateProperties);
+
+							copyRelationships(contentTemplate, newContent, componentId, position);
+						}
+						
+					}
+					
+					return comp;
+				}
+				
+			});
+			
+			if(newComponent != null) {
+				for(String key : propertySet.keySet()) {
+					newComponent.setProperty(key, propertySet.get(key));
+				}
+			}
+			
 			RestMethodResult result = new RestMethodResult(201);
+			if(newComponent != null) {
+				result.addHeader("Location", buildLocationHeader(newComponent));
+			}
+			
 			return result;
 			
 		} else {
@@ -147,7 +162,99 @@ public class DynamicTypeResource extends TypeResource {
 			return super.doPost(propertySet);
 		}
 	}
+
+	
+	
+	private void copyRelationships(AbstractNode sourceNode, AbstractNode targetNode, String componentId, int position) throws FrameworkException {
+
+		Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
+		
+		for(AbstractRelationship in : sourceNode.getIncomingRelationships()) {
+			
+			AbstractNode startNode   = in.getStartNode();
+			RelationshipType relType = in.getRelType();
+			
+			AbstractRelationship newInRel = (AbstractRelationship)createRel.execute(startNode, targetNode, relType);
+			newInRel.setProperty("type", in.getStringProperty("type"));
+			
+			// only set componentId if set
+			if(componentId != null) {
+				newInRel.setProperty("componentId", componentId);
+			}
+			
+			String resourceId = in.getStringProperty("resourceId");
+			if(resourceId != null) {
+
+				newInRel.setProperty("resourceId", resourceId);
+				Integer pos = in.getIntProperty(resourceId);
+				newInRel.setProperty(resourceId, position);
+			}
+		}
+		
+		for(AbstractRelationship out : sourceNode.getOutgoingRelationships()) {
+			
+			AbstractNode endNode     = out.getEndNode();
+			RelationshipType relType = out.getRelType();
+			
+			AbstractRelationship newOutRel = (AbstractRelationship)createRel.execute(targetNode, endNode, relType);
+			newOutRel.setProperty("type", out.getStringProperty("type"));
+			newOutRel.setProperty("componentId", componentId);
+			
+			String resourceId = out.getStringProperty("resourceId");
+			if(resourceId != null) {
+				newOutRel.setProperty("resourceId", resourceId);
+				newOutRel.setProperty(resourceId, position);
+			}
+		}
+	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

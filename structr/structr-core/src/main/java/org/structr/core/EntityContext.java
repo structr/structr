@@ -573,15 +573,22 @@ public class EntityContext {
 	public static Class getNamedRelationClass(Class sourceType, Class destType, RelationshipType relType) {
 
 		Class namedRelationClass = null;
-		Class superClass         = sourceType;
+		Class sourceSuperClass   = sourceType;
+		Class destSuperClass     = destType;
 
-		while ((namedRelationClass == null) &&!superClass.equals(Object.class)) {
+		while ((namedRelationClass == null) && !sourceSuperClass.equals(Object.class) && !destSuperClass.equals(Object.class)) {
 
-			namedRelationClass = globalRelationshipClassMap.get(createCombinedRelationshipType(superClass, relType, destType));
+			namedRelationClass = globalRelationshipClassMap.get(createCombinedRelationshipType(sourceSuperClass, relType, destSuperClass));
 
 			// one level up :)
-			superClass = superClass.getSuperclass();
-
+			sourceSuperClass = sourceSuperClass.getSuperclass();
+			
+			// do not check superclass for dest type
+//			destSuperClass   = destSuperClass.getSuperclass();
+		}
+		
+		if(namedRelationClass != null) {
+			return namedRelationClass;
 		}
 
 		return globalRelationshipClassMap.get(createCombinedRelationshipType(sourceType, relType, destType));
