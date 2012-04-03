@@ -208,18 +208,32 @@ var _Resources = {
 
         var tab = $('#show_' + entity.id, previews);
         tab.append('<img title="Delete resource \'' + entity.name + '\'" alt="Delete resource \'' + entity.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
-        var icon = $('.delete_icon', tab);
-        icon.hide();
-        icon.on('click', function(e) {
+        tab.append('<img title="Access Control and Visibility" alt="Access Control and Visibility" class="key_icon button" src="' + Structr.key_icon + '">');
+        var deleteIcon = $('.delete_icon', tab);
+        deleteIcon.hide();
+        deleteIcon.on('click', function(e) {
             e.stopPropagation();
             _Resources.deleteResource(this, entity);
         });
-        icon.on('mouseover', function(e) {
+        deleteIcon.on('mouseover', function(e) {
             var self = $(this);
             self.show();
 		
         });
+        var keyIcon = $('.key_icon', tab);
+        keyIcon.hide();
+        keyIcon.on('click', function(e) {
+            e.stopPropagation();
+            Structr.dialog('Access Control and Visibilty', function() {}, function() {});
+            var dt = $('#dialogBox .dialogText');
+            dt.append('<h3>Owner</h3><p class="owner"></p>');
+            dt.append('<h3>Visible To</h3><p class="visiblePublic"><input type="checkbox">Anyone</p><p class="visibleAuth"><input type="checkbox">Authenticated Users Only</p>');
+        });
+        keyIcon.on('mouseover', function(e) {
+            var self = $(this);
+            self.show();
 
+        });
         return tab;
     },
 
@@ -230,14 +244,14 @@ var _Resources = {
         element.children('input').hide();
         element.children('.name_').show();
         
-        var icon = $('.delete_icon', element);
+        var icons = $('.button', element);
         //icon.hide();
 
         element.hover(function(e) {
-            icon.show();
+            icons.show();
         },
         function(e) {
-            icon.hide();
+            icons.hide();
         });
 
         element.on('click', function(e) {
@@ -959,7 +973,9 @@ var _Resources = {
         if (debug) console.log(text);
         text = $.quoteString(text);
         var data = '{ "content" : ' + text + ' }';
-        var headers = {'X-StructrSessionToken' : token };
+        var headers = {
+            'X-StructrSessionToken' : token
+        };
         $.ajax({
             url: url,
             //async: false,
@@ -995,7 +1011,9 @@ var _Resources = {
     },
 
     showSubEntities : function(resourceId, entity) {
-        var headers = {'X-StructrSessionToken' : token };
+        var headers = {
+            'X-StructrSessionToken' : token
+        };
         var follow = followIds(resourceId, entity);
         $(follow).each(function(i, nodeId) {
             if (nodeId) {
@@ -1071,7 +1089,9 @@ var _Resources = {
                     var nodeId = getIdFromClassString($(v).attr('class'));
                     if (!nodeId) return;
                     var url = rootUrl + nodeId + '/' + 'in';
-                    var headers = {'X-StructrSessionToken' : token };
+                    var headers = {
+                        'X-StructrSessionToken' : token
+                    };
                     $.ajax({
                         url: url,
                         dataType: 'json',
@@ -1099,7 +1119,9 @@ var _Resources = {
         var pos = $('.' + resourceId + '_ .' + entity.id + '_ > div.nested').length;
         //    console.log('addNode(' + type + ', ' + entity.id + ', ' + entity.id + ', ' + pos + ')');
         var url = rootUrl + type;
-        var headers = {'X-StructrSessionToken' : token };
+        var headers = {
+            'X-StructrSessionToken' : token
+        };
         var resp = $.ajax({
             url: url,
             //async: false,

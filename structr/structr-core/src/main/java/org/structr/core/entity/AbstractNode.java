@@ -1629,28 +1629,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	}
 
 	/**
-	 * Get titles from underlying db node
-	 */
-	public List<Title> getTitles() {
-
-		List<Title> titleList = new LinkedList<Title>();
-
-		for (Locale locale : Locale.getAvailableLocales()) {
-
-			String title = (String) getProperty(getTitleKey(locale));
-
-			if (title != null) {
-
-				titleList.add(new Title(locale, title));
-
-			}
-
-		}
-
-		return titleList;
-	}
-
-	/**
 	 * Get id from underlying db
 	 */
 	@Override
@@ -1676,6 +1654,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 //      public Long getId() {
 //          return getId();
 //      }
+	@Override
 	public Date getDateProperty(final String key) {
 
 		Object propertyValue = getProperty(key);
@@ -4152,48 +4131,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		@Override
 		public String getContentType(AbstractNode node) {
 			return ("blah");
-		}
-	}
-
-
-	/*
-	 * Helper class for multilanguage titles
-	 */
-	public class Title {
-
-		public final static String LOCALE_KEY = "locale";
-
-		//~--- fields -------------------------------------------------
-
-		private Locale locale;
-		private String title;
-
-		//~--- constructors -------------------------------------------
-
-		public Title(final Locale locale, final String title) {
-
-			this.locale = locale;
-			this.title  = title;
-		}
-
-		//~--- get methods --------------------------------------------
-
-		public Locale getLocale() {
-			return locale;
-		}
-
-		public String getTitle() {
-			return title;
-		}
-
-		//~--- set methods --------------------------------------------
-
-		public void setLocale(final Locale locale) {
-			this.locale = locale;
-		}
-
-		public void setTitle(final String title) {
-			this.title = title;
 		}
 	}
 }

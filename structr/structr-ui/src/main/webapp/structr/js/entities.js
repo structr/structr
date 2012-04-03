@@ -44,6 +44,12 @@ var _Entities = {
         return send(data);
     },
 
+    showEntity : function(id) {
+        if (debug) console.log('showEntity(' + id + ')');
+        var data = '{ "command" : "GET", "data" : { "id" : "' + id + '" } }';
+        return send(data);
+    },
+
     getTree : function(id) {
         if (debug) console.log('renderTree(' + id + ')');
         var data = '{ "command" : "TREE", "id" : "' + id + '" }';

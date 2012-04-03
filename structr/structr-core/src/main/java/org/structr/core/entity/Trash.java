@@ -21,12 +21,8 @@
 
 package org.structr.core.entity;
 
-import org.structr.common.AbstractComponent;
 import org.structr.common.PropertyView;
 import org.structr.core.EntityContext;
-import org.structr.help.Container;
-import org.structr.help.Content;
-import org.structr.help.Paragraph;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -52,16 +48,4 @@ public class Trash extends Folder {
 		return "/images/bin.png";
 	}
 
-	@Override
-	public AbstractComponent getHelpContent() {
-
-		AbstractComponent root = new Container();
-
-		root.add(
-		    new Paragraph().add(new Content("This is a Trash node. You can drag and drop other nodes into it,",
-			"and recover them later, or empty the trash to delete ",
-			"the nodes permanently.")));
-
-		return (root);
-	}
 }

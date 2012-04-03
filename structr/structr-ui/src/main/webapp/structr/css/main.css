@@ -136,7 +136,7 @@ h2 {
     filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#90e629', EndColorStr='#73b821', GradientType=0);
 }
 
-.edit_icon, .add_icon, .delete_icon, .close_icon {
+.edit_icon, .add_icon, .delete_icon, .close_icon, .key_icon {
 /*    margin-left: 4px;*/
     cursor: pointer;
     heigth: 16px;
@@ -414,7 +414,7 @@ ul#previewTabs {
     border: none;
     margin: 1px 0 0 0;
 }
-#previewTabs .delete_icon {
+#previewTabs .key_icon, #previewTabs .delete_icon {
     margin: 1px 0 0 4px;
 }
 
