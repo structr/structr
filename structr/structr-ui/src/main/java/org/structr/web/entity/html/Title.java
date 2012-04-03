@@ -35,7 +35,7 @@ public class Title extends HtmlElement {
 		EntityContext.registerPropertySet(org.structr.web.entity.html.Title.class, PropertyView.All,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(org.structr.web.entity.html.Title.class, PropertyView.Public,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(org.structr.web.entity.html.Title.class, PropertyView.Html, true, htmlAttributes);
-		EntityContext.registerEntityRelation(org.structr.web.entity.html.Title.class, Head.class, RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.OneToOne);
+		EntityContext.registerEntityRelation(org.structr.web.entity.html.Title.class, Head.class, RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(org.structr.web.entity.html.Title.class, Content.class, RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
 	}
 }

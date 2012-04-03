@@ -133,6 +133,7 @@ var Structr = {
     edit_icon : 'icon/pencil.png',
     expand_icon: 'icon/tree_arrow_right.png',
     link_icon: 'icon/link.png',
+    key_icon: 'icon/key.png',
 		
     init : function() {
         
