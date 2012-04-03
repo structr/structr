@@ -25,6 +25,8 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
@@ -35,7 +37,6 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.RelationClass.Cardinality;
 import org.structr.core.node.NodeService;
-import org.structr.web.entity.html.HtmlElement;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -46,21 +47,23 @@ import org.structr.web.entity.html.HtmlElement;
  */
 public class Component extends AbstractNode {
 
+	private static final Logger logger = Logger.getLogger(Component.class.getName());
+	
 	public enum UiKey implements PropertyKey {
-		id, type, name, elements
+		type, name, structrclass
 	}
 
 	static {
 
 		EntityContext.registerPropertySet(Component.class,	PropertyView.All,	UiKey.values());
 		EntityContext.registerPropertySet(Component.class,	PropertyView.Public,	UiKey.values());
-		EntityContext.registerPropertySet(Component.class,	"ui",			UiKey.values());
+		EntityContext.registerPropertySet(Component.class,	PropertyView.Ui,	UiKey.values());
 
 		EntityContext.registerEntityRelation(Component.class,	Resource.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Component.class,	Element.class,	RelType.CONTAINS,	Direction.OUTGOING, Cardinality.ManyToMany);
 		
-		EntityContext.registerSearchablePropertySet(Component.class, NodeService.NodeIndex.fulltext.name(), Element.UiKey.values());
-		EntityContext.registerSearchablePropertySet(Component.class, NodeService.NodeIndex.keyword.name(), Element.UiKey.values());
+		EntityContext.registerSearchablePropertySet(Component.class, NodeService.NodeIndex.fulltext.name(), UiKey.values());
+		EntityContext.registerSearchablePropertySet(Component.class, NodeService.NodeIndex.keyword.name(),  UiKey.values());
 	}
 
 	private Map<String, AbstractNode> contentNodes = new WeakHashMap<String, AbstractNode>();
@@ -75,7 +78,7 @@ public class Component extends AbstractNode {
 	@Override
 	public void onNodeInstantiation() {
 		
-		collectProperties(this, 0, 10);
+		collectProperties(getStringProperty(AbstractNode.Key.uuid), this, 0, 10, null);
 	}
 	
 	@Override
@@ -126,31 +129,101 @@ public class Component extends AbstractNode {
 	}
 	
 	// ----- private methods ----
-	private void collectProperties(AbstractNode startNode, int depth, int maxDepth) {
+	private void collectProperties(String componentId, AbstractNode startNode, int depth, int maxDepth, AbstractRelationship ref) {
 		
 		if(depth > maxDepth) {
 			return;
 		}
 		
-		String dataClass = startNode.getStringProperty(HtmlElement.UiKey.structrclass.name());
-		if(dataClass != null && !dataClass.isEmpty()) {
-			contentNodes.put(HtmlElement.UiKey.structrclass.name(), startNode);
+		if(ref != null) {
+		
+			if(componentId.equals(ref.getStringProperty("componentId"))) {
+
+				String dataKey = startNode.getStringProperty("data-key");
+				if(dataKey != null) {
+					contentNodes.put(dataKey, startNode);
+				}
+			}
 		}
 
-		// recurse only if data-class is set
-//		if(contentNodes.containsKey("data-class")) {
-			
-			String dataKey = startNode.getStringProperty("data-key");
-			if(dataKey != null) {
-				contentNodes.put(dataKey, startNode);
-			}
+		for(AbstractRelationship rel : startNode.getOutgoingRelationships(RelType.CONTAINS)) {
 
-			for(AbstractRelationship rel : startNode.getOutgoingRelationships(RelType.CONTAINS)) {
-
-				// type cast is safe her, as this will only work with Elements anyway
-				AbstractNode endNode = rel.getEndNode();
-				collectProperties(endNode, depth, maxDepth+1);
-			}
-//		}
+			// type cast is safe her, as this will only work with Elements anyway
+			AbstractNode endNode = rel.getEndNode();
+			collectProperties(componentId, endNode, depth, maxDepth+1, rel);
+		}
 	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

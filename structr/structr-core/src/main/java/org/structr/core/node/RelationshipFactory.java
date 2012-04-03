@@ -108,11 +108,7 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 
 		try {
 
-			String sourceNodeType = (String) relationship.getStartNode().getProperty(AbstractNode.Key.type.name());
-			String destNodeType   = (String) relationship.getEndNode().getProperty(AbstractNode.Key.type.name());
-
-			relClass = EntityContext.getNamedRelationClass(sourceNodeType, destNodeType, relationship.getType().name());
-
+			relClass = findNamedRelation(relationship);
 			if (relClass != null) {
 
 				try {
@@ -231,4 +227,64 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 
 		return newRel;
 	}
+	
+	private Class findNamedRelation(Relationship relationship) {
+		
+		String sourceNodeType = (String) relationship.getStartNode().getProperty(AbstractNode.Key.type.name());
+		String destNodeType   = (String) relationship.getEndNode().getProperty(AbstractNode.Key.type.name());
+
+		
+		Class sourceType = EntityContext.getEntityClassForRawType(sourceNodeType);
+		Class destType   = EntityContext.getEntityClassForRawType(destNodeType);
+		
+		return EntityContext.getNamedRelationClass(sourceType, destType, relationship.getType());
+	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

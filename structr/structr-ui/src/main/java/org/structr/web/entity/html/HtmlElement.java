@@ -64,7 +64,7 @@ public abstract class HtmlElement extends Element {
 	//~--- constant enums -------------------------------------------------
 
 	public enum UiKey implements PropertyKey {
-		name, tag, path, contents, elements, components, resource, structrclass
+		name, tag, path, contents, elements, components, resource
 	}
 
 	//~--- get methods ----------------------------------------------------

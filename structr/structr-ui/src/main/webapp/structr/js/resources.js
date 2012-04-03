@@ -670,7 +670,7 @@ var _Resources = {
         }
 
         div.droppable({
-            accept: '.element, .content',
+            accept: '.element, .content, .component',
             greedy: true,
             hoverClass: 'elementHover',
             drop: function(event, ui) {

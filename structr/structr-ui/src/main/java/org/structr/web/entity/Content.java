@@ -42,13 +42,12 @@ import org.structr.core.entity.RelationClass.Cardinality;
  */
 public class Content extends AbstractNode {
 
-	public enum UiKey implements PropertyKey{ name, tag, elements, content, contentType, size }
+	public enum UiKey implements PropertyKey{ name, tag, content, contentType, size }
 	
 	protected static final String[] attributes = new String[] {
 		
 		UiKey.name.name(),
 		UiKey.tag.name(),
-		UiKey.elements.name(),
 		UiKey.content.name(),
 		UiKey.contentType.name(),
 		UiKey.size.name(),
@@ -65,7 +64,7 @@ public class Content extends AbstractNode {
 
 		EntityContext.registerEntityRelation(Content.class,	Element.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
 		
-		EntityContext.registerEntityRelation(Content.class,	org.structr.web.entity.html.Title.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Content.class,	Title.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Content.class,	Body.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Content.class,	Style.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Content.class,	Script.class,	RelType.CONTAINS,	Direction.INCOMING, Cardinality.ManyToMany);
