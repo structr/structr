@@ -23,14 +23,19 @@ package org.structr.web.auth;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.auth.AuthHelper;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.exception.AuthenticationException;
-import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
 
 //~--- JDK imports ------------------------------------------------------------
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -40,21 +45,57 @@ import javax.servlet.http.HttpServletRequest;
  */
 public class HttpAuthenticator implements Authenticator {
 
+	private static final String SESSION_USER = "sessionUser";
+
 	@Override
 	public void examineRequest(SecurityContext securityContext, HttpServletRequest request) throws FrameworkException {}
 
 	@Override
 	public User doLogin(SecurityContext securityContext, HttpServletRequest request, String userName, String password) throws AuthenticationException {
-		return getUser(securityContext, request);
+
+		User user = AuthHelper.getUserForUsernameAndPassword(securityContext, userName, password);
+
+		if (user != null) {
+
+			request.getSession().setAttribute(SESSION_USER, user);
+			securityContext.setUser(user);
+
+			try {
+				request.login(userName, password);
+			} catch (ServletException ex) {
+				Logger.getLogger(HttpAuthenticator.class.getName()).log(Level.SEVERE, null, ex);
+			}
+
+		}
+
+		return user;
 	}
 
 	@Override
-	public void doLogout(SecurityContext securityContext, HttpServletRequest request) {}
+	public void doLogout(SecurityContext securityContext, HttpServletRequest request) {
+
+		try {
+
+			request.logout();
+			securityContext.setUser(null);
+
+		} catch (ServletException ex) {
+			Logger.getLogger(HttpAuthenticator.class.getName()).log(Level.SEVERE, null, ex);
+		}
+	}
 
 	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public User getUser(SecurityContext securityContext, HttpServletRequest request) {
-		return new SuperUser();
+
+		User user = (User) request.getSession().getAttribute(SESSION_USER);
+
+		if (user == null) {
+
+			// TODO: Implement HTTP basic auth
+		}
+
+		return user;
 	}
 }

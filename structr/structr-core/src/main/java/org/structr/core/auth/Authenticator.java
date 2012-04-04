@@ -27,7 +27,7 @@ import org.structr.core.entity.User;
 
 /**
  * An authenticator interface that defines how the system
- * can obtain a pricipal from a HttpServletRequest.
+ * can obtain a principal from a HttpServletRequest.
  *
  * @author Christian Morgner
  */
@@ -70,6 +70,7 @@ public interface Authenticator {
 	 * @param securityContext the security context
 	 * @param request the request
 	 * @return the logged-in user or null
+	 * @throws FrameworkException
 	 */
 	public User getUser(SecurityContext securityContext, HttpServletRequest request) throws FrameworkException;
 }
