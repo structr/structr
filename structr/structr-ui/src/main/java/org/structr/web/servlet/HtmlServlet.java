@@ -187,10 +187,9 @@ public class HtmlServlet extends HttpServlet {
 			if ((resource != null) && securityContext.isVisible(resource)) {
 
 				String uuid                    = resource.getStringProperty(Resource.Key.uuid);
-				final Set<String> componentIds = new LinkedHashSet<String>();
 				final StringBuilder buffer     = new StringBuilder(10000);
 
-				getContent(uuid, componentIds, buffer, resource, 0, false);
+				getContent(uuid, null, buffer, resource, 0, false);
 
 				String content = buffer.toString();
 				double end     = System.nanoTime();
@@ -262,9 +261,9 @@ public class HtmlServlet extends HttpServlet {
 
 	//~--- get methods ----------------------------------------------------
 
-	private void getContent(final String resourceId, Set<String> componentIds, final StringBuilder buffer, final AbstractNode node, final int depth, boolean inBody) {
+	private void getContent(final String resourceId, final String componentId, final StringBuilder buffer, final AbstractNode node, final int depth, boolean inBody) {
 
-		String componentId        = null;
+		String localComponentId   = componentId;
 		String content            = null;
 		String tag                = null;
 		AbstractRelationship link = null;
@@ -289,11 +288,9 @@ public class HtmlServlet extends HttpServlet {
 
 			// check for component
 			if (node instanceof Component) {
-
-				componentId = node.getStringProperty(AbstractNode.Key.uuid);
-
-				componentIds.add(componentId);
-
+				
+				localComponentId = node.getStringProperty(AbstractNode.Key.uuid);
+				
 			}
 
 			if (link != null) {
@@ -386,15 +383,20 @@ public class HtmlServlet extends HttpServlet {
 		for (AbstractRelationship abstractRelationship : node.getOutgoingRelationships(RelType.CONTAINS)) {
 
 			Relationship rel       = abstractRelationship.getRelationship();
-			boolean hasComponentId = rel.hasProperty("componentId");
 
-			if (rel.hasProperty(resourceId) || rel.hasProperty("*") ||!componentIds.isEmpty()) {
+			if (rel.hasProperty(resourceId) || rel.hasProperty("*")) {
 
-				// only add rel if either no componentId is set, or if the componentId matches an already traversed componend
-				if (!hasComponentId || (hasComponentId && componentIds.contains((String) rel.getProperty("componentId")))) {
+				AbstractNode endNode = abstractRelationship.getEndNode();
+				if(localComponentId != null && (endNode instanceof Content || endNode instanceof Component)) {
 
+					// only add relationship if (nested) componentId matches
+					if(rel.hasProperty(localComponentId)) {
+						rels.add(abstractRelationship);
+					}
+					
+				} else {
+					
 					rels.add(abstractRelationship);
-
 				}
 			}
 
@@ -418,7 +420,7 @@ public class HtmlServlet extends HttpServlet {
 
 			AbstractNode subNode = rel.getEndNode();
 
-			getContent(resourceId, componentIds, buffer, subNode, depth + 1, inBody);
+			getContent(resourceId, localComponentId, buffer, subNode, depth + 1, inBody);
 
 		}
 
@@ -432,13 +434,6 @@ public class HtmlServlet extends HttpServlet {
 		if (link != null) {
 
 			buffer.append("</a>");
-
-		}
-
-		// remove component ID if we "leave" the component
-		if (componentId != null) {
-
-			componentIds.remove(componentId);
 
 		}
 	}

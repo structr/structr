@@ -20,7 +20,9 @@ package org.structr.web.resource;
 
 import java.util.*;
 import java.util.logging.Logger;
+import javax.servlet.http.HttpServletRequest;
 import org.neo4j.graphdb.RelationshipType;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.EntityContext;
@@ -28,15 +30,15 @@ import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.node.CreateNodeCommand;
-import org.structr.core.node.CreateRelationshipCommand;
-import org.structr.core.node.StructrTransaction;
-import org.structr.core.node.TransactionCommand;
+import org.structr.core.node.*;
 import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
 import org.structr.rest.RestMethodResult;
+import org.structr.rest.exception.IllegalPathException;
+import org.structr.rest.resource.Resource;
 import org.structr.rest.resource.TypeResource;
+import org.structr.rest.resource.UuidResource;
 import org.structr.web.entity.Component;
 import org.structr.web.entity.Content;
 
@@ -47,10 +49,33 @@ import org.structr.web.entity.Content;
 public class DynamicTypeResource extends TypeResource {
 
 	private static final Logger logger = Logger.getLogger(DynamicTypeResource.class.getName());
+	private List<DynamicTypeResource> nestedResources = new ArrayList<DynamicTypeResource>();
+	private UuidResource uuidResource = null;
 	private boolean parentResults = false;
+	private String resourceId = null;
+
+	@Override
+	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) throws FrameworkException {
+
+		this.securityContext = securityContext;
+		this.request         = request;
+		this.rawType         = part;
+
+		super.checkAndConfigure(part, securityContext, request);
+		
+		// FIXME: do type check on existing dynamic resources here..
+		return rawType != null;
+	}
+
 	
 	@Override
 	public List<GraphObject> doGet() throws FrameworkException {
+
+		// REST path contained uuid, return result of UuidResource
+		if(uuidResource != null) {
+			// FIXME: type cast is redundant, fix return type of UuidResource instead!
+			return (List<GraphObject>)uuidResource.doGet();
+		}
 
 		// check for dynamic type, use super class otherwise
 		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
@@ -82,23 +107,18 @@ public class DynamicTypeResource extends TypeResource {
 	@Override
 	public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
 		
-		
-		/*
-		 * - create new Component (=> new ID)
-		 * - for each ContentRelationship:
-		 *	- duplicate rel
-		 *	- store componentId
-		 */
-
+		// REST path contained uuid, POST not allowed here
+		if(uuidResource != null) {
+			throw new IllegalPathException();
+		}
 		
 		List<GraphObject> templates = doGet();
-		
 		if(parentResults) {
 			
 			return super.doPost(propertySet);
 			
 		} else if(!templates.isEmpty()) {
-//			
+
 			final Command createNodeCommand = Services.command(securityContext, CreateNodeCommand.class);
 			final Map<String, Object> templateProperties = new LinkedHashMap<String, Object>();
 			final String componentId = UUID.randomUUID().toString().replaceAll("[\\-]+", "");
@@ -116,7 +136,7 @@ public class DynamicTypeResource extends TypeResource {
 				public Object execute() throws FrameworkException {
 					
 					Component comp = (Component)createNodeCommand.execute(templateProperties);
-					copyRelationships(template, comp, null, position);
+					copyRelationships(template, comp, getResourceId(), null, position);
 					
 					Map<String, Object> contentTemplateProperties = new LinkedHashMap<String, Object>();
 					for(AbstractNode node : template.getContentNodes().values()) {
@@ -134,7 +154,7 @@ public class DynamicTypeResource extends TypeResource {
 							contentTemplateProperties.put("content", propertySet.get(dataKey));
 							Content newContent = (Content)createNodeCommand.execute(contentTemplateProperties);
 
-							copyRelationships(contentTemplate, newContent, componentId, position);
+							copyRelationships(contentTemplate, newContent, getResourceId(), componentId, position);
 						}
 						
 					}
@@ -163,9 +183,67 @@ public class DynamicTypeResource extends TypeResource {
 		}
 	}
 
+	@Override
+	public RestMethodResult doDelete() throws FrameworkException {
+		
+		final Command deleteCommand = Services.command(securityContext, DeleteNodeCommand.class);
+		final List<GraphObject> toDelete = doGet();
+		final boolean cascade = false;
+		
+		for(GraphObject obj : toDelete) {
+
+			if(obj instanceof Component) {
+
+				Set<AbstractNode> contentNodes = new LinkedHashSet<AbstractNode>();
+				contentNodes.addAll(((Component)obj).getContentNodes().values());
+				
+				for(AbstractNode contentNode : contentNodes) {
+					deleteCommand.execute(contentNode, cascade);
+				}
+				
+				deleteCommand.execute(obj, cascade);
+			}
+
+		}
+		
+		return new RestMethodResult(200);
+	}
+
 	
+	@Override
+	public Resource tryCombineWith(Resource next) throws FrameworkException {
+
+		if (next instanceof UuidResource) {
+
+			this.uuidResource = (UuidResource)next;
+			return this;
+
+		} else if (next instanceof DynamicTypeResource) {
+
+			nestedResources.add((DynamicTypeResource)next);
+			return this;
+			
+		} else if (next instanceof TypeResource) {
+
+			throw new IllegalPathException();
+
+		}
+
+		return super.tryCombineWith(next);
+	}
 	
-	private void copyRelationships(AbstractNode sourceNode, AbstractNode targetNode, String componentId, int position) throws FrameworkException {
+	@Override
+	public boolean isCollectionResource() {
+		
+		if(uuidResource != null) {
+			return uuidResource.isCollectionResource();
+		}
+		
+		return true;
+	}
+	
+	// ----- private methods -----
+	private void copyRelationships(AbstractNode sourceNode, AbstractNode targetNode, String resourceId, String componentId, int position) throws FrameworkException {
 
 		Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
 		
@@ -179,14 +257,10 @@ public class DynamicTypeResource extends TypeResource {
 			
 			// only set componentId if set
 			if(componentId != null) {
-				newInRel.setProperty("componentId", componentId);
+				newInRel.setProperty(componentId, "*");
 			}
 			
-			String resourceId = in.getStringProperty("resourceId");
 			if(resourceId != null) {
-
-				newInRel.setProperty("resourceId", resourceId);
-				Integer pos = in.getIntProperty(resourceId);
 				newInRel.setProperty(resourceId, position);
 			}
 		}
@@ -198,14 +272,23 @@ public class DynamicTypeResource extends TypeResource {
 			
 			AbstractRelationship newOutRel = (AbstractRelationship)createRel.execute(targetNode, endNode, relType);
 			newOutRel.setProperty("type", out.getStringProperty("type"));
-			newOutRel.setProperty("componentId", componentId);
+
+			if(componentId != null) {
+				newOutRel.setProperty(componentId, "*");
+			}
 			
-			String resourceId = out.getStringProperty("resourceId");
 			if(resourceId != null) {
-				newOutRel.setProperty("resourceId", resourceId);
 				newOutRel.setProperty(resourceId, position);
 			}
 		}
+	}
+
+	public String getResourceId() {
+		return resourceId;
+	}
+
+	public void setResourceId(String resourceId) {
+		this.resourceId = resourceId;
 	}
 }
 

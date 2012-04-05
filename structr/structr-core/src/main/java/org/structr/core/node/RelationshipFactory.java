@@ -79,7 +79,7 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 		if (relClass != null) {
 
 			try {
-				newRel = (AbstractRelationship) relClass.newInstance();
+				newRel = (AbstractRelationship) relClass.newInstance();				
 			} catch (InstantiationException ex) {
 				logger.log(Level.FINE, "Could not instantiate relationship", ex);
 			} catch (IllegalAccessException ex) {
@@ -87,6 +87,8 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 			}
 
 		}
+
+		newRel.onRelationshipInstantiation();
 
 		return newRel;
 	}
@@ -144,6 +146,7 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 		}
 
 		newRel.init(securityContext, relationship);
+		newRel.onRelationshipInstantiation();
 
 		return newRel;
 	}
@@ -224,6 +227,7 @@ public class RelationshipFactory<T extends AbstractRelationship> implements Adap
 
 		newRel.init(securityContext, data);
 		newRel.commit();
+		newRel.onRelationshipInstantiation();
 
 		return newRel;
 	}

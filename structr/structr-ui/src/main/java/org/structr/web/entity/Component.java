@@ -22,10 +22,11 @@
 package org.structr.web.entity;
 
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.PropertyKey;
@@ -48,6 +49,7 @@ import org.structr.core.node.NodeService;
 public class Component extends AbstractNode {
 
 	private static final Logger logger = Logger.getLogger(Component.class.getName());
+	private static final int MAX_DEPTH = 10;
 	
 	public enum UiKey implements PropertyKey {
 		type, name, structrclass
@@ -67,6 +69,7 @@ public class Component extends AbstractNode {
 	}
 
 	private Map<String, AbstractNode> contentNodes = new WeakHashMap<String, AbstractNode>();
+	private Set<String> subTypes                   = new LinkedHashSet<String>();
 
 	//~--- get methods ----------------------------------------------------
 
@@ -78,7 +81,7 @@ public class Component extends AbstractNode {
 	@Override
 	public void onNodeInstantiation() {
 		
-		collectProperties(getStringProperty(AbstractNode.Key.uuid), this, 0, 10, null);
+		collectProperties(getStringProperty(AbstractNode.Key.uuid), this, 0, null);
 	}
 	
 	@Override
@@ -92,17 +95,32 @@ public class Component extends AbstractNode {
 		
 		augmentedPropertyKeys.addAll(contentNodes.keySet());
 		
+		for(String subType : subTypes) {
+			augmentedPropertyKeys.add(subType.toLowerCase().concat("s"));
+		}
+		
 		return augmentedPropertyKeys;
 	}
 	
 	@Override
 	public Object getProperty(String key) {
 		
+		// try local properties first
 		if(contentNodes.containsKey(key)) {
+			
 			AbstractNode node = contentNodes.get(key);
 			if(node != null && node != this) {
 				return node.getStringProperty("content");
 			}
+			
+		} else if(subTypes.contains(EntityContext.normalizeEntityName(key))) {
+			
+			List<Component> results = new LinkedList<Component>();
+			
+			collectChildren(getStringProperty(AbstractNode.Key.uuid), this, results, 0, null);
+			
+			return results;
+			
 		}
 		
 		return super.getProperty(key);
@@ -129,28 +147,57 @@ public class Component extends AbstractNode {
 	}
 	
 	// ----- private methods ----
-	private void collectProperties(String componentId, AbstractNode startNode, int depth, int maxDepth, AbstractRelationship ref) {
+	private void collectProperties(String componentId, AbstractNode startNode, int depth, AbstractRelationship ref) {
 		
-		if(depth > maxDepth) {
+		if(depth > MAX_DEPTH) {
 			return;
 		}
 		
 		if(ref != null) {
 		
-			if(componentId.equals(ref.getStringProperty("componentId"))) {
+			if(ref.getRelationship().hasProperty(componentId)) {
 
 				String dataKey = startNode.getStringProperty("data-key");
 				if(dataKey != null) {
 					contentNodes.put(dataKey, startNode);
+					return;
 				}
 			}
 		}
 
 		for(AbstractRelationship rel : startNode.getOutgoingRelationships(RelType.CONTAINS)) {
 
-			// type cast is safe her, as this will only work with Elements anyway
 			AbstractNode endNode = rel.getEndNode();
-			collectProperties(componentId, endNode, depth, maxDepth+1, rel);
+			
+			if(endNode instanceof Component) {
+				
+				subTypes.add(endNode.getStringProperty(Component.UiKey.structrclass));
+				
+			} else {
+				
+				collectProperties(componentId, endNode, depth+1, rel);
+			}
+		}
+	}
+	
+	private void collectChildren(String componentId, AbstractNode startNode, List<Component> results, int depth, AbstractRelationship ref) {
+		
+		if(depth > MAX_DEPTH) {
+			return;
+		}
+		
+		// collect component
+		if(ref != null && ref.getRelationship().hasProperty(componentId)) {
+
+			if(startNode instanceof Component) {
+				results.add((Component)startNode);
+				return;
+			}
+		}
+
+		// recurse
+		for(AbstractRelationship rel : startNode.getOutgoingRelationships(RelType.CONTAINS)) {
+			collectChildren(componentId, rel.getEndNode(), results, depth+1, rel);
 		}
 	}
 }
