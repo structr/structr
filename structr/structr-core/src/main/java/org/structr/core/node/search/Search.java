@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.lang.ArrayUtils;
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
@@ -54,7 +55,16 @@ import org.structr.core.entity.RelationshipMapping;
 public abstract class Search {
 
 	private static final Logger logger = Logger.getLogger(Search.class.getName());
+	private static Character[] specialChars = new Character[] {
 
+		'\\', '+', '-', '!', '(', ')', ':', '^', '[', ']', '\"', '{', '}', '~', '*', '?', '|', '&', ';'
+
+	};
+	private static Character[] specialCharsExact = new Character[] {
+
+		'\\', '\"'
+
+	};
 	public static List<SearchAttribute> andExactTypeAndSubtypes(final String searchString) {
 
 		List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
@@ -303,7 +313,7 @@ public abstract class Search {
 	}
 
 	public static String exactMatch(final String searchString) {
-		return ("\"" + searchString + "\"");
+		return ("\"" + escapeForLuceneExact(searchString) + "\"");
 	}
 
 	public static String unquoteExactMatch(final String searchString) {
@@ -388,6 +398,48 @@ public abstract class Search {
 		output = StringUtils.replace(output, "\\", "");
 
 		return output;
+	}
+	
+	public static String escapeForLucene(String input) {
+
+		StringBuilder output = new StringBuilder();
+
+		for (int i = 0; i < input.length(); i++) {
+
+			char c = input.charAt(i);
+
+			if (ArrayUtils.contains(specialChars, c) || Character.isWhitespace(c)) {
+
+				output.append('\\');
+
+			}
+
+			output.append(c);
+
+		}
+
+		return output.toString();
+	}
+
+	public static String escapeForLuceneExact(String input) {
+
+		StringBuilder output = new StringBuilder();
+
+		for (int i = 0; i < input.length(); i++) {
+
+			char c = input.charAt(i);
+
+			if (ArrayUtils.contains(specialCharsExact, c) || Character.isWhitespace(c)) {
+
+				output.append('\\');
+
+			}
+
+			output.append(c);
+
+		}
+
+		return output.toString();
 	}
 
 	//~--- get methods ----------------------------------------------------

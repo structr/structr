@@ -459,14 +459,15 @@ public class SearchNodeCommand extends NodeServiceCommand {
 		if ((stringValue == null) || stringValue.startsWith("\"") || stringValue.startsWith("[") || stringValue.startsWith("NOT")
 			|| stringValue.startsWith("AND") || stringValue.startsWith("OR")) {
 
-			return " " + key + ":" + value + " ";
+			return " " + key + ":" + stringValue + " ";
 
 		}
 
 		String result = "( ";
 
 		// Clean string
-		stringValue = Search.clean(stringValue);
+		//stringValue = Search.clean(stringValue);
+		stringValue = Search.escapeForLuceneExact(stringValue);
 
 		// Split string into words
 		String[] words = StringUtils.split(stringValue, " ");
