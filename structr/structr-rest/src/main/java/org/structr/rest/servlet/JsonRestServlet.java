@@ -235,7 +235,7 @@ public class JsonRestServlet extends HttpServlet {
 			request.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=utf-8");
 
-			SecurityContext securityContext = getSecurityContext(request);
+			SecurityContext securityContext = getSecurityContext(request, response);
 
 			if (securityContext != null) {
 
@@ -303,7 +303,7 @@ public class JsonRestServlet extends HttpServlet {
 			request.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=utf-8");
 
-			SecurityContext securityContext = getSecurityContext(request);
+			SecurityContext securityContext = getSecurityContext(request, response);
 
 			// set default value for property view
 			propertyView.set(defaultPropertyView);
@@ -392,7 +392,7 @@ public class JsonRestServlet extends HttpServlet {
 			request.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=UTF-8");
 
-			SecurityContext securityContext       = getSecurityContext(request);
+			SecurityContext securityContext       = getSecurityContext(request, response);
 			List<Resource> chain        = parsePath(securityContext, request);
 			Resource resourceConstraint = optimizeConstraintChain(chain);
 			RestMethodResult result               = resourceConstraint.doHead();
@@ -447,7 +447,7 @@ public class JsonRestServlet extends HttpServlet {
 			request.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=UTF-8");
 
-			SecurityContext securityContext       = getSecurityContext(request);
+			SecurityContext securityContext       = getSecurityContext(request, response);
 			List<Resource> chain        = parsePath(securityContext, request);
 			Resource resourceConstraint = optimizeConstraintChain(chain);
 			RestMethodResult result               = resourceConstraint.doOptions();
@@ -503,7 +503,7 @@ public class JsonRestServlet extends HttpServlet {
 			response.setContentType("application/json; charset=UTF-8");
 
 			final PropertySet propertySet   = gson.fromJson(request.getReader(), PropertySet.class);
-			SecurityContext securityContext = getSecurityContext(request);
+			SecurityContext securityContext = getSecurityContext(request, response);
 
 			if (securityContext != null) {
 
@@ -586,7 +586,7 @@ public class JsonRestServlet extends HttpServlet {
 			response.setContentType("application/json; charset=UTF-8");
 
 			final PropertySet propertySet   = gson.fromJson(request.getReader(), PropertySet.class);
-			SecurityContext securityContext = getSecurityContext(request);
+			SecurityContext securityContext = getSecurityContext(request, response);
 
 			if (securityContext != null) {
 
@@ -1029,12 +1029,12 @@ public class JsonRestServlet extends HttpServlet {
 
 	//~--- get methods ----------------------------------------------------
 
-	private SecurityContext getSecurityContext(HttpServletRequest request) throws FrameworkException {
+	private SecurityContext getSecurityContext(HttpServletRequest request, HttpServletResponse response) throws FrameworkException {
 
-		SecurityContext securityContext = SecurityContext.getInstance(this.getServletConfig(), request, AccessMode.Frontend);
+		SecurityContext securityContext = SecurityContext.getInstance(this.getServletConfig(), request, response, AccessMode.Frontend);
 		
 		// let module-specific authenticator examine the request first
-		securityContext.examineRequest(request);
+		securityContext.examineRequest(request, response);
 		
 		return securityContext;
 	}

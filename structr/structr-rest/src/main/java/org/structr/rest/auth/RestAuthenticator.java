@@ -34,6 +34,7 @@ import org.structr.rest.servlet.JsonRestServlet;
 //~--- JDK imports ------------------------------------------------------------
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -45,20 +46,20 @@ import javax.servlet.http.HttpServletRequest;
 public class RestAuthenticator implements Authenticator {
 
 	@Override
-	public void examineRequest(SecurityContext securityContext, HttpServletRequest request) throws FrameworkException {}
+	public void examineRequest(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) throws FrameworkException {}
 
 	@Override
-	public User doLogin(SecurityContext securityContext, HttpServletRequest request, String userName, String password) throws AuthenticationException {
+	public User doLogin(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, String userName, String password) throws AuthenticationException {
 		return null;
 	}
 
 	@Override
-	public void doLogout(SecurityContext securityContext, HttpServletRequest request) {}
+	public void doLogout(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) {}
 
 	//~--- get methods ----------------------------------------------------
 
 	@Override
-	public User getUser(SecurityContext securityContext, HttpServletRequest request) {
+	public User getUser(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) {
 
 		String userHeader = request.getHeader("X-User");
 		User user         = null;

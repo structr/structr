@@ -208,7 +208,6 @@ var _Resources = {
 
         var tab = $('#show_' + entity.id, previews);
         tab.append('<img title="Delete resource \'' + entity.name + '\'" alt="Delete resource \'' + entity.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
-        tab.append('<img title="Access Control and Visibility" alt="Access Control and Visibility" class="key_icon button" src="' + Structr.key_icon + '">');
         var deleteIcon = $('.delete_icon', tab);
         deleteIcon.hide();
         deleteIcon.on('click', function(e) {
@@ -220,6 +219,7 @@ var _Resources = {
             self.show();
 		
         });
+        tab.append('<img title="Access Control and Visibility" alt="Access Control and Visibility" class="key_icon button" src="' + Structr.key_icon + '">');
         var keyIcon = $('.key_icon', tab);
         keyIcon.hide();
         keyIcon.on('click', function(e) {
