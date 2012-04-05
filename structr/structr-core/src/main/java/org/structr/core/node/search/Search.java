@@ -62,7 +62,7 @@ public abstract class Search {
 	};
 	private static Character[] specialCharsExact = new Character[] {
 
-		'\\', '\"'
+		'\"', '\\'
 
 	};
 	public static List<SearchAttribute> andExactTypeAndSubtypes(final String searchString) {
