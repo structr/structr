@@ -68,7 +68,7 @@ var _Components = {
     },
     
     show : function() {
-        return _Entities.showEntities('Component');
+        return _Entities.getEntities('Component');
     },
 
     appendComponentElement : function(component, parentId, resourceId) {

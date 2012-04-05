@@ -44,12 +44,12 @@ var _UsersAndGroups = {
 	
     showUsers : function() {
         if (debug) console.log('showUsers()');
-        return _Entities.showEntities('User');
+        return _Entities.getEntities('User');
     },
 
     showGroups : function() {
         if (debug) console.log('showGroups()');
-        return _Entities.showEntities('Group');
+        return _Entities.getEntities('Group');
     },
 
     addGroup : function(button) {

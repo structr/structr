@@ -132,15 +132,15 @@ var _Files = {
     },
 	
     showFolders : function() {
-        return _Entities.showEntities('Folder');
+        return _Entities.getEntities('Folder');
     },
 
     showFiles : function() {
-        return _Entities.showEntities('File');
+        return _Entities.getEntities('File');
     },
 
     showImages : function() {
-        return _Entities.showEntities('Image');
+        return _Entities.getEntities('Image');
     },
 
     appendFileElement : function(file, parentId) {
@@ -202,7 +202,9 @@ var _Files = {
             containment: '#main',
             zIndex: 1
         });
-		
+
+        _Entities.appendAccessControlIcon(div, file);
+        
         return div;
     },
 	
@@ -251,44 +253,8 @@ var _Files = {
             containment: '#main',
             zIndex: 1
         });
-
-        var entity = file;
-        div.append('<img title="Access Control and Visibility" alt="Access Control and Visibility" class="key_icon button" src="' + Structr.key_icon + '">');
         
-        var keyIcon = $('.key_icon', div);
-        //keyIcon.hide();
-        keyIcon.on('click', function(e) {
-            e.stopPropagation();
-            Structr.dialog('Access Control and Visibility', function() {}, function() {});
-            var dt = $('#dialogBox .dialogText');
-
-            dt.append('<h3>Owner</h3><p class="nodeSelectBox" id="ownersBox"></p>');
-            _Entities.getProperty(entity.id, 'ownerId', '#ownersBox');
-
-            dt.append('<h3>Visibility</h3><div class="' + entity.id + '_"><button class="switch disabled visibleToPublicUsers_">Public (visible to anyone)</button><button class="switch disabled visibleToAuthenticatedUsers_">Authenticated Users</button></div>');
-            var publicSwitch = $('.visibleToPublicUsers_');
-            var authSwitch = $('.visibleToAuthenticatedUsers_');
-            console.log(publicSwitch);
-
-            _Entities.getProperty(entity.id, 'visibleToPublicUsers', '#dialogBox');
-            _Entities.getProperty(entity.id, 'visibleToAuthenticatedUsers', '#dialogBox');
-
-            publicSwitch.on('click', function() {
-                console.log('Toggle switch', publicSwitch.hasClass('disabled'))
-                _Entities.setProperty(entity.id, 'visibleToPublicUsers', publicSwitch.hasClass('disabled'));
-            });
-
-            authSwitch.on('click', function() {
-                console.log('Toggle switch', authSwitch.hasClass('disabled'))
-                _Entities.setProperty(entity.id, 'visibleToAuthenticatedUsers', authSwitch.hasClass('disabled'));
-            });
-
-        });
-        keyIcon.on('mouseover', function(e) {
-            var self = $(this);
-            self.show();
-
-        });
+        _Entities.appendAccessControlIcon(div, file);
 
         return div;
     },

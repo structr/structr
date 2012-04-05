@@ -65,7 +65,7 @@ var _Contents = {
             });
         }
 
-        return _Entities.showEntities('Content');
+        return _Entities.getEntities('Content');
     },
 
     appendContentElement : function(content, parentId, resourceId) {

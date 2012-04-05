@@ -186,7 +186,7 @@ var _Elements = {
     },
 
     show : function() {
-        return _Entities.showEntities('Element');
+        return _Entities.getEntities('Element');
     },
 
     appendElementElement : function(entity, parentId, resourceId) {
