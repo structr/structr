@@ -40,6 +40,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 //~--- classes ----------------------------------------------------------------
@@ -58,10 +59,10 @@ public class StructrAuthenticator implements Authenticator {
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public void examineRequest(SecurityContext securityContext, HttpServletRequest request) throws FrameworkException {}
+	public void examineRequest(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) throws FrameworkException {}
 
 	@Override
-	public User doLogin(SecurityContext securityContext, HttpServletRequest request, String userName, String password) throws AuthenticationException {
+	public User doLogin(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, String userName, String password) throws AuthenticationException {
 
 		String errorMsg = null;
 		User user       = AuthHelper.getUserForUsernameAndPassword(securityContext, userName, password);
@@ -94,7 +95,7 @@ public class StructrAuthenticator implements Authenticator {
 	}
 
 	@Override
-	public void doLogout(SecurityContext securityContext, HttpServletRequest request) {
+	public void doLogout(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) {
 
 		HttpSession session = request.getSession();
 		Long sessionIdValue = (Long) session.getAttribute(SessionMonitor.SESSION_ID);
@@ -114,7 +115,7 @@ public class StructrAuthenticator implements Authenticator {
 	//~--- get methods ----------------------------------------------------
 
 	@Override
-	public User getUser(SecurityContext securityContext, HttpServletRequest request) {
+	public User getUser(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) {
 		return (User) request.getSession().getAttribute(USER_NODE_KEY);
 	}
 }

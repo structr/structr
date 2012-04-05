@@ -20,6 +20,7 @@
 package org.structr.core.auth;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.auth.exception.AuthenticationException;
@@ -30,6 +31,7 @@ import org.structr.core.entity.User;
  * can obtain a principal from a HttpServletRequest.
  *
  * @author Christian Morgner
+ * @author Axel Morgner
  */
 public interface Authenticator {
 
@@ -39,7 +41,7 @@ public interface Authenticator {
 	 * @param request
 	 * @throws FrameworkException 
 	 */
-	public void examineRequest(SecurityContext securityContext, HttpServletRequest request) throws FrameworkException;
+	public void examineRequest(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) throws FrameworkException;
 	
 	/**
 	 *
@@ -53,7 +55,7 @@ public interface Authenticator {
 	 * @return the user that was just logged in
 	 * @throws AuthenticationException
 	 */
-	public User doLogin(SecurityContext securityContext, HttpServletRequest request, String userName, String password) throws AuthenticationException;
+	public User doLogin(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, String userName, String password) throws AuthenticationException;
 
 	/**
 	 * Logs the given request out.
@@ -61,7 +63,7 @@ public interface Authenticator {
 	 * @param securityContext the security context
 	 * @param request the request to log out
 	 */
-	public void doLogout(SecurityContext securityContext, HttpServletRequest request);
+	public void doLogout(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response);
 
 	/**
 	 * Returns the user that is currently logged into the system,
@@ -72,5 +74,5 @@ public interface Authenticator {
 	 * @return the logged-in user or null
 	 * @throws FrameworkException
 	 */
-	public User getUser(SecurityContext securityContext, HttpServletRequest request) throws FrameworkException;
+	public User getUser(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) throws FrameworkException;
 }

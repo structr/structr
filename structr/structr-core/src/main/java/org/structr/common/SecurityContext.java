@@ -41,6 +41,7 @@ import java.util.logging.Logger;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 //~--- classes ----------------------------------------------------------------
@@ -59,11 +60,12 @@ public class SecurityContext {
 
 	//~--- fields ---------------------------------------------------------
 
-	private AccessMode accessMode       = AccessMode.Frontend;
-	private Map<String, Object> attrs   = null;
-	private Authenticator authenticator = null;
-	private HttpServletRequest request  = null;
-	private User user                   = null;
+	private AccessMode accessMode        = AccessMode.Frontend;
+	private Map<String, Object> attrs    = null;
+	private Authenticator authenticator  = null;
+	private HttpServletRequest request   = null;
+	private HttpServletResponse response = null;
+	private User user                    = null;
 
 	//~--- constructors ---------------------------------------------------
 
@@ -76,11 +78,12 @@ public class SecurityContext {
 		this.accessMode = accessMode;
 	}
 
-	private SecurityContext(ServletConfig config, HttpServletRequest request, AccessMode accessMode) {
+	private SecurityContext(ServletConfig config, HttpServletRequest request, HttpServletResponse response, AccessMode accessMode) {
 
 		this.attrs      = Collections.synchronizedMap(new LinkedHashMap<String, Object>());
 		this.accessMode = accessMode;
 		this.request    = request;
+		this.response   = response;
 
 		// the authenticator does not have a security context
 		try {
@@ -92,16 +95,16 @@ public class SecurityContext {
 
 	//~--- methods --------------------------------------------------------
 
-	public void examineRequest(HttpServletRequest request) throws FrameworkException {
-		this.authenticator.examineRequest(this, request);
+	public void examineRequest(HttpServletRequest request, HttpServletResponse response) throws FrameworkException {
+		this.authenticator.examineRequest(this, request, response);
 	}
 
 	public User doLogin(String userName, String password) throws AuthenticationException {
-		return authenticator.doLogin(this, request, userName, password);
+		return authenticator.doLogin(this, request, response, userName, password);
 	}
 
 	public void doLogout() {
-		authenticator.doLogout(this, request);
+		authenticator.doLogout(this, request, response);
 	}
 
 	//~--- get methods ----------------------------------------------------
@@ -110,8 +113,8 @@ public class SecurityContext {
 		return new SuperUserSecurityContext();
 	}
 
-	public static SecurityContext getInstance(ServletConfig config, HttpServletRequest request, AccessMode accessMode) throws FrameworkException {
-		return new SecurityContext(config, request, accessMode);
+	public static SecurityContext getInstance(ServletConfig config, HttpServletRequest request, HttpServletResponse response, AccessMode accessMode) throws FrameworkException {
+		return new SecurityContext(config, request, response, accessMode);
 	}
 
 	public static SecurityContext getInstance(User user, AccessMode accessMode) throws FrameworkException {
@@ -128,7 +131,7 @@ public class SecurityContext {
 
 			if (user == null) {
 
-				user = authenticator.getUser(this, request);
+				user = authenticator.getUser(this, request, response);
 
 			}
 
@@ -194,7 +197,7 @@ public class SecurityContext {
 		user = getUser();
 
 		// owner is always allowed to do anything with its nodes
-		if (user != null && (user.equals(node) || user.equals(node.getOwnerNode()))) {
+		if ((user != null) && (user.equals(node) || user.equals(node.getOwnerNode()))) {
 
 			return true;
 
@@ -229,33 +232,36 @@ public class SecurityContext {
 
 	public boolean isVisible(AccessControllable node) {
 
-		boolean ret = false;
+		boolean visible = false;
 
 		switch (accessMode) {
 
 			case Backend :
-				ret = isVisibleInBackend(node);
+				visible = isVisibleInBackend(node);
 
 				break;
 
 			case Frontend :
-				ret = isVisibleInFrontend(node);
+				visible = isVisibleInFrontend(node);
 
 				break;
 
 		}
+
+		// If it is visible here, return true to avoid asking for an (authenticated) user
+		if (visible) return visible;
 
 		if (node != null) {
 
 			user = getUser();
 
-			logger.log(Level.FINEST, "Returning {0} for user {1}, access mode {2}, node {3}", new Object[] { ret, (user != null)
+			logger.log(Level.FINEST, "Returning {0} for user {1}, access mode {2}, node {3}", new Object[] { visible, (user != null)
 				? user.getName()
 				: "null", accessMode, node });
 
 		}
 
-		return (ret);
+		return visible;
 	}
 
 	// ----- private methods -----
@@ -525,7 +531,7 @@ public class SecurityContext {
 	private static class SuperUserSecurityContext extends SecurityContext {
 
 		public SuperUserSecurityContext() {
-			super(null, null, null);
+			super(null, null, null, null);
 		}
 
 		//~--- get methods --------------------------------------------
