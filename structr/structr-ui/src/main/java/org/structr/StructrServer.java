@@ -17,8 +17,12 @@ import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.handler.DefaultHandler;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.server.handler.RequestLogHandler;
+import org.eclipse.jetty.server.nio.SelectChannelConnector;
+import org.eclipse.jetty.server.session.SessionHandler;
+import org.eclipse.jetty.server.ssl.SslSelectChannelConnector;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.webapp.WebAppContext;
 
 import org.structr.context.ApplicationContextListener;
@@ -35,10 +39,6 @@ import java.io.File;
 import java.util.*;
 
 import javax.servlet.DispatcherType;
-import org.eclipse.jetty.server.nio.SelectChannelConnector;
-import org.eclipse.jetty.server.session.SessionHandler;
-import org.eclipse.jetty.util.ssl.SslContextFactory;
-import org.eclipse.jetty.server.ssl.SslSelectChannelConnector;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -67,20 +67,24 @@ public class StructrServer {
 		Server server                     = new Server(httpPort);
 		HandlerCollection handlers        = new HandlerCollection();
 		ContextHandlerCollection contexts = new ContextHandlerCollection();
-		
+
 		// setup HTTP connector
 		SslContextFactory factory = new SslContextFactory(keyStorePath);
+
 		factory.setKeyStorePassword("structrKeystore");
-		
+
 		SslSelectChannelConnector httpsConnector = new SslSelectChannelConnector(factory);
+
 		httpsConnector.setHost(host);
 		httpsConnector.setPort(httpsPort);
 		httpsConnector.setMaxIdleTime(maxIdleTime);
 		httpsConnector.setRequestHeaderSize(requestHeaderSize);
+
 		// ServletContextHandler context0    = new ServletContextHandler(ServletContextHandler.SESSIONS);
-		//SelectChannelConnector connector0 = new SelectChannelConnector();
+		// SelectChannelConnector connector0 = new SelectChannelConnector();
 
 		SelectChannelConnector httpConnector = new SelectChannelConnector();
+
 		httpConnector.setHost(host);
 		httpConnector.setPort(httpPort);
 		httpConnector.setMaxIdleTime(maxIdleTime);
@@ -104,7 +108,7 @@ public class StructrServer {
 		}
 
 		modulesPath = modulesDir.getAbsolutePath();
-			
+
 		File modulesConfFile     = new File(modulesPath + "/modules.conf");
 		String warPath           = StructrServer.class.getProtectionDomain().getCodeSource().getLocation().getPath();
 		List<String> modulesConf = new LinkedList<String>();
@@ -223,7 +227,8 @@ public class StructrServer {
 		initParams.put("RequestLogging", "true");
 		initParams.put("PropertyFormat", "FlatNameValue");
 		initParams.put("ResourceProvider", "org.structr.web.common.UiResourceProvider");
-//		initParams.put("ResourceProvider", "org.structr.rest.resource.StructrResourceProvider");
+
+//              initParams.put("ResourceProvider", "org.structr.rest.resource.StructrResourceProvider");
 		initParams.put("Authenticator", "org.structr.web.auth.UiAuthenticator");
 		initParams.put("IdProperty", "uuid");
 		holder.setInitParameters(initParams);
@@ -250,7 +255,6 @@ public class StructrServer {
 		wsInitParams.put("IdProperty", "uuid");
 		wsServletHolder.setInitParameters(wsInitParams);
 		wsServletHolder.setInitOrder(4);
-		
 		webapp.addServlet(wsServletHolder, "/structr/ws/*");
 		webapp.addEventListener(new ApplicationContextListener());
 
@@ -275,7 +279,6 @@ public class StructrServer {
 		requestLog.setExtended(false);
 		requestLog.setLogTimeZone("GMT");
 		requestLogHandler.setRequestLog(requestLog);
-
 		contexts.setHandlers(new Handler[] { webapp, requestLogHandler });
 		handlers.setHandlers(new Handler[] { contexts, new DefaultHandler(), requestLogHandler });
 		server.setHandler(handlers);

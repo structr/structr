@@ -21,6 +21,7 @@
 
 package org.structr.web.auth;
 
+import java.io.IOException;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.auth.AuthHelper;
@@ -36,22 +37,25 @@ import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang.StringUtils;
 
 //~--- classes ----------------------------------------------------------------
 
 /**
  *
- * @author Christian Morgner
+ * @author Axel Morgner
  */
 public class HttpAuthenticator implements Authenticator {
 
 	private static final String SESSION_USER = "sessionUser";
+	private static final Logger logger = Logger.getLogger(HttpAuthenticator.class.getName());
 
 	@Override
-	public void examineRequest(SecurityContext securityContext, HttpServletRequest request) throws FrameworkException {}
+	public void examineRequest(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) throws FrameworkException {}
 
 	@Override
-	public User doLogin(SecurityContext securityContext, HttpServletRequest request, String userName, String password) throws AuthenticationException {
+	public User doLogin(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, String userName, String password) throws AuthenticationException {
 
 		User user = AuthHelper.getUserForUsernameAndPassword(securityContext, userName, password);
 
@@ -72,7 +76,7 @@ public class HttpAuthenticator implements Authenticator {
 	}
 
 	@Override
-	public void doLogout(SecurityContext securityContext, HttpServletRequest request) {
+	public void doLogout(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) {
 
 		try {
 
@@ -87,15 +91,60 @@ public class HttpAuthenticator implements Authenticator {
 	//~--- get methods ----------------------------------------------------
 
 	@Override
-	public User getUser(SecurityContext securityContext, HttpServletRequest request) {
+	public User getUser(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) {
 
 		User user = (User) request.getSession().getAttribute(SESSION_USER);
 
 		if (user == null) {
 
-			// TODO: Implement HTTP basic auth
+			user = checkBasicAuthentication(request, response);
 		}
 
 		return user;
+	}
+	
+	private User checkBasicAuthentication(HttpServletRequest request, HttpServletResponse response) {
+
+		User user;
+		String auth = request.getHeader("Authorization");
+
+		if (auth == null) {
+
+			sendBasicAuthResponse(response);
+			return null;
+
+		}
+
+		if (!auth.toUpperCase().startsWith("BASIC ")) {
+
+			sendBasicAuthResponse(response);
+			return null;
+
+		}
+
+		String usernameAndPassword = new String(Base64.decodeBase64(auth.substring(6)));
+
+		logger.log(Level.INFO, "Decoded user and pass: {0}", usernameAndPassword);
+
+		String[] userAndPass = StringUtils.split(usernameAndPassword, ":");
+
+		try {
+			user = AuthHelper.getUserForUsernameAndPassword(SecurityContext.getSuperUserInstance(), userAndPass[0], userAndPass[1]);
+		} catch (AuthenticationException ex) {
+			sendBasicAuthResponse(response);
+			return null;
+		}
+
+		return user;
+	}
+
+	private void sendBasicAuthResponse(HttpServletResponse response) {
+
+		response.setHeader("WWW-Authenticate", "BASIC realm=\"structr\"");
+		try {
+			response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+		} catch (IOException ex) {
+			logger.log(Level.SEVERE, null, ex);
+		}
 	}
 }

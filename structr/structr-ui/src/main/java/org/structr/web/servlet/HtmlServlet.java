@@ -110,7 +110,6 @@ public class HtmlServlet extends HttpServlet {
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) {
 
-
 		edit = false;
 		tidy = false;
 
@@ -128,7 +127,7 @@ public class HtmlServlet extends HttpServlet {
 
 		try {
 
-			SecurityContext securityContext = SecurityContext.getInstance(this.getServletConfig(), request, AccessMode.Frontend);
+			SecurityContext securityContext = SecurityContext.getInstance(this.getServletConfig(), request, response, AccessMode.Frontend);
 
 			request.setCharacterEncoding("UTF-8");
 
@@ -162,8 +161,8 @@ public class HtmlServlet extends HttpServlet {
 				group.add(Search.orExactType(Image.class.getSimpleName()));
 				searchAttrs.add(group);
 
-				List<AbstractNode> results = (List<AbstractNode>) Services.command(securityContext, SearchNodeCommand.class).execute(null, false, false,
-								     searchAttrs);
+				// Searching for resources needs super user context anyway
+				List<AbstractNode> results = (List<AbstractNode>) Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(null, false, false, searchAttrs);
 
 				logger.log(Level.FINE, "{0} results", results.size());
 
@@ -185,7 +184,7 @@ public class HtmlServlet extends HttpServlet {
 
 			}
 
-			if (resource != null && securityContext.isVisible(resource)) {
+			if ((resource != null) && securityContext.isVisible(resource)) {
 
 				String uuid                    = resource.getStringProperty(Resource.Key.uuid);
 				final Set<String> componentIds = new LinkedHashSet<String>();
@@ -231,7 +230,7 @@ public class HtmlServlet extends HttpServlet {
 				response.getWriter().close();
 				response.setStatus(HttpServletResponse.SC_OK);
 
-			} else if (file != null) {
+			} else if ((file != null) && securityContext.isVisible(file)) {
 
 				// 2b: stream file to response
 				InputStream in     = file.getInputStream();
