@@ -66,6 +66,7 @@ public class SecurityContext {
 	private HttpServletRequest request   = null;
 	private HttpServletResponse response = null;
 	private User user                    = null;
+	private String password              = null;
 
 	//~--- constructors ---------------------------------------------------
 
@@ -232,36 +233,18 @@ public class SecurityContext {
 
 	public boolean isVisible(AccessControllable node) {
 
-		boolean visible = false;
-
 		switch (accessMode) {
 
 			case Backend :
-				visible = isVisibleInBackend(node);
-
-				break;
+				return isVisibleInBackend(node);
 
 			case Frontend :
-				visible = isVisibleInFrontend(node);
+				return isVisibleInFrontend(node);
 
-				break;
-
-		}
-
-		// If it is visible here, return true to avoid asking for an (authenticated) user
-		if (visible) return visible;
-
-		if (node != null) {
-
-			user = getUser();
-
-			logger.log(Level.FINEST, "Returning {0} for user {1}, access mode {2}, node {3}", new Object[] { visible, (user != null)
-				? user.getName()
-				: "null", accessMode, node });
+			default :
+				return false;
 
 		}
-
-		return visible;
 	}
 
 	// ----- private methods -----
@@ -369,27 +352,39 @@ public class SecurityContext {
 
 		}
 
-		// fetch user
-		user = getUser();
+		// Ask for user only if node is visible for authenticated users
+		if (node.isVisibleToAuthenticatedUsers()) {
 
-		if (user != null) {
+			// fetch user
+			user = getUser();
 
-			// SuperUser
-			if (user instanceof SuperUser) {
+			if (user != null) {
 
-				return (true);
+				// SuperUser
+				if (user instanceof SuperUser) {
 
-			}
+					return true;
 
-			// frontend user
-			if (user.isFrontendUser()) {
+				}
 
-				return node.hasPermission(AbstractRelationship.Permission.read.name(), user);
+				// frontend user
+				if (user.isFrontendUser()) {
 
+					boolean hasReadPermission = node.hasPermission(AbstractRelationship.Permission.read.name(), user);
+
+					if (!hasReadPermission) {
+
+						response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+
+					}
+
+					return hasReadPermission;
+
+				}
 			}
 		}
 
-		return (false);
+		return false;
 	}
 
 	private boolean isAllowedInBackend(AccessControllable node, Permission permission) {

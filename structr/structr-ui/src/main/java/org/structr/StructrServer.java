@@ -49,6 +49,8 @@ import javax.servlet.DispatcherType;
  */
 public class StructrServer {
 
+	public static final String REST_URL = "/structr/rest";
+
 	public static void main(String[] args) throws Exception {
 
 		String appName        = "structr UI 0.4.8";
@@ -233,7 +235,7 @@ public class StructrServer {
 		initParams.put("IdProperty", "uuid");
 		holder.setInitParameters(initParams);
 		holder.setInitOrder(2);
-		webapp.addServlet(holder, "/structr/rest/*");
+		webapp.addServlet(holder, REST_URL + "/*");
 
 		// HTML Servlet
 		HtmlServlet htmlServlet            = new HtmlServlet();

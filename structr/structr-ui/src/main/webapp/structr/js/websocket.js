@@ -139,6 +139,9 @@ function connect() {
             } else if (command == 'CREATE' || command == 'IMPORT') {
 				
                 $(result).each(function(i, entity) {
+
+                    console.log('CREATE', entity);
+
                     if (entity.type == 'User') {
 
                         groupId = entity.groupId;
@@ -163,6 +166,9 @@ function connect() {
                         if (buttonClicked) enable(buttonClicked);
 
                     } else if (entity.type == 'Content') {
+
+                        console.log("Content", resources);
+
                         if (resources) {
                             _Resources.appendContentElement(entity);
                         } else {
@@ -217,17 +223,17 @@ function connect() {
 
             } else if (command == 'GET') {
 
-                console.log('GET:', data);
+                if (debug) console.log('GET:', data);
 
                 var d = data.data.displayElementId;
-                console.log('displayElementId', d);
+                if (debug) console.log('displayElementId', d);
 
                 var parentElement = $(d);
-                console.log('parentElement', parentElement);
-                console.log('attrElement', attrElement);
+                if (debug) console.log('parentElement', parentElement);
+                if (debug) console.log('attrElement', attrElement);
                 var key = data.data.key;
                 var value = data.data[key];
-                console.log(key, value);
+                if (debug) console.log(key, value);
                 var attrElement = parentElement.find('.' + key + '_');
 
                 if (attrElement) {
@@ -488,7 +494,7 @@ function connect() {
                     if (debug) console.log(attrElement, inputElement);
                     var newValue = data.data[key];
 
-                    console.log(key, newValue, typeof newValue);
+                    if (debug) console.log(key, newValue, typeof newValue);
                     if (typeof newValue  == 'boolean') {
 
                         _Entities.changeBooleanAttribute(attrElement, newValue);

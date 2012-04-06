@@ -642,6 +642,22 @@ public class EntityContext {
 
 		}
 
+		if (relation == null) {
+
+			// Check dest type superclasses
+			localType        = destType;
+
+			while ((relation == null) &&!localType.equals(Object.class)) {
+
+				relation  = getRelationClassMapForType(sourceType).get(localType);
+				localType = localType.getSuperclass();
+
+			}
+
+
+
+		}
+		
 		return relation;
 	}
 

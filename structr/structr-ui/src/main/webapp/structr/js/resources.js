@@ -22,6 +22,7 @@ var previews, previewTabs, tools;
 var selStart, selEnd;
 var sel;
 var contentSourceId, elementSourceId, rootId;
+var textBeforeEditing;
 
 $(document).ready(function() {
     Structr.registerModule('resources', _Resources);
@@ -464,6 +465,7 @@ var _Resources = {
                         }
                         
 
+                        var props;
                         
                         if (resourceId) {
                             props = '"resourceId" : "' + resourceId + '", "' + resourceId + '" : "' + pos + '"';
@@ -471,11 +473,11 @@ var _Resources = {
                             props = '"*" : "' + pos + '"';
                         }
 
-                        var props;
-
                         if (!contentId) {
                             props += ', "name" : "New ' + tag + ' ' + Math.floor(Math.random() * (999999 - 1)) + '", "type" : "' + tag.capitalize() + '"' + (tag != 'content' ? ', "tag" : "' + tag + '"' : '');
                         }
+
+                        console.log(props);
                         _Entities.addSourceToTarget(contentId, elementId, props);
                     }
                 });
@@ -591,6 +593,10 @@ var _Resources = {
                             self.removeClass('structr-editable-area');
                             self.addClass('structr-editable-area-active');
 
+                            // Store old text in global var
+                            textBeforeEditing = self.contents().first().text();
+                            if (debug) console.log("textBeforeEditing", textBeforeEditing);
+
                             //swapFgBg(self);
                             sel = iframeWindow.getSelection();
                             if (sel.rangeCount) {
@@ -614,7 +620,8 @@ var _Resources = {
                             var self = $(this);
                             if (debug) console.log(self.contents().first());
                             if (debug) console.log('blur contentSourceId: ' + contentSourceId);
-                            _Resources.updateContent(contentSourceId, self.contents().first().text());
+                            //_Resources.updateContent(contentSourceId, textBeforeEditing, self.contents().first().text());
+                            _Contents.patch(contentSourceId, textBeforeEditing, self.contents().first().text());
                             contentSourceId = null;
                             self.attr('contenteditable', false);
                             self.removeClass('structr-editable-area-active');
@@ -684,12 +691,17 @@ var _Resources = {
                 } else {
                     props = '"*" : "' + pos + '"';
                 }
-
+                
+                var component = $(this).closest( '.component')[0];
+                if (component) {
+                    var componentId = getIdFromClassString($(component).attr('class'));
+                    props += ', "componentId" : "' + componentId + '", "' + componentId + '" : "' + pos + '"';
+                }
                 if (!contentId) {
-                    props += ', "name" : "New ' + tag + ' ' + Math.floor(Math.random() * (999999 - 1)) + '", "type" : "' + tag.capitalize() + '", "tag" : "' + tag + '"';
+                    props += ', "name" : "New ' + tag + ' ' + Math.floor(Math.random() * (999999 - 1)) + '", "type" : "' + tag.capitalize() + '"' + (tag != 'content' ? ', "tag" : "' + tag + '"' : '');
                 }
 
-                if (debug) console.log(props);
+                console.log(props);
                 _Entities.addSourceToTarget(contentId, elementId, props);
             }
         });
@@ -727,14 +739,17 @@ var _Resources = {
 
 
         div.droppable({
-            accept: '.element',
+            accept: '.element, .content',
             greedy: true,
             hoverClass: 'componentHover',
             drop: function(event, ui) {
                 var resource = $(this).closest( '.resource')[0];
+                
                 if (debug) console.log(resource);
                 var contentId = getIdFromClassString(ui.draggable.attr('class'));
-                var componentId = getIdFromClassString($(this).attr('class'));
+                if (!contentId) {
+                    var tag = $(ui.draggable).text();
+                }
                 var pos = $('.element', $(this)).length;
                 if (debug) console.log(pos);
                 var props;
@@ -744,7 +759,17 @@ var _Resources = {
                 } else {
                     props = '"*" : "' + pos + '"';
                 }
-                if (debug) console.log(props);
+
+                var component = $(this).closest( '.component')[0];
+                if (component) {
+                    var componentId = getIdFromClassString($(component).attr('class'));
+                    props += ', "componentId" : "' + componentId + '", "' + componentId + '" : "' + pos + '"';
+                }
+
+                if (!contentId) {
+                    props += ', "name" : "New ' + tag + ' ' + Math.floor(Math.random() * (999999 - 1)) + '", "type" : "' + tag.capitalize() + '"' + (tag != 'content' ? ', "tag" : "' + tag + '"' : '');
+                }
+                console.log('Add to Component', props);
                 _Entities.addSourceToTarget(contentId, componentId, props);
             }
         });
@@ -953,33 +978,36 @@ var _Resources = {
 
     },
 
-    updateContent : function(contentId, content) {
-        //console.log('update ' + contentId + ' with ' + content);
-        var url = rootUrl + 'content' + '/' + contentId;
-        if (debug) console.log(content);
-        var text = content.replace(/\n/g, '<br>');
-        if (debug) console.log(text);
-        text = $.quoteString(text);
-        var data = '{ "content" : ' + text + ' }';
-        var headers = {
-            'X-StructrSessionToken' : token
-        };
-        $.ajax({
-            url: url,
-            //async: false,
-            type: 'PUT',
-            dataType: 'json',
-            contentType: 'application/json; charset=utf-8',
-            data: data,
-            headers: headers,
-            success: function(data) {
-            //refreshIframes();
-            //keyEventBlocked = true;
-            //enable(button);
-            //console.log('success');
-            }
-        });
-    },
+    //    updateContent : function(contentId, content) {
+    //        //console.log('update ' + contentId + ' with ' + content);
+    //        var url = rootUrl + 'content' + '/' + contentId;
+    //        if (debug) console.log(content);
+    //        var text = content.replace(/\n/g, '<br>');
+    //        if (debug) console.log(text);
+    //        text = $.quoteString(text);
+    //        var data = '{ "content" : ' + text + ' }';
+    //        var headers = {
+    //            'X-StructrSessionToken' : token
+    //        };
+    //
+    //        _Contents.patch(entity.id, text1, text2);
+    //
+    ////        $.ajax({
+    ////            url: url,
+    ////            //async: false,
+    ////            type: 'PUT',
+    ////            dataType: 'json',
+    ////            contentType: 'application/json; charset=utf-8',
+    ////            data: data,
+    ////            headers: headers,
+    ////            success: function(data) {
+    ////            //refreshIframes();
+    ////            //keyEventBlocked = true;
+    ////            //enable(button);
+    ////            //console.log('success');
+    ////            }
+    ////        });
+    //    },
 
     addResource : function(button) {
         return _Entities.add(button, 'Resource');

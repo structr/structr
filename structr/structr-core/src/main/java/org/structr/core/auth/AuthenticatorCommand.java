@@ -42,11 +42,15 @@ public class AuthenticatorCommand extends Command {
 		if(parameters != null && parameters.length == 1 && parameters[0] instanceof ServletConfig) {
 
 			ServletConfig servletConfig = (ServletConfig)parameters[0];
+			Authenticator authenticator = null;
 			if(servletConfig != null) {
 
-				Authenticator authenticator = (Authenticator)servletConfig.getServletContext().getAttribute(AuthenticationService.SERVLET_PARAMETER_AUTHENTICATOR);
-				if(authenticator == null) {
+				// In a multi-context environment (e.g. WebSocket, REST and plain HTTP),
+				// it's bad idea to store the authenticator service in the servlet context
+				//Authenticator authenticator = (Authenticator)servletConfig.getServletContext().getAttribute(AuthenticationService.SERVLET_PARAMETER_AUTHENTICATOR);
+				//if(authenticator == null) {
 
+					
 					String authenticatorClassName = servletConfig.getInitParameter(AuthenticationService.SERVLET_PARAMETER_AUTHENTICATOR);
 					if(authenticatorClassName != null) {
 
@@ -70,7 +74,7 @@ public class AuthenticatorCommand extends Command {
 
 						logger.log(Level.SEVERE, "No authenticator for servlet with context path {0}", servletConfig.getServletName());
 					}
-				}
+				//}
 
 				// return instance
 				return authenticator;

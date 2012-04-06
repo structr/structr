@@ -73,7 +73,7 @@ var _Contents = {
 
         var parent = Structr.findParent(parentId, resourceId, contents);
 
-        var text = (content.content ? content.content.substring(0,200) : '-- empty --');
+        var text = (content.content ? content.content.substring(0,200) : '&nbsp;');
 
         parent.append('<div class="node content ' + content.id + '_">'
             + '<img class="typeIcon" src="'+ _Contents.icon + '">'
@@ -132,9 +132,18 @@ var _Contents = {
         deleteNode(button, content);
     },
 	
-    patch : function(id, patch) {
-        var command = '{ "command" : "PATCH" , "id" : "' + id + '", "data" : { "patch" : ' + patch + '} }';
-        if (debug) console.log(command);
+    patch : function(id, text1, text2) {
+        if (debug) console.log(text1, text2);
+
+        // Avoid null values
+        if (!text1) text1 = '';
+        if (!text2) text2 = '';
+
+        var p = dmp.patch_make(text1, text2);
+        var strp = dmp.patch_toText(p);
+        if (debug) console.log(strp, $.quoteString(strp));
+        var command = '{ "command" : "PATCH" , "id" : "' + id + '", "data" : { "patch" : ' + $.quoteString(strp) + '} }';
+        console.log(command);
         return send(command);
     },
 
@@ -150,94 +159,45 @@ var _Contents = {
         //                //editContent(button, resourceId, contentId);
         //                });
         //        });
-		var cursor = {};
         editor = CodeMirror(contentBox.get(0), {
             value: unescapeTags(entity.content),
             mode:  "htmlmixed",
             lineNumbers: true,
             onChange: function(cm, changes) {
 				
-				var element = $( '.' + entity.id + '_')[0];
-				var text1 = $(element).children('.content_').text();
-				var text2 = editor.getValue();
+                var element = $( '.' + entity.id + '_')[0];
+                var text1 = $(element).children('.content_').text();
+                var text2 = editor.getValue();
 				
-				console.log(element);
-				console.log(text1, text2);
+                console.log(element);
+                console.log(text1, text2);
+
+                if (text1 == text2) return;
+                editorCursor = cm.getCursor();
+                console.log(editorCursor);
 				
-				if (text1 == text2) return;
+                _Contents.patch(entity.id, text1, text2);
 				
-				var p = dmp.patch_make(text1, text2);
-				var strp = dmp.patch_toText(p);
-				console.log(strp, $.quoteString(strp));
-				
-				editorCursor = cm.getCursor();
-				console.log(editorCursor);
-				
-				_Contents.patch(entity.id, $.quoteString(strp));
-				
-//
-//                var selection = window.getSelection();
-//                console.log(selection);
-//                if (selection.rangeCount) {
-//					console.log(selection.rangeCount);
-//                    selStart = selection.getRangeAt(selection.rangeCount).startOffset;
-//                    selEnd = selection.getRangeAt(selection.rangeCount).endOffset;
-//                    console.log(selStart, selEnd);
-//                }
+            //
+            //                var selection = window.getSelection();
+            //                console.log(selection);
+            //                if (selection.rangeCount) {
+            //					console.log(selection.rangeCount);
+            //                    selStart = selection.getRangeAt(selection.rangeCount).startOffset;
+            //                    selEnd = selection.getRangeAt(selection.rangeCount).endOffset;
+            //                    console.log(selStart, selEnd);
+            //                }
 
 
 
 
 
-                //var content = escapeTags(editor.getValue());
-                //_Entities.setProperty(entity.id, 'content', content);
+            //var content = escapeTags(editor.getValue());
+            //_Entities.setProperty(entity.id, 'content', content);
             }
         });
 
         editor.id = entity.id;
 
-
-    //        var url = rootUrl + 'content' + '/' + entity.id;
-    //        if (debug) console.log(url);
-    //        $.ajax({
-    //            url: url,
-    //            dataType: 'json',
-    //            contentType: 'application/json; charset=utf-8',
-    //            headers: headers,
-    //            success: function(data) {
-    //                codeMirror = CodeMirror(contentBox.get(0), {
-    //                    value: unescapeTags(data.result.content),
-    //                    mode:  "htmlmixed",
-    //                    lineNumbers: true,
-    //                    onKeyEvent: function() {
-    //                        //console.log(keyEventBlocked);
-    //                        if (keyEventBlocked) {
-    //                            clearTimeout(keyEventTimeout);
-    //                            keyEventTimeout = setTimeout(function() {
-    //                                var fromCodeMirror = escapeTags(codeMirror.getValue());
-    //                                var content = $.quoteString(fromCodeMirror);
-    //                                var data = '{ "content" : ' + content + ' }';
-    //                                //console.log(data);
-    //                                $.ajax({
-    //                                    url: url,
-    //                                    //async: false,
-    //                                    type: 'PUT',
-    //                                    dataType: 'json',
-    //                                    contentType: 'application/json; charset=utf-8',
-    //                                    headers: headers,
-    //                                    data: data,
-    //                                    success: function(data) {
-    //                                        _Resources.reloadPreviews();
-    //                                        keyEventBlocked = true;
-    //                                    //enable(button);
-    //                                    }
-    //                                });
-    //                            }, 500);
-    //                            return;
-    //                        }
-    //                    }
-    //                });
-    //            }
-    //        });
     }
 };

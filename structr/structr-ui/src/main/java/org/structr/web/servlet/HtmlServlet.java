@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2011 Axel Morgner
+ *  Copyright (C) 2011-2012 Axel Morgner
  *
  *  This file is part of structr <http://structr.org>.
  *
@@ -21,15 +21,24 @@
 
 package org.structr.web.servlet;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+
+import org.eclipse.jetty.client.ContentExchange;
+import org.eclipse.jetty.client.HttpClient;
+import org.eclipse.jetty.io.Buffer;
+import org.eclipse.jetty.io.ByteArrayBuffer;
 
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.kernel.Traversal;
 import org.neo4j.kernel.Uniqueness;
 
+import org.structr.StructrServer;
 import org.structr.common.*;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -38,6 +47,7 @@ import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Image;
+import org.structr.core.node.NodeAttribute;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 import org.structr.core.node.search.Search;
@@ -45,6 +55,7 @@ import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchAttributeGroup;
 import org.structr.core.node.search.SearchNodeCommand;
 import org.structr.core.node.search.SearchOperator;
+import org.structr.web.auth.HttpAuthenticator;
 import org.structr.web.entity.Component;
 import org.structr.web.entity.Content;
 import org.structr.web.entity.Resource;
@@ -94,8 +105,52 @@ public class HtmlServlet extends HttpServlet {
 
 	// area, base, br, col, command, embed, hr, img, input, keygen, link, meta, param, source, track, wbr
 	private boolean edit, tidy;
+	private Gson gson;
 
 	//~--- methods --------------------------------------------------------
+
+	private boolean postToRestUrl(HttpServletRequest request, final String resourcePath, final Map<String, Object> parameters) {
+
+		HttpClient httpClient = new HttpClient();
+		ContentExchange contentExchange;
+		String restUrl = null;
+
+		gson = new GsonBuilder().create();
+
+		try {
+
+			httpClient.start();
+
+			contentExchange = new ContentExchange();
+
+			httpClient.setConnectorType(HttpClient.CONNECTOR_SELECT_CHANNEL);
+
+			restUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getLocalPort() + StructrServer.REST_URL + "/" + resourcePath;
+
+			contentExchange.setURL(restUrl);
+
+			Buffer buf = new ByteArrayBuffer(gson.toJson(parameters), "UTF-8");
+
+			contentExchange.setRequestContent(buf);
+			contentExchange.setRequestContentType("application/json");
+			contentExchange.setMethod("POST");
+
+			String[] userAndPass = HttpAuthenticator.getUsernameAndPassword(request);
+
+			contentExchange.addRequestHeader("X-User", userAndPass[0]);
+			contentExchange.addRequestHeader("X-Password", userAndPass[1]);
+			httpClient.send(contentExchange);
+			contentExchange.waitForDone();
+
+			return contentExchange.isDone();
+
+		} catch (Exception ex) {
+
+			logger.log(Level.WARNING, "Error while POSTing to REST url " + restUrl, ex);
+
+			return false;
+		}
+	}
 
 	@Override
 	public void init() {
@@ -108,7 +163,53 @@ public class HtmlServlet extends HttpServlet {
 	public void destroy() {}
 
 	@Override
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) {
+
+		Map<String, String[]> parameterMap = request.getParameterMap();
+		String path                        = clean(request.getPathInfo());
+
+		// String resourcePath                = getParts(path)[1];
+		postToRestUrl(request, path, convert(parameterMap));
+
+		String name = null;
+
+		try {
+
+			name = getParts(path)[0];
+
+			response.sendRedirect("/" + name);
+
+			// doGet(request, response);
+
+		} catch (IOException ex) {
+			logger.log(Level.SEVERE, "Could not redirect to " + name, ex);
+		}
+	}
+
+	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) {
+
+		String path = clean(request.getPathInfo());
+
+		logger.log(Level.INFO, "Path info {0}", path);
+
+		String[] urlParts = getParts(path);
+
+		String searchFor = null;
+		if (urlParts.length > 1) {
+			searchFor = StringUtils.substringBefore(urlParts[1], "?");
+		}
+
+
+		String name                        = getParts(path)[0];
+		List<NodeAttribute> attrs          = new LinkedList<NodeAttribute>();
+		Map<String, String[]> parameterMap = request.getParameterMap();
+
+		if ((parameterMap != null) && (parameterMap.size() > 0)) {
+
+			attrs = convertToNodeAttributes(parameterMap);
+
+		}
 
 		edit = false;
 		tidy = false;
@@ -137,14 +238,6 @@ public class HtmlServlet extends HttpServlet {
 			// 1: find entry point (Resource, File or Image)
 			Resource resource                 = null;
 			org.structr.core.entity.File file = null;
-			String path                       = request.getPathInfo();
-
-			logger.log(Level.INFO, "Path info {0}", path);
-
-			// Remove trailing /
-			path = StringUtils.stripEnd(path, "/");
-
-			String name = StringUtils.substringAfterLast(path, "/");
 
 			if (name.length() > 0) {
 
@@ -162,7 +255,8 @@ public class HtmlServlet extends HttpServlet {
 				searchAttrs.add(group);
 
 				// Searching for resources needs super user context anyway
-				List<AbstractNode> results = (List<AbstractNode>) Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(null, false, false, searchAttrs);
+				List<AbstractNode> results = (List<AbstractNode>) Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(null, false, false,
+								     searchAttrs);
 
 				logger.log(Level.FINE, "{0} results", results.size());
 
@@ -186,10 +280,10 @@ public class HtmlServlet extends HttpServlet {
 
 			if ((resource != null) && securityContext.isVisible(resource)) {
 
-				String uuid                    = resource.getStringProperty(Resource.Key.uuid);
-				final StringBuilder buffer     = new StringBuilder(10000);
+				String uuid                = resource.getStringProperty(Resource.Key.uuid);
+				final StringBuilder buffer = new StringBuilder(10000);
 
-				getContent(uuid, null, buffer, resource, 0, false);
+				getContent(uuid, null, buffer, resource, 0, false, searchFor, attrs);
 
 				String content = buffer.toString();
 				double end     = System.nanoTime();
@@ -224,10 +318,7 @@ public class HtmlServlet extends HttpServlet {
 				}
 
 				// 3: output content
-				response.getWriter().append(content);
-				response.getWriter().flush();
-				response.getWriter().close();
-				response.setStatus(HttpServletResponse.SC_OK);
+				HttpAuthenticator.writeContent(content, response);
 
 			} else if ((file != null) && securityContext.isVisible(file)) {
 
@@ -252,16 +343,111 @@ public class HtmlServlet extends HttpServlet {
 				out.flush();
 				out.close();
 				response.setStatus(HttpServletResponse.SC_OK);
+			} else {
+
+				// Check if security context has set an 401 status
+				if (response.getStatus() == HttpServletResponse.SC_UNAUTHORIZED) {
+
+					HttpAuthenticator.writeUnauthorized(response);
+
+				} else {
+
+					HttpAuthenticator.writeNotFound(response);
+
+				}
 			}
 
 		} catch (Throwable t) {
-			logger.log(Level.WARNING, "Exception while processing request", t);
+
+			// logger.log(Level.WARNING, "Exception while processing request", t);
+			HttpAuthenticator.writeInternalServerError(response);
 		}
+	}
+
+	/**
+	 * Convert parameter map so that after conversion, all map values
+	 * are a single String instead of an one-element String[]
+	 *
+	 * @param parameterMap
+	 * @return
+	 */
+	private Map<String, Object> convert(final Map<String, String[]> parameterMap) {
+
+		Map parameters = new HashMap<String, Object>();
+
+		for (Map.Entry<String, String[]> param : parameterMap.entrySet()) {
+
+			String[] values = param.getValue();
+			Object val;
+
+			if (values.length == 1) {
+
+				val = values[0];
+
+			} else {
+
+				val = values;
+
+			}
+
+			parameters.put(param.getKey(), val);
+
+		}
+
+		return parameters;
+	}
+
+	/**
+	 * Convert parameter map to list of node attributes
+	 *
+	 * @param parameterMap
+	 * @return
+	 */
+	private List<NodeAttribute> convertToNodeAttributes(final Map<String, String[]> parameterMap) {
+
+		List<NodeAttribute> attrs = new LinkedList<NodeAttribute>();
+
+		for (Map.Entry<String, String[]> param : parameterMap.entrySet()) {
+
+			String[] values = param.getValue();
+			Object val;
+
+			if (values.length == 1) {
+
+				val = values[0];
+
+			} else {
+
+				val = values;
+
+			}
+
+			NodeAttribute attr = new NodeAttribute(param.getKey(), val);
+
+			attrs.add(attr);
+
+		}
+
+		return attrs;
+	}
+
+	private String clean(String path) {
+
+		// Remove leading and trailing /
+		return StringUtils.strip(path, "/");
 	}
 
 	//~--- get methods ----------------------------------------------------
 
-	private void getContent(final String resourceId, final String componentId, final StringBuilder buffer, final AbstractNode node, final int depth, boolean inBody) {
+	private String[] getParts(String path) {
+
+		path = clean(path);
+
+		return new String[] { StringUtils.substringBefore(path, "/"), StringUtils.substringAfter(path, "/") };
+	}
+
+	private void getContent(final String resourceId, final String componentId, final StringBuilder buffer, final AbstractNode node, final int depth, boolean inBody,
+				final String searchClass, final List<NodeAttribute> attrs) {
 
 		String localComponentId   = componentId;
 		String content            = null;
@@ -270,8 +456,37 @@ public class HtmlServlet extends HttpServlet {
 
 		if (node != null) {
 
+			// If a search class is given, respect search attributes
+			// Filters work with AND
+
+			String structrClass = node.getStringProperty(Component.UiKey.structrclass);
+
+			if (structrClass != null && structrClass.equals(EntityContext.normalizeEntityName(searchClass)) && attrs != null) {
+
+				for (NodeAttribute attr : attrs) {
+
+					String key = attr.getKey();
+					Object val = attr.getValue();
+
+					if (!val.equals(node.getProperty(key))) {
+
+						return;
+
+					}
+
+				}
+
+			}
+
 			String id = node.getStringProperty("uuid");
 
+			for (int d = 0; d < depth; d++) {
+
+				System.out.print(" ");
+
+			}
+
+			// System.out.println("id: " + id + " [" + node.getStringProperty("type") + "] " + node.getStringProperty("name") + ", depth: " + depth + ", res: " + resourceId + ", comp: " + componentId);
 			if (node instanceof Content) {
 
 				content = node.getStringProperty("content");
@@ -288,9 +503,9 @@ public class HtmlServlet extends HttpServlet {
 
 			// check for component
 			if (node instanceof Component) {
-				
+
 				localComponentId = node.getStringProperty(AbstractNode.Key.uuid);
-				
+
 			}
 
 			if (link != null) {
@@ -353,7 +568,7 @@ public class HtmlServlet extends HttpServlet {
 
 					for (String attribute : EntityContext.getPropertySet(node.getClass(), PropertyView.Html)) {
 
-						if (node.getProperty(attribute) != null) {
+						if (StringUtils.isNotBlank(node.getStringProperty(attribute))) {
 
 							String key = attribute.substring(PropertyView.Html.length());
 
@@ -374,7 +589,6 @@ public class HtmlServlet extends HttpServlet {
 				buffer.append(content);
 
 			}
-
 		}
 
 		// collect children
@@ -382,22 +596,26 @@ public class HtmlServlet extends HttpServlet {
 
 		for (AbstractRelationship abstractRelationship : node.getOutgoingRelationships(RelType.CONTAINS)) {
 
-			Relationship rel       = abstractRelationship.getRelationship();
+			Relationship rel = abstractRelationship.getRelationship();
 
 			if (rel.hasProperty(resourceId) || rel.hasProperty("*")) {
 
 				AbstractNode endNode = abstractRelationship.getEndNode();
-				if(localComponentId != null && (endNode instanceof Content || endNode instanceof Component)) {
+
+				if ((localComponentId != null) && ((endNode instanceof Content) || (endNode instanceof Component))) {
 
 					// only add relationship if (nested) componentId matches
-					if(rel.hasProperty(localComponentId)) {
+					if (rel.hasProperty(localComponentId)) {
+
 						rels.add(abstractRelationship);
+
 					}
-					
 				} else {
-					
+
 					rels.add(abstractRelationship);
+
 				}
+
 			}
 
 		}
@@ -420,7 +638,7 @@ public class HtmlServlet extends HttpServlet {
 
 			AbstractNode subNode = rel.getEndNode();
 
-			getContent(resourceId, localComponentId, buffer, subNode, depth + 1, inBody);
+			getContent(resourceId, localComponentId, buffer, subNode, depth + 1, inBody, searchClass, attrs);
 
 		}
 

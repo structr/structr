@@ -201,6 +201,7 @@ var _Elements = {
             + (entity._html_class ? 'class=' + entity._html_class : '')
             + '</div>');
         var div = $('.' + entity.id + '_', parent);
+
         div.append('<img title="Delete ' + entity.tag + ' element ' + entity.id + '" alt="Delete ' + entity.tag + ' element ' + entity.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
         $('.delete_icon', div).on('click', function(e) {
             e.stopPropagation();
@@ -209,10 +210,25 @@ var _Elements = {
             self.off('mouseover');
             _Elements.deleteElement(this, entity);
         });
-        //        div.append('<img class="add_icon button" title="Add Element" alt="Add Element" src="icon/add.png">');
-        //        $('.add_icon', div).on('click', function() {
-        //            Resources.addElement(this, resource);
-        //        });
+
+        div.append('<img title="Add Component" alt="Add Component" class="add_icon button" src="' + _Components.add_icon + '">');
+        $('.add_icon', div).on('click', function(e) {
+            e.stopPropagation();
+            var self = $(this);
+            self.off('click');
+            self.off('mouseover');
+            _Components.addComponent(this, entity);
+        });
+
+        div.append('<img title="Edit HTML Properties" alt="Edit HTML Properties" class="edit_icon button" src="' + '/structr/icon/application_view_detail.png' + '">');
+        $('.edit_icon', div).on('click', function(e) {
+            e.stopPropagation();
+            var self = $(this);
+            self.off('click');
+            self.off('mouseover');
+            _Entities.showProperties(this, entity, '_html_', $('#dialogBox .dialogText'));
+        });
+
         $('b', div).on('click', function(e) {
             e.stopPropagation();
             div.off('click');

@@ -362,7 +362,8 @@ public class Importer {
 		for (NodeAttribute attr : attrs) {
 
 			String key   = attr.getKey();
-			String value = Search.escapeForLucene(attr.getValue().toString());
+//			String value = Search.escapeForLucene(attr.getValue().toString());
+			String value = attr.getValue().toString();
 
 //			if (type.equals("Content") && key.equals(Content.UiKey.content.name())) {
 //
