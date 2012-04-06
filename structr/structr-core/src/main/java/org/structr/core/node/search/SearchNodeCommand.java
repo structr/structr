@@ -36,10 +36,12 @@ import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.index.lucene.QueryContext;
 
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.node.NodeFactory;
 import org.structr.core.node.NodeService.NodeIndex;
 import org.structr.core.node.NodeServiceCommand;
-import org.structr.core.node.NodeFactory;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -48,8 +50,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -133,17 +133,17 @@ public class SearchNodeCommand extends NodeServiceCommand {
 	 * @param searchAttrs           List with search attributes
 	 * @return
 	 */
-	private List<AbstractNode> search(final SecurityContext securityContext, final AbstractNode topNode, final boolean includeDeleted,
-					  final boolean publicOnly, final List<SearchAttribute> searchAttrs) throws FrameworkException {
+	private List<AbstractNode> search(final SecurityContext securityContext, final AbstractNode topNode, final boolean includeDeleted, final boolean publicOnly,
+					  final List<SearchAttribute> searchAttrs)
+		throws FrameworkException {
 
 		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
 		Index<Node> index;
-		NodeFactory nodeFactory = (NodeFactory) arguments.get("nodeFactory");
+		NodeFactory nodeFactory        = (NodeFactory) arguments.get("nodeFactory");
 		List<AbstractNode> finalResult = new LinkedList<AbstractNode>();
 		boolean allExactMatch          = true;
 
 		// boolean allFulltext = false;
-
 		if (graphDb != null) {
 
 			// At this point, all search attributes are ready
@@ -173,12 +173,10 @@ public class SearchNodeCommand extends NodeServiceCommand {
 							if (groupedAttr instanceof TextualSearchAttribute) {
 
 								textualAttributes.add((TextualSearchAttribute) groupedAttr);
-								subQuery.add(toQuery((TextualSearchAttribute) groupedAttr),
-									     translateToBooleanClauseOccur(groupedAttr.getSearchOperator()));
+								subQuery.add(toQuery((TextualSearchAttribute) groupedAttr), translateToBooleanClauseOccur(groupedAttr.getSearchOperator()));
 
-								subQueryString += toQueryString((TextualSearchAttribute) groupedAttr,
-												StringUtils.isBlank(subQueryString));
-								allExactMatch &= isExactMatch(((TextualSearchAttribute) groupedAttr).getValue());
+								subQueryString += toQueryString((TextualSearchAttribute) groupedAttr, StringUtils.isBlank(subQueryString));
+								allExactMatch  &= isExactMatch(((TextualSearchAttribute) groupedAttr).getValue());
 
 							}
 						}
@@ -262,8 +260,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 //                              hits.close();
 				long t2 = System.currentTimeMillis();
 
-				logger.log(Level.FINE, "Creating structr nodes took {0} ms, {1} nodes made.", new Object[] { t2 - t1,
-					intermediateResult.size() });
+				logger.log(Level.FINE, "Creating structr nodes took {0} ms, {1} nodes made.", new Object[] { t2 - t1, intermediateResult.size() });
 
 			}
 
@@ -312,7 +309,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 				// now sum, intersect or substract all partly results
 				for (BooleanSearchAttribute attr : booleanAttributes) {
 
-					SearchOperator op         = attr.getSearchOperator();
+					SearchOperator op        = attr.getSearchOperator();
 					List<GraphObject> result = attr.getResult();
 
 					if (op.equals(SearchOperator.AND)) {
@@ -422,7 +419,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 		}
 
 		String stringValue = null;
-		String escapedKey = Search.escapeForLucene(key);
+		String escapedKey  = Search.escapeForLucene(key);
 
 		if (value instanceof String) {
 
@@ -436,19 +433,19 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 		}
 
-		// If value is not a string or starts with operator (exact match, range query, or search operator word),
+		// If value is not a single character and starts with operator (exact match, range query, or search operator word),
 		// don't expand
-		if ((stringValue == null) || stringValue.startsWith("\"") || stringValue.startsWith("[") || stringValue.startsWith("NOT")
-			|| stringValue.startsWith("AND") || stringValue.startsWith("OR")) {
+		if ((stringValue.length() > 1) && (stringValue.startsWith("\"") && stringValue.endsWith("\"")) || (stringValue.startsWith("[") && stringValue.endsWith("]"))
+			|| stringValue.startsWith("NOT") || stringValue.startsWith("AND") || stringValue.startsWith("OR")) {
 
-			return " " + escapedKey + ":" + value + " ";
+			return " " + escapedKey + ":" + stringValue + " ";
 
 		}
 
 		String result = "( ";
 
 		// Clean string
-		//stringValue = Search.clean(stringValue);
+		// stringValue = Search.clean(stringValue);
 		stringValue = Search.escapeForLucene(stringValue);
 
 		// Split string into words
@@ -459,12 +456,23 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 		for (String word : words) {
 
+//                      // Treat ? special:
+			// There's a bug in Lucene < 4: https://issues.apache.org/jira/browse/LUCENE-588
+//                      if (word.equals("\\?")) {
+//
+//                              result += " ( " + key + ":\"" + word + "\")" + ((i < words.length)
+//                                      ? " AND "
+//                                      : " ) ");
+//
+//                      } else {
 //                      String cleanWord = Search.clean(word);
 //                      result += " (" + key + ":" + cleanWord + "* OR " + key + ":\"" + cleanWord + "\")" + (i<words.length ? " AND " : " ) ");
 //                      result += " (" + key + ":" + word + "* OR " + key + ":\"" + word + "\")" + (i < words.length ? " AND " : " ) ");
 			result += " (" + escapedKey + ":*" + word + "* OR " + escapedKey + ":\"" + word + "\")" + ((i < words.length)
 				? " AND "
 				: " ) ");
+
+//                      }
 
 			i++;
 		}

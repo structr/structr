@@ -22,13 +22,20 @@
 package org.structr.core.node.search;
 
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+
+import org.neo4j.graphdb.RelationshipType;
 
 import org.structr.common.PropertyKey;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.PlainText;
+import org.structr.core.entity.RelationshipMapping;
 import org.structr.core.module.GetEntitiesCommand;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -40,11 +47,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.graphdb.RelationshipType;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
-import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.RelationshipMapping;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -54,12 +56,13 @@ import org.structr.core.entity.RelationshipMapping;
  */
 public abstract class Search {
 
-	private static final Logger logger      = Logger.getLogger(Search.class.getName());
-	private static Character[] specialChars = new Character[] {
+	private static final Logger logger           = Logger.getLogger(Search.class.getName());
+	private static Character[] specialChars      = new Character[] {
 
 		'\\', '+', '-', '!', '(', ')', ':', '^', '[', ']', '\"', '{', '}', '~', '*', '?', '|', '&', ';'
 
 	};
+	private static Character[] specialCharsExact = new Character[] { '\"', '\\' };
 
 	//~--- methods --------------------------------------------------------
 
@@ -119,7 +122,7 @@ public abstract class Search {
 
 	public static SearchAttribute andRelType(final String relType, final String sourceType, final String destType) {
 
-		String searchString = EntityContext.createCombinedRelationshipType(sourceType, relType, destType);
+		String searchString  = EntityContext.createCombinedRelationshipType(sourceType, relType, destType);
 		SearchAttribute attr = new TextualSearchAttribute(AbstractRelationship.HiddenKey.type.name(), searchString, SearchOperator.AND);
 
 		return attr;
@@ -132,10 +135,10 @@ public abstract class Search {
 	public static SearchAttribute orRelType(final RelationshipType relType, final Class sourceType, final Class destType) {
 		return orRelType(relType.name(), sourceType.getSimpleName(), destType.getSimpleName());
 	}
-	
+
 	public static SearchAttribute orRelType(final String relType, final String sourceType, final String destType) {
 
-		String searchString = EntityContext.createCombinedRelationshipType(sourceType, relType, destType);
+		String searchString  = EntityContext.createCombinedRelationshipType(sourceType, relType, destType);
 		SearchAttribute attr = new TextualSearchAttribute(AbstractRelationship.HiddenKey.type.name(), searchString, SearchOperator.OR);
 
 		return attr;
@@ -217,7 +220,7 @@ public abstract class Search {
 
 	public static SearchAttribute andExactRelType(final String relType, final String sourceType, final String destType) {
 
-		String searchString = EntityContext.createCombinedRelationshipType(sourceType, relType, destType);
+		String searchString  = EntityContext.createCombinedRelationshipType(sourceType, relType, destType);
 		SearchAttribute attr = new TextualSearchAttribute(AbstractRelationship.HiddenKey.type.name(), exactMatch(searchString), SearchOperator.AND);
 
 		return attr;
@@ -229,7 +232,7 @@ public abstract class Search {
 
 	public static SearchAttribute orExactRelType(final String relType, final String sourceType, final String destType) {
 
-		String searchString = EntityContext.createCombinedRelationshipType(sourceType, relType, destType);
+		String searchString  = EntityContext.createCombinedRelationshipType(sourceType, relType, destType);
 		SearchAttribute attr = new TextualSearchAttribute(AbstractRelationship.HiddenKey.type.name(), exactMatch(searchString), SearchOperator.OR);
 
 		return attr;
@@ -313,7 +316,7 @@ public abstract class Search {
 	}
 
 	public static String exactMatch(final String searchString) {
-		return ("\"" + searchString + "\"");
+		return ("\"" + escapeForLuceneExact(searchString) + "\"");
 	}
 
 	public static String unquoteExactMatch(final String searchString) {
@@ -409,6 +412,27 @@ public abstract class Search {
 			char c = input.charAt(i);
 
 			if (ArrayUtils.contains(specialChars, c) || Character.isWhitespace(c)) {
+
+				output.append('\\');
+
+			}
+
+			output.append(c);
+
+		}
+
+		return output.toString();
+	}
+
+	public static String escapeForLuceneExact(String input) {
+
+		StringBuilder output = new StringBuilder();
+
+		for (int i = 0; i < input.length(); i++) {
+
+			char c = input.charAt(i);
+
+			if (ArrayUtils.contains(specialCharsExact, c) || Character.isWhitespace(c)) {
 
 				output.append('\\');
 
