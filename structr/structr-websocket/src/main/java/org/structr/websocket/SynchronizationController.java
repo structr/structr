@@ -240,16 +240,23 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 
 			relationship = (AbstractRelationship) obj;
 
-			AbstractNode startNode   = relationship.getStartNode();
-			AbstractNode endNode     = relationship.getEndNode();
+			// do not access nodes of delete relationships
+			// AbstractNode startNode   = relationship.getStartNode();
+			// AbstractNode endNode     = relationship.getEndNode();
 			WebSocketMessage message = new WebSocketMessage();
 
-			message.setCommand("REMOVE");
-			message.setGraphObject(relationship);
-			message.setId(startNode.getStringProperty("uuid"));
-			message.setData("id", endNode.getStringProperty("uuid"));
-			messageStack.add(message);
-			logger.log(Level.FINE, "{0} -> {1}", new Object[] { startNode.getId(), endNode.getId() });
+			String startNodeId = relationship.getCachedStartNodeId();
+			String endNodeId = relationship.getCachedEndNodeId();
+			
+			if(startNodeId != null && endNodeId != null) {
+				message.setCommand("REMOVE");
+				message.setGraphObject(relationship);
+				message.setId(startNodeId);
+				message.setData("id", endNodeId);
+				messageStack.add(message);
+			}
+			
+			// logger.log(Level.FINE, "{0} -> {1}", new Object[] { startNode.getId(), endNode.getId() });
 
 			return false;
 

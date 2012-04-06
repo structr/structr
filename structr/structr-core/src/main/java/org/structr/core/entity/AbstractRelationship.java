@@ -113,6 +113,10 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	protected boolean isDirty;
 	protected Map<String, Object> properties;
 
+	// test
+	private String cachedStartNodeId = null;
+	private String cachedEndNodeId = null;
+	
 	//~--- constant enums -------------------------------------------------
 
 	public enum HiddenKey implements PropertyKey {
@@ -156,6 +160,28 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	}
 
 	//~--- methods --------------------------------------------------------
+
+	/**
+	 * Called when a relationship of this type is instatiated. Please note that
+	 * a relationship can (and will) be instantiated several times during a
+	 * normal rendering turn.
+	 */
+	public void onRelationshipInstantiation() {
+		
+		try {
+			if(dbRelationship != null) {
+
+				Node startNode = dbRelationship.getStartNode();
+				Node endNode = dbRelationship.getEndNode();
+				
+				if(startNode != null && endNode != null && startNode.hasProperty(AbstractNode.Key.uuid.name()) && endNode.hasProperty(AbstractNode.Key.uuid.name())) {
+					cachedStartNodeId = (String)startNode.getProperty(AbstractNode.Key.uuid.name());
+					cachedEndNodeId   = (String)endNode.getProperty(AbstractNode.Key.uuid.name());
+				}
+			}
+			
+		} catch(Throwable t) {}
+	}
 	
 	@Override
 	public boolean isValid(ErrorBuffer errorBuffer) {
@@ -1128,5 +1154,13 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 			dbRelationship.setProperty(AbstractRelationship.Permission.denied.name(), denied);
 
 		}
+	}
+	
+	public String getCachedStartNodeId() {
+		return cachedStartNodeId;
+	}
+	
+	public String getCachedEndNodeId() {
+		return cachedEndNodeId;
 	}
 }
