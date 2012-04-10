@@ -26,10 +26,10 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.RelationClass;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
-import org.structr.core.entity.RelationClass;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
@@ -37,6 +37,7 @@ import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -59,50 +60,34 @@ public class AddCommand extends AbstractCommand {
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 
 		// create static relationship
-		String sourceId                = webSocketData.getId();
-		Map<String, Object> properties = webSocketData.getData();
-		String targetId                = (String) properties.get("id");
+		final Map<String, Object> nodeData = webSocketData.getNodeData();
+		String sourceId                    = (String) nodeData.get("id");
+		final Map<String, Object> relData  = webSocketData.getRelData();
+		String targetId                    = webSocketData.getId();
 
-		properties.remove("id");
+		if (targetId != null) {
 
-		if (sourceId != null) {
+			AbstractNode sourceNode = null;
+			AbstractNode targetNode = getNode(targetId);
 
-			AbstractNode sourceNode = getNode(sourceId);
-			AbstractNode targetNode = null;
+			if (sourceId != null) {
 
-			if (targetId != null) {
-
-				targetNode = getNode(targetId);
+				sourceNode = getNode(sourceId);
 
 			} else {
-
-				String type = (String) properties.get("type");
-				properties.remove("type");
-
-				String tag = (String) properties.get("tag");
-				properties.remove("tag");
-
-				String name = (String) properties.get("name");
-				properties.remove("name");
-
-				final Map<String, Object> props = new HashMap<String, Object>();
-
-				props.put("tag", tag);
-				props.put("type", type);
-				props.put("name", name);
 
 				StructrTransaction transaction = new StructrTransaction() {
 
 					@Override
 					public Object execute() throws FrameworkException {
-						return Services.command(securityContext, CreateNodeCommand.class).execute(props);
+						return Services.command(securityContext, CreateNodeCommand.class).execute(nodeData);
 					}
 				};
 
 				try {
 
 					// create node in transaction
-					targetNode = (AbstractNode) Services.command(securityContext, TransactionCommand.class).execute(transaction);
+					sourceNode = (AbstractNode) Services.command(securityContext, TransactionCommand.class).execute(transaction);
 				} catch (FrameworkException fex) {
 
 					logger.log(Level.WARNING, "Could not create node.", fex);
@@ -118,7 +103,7 @@ public class AddCommand extends AbstractCommand {
 				if (rel != null) {
 
 					try {
-						rel.createRelationship(securityContext, sourceNode, targetNode, properties);
+						rel.createRelationship(securityContext, sourceNode, targetNode, relData);
 					} catch (Throwable t) {
 						getWebSocket().send(MessageBuilder.status().code(400).message(t.getMessage()).build(), true);
 					}

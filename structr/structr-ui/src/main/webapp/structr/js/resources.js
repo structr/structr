@@ -44,7 +44,7 @@ var _Resources = {
 
         //Structr.activateMenuEntry('resources');
         if (debug) console.log('onload');
-        main.append('<table id="resourcesEditor"><tr><td id="previews"></td><td id="tools"></td><td id="resources"></td><td id="components"></td><td id="elements"></td><td id="contents"></td></tr></table>');
+        main.append('<table id="resourcesEditor"><tr><td id="previews"></td><td id="tools"></td><td id="resourcesWrapper"><div id="resources"></div></td><td id="components"></td><td id="elements"></td><td id="contents"></td></tr></table>');
 
         tools = $('#tools');
         resources = $('#resources');
@@ -125,22 +125,17 @@ var _Resources = {
 
             addressField.on('blur', function() {
                 var addr = $(this).val().replace(/\/+$/, "");
-                console.log(addr);
+                if (debug) console.log(addr);
                 $('#_name', dialog).val(addr.substring(addr.lastIndexOf("/")+1));
             });
 
             dialog.append('<button id="startImport">Start Import</button>');
 
-            Structr.dialog('Import page from URL',
-			 
-                function() {
-                    return true;
-                },
-			 
-                function() {
-                    return true;
-                }
-                );
+            Structr.dialog('Import page from URL', function() {
+                return true;
+            }, function() {
+                return true;
+            });
 			
             $('#startImport').on('click', function() {
 
@@ -148,7 +143,7 @@ var _Resources = {
                 var name    = $('#_name', dialog).val();
                 var timeout = $('#_timeout', dialog).val();
 
-                console.log('start');
+                if (debug) console.log('start');
                 return _Resources.importPage(this, address, name, timeout);
             });
             
@@ -156,23 +151,33 @@ var _Resources = {
 
         previewTabs.append('<li id="add_resource" class="button"><img class="add_button icon" src="icon/add.png"></li>');
         $('#add_resource', previewTabs).on('click', function() {
-            _Resources.addResource(this);
+            var entity = {};
+            entity.type = 'Resource';
+            _Entities.create(this, entity);
         });
 
     },
 	
     importPage : function(button, address, name, timeout) {
-        var data = '{ "command" : "IMPORT" , "data" : { "address" : "' + address + '", "name" : "' + name + '", "timeout" : ' + timeout + '} }';
-        console.log(data);
-        return send(data);
+        var obj = {};
+        var data = {};
+        obj.command = 'IMPORT';
+        data.address = address;
+        data.name = name;
+        data.timeout = timeout;
+        obj.data = data;
+        console.log(obj);
+        return sendObj(obj);
     },
 
     refresh : function() {
         resources.empty();
         if (_Resources.show()) {
-            resources.append('<button class="add_resource_icon button"><img title="Add Resource" alt="Add Resource" src="' + _Resources.add_icon + '"> Add Resource</button>');
+            resources.before('<button class="add_resource_icon button"><img title="Add Resource" alt="Add Resource" src="' + _Resources.add_icon + '"> Add Resource</button>');
             $('.add_resource_icon', main).on('click', function() {
-                _Resources.addResource(this);
+                var entity = {};
+                entity.type = 'Resource';
+                _Entities.create(this, entity);
             });
         }
 
@@ -183,7 +188,9 @@ var _Resources = {
         if (_Components.show()) {
             components.append('<button class="add_component_icon button"><img title="Add Component" alt="Add Component" src="' + _Components.add_icon + '"> Add Component</button>');
             $('.add_component_icon', main).on('click', function() {
-                _Resources.addComponent(this);
+                var entity = {};
+                entity.type = 'Component';
+                _Entities.create(this, entity);
             });
         }
     },
@@ -670,39 +677,44 @@ var _Resources = {
             hoverClass: 'elementHover',
             drop: function(event, ui) {
 
-                console.log('appendElementElement', $(this));
+                var self = $(this);
 
-                var resource = $(this).closest( '.resource')[0];
+                var resource = self.closest( '.resource')[0];
+
                 if (debug) console.log(resource);
                 var contentId = getIdFromClassString(ui.draggable.attr('class'));
-                var elementId = getIdFromClassString($(this).attr('class'));
-
-                if (debug) console.log('Content Id: ' + contentId);
+                var elementId = getIdFromClassString(self.attr('class'));
                 if (!contentId) {
                     var tag = $(ui.draggable).text();
                 }
-
-                var pos = $('.content, .element', $(this)).length;
+                var pos = $('.node', self).length;
                 if (debug) console.log(pos);
-                var props;
+                var relData = {};
                 if (resource) {
                     var resourceId = getIdFromClassString($(resource).attr('class'));
-                    props = '"resourceId" : "' + resourceId + '", "' + resourceId + '" : "' + pos + '"';
+                    relData.resourceId = resourceId;
+                    relData[resourceId] = pos;
                 } else {
-                    props = '"*" : "' + pos + '"';
-                }
-                
-                var component = $(this).closest( '.component')[0];
-                if (component) {
-                    var componentId = getIdFromClassString($(component).attr('class'));
-                    props += ', "componentId" : "' + componentId + '", "' + componentId + '" : "' + pos + '"';
-                }
-                if (!contentId) {
-                    props += ', "name" : "New ' + tag + ' ' + Math.floor(Math.random() * (999999 - 1)) + '", "type" : "' + tag.capitalize() + '"' + (tag != 'content' ? ', "tag" : "' + tag + '"' : '');
+                    relData['*'] = pos;
                 }
 
-                console.log(props);
-                _Entities.addSourceToTarget(contentId, elementId, props);
+                var component = self.closest( '.component')[0];
+                if (component) {
+                    var componentId = getIdFromClassString($(component).attr('class'));
+                    relData.componentId = componentId;
+                    relData[componentId] = pos;
+                } else {
+                    relData['*'] = pos;
+                }
+
+                var nodeData = {};
+                nodeData.name = 'New ' + tag + ' ' + Math.floor(Math.random() * (999999 - 1));
+                nodeData.type = tag.capitalize();
+                nodeData.tag = (tag != 'content' ? tag : '');
+                nodeData.id = contentId;
+
+                console.log('appendElementElement', elementId, nodeData, relData);
+                _Entities.addSourceToTarget(elementId, nodeData, relData);
             }
         });
 
@@ -724,7 +736,7 @@ var _Resources = {
             });
 
         }
-		        
+
         var resource = div.closest( '.resource')[0];
         if (!resource && resources) {
 
@@ -744,33 +756,39 @@ var _Resources = {
             hoverClass: 'componentHover',
             drop: function(event, ui) {
                 var resource = $(this).closest( '.resource')[0];
-                
+
                 if (debug) console.log(resource);
                 var contentId = getIdFromClassString(ui.draggable.attr('class'));
                 if (!contentId) {
                     var tag = $(ui.draggable).text();
                 }
-                var pos = $('.element', $(this)).length;
+                var pos = $('.node', $(this)).length;
                 if (debug) console.log(pos);
-                var props;
+                var relData = {};
                 if (resource) {
                     var resourceId = getIdFromClassString($(resource).attr('class'));
-                    props = '"resourceId" : "' + resourceId + '", "' + resourceId + '" : "' + pos + '"';
+                    relData[resourceId] = pos;
                 } else {
-                    props = '"*" : "' + pos + '"';
+                    relData['*'] = pos;
                 }
 
                 var component = $(this).closest( '.component')[0];
                 if (component) {
                     var componentId = getIdFromClassString($(component).attr('class'));
-                    props += ', "componentId" : "' + componentId + '", "' + componentId + '" : "' + pos + '"';
+                    relData[componentId] = pos;
+                } else {
+                    relData['*'] = pos;
                 }
 
+                var nodeData = {};
                 if (!contentId) {
-                    props += ', "name" : "New ' + tag + ' ' + Math.floor(Math.random() * (999999 - 1)) + '", "type" : "' + tag.capitalize() + '"' + (tag != 'content' ? ', "tag" : "' + tag + '"' : '');
+                    nodeData.name = 'New ' + tag + ' ' + Math.floor(Math.random() * (999999 - 1));
+                    nodeData.type = tag.capitalize();
+                    nodeData.tag = (tag != 'content' ? tag : '');
                 }
-                console.log('Add to Component', props);
-                _Entities.addSourceToTarget(contentId, componentId, props);
+
+                console.log('appendComponentElement', contentId, componentId, nodeData, relData);
+                _Entities.addSourceToTarget(contentId, componentId, nodeData, relData);
             }
         });
 
@@ -978,47 +996,22 @@ var _Resources = {
 
     },
 
-    //    updateContent : function(contentId, content) {
-    //        //console.log('update ' + contentId + ' with ' + content);
-    //        var url = rootUrl + 'content' + '/' + contentId;
-    //        if (debug) console.log(content);
-    //        var text = content.replace(/\n/g, '<br>');
-    //        if (debug) console.log(text);
-    //        text = $.quoteString(text);
-    //        var data = '{ "content" : ' + text + ' }';
-    //        var headers = {
-    //            'X-StructrSessionToken' : token
-    //        };
-    //
-    //        _Contents.patch(entity.id, text1, text2);
-    //
-    ////        $.ajax({
-    ////            url: url,
-    ////            //async: false,
-    ////            type: 'PUT',
-    ////            dataType: 'json',
-    ////            contentType: 'application/json; charset=utf-8',
-    ////            data: data,
-    ////            headers: headers,
-    ////            success: function(data) {
-    ////            //refreshIframes();
-    ////            //keyEventBlocked = true;
-    ////            //enable(button);
-    ////            //console.log('success');
-    ////            }
-    ////        });
-    //    },
-
     addResource : function(button) {
-        return _Entities.add(button, 'Resource');
+        var entity = {};
+        entity.type = 'Resource';
+        return _Entities.create(button, entity);
     },
 
     addComponent : function(button) {
-        return _Entities.add(button, 'Component');
+        var entity = {};
+        entity.type = 'Component';
+        return _Entities.create(button, entity);
     },
 
     addElement : function(button) {
-        return _Entities.add(button, 'Element');
+        var entity = {};
+        entity.type = 'Element';
+        return _Entities.create(button, entity);
     },
 	
     deleteResource : function(button, resource) {

@@ -54,7 +54,7 @@ public class RemoveCommand extends AbstractCommand {
 
 		// create static relationship
 		String sourceId = webSocketData.getId();
-		String targetId = (String) webSocketData.getData().get("id");
+		String targetId = (String) webSocketData.getNodeData().get("id");
 
 		if ((sourceId != null) && (targetId != null)) {
 

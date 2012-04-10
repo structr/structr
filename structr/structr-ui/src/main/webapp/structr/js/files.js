@@ -113,34 +113,24 @@ var _Files = {
                 return false;
             });
         }
-        _Files.showFiles();
+        _Entities.getEntities('File');
     },
 	
     refreshImages : function() {
         images.empty();
-        _Files.showImages();
+        _Entities.getEntities('Image');
     },
 	
     refreshFolders : function() {
         folders.empty();
-        if (_Files.showFolders()) {
+        if (_Entities.getEntities('Folder')) {
             folders.append('<button class="add_folder_icon button"><img title="Add Folder" alt="Add Folder" src="' + _Files.add_folder_icon + '"> Add Folder</button>');
             $('.add_folder_icon', main).on('click', function() {
-                _Files.addFolder(this);
+                var entity = {};
+                entity.type = 'Folder';
+                _Entities.create(this, entity);
             });
         }
-    },
-	
-    showFolders : function() {
-        return _Entities.getEntities('Folder');
-    },
-
-    showFiles : function() {
-        return _Entities.getEntities('File');
-    },
-
-    showImages : function() {
-        return _Entities.getEntities('Image');
     },
 
     appendFileElement : function(file, parentId) {
@@ -286,7 +276,7 @@ var _Files = {
         //            Resources.addElement(this, resource);
         //        });
         $('b', div).on('click', function() {
-            _Entities.showProperties(this, folder, 'all', $('.' + folder.id + '_', folders));
+            _Entities.showProperties(this, folder, 'all', $('#dialogBox .dialogText'));
         });
 		
         div.droppable({
@@ -296,7 +286,9 @@ var _Files = {
             drop: function(event, ui) {
                 var fileId = getIdFromClassString(ui.draggable.attr('class'));
                 var folderId = getIdFromClassString($(this).attr('class'));
-                _Entities.addSourceToTarget(fileId, folderId);
+                var nodeData = {};
+                nodeData.id = fileId;
+                _Entities.addSourceToTarget(folderId, nodeData);
             }
         });
 		
@@ -405,18 +397,6 @@ var _Files = {
         _Entities.removeSourceFromTarget(imageId, folderId);
     },
     
-    addFolder : function(button) {
-        return _Entities.add(button, 'Folder');
-    },
-		
-    addFile : function(button) {
-        return _Entities.add(button, 'File');
-    },
-
-    addImage : function(button) {
-        return _Entities.add(button, 'Image');
-    },
-
     deleteFolder : function(button, folder) {
         if (debug) console.log('delete folder ' + folder);
         deleteNode(button, folder);
@@ -428,9 +408,13 @@ var _Files = {
     },
 
     createFile : function(fileObj) {
-        var contentType = fileObj.type;
-        var type = isImage(contentType) ? 'Image' : 'File';
-        _Entities.create($.parseJSON('{ "type" : "' + type + '", "name" : "' + fileObj.name + '", "contentType" : "' + contentType + '", "size" : "' + fileObj.size + '" }'));
+        var entity = {};
+        entity.contentType = fileObj.type;
+        console.log(fileObj);
+        entity.name = fileObj.name;
+        entity.size = fileObj.size;
+        entity.type = isImage(entity.contentType) ? 'Image' : 'File';
+        _Entities.create(null, entity);
 
     },
 
@@ -485,10 +469,17 @@ var _Files = {
                         
                         var chunk = utf8_to_b64(binaryContent.substring(start,end));
                         // TODO: check if we can send binary data directly
-                        var data = '{ "command" : "CHUNK" , "id" : "' + file.id + '" , "data" : { "chunkId" : ' + c + ' , "chunkSize" : ' + chunkSize + ' , "chunk" : "' + chunk + '" } }';
 
-                        //console.log(data);
-                        send(data);
+                        var obj = {};
+                        obj.command = 'CHUNK';
+                        obj.id = file.id;
+                        var data = {};
+                        data.chunkId = c;
+                        data.chunkSize = chunkSize;
+                        data.chunk = chunk;
+                        obj.data = data;
+                        //var data = '{ "command" : "CHUNK" , "id" : "' + file.id + '" , "data" : { "chunkId" : ' + c + ' , "chunkSize" : ' + chunkSize + ' , "chunk" : "' + chunk + '" } }';
+                        sendObj(obj);
 
                     }
 

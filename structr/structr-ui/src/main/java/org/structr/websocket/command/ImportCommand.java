@@ -59,7 +59,7 @@ public class ImportCommand extends AbstractCommand {
 	public void processMessage(WebSocketMessage webSocketData) {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
-		Map<String, Object> properties        = webSocketData.getData();
+		Map<String, Object> properties        = webSocketData.getNodeData();
 		final String address                  = (String) properties.get("address");
 		final String name                     = (String) properties.get("name");
 		final int timeout                     = Integer.parseInt((String) properties.get("timeout"));

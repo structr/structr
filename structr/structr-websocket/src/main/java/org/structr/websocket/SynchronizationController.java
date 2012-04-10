@@ -25,6 +25,7 @@ import com.google.gson.Gson;
 
 import org.eclipse.jetty.websocket.WebSocket.Connection;
 
+import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.core.GraphObject;
@@ -38,6 +39,7 @@ import org.structr.websocket.message.WebSocketMessage;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.neo4j.graphdb.RelationshipType;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -51,8 +53,8 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 
 	//~--- fields ---------------------------------------------------------
 
-	private Set<StructrWebSocket> clients                    = null;
-	private Gson gson                                        = null;
+	private Set<StructrWebSocket> clients                     = null;
+	private Gson gson                                         = null;
 	private Map<Long, List<WebSocketMessage>> messageStackMap = new LinkedHashMap<Long, List<WebSocketMessage>>();
 	private List<WebSocketMessage> messageStack;
 
@@ -154,11 +156,12 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 	public boolean propertyModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject, String key, Object oldValue, Object newValue) {
 
 		messageStack = messageStackMap.get(transactionKey);
-		
+
 		WebSocketMessage message = new WebSocketMessage();
 
 		message.setCommand("UPDATE");
-		String uuid              = graphObject.getStringProperty(AbstractNode.Key.uuid.name());
+
+		String uuid = graphObject.getStringProperty(AbstractNode.Key.uuid.name());
 
 		message.setId(uuid);
 		message.setGraphObject(graphObject);
@@ -172,25 +175,29 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 	public boolean graphObjectCreated(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject) {
 
 		messageStack = messageStackMap.get(transactionKey);
-		
+
 		AbstractRelationship relationship;
 
 		if (graphObject instanceof AbstractRelationship) {
 
 			relationship = (AbstractRelationship) graphObject;
 
-			AbstractNode startNode   = relationship.getStartNode();
-			AbstractNode endNode     = relationship.getEndNode();
-			WebSocketMessage message = new WebSocketMessage();
+			if (relationship.getRelType().equals(RelType.CONTAINS) || relationship.getRelType().equals(RelType.HAS_CHILD)) {
 
-			message.setCommand("ADD");
-			message.setGraphObject(relationship);
-			message.setId(startNode.getStringProperty("uuid"));
-			message.setData("id", endNode.getStringProperty("uuid"));
-			message.setData("tag", endNode.getStringProperty("tag"));
-			messageStack.add(message);
-			logger.log(Level.FINE, "Relationship created: {0}({1} -> {2}{3}", new Object[] { startNode.getId(), startNode.getStringProperty(AbstractNode.Key.uuid),
-				endNode.getStringProperty(AbstractNode.Key.uuid) });
+				AbstractNode startNode   = relationship.getStartNode();
+				AbstractNode endNode     = relationship.getEndNode();
+				WebSocketMessage message = new WebSocketMessage();
+
+				message.setCommand("ADD");
+				message.setGraphObject(relationship);
+				message.setId(startNode.getStringProperty("uuid"));
+				message.setNodeData("id", endNode.getStringProperty("uuid"));
+				message.setNodeData("tag", endNode.getStringProperty("tag"));
+				messageStack.add(message);
+				logger.log(Level.FINE, "Relationship created: {0}({1} -> {2}{3}", new Object[] { startNode.getId(), startNode.getStringProperty(AbstractNode.Key.uuid),
+					endNode.getStringProperty(AbstractNode.Key.uuid) });
+
+			}
 
 			return false;
 
@@ -215,17 +222,17 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 
 	@Override
 	public boolean graphObjectModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject) {
-//
-//		messageStack = messageStackMap.get(transactionKey);
-//
-//		WebSocketMessage message = new WebSocketMessage();
-//		String uuid              = graphObject.getProperty("uuid").toString();
-//
-//		message.setId(uuid);
-//		message.setCommand("UPDATE");
-//		message.setGraphObject(graphObject);
-//		messageStack.add(message);
 
+//
+//              messageStack = messageStackMap.get(transactionKey);
+//
+//              WebSocketMessage message = new WebSocketMessage();
+//              String uuid              = graphObject.getProperty("uuid").toString();
+//
+//              message.setId(uuid);
+//              message.setCommand("UPDATE");
+//              message.setGraphObject(graphObject);
+//              messageStack.add(message);
 		return false;
 	}
 
@@ -233,7 +240,7 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 	public boolean graphObjectDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject obj, Map<String, Object> properties) {
 
 		messageStack = messageStackMap.get(transactionKey);
-		
+
 		AbstractRelationship relationship;
 
 		if ((obj != null) && (obj instanceof AbstractRelationship)) {
@@ -244,20 +251,20 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 			// AbstractNode startNode   = relationship.getStartNode();
 			// AbstractNode endNode     = relationship.getEndNode();
 			WebSocketMessage message = new WebSocketMessage();
+			String startNodeId       = relationship.getCachedStartNodeId();
+			String endNodeId         = relationship.getCachedEndNodeId();
 
-			String startNodeId = relationship.getCachedStartNodeId();
-			String endNodeId = relationship.getCachedEndNodeId();
-			
-			if(startNodeId != null && endNodeId != null) {
+			if ((startNodeId != null) && (endNodeId != null)) {
+
 				message.setCommand("REMOVE");
 				message.setGraphObject(relationship);
 				message.setId(startNodeId);
-				message.setData("id", endNodeId);
+				message.setNodeData("id", endNodeId);
 				messageStack.add(message);
-			}
-			
-			// logger.log(Level.FINE, "{0} -> {1}", new Object[] { startNode.getId(), endNode.getId() });
 
+			}
+
+			// logger.log(Level.FINE, "{0} -> {1}", new Object[] { startNode.getId(), endNode.getId() });
 			return false;
 
 		} else {

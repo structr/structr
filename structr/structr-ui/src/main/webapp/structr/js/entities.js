@@ -39,20 +39,28 @@ var _Entities = {
     },
 
     getEntities : function(type) {
-        if (debug) console.log('showEntities(' + type + ')');
-        var data = '{ "command" : "LIST", "data" : { "type" : "' + type + '" } }';
-        return send(data);
+        var obj = {};
+        obj.command = 'LIST';
+        var data = {};
+        data.type = type;
+        obj.data = data;
+        if (debug) console.log('showEntities()', obj);
+        return sendObj(obj);
     },
 
-    getEntitiy : function(id) {
-        if (debug) console.log('showEntity(' + id + ')');
-        var data = '{ "command" : "GET", "data" : { "id" : "' + id + '" } }';
-        return send(data);
+    getEntity : function(id) {
+        var obj = {};
+        obj.command = 'GET';
+        var data = {};
+        data.id = id;
+        obj.data = data;
+        if (debug) console.log('getEntity()', obj);
+        return sendObj(obj);
     },
 
     changeBooleanAttribute : function(attrElement, value) {
 
-        console.log('Change boolean attribute ', attrElement, ' to ', value);
+        if (debug) console.log('Change boolean attribute ', attrElement, ' to ', value);
 
         if (value == true) {
             attrElement.removeClass('disabled');
@@ -65,9 +73,11 @@ var _Entities = {
     },
 
     getTree : function(id) {
-        if (debug) console.log('renderTree(' + id + ')');
-        var data = '{ "command" : "TREE", "id" : "' + id + '" }';
-        return send(data);
+        var obj = {};
+        obj.command = 'TREE';
+        obj.id = id;
+        if (debug) console.log('renderTree()', obj);
+        return sendObj(obj);
     },
 
     renderTree : function(parent, rootId) {
@@ -87,13 +97,6 @@ var _Entities = {
                     var entity = child;
                     console.log('Render Tree: ' , entity);
                     var folderElement = _Files.appendFolderElement(child, parent.id);
-                    //					var folders = entity.folders;
-                    //					if (folders && folders.length > 0) {
-                    //						disable($('.delete_icon', folderElement)[0]);
-                    //						$(folders).each(function(i, folder) {
-                    //							_Files.appendFolderElement(file, entity.id);
-                    //						});
-                    //					}
                     var files = entity.files;
                     if (files && files.length > 0) {
                         disable($('.delete_icon', folderElement)[0]);
@@ -140,63 +143,92 @@ var _Entities = {
         });
     },
 
-    addSourceToTarget : function(sourceId, targetId, props) {
-        if (debug) console.log('Add ' + sourceId + ' to ' + targetId + ' with additional properties: ' + props);
-        var data = (sourceId ? '"id" : "' + sourceId + '" ' : '') + (props ? (sourceId ? ',' : '') + props : '');
-        var command = '{ "command" : "ADD" , "id" : "' + targetId + '", "data" : {' + data + '} }';
-        if (debug) console.log(command);
-        return send(command);
+    addSourceToTarget : function(targetId, nodeData, relData) {
+        if (debug) console.log('Add object to ' + targetId, nodeData, relData);
+        var obj = {};
+        obj.command = 'ADD';
+        obj.id = targetId;
+        obj.data = nodeData;
+        obj.relData = relData;
+        if (debug) console.log(obj);
+        return sendObj(obj);
     },
 
     removeSourceFromTarget : function(sourceId, targetId) {
         if (debug) console.log('Remove ' + sourceId + ' from ' + targetId);
-        var data = '"id" : "' + sourceId + '"';
-        var command = '{ "command" : "REMOVE" , "id" : "' + targetId + '", "data" : {' + data + '} }';
-        if (debug) console.log(command);
-        return send(command);
+        var obj = {};
+        obj.command = 'REMOVE';
+        obj.id = targetId;
+        var data = {};
+        data.id = sourceId;
+        obj.data = data;
+        if (debug) console.log(obj);
+        return sendObj(obj);
     },
 
     getProperty : function(id, key, elementId) {
-        var command = '{ "command" : "GET" , "id" : "' + id + '", "data" : { "key" : "' + key + '", "displayElementId" : "' + elementId + '" } }';
-        if (debug) console.log(command);
-        return send(command);
+        var obj = {};
+        obj.command = 'GET';
+        obj.id = id;
+        var data = {};
+        data.key = key;
+        data.displayElementId = elementId;
+        obj.data = data;
+        if (debug) console.log(obj);
+        return sendObj(obj);
     },
 
     setProperty : function(id, key, value) {
-        var command = '{ "command" : "UPDATE" , "id" : "' + id + '", "data" : { "' + key + '" : "' + value + '" } }';
-        console.log(command);
-        return send(command);
+        var obj = {};
+        obj.command = 'UPDATE';
+        obj.id = id;
+        var data = {};
+        data[key] = value;
+        obj.data = data;
+        console.log(obj);
+        return sendObj(obj);
     },
 
     setProperties : function(id, data) {
-        var command = '{ "command" : "UPDATE" , "id" : "' + id + '", "data" : {' + data + '} }';
-        if (debug) console.log(command);
-        return send(command);
+        var obj = {};
+        obj.command = 'UPDATE';
+        obj.id = id;
+        obj.data = data;
+        console.log(obj);
+        return sendObj(obj);
     },
 
-    create : function(entity) {
-        var toSend = {};
-        toSend.data = entity;
-        toSend.command = 'CREATE';
-        if (debug) console.log($.toJSON(toSend));
-        return send($.toJSON(toSend));
+    createAndAdd : function(id, entity, relData) {
+        var obj = {};
+        obj.command = 'ADD';
+        obj.id = id;
+        obj.data = entity;
+        obj.relData = relData;
+        if (debug) console.log('_Entities.createAndAdd', obj);
+        return sendObj(obj);
     },
 
-    add : function(button, type, props) {
-        if (debug) console.log('add new ' + type);
+    create : function(button, entity) {
         if (isDisabled(button)) return false;
         disable(button);
         buttonClicked = button;
         disable(button);
-        return _Entities.create($.parseJSON('{ "type" : "' + type + '", "name" : "New ' + type + ' ' + Math.floor(Math.random() * (999999 - 1)) + '" ' + (props ? ',' + props : '') + '}'));
+        var obj = {};
+        obj.command = 'CREATE';
+        if (!entity.name) {
+            entity.name = 'New ' + entity.type + ' ' + Math.floor(Math.random() * (999999 - 1));
+        }
+        obj.data = entity;
+        if (debug) console.log('create new entity', obj);
+        return sendObj(obj);
     },
 
     hideProperties : function(button, entity, view, element) {
-        element.find('.sep').remove();
-        element.find('.props').remove();
         enable(button, function() {
             _Entities.showProperties(button, entity, view, element);
         });
+        element.find('.sep').remove();
+        element.find('.props').remove();
     },
 
     showProperties : function(button, entity, view, dialog) {
@@ -212,12 +244,10 @@ var _Entities = {
             }
             );
 
-
-        var debug = true
-        if (isDisabled(button)) return;
-        disable(button, function() {
-            _Entities.hideProperties(button, entity, view, dialog);
-        });
+//        if (isDisabled(button)) return;
+//        disable(button, function() {
+//            _Entities.hideProperties(button, entity, view, dialog);
+//        });
         var headers = {
             'X-StructrSessionToken' : token
         };
@@ -281,61 +311,6 @@ var _Entities = {
                 });
             }
         });
-    },
-
-    showNonEmptyProperties : function(button, entity, view, element) {
-        if (isDisabled(button)) return;
-        disable(button, function() {
-            _Entities.hideProperties(button, entity, view, element);
-
-            element.on('mouseover', function(e) {
-                e.stopPropagation();
-                _Entities.showNonEmptyProperties(this, entity, '_html_', $(this));
-            });
-
-            element.on('mouseout', function(e) {
-                e.stopPropagation();
-                _Entities.hideNonEmptyProperties(this, entity, '_html_', $(this));
-            });
-			
-        });
-        var headers = {
-            'X-StructrSessionToken' : token
-        };
-        //console.log(element);
-        $.ajax({
-            url: rootUrl + entity.id + (view ? '/' + view : ''),
-            async: false,
-            dataType: 'json',
-            contentType: 'application/json; charset=utf-8',
-            headers: headers,
-            success: function(data) {
-                //element.append('<div class="sep"></div>');
-                //element.append('<table class="props"></table>');
-                var keys = Object.keys(data.result);
-				
-                if (keys.length > 1) {
-                    element.children('.delete_icon').after('<table class="props"></table>');
-                }
-				
-                $(keys).each(function(i, key) {
-					
-                    if (data.result[key] && key.startsWith('_html_')) {
-
-                        if (view == '_html_') {
-                            $('.props', element).append('<tr><td class="key">' + key.replace(view, '') + '</td><td class="value ' + key + '_">' + formatValue(key, data.result[key]) + '</td></tr>');
-                        } else {
-                            $('.props', element).append('<tr><td class="key">' + formatKey(key) + '</td><td class="value ' + key + '_">' + formatValue(key, data.result[key]) + '</td></tr>');
-                        }
-                    }
-                });
-
-            }
-        });
-    },
-	
-    hideNonEmptyProperties : function(button, entity, view, element) {
-        _Entities.hideProperties(button, entity, view, element);
     },
 
     appendAccessControlIcon: function(parent, entity, hide) {

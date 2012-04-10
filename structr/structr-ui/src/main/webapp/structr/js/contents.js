@@ -48,7 +48,9 @@ var _Contents = {
         if (_Contents.show()) {
             contents.append('<button class="add_content_icon button"><img title="Add Content" alt="Add Content" src="' + _Contents.add_icon + '"> Add Content</button>');
             $('.add_content_icon', main).on('click', function() {
-                _Contents.addContent(this);
+                var entity = {};
+                entity.type = 'Content';
+                _Entities.create(this, entity);
             });
         }
     },
@@ -95,10 +97,6 @@ var _Contents = {
         $('.delete_icon', div).on('click', function() {
             _Contents.deleteContent(this, content);
         });
-        //        div.append('<img class="add_icon button" title="Add Element" alt="Add Element" src="icon/add.png">');
-        //        $('.add_icon', div).on('click', function() {
-        //            Resources.addElement(this, resource);
-        //        });
         $('b', div).on('click', function() {
             Structr.dialog('Edit Properties of ' + content.id, function() {
                 console.log('save')
@@ -108,23 +106,7 @@ var _Contents = {
             _Entities.showProperties(this, content, 'all', $('#dialogBox .dialogText'));
         });
 
-        //        $.ajax({
-        //            url: rootUrl + 'contents/' + content.id + '/out',
-        //            dataType: 'json',
-        //            contentType: 'application/json; charset=utf-8',
-        //            success: function(data) {
-        //                if (debug) console.log(data);
-        //                $(data).each(function(i,v) {
-        //                    if (debug) console.log(v); //TODO: display information about relationship
-        //                });
-        //
-        //            }
-        //        });
         return div;
-    },
-
-    addContent : function(button) {
-        return _Entities.add(button, 'Content');
     },
 
     deleteContent : function(button, content) {
@@ -142,23 +124,23 @@ var _Contents = {
         var p = dmp.patch_make(text1, text2);
         var strp = dmp.patch_toText(p);
         if (debug) console.log(strp, $.quoteString(strp));
-        var command = '{ "command" : "PATCH" , "id" : "' + id + '", "data" : { "patch" : ' + $.quoteString(strp) + '} }';
-        console.log(command);
-        return send(command);
+
+        var obj = {};
+        obj.command = 'PATCH';
+        obj.id = id;
+        var data = {};
+        data.patch = strp;
+        obj.data = data;
+
+        if (debug) console.log(obj);
+        return sendObj(obj);
     },
 
     editContent : function (button, entity, view, element) {
         if (isDisabled(button)) return;
         var div = element.append('<div class="editor"></div>');
         if (debug) console.log(div);
-        //var div = $('.' + resourceId + '_ .' + contentId + '_');
         var contentBox = $('.editor', element);
-        //        disable(button, function() {
-        //            contentBox.remove();
-        //            enable(button, function() {
-        //                //editContent(button, resourceId, contentId);
-        //                });
-        //        });
         editor = CodeMirror(contentBox.get(0), {
             value: unescapeTags(entity.content),
             mode:  "htmlmixed",
@@ -178,22 +160,6 @@ var _Contents = {
 				
                 _Contents.patch(entity.id, text1, text2);
 				
-            //
-            //                var selection = window.getSelection();
-            //                console.log(selection);
-            //                if (selection.rangeCount) {
-            //					console.log(selection.rangeCount);
-            //                    selStart = selection.getRangeAt(selection.rangeCount).startOffset;
-            //                    selEnd = selection.getRangeAt(selection.rangeCount).endOffset;
-            //                    console.log(selStart, selEnd);
-            //                }
-
-
-
-
-
-            //var content = escapeTags(editor.getValue());
-            //_Entities.setProperty(entity.id, 'content', content);
             }
         });
 

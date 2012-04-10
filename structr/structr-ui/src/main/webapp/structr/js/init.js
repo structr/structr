@@ -37,7 +37,7 @@ $(window).unload(function() {
 	
 	
 $(document).ready(function() {
-	dmp = new diff_match_patch()
+    dmp = new diff_match_patch()
     if (debug) console.log('Debug mode');
     header = $('#header');
     main = $('#main');
@@ -174,7 +174,7 @@ var Structr = {
         $.blockUI.defaults.applyPlatformOpacityRules = false;
         $.blockUI({
             message: $('#login'),
-			forceInput: true,
+            forceInput: true,
             css: {
                 border: 'none',
                 backgroundColor: 'transparent'
@@ -228,13 +228,31 @@ var Structr = {
 
     saveSession : function() {
         if (lastMenuEntry && lastMenuEntry != 'logout') {
-            $.cookie('structrLastMenuEntry', lastMenuEntry, { expires: 7, path: '/' });
+            $.cookie('structrLastMenuEntry', lastMenuEntry, {
+                expires: 7,
+                path: '/'
+            });
             if (debug) console.log('set cookie for active tab', activeTab);
-            $.cookie('structrActiveTab', activeTab, { expires: 7, path: '/' });
-            if (resources) $.cookie('structrResourcesVisible', resources.is(':visible'), { expires: 7, path: '/' });
-            if (components) $.cookie('structrComponentsVisible', components.is(':visible'), { expires: 7, path: '/' });
-            if (elements) $.cookie('structrElementsVisible', elements.is(':visible'), { expires: 7, path: '/' });
-            if (contents) $.cookie('structrContentsVisible', contents.is(':visible'), { expires: 7, path: '/' });
+            $.cookie('structrActiveTab', activeTab, {
+                expires: 7,
+                path: '/'
+            });
+            if (resources) $.cookie('structrResourcesVisible', resources.is(':visible'), {
+                expires: 7,
+                path: '/'
+            });
+            if (components) $.cookie('structrComponentsVisible', components.is(':visible'), {
+                expires: 7,
+                path: '/'
+            });
+            if (elements) $.cookie('structrElementsVisible', elements.is(':visible'), {
+                expires: 7,
+                path: '/'
+            });
+            if (contents) $.cookie('structrContentsVisible', contents.is(':visible'), {
+                expires: 7,
+                path: '/'
+            });
         }
     //console.log('cooke value now: ', $.cookie('structrActiveTab'));
     },
@@ -271,8 +289,8 @@ var Structr = {
         $.blockUI.defaults.overlayCSS.opacity = .6;
         $.blockUI.defaults.applyPlatformOpacityRules = false;
         $.blockUI({
-            fadeIn: 50,
-            fadeOut: 50,
+            fadeIn: 25,
+            fadeOut: 25,
             message: $('#infoBox'),
             css: {
                 border: 'none',
@@ -287,39 +305,39 @@ var Structr = {
         $('#dialogBox .dialogMsg').empty();
 
         if (text) $('#dialogBox .dialogTitle').html(text);
-//        if (callbackOk) $('#dialogOkButton').on('click', function() {
-//            callbackOk();
-//			$('#dialogBox .dialogText').empty();
-//			$.unblockUI();
-//        });
+        //        if (callbackOk) $('#dialogOkButton').on('click', function() {
+        //            callbackOk();
+        //			$('#dialogBox .dialogText').empty();
+        //			$.unblockUI();
+        //        });
         if (callbackCancel) $('#dialogBox .dialogCancelButton').on('click', function() {
             callbackCancel();
-			$('#dialogBox .dialogText').empty();
-			$.unblockUI();
+            $('#dialogBox .dialogText').empty();
+            $.unblockUI();
         });
         $.blockUI.defaults.overlayCSS.opacity = .6;
         $.blockUI.defaults.applyPlatformOpacityRules = false;
         $.blockUI({
-            fadeIn: 50,
-            fadeOut: 50,
+            fadeIn: 25,
+            fadeOut: 25,
             message: $('#dialogBox'),
             css: {
                 border: 'none',
                 backgroundColor: 'transparent'
             }
         });
-//        $('.blockUI.blockMsg').center();
+    //        $('.blockUI.blockMsg').center();
 
     },
 
     error : function(text, callback) {
         if (text) $('#errorBox .errorText').html('<img src="icon/error.png"> ' + text);
-		console.log(callback);
+        console.log(callback);
         if (callback) $('#errorBox .okButton').on('click', function() {
             //callback();
-			console.log(callback);
+            console.log(callback);
 			
-			$.unblockUI();
+            $.unblockUI();
         });
         $.blockUI.defaults.overlayCSS.opacity = .6;
         $.blockUI.defaults.applyPlatformOpacityRules = false;
@@ -444,5 +462,5 @@ function swapFgBg(el) {
 }
 
 function isImage(contentType) {
-	return (contentType.indexOf('image') > -1);
+    return (contentType.indexOf('image') > -1);
 }

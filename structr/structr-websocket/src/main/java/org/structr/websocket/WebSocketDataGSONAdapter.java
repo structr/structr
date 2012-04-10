@@ -164,7 +164,7 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 				if (newValue != null) {
 
-					src.getData().put(modifiedKey, newValue);
+					src.getNodeData().put(modifiedKey, newValue);
 
 				}
 
@@ -173,9 +173,9 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 		}
 
 		// serialize data
-		if (src.getData() != null) {
+		if (src.getNodeData() != null) {
 
-			for (Entry<String, Object> entry : src.getData().entrySet()) {
+			for (Entry<String, Object> entry : src.getNodeData().entrySet()) {
 
 				Object value = entry.getValue();
 				String key   = entry.getKey();
@@ -261,7 +261,7 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 		JsonArray array = new JsonArray();
 		for (TreeNode childNode : node.getChildren()) {
-//			AbstractNode childData = childNode.getData();
+//			AbstractNode childData = childNode.getNodeData();
 			array.add(buildTree(childNode, context));
 		}
 		
@@ -278,7 +278,8 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 		if (json instanceof JsonObject) {
 
 			JsonObject root = json.getAsJsonObject();
-			JsonObject data = root.getAsJsonObject("data");
+			JsonObject nodeData = root.getAsJsonObject("data");
+			JsonObject relData = root.getAsJsonObject("relData");
 
 			if (root.has("command")) {
 
@@ -346,16 +347,25 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 			}
 
-			if (data != null) {
+			if (nodeData != null) {
 
-				for (Entry<String, JsonElement> entry : data.entrySet()) {
+				for (Entry<String, JsonElement> entry : nodeData.entrySet()) {
 
-					webSocketData.setData(entry.getKey(), entry.getValue().getAsString());
+					webSocketData.setNodeData(entry.getKey(), entry.getValue().getAsString());
 
 				}
 
 			}
 
+			if (relData != null) {
+
+				for (Entry<String, JsonElement> entry : relData.entrySet()) {
+
+					webSocketData.setRelData(entry.getKey(), entry.getValue().getAsString());
+
+				}
+
+			}
 		}
 
 		return webSocketData;

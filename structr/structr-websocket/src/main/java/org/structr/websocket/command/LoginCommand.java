@@ -53,8 +53,8 @@ public class LoginCommand extends AbstractCommand {
 	public void processMessage(WebSocketMessage webSocketData) {
 
 		SecurityContext securityContext = SecurityContext.getSuperUserInstance();
-		String username                 = (String) webSocketData.getData().get("username");
-		String password                 = (String) webSocketData.getData().get("password");
+		String username                 = (String) webSocketData.getNodeData().get("username");
+		String password                 = (String) webSocketData.getNodeData().get("password");
 		User user                       = null;
 
 		if ((username != null) && (password != null)) {
@@ -74,8 +74,9 @@ public class LoginCommand extends AbstractCommand {
 					user.setProperty(User.Key.sessionId, token);
 
 					// store token in response data
-					webSocketData.getData().clear();
+					webSocketData.getNodeData().clear();
 					webSocketData.setToken(token);
+					webSocketData.getNodeData().put("username", user.getName());
 
 					// authenticate socket
 					this.getWebSocket().setAuthenticated(token, user);

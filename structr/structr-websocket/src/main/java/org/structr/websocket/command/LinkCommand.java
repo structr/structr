@@ -61,7 +61,7 @@ public class LinkCommand extends AbstractCommand {
 
 		// create static relationship
 		String sourceId                = webSocketData.getId();
-		Map<String, Object> properties = webSocketData.getData();
+		Map<String, Object> properties = webSocketData.getNodeData();
 		String resourceId              = (String) properties.get("resourceId");
 //		String rootResourceId          = (String) properties.get("rootResourceId");
 //

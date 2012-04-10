@@ -182,8 +182,13 @@ img.disabled {
     vertical-align: top;
     width: 400px;
     padding-right: 12px;
-/*    overflow: auto;*/
-/*    height: 800px;*/
+/*    overflow: auto ! important;*/
+/*    height: 1000px ! important;*/
+}
+
+#resources {
+    overflow: auto ! important;
+    height: 1000px ! important;
 }
 
 #resources > div, #resources > button,
@@ -194,8 +199,11 @@ img.disabled {
 /*    display: none;*/
 }
 
-#resourcesEditor {
-    height: 1000px;
+#resourcesWrapper {
+/*    height: 1000px;*/
+/*    overflow: auto;*/
+    vertical-align: top;
+
 }
 
 #images > div:first-child {
@@ -226,8 +234,14 @@ img.disabled {
     filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#eeeeee', EndColorStr='#dddddd', GradientType=0);
 }
 
-.node, .resource .element, .component {
-    /*    display: none;*/
+.node .id,
+.resource .id,
+.element .id,
+.component .id,
+.file .id,
+.folder .id,
+.image .id {
+        display: none;
 }
 
 .content b {
@@ -455,7 +469,7 @@ ul#previewTabs {
     border: 0;
     padding: 0;
     margin: 0;
-    overflow: hidden;
+/*    overflow: hidden;*/
 /*    zoom: 0.75;*/
 /*    -moz-transform: scale(0.75);
     -o-transform: scale(0.75);
@@ -693,6 +707,7 @@ div.nested img:hover {
 
 .ui-draggable {
     cursor: move;
+    z-index: 4;
 }
 
 #offset-tester {

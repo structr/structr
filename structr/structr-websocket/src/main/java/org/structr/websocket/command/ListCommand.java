@@ -45,7 +45,7 @@ public class ListCommand extends AbstractCommand {
 		
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 
-		String type = (String) webSocketData.getData().get("type");
+		String type = (String) webSocketData.getNodeData().get("type");
 
 		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 //		searchAttributes.addAll(Search.andExactTypeAndSubtypes(CaseHelper.toUpperCamelCase(type)));

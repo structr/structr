@@ -95,7 +95,7 @@ public class HtmlServlet extends HttpServlet {
 	private static final Logger logger = Logger.getLogger(HtmlServlet.class.getName());
 
 	//~--- fields ---------------------------------------------------------
-
+	private static final String REST_PATH_SEP = "//";
 	private TraversalDescription desc = null;
 	private String[] html5VoidTags    = new String[] {
 
@@ -186,6 +186,14 @@ public class HtmlServlet extends HttpServlet {
 		}
 	}
 
+	private String getName(final String pathPart) {
+		if (pathPart.contains("/")) {
+			return StringUtils.substringAfterLast(pathPart, "/");
+		} else {
+			return pathPart;
+		}
+	}
+
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) {
 
@@ -194,14 +202,15 @@ public class HtmlServlet extends HttpServlet {
 		logger.log(Level.INFO, "Path info {0}", path);
 
 		String[] urlParts = getParts(path);
+		String searchFor  = null;
 
-		String searchFor = null;
 		if (urlParts.length > 1) {
+
 			searchFor = StringUtils.substringBefore(urlParts[1], "?");
+
 		}
 
-
-		String name                        = getParts(path)[0];
+		String name                        = getName(getParts(path)[0]);
 		List<NodeAttribute> attrs          = new LinkedList<NodeAttribute>();
 		Map<String, String[]> parameterMap = request.getParameterMap();
 
@@ -236,45 +245,17 @@ public class HtmlServlet extends HttpServlet {
 			double start                = System.nanoTime();
 
 			// 1: find entry point (Resource, File or Image)
+			AbstractNode node                 = findEntryPoint(name);
 			Resource resource                 = null;
 			org.structr.core.entity.File file = null;
 
-			if (name.length() > 0) {
+			if (node instanceof Resource) {
 
-				logger.log(Level.FINE, "File name {0}", name);
+				resource = (Resource) node;
 
-				List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
+			} else if (node instanceof org.structr.core.entity.File) {
 
-				searchAttrs.add(Search.andExactName(name));
-
-				SearchAttributeGroup group = new SearchAttributeGroup(SearchOperator.AND);
-
-				group.add(Search.orExactType(Resource.class.getSimpleName()));
-				group.add(Search.orExactType(org.structr.core.entity.File.class.getSimpleName()));
-				group.add(Search.orExactType(Image.class.getSimpleName()));
-				searchAttrs.add(group);
-
-				// Searching for resources needs super user context anyway
-				List<AbstractNode> results = (List<AbstractNode>) Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(null, false, false,
-								     searchAttrs);
-
-				logger.log(Level.FINE, "{0} results", results.size());
-
-				if (!results.isEmpty()) {
-
-					AbstractNode node = results.get(0);
-
-					if (node instanceof Resource) {
-
-						resource = (Resource) node;
-
-					} else if (node instanceof org.structr.core.entity.File) {
-
-						file = (org.structr.core.entity.File) node;
-
-					}
-
-				}
+				file = (org.structr.core.entity.File) node;
 
 			}
 
@@ -437,17 +418,50 @@ public class HtmlServlet extends HttpServlet {
 		return StringUtils.strip(path, "/");
 	}
 
+	private AbstractNode findEntryPoint(final String name) throws FrameworkException {
+
+		if (name.length() > 0) {
+
+			logger.log(Level.FINE, "File name {0}", name);
+
+			List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
+
+			searchAttrs.add(Search.andExactName(name));
+
+			SearchAttributeGroup group = new SearchAttributeGroup(SearchOperator.AND);
+
+			group.add(Search.orExactType(Resource.class.getSimpleName()));
+			group.add(Search.orExactType(org.structr.core.entity.File.class.getSimpleName()));
+			group.add(Search.orExactType(Image.class.getSimpleName()));
+			searchAttrs.add(group);
+
+			// Searching for resources needs super user context anyway
+			List<AbstractNode> results = (List<AbstractNode>) Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(null, false, false, searchAttrs);
+
+			logger.log(Level.FINE, "{0} results", results.size());
+
+			if (!results.isEmpty()) {
+
+				return results.get(0);
+
+			}
+
+		}
+
+		return null;
+	}
+
 	//~--- get methods ----------------------------------------------------
 
 	private String[] getParts(String path) {
 
 		path = clean(path);
 
-		return new String[] { StringUtils.substringBefore(path, "/"), StringUtils.substringAfter(path, "/") };
+		return new String[] { StringUtils.substringBefore(path, REST_PATH_SEP), StringUtils.substringAfter(path, REST_PATH_SEP) };
 	}
 
-	private void getContent(final String resourceId, final String componentId, final StringBuilder buffer, final AbstractNode node, final int depth, boolean inBody,
-				final String searchClass, final List<NodeAttribute> attrs) {
+	private void getContent(final String resourceId, final String componentId, final StringBuilder buffer, final AbstractNode node, final int depth, boolean inBody, final String searchClass,
+				final List<NodeAttribute> attrs) {
 
 		String localComponentId   = componentId;
 		String content            = null;
@@ -458,10 +472,9 @@ public class HtmlServlet extends HttpServlet {
 
 			// If a search class is given, respect search attributes
 			// Filters work with AND
-
 			String structrClass = node.getStringProperty(Component.UiKey.structrclass);
 
-			if (structrClass != null && structrClass.equals(EntityContext.normalizeEntityName(searchClass)) && attrs != null) {
+			if ((structrClass != null) && structrClass.equals(EntityContext.normalizeEntityName(searchClass)) && (attrs != null)) {
 
 				for (NodeAttribute attr : attrs) {
 

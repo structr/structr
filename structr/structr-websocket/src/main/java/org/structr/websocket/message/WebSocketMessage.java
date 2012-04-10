@@ -44,7 +44,8 @@ public class WebSocketMessage {
 	private String callback                = null;
 	private int code                       = 0;
 	private String command                 = null;
-	private Map<String, Object> data       = new LinkedHashMap<String, Object>();
+	private Map<String, Object> nodeData   = new LinkedHashMap<String, Object>();
+	private Map<String, Object> relData    = new LinkedHashMap<String, Object>();
 	private GraphObject graphObject        = null;
 	private String id                      = null;
 	private String message                 = null;
@@ -71,8 +72,12 @@ public class WebSocketMessage {
 		return id;
 	}
 
-	public Map<String, Object> getData() {
-		return data;
+	public Map<String, Object> getNodeData() {
+		return nodeData;
+	}
+
+	public Map<String, Object> getRelData() {
+		return relData;
 	}
 
 	public String getCallback() {
@@ -156,12 +161,20 @@ public class WebSocketMessage {
 		this.id = id;
 	}
 
-	public void setData(String key, Object value) {
-		data.put(key, value);
+	public void setNodeData(String key, Object value) {
+		nodeData.put(key, value);
 	}
 
-	public void setData(Map<String, Object> data) {
-		this.data.putAll(data);
+	public void setNodeData(Map<String, Object> data) {
+		this.nodeData.putAll(data);
+	}
+
+	public void setRelData(String key, Object value) {
+		relData.put(key, value);
+	}
+
+	public void setRelData(Map<String, Object> data) {
+		this.relData.putAll(data);
 	}
 
 	public void setCallback(String callback) {

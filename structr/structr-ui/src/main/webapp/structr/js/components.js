@@ -52,7 +52,9 @@ var _Components = {
         if (_Components.show()) {
             components.append('<button class="add_component_icon button"><img title="Add Component" alt="Add Component" src="' + _Components.add_icon + '"> Add Component</button>');
             $('.add_component_icon', main).on('click', function() {
-                _Components.addComponent(this);
+                var entity = {};
+                entity.type = 'Component';
+                _Entities.create(this, entity);
             });
         }
     },
@@ -62,7 +64,9 @@ var _Components = {
         if (_Elements.show()) {
             elements.append('<button class="add_element_icon button"><img title="Add Element" alt="Add Element" src="' + _Elements.add_icon + '"> Add Element</button>');
             $('.add_element_icon', main).on('click', function() {
-                _Components.addElement(this);
+                var entity = {};
+                entity.type = 'Element';
+                _Entities.create(this, entity);
             });
         }
     },
@@ -85,6 +89,12 @@ var _Components = {
         $('.delete_icon', div).on('click', function() {
             _Components.deleteComponent(this, component);
         });
+
+        div.append('<img title="Create Form" alt="Create Form" class="add_form_icon button" src="icon/application_form_add.png">');
+        $('.add_form_icon', div).on('click', function() {
+            _Components.createForm(this, component);
+        });
+
         //        div.append('<img class="add_icon button" title="Add Component" alt="Add Component" src="icon/add.png">');
         //        $('.add_icon', div).on('click', function() {
         //            Resources.addComponent(this, resource);
@@ -101,14 +111,13 @@ var _Components = {
             drop: function(event, ui) {
                 var elementId = getIdFromClassString(ui.draggable.attr('class'));
                 var resourceId = getIdFromClassString($(this).attr('class'));
-
                 if (!resourceId) resourceId = '*';
-
                 var pos = $('.element', $(this)).length;
-                if (debug) console.log(pos);
-                var props = '"' + resourceId + '" : "' + pos + '"';
-                if (debug) console.log(props);
-                _Entities.addSourceToTarget(elementId, resourceId, props);
+                var nodeData = {};
+                nodeData.id = elementId;
+                var relData = {};
+                relData[resourceId] = pos;
+                _Entities.addSourceToTarget(resourceId, nodeData, relData);
             }
         });
 
@@ -152,32 +161,51 @@ var _Components = {
                 var elementId = getIdFromClassString($(this).attr('class'));
                 var pos = $('.content', $(this)).length;
                 if (debug) console.log(pos);
-                var props;
+                var resourceId;
                 if (resource) {
-                    var resourceId = getIdFromClassString($(resource).attr('class'));
-                    props = '"' + resourceId + '" : "' + pos + '"';
+                    resourceId = getIdFromClassString($(resource).attr('class'));
                 } else {
-                    props = '"*" : "' + pos + '"';
+                    resourceId = '*';
                 }
-                if (debug) console.log(props);
-                _Entities.addSourceToTarget(contentId, elementId, props);
+
+                var relData = {};
+                relData[resourceId] = pos;
+                var nodeData = {};
+                nodeData.id = contentId;
+                _Entities.addSourceToTarget(elementId, nodeData, relData);
             }
         });
 
         return div;
     },
 
-    addComponent : function(button) {
-        return _Entities.add(button, 'Component');
+    deleteComponent : function(button, component) {
+        if (debug) console.log('delete component', component);
+        deleteNode(button, component);
     },
 
-    addElement : function(button) {
-        return _Entities.add(button, 'Element');
-    },
-    
-    deleteComponent : function(button, component) {
-        if (debug) console.log('delete component ' + component);
-        deleteNode(button, component);
+    createForm : function(button, component) {
+        console.log('create form', component);
+
+        var form = {};
+        form.type = 'Form';
+        form.tag = 'form';
+        form._html_action = '//' + plural(component.structrclass).toLowerCase();
+        form._html_method = 'post';
+
+        var componentId = component.id;
+        var resourceId = getIdFromClassString($($(button).closest('.resource')[0]).attr('class'));
+
+        var componentElement = $(button).closest('.component');
+        var pos = componentElement.children('.node').size();
+
+        var rel = {};
+
+        rel[componentId] = pos;
+        rel[resourceId] = pos;
+
+        _Entities.createAndAdd(componentId, form, rel);
+
     }
 
 };

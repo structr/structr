@@ -49,7 +49,7 @@ public class CreateCommand extends AbstractCommand {
 
 			@Override
 			public Object execute() throws FrameworkException {
-				return Services.command(securityContext, CreateNodeCommand.class).execute(webSocketData.getData());
+				return Services.command(securityContext, CreateNodeCommand.class).execute(webSocketData.getNodeData());
 			}
 		};
 

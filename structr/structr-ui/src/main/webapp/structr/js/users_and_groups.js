@@ -26,8 +26,8 @@ $(document).ready(function() {
 var _UsersAndGroups = {
 
     init : function() {
-		Structr.classes.push('user');
-		Structr.classes.push('group');
+        Structr.classes.push('user');
+        Structr.classes.push('group');
     },
 	
     onload : function() {
@@ -41,37 +41,29 @@ var _UsersAndGroups = {
         _UsersAndGroups.refreshGroups();
         _UsersAndGroups.refreshUsers();
     },
-	
-    showUsers : function() {
-        if (debug) console.log('showUsers()');
-        return _Entities.getEntities('User');
+    
+    refreshGroups : function() {
+        groups.empty();
+        if (_Entities.getEntities('Group')) {
+            groups.append('<button class="add_group_icon button"><img title="Add Group" alt="Add Group" src="icon/group_add.png"> Add Group</button>');
+            $('.add_group_icon', main).on('click', function() {
+                var entity = {};
+                entity.type = 'Group';
+                return _Entities.create(this, entity);
+            });
+        }
     },
 
-    showGroups : function() {
-        if (debug) console.log('showGroups()');
-        return _Entities.getEntities('Group');
-    },
-
-    addGroup : function(button) {
-        return _Entities.add(button, 'Group');
-    //		if (isDisabled(button)) return false;
-    //		disable(button);
-    //		buttonClicked = button;
-    //		var data = '{ "command" : "CREATE" , "data" : { "type" : "Group", "name" : "New group_' + Math.floor(Math.random() * (9999 - 1)) + '" } }';
-    //		if (debug) console.log(data);
-    //		return send(data);
-    },
-
-    addUser : function(button) {
-        return _Entities.add(button, 'User');
-    //		if (debug) console.log('addUser to group + ' + group);
-    //		if (isDisabled(button)) return false;
-    //		disable(button);
-    //		buttonClicked = button;
-    //		var name = Math.floor(Math.random() * (9999 - 1));
-    //		var data = '{ "command" : "CREATE" , "callback" : "test" , "data" : { "type" : "User", "name" : "' + name + '", "realName" : "New user_' + name + '" } }';
-    //		if (debug) console.log(data);
-    //		return send(data);
+    refreshUsers : function() {
+        users.empty();
+        if (_Entities.getEntities('User')) {
+            users.append('<button class="add_user_icon button"><img title="Add User" alt="Add User" src="icon/user_add.png"> Add User</button>');
+            $('.add_user_icon', main).on('click', function() {
+                var entity = {};
+                entity.type = 'User';
+                return _Entities.create(this, entity);
+            });
+        }
     },
 
     addUserToGroup : function(userId, groupId) {
@@ -135,31 +127,6 @@ var _UsersAndGroups = {
         var data = '{ "type" : "Group" , "name" : "' + group.name + '" , "id" : "' + group.id + '" }';
         deleteNode(button, $.parseJSON(data));
     },
-//      
-//    refreshGroup : function(groupId) {
-//        $('#group_' + groupId + ' > div.nested').remove();
-//        UsersAndGroups.showUsersOfGroup(groupId);
-//    },
-
-    refreshGroups : function() {
-        groups.empty();
-        if (_UsersAndGroups.showGroups()) {
-            groups.append('<button class="add_group_icon button"><img title="Add Group" alt="Add Group" src="icon/group_add.png"> Add Group</button>');
-            $('.add_group_icon', main).on('click', function() {
-                _UsersAndGroups.addGroup(this);
-            });
-        }
-    },
-
-    refreshUsers : function() {
-        users.empty();
-        if (_UsersAndGroups.showUsers()) {
-            users.append('<button class="add_user_icon button"><img title="Add User" alt="Add User" src="icon/user_add.png"> Add User</button>');
-            $('.add_user_icon', main).on('click', function() {
-                _UsersAndGroups.addUser(this);
-            });
-        }
-    },
 
     appendGroupElement : function(group) {
         groups.append('<div class="group ' + group.id + '_">'
@@ -173,7 +140,7 @@ var _UsersAndGroups = {
             _UsersAndGroups.deleteGroup(this, group)
         });
         $('b', div).on('click', function() {
-            _Entities.showProperties(this, group, 'all', $('.' + group.id + '_', groups));
+            _Entities.showProperties(this, group, 'all', $('#dialogBox .dialogText'));
         });
 	
         div.droppable({
@@ -183,7 +150,9 @@ var _UsersAndGroups = {
             drop: function(event, ui) {
                 var userId = getIdFromClassString(ui.draggable.attr('class'));
                 var groupId = getIdFromClassString($(this).attr('class'));
-                _Entities.addSourceToTarget(userId, groupId);
+                var user = {};
+                user.id = userId;
+                _Entities.addSourceToTarget(groupId, user);
             }
         });
 
@@ -206,7 +175,7 @@ var _UsersAndGroups = {
                 _UsersAndGroups.removeUserFromGroup(user.id, groupId)
             });
             $('b', div).on('click', function() {
-                _UsersAndGroups.editUserProperties(this, user, groupId);
+                _Entities.showProperties(this, user, 'all', $('#dialogBox .dialogText'));
             });
         } else {
             users.append('<div class="user ' + user.id + '_">'
@@ -221,7 +190,7 @@ var _UsersAndGroups = {
                 _UsersAndGroups.deleteUser(this, user)
             });
             $('b', div).on('click', function() {
-                _UsersAndGroups.editUserProperties(this, user);
+                _Entities.showProperties(this, user, 'all', $('#dialogBox .dialogText'));
             });
             div.draggable({
                 revert: 'invalid',
@@ -229,10 +198,6 @@ var _UsersAndGroups = {
                 zIndex: 1
             });
         }
-    },
-
-    editUserProperties : function(button, user) {
-        _Entities.showProperties(button, user, 'all', $('.' + user.id + '_'));
     }
 
 };

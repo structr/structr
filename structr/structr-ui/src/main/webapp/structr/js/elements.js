@@ -176,7 +176,10 @@ var _Elements = {
                     //console.log('Element: ', v);
                     list.append('<div id="add_' + v + '">' + v + '</div>');
                     $('#add_' + v).on('click', function() {
-                        _Elements.addElement(button, v.capitalize(), '"tag":"' + v + '"');
+                        var entity = {};
+                        entity.type = v.capitalize();
+                        entity.tag = v;
+                        _Elements.create(button, entity);
                         list.remove();
                     });
                 });
@@ -231,33 +234,9 @@ var _Elements = {
 
         $('b', div).on('click', function(e) {
             e.stopPropagation();
-            div.off('click');
-            div.off('mouseover');
-            div.off('mouseout');
-            $(this).off('click');
-            $(this).off('mouseover');
-            $(this).off('mouseout');
-
             if (debug) console.log('parent', parent);
-            //_Entities.showProperties(this, entity, '_html_', $('.' + entity.id + '_', parent));
-            Structr.dialog('Edit Properties of ' + entity.id, function() {
-                if (debug) console.log('save')
-                }, function() {
-                if (debug) console.log('cancelled')
-                });
             _Entities.showProperties(this, entity, 'all', $('#dialogBox .dialogText'));
-            //_Entities.showProperties(this, entity, '_html_', $('#dialogBox .dialogText'));
         });
-		
-//        div.on('mouseover', function(e) {
-//            e.stopPropagation();
-//            _Entities.showNonEmptyProperties(this, entity, '_html_', $('.' + entity.id + '_', parent));
-//        });
-//
-//        div.on('mouseout', function(e) {
-//            e.stopPropagation();
-//            _Entities.hideNonEmptyProperties(this, entity, '_html_', $('.' + entity.id + '_', parent));
-//        });
 
         return div;
     },

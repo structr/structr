@@ -81,8 +81,8 @@ function connect() {
             if (debug) console.log('result: ' + $.toJSON(result));
 
             if (command == 'LOGIN') {
-		
                 var token = data.token;
+                var user = data.data.username;
                 if (debug) console.log('token: ' + token);
 		
                 if (sessionValid) {
@@ -145,8 +145,11 @@ function connect() {
                     if (entity.type == 'User') {
 
                         groupId = entity.groupId;
-                        if (groupId) _UsersAndGroups.appendUserElement(entity, groupId);
-                        _UsersAndGroups.appendUserElement(entity);
+                        if (groupId) {
+                            _UsersAndGroups.appendUserElement(entity, groupId);
+                        } else {
+                            _UsersAndGroups.appendUserElement(entity);
+                        }
                         disable($('.' + groupId + '_ .delete_icon')[0]);
                         if (buttonClicked) enable(buttonClicked);
 
@@ -196,8 +199,6 @@ function connect() {
                         _Files.appendImageElement(entity);
                         if (debug) console.log('Image uploaded');
                         if (buttonClicked) enable(buttonClicked);
-
-                    //                    } else if (entity.type == 'Element') {
                     } else {
                         if (resources) {
                             _Resources.appendElementElement(entity);
@@ -206,11 +207,6 @@ function connect() {
                         }
                         if (debug) console.log('Element element appended');
                         if (buttonClicked) enable(buttonClicked);
-
-                    //                    } else {
-                    //                        //appendEntityElement(data, parentElement);
-                    //                        _Entities.appendEntityElement(entity);
-                    //                        if (buttonClicked) enable(buttonClicked);
                     }
                 });
 
@@ -316,13 +312,6 @@ function connect() {
                                 _Files.appendFolderElement(folder, entity.id);
                             });
                         }
-                        var files = entity.files;
-                        if (files && files.length > 0) {
-                            disable($('.delete_icon', folderElement)[0]);
-                            $(files).each(function(i, file) {
-                                _Files.appendFileElement(file, entity.id);
-                            });
-                        }
                         var images = entity.images;
                         if (images && images.length > 0) {
                             disable($('.delete_icon', folderElement)[0]);
@@ -330,7 +319,17 @@ function connect() {
                                 _Files.appendImageElement(image, entity.id);
                             });
                         }
-						
+                        var files = entity.files;
+                        if (files && files.length > 0) {
+                            disable($('.delete_icon', folderElement)[0]);
+                            $(files).each(function(i, file) {
+
+                                if (file.type == 'File') { // files comprise images
+                                    _Files.appendFileElement(file, entity.id);
+                                }
+
+                            });
+                        }
 
                     } else if (entity.type == 'Image') {
                         if (debug) console.log('Image:', entity);
@@ -347,10 +346,6 @@ function connect() {
                         }
 
                     } else {
-                        //                        _Entities.appendEntityElement(entity);
-                        //                    } else if (entity.type == 'Element') {
-
-                        //						Entities.getTree(entity.id);
                         var elementElement = _Resources.appendElementElement(entity);
                         var elem = entity.elements;
                         if (elem && elem.length > 0) {
@@ -427,6 +422,8 @@ function connect() {
                 if (debug) console.log('Removed ' + entityId + ' from ' + parentId);
 
             } else if (command == 'ADD') {
+
+                if (true) console.log('ADD', data);
 
                 if (debug) console.log('ADD tag', data.data.tag);
                 parentId = data.id;
@@ -552,16 +549,12 @@ function connect() {
 
 }
 
-function send(text) {
+function sendObj(obj) {
 
-    log(ws.readyState);
-
-    var obj = $.parseJSON(text);
-    
     if (token) {
         obj.token = token;
     }
-    
+
     text = $.toJSON(obj);
 
     if (!text) {
@@ -577,6 +570,15 @@ function send(text) {
         return false;
     }
     return true;
+}
+
+function send(text) {
+
+    log(ws.readyState);
+
+    var obj = $.parseJSON(text);
+
+    return sendObj(obj);
 }
 
 function log(msg) {
