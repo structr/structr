@@ -1,9 +1,5 @@
 Welcome to structr. See http://structr.org for more information.
 
-Quick Start Guide: http://structr.org/quick-start-guide
-User Guide: http://structr.org/user-guide
-Pre-built Binaries: http://structr.org/download
-
 <h2>structr contains the following maven projects:</h2>
 
 <ul>
