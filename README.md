@@ -9,9 +9,8 @@ Pre-built Binaries: http://structr.org/download
 <ul>
 <li>structr: Parent reactor project
 <li>structr-core: Core entities and infrastructure (services, commands etc.)
-<li>structr-module-web: Module for basic web content management
-<li>structr-module-app: Module for interactive apps
-<li>structr-module-gis: Module for GIS functions
-<li>structr-webapp: Servlet Web Application to run structr in JEE container
+<li>structr-rest: Servlet and infrastructure for JSON REST interface
+<li>structr-websocket: Websocket interface
+<li>structr-ui: Backend UI
 </ul>
 
