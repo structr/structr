@@ -28,13 +28,13 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
 import org.structr.common.RelType;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.UnsupportedArgumentError;
 import org.structr.core.entity.CsvFile;
 import org.structr.core.entity.NodeList;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
 
 /**
@@ -48,7 +48,7 @@ public class ConvertCsvToNodeListCommand extends NodeServiceCommand {
     private static final Logger logger = Logger.getLogger(ConvertCsvToNodeListCommand.class.getName());
 
     @Override
-    public Object execute(Object... parameters) {
+    public Object execute(Object... parameters) throws FrameworkException {
 
         if (parameters == null || parameters.length < 2) {
             throw new UnsupportedArgumentError("Wrong number of arguments");
@@ -143,7 +143,7 @@ public class ConvertCsvToNodeListCommand extends NodeServiceCommand {
             final NodeList<AbstractNode> nodeListNode = (NodeList<AbstractNode>) transactionCommand.execute(new StructrTransaction() {
 
                 @Override
-                public Object execute() throws Throwable {
+                public Object execute() throws FrameworkException {
 
                     // If the node list node doesn't exist, create one
                     NodeList<AbstractNode> result = (NodeList) createNode.execute(userCopy,
@@ -191,7 +191,7 @@ public class ConvertCsvToNodeListCommand extends NodeServiceCommand {
             transactionCommand.execute(new StructrTransaction() {
 
                 @Override
-                public Object execute() throws Throwable {
+                public Object execute() throws FrameworkException {
                     List<AbstractNode> nodesToAdd = new LinkedList<AbstractNode>();
                     for (List<NodeAttribute> attrList : creationList) {
                         nodesToAdd.add((AbstractNode) createNode.execute(attrList, false));  // don't index

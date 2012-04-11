@@ -27,7 +27,6 @@ import org.structr.common.SecurityContext;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
 import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
@@ -39,6 +38,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.error.FrameworkException;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -62,7 +62,7 @@ public class FindUserCommand extends NodeServiceCommand {
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public Object execute(Object... parameters) {
+	public Object execute(Object... parameters) throws FrameworkException {
 
 		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
 		Command searchNode           = Services.command(SecurityContext.getSuperUserInstance(),

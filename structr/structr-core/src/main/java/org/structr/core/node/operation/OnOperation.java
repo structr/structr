@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.FindNodeCommand;
@@ -105,24 +106,29 @@ public class OnOperation implements Transformation {
 
 	private void add(Object obj) {
 
-		Object findNodeResult = Services.command(securityContext, FindNodeCommand.class).execute(currentNode, obj);
+		try {
+			Object findNodeResult = Services.command(securityContext, FindNodeCommand.class).execute(currentNode, obj);
 
-		if(findNodeResult != null) {
+			if(findNodeResult != null) {
 
-			if(findNodeResult instanceof AbstractNode) {
+				if(findNodeResult instanceof AbstractNode) {
 
-				nodeList.add((AbstractNode)findNodeResult);
+					nodeList.add((AbstractNode)findNodeResult);
 
-			} else if(findNodeResult instanceof Collection) {
+				} else if(findNodeResult instanceof Collection) {
 
-				for(Object o : (Collection)findNodeResult) {
+					for(Object o : (Collection)findNodeResult) {
 
-					if(o instanceof AbstractNode) {
+						if(o instanceof AbstractNode) {
 
-						nodeList.add((AbstractNode)o);
+							nodeList.add((AbstractNode)o);
+						}
 					}
 				}
 			}
+
+		} catch(FrameworkException fex) {
+			fex.printStackTrace();
 		}
 	}
 }

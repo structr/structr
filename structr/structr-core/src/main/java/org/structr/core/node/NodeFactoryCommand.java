@@ -24,6 +24,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.cloud.NodeDataContainer;
 import org.structr.core.entity.AbstractNode;
 
@@ -36,11 +37,11 @@ public class NodeFactoryCommand extends NodeServiceCommand {
     private static final Logger logger = Logger.getLogger(NodeFactoryCommand.class.getName());
 
     @Override
-    public Object execute(Object... parameters) {
+    public Object execute(Object... parameters) throws FrameworkException {
 
         GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
 
-        StructrNodeFactory nodeFactory = (StructrNodeFactory) arguments.get("nodeFactory");
+        NodeFactory nodeFactory = (NodeFactory) arguments.get("nodeFactory");
         Object ret = null;
 
         if (nodeFactory != null) {

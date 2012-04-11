@@ -42,7 +42,7 @@ import org.structr.core.Services;
 import org.structr.core.node.Evaluable;
 import org.structr.core.IterableAdapter;
 import org.structr.core.node.NodeFactoryCommand;
-import org.structr.core.node.StructrNodeFactory;
+import org.structr.core.node.NodeFactory;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 
@@ -54,6 +54,9 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.structr.common.error.FrameworkException;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -78,7 +81,8 @@ import java.util.Set;
 public class NodeList<T extends AbstractNode> extends AbstractNode
 	implements Iterable<AbstractNode>, Decorable<AbstractNode>, Evaluable {
 
-	// private static final Logger logger   = Logger.getLogger(NodeList.class.getName());
+	private static final Logger logger   = Logger.getLogger(NodeList.class.getName());
+
 	static {
 
 		EntityContext.registerPropertySet(NodeList.class,
@@ -189,22 +193,29 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 //      @Override
 	public boolean add(final AbstractNode toAdd) {
 
-		Boolean returnValue = (Boolean) transaction.execute(new StructrTransaction() {
+		try {
+			Boolean returnValue = (Boolean) transaction.execute(new StructrTransaction() {
 
-			@Override
-			public Object execute() throws Throwable {
+				@Override
+				public Object execute() throws FrameworkException {
 
-				// apply decorators (if any)
-				for (Decorator<AbstractNode> decorator : decorators) {
-					decorator.decorate(toAdd);
+					// apply decorators (if any)
+					for (Decorator<AbstractNode> decorator : decorators) {
+						decorator.decorate(toAdd);
+					}
+
+					return (appendNodeToList(toAdd.getNode()));
 				}
 
-				return (appendNodeToList(toAdd.getNode()));
-			}
+			});
 
-		});
+			return (returnValue.booleanValue());
 
-		return (returnValue.booleanValue());
+		} catch(FrameworkException fex) {
+			logger.log(Level.WARNING, "Unable to add node to this list", fex);
+		}
+
+		return false;
 	}
 
 	/**
@@ -215,16 +226,23 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 	 */
 	public boolean remove(final Object node) {
 
-		Boolean returnValue = (Boolean) transaction.execute(new StructrTransaction() {
+		try {
+			Boolean returnValue = (Boolean) transaction.execute(new StructrTransaction() {
 
-			@Override
-			public Object execute() throws Throwable {
-				return (removeNodeFromList((Node) node));
-			}
+				@Override
+				public Object execute() throws FrameworkException {
+					return (removeNodeFromList((Node) node));
+				}
 
-		});
+			});
 
-		return (returnValue.booleanValue());
+			return (returnValue.booleanValue());
+
+		} catch(FrameworkException fex) {
+			logger.log(Level.WARNING, "Unable to remove node from this list", fex);
+		}
+
+		return false;
 	}
 
 	//
@@ -250,23 +268,30 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 //      @Override
 	public boolean addAll(final Collection<? extends AbstractNode> nodes) {
 
-		Boolean returnValue = (Boolean) transaction.execute(new StructrTransaction() {
+		try {
+			Boolean returnValue = (Boolean) transaction.execute(new StructrTransaction() {
 
-			@Override
-			public Object execute() throws Throwable {
+				@Override
+				public Object execute() throws FrameworkException {
 
-				boolean ret = false;
+					boolean ret = false;
 
-				for (AbstractNode node : nodes) {
-					ret |= appendNodeToList(node.getNode());
+					for (AbstractNode node : nodes) {
+						ret |= appendNodeToList(node.getNode());
+					}
+
+					return (ret);
 				}
 
-				return (ret);
-			}
+			});
 
-		});
+			return (returnValue.booleanValue());
 
-		return (returnValue.booleanValue());
+		} catch(FrameworkException fex) {
+			logger.log(Level.WARNING, "Unable to add nodes to this list", fex);
+		}
+
+		return false;
 	}
 
 //      /**
@@ -283,7 +308,7 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 //          Boolean returnValue = (Boolean) transaction.execute(new StructrTransaction() {
 //
 //              @Override
-//              public Object execute() throws Throwable {
+//              public Object execute() throws FrameworkException {
 //                  Node startNode = getNodeAt(index);
 //                  Node nextNode = null;
 //                  boolean ret = false;
@@ -312,7 +337,7 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 //          Boolean returnValue = (Boolean) transaction.execute(new StructrTransaction() {
 //
 //              @Override
-//              public Object execute() throws Throwable {
+//              public Object execute() throws FrameworkException {
 //                  boolean ret = false;
 //
 //                  for (Object obj : nodes) {
@@ -342,7 +367,7 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 //          Boolean returnValue = (Boolean) transaction.execute(new StructrTransaction() {
 //
 //              @Override
-//              public Object execute() throws Throwable {
+//              public Object execute() throws FrameworkException {
 //                  boolean ret = false;
 //
 //                  for (AbstractNode node : getNodes()) {
@@ -365,19 +390,24 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 	 */
 	public void clear() {
 
-		transaction.execute(new StructrTransaction() {
+		try {
+			transaction.execute(new StructrTransaction() {
 
-			@Override
-			public Object execute() throws Throwable {
+				@Override
+				public Object execute() throws FrameworkException {
 
-				for (Node node : getRawNodes()) {
-					removeNodeFromList(node);
+					for (Node node : getRawNodes()) {
+						removeNodeFromList(node);
+					}
+
+					return (null);
 				}
 
-				return (null);
-			}
+			});
 
-		});
+		} catch(FrameworkException fex) {
+			logger.log(Level.WARNING, "Unable to clear this list", fex);
+		}
 	}
 
 //
@@ -416,7 +446,7 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 //          transaction.execute(new StructrTransaction() {
 //
 //              @Override
-//              public Object execute() throws Throwable {
+//              public Object execute() throws FrameworkException {
 //                  Node node = getNodeAt(index);
 //                  if (node != null) {
 //                      insertNodeBefore(node, toSet.getNode());
@@ -446,28 +476,33 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 			throw new ArrayIndexOutOfBoundsException();
 		}
 
-		transaction.execute(new StructrTransaction() {
+		try {
+			transaction.execute(new StructrTransaction() {
 
-			@Override
-			public Object execute() throws Throwable {
+				@Override
+				public Object execute() throws FrameworkException {
 
-				// apply decorators (if any)
-				for (Decorator<AbstractNode> decorator : decorators) {
-					decorator.decorate(toAdd);
+					// apply decorators (if any)
+					for (Decorator<AbstractNode> decorator : decorators) {
+						decorator.decorate(toAdd);
+					}
+
+					if (index == size) {
+						appendNodeToList(toAdd.getNode());
+					} else {
+
+						insertNodeIntoList(index,
+								   toAdd.getNode());
+					}
+
+					return (null);
 				}
 
-				if (index == size) {
-					appendNodeToList(toAdd.getNode());
-				} else {
+			});
 
-					insertNodeIntoList(index,
-							   toAdd.getNode());
-				}
-
-				return (null);
-			}
-
-		});
+		} catch(FrameworkException fex) {
+			logger.log(Level.WARNING, "Unable to add node to this list", fex);
+		}
 	}
 
 //      /**
@@ -485,7 +520,7 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 //              transaction.execute(new StructrTransaction() {
 //
 //                  @Override
-//                  public Object execute() throws Throwable {
+//                  public Object execute() throws FrameworkException {
 //                      return (removeNodeFromList(node));
 //                  }
 //              });
@@ -821,8 +856,13 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 
 		Node node = getFirstRawNode();
 
-		if (node != null) {
-			return ((AbstractNode) factory.execute(node));
+		try {
+			if (node != null) {
+				return ((AbstractNode) factory.execute(node));
+			}
+
+		} catch(FrameworkException fex) {
+			logger.log(Level.WARNING, "Unable to instantiate node", fex);
 		}
 
 		return (null);
@@ -848,7 +888,12 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 	 * @return the last node of this list, or null
 	 */
 	public AbstractNode getLastNode() {
-		return ((AbstractNode) factory.execute(getLastRawNode()));
+		try {
+			return ((AbstractNode) factory.execute(getLastRawNode()));
+		} catch(FrameworkException fex) {
+			logger.log(Level.WARNING, "Unable to instantiate node", fex);
+		}
+		return null;
 	}
 
 	/**
@@ -889,7 +934,7 @@ public class NodeList<T extends AbstractNode> extends AbstractNode
 	private Iterable<AbstractNode> getNodes() {
 
 		return (new IterableAdapter<Node, AbstractNode>(getRawNodes(),
-			new StructrNodeFactory()));
+			new NodeFactory()));
 	}
 
 	private Iterable<Node> getRawNodes() {

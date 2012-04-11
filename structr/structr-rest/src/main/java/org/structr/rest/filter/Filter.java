@@ -4,13 +4,24 @@
  */
 package org.structr.rest.filter;
 
+import java.util.Comparator;
 import org.structr.core.GraphObject;
 
 /**
  *
  * @author Christian Morgner
  */
-public interface Filter {
+public abstract class Filter {
 
-	public boolean includeInResultSet(GraphObject object);
+	private Comparator<GraphObject> comparator = null;
+
+	public abstract boolean includeInResultSet(GraphObject object);
+
+	public void setComparator(Comparator<GraphObject> comparator) {
+		this.comparator = comparator;
+	}
+
+	public Comparator<GraphObject> getComparator() {
+		return comparator;
+	}
 }

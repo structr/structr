@@ -20,6 +20,7 @@
 package org.structr.core.node;
 
 import org.neo4j.graphdb.Transaction;
+import org.structr.common.error.FrameworkException;
 
 /**
  * Batch transaction carries the database transaction.
@@ -42,15 +43,5 @@ import org.neo4j.graphdb.Transaction;
  */
 public abstract class BatchTransaction
 {
-	private Throwable cause = null;
-
-	public abstract Object execute(Transaction tx) throws Throwable;
-
-	public void setCause(Throwable cause) {
-		this.cause = cause;
-	}
-
-	public Throwable getCause() {
-		return cause;
-	}
+	public abstract Object execute(Transaction tx) throws FrameworkException;
 }

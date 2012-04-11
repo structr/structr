@@ -24,6 +24,7 @@ package org.structr.core.node;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.index.Index;
 
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -50,16 +51,16 @@ public class RemoveNodeFromIndex extends NodeServiceCommand {
 
 	//~--- fields ---------------------------------------------------------
 
-	private Map<String, Index> indices = new HashMap<String, Index>();
+	private Map<Enum, Index> indices = new HashMap<Enum, Index>();
 
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public Object execute(Object... parameters) {
+	public Object execute(Object... parameters) throws FrameworkException {
 
 		for (Enum indexName : (NodeIndex[]) arguments.get("indices")) {
 
-			indices.put(indexName.name(), (Index<Node>) arguments.get(indexName.name()));
+			indices.put(indexName, (Index<Node>) arguments.get(indexName.name()));
 
 		}
 
@@ -128,7 +129,7 @@ public class RemoveNodeFromIndex extends NodeServiceCommand {
 
 		for (Enum indexName : (NodeIndex[]) arguments.get("indices")) {
 
-			indices.get(indexName.name()).remove(node.getNode());
+			indices.get(indexName).remove(node.getNode());
 
 		}
 	}

@@ -28,7 +28,7 @@ import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.structr.common.SecurityContext;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.StructrRelationship;
+import org.structr.core.entity.AbstractRelationship;
 
 /**
  *
@@ -182,12 +182,12 @@ public class ShowOperation implements PrimaryOperation, NodeListOperation {
 
 	private void showRelationships(StringBuilder stdOut, AbstractNode node) {
 
-		List<StructrRelationship> inRels = node.getRelationships(Direction.INCOMING);
-		List<StructrRelationship> outRels = node.getRelationships(Direction.OUTGOING);
+		List<AbstractRelationship> inRels = node.getRelationships(Direction.INCOMING);
+		List<AbstractRelationship> outRels = node.getRelationships(Direction.OUTGOING);
 		int size = inRels.size() + outRels.size();
 		boolean firstRow = true;
 
-		for(StructrRelationship rel : outRels) {
+		for(AbstractRelationship rel : outRels) {
 
 			stdOut.append("<tr>");
 
@@ -217,7 +217,7 @@ public class ShowOperation implements PrimaryOperation, NodeListOperation {
 			stdOut.append("</tr>");
 		}
 
-		for(StructrRelationship rel : inRels) {
+		for(AbstractRelationship rel : inRels) {
 
 			stdOut.append("<tr>");
 

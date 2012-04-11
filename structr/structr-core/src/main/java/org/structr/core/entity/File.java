@@ -34,7 +34,7 @@ import org.structr.common.renderer.FileStreamRenderer;
 import org.structr.core.EntityContext;
 import org.structr.core.NodeRenderer;
 import org.structr.core.Services;
-import org.structr.core.entity.DirectedRelationship.Cardinality;
+import org.structr.core.entity.RelationClass.Cardinality;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -47,6 +47,7 @@ import java.net.URL;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.error.FrameworkException;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -63,14 +64,15 @@ public class File extends AbstractNode {
 
 	static {
 
+		EntityContext.registerEntityRelation(File.class, Folder.class, RelType.HAS_CHILD, Direction.INCOMING, Cardinality.ManyToOne);
 		EntityContext.registerPropertySet(File.class, PropertyView.All, Key.values());
-		EntityContext.registerPropertyRelation(File.class, Key.parentFolder, Folder.class, RelType.HAS_CHILD, Direction.INCOMING, Cardinality.ManyToOne);
+//		EntityContext.registerPropertyRelation(File.class, Key.parentFolder, Folder.class, RelType.HAS_CHILD, Direction.INCOMING, Cardinality.ManyToOne);
 
 	}
 
 	//~--- constant enums -------------------------------------------------
 
-	public enum Key implements PropertyKey{ contentType, relativeFilePath, size, url, parentFolder; }
+	public enum Key implements PropertyKey{ contentType, relativeFilePath, size, url, folder }
 
 	//~--- methods --------------------------------------------------------
 
@@ -182,19 +184,19 @@ public class File extends AbstractNode {
 
 	//~--- set methods ----------------------------------------------------
 
-	public void setRelativeFilePath(final String filePath) {
+	public void setRelativeFilePath(final String filePath) throws FrameworkException {
 		setProperty(Key.relativeFilePath.name(), filePath);
 	}
 
-	public void setUrl(final String url) {
+	public void setUrl(final String url) throws FrameworkException {
 		setProperty(Key.url.name(), url);
 	}
 
-	public void setContentType(final String contentType) {
+	public void setContentType(final String contentType) throws FrameworkException {
 		setProperty(Key.contentType.name(), contentType);
 	}
 
-	public void setSize(final long size) {
+	public void setSize(final long size) throws FrameworkException {
 		setProperty(Key.size.name(), size);
 	}
 }

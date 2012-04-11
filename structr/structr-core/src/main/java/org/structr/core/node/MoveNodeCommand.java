@@ -23,9 +23,9 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.core.entity.AbstractNode;
 import org.structr.common.RelType;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.Services;
-import org.structr.core.entity.SuperUser;
 
 /**
  * Moves a node.
@@ -40,7 +40,7 @@ import org.structr.core.entity.SuperUser;
 public class MoveNodeCommand extends NodeServiceCommand {
 
     @Override
-    public Object execute(Object... parameters) {
+    public Object execute(Object... parameters) throws FrameworkException {
 
         Command findNode = Services.command(securityContext, FindNodeCommand.class);
 

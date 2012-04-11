@@ -42,6 +42,9 @@ import org.structr.core.node.FindNodeCommand;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.structr.common.error.FrameworkException;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -51,6 +54,8 @@ import java.util.Map;
  *
  */
 public class CustomTypeNode extends AbstractNode {
+
+	private static final Logger logger = Logger.getLogger(CustomTypeNode.class.getName());
 
 	static {
 
@@ -151,7 +156,7 @@ public class CustomTypeNode extends AbstractNode {
 			return typeNode;
 		}
 
-		for (StructrRelationship s : getRelationships(RelType.TYPE, Direction.OUTGOING)) {
+		for (AbstractRelationship s : getRelationships(RelType.TYPE, Direction.OUTGOING)) {
 
 			AbstractNode n = s.getEndNode();
 
@@ -167,22 +172,27 @@ public class CustomTypeNode extends AbstractNode {
 
 	public void setTypeNodeId(final Long value) {
 
-		// find type node
-		Command findNode = Services.command(securityContext, FindNodeCommand.class);
-		NodeType newTypeNode = (NodeType) findNode.execute(value);
+		try {
+			// find type node
+			Command findNode = Services.command(securityContext, FindNodeCommand.class);
+			NodeType newTypeNode = (NodeType) findNode.execute(value);
 
-		// delete existing type node relationships
-		List<StructrRelationship> templateRels = this.getOutgoingRelationships(RelType.TYPE);
-		Command delRel = Services.command(securityContext, DeleteRelationshipCommand.class);
-		if (templateRels != null) {
+			// delete existing type node relationships
+			List<AbstractRelationship> templateRels = this.getOutgoingRelationships(RelType.TYPE);
+			Command delRel = Services.command(securityContext, DeleteRelationshipCommand.class);
+			if (templateRels != null) {
 
-			for (StructrRelationship r : templateRels) {
-				delRel.execute(r);
+				for (AbstractRelationship r : templateRels) {
+					delRel.execute(r);
+				}
 			}
-		}
 
-		// create new link target relationship
-		Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
-		createRel.execute(this, newTypeNode, RelType.TYPE);
+			// create new link target relationship
+			Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
+			createRel.execute(this, newTypeNode, RelType.TYPE);
+
+		} catch(FrameworkException fex) {
+			logger.log(Level.WARNING, "Unable to set type node id", fex);
+		}
 	}
 }

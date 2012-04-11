@@ -19,6 +19,7 @@
 
 package org.structr.websocket.command;
 
+import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.User;
 import org.structr.websocket.message.WebSocketMessage;
 
@@ -34,7 +35,12 @@ public class LogoutCommand extends AbstractCommand {
 		User user = getWebSocket().getCurrentUser();
 		if(user != null) {
 
-			user.setProperty(User.Key.sessionId, null);
+			try {
+				user.setProperty(User.Key.sessionId, null);
+
+			} catch(FrameworkException fex) {
+				fex.printStackTrace();
+			}
 
 			// TODO: remove lastAccessedAt property
 			// user.setProperty(User.Key.session, null);

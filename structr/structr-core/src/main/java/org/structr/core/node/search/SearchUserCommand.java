@@ -39,6 +39,7 @@ import org.structr.core.node.XPath;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.List;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.User;
 
 //~--- classes ----------------------------------------------------------------
@@ -51,7 +52,7 @@ import org.structr.core.entity.User;
 public class SearchUserCommand extends NodeServiceCommand {
 
 	@Override
-	public Object execute(Object... parameters) {
+	public Object execute(Object... parameters) throws FrameworkException {
 
 		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
 		Index<Node> index            = (Index<Node>) arguments.get(NodeIndex.user.name());

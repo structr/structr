@@ -22,12 +22,13 @@
 package org.structr.websocket.command;
 
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.Command;
 import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.DirectedRelationship;
-import org.structr.core.entity.Group;
-import org.structr.core.entity.StructrRelationship;
+import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.node.DeleteRelationshipCommand;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 import org.structr.websocket.message.MessageBuilder;
@@ -36,6 +37,7 @@ import org.structr.websocket.message.WebSocketMessage;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.List;
+import org.structr.core.entity.RelationClass;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -61,21 +63,23 @@ public class RemoveCommand extends AbstractCommand {
 
 			if ((sourceNode != null) && (targetNode != null)) {
 
-				DirectedRelationship rel = EntityContext.getDirectedRelationship(sourceNode.getClass(), targetNode.getClass());
+				RelationClass rel = EntityContext.getRelationClass(sourceNode.getClass(), targetNode.getClass());
 
 				if (rel != null) {
 
-					final List<StructrRelationship> rels = sourceNode.getRelationships(rel.getRelType(), rel.getDirection());
-					StructrTransaction transaction       = new StructrTransaction() {
+					final List<AbstractRelationship> rels = sourceNode.getRelationships(rel.getRelType(), rel.getDirection());
+					StructrTransaction transaction        = new StructrTransaction() {
 
 						@Override
-						public Object execute() throws Throwable {
+						public Object execute() throws FrameworkException {
 
-							for (StructrRelationship rel : rels) {
+							Command deleteRel = Services.command(securityContext, DeleteRelationshipCommand.class);
+
+							for (AbstractRelationship rel : rels) {
 
 								if (rel.getOtherNode(sourceNode).equals(targetNode)) {
 
-									rel.delete(securityContext);
+									deleteRel.execute(rel);
 
 								}
 
@@ -86,13 +90,10 @@ public class RemoveCommand extends AbstractCommand {
 					};
 
 					// execute transaction
-					Services.command(securityContext, TransactionCommand.class).execute(transaction);
-
-					// re-throw exception that may occur during transaction
-					if (transaction.getCause() != null) {
-
-						getWebSocket().send(MessageBuilder.status().code(400).message(transaction.getCause().getMessage()).build(), true);
-
+					try {
+						Services.command(securityContext, TransactionCommand.class).execute(transaction);
+					} catch (FrameworkException fex) {
+						getWebSocket().send(MessageBuilder.status().code(400).message(fex.getMessage()).build(), true);
 					}
 
 				}

@@ -20,14 +20,16 @@
 package org.structr.rest.exception;
 
 import javax.servlet.http.HttpServletResponse;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
 
 /**
  *
  * @author Christian Morgner
  */
-public class IllegalMethodException extends PathException {
+public class IllegalMethodException extends FrameworkException {
 	public IllegalMethodException() {
-		super(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+		super(HttpServletResponse.SC_METHOD_NOT_ALLOWED, new ErrorBuffer());
 	}
 
 }

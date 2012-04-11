@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -50,7 +51,7 @@ public class ClearLogsAgent extends Agent {
     }
 
     @Override
-    public ReturnValue processTask(Task task) {
+    public ReturnValue processTask(Task task) throws FrameworkException {
 
         if (task instanceof ClearLogsTask) {
 
@@ -67,7 +68,7 @@ public class ClearLogsAgent extends Agent {
         return (ReturnValue.Success);
     }
 
-    private long clearLog() {
+    private long clearLog() throws FrameworkException {
 
 	// FIXME: superuser security context
 	final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
@@ -77,7 +78,7 @@ public class ClearLogsAgent extends Agent {
         Long numberOfLogNodes = (Long) transactionCommand.execute(new StructrTransaction() {
 
             @Override
-            public Object execute() throws Throwable {
+            public Object execute() throws FrameworkException {
 
                 long count = 0;
 
@@ -87,7 +88,7 @@ public class ClearLogsAgent extends Agent {
 
                         try {
 
-                            deleteNode.execute(s, null, true, new SuperUser());
+                            deleteNode.execute(s, true);
                             count++;
 
                         } catch (Throwable ignore) {

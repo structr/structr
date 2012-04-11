@@ -22,6 +22,7 @@ package org.structr.websocket.command;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -41,7 +42,12 @@ public class UpdateCommand extends AbstractCommand {
 		if(node != null) {
 
 			for(Entry<String, Object> entry : webSocketData.getData().entrySet()) {
-				node.setProperty(entry.getKey(), entry.getValue());
+
+				try {
+					node.setProperty(entry.getKey(), entry.getValue());
+				} catch(FrameworkException fex) {
+					fex.printStackTrace();
+				}
 			}
 
 		} else {

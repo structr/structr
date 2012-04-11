@@ -25,7 +25,7 @@ import org.structr.core.GraphObject;
  *
  * @author Christian Morgner
  */
-public class AndFilter implements Filter {
+public class AndFilter extends Filter {
 
 	private Filter filter1 = null;
 	private Filter filter2 = null;

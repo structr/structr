@@ -44,6 +44,7 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import org.structr.common.error.FrameworkException;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -137,14 +138,19 @@ public class RequestHelper {
 					searchAttrs.add(Search.orContent(searchString));    // search in name
 				}
 
-				Command search            = Services.command(securityContext, SearchNodeCommand.class);
-				List<AbstractNode> result = (List<AbstractNode>) search.execute(
-					null,     // top node => null means search all
-					false,    // don't include deleted
-					true,     // retrieve only public nodes
-					searchAttrs);
+				try {
+					Command search            = Services.command(securityContext, SearchNodeCommand.class);
+					List<AbstractNode> result = (List<AbstractNode>) search.execute(
+						null,     // top node => null means search all
+						false,    // don't include deleted
+						true,     // retrieve only public nodes
+						searchAttrs);
 
-				return result;
+					return result;
+
+				} catch(FrameworkException fex) {
+					fex.printStackTrace();
+				}
 			}
 		}
 

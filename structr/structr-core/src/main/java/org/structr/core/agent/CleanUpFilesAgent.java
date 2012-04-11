@@ -25,6 +25,7 @@ import org.apache.commons.lang.StringUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.NotFoundException;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.node.GraphDatabaseCommand;
@@ -68,36 +69,42 @@ public class CleanUpFilesAgent extends Agent {
 
         File filesFolder = new File(Services.getFilesPath());
         File[] files = filesFolder.listFiles();
+	long count = 0;
+
 
 	// FIXME: superuser security context
 	final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
 
-	Command graphDbCommand = Services.command(securityContext, GraphDatabaseCommand.class);
-        GraphDatabaseService graphDb = (GraphDatabaseService) graphDbCommand.execute();
+	try {
+		Command graphDbCommand = Services.command(securityContext, GraphDatabaseCommand.class);
+		GraphDatabaseService graphDb = (GraphDatabaseService) graphDbCommand.execute();
 
-        long count = 0;
+		for (File file : files) {
 
-        for (File file : files) {
+		    String fileName = file.getName();
+		    String[] parts = StringUtils.split(fileName, "_");
 
-            String fileName = file.getName();
-            String[] parts = StringUtils.split(fileName, "_");
+		    String nodeId = parts[0];
+		    long id = Long.parseLong(nodeId);
 
-            String nodeId = parts[0];
-            long id = Long.parseLong(nodeId);
+		    try {
 
-            try {
-                
-                graphDb.getNodeById(id);
-                
-            } catch (NotFoundException nfe) {
-                
-                logger.log(Level.INFO, "Removing unreferenced file {0})", fileName);
-                file.delete();
-                count++;
-            }
+			graphDb.getNodeById(id);
 
-        }
-        return count;
+		    } catch (NotFoundException nfe) {
+
+			logger.log(Level.INFO, "Removing unreferenced file {0})", fileName);
+			file.delete();
+			count++;
+		    }
+
+		}
+
+	} catch(FrameworkException fex) {
+		fex.printStackTrace();
+	}
+
+	return count;
 
     }
 }

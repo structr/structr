@@ -20,14 +20,16 @@
 package org.structr.rest.exception;
 
 import javax.servlet.http.HttpServletResponse;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
 
 /**
  *
  * @author Christian Morgner
  */
-public class IllegalPathException extends PathException {
+public class IllegalPathException extends FrameworkException {
 
 	public IllegalPathException() {
-		super(HttpServletResponse.SC_BAD_REQUEST);
+		super(HttpServletResponse.SC_BAD_REQUEST, new ErrorBuffer());
 	}
 }

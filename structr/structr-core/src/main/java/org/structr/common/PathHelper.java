@@ -22,6 +22,7 @@
 package org.structr.common;
 
 import org.apache.commons.io.FilenameUtils;
+import org.structr.common.error.FrameworkException;
 
 import org.structr.core.Command;
 import org.structr.core.Services;
@@ -47,11 +48,16 @@ public class PathHelper {
 		AbstractNode node       = null;
 		Command findNodeCommand = Services.command(securityContext, FindNodeCommand.class);
 
-		node = (AbstractNode) findNodeCommand.execute(path);
+		try {
+			node = (AbstractNode) findNodeCommand.execute(path);
 
-		// check security context
-		if (securityContext.isVisible(node)) {
-			return (node);
+			// check security context
+			if (securityContext.isVisible(node)) {
+				return (node);
+			}
+
+		} catch(FrameworkException fex) {
+			fex.printStackTrace();
 		}
 
 		return (null);

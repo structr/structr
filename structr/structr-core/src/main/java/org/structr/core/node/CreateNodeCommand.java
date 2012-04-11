@@ -21,30 +21,34 @@
 
 package org.structr.core.node;
 
-import java.util.Collection;
+import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 
 import org.structr.common.RelType;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
+import org.structr.core.EntityContext;
 import org.structr.core.Services;
+import org.structr.core.Transformation;
+import org.structr.core.entity.*;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.RelationClass.Cardinality;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
-import org.structr.core.entity.StructrRelationship;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
 
 //~--- JDK imports ------------------------------------------------------------
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.ErrorBuffer;
-import org.structr.core.EntityContext;
-import org.structr.core.Transformation;
+import org.structr.core.GraphObject;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -59,13 +63,12 @@ public class CreateNodeCommand extends NodeServiceCommand {
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public Object execute(Object... parameters) {
+	public Object execute(Object... parameters) throws FrameworkException {
 
 		GraphDatabaseService graphDb   = (GraphDatabaseService) arguments.get("graphDb");
-		StructrNodeFactory nodeFactory = (StructrNodeFactory) arguments.get("nodeFactory");
-
-		User user         = securityContext.getUser();
-		AbstractNode node = null;
+		NodeFactory nodeFactory = (NodeFactory) arguments.get("nodeFactory");
+		User user                      = securityContext.getUser();
+		AbstractNode node              = null;
 
 		if (graphDb != null) {
 
@@ -76,59 +79,68 @@ public class CreateNodeCommand extends NodeServiceCommand {
 			// initialize node from parameters...
 			for (Object o : parameters) {
 
-				if(o instanceof Map) {
+				if (o instanceof Map) {
 
-					Map<String, Object> map = (Map<String, Object>)o;
+					Map<String, Object> map = (Map<String, Object>) o;
+
 					attrs.putAll(map);
 
-				} else if(o instanceof Collection) {
+				} else if (o instanceof Collection) {
 
-					Collection<NodeAttribute> c = (Collection)o;
-					for(NodeAttribute attr : c) {
+					Collection<NodeAttribute> c = (Collection) o;
+
+					for (NodeAttribute attr : c) {
 						attrs.put(attr.getKey(), attr.getValue());
 					}
 
-				} else if(o instanceof NodeAttribute) {
+				} else if (o instanceof NodeAttribute) {
 
-					NodeAttribute attr = (NodeAttribute)o;
+					NodeAttribute attr = (NodeAttribute) o;
+
 					attrs.put(attr.getKey(), attr.getValue());
-
 				}
 			}
 
 			// Determine node type
 			Object typeObject = attrs.get(AbstractNode.Key.type.name());
-			String nodeType = typeObject != null ? typeObject.toString() : "GenericNode";
+			String nodeType   = (typeObject != null)
+					    ? typeObject.toString()
+					    : "GenericNode";
+
 			// Create node with type
 			node = nodeFactory.createNode(securityContext, graphDb.createNode(), nodeType);
+
+			node.unlockReadOnlyPropertiesOnce();
+			node.setProperty(AbstractNode.Key.createdDate.name(), now, false);
+			node.setProperty(AbstractNode.Key.lastModifiedDate.name(), now, false);
+
 			logger.log(Level.FINE, "Node {0} created", node.getId());
 
-//			EntityContext.getGlobalModificationListener().newNode(securityContext, node.getId());
-
+//                      EntityContext.getGlobalModificationListener().newNode(securityContext, node.getId());
 			// set type first!!
 			node.setProperty(AbstractNode.Key.type.name(), nodeType);
 			attrs.remove(AbstractNode.Key.type.name());
 
-			ErrorBuffer errorBuffer = new ErrorBuffer();
-			for(Entry<String, Object> attr : attrs.entrySet()) {
+			for (Entry<String, Object> attr : attrs.entrySet()) {
 
-				try {
-					node.setProperty(attr.getKey(), attr.getValue());
+				Object value = attr.getValue();
 
-				} catch(Throwable t) {
-					errorBuffer.add(t.getMessage());
+				// ignore null values at creation
+				if (value != null) {
+					node.setProperty(attr.getKey(), value);
 				}
-			}
-
-			if(errorBuffer.hasError()) {
-				throw new IllegalArgumentException(errorBuffer.toString());
 			}
 
 			attrs.clear();
 
 			if ((user != null) &&!(user instanceof SuperUser)) {
 
-				createRel.execute(user, node, RelType.OWNS);
+				RelationClass rel = new RelationClass(null, RelType.OWNS,
+								   Direction.OUTGOING, Cardinality.OneToMany, null, RelationClass.DELETE_NONE);
+
+				rel.createRelationship(securityContext, user, node);
+
+//                              createRel.execute(user, node, RelType.OWNS, true); // avoid duplicates
 				logger.log(Level.FINEST, "Relationship to owner {0} added", user.getName());
 
 				Principal principal;
@@ -140,36 +152,33 @@ public class CreateNodeCommand extends NodeServiceCommand {
 					principal = user;
 				}
 
-				StructrRelationship securityRel = (StructrRelationship) createRel.execute(principal,
-									  node, RelType.SECURITY);
+				AbstractRelationship securityRel = (AbstractRelationship) createRel.execute(principal,
+									  node, RelType.SECURITY, true);    // avoid duplicates
 
-				securityRel.setAllowed(StructrRelationship.Permission.values());
+				securityRel.setAllowed(AbstractRelationship.Permission.values());
 				logger.log(Level.FINEST, "All permissions given to {0}", principal.getName());
-
 				node.unlockReadOnlyPropertiesOnce();
 				node.setProperty(AbstractNode.Key.createdBy.name(),
-//						 user.getRealName() + " (" + user.getName() + ")", false);
-						 user.getProperty(AbstractNode.Key.uuid), false);
+
+//                              user.getRealName() + " (" + user.getName() + ")", false);
+				user.getProperty(AbstractNode.Key.uuid), false);
 			}
 
-			node.unlockReadOnlyPropertiesOnce();
-			node.setProperty(AbstractNode.Key.createdDate.name(), now, false);
-			node.setProperty(AbstractNode.Key.lastModifiedDate.name(), now, false);
 		}
 
 		if (node != null) {
 
 			// notify node of its creation
 			node.onNodeCreation();
-			
+
 			// iterate post creation transformations
-			for(Transformation<AbstractNode> transformation : EntityContext.getPostCreationTransformations(node.getClass())) {
+			for (Transformation<GraphObject> transformation :
+				EntityContext.getEntityCreationTransformations(node.getClass())) {
 				transformation.apply(securityContext, node);
 			}
 
 			// allow modification listener to examine creation
-//			EntityContext.getGlobalModificationListener().graphObjectCreated(securityContext, node);
-
+//                      EntityContext.getGlobalModificationListener().graphObjectCreated(securityContext, node);
 		}
 
 		return node;

@@ -18,12 +18,10 @@
  */
 package org.structr.core.cloud;
 
-import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.minlog.Log;
-import java.io.IOException;
-import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.UnsupportedArgumentError;
@@ -40,7 +38,7 @@ public class PullNode extends CloudServiceCommand
 	private static final Logger logger = Logger.getLogger(PullNode.class.getName());
 
 	@Override
-	public Object execute(Object... parameters)
+	public Object execute(Object... parameters) throws FrameworkException
 	{
 		User user = null;
 		AbstractNode localTargetNode = null;

@@ -19,6 +19,7 @@
 
 package org.structr.core.converter;
 
+import org.structr.common.error.FrameworkException;
 import org.structr.core.PropertyConverter;
 import org.structr.core.Services;
 import org.structr.core.Value;
@@ -41,6 +42,11 @@ public class NodeIdNodeConverter extends PropertyConverter<Long, AbstractNode> {
 	@Override
 	public AbstractNode convertForGetter(Long nodeId, Value value) {
 		if (nodeId == null) return null;
-		return (AbstractNode) Services.command(securityContext, FindNodeCommand.class).execute(nodeId);
+		try {
+			return (AbstractNode) Services.command(securityContext, FindNodeCommand.class).execute(nodeId);
+		} catch(FrameworkException fex) {
+			fex.printStackTrace();
+		}
+		return null;
 	}
 }

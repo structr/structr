@@ -23,10 +23,11 @@ import java.util.logging.Logger;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.graphdb.Relationship;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.UnsupportedArgumentError;
-import org.structr.core.entity.StructrRelationship;
+import org.structr.core.entity.AbstractRelationship;
 
 /**
  *
@@ -37,7 +38,7 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
     private static final Logger logger = Logger.getLogger(DeleteRelationshipCommand.class.getName());
 
     @Override
-    public Object execute(Object... parameters) {
+    public Object execute(Object... parameters) throws FrameworkException {
         GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
         Object ret = null;
 
@@ -61,7 +62,7 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
     }
 
     // <editor-fold defaultstate="collapsed" desc="private methods">
-    private Object handleSingleArgument(GraphDatabaseService graphDb, Object argument) {
+    private Object handleSingleArgument(GraphDatabaseService graphDb, Object argument) throws FrameworkException {
 
         setExitCode(exitCode.FAILURE);
 
@@ -77,9 +78,9 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
                 logger.log(Level.SEVERE, "Relationship {0} not found, cannot delete.", id);
             }
 
-        } else if (argument instanceof StructrRelationship) {
+        } else if (argument instanceof AbstractRelationship) {
 
-            StructrRelationship r = (StructrRelationship) argument;
+            AbstractRelationship r = (AbstractRelationship) argument;
             rel = r.getRelationship();
 
         } else if (argument instanceof Relationship) {
@@ -97,7 +98,7 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
             transactionCommand.execute(new StructrTransaction() {
 
                 @Override
-                public Object execute() throws Throwable {
+                public Object execute() throws FrameworkException {
                     relToDelete.delete();
                     return null;
                 }

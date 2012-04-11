@@ -19,8 +19,14 @@
 
 package org.structr.core.notion;
 
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
+import org.structr.common.PropertyKey;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Adapter;
+import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 
 /**
@@ -43,6 +49,15 @@ public abstract class Notion {
 	protected String idProperty = null;
 	protected Class type = null;
 
+	/**
+	 * Returns the property key that will be used to de-serialize objects
+	 * with this notion, or null if this notion can not deserialize objects
+	 * with a single key.
+	 * 
+	 * @return the primary key property
+	 */
+	public abstract PropertyKey getPrimaryPropertyKey();
+	
 	public Notion(SerializationStrategy serializationStrategy, DeserializationStrategy deserializationStrategy) {
 		this.serializationStrategy = serializationStrategy;
 		this.deserializationStrategy = deserializationStrategy;
@@ -52,7 +67,7 @@ public abstract class Notion {
 		this.securityContext = securityContext;
 		return new Adapter<GraphObject, Object>() {
 			@Override
-			public Object adapt(GraphObject s) {
+			public Object adapt(GraphObject s) throws FrameworkException {
 				return serializationStrategy.serialize(securityContext, type, s);
 			}
 		};
@@ -61,8 +76,44 @@ public abstract class Notion {
 	public Adapter<Object, GraphObject> getAdapterForSetter(final SecurityContext securityContext) {
 		return new Adapter<Object, GraphObject>() {
 			@Override
-			public GraphObject adapt(Object s) {
+			public GraphObject adapt(Object s) throws FrameworkException {
 				return deserializationStrategy.deserialize(securityContext, type, s);
+			}
+		};
+	}
+
+	public Adapter<Collection<GraphObject>, Object> getCollectionAdapterForGetter(final SecurityContext securityContext) {
+		return new Adapter<Collection<GraphObject>, Object>() {
+			@Override
+			public Object adapt(Collection<GraphObject> s) throws FrameworkException {
+				
+				List list = new LinkedList();
+				if(s instanceof Iterable) {
+					Iterable<GraphObject> iterable = (Iterable)s;
+					for(GraphObject o : iterable) {
+						list.add(serializationStrategy.serialize(securityContext, type, o));
+					}
+				}
+
+				return list;
+			}
+		};
+	}
+
+	public Adapter<Object, Collection<GraphObject>> getCollectionAdapterForSetter(final SecurityContext securityContext) {
+		return new Adapter<Object, Collection<GraphObject>>() {
+			@Override
+			public Collection<GraphObject> adapt(Object s) throws FrameworkException {
+				
+				List<GraphObject> list = new LinkedList<GraphObject>();
+				if(s instanceof Iterable) {
+					Iterable iterable = (Iterable)s;
+					for(Object o : iterable) {
+						list.add(deserializationStrategy.deserialize(securityContext, type, o));
+					}
+				}
+
+				return list;
 			}
 		};
 	}

@@ -6,13 +6,13 @@
 	<parent>
 		<groupId>org.structr</groupId>
 		<artifactId>structr</artifactId>
-		<version>0.4.5</version>
+		<version>0.4.8</version>
 	</parent>
 
 	<groupId>org.structr</groupId>
 	<artifactId>structr-websocket</artifactId>
 	<packaging>jar</packaging>
-	<version>0.4.5</version>
+	<version>0.4.8</version>
 	<name>structr-websocket</name>
 	<url>http://structr.org</url>
 	<properties>
@@ -55,7 +55,7 @@
 			<name>GNU General Public License, Version 3</name>
 			<url>http://www.gnu.org/licenses/gpl-3.0-standalone.html</url>
 			<comments>
-Copyright (C) 2011 Axel Morgner, structr &lt;structr@structr.org&gt;
+Copyright (C) 2012 Axel Morgner, structr &lt;structr@structr.org&gt;
 
  This file is part of structr &lt;http://structr.org&gt;.
 

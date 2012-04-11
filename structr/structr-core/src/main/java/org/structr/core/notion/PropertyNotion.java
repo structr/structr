@@ -28,20 +28,24 @@ import org.structr.common.PropertyKey;
  */
 public class PropertyNotion extends Notion {
 
+	private PropertyKey propertyKey = null;
+	
 	public PropertyNotion(PropertyKey propertyKey) {
 		this(propertyKey, false);
 	}
 	
 	public PropertyNotion(PropertyKey propertyKey, boolean createIfNotExisting) {
 
-		this(
+		super(
 			new PropertySerializationStrategy(propertyKey),
 			new TypeAndValueDeserializationStrategy(propertyKey, createIfNotExisting)
 		);
+		
+		this.propertyKey = propertyKey;
 	}
 
-	public PropertyNotion(SerializationStrategy serializationStrategy, DeserializationStrategy deserializationStrategy) {
-		super(serializationStrategy, deserializationStrategy);
+	@Override
+	public PropertyKey getPrimaryPropertyKey() {
+		return propertyKey;
 	}
-
 }

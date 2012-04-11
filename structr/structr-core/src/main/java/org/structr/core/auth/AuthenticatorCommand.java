@@ -22,6 +22,7 @@ package org.structr.core.auth;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletConfig;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 
 /**
@@ -36,37 +37,43 @@ public class AuthenticatorCommand extends Command {
 	private static final Logger logger = Logger.getLogger(AuthenticatorCommand.class.getName());
 
 	@Override
-	public Object execute(Object... parameters) {
+	public Object execute(Object... parameters) throws FrameworkException {
 
 		if(parameters != null && parameters.length == 1 && parameters[0] instanceof ServletConfig) {
 
 			ServletConfig servletConfig = (ServletConfig)parameters[0];
 			if(servletConfig != null) {
 
-				String authenticatorClassName = servletConfig.getInitParameter(AuthenticationService.SERVLET_PARAMETER_AUTHENTICATOR);
-				if(authenticatorClassName != null) {
+				Authenticator authenticator = (Authenticator)servletConfig.getServletContext().getAttribute(AuthenticationService.SERVLET_PARAMETER_AUTHENTICATOR);
+				if(authenticator == null) {
 
-					try {
-						Class authenticatorClass = Class.forName(authenticatorClassName);
-						Authenticator authenticator = (Authenticator)authenticatorClass.newInstance();
+					String authenticatorClassName = servletConfig.getInitParameter(AuthenticationService.SERVLET_PARAMETER_AUTHENTICATOR);
+					if(authenticatorClassName != null) {
 
-						// TODO: cache instance
+						try {
+							Class authenticatorClass = Class.forName(authenticatorClassName);
+							authenticator = (Authenticator)authenticatorClass.newInstance();
 
-						return authenticator;
+							// cache instance
+							servletConfig.getServletContext().setAttribute(AuthenticationService.SERVLET_PARAMETER_AUTHENTICATOR, authenticator);	
 
-					} catch(Throwable t) {
+						} catch(Throwable t) {
 
-						logger.log(Level.SEVERE, "Error instantiating authenticator for servlet with context path {0}: {1}",
-						    new Object[] {
-							servletConfig.getServletName(), t
-						});
+							logger.log(Level.SEVERE, "Error instantiating authenticator for servlet with context path {0}: {1}",
+							new Object[] {
+								servletConfig.getServletName(), t
+							});
 
+						}
+
+					} else {
+
+						logger.log(Level.SEVERE, "No authenticator for servlet with context path {0}", servletConfig.getServletName());
 					}
-
-				} else {
-
-					logger.log(Level.SEVERE, "No authenticator for servlet with context path {0}", servletConfig.getServletName());
 				}
+
+				// return instance
+				return authenticator;
 			}
 		}
 

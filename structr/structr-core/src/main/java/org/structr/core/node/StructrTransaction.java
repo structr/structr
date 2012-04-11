@@ -19,21 +19,13 @@
 
 package org.structr.core.node;
 
+import org.structr.common.error.FrameworkException;
+
 /**
  *
  * @author cmorgner
  */
 public abstract class StructrTransaction
 {
-	private Throwable cause = null;
-
-	public abstract Object execute() throws Throwable;
-
-	public void setCause(Throwable cause) {
-		this.cause = cause;
-	}
-
-	public Throwable getCause() {
-		return cause;
-	}
+	public abstract Object execute() throws FrameworkException;
 }

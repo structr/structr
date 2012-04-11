@@ -22,6 +22,7 @@ import java.util.LinkedList;
 import java.util.List;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Property;
 import org.structr.core.entity.AbstractNode;
 
@@ -36,7 +37,7 @@ import org.structr.core.entity.AbstractNode;
 public class NodePropertiesCommand extends NodeServiceCommand {
 
     @Override
-    public Object execute(Object... parameters) {
+    public Object execute(Object... parameters) throws FrameworkException {
 
         GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
 

@@ -20,13 +20,15 @@
 package org.structr.rest.exception;
 
 import javax.servlet.http.HttpServletResponse;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
 
 /**
  *
  * @author Christian Morgner
  */
-public class NotFoundException extends PathException {
+public class NotFoundException extends FrameworkException {
 	public NotFoundException() {
-		super(HttpServletResponse.SC_NOT_FOUND);
+		super(HttpServletResponse.SC_NOT_FOUND, new ErrorBuffer());
 	}
 }

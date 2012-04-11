@@ -41,6 +41,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -76,8 +77,8 @@ public class AgentService extends Thread implements RunnableService {
 
 		synchronized (taskQueue) {
 
-			logger.log(Level.INFO, "Task {0} added to task queue", task);
 			taskQueue.add(task);
+			logger.log(Level.FINE, "Task {0} added to task queue", task);
 		}
 	}
 
@@ -114,12 +115,12 @@ public class AgentService extends Thread implements RunnableService {
 				if (nextTask != null) {
 					assignNextAgentForTask(nextTask);
 				}
-
-				// sleep a bit waiting for tasks..
-				try {
-					Thread.sleep(10);
-				} catch (Exception ex) {}
 			}
+
+			// sleep a bit waiting for tasks..
+			try {
+				Thread.sleep(10);
+			} catch (Exception ex) {}
 		}
 	}
 
@@ -188,7 +189,7 @@ public class AgentService extends Thread implements RunnableService {
 				if (agent.assignTask(nextTask)) {
 
 					// ok, task is assigned
-					logger.log(Level.INFO, "Task assigned to agent {0}", agent.getName());
+					logger.log(Level.FINE, "Task assigned to agent {0}", agent.getName());
 
 					return;
 				}
@@ -213,7 +214,7 @@ public class AgentService extends Thread implements RunnableService {
 			}
 		} else {
 
-			logger.log(Level.FINE, "Overall agents limit readed, re-queueing task");
+			logger.log(Level.FINE, "Overall agents limit reached, re-queueing task");
 
 			// re-add task..
 			synchronized (taskQueue) {
@@ -263,26 +264,30 @@ public class AgentService extends Thread implements RunnableService {
 		if (agentClass == null) {
 
 //                      Set<Class> agentClasses = ClasspathEntityLocator.locateEntitiesByType(Agent.class);
-			Map<String, Class> agentClassesMap =
-				(Map<String, Class>) Services.command(securityContext, GetAgentsCommand.class).execute();
+			try {
+				Map<String, Class> agentClassesMap = (Map<String, Class>) Services.command(securityContext, GetAgentsCommand.class).execute();
 
-			for (String className : agentClassesMap.keySet()) {
+				for (String className : agentClassesMap.keySet()) {
 
-				Class supportedAgentClass = agentClassesMap.get(className);
+					Class supportedAgentClass = agentClassesMap.get(className);
 
-				try {
+					try {
 
-					Agent supportedAgent     = (Agent) supportedAgentClass.newInstance();
-					Class supportedTaskClass = supportedAgent.getSupportedTaskType();
+						Agent supportedAgent     = (Agent) supportedAgentClass.newInstance();
+						Class supportedTaskClass = supportedAgent.getSupportedTaskType();
 
-					if (supportedTaskClass.equals(taskClass)) {
-						agentClass = supportedAgentClass;
-					}
+						if (supportedTaskClass.equals(taskClass)) {
+							agentClass = supportedAgentClass;
+						}
 
-					agentClassCache.put(supportedTaskClass, supportedAgentClass);
+						agentClassCache.put(supportedTaskClass, supportedAgentClass);
 
-				} catch (IllegalAccessException iaex) {}
-				catch (InstantiationException itex) {}
+					} catch (IllegalAccessException iaex) {}
+					catch (InstantiationException itex) {}
+				}
+
+			} catch(FrameworkException fex) {
+				fex.printStackTrace();
 			}
 		}
 

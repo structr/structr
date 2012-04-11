@@ -1,53 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
         <groupId>org.structr</groupId>
         <artifactId>structr</artifactId>
-        <version>0.4.5</version>
+        <version>0.4.8</version>
     </parent>
 
     <groupId>org.structr</groupId>
     <artifactId>structr-ui</artifactId>
     <packaging>war</packaging>
-    <version>0.4.5</version>
+    <version>0.4.8</version>
     <name>structr-ui</name>
     <url>http://structr.org</url>
 
     <properties>
         <netbeans.hint.license>structr-gpl30</netbeans.hint.license>
-        <structr.version>0.4.5</structr.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <structr.version>0.4.8</structr.version>
+        <jetty.version>8.1.0.RC2</jetty.version>
     </properties>
-
     <repositories>
         <repository>
             <id>java.net2</id>
             <name>Repository hosting the jee6 artifacts</name>
             <url>http://download.java.net/maven/2</url>
         </repository>
+        <repository>
+            <id>structr-public-repository</id>
+            <url>http://maven.structr.org</url>
+        </repository>
     </repositories>
     <dependencies>
-        <dependency>
-            <groupId>javax</groupId>
-            <artifactId>javaee-web-api</artifactId>
-            <version>6.0</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>3.8.2</version>
-            <scope>test</scope>
-        </dependency>
-<!--        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>structr-core</artifactId>
-            <version>${structr.version}</version>
-        </dependency>-->
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>structr-websocket</artifactId>
@@ -57,6 +43,30 @@
             <groupId>${project.groupId}</groupId>
             <artifactId>structr-rest</artifactId>
             <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <artifactId>structr-core</artifactId>
+            <groupId>org.structr</groupId>
+            <type>jar</type>
+            <version>${structr.version}</version>
+        </dependency>
+        <dependency>
+            <artifactId>structr-rest</artifactId>
+            <groupId>org.structr</groupId>
+            <type>jar</type>
+            <version>${structr.version}</version>
+        </dependency>
+        <dependency>
+            <artifactId>structr-websocket</artifactId>
+            <groupId>org.structr</groupId>
+            <type>jar</type>
+            <version>${structr.version}</version>
+        </dependency>
+        <dependency>
+            <artifactId>urlrewritefilter</artifactId>
+            <groupId>org.tuckey</groupId>
+            <type>jar</type>
+            <version>3.2.0</version>
         </dependency>
     </dependencies>
     <build>
@@ -72,10 +82,39 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>2.4</version>
+                <executions>
+                    <execution>
+                        <id>unpack-dependencies</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>unpack-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <includes>**</includes>
+                            <outputDirectory>${project.build.directory}/${project.artifactId}</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
-                <version>2.1-beta-1</version>
+                <version>2.1.1</version>
                 <configuration>
                     <failOnMissingWebXml>false</failOnMissingWebXml>
+                    <archive>
+                        <index>true</index>
+                        <manifestEntries>
+                            <Main-Class>org.structr.StructrServer</Main-Class>
+                        </manifestEntries>
+                    </archive>
+                    <webResources>
+                        <resource>
+                            <directory>target/classes/</directory>
+                        </resource>
+                    </webResources>
                 </configuration>
             </plugin>
         </plugins>
@@ -123,22 +162,22 @@
             <name>GNU General Public License, Version 3</name>
             <url>http://www.gnu.org/licenses/gpl-3.0-standalone.html</url>
             <comments>
-Copyright (C) 2011 Axel Morgner, structr &lt;structr@structr.org&gt;
+                Copyright (C) 2012 Axel Morgner, structr &lt;structr@structr.org&gt;
 
- This file is part of structr &lt;http://structr.org&gt;.
+                This file is part of structr &lt;http://structr.org&gt;.
 
- structr is free software: you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
+                structr is free software: you can redistribute it and/or modify
+                it under the terms of the GNU General Public License as published by
+                the Free Software Foundation, either version 3 of the License, or
+                (at your option) any later version.
 
- structr is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
+                structr is distributed in the hope that it will be useful,
+                but WITHOUT ANY WARRANTY; without even the implied warranty of
+                MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+                GNU General Public License for more details.
 
- You should have received a copy of the GNU General Public License
- along with structr.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+                You should have received a copy of the GNU General Public License
+                along with structr.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
             </comments>
         </license>
     </licenses>
@@ -147,8 +186,3 @@ Copyright (C) 2011 Axel Morgner, structr &lt;structr@structr.org&gt;
         <url>https://github.com/structr/structr/tree/master/structr/structr-web-test</url>
     </scm>
 </project>
-
-
-
-
-

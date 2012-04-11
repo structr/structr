@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -57,18 +58,24 @@ public class CopyOperation implements PrimaryOperation {
 
 		if(parameterState.equals(ParameterState.DestinationNodeSet)) {
 
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+			try {
+				Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
-				@Override
-				public Object execute() throws Throwable {
+					@Override
+					public Object execute() throws FrameworkException {
 
-					Command moveCommand = Services.command(securityContext, CopyNodeCommand.class);
-					moveCommand.execute(sourceNode, destinationNode, securityContext.getUser());
+						Command moveCommand = Services.command(securityContext, CopyNodeCommand.class);
+						moveCommand.execute(sourceNode, destinationNode, securityContext.getUser());
 
-					return(null);
-				}
+						return(null);
+					}
 
-			});
+				});
+				
+			} catch(FrameworkException fex) {
+				fex.printStackTrace();
+			}
+
 		}
 
 		return(true);
@@ -146,18 +153,23 @@ public class CopyOperation implements PrimaryOperation {
 
 		} else {
 
-			Object findNodeReturnValue = findNodeCommand.execute(currentNode, parameter);
-			if(findNodeReturnValue instanceof Collection) {
+			try {
+				Object findNodeReturnValue = findNodeCommand.execute(currentNode, parameter);
+				if(findNodeReturnValue instanceof Collection) {
 
-				throw new InvalidParameterException("MOVE does not support wildcards");
+					throw new InvalidParameterException("MOVE does not support wildcards");
 
-			} else if(findNodeReturnValue instanceof AbstractNode) {
+				} else if(findNodeReturnValue instanceof AbstractNode) {
 
-				ret = (AbstractNode)findNodeReturnValue;
+					ret = (AbstractNode)findNodeReturnValue;
 
-			} else {
+				} else {
 
-				throw new InvalidParameterException("Node " + parameter.toString() + " not found");
+					throw new InvalidParameterException("Node " + parameter.toString() + " not found");
+				}
+
+			} catch(FrameworkException fex) {
+				fex.printStackTrace();
 			}
 
 		}

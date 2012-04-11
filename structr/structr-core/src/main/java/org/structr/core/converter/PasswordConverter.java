@@ -20,6 +20,7 @@
 package org.structr.core.converter;
 
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang.StringUtils;
 import org.structr.core.PropertyConverter;
 import org.structr.core.Value;
 
@@ -30,7 +31,7 @@ public class PasswordConverter extends PropertyConverter<String, String> {
 
 	@Override
 	public String convertForSetter(String clearTextPassword, Value value) {
-		if (clearTextPassword == null) return null;
+		if (StringUtils.isBlank(clearTextPassword)) return null;
 		return DigestUtils.sha512Hex(clearTextPassword);
 	}
 

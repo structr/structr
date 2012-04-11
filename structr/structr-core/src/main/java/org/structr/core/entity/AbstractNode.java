@@ -40,9 +40,8 @@ import org.neo4j.graphdb.traversal.Evaluator;
 import org.neo4j.kernel.Traversal;
 
 import org.structr.common.AbstractComponent;
-import org.structr.common.AbstractNodeComparator;
+import org.structr.common.GraphObjectComparator;
 import org.structr.common.AccessControllable;
-import org.structr.common.ErrorBuffer;
 import org.structr.common.PathHelper;
 import org.structr.common.Permission;
 import org.structr.common.PropertyKey;
@@ -65,7 +64,6 @@ import org.structr.core.NodeRenderer;
 import org.structr.core.NodeSource;
 import org.structr.core.PropertyConverter;
 import org.structr.core.PropertyGroup;
-import org.structr.core.PropertyValidator;
 import org.structr.core.Services;
 import org.structr.core.Value;
 import org.structr.core.cloud.NodeDataContainer;
@@ -75,7 +73,6 @@ import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;
 import org.structr.core.node.DeleteRelationshipCommand;
 import org.structr.core.node.FindNodeCommand;
-import org.structr.core.node.IndexNodeCommand;
 import org.structr.core.node.NodeFactoryCommand;
 import org.structr.core.node.NodeRelationshipStatisticsCommand;
 import org.structr.core.node.NodeRelationshipsCommand;
@@ -98,6 +95,7 @@ import java.text.ParseException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -114,6 +112,12 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import org.structr.common.*;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
+import org.structr.common.error.NullArgumentToken;
+import org.structr.common.error.ReadOnlyPropertyToken;
+import org.structr.core.validator.SimpleRegexValidator;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -123,7 +127,7 @@ import javax.servlet.http.HttpSession;
  * @author amorgner
  *
  */
-public abstract class AbstractNode implements Comparable<AbstractNode>, RenderController, AccessControllable, GraphObject {
+public abstract class AbstractNode implements GraphObject, Comparable<AbstractNode>, RenderController, AccessControllable {
 
 //      public final static String CATEGORIES_KEY         = "categories";
 //      public final static String CREATED_BY_KEY         = "createdBy";
@@ -170,31 +174,34 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		EntityContext.registerPropertyConverter(AbstractNode.class, Key.ownerId, NodeIdNodeConverter.class);
 		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.fulltext.name(), Key.values());
 		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.keyword.name(), Key.values());
-		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.uuid.name(), Key.uuid);
+		EntityContext.registerSearchableProperty(AbstractNode.class, NodeIndex.uuid.name(), Key.uuid);
 
 		// register transformation for automatic uuid creation
-		EntityContext.registerPostCreationTransformation(AbstractNode.class, new UuidCreationTransformation());
-
+		EntityContext.registerEntityCreationTransformation(AbstractNode.class, new UuidCreationTransformation());
+		
+		// register uuid validator
+		EntityContext.registerPropertyValidator(AbstractNode.class, AbstractNode.Key.uuid, new SimpleRegexValidator("[a-zA-Z0-9]{32}"));
+		
 	}
 
 	//~--- fields ---------------------------------------------------------
 
-	private List<StructrRelationship> allRelationships           = null;
-	private List<StructrRelationship> incomingChildRelationships = null;
-	private List<StructrRelationship> incomingDataRelationships  = null;
-	private List<StructrRelationship> incomingLinkRelationships  = null;
-	private List<StructrRelationship> incomingRelationships      = null;
-	private List<StructrRelationship> outgoingChildRelationships = null;
-	private List<StructrRelationship> outgoingDataRelationships  = null;
-	private List<StructrRelationship> outgoingLinkRelationships  = null;
-	private List<StructrRelationship> outgoingRelationships      = null;
+	private List<AbstractRelationship> allRelationships           = null;
+	private List<AbstractRelationship> incomingChildRelationships = null;
+	private List<AbstractRelationship> incomingDataRelationships  = null;
+	private List<AbstractRelationship> incomingLinkRelationships  = null;
+	private List<AbstractRelationship> incomingRelationships      = null;
+	private List<AbstractRelationship> outgoingChildRelationships = null;
+	private List<AbstractRelationship> outgoingDataRelationships  = null;
+	private List<AbstractRelationship> outgoingLinkRelationships  = null;
+	private List<AbstractRelationship> outgoingRelationships      = null;
 
 	// request parameters
 	// private HttpServletRequest request = null;
 	// private HttpSession session = null;
 	private final Map<RenderMode, NodeRenderer> rendererMap      = new EnumMap<RenderMode, NodeRenderer>(RenderMode.class);
 	protected SecurityContext securityContext                    = null;
-	private Map<Long, StructrRelationship> securityRelationships = null;
+	private Map<Long, AbstractRelationship> securityRelationships = null;
 	private boolean renderersInitialized                         = false;
 	private boolean readOnlyPropertiesUnlocked                   = false;
 
@@ -247,7 +254,17 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	}
 
 	//~--- methods --------------------------------------------------------
-
+	
+	@Override
+	public PropertyKey getDefaultSortKey() {
+		return null;
+	}
+	
+	@Override
+	public String getDefaultSortOrder() {
+		return GraphObjectComparator.ASCENDING;
+	}
+	
 	/**
 	 * Implement this method to specify renderers for the different rendering modes.
 	 *
@@ -443,7 +460,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		}
 	}
 
-	public void createTemplateRelationship(final Template template) {
+	public void createTemplateRelationship(final Template template) throws FrameworkException {
 
 		// create a relationship to the given template node
 		Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
@@ -670,7 +687,20 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 		return (String[]) props.toArray(new String[props.size()]);
 	}
+	
+	@Override
+	public boolean isValid(ErrorBuffer errorBuffer) {
 
+		boolean error = false;
+
+		error |= ValidationHelper.checkStringNotBlank(this, Key.uuid, errorBuffer);
+		error |= ValidationHelper.checkStringNotBlank(this, Key.type, errorBuffer);
+
+		return !error;
+	}
+
+	public abstract String getIconSrc();
+		
 	/**
 	 * Discard changes and overwrite the properties map with the values
 	 * from database
@@ -683,7 +713,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	/**
 	 * Commit unsaved property values to the database node.
 	 */
-	public void commit(final User user) {
+	public void commit(final User user) throws FrameworkException {
 
 		isDirty = false;
 
@@ -694,7 +724,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		transactionCommand.execute(new StructrTransaction() {
 
 			@Override
-			public Object execute() throws Throwable {
+			public Object execute() throws FrameworkException {
 
 				Command createNode = Services.command(securityContext, CreateNodeCommand.class);
 				AbstractNode s     = (AbstractNode) createNode.execute(user);
@@ -737,12 +767,12 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 		if (securityRelationships == null) {
 
-			securityRelationships = new HashMap<Long, StructrRelationship>();
+			securityRelationships = new HashMap<Long, AbstractRelationship>();
 
 		}
 
 		// Fill cache map
-		for (StructrRelationship r : getRelationships(RelType.SECURITY, Direction.INCOMING)) {
+		for (AbstractRelationship r : getRelationships(RelType.SECURITY, Direction.INCOMING)) {
 
 			securityRelationships.put(r.getStartNode().getId(), r);
 
@@ -764,7 +794,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		}
 
 		// Then check per-user permissions
-		return hasPermission(StructrRelationship.Permission.read.name(), user);
+		return hasPermission(AbstractRelationship.Permission.read.name(), user);
 	}
 
 	/**
@@ -773,7 +803,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * @return
 	 */
 	public boolean showTreeAllowed() {
-		return hasPermission(StructrRelationship.Permission.showTree.name(), user);
+		return hasPermission(AbstractRelationship.Permission.showTree.name(), user);
 	}
 
 	/**
@@ -782,7 +812,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * @return
 	 */
 	public boolean writeAllowed() {
-		return hasPermission(StructrRelationship.Permission.showTree.name(), user);
+		return hasPermission(AbstractRelationship.Permission.showTree.name(), user);
 	}
 
 	/**
@@ -791,7 +821,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * @return
 	 */
 	public boolean createSubnodeAllowed() {
-		return hasPermission(StructrRelationship.Permission.createNode.name(), user);
+		return hasPermission(AbstractRelationship.Permission.createNode.name(), user);
 	}
 
 	/**
@@ -800,7 +830,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * @return
 	 */
 	public boolean deleteNodeAllowed() {
-		return hasPermission(StructrRelationship.Permission.deleteNode.name(), user);
+		return hasPermission(AbstractRelationship.Permission.deleteNode.name(), user);
 	}
 
 	/**
@@ -809,7 +839,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * @return
 	 */
 	public boolean addRelationshipAllowed() {
-		return hasPermission(StructrRelationship.Permission.addRelationship.name(), user);
+		return hasPermission(AbstractRelationship.Permission.addRelationship.name(), user);
 	}
 
 	/**
@@ -818,7 +848,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * @return
 	 */
 	public boolean editPropertiesAllowed() {
-		return hasPermission(StructrRelationship.Permission.editProperties.name(), user);
+		return hasPermission(AbstractRelationship.Permission.editProperties.name(), user);
 	}
 
 	/**
@@ -827,7 +857,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * @return
 	 */
 	public boolean removeRelationshipAllowed() {
-		return hasPermission(StructrRelationship.Permission.removeRelationship.name(), user);
+		return hasPermission(AbstractRelationship.Permission.removeRelationship.name(), user);
 	}
 
 	/**
@@ -858,7 +888,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 		}
 
-		StructrRelationship r = null;
+		AbstractRelationship r = null;
 
 		// owner has always access control
 		if (user.equals(getOwnerNode())) {
@@ -869,7 +899,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 		r = getSecurityRelationship(user);
 
-		if ((r != null) && r.isAllowed(StructrRelationship.Permission.accessControl.name())) {
+		if ((r != null) && r.isAllowed(AbstractRelationship.Permission.accessControl.name())) {
 
 			return true;
 
@@ -886,7 +916,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * @param editUrl
 	 * @param editNodeId
 	 */
-	public void replaceBySubnodes(HttpServletRequest request, StringBuilder content, final AbstractNode startNode, final String editUrl, final Long editNodeId) {
+	public void replaceBySubnodes(HttpServletRequest request, StringBuilder content, final AbstractNode startNode, final String editUrl, final Long editNodeId) throws FrameworkException {
 
 		List<AbstractNode> subnodes               = null;
 		List<AbstractNode> subnodesAndLinkedNodes = null;
@@ -1097,7 +1127,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * @param depth
 	 * @param maxDepth
 	 */
-	private void collectRelatedNodes(Set<AbstractNode> nodes, Set<StructrRelationship> rels, Set<AbstractNode> visitedNodes, AbstractNode currentNode, int depth, int maxDepth, int maxNum,
+	private void collectRelatedNodes(Set<AbstractNode> nodes, Set<AbstractRelationship> rels, Set<AbstractNode> visitedNodes, AbstractNode currentNode, int depth, int maxDepth, int maxNum,
 					 RelationshipType... relTypes) {
 
 		if (depth >= maxDepth) {
@@ -1111,7 +1141,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 			nodes.add(currentNode);
 
 			// collect incoming relationships
-			List<StructrRelationship> inRels = new LinkedList<StructrRelationship>();
+			List<AbstractRelationship> inRels = new LinkedList<AbstractRelationship>();
 
 			if ((relTypes != null) && (relTypes.length > 0)) {
 
@@ -1127,7 +1157,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 			}
 
-			for (StructrRelationship rel : inRels) {
+			for (AbstractRelationship rel : inRels) {
 
 				AbstractNode startNode = rel.getStartNode();
 
@@ -1142,7 +1172,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 			}
 
 			// collect outgoing relationships
-			List<StructrRelationship> outRels = new LinkedList<StructrRelationship>();
+			List<AbstractRelationship> outRels = new LinkedList<AbstractRelationship>();
 
 			if ((relTypes != null) && (relTypes.length > 0)) {
 
@@ -1158,7 +1188,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 			}
 
-			for (StructrRelationship rel : outRels) {
+			for (AbstractRelationship rel : outRels) {
 
 				AbstractNode endNode = rel.getEndNode();
 
@@ -1284,7 +1314,6 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		}
 	}
 
-	// ----- protected methods -----
 	protected String createUniqueIdentifier(String prefix) {
 
 		StringBuilder identifier = new StringBuilder(100);
@@ -1340,13 +1369,43 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		return (count);
 	}
 
-	@Override
-	public void delete(SecurityContext securityContext) {
+	protected Set toSet(Object source) {
 
-		dbNode.delete();
+		if(source instanceof Iterable) {
 
-		// EntityContext.getGlobalModificationListener().graphObjectDeleted(securityContext, this);
+			Iterable<AbstractNode> iterable = (Iterable<AbstractNode>)source;
+			Set<AbstractNode> nodes = new LinkedHashSet();
+			for(AbstractNode node : iterable) {
+				nodes.add(node);
+			}
+			return nodes;
+		}
+
+		return null;
 	}
+
+	protected List toList(Object source) {
+
+		if(source instanceof Iterable) {
+
+			Iterable<AbstractNode> iterable = (Iterable<AbstractNode>)source;
+			List<AbstractNode> nodes = new LinkedList();
+			for(AbstractNode node : iterable) {
+				nodes.add(node);
+			}
+			return nodes;
+		}
+
+		return null;
+	}
+
+//	@Override
+//	public void delete(SecurityContext securityContext) {
+//
+//		dbNode.delete();
+//
+//		// EntityContext.getGlobalModificationListener().graphObjectDeleted(securityContext, this);
+//	}
 
 	/**
 	 * Can be used to permit the setting of a read-only
@@ -1361,7 +1420,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	}
 
 	@Override
-	public void removeProperty(final String key) {
+	public void removeProperty(final String key) throws FrameworkException {
 
 		if (this.dbNode != null) {
 
@@ -1383,7 +1442,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 					readOnlyPropertiesUnlocked = false;
 				} else {
 
-					throw new IllegalArgumentException("Property '".concat(key).concat("' is read-only."));
+					throw new FrameworkException(this.getType(), new ReadOnlyPropertyToken(key));
 
 				}
 
@@ -1392,7 +1451,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
 				@Override
-				public Object execute() throws Throwable {
+				public Object execute() throws FrameworkException {
 
 					dbNode.removeProperty(key);
 
@@ -1400,18 +1459,10 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 				}
 
 			});
-
 		}
 	}
 
 	//~--- get methods ----------------------------------------------------
-
-	/**
-	 * Returns the icon src attribute for this node type.
-	 *
-	 * @return the icon src attribute, for use in the HTML img element
-	 */
-	public abstract String getIconSrc();
 
 	public Long getTemplateId() {
 
@@ -1478,7 +1529,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 		while ((startNode != null) &&!(startNode.isRootNode())) {
 
-			List<StructrRelationship> templateRelationships = startNode.getRelationships(RelType.USE_TEMPLATE, Direction.OUTGOING);
+			List<AbstractRelationship> templateRelationships = startNode.getRelationships(RelType.USE_TEMPLATE, Direction.OUTGOING);
 
 			if ((templateRelationships != null) &&!(templateRelationships.isEmpty())) {
 
@@ -1698,7 +1749,11 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 					pos = Long.parseLong(p.toString());
 
 					// convert old String-based position property
-					setPosition(pos);
+					try {
+						setPosition(pos);
+					} catch(FrameworkException fex) {
+						logger.log(Level.WARNING, "Unable to set position property", fex);
+					}
 
 				} catch (NumberFormatException e) {
 
@@ -1714,7 +1769,11 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 					pos = Long.parseLong(((String) p));
 
 					// convert old String-based position property
-					setPosition(pos);
+					try {
+						setPosition(pos);
+					} catch(FrameworkException fex) {
+						logger.log(Level.WARNING, "Unable to set position property", fex);
+					}
 
 				} catch (NumberFormatException e) {
 
@@ -1735,7 +1794,11 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		long id = getId();
 
 		logger.log(Level.FINE, "No position property in database, writing id {0} to database", id);
-		setPosition(id);
+		try {
+			setPosition(id);
+		} catch(FrameworkException fex) {
+			logger.log(Level.WARNING, "Unable to set position property", fex);
+		}
 
 		return id;
 	}
@@ -1856,13 +1919,20 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		Object value = null;
 		Class type   = this.getClass();
 
+		if(key == null) {
+			logger.log(Level.SEVERE, "Invalid property key: null");
+			return null;
+		}
+
+		if(dbNode == null) {
+			return null;
+		}
+
 		// ----- BEGIN property group resolution -----
 		PropertyGroup propertyGroup = EntityContext.getPropertyGroup(type, key);
-
 		if (propertyGroup != null) {
 
 			return propertyGroup.getGroupedProperties(this);
-
 		}
 
 		if (dbNode.hasProperty(key)) {
@@ -1882,7 +1952,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 				StructrTransaction transaction = new StructrTransaction() {
 
 					@Override
-					public Object execute() throws Throwable {
+					public Object execute() throws FrameworkException {
 
 						dbNode.setProperty(Key.visibleToPublicUsers.name(), oldValue);
 						dbNode.removeProperty("public");
@@ -1891,19 +1961,17 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 					}
 				};
 
-				// execute transaction
-				Services.command(securityContext, TransactionCommand.class).execute(transaction);
+				try {
+					// execute transaction
+					Services.command(securityContext, TransactionCommand.class).execute(transaction);
 
-				// debug
-				if (transaction.getCause() != null) {
-
-					logger.log(Level.WARNING, "Error while setting property", transaction.getCause());
-
+				} catch(FrameworkException fex) {
+					logger.log(Level.WARNING, "Error while setting property", fex);
 				}
 
 			}
 
-			if ((key != null) && (dbNode != null) && dbNode.hasProperty(key)) {
+			if ((key != null) && (dbNode != null)) {
 
 				value = dbNode.getProperty(key);
 
@@ -1912,7 +1980,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		} else {
 
 			// ----- BEGIN automatic property resolution (check for static relationships and return related nodes) -----
-			DirectedRelationship rel = EntityContext.getDirectedRelationship(type, key);
+			RelationClass rel = EntityContext.getRelationClass(type, key);
 
 			if (rel != null) {
 
@@ -1930,7 +1998,11 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 					case OneToOne :
 					case ManyToOne :
-						value = notion.getAdapterForGetter(securityContext).adapt(rel.getRelatedNode(securityContext, this));
+						try {
+							value = notion.getAdapterForGetter(securityContext).adapt(rel.getRelatedNode(securityContext, this));
+						} catch(FrameworkException fex) {
+							logger.log(Level.WARNING, "Error while adapting related node", fex);
+						}
 
 						break;
 
@@ -1945,14 +2017,18 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 			// ----- END automatic property resolution -----
 		}
 
+		// no value found, use schema default
+		if(value == null) {
+			value = EntityContext.getDefaultValue(type, key);
+		}
+
 		// apply property converters
 		PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, type, key);
 
 		if (converter != null) {
 
 			Value conversionValue = EntityContext.getPropertyConversionParameter(type, key);
-
-			converter.setCurrentNode(this);
+			converter.setCurrentObject(this);
 
 			value = converter.convertForGetter(value, conversionValue);
 
@@ -2135,11 +2211,11 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		return result;
 	}
 
-	public Double getDoubleProperty(final PropertyKey propertyKey) {
+	public Double getDoubleProperty(final PropertyKey propertyKey) throws FrameworkException {
 		return (getDoubleProperty(propertyKey.name()));
 	}
 
-	public Double getDoubleProperty(final String key) {
+	public Double getDoubleProperty(final String key) throws FrameworkException {
 
 		Object propertyValue = getProperty(key);
 		Double result        = null;
@@ -2441,7 +2517,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * @return incoming security relationship
 	 */
 	@Override
-	public StructrRelationship getSecurityRelationship(final Principal principal) {
+	public AbstractRelationship getSecurityRelationship(final Principal principal) {
 
 		if (principal == null) {
 
@@ -2453,7 +2529,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 		if (securityRelationships == null) {
 
-			securityRelationships = new HashMap<Long, StructrRelationship>();
+			securityRelationships = new HashMap<Long, AbstractRelationship>();
 
 		}
 
@@ -2471,9 +2547,13 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 *
 	 * @return list with relationships
 	 */
-	@Override
-	public List<StructrRelationship> getRelationships(RelationshipType type, Direction dir) {
-		return (List<StructrRelationship>) Services.command(securityContext, NodeRelationshipsCommand.class).execute(this, type, dir);
+	public List<AbstractRelationship> getRelationships(RelationshipType type, Direction dir) {
+		try {
+			return (List<AbstractRelationship>) Services.command(securityContext, NodeRelationshipsCommand.class).execute(this, type, dir);
+		} catch(FrameworkException fex) {
+			logger.log(Level.WARNING, "Unable to get relationships", fex);
+		}
+		return null;
 	}
 
 	/**
@@ -2481,9 +2561,13 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 *
 	 * @return number of relationships
 	 */
-	@Override
 	public Map<RelationshipType, Long> getRelationshipInfo(Direction dir) {
-		return (Map<RelationshipType, Long>) Services.command(securityContext, NodeRelationshipStatisticsCommand.class).execute(this, dir);
+		try {
+			return (Map<RelationshipType, Long>) Services.command(securityContext, NodeRelationshipStatisticsCommand.class).execute(this, dir);
+		} catch(FrameworkException fex) {
+			logger.log(Level.WARNING, "Unable to get relationship info", fex);
+		}
+		return null;
 	}
 
 //
@@ -2606,22 +2690,26 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 		if (parentNode != null) {
 
-			Command nodeFactory            = Services.command(securityContext, NodeFactoryCommand.class);
-			Command relsCommand            = Services.command(securityContext, NodeRelationshipsCommand.class);
-			List<StructrRelationship> rels = (List<StructrRelationship>) relsCommand.execute(parentNode, RelType.HAS_CHILD, Direction.OUTGOING);
+			try {
+				Command nodeFactory            = Services.command(securityContext, NodeFactoryCommand.class);
+				Command relsCommand            = Services.command(securityContext, NodeRelationshipsCommand.class);
+				List<AbstractRelationship> rels = (List<AbstractRelationship>) relsCommand.execute(parentNode, RelType.HAS_CHILD, Direction.OUTGOING);
 
-			for (StructrRelationship r : rels) {
+				for (AbstractRelationship r : rels) {
 
-				AbstractNode s = (AbstractNode) nodeFactory.execute(r.getEndNode());
+					AbstractNode s = (AbstractNode) nodeFactory.execute(r.getEndNode());
 
-				if (securityContext.isAllowed(s, Permission.Read)) {
+					if (securityContext.isAllowed(s, Permission.Read)) {
 
-					nodes.add(s);
+						nodes.add(s);
+
+					}
 
 				}
 
+			} catch(FrameworkException fex) {
+				logger.log(Level.WARNING, "Unable to get sibling nodes", fex);
 			}
-
 		}
 
 		return nodes;
@@ -2667,16 +2755,18 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 		List<AbstractNode> nodes       = new LinkedList<AbstractNode>();
 		Command nodeFactory            = Services.command(securityContext, NodeFactoryCommand.class);
-		List<StructrRelationship> rels = getIncomingChildRelationships();
+		List<AbstractRelationship> rels = getIncomingChildRelationships();
 
-		for (StructrRelationship r : rels) {
+		for (AbstractRelationship r : rels) {
 
-			AbstractNode s = (AbstractNode) nodeFactory.execute(r.getStartNode());
+			try {
+				AbstractNode s = (AbstractNode) nodeFactory.execute(r.getStartNode());
+				if (securityContext.isAllowed(s, Permission.Read)) {
+					nodes.add(s);
+				}
 
-			if (securityContext.isAllowed(s, Permission.Read)) {
-
-				nodes.add(s);
-
+			} catch(FrameworkException fex) {
+				logger.log(Level.WARNING, "Unable to instantiate node", fex);
 			}
 
 		}
@@ -2695,13 +2785,17 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 		List<AbstractNode> nodes       = new LinkedList<AbstractNode>();
 		Command nodeFactory            = Services.command(securityContext, NodeFactoryCommand.class);
-		List<StructrRelationship> rels = getIncomingChildRelationships();
+		List<AbstractRelationship> rels = getIncomingChildRelationships();
 
-		for (StructrRelationship r : rels) {
+		for (AbstractRelationship r : rels) {
 
-			AbstractNode s = (AbstractNode) nodeFactory.execute(r.getStartNode());
+			try {
+				AbstractNode s = (AbstractNode) nodeFactory.execute(r.getStartNode());
+				nodes.add(s);
 
-			nodes.add(s);
+			} catch(FrameworkException fex) {
+				logger.log(Level.WARNING, "Unable to instantiate node", fex);
+			}
 
 		}
 
@@ -2713,7 +2807,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 *
 	 * @return
 	 */
-	public List<StructrRelationship> getRelationships() {
+	public List<AbstractRelationship> getRelationships() {
 
 		if (allRelationships == null) {
 
@@ -2729,7 +2823,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 *
 	 * @return
 	 */
-	public List<StructrRelationship> getRelationships(Direction dir) {
+	public List<AbstractRelationship> getRelationships(Direction dir) {
 		return getRelationships(null, dir);
 	}
 
@@ -2738,7 +2832,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 *
 	 * @return
 	 */
-	public List<StructrRelationship> getIncomingRelationships() {
+	public List<AbstractRelationship> getIncomingRelationships() {
 
 		if (incomingRelationships == null) {
 
@@ -2754,7 +2848,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 *
 	 * @return
 	 */
-	public List<StructrRelationship> getOutgoingRelationships() {
+	public List<AbstractRelationship> getOutgoingRelationships() {
 
 		if (outgoingRelationships == null) {
 
@@ -2776,7 +2870,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 *
 	 * @return
 	 */
-	public List<StructrRelationship> getOutgoingRelationships(final RelationshipType type) {
+	public List<AbstractRelationship> getOutgoingRelationships(final RelationshipType type) {
 		return getRelationships(type, Direction.OUTGOING);
 	}
 
@@ -2785,7 +2879,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 *
 	 * @return
 	 */
-	public List<StructrRelationship> getIncomingLinkRelationships() {
+	public List<AbstractRelationship> getIncomingLinkRelationships() {
 
 		if (incomingLinkRelationships == null) {
 
@@ -2801,7 +2895,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 *
 	 * @return
 	 */
-	public List<StructrRelationship> getOutgoingDataRelationships() {
+	public List<AbstractRelationship> getOutgoingDataRelationships() {
 
 		if (outgoingDataRelationships == null) {
 
@@ -2817,7 +2911,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 *
 	 * @return
 	 */
-	public List<StructrRelationship> getIncomingDataRelationships() {
+	public List<AbstractRelationship> getIncomingDataRelationships() {
 
 		if (incomingDataRelationships == null) {
 
@@ -2833,7 +2927,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 *
 	 * @return
 	 */
-	public List<StructrRelationship> getOutgoingLinkRelationships() {
+	public List<AbstractRelationship> getOutgoingLinkRelationships() {
 
 		if (outgoingLinkRelationships == null) {
 
@@ -2849,7 +2943,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 *
 	 * @return
 	 */
-	public List<StructrRelationship> getIncomingChildRelationships() {
+	public List<AbstractRelationship> getIncomingChildRelationships() {
 
 		if (incomingChildRelationships == null) {
 
@@ -2865,7 +2959,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 *
 	 * @return
 	 */
-	public List<StructrRelationship> getOutgoingChildRelationships() {
+	public List<AbstractRelationship> getOutgoingChildRelationships() {
 
 		if (outgoingChildRelationships == null) {
 
@@ -2905,48 +2999,61 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 	public List<AbstractNode> getAllChildrenForRemotePush() {
 
-		// FIXME: add handling for remote user here
-		Command findNode = Services.command(securityContext, FindNodeCommand.class);
+		try {
+			// FIXME: add handling for remote user here
+			Command findNode = Services.command(securityContext, FindNodeCommand.class);
+			return ((List<AbstractNode>) findNode.execute(this));
 
-		return ((List<AbstractNode>) findNode.execute(this));
+		} catch(FrameworkException fex) {
+			logger.log(Level.WARNING, "Unable to get child nodes", fex);
+		}
+
+		return null;
 	}
 
 	public int getRemotePushSize(final int chunkSize) {
 
-		Command findNode        = Services.command(securityContext, FindNodeCommand.class);
-		List<AbstractNode> list = ((List<AbstractNode>) findNode.execute(this));
-		int size                = 0;
+		try {
+			Command findNode        = Services.command(securityContext, FindNodeCommand.class);
+			List<AbstractNode> list = ((List<AbstractNode>) findNode.execute(this));
+			int size                = 0;
 
-		for (AbstractNode node : list) {
+			for (AbstractNode node : list) {
 
-			if (node instanceof File) {
+				if (node instanceof File) {
 
-				File file = (File) node;
+					File file = (File) node;
 
-				size += (file.getSize() / chunkSize);
-				size += 3;
+					size += (file.getSize() / chunkSize);
+					size += 3;
 
-			} else {
-
-				size++;
-
-			}
-
-			List<StructrRelationship> rels = node.getOutgoingRelationships();
-
-			for (StructrRelationship r : rels) {
-
-				if (list.contains(r.getStartNode()) && list.contains(r.getEndNode())) {
+				} else {
 
 					size++;
 
 				}
 
+				List<AbstractRelationship> rels = node.getOutgoingRelationships();
+
+				for (AbstractRelationship r : rels) {
+
+					if (list.contains(r.getStartNode()) && list.contains(r.getEndNode())) {
+
+						size++;
+
+					}
+
+				}
+
 			}
 
+			return size;
+
+		} catch(FrameworkException fex) {
+			logger.log(Level.WARNING, "Unable to get remote push size", fex);
 		}
 
-		return (size);
+		return 0;
 	}
 
 	/**
@@ -2995,10 +3102,10 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 */
 	public List<AbstractNode> getDirectChildren(final RelationshipType relType, final String nodeType) {
 
-		List<StructrRelationship> rels = this.getOutgoingRelationships(relType);
+		List<AbstractRelationship> rels = this.getOutgoingRelationships(relType);
 		List<AbstractNode> nodes       = new LinkedList<AbstractNode>();
 
-		for (StructrRelationship r : rels) {
+		for (AbstractRelationship r : rels) {
 
 			AbstractNode s = r.getEndNode();
 
@@ -3023,12 +3130,12 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 */
 	public List<AbstractNode> getDirectChildrenIgnorePermissions(final RelationshipType relType, final String nodeType) {
 
-		List<StructrRelationship> rels = this.getOutgoingRelationships(relType);
+		List<AbstractRelationship> rels = this.getOutgoingRelationships(relType);
 
 //              SecurityContext securityContext = CurrentRequest.getSecurityContext();
 		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
 
-		for (StructrRelationship r : rels) {
+		for (AbstractRelationship r : rels) {
 
 			AbstractNode s = r.getEndNode();
 
@@ -3103,8 +3210,8 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 		nodes.addAll(getDirectChildNodes());
 
-		// sort by key, order by order {@see AbstractNodeComparator.ASCENDING} or {@see AbstractNodeComparator.DESCENDING}
-		Collections.sort(nodes, new AbstractNodeComparator(sortKey, sortOrder));
+		// sort by key, order by order {@see GraphObjectComparator.ASCENDING} or {@see GraphObjectComparator.DESCENDING}
+		Collections.sort(nodes, new GraphObjectComparator(sortKey, sortOrder));
 
 		return nodes;
 	}
@@ -3188,21 +3295,28 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 */
 	protected List<AbstractNode> getAllChildren(final String nodeType) {
 
-		List<AbstractNode> nodes  = new LinkedList<AbstractNode>();
-		Command findNode          = Services.command(securityContext, FindNodeCommand.class);
-		List<AbstractNode> result = (List<AbstractNode>) findNode.execute(this);
+		try {
+			List<AbstractNode> nodes  = new LinkedList<AbstractNode>();
+			Command findNode          = Services.command(securityContext, FindNodeCommand.class);
+			List<AbstractNode> result = (List<AbstractNode>) findNode.execute(this);
 
-		for (AbstractNode s : result) {
+			for (AbstractNode s : result) {
 
-			if (securityContext.isAllowed(s, Permission.Read) && ((nodeType == null) || nodeType.equals(s.getType()))) {
+				if (securityContext.isAllowed(s, Permission.Read) && ((nodeType == null) || nodeType.equals(s.getType()))) {
 
-				nodes.add(s);
+					nodes.add(s);
+
+				}
 
 			}
 
+			return nodes;
+
+		} catch(FrameworkException fex) {
+			logger.log(Level.WARNING, "Unable to get all child nodes", fex);
 		}
 
-		return nodes;
+		return null;
 	}
 
 	/**
@@ -3213,7 +3327,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	@Override
 	public User getOwnerNode() {
 
-		for (StructrRelationship s : getRelationships(RelType.OWNS, Direction.INCOMING)) {
+		for (AbstractRelationship s : getRelationships(RelType.OWNS, Direction.INCOMING)) {
 
 			AbstractNode n = s.getStartNode();
 
@@ -3257,7 +3371,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		List<AbstractNode> principalList = new LinkedList<AbstractNode>();
 
 		// check any security relationships
-		for (StructrRelationship r : getRelationships(RelType.SECURITY, Direction.INCOMING)) {
+		for (AbstractRelationship r : getRelationships(RelType.SECURITY, Direction.INCOMING)) {
 
 			// check security properties
 			AbstractNode principalNode = r.getEndNode();
@@ -3322,30 +3436,30 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 		Set<AbstractNode> visitedNodes = new LinkedHashSet<AbstractNode>();
 		Set<AbstractNode> nodes        = new LinkedHashSet<AbstractNode>();
-		Set<StructrRelationship> rels  = new LinkedHashSet<StructrRelationship>();
+		Set<AbstractRelationship> rels  = new LinkedHashSet<AbstractRelationship>();
 
 		collectRelatedNodes(nodes, rels, visitedNodes, this, 0, maxDepth, maxNum, splitRelationshipTypes(relTypes));
 
 		return (nodes);
 	}
 
-	public Set<StructrRelationship> getRelatedRels(int maxDepth) {
+	public Set<AbstractRelationship> getRelatedRels(int maxDepth) {
 		return (getRelatedRels(maxDepth, 20 /* Integer.MAX_VALUE */, null));
 	}
 
-	public Set<StructrRelationship> getRelatedRels(int maxDepth, String relTypes) {
+	public Set<AbstractRelationship> getRelatedRels(int maxDepth, String relTypes) {
 		return (getRelatedRels(maxDepth, 20 /* Integer.MAX_VALUE */, relTypes));
 	}
 
-	public Set<StructrRelationship> getRelatedRels(int maxDepth, int maxNum) {
+	public Set<AbstractRelationship> getRelatedRels(int maxDepth, int maxNum) {
 		return (getRelatedRels(maxDepth, maxNum, null));
 	}
 
-	public Set<StructrRelationship> getRelatedRels(int maxDepth, int maxNum, String relTypes) {
+	public Set<AbstractRelationship> getRelatedRels(int maxDepth, int maxNum, String relTypes) {
 
 		Set<AbstractNode> visitedNodes = new LinkedHashSet<AbstractNode>();
 		Set<AbstractNode> nodes        = new LinkedHashSet<AbstractNode>();
-		Set<StructrRelationship> rels  = new LinkedHashSet<StructrRelationship>();
+		Set<AbstractRelationship> rels  = new LinkedHashSet<AbstractRelationship>();
 
 		collectRelatedNodes(nodes, rels, visitedNodes, this, 0, maxDepth, maxNum, splitRelationshipTypes(relTypes));
 
@@ -3354,10 +3468,10 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 	protected AbstractNode getNodeFromLoader(HttpServletRequest request) {
 
-		List<StructrRelationship> rels = getIncomingDataRelationships();
+		List<AbstractRelationship> rels = getIncomingDataRelationships();
 		AbstractNode node              = null;
 
-		for (StructrRelationship rel : rels) {
+		for (AbstractRelationship rel : rels) {
 
 			// first one wins
 			AbstractNode startNode = rel.getStartNode();
@@ -3400,21 +3514,6 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		return (null);
 	}
 
-	@Override
-	public Long getStartNodeId() {
-		return null;
-	}
-
-	@Override
-	public Long getEndNodeId() {
-		return null;
-	}
-
-	@Override
-	public Long getOtherNodeId(final AbstractNode node) {
-		return null;
-	}
-
 	private String getSingularTypeName(String key) {
 
 		return (key.endsWith("ies")
@@ -3437,7 +3536,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 */
 	public boolean hasRelationship(final RelType type, final Direction dir) {
 
-		List<StructrRelationship> rels = this.getRelationships(type, dir);
+		List<AbstractRelationship> rels = this.getRelationships(type, dir);
 
 		return ((rels != null) &&!(rels.isEmpty()));
 	}
@@ -3482,7 +3581,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 		}
 
-		StructrRelationship r = getSecurityRelationship(principal);
+		AbstractRelationship r = getSecurityRelationship(principal);
 
 		if ((r != null) && r.isAllowed(permission)) {
 
@@ -3493,9 +3592,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		// Check group
 		// We cannot use getParent() here because it uses hasPermission itself,
 		// that would lead to an infinite loop
-		List<StructrRelationship> rels = principal.getIncomingChildRelationships();
+		List<AbstractRelationship> rels = principal.getIncomingChildRelationships();
 
-		for (StructrRelationship sr : rels) {
+		for (AbstractRelationship sr : rels) {
 
 			AbstractNode node = sr.getStartNode();
 
@@ -3593,7 +3692,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	public boolean isVisible() {
 		return securityContext.isVisible(this);
 	}
-
+	
 	//~--- set methods ----------------------------------------------------
 
 	/**
@@ -3667,83 +3766,88 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 	public void setTemplateId(final Long value) {
 
-		// find template node
-		Command findNode      = Services.command(securityContext, FindNodeCommand.class);
-		Template templateNode = (Template) findNode.execute(value);
+		try {
+			// find template node
+			Command findNode      = Services.command(securityContext, FindNodeCommand.class);
+			Template templateNode = (Template) findNode.execute(value);
 
-		// delete existing template relationships
-		List<StructrRelationship> templateRels = this.getOutgoingRelationships(RelType.USE_TEMPLATE);
-		Command delRel                         = Services.command(securityContext, DeleteRelationshipCommand.class);
+			// delete existing template relationships
+			List<AbstractRelationship> templateRels = this.getOutgoingRelationships(RelType.USE_TEMPLATE);
+			Command delRel                         = Services.command(securityContext, DeleteRelationshipCommand.class);
 
-		if (templateRels != null) {
+			if (templateRels != null) {
 
-			for (StructrRelationship r : templateRels) {
+				for (AbstractRelationship r : templateRels) {
 
-				delRel.execute(r);
+					delRel.execute(r);
+
+				}
 
 			}
 
+			// create new link target relationship
+			Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
+
+			createRel.execute(this, templateNode, RelType.USE_TEMPLATE);
+
+		} catch(FrameworkException fex) {
+			logger.log(Level.WARNING, "Unable to set template id", fex);
 		}
-
-		// create new link target relationship
-		Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
-
-		createRel.execute(this, templateNode, RelType.USE_TEMPLATE);
 	}
 
-	public void setCreatedBy(final String createdBy) {
+	public void setCreatedBy(final String createdBy) throws FrameworkException {
 		setProperty(Key.createdBy.name(), createdBy);
 	}
 
-	public void setCreatedDate(final Date date) {
+	public void setCreatedDate(final Date date) throws FrameworkException {
 		setProperty(Key.createdDate.name(), date);
 	}
 
-	public void setLastModifiedDate(final Date date) {
+	public void setLastModifiedDate(final Date date) throws FrameworkException {
 		setProperty(Key.lastModifiedDate.name(), date);
 	}
 
-	public void setVisibilityStartDate(final Date date) {
+	public void setVisibilityStartDate(final Date date) throws FrameworkException {
 		setProperty(Key.visibilityStartDate.name(), date);
 	}
 
-	public void setVisibilityEndDate(final Date date) {
+	public void setVisibilityEndDate(final Date date) throws FrameworkException {
 		setProperty(Key.visibilityEndDate.name(), date);
 	}
 
-	public void setPosition(final Long position) {
+	public void setPosition(final Long position) throws FrameworkException {
 		setProperty(Key.position.name(), position);
 	}
 
-	public void setVisibleToPublicUsers(final boolean publicFlag) {
+	public void setVisibleToPublicUsers(final boolean publicFlag) throws FrameworkException {
 		setProperty(Key.visibleToPublicUsers.name(), publicFlag);
 	}
 
-	public void setVisibleToAuthenticatedUsers(final boolean flag) {
+	public void setVisibleToAuthenticatedUsers(final boolean flag) throws FrameworkException {
 		setProperty(Key.visibleToAuthenticatedUsers.name(), flag);
 	}
 
-	public void setHidden(final boolean hidden) {
+	public void setHidden(final boolean hidden) throws FrameworkException {
 		setProperty(Key.hidden.name(), hidden);
 	}
 
-	public void setDeleted(final boolean deleted) {
+	public void setDeleted(final boolean deleted) throws FrameworkException {
 		setProperty(Key.deleted.name(), deleted);
 	}
 
-	public void setType(final String type) {
+	public void setType(final String type) throws FrameworkException {
 		setProperty(Key.type.name(), type);
 	}
 
-	public void setName(final String name) {
+	public void setName(final String name) throws FrameworkException {
 		setProperty(Key.name.name(), name);
 	}
 
-	public void setCategories(final String[] categories) {
+	public void setCategories(final String[] categories) throws FrameworkException {
 		setProperty(Key.categories.name(), categories);
 	}
 
-	public void setTitle(final String title) {
+	public void setTitle(final String title) throws FrameworkException {
 		setProperty(Key.title.name(), title);
 	}
 
@@ -3752,7 +3856,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 *
 	 * @param title
 	 */
-	public void setTitles(final String[] titles) {
+	public void setTitles(final String[] titles) throws FrameworkException {
 		setProperty(Key.titles.name(), titles);
 	}
 
@@ -3768,7 +3872,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 		// not allowed
 	}
 
-	public void setProperty(final PropertyKey propertyKey, final Object value) {
+	public void setProperty(final PropertyKey propertyKey, final Object value) throws FrameworkException {
 		setProperty(propertyKey.name(), value);
 	}
 
@@ -3781,11 +3885,11 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * @param convertedValue
 	 */
 	@Override
-	public void setProperty(final String key, final Object value) {
+	public void setProperty(final String key, final Object value) throws FrameworkException {
 		setProperty(key, value, updateIndexDefault);
 	}
 
-	public void setPropertyAsStringArray(final PropertyKey propertyKey, final String value) {
+	public void setPropertyAsStringArray(final PropertyKey propertyKey, final String value) throws FrameworkException {
 		setPropertyAsStringArray(propertyKey.name(), value);
 	}
 
@@ -3796,14 +3900,14 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * @param stringList
 	 *
 	 */
-	public void setPropertyAsStringArray(final String key, final String value) {
+	public void setPropertyAsStringArray(final String key, final String value) throws FrameworkException {
 
 		String[] values = StringUtils.split(((String) value), "\r\n");
 
 		setProperty(key, values, updateIndexDefault);
 	}
 
-	public void setProperty(final PropertyKey propertyKey, final Object value, final boolean updateIndex) {
+	public void setProperty(final PropertyKey propertyKey, final Object value, final boolean updateIndex) throws FrameworkException {
 		setProperty(propertyKey.name(), value, updateIndex);
 	}
 
@@ -3818,15 +3922,36 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 	 * @param convertedValue
 	 * @param updateIndex
 	 */
-	public void setProperty(final String key, final Object value, final boolean updateIndex) {
+	public void setProperty(final String key, final Object value, final boolean updateIndex) throws FrameworkException {
+		
+		Object oldValue = getProperty(key);
+		
+		// check null cases
+		if (oldValue == null && value == null) {
+			return;
+		}
+		
+		// no old value exists, set property
+		if (oldValue == null && value != null) {
+			setPropertyInternal(key, value, updateIndex);
+			return;
+		}
+	
+		// old value exists and is NOT equal
+		if (oldValue != null && !oldValue.equals(value)) {
+			setPropertyInternal(key, value, updateIndex);
+			return;
+		}
+	}
+	
+	private void setPropertyInternal(final String key, final Object value, final boolean updateIndex) throws FrameworkException {
 
 		final Class type = this.getClass();
 
 		if (key == null) {
 
 			logger.log(Level.SEVERE, "Tried to set property with null key (action was denied)");
-
-			throw new IllegalArgumentException("A property key may not be null.");
+			throw new FrameworkException(type.getSimpleName(), new NullArgumentToken("base"));
 
 		}
 
@@ -3838,10 +3963,9 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 				// permit write operation once and
 				// lock read-only properties again
 				readOnlyPropertiesUnlocked = false;
+
 			} else {
-
-				throw new IllegalArgumentException("Property '".concat(key).concat("' is read-only."));
-
+				throw new FrameworkException(type.getSimpleName(), new ReadOnlyPropertyToken(key));
 			}
 
 		}
@@ -3857,30 +3981,46 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 		}
 
-		// static relationship detected, create relationship
-		DirectedRelationship rel = EntityContext.getDirectedRelationship(type, key);
-
+		// static relationship detected, create or remove relationship
+		RelationClass rel = EntityContext.getRelationClass(type, key);
 		if (rel != null) {
+		
+			if (value != null) {
 
-			try {
+				// TODO: check cardinality here
+				if(value instanceof Iterable) {
+					
+					Collection<GraphObject> collection = rel.getNotion().getCollectionAdapterForSetter(securityContext).adapt(value);
+					for(GraphObject graphObject : collection) {
+						rel.createRelationship(securityContext, this, graphObject);
+					}
+					
+				} else {
 
-				GraphObject graphObject = rel.getNotion().getAdapterForSetter(securityContext).adapt(value);
-
-				rel.createRelationship(securityContext, this, graphObject);
-
-				return;
-
-			} catch (IllegalArgumentException iaex) {
-
-				// re-throw exception
-				throw iaex;
-			} catch (Throwable t) {
-
-				t.printStackTrace();
-
-				// logger.log(Level.WARNING, "Exception in setProperty", t);
-				// report exception upwards
-				throw new IllegalArgumentException(t.getMessage());
+					GraphObject graphObject = rel.getNotion().getAdapterForSetter(securityContext).adapt(value);
+					rel.createRelationship(securityContext, this, graphObject);
+					
+				}
+				
+			} else {
+				
+				// new value is null
+				Object existingValue = getProperty(key);
+				
+				// do nothing if value is already null
+				if (existingValue == null) return;
+				
+				// support collection resources, too
+				if (existingValue instanceof IterableAdapter) {
+					for (Object val : ((IterableAdapter) existingValue)) {
+						GraphObject graphObject = rel.getNotion().getAdapterForSetter(securityContext).adapt(val);
+						rel.removeRelationship(securityContext, this, graphObject);
+					}
+				} else {
+					GraphObject graphObject = rel.getNotion().getAdapterForSetter(securityContext).adapt(existingValue);
+					rel.removeRelationship(securityContext, this, graphObject);				
+				}
+				
 			}
 
 		} else {
@@ -3891,8 +4031,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 			if (converter != null) {
 
 				Value conversionValue = EntityContext.getPropertyConversionParameter(type, key);
-
-				converter.setCurrentNode(this);
+				converter.setCurrentObject(this);
 
 				convertedValue = converter.convertForSetter(value, conversionValue);
 
@@ -3918,13 +4057,14 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 				// Don't write directly to database, but store property values
 				// in a map for later use
 				properties.put(key, convertedValue);
+				
 			} else {
 
 				// Commit value directly to database
 				StructrTransaction transaction = new StructrTransaction() {
 
 					@Override
-					public Object execute() throws Throwable {
+					public Object execute() throws FrameworkException {
 
 						try {
 
@@ -3970,15 +4110,7 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 				// execute transaction
 				Services.command(securityContext, TransactionCommand.class).execute(transaction);
-
-				// debug
-				if (transaction.getCause() != null) {
-
-					logger.log(Level.WARNING, "Error while setting property", transaction.getCause());
-
-				}
 			}
-
 		}
 	}
 
@@ -3998,9 +4130,13 @@ public abstract class AbstractNode implements Comparable<AbstractNode>, RenderCo
 
 	private void setOwnerNode(final Long nodeId) {
 
-		Command setOwner = Services.command(securityContext, SetOwnerCommand.class);
+		try {
+			Command setOwner = Services.command(securityContext, SetOwnerCommand.class);
+			setOwner.execute(this, Services.command(securityContext, FindNodeCommand.class).execute(nodeId));
 
-		setOwner.execute(this, Services.command(securityContext, FindNodeCommand.class).execute(nodeId));
+		} catch(FrameworkException fex) {
+			logger.log(Level.WARNING, "Unable to set owner node", fex);
+		}
 	}
 
 	//~--- inner classes --------------------------------------------------

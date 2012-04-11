@@ -22,6 +22,7 @@ package org.structr.websocket.command;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.File;
@@ -45,21 +46,14 @@ public class CreateCommand extends AbstractCommand {
 		StructrTransaction transaction = new StructrTransaction() {
 
 			@Override
-			public Object execute() throws Throwable {
+			public Object execute() throws FrameworkException {
 				return Services.command(SecurityContext.getSuperUserInstance(), CreateNodeCommand.class).execute(webSocketData.getData());
 			}
 		};
 
-		// create node in transaction
-		AbstractNode newNode = (AbstractNode)Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(transaction);
-
-		// check for errors
-		if(transaction.getCause() != null) {
-
-			logger.log(Level.WARNING, "Could not create node.", transaction.getCause());
-			getWebSocket().send(MessageBuilder.status().code(400).message(transaction.getCause().getMessage()).build(), true);
-
-		} else {
+		try {
+			// create node in transaction
+			AbstractNode newNode = (AbstractNode)Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(transaction);
 
 			// check for File node and store in WebSocket to receive chunks
 			if(newNode instanceof File) {
@@ -72,7 +66,13 @@ public class CreateCommand extends AbstractCommand {
 
 				getWebSocket().handleFileCreation((File)newNode);
 			}
+
+		} catch(FrameworkException fex) {
+
+			logger.log(Level.WARNING, "Could not create node.", fex);
+			getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
 		}
+
 	}
 
 	@Override

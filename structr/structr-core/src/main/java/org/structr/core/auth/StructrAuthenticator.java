@@ -38,6 +38,7 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import org.structr.common.error.FrameworkException;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -53,14 +54,14 @@ public class StructrAuthenticator implements Authenticator {
 	public static final String USER_NODE_KEY       = "userNode";
 	private static final Logger logger             = Logger.getLogger(StructrAuthenticator.class.getName());
 
-	//~--- fields ---------------------------------------------------------
-
-	private SecurityContext securityContext = null;
-
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public User doLogin(HttpServletRequest request, String userName, String password) throws AuthenticationException {
+	public void examineRequest(SecurityContext securityContext, HttpServletRequest request) throws FrameworkException {
+	}
+
+	@Override
+	public User doLogin(SecurityContext securityContext, HttpServletRequest request, String userName, String password) throws AuthenticationException {
 
 		String errorMsg = null;
 		User user       = null;
@@ -73,44 +74,48 @@ public class StructrAuthenticator implements Authenticator {
 
 		} else {
 
-			Command findUser = Services.command(securityContext, FindUserCommand.class);
+			try {
+				Command findUser = Services.command(securityContext, FindUserCommand.class);
+				user = (User) findUser.execute(userName);
 
-			user = (User) findUser.execute(userName);
+				if (user == null) {
 
-			if (user == null) {
-
-				logger.log(Level.INFO, "No user found for name {0}", user);
-
-				errorMsg = STANDARD_ERROR_MSG;
-
-			} else {
-
-				if (user.isBlocked()) {
-
-					logger.log(Level.INFO, "User {0} is blocked", user);
+					logger.log(Level.INFO, "No user found for name {0}", user);
 
 					errorMsg = STANDARD_ERROR_MSG;
 
+				} else {
+
+					if (user.isBlocked()) {
+
+						logger.log(Level.INFO, "User {0} is blocked", user);
+
+						errorMsg = STANDARD_ERROR_MSG;
+
+					}
+
+					if (password == null) {
+
+						logger.log(Level.INFO, "Password for user {0} is null", user);
+
+						errorMsg = "You should enter a password.";
+
+					}
+
+					String encryptedPasswordValue = DigestUtils.sha512Hex(password);
+
+					if (!encryptedPasswordValue.equals(user.getEncryptedPassword())) {
+
+						logger.log(Level.INFO, "Wrong password for user {0}", user);
+
+						errorMsg = STANDARD_ERROR_MSG;
+
+					}
+
 				}
 
-				if (password == null) {
-
-					logger.log(Level.INFO, "Password for user {0} is null", user);
-
-					errorMsg = "You should enter a password.";
-
-				}
-
-				String encryptedPasswordValue = DigestUtils.sha512Hex(password);
-
-				if (!encryptedPasswordValue.equals(user.getEncryptedPassword())) {
-
-					logger.log(Level.INFO, "Wrong password for user {0}", user);
-
-					errorMsg = STANDARD_ERROR_MSG;
-
-				}
-
+			} catch(FrameworkException fex) {
+				fex.printStackTrace();
 			}
 
 		}
@@ -143,7 +148,7 @@ public class StructrAuthenticator implements Authenticator {
 	}
 
 	@Override
-	public void doLogout(HttpServletRequest request) {
+	public void doLogout(SecurityContext securityContext, HttpServletRequest request) {
 
 		HttpSession session = request.getSession();
 		Long sessionIdValue = (Long) session.getAttribute(SessionMonitor.SESSION_ID);
@@ -163,14 +168,7 @@ public class StructrAuthenticator implements Authenticator {
 	//~--- get methods ----------------------------------------------------
 
 	@Override
-	public User getUser(HttpServletRequest request) {
+	public User getUser(SecurityContext securityContext, HttpServletRequest request) {
 		return (User) request.getSession().getAttribute(USER_NODE_KEY);
-	}
-
-	//~--- set methods ----------------------------------------------------
-
-	@Override
-	public void setSecurityContext(SecurityContext securityContext) {
-		this.securityContext = securityContext;
 	}
 }

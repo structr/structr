@@ -29,12 +29,12 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.eclipse.jetty.websocket.WebSocket.Connection;
-import org.structr.common.ErrorBuffer;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.VetoableGraphObjectListener;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.StructrRelationship;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.websocket.message.WebSocketMessage;
 
 /**
@@ -120,7 +120,7 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 	}
 
 	@Override
-	public boolean propertyModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, AbstractNode entity, String key, Object oldValue, Object newValue) {
+	public boolean propertyModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject, String key, Object oldValue, Object newValue) {
 
 		WebSocketMessage message = messageMap.get(transactionKey);
 		if(message != null) {
@@ -132,8 +132,7 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 		return false;
 	}
 
-	@Override
-	public boolean relationshipCreated(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, StructrRelationship relationship) {
+	public boolean relationshipCreated(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, AbstractRelationship relationship) {
 
 		AbstractNode startNode = relationship.getStartNode();
 		AbstractNode endNode = relationship.getEndNode();
@@ -154,8 +153,7 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 		return false;
 	}
 
-	@Override
-	public boolean relationshipDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, StructrRelationship relationship) {
+	public boolean relationshipDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, AbstractRelationship relationship) {
 
 		AbstractNode startNode = relationship.getStartNode();
 		AbstractNode endNode = relationship.getEndNode();
@@ -180,20 +178,27 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 	@Override
 	public boolean graphObjectCreated(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject) {
 
-		WebSocketMessage message = messageMap.get(transactionKey);
-		if(message != null) {
+		if(graphObject instanceof AbstractRelationship) {
 
-			message.setCommand("CREATE");
-			message.setGraphObject(graphObject);
-			
-			List<GraphObject> list = new LinkedList<GraphObject>();
-			list.add(graphObject);
-			message.setResult(list);
-			
+			return relationshipCreated(securityContext, transactionKey, errorBuffer, (AbstractRelationship)graphObject);
+
 		} else {
-			logger.log(Level.WARNING, "No message found for transaction key {0}", transactionKey);
+
+			WebSocketMessage message = messageMap.get(transactionKey);
+			if(message != null) {
+
+				message.setCommand("CREATE");
+				message.setGraphObject(graphObject);
+
+				List<GraphObject> list = new LinkedList<GraphObject>();
+				list.add(graphObject);
+				message.setResult(list);
+
+			} else {
+				logger.log(Level.WARNING, "No message found for transaction key {0}", transactionKey);
+			}
+			return false;
 		}
-		return false;
 	}
 
 	@Override
@@ -214,7 +219,7 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 	}
 
 	@Override
-	public boolean graphObjectDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, long id, Map<String, Object> properties) {
+	public boolean graphObjectDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject obj, Map<String, Object> properties) {
 
 		WebSocketMessage message = messageMap.get(transactionKey);
 		if(message != null) {

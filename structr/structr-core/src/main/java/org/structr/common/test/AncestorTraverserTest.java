@@ -29,6 +29,7 @@ import org.neo4j.graphdb.Node;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.StandaloneTestHelper;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -55,86 +56,92 @@ public class AncestorTraverserTest {
 
 		final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
 
-		// fetch neo4j service
-		GraphDatabaseService db = (GraphDatabaseService)Services.command(securityContext, GraphDatabaseCommand.class).execute();
+		try {
+			// fetch neo4j service
+			GraphDatabaseService db = (GraphDatabaseService)Services.command(securityContext, GraphDatabaseCommand.class).execute();
 
-		// define number of nodes & depth
-		final int num = 1000;
-		final int depth = 3;
+			// define number of nodes & depth
+			final int num = 1000;
+			final int depth = 3;
 
-		// test for existing relationships and create test structure
-		if(!db.getReferenceNode().hasRelationship(Direction.OUTGOING)) {
+			// test for existing relationships and create test structure
+			if(!db.getReferenceNode().hasRelationship(Direction.OUTGOING)) {
 
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+				Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
-				@Override
-				public Object execute() throws Throwable {
+					@Override
+					public Object execute() throws FrameworkException {
 
-					// create chain of nodes
-					Command linkNodes = Services.command(securityContext, CreateRelationshipCommand.class);
-					Command createNode = Services.command(securityContext, CreateNodeCommand.class);
+						// create chain of nodes
+						Command linkNodes = Services.command(securityContext, CreateRelationshipCommand.class);
+						Command createNode = Services.command(securityContext, CreateNodeCommand.class);
 
-					// get root node
-					AbstractNode rootNode = (AbstractNode)Services.command(securityContext, FindNodeCommand.class).execute(0L);
+						// get root node
+						AbstractNode rootNode = (AbstractNode)Services.command(securityContext, FindNodeCommand.class).execute(0L);
 
-					// create chain of n nodes
-					for(int i=0; i<num; i++) {
+						// create chain of n nodes
+						for(int i=0; i<num; i++) {
 
-						String name = "node" + i;
-						AbstractNode newNode = (AbstractNode)createNode.execute(new NodeAttribute("type", "Folder"), new NodeAttribute("name", name));
+							String name = "node" + i;
+							AbstractNode newNode = (AbstractNode)createNode.execute(new NodeAttribute("type", "Folder"), new NodeAttribute("name", name));
 
-						// link nodes
-						linkNodes.execute(rootNode, newNode, RelType.HAS_CHILD);
-						AbstractNode currentNode = newNode;
+							// link nodes
+							linkNodes.execute(rootNode, newNode, RelType.HAS_CHILD);
+							AbstractNode currentNode = newNode;
 
-						for(int j=0; j<depth; j++) {
+							for(int j=0; j<depth; j++) {
 
-							AbstractNode newNode2 = (AbstractNode)createNode.execute(new NodeAttribute("type", "Folder"), new NodeAttribute("name", name));
-							linkNodes.execute(currentNode, newNode, RelType.HAS_CHILD);
+								AbstractNode newNode2 = (AbstractNode)createNode.execute(new NodeAttribute("type", "Folder"), new NodeAttribute("name", name));
+								linkNodes.execute(currentNode, newNode, RelType.HAS_CHILD);
 
-							// descend one level
-							currentNode = newNode2;
+								// descend one level
+								currentNode = newNode2;
+							}
 						}
+
+
+						return(null);
 					}
-
-
-					return(null);
-				}
-			});
-		}
-
-		// create list of structr nodes
-		Command factory = Services.command(securityContext, NodeFactoryCommand.class);
-		List<AbstractNode> allNodes = new LinkedList<AbstractNode>();
-		for(Node node : db.getAllNodes()) {
-
-			if(!node.equals(db.getReferenceNode())) {
-				
-				allNodes.add((AbstractNode)factory.execute(node));
+				});
 			}
-		}
 
-		logger.log(Level.INFO, "{0} nodes in list", allNodes.size());
+			// create list of structr nodes
+			Command factory = Services.command(securityContext, NodeFactoryCommand.class);
+			List<AbstractNode> allNodes = new LinkedList<AbstractNode>();
+			for(Node node : db.getAllNodes()) {
 
-		{
-			int out = 0;
-			int in = 0;
-			long start = System.currentTimeMillis();
-			for(AbstractNode node : allNodes) {
+				if(!node.equals(db.getReferenceNode())) {
 
-				if(node.isInTrash()) {
-
-					in++;
-
-				} else {
-
-					out++;
+					allNodes.add((AbstractNode)factory.execute(node));
 				}
 			}
 
-			long end = System.currentTimeMillis();
-			logger.log(Level.INFO, "NON-OPTIMIZED: {0} in trash, {1} not in trash, {2} ms", new Object[] { in, out, (end-start) } );
+			logger.log(Level.INFO, "{0} nodes in list", allNodes.size());
+
+			{
+				int out = 0;
+				int in = 0;
+				long start = System.currentTimeMillis();
+				for(AbstractNode node : allNodes) {
+
+					if(node.isInTrash()) {
+
+						in++;
+
+					} else {
+
+						out++;
+					}
+				}
+
+				long end = System.currentTimeMillis();
+				logger.log(Level.INFO, "NON-OPTIMIZED: {0} in trash, {1} not in trash, {2} ms", new Object[] { in, out, (end-start) } );
+			}
+			
+		} catch(FrameworkException fex) {
+			fex.printStackTrace();
 		}
+
 
 		StandaloneTestHelper.finishStandaloneTest();
 

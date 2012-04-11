@@ -29,7 +29,7 @@ import org.structr.common.RelType;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.StructrRelationship;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
 import org.structr.core.entity.log.Activity;
@@ -52,6 +52,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -124,7 +125,7 @@ public class LogService extends RunnableNodeService {
 		}
 	}
 
-	private void flushQueue() {
+	private void flushQueue() throws FrameworkException {
 
 		// queue is not empty AND ((queue size is a above threshold) OR (service is to be stopped))
 		if (!queue.isEmpty() && ((queue.size() > threshold) ||!run)) {
@@ -231,8 +232,12 @@ public class LogService extends RunnableNodeService {
 			// set prio to max
 			this.setPriority(Thread.MAX_PRIORITY);
 
-			// flush queue
-			flushQueue();
+			try {
+				// flush queue
+				flushQueue();
+			} catch(FrameworkException fex) {
+				logger.log(Level.WARNING, "Unable to flush log queue", fex);
+			}
 
 			try {
 
@@ -251,7 +256,7 @@ public class LogService extends RunnableNodeService {
 
 	//~--- get methods ----------------------------------------------------
 
-	public LogNodeList getUserLog(final User user) {
+	public LogNodeList getUserLog(final User user) throws FrameworkException {
 
 		if ((user == null) || (user instanceof SuperUser)) {
 			return null;
@@ -261,7 +266,7 @@ public class LogService extends RunnableNodeService {
 
 		if (userLogNodeList == null) {
 
-			for (StructrRelationship rel : user.getOutgoingChildRelationships()) {
+			for (AbstractRelationship rel : user.getOutgoingChildRelationships()) {
 
 				if (rel.getEndNode() instanceof LogNodeList) {
 
@@ -275,42 +280,47 @@ public class LogService extends RunnableNodeService {
 				}
 			}
 
-			userLogNodeList = (LogNodeList) Services.command(securityContext, TransactionCommand.class).execute(
-				new StructrTransaction() {
+			try {
+				userLogNodeList = (LogNodeList) Services.command(securityContext, TransactionCommand.class).execute(
+					new StructrTransaction() {
 
-				@Override
-				public Object execute() throws Throwable {
+					@Override
+					public Object execute() throws FrameworkException {
 
-//                                      LogNodeList newLogNodeList = null;
-					// Create a new activity list as child node of the respective user
-					Command createNode                   =
-						Services.command(securityContext, CreateNodeCommand.class);
-					Command createRel                    =
-						Services.command(securityContext, CreateRelationshipCommand.class);
-					LogNodeList<Activity> newLogNodeList =
-						(LogNodeList<Activity>) createNode.execute(
-						    new NodeAttribute(
-							AbstractNode.Key.type.name(),
-							LogNodeList.class.getSimpleName()), new NodeAttribute(
-							    AbstractNode.Key.name.name(), user.getName() + "'s Activity Log"));
+	//                                      LogNodeList newLogNodeList = null;
+						// Create a new activity list as child node of the respective user
+						Command createNode                   =
+							Services.command(securityContext, CreateNodeCommand.class);
+						Command createRel                    =
+							Services.command(securityContext, CreateRelationshipCommand.class);
+						LogNodeList<Activity> newLogNodeList =
+							(LogNodeList<Activity>) createNode.execute(
+							    new NodeAttribute(
+								AbstractNode.Key.type.name(),
+								LogNodeList.class.getSimpleName()), new NodeAttribute(
+								    AbstractNode.Key.name.name(), user.getName() + "'s Activity Log"));
 
-//                                      newLogNodeList = new LogNodeList<Activity>();
-//                                      newLogNodeList.init(s);
-					createRel.execute(user, newLogNodeList, RelType.HAS_CHILD);
+	//                                      newLogNodeList = new LogNodeList<Activity>();
+	//                                      newLogNodeList.init(s);
+						createRel.execute(user, newLogNodeList, RelType.HAS_CHILD);
 
-					return (newLogNodeList);
-				}
+						return (newLogNodeList);
+					}
 
-			});
+				});
 
-			// store in cache
-			loggerCache.put(user, userLogNodeList);
+				// store in cache
+				loggerCache.put(user, userLogNodeList);
+
+			} catch(FrameworkException fex) {
+				logger.log(Level.WARNING, "Unable to create user log node list", fex);
+			}
 		}
 
 		return userLogNodeList;
 	}
 
-	public LogNodeList getGlobalLog() {
+	public LogNodeList getGlobalLog() throws FrameworkException {
 
 		if (globalLogNodeList == null) {
 
@@ -329,7 +339,7 @@ public class LogService extends RunnableNodeService {
 
 			if (rootNode != null) {
 
-				for (StructrRelationship rel : rootNode.getOutgoingChildRelationships()) {
+				for (AbstractRelationship rel : rootNode.getOutgoingChildRelationships()) {
 
 					if (rel.getEndNode() instanceof LogNodeList) {
 
@@ -353,7 +363,7 @@ public class LogService extends RunnableNodeService {
 				new StructrTransaction() {
 
 				@Override
-				public Object execute() throws Throwable {
+				public Object execute() throws FrameworkException {
 
 					LogNodeList newGlobalLogNodeList = null;
 

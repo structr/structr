@@ -26,6 +26,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.Path;
 import org.structr.common.RelType;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.UnsupportedArgumentError;
 import org.structr.core.entity.Image;
@@ -61,7 +62,7 @@ public class SaveImageFromUrl extends NodeServiceCommand {
      * @return
      */
     @Override
-    public Object execute(Object... parameters) {
+    public Object execute(Object... parameters) throws FrameworkException {
 
         User user = null;
         String urlString = null;
@@ -127,7 +128,7 @@ public class SaveImageFromUrl extends NodeServiceCommand {
      * 
      * @param imageNode
      */
-    private void refreshImageFromUrl(final Image imageNode) {
+    private void refreshImageFromUrl(final Image imageNode) throws FrameworkException {
 
         if (imageNode != null) {
 

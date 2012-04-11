@@ -28,6 +28,7 @@ import org.structr.core.EntityContext;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.Date;
+import org.structr.common.error.FrameworkException;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -142,7 +143,7 @@ public class Person extends Principal {
 
 	//~--- set methods ----------------------------------------------------
 
-	public void setFirstName(final String firstName) {
+	public void setFirstName(final String firstName) throws FrameworkException {
 
 		setProperty(Key.firstName.name(),
 			    firstName);
@@ -154,7 +155,7 @@ public class Person extends Principal {
 		setName(lastName + ", " + firstName);
 	}
 
-	public void setLastName(final String lastName) {
+	public void setLastName(final String lastName) throws FrameworkException {
 
 		setProperty(Key.lastName.name(),
 			    lastName);
@@ -168,103 +169,103 @@ public class Person extends Principal {
 	}
 
 	@Override
-	public void setName(final String name) {
+	public void setName(final String name) throws FrameworkException {
 
 		setProperty(AbstractNode.Key.name.name(),
 			    name);
 	}
 
-	public void setSalutation(final String salutation) {
+	public void setSalutation(final String salutation) throws FrameworkException {
 
 		setProperty(Key.salutation.name(),
 			    salutation);
 	}
 
-	public void setMiddleNameOrInitial(final String middleNameOrInitial) {
+	public void setMiddleNameOrInitial(final String middleNameOrInitial) throws FrameworkException {
 
 		setProperty(Key.middleNameOrInitial.name(),
 			    middleNameOrInitial);
 	}
 
-	public void setEmail(final String email) {
+	public void setEmail(final String email) throws FrameworkException {
 
 		setProperty(Key.email.name(),
 			    email);
 	}
 
-	public void setEmail2(final String email2) {
+	public void setEmail2(final String email2) throws FrameworkException {
 
 		setProperty(Key.email2.name(),
 			    email2);
 	}
 
-	public void setPhoneNumber1(final String value) {
+	public void setPhoneNumber1(final String value) throws FrameworkException {
 
 		setProperty(Key.phoneNumber1.name(),
 			    value);
 	}
 
-	public void setPhoneNumber2(final String value) {
+	public void setPhoneNumber2(final String value) throws FrameworkException {
 
 		setProperty(Key.phoneNumber2.name(),
 			    value);
 	}
 
-	public void setFaxNumber1(final String value) {
+	public void setFaxNumber1(final String value) throws FrameworkException {
 
 		setProperty(Key.faxNumber1.name(),
 			    value);
 	}
 
-	public void setFaxNumber2(final String value) {
+	public void setFaxNumber2(final String value) throws FrameworkException {
 
 		setProperty(Key.faxNumber2.name(),
 			    value);
 	}
 
-	public void setStreet(final String value) {
+	public void setStreet(final String value) throws FrameworkException {
 
 		setProperty(Key.street.name(),
 			    value);
 	}
 
-	public void setZipCode(final String value) {
+	public void setZipCode(final String value) throws FrameworkException {
 
 		setProperty(Key.zipCode.name(),
 			    value);
 	}
 
-	public void setState(final String value) {
+	public void setState(final String value) throws FrameworkException {
 
 		setProperty(Key.state.name(),
 			    value);
 	}
 
-	public void setCountry(final String value) {
+	public void setCountry(final String value) throws FrameworkException {
 
 		setProperty(Key.country.name(),
 			    value);
 	}
 
-	public void setCity(final String value) {
+	public void setCity(final String value) throws FrameworkException {
 
 		setProperty(Key.city.name(),
 			    value);
 	}
 
-	public void setNewsletter(final boolean value) {
+	public void setNewsletter(final boolean value) throws FrameworkException {
 
 		setProperty(Key.newsletter.name(),
 			    value);
 	}
 
-	public void setBirthday(final Date value) {
+	public void setBirthday(final Date value) throws FrameworkException {
 
 		setProperty(Key.birthday.name(),
 			    value);
 	}
 
-	public void setGender(final String value) {
+	public void setGender(final String value) throws FrameworkException {
 
 		setProperty(Key.gender.name(),
 			    value);

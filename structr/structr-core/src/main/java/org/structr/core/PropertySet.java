@@ -19,10 +19,8 @@
 
 package org.structr.core;
 
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import org.structr.core.node.NodeAttribute;
 
 /**
@@ -38,10 +36,10 @@ public class PropertySet {
 		FlatNameValue			// { "name" : "Test" }
 	}
 
-	private Map<String, NodeAttribute> attributes = null;
+	private List<NodeAttribute> attributes = null;
 
 	public PropertySet() {
-		this.attributes = new LinkedHashMap<String, NodeAttribute>();
+		this.attributes = new LinkedList<NodeAttribute>();
 	}
 
 	/**
@@ -52,20 +50,20 @@ public class PropertySet {
 	 */
 	public void add(String key, Object value) {
 
-		add(key, value, "String");
+		attributes.add(new NodeAttribute(key, value));
 	}
 
-	/**
-	 * Add a key-value-pair of given type to this property set.
-	 *
-	 * @param key the key
-	 * @param value the value
-	 * @param type the type
-	 */
-	public void add(String key, Object value, String type) {
-
-		attributes.put(key, new NodeAttribute(key, value));
-	}
+//	/**
+//	 * Add a key-value-pair of given type to this property set.
+//	 *
+//	 * @param key the key
+//	 * @param value the value
+//	 * @param type the type
+//	 */
+//	public void add(String key, Object value, String type) {
+//
+//		attributes.put(key, new NodeAttribute(key, value));
+//	}
 
 	/**
 	 * Return the list of attributes in this property set.
@@ -73,7 +71,7 @@ public class PropertySet {
 	 * @return the list of attributes
 	 */
 	public List<NodeAttribute> getAttributes() {
-		return new LinkedList<NodeAttribute>(attributes.values());
+		return new LinkedList<NodeAttribute>(attributes);
 	}
 
 	@Override
@@ -81,33 +79,11 @@ public class PropertySet {
 
 		StringBuilder builder = new StringBuilder();
 
-		for(NodeAttribute attr : attributes.values()) {
+		for(NodeAttribute attr : attributes) {
 
 			builder.append(attr.getKey()).append(" = '").append(attr.getValue()).append("', ");
 		}
 
 		return builder.toString();
-	}
-
-	public Object get(String key) {
-		
-		NodeAttribute attr = attributes.get(key);
-		if(attr != null) {
-			return attr.getValue();
-		}
-
-		return null;
-	}
-
-	public boolean containsKey(String key) {
-		return attributes.containsKey(key);
-	}
-
-	public void remove(String key) {
-		attributes.remove(key);
-	}
-
-	public void put(String key, Object value) {
-		add(key, value);
 	}
 }

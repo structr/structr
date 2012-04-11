@@ -34,6 +34,7 @@ import org.structr.core.entity.AbstractNode;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.error.FrameworkException;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -55,7 +56,7 @@ public class ReleaseWriteLock extends NodeServiceCommand {
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public Object execute(Object... parameters) {
+	public Object execute(Object... parameters) throws FrameworkException {
 
 		AbstractNode node = null;
 		Command findNode  = Services.command(securityContext, FindNodeCommand.class);
@@ -111,7 +112,7 @@ public class ReleaseWriteLock extends NodeServiceCommand {
 		return doLockNode(node);
 	}
 
-	private AbstractNode doLockNode(final AbstractNode structrNode) {
+	private AbstractNode doLockNode(final AbstractNode structrNode) throws FrameworkException {
 
 		final GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
 		final Node node                    = graphDb.getNodeById(structrNode.getId());
@@ -119,7 +120,7 @@ public class ReleaseWriteLock extends NodeServiceCommand {
 		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
 			@Override
-			public Object execute() throws Throwable {
+			public Object execute() throws FrameworkException {
 
 				if ((lockType == LockType.WRITE) && (graphDb instanceof AbstractGraphDatabase)) {
 

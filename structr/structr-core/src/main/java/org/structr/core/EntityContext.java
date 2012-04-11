@@ -32,32 +32,30 @@ import org.neo4j.graphdb.event.TransactionData;
 import org.neo4j.graphdb.event.TransactionEventHandler;
 
 import org.structr.common.CaseHelper;
-import org.structr.common.ErrorBuffer;
 import org.structr.common.PropertyKey;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.DirectedRelationship;
-import org.structr.core.entity.DirectedRelationship.Cardinality;
-import org.structr.core.entity.StructrRelationship;
+import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.entity.RelationClass;
+import org.structr.core.entity.RelationClass.Cardinality;
+import org.structr.core.entity.RelationshipMapping;
+import org.structr.core.module.GetEntitiesCommand;
+import org.structr.core.module.GetEntityClassCommand;
+import org.structr.core.node.*;
 import org.structr.core.node.IndexNodeCommand;
-import org.structr.core.node.StructrNodeFactory;
+import org.structr.core.node.IndexRelationshipCommand;
+import org.structr.core.node.NodeFactory;
+import org.structr.core.node.RelationshipFactory;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.ObjectNotion;
-import org.structr.core.validator.GlobalPropertyUniquenessValidator;
-import org.structr.core.validator.TypeAndPropertyUniquenessValidator;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.Semaphore;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.kernel.impl.index.IndexCommand;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -69,28 +67,86 @@ import org.neo4j.kernel.impl.index.IndexCommand;
  */
 public class EntityContext {
 
-	public static final String GLOBAL_UNIQUENESS                                                                = "global_uniqueness_key";
-	private static final Map<Class, Map<String, Class<? extends PropertyConverter>>> globalPropertyConverterMap = new LinkedHashMap<Class, Map<String, Class<? extends PropertyConverter>>>();
-	private static final Map<Class, Map<String, Class<? extends PropertyValidator>>> globalValidatorMap         = new LinkedHashMap<Class, Map<String, Class<? extends PropertyValidator>>>();
-	private static final Map<Class, Map<String, Value>> globalValidationParameterMap                            = new LinkedHashMap<Class, Map<String, Value>>();
-	private static final Map<String, Map<String, Semaphore>> globalSemaphoreMap                                 = new LinkedHashMap<String, Map<String, Semaphore>>();
-	private static final Map<String, Map<String, Set<String>>> globalSearchablePropertyMap                      = new LinkedHashMap<String, Map<String, Set<String>>>();
-	private static final Map<Class, Map<String, Set<String>>> globalPropertyViewMap                             = new LinkedHashMap<Class, Map<String, Set<String>>>();
-	private static final Map<String, Map<String, DirectedRelationship>> globalPropertyRelationshipMap           = new LinkedHashMap<String, Map<String, DirectedRelationship>>();
+	private static final String COMBINED_RELATIONSHIP_KEY_SEP                               = " ";
+	private static final Logger logger                                                      = Logger.getLogger(EntityContext.class.getName());
+	private static final Map<Class, Set<String>> globalWriteOncePropertyMap                 = new LinkedHashMap<Class, Set<String>>();
+	private static final Map<Class, Map<String, Set<PropertyValidator>>> globalValidatorMap = new LinkedHashMap<Class, Map<String, Set<PropertyValidator>>>();
+	private static final Map<String, Map<String, Set<String>>> globalSearchablePropertyMap  = new LinkedHashMap<String, Map<String, Set<String>>>();
+
+	// This map contains a mapping from (sourceType, destType) -> RelationClass
+	private static final Map<Class, Map<Class, RelationClass>> globalRelationClassMap = new LinkedHashMap<Class, Map<Class, RelationClass>>();
+	private static final Map<Class, Set<String>> globalReadOnlyPropertyMap            = new LinkedHashMap<Class, Set<String>>();
+	private static final Map<Class, Map<String, Set<String>>> globalPropertyViewMap   = new LinkedHashMap<Class, Map<String, Set<String>>>();
+
+	// This map contains a mapping from (sourceType, propertyKey) -> RelationClass
+	private static final Map<Class, Map<String, RelationClass>> globalPropertyRelationClassMap                  = new LinkedHashMap<Class, Map<String, RelationClass>>();
 	private static final Map<Class, Map<String, PropertyGroup>> globalPropertyGroupMap                          = new LinkedHashMap<Class, Map<String, PropertyGroup>>();
-	private static final Map<String, Map<String, DirectedRelationship>> globalEntityRelationshipMap             = new LinkedHashMap<String, Map<String, DirectedRelationship>>();
-	private static final Map<Class, Map<String, Value>> globalConversionParameterMap                            = new LinkedHashMap<Class, Map<String, Value>>();
-	private static final Map<Class, Set<String>> globalWriteOncePropertyMap                                     = new LinkedHashMap<Class, Set<String>>();
-	private static final Map<Class, Set<String>> globalReadOnlyPropertyMap                                      = new LinkedHashMap<Class, Set<String>>();
-	private static final Map<String, String> normalizedEntityNameCache                                          = new LinkedHashMap<String, String>();
-	private static final Set<VetoableGraphObjectListener> modificationListeners                                 = new LinkedHashSet<VetoableGraphObjectListener>();
-	private static final Map<Thread, Long> transactionKeyMap                                                    = new LinkedHashMap<Thread, Long>();
-	private static final Map<Long, Throwable> throwableMap                                                      = new LinkedHashMap<Long, Throwable>();
-	private static final Logger logger                                                                          = Logger.getLogger(EntityContext.class.getName());
-	private static final Map<Class, Set<Transformation<AbstractNode>>> globalPostCreationTransformationMap      = new LinkedHashMap<Class, Set<Transformation<AbstractNode>>>();
-	private static final EntityContextModificationListener globalModificationListener                           = new EntityContextModificationListener();
+	private static final Map<Class, Map<String, Class<? extends PropertyConverter>>> globalPropertyConverterMap = new LinkedHashMap<Class, Map<String, Class<? extends PropertyConverter>>>();
+
+	// This set contains all known properties
+	private static final Set<String> globalKnownPropertyKeys                                                = new LinkedHashSet<String>();
+	private static final Map<Class, Set<Transformation<GraphObject>>> globalEntityCreationTransformationMap = new LinkedHashMap<Class, Set<Transformation<GraphObject>>>();
+	private static final Map<Class, Map<String, Object>> globalDefaultValueMap                              = new LinkedHashMap<Class, Map<String, Object>>();
+	private static final Map<Class, Map<String, Value>> globalConversionParameterMap                        = new LinkedHashMap<Class, Map<String, Value>>();
+	private static final Map<String, String> normalizedEntityNameCache                                      = new LinkedHashMap<String, String>();
+	private static final Set<VetoableGraphObjectListener> modificationListeners                             = new LinkedHashSet<VetoableGraphObjectListener>();
+	private static final Map<String, RelationshipMapping> globalRelationshipNameMap                         = new LinkedHashMap<String, RelationshipMapping>();
+	private static final Map<String, Class> globalRelationshipClassMap                                      = new LinkedHashMap<String, Class>();
+	private static final EntityContextModificationListener globalModificationListener                       = new EntityContextModificationListener();
+	private static final Map<Long, FrameworkException> exceptionMap                                         = new LinkedHashMap<Long, FrameworkException>();
+	private static final Map<Thread, SecurityContext> securityContextMap                                    = Collections.synchronizedMap(new WeakHashMap<Thread, SecurityContext>());
+	private static final Map<Thread, Long> transactionKeyMap                                                = Collections.synchronizedMap(new WeakHashMap<Thread, Long>());
+	private static Map<String, Class> cachedEntities                                                        = new LinkedHashMap<String, Class>();
 
 	//~--- methods --------------------------------------------------------
+
+	/**
+	 * Initialize the entity context for the given class.
+	 * This method sets defaults common for any class, f.e. registers any of its parent properties.
+	 *
+	 * @param type
+	 */
+	public static void init(Class type) {
+
+		// 1. Register searchable keys of superclasses
+		for (Enum index : NodeService.NodeIndex.values()) {
+
+			String indexName                                      = index.name();
+			Map<String, Set<String>> searchablePropertyMapForType = getSearchablePropertyMapForType(type.getSimpleName());
+			Set<String> searchablePropertySet                     = searchablePropertyMapForType.get(indexName);
+
+			if (searchablePropertySet == null) {
+
+				searchablePropertySet = new LinkedHashSet<String>();
+
+				searchablePropertyMapForType.put(indexName, searchablePropertySet);
+
+			}
+
+			Class superClass = type.getSuperclass();
+
+			while ((superClass != null) &&!superClass.equals(Object.class)) {
+
+				Set<String> superProperties = getSearchableProperties(superClass, indexName);
+
+				searchablePropertySet.addAll(superProperties);
+
+				// one level up :)
+				superClass = superClass.getSuperclass();
+
+			}
+
+		}
+	}
+
+	public static void init() {
+
+		try {
+			cachedEntities = (Map<String, Class>) Services.command(SecurityContext.getSuperUserInstance(), GetEntitiesCommand.class).execute();
+		} catch (FrameworkException ex) {
+			Logger.getLogger(EntityContext.class.getName()).log(Level.SEVERE, null, ex);
+		}
+	}
 
 	public static void registerModificationListener(VetoableGraphObjectListener listener) {
 		modificationListeners.add(listener);
@@ -100,51 +156,94 @@ public class EntityContext {
 		modificationListeners.remove(listener);
 	}
 
-	public static void registerPostCreationTransformation(Class type, Transformation<AbstractNode> transformation) {
-		getPostCreationTransformationsForType(type).add(transformation);
+	public static void registerEntityCreationTransformation(Class type, Transformation<GraphObject> transformation) {
+		getEntityCreationTransformationsForType(type).add(transformation);
 	}
 
 	public static void registerPropertyGroup(Class type, PropertyKey key, PropertyGroup propertyGroup) {
 		getPropertyGroupMapForType(type).put(key.name(), propertyGroup);
 	}
 
-	// ----- property and entity relationships -----
-	public static void registerPropertyRelation(Class sourceType, PropertyKey propertyKey, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality) {
-		registerPropertyRelation(sourceType, propertyKey.name(), destType, relType, direction, cardinality);
+	// ----- default values -----
+	public static void registerDefaultValue(Class type, PropertyKey propertyKey, Object defaultValue) {
+		getGlobalDefaultValueMapForType(type).put(propertyKey.name(), defaultValue);
 	}
 
-	public static void registerPropertyRelation(Class sourceType, String property, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality) {
+	// ----- named relations -----
+	public static void registerNamedRelation(String relationName, Class relationshipEntityType, Class sourceType, Class destType, RelationshipType relType) {
+
+		globalRelationshipNameMap.put(relationName, new RelationshipMapping(relationName, sourceType, destType, relType));
+		globalRelationshipClassMap.put(createCombinedRelationshipType(sourceType.getSimpleName(), relType.name(), destType.getSimpleName()), relationshipEntityType);
+	}
+
+	// ----- property and entity relationships -----
+	public static void registerPropertyRelation(Class sourceType, PropertyKey propertyKey, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality) {
+		registerPropertyRelation(sourceType, propertyKey, destType, relType, direction, cardinality, RelationClass.DELETE_NONE);
+	}
+
+	public static void registerPropertyRelation(Class sourceType, PropertyKey propertyKey, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality,
+		int cascadeDelete) {
+		registerPropertyRelation(sourceType, propertyKey.name(), destType, relType, direction, cardinality, cascadeDelete);
+	}
+
+	public static void registerPropertyRelation(Class sourceType, String property, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality, int cascadeDelete) {
 
 		// need to set type here
 		Notion objectNotion = new ObjectNotion();
 
 		objectNotion.setType(destType);
-		registerPropertyRelationInternal(sourceType.getSimpleName(), property, destType.getSimpleName(), relType, direction, cardinality, objectNotion);
+		registerPropertyRelationInternal(sourceType, property, destType, relType, direction, cardinality, objectNotion, cascadeDelete);
+	}
+
+	public static void registerPropertyRelation(Class sourceType, PropertyKey[] propertySet, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality,
+		Notion notion) {
+		registerPropertyRelation(sourceType, propertySet, destType, relType, direction, cardinality, notion, RelationClass.DELETE_NONE);
+	}
+
+	public static void registerPropertyRelation(Class sourceType, PropertyKey[] propertySet, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion,
+		int cascadeDelete) {
+
+		notion.setType(destType);
+		registerPropertyRelationInternal(sourceType, propertySet, destType, relType, direction, cardinality, notion, cascadeDelete);
 	}
 
 	public static void registerPropertyRelation(Class sourceType, PropertyKey propertyKey, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion) {
-		registerPropertyRelation(sourceType, propertyKey.name(), destType, relType, direction, cardinality, notion);
+		registerPropertyRelation(sourceType, propertyKey, destType, relType, direction, cardinality, notion, RelationClass.DELETE_NONE);
 	}
 
-	public static void registerPropertyRelation(Class sourceType, String property, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion) {
+	public static void registerPropertyRelation(Class sourceType, PropertyKey propertyKey, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion,
+		int cascadeDelete) {
+		registerPropertyRelation(sourceType, propertyKey.name(), destType, relType, direction, cardinality, notion, cascadeDelete);
+	}
+
+	public static void registerPropertyRelation(Class sourceType, String property, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion,
+		int cascadeDelete) {
 
 		notion.setType(destType);
-		registerPropertyRelationInternal(sourceType.getSimpleName(), property, destType.getSimpleName(), relType, direction, cardinality, notion);
+		registerPropertyRelationInternal(sourceType, property, destType, relType, direction, cardinality, notion, cascadeDelete);
 	}
 
 	public static void registerEntityRelation(Class sourceType, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality) {
+		registerEntityRelation(sourceType, destType, relType, direction, cardinality, RelationClass.DELETE_NONE);
+	}
+
+	public static void registerEntityRelation(Class sourceType, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality, int cascadeDelete) {
 
 		// need to set type here
 		Notion objectNotion = new ObjectNotion();
 
 		objectNotion.setType(destType);
-		registerEntityRelationInternal(sourceType.getSimpleName(), destType.getSimpleName(), relType, direction, cardinality, objectNotion);
+		registerEntityRelationInternal(sourceType, destType, relType, direction, cardinality, objectNotion, cascadeDelete);
 	}
 
 	public static void registerEntityRelation(Class sourceType, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion) {
+		registerEntityRelation(sourceType, destType, relType, direction, cardinality, notion, RelationClass.DELETE_NONE);
+	}
+
+	public static void registerEntityRelation(Class sourceType, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion, int cascadeDelete) {
 
 		notion.setType(destType);
-		registerEntityRelationInternal(sourceType.getSimpleName(), destType.getSimpleName(), relType, direction, cardinality, notion);
+		registerEntityRelationInternal(sourceType, destType, relType, direction, cardinality, notion, cascadeDelete);
 	}
 
 	// ----- property set methods -----
@@ -178,53 +277,26 @@ public class EntityContext {
 	}
 
 	// ----- validator methods -----
-	public static void registerPropertyValidator(Class type, PropertyKey propertyKey, Class<? extends PropertyValidator> validatorClass) {
+	public static void registerPropertyValidator(Class type, PropertyKey propertyKey, PropertyValidator validatorClass) {
 		registerPropertyValidator(type, propertyKey.name(), validatorClass);
 	}
 
-	public static void registerPropertyValidator(Class type, String propertyKey, Class<? extends PropertyValidator> validatorClass) {
-		registerPropertyValidator(type, propertyKey, validatorClass, null);
-	}
+	public static void registerPropertyValidator(Class type, String propertyKey, PropertyValidator validator) {
 
-	public static void registerPropertyValidator(Class type, PropertyKey propertyKey, Class<? extends PropertyValidator> validatorClass, Value parameter) {
-		registerPropertyValidator(type, propertyKey.name(), validatorClass, parameter);
-	}
+		Map<String, Set<PropertyValidator>> validatorMap = getPropertyValidatorMapForType(type);
 
-	public static void registerPropertyValidator(Class type, String propertyKey, Class<? extends PropertyValidator> validatorClass, Value parameter) {
+		// fetch or create validator set
+		Set<PropertyValidator> validators = validatorMap.get(propertyKey);
 
-		Map<String, Class<? extends PropertyValidator>> validatorMap = getPropertyValidatorMapForType(type);
+		if (validators == null) {
 
-		validatorMap.put(propertyKey, validatorClass);
+			validators = new LinkedHashSet<PropertyValidator>();
 
-		if (validatorClass.equals(GlobalPropertyUniquenessValidator.class)) {
-
-			// register semaphore for all types
-			Map<String, Semaphore> map = getSemaphoreMapForType(GLOBAL_UNIQUENESS);
-
-			if (!map.containsKey(propertyKey)) {
-
-				map.put(propertyKey, new Semaphore(1));
-
-			}
-		} else if (validatorClass.equals(TypeAndPropertyUniquenessValidator.class)) {
-
-			// register semaphore
-			Map<String, Semaphore> map = getSemaphoreMapForType(type.getSimpleName());
-
-			if (!map.containsKey(propertyKey)) {
-
-				map.put(propertyKey, new Semaphore(1));
-
-			}
-		}
-
-		if (parameter != null) {
-
-			Map<String, Value> validatorParameterMap = getPropertyValidatonParameterMapForType(type);
-
-			validatorParameterMap.put(propertyKey, parameter);
+			validatorMap.put(propertyKey, validators);
 
 		}
+
+		validators.add(validator);
 	}
 
 	// ----- PropertyConverter methods -----
@@ -247,6 +319,7 @@ public class EntityContext {
 		if (value != null) {
 
 			getPropertyConversionParameterMapForType(type).put(propertyKey, value);
+			globalKnownPropertyKeys.add(propertyKey);
 
 		}
 	}
@@ -261,22 +334,22 @@ public class EntityContext {
 
 		for (PropertyKey key : keys) {
 
-			registerSearchablePropertySet(type, index, key);
+			registerSearchableProperty(type, index, key);
 
 		}
 	}
 
-	public static void registerSearchablePropertySet(Class type, String index, PropertyKey key) {
-		registerSearchablePropertySet(type, index, key.name());
+	public static void registerSearchableProperty(Class type, String index, PropertyKey key) {
+		registerSearchableProperty(type, index, key.name());
 	}
 
-	public static void registerSearchablePropertySet(Class type, String index, String key) {
-		registerSearchablePropertySet(type.getSimpleName(), index, key);
-	}
+//
+//      public static void registerSearchableProperty(String type, String index, String key) {
+//              registerSearchableProperty(type.getSimpleName(), index, key);
+//      }
+	public static void registerSearchableProperty(Class type, String index, String key) {
 
-	public static void registerSearchablePropertySet(String type, String index, String key) {
-
-		Map<String, Set<String>> searchablePropertyMapForType = getSearchablePropertyMapForType(type);
+		Map<String, Set<String>> searchablePropertyMapForType = getSearchablePropertyMapForType(type.getSimpleName());
 		Set<String> searchablePropertySet                     = searchablePropertyMapForType.get(index);
 
 		if (searchablePropertySet == null) {
@@ -305,7 +378,7 @@ public class EntityContext {
 
 		if (normalizedType == null) {
 
-			normalizedType = StringUtils.capitalize(CaseHelper.toCamelCase(possibleEntityName));
+			normalizedType = StringUtils.capitalize(CaseHelper.toUpperCamelCase(possibleEntityName));
 
 			if (normalizedType.endsWith("ies")) {
 
@@ -319,7 +392,7 @@ public class EntityContext {
 
 			}
 
-			logger.log(Level.FINEST, "String {0} normalized to {1}", new Object[] { possibleEntityName, normalizedType });
+			// logger.log(Level.INFO, "String {0} normalized to {1}", new Object[] { possibleEntityName, normalizedType });
 			normalizedEntityNameCache.put(possibleEntityName, normalizedType);
 
 		}
@@ -327,69 +400,154 @@ public class EntityContext {
 		return normalizedType;
 	}
 
-	private static void registerPropertyRelationInternal(String sourceType, String property, String destType, RelationshipType relType, Direction direction, Cardinality cardinality,
-		Notion notion) {
+	private static void registerPropertyRelationInternal(Class sourceType, PropertyKey[] properties, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality,
+		Notion notion, int cascadeDelete) {
 
-		Map<String, DirectedRelationship> typeMap = getPropertyRelationshipMapForType(sourceType);
+		Map<String, RelationClass> typeMap = getPropertyRelationshipMapForType(sourceType);
+		RelationClass rel                  = new RelationClass(destType, relType, direction, cardinality, notion, cascadeDelete);
 
-		typeMap.put(property, new DirectedRelationship(destType, relType, direction, cardinality, notion));
+		for (PropertyKey prop : properties) {
+
+			typeMap.put(prop.name(), rel);
+			globalKnownPropertyKeys.add(prop.name());
+
+		}
 	}
 
-	private static void registerEntityRelationInternal(String sourceType, String destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion) {
+	private static void registerPropertyRelationInternal(Class sourceType, String property, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion,
+		int cascadeDelete) {
 
-		Map<String, DirectedRelationship> typeMap = getEntityRelationshipMapForType(sourceType);
+		Map<String, RelationClass> typeMap = getPropertyRelationshipMapForType(sourceType);
 
-		typeMap.put(destType, new DirectedRelationship(destType, relType, direction, cardinality, notion));
+		typeMap.put(property, new RelationClass(destType, relType, direction, cardinality, notion, cascadeDelete));
+		globalKnownPropertyKeys.add(property);
+	}
+
+	private static void registerEntityRelationInternal(Class sourceType, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality, Notion notion, int cascadeDelete) {
+
+		Map<Class, RelationClass> typeMap = getRelationClassMapForType(sourceType);
+		RelationClass directedRelation    = new RelationClass(destType, relType, direction, cardinality, notion, cascadeDelete);
+
+		typeMap.put(destType, directedRelation);
 	}
 
 	public static synchronized void removeTransactionKey() {
 		transactionKeyMap.remove(Thread.currentThread());
 	}
 
+	public static String createCombinedRelationshipType(String oldCombinedRelationshipType, Class newDestType) {
+
+		String[] parts = getPartsOfCombinedRelationshipType(oldCombinedRelationshipType);
+
+		return createCombinedRelationshipType(parts[0], parts[1], newDestType.getSimpleName());
+	}
+
+	public static String createCombinedRelationshipType(Class sourceType, RelationshipType relType, Class destType) {
+		return createCombinedRelationshipType(sourceType.getSimpleName(), relType.name(), destType.getSimpleName());
+	}
+
+	public static String createCombinedRelationshipType(String sourceType, String relType, String destType) {
+
+		StringBuilder buf = new StringBuilder();
+
+		buf.append(sourceType);
+		buf.append(COMBINED_RELATIONSHIP_KEY_SEP);
+		buf.append(relType);
+		buf.append(COMBINED_RELATIONSHIP_KEY_SEP);
+		buf.append(destType);
+
+		return buf.toString();
+	}
+
+	public static synchronized void removeSecurityContext() {
+		securityContextMap.remove(Thread.currentThread());
+	}
+
 	//~--- get methods ----------------------------------------------------
+
+	public static Class getEntityClassForRawType(final String rawType) {
+
+		String normalizedEntityName = normalizeEntityName(rawType);
+
+		if (cachedEntities.containsKey(normalizedEntityName)) {
+
+			return (Class) cachedEntities.get(normalizedEntityName);
+
+		}
+
+		return null;
+	}
+
+	public static Object getDefaultValue(Class type, String propertyKey) {
+		return getGlobalDefaultValueMapForType(type).get(propertyKey);
+	}
+
+	public static RelationshipMapping getNamedRelation(String relationName) {
+		return globalRelationshipNameMap.get(relationName);
+	}
+
+	private static Class getDestType(final String combinedRelationshipType) {
+
+		String destType = getPartsOfCombinedRelationshipType(combinedRelationshipType)[2];
+		Class realType  = null;
+
+		try {
+			realType = (Class) Services.command(null, GetEntityClassCommand.class).execute(StringUtils.capitalize(destType));
+		} catch (FrameworkException ex) {
+			logger.log(Level.WARNING, "No real type found for {0}", destType);
+		}
+
+		return realType;
+	}
+
+	private static String[] getPartsOfCombinedRelationshipType(final String combinedRelationshipType) {
+		return StringUtils.split(combinedRelationshipType, COMBINED_RELATIONSHIP_KEY_SEP);
+	}
+
+	public static Class getNamedRelationClass(String sourceType, String destType, String relType) {
+		return getNamedRelationClass(createCombinedRelationshipType(sourceType, relType, destType));
+	}
+
+	public static Class getNamedRelationClass(String combinedRelationshipType) {
+
+		Class namedRelationClass = globalRelationshipClassMap.get(combinedRelationshipType);
+		Class destType           = getDestType(combinedRelationshipType);
+
+		while ((namedRelationClass == null) &&!(destType.equals(Object.class))) {
+
+			combinedRelationshipType = createCombinedRelationshipType(combinedRelationshipType, destType);
+			namedRelationClass       = globalRelationshipClassMap.get(combinedRelationshipType);
+			destType                 = destType.getSuperclass();
+
+		}
+
+		return namedRelationClass;
+	}
+
+	public static Collection<RelationshipMapping> getNamedRelations() {
+		return globalRelationshipNameMap.values();
+	}
 
 	public static Set<VetoableGraphObjectListener> getModificationListeners() {
 		return modificationListeners;
 	}
 
-	public static Set<Transformation<AbstractNode>> getPostCreationTransformations(Class type) {
+	public static Set<Transformation<GraphObject>> getEntityCreationTransformations(Class type) {
 
-		Set<Transformation<AbstractNode>> transformations = new LinkedHashSet<Transformation<AbstractNode>>();
-		Class localType                                   = type;
+		Set<Transformation<GraphObject>> transformations = new TreeSet<Transformation<GraphObject>>();
+		Class localType                                  = type;
 
 		// collect for all superclasses
 		while (!localType.equals(Object.class)) {
 
-			transformations.addAll(getPostCreationTransformationsForType(localType));
+			transformations.addAll(getEntityCreationTransformationsForType(localType));
 
 			localType = localType.getSuperclass();
 
 		}
 
+//              return new TreeSet<Transformation<AbstractNode>>(transformations).descendingSet();
 		return transformations;
-	}
-
-	// ----- semaphores -----
-
-	/**
-	 * Returns a semaphore for the given type and key IF there is a unique
-	 * constraint defined for the given type and property.
-	 * @param sourceType
-	 * @param key
-	 * @return
-	 */
-	public static Semaphore getSemaphoreForTypeAndProperty(String type, String key) {
-
-		// try typed semaphore first
-		Semaphore semaphore = getSemaphoreMapForType(type).get(key);
-
-		if (semaphore == null) {
-
-			// try global semaphore afterwards
-			semaphore = getSemaphoreMapForType(GLOBAL_UNIQUENESS).get(key);
-		}
-
-		return semaphore;
 	}
 
 	// ----- property notions -----
@@ -402,29 +560,47 @@ public class EntityContext {
 	}
 
 	// ----- static relationship methods -----
-	public static DirectedRelationship getDirectedRelationship(Class sourceType, Class destType) {
-		return getDirectedRelationship(sourceType.getSimpleName(), destType.getSimpleName());
-	}
+	public static RelationClass getRelationClass(Class sourceType, Class destType) {
 
-	public static DirectedRelationship getDirectedRelationship(Class sourceType, String key) {
-		return getDirectedRelationship(sourceType.getSimpleName(), key);
-	}
+		RelationClass relation = null;
+		Class localType        = sourceType;
 
-	public static DirectedRelationship getDirectedRelationship(String sourceType, String key) {
+		while ((relation == null) &&!localType.equals(Object.class)) {
 
-		String normalizedSourceType = normalizeEntityName(sourceType);
-		DirectedRelationship rel    = null;
+			relation  = getRelationClassMapForType(localType).get(destType);
+			localType = localType.getSuperclass();
 
-		// try property relations with EXACT MATCH first
-		rel = getPropertyRelationshipMapForType(normalizedSourceType).get(key);
-
-		if (rel == null) {
-
-			// no relationship for exact match, try normalized entity name now
-			rel = getEntityRelationshipMapForType(normalizedSourceType).get(normalizeEntityName(key));
 		}
 
-		return rel;
+		return relation;
+	}
+
+	public static RelationClass getRelationClass(Class sourceType, String key) {
+
+		Class destType = getEntityClassForRawType(key);
+
+		if (destType != null) {
+
+			return getRelationClass(sourceType, destType);
+
+		}
+
+		return getRelationClassForProperty(sourceType, key);
+	}
+
+	public static RelationClass getRelationClassForProperty(Class sourceType, String propertyKey) {
+
+		RelationClass relation = null;
+		Class localType        = sourceType;
+
+		while ((relation == null) &&!localType.equals(Object.class)) {
+
+			relation  = getPropertyRelationshipMapForType(localType).get(propertyKey);
+			localType = localType.getSuperclass();
+
+		}
+
+		return relation;
 	}
 
 	// ----- property set methods -----
@@ -439,23 +615,36 @@ public class EntityContext {
 
 			propertyViewMap.put(propertyView, propertySet);
 
+			// test: fill property set with values from supertypes
+			Class superClass = type.getSuperclass();
+
+			while ((superClass != null) &&!superClass.equals(Object.class)) {
+
+				Set<String> superProperties = getPropertySet(superClass, propertyView);
+
+				propertySet.addAll(superProperties);
+
+				// one level up :)
+				superClass = superClass.getSuperclass();
+
+			}
+
 		}
 
 		return propertySet;
 	}
 
-	public static PropertyValidator getPropertyValidator(final SecurityContext securityContext, Class type, String propertyKey) {
+	public static Set<PropertyValidator> getPropertyValidators(final SecurityContext securityContext, Class type, String propertyKey) {
 
-		Map<String, Class<? extends PropertyValidator>> validatorMap = null;
-		PropertyValidator validator                                  = null;
-		Class localType                                              = type;
-		Class clazz                                                  = null;
+		Map<String, Set<PropertyValidator>> validatorMap = null;
+		Set<PropertyValidator> validators                = null;
+		Class localType                                  = type;
 
 		// try all superclasses
-		while ((clazz == null) &&!localType.equals(Object.class)) {
+		while ((validators == null) &&!localType.equals(Object.class)) {
 
 			validatorMap = getPropertyValidatorMapForType(localType);
-			clazz        = validatorMap.get(propertyKey);
+			validators   = validatorMap.get(propertyKey);
 
 //                      logger.log(Level.INFO, "Validator class {0} found for type {1}", new Object[] { clazz != null ? clazz.getSimpleName() : "null", localType } );
 			// one level up :)
@@ -463,40 +652,7 @@ public class EntityContext {
 
 		}
 
-		if (clazz != null) {
-
-			try {
-
-				validator = (PropertyValidator) clazz.newInstance();
-
-				validator.setSecurityContext(securityContext);
-
-			} catch (Throwable t) {
-				logger.log(Level.WARNING, "Unable to instantiate validator {0}: {1}", new Object[] { clazz.getName(), t.getMessage() });
-			}
-
-		}
-
-		return validator;
-	}
-
-	public static Value getPropertyValidationParameter(Class type, String propertyKey) {
-
-		Map<String, Value> validationParameterMap = null;
-		Class localType                           = type;
-		Value value                               = null;
-
-		while ((value == null) &&!localType.equals(Object.class)) {
-
-			validationParameterMap = getPropertyValidatonParameterMapForType(localType);
-			value                  = validationParameterMap.get(propertyKey);
-
-//                      logger.log(Level.INFO, "Validation parameter value {0} found for type {1}", new Object[] { value != null ? value.getClass().getSimpleName() : "null", localType } );
-			localType = localType.getSuperclass();
-
-		}
-
-		return value;
+		return validators;
 	}
 
 	public static PropertyConverter getPropertyConverter(final SecurityContext securityContext, Class type, String propertyKey) {
@@ -557,33 +713,42 @@ public class EntityContext {
 	}
 
 	public static Set<String> getSearchableProperties(String type, String index) {
-		return getSearchablePropertyMapForType(type).get(index);
+
+		Set<String> searchablePropertyMap = getSearchablePropertyMapForType(type).get(index);
+
+		if (searchablePropertyMap == null) {
+
+			searchablePropertyMap = new HashSet<String>();
+
+		}
+
+		return searchablePropertyMap;
 	}
 
-	private static Map<String, DirectedRelationship> getPropertyRelationshipMapForType(String sourceType) {
+	private static Map<String, RelationClass> getPropertyRelationshipMapForType(Class sourceType) {
 
-		Map<String, DirectedRelationship> typeMap = globalPropertyRelationshipMap.get(normalizeEntityName(sourceType));
+		Map<String, RelationClass> typeMap = globalPropertyRelationClassMap.get(sourceType);
 
 		if (typeMap == null) {
 
-			typeMap = new LinkedHashMap<String, DirectedRelationship>();
+			typeMap = new LinkedHashMap<String, RelationClass>();
 
-			globalPropertyRelationshipMap.put(normalizeEntityName(sourceType), typeMap);
+			globalPropertyRelationClassMap.put(sourceType, typeMap);
 
 		}
 
 		return (typeMap);
 	}
 
-	private static Map<String, DirectedRelationship> getEntityRelationshipMapForType(String sourceType) {
+	private static Map<Class, RelationClass> getRelationClassMapForType(Class sourceType) {
 
-		Map<String, DirectedRelationship> typeMap = globalEntityRelationshipMap.get(normalizeEntityName(sourceType));
+		Map<Class, RelationClass> typeMap = globalRelationClassMap.get(sourceType);
 
 		if (typeMap == null) {
 
-			typeMap = new LinkedHashMap<String, DirectedRelationship>();
+			typeMap = new LinkedHashMap<Class, RelationClass>();
 
-			globalEntityRelationshipMap.put(normalizeEntityName(sourceType), typeMap);
+			globalRelationClassMap.put(sourceType, typeMap);
 
 		}
 
@@ -605,34 +770,19 @@ public class EntityContext {
 		return propertyViewMap;
 	}
 
-	private static Map<String, Class<? extends PropertyValidator>> getPropertyValidatorMapForType(Class type) {
+	private static Map<String, Set<PropertyValidator>> getPropertyValidatorMapForType(Class type) {
 
-		Map<String, Class<? extends PropertyValidator>> validatorMap = globalValidatorMap.get(type);
+		Map<String, Set<PropertyValidator>> validatorMap = globalValidatorMap.get(type);
 
 		if (validatorMap == null) {
 
-			validatorMap = new LinkedHashMap<String, Class<? extends PropertyValidator>>();
+			validatorMap = new LinkedHashMap<String, Set<PropertyValidator>>();
 
 			globalValidatorMap.put(type, validatorMap);
 
 		}
 
 		return validatorMap;
-	}
-
-	private static Map<String, Value> getPropertyValidatonParameterMapForType(Class type) {
-
-		Map<String, Value> validationParameterMap = globalValidationParameterMap.get(type);
-
-		if (validationParameterMap == null) {
-
-			validationParameterMap = new LinkedHashMap<String, Value>();
-
-			globalValidationParameterMap.put(type, validationParameterMap);
-
-		}
-
-		return validationParameterMap;
 	}
 
 	private static Map<String, Class<? extends PropertyConverter>> getPropertyConverterMapForType(Class type) {
@@ -648,6 +798,21 @@ public class EntityContext {
 		}
 
 		return PropertyConverterMap;
+	}
+
+	private static Map<String, Object> getGlobalDefaultValueMapForType(Class type) {
+
+		Map<String, Object> defaultValueMap = globalDefaultValueMap.get(type);
+
+		if (defaultValueMap == null) {
+
+			defaultValueMap = new LinkedHashMap<String, Object>();
+
+			globalDefaultValueMap.put(type, defaultValueMap);
+
+		}
+
+		return defaultValueMap;
 	}
 
 	private static Map<String, Value> getPropertyConversionParameterMapForType(Class type) {
@@ -725,30 +890,15 @@ public class EntityContext {
 		return groupMap;
 	}
 
-	private static Map<String, Semaphore> getSemaphoreMapForType(String sourceType) {
+	private static Set<Transformation<GraphObject>> getEntityCreationTransformationsForType(Class type) {
 
-		Map<String, Semaphore> semaphoreMap = globalSemaphoreMap.get(normalizeEntityName(sourceType));
-
-		if (semaphoreMap == null) {
-
-			semaphoreMap = Collections.synchronizedMap(new LinkedHashMap<String, Semaphore>());
-
-			globalSemaphoreMap.put(normalizeEntityName(sourceType), semaphoreMap);
-
-		}
-
-		return semaphoreMap;
-	}
-
-	private static Set<Transformation<AbstractNode>> getPostCreationTransformationsForType(Class type) {
-
-		Set<Transformation<AbstractNode>> transformations = globalPostCreationTransformationMap.get(type);
+		Set<Transformation<GraphObject>> transformations = globalEntityCreationTransformationMap.get(type);
 
 		if (transformations == null) {
 
-			transformations = new LinkedHashSet<Transformation<AbstractNode>>();
+			transformations = new LinkedHashSet<Transformation<GraphObject>>();
 
-			globalPostCreationTransformationMap.put(type, transformations);
+			globalEntityCreationTransformationMap.put(type, transformations);
 
 		}
 
@@ -759,8 +909,12 @@ public class EntityContext {
 		return globalModificationListener;
 	}
 
-	public static synchronized Throwable getThrowable(Long transactionKey) {
-		return throwableMap.get(transactionKey);
+	public static synchronized FrameworkException getFrameworkException(Long transactionKey) {
+		return exceptionMap.get(transactionKey);
+	}
+
+	public static boolean isKnownProperty(final String key) {
+		return globalKnownPropertyKeys.contains(key);
 	}
 
 	public static boolean isReadOnlyProperty(Class type, String key) {
@@ -813,6 +967,10 @@ public class EntityContext {
 
 	//~--- set methods ----------------------------------------------------
 
+	public static synchronized void setSecurityContext(SecurityContext securityContext) {
+		securityContextMap.put(Thread.currentThread(), securityContext);
+	}
+
 	public static synchronized void setTransactionKey(Long transactionKey) {
 		transactionKeyMap.put(Thread.currentThread(), transactionKey);
 	}
@@ -822,41 +980,61 @@ public class EntityContext {
 	// <editor-fold defaultstate="collapsed" desc="EntityContextModificationListener">
 	public static class EntityContextModificationListener implements VetoableGraphObjectListener, TransactionEventHandler<Long> {
 
-		
 		// ----- interface TransactionEventHandler -----
 		@Override
 		public Long beforeCommit(TransactionData data) throws Exception {
-			
-			Command indexCommand = Services.command(SecurityContext.getSuperUserInstance(), IndexNodeCommand.class);
 
-			long transactionKey = transactionKeyMap.get(Thread.currentThread());
+			SecurityContext securityContext  = securityContextMap.get(Thread.currentThread());
+			Command indexNodeCommand         = Services.command(securityContext, IndexNodeCommand.class);
+			Command indexRelationshipCommand = Services.command(securityContext, IndexRelationshipCommand.class);
+			long transactionKey              = transactionKeyMap.get(Thread.currentThread());
 
 			try {
 
-				ErrorBuffer errorBuffer                          = new ErrorBuffer();
-				boolean hasError                                 = false;
-				Map<Node, Map<String, Object>> removedProperties = new LinkedHashMap<Node, Map<String, Object>>();
-				SecurityContext securityContext                  = SecurityContext.getSuperUserInstance();
-				StructrNodeFactory factory                       = new StructrNodeFactory(securityContext);
-				Set<AbstractNode> modifiedNodes                  = new LinkedHashSet<AbstractNode>();
-				Set<AbstractNode> createdNodes                   = new LinkedHashSet<AbstractNode>();
-				Set<StructrRelationship> createdRels             = new LinkedHashSet<StructrRelationship>();
-				Set<StructrRelationship> deletedRels             = new LinkedHashSet<StructrRelationship>();
+				ErrorBuffer errorBuffer                                     = new ErrorBuffer();
+				boolean hasError                                            = false;
+				Map<Node, Map<String, Object>> removedNodeProperties        = new LinkedHashMap<Node, Map<String, Object>>();
+				Map<Relationship, Map<String, Object>> removedRelProperties = new LinkedHashMap<Relationship, Map<String, Object>>();
+				NodeFactory nodeFactory                                     = new NodeFactory(securityContext);
+				RelationshipFactory relFactory                              = new RelationshipFactory(securityContext);
+				Set<AbstractNode> modifiedNodes                             = new LinkedHashSet<AbstractNode>();
+				Set<AbstractNode> createdNodes                              = new LinkedHashSet<AbstractNode>();
+				Set<AbstractRelationship> modifiedRels                      = new LinkedHashSet<AbstractRelationship>();
+				Set<AbstractRelationship> createdRels                       = new LinkedHashSet<AbstractRelationship>();
+				Set<AbstractRelationship> deletedRels                       = new LinkedHashSet<AbstractRelationship>();
 
 				// 0: notify listeners of beginning commit
 				begin(securityContext, transactionKey, errorBuffer);
 
-				// 1: collect properties of deleted nodes
+				// 1.1: collect properties of deleted nodes
 				for (PropertyEntry<Node> entry : data.removedNodeProperties()) {
 
 					Node node                       = entry.entity();
-					Map<String, Object> propertyMap = removedProperties.get(node);
+					Map<String, Object> propertyMap = removedNodeProperties.get(node);
 
 					if (propertyMap == null) {
 
 						propertyMap = new LinkedHashMap<String, Object>();
 
-						removedProperties.put(node, propertyMap);
+						removedNodeProperties.put(node, propertyMap);
+
+					}
+
+					propertyMap.put(entry.key(), entry.previouslyCommitedValue());
+
+				}
+
+				// 1.2: collect properties of deleted relationships
+				for (PropertyEntry<Relationship> entry : data.removedRelationshipProperties()) {
+
+					Relationship rel                = entry.entity();
+					Map<String, Object> propertyMap = removedRelProperties.get(rel);
+
+					if (propertyMap == null) {
+
+						propertyMap = new LinkedHashMap<String, Object>();
+
+						removedRelProperties.put(rel, propertyMap);
 
 					}
 
@@ -867,7 +1045,7 @@ public class EntityContext {
 				// 2: notify listeners of node creation (so the modifications can later be tracked)
 				for (Node node : data.createdNodes()) {
 
-					AbstractNode entity = factory.createNode(securityContext, node);
+					AbstractNode entity = nodeFactory.createNode(securityContext, node);
 
 					hasError |= graphObjectCreated(securityContext, transactionKey, errorBuffer, entity);
 
@@ -878,9 +1056,9 @@ public class EntityContext {
 				// 3: notify listeners of relationship creation
 				for (Relationship rel : data.createdRelationships()) {
 
-					StructrRelationship relationship = new StructrRelationship(securityContext, rel);
+					AbstractRelationship relationship = relFactory.createRelationship(securityContext, rel);
 
-					hasError |= relationshipCreated(securityContext, transactionKey, errorBuffer, relationship);
+					hasError |= graphObjectCreated(securityContext, transactionKey, errorBuffer, relationship);
 
 					createdRels.add(relationship);
 
@@ -889,9 +1067,10 @@ public class EntityContext {
 				// 4: notify listeners of relationship deletion
 				for (Relationship rel : data.deletedRelationships()) {
 
-					StructrRelationship relationship = new StructrRelationship(securityContext, rel);
+					AbstractRelationship relationship = relFactory.createRelationship(securityContext, rel);
 
-					hasError |= relationshipDeleted(securityContext, transactionKey, errorBuffer, relationship);
+//                                      AbstractRelationship relationship = relFactory.createRelationship(securityContext, removedRelProperties.get(rel));
+					hasError |= graphObjectDeleted(securityContext, transactionKey, errorBuffer, relationship, removedRelProperties.get(rel));
 
 					deletedRels.add(relationship);
 
@@ -900,7 +1079,7 @@ public class EntityContext {
 				// 5: notify listeners of node deletion
 				for (Node node : data.deletedNodes()) {
 
-					hasError |= graphObjectDeleted(securityContext, transactionKey, errorBuffer, node.getId(), removedProperties.get(node));
+					hasError |= graphObjectDeleted(securityContext, transactionKey, errorBuffer, null, removedNodeProperties.get(node));
 
 				}
 
@@ -908,28 +1087,55 @@ public class EntityContext {
 				// notify listeners of property modifications
 				for (PropertyEntry<Node> entry : data.assignedNodeProperties()) {
 
-					AbstractNode entity = factory.createNode(securityContext, entry.entity());
+					AbstractNode entity = nodeFactory.createNode(securityContext, entry.entity());
 					String key          = entry.key();
 					Object value        = entry.value();
 
-					// look for validator
-					PropertyValidator validator = EntityContext.getPropertyValidator(securityContext, entity.getClass(), key);
+					// iterate over validators
+					Set<PropertyValidator> validators = EntityContext.getPropertyValidators(securityContext, entity.getClass(), key);
 
-					if (validator != null) {
+					if (validators != null) {
 
-						logger.log(Level.FINE, "Using validator of type {0} for property {1}", new Object[] { validator.getClass().getSimpleName(), key });
+						for (PropertyValidator validator : validators) {
 
-						Value parameter = EntityContext.getPropertyValidationParameter(entity.getClass(), key);
+							hasError |= !(validator.isValid(entity, key, value, errorBuffer));
 
-						hasError |= !(validator.isValid(key, value, parameter, errorBuffer));
+						}
 
 					}
 
 					hasError |= propertyModified(securityContext, transactionKey, errorBuffer, entity, key, entry.previouslyCommitedValue(), value);
 
 					// after successful validation, add node to index to make uniqueness constraints work
-					indexCommand.execute(entity, key);
+					indexNodeCommand.execute(entity, key);
 					modifiedNodes.add(entity);
+
+				}
+
+				for (PropertyEntry<Relationship> entry : data.assignedRelationshipProperties()) {
+
+					AbstractRelationship entity = relFactory.createRelationship(securityContext, entry.entity());
+					String key                  = entry.key();
+					Object value                = entry.value();
+
+					// iterate over validators
+					Set<PropertyValidator> validators = EntityContext.getPropertyValidators(securityContext, entity.getClass(), key);
+
+					if (validators != null) {
+
+						for (PropertyValidator validator : validators) {
+
+							hasError |= !(validator.isValid(entity, key, value, errorBuffer));
+
+						}
+
+					}
+
+					hasError |= propertyModified(securityContext, transactionKey, errorBuffer, entity, key, entry.previouslyCommitedValue(), value);
+
+					// after successful validation, add relationship to index to make uniqueness constraints work
+					indexRelationshipCommand.execute(entity, key);
+					modifiedRels.add(entity);
 
 				}
 
@@ -941,7 +1147,37 @@ public class EntityContext {
 
 						hasError |= graphObjectModified(securityContext, transactionKey, errorBuffer, node);
 
+					} else {
+
+						indexNodeCommand.execute(node);
+
 					}
+				}
+
+				for (AbstractRelationship rel : modifiedRels) {
+
+					// only send UPDATE if node was not created in this transaction
+					if (!createdRels.contains(rel)) {
+
+						hasError |= graphObjectModified(securityContext, transactionKey, errorBuffer, rel);
+
+					} else {
+
+						indexRelationshipCommand.execute(rel);
+
+					}
+				}
+
+				for (AbstractNode node : createdNodes) {
+
+					indexNodeCommand.execute(node);
+
+				}
+
+				for (AbstractRelationship rel : createdRels) {
+
+					indexRelationshipCommand.execute(rel);
+
 				}
 
 				// notify listeners of commit
@@ -949,13 +1185,13 @@ public class EntityContext {
 
 				if (hasError) {
 
-					throw new IllegalArgumentException(errorBuffer.toString());
+					throw new FrameworkException(422, errorBuffer);
 
 				}
 
-			} catch (Throwable t) {
+			} catch (FrameworkException fex) {
 
-				throwableMap.put(transactionKey, t);
+				exceptionMap.put(transactionKey, fex);
 
 				throw new IllegalStateException("Rollback");
 			}
@@ -964,15 +1200,12 @@ public class EntityContext {
 		}
 
 		@Override
-		public void afterCommit(TransactionData data, Long transactionKey) {
-
-//
-		}
+		public void afterCommit(TransactionData data, Long transactionKey) {}
 
 		@Override
 		public void afterRollback(TransactionData data, Long transactionKey) {
 
-			Throwable t = throwableMap.get(transactionKey);
+			Throwable t = exceptionMap.get(transactionKey);
 
 			if (t != null) {
 
@@ -1024,41 +1257,13 @@ public class EntityContext {
 		}
 
 		@Override
-		public boolean propertyModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, AbstractNode entity, String key, Object oldValue, Object newValue) {
+		public boolean propertyModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject entity, String key, Object oldValue, Object newValue) {
 
 			boolean hasError = false;
 
 			for (VetoableGraphObjectListener listener : modificationListeners) {
 
 				hasError |= listener.propertyModified(securityContext, transactionKey, errorBuffer, entity, key, oldValue, newValue);
-
-			}
-
-			return hasError;
-		}
-
-		@Override
-		public boolean relationshipCreated(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, StructrRelationship relationship) {
-
-			boolean hasError = false;
-
-			for (VetoableGraphObjectListener listener : modificationListeners) {
-
-				hasError |= listener.relationshipCreated(securityContext, transactionKey, errorBuffer, relationship);
-
-			}
-
-			return hasError;
-		}
-
-		@Override
-		public boolean relationshipDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, StructrRelationship relationship) {
-
-			boolean hasError = false;
-
-			for (VetoableGraphObjectListener listener : modificationListeners) {
-
-				hasError |= listener.relationshipDeleted(securityContext, transactionKey, errorBuffer, relationship);
 
 			}
 
@@ -1108,13 +1313,13 @@ public class EntityContext {
 		}
 
 		@Override
-		public boolean graphObjectDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, long id, Map<String, Object> properties) {
+		public boolean graphObjectDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject, Map<String, Object> properties) {
 
 			boolean hasError = false;
 
 			for (VetoableGraphObjectListener listener : modificationListeners) {
 
-				hasError |= listener.graphObjectDeleted(securityContext, transactionKey, errorBuffer, id, properties);
+				hasError |= listener.graphObjectDeleted(securityContext, transactionKey, errorBuffer, graphObject, properties);
 
 			}
 

@@ -20,6 +20,8 @@
 package org.structr.core.node.search;
 
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanClause.Occur;
@@ -28,6 +30,7 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.WildcardQuery;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.module.GetEntitiesCommand;
@@ -37,6 +40,8 @@ import org.structr.core.module.GetEntitiesCommand;
  * @author Christian Morgner
  */
 public class SearchHelper {
+
+	private static final Logger logger = Logger.getLogger(SearchHelper.class.getName());
 
 	public static Query propertyValue(String key, String value, boolean strict) {
 		if(strict) {
@@ -57,25 +62,32 @@ public class SearchHelper {
 
 	public static Query typeAndSubtypes(String type) {
 
-		Map<String, Class> entities = (Map) Services.command(SecurityContext.getSuperUserInstance(), GetEntitiesCommand.class).execute();
-		Class parentClass           = entities.get(StringUtils.capitalize(type));
-		BooleanQuery query          = new BooleanQuery();
+		try {
+			Map<String, Class> entities = (Map) Services.command(SecurityContext.getSuperUserInstance(), GetEntitiesCommand.class).execute();
+			Class parentClass           = entities.get(StringUtils.capitalize(type));
+			BooleanQuery query          = new BooleanQuery();
 
-		// no parent class found, return unmodified type query
-		if (parentClass == null) {
-			return type(type);
-		}
-
-		for (Map.Entry<String, Class> entity : entities.entrySet()) {
-
-			Class entityClass = entity.getValue();
-			if (parentClass.isAssignableFrom(entityClass)) {
-				query.add(type(entity.getKey()), Occur.SHOULD);
+			// no parent class found, return unmodified type query
+			if (parentClass == null) {
+				return type(type);
 			}
 
+			for (Map.Entry<String, Class> entity : entities.entrySet()) {
+
+				Class entityClass = entity.getValue();
+				if (parentClass.isAssignableFrom(entityClass)) {
+					query.add(type(entity.getKey()), Occur.SHOULD);
+				}
+
+			}
+
+			return query;
+
+		} catch(FrameworkException fex) {
+			logger.log(Level.WARNING, "Unable to create type and subtype query", fex);
 		}
 
-		return query;
+		return type(type);
 	}
 
 	public static Query and(Query query1, Query query2) {

@@ -25,6 +25,7 @@ import org.mozilla.javascript.ContextFactory;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
 import org.mozilla.javascript.tools.shell.Global;
+import org.structr.common.error.FrameworkException;
 
 /**
  * Execute given code as ECMAScript return output
@@ -36,7 +37,7 @@ public class ECMAScriptCommand extends NodeServiceCommand {
     private static final Logger logger = Logger.getLogger(ECMAScriptCommand.class.getName());
 
     @Override
-    public Object execute(Object... parameters) {
+    public Object execute(Object... parameters) throws FrameworkException {
 
         StringBuilder out = new StringBuilder();
 

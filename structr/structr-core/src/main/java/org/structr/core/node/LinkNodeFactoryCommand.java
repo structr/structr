@@ -19,6 +19,7 @@
 
 package org.structr.core.node;
 
+import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Link;
 import org.structr.core.entity.AbstractNode;
 
@@ -29,7 +30,7 @@ import org.structr.core.entity.AbstractNode;
 public class LinkNodeFactoryCommand extends NodeFactoryCommand
 {
 	@Override
-	public Object execute(Object... parameters)
+	public Object execute(Object... parameters) throws FrameworkException
 	{
                 AbstractNode sNode = (AbstractNode) super.execute(parameters);
 

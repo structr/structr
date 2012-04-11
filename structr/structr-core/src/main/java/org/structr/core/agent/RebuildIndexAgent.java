@@ -22,13 +22,12 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.node.GetAllNodes;
-import org.structr.core.node.IndexNodeCommand;
-import org.structr.core.node.StructrTransaction;
-import org.structr.core.node.TransactionCommand;
+import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.node.*;
 
 /**
  *
@@ -48,7 +47,7 @@ public class RebuildIndexAgent extends Agent {
     }
 
     @Override
-    public ReturnValue processTask(Task task) {
+    public ReturnValue processTask(Task task) throws FrameworkException {
 
         if (task instanceof RebuildIndexTask) {
 
@@ -58,14 +57,20 @@ public class RebuildIndexAgent extends Agent {
             long nodes = rebuildIndex();
 
             long t1 = System.currentTimeMillis();
-            logger.log(Level.INFO, "Rebuilding index finished, {0} nodes processed in {1} s", new Object[]{nodes, (t1 - t0) / 1000});
+            logger.log(Level.INFO, "Re-indexing nodes finished, {0} nodes processed in {1} s", new Object[]{nodes, (t1 - t0) / 1000});
+
+            long rels = rebuildRelationshipIndex();
+
+            long t2 = System.currentTimeMillis();
+            logger.log(Level.INFO, "Re-indexing relationships finished, {0} relationships processed in {1} s", new Object[]{rels, (t2 - t1) / 1000});
+
 
         }
 
         return (ReturnValue.Success);
     }
 
-    private long rebuildIndex() {
+    private long rebuildIndex() throws FrameworkException {
 
 	// FIXME: superuser security context
 	final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
@@ -73,9 +78,7 @@ public class RebuildIndexAgent extends Agent {
         Long nodes = (Long) transactionCommand.execute(new StructrTransaction() {
 
             @Override
-            public Object execute() throws Throwable {
-
-//                GraphDatabaseService graphDb = (GraphDatabaseService) Services.command(securityContext, GraphDatabaseCommand.class).execute();
+            public Object execute() throws FrameworkException {
 
                 long nodes = 0;
 
@@ -87,6 +90,32 @@ public class RebuildIndexAgent extends Agent {
 
                 }
                 return nodes;
+            }
+        });
+
+        return nodes;
+    }
+
+    private long rebuildRelationshipIndex() throws FrameworkException {
+
+	// FIXME: superuser security context
+	final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+        Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
+        Long nodes = (Long) transactionCommand.execute(new StructrTransaction() {
+
+            @Override
+            public Object execute() throws FrameworkException {
+
+                long rels = 0;
+
+                Command indexer = Services.command(securityContext, IndexRelationshipCommand.class);
+                List<AbstractRelationship> allRelationships = (List<AbstractRelationship>) Services.command(securityContext, GetAllRelationships.class).execute();
+                for (AbstractRelationship s : allRelationships) {
+                    indexer.execute(s);
+                    rels++;
+
+                }
+                return rels;
             }
         });
 

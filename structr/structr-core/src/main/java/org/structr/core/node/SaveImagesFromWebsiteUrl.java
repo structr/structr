@@ -28,6 +28,7 @@ import org.htmlparser.filters.TagNameFilter;
 import org.htmlparser.tags.ImageTag;
 import org.htmlparser.util.NodeList;
 import org.htmlparser.util.ParserException;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.UnsupportedArgumentError;
@@ -57,7 +58,7 @@ public class SaveImagesFromWebsiteUrl extends NodeServiceCommand {
      * @return
      */
     @Override
-    public Object execute(Object... parameters) {
+    public Object execute(Object... parameters) throws FrameworkException {
 
         User user = null;
         String urlString = null;
@@ -101,7 +102,7 @@ public class SaveImagesFromWebsiteUrl extends NodeServiceCommand {
      * 
      * @param imageNode
      */
-    private List<Image> saveImagesFromWebsiteUrl(final User user, final String urlString, final AbstractNode parentNode) {
+    private List<Image> saveImagesFromWebsiteUrl(final User user, final String urlString, final AbstractNode parentNode) throws FrameworkException {
 
         Command saveImage = Services.command(securityContext, SaveImageFromUrl.class);
         List<Image> result = new LinkedList<Image>();

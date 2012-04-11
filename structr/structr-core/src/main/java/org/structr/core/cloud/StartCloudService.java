@@ -20,6 +20,7 @@ package org.structr.core.cloud;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.error.FrameworkException;
 
 /**
  *
@@ -30,7 +31,7 @@ public class StartCloudService extends CloudServiceCommand {
     private static final Logger logger = Logger.getLogger(StartCloudService.class.getName());
 
     @Override
-    public Object execute(Object... parameters) {
+    public Object execute(Object... parameters) throws FrameworkException {
 
         logger.log(Level.INFO, "StartCloudService command executed.");
 

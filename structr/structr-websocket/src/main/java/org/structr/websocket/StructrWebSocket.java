@@ -59,6 +59,7 @@ import java.util.logging.Logger;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.http.HttpServletRequest;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.File;
 import org.structr.websocket.command.AddCommand;
 import org.structr.websocket.command.ChunkCommand;
@@ -339,19 +340,23 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 		attrs.add(Search.andExactProperty(User.Key.sessionId, messageToken));
 		attrs.add(Search.andExactType("User"));
 
-		// we need to search with a super user security context here..
-		List<AbstractNode> results = (List<AbstractNode>) Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(null, false, false, attrs);
+		try {
+			// we need to search with a super user security context here..
+			List<AbstractNode> results = (List<AbstractNode>) Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(null, false, false, attrs);
 
-		if (!results.isEmpty()) {
+			if (!results.isEmpty()) {
 
-			User user = (User) results.get(0);
+				User user = (User) results.get(0);
 
-			if (user != null && messageToken.equals(user.getProperty(User.Key.sessionId))) {
+				if (user != null && messageToken.equals(user.getProperty(User.Key.sessionId))) {
 
-				return user;
+					return user;
+
+				}
 
 			}
-
+		} catch(FrameworkException fex) {
+			logger.log(Level.WARNING, "Error while executing SearchNodeCommand", fex);
 		}
 
 		return null;

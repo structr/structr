@@ -24,6 +24,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.Image;
@@ -51,7 +52,7 @@ public class RefreshImageFromUrlAgent extends Agent {
     }
 
     @Override
-    public ReturnValue processTask(Task task) {
+    public ReturnValue processTask(Task task) throws FrameworkException {
 
         if (task instanceof RefreshImageFromUrlTask) {
 
@@ -68,7 +69,7 @@ public class RefreshImageFromUrlAgent extends Agent {
         return (ReturnValue.Success);
     }
 
-    private void refreshImageFromUrl(final Set<AbstractNode> nodes) {
+    private void refreshImageFromUrl(final Set<AbstractNode> nodes) throws FrameworkException {
 
 	// FIXME: superuser security context
 	final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
@@ -76,7 +77,7 @@ public class RefreshImageFromUrlAgent extends Agent {
         transactionCommand.execute(new StructrTransaction() {
 
             @Override
-            public Object execute() throws Throwable {
+            public Object execute() throws FrameworkException {
 
                 List<Image> images = new LinkedList<Image>();
 

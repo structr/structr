@@ -37,7 +37,7 @@ public class GetEntityClassCommand extends ModuleServiceCommand
 
 		if(service != null)
 		{
-			ret = service.getEntityClass(name);
+			ret = service.getNodeEntityClass(name);
 		}
 
 		return(ret);

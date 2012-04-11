@@ -23,15 +23,16 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.lang.StringUtils;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.common.error.IdNotFoundToken;
 import org.structr.core.GraphObject;
+import org.structr.core.PropertySet;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.FindNodeCommand;
-import org.structr.core.node.search.Search;
-import org.structr.core.node.search.SearchAttribute;
-import org.structr.core.node.search.SearchNodeCommand;
+import org.structr.core.node.NodeAttribute;
+import org.structr.core.node.search.*;
 
 /**
  *
@@ -42,69 +43,55 @@ public class IdDeserializationStrategy implements DeserializationStrategy {
 	private static final Logger logger = Logger.getLogger(IdDeserializationStrategy.class.getName());
 
 	@Override
-	public GraphObject deserialize(SecurityContext securityContext, Class type, Object source) {
+	public GraphObject deserialize(SecurityContext securityContext, Class type, Object source) throws FrameworkException {
 
-		try {
+		if(source != null) {
 
-			if(source != null) {
+			List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
 
-				// try uuid first
-				List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
-				attrs.add(Search.andExactUuid(source.toString()));
-
-				List<AbstractNode> results = (List<AbstractNode>)Services.command(securityContext, SearchNodeCommand.class).execute(
-					null, false, false, attrs
-				);
-
-				int size = results.size();
-
-				switch(size) {
-
-					case 0:
-						GraphObject idResult = (GraphObject)Services.command(securityContext, FindNodeCommand.class).execute(source);
-						if(idResult == null) {
-							
-							StringBuilder errorMessage = new StringBuilder(100);
-							if(type != null) {
-								errorMessage.append(StringUtils.capitalize(type.getSimpleName()));
-							}
-							errorMessage.append(" with id '");
-							errorMessage.append(source);
-							errorMessage.append("' not found.");
-
-							throw new IllegalArgumentException(errorMessage.toString());
-
-						} else {
-
-							return idResult;
-						}
-
-					case 1:
-						return results.get(0);
-
-					default:
-						logger.log(Level.WARNING, "Got more than one result for UUID {0}. Either this is not an UUID or we have a collision.", source.toString());
+			// FIXME: use uuid only here?
+			if(source instanceof PropertySet) {
+				PropertySet properties = (PropertySet)source;
+				for(NodeAttribute attr : properties.getAttributes()) {
+					attrs.add(Search.andExactProperty(attr.getKey(), attr.getValue().toString()));
 				}
-
+				
 			} else {
 
-				logger.log(Level.WARNING, "Source was null!");
+				attrs.add(Search.andExactUuid(source.toString()));
 			}
 
-			return (GraphObject)Services.command(securityContext, FindNodeCommand.class).execute(source);
-			
-		} catch(Throwable t) {
-			
-			StringBuilder errorMessage = new StringBuilder(100);
+			List<AbstractNode> results = (List<AbstractNode>)Services.command(securityContext, SearchNodeCommand.class).execute(
+				null, false, false, attrs
+			);
 
-			if(type != null) {
-				errorMessage.append(StringUtils.capitalize(type.getSimpleName()));
+			int size = results.size();
+
+			switch(size) {
+
+				case 0:
+					GraphObject idResult = (GraphObject)Services.command(securityContext, FindNodeCommand.class).execute(source);
+					if(idResult == null) {
+
+						throw new FrameworkException(type.getSimpleName(), new IdNotFoundToken(source));
+
+					} else {
+
+						return idResult;
+					}
+
+				case 1:
+					return results.get(0);
+
+				default:
+					logger.log(Level.WARNING, "Got more than one result for UUID {0}. Either this is not an UUID or we have a collision.", source.toString());
 			}
-			errorMessage.append(" with id ");
-			errorMessage.append(source);
-			errorMessage.append(" not found.");
 
-			throw new IllegalArgumentException(errorMessage.toString());
+		} else {
+
+			logger.log(Level.WARNING, "Source was null!");
 		}
+
+		return (GraphObject)Services.command(securityContext, FindNodeCommand.class).execute(source);
 	}
 }

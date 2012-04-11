@@ -27,6 +27,7 @@ import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import org.structr.common.FileHelper;
 import org.structr.common.Path;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.UnsupportedArgumentError;
 import org.structr.core.entity.Image;
@@ -48,7 +49,7 @@ public class ExtractAndSetImageDimensionsAndFormat extends NodeServiceCommand {
      * @return
      */
     @Override
-    public Object execute(Object... parameters) {
+    public Object execute(Object... parameters) throws FrameworkException {
 
         List<Image> images = new LinkedList<Image>();
 

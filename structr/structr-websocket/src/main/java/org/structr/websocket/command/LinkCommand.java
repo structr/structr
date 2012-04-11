@@ -28,9 +28,7 @@ import org.structr.common.SecurityContext;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.DirectedRelationship;
-import org.structr.core.entity.DirectedRelationship.Cardinality;
-import org.structr.core.entity.StructrRelationship;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.NodeAttribute;
 import org.structr.core.node.StructrTransaction;
@@ -44,6 +42,9 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.RelationClass;
+import org.structr.core.entity.RelationClass.Cardinality;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -91,9 +92,9 @@ public class LinkCommand extends AbstractCommand {
 
 					// As an element can be contained in multiple resources, we have
 					// to do the following for each incoming CONTAINS relationship
-					List<StructrRelationship> relsIn = sourceNode.getIncomingRelationships();
+					List<AbstractRelationship> relsIn = sourceNode.getIncomingRelationships();
 
-					for (StructrRelationship relIn : relsIn) {
+					for (AbstractRelationship relIn : relsIn) {
 
 						if (relIn.getType().equals(RelType.CONTAINS.name())) {
 
@@ -118,7 +119,7 @@ public class LinkCommand extends AbstractCommand {
 								StructrTransaction transaction = new StructrTransaction() {
 
 									@Override
-									public Object execute() throws Throwable {
+									public Object execute() throws FrameworkException {
 										return Services.command(SecurityContext.getSuperUserInstance(), CreateNodeCommand.class).execute(attrsFirstNode);
 									}
 								};
@@ -142,7 +143,7 @@ public class LinkCommand extends AbstractCommand {
 								transaction = new StructrTransaction() {
 
 									@Override
-									public Object execute() throws Throwable {
+									public Object execute() throws FrameworkException {
 										return Services.command(SecurityContext.getSuperUserInstance(), CreateNodeCommand.class).execute(attrsSecondNode);
 									}
 								};
@@ -165,14 +166,14 @@ public class LinkCommand extends AbstractCommand {
 								transaction = new StructrTransaction() {
 
 									@Override
-									public Object execute() throws Throwable {
+									public Object execute() throws FrameworkException {
 										return Services.command(SecurityContext.getSuperUserInstance(), CreateNodeCommand.class).execute(attrsThirdNode);
 									}
 								};
 								thirdNode = (AbstractNode) transactionCommand.execute(transaction);
 
 								// Create a CONTAINS relationship
-								DirectedRelationship rel                      = new DirectedRelationship(null, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany, null);
+								RelationClass rel                      = new RelationClass(null, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany, null, RelationClass.DELETE_NONE);
 								Map<String, Object> newRelationshipProperties = new HashMap<String, Object>();
 
 								newRelationshipProperties.put(resourceIdFromRel, 0);
@@ -183,7 +184,7 @@ public class LinkCommand extends AbstractCommand {
 								rel.createRelationship(securityContext, sourceNode, thirdNode, newRelationshipProperties);
 
 								// Create a LINK relationship
-								rel = new DirectedRelationship(resourceNode.getType(), RelType.LINK, Direction.OUTGOING, Cardinality.ManyToMany, null);
+								rel = new RelationClass(resourceNode.getClass(), RelType.LINK, Direction.OUTGOING, Cardinality.ManyToMany, null, RelationClass.DELETE_NONE);
 
 								rel.createRelationship(securityContext, secondNode, resourceNode);
 							}

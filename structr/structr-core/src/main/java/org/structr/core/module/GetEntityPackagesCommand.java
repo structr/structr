@@ -35,7 +35,7 @@ public class GetEntityPackagesCommand extends ModuleServiceCommand
 
 		if(service != null)
 		{
-			ret = service.getEntityPackages();
+			ret = service.getNodeEntityPackages();
 		}
 
 		return(ret);

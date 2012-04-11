@@ -37,6 +37,7 @@ public enum RelType implements RelationshipType {
         THUMBNAIL,
 	NEXT_LIST_ENTRY,
 	LAST_LIST_ENTRY,
+	IS_AT,
 
 	// application relationships
 	DATA,

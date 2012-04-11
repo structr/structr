@@ -37,10 +37,11 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.structr.common.NodePositionComparator;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.User;
 import org.structr.core.node.GraphDatabaseCommand;
-import org.structr.core.node.StructrNodeFactory;
+import org.structr.core.node.NodeFactory;
 import org.structr.core.node.XPath;
 
 /**
@@ -60,25 +61,30 @@ public class JXPathFinder {
 	this.securityContext = securityContext;
         //this.db = currentNode.getNode().getGraphDatabase();
 
-        Command graphDbCommand = Services.command(securityContext, GraphDatabaseCommand.class);
-        this.db = (GraphDatabaseService) graphDbCommand.execute();
+	try {
+		Command graphDbCommand = Services.command(securityContext, GraphDatabaseCommand.class);
+		this.db = (GraphDatabaseService) graphDbCommand.execute();
 
-        if (context == null) {
-            
-            Node rootNode = db.getReferenceNode();
+		if (context == null) {
 
-            //JXPathContextReferenceImpl.addNodePointerFactory(new NeoNodePointerFactory());
-            //moved to service initialization
-            context = JXPathContextReferenceImpl.newContext(rootNode);
+		    Node rootNode = db.getReferenceNode();
 
-            if (currentNode != null && !(currentNode.isRootNode())) {
-                // find pointer to current node and make it the active context
-                Pointer currentNodePointer = context.getPointer(currentNode.getNodeXPath());
+		    //JXPathContextReferenceImpl.addNodePointerFactory(new NeoNodePointerFactory());
+		    //moved to service initialization
+		    context = JXPathContextReferenceImpl.newContext(rootNode);
 
-                // create relative context
-                context = context.getRelativeContext(currentNodePointer);
-            }
-        }
+		    if (currentNode != null && !(currentNode.isRootNode())) {
+			// find pointer to current node and make it the active context
+			Pointer currentNodePointer = context.getPointer(currentNode.getNodeXPath());
+
+			// create relative context
+			context = context.getRelativeContext(currentNodePointer);
+		    }
+		}
+
+	} catch(FrameworkException fex) {
+		fex.printStackTrace();
+	}
     }
 
     /**
@@ -115,7 +121,7 @@ public class JXPathFinder {
      * @return a list of nodes resulting from xpath, sorted by their position attribute
      * @throws JXPathException
      */
-    public List<AbstractNode> findNodes(SecurityContext securityContext, XPath xpath, StructrNodeFactory nodeFactory) throws JXPathException {
+    public List<AbstractNode> findNodes(SecurityContext securityContext, XPath xpath, NodeFactory nodeFactory) throws JXPathException {
         return findNodes(securityContext, xpath, new NodePositionComparator(), nodeFactory);
     }
 
@@ -127,7 +133,7 @@ public class JXPathFinder {
      * @return a list of nodes resulting from xpath, sorted by their position attribute
      * @throws JXPathException
      */
-    public List<AbstractNode> findNodes(SecurityContext securityContext, String path, StructrNodeFactory nodeFactory) throws JXPathException {
+    public List<AbstractNode> findNodes(SecurityContext securityContext, String path, NodeFactory nodeFactory) throws JXPathException {
         XPath xpath = new XPath();
         // converts a path into an XPath expression
         xpath.setPath(path);
@@ -143,7 +149,7 @@ public class JXPathFinder {
      * @return a list of nodes resulting from xpath, sorted by comparator
      * @throws JXPathException
      */
-    public List<AbstractNode> findNodes(SecurityContext securityContext, XPath xpath, Comparator<AbstractNode> comparator, StructrNodeFactory nodeFactory) throws JXPathException {
+    public List<AbstractNode> findNodes(SecurityContext securityContext, XPath xpath, Comparator<AbstractNode> comparator, NodeFactory nodeFactory) throws JXPathException {
         List<AbstractNode> ret = null;
 
         long t0 = System.currentTimeMillis();
@@ -210,7 +216,7 @@ public class JXPathFinder {
      * @param node the node
      * @return the AbstractNode
      */
-    private Node createStructrNode(final SecurityContext securityContext, Node node) {
+    private Node createStructrNode(final SecurityContext securityContext, Node node) throws FrameworkException {
         Command nodeFactory = Services.command(securityContext, NodeFactoryCommand.class);
         return (Node) nodeFactory.execute(node);
     }

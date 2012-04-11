@@ -20,7 +20,7 @@ package org.structr.core.node.search;
 
 import java.util.LinkedList;
 import java.util.List;
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.GraphObject;
 
 /**
  * Wrapper representing a part of a search query.
@@ -36,7 +36,7 @@ public abstract class SearchAttribute {
     public static final String WILDCARD = "*";
 
     private SearchOperator searchOp = null;
-    private List<AbstractNode> result = new LinkedList<AbstractNode>();
+    private List<GraphObject> result = new LinkedList<GraphObject>();
 
     public void setSearchOperator(final SearchOperator searchOp) {
         this.searchOp = searchOp;
@@ -46,16 +46,16 @@ public abstract class SearchAttribute {
         return searchOp;
     }
 
-    public void setResult(final List<AbstractNode> result) {
+    public void setResult(final List<GraphObject> result) {
         this.result = result;
     }
 
-    public List<AbstractNode> getResult() {
+    public List<GraphObject> getResult() {
         return result;
     }
 
-    public void addToResult(final AbstractNode node) {
-        result.add(node);
+    public void addToResult(final GraphObject graphObject) {
+        result.add(graphObject);
     }
 
     public abstract Object getAttribute();

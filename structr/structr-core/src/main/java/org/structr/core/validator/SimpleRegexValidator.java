@@ -20,9 +20,10 @@
 package org.structr.core.validator;
 
 import java.util.regex.Pattern;
-import org.structr.common.ErrorBuffer;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.MatchToken;
+import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
-import org.structr.core.Value;
 
 /**
  * A simple regular expression validator.
@@ -31,14 +32,20 @@ import org.structr.core.Value;
  */
 public class SimpleRegexValidator extends PropertyValidator<String> {
 
-	@Override
-	public boolean isValid(String key, Object value, Value<String> parameter, ErrorBuffer errorBuffer) {
+	private Pattern pattern = null;
 
-		if(value != null && Pattern.compile(parameter.get()).matcher(value.toString()).matches()) {
+	public SimpleRegexValidator(String expression) {
+		this.pattern = Pattern.compile(expression);
+	}
+
+	@Override
+	public boolean isValid(GraphObject object, String key, String value, ErrorBuffer errorBuffer) {
+
+		if(value != null && pattern.matcher(value).matches()) {
 			return true;
 		}
-		
-		errorBuffer.add("Property '", key, "' must match '", parameter.get(), "'.");
+
+		errorBuffer.add(object.getType(), new MatchToken(key, this.pattern.pattern()));
 		return false;
 	}
 }

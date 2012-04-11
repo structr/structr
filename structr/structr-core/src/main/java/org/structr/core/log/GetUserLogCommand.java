@@ -19,6 +19,7 @@
 
 package org.structr.core.log;
 
+import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.User;
 
 /**
@@ -31,7 +32,7 @@ import org.structr.core.entity.User;
 public class GetUserLogCommand extends LogServiceCommand
 {
 	@Override
-	public Object execute(Object... parameters)
+	public Object execute(Object... parameters) throws FrameworkException
 	{
 		LogService service = (LogService)getArgument("service");
 		User user = null;

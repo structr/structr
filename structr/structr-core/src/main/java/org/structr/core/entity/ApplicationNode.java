@@ -38,7 +38,9 @@ import org.structr.core.node.TransactionCommand;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.error.FrameworkException;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -48,7 +50,7 @@ import java.util.logging.Logger;
  */
 public abstract class ApplicationNode extends AbstractNode {
 
-	// private static final Logger logger = Logger.getLogger(ApplicationNode.class.getName());
+	private static final Logger logger = Logger.getLogger(ApplicationNode.class.getName());
 	static {
 
 		EntityContext.registerPropertySet(ApplicationNode.class,
@@ -65,22 +67,26 @@ public abstract class ApplicationNode extends AbstractNode {
 
 		if (!getNode().hasRelationship(Direction.OUTGOING)) {
 
-			// build application here
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+			try {
+				// build application here
+				Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
-				@Override
-				public Object execute() throws Throwable {
+					@Override
+					public Object execute() throws FrameworkException {
 
-					buildTestCase();
+						buildTestCase();
 
-					return (null);
-				}
+						return (null);
+					}
 
-			});
+				});
 
-			// change this into a Folder
-			this.setProperty("type",
-					 "Folder");
+				// change this into a Folder
+				this.setProperty("type", "Folder");
+
+			} catch(FrameworkException fex) {
+				logger.log(Level.WARNING, "Unable to build test case", fex);
+			}
 		}
 	}
 
@@ -103,26 +109,39 @@ public abstract class ApplicationNode extends AbstractNode {
 		attrs.add(new NodeAttribute(Key.name.name(),
 					    name));
 
-		AbstractNode ret = (AbstractNode) createNodeCommand.execute(attrs);
+		try {
+			AbstractNode ret = (AbstractNode) createNodeCommand.execute(attrs);
 
-		if (parent != null) {
+			if (parent != null) {
 
-			linkNodes(parent,
-				  ret,
-				  RelType.HAS_CHILD);
+				linkNodes(parent,
+					  ret,
+					  RelType.HAS_CHILD);
+			}
+
+			if (template != null) {
+
+				linkNodes(ret,
+					  template,
+					  RelType.USE_TEMPLATE);
+			}
+
+			return (ret);
+
+		} catch(FrameworkException fex) {
+			logger.log(Level.WARNING, "Unable to create node", fex);
 		}
 
-		if (template != null) {
-
-			linkNodes(ret,
-				  template,
-				  RelType.USE_TEMPLATE);
-		}
-
-		return (ret);
+		return null;
 	}
 
-	protected StructrRelationship linkNodes(AbstractNode startNode, AbstractNode endNode, RelType relType) {
-		return((StructrRelationship)Services.command(securityContext, CreateRelationshipCommand.class).execute(startNode, endNode, relType));
+	protected AbstractRelationship linkNodes(AbstractNode startNode, AbstractNode endNode, RelType relType) {
+		try {
+			return((AbstractRelationship)Services.command(securityContext, CreateRelationshipCommand.class).execute(startNode, endNode, relType));
+
+		} catch(FrameworkException fex) {
+			logger.log(Level.WARNING, "Unable to link nodes", fex);
+		}
+		return null;
 	}
 }

@@ -29,9 +29,9 @@ import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.kernel.Traversal;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.UnsupportedArgumentError;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.User;
 
 /**
  * Get all nodes in the database
@@ -43,10 +43,10 @@ public class GetAncestors extends NodeServiceCommand {
     private static final Logger logger = Logger.getLogger(GetAncestors.class.getName());
 
     @Override
-    public Object execute(Object... parameters) {
+    public Object execute(Object... parameters) throws FrameworkException {
 
         GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
-        StructrNodeFactory nodeFactory = (StructrNodeFactory) arguments.get("nodeFactory");
+        NodeFactory nodeFactory = (NodeFactory) arguments.get("nodeFactory");
 
         if (graphDb != null) {
 
@@ -73,7 +73,7 @@ public class GetAncestors extends NodeServiceCommand {
         return Collections.emptyList();
     }
 
-    private List<AbstractNode> getAncestors(SecurityContext securityContext, GraphDatabaseService graphDb, StructrNodeFactory nodeFactory, Object argument) {
+    private List<AbstractNode> getAncestors(SecurityContext securityContext, GraphDatabaseService graphDb, NodeFactory nodeFactory, Object argument) throws FrameworkException {
 
         Node node = null;
         
