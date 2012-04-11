@@ -19,8 +19,6 @@
 	<properties>
 		<netbeans.hint.license>structr-gpl30</netbeans.hint.license>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<structr.version>0.4.9-SNAPSHOT</structr.version>
-		<jetty.version></jetty.version>
 	</properties>
 	<repositories>
 		<repository>
@@ -46,17 +44,17 @@
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>structr-websocket</artifactId>
-			<version>${structr.version}</version>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>structr-rest</artifactId>
-			<version>${structr.version}</version>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>structr-core</artifactId>
-			<version>${structr.version}</version>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<artifactId>urlrewritefilter</artifactId>

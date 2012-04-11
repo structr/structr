@@ -24,7 +24,6 @@ package org.structr.core.entity;
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RenderMode;
-import org.structr.common.renderer.ContentTemplateRenderer;
 import org.structr.core.EntityContext;
 import org.structr.core.NodeRenderer;
 
@@ -58,8 +57,7 @@ public class PlainText extends AbstractNode {
 	@Override
 	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers) {
 
-		renderers.put(RenderMode.Default,
-			      new ContentTemplateRenderer());
+
 	}
 
 	//~--- get methods ----------------------------------------------------

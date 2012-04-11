@@ -53,7 +53,7 @@ public class StructrServer {
 
 	public static void main(String[] args) throws Exception {
 
-		String appName        = "structr UI 0.4.8";
+		String appName        = "structr UI 0.4.9";
 		String host           = System.getProperty("host", "0.0.0.0");
 		String keyStorePath   = System.getProperty("keyStorePath", "keystore.jks");
 		int httpPort          = Integer.parseInt(System.getProperty("port", "8080"));

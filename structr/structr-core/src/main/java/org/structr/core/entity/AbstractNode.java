@@ -21,9 +21,6 @@
 
 package org.structr.core.entity;
 
-import freemarker.ext.servlet.HttpRequestParametersHashModel;
-
-import freemarker.template.Configuration;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.ArrayUtils;
@@ -48,10 +45,8 @@ import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.RenderMode;
-import org.structr.common.RequestHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.StructrOutputStream;
-import org.structr.common.TemplateHelper;
 import org.structr.common.UuidCreationTransformation;
 import org.structr.common.renderer.DefaultEditRenderer;
 import org.structr.common.renderer.RenderContext;
@@ -80,13 +75,10 @@ import org.structr.core.node.SetOwnerCommand;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 import org.structr.core.node.XPath;
-import org.structr.core.node.search.Search;
 import org.structr.core.notion.Notion;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.io.StringReader;
-import java.io.Writer;
 
 import java.lang.reflect.Method;
 
@@ -110,7 +102,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 import org.structr.common.*;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -1190,108 +1181,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	// ----- protected methods -----
 	public static String toGetter(String name) {
 		return "get".concat(name.substring(0, 1).toUpperCase()).concat(name.substring(1));
-	}
-
-	public void replaceByFreeMarker(HttpServletRequest request, final String templateString, Writer out, final AbstractNode startNode, final String editUrl, final Long editNodeId) {
-
-		Configuration cfg = new Configuration();
-
-		// TODO: enable access to content tree, see below (Content variable)
-		// cfg.setSharedVariable("Tree", new StructrTemplateNodeModel(this));
-		try {
-
-			AbstractNode callingNode = null;
-
-			if (getTemplate() != null) {
-
-				callingNode = template.getCallingNode();
-
-			} else {
-
-				callingNode = startNode;
-
-			}
-
-			Map root = new HashMap();
-
-			root.put("this", this);
-			root.put("StartNode", startNode);
-
-			// just for convenience
-			root.put("node", startNode);
-
-			if (callingNode != null) {
-
-				root.put(callingNode.getType(), callingNode);
-				root.put("CallingNode", callingNode);
-
-			}
-
-			if (request != null) {
-
-				// root.put("Request", new freemarker.template.SimpleHash(request.getParameterMap().));
-				HttpRequestParametersHashModel requestModel = new HttpRequestParametersHashModel(request);
-
-				root.put("Request", requestModel);
-				root.put("ContextPath", request.getContextPath());
-
-				String searchString = Search.clean(request.getParameter("search"));
-
-				if ((searchString != null) &&!(searchString.isEmpty())) {
-
-					root.put("SearchString", searchString);
-
-					List<AbstractNode> result = RequestHelper.retrieveSearchResult(securityContext, request);
-
-					root.put("SearchResults", result);
-
-				}
-			}
-
-			if (user != null) {
-
-				root.put("User", user);
-
-			}
-
-			// Add a generic helper
-			root.put("Helper", new TemplateHelper());
-
-			// Add path helper / finder
-			root.put("path", new PathHelper(securityContext));
-
-			// Add error and ok message if present
-			HttpSession session = securityContext.getSession();
-
-			if (session != null) {
-
-				if (session.getAttribute("errorMessage") != null) {
-
-					root.put("ErrorMessage", session.getAttribute("errorMessage"));
-
-				}
-
-				if (session.getAttribute("okMessage") != null) {
-
-					root.put("OkMessage", session.getAttribute("okMessage"));
-
-				}
-
-			}
-
-			// root.put("Content", new StructrTemplateNodeModel(this, startNode, editUrl, editNodeId, user));
-			// root.put("ContextPath", callingNode.getNodePath(startNode));
-			String name                    = (template != null)
-							 ? template.getName()
-							 : getName();
-			freemarker.template.Template t = new freemarker.template.Template(name, new StringReader(templateString), cfg);
-
-			t.process(root, out);
-			out.flush();
-
-		} catch (Throwable t) {
-			logger.log(Level.WARNING, "Error: {0}", t.getMessage());
-		}
 	}
 
 	protected String createUniqueIdentifier(String prefix) {
