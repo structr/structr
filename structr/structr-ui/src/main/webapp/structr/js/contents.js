@@ -21,6 +21,7 @@ var contents, editor;
 
 $(document).ready(function() {
     Structr.registerModule('contents', _Contents);
+	Structr.classes.push('content');
 });
 
 var _Contents = {
@@ -30,7 +31,7 @@ var _Contents = {
     delete_icon : 'icon/page_white_delete.png',
 	
     init : function() {
-        Structr.classes.push('content');
+        //Structr.classes.push('content');
     },
 
     onload : function() {

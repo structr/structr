@@ -22,6 +22,7 @@ var palette;
 
 $(document).ready(function() {
     Structr.registerModule('elements', _Elements);
+	Structr.classes.push('element');
 });
 
 var _Elements = {
@@ -116,7 +117,7 @@ var _Elements = {
     ],
 	
     init : function() {
-        Structr.classes.push('element');
+        //Structr.classes.push('element');
     },
 
     onload : function() {

@@ -21,6 +21,7 @@ var components, elements;
 
 $(document).ready(function() {
     Structr.registerModule('components', _Components);
+	Structr.classes.push('component');
 });
 
 var _Components = {
@@ -30,7 +31,7 @@ var _Components = {
     delete_icon : 'icon/package_delete.png',
 
     init : function() {
-        Structr.classes.push('component');
+        //Structr.classes.push('component');
     },
 
     onload : function() {

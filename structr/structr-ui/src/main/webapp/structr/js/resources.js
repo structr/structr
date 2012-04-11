@@ -26,6 +26,7 @@ var textBeforeEditing;
 
 $(document).ready(function() {
 	Structr.registerModule('resources', _Resources);
+	Structr.classes.push('resource');
 });
 
 var _Resources = {
@@ -35,7 +36,7 @@ var _Resources = {
 	delete_icon : 'icon/page_delete.png',
 
 	init : function() {
-		Structr.classes.push('resource');
+		//Structr.classes.push('resource');
 	},
 
 	onload : function() {
@@ -687,9 +688,14 @@ var _Resources = {
 				if (debug) console.log(resource);
 				var contentId = getIdFromClassString(ui.draggable.attr('class'));
 				var elementId = getIdFromClassString(self.attr('class'));
+				var tag;
+				console.log('contentId', contentId);
 				if (!contentId) {
-					var tag = $(ui.draggable).text();
+					tag = $(ui.draggable).text();
+				} else {
+					tag = Structr.getClass($(ui.draggable));
 				}
+				console.log($(ui.draggable));
 				var pos = $('.node', self).length;
 				if (debug) console.log(pos);
 				var relData = {};
