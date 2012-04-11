@@ -220,7 +220,10 @@ var _Elements = {
             var self = $(this);
             self.off('click');
             self.off('mouseover');
-            _Components.addComponent(this, entity);
+			var comp = {};
+			comp.type = 'Component';
+			
+            _Entities.create(this, comp);
         });
 
         div.append('<img title="Edit HTML Properties" alt="Edit HTML Properties" class="edit_icon button" src="' + '/structr/icon/application_view_detail.png' + '">');
