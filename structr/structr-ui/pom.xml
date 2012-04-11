@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
@@ -128,6 +128,30 @@
 					</webResources>
 				</configuration>
 			</plugin>
+<!--			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>1.6</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<filters>
+								<filter>
+									<artifact>org.eclipse.jetty.orbit:javax.servlet</artifact>
+									<excludes>
+										<exclude>META-INF/ECLIPSEF.RSA</exclude>
+										<exclude>META-INF/ECLIPSEF.SF</exclude>
+										<exclude>META-INF/eclipse.inf</exclude>
+									</excludes>
+								</filter>
+							</filters>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>		-->
 		</plugins>
 		<finalName>structr-ui</finalName>
 	</build>
@@ -174,22 +198,22 @@
 			<name>GNU General Public License, Version 3</name>
 			<url>http://www.gnu.org/licenses/gpl-3.0-standalone.html</url>
 			<comments>
-                Copyright (C) 2011-2012 Axel Morgner, structr &lt;structr@structr.org&gt;
+				Copyright (C) 2011-2012 Axel Morgner, structr &lt;structr@structr.org&gt;
 
-                This file is part of structr &lt;http://structr.org&gt;.
+				This file is part of structr &lt;http://structr.org&gt;.
 
-                structr is free software: you can redistribute it and/or modify
-                it under the terms of the GNU General Public License as published by
-                the Free Software Foundation, either version 3 of the License, or
-                (at your option) any later version.
+				structr is free software: you can redistribute it and/or modify
+				it under the terms of the GNU General Public License as published by
+				the Free Software Foundation, either version 3 of the License, or
+				(at your option) any later version.
 
-                structr is distributed in the hope that it will be useful,
-                but WITHOUT ANY WARRANTY; without even the implied warranty of
-                MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-                GNU General Public License for more details.
+				structr is distributed in the hope that it will be useful,
+				but WITHOUT ANY WARRANTY; without even the implied warranty of
+				MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+				GNU General Public License for more details.
 
-                You should have received a copy of the GNU General Public License
-                along with structr.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+				You should have received a copy of the GNU General Public License
+				along with structr.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 			</comments>
 		</license>
 	</licenses>
