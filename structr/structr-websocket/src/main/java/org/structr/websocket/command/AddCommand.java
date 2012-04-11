@@ -61,18 +61,18 @@ public class AddCommand extends AbstractCommand {
 
 		// create static relationship
 		final Map<String, Object> nodeData = webSocketData.getNodeData();
-		String sourceId                    = (String) nodeData.get("id");
+		String containedNodeId             = (String) nodeData.get("id");
 		final Map<String, Object> relData  = webSocketData.getRelData();
-		String targetId                    = webSocketData.getId();
+		String containingNodeId            = webSocketData.getId();
 
-		if (targetId != null) {
+		if (containingNodeId != null) {
 
-			AbstractNode sourceNode = null;
-			AbstractNode targetNode = getNode(targetId);
+			AbstractNode containedNode = null;
+			AbstractNode containingNode = getNode(containingNodeId);
 
-			if (sourceId != null) {
+			if (containedNodeId != null) {
 
-				sourceNode = getNode(sourceId);
+				containedNode = getNode(containedNodeId);
 
 			} else {
 
@@ -87,7 +87,7 @@ public class AddCommand extends AbstractCommand {
 				try {
 
 					// create node in transaction
-					sourceNode = (AbstractNode) Services.command(securityContext, TransactionCommand.class).execute(transaction);
+					containedNode = (AbstractNode) Services.command(securityContext, TransactionCommand.class).execute(transaction);
 				} catch (FrameworkException fex) {
 
 					logger.log(Level.WARNING, "Could not create node.", fex);
@@ -96,14 +96,14 @@ public class AddCommand extends AbstractCommand {
 
 			}
 
-			if ((sourceNode != null) && (targetNode != null)) {
+			if ((containedNode != null) && (containingNode != null)) {
 
-				RelationClass rel = EntityContext.getRelationClass(sourceNode.getClass(), targetNode.getClass());
+				RelationClass rel = EntityContext.getRelationClass(containingNode.getClass(), containedNode.getClass());
 
 				if (rel != null) {
 
 					try {
-						rel.createRelationship(securityContext, sourceNode, targetNode, relData);
+						rel.createRelationship(securityContext, containingNode, containedNode, relData);
 					} catch (Throwable t) {
 						getWebSocket().send(MessageBuilder.status().code(400).message(t.getMessage()).build(), true);
 					}
