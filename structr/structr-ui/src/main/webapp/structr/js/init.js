@@ -137,7 +137,7 @@ var Structr = {
 		
     init : function() {
         
-        $.unblockUI();
+        $.unblockUI({ fadeOut: 25 });
 
         connect();
 	
@@ -173,6 +173,8 @@ var Structr = {
         $.blockUI.defaults.overlayCSS.opacity = .6;
         $.blockUI.defaults.applyPlatformOpacityRules = false;
         $.blockUI({
+            fadeIn: 25,
+            fadeOut: 25,
             message: $('#login'),
             forceInput: true,
             css: {
@@ -267,11 +269,13 @@ var Structr = {
             callback();
         });
         $('#confirmation .noButton').on('click', function() {
-            $.unblockUI();
+            $.unblockUI({ fadeOut: 25 });
         });
         $.blockUI.defaults.overlayCSS.opacity = .6;
         $.blockUI.defaults.applyPlatformOpacityRules = false;
         $.blockUI({
+            fadeIn: 25,
+            fadeOut: 25,
             message: $('#confirmation'),
             css: {
                 border: 'none',
@@ -308,12 +312,12 @@ var Structr = {
         //        if (callbackOk) $('#dialogOkButton').on('click', function() {
         //            callbackOk();
         //			$('#dialogBox .dialogText').empty();
-        //			$.unblockUI();
+        //			$.unblockUI({ fadeOut: 25 });
         //        });
         if (callbackCancel) $('#dialogBox .dialogCancelButton').on('click', function() {
             callbackCancel();
             $('#dialogBox .dialogText').empty();
-            $.unblockUI();
+            $.unblockUI({ fadeOut: 25 });
         });
         $.blockUI.defaults.overlayCSS.opacity = .6;
         $.blockUI.defaults.applyPlatformOpacityRules = false;
@@ -337,7 +341,7 @@ var Structr = {
             //callback();
             console.log(callback);
 			
-            $.unblockUI();
+            $.unblockUI({ fadeOut: 25 });
         });
         $.blockUI.defaults.overlayCSS.opacity = .6;
         $.blockUI.defaults.applyPlatformOpacityRules = false;

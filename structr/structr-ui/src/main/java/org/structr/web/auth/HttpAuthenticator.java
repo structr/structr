@@ -175,7 +175,14 @@ public class HttpAuthenticator implements Authenticator {
 
 	public static String[] getUsernameAndPassword(final HttpServletRequest request) {
 
-		String auth                = request.getHeader("Authorization");
+		String auth = request.getHeader("Authorization");
+
+		if (auth == null) {
+
+			return null;
+
+		}
+
 		String usernameAndPassword = new String(Base64.decodeBase64(auth.substring(6)));
 
 		logger.log(Level.INFO, "Decoded user and pass: {0}", usernameAndPassword);

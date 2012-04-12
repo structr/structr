@@ -143,17 +143,6 @@ var _Entities = {
         });
     },
 
-    addSourceToTarget : function(targetId, nodeData, relData) {
-        if (debug) console.log('Add object to ' + targetId, nodeData, relData);
-        var obj = {};
-        obj.command = 'ADD';
-        obj.id = targetId;
-        obj.data = nodeData;
-        obj.relData = relData;
-        if (debug) console.log(obj);
-        return sendObj(obj);
-    },
-
     removeSourceFromTarget : function(sourceId, targetId) {
         if (debug) console.log('Remove ' + sourceId + ' from ' + targetId);
         var obj = {};
@@ -198,11 +187,14 @@ var _Entities = {
         return sendObj(obj);
     },
 
-    createAndAdd : function(id, entity, relData) {
+    createAndAdd : function(id, nodeData, relData) {
+	if (!nodeData.name) {
+	    nodeData.name = 'New ' + nodeData.type + ' ' + Math.floor(Math.random() * (999999 - 1));
+	}
         var obj = {};
         obj.command = 'ADD';
         obj.id = id;
-        obj.data = entity;
+        obj.data = nodeData;
         obj.relData = relData;
         if (debug) console.log('_Entities.createAndAdd', obj);
         return sendObj(obj);

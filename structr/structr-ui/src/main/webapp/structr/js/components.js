@@ -81,12 +81,12 @@ var _Components = {
 
         var parent = Structr.findParent(parentId, resourceId, components);
         
-        parent.append('<div class="component ' + component.id + '_">'
+        parent.append('<div class="node component ' + component.id + '_">'
             + '<img class="typeIcon" src="'+ _Components.icon + '">'
-            + '<b class="name_">' + component.name + '</b> <span class="id">' + component.id + '</span>'
+            + '<b class="name_">' + component.structrclass + '</b> <span class="id">' + component.id + '</span>'
             + '</div>');
         var div = $('.' + component.id + '_', parent);
-        div.append('<img title="Delete component \'' + component.name + '\' ' + component.id + '" alt="Delete component \'' + component.name + '\' ' + component.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
+        div.append('<img title="Delete component \'' + component.structrclass + '\' ' + component.id + '" alt="Delete component \'' + component.structrclass + '\' ' + component.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
         $('.delete_icon', div).on('click', function() {
             _Components.deleteComponent(this, component);
         });
@@ -110,15 +110,16 @@ var _Components = {
             greedy: true,
             hoverClass: 'componentHover',
             drop: function(event, ui) {
-                var elementId = getIdFromClassString(ui.draggable.attr('class'));
-                var resourceId = getIdFromClassString($(this).attr('class'));
+		var self = $(this);
+                var elementId = getId(ui.draggable);
+                var resourceId = getId(self);
                 if (!resourceId) resourceId = '*';
-                var pos = $('.element', $(this)).length;
+                var pos = $('.element', self).length;
                 var nodeData = {};
                 nodeData.id = elementId;
                 var relData = {};
                 relData[resourceId] = pos;
-                _Entities.addSourceToTarget(resourceId, nodeData, relData);
+                _Entities.createAndAdd(resourceId, nodeData, relData);
             }
         });
 
@@ -156,15 +157,16 @@ var _Components = {
             greedy: true,
             hoverClass: 'elementHover',
             drop: function(event, ui) {
-                var resource = $(this).closest( '.resource')[0];
+		var self = $(this);
+                var resource = self.closest( '.resource')[0];
                 if (debug) console.log(resource);
-                var contentId = getIdFromClassString(ui.draggable.attr('class'));
-                var elementId = getIdFromClassString($(this).attr('class'));
-                var pos = $('.content', $(this)).length;
+                var contentId = getId(ui.draggable);
+                var elementId = getId(self);
+                var pos = $('.content', self).length;
                 if (debug) console.log(pos);
                 var resourceId;
                 if (resource) {
-                    resourceId = getIdFromClassString($(resource).attr('class'));
+                    resourceId = getId(resource);
                 } else {
                     resourceId = '*';
                 }
@@ -173,7 +175,7 @@ var _Components = {
                 relData[resourceId] = pos;
                 var nodeData = {};
                 nodeData.id = contentId;
-                _Entities.addSourceToTarget(elementId, nodeData, relData);
+                _Entities.createAndAdd(elementId, nodeData, relData);
             }
         });
 
@@ -194,18 +196,23 @@ var _Components = {
         form._html_action = '//' + plural(component.structrclass).toLowerCase();
         form._html_method = 'post';
 
-        var componentId = component.id;
-        var resourceId = getIdFromClassString($($(button).closest('.resource')[0]).attr('class'));
+	var node = $($(button).closest('.node')[0]);
 
-        var componentElement = $(button).closest('.component');
-        var pos = componentElement.children('.node').size();
+        //var componentId = component.id;
+        var resourceId = getId(node.closest('.resource')[0]);
+
+        var componentElement = node.closest('.component');
+	var parentElement = componentElement.parent();
+        var pos = parentElement.children('.node').size();
 
         var rel = {};
 
-        rel[componentId] = pos;
+        //rel[componentId] = pos;
         rel[resourceId] = pos;
 
-        _Entities.createAndAdd(componentId, form, rel);
+	var parentId = getId(parentElement);
+
+        _Entities.createAndAdd(parentId, form, rel);
 
     }
 

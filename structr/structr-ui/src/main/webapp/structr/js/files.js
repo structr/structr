@@ -99,7 +99,7 @@ var _Files = {
 					});
 
 					Structr.error(errorText, function() {
-						$.unblockUI();
+						$.unblockUI({ fadeOut: 25 });
 						$(filesToUpload).each(function(i, file) {
 							if (debug) console.log(file);
 							if (file) _Files.createFile(file);
@@ -291,7 +291,7 @@ var _Files = {
 				var folderId = getIdFromClassString($(this).attr('class'));
 				var nodeData = {};
 				nodeData.id = fileId;
-				_Entities.addSourceToTarget(folderId, nodeData);
+				_Entities.createAndAdd(folderId, nodeData);
 			}
 		});
 		

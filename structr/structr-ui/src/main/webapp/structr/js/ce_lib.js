@@ -86,7 +86,7 @@ function deleteNode(button, entity) {
         //console.log(toSend);
         if (send(toSend)) {
             disable(button);
-            $.unblockUI();
+            $.unblockUI({ fadeOut: 25 });
         }
     });
 }
@@ -159,7 +159,7 @@ function getIdFromClassString(classString) {
 }
 
 function getId(element) {
-    return getIdFromClassString(element.attr('class'));
+    return getIdFromClassString($(element).attr('class'));
 }
 
 function lastPart(id, separator) {

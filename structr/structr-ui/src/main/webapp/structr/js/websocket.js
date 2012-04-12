@@ -88,7 +88,7 @@ function connect() {
                 if (sessionValid) {
                     $.cookie('structrSessionToken', token);
                     $.cookie('structrUser', user);
-                    $.unblockUI();
+                    $.unblockUI({ fadeOut: 25 });
                     $('#logout_').html('Logout <span class="username">' + user + '</span>');
 
                     Structr.loadInitialModule();
@@ -166,6 +166,15 @@ function connect() {
                         _Resources.activateTab(tab);
                         //_Resources.reloadPreviews();
                         if (debug) console.log('Resource element appended');
+                        if (buttonClicked) enable(buttonClicked);
+
+                    } else if (entity.type == 'Component') {
+                        if (resources) {
+                            _Resources.appendComponentElement(entity);
+                        } else {
+                            _Components.appendComponentElement(entity);
+                        }
+                        if (debug) console.log('Component element appended');
                         if (buttonClicked) enable(buttonClicked);
 
                     } else if (entity.type == 'Content') {
