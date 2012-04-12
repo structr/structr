@@ -154,7 +154,7 @@ var _UsersAndGroups = {
 				var groupId = getIdFromClassString($(this).attr('class'));
 				var user = {};
 				user.id = userId;
-				_Entities.addSourceToTarget(groupId, user);
+				_Entities.createAndAdd(groupId, user);
 			}
 		});
 
