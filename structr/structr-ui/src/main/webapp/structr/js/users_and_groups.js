@@ -142,7 +142,7 @@ var _UsersAndGroups = {
 			_UsersAndGroups.deleteGroup(this, group)
 		});
 		$('b', div).on('click', function() {
-			_Entities.showProperties(this, group, 'all', $('#dialogBox .dialogText'));
+			_Entities.showProperties(this, group, $('#dialogBox .dialogText'));
 		});
 	
 		div.droppable({
@@ -177,7 +177,7 @@ var _UsersAndGroups = {
 				_UsersAndGroups.removeUserFromGroup(user.id, groupId)
 			});
 			$('b', div).on('click', function() {
-				_Entities.showProperties(this, user, 'all', $('#dialogBox .dialogText'));
+				_Entities.showProperties(this, user, $('#dialogBox .dialogText'));
 			});
 		} else {
 			users.append('<div class="user ' + user.id + '_">'
@@ -192,7 +192,7 @@ var _UsersAndGroups = {
 				_UsersAndGroups.deleteUser(this, user)
 			});
 			$('b', div).on('click', function() {
-				_Entities.showProperties(this, user, 'all', $('#dialogBox .dialogText'));
+				_Entities.showProperties(this, user, $('#dialogBox .dialogText'));
 			});
 			div.draggable({
 				revert: 'invalid',

@@ -102,7 +102,7 @@ var _Components = {
         //        });
         $('b', div).on('click', function() {
             //_Entities.showProperties(this, component, 'all', $('.' + component.id + '_', components));
-	    _Entities.showProperties(this, component, 'all', $('#dialogBox .dialogText'));
+	    _Entities.showProperties(this, component, $('#dialogBox .dialogText'));
         });
 
         div.droppable({

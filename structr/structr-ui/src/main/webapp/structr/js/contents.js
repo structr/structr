@@ -104,7 +104,7 @@ var _Contents = {
             }, function() {
                 console.log('cancelled')
             });
-            _Entities.showProperties(this, content, 'all', $('#dialogBox .dialogText'));
+            _Entities.showProperties(this, content, $('#dialogBox .dialogText'));
         });
 
         return div;
