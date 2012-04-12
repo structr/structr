@@ -775,6 +775,7 @@ var _Resources = {
 		if (resource) {
 		    var resourceId = getId(resource);
 		    relData[resourceId] = pos;
+		    relData.resourceId = resourceId;
 		} else {
 		    relData['*'] = pos;
 		}
@@ -783,6 +784,7 @@ var _Resources = {
 		if (component) {
 		    var componentId = getId(component);
 		    relData[componentId] = pos;
+		    relData.componentId = componentId;
 		} else {
 		    relData['*'] = pos;
 		}

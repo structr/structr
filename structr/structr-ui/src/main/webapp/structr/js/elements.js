@@ -231,12 +231,14 @@ var _Elements = {
 	    if (component) {
 		var componentId = getId(component);
 		relData[componentId] = pos;
+		relData.componentId = componentId;
 	    }
 
 	    var resource = node.closest('.resource')[0];
 	    if (resource) {
 		var resourceId = getId(resource);
 		relData[resourceId] = pos;
+		relData.resourceId = resourceId;
 	    }
 	    console.log('_Entities.addSourceToTarget', getId(node), nodeData, relData);
 	    _Entities.createAndAdd(getId(node), nodeData, relData);

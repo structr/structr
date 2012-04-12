@@ -83,10 +83,10 @@ var _Components = {
         
         parent.append('<div class="node component ' + component.id + '_">'
             + '<img class="typeIcon" src="'+ _Components.icon + '">'
-            + '<b class="name_">' + component.name + '</b> <span class="id">' + component.id + '</span>'
+            + '<b class="name_">' + component.structrclass + '</b> <span class="id">' + component.id + '</span>'
             + '</div>');
         var div = $('.' + component.id + '_', parent);
-        div.append('<img title="Delete component \'' + component.name + '\' ' + component.id + '" alt="Delete component \'' + component.name + '\' ' + component.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
+        div.append('<img title="Delete component \'' + component.structrclass + '\' ' + component.id + '" alt="Delete component \'' + component.structrclass + '\' ' + component.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
         $('.delete_icon', div).on('click', function() {
             _Components.deleteComponent(this, component);
         });
