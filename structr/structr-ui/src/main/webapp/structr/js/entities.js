@@ -304,6 +304,10 @@ var _Entities = {
 			var keys = Object.keys(res);
 
 			if (debug ) console.log('keys', keys);
+
+			if (view == 'in' || view == 'out') {
+			    tabView.append('<br><h3>Relationship ' + res['id']+ '</h3>')
+			}
 				
 			tabView.append('<table class="props ' + view + '"></table>');
 

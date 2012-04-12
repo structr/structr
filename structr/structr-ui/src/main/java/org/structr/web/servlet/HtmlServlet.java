@@ -175,7 +175,7 @@ public class HtmlServlet extends HttpServlet {
 		String path                        = clean(request.getPathInfo());
 
 		// String resourcePath                = getParts(path)[1];
-		postToRestUrl(request, path, convert(parameterMap));
+		postToRestUrl(request, getParts(path)[1], convert(parameterMap));
 
 		String name = null;
 
@@ -468,7 +468,18 @@ public class HtmlServlet extends HttpServlet {
 
 		path = clean(path);
 
-		return new String[] { StringUtils.substringBefore(path, REST_PATH_SEP), StringUtils.substringAfter(path, REST_PATH_SEP) };
+		boolean hasSep = StringUtils.contains(path, REST_PATH_SEP);
+
+
+		String firstPart, secondPart = "";
+		if (!hasSep) {
+			firstPart = path;
+		} else {
+			firstPart = StringUtils.substringBefore(path, REST_PATH_SEP);
+			secondPart = StringUtils.substringAfter(path, REST_PATH_SEP);
+		}
+
+		return new String[] { firstPart, secondPart };
 	}
 
 	private void getContent(final String resourceId, final String componentId, final StringBuilder buffer, final AbstractNode node, final int depth, boolean inBody, final String searchClass,

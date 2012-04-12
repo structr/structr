@@ -51,6 +51,8 @@ public class StructrServer {
 
 	public static final String REST_URL = "/structr/rest";
 
+	//~--- methods --------------------------------------------------------
+
 	public static void main(String[] args) throws Exception {
 
 		String appName        = "structr UI 0.4.9";
@@ -84,7 +86,6 @@ public class StructrServer {
 
 		// ServletContextHandler context0    = new ServletContextHandler(ServletContextHandler.SESSIONS);
 		// SelectChannelConnector connector0 = new SelectChannelConnector();
-
 		SelectChannelConnector httpConnector = new SelectChannelConnector();
 
 		httpConnector.setHost(host);
