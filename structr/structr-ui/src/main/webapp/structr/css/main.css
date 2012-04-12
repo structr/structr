@@ -372,7 +372,7 @@ tr:nth-child(even) {
     border: none;
     font-size: inherit;
 /*    background: transparent;*/
-    width: 180px;
+    width: 200px;
 }
 
 .props tr td.value textarea {
