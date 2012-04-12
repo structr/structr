@@ -55,6 +55,10 @@ public class Component extends AbstractNode {
 	public enum UiKey implements PropertyKey {
 		type, name, structrclass
 	}
+	
+	public enum Key implements PropertyKey {
+		componentId
+	}
 
 	static {
 
@@ -82,7 +86,7 @@ public class Component extends AbstractNode {
 	@Override
 	public void onNodeInstantiation() {
 		
-		collectProperties(getStringProperty(AbstractNode.Key.uuid), this, 0, null);
+		collectProperties(this, getStringProperty(AbstractNode.Key.uuid), 0, null);
 	}
 	
 	@Override
@@ -116,13 +120,10 @@ public class Component extends AbstractNode {
 			
 		} else if(subTypes.contains(EntityContext.normalizeEntityName(key))) {
 			
+			String componentId = getStringProperty(AbstractNode.Key.uuid);
 			List<Component> results = new LinkedList<Component>();
 			
-			String componentId = getStringProperty(AbstractNode.Key.uuid);
-			
-			System.out.println("Collecting children with componentId " + componentId + ")...");
-			
-			collectChildren(componentId, this, results, 0, null);
+			collectChildren(results, this, componentId, 0, null);
 			
 			return results;
 			
@@ -151,16 +152,29 @@ public class Component extends AbstractNode {
 		return contentNodes;
 	}
 	
-	// ----- private methods ----
-	private void collectProperties(String componentId, AbstractNode startNode, int depth, AbstractRelationship ref) {
+	public String getComponentId() {
 		
+		for(AbstractRelationship in : getRelationships(RelType.CONTAINS, Direction.INCOMING)) {
+			
+			String componentId = in.getStringProperty(Key.componentId.name());
+			if(componentId != null) {
+				return componentId;
+			}
+		}
+		
+		return null;
+	}
+	
+	// ----- private methods ----
+	private void collectProperties(AbstractNode startNode, String componentId, int depth, AbstractRelationship ref) {
+				
 		if(depth > MAX_DEPTH) {
 			return;
 		}
 		
 		if(ref != null) {
 		
-			if(ref.getRelationship().hasProperty(componentId)) {
+			if(componentId.equals(ref.getStringProperty(Key.componentId.name()))) {
 
 				String dataKey = startNode.getStringProperty("data-key");
 				if(dataKey != null) {
@@ -170,7 +184,8 @@ public class Component extends AbstractNode {
 			}
 		}
 
-		for(AbstractRelationship rel : startNode.getOutgoingRelationships(RelType.CONTAINS)) {
+		// collection of properties must not depend on resource
+		for(AbstractRelationship rel : getChildRelationships(startNode, null, componentId)) {
 
 			AbstractNode endNode = rel.getEndNode();
 			
@@ -178,35 +193,41 @@ public class Component extends AbstractNode {
 				
 				String subType = endNode.getStringProperty(Component.UiKey.structrclass);
 				if(subType != null) {
-					subTypes.add(subType);
+					subTypes.add(subType);	
 				}
 				
 			} else {
 				
-				collectProperties(componentId, endNode, depth+1, rel);
+				collectProperties(endNode, componentId, depth+1, rel);
 			}
 		}
 	}
 	
-	private void collectChildren(String componentId, AbstractNode startNode, List<Component> results, int depth, AbstractRelationship ref) {
+	private void collectChildren(List<Component> children, AbstractNode startNode, String componentId, int depth, AbstractRelationship ref) {
 		
 		if(depth > MAX_DEPTH) {
 			return;
 		}
+		
+		if(ref != null) {
+		
+			if(startNode instanceof Component) {
 
-		if(ref != null && startNode instanceof Component) {
-			results.add((Component)startNode);
-			return;
+				children.add((Component)startNode);
+				return;
+			}
 		}
 
-		// recurse
-		for(AbstractRelationship rel : startNode.getOutgoingRelationships(RelType.CONTAINS)) {
-			collectChildren(componentId, rel.getEndNode(), results, depth+1, rel);
-		}
+		// collection of properties must not depend on resource
+		for(AbstractRelationship rel : getChildRelationships(startNode, null, componentId)) {
+
+			AbstractNode endNode = rel.getEndNode();
+			collectChildren(children, endNode, componentId, depth+1, rel);
+		}	
 	}
 	
-	
-	public static List<AbstractRelationship> getChildRelationships(final AbstractNode node, final String resourceId, final String localComponentId) {
+	// ----- public static methods -----
+	public static List<AbstractRelationship> getChildRelationships(final AbstractNode node, final String resourceId, final String componentId) {
 		
 		List<AbstractRelationship> rels = new LinkedList<AbstractRelationship>();
 
@@ -214,17 +235,15 @@ public class Component extends AbstractNode {
 
 			Relationship rel = abstractRelationship.getRelationship();
 
-			if (rel.hasProperty(resourceId) || rel.hasProperty("*")) {
+			if (resourceId == null || (resourceId != null && rel.hasProperty(resourceId)) || rel.hasProperty("*")) {
 
 				AbstractNode endNode = abstractRelationship.getEndNode();
 
-				if ((localComponentId != null) && ((endNode instanceof Content) || (endNode instanceof Component))) {
+				if ((componentId != null) && ((endNode instanceof Content) || (endNode instanceof Component))) {
 
 					// only add relationship if (nested) componentId matches
-					if (rel.hasProperty(localComponentId)) {
-
+					if(componentId.equals(abstractRelationship.getStringProperty(Key.componentId.name()))) {
 						rels.add(abstractRelationship);
-
 					}
 					
 				} else {
@@ -232,9 +251,7 @@ public class Component extends AbstractNode {
 					rels.add(abstractRelationship);
 
 				}
-
 			}
-
 		}
 
 		Collections.sort(rels, new Comparator<AbstractRelationship>() {

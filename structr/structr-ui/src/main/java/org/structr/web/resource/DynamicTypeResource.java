@@ -19,8 +19,10 @@
 package org.structr.web.resource;
 
 import java.util.*;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
+import org.apache.commons.collections.ListUtils;
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -36,6 +38,7 @@ import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchNodeCommand;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
+import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.resource.Resource;
 import org.structr.rest.resource.TypeResource;
 import org.structr.rest.resource.UuidResource;
@@ -69,12 +72,18 @@ public class DynamicTypeResource extends TypeResource {
 
 	
 	@Override
+	public String toString() {
+		return "DynamicTypeResource(".concat(this.rawType).concat(")");
+	}
+	
+	@Override
 	public List<GraphObject> doGet() throws FrameworkException {
 
+		List<GraphObject> uuidResults = null;
+		
 		// REST path contained uuid, return result of UuidResource
 		if(uuidResource != null) {
-			// FIXME: type cast is redundant, fix return type of UuidResource instead!
-			return (List<GraphObject>)uuidResource.doGet();
+			uuidResults = (List<GraphObject>)uuidResource.doGet();
 		}
 
 		// check for dynamic type, use super class otherwise
@@ -94,6 +103,19 @@ public class DynamicTypeResource extends TypeResource {
 			// do search
 			List<GraphObject> results = (List<GraphObject>) Services.command(securityContext, SearchNodeCommand.class).execute(topNode, includeDeleted, publicOnly, searchAttributes);
 			if (!results.isEmpty()) {
+
+				// intersect results with uuid result
+				if(uuidResults != null) {
+					results = ListUtils.intersection(results, uuidResults);
+				}
+
+				// check if nested DynamicTypeResources have valid results
+				for(DynamicTypeResource res : nestedResources) {
+					if(res.doGet().isEmpty()) {
+						throw new NotFoundException();
+					}
+				}
+				
 				return results;
 
 			}
@@ -130,13 +152,16 @@ public class DynamicTypeResource extends TypeResource {
 			templateProperties.put("structrclass", template.getStringProperty("structrclass"));
 			templateProperties.put("uuid", componentId);
 
+			// use parentId from template
+			final String parentComponentId = template.getComponentId();
+			
 			Component newComponent = (Component)Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
 				@Override
 				public Object execute() throws FrameworkException {
 					
 					Component comp = (Component)createNodeCommand.execute(templateProperties);
-					copyRelationships(template, comp, getResourceId(), null, position);
+					copyRelationships(template, comp, getResourceId(), parentComponentId, position);
 					
 					Map<String, Object> contentTemplateProperties = new LinkedHashMap<String, Object>();
 					for(AbstractNode node : template.getContentNodes().values()) {
@@ -191,7 +216,7 @@ public class DynamicTypeResource extends TypeResource {
 		
 		final Command deleteCommand = Services.command(securityContext, DeleteNodeCommand.class);
 		final List<GraphObject> toDelete = doGet();
-		final boolean cascade = false;
+		final boolean cascade = true;
 		
 		for(GraphObject obj : toDelete) {
 
@@ -203,10 +228,9 @@ public class DynamicTypeResource extends TypeResource {
 				for(AbstractNode contentNode : contentNodes) {
 					deleteCommand.execute(contentNode, cascade);
 				}
-				
-				deleteCommand.execute(obj, cascade);
 			}
 
+			deleteCommand.execute(obj, cascade);
 		}
 		
 		return new RestMethodResult(200);
@@ -223,8 +247,8 @@ public class DynamicTypeResource extends TypeResource {
 
 		} else if (next instanceof DynamicTypeResource) {
 
-			nestedResources.add((DynamicTypeResource)next);
-			return this;
+			((DynamicTypeResource)next).nestedResources.add(this);
+			return next;
 			
 		} else if (next instanceof TypeResource) {
 
@@ -260,26 +284,26 @@ public class DynamicTypeResource extends TypeResource {
 			
 			// only set componentId if set
 			if(componentId != null) {
-				newInRel.setProperty(componentId, "*");
+				newInRel.setProperty(Component.Key.componentId, componentId);
 			}
 			
 			if(resourceId != null) {
 				newInRel.setProperty(resourceId, position);
 			}
 		}
-		
+
 		for(AbstractRelationship out : sourceNode.getOutgoingRelationships()) {
-			
+
 			AbstractNode endNode     = out.getEndNode();
 			RelationshipType relType = out.getRelType();
-			
+
 			AbstractRelationship newOutRel = (AbstractRelationship)createRel.execute(targetNode, endNode, relType);
 			newOutRel.setProperty("type", out.getStringProperty("type"));
 
 			if(componentId != null) {
-				newOutRel.setProperty(componentId, "*");
+				newOutRel.setProperty(Component.Key.componentId, componentId);
 			}
-			
+
 			if(resourceId != null) {
 				newOutRel.setProperty(resourceId, position);
 			}

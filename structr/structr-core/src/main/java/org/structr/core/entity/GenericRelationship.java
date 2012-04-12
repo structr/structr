@@ -24,6 +24,8 @@ package org.structr.core.entity;
 
 //~--- JDK imports ------------------------------------------------------------
 
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.Relationship;
 import org.structr.common.PropertyKey;
@@ -78,5 +80,20 @@ public class GenericRelationship extends AbstractRelationship {
 	public PropertyKey getEndNodeIdKey() {
 		return null;
 	}
-	
+		
+	@Override
+	public Iterable<String> getPropertyKeys(String propertyView) {
+		
+		Set<String> keys = new LinkedHashSet<String>();
+		
+		if(dbRelationship != null) {
+			
+			for(String key : dbRelationship.getPropertyKeys()) {
+				keys.add(key);
+			}
+		}
+		
+		return keys;
+	}
+
 }
