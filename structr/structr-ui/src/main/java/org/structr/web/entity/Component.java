@@ -57,7 +57,7 @@ public class Component extends AbstractNode {
 	}
 	
 	public enum Key implements PropertyKey {
-		componentId
+		componentId, resourceId
 	}
 
 	static {
@@ -159,6 +159,19 @@ public class Component extends AbstractNode {
 			String componentId = in.getStringProperty(Key.componentId.name());
 			if(componentId != null) {
 				return componentId;
+			}
+		}
+		
+		return null;
+	}
+	
+	public String getResourceId() {
+		
+		for(AbstractRelationship in : getRelationships(RelType.CONTAINS, Direction.INCOMING)) {
+			
+			String resourceId = in.getStringProperty(Key.resourceId.name());
+			if(resourceId != null) {
+				return resourceId;
 			}
 		}
 		

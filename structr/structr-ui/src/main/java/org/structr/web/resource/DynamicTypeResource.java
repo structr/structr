@@ -55,7 +55,6 @@ public class DynamicTypeResource extends TypeResource {
 	private List<DynamicTypeResource> nestedResources = new ArrayList<DynamicTypeResource>();
 	private UuidResource uuidResource = null;
 	private boolean parentResults = false;
-	private String resourceId = null;
 
 	@Override
 	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) throws FrameworkException {
@@ -153,7 +152,22 @@ public class DynamicTypeResource extends TypeResource {
 			templateProperties.put("uuid", componentId);
 
 			// use parentId from template
-			final String parentComponentId = template.getComponentId();
+			String parentComponentId = template.getComponentId();
+			String parentResourceId  = template.getResourceId();
+			
+			if(wrappedResource != null && wrappedResource instanceof UuidResource) {
+				
+				parentComponentId = ((UuidResource)wrappedResource).getUuid();
+				
+			} else if(!nestedResources.isEmpty()) {
+				DynamicTypeResource nested = nestedResources.get(nestedResources.size() - 1);
+				if(nested.uuidResource != null) {
+					parentComponentId = nested.uuidResource.getUuid();
+				}
+			}
+			
+			final String finalParentComponentId = parentComponentId;
+			final String finalParentResourceId  = parentResourceId;
 			
 			Component newComponent = (Component)Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
@@ -161,7 +175,7 @@ public class DynamicTypeResource extends TypeResource {
 				public Object execute() throws FrameworkException {
 					
 					Component comp = (Component)createNodeCommand.execute(templateProperties);
-					copyRelationships(template, comp, getResourceId(), parentComponentId, position);
+					copyRelationships(template, comp, finalParentResourceId, finalParentComponentId, position);
 					
 					Map<String, Object> contentTemplateProperties = new LinkedHashMap<String, Object>();
 					for(AbstractNode node : template.getContentNodes().values()) {
@@ -182,7 +196,7 @@ public class DynamicTypeResource extends TypeResource {
 							// remove non-local data key from set
 							propertySet.remove(dataKey);
 
-							copyRelationships(contentTemplate, newContent, getResourceId(), componentId, position);
+							copyRelationships(contentTemplate, newContent, finalParentResourceId, componentId, position);
 						}
 						
 					}
@@ -240,6 +254,8 @@ public class DynamicTypeResource extends TypeResource {
 	@Override
 	public Resource tryCombineWith(Resource next) throws FrameworkException {
 
+		int x = 0;
+		
 		if (next instanceof UuidResource) {
 
 			this.uuidResource = (UuidResource)next;
@@ -288,6 +304,7 @@ public class DynamicTypeResource extends TypeResource {
 			}
 			
 			if(resourceId != null) {
+				newInRel.setProperty(Component.Key.resourceId, resourceId);
 				newInRel.setProperty(resourceId, position);
 			}
 		}
@@ -305,17 +322,10 @@ public class DynamicTypeResource extends TypeResource {
 			}
 
 			if(resourceId != null) {
+				newOutRel.setProperty(Component.Key.resourceId, resourceId);
 				newOutRel.setProperty(resourceId, position);
 			}
 		}
-	}
-
-	public String getResourceId() {
-		return resourceId;
-	}
-
-	public void setResourceId(String resourceId) {
-		this.resourceId = resourceId;
 	}
 }
 

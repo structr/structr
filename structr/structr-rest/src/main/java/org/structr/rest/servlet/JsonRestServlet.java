@@ -769,7 +769,7 @@ public class JsonRestServlet extends HttpServlet {
 
 			}
 
-			logger.log(Level.FINE, "########## Constraint chain after iteration {0}: {1}", new Object[] { iterations, chain.toString() });
+			logger.log(Level.INFO, "########## Constraint chain after iteration {0}: {1}", new Object[] { iterations, chain.toString() });
 
 			found = false;
 
@@ -782,7 +782,11 @@ public class JsonRestServlet extends HttpServlet {
 
 					if (combinedConstraint != null) {
 
-						logger.log(Level.FINE, "Combined constraint {0}", combinedConstraint.getClass().getSimpleName());
+						logger.log(Level.INFO, "Combined constraint {0} and {1} to {2}", new Object[] { 
+							firstElement.getClass().getSimpleName(), 
+							secondElement.getClass().getSimpleName(),
+							combinedConstraint.getClass().getSimpleName()
+						} );
 
 						// remove source constraints
 						constraintChain.remove(firstElement);
@@ -819,7 +823,7 @@ public class JsonRestServlet extends HttpServlet {
 
 		}
 
-		logger.log(Level.FINE, "Final constraint chain {0}", chain.toString());
+		logger.log(Level.INFO, "Final constraint chain {0}", chain.toString());
 
 		if (constraintChain.size() == 1) {
 
