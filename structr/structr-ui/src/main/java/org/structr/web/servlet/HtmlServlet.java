@@ -634,6 +634,7 @@ public class HtmlServlet extends HttpServlet {
 						rels.add(abstractRelationship);
 
 					}
+					
 				} else {
 
 					rels.add(abstractRelationship);
