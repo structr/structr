@@ -272,6 +272,7 @@ var _Entities = {
 	    tabs.append('<div id="tabView-' + view + '"></div>');
 
 	    var tab = $('#tab-' + view);
+
 	    tab.on('click', function() {
 		var self = $(this);
 		tabs.children('div').hide();
@@ -281,6 +282,7 @@ var _Entities = {
 	    });
 
 	    var tabView = $('#tabView-' + view);
+	    if (view != 'all') tabView.hide();
 
 
 	    var headers = {
@@ -303,10 +305,7 @@ var _Entities = {
 
 			if (debug ) console.log('keys', keys);
 				
-			if (keys.length > 1) {
-			    if (debug) console.log('element', dialog);
-			    tabView.append('<table class="props ' + view + '"></table>');
-			}
+			tabView.append('<table class="props ' + view + '"></table>');
 
 			var props = $('.props.' + view, tabView);
 				
@@ -319,6 +318,7 @@ var _Entities = {
 			    } else if (view == 'all') {
 				props.append('<tr><td class="key">' + formatKey(key) + '</td><td class="value ' + key + '_">' + formatValue(key, res[key]) + '</td></tr>');
 			    }
+
 			});
 
 			$('.props tr td.value input', dialog).each(function(i,v) {
