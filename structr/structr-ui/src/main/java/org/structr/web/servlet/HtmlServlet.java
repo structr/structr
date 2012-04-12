@@ -604,50 +604,8 @@ public class HtmlServlet extends HttpServlet {
 			}
 		}
 
-		// collect children
-		List<AbstractRelationship> rels = new LinkedList<AbstractRelationship>();
-
-		for (AbstractRelationship abstractRelationship : node.getOutgoingRelationships(RelType.CONTAINS)) {
-
-			Relationship rel = abstractRelationship.getRelationship();
-
-			if (rel.hasProperty(resourceId) || rel.hasProperty("*")) {
-
-				AbstractNode endNode = abstractRelationship.getEndNode();
-
-				if ((localComponentId != null) && ((endNode instanceof Content) || (endNode instanceof Component))) {
-
-					// only add relationship if (nested) componentId matches
-					if (rel.hasProperty(localComponentId)) {
-
-						rels.add(abstractRelationship);
-
-					}
-					
-				} else {
-
-					rels.add(abstractRelationship);
-
-				}
-
-			}
-
-		}
-
-		Collections.sort(rels, new Comparator<AbstractRelationship>() {
-
-			@Override
-			public int compare(AbstractRelationship o1, AbstractRelationship o2) {
-
-				Integer pos1 = getPosition(o1, resourceId);
-				Integer pos2 = getPosition(o2, resourceId);
-
-				return pos1.compareTo(pos2);
-			}
-
-		});
-
 		// recursively render children
+		List<AbstractRelationship> rels = Component.getChildRelationships(node, resourceId, localComponentId);
 		for (AbstractRelationship rel : rels) {
 
 			AbstractNode subNode = rel.getEndNode();
@@ -668,90 +626,5 @@ public class HtmlServlet extends HttpServlet {
 			buffer.append("</a>");
 
 		}
-	}
-
-	private int getPosition(final AbstractRelationship relationship, final String resourceId) {
-
-		final Relationship rel = relationship.getRelationship();
-		Integer position       = 0;
-
-		try {
-
-			Map<Integer, Relationship> sortedRelationshipMap = new TreeMap<Integer, Relationship>();
-			Object prop                                      = null;
-			final String key;
-
-			// "*" is a wildcard for "matches any resource id"
-			// TOOD: use pattern matching here?
-			if (rel.hasProperty("*")) {
-
-				prop = rel.getProperty("*");
-				key  = "*";
-
-			} else if (rel.hasProperty(resourceId)) {
-
-				prop = rel.getProperty(resourceId);
-				key  = resourceId;
-
-			} else {
-
-				key = null;
-
-			}
-
-			if ((key != null) && (prop != null)) {
-
-				if (prop instanceof Integer) {
-
-					position = (Integer) prop;
-
-				} else if (prop instanceof String) {
-
-					position = Integer.parseInt((String) prop);
-
-				} else {
-
-					throw new java.lang.IllegalArgumentException("Expected Integer or String");
-
-				}
-
-				Integer originalPos = position;
-
-				// find free slot
-				while (sortedRelationshipMap.containsKey(position)) {
-
-					position++;
-
-				}
-
-				sortedRelationshipMap.put(position, rel);
-
-				if (originalPos != position) {
-
-					final Integer newPos = position;
-
-					Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(new StructrTransaction() {
-
-						@Override
-						public Object execute() throws FrameworkException {
-
-							rel.setProperty(key, newPos);
-
-							return null;
-						}
-
-					});
-
-				}
-
-			}
-
-		} catch (Throwable t) {
-
-			// fail fast, no check
-			logger.log(Level.SEVERE, "While reading property " + resourceId, t);
-		}
-
-		return position;
 	}
 }
