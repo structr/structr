@@ -187,7 +187,7 @@ var _Files = {
 		//        });
 		$('b', div).on('click', function() {
 			//_Entities.showProperties(this, file, 'all', $('.' + file.id + '_', files));
-			_Entities.showProperties(this, file, 'all', $('#dialogBox .dialogText'));
+			_Entities.showProperties(this, file, $('#dialogBox .dialogText'));
 		});
 		
 		div.draggable({
@@ -238,7 +238,7 @@ var _Files = {
 		//        });
 		$('b', div).on('click', function() {
 			//_Entities.showProperties(this, file, 'all', $('.' + file.id + '_', images));
-			_Entities.showProperties(this, file, 'all', $('#dialogBox .dialogText'));
+			_Entities.showProperties(this, file, $('#dialogBox .dialogText'));
 		});
 		
 		div.draggable({
@@ -279,7 +279,7 @@ var _Files = {
 		//            Resources.addElement(this, resource);
 		//        });
 		$('b', div).on('click', function() {
-			_Entities.showProperties(this, folder, 'all', $('#dialogBox .dialogText'));
+			_Entities.showProperties(this, folder, $('#dialogBox .dialogText'));
 		});
 		
 		div.droppable({

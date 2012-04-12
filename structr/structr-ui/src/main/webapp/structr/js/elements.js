@@ -248,13 +248,13 @@ var _Elements = {
 	$('.edit_icon', div).on('click', function(e) {
 	    e.stopPropagation();
 	    var self = $(this);
-	    _Entities.showProperties(this, entity, '_html_', $('#dialogBox .dialogText'));
+	    _Entities.showProperties(this, entity, $('#dialogBox .dialogText'));
 	});
 
 	$('b', div).on('click', function(e) {
 	    e.stopPropagation();
 	    if (debug) console.log('parent', parent);
-	    _Entities.showProperties(this, entity, 'all', $('#dialogBox .dialogText'));
+	    _Entities.showProperties(this, entity, $('#dialogBox .dialogText'));
 	});
 
 	return div;

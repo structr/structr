@@ -368,7 +368,7 @@ var _Resources = {
 	    var self = $(this);
 	    self.off('click');
 	    self.off('mouseover');
-	    _Entities.showProperties(this, entity, 'all');
+	    _Entities.showProperties(this, entity, $('#dialogBox .dialogText'));
 	});
 
 	var tab = _Resources.addTab(entity);
@@ -536,7 +536,7 @@ var _Resources = {
 			}, function() {
 			    if (debug) console.log('cancelled')
 			});
-			_Entities.showProperties(this, entity, 'all', $('#dialogBox .dialogText'));
+			_Entities.showProperties(this, entity, $('#dialogBox .dialogText'));
 		    });
 
 		    $('.delete_icon', el).on('click', function(e) {
