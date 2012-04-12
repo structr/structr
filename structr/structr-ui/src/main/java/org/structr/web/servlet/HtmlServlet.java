@@ -92,10 +92,11 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class HtmlServlet extends HttpServlet {
 
-	private static final Logger logger = Logger.getLogger(HtmlServlet.class.getName());
+	private static final String REST_PATH_SEP = "//";
+	private static final Logger logger        = Logger.getLogger(HtmlServlet.class.getName());
 
 	//~--- fields ---------------------------------------------------------
-	private static final String REST_PATH_SEP = "//";
+
 	private TraversalDescription desc = null;
 	private String[] html5VoidTags    = new String[] {
 
@@ -137,8 +138,13 @@ public class HtmlServlet extends HttpServlet {
 
 			String[] userAndPass = HttpAuthenticator.getUsernameAndPassword(request);
 
-			contentExchange.addRequestHeader("X-User", userAndPass[0]);
-			contentExchange.addRequestHeader("X-Password", userAndPass[1]);
+			if ((userAndPass != null) && (userAndPass.length == 2) && (userAndPass[0] != null) && (userAndPass[1] != null)) {
+
+				contentExchange.addRequestHeader("X-User", userAndPass[0]);
+				contentExchange.addRequestHeader("X-Password", userAndPass[1]);
+
+			}
+
 			httpClient.send(contentExchange);
 			contentExchange.waitForDone();
 
@@ -183,14 +189,6 @@ public class HtmlServlet extends HttpServlet {
 
 		} catch (IOException ex) {
 			logger.log(Level.SEVERE, "Could not redirect to " + name, ex);
-		}
-	}
-
-	private String getName(final String pathPart) {
-		if (pathPart.contains("/")) {
-			return StringUtils.substringAfterLast(pathPart, "/");
-		} else {
-			return pathPart;
 		}
 	}
 
@@ -452,6 +450,19 @@ public class HtmlServlet extends HttpServlet {
 	}
 
 	//~--- get methods ----------------------------------------------------
+
+	private String getName(final String pathPart) {
+
+		if (pathPart.contains("/")) {
+
+			return StringUtils.substringAfterLast(pathPart, "/");
+
+		} else {
+
+			return pathPart;
+
+		}
+	}
 
 	private String[] getParts(String path) {
 
