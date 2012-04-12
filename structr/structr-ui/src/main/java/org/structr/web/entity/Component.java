@@ -107,7 +107,7 @@ public class Component extends AbstractNode {
 		
 		// try local properties first
 		if(contentNodes.containsKey(key)) {
-			
+
 			AbstractNode node = contentNodes.get(key);
 			if(node != null && node != this) {
 				return node.getStringProperty("content");
@@ -117,7 +117,11 @@ public class Component extends AbstractNode {
 			
 			List<Component> results = new LinkedList<Component>();
 			
-			collectChildren(getStringProperty(AbstractNode.Key.uuid), this, results, 0, null);
+			String componentId = getStringProperty(AbstractNode.Key.uuid);
+			
+			System.out.println("Collecting children with componentId " + componentId + ")...");
+			
+			collectChildren(componentId, this, results, 0, null);
 			
 			return results;
 			
@@ -171,7 +175,10 @@ public class Component extends AbstractNode {
 			
 			if(endNode instanceof Component) {
 				
-				subTypes.add(endNode.getStringProperty(Component.UiKey.structrclass));
+				String subType = endNode.getStringProperty(Component.UiKey.structrclass);
+				if(subType != null) {
+					subTypes.add(subType);
+				}
 				
 			} else {
 				
@@ -185,14 +192,10 @@ public class Component extends AbstractNode {
 		if(depth > MAX_DEPTH) {
 			return;
 		}
-		
-		// collect component
-		if(ref != null && ref.getRelationship().hasProperty(componentId)) {
 
-			if(startNode instanceof Component) {
-				results.add((Component)startNode);
-				return;
-			}
+		if(ref != null && startNode instanceof Component) {
+			results.add((Component)startNode);
+			return;
 		}
 
 		// recurse
