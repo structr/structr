@@ -26,7 +26,7 @@ var _Entities = {
 	var types = plural(type);
 	var parentElement = $('#' + types);
 	parentElement.empty();
-	_Entities.getEntities(type);
+	_Entities.list(type);
 	parentElement.append('<div style="clear: both"></div>');
 	parentElement.append('<img title="Add ' + type + '" alt="Add ' + type + '" class="add_icon button" src="' + Structr.add_icon + '">');
 	$('.add_icon', main).on('click', function() {
@@ -38,23 +38,23 @@ var _Entities = {
 	});
     },
 
-    getEntities : function(type) {
+    list : function(type) {
 	var obj = {};
 	obj.command = 'LIST';
 	var data = {};
 	data.type = type;
 	obj.data = data;
-	if (debug) console.log('showEntities()', obj);
+	if (debug) console.log('list()', obj);
 	return sendObj(obj);
     },
 
-    getEntity : function(id) {
+    get : function(id) {
 	var obj = {};
 	obj.command = 'GET';
 	var data = {};
 	data.id = id;
 	obj.data = data;
-	if (debug) console.log('getEntity()', obj);
+	if (debug) console.log('get()', obj);
 	return sendObj(obj);
     },
 
@@ -291,7 +291,7 @@ var _Entities = {
 	    if (debug) console.log('showProperties URL: ' + rootUrl + entity.id + (view ? '/' + view : ''), headers);
 	    $.ajax({
 		url: rootUrl + entity.id + (view ? '/' + view : ''),
-		async: false,
+		async: true,
 		dataType: 'json',
 		contentType: 'application/json; charset=utf-8',
 		headers: headers,
@@ -305,13 +305,13 @@ var _Entities = {
 
 			if (debug ) console.log('keys', keys);
 
-			if (view == 'in' || view == 'out') {
-			    tabView.append('<br><h3>Relationship ' + res['id']+ '</h3>')
-			}
+//			if (view == 'in' || view == 'out') {
+//			    tabView.append('<br><h3>Relationship ' + res['id']+ '</h3>')
+//			}
 				
-			tabView.append('<table class="props ' + view + '"></table>');
+			tabView.append('<table class="props ' + view + '_' + res['id'] +'"></table>');
 
-			var props = $('.props.' + view, tabView);
+			var props = $('.props.' + view + '_' + res['id'], tabView);
 				
 			$(keys).each(function(i, key) {
 
@@ -319,7 +319,7 @@ var _Entities = {
 				props.append('<tr><td class="key">' + key.replace(view, '') + '</td><td class="value ' + key + '_">' + formatValue(key, res[key]) + '</td></tr>');
 			    } else if (view == 'in' || view == 'out') {
 				props.append('<tr><td class="key">' + key + '</td><td class="value ' + key + '_">' + formatValue(key, res[key]) + '</td></tr>');
-			    } else if (view == 'all') {
+			    } else {
 				props.append('<tr><td class="key">' + formatKey(key) + '</td><td class="value ' + key + '_">' + formatValue(key, res[key]) + '</td></tr>');
 			    }
 

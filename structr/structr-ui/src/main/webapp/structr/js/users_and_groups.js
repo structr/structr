@@ -46,7 +46,7 @@ var _UsersAndGroups = {
     
 	refreshGroups : function() {
 		groups.empty();
-		if (_Entities.getEntities('Group')) {
+		if (_Entities.list('Group')) {
 			groups.append('<button class="add_group_icon button"><img title="Add Group" alt="Add Group" src="icon/group_add.png"> Add Group</button>');
 			$('.add_group_icon', main).on('click', function() {
 				var entity = {};
@@ -58,7 +58,7 @@ var _UsersAndGroups = {
 
 	refreshUsers : function() {
 		users.empty();
-		if (_Entities.getEntities('User')) {
+		if (_Entities.list('User')) {
 			users.append('<button class="add_user_icon button"><img title="Add User" alt="Add User" src="icon/user_add.png"> Add User</button>');
 			$('.add_user_icon', main).on('click', function() {
 				var entity = {};

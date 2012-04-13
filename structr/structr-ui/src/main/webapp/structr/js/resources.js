@@ -173,7 +173,7 @@ var _Resources = {
 
     refresh : function() {
 	resources.empty();
-	if (_Resources.show()) {
+	if (_Entities.list('Resource')) {
 	    resources.before('<button class="add_resource_icon button"><img title="Add Resource" alt="Add Resource" src="' + _Resources.add_icon + '"> Add Resource</button>');
 	    $('.add_resource_icon', main).on('click', function() {
 		var entity = {};
@@ -181,12 +181,11 @@ var _Resources = {
 		_Entities.create(this, entity);
 	    });
 	}
-
     },
 
     refreshComponents : function() {
 	components.empty();
-	if (_Components.show()) {
+	if (_Entities.list('Component')) {
 	    components.append('<button class="add_component_icon button"><img title="Add Component" alt="Add Component" src="' + _Components.add_icon + '"> Add Component</button>');
 	    $('.add_component_icon', main).on('click', function() {
 		var entity = {};
@@ -197,15 +196,15 @@ var _Resources = {
     },
 
     refreshElements : function() {
-	_Elements.refresh();
-    },
-
-    show : function() {
-	return _Entities.getEntities('Resource');
-    },
-
-    showElements : function() {
-	return _Resources.getEntities('Element');
+	elements.empty();
+	if (_Entities.list('Element')) {
+	    elements.append('<button class="add_element_icon button"><img title="Add Element" alt="Add Element" src="' + _Elements.add_icon + '"> Add Element</button>');
+	    $('.add_element_icon', main).on('click', function() {
+		var entity = {};
+		entity.type = 'Element';
+		_Entities.create(this, entity);
+	    });
+	}
     },
 
     addTab : function(entity) {

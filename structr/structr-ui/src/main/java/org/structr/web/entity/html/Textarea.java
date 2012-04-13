@@ -27,6 +27,9 @@ import org.structr.core.EntityContext;
  */
 public class Textarea extends HtmlElement {
 
+	private static final String[] htmlAttributes = new String[] { "name", "disabled", "form", "readonly", "maxlenght", "autofocus", "required", "placeholder", "dirname", "rows", "wrap", "cols" };
+
+
 	static {
 		EntityContext.registerPropertySet(Textarea.class, PropertyView.All,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Textarea.class, PropertyView.Public,	HtmlElement.UiKey.values());

@@ -21,7 +21,6 @@
 
 package org.structr.core.entity;
 
-
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
@@ -36,9 +35,10 @@ import org.neo4j.graphdb.traversal.Evaluation;
 import org.neo4j.graphdb.traversal.Evaluator;
 import org.neo4j.kernel.Traversal;
 
+import org.structr.common.*;
 import org.structr.common.AbstractComponent;
-import org.structr.common.GraphObjectComparator;
 import org.structr.common.AccessControllable;
+import org.structr.common.GraphObjectComparator;
 import org.structr.common.PathHelper;
 import org.structr.common.Permission;
 import org.structr.common.PropertyKey;
@@ -48,6 +48,10 @@ import org.structr.common.RenderMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.StructrOutputStream;
 import org.structr.common.UuidCreationTransformation;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
+import org.structr.common.error.NullArgumentToken;
+import org.structr.common.error.ReadOnlyPropertyToken;
 import org.structr.common.renderer.DefaultEditRenderer;
 import org.structr.common.renderer.RenderContext;
 import org.structr.common.renderer.RenderController;
@@ -62,6 +66,7 @@ import org.structr.core.PropertyGroup;
 import org.structr.core.Services;
 import org.structr.core.Value;
 import org.structr.core.cloud.NodeDataContainer;
+import org.structr.core.converter.BooleanConverter;
 import org.structr.core.converter.LongDateConverter;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;
@@ -76,9 +81,9 @@ import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 import org.structr.core.node.XPath;
 import org.structr.core.notion.Notion;
+import org.structr.core.validator.SimpleRegexValidator;
 
 //~--- JDK imports ------------------------------------------------------------
-
 
 import java.lang.reflect.Method;
 
@@ -102,13 +107,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
-import org.structr.common.*;
-import org.structr.common.error.ErrorBuffer;
-import org.structr.common.error.FrameworkException;
-import org.structr.common.error.NullArgumentToken;
-import org.structr.common.error.ReadOnlyPropertyToken;
-import org.structr.core.converter.BooleanConverter;
-import org.structr.core.validator.SimpleRegexValidator;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -120,14 +118,12 @@ import org.structr.core.validator.SimpleRegexValidator;
  */
 public abstract class AbstractNode implements GraphObject, Comparable<AbstractNode>, RenderController, AccessControllable {
 
-	private final static String NODE_KEY_PREFIX = "%{";
-	private final static String NODE_KEY_SUFFIX = "}";
-
+	private final static String NODE_KEY_PREFIX               = "%{";
+	private final static String NODE_KEY_SUFFIX               = "}";
 	private final static String SUBNODES_AND_LINKED_NODES_KEY = "#";
 	private final static String SUBNODES_KEY                  = "*";
-
-	private static final Logger logger              = Logger.getLogger(AbstractNode.class.getName());
-	private static final boolean updateIndexDefault = true;
+	private static final Logger logger                        = Logger.getLogger(AbstractNode.class.getName());
+	private static final boolean updateIndexDefault           = true;
 
 	//~--- static initializers --------------------------------------------
 
@@ -138,21 +134,20 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		EntityContext.registerPropertyConverter(AbstractNode.class, Key.visibilityEndDate, LongDateConverter.class);
 		EntityContext.registerPropertyConverter(AbstractNode.class, Key.lastModifiedDate, LongDateConverter.class);
 		EntityContext.registerPropertyConverter(AbstractNode.class, Key.createdDate, LongDateConverter.class);
-
 		EntityContext.registerPropertyConverter(AbstractNode.class, Key.visibleToPublicUsers, BooleanConverter.class);
 		EntityContext.registerPropertyConverter(AbstractNode.class, Key.visibleToAuthenticatedUsers, BooleanConverter.class);
 
-		//EntityContext.registerPropertyConverter(AbstractNode.class, Key.ownerId, NodeIdNodeConverter.class);
+		// EntityContext.registerPropertyConverter(AbstractNode.class, Key.ownerId, NodeIdNodeConverter.class);
 		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.fulltext.name(), Key.values());
 		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.keyword.name(), Key.values());
 		EntityContext.registerSearchableProperty(AbstractNode.class, NodeIndex.uuid.name(), Key.uuid);
 
 		// register transformation for automatic uuid creation
 		EntityContext.registerEntityCreationTransformation(AbstractNode.class, new UuidCreationTransformation());
-		
+
 		// register uuid validator
 		EntityContext.registerPropertyValidator(AbstractNode.class, AbstractNode.Key.uuid, new SimpleRegexValidator("[a-zA-Z0-9]{32}"));
-		
+
 	}
 
 	//~--- fields ---------------------------------------------------------
@@ -170,11 +165,11 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	// request parameters
 	// private HttpServletRequest request = null;
 	// private HttpSession session = null;
-	private final Map<RenderMode, NodeRenderer> rendererMap      = new EnumMap<RenderMode, NodeRenderer>(RenderMode.class);
-	protected SecurityContext securityContext                    = null;
+	private final Map<RenderMode, NodeRenderer> rendererMap       = new EnumMap<RenderMode, NodeRenderer>(RenderMode.class);
+	protected SecurityContext securityContext                     = null;
 	private Map<Long, AbstractRelationship> securityRelationships = null;
-	private boolean renderersInitialized                         = false;
-	private boolean readOnlyPropertiesUnlocked                   = false;
+	private boolean renderersInitialized                          = false;
+	private boolean readOnlyPropertiesUnlocked                    = false;
 
 	// reference to database node
 	protected Node dbNode;
@@ -225,17 +220,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	}
 
 	//~--- methods --------------------------------------------------------
-	
-	@Override
-	public PropertyKey getDefaultSortKey() {
-		return null;
-	}
-	
-	@Override
-	public String getDefaultSortOrder() {
-		return GraphObjectComparator.ASCENDING;
-	}
-	
+
 	/**
 	 * Implement this method to specify renderers for the different rendering modes.
 	 *
@@ -658,20 +643,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 		return (String[]) props.toArray(new String[props.size()]);
 	}
-	
-	@Override
-	public boolean isValid(ErrorBuffer errorBuffer) {
 
-		boolean error = false;
-
-		error |= ValidationHelper.checkStringNotBlank(this, Key.uuid, errorBuffer);
-		error |= ValidationHelper.checkStringNotBlank(this, Key.type, errorBuffer);
-
-		return !error;
-	}
-
-	public abstract String getIconSrc();
-		
 	/**
 	 * Discard changes and overwrite the properties map with the values
 	 * from database
@@ -1240,14 +1212,19 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	protected Set toSet(Object source) {
 
-		if(source instanceof Iterable) {
+		if (source instanceof Iterable) {
 
-			Iterable<AbstractNode> iterable = (Iterable<AbstractNode>)source;
-			Set<AbstractNode> nodes = new LinkedHashSet();
-			for(AbstractNode node : iterable) {
+			Iterable<AbstractNode> iterable = (Iterable<AbstractNode>) source;
+			Set<AbstractNode> nodes         = new LinkedHashSet();
+
+			for (AbstractNode node : iterable) {
+
 				nodes.add(node);
+
 			}
+
 			return nodes;
+
 		}
 
 		return null;
@@ -1255,26 +1232,31 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	protected List toList(Object source) {
 
-		if(source instanceof Iterable) {
+		if (source instanceof Iterable) {
 
-			Iterable<AbstractNode> iterable = (Iterable<AbstractNode>)source;
-			List<AbstractNode> nodes = new LinkedList();
-			for(AbstractNode node : iterable) {
+			Iterable<AbstractNode> iterable = (Iterable<AbstractNode>) source;
+			List<AbstractNode> nodes        = new LinkedList();
+
+			for (AbstractNode node : iterable) {
+
 				nodes.add(node);
+
 			}
+
 			return nodes;
+
 		}
 
 		return null;
 	}
 
-//	@Override
-//	public void delete(SecurityContext securityContext) {
+//      @Override
+//      public void delete(SecurityContext securityContext) {
 //
-//		dbNode.delete();
+//              dbNode.delete();
 //
-//		// EntityContext.getGlobalModificationListener().graphObjectDeleted(securityContext, this);
-//	}
+//              // EntityContext.getGlobalModificationListener().graphObjectDeleted(securityContext, this);
+//      }
 
 	/**
 	 * Can be used to permit the setting of a read-only
@@ -1328,10 +1310,23 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 				}
 
 			});
+
 		}
 	}
 
 	//~--- get methods ----------------------------------------------------
+
+	@Override
+	public PropertyKey getDefaultSortKey() {
+		return null;
+	}
+
+	@Override
+	public String getDefaultSortOrder() {
+		return GraphObjectComparator.ASCENDING;
+	}
+
+	public abstract String getIconSrc();
 
 	public Long getTemplateId() {
 
@@ -1599,7 +1594,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 					// convert old String-based position property
 					try {
 						setPosition(pos);
-					} catch(FrameworkException fex) {
+					} catch (FrameworkException fex) {
 						logger.log(Level.WARNING, "Unable to set position property", fex);
 					}
 
@@ -1619,7 +1614,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 					// convert old String-based position property
 					try {
 						setPosition(pos);
-					} catch(FrameworkException fex) {
+					} catch (FrameworkException fex) {
 						logger.log(Level.WARNING, "Unable to set position property", fex);
 					}
 
@@ -1642,9 +1637,10 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		long id = getId();
 
 		logger.log(Level.FINE, "No position property in database, writing id {0} to database", id);
+
 		try {
 			setPosition(id);
-		} catch(FrameworkException fex) {
+		} catch (FrameworkException fex) {
 			logger.log(Level.WARNING, "Unable to set position property", fex);
 		}
 
@@ -1767,20 +1763,27 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		Object value = null;
 		Class type   = this.getClass();
 
-		if(key == null) {
+		if (key == null) {
+
 			logger.log(Level.SEVERE, "Invalid property key: null");
+
 			return null;
+
 		}
 
-		if(dbNode == null) {
+		if (dbNode == null) {
+
 			return null;
+
 		}
 
 		// ----- BEGIN property group resolution -----
 		PropertyGroup propertyGroup = EntityContext.getPropertyGroup(type, key);
+
 		if (propertyGroup != null) {
 
 			return propertyGroup.getGroupedProperties(this);
+
 		}
 
 		if (dbNode.hasProperty(key)) {
@@ -1810,10 +1813,10 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 				};
 
 				try {
+
 					// execute transaction
 					Services.command(securityContext, TransactionCommand.class).execute(transaction);
-
-				} catch(FrameworkException fex) {
+				} catch (FrameworkException fex) {
 					logger.log(Level.WARNING, "Error while setting property", fex);
 				}
 
@@ -1848,7 +1851,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 					case ManyToOne :
 						try {
 							value = notion.getAdapterForGetter(securityContext).adapt(rel.getRelatedNode(securityContext, this));
-						} catch(FrameworkException fex) {
+						} catch (FrameworkException fex) {
 							logger.log(Level.WARNING, "Error while adapting related node", fex);
 						}
 
@@ -1866,8 +1869,10 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		}
 
 		// no value found, use schema default
-		if(value == null) {
+		if (value == null) {
+
 			value = EntityContext.getDefaultValue(type, key);
+
 		}
 
 		// apply property converters
@@ -1876,6 +1881,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		if (converter != null) {
 
 			Value conversionValue = EntityContext.getPropertyConversionParameter(type, key);
+
 			converter.setCurrentObject(this);
 
 			value = converter.convertForGetter(value, conversionValue);
@@ -2044,6 +2050,10 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		if (propertyValue instanceof Long) {
 
 			result = ((Long) propertyValue);
+
+		} else if (propertyValue instanceof Integer) {
+
+			result = ((Integer) propertyValue).longValue();
 
 		} else if (propertyValue instanceof String) {
 
@@ -2389,11 +2399,13 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * @return list with relationships
 	 */
 	public List<AbstractRelationship> getRelationships(RelationshipType type, Direction dir) {
+
 		try {
 			return (List<AbstractRelationship>) Services.command(securityContext, NodeRelationshipsCommand.class).execute(this, type, dir);
-		} catch(FrameworkException fex) {
+		} catch (FrameworkException fex) {
 			logger.log(Level.WARNING, "Unable to get relationships", fex);
 		}
+
 		return null;
 	}
 
@@ -2403,11 +2415,13 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * @return number of relationships
 	 */
 	public Map<RelationshipType, Long> getRelationshipInfo(Direction dir) {
+
 		try {
 			return (Map<RelationshipType, Long>) Services.command(securityContext, NodeRelationshipStatisticsCommand.class).execute(this, dir);
-		} catch(FrameworkException fex) {
+		} catch (FrameworkException fex) {
 			logger.log(Level.WARNING, "Unable to get relationship info", fex);
 		}
+
 		return null;
 	}
 
@@ -2532,8 +2546,9 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		if (parentNode != null) {
 
 			try {
-				Command nodeFactory            = Services.command(securityContext, NodeFactoryCommand.class);
-				Command relsCommand            = Services.command(securityContext, NodeRelationshipsCommand.class);
+
+				Command nodeFactory             = Services.command(securityContext, NodeFactoryCommand.class);
+				Command relsCommand             = Services.command(securityContext, NodeRelationshipsCommand.class);
 				List<AbstractRelationship> rels = (List<AbstractRelationship>) relsCommand.execute(parentNode, RelType.HAS_CHILD, Direction.OUTGOING);
 
 				for (AbstractRelationship r : rels) {
@@ -2548,9 +2563,10 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 				}
 
-			} catch(FrameworkException fex) {
+			} catch (FrameworkException fex) {
 				logger.log(Level.WARNING, "Unable to get sibling nodes", fex);
 			}
+
 		}
 
 		return nodes;
@@ -2594,19 +2610,23 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 */
 	public List<AbstractNode> getParentNodes() {
 
-		List<AbstractNode> nodes       = new LinkedList<AbstractNode>();
-		Command nodeFactory            = Services.command(securityContext, NodeFactoryCommand.class);
+		List<AbstractNode> nodes        = new LinkedList<AbstractNode>();
+		Command nodeFactory             = Services.command(securityContext, NodeFactoryCommand.class);
 		List<AbstractRelationship> rels = getIncomingChildRelationships();
 
 		for (AbstractRelationship r : rels) {
 
 			try {
+
 				AbstractNode s = (AbstractNode) nodeFactory.execute(r.getStartNode());
+
 				if (securityContext.isAllowed(s, Permission.Read)) {
+
 					nodes.add(s);
+
 				}
 
-			} catch(FrameworkException fex) {
+			} catch (FrameworkException fex) {
 				logger.log(Level.WARNING, "Unable to instantiate node", fex);
 			}
 
@@ -2624,17 +2644,19 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 */
 	public List<AbstractNode> getParentNodesIgnorePermissions() {
 
-		List<AbstractNode> nodes       = new LinkedList<AbstractNode>();
-		Command nodeFactory            = Services.command(securityContext, NodeFactoryCommand.class);
+		List<AbstractNode> nodes        = new LinkedList<AbstractNode>();
+		Command nodeFactory             = Services.command(securityContext, NodeFactoryCommand.class);
 		List<AbstractRelationship> rels = getIncomingChildRelationships();
 
 		for (AbstractRelationship r : rels) {
 
 			try {
+
 				AbstractNode s = (AbstractNode) nodeFactory.execute(r.getStartNode());
+
 				nodes.add(s);
 
-			} catch(FrameworkException fex) {
+			} catch (FrameworkException fex) {
 				logger.log(Level.WARNING, "Unable to instantiate node", fex);
 			}
 
@@ -2841,11 +2863,12 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	public List<AbstractNode> getAllChildrenForRemotePush() {
 
 		try {
+
 			// FIXME: add handling for remote user here
 			Command findNode = Services.command(securityContext, FindNodeCommand.class);
-			return ((List<AbstractNode>) findNode.execute(this));
 
-		} catch(FrameworkException fex) {
+			return ((List<AbstractNode>) findNode.execute(this));
+		} catch (FrameworkException fex) {
 			logger.log(Level.WARNING, "Unable to get child nodes", fex);
 		}
 
@@ -2855,6 +2878,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	public int getRemotePushSize(final int chunkSize) {
 
 		try {
+
 			Command findNode        = Services.command(securityContext, FindNodeCommand.class);
 			List<AbstractNode> list = ((List<AbstractNode>) findNode.execute(this));
 			int size                = 0;
@@ -2890,7 +2914,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 			return size;
 
-		} catch(FrameworkException fex) {
+		} catch (FrameworkException fex) {
 			logger.log(Level.WARNING, "Unable to get remote push size", fex);
 		}
 
@@ -2944,7 +2968,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	public List<AbstractNode> getDirectChildren(final RelationshipType relType, final String nodeType) {
 
 		List<AbstractRelationship> rels = this.getOutgoingRelationships(relType);
-		List<AbstractNode> nodes       = new LinkedList<AbstractNode>();
+		List<AbstractNode> nodes        = new LinkedList<AbstractNode>();
 
 		for (AbstractRelationship r : rels) {
 
@@ -3137,6 +3161,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	protected List<AbstractNode> getAllChildren(final String nodeType) {
 
 		try {
+
 			List<AbstractNode> nodes  = new LinkedList<AbstractNode>();
 			Command findNode          = Services.command(securityContext, FindNodeCommand.class);
 			List<AbstractNode> result = (List<AbstractNode>) findNode.execute(this);
@@ -3153,7 +3178,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 			return nodes;
 
-		} catch(FrameworkException fex) {
+		} catch (FrameworkException fex) {
 			logger.log(Level.WARNING, "Unable to get all child nodes", fex);
 		}
 
@@ -3277,7 +3302,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 		Set<AbstractNode> visitedNodes = new LinkedHashSet<AbstractNode>();
 		Set<AbstractNode> nodes        = new LinkedHashSet<AbstractNode>();
-		Set<AbstractRelationship> rels  = new LinkedHashSet<AbstractRelationship>();
+		Set<AbstractRelationship> rels = new LinkedHashSet<AbstractRelationship>();
 
 		collectRelatedNodes(nodes, rels, visitedNodes, this, 0, maxDepth, maxNum, splitRelationshipTypes(relTypes));
 
@@ -3300,7 +3325,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 		Set<AbstractNode> visitedNodes = new LinkedHashSet<AbstractNode>();
 		Set<AbstractNode> nodes        = new LinkedHashSet<AbstractNode>();
-		Set<AbstractRelationship> rels  = new LinkedHashSet<AbstractRelationship>();
+		Set<AbstractRelationship> rels = new LinkedHashSet<AbstractRelationship>();
 
 		collectRelatedNodes(nodes, rels, visitedNodes, this, 0, maxDepth, maxNum, splitRelationshipTypes(relTypes));
 
@@ -3310,7 +3335,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	protected AbstractNode getNodeFromLoader(HttpServletRequest request) {
 
 		List<AbstractRelationship> rels = getIncomingDataRelationships();
-		AbstractNode node              = null;
+		AbstractNode node               = null;
 
 		for (AbstractRelationship rel : rels) {
 
@@ -3461,6 +3486,17 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	}
 
 	@Override
+	public boolean isValid(ErrorBuffer errorBuffer) {
+
+		boolean error = false;
+
+		error |= ValidationHelper.checkStringNotBlank(this, Key.uuid, errorBuffer);
+		error |= ValidationHelper.checkStringNotBlank(this, Key.type, errorBuffer);
+
+		return !error;
+	}
+
+	@Override
 	public boolean isVisibleToPublicUsers() {
 		return getVisibleToPublicUsers();
 	}
@@ -3533,7 +3569,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	public boolean isVisible() {
 		return securityContext.isVisible(this);
 	}
-	
+
 	//~--- set methods ----------------------------------------------------
 
 	/**
@@ -3608,13 +3644,14 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	public void setTemplateId(final Long value) {
 
 		try {
+
 			// find template node
 			Command findNode      = Services.command(securityContext, FindNodeCommand.class);
 			Template templateNode = (Template) findNode.execute(value);
 
 			// delete existing template relationships
 			List<AbstractRelationship> templateRels = this.getOutgoingRelationships(RelType.USE_TEMPLATE);
-			Command delRel                         = Services.command(securityContext, DeleteRelationshipCommand.class);
+			Command delRel                          = Services.command(securityContext, DeleteRelationshipCommand.class);
 
 			if (templateRels != null) {
 
@@ -3630,8 +3667,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 			Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
 
 			createRel.execute(this, templateNode, RelType.USE_TEMPLATE);
-
-		} catch(FrameworkException fex) {
+		} catch (FrameworkException fex) {
 			logger.log(Level.WARNING, "Unable to set template id", fex);
 		}
 	}
@@ -3764,27 +3800,35 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * @param updateIndex
 	 */
 	public void setProperty(final String key, final Object value, final boolean updateIndex) throws FrameworkException {
-		
+
 		Object oldValue = getProperty(key);
-		
+
 		// check null cases
-		if (oldValue == null && value == null) {
+		if ((oldValue == null) && (value == null)) {
+
 			return;
+
 		}
-		
+
 		// no old value exists, set property
-		if (oldValue == null && value != null) {
+		if ((oldValue == null) && (value != null)) {
+
 			setPropertyInternal(key, value, updateIndex);
+
 			return;
+
 		}
-	
+
 		// old value exists and is NOT equal
-		if (oldValue != null && !oldValue.equals(value)) {
+		if ((oldValue != null) &&!oldValue.equals(value)) {
+
 			setPropertyInternal(key, value, updateIndex);
+
 			return;
+
 		}
 	}
-	
+
 	private void setPropertyInternal(final String key, final Object value, final boolean updateIndex) throws FrameworkException {
 
 		final Class type = this.getClass();
@@ -3792,6 +3836,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		if (key == null) {
 
 			logger.log(Level.SEVERE, "Tried to set property with null key (action was denied)");
+
 			throw new FrameworkException(type.getSimpleName(), new NullArgumentToken("base"));
 
 		}
@@ -3804,9 +3849,10 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 				// permit write operation once and
 				// lock read-only properties again
 				readOnlyPropertiesUnlocked = false;
-
 			} else {
+
 				throw new FrameworkException(type.getSimpleName(), new ReadOnlyPropertyToken(key));
+
 			}
 
 		}
@@ -3824,44 +3870,59 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 		// static relationship detected, create or remove relationship
 		RelationClass rel = EntityContext.getRelationClass(type, key);
+
 		if (rel != null) {
-		
+
 			if (value != null) {
 
 				// TODO: check cardinality here
-				if(value instanceof Iterable) {
-					
+				if (value instanceof Iterable) {
+
 					Collection<GraphObject> collection = rel.getNotion().getCollectionAdapterForSetter(securityContext).adapt(value);
-					for(GraphObject graphObject : collection) {
+
+					for (GraphObject graphObject : collection) {
+
 						rel.createRelationship(securityContext, this, graphObject);
+
 					}
-					
+
 				} else {
 
 					GraphObject graphObject = rel.getNotion().getAdapterForSetter(securityContext).adapt(value);
+
 					rel.createRelationship(securityContext, this, graphObject);
-					
+
 				}
-				
 			} else {
-				
+
 				// new value is null
 				Object existingValue = getProperty(key);
-				
+
 				// do nothing if value is already null
-				if (existingValue == null) return;
-				
+				if (existingValue == null) {
+
+					return;
+
+				}
+
 				// support collection resources, too
 				if (existingValue instanceof IterableAdapter) {
+
 					for (Object val : ((IterableAdapter) existingValue)) {
+
 						GraphObject graphObject = rel.getNotion().getAdapterForSetter(securityContext).adapt(val);
+
 						rel.removeRelationship(securityContext, this, graphObject);
+
 					}
+
 				} else {
+
 					GraphObject graphObject = rel.getNotion().getAdapterForSetter(securityContext).adapt(existingValue);
-					rel.removeRelationship(securityContext, this, graphObject);				
+
+					rel.removeRelationship(securityContext, this, graphObject);
+
 				}
-				
 			}
 
 		} else {
@@ -3872,6 +3933,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 			if (converter != null) {
 
 				Value conversionValue = EntityContext.getPropertyConversionParameter(type, key);
+
 				converter.setCurrentObject(this);
 
 				convertedValue = converter.convertForSetter(value, conversionValue);
@@ -3898,7 +3960,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 				// Don't write directly to database, but store property values
 				// in a map for later use
 				properties.put(key, convertedValue);
-				
 			} else {
 
 				// Commit value directly to database
@@ -3941,8 +4002,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 								}
 							}
-
-
 						} finally {}
 
 						return null;
@@ -3952,6 +4011,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 				// execute transaction
 				Services.command(securityContext, TransactionCommand.class).execute(transaction);
 			}
+
 		}
 	}
 
@@ -3972,10 +4032,12 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	private void setOwnerNode(final Long nodeId) {
 
 		try {
+
 			Command setOwner = Services.command(securityContext, SetOwnerCommand.class);
+
 			setOwner.execute(this, Services.command(securityContext, FindNodeCommand.class).execute(nodeId));
 
-		} catch(FrameworkException fex) {
+		} catch (FrameworkException fex) {
 			logger.log(Level.WARNING, "Unable to set owner node", fex);
 		}
 	}

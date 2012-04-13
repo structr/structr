@@ -273,7 +273,7 @@ function connect() {
                 				
                 $(result).each(function(i, entity) {
 
-                    //                    console.log('LIST: ' + entity.type);
+                    console.log('LIST: ' + entity.type);
 
                     if (entity.type == 'User') {
                         var groups = entity.groups;
@@ -355,6 +355,7 @@ function connect() {
                         }
 
                     } else {
+			console.log('Entity: ', entity);
                         var elementElement = _Resources.appendElementElement(entity);
                         var elem = entity.elements;
                         if (elem && elem.length > 0) {

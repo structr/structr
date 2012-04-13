@@ -116,17 +116,17 @@ var _Files = {
 				return false;
 			});
 		}
-		_Entities.getEntities('File');
+		_Entities.list('File');
 	},
 	
 	refreshImages : function() {
 		images.empty();
-		_Entities.getEntities('Image');
+		_Entities.list('Image');
 	},
 	
 	refreshFolders : function() {
 		folders.empty();
-		if (_Entities.getEntities('Folder')) {
+		if (_Entities.list('Folder')) {
 			folders.append('<button class="add_folder_icon button"><img title="Add Folder" alt="Add Folder" src="' + _Files.add_folder_icon + '"> Add Folder</button>');
 			$('.add_folder_icon', main).on('click', function() {
 				var entity = {};

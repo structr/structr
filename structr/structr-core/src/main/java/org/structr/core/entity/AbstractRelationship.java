@@ -25,11 +25,13 @@ import org.apache.commons.lang.time.DateUtils;
 
 import org.neo4j.graphdb.*;
 
+import org.structr.common.*;
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.UuidCreationTransformation;
+import org.structr.common.error.*;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.IdNotFoundToken;
 import org.structr.common.error.NullPropertyToken;
@@ -55,8 +57,6 @@ import java.text.ParseException;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.*;
-import org.structr.common.error.*;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -86,6 +86,11 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	//~--- fields ---------------------------------------------------------
 
+	private String cachedEndNodeId = null;
+
+	// test
+	private String cachedStartNodeId = null;
+
 //      public final static String ALLOWED_KEY = "allowed";
 //      public final static String DENIED_KEY = "denied";
 //      public final static String READ_KEY = "read";
@@ -113,16 +118,10 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	protected boolean isDirty;
 	protected Map<String, Object> properties;
 
-	// test
-	private String cachedStartNodeId = null;
-	private String cachedEndNodeId = null;
-	
 	//~--- constant enums -------------------------------------------------
 
-	public enum HiddenKey implements PropertyKey {
-		type,    // internal type, see IndexRelationshipCommand#indexRelationship method
-		cascadeDelete, createdDate
-	}
+	public enum HiddenKey implements PropertyKey{ type,    // internal type, see IndexRelationshipCommand#indexRelationship method
+					 cascadeDelete, createdDate }
 
 	public enum Key implements PropertyKey{ uuid }
 
@@ -167,48 +166,29 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	 * normal rendering turn.
 	 */
 	public void onRelationshipInstantiation() {
-		
+
 		try {
-			if(dbRelationship != null) {
+
+			if (dbRelationship != null) {
 
 				Node startNode = dbRelationship.getStartNode();
-				Node endNode = dbRelationship.getEndNode();
-				
-				if(startNode != null && endNode != null && startNode.hasProperty(AbstractNode.Key.uuid.name()) && endNode.hasProperty(AbstractNode.Key.uuid.name())) {
-					cachedStartNodeId = (String)startNode.getProperty(AbstractNode.Key.uuid.name());
-					cachedEndNodeId   = (String)endNode.getProperty(AbstractNode.Key.uuid.name());
+				Node endNode   = dbRelationship.getEndNode();
+
+				if ((startNode != null) && (endNode != null) && startNode.hasProperty(AbstractNode.Key.uuid.name()) && endNode.hasProperty(AbstractNode.Key.uuid.name())) {
+
+					cachedStartNodeId = (String) startNode.getProperty(AbstractNode.Key.uuid.name());
+					cachedEndNodeId   = (String) endNode.getProperty(AbstractNode.Key.uuid.name());
+
 				}
+
 			}
-			
-		} catch(Throwable t) {}
-	}
-	
-	@Override
-	public boolean isValid(ErrorBuffer errorBuffer) {
 
-		boolean error = false;
-
-		error |= ValidationHelper.checkStringNotBlank(this, AbstractNode.Key.uuid, errorBuffer);
-		
-//		error |= (this.getStartNode() != null);
-//		error |= (this.getEndNode() != null);
-
-		return !error;
+		} catch (Throwable t) {}
 	}
 
-	@Override
-	public PropertyKey getDefaultSortKey() {
-		return null;
-	}
-	
-	@Override
-	public String getDefaultSortOrder() {
-		return GraphObjectComparator.ASCENDING;
-	}
-	
 	public AbstractNode identifyStartNode(RelationshipMapping namedRelation, Map<String, Object> propertySet) throws FrameworkException {
 
-		Notion startNodeNotion = getStartNodeNotion(); //new RelationshipNotion(getStartNodeIdKey());
+		Notion startNodeNotion = getStartNodeNotion();    // new RelationshipNotion(getStartNodeIdKey());
 
 		startNodeNotion.setType(namedRelation.getSourceType());
 
@@ -229,7 +209,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	public AbstractNode identifyEndNode(RelationshipMapping namedRelation, Map<String, Object> propertySet) throws FrameworkException {
 
-		Notion endNodeNotion = getEndNodeNotion(); //new RelationshipNotion(getEndNodeIdKey());
+		Notion endNodeNotion = getEndNodeNotion();    // new RelationshipNotion(getEndNodeIdKey());
 
 		endNodeNotion.setType(namedRelation.getDestType());
 
@@ -359,18 +339,31 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		return ((Long) this.getId()).compareTo((Long) rel.getId());
 	}
 
-
 	public int cascadeDelete() {
+
 		Integer cd = getIntProperty(AbstractRelationship.HiddenKey.cascadeDelete);
-		return cd != null ? cd : 0;
+
+		return (cd != null)
+		       ? cd
+		       : 0;
 	}
 
 	//~--- get methods ----------------------------------------------------
 
+	@Override
+	public PropertyKey getDefaultSortKey() {
+		return null;
+	}
+
+	@Override
+	public String getDefaultSortOrder() {
+		return GraphObjectComparator.ASCENDING;
+	}
+
 	public abstract PropertyKey getStartNodeIdKey();
 
 	public abstract PropertyKey getEndNodeIdKey();
-	
+
 	public Notion getEndNodeNotion() {
 		return new RelationshipNotion(getEndNodeIdKey());
 	}
@@ -483,6 +476,10 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		return value;
 	}
 
+	public String getStringProperty(final PropertyKey key) {
+		return getStringProperty(key.name());
+	}
+
 	@Override
 	public String getStringProperty(final String key) {
 
@@ -503,7 +500,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 		return result;
 	}
-	
+
 	public Integer getIntProperty(final PropertyKey propertyKey) {
 		return (getIntProperty(propertyKey.name()));
 	}
@@ -537,7 +534,49 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 		return result;
 	}
-	
+
+	public Long getLongProperty(final PropertyKey propertyKey) {
+		return (getLongProperty(propertyKey.name()));
+	}
+
+	public Long getLongProperty(final String key) {
+
+		Object propertyValue = getProperty(key);
+		Long result          = null;
+
+		if (propertyValue == null) {
+
+			return null;
+
+		}
+
+		if (propertyValue instanceof Long) {
+
+			result = ((Long) propertyValue);
+
+		} else if (propertyValue instanceof Integer) {
+
+			result = ((Integer) propertyValue).longValue();
+
+		} else if (propertyValue instanceof String) {
+
+			if ("".equals((String) propertyValue)) {
+
+				return null;
+
+			}
+
+			result = Long.parseLong(((String) propertyValue));
+
+		}
+
+		return result;
+	}
+
+	public Date getDateProperty(final PropertyKey key) {
+		return getDateProperty(key.name());
+	}
+
 	@Override
 	public Date getDateProperty(final String key) {
 
@@ -781,7 +820,27 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	}
 
 	private AbstractNode getNodeByUuid(final String uuid) throws FrameworkException {
-		return (AbstractNode)Services.command(securityContext, GetNodeByIdCommand.class).execute(uuid);
+		return (AbstractNode) Services.command(securityContext, GetNodeByIdCommand.class).execute(uuid);
+	}
+
+	public String getCachedStartNodeId() {
+		return cachedStartNodeId;
+	}
+
+	public String getCachedEndNodeId() {
+		return cachedEndNodeId;
+	}
+
+	@Override
+	public boolean isValid(ErrorBuffer errorBuffer) {
+
+		boolean error = false;
+
+		error |= ValidationHelper.checkStringNotBlank(this, AbstractNode.Key.uuid, errorBuffer);
+
+//              error |= (this.getStartNode() != null);
+//              error |= (this.getEndNode() != null);
+		return !error;
 	}
 
 	public boolean isType(RelType type) {
@@ -1154,13 +1213,5 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 			dbRelationship.setProperty(AbstractRelationship.Permission.denied.name(), denied);
 
 		}
-	}
-	
-	public String getCachedStartNodeId() {
-		return cachedStartNodeId;
-	}
-	
-	public String getCachedEndNodeId() {
-		return cachedEndNodeId;
 	}
 }

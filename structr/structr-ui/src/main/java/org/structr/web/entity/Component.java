@@ -29,16 +29,12 @@ import org.neo4j.graphdb.Relationship;
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.RelationClass.Cardinality;
 import org.structr.core.node.NodeService;
-import org.structr.core.node.StructrTransaction;
-import org.structr.core.node.TransactionCommand;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -272,8 +268,8 @@ public class Component extends AbstractNode {
 			@Override
 			public int compare(AbstractRelationship o1, AbstractRelationship o2) {
 
-				Integer pos1 = getPosition(o1, resourceId);
-				Integer pos2 = getPosition(o2, resourceId);
+				Long pos1 = getPosition(o1, resourceId);
+				Long pos2 = getPosition(o2, resourceId);
 
 				return pos1.compareTo(pos2);
 			}
@@ -283,27 +279,27 @@ public class Component extends AbstractNode {
 		return rels;
 	}
 
-	public static int getPosition(final AbstractRelationship relationship, final String resourceId) {
+	public static long getPosition(final AbstractRelationship relationship, final String resourceId) {
 
-		final Relationship rel = relationship.getRelationship();
-		Integer position       = 0;
+//		final Relationship rel = relationship.getRelationship();
+		long position       = 0;
 
 		try {
 
-			Map<Integer, Relationship> sortedRelationshipMap = new TreeMap<Integer, Relationship>();
+//			Map<Integer, Relationship> sortedRelationshipMap = new TreeMap<Integer, Relationship>();
 			Object prop                                      = null;
 			final String key;
 
 			// "*" is a wildcard for "matches any resource id"
 			// TOOD: use pattern matching here?
-			if (rel.hasProperty("*")) {
+			if (relationship.getProperty("*") != null) {
 
-				prop = rel.getProperty("*");
+				prop = relationship.getProperty("*");
 				key  = "*";
 
-			} else if (rel.hasProperty(resourceId)) {
+			} else if (relationship.getProperty(resourceId) != null) {
 
-				prop = rel.getProperty(resourceId);
+				prop = relationship.getLongProperty(resourceId);
 				key  = resourceId;
 
 			} else {
@@ -314,48 +310,52 @@ public class Component extends AbstractNode {
 
 			if ((key != null) && (prop != null)) {
 
-				if (prop instanceof Integer) {
+				if (prop instanceof Long) {
 
-					position = (Integer) prop;
+					position = (Long) prop;
+
+				} else if (prop instanceof Integer) {
+
+					position = ((Integer) prop).longValue();
 
 				} else if (prop instanceof String) {
 
-					position = Integer.parseInt((String) prop);
+					position = Long.parseLong((String) prop);
 
 				} else {
 
-					throw new java.lang.IllegalArgumentException("Expected Integer or String");
+					throw new java.lang.IllegalArgumentException("Expected Long, Integer or String");
 
 				}
-
-				Integer originalPos = position;
-
-				// find free slot
-				while (sortedRelationshipMap.containsKey(position)) {
-
-					position++;
-
-				}
-
-				sortedRelationshipMap.put(position, rel);
-
-				if (originalPos != position) {
-
-					final Integer newPos = position;
-
-					Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(new StructrTransaction() {
-
-						@Override
-						public Object execute() throws FrameworkException {
-
-							rel.setProperty(key, newPos);
-
-							return null;
-						}
-
-					});
-
-				}
+//
+//				Integer originalPos = position;
+//
+//				// find free slot
+//				while (sortedRelationshipMap.containsKey(position)) {
+//
+//					position++;
+//
+//				}
+//
+//				sortedRelationshipMap.put(position, rel);
+//
+//				if (originalPos != position) {
+//
+//					final Integer newPos = position;
+//
+//					Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(new StructrTransaction() {
+//
+//						@Override
+//						public Object execute() throws FrameworkException {
+//
+//							rel.setProperty(key, newPos);
+//
+//							return null;
+//						}
+//
+//					});
+//
+//				}
 
 			}
 

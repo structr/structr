@@ -162,7 +162,7 @@ var _Elements = {
     refresh : function() {
 	elements.empty();
 
-	if (_Elements.show()) {
+	if (_Entities.list('Element')) {
 	    elements.append('<button class="add_element_icon button"><img title="Add Element" alt="Add Element" src="' + _Elements.add_icon + '"> Add Element</button>');
 
 	    $('.add_element_icon', main).on('click', function() {
@@ -187,10 +187,6 @@ var _Elements = {
 	    //_Elements.addElement(this);
 	    });
 	}
-    },
-
-    show : function() {
-	return _Entities.getEntities('Element');
     },
 
     appendElementElement : function(entity, parentId, resourceId) {
