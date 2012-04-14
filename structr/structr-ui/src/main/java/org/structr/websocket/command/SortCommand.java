@@ -21,44 +21,61 @@
 
 package org.structr.websocket.command;
 
+import org.neo4j.graphdb.Direction;
+
+import org.structr.common.RelType;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 //~--- classes ----------------------------------------------------------------
 
 /**
- *
- * @author Christian Morgner
+ * Websocket command to sort a list of nodes.
+ * @author Axel Morgner
  */
-public class UpdateCommand extends AbstractCommand {
+public class SortCommand extends AbstractCommand {
 
-	private static final Logger logger = Logger.getLogger(UpdateCommand.class.getName());
+	private static final Logger logger = Logger.getLogger(SortCommand.class.getName());
 
 	//~--- methods --------------------------------------------------------
 
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		AbstractNode node                 = getNode(webSocketData.getId());
-		final Map<String, Object> relData = webSocketData.getRelData();
+		String resourceId            = webSocketData.getId();
+		AbstractNode node            = getNode(resourceId);
+		Map<String, Object> nodeData = webSocketData.getNodeData();
 
 		if (node != null) {
 
-			for (Entry<String, Object> entry : webSocketData.getNodeData().entrySet()) {
+			for (String id : nodeData.keySet()) {
 
-				try {
-					node.setProperty(entry.getKey(), entry.getValue());
-				} catch (FrameworkException fex) {
-					fex.printStackTrace();
+				AbstractNode nodeToSort = getNode(id);
+				Long pos              = Long.parseLong((String) nodeData.get(id));
+
+				for (AbstractRelationship rel : nodeToSort.getRelationships(RelType.CONTAINS, Direction.INCOMING)) {
+
+					Long oldPos = rel.getLongProperty(resourceId);
+
+					if ((oldPos != null) &&!(oldPos.equals(pos))) {
+
+						try {
+							rel.setProperty(resourceId, pos);
+						} catch (FrameworkException fex) {
+							fex.printStackTrace();
+						}
+
+					}
+
 				}
 
 			}
@@ -75,6 +92,6 @@ public class UpdateCommand extends AbstractCommand {
 
 	@Override
 	public String getCommand() {
-		return "UPDATE";
+		return "SORT";
 	}
 }

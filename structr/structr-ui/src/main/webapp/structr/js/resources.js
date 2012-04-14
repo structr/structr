@@ -671,12 +671,43 @@ var _Resources = {
 	    });
 	}
 
+	var sorting = false;
+
+	div.sortable({
+	    sortable: '.node',
+	    containment: 'parent',
+	    start: function(event, ui) {
+		//var self = $(this);
+		sorting = true;
+	    },
+	    stop: function(event, ui) {
+		var resourceId = getId(ui.item.closest('.resource')[0]);
+		console.log(resourceId);
+		var data = {};
+		$(ui.item).parent().children('.node').each(function(i,v) {
+		    var self = $(this);
+		    console.log(getId(self), i);
+		    data[getId(self)] = i;
+		});
+		var obj = {};
+		obj.command = 'SORT';
+		obj.id = resourceId;
+		obj.data = data;
+		sendObj(obj);
+
+		sorting = false;
+	    }
+	});
+
 	div.droppable({
 	    accept: '.element, .content, .component',
 	    greedy: true,
 	    hoverClass: 'elementHover',
 	    drop: function(event, ui) {
-
+		if (sorting) {
+		    if (debug) console.log('sorting, no drop allowed');
+		    return;
+		}
 		var self = $(this);
 
 		var resource = self.closest( '.resource')[0];

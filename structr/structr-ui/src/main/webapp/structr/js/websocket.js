@@ -273,7 +273,7 @@ function connect() {
                 				
                 $(result).each(function(i, entity) {
 
-                    console.log('LIST: ' + entity.type);
+                    if (debug) console.log('LIST: ' + entity.type);
 
                     if (entity.type == 'User') {
                         var groups = entity.groups;
