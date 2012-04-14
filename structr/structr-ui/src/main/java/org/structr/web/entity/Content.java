@@ -21,6 +21,8 @@
 
 package org.structr.web.entity;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
@@ -42,6 +44,11 @@ import org.structr.core.entity.RelationClass.Cardinality;
  */
 public class Content extends AbstractNode {
 
+	private static final Logger logger = Logger.getLogger(Content.class.getName());
+
+	private static final String TEMPLATE_PREFIX = "${";
+	private static final String TEMPLATE_SUFFIX = "}";
+	
 	public enum UiKey implements PropertyKey{ name, tag, content, contentType, size }
 	
 	protected static final String[] attributes = new String[] {
@@ -107,8 +114,7 @@ public class Content extends AbstractNode {
 		EntityContext.registerSearchablePropertySet(Content.class, NodeService.NodeIndex.keyword.name(), Element.UiKey.values());
 
 	}
-
-
+	
 	//~--- get methods ----------------------------------------------------
 
 	@Override
@@ -140,4 +146,33 @@ public class Content extends AbstractNode {
 		// FIXME: this is an ugly hack :)
 		return getRelationships(RelType.CONTAINS, Direction.INCOMING).get(0);
 	}
+	
+	
+	
+	@Override
+	public java.lang.Object getProperty(String key) {
+		
+		java.lang.Object value = super.getProperty(key);
+		
+		if(value != null && value instanceof String) {
+			
+			String templateValue = (String)value;
+			
+			if(templateValue.startsWith(TEMPLATE_PREFIX) && templateValue.endsWith(TEMPLATE_SUFFIX)) {
+				
+				String templateKey = templateValue.substring(2, templateValue.length() - 1);
+				String[] parts = templateKey.split("[\\.]+");
+				
+				String referenceKey = parts[parts.length - 1];
+
+				// return referenced property
+				return getProperty(referenceKey);
+			}
+			
+		}
+		
+		
+		return value;
+	}
+	
 }
