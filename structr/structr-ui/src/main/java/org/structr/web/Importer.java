@@ -108,6 +108,8 @@ public class Importer {
 	private Document parsedDocument;
 	private int timeout;
 	private SecurityContext securityContext;
+	private boolean publicVisible;
+	private boolean authVisible;
 
 	//~--- constructors ---------------------------------------------------
 
@@ -128,12 +130,14 @@ public class Importer {
 //              }
 //              
 //      }
-	public Importer(final SecurityContext securityContext, final String address, final String name, final int timeout) {
+	public Importer(final SecurityContext securityContext, final String address, final String name, final int timeout, final boolean publicVisible, final boolean authVisible) {
 
 		this.address = address;
 		this.name    = name;
 		this.timeout = timeout;
 		this.securityContext = securityContext;
+		this.publicVisible = publicVisible;
+		this.authVisible = authVisible;
 	}
 
 	//~--- methods --------------------------------------------------------
@@ -175,6 +179,8 @@ public class Importer {
 
 					attrs.add(new NodeAttribute("type", "Resource"));
 					attrs.add(new NodeAttribute("name", name));
+					attrs.add(new NodeAttribute("visibleToPublicUsers", publicVisible));
+					attrs.add(new NodeAttribute("visibleToAuthenticatedUsers", authVisible));
 
 					AbstractNode resource = findOrCreateNode("Resource", attrs, "/");
 
@@ -633,7 +639,9 @@ public class Importer {
 		String relativeFilePath = File.getDirectoryPath(uuid) + "/" + uuid;
 		File fileNode           = (File) createNode.execute(new NodeAttribute(AbstractNode.Key.uuid.name(), uuid), new NodeAttribute(AbstractNode.Key.type.name(), File.class.getSimpleName()),
 					new NodeAttribute(AbstractNode.Key.name.name(), name), new NodeAttribute(File.Key.relativeFilePath.name(), relativeFilePath),
-					new NodeAttribute(File.Key.contentType.name(), contentType));
+					new NodeAttribute(File.Key.contentType.name(), contentType),
+					new NodeAttribute("visibleToPublicUsers", publicVisible),
+					new NodeAttribute("visibleToAuthenticatedUsers", authVisible));
 
 		fileNode.getChecksum();    // calculates and stores checksum
 		indexNode.execute(fileNode);
@@ -646,7 +654,9 @@ public class Importer {
 		String relativeFilePath = Image.getDirectoryPath(uuid) + "/" + uuid;
 		Image imageNode         = (Image) createNode.execute(new NodeAttribute(AbstractNode.Key.uuid.name(), uuid), new NodeAttribute(AbstractNode.Key.type.name(), Image.class.getSimpleName()),
 					  new NodeAttribute(AbstractNode.Key.name.name(), name), new NodeAttribute(File.Key.relativeFilePath.name(), relativeFilePath),
-					  new NodeAttribute(File.Key.contentType.name(), contentType));
+					  new NodeAttribute(File.Key.contentType.name(), contentType),
+					  new NodeAttribute("visibleToPublicUsers", publicVisible),
+					  new NodeAttribute("visibleToAuthenticatedUsers", authVisible));
 
 		imageNode.getChecksum();    // calculates and stores checksum
 		indexNode.execute(imageNode);

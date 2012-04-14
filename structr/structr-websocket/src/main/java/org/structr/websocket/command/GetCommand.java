@@ -31,6 +31,7 @@ import org.structr.websocket.message.WebSocketMessage;
 /**
  *
  * @author Christian Morgner
+ * @author Axel Morgner
  */
 public class GetCommand extends AbstractCommand {
 
@@ -44,7 +45,7 @@ public class GetCommand extends AbstractCommand {
 
 			if (view == null) {
 
-				view = PropertyView.Ui;
+				view = PropertyView.All;
 
 			}
 

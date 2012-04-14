@@ -21,11 +21,15 @@
 
 package org.structr.websocket.command;
 
+import org.neo4j.graphdb.Direction;
+
+import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.RelationClass;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.StructrTransaction;
@@ -68,7 +72,7 @@ public class WrapInComponentCommand extends AbstractCommand {
 		final String parentId              = (String) nodeData.get("parentId");
 		final AbstractNode parentNode      = getNode(parentId);
 		final Long position                = Long.parseLong((String) relData.get(resourceId));
-
+		
 		if (nodeToWrap != null) {
 
 			StructrTransaction transaction = new StructrTransaction() {
@@ -77,9 +81,11 @@ public class WrapInComponentCommand extends AbstractCommand {
 				public Object execute() throws FrameworkException {
 
 					Component newComponent = (Component) Services.command(securityContext, CreateNodeCommand.class).execute(nodeData);
+					
+					String componentId = newComponent.getStringProperty(AbstractNode.Key.uuid);
 
-					RelationshipHelper.moveIncomingRelationships(securityContext, nodeToWrap, newComponent, resourceId, newComponent.getStringProperty(AbstractNode.Key.uuid),
-						position);
+					RelationshipHelper.moveIncomingRelationships(securityContext, nodeToWrap, newComponent, resourceId,
+						newComponent.getStringProperty(AbstractNode.Key.uuid), position);
 
 					if ((parentNode != null) && (newComponent != null)) {
 
@@ -91,12 +97,16 @@ public class WrapInComponentCommand extends AbstractCommand {
 							Map<String, Object> relProps = new LinkedHashMap<String, Object>();
 
 							relProps.put(resourceId, 0);
+							relProps.put("resourceId", resourceId);
+							relProps.put("componentId", componentId);
 
 							try {
-								rel.createRelationship(securityContext, parentNode, newComponent, relProps);
+								rel.createRelationship(securityContext, newComponent, nodeToWrap, relProps);
 							} catch (Throwable t) {
 								getWebSocket().send(MessageBuilder.status().code(400).message(t.getMessage()).build(), true);
 							}
+							
+							tagOutgoingRelsWithComponentId(newComponent, componentId);
 						}
 
 					} else {
@@ -121,6 +131,19 @@ public class WrapInComponentCommand extends AbstractCommand {
 
 			logger.log(Level.WARNING, "Node with uuid {0} not found.", webSocketData.getId());
 			getWebSocket().send(MessageBuilder.status().code(404).build(), true);
+
+		}
+	}
+
+	private void tagOutgoingRelsWithComponentId(final AbstractNode node, final String componentId) throws FrameworkException {
+
+		for (AbstractRelationship rel : node.getRelationships(RelType.CONTAINS, Direction.OUTGOING)) {
+
+			rel.setProperty("componentId", componentId);
+			
+			AbstractNode endNode = rel.getEndNode();
+			
+			tagOutgoingRelsWithComponentId(endNode, componentId);
 
 		}
 	}

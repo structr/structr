@@ -65,12 +65,14 @@ public class ImportCommand extends AbstractCommand {
 		final String address                  = (String) properties.get("address");
 		final String name                     = (String) properties.get("name");
 		final int timeout                     = Integer.parseInt((String) properties.get("timeout"));
+		final boolean publicVisible			  = Boolean.parseBoolean((String) properties.get("publicVisible"));
+		final boolean authVisible			  = Boolean.parseBoolean((String) properties.get("authVisible"));
 		StructrTransaction transaction        = new StructrTransaction() {
 
 			@Override
 			public Object execute() throws FrameworkException {
 
-				Importer pageImporter = new Importer(securityContext, address, name, timeout);
+				Importer pageImporter = new Importer(securityContext, address, name, timeout, publicVisible, authVisible);
 
 				boolean parseOk = pageImporter.parse();
 

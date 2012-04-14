@@ -116,13 +116,17 @@ var _Resources = {
 	    dialog.empty();
 	    dialogMsg.empty();
 
-	    dialog.append('<table class="props"><tr><td><label for="address">Address:</label></td><td><input id="_address" name="address" size="20" value="http://"></td></tr>'
-		+ '<tr><td><label for="address">Name of new page:</label></td><td><input id="_name" name="name" size="20"></td></tr>'
-		+ '<tr><td><label for="address">Timeout (ms)</label></td><td><input id="_timeout" name="timeout" size="20" value="5000"></td></tr></table>');
+	    dialog.append('<table class="props">'
+		+ '<tr><td><label for="address">Address:</label></td><td><input id="_address" name="address" size="20" value="http://"></td></tr>'
+		+ '<tr><td><label for="name">Name of new page:</label></td><td><input id="_name" name="name" size="20"></td></tr>'
+		+ '<tr><td><label for="timeout">Timeout (ms)</label></td><td><input id="_timeout" name="timeout" size="20" value="5000"></td></tr>'
+		+ '<tr><td><label for="publicVisibilty">Visible to public</label></td><td><input type="checkbox" id="_publicVisible" name="publicVisibility"></td></tr>'
+		+ '<tr><td><label for="authVisibilty">Visible to authenticated users</label></td><td><input type="checkbox" checked="checked" id="_authVisible" name="authVisibilty"></td></tr>'
+		+ '</table>');
 
 	    var addressField = $('#_address', dialog);
 
-	    console.log('addressField', addressField);
+	    if (debug) console.log('addressField', addressField);
 
 	    addressField.on('blur', function() {
 		var addr = $(this).val().replace(/\/+$/, "");
@@ -143,9 +147,11 @@ var _Resources = {
 		var address = $('#_address', dialog).val();
 		var name    = $('#_name', dialog).val();
 		var timeout = $('#_timeout', dialog).val();
+		var publicVisible = $('#_publicVisible:checked', dialog).val() == 'on';
+		var authVisible = $('#_authVisible:checked', dialog).val() == 'on';
 
 		if (debug) console.log('start');
-		return _Resources.importPage(this, address, name, timeout);
+		return _Resources.importPage(this, address, name, timeout, publicVisible, authVisible);
 	    });
             
 	});
@@ -159,13 +165,15 @@ var _Resources = {
 
     },
 	
-    importPage : function(button, address, name, timeout) {
+    importPage : function(button, address, name, timeout, publicVisible, authVisible) {
 	var obj = {};
 	var data = {};
 	obj.command = 'IMPORT';
 	data.address = address;
 	data.name = name;
 	data.timeout = timeout;
+	data.publicVisible = publicVisible;
+	data.authVisible = authVisible;
 	obj.data = data;
 	console.log(obj);
 	return sendObj(obj);

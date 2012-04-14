@@ -40,23 +40,23 @@ import org.structr.web.entity.Component;
  */
 public class RelationshipHelper {
 
-	public static void copyRelationships(SecurityContext securityContext, AbstractNode sourceNode, AbstractNode targetNode, String resourceId, String componentId, long position)
+	public static void copyRelationships(SecurityContext securityContext, AbstractNode origNode, AbstractNode cloneNode, String resourceId, String componentId, long position)
 		throws FrameworkException {
 
-		copyIncomingRelationships(securityContext, sourceNode, targetNode, resourceId, componentId, position);
-		copyOutgoingRelationships(securityContext, sourceNode, targetNode, resourceId, componentId, position);
+		copyIncomingRelationships(securityContext, origNode, cloneNode, resourceId, componentId, position);
+		copyOutgoingRelationships(securityContext, origNode, cloneNode, resourceId, componentId, position);
 	}
 
-	public static void copyIncomingRelationships(SecurityContext securityContext, AbstractNode sourceNode, AbstractNode targetNode, String resourceId, String componentId, long position)
+	public static void copyIncomingRelationships(SecurityContext securityContext, AbstractNode origNode, AbstractNode cloneNode, String resourceId, String componentId, long position)
 		throws FrameworkException {
 
 		Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
 
-		for (AbstractRelationship in : sourceNode.getIncomingRelationships()) {
+		for (AbstractRelationship in : origNode.getIncomingRelationships()) {
 
 			AbstractNode startNode        = in.getStartNode();
 			RelationshipType relType      = in.getRelType();
-			AbstractRelationship newInRel = (AbstractRelationship) createRel.execute(startNode, targetNode, relType);
+			AbstractRelationship newInRel = (AbstractRelationship) createRel.execute(startNode, cloneNode, relType);
 
 			newInRel.setProperty("type", in.getStringProperty("type"));
 
@@ -106,7 +106,7 @@ public class RelationshipHelper {
 		}
 	}
 
-	public static void removeOutgoingRelationships(SecurityContext securityContext, final AbstractNode sourceNode) throws FrameworkException {
+	public static void removeOutgoingRelationships(SecurityContext securityContext, final AbstractNode node) throws FrameworkException {
 
 		final Command delRel           = Services.command(securityContext, DeleteRelationshipCommand.class);
 		StructrTransaction transaction = new StructrTransaction() {
@@ -114,7 +114,7 @@ public class RelationshipHelper {
 			@Override
 			public Object execute() throws FrameworkException {
 
-				for (AbstractRelationship out : sourceNode.getOutgoingRelationships()) {
+				for (AbstractRelationship out : node.getOutgoingRelationships()) {
 
 					delRel.execute(out);
 
@@ -127,7 +127,7 @@ public class RelationshipHelper {
 		Services.command(securityContext, TransactionCommand.class).execute(transaction);
 	}
 
-	public static void removeIncomingRelationships(SecurityContext securityContext, final AbstractNode sourceNode) throws FrameworkException {
+	public static void removeIncomingRelationships(SecurityContext securityContext, final AbstractNode node) throws FrameworkException {
 
 		final Command delRel           = Services.command(securityContext, DeleteRelationshipCommand.class);
 		StructrTransaction transaction = new StructrTransaction() {
@@ -135,7 +135,7 @@ public class RelationshipHelper {
 			@Override
 			public Object execute() throws FrameworkException {
 
-				for (AbstractRelationship in : sourceNode.getIncomingRelationships()) {
+				for (AbstractRelationship in : node.getIncomingRelationships()) {
 
 					delRel.execute(in);
 
@@ -148,19 +148,19 @@ public class RelationshipHelper {
 		Services.command(securityContext, TransactionCommand.class).execute(transaction);
 	}
 
-	public static void moveIncomingRelationships(SecurityContext securityContext, AbstractNode sourceNode, AbstractNode targetNode, String resourceId, String componentId, long position)
+	public static void moveIncomingRelationships(SecurityContext securityContext, AbstractNode origNode, AbstractNode cloneNode, String resourceId, String componentId, long position)
 		throws FrameworkException {
 
-		copyIncomingRelationships(securityContext, sourceNode, targetNode, resourceId, componentId, position);
-		removeIncomingRelationships(securityContext, sourceNode);
+		copyIncomingRelationships(securityContext, origNode, cloneNode, resourceId, componentId, position);
+		removeIncomingRelationships(securityContext, origNode);
 
 	}
 
-	public static void moveOutgoingRelationships(SecurityContext securityContext, AbstractNode sourceNode, AbstractNode targetNode, String resourceId, String componentId, long position)
+	public static void moveOutgoingRelationships(SecurityContext securityContext, AbstractNode origNode, AbstractNode cloneNode, String resourceId, String componentId, long position)
 		throws FrameworkException {
 
-		copyOutgoingRelationships(securityContext, sourceNode, targetNode, resourceId, componentId, position);
-		removeOutgoingRelationships(securityContext, sourceNode);
+		copyOutgoingRelationships(securityContext, origNode, cloneNode, resourceId, componentId, position);
+		removeOutgoingRelationships(securityContext, origNode);
 
 	}
 }

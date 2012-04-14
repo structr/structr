@@ -294,6 +294,8 @@ var _Files = {
 				_Entities.createAndAdd(folderId, nodeData);
 			}
 		});
+
+		_Entities.appendAccessControlIcon(div, folder);
 		
 		return div;
 	},
