@@ -33,7 +33,6 @@ import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.io.Buffer;
 import org.eclipse.jetty.io.ByteArrayBuffer;
 
-import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.kernel.Traversal;
 import org.neo4j.kernel.Uniqueness;
@@ -48,8 +47,6 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Image;
 import org.structr.core.node.NodeAttribute;
-import org.structr.core.node.StructrTransaction;
-import org.structr.core.node.TransactionCommand;
 import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
 import org.structr.core.node.search.SearchAttributeGroup;
@@ -601,14 +598,24 @@ public class HtmlServlet extends HttpServlet {
 
 				if (node instanceof HtmlElement) {
 
+					HtmlElement htmlElement = (HtmlElement)node;
+					
 					for (String attribute : EntityContext.getPropertySet(node.getClass(), PropertyView.Html)) {
 
-						if (StringUtils.isNotBlank(node.getStringProperty(attribute))) {
+						try {
+							String value = htmlElement.getReferencedProperty(resourceId, localComponentId, attribute);
 
-							String key = attribute.substring(PropertyView.Html.length());
+							if (value != null && StringUtils.isNotBlank(value)) {
 
-							buffer.append(" ").append(key).append("=\"").append(node.getProperty(attribute)).append("\"");
+								String key = attribute.substring(PropertyView.Html.length());
 
+								buffer.append(" ").append(key).append("=\"").append(value).append("\"");
+
+							}
+							
+						} catch(Throwable t) {
+							
+							t.printStackTrace();
 						}
 
 					}
