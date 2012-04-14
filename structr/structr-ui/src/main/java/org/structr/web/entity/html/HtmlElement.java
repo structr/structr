@@ -22,9 +22,17 @@
 package org.structr.web.entity.html;
 
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
 import org.structr.core.EntityContext;
+import org.structr.core.Services;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.node.GetNodeByIdCommand;
 import org.structr.core.node.NodeService.NodeIndex;
 import org.structr.web.entity.Element;
 
@@ -35,6 +43,9 @@ import org.structr.web.entity.Element;
  * @author Axel Morgner
  */
 public abstract class HtmlElement extends Element {
+
+	private static final Logger logger = Logger.getLogger(HtmlElement.class.getName());
+	private static final Pattern templatePattern = Pattern.compile("\\$\\{[a-zA-Z0-9\\.]+\\}");
 
 	protected static final String[] htmlAttributes = new String[] {
 
@@ -73,5 +84,90 @@ public abstract class HtmlElement extends Element {
 		return htmlAttributes;
 	}
 	
+	public String getReferencedProperty(String resourceId, String componentId, String key) {
+		
+		java.lang.Object rawValue = super.getProperty(key);
+		String value = null;
+		
+		if(rawValue != null && rawValue instanceof String) {
+			
+			value = (String)rawValue;
+
+			Matcher matcher = templatePattern.matcher(value);
+			while(matcher.find()) {
+
+				String group = matcher.group();
+				String refKey = group.substring(2, group.length() - 1);
+				
+				// fetch referenced property
+				String partValue = convertValueForHtml(getReferencedProperty(securityContext, this, resourceId, componentId, refKey));
+				if(partValue != null) {
+					value = value.replace(group, partValue);
+				}
+			}
+			
+		}
+		
+		return value;
+	}	
 	
+	public static java.lang.Object getReferencedProperty(SecurityContext securityContext, AbstractNode startNode, String resourceId, String componentId, String refKey) {
+
+		AbstractNode node = startNode;
+		String[] parts = refKey.split("[\\.]+");
+
+		String referenceKey = parts[parts.length - 1];
+
+		// walk through template parts
+		for(int i=0; i<parts.length && node != null; i++) {
+			
+			String part = parts[i];
+			
+			//special keyword "component"
+			if("component".equals(part.toLowerCase())) {
+				node = getNodeById(securityContext, componentId);
+				continue;
+			}
+
+			// special keyword "resource"
+			if("resource".equals(part.toLowerCase())) {
+				node = getNodeById(securityContext, resourceId);
+				continue;
+			}
+		}
+		
+		if(node != null) {
+			return node.getProperty(referenceKey);
+		}
+		
+		return null;
+	}
+	
+	public static String convertValueForHtml(java.lang.Object value) {
+		
+		if(value != null) {
+			
+			// TODO: to intelligent conversion here
+			return value.toString();
+		}
+		
+		return null;
+	}
+	
+	public static AbstractNode getNodeById(SecurityContext securityContext, String id) {
+		
+		if(id == null) {
+			return null;
+		}
+		
+		try {
+			return (AbstractNode)Services.command(securityContext, GetNodeByIdCommand.class).execute(id);
+			
+		} catch(Throwable t) {
+			
+			logger.log(Level.WARNING, "Unable to load node with id {0}, {1}", new java.lang.Object[] { id, t.getMessage() } );
+		}
+		
+		return null;
+	}
 }
