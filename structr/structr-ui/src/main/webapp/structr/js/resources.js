@@ -672,29 +672,32 @@ var _Resources = {
 	}
 
 	var sorting = false;
+	var obj = {};
+	obj.command = 'SORT';
 
 	div.sortable({
 	    sortable: '.node',
 	    containment: 'parent',
 	    start: function(event, ui) {
-		//var self = $(this);
 		sorting = true;
-	    },
-	    stop: function(event, ui) {
 		var resourceId = getId(ui.item.closest('.resource')[0]);
+		obj.id = resourceId;
+	    },
+	    update: function(event, ui) {
+		console.log('---------')
 		console.log(resourceId);
 		var data = {};
 		$(ui.item).parent().children('.node').each(function(i,v) {
 		    var self = $(this);
 		    console.log(getId(self), i);
 		    data[getId(self)] = i;
+		    obj.data = data;
 		});
-		var obj = {};
-		obj.command = 'SORT';
-		obj.id = resourceId;
-		obj.data = data;
 		sendObj(obj);
-
+	        sorting = false;
+		_Resources.reloadPreviews();
+	    },
+	    stop: function(event, ui) {
 		sorting = false;
 	    }
 	});
@@ -739,8 +742,6 @@ var _Resources = {
 		    var componentId = getId(component);
 		    relData.componentId = componentId;
 		    relData[componentId] = pos;
-		} else {
-		    relData['*'] = pos;
 		}
 
 		var nodeData = {};
@@ -781,6 +782,37 @@ var _Resources = {
 		helper: 'clone'
 	    });
 	}
+	
+	var sorting = false;
+	var obj = {};
+	obj.command = 'SORT';
+
+	div.sortable({
+	    sortable: '.node',
+	    containment: 'parent',
+	    start: function(event, ui) {
+		sorting = true;
+		var resourceId = getId(ui.item.closest('.resource')[0]);
+		obj.id = resourceId;
+	    },
+	    update: function(event, ui) {
+		console.log('---------')
+		console.log(resourceId);
+		var data = {};
+		$(ui.item).parent().children('.node').each(function(i,v) {
+		    var self = $(this);
+		    console.log(getId(self), i);
+		    data[getId(self)] = i;
+		    obj.data = data;
+		});
+		sendObj(obj);
+	        sorting = false;
+		_Resources.reloadPreviews();
+	    },
+	    stop: function(event, ui) {
+		sorting = false;
+	    }
+	});
 
 	div.droppable({
 	    accept: '.element, .content',
@@ -815,8 +847,6 @@ var _Resources = {
 		    var componentId = getId(component);
 		    relData[componentId] = pos;
 		    relData.componentId = componentId;
-		} else {
-		    relData['*'] = pos;
 		}
 
 		var nodeData = {};
@@ -917,6 +947,38 @@ var _Resources = {
 	    _Resources.removeElementFromResource(elementId, parentId);
 	});
 	//element.draggable('destroy');
+	
+	var sorting = false;
+	var obj = {};
+	obj.command = 'SORT';
+
+	div.sortable({
+	    sortable: '.node',
+	    containment: 'parent',
+	    start: function(event, ui) {
+		sorting = true;
+		var resourceId = getId(ui.item.closest('.resource')[0]);
+		obj.id = resourceId;
+	    },
+	    update: function(event, ui) {
+		console.log('---------')
+		console.log(resourceId);
+		var data = {};
+		$(ui.item).parent().children('.node').each(function(i,v) {
+		    var self = $(this);
+		    console.log(getId(self), i);
+		    data[getId(self)] = i;
+		    obj.data = data;
+		});
+		sendObj(obj);
+	        sorting = false;
+		_Resources.reloadPreviews();
+	    },
+	    stop: function(event, ui) {
+		sorting = false;
+	    }
+	});
+
 
 	div.droppable({
 	    accept: '.element, .content',
@@ -1103,61 +1165,61 @@ var _Resources = {
 
 
     },
-
-    appendElement : function(entity, parentEntity, resourceId) {
-	var type = entity.type.toLowerCase();
-	var id = entity.id;
-	var resourceEntitySelector = $('.' + resourceId + '_');
-	var element = (parentEntity ? $('.' + parentEntity.id + '_', resourceEntitySelector) : resourceEntitySelector);
-	//    console.log(element);
-	_Entities.appendEntityElement(entity, element);
-
-	if (type == 'content') {
-	    div.append('<img title="Edit Content" alt="Edit Content" class="edit_icon button" src="' + Structr.edit_icon + '">');
-	    $('.edit_icon', div).on('click', function() {
-		editContent(this, resourceId, id)
-	    });
-	} else {
-	    div.append('<img title="Add" alt="Add" class="add_icon button" src="' + Structr.add_icon + '">');
-	    $('.add_icon', div).on('click', function() {
-		addNode(this, 'content', entity, resourceId)
-	    });
-	}
-	//    //div.append('<img class="sort_icon" src="icon/arrow_up_down.png">');
-	div.sortable({
-	    axis: 'y',
-	    appendTo: '.' + resourceId + '_',
-	    delay: 100,
-	    containment: 'parent',
-	    cursor: 'crosshair',
-	    //handle: '.sort_icon',
-	    stop: function() {
-		$('div.nested', this).each(function(i,v) {
-		    var nodeId = getId(v);
-		    if (!nodeId) return;
-		    var url = rootUrl + nodeId + '/' + 'in';
-		    var headers = {
-			'X-StructrSessionToken' : token
-		    };
-		    $.ajax({
-			url: url,
-			dataType: 'json',
-			contentType: 'application/json; charset=utf-8',
-			async: false,
-			headers: headers,
-			success: function(data) {
-			    if (!data || data.length == 0 || !data.result) return;
-			    //                        var rel = data.result;
-			    //var pos = rel[parentId];
-			    var nodeUrl = rootUrl + nodeId;
-			    setPosition(resourceId, nodeUrl, i)
-			}
-		    });
-		    _Resources.reloadPreviews();
-		});
-	    }
-	});
-    },
+//
+//    appendElement : function(entity, parentEntity, resourceId) {
+//	var type = entity.type.toLowerCase();
+//	var id = entity.id;
+//	var resourceEntitySelector = $('.' + resourceId + '_');
+//	var element = (parentEntity ? $('.' + parentEntity.id + '_', resourceEntitySelector) : resourceEntitySelector);
+//	//    console.log(element);
+//	_Entities.appendEntityElement(entity, element);
+//
+//	if (type == 'content') {
+//	    div.append('<img title="Edit Content" alt="Edit Content" class="edit_icon button" src="' + Structr.edit_icon + '">');
+//	    $('.edit_icon', div).on('click', function() {
+//		editContent(this, resourceId, id)
+//	    });
+//	} else {
+//	    div.append('<img title="Add" alt="Add" class="add_icon button" src="' + Structr.add_icon + '">');
+//	    $('.add_icon', div).on('click', function() {
+//		addNode(this, 'content', entity, resourceId)
+//	    });
+//	}
+//	//    //div.append('<img class="sort_icon" src="icon/arrow_up_down.png">');
+//	div.sortable({
+//	    axis: 'y',
+//	    appendTo: '.' + resourceId + '_',
+//	    delay: 100,
+//	    containment: 'parent',
+//	    cursor: 'crosshair',
+//	    //handle: '.sort_icon',
+//	    stop: function() {
+//		$('div.nested', this).each(function(i,v) {
+//		    var nodeId = getId(v);
+//		    if (!nodeId) return;
+//		    var url = rootUrl + nodeId + '/' + 'in';
+//		    var headers = {
+//			'X-StructrSessionToken' : token
+//		    };
+//		    $.ajax({
+//			url: url,
+//			dataType: 'json',
+//			contentType: 'application/json; charset=utf-8',
+//			async: false,
+//			headers: headers,
+//			success: function(data) {
+//			    if (!data || data.length == 0 || !data.result) return;
+//			    //                        var rel = data.result;
+//			    //var pos = rel[parentId];
+//			    var nodeUrl = rootUrl + nodeId;
+//			    setPosition(resourceId, nodeUrl, i)
+//			}
+//		    });
+//		    _Resources.reloadPreviews();
+//		});
+//	    }
+//	});
+//    },
 
 
     addNode : function(button, type, entity, resourceId) {

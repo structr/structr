@@ -209,7 +209,7 @@ var _Elements = {
 	    _Elements.deleteElement(this, entity);
 	});
 
-	div.append('<img title="Insert Component" alt="Insert Component" class="add_icon button" src="' + _Components.add_icon + '">');
+	div.append('<img title="Wrap in Component" alt="Wrap in Component" class="add_icon button" src="' + _Components.add_icon + '">');
 	$('.add_icon', div).on('click', function(e) {
 	    e.stopPropagation();
 	    var self = $(this);
@@ -220,6 +220,7 @@ var _Elements = {
 
 	    var nodeData = {};
 	    nodeData.type = 'Component';
+	    nodeData.parentId = getId(node.parent());
 
 	    var relData = {};
 
@@ -236,8 +237,17 @@ var _Elements = {
 		relData[resourceId] = pos;
 		relData.resourceId = resourceId;
 	    }
-	    console.log('_Entities.addSourceToTarget', getId(node), nodeData, relData);
-	    _Entities.createAndAdd(getId(node), nodeData, relData);
+	    console.log('Wrap element in component', getId(node), nodeData, relData);
+	    //_Entities.createAndAdd(getId(node), nodeData, relData);
+
+	    var obj = {};
+	    obj.command = 'WRAP';
+	    obj.id = getId(node);
+	    obj.data = nodeData;
+	    obj.relData = relData;
+
+	    sendObj(obj);
+
 	});
 
 	div.append('<img title="Edit HTML Properties" alt="Edit HTML Properties" class="edit_icon button" src="' + '/structr/icon/application_view_detail.png' + '">');

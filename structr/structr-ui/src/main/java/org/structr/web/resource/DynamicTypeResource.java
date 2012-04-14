@@ -23,7 +23,6 @@ package org.structr.web.resource;
 
 import org.apache.commons.collections.ListUtils;
 
-import org.neo4j.graphdb.RelationshipType;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -49,12 +48,12 @@ import org.structr.web.entity.Content;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.*;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.RelType;
+import org.structr.web.common.RelationshipHelper;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -231,7 +230,7 @@ public class DynamicTypeResource extends TypeResource {
 
 					Component comp = (Component) createNodeCommand.execute(templateProperties);
 
-					copyRelationships(template, comp, finalParentResourceId, finalParentComponentId, position);
+					RelationshipHelper.copyRelationships(securityContext, template, comp, finalParentResourceId, finalParentComponentId, position);
 
 					Map<String, Object> contentTemplateProperties = new LinkedHashMap<String, Object>();
 
@@ -253,7 +252,7 @@ public class DynamicTypeResource extends TypeResource {
 
 							// remove non-local data key from set
 							propertySet.remove(dataKey);
-							copyRelationships(contentTemplate, newContent, finalParentResourceId, componentId, position);
+							RelationshipHelper.copyRelationships(securityContext, contentTemplate, newContent, finalParentResourceId, componentId, position);
 
 						}
 					}
@@ -347,57 +346,7 @@ public class DynamicTypeResource extends TypeResource {
 	}
 
 	// ----- private methods -----
-	private void copyRelationships(AbstractNode sourceNode, AbstractNode targetNode, String resourceId, String componentId, long position) throws FrameworkException {
 
-		Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
-
-		for (AbstractRelationship in : sourceNode.getIncomingRelationships()) {
-
-			AbstractNode startNode        = in.getStartNode();
-			RelationshipType relType      = in.getRelType();
-			AbstractRelationship newInRel = (AbstractRelationship) createRel.execute(startNode, targetNode, relType);
-
-			newInRel.setProperty("type", in.getStringProperty("type"));
-
-			// only set componentId if set
-			if (componentId != null) {
-
-				newInRel.setProperty(Component.Key.componentId, componentId);
-
-			}
-
-			if (resourceId != null) {
-
-				newInRel.setProperty(Component.Key.resourceId, resourceId);
-				newInRel.setProperty(resourceId, position);
-
-			}
-
-		}
-
-		for (AbstractRelationship out : sourceNode.getOutgoingRelationships()) {
-
-			AbstractNode endNode           = out.getEndNode();
-			RelationshipType relType       = out.getRelType();
-			AbstractRelationship newOutRel = (AbstractRelationship) createRel.execute(targetNode, endNode, relType);
-
-			newOutRel.setProperty("type", out.getStringProperty("type"));
-
-			if (componentId != null) {
-
-				newOutRel.setProperty(Component.Key.componentId, componentId);
-
-			}
-
-			if (resourceId != null) {
-
-				newOutRel.setProperty(Component.Key.resourceId, resourceId);
-				newOutRel.setProperty(resourceId, position);
-
-			}
-
-		}
-	}
 
 	//~--- get methods ----------------------------------------------------
 

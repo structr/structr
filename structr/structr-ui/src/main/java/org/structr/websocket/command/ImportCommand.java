@@ -52,6 +52,7 @@ public class ImportCommand extends AbstractCommand {
 		StructrWebSocket.addCommand(ImportCommand.class);
 		StructrWebSocket.addCommand(PatchCommand.class);
 		StructrWebSocket.addCommand(SortCommand.class);
+		StructrWebSocket.addCommand(WrapInComponentCommand.class);
 	}
 
 	//~--- methods --------------------------------------------------------
