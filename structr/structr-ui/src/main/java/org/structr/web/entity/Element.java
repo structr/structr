@@ -21,6 +21,8 @@
 
 package org.structr.web.entity;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.neo4j.graphdb.Direction;
 
 import org.structr.common.PropertyKey;
@@ -39,6 +41,8 @@ import org.structr.core.entity.RelationClass.Cardinality;
  * @author axel
  */
 public class Element extends AbstractNode {
+
+	private static final Logger logger = Logger.getLogger(Element.class.getName());
 
 	protected static final String[] uiAttributes = {
 		UiKey.name.name(), UiKey.tag.name(), UiKey.contents.name(), UiKey.elements.name(), UiKey.components.name(), UiKey.resource.name()
@@ -67,6 +71,8 @@ public class Element extends AbstractNode {
 		name, tag, contents, elements, components, resource
 	}
 
+
+	
 	//~--- get methods ----------------------------------------------------
 
 	@Override
