@@ -51,7 +51,7 @@ $(document).ready(function() {
             //console.log(json);
             createEntity(json);
         });
-    //var json = $.parseJSON('{ "test" : "abc" }');
+	//var json = $.parseJSON('{ "test" : "abc" }');
 
     });
     $('#loginButton').on('click', function() {
@@ -256,7 +256,7 @@ var Structr = {
                 path: '/'
             });
         }
-    //console.log('cooke value now: ', $.cookie('structrActiveTab'));
+	//console.log('cooke value now: ', $.cookie('structrActiveTab'));
     },
 
     clearMain : function() {
@@ -330,7 +330,7 @@ var Structr = {
                 backgroundColor: 'transparent'
             }
         });
-    //        $('.blockUI.blockMsg').center();
+	//        $('.blockUI.blockMsg').center();
 
     },
 
@@ -386,7 +386,7 @@ var Structr = {
         var entity = {};
 		
         entity.id = id;
-        entity.type = getClass(entityElement);
+        entity.type = Structr.getClass(entityElement);
 		
         if (debug) console.log(entity.type);
         entity.name = $('.name_', entityElement).text();
@@ -396,18 +396,18 @@ var Structr = {
         return entity;
     },
     
-	getClass : function(el) {
-		var c;
-		console.log(Structr.classes);
+    getClass : function(el) {
+	var c;
+	console.log(Structr.classes);
         $(Structr.classes).each(function(i, cls) {
-			console.log('testing class', cls);
+	    console.log('testing class', cls);
             if (el.hasClass(cls)) {
                 c = cls;
-				console.log('found class', cls);
+		console.log('found class', cls);
             }
         });
-		return c;
-	},
+	return c;
+    },
 	
     entityFromElement : function(element) {
         
