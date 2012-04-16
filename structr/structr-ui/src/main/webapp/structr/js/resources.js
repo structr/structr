@@ -346,6 +346,7 @@ var _Resources = {
 	    _Resources.toggleResource(this, entity);
 	});
 
+	_Entities.setMouseOver(div);
 
 	div.append('<img class="typeIcon" src="icon/page.png">'
 	    + '<b class="name_">' + entity.name + '</b> <span class="id">' + entity.id + '</span>');
@@ -416,10 +417,12 @@ var _Resources = {
 		+ '.structr-droppable-area { border: 1px dotted red; }\n'
 		+ '.structr-editable-area { border: 1px dotted orange; margin: -1px; padding: 0; }\n'
 		+ '.structr-editable-area-active { background-color: #ffe; border: 1px solid orange; color: #333; margin: -1px; padding: 0; }\n'
-		+ '.structr-element-container-header { position: absolute; font-size: 8pt; }\n'
-		+ '.structr-element-container-header img { filter: alpha(opacity=80); -khtml-opacity: 0.8; -moz-opacity: 0.8; opacity: 0.8; }\n'
+		//		+ '.structr-element-container-header { position: absolute; font-size: 8pt; }\n'
+		+ '.structr-element-container-header { position: absolute; font-size: 8pt; color: #333; border-radius: 5px; border: 1px solid #a5a5a5; padding: 3px 6px; margin: 6px 0 0 0; background-color: #eee; background: -webkit-gradient(linear, left bottom, left top, from(#ddd), to(#eee)) no-repeat; background: -moz-linear-gradient(90deg, #ddd, #eee) no-repeat; filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr="#eeeeee", EndColorStr="#dddddd", GradientType=0);\n'
+		//		+ '.structr-element-container-header img { width: 16px ! important; height: 16px ! important; }\n'
 		+ '.link-hover { border: 1px solid #00c; }\n'
-		+ '.structr-node { color: #333; line-height: 1.7em; border-radius: 5px; border: 1px solid #a5a5a5; padding: 3px 6px; margin: 6px 0 0 0; background-color: #eee; background: -webkit-gradient(linear, left bottom, left top, from(#ddd), to(#eee)) no-repeat; background: -moz-linear-gradient(90deg, #ddd, #eee) no-repeat; filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr="#eeeeee", EndColorStr="#dddddd", GradientType=0);\n'
+		+ '.edit_icon, .add_icon, .delete_icon, .close_icon, .key_icon {  cursor: pointer; heigth: 16px; width: 16px; vertical-align: top; float: right;  position: relative;}\n'
+		+ '.nodeHover { border: 1px dotted red; }\n'
 		+ '</style>');
 	
 	    var iframeDocument = $(this).contents();
@@ -502,17 +505,9 @@ var _Resources = {
 		var structrId = el.attr('structr_element_id');
 		var type = el.attr('structr_type');
 		var name = el.attr('structr_name');
+		var tag  = element.nodeName.toLowerCase();
 		if (structrId) {
                     
-		    el.append('<div class="structr-element-container-header">'
-			+ '<img class="delete_icon structr-container-button" title="Delete ' + structrId + '" alt="Delete ' + structrId + '" src="/structr/icon/delete.png">'
-			+ '<img class="edit_icon structr-container-button" title="Edit properties of ' + structrId + '" alt="Edit properties of ' + structrId + '" src="/structr/icon/application_view_detail.png">'
-			+ '<img class="move_icon structr-container-button" title="Move ' + structrId + '" alt="Move ' + structrId + '" src="/structr/icon/arrow_move.png">'
-			+ '<div class="structr-node ' + type + '">' + name + '</div>'
-			+ '</div>'
-			);
-                                        
-		    el.find('.structr-node').hide();
 
 		    $('.move_icon', el).on('mousedown', function(e) {
 			e.stopPropagation();
@@ -528,7 +523,7 @@ var _Resources = {
 			self.parent().children('.structr-node').show();
 		    });
 
-		    $('.edit_icon', el).on('click', function(e) {
+		    $('b', el).on('click', function(e) {
 			e.stopPropagation();
 			var self = $(this);
 			var element = self.closest('[structr_element_id]');
@@ -559,24 +554,40 @@ var _Resources = {
 			_Entities.removeSourceFromTarget(entity.id, parentId);
 			deleteNode(this, entity);
 		    });
-		    $('.structr-element-container-header', el).hide();
-
+		    var offsetTop = -30;
+		    var offsetLeft = 0;
 		    el.hover(function(e) {
 			e.stopPropagation();
 			var self = $(this);
+
+			el.parent().children('.structr-element-container-header').remove();
+
+			el.append('<div class="structr-element-container-header">'
+			    + '<img class="typeIcon" src="/structr/'+ _Elements.icon + '">'
+			    + '<b class="name_">' + name + '</b> <span class="id">' + structrId + '</b>'
+			    + '<img class="delete_icon structr-container-button" title="Delete ' + structrId + '" alt="Delete ' + structrId + '" src="/structr/icon/delete.png">'
+			    + '<img class="edit_icon structr-container-button" title="Edit properties of ' + structrId + '" alt="Edit properties of ' + structrId + '" src="/structr/icon/application_view_detail.png">'
+			    + '<img class="move_icon structr-container-button" title="Move ' + structrId + '" alt="Move ' + structrId + '" src="/structr/icon/arrow_move.png">'
+			    + '</div>'
+			    );
+			//$('.structr-element-container-header', el).hide();
+
+			el.off('click');
+
 			var pos = self.position();
 			var header = self.children('.structr-element-container-header');
-			header.show();
 			header.css({
-			    top: pos.top + 'px',
-			    left: pos.left + 'px'
-			});
+			    position: "absolute",
+			    top: pos.top + offsetTop + 'px',
+			    left: pos.left + offsetLeft + 'px',
+			    cursor: 'pointer'
+			}).show();
 			if (debug) console.log(header);
 		    },
 		    function(e) {
 			e.stopPropagation();
-			var header = $(this).children('.structr-element-container-header');
-			header.hide();
+			var header = el.children('.structr-element-container-header');
+			header.remove();
 		    });
 
 		}
@@ -595,6 +606,9 @@ var _Resources = {
 			    self.addClass('structr-editable-area');
 			    self.attr('contenteditable', true);
 			    $('#hoverStatus').text('Editable content element: ' + self.attr('structr_content_id'));
+			    var nodes = $('.' + structrId + '_');
+			    //console.log(nodes);
+			    nodes.addClass('nodeHover');
 			},
 			mouseout: function(e) {
 			    e.stopPropagation();
@@ -603,6 +617,8 @@ var _Resources = {
 			    self.removeClass('structr-editable-area');
 			    //self.attr('contenteditable', false);
 			    $('#hoverStatus').text('-- non-editable --');
+			    var nodes = $('.' + structrId + '_');
+			    nodes.removeClass('nodeHover');
 			},
 			click: function(e) {
 			    e.stopPropagation();
@@ -657,8 +673,7 @@ var _Resources = {
 	//console.log(div);
 	if (parentId) {
 
-	    $('.delete_icon', div).remove();
-	    div.append('<img title="Remove element \'' + entity.name + '\' from resource ' + parentId + '" '
+	    $('.delete_icon', div).replaceWith('<img title="Remove element \'' + entity.name + '\' from resource ' + parentId + '" '
 		+ 'alt="Remove element ' + entity.name + ' from ' + parentId + '" class="delete_icon button" src="icon/brick_delete.png">');
 	    $('.delete_icon', div).on('click', function(e) {
 		e.stopPropagation();
@@ -668,6 +683,8 @@ var _Resources = {
 		_Entities.removeSourceFromTarget(entity.id, parentId);
 	    });
 	}
+
+	_Entities.setMouseOver(div);
 
 	var resource = div.closest( '.resource')[0];
 	if (!resource && resources) {
@@ -700,20 +717,22 @@ var _Resources = {
 		    console.log(getId(self), i);
 		    data[getId(self)] = i;
 		    obj.data = data;
+		    _Entities.resetMouseOverState(v);
 		});
 		sendObj(obj);
-	        sorting = false;
+		sorting = false;
 		_Resources.reloadPreviews();
 	    },
 	    stop: function(event, ui) {
 		sorting = false;
+		_Entities.resetMouseOverState(ui.item);
 	    }
 	});
 
 	div.droppable({
 	    accept: '.element, .content, .component',
 	    greedy: true,
-	    hoverClass: 'elementHover',
+	    hoverClass: 'nodeHover',
 	    drop: function(event, ui) {
 		if (sorting) {
 		    if (debug) console.log('sorting, no drop allowed');
@@ -772,14 +791,15 @@ var _Resources = {
 
 	if (parentId) {
 
-	    $('.delete_icon', div).remove();
-	    div.append('<img title="Remove component \'' + component.name + '\' from resource ' + parentId + '" '
+	    $('.delete_icon', div).replaceWith('<img title="Remove component \'' + component.name + '\' from resource ' + parentId + '" '
 		+ 'alt="Remove component ' + component.name + ' from ' + parentId + '" class="delete_icon button" src="' + _Components.delete_icon + '">');
 	    $('.delete_icon', div).on('click', function() {
 		_Entities.removeSourceFromTarget(component.id, parentId);
 	    });
 
 	}
+
+	_Entities.setMouseOver(div);
 
 	var resource = div.closest( '.resource')[0];
 	if (!resource && resources) {
@@ -814,7 +834,7 @@ var _Resources = {
 		    obj.data = data;
 		});
 		sendObj(obj);
-	        sorting = false;
+		sorting = false;
 		_Resources.reloadPreviews();
 	    },
 	    stop: function(event, ui) {
@@ -825,7 +845,7 @@ var _Resources = {
 	div.droppable({
 	    accept: '.element, .content',
 	    greedy: true,
-	    hoverClass: 'componentHover',
+	    hoverClass: 'nodeHover',
 	    drop: function(event, ui) {
 
 		var self = $(this);
@@ -877,8 +897,7 @@ var _Resources = {
 	var div = _Contents.appendContentElement(content, parentId, resourceId);
 
 	if (parentId) {
-	    $('.delete_icon', div).remove();
-	    div.append('<img title="Remove element \'' + content.name + '\' from resource ' + parentId + '" '
+	    $('.delete_icon', div).replaceWith('<img title="Remove element \'' + content.name + '\' from resource ' + parentId + '" '
 		+ 'alt="Remove content ' + content.name + ' from element ' + parentId + '" class="delete_icon button" src="' + _Contents.delete_icon + '">');
 	    $('.delete_icon', div).on('click', function(e) {
 		e.stopPropagation();
@@ -888,6 +907,8 @@ var _Resources = {
 		_Entities.removeSourceFromTarget(content.id, parentId)
 	    });
 	}
+
+	_Entities.setMouseOver(div);
 
 	div.draggable({
 	    iframeFix: true,
@@ -914,10 +935,7 @@ var _Resources = {
 	var div = component.clone();
 	resource.append(div);
 
-	$('.delete_icon', div).remove();
-
-
-	div.append('<img title="Remove component ' + componentId + ' from resource ' + resourceId + '" '
+	$('.delete_icon', div).replaceWith('<img title="Remove component ' + componentId + ' from resource ' + resourceId + '" '
 	    + 'alt="Remove component ' + componentId + ' from resource ' + resourceId + '" class="delete_icon button" src="' + _Components.delete_icon + '">');
 	$('.delete_icon', div).on('click', function() {
 	    _Resources.removeComponentFromResource(componentId, resourceId);
@@ -963,6 +981,8 @@ var _Resources = {
 	div.sortable({
 	    sortable: '.node',
 	    containment: 'parent',
+	    cursor: 'crosshair',
+	    axis: 'x',
 	    start: function(event, ui) {
 		sorting = true;
 		var resourceId = getId(ui.item.closest('.resource')[0]);
@@ -979,7 +999,7 @@ var _Resources = {
 		    obj.data = data;
 		});
 		sendObj(obj);
-	        sorting = false;
+		sorting = false;
 		_Resources.reloadPreviews();
 	    },
 	    stop: function(event, ui) {
@@ -991,7 +1011,7 @@ var _Resources = {
 	div.droppable({
 	    accept: '.element, .content',
 	    greedy: true,
-	    hoverClass: 'elementHover',
+	    hoverClass: 'nodeHover',
 	    drop: function(event, ui) {
 
 		console.log('appendElementElement', $(this));
@@ -1073,8 +1093,7 @@ var _Resources = {
 
 	element.append(content);
 
-	$('.delete_icon', content).remove();
-	content.append('<img title="Remove content ' + contentId + ' from element ' + elementId + '" '
+	$('.delete_icon', content).replaceWith('<img title="Remove content ' + contentId + ' from element ' + elementId + '" '
 	    + 'alt="Remove content ' + contentId + ' from element ' + elementId + '" class="delete_icon button" src="' + _Contents.delete_icon + '">');
 	$('.delete_icon', content).on('click', function() {
 	    _Resources.removeElementFromResource(contentId, elementId)
@@ -1173,63 +1192,7 @@ var _Resources = {
 
 
     },
-//
-//    appendElement : function(entity, parentEntity, resourceId) {
-//	var type = entity.type.toLowerCase();
-//	var id = entity.id;
-//	var resourceEntitySelector = $('.' + resourceId + '_');
-//	var element = (parentEntity ? $('.' + parentEntity.id + '_', resourceEntitySelector) : resourceEntitySelector);
-//	//    console.log(element);
-//	_Entities.appendEntityElement(entity, element);
-//
-//	if (type == 'content') {
-//	    div.append('<img title="Edit Content" alt="Edit Content" class="edit_icon button" src="' + Structr.edit_icon + '">');
-//	    $('.edit_icon', div).on('click', function() {
-//		editContent(this, resourceId, id)
-//	    });
-//	} else {
-//	    div.append('<img title="Add" alt="Add" class="add_icon button" src="' + Structr.add_icon + '">');
-//	    $('.add_icon', div).on('click', function() {
-//		addNode(this, 'content', entity, resourceId)
-//	    });
-//	}
-//	//    //div.append('<img class="sort_icon" src="icon/arrow_up_down.png">');
-//	div.sortable({
-//	    axis: 'y',
-//	    appendTo: '.' + resourceId + '_',
-//	    delay: 100,
-//	    containment: 'parent',
-//	    cursor: 'crosshair',
-//	    //handle: '.sort_icon',
-//	    stop: function() {
-//		$('div.nested', this).each(function(i,v) {
-//		    var nodeId = getId(v);
-//		    if (!nodeId) return;
-//		    var url = rootUrl + nodeId + '/' + 'in';
-//		    var headers = {
-//			'X-StructrSessionToken' : token
-//		    };
-//		    $.ajax({
-//			url: url,
-//			dataType: 'json',
-//			contentType: 'application/json; charset=utf-8',
-//			async: false,
-//			headers: headers,
-//			success: function(data) {
-//			    if (!data || data.length == 0 || !data.result) return;
-//			    //                        var rel = data.result;
-//			    //var pos = rel[parentId];
-//			    var nodeUrl = rootUrl + nodeId;
-//			    setPosition(resourceId, nodeUrl, i)
-//			}
-//		    });
-//		    _Resources.reloadPreviews();
-//		});
-//	    }
-//	});
-//    },
-
-
+   
     addNode : function(button, type, entity, resourceId) {
 	if (isDisabled(button)) return;
 	disable(button);

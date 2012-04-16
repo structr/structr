@@ -104,7 +104,7 @@ var _Components = {
 	div.droppable({
 	    accept: '.element',
 	    greedy: true,
-	    hoverClass: 'componentHover',
+	    hoverClass: 'nodeHover',
 	    drop: function(event, ui) {
 		var self = $(this);
 		var elementId = getId(ui.draggable);
@@ -151,7 +151,7 @@ var _Components = {
 	div.droppable({
 	    accept: '.element',
 	    greedy: true,
-	    hoverClass: 'elementHover',
+	    hoverClass: 'nodeHover',
 	    drop: function(event, ui) {
 		var self = $(this);
 		var resource = self.closest( '.resource')[0];

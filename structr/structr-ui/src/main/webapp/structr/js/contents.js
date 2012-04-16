@@ -76,13 +76,19 @@ var _Contents = {
 
 	var parent = Structr.findParent(parentId, resourceId, contents);
 
-	var text = (content.content ? content.content.substring(0,200) : '&nbsp;');
+//	var abbrContent = (content.content ? content.content.substring(0,36) + '&hellip;': '&nbsp;');
 
 	parent.append('<div class="node content ' + content.id + '_">'
 	    + '<img class="typeIcon" src="'+ _Contents.icon + '">'
-	    + '<b class="content_">' + text + '</b> <span class="id">' + content.id + '</span>'
+	    + '<div class="content_">' + content.content + '</div> <span class="id">' + content.id + '</span>'
+//	    + '<b class="content_">' + content.content + '</b>'
 	    + '</div>');
 	var div = $('.' + content.id + '_', parent);
+
+	div.append('<img title="Delete content \'' + content.name + '\'" alt="Delete content \'' + content.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
+	$('.delete_icon', div).on('click', function() {
+	    _Contents.deleteContent(this, content);
+	});
 
 	div.append('<img title="Edit ' + content.name + ' [' + content.id + ']" alt="Edit ' + content.name + ' [' + content.id + ']" class="edit_icon button" src="icon/pencil.png">');
 	$('.edit_icon', div).on('click', function() {
@@ -94,18 +100,7 @@ var _Contents = {
 	    _Contents.editContent(this, content, 'all', $('#dialogBox .dialogText'));
 	});
 
-	div.append('<img title="Delete content \'' + content.name + '\'" alt="Delete content \'' + content.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
-	$('.delete_icon', div).on('click', function() {
-	    _Contents.deleteContent(this, content);
-	});
-	$('b', div).on('click', function() {
-	    Structr.dialog('Edit Properties of ' + content.id, function() {
-		console.log('save')
-	    }, function() {
-		console.log('cancelled')
-	    });
-	    _Entities.showProperties(this, content, $('#dialogBox .dialogText'));
-	});
+	_Entities.appendEditPropertiesIcon(div, content);
 
 	return div;
     },
@@ -152,8 +147,9 @@ var _Contents = {
 		var text1 = $(element).children('.content_').text();
 		var text2 = editor.getValue();
 				
-		console.log(element);
-		console.log(text1, text2);
+		console.log('Element', element);
+		console.log('text1', text1);
+		console.log('text2', text2);
 
 		if (text1 == text2) return;
 		editorCursor = cm.getCursor();

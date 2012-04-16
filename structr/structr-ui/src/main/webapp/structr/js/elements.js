@@ -250,18 +250,8 @@ var _Elements = {
 
 	});
 
-	div.append('<img title="Edit HTML Properties" alt="Edit HTML Properties" class="edit_icon button" src="' + '/structr/icon/application_view_detail.png' + '">');
-	$('.edit_icon', div).on('click', function(e) {
-	    e.stopPropagation();
-	    var self = $(this);
-	    _Entities.showProperties(this, entity, $('#dialogBox .dialogText'));
-	});
-
-	$('b', div).on('click', function(e) {
-	    e.stopPropagation();
-	    if (debug) console.log('parent', parent);
-	    _Entities.showProperties(this, entity, $('#dialogBox .dialogText'));
-	});
+	_Entities.setMouseOver(div);
+	_Entities.appendEditPropertiesIcon(div, entity);
 
 	return div;
     },

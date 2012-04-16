@@ -317,6 +317,7 @@ var Structr = {
         if (callbackCancel) $('#dialogBox .dialogCancelButton').on('click', function() {
             callbackCancel();
             $('#dialogBox .dialogText').empty();
+	    _Resources.reloadPreviews();
             $.unblockUI({ fadeOut: 25 });
         });
         $.blockUI.defaults.overlayCSS.opacity = .6;
