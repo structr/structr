@@ -799,8 +799,6 @@ var _Resources = {
 
 	}
 
-	_Entities.setMouseOver(div);
-
 	var resource = div.closest( '.resource')[0];
 	if (!resource && resources) {
 	    div.draggable({

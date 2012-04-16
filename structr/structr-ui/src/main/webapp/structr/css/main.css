@@ -248,7 +248,7 @@ img.disabled {
 
 .content .content_ {
     display: inline-block;
-    width: 60%;
+    width: 40%;
     font-weight: normal;
     text-overflow: ellipsis;
     overflow: hidden;
@@ -832,6 +832,8 @@ button.enabled {
     filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#e7e7e7', EndColorStr='#f5f5f5', GradientType=0);
 }
 
-._html_id_, ._html_class_ {
-    color: #999;
+.node ._html_id_,
+.node ._html_class_ {
+    color: #888;
+    display: none;
 }

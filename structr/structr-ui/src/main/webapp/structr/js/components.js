@@ -92,14 +92,8 @@ var _Components = {
 	    _Components.createForm(this, component);
 	});
 
-	//        div.append('<img class="add_icon button" title="Add Component" alt="Add Component" src="icon/add.png">');
-	//        $('.add_icon', div).on('click', function() {
-	//            Resources.addComponent(this, resource);
-	//        });
-	$('b', div).on('click', function() {
-	    //_Entities.showProperties(this, component, 'all', $('.' + component.id + '_', components));
-	    _Entities.showProperties(this, component, $('#dialogBox .dialogText'));
-	});
+	_Entities.setMouseOver(div);
+	_Entities.appendEditPropertiesIcon(div, component);
 
 	div.droppable({
 	    accept: '.element',

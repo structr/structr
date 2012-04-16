@@ -420,7 +420,7 @@ var _Entities = {
     appendEditPropertiesIcon : function(el, entity) {
 
 	if (entity.type != 'Content') {
-	    el.append('<span class="_html_id_"></span> <span class="_html_class_"></span>');
+	    el.append('<span class="_html_id_">#</span> <span class="_html_class_">.</span>');
 	}
 
 	_Entities.getProperty(entity.id, '_html_id');

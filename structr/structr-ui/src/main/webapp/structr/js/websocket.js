@@ -221,6 +221,8 @@ function connect() {
 		    }
 		});
 
+		_Resources.reloadPreviews();
+
 	    } else if (command == 'TREE') {
 				
 		if (debug) console.log('Render Tree');
@@ -252,7 +254,7 @@ function connect() {
 		console.log(key, value);
 		
 
-		if (attrElement) {
+		if (attrElement && value) {
 
 		    if (typeof value == 'boolean') {
 			if (debug) console.log(attrElement, value);
@@ -275,6 +277,7 @@ function connect() {
 			console.log('appending ' + value + ' to attrElement', attrElement);
 			attrElement.append(value);
 			attrElement.val(value);
+			attrElement.show();
 		    }
 		}
                 
@@ -543,6 +546,9 @@ function connect() {
 		// refresh preview iframe
 		input.data('changed', false);
 	    //_Resources.reloadPreviews();
+	    } else if (command == 'WRAP') {
+
+		console.log('WRAP');
 
 	    } else {
 		if (debug) console.log('Received unknown command: ' + command);
