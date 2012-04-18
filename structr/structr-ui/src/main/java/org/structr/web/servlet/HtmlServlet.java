@@ -465,15 +465,19 @@ public class HtmlServlet extends HttpServlet {
 
 		path = clean(path);
 
-		boolean hasSep = StringUtils.contains(path, REST_PATH_SEP);
+		boolean hasSep    = StringUtils.contains(path, REST_PATH_SEP);
+		String firstPart,
+		       secondPart = "";
 
-
-		String firstPart, secondPart = "";
 		if (!hasSep) {
+
 			firstPart = path;
+
 		} else {
-			firstPart = StringUtils.substringBefore(path, REST_PATH_SEP);
+
+			firstPart  = StringUtils.substringBefore(path, REST_PATH_SEP);
 			secondPart = StringUtils.substringAfter(path, REST_PATH_SEP);
+
 		}
 
 		return new String[] { firstPart, secondPart };
@@ -579,18 +583,11 @@ public class HtmlServlet extends HttpServlet {
 
 					}
 
-					if (node instanceof Content) {
+					if (!(node instanceof Content)) {
 
-						// buffer.append(" class=\"structr-content-container\" structr_content_id='").append(id).append("'");
-					} else {
-
-						String htmlClass = node.getStringProperty("_html_class");
-
-						buffer.append(" class=\"structr-element-container ").append((htmlClass != null)
-							? htmlClass
-							: "").append("\" structr_element_id='").append(id).append("'");
-						buffer.append(" structr_type='").append(node.getType()).append("'");
-						buffer.append(" structr_name='").append(node.getName()).append("'");
+						buffer.append(" structr_element_id=\"").append(id).append("\"");
+						buffer.append(" structr_type=\"").append(node.getType()).append("\"");
+						buffer.append(" structr_name=\"").append(node.getName()).append("\"");
 
 					}
 
@@ -598,23 +595,23 @@ public class HtmlServlet extends HttpServlet {
 
 				if (node instanceof HtmlElement) {
 
-					HtmlElement htmlElement = (HtmlElement)node;
-					
+					HtmlElement htmlElement = (HtmlElement) node;
+
 					for (String attribute : EntityContext.getPropertySet(node.getClass(), PropertyView.Html)) {
 
 						try {
+
 							String value = htmlElement.getReferencedProperty(resourceId, localComponentId, attribute);
 
-							if (value != null && StringUtils.isNotBlank(value)) {
+							if ((value != null) && StringUtils.isNotBlank(value)) {
 
 								String key = attribute.substring(PropertyView.Html.length());
 
 								buffer.append(" ").append(key).append("=\"").append(value).append("\"");
 
 							}
-							
-						} catch(Throwable t) {
-							
+
+						} catch (Throwable t) {
 							t.printStackTrace();
 						}
 
@@ -635,6 +632,7 @@ public class HtmlServlet extends HttpServlet {
 
 		// recursively render children
 		List<AbstractRelationship> rels = Component.getChildRelationships(node, resourceId, localComponentId);
+
 		for (AbstractRelationship rel : rels) {
 
 			AbstractNode subNode = rel.getEndNode();
