@@ -230,7 +230,7 @@ public class DynamicTypeResource extends TypeResource {
 
 					Component comp = (Component) createNodeCommand.execute(templateProperties);
 
-					RelationshipHelper.copyRelationships(securityContext, template, comp, finalParentResourceId, finalParentComponentId, position);
+					RelationshipHelper.copyRelationships(securityContext, template, comp, RelType.CONTAINS, finalParentResourceId, finalParentComponentId, position);
 
 					Map<String, Object> contentTemplateProperties = new LinkedHashMap<String, Object>();
 
@@ -252,7 +252,7 @@ public class DynamicTypeResource extends TypeResource {
 
 							// remove non-local data key from set
 							propertySet.remove(dataKey);
-							RelationshipHelper.copyRelationships(securityContext, contentTemplate, newContent, finalParentResourceId, componentId, position);
+							RelationshipHelper.copyRelationships(securityContext, contentTemplate, newContent, RelType.CONTAINS, finalParentResourceId, componentId, position);
 
 						}
 					}

@@ -231,5 +231,5 @@ public abstract class HtmlElement extends Element {
 		return null;
 	}
 
-	public static String md5(final String in) { return DigestUtils.md5Hex(in); }
+	public static String md5(final String in) { return in != null ? DigestUtils.md5Hex(in) : null; }
 }

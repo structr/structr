@@ -45,6 +45,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.lang.StringUtils;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -72,7 +73,7 @@ public class WrapInComponentCommand extends AbstractCommand {
 		final String parentId              = (String) nodeData.get("parentId");
 		final AbstractNode parentNode      = getNode(parentId);
 		final Long position                = Long.parseLong((String) relData.get(resourceId));
-		
+
 		if (nodeToWrap != null) {
 
 			StructrTransaction transaction = new StructrTransaction() {
@@ -81,10 +82,9 @@ public class WrapInComponentCommand extends AbstractCommand {
 				public Object execute() throws FrameworkException {
 
 					Component newComponent = (Component) Services.command(securityContext, CreateNodeCommand.class).execute(nodeData);
-					
-					String componentId = newComponent.getStringProperty(AbstractNode.Key.uuid);
+					String componentId     = newComponent.getStringProperty(AbstractNode.Key.uuid);
 
-					RelationshipHelper.moveIncomingRelationships(securityContext, nodeToWrap, newComponent, resourceId,
+					RelationshipHelper.moveIncomingRelationships(securityContext, nodeToWrap, newComponent, RelType.CONTAINS, resourceId,
 						newComponent.getStringProperty(AbstractNode.Key.uuid), position);
 
 					if ((parentNode != null) && (newComponent != null)) {
@@ -105,7 +105,7 @@ public class WrapInComponentCommand extends AbstractCommand {
 							} catch (Throwable t) {
 								getWebSocket().send(MessageBuilder.status().code(400).message(t.getMessage()).build(), true);
 							}
-							
+
 							tagOutgoingRelsWithComponentId(newComponent, componentId);
 						}
 
@@ -139,11 +139,15 @@ public class WrapInComponentCommand extends AbstractCommand {
 
 		for (AbstractRelationship rel : node.getRelationships(RelType.CONTAINS, Direction.OUTGOING)) {
 
-			rel.setProperty("componentId", componentId);
-			
-			AbstractNode endNode = rel.getEndNode();
-			
-			tagOutgoingRelsWithComponentId(endNode, componentId);
+			String existingComponentId = rel.getStringProperty(Component.Key.componentId);
+
+			if (StringUtils.isBlank(existingComponentId)) {
+
+				rel.setProperty("componentId", componentId);
+
+			}
+
+			tagOutgoingRelsWithComponentId(rel.getEndNode(), componentId);
 
 		}
 	}
