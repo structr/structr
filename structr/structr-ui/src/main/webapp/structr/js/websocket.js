@@ -232,7 +232,7 @@ function connect() {
 
 	    } else if (command == 'GET') {
 
-		console.log('GET:', data);
+		if (debug) console.log('GET:', data);
 
 		var d = data.data.displayElementId;
 		if (debug) console.log('displayElementId', d);
@@ -251,7 +251,7 @@ function connect() {
 		var attrElement = $(parentElement.find('.' + key + '_')[0]);
 		if (debug) console.log('attrElement', attrElement);
 		
-		console.log(key, value);
+		if (debug) console.log(key, value);
 		
 
 		if (attrElement && value) {
@@ -274,7 +274,7 @@ function connect() {
 			    + '</div>');
                         
 		    } else {
-			console.log('appending ' + value + ' to attrElement', attrElement);
+			if (debug) console.log('appending ' + value + ' to attrElement', attrElement);
 			attrElement.append(value);
 			attrElement.val(value);
 			attrElement.show();

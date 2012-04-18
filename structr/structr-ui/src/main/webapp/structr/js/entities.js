@@ -444,7 +444,25 @@ var _Entities = {
 	    mouseover: function(e) {
 		e.stopPropagation();
 		var self = $(this);
-		self.addClass('nodeHover');
+		var nodeId = getId(el);
+//		console.log('setMouseOver', nodeId);
+		var nodes = $('.' + nodeId + '_');
+		var resource = $(el).closest('.resource');
+		if (resource) {
+		    var resId = getId(resource);
+//		    console.log('setMouseOver resourceId', resId);
+		    var previewNodes = $('#preview_' + resId).contents().find('[structr_element_id]');
+		    previewNodes.each(function(i,v) {
+			var self = $(v);
+			var sid = self.attr('structr_element_id');
+			if (sid == nodeId) {
+			    console.log(sid);
+			    self.addClass('nodeHover');
+			    console.log(self);
+			}
+		    });
+		}
+		nodes.addClass('nodeHover');
 		self.children('img.button').show();
 	    },
 	    mouseout: function(e) {

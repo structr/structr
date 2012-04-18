@@ -386,20 +386,20 @@ var _Resources = {
 
 	_Resources.resetTab(tab, entity.name);
 
-	$('#preview_' + entity.id).hover(function() {
-	    var self = $(this);
-	    var elementContainer = self.contents().find('.structr-element-container');
-	    //console.log(self, elementContainer);
-	    elementContainer.addClass('structr-element-container-active');
-	    elementContainer.removeClass('structr-element-container');
-	}, function() {
-	    var self = $(this);
-	    var elementContainer = self.contents().find('.structr-element-container-active');
-	    //console.log(elementContainer);
-	    elementContainer.addClass('structr-element-container');
-	    elementContainer.removeClass('structr-element-container-active');
-	//self.find('.structr-element-container-header').remove();
-	});
+//	$('#preview_' + entity.id).hover(function() {
+//	    var self = $(this);
+//	    var elementContainer = self.contents().find('.structr-element-container');
+//	    //console.log(self, elementContainer);
+//	    elementContainer.addClass('structr-element-container-active');
+//	    elementContainer.removeClass('structr-element-container');
+//	}, function() {
+//	    var self = $(this);
+//	    var elementContainer = self.contents().find('.structr-element-container-active');
+//	    //console.log(elementContainer);
+//	    elementContainer.addClass('structr-element-container');
+//	    elementContainer.removeClass('structr-element-container-active');
+//	//self.find('.structr-element-container-header').remove();
+//	});
 
 	$('#preview_' + entity.id).load(function() {
 
@@ -411,18 +411,18 @@ var _Resources = {
 	    if (head) head.append('<style type="text/css">'
 		+ '* { z-index: 0}\n'
 		+ '.structr-content-container { display: inline-block; border: none; margin: 0; padding: 0; min-height: 10px; min-width: 10px; }\n'
-		+ '.structr-element-container-active { display; inline-block; border: 1px dotted #e5e5e5; min-height: 10px; min-width: 10px; }\n'
-		+ '.structr-element-container { }\n'
-		+ '.structr-element-container-active:hover { border: 1px dotted red; }\n'
-		+ '.structr-droppable-area { border: 1px dotted red; }\n'
-		+ '.structr-editable-area { border: 1px dotted orange; margin: -1px; padding: 0; }\n'
-		+ '.structr-editable-area-active { background-color: #ffe; border: 1px solid orange; color: #333; margin: -1px; padding: 0; }\n'
-		//		+ '.structr-element-container-header { position: absolute; font-size: 8pt; }\n'
-		+ '.structr-element-container-header { position: absolute; font-size: 8pt; color: #333; border-radius: 5px; border: 1px solid #a5a5a5; padding: 3px 6px; margin: 6px 0 0 0; background-color: #eee; background: -webkit-gradient(linear, left bottom, left top, from(#ddd), to(#eee)) no-repeat; background: -moz-linear-gradient(90deg, #ddd, #eee) no-repeat; filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr="#eeeeee", EndColorStr="#dddddd", GradientType=0);\n'
-		//		+ '.structr-element-container-header img { width: 16px ! important; height: 16px ! important; }\n'
+//		+ '.structr-element-container-active { display; inline-block; border: 1px dotted #e5e5e5; margin: -1px; padding: -1px; min-height: 10px; min-width: 10px; }\n'
+//		+ '.structr-element-container { }\n'
+		+ '.structr-element-container-active:hover { border: 1px dotted red ! important; }\n'
+		+ '.structr-droppable-area { border: 1px dotted red ! important; }\n'
+		+ '.structr-editable-area { border: 1px dotted orange ! important; }\n'
+		+ '.structr-editable-area-active { background-color: #ffe; border: 1px solid orange ! important; color: #333; margin: -1px; padding: 1px; }\n'
+//		+ '.structr-element-container-header { font-family: Arial, Helvetica, sans-serif ! important; position: absolute; font-size: 8pt; }\n'
+		+ '.structr-element-container-header { font-family: Arial, Helvetica, sans-serif ! important; position: absolute; font-size: 8pt; color: #333; border-radius: 5px; border: 1px solid #a5a5a5; padding: 3px 6px; margin: 6px 0 0 0; background-color: #eee; background: -webkit-gradient(linear, left bottom, left top, from(#ddd), to(#eee)) no-repeat; background: -moz-linear-gradient(90deg, #ddd, #eee) no-repeat; filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr="#eeeeee", EndColorStr="#dddddd", GradientType=0);\n'
+		+ '.structr-element-container-header img { width: 16px ! important; height: 16px ! important; }\n'
 		+ '.link-hover { border: 1px solid #00c; }\n'
 		+ '.edit_icon, .add_icon, .delete_icon, .close_icon, .key_icon {  cursor: pointer; heigth: 16px; width: 16px; vertical-align: top; float: right;  position: relative;}\n'
-		+ '.nodeHover { border: 1px dotted red; }\n'
+		+ '.nodeHover { border: 1px dotted red ! important; }\n'
 		+ '</style>');
 	
 	    var iframeDocument = $(this).contents();
@@ -556,38 +556,52 @@ var _Resources = {
 		    });
 		    var offsetTop = -30;
 		    var offsetLeft = 0;
-		    el.hover(function(e) {
-			e.stopPropagation();
-			var self = $(this);
+		    el.on({
+			mouseover: function(e) {
+			    e.stopPropagation();
+			    var self = $(this);
+			    self.off('click');
 
-			el.parent().children('.structr-element-container-header').remove();
+			    self.addClass('structr-element-container-active');
 
-			el.append('<div class="structr-element-container-header">'
-			    + '<img class="typeIcon" src="/structr/'+ _Elements.icon + '">'
-			    + '<b class="name_">' + name + '</b> <span class="id">' + structrId + '</b>'
-			    + '<img class="delete_icon structr-container-button" title="Delete ' + structrId + '" alt="Delete ' + structrId + '" src="/structr/icon/delete.png">'
-			    + '<img class="edit_icon structr-container-button" title="Edit properties of ' + structrId + '" alt="Edit properties of ' + structrId + '" src="/structr/icon/application_view_detail.png">'
-			    + '<img class="move_icon structr-container-button" title="Move ' + structrId + '" alt="Move ' + structrId + '" src="/structr/icon/arrow_move.png">'
-			    + '</div>'
-			    );
-			//$('.structr-element-container-header', el).hide();
+			    self.parent().children('.structr-element-container-header').remove();
 
-			el.off('click');
+			    self.append('<div class="structr-element-container-header">'
+				+ '<img class="typeIcon" src="/structr/'+ _Elements.icon + '">'
+				+ '<b class="name_">' + name + '</b> <span class="id">' + structrId + '</b>'
+				+ '<img class="delete_icon structr-container-button" title="Delete ' + structrId + '" alt="Delete ' + structrId + '" src="/structr/icon/delete.png">'
+				+ '<img class="edit_icon structr-container-button" title="Edit properties of ' + structrId + '" alt="Edit properties of ' + structrId + '" src="/structr/icon/application_view_detail.png">'
+				+ '<img class="move_icon structr-container-button" title="Move ' + structrId + '" alt="Move ' + structrId + '" src="/structr/icon/arrow_move.png">'
+				+ '</div>'
+				);
 
-			var pos = self.position();
-			var header = self.children('.structr-element-container-header');
-			header.css({
-			    position: "absolute",
-			    top: pos.top + offsetTop + 'px',
-			    left: pos.left + offsetLeft + 'px',
-			    cursor: 'pointer'
-			}).show();
-			if (debug) console.log(header);
-		    },
-		    function(e) {
-			e.stopPropagation();
-			var header = el.children('.structr-element-container-header');
-			header.remove();
+			    var nodes = $('.' + structrId + '_');
+			    nodes.parent().removeClass('nodeHover');
+			    nodes.addClass('nodeHover');
+
+			    var pos = self.position();
+			    var header = self.children('.structr-element-container-header');
+			    header.css({
+				position: "absolute",
+				top: pos.top + offsetTop + 'px',
+				left: pos.left + offsetLeft + 'px',
+				cursor: 'pointer'
+			    }).show();
+			    if (debug) console.log(header);
+			},
+			mouseout: function(e) {
+			    e.stopPropagation();
+			    var self = $(this);
+			    self.removeClass('.structr-element-container');
+			    var header = self.children('.structr-element-container-header');
+			    header.remove();
+//			    self.css({
+//				marginRight: '+=1'
+////				paddingRight: '+=1'
+//			    });
+			    var nodes = $('.' + structrId + '_');
+			    nodes.removeClass('nodeHover');
+			}
 		    });
 
 		}
@@ -607,7 +621,7 @@ var _Resources = {
 			    self.attr('contenteditable', true);
 			    $('#hoverStatus').text('Editable content element: ' + self.attr('structr_content_id'));
 			    var nodes = $('.' + structrId + '_');
-			    //console.log(nodes);
+			    nodes.parent().removeClass('nodeHover');
 			    nodes.addClass('nodeHover');
 			},
 			mouseout: function(e) {
