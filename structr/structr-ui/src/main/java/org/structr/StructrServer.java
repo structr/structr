@@ -39,6 +39,7 @@ import java.io.File;
 import java.util.*;
 
 import javax.servlet.DispatcherType;
+import org.apache.commons.lang.RandomStringUtils;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -207,7 +208,7 @@ public class StructrServer {
 			config.add("smtp.host = localhost");
 			config.add("smtp.port = 25");
 			config.add("superuser.username = superadmin");
-			config.add("superuser.password = s3hrg3h37m");
+			config.add("superuser.password = " + RandomStringUtils.randomAlphanumeric(12)); // Intentionally, no default password here
 			config.add("configured.services = ModuleService NodeService AgentService");
 
 			// don't start cron service without config file

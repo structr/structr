@@ -21,17 +21,8 @@
 
 package org.structr.core.node;
 
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Path;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.kernel.Traversal;
-
-import org.structr.common.RelType;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
-import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;

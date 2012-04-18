@@ -21,6 +21,8 @@
 
 package org.structr.websocket.command;
 
+import org.apache.commons.lang.StringUtils;
+
 import org.neo4j.graphdb.Direction;
 
 import org.structr.common.RelType;
@@ -45,7 +47,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.lang.StringUtils;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -106,7 +107,7 @@ public class WrapInComponentCommand extends AbstractCommand {
 								getWebSocket().send(MessageBuilder.status().code(400).message(t.getMessage()).build(), true);
 							}
 
-							tagOutgoingRelsWithComponentId(newComponent, componentId);
+							tagOutgoingRelsWithComponentId(newComponent, newComponent, componentId);
 						}
 
 					} else {
@@ -135,19 +136,23 @@ public class WrapInComponentCommand extends AbstractCommand {
 		}
 	}
 
-	private void tagOutgoingRelsWithComponentId(final AbstractNode node, final String componentId) throws FrameworkException {
+	private void tagOutgoingRelsWithComponentId(final AbstractNode startNode, final AbstractNode node, final String componentId) throws FrameworkException {
 
 		for (AbstractRelationship rel : node.getRelationships(RelType.CONTAINS, Direction.OUTGOING)) {
 
-			String existingComponentId = rel.getStringProperty(Component.Key.componentId);
-
-			if (StringUtils.isBlank(existingComponentId)) {
+			if (!(startNode.equals(node))) {
 
 				rel.setProperty("componentId", componentId);
 
+				if (node.getType().equals(Component.class.getSimpleName())) {
+
+					return;
+
+				}
+
 			}
 
-			tagOutgoingRelsWithComponentId(rel.getEndNode(), componentId);
+			tagOutgoingRelsWithComponentId(startNode, rel.getEndNode(), componentId);
 
 		}
 	}
