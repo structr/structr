@@ -158,6 +158,7 @@ public class CloneResourceCommand extends AbstractCommand {
 			if (!(startNode.equals(node))) {
 
 				rel.setProperty("resourceId", resourceId);
+				rel.setProperty(resourceId, 0);
 
 			}
 
