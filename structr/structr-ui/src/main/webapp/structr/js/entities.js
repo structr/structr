@@ -209,7 +209,6 @@ var _Entities = {
 		if (isDisabled(button)) return false;
 		disable(button);
 		buttonClicked = button;
-		disable(button);
 		var obj = {};
 		obj.command = 'CREATE';
 		if (!entity.name) {
@@ -477,6 +476,24 @@ var _Entities = {
 		var el = $(element);
 		el.removeClass('nodeHover');
 		el.children('img.button').hide();
+		var nodeId = getId(el);
+		var nodes = $('.' + nodeId + '_');
+		nodes.removeClass('nodeHover');
+		var resource = $(el).closest('.resource');
+		if (resource) {
+			var resId = getId(resource);
+			//		    console.log('setMouseOver resourceId', resId);
+			var previewNodes = $('#preview_' + resId).contents().find('[structr_element_id]');
+			previewNodes.each(function(i,v) {
+				var self = $(v);
+				var sid = self.attr('structr_element_id');
+				if (sid == nodeId) {
+					console.log(sid);
+					self.removeClass('nodeHover');
+					console.log(self);
+				}
+			});
+		}
 	}
 
 };

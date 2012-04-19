@@ -211,50 +211,6 @@ img.disabled {
     margin-top: 0px ! important;
 }
 
-.node .id {
-    /*    display: none;*/
-}
-
-.content .id {
-    display: none;
-}
-
-.node, .group, .user, .resource, .component, .element, .content, .folder, .file, .image {
-    background-color: #fff;
-    margin-bottom: 6px ! important;
-}
-
-.node b, .group b, .user b, .resource b, .component b, .element b, .content b, .folder b, .file b, .image b {
-    cursor: pointer;
-}
-
-.node, .resource, .component, .element, .content, .folder, .file, .image {
-    background-color: #eee;
-    background: -webkit-gradient(linear, left bottom, left top, from(#ddd), to(#eee)) no-repeat;
-    background: -moz-linear-gradient(90deg, #ddd, #eee) no-repeat;
-    filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#eeeeee', EndColorStr='#dddddd', GradientType=0);
-}
-
-.node .id,
-.resource .id,
-.element .id,
-.component .id,
-.file .id,
-.folder .id,
-.image .id {
-    display: none;
-}
-
-
-.content .content_ {
-    display: inline-block;
-    width: 40%;
-    font-weight: normal;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    white-space: nowrap;
-}
-
 #palette {
     /*    width: 100%;*/
     /*    height: 200px;*/
@@ -416,6 +372,16 @@ ul#previewTabs {
 }
 
 #previewTabs li, #tabs li {
+    margin-bottom: 6px;
+    vertical-align: middle;
+    line-height: 1.5em;
+    border-radius: 5px;
+    border: 1px solid #999;
+    background-color: #e9e9e9;
+    background: -webkit-gradient(linear, left bottom, left top, from(#e3e3e3), to(#f7f7f7)) no-repeat;
+    background: -moz-linear-gradient(90deg, #e3e3e3, #f7f7f7) no-repeat;
+    filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#f7f7f7', EndColorStr='#e3e3e3', GradientType=0);
+    cursor: pointer ! important;
     list-style-type: none;
     display: inline;
     float: left;
@@ -425,7 +391,7 @@ ul#previewTabs {
 
     /*    display: inline;*/
     margin: 0 4px 0 0 ! important;
-    padding: 2px 8px 0 8px ! important;
+    padding: 3px 8px 0 5px ! important;
     color: #333;
     font-size: 1.2em;
     height: 22px;
@@ -442,7 +408,8 @@ ul#previewTabs {
     border: none;
     margin: 1px 0 0 0;
 }
-#previewTabs .key_icon, #previewTabs .delete_icon {
+#previewTabs .key_icon,
+#previewTabs .delete_icon {
     margin: 1px 0 0 4px;
 }
 
@@ -451,7 +418,8 @@ ul#previewTabs {
     margin: 0;
 }
 
-#previewTabs li.active, #tabs li.active {
+#previewTabs li.active, #tabs li.active,
+#previewTabs li:hover, #tabs li:hover {
     color: #333 ! important;
     background-color: #81ce25;
     background: -webkit-gradient(linear, left bottom, left top, from(#73b821), to(#90e629)) no-repeat;
@@ -506,15 +474,52 @@ ul#previewTabs {
 .link_icon {
     display: none;
 }
+.node .id {
+    /*    display: none;*/
+}
+
+.content .id {
+    display: none;
+}
+
+.node, .group, .user, .resource, .component, .element, .content, .folder, .file, .image {
+    background-color: #fff;
+    margin-bottom: 6px ! important;
+}
+
+.node b, .group b, .user b, .resource b, .component b, .element b, .content b, .folder b, .file b, .image b {
+    cursor: pointer;
+}
+
+.node, .resource, .component, .element, .content, .folder, .file, .image {
+    background-color: #eee;
+    background: -webkit-gradient(linear, left bottom, left top, from(#ddd), to(#eee)) no-repeat;
+    background: -moz-linear-gradient(90deg, #ddd, #eee) no-repeat;
+    filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#eeeeee', EndColorStr='#dddddd', GradientType=0);
+}
+
+.node .id,
+.resource .id,
+.element .id,
+.component .id,
+.file .id,
+.folder .id,
+.image .id {
+    display: none;
+}
+
+
+.content .content_ {
+    display: inline-block;
+    width: 40%;
+    font-weight: normal;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
 
 span.id {
-    /*    display: none;*/
     color: #999;
-    /*    white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        -o-text-overflow: ellipsis;
-        -moz-binding: url('assets/xml/ellipsis.xml#ellipsis');*/
 }
 
 .node,
@@ -570,7 +575,7 @@ img.typeIcon {
     float: left ! important;
     border: none;
     background: none;
-    margin-right: 8px;
+    margin-right: 4px ! important;
     cursor: pointer;
 }
 
@@ -615,7 +620,7 @@ button {
     filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#e7e7e7', EndColorStr='#cccccc', GradientType=0);
 }
 
-#previewTabs li, #tabs li, button:hover {
+button:hover {
     color: #333;
     font-weight: bold;
     border-radius: 5px;
@@ -631,7 +636,7 @@ button {
     cursor: pointer ! important;
 }
 
-#previewTabs li img, #tabs li img, button img {
+button img {
     padding: 0;
     margin: 0;
     vertical-align: middle;
