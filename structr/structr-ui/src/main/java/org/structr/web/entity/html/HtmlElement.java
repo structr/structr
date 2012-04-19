@@ -44,8 +44,8 @@ import java.util.regex.Pattern;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.RelType;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Adapter;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.web.common.Function;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -71,42 +71,63 @@ public abstract class HtmlElement extends Element {
 	private static final Pattern templatePattern = Pattern.compile("\\$\\{[^}]*\\}");
 	private static final Pattern functionPattern = Pattern.compile("([a-zA-Z0-9]+)\\((.+)\\)");
 
-	private static final java.util.Map<String, Adapter<String, String>> functions = new LinkedHashMap<String, Adapter<String, String>>();
+	private static final java.util.Map<String, Function<String, String>> functions = new LinkedHashMap<String, Function<String, String>>();
 
 	static {
 		
-		functions.put("md5", new Adapter<String, String>() {
+		functions.put("md5", new Function<String, String>() {
 
-			@Override public String adapt(String s) throws FrameworkException {
-				return s != null ? DigestUtils.md5Hex(s) : null;
+			@Override public String apply(String... s) {
+				return s != null && s.length > 0 ? DigestUtils.md5Hex(s[0]) : null;
 			}
 			
 		});
 		
-		functions.put("upper", new Adapter<String, String>() {
+		functions.put("upper", new Function<String, String>() {
 
-			@Override public String adapt(String s) throws FrameworkException {
-				return s != null ? s.toUpperCase() : null;
+			@Override public String apply(String... s) {
+				return s != null && s.length > 0 ? s[0].toUpperCase() : null;
 			}
 			
 		});
 		
-		functions.put("lower", new Adapter<String, String>() {
+		functions.put("lower", new Function<String, String>() {
 
-			@Override public String adapt(String s) throws FrameworkException {
-				return s != null ? s.toLowerCase() : null;
+			@Override public String apply(String... s) {
+				return s != null && s.length > 0 ? s[0].toLowerCase() : null;
 			}
 			
 		});
 		
-		functions.put("capitalize", new Adapter<String, String>() {
+		functions.put("capitalize", new Function<String, String>() {
 
-			@Override public String adapt(String s) throws FrameworkException {
-				return s != null ? StringUtils.capitalize(s) : null;
+			@Override public String apply(String... s) {
+				return s != null && s.length > 0 ? StringUtils.capitalize(s[0]) : null;
 			}
 			
 		});
 		
+		functions.put("add", new Function<String, String>() {
+
+			@Override public String apply(String... s) {
+				
+				int result = 0;
+				
+				if(s != null) {
+					
+					for(int i=0; i<s.length; i++) {
+
+						try {
+							result += Integer.parseInt(s[i]);
+							
+						} catch(Throwable t) {}
+					}
+				}
+				
+				return new Integer(result).toString();
+			}
+			
+		});
 	}
 
 	//~--- static initializers --------------------------------------------
@@ -146,12 +167,17 @@ public abstract class HtmlElement extends Element {
 	public String[] getHtmlAttributes() {
 		return htmlAttributes;
 	}
+	
+	public String getPropertyWithVariableReplacement(String resourceId, String componentId, String key) {
 
-	public String getReferencedProperty(String resourceId, String componentId, String key) throws FrameworkException {
+		return replaceVariables(securityContext, this, resourceId, componentId, super.getStringProperty(key));
+	}
 
-		java.lang.Object rawValue = super.getProperty(key);
-		String value              = null;
+	// ----- static methods -----
+	public static String replaceVariables(SecurityContext securityContext, AbstractNode node, String resourceId, String componentId, String rawValue) {
 
+		String value = null;
+		
 		if ((rawValue != null) && (rawValue instanceof String)) {
 
 			value = (String) rawValue;
@@ -164,7 +190,7 @@ public abstract class HtmlElement extends Element {
 				String source = group.substring(2, group.length() - 1);
 
 				// fetch referenced property
-				String partValue = extractFunctions(resourceId, componentId, source);
+				String partValue = extractFunctions(securityContext, node, resourceId, componentId, source);
 				if (partValue != null) {
 
 					value = value.replace(group, partValue);
@@ -173,6 +199,79 @@ public abstract class HtmlElement extends Element {
 		}
 
 		return value;
+
+	}
+	
+	public static AbstractNode getNodeById(SecurityContext securityContext, String id) {
+
+		if (id == null) {
+
+			return null;
+
+		}
+
+		try {
+			return (AbstractNode) Services.command(securityContext, GetNodeByIdCommand.class).execute(id);
+		} catch (Throwable t) {
+			logger.log(Level.WARNING, "Unable to load node with id {0}, {1}", new java.lang.Object[] { id, t.getMessage() });
+		}
+
+		return null;
+	}
+
+	public static String extractFunctions(SecurityContext securityContext, AbstractNode node, String resourceId, String componentId, String source) {
+		
+		Matcher functionMatcher = functionPattern.matcher(source);
+		if(functionMatcher.matches()) {
+
+			String functionGroup = functionMatcher.group(1);
+			String parameter     = functionMatcher.group(2);
+			String functionName  = functionGroup.substring(0, functionGroup.length());
+			
+			
+			Function<String, String> function = functions.get(functionName);
+			if(function != null) {
+				
+				if(parameter.contains(",")) {
+
+					String[] parameters = parameter.split("[,]+");
+					String[] results    = new String[parameters.length];
+
+					// collect results from comma-separated function parameter
+					for(int i=0; i<parameters.length; i++) {
+						
+						results[i] = extractFunctions(securityContext, node, resourceId, componentId, StringUtils.strip(parameters[i]));
+					}
+
+					return function.apply(results);
+
+				} else {
+
+					String result = extractFunctions(securityContext, node, resourceId, componentId, StringUtils.strip(parameter));
+					return function.apply(result);
+				}
+			}
+		}
+
+		// if any of the following conditions match, the literal source value is returned
+		if(StringUtils.isNotBlank(source) && StringUtils.isNumeric(source)) {
+
+			// return numeric value
+			return source;
+			
+		} else if(source.startsWith("\"") && source.endsWith("\"")) {
+
+			return source.substring(1, source.length() - 1);
+			
+		} else if(source.startsWith("'") && source.endsWith("'")) {
+
+			return source.substring(1, source.length() - 1);
+			
+		} else {
+			
+			// return property key
+			return convertValueForHtml(getReferencedProperty(securityContext, node, resourceId, componentId, source));
+		}
 	}
 
 	public static java.lang.Object getReferencedProperty(SecurityContext securityContext, AbstractNode startNode, String resourceId, String componentId, String refKey) {
@@ -246,53 +345,5 @@ public abstract class HtmlElement extends Element {
 		}
 
 		return null;
-	}
-
-	public static AbstractNode getNodeById(SecurityContext securityContext, String id) {
-
-		if (id == null) {
-
-			return null;
-
-		}
-
-		try {
-			return (AbstractNode) Services.command(securityContext, GetNodeByIdCommand.class).execute(id);
-		} catch (Throwable t) {
-			logger.log(Level.WARNING, "Unable to load node with id {0}, {1}", new java.lang.Object[] { id, t.getMessage() });
-		}
-
-		return null;
-	}
-
-	public String extractFunctions(String resourceId, String componentId, String source) throws FrameworkException {
-		
-		Matcher functionMatcher = functionPattern.matcher(source);
-		if(functionMatcher.matches()) {
-
-			String functionGroup = functionMatcher.group(1);
-			String parameter     = functionMatcher.group(2);
-
-			String function = functionGroup.substring(0, functionGroup.length());
-
-			Adapter<String, String> adapter = functions.get(function);
-			if(adapter != null) {
-				
-				return adapter.adapt(extractFunctions(resourceId, componentId, parameter));
-			}
-		}
-		
-		if(source.startsWith("\"") && source.endsWith("\"")) {
-
-			return source.substring(1, source.length() - 1);
-			
-		} else if(source.startsWith("'") && source.endsWith("'")) {
-
-			return source.substring(1, source.length() - 1);
-			
-		} else {
-
-			return convertValueForHtml(getReferencedProperty(securityContext, this, resourceId, componentId, source));
-		}
 	}
 }

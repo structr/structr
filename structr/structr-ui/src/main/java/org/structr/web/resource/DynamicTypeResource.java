@@ -290,6 +290,17 @@ public class DynamicTypeResource extends TypeResource {
 	}
 
 	@Override
+	public RestMethodResult doPut(final Map<String, Object> propertySet) throws FrameworkException {
+		
+		if(uuidResource != null) {
+			return uuidResource.doPut(propertySet);
+		}
+		
+		throw new IllegalPathException();
+	}
+
+
+	@Override
 	public RestMethodResult doDelete() throws FrameworkException {
 
 		final Command deleteCommand      = Services.command(securityContext, DeleteNodeCommand.class);

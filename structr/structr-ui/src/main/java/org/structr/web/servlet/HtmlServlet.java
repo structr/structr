@@ -525,7 +525,7 @@ public class HtmlServlet extends HttpServlet {
 			// System.out.println("id: " + id + " [" + node.getStringProperty("type") + "] " + node.getStringProperty("name") + ", depth: " + depth + ", res: " + resourceId + ", comp: " + componentId);
 			if (node instanceof Content) {
 
-				content = node.getStringProperty("content");
+				content = (((Content)node).getPropertyWithVariableReplacement(resourceId, componentId, Content.UiKey.content.name()));
 
 				List<AbstractRelationship> links = node.getOutgoingLinkRelationships();
 
@@ -601,7 +601,7 @@ public class HtmlServlet extends HttpServlet {
 
 						try {
 
-							String value = htmlElement.getReferencedProperty(resourceId, localComponentId, attribute);
+							String value = htmlElement.getPropertyWithVariableReplacement(resourceId, localComponentId, attribute);
 
 							if ((value != null) && StringUtils.isNotBlank(value)) {
 
