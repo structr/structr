@@ -58,7 +58,7 @@ var _Contents = {
 
     show : function() {
 	if (palette) {
-	    palette.append('<div class="elementGroup"><h3>Content</h3><div class="draggable content" id="add_content">content</div></div>');
+	    palette.children().first().before('<div class="elementGroup"><h3>Content</h3><div class="draggable content" id="add_content">content</div></div>');
 	    $('#add_content', palette).draggable({
 		iframeFix: true,
 		revert: 'invalid',

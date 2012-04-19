@@ -163,7 +163,6 @@ var Structr = {
 				
             }
         }
-	
 
     },
 
@@ -224,6 +223,7 @@ var Structr = {
             if (module) {
                 module.init();
                 module.onload();
+		module.resize();
             }
         }
     },
