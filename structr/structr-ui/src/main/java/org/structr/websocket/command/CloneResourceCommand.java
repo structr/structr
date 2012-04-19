@@ -86,8 +86,9 @@ public class CloneResourceCommand extends AbstractCommand {
 						
 						String resourceId = newResource.getStringProperty(AbstractNode.Key.uuid);
 
-						Html htmlNode                      = null;
 						List<AbstractRelationship> relsOut = nodeToClone.getOutgoingRelationships(RelType.CONTAINS);
+						String originalResourceId          = nodeToClone.getStringProperty(AbstractNode.Key.uuid);
+						Html htmlNode                      = null;
 
 						for (AbstractRelationship out : relsOut) {
 
@@ -97,6 +98,7 @@ public class CloneResourceCommand extends AbstractCommand {
 							if (endNode.getType().equals(Html.class.getSimpleName())) {
 
 								htmlNode = (Html) endNode;
+								break;
 
 							}
 						}
@@ -120,7 +122,7 @@ public class CloneResourceCommand extends AbstractCommand {
 											    true);
 								}
 
-								tagOutgoingRelsWithResourceId(newResource, newResource, resourceId);
+								tagOutgoingRelsWithResourceId(newResource, newResource, originalResourceId, resourceId);
 							}
 
 						}
@@ -151,18 +153,16 @@ public class CloneResourceCommand extends AbstractCommand {
 		}
 	}
 
-	private void tagOutgoingRelsWithResourceId(final AbstractNode startNode, final AbstractNode node, final String resourceId) throws FrameworkException {
+	private void tagOutgoingRelsWithResourceId(final AbstractNode startNode, final AbstractNode node, final String originalResourceId, final String resourceId) throws FrameworkException {
 
 		for (AbstractRelationship rel : node.getRelationships(RelType.CONTAINS, Direction.OUTGOING)) {
 
-			if (!(startNode.equals(node))) {
-
-				rel.setProperty("resourceId", resourceId);
-				rel.setProperty(resourceId, 0);
-
+			Long position = rel.getLongProperty(originalResourceId);
+			if(position != null) {
+				rel.setProperty(resourceId, position);
 			}
 
-			tagOutgoingRelsWithResourceId(startNode, rel.getEndNode(), resourceId);
+			tagOutgoingRelsWithResourceId(startNode, rel.getEndNode(), originalResourceId, resourceId);
 
 		}
 	}
