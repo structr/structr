@@ -218,13 +218,16 @@ var _Resources = {
 
 	addTab : function(entity) {
 		previewTabs.children().last().before(''
-			+ '<li id="show_' + entity.id + '" class="button '
-			+ entity.id + '_'
-			+ '"><img class="typeIcon" src="icon/page.png"> <b class="name_">' + entity.name + '</b><!--a target="_blank" href="' + viewRootUrl + entity.name + '"><img title="View ' + entity.name + ' in new window" alt="View ' + entity.name + ' in new window" src="icon/eye.png">'
-			+ '</a--></li>');
+			+ '<li id="show_' + entity.id + '" class="button ' + entity.id + '_"></li>');
 
 		var tab = $('#show_' + entity.id, previews);
+		
+		tab.append('<img class="typeIcon" src="icon/page.png"> <b class="name_">' + entity.name + '</b>');
 		tab.append('<img title="Delete resource \'' + entity.name + '\'" alt="Delete resource \'' + entity.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
+		tab.append('<a target="_blank" href="' + viewRootUrl + entity.name + '">'
+		    + '<img class="view_icon button" title="View ' + entity.name + ' in new window" alt="View ' + entity.name + ' in new window" src="icon/eye.png">'
+			+ '</a></li>');
+
 		var deleteIcon = $('.delete_icon', tab);
 		deleteIcon.hide();
 		deleteIcon.on('click', function(e) {
@@ -342,7 +345,6 @@ var _Resources = {
 		var div = $('.' + entity.id + '_', resources);
 
 		div.append('<img title="Expand resource \'' + entity.name + '\'" alt="Expand resource \'' + entity.name + '\'" class="expand_icon button" src="' + Structr.expand_icon + '">');
-
 		$('.expand_icon', div).on('click', function() {
 			_Resources.toggleResource(this, entity);
 		});
@@ -353,7 +355,13 @@ var _Resources = {
 			+ '<b class="name_">' + entity.name + '</b> <span class="id">' + entity.id + '</span>');
 
 		div.append('<img title="Delete resource \'' + entity.name + '\'" alt="Delete resource \'' + entity.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
-		div.append('<img title="Clone resource \'' + entity.name + '\'" alt="Clone resource \'' + entity.name + '\'" class="clone_icon button" src="' + Structr.clone_icon + '">');
+		$('.delete_icon', div).on('click', function(e) {
+			e.stopPropagation();
+			var self = $(this);
+			self.off('click');
+			self.off('mouseover');
+			_Resources.deleteResource(this, entity);
+		});
 
 		div.append('<img title="Link resource \'' + entity.name + '\' to current selection" alt="Link resource \'' + entity.name + '\' to current selection" class="link_icon button" src="' + Structr.link_icon + '">');
 		$('.link_icon', div).on('click', function() {
@@ -365,28 +373,13 @@ var _Resources = {
 			}
 		});
 
-		$('.delete_icon', div).on('click', function(e) {
-			e.stopPropagation();
-			var self = $(this);
-			self.off('click');
-			self.off('mouseover');
-			_Resources.deleteResource(this, entity);
-		});
-		
+		div.append('<img title="Clone resource \'' + entity.name + '\'" alt="Clone resource \'' + entity.name + '\'" class="clone_icon button" src="' + _Resources.clone_icon + '">');
 		$('.clone_icon', div).on('click', function(e) {
 			e.stopPropagation();
 			var self = $(this);
 			self.off('click');
 			self.off('mouseover');
 			_Resources.cloneResource(this, entity.id);
-		});
-		
-		$('b', div).on('click', function(e) {
-			e.stopPropagation();
-			var self = $(this);
-			self.off('click');
-			self.off('mouseover');
-			_Entities.showProperties(this, entity, $('#dialogBox .dialogText'));
 		});
 
 		var tab = _Resources.addTab(entity);
