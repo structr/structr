@@ -47,6 +47,7 @@ public class Form extends HtmlElement {
 		EntityContext.registerEntityRelation(Form.class, Button.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Form.class, Select.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Form.class, Label.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Form.class, Textarea.class,RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
 		
 	}
 }
