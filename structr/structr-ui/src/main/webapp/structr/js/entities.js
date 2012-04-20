@@ -549,7 +549,7 @@ var _Entities = {
 	}
 
 	//_Entities.getProperty(entity.id, '_html_id');
-	//_Entities.getProperty(entity.id, '_html_class');
+	_Entities.getProperty(entity.id, '_html_class');
 
 	el.append('<img title="Edit Properties" alt="Edit Properties" class="edit_props_icon button" src="' + '/structr/icon/application_view_detail.png' + '">');
 	$('.edit_props_icon', el).on('click', function(e) {
@@ -602,7 +602,7 @@ var _Entities = {
 		//		console.log('setMouseOver', nodeId);
 		var nodes = $('.' + nodeId + '_');
 		var resource = $(el).closest('.resource');
-		if (resource) {
+		if (resource.length) {
 		    var resId = getId(resource);
 		    //console.log('setMouseOver resourceId', resId);
 		    var previewNodes = $('#preview_' + resId).contents().find('[structr_element_id]');
@@ -638,7 +638,7 @@ var _Entities = {
 	//	}, 1000);
 	nodes.removeClass('nodeHover');
 	var resource = $(el).closest('.resource');
-	if (resource) {
+	if (resource.length) {
 	    var resId = getId(resource);
 	    //		    console.log('setMouseOver resourceId', resId);
 	    var previewNodes = $('#preview_' + resId).contents().find('[structr_element_id]');

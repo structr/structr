@@ -21,13 +21,7 @@ var images, files, folders, drop;
 var fileList;
 var chunkSize = 1024*64;
 var sizeLimit = 1024*1024*42;
-
-$(document).ready(function() {
-    Structr.registerModule('files', _Files);
-    Structr.classes.push('file');
-    Structr.classes.push('folder');
-    Structr.classes.push('image');
-});
+var win = $(window);
 
 var _Files = {
 
@@ -44,6 +38,23 @@ var _Files = {
     //Structr.classes.push('folder');
     //Structr.classes.push('image');
     },
+    resize : function() {
+
+	var windowWidth = win.width();
+	var windowHeight = win.height();
+	var headerOffsetHeight = 67;
+
+	folders.css({
+	    width: Math.max(180, Math.min(windowWidth/3, 360)) + 'px',
+	    height: windowHeight - headerOffsetHeight + 'px'
+	});
+
+	files.css({
+	    width: Math.max(180, Math.min(windowWidth/3, 360)) + 'px',
+	    height: windowHeight - headerOffsetHeight + 'px'
+	});
+
+    },
 
     onload : function() {
 	if (debug) console.log('onload');
@@ -57,6 +68,8 @@ var _Files = {
 	_Files.refreshFiles();
 	_Files.refreshImages();
 	_Files.refreshFolders();
+
+//	_Files.resize();
     },
 
     refreshFiles : function() {
@@ -157,7 +170,7 @@ var _Files = {
 
 	var parent = Structr.findParent(parentId, null, files);
         
-	parent.append('<div class="file ' + file.id + '_">'
+	parent.append('<div class="node file ' + file.id + '_">'
 	    + '<img class="typeIcon" src="'+ icon + '">'
 	    + '<b class="name_">' + file.name + '</b> <span class="id">' + file.id + '</span>'
 	    + '</div>');
@@ -191,7 +204,7 @@ var _Files = {
 	div.draggable({
 	    revert: 'invalid',
 	    containment: '#main',
-	    zIndex: 1
+	    zIndex: 4
 	});
 
 	_Entities.appendAccessControlIcon(div, file);
@@ -206,7 +219,7 @@ var _Files = {
 	var	icon = viewRootUrl + file.name;
 	var parent = Structr.findParent(parentId, null, images);
 
-	parent.append('<div class="image ' + file.id + '_">'
+	parent.append('<div class="node image ' + file.id + '_">'
 	    + '<img class="typeIcon" src="'+ icon + '">'
 	    + '<b class="name_">' + file.name + '</b> <span class="id">' + file.id + '</span>'
 	    + '</div>');
@@ -240,7 +253,7 @@ var _Files = {
 	div.draggable({
 	    revert: 'invalid',
 	    containment: '#main',
-	    zIndex: 1
+	    zIndex: 4
 	});
         
 	_Entities.appendAccessControlIcon(div, file);
@@ -263,7 +276,7 @@ var _Files = {
 	if (debug) console.log('Folder: ', folder);
 	var parent = Structr.findParent(parentId, null, folders);
 		
-	parent.append('<div structr_type="folder" class="folder ' + folder.id + '_">'
+	parent.append('<div structr_type="folder" class="node folder ' + folder.id + '_">'
 	    + '<img class="typeIcon" src="'+ _Files.folder_icon + '">'
 	    + '<b class="name_">' + folder.name + '</b> <span class="id">' + folder.id + '</span>'
 	    + '</div>');
@@ -282,8 +295,8 @@ var _Files = {
 	    greedy: true,
 	    hoverClass: 'nodeHover',
 	    drop: function(event, ui) {
-		var fileId = getIdFromClassString(ui.draggable.attr('class'));
-		var folderId = getIdFromClassString($(this).attr('class'));
+		var fileId = getId(ui.draggable);
+		var folderId = getId($(this));
 		var nodeData = {};
 		nodeData.id = fileId;
 		_Entities.createAndAdd(folderId, nodeData);
@@ -495,3 +508,15 @@ var _Files = {
     }
 
 };
+
+$(document).ready(function() {
+    Structr.registerModule('files', _Files);
+    Structr.classes.push('file');
+    Structr.classes.push('folder');
+    Structr.classes.push('image');
+
+//    win.resize(function() {
+//	_Files.resize();
+//    });
+});
+    
