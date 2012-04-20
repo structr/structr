@@ -142,7 +142,7 @@ function connect() {
 				
 		$(result).each(function(i, entity) {
 
-		    console.log('CREATE', entity);
+		    if (debug) console.log('CREATE', entity);
 
 		    if (entity.type == 'User') {
 
@@ -181,7 +181,7 @@ function connect() {
 
 		    } else if (entity.type == 'Content') {
 
-			console.log("Content", resources);
+			if (debug) console.log("Content", resources);
 
 			if (resources) {
 			    _Resources.appendContentElement(entity);
@@ -280,7 +280,20 @@ function connect() {
 			attrElement.show();
 		    }
 		}
-                
+
+	    } else if (command == 'CHILDREN') {
+
+		var parentId = data.id;
+		var resourceId = data.data.resourceId;
+		if (debug) console.log('CHILDREN:', parentId, resourceId);
+
+		$(result).each(function(i, child) {
+		    if (debug) console.log('CHILDREN: ' + child.type);
+		    _Entities.appendObj(child, data.id, resourceId);
+
+		});
+
+
 	    } else if (command == 'LIST') {
 				
 		if (debug) console.log('LIST:', result);
@@ -288,103 +301,8 @@ function connect() {
 		$(result).each(function(i, entity) {
 
 		    if (debug) console.log('LIST: ' + entity.type);
-
-		    if (entity.type == 'User') {
-			var groups = entity.groups;
-			if (!groups || groups.length == 0) {
-			    _UsersAndGroups.appendUserElement(entity);
-			}
-						
-		    } else if (entity.type == 'Group') {
-			var groupElement = _UsersAndGroups.appendGroupElement(entity);
-			var users = entity.users;
-			if (users && users.length > 0) {
-			    disable($('.delete_icon', groupElement)[0]);
-			    $(users).each(function(i, user) {
-				_UsersAndGroups.appendUserElement(user, entity.id);
-			    });
-			}
-                        
-		    } else if (entity.type == 'Resource') {
-
-			_Entities.getTree(entity.id);
-
-		    } else if (entity.type == 'Component') {
-
-			var componentElement = _Resources.appendComponentElement(entity);
-			var elements = entity.elements;
-			if (elements && elements.length > 0) {
-			    disable($('.delete_icon', componentElement)[0]);
-			    $(elements).each(function(i, element) {
-				if (element.type == 'Element') {
-				    _Resources.appendElementElement(element, entity.id);
-				}
-			    });
-			}
-                    
-		    } else if (entity.type == 'Content') {
-			_Resources.appendContentElement(entity);
-
-		    } else if (entity.type == 'Folder') {
-
-			var folderElement = _Files.appendFolderElement(entity);
-			var folders = entity.folders;
-			if (folders && folders.length > 0) {
-			    disable($('.delete_icon', folderElement)[0]);
-			    $(folders).each(function(i, folder) {
-				_Files.appendFolderElement(folder, entity.id);
-			    });
-			}
-			var images = entity.images;
-			if (images && images.length > 0) {
-			    disable($('.delete_icon', folderElement)[0]);
-			    $(images).each(function(i, image) {
-				_Files.appendImageElement(image, entity.id);
-			    });
-			}
-			var files = entity.files;
-			if (files && files.length > 0) {
-			    disable($('.delete_icon', folderElement)[0]);
-			    $(files).each(function(i, file) {
-
-				if (file.type == 'File') { // files comprise images
-				    _Files.appendFileElement(file, entity.id);
-				}
-
-			    });
-			}
-
-		    } else if (entity.type == 'Image') {
-			if (debug) console.log('Image:', entity);
-			var imageFolder = entity.folder;
-			if (!imageFolder || imageFolder.length == 0) {
-			    _Files.appendImageElement(entity);
-			}
-
-		    } else if (entity.type == 'File') {
-			if (debug) console.log('File: ', entity);
-			var parentFolder = entity.folder;
-			if (!parentFolder || parentFolder.length == 0) {
-			    _Files.appendFileElement(entity);
-			}
-
-		    } else {
-			console.log('Entity: ', entity);
-			var elementElement = _Resources.appendElementElement(entity);
-			var elem = entity.elements;
-			if (elem && elem.length > 0) {
-			    if (debug) console.log(elem);
-			    disable($('.delete_icon', elementElement)[0]);
-			    $(elem).each(function(i, element) {
-				if (elem.type == 'Element') {
-				    _Resources.appendElementElement(element, entity.id);
-				} else if (elem.type == 'Content') {
-				    _Resources.appendContentElement(element, entity.id);
-				}
-			    });
-			}
-		    }
-						
+		    _Entities.appendObj(entity);
+			
 		});
 
 	    } else if (command == 'DELETE') {
@@ -447,7 +365,7 @@ function connect() {
 
 	    } else if (command == 'ADD') {
 
-		if (true) console.log('ADD', data);
+		if (debug)  console.log('ADD', data);
 
 		if (debug) console.log('ADD tag', data.data.tag);
 		parentId = data.id;
@@ -548,7 +466,7 @@ function connect() {
 	    //_Resources.reloadPreviews();
 	    } else if (command == 'WRAP') {
 
-		console.log('WRAP');
+		if (debug) console.log('WRAP');
 
 	    } else {
 		if (debug) console.log('Received unknown command: ' + command);

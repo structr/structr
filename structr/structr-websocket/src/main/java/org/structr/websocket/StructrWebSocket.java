@@ -112,6 +112,8 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 		// create a link between objects
 		addCommand(LinkCommand.class);
 
+		// list children
+		addCommand(ChildrenCommand.class);
 	}
 
 	//~--- fields ---------------------------------------------------------

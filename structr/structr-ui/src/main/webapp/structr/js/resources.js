@@ -94,11 +94,11 @@ var _Resources = {
 	previews.append('<ul id="previewTabs"></ul>');
 	previewTabs = $('#previewTabs', previews);
 
-//	if ($.cookie('structrResourcesVisible') == 'false') {
-//	    resources.hide();
-//	} else {
-//	    $('#toggleResources').prop('checked', true);
-//	}
+	//	if ($.cookie('structrResourcesVisible') == 'false') {
+	//	    resources.hide();
+	//	} else {
+	//	    $('#toggleResources').prop('checked', true);
+	//	}
 		
 	$('#toggleResources').on('click', function() {
 	    resources.toggle();
@@ -247,7 +247,7 @@ var _Resources = {
 
     addTab : function(entity) {
 	previewTabs.children().last().before(''
-	    + '<li id="show_' + entity.id + '" class="button ' + entity.id + '_"></li>');
+	    + '<li id="show_' + entity.id + '" class="' + entity.id + '_"></li>');
 
 	var tab = $('#show_' + entity.id, previews);
 		
@@ -301,11 +301,11 @@ var _Resources = {
 		} else {
 		    _Resources.activateTab(self);
 		}
-//	    } else if (clicks == 2) {
-//		self.off('click');
-//		e.stopPropagation();
-//		_Resources.resetTab(self);
-//		window.open(viewRootUrl + name);
+	    //	    } else if (clicks == 2) {
+	    //		self.off('click');
+	    //		e.stopPropagation();
+	    //		_Resources.resetTab(self);
+	    //		window.open(viewRootUrl + name);
 	    }
 	});
 
@@ -349,7 +349,7 @@ var _Resources = {
 	var oldName = $.trim(element.children('b').text());
 	//console.log('oldName', oldName);
 	element.children('b').hide();
-	element.children('img').hide();
+	element.find('.button').hide();
 	element.append('<input type="text" size="' + (oldName.length+4) + '" class="newName_" value="' + oldName + '">');
 
 	var input = $('input', element);
@@ -373,11 +373,9 @@ var _Resources = {
 	resources.append('<div class="node resource ' + entity.id + '_"></div>');
 	var div = $('.' + entity.id + '_', resources);
 
-	div.append('<img title="Expand resource \'' + entity.name + '\'" alt="Expand resource \'' + entity.name + '\'" class="expand_icon button" src="' + Structr.expand_icon + '">');
-	$('.expand_icon', div).on('click', function() {
-	    _Resources.toggleResource(this, entity);
-	});
+	entity.resourceId = entity.id;
 
+	_Entities.appendExpandIcon(div, entity);
 	_Entities.setMouseOver(div);
 
 	div.append('<img class="typeIcon" src="icon/page.png">'
@@ -411,6 +409,8 @@ var _Resources = {
 	    _Resources.cloneResource(this, entity.id);
 	});
 
+	_Entities.appendEditPropertiesIcon(div, entity);
+
 	var tab = _Resources.addTab(entity);
 
 	previews.append('<div class="previewBox"><iframe id="preview_'
@@ -418,20 +418,20 @@ var _Resources = {
 
 	_Resources.resetTab(tab, entity.name);
 
-	//	$('#preview_' + entity.id).hover(function() {
-	//	    var self = $(this);
-	//	    var elementContainer = self.contents().find('.structr-element-container');
-	//	    //console.log(self, elementContainer);
-	//	    elementContainer.addClass('structr-element-container-active');
-	//	    elementContainer.removeClass('structr-element-container');
-	//	}, function() {
-	//	    var self = $(this);
-	//	    var elementContainer = self.contents().find('.structr-element-container-active');
-	//	    //console.log(elementContainer);
-	//	    elementContainer.addClass('structr-element-container');
-	//	    elementContainer.removeClass('structr-element-container-active');
-	//	//self.find('.structr-element-container-header').remove();
-	//	});
+		$('#preview_' + entity.id).hover(function() {
+		    var self = $(this);
+		    var elementContainer = self.contents().find('.structr-element-container');
+		    //console.log(self, elementContainer);
+		    elementContainer.addClass('structr-element-container-active');
+		    elementContainer.removeClass('structr-element-container');
+		}, function() {
+		    var self = $(this);
+		    var elementContainer = self.contents().find('.structr-element-container-active');
+		    //console.log(elementContainer);
+		    elementContainer.addClass('structr-element-container');
+		    elementContainer.removeClass('structr-element-container-active');
+		//self.find('.structr-element-container-header').remove();
+		});
 
 	$('#preview_' + entity.id).load(function() {
 
@@ -440,8 +440,9 @@ var _Resources = {
 	    //console.log(this);
 	    var doc = $(this).contents();
 	    var head = $(doc).find('head');
-	    if (head) head.append('<style type="text/css">'
+	    if (head) head.append('<style media="screen" type="text/css">'
 		+ '* { z-index: 0}\n'
+		+ '.nodeHover { border: 1px dotted red; }\n'
 		+ '.structr-content-container { display: inline-block; border: none; margin: 0; padding: 0; min-height: 10px; min-width: 10px; }\n'
 		//		+ '.structr-element-container-active { display; inline-block; border: 1px dotted #e5e5e5; margin: -1px; padding: -1px; min-height: 10px; min-width: 10px; }\n'
 		//		+ '.structr-element-container { }\n'
@@ -454,7 +455,6 @@ var _Resources = {
 		+ '.structr-element-container-header img { width: 16px ! important; height: 16px ! important; }\n'
 		+ '.link-hover { border: 1px solid #00c; }\n'
 		+ '.edit_icon, .add_icon, .delete_icon, .close_icon, .key_icon {  cursor: pointer; heigth: 16px; width: 16px; vertical-align: top; float: right;  position: relative;}\n'
-		+ '.nodeHover { border: 1px dotted red ! important; }\n'
 		+ '</style>');
 	
 	    var iframeDocument = $(this).contents();
@@ -539,7 +539,6 @@ var _Resources = {
 		var name = el.attr('structr_name');
 		var tag  = element.nodeName.toLowerCase();
 		if (structrId) {
-                    
 
 		    $('.move_icon', el).on('mousedown', function(e) {
 			e.stopPropagation();
@@ -627,10 +626,6 @@ var _Resources = {
 			    self.removeClass('.structr-element-container');
 			    var header = self.children('.structr-element-container-header');
 			    header.remove();
-			    //			    self.css({
-			    //				marginRight: '+=1'
-			    ////				paddingRight: '+=1'
-			    //			    });
 			    var nodes = $('.' + structrId + '_');
 			    nodes.removeClass('nodeHover');
 			}
@@ -1225,27 +1220,6 @@ var _Resources = {
 	});
     },
 
-    toggleResource : function(button, resource) {
-
-	if (debug) console.log('toggle resource ' + resource.id);
-	var resourceElement = $('.' + resource.id + '_');
-	if (debug) console.log(resourceElement);
-
-	var subs = $('.component, .element', resourceElement);
-	subs.each(function(i,el){
-	    $(el).toggle(50, function() {
-		if (button.src.endsWith('icon/tree_arrow_down.png')) {
-		    button.src = 'icon/tree_arrow_right.png'
-		} else {
-		    button.src = 'icon/tree_arrow_down.png'
-		}
-
-	    });
-	});
-
-
-    },
-   
     addNode : function(button, type, entity, resourceId) {
 	if (isDisabled(button)) return;
 	disable(button);

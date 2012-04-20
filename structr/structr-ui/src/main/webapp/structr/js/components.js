@@ -92,6 +92,9 @@ var _Components = {
 	    _Components.createForm(this, component);
 	});
 
+	component.resourceId = resourceId;
+	_Entities.appendExpandIcon(div, component);
+
 	_Entities.setMouseOver(div);
 	_Entities.appendEditPropertiesIcon(div, component);
 

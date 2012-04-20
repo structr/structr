@@ -186,13 +186,19 @@ var _Elements = {
 
 	var parent = Structr.findParent(parentId, resourceId, elements);
         
-	parent.append('<div class="node element ' + entity.id + '_">'
-	    + '<img class="typeIcon" src="'+ _Elements.icon + '">'
+	parent.append('<div class="node element ' + entity.id + '_">');
+
+	var div = $('.' + entity.id + '_', parent);
+
+	entity.resourceId = resourceId;
+	_Entities.appendExpandIcon(div, entity);
+
+	div.append('<img class="typeIcon" src="'+ _Elements.icon + '">'
 	    + '<b class="tag_">' + entity.tag + '</b> <span class="id">' + entity.id + '</span>'
 	    + (entity._html_id ? 'id=' + entity._html_id : '')
 	    + (entity._html_class ? 'class=' + entity._html_class : '')
 	    + '</div>');
-	var div = $('.' + entity.id + '_', parent);
+
 
 	div.append('<img title="Delete ' + entity.tag + ' element ' + entity.id + '" alt="Delete ' + entity.tag + ' element ' + entity.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
 	$('.delete_icon', div).on('click', function(e) {

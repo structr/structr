@@ -17,7 +17,7 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var buttonClicked;
+var buttonClicked, timer = [];
 
 var _Entities = {
 	
@@ -45,6 +45,17 @@ var _Entities = {
 	data.type = type;
 	obj.data = data;
 	if (debug) console.log('list()', obj);
+	return sendObj(obj);
+    },
+
+    children : function(id, resourceId) {
+	var obj = {};
+	obj.command = 'CHILDREN';
+	obj.id = id;
+	var data = {};
+	data.resourceId = resourceId;
+	obj.data = data;
+	if (debug) console.log('children()', obj);
 	return sendObj(obj);
     },
 
@@ -112,7 +123,123 @@ var _Entities = {
 	    });
 	}
     },
-	
+
+    appendObj : function(entity, parentId, resourceId) {
+
+	// Check if object is not already contained
+	var node = Structr.node(entity.id, parentId, resourceId);
+	if (debug) console.log('appendObj', node);
+	if (node && node.length > 0) return;
+
+	if (entity.type == 'User') {
+	    var groups = entity.groups;
+	    if (!groups || groups.length == 0) {
+		_UsersAndGroups.appendUserElement(entity, parentId, resourceId);
+	    }
+
+	} else if (entity.type == 'Group') {
+	    var groupElement = _UsersAndGroups.appendGroupElement(entity);
+	    var users = entity.users;
+	    if (users && users.length > 0) {
+		disable($('.delete_icon', groupElement)[0]);
+		$(users).each(function(i, user) {
+		    _UsersAndGroups.appendUserElement(user, entity.id);
+		});
+	    }
+
+	} else if (entity.type == 'Resource') {
+
+	    //_Entities.getTree(entity.id);
+
+	    var resourceElement = _Resources.appendResourceElement(entity);
+	//			var elements = entity.elements;
+	//			if (elements && elements.length > 0) {
+	//			    disable($('.delete_icon', respourceElement)[0]);
+	//			    $(elements).each(function(i, element) {
+	//				if (element.type == 'Element') {
+	//				    _Resources.appendElementElement(element, entity.id);
+	//				}
+	//			    });
+	//			}
+
+	} else if (entity.type == 'Component') {
+
+	    var componentElement = _Resources.appendComponentElement(entity, parentId, resourceId);
+	    var elements = entity.elements;
+	    if (elements && elements.length > 0) {
+		disable($('.delete_icon', componentElement)[0]);
+		$(elements).each(function(i, element) {
+		    if (element.type == 'Element') {
+			_Resources.appendElementElement(element, entity.id);
+		    }
+		});
+	    }
+
+	} else if (entity.type == 'Content') {
+	    _Resources.appendContentElement(entity, parentId, resourceId);
+
+	} else if (entity.type == 'Folder') {
+
+	    var folderElement = _Files.appendFolderElement(entity);
+	    var folders = entity.folders;
+	    if (folders && folders.length > 0) {
+		disable($('.delete_icon', folderElement)[0]);
+		$(folders).each(function(i, folder) {
+		    _Files.appendFolderElement(folder, entity.id);
+		});
+	    }
+	    var images = entity.images;
+	    if (images && images.length > 0) {
+		disable($('.delete_icon', folderElement)[0]);
+		$(images).each(function(i, image) {
+		    _Files.appendImageElement(image, entity.id);
+		});
+	    }
+	    var files = entity.files;
+	    if (files && files.length > 0) {
+		disable($('.delete_icon', folderElement)[0]);
+		$(files).each(function(i, file) {
+
+		    if (file.type == 'File') { // files comprise images
+			_Files.appendFileElement(file, entity.id);
+		    }
+
+		});
+	    }
+
+	} else if (entity.type == 'Image') {
+	    if (debug) console.log('Image:', entity);
+	    var imageFolder = entity.folder;
+	    if (!imageFolder || imageFolder.length == 0) {
+		_Files.appendImageElement(entity);
+	    }
+
+	} else if (entity.type == 'File') {
+	    if (debug) console.log('File: ', entity);
+	    var parentFolder = entity.folder;
+	    if (!parentFolder || parentFolder.length == 0) {
+		_Files.appendFileElement(entity);
+	    }
+
+	} else {
+	    if (debug) console.log('Entity: ', entity);
+	    var elementElement = _Resources.appendElementElement(entity, parentId, resourceId);
+	    var elem = entity.elements;
+	    if (elem && elem.length > 0) {
+		if (debug) console.log(elem);
+		disable($('.delete_icon', elementElement)[0]);
+		$(elem).each(function(i, element) {
+		    if (elem.type == 'Element') {
+			_Resources.appendElementElement(element, entity.id);
+		    } else if (elem.type == 'Content') {
+			_Resources.appendContentElement(element, entity.id);
+		    }
+		});
+	    }
+	}
+
+    },
+    
     appendEntityElement : function(entity, parentElement) {
 	if (debug) console.log(entity);
 	var element;
@@ -255,7 +382,6 @@ var _Entities = {
 	dialog.append('<div id="tabs"><ul></ul>');
 
 	$(views).each(function(i, view) {
-	    debug = true;
 	    var tabs = $('#tabs', dialog);
 
 	    var tabText;
@@ -422,13 +548,13 @@ var _Entities = {
 	    el.append('<span class="_html_id_">#</span> <span class="_html_class_">.</span>');
 	}
 
-	_Entities.getProperty(entity.id, '_html_id');
-	_Entities.getProperty(entity.id, '_html_class');
+	//_Entities.getProperty(entity.id, '_html_id');
+	//_Entities.getProperty(entity.id, '_html_class');
 
 	el.append('<img title="Edit Properties" alt="Edit Properties" class="edit_props_icon button" src="' + '/structr/icon/application_view_detail.png' + '">');
 	$('.edit_props_icon', el).on('click', function(e) {
 	    e.stopPropagation();
-	    console.log('showProperties', entity);
+	    if (debug) console.log('showProperties', entity);
 	    _Entities.showProperties(this, entity, $('#dialogBox .dialogText'));
 	});
 
@@ -439,18 +565,46 @@ var _Entities = {
 
     },
 
-    setMouseOver: function(el) {
+    //    setClick : function(el) {
+    //	el.on('click', function(e) {
+    //	    e.stopPropagation();
+    //	    var resourceId = getId($(this).closest('.resource'));
+    //	    console.log('Clicked on element', el, resourceId);
+    //	    var id = getId(el);
+    //	    _Entities.children(id, resourceId);
+    //	});
+    //    },
+    appendExpandIcon : function(el, entity) {
+	el.append('<img title="Expand \'' + entity.name + '\'" alt="Expand \'' + entity.name + '\'" class="expand_icon" src="' + Structr.expand_icon + '">');
+	var button = $('.expand_icon', el).first();
+
+	if (button) {
+
+	    button.on('click', function() {
+		_Entities.toggleElement(this);
+	    });
+	    if (debug) console.log(isExpanded(entity.id, null, entity.resourceId), entity);
+	    if (isExpanded(entity.id, null, entity.resourceId)) {
+		if (debug) console.log('toggle', entity.id, entity.resourceId);
+		_Entities.toggleElement(button)
+	    }
+	}
+
+    },
+
+    setMouseOver : function(el) {
 	el.on({
 	    mouseover: function(e) {
 		e.stopPropagation();
 		var self = $(this);
 		var nodeId = getId(el);
+		//window.clearTimeout(timer[nodeId]);
 		//		console.log('setMouseOver', nodeId);
 		var nodes = $('.' + nodeId + '_');
 		var resource = $(el).closest('.resource');
 		if (resource) {
 		    var resId = getId(resource);
-		    //		    console.log('setMouseOver resourceId', resId);
+		    //console.log('setMouseOver resourceId', resId);
 		    var previewNodes = $('#preview_' + resId).contents().find('[structr_element_id]');
 		    previewNodes.each(function(i,v) {
 			var self = $(v);
@@ -459,6 +613,9 @@ var _Entities = {
 			    self.addClass('nodeHover');
 			}
 		    });
+
+		//		    _Entities.children(nodeId, resId);
+
 		}
 		nodes.addClass('nodeHover');
 		self.children('img.button').show();
@@ -476,6 +633,9 @@ var _Entities = {
 	el.children('img.button').hide();
 	var nodeId = getId(el);
 	var nodes = $('.' + nodeId + '_');
+	//	timer[nodeId] = window.setTimeout(function() {
+	//	    el.children('.node').remove();
+	//	}, 1000);
 	nodes.removeClass('nodeHover');
 	var resource = $(el).closest('.resource');
 	if (resource) {
@@ -486,14 +646,37 @@ var _Entities = {
 		var self = $(v);
 		var sid = self.attr('structr_element_id');
 		if (sid == nodeId) {
-		    console.log(sid);
+		    if (debug) console.log(sid);
 		    self.removeClass('nodeHover');
-		    console.log(self);
+		    if (debug) console.log(self);
 		}
 	    });
 	}
-    }
+    },
 
+    toggleElement : function(button) {
+
+	var b = $(button);
+	var src = b.attr('src');
+
+	var nodeElement = $(button).parent();
+	var id = getId(nodeElement);
+	var resId = getId(nodeElement.closest('.resource'));
+
+	if (src.endsWith('icon/tree_arrow_down.png')) {
+	    nodeElement.children('.node').remove();
+	    b.attr('src', 'icon/tree_arrow_right.png');
+
+	    removeExpandedNode(id, null, resId);
+	} else {
+	    _Entities.children(id, resId);
+	    b.attr('src', 'icon/tree_arrow_down.png');
+
+	    addExpandedNode(id, null, resId);
+	}
+
+    //console.log(Structr.expanded[resId]);
+    }
 };
 
 function plural(type) {
@@ -502,4 +685,40 @@ function plural(type) {
 	plural = type.substring(0, type.length-1) + 'ies';
     }
     return plural;
+}
+
+function addExpandedNode(id, parentId, resourceId) {
+
+    var expandedIds = Structr.expanded[resourceId];
+    if (!expandedIds) {
+	expandedIds = {};
+	Structr.expanded[resourceId] = expandedIds;
+    }
+
+    expandedIds[id] = true;
+
+}
+
+function removeExpandedNode(id, parentId, resourceId) {
+    var expandedIds = Structr.expanded[resourceId];
+    if (!expandedIds) {
+	expandedIds = {};
+	Structr.expanded[resourceId] = expandedIds;
+    }
+
+    expandedIds[id] = false;
+
+}
+
+function isExpanded(id, parentId, resourceId) {
+    var expandedIds = Structr.expanded[resourceId];
+    if (!expandedIds) {
+	expandedIds = {};
+	Structr.expanded[resourceId] = expandedIds;
+    }
+    var isExpanded = expandedIds[id] ? expandedIds[id] : false;
+
+    if (debug) console.log('node ' + id + ' in resource ' + resourceId + ' expanded?', isExpanded);
+
+    return isExpanded;
 }
