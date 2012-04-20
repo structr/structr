@@ -22,8 +22,6 @@
 package org.structr.websocket.command;
 
 import org.structr.common.RelType;
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
@@ -31,8 +29,7 @@ import org.structr.websocket.message.WebSocketMessage;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -47,10 +44,10 @@ public class ChildrenCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		String resourceId                     = (String) webSocketData.getNodeData().get("resourceId");
-		AbstractNode node                     = getNode(webSocketData.getId());
-		List<GraphObject> result             = new LinkedList<GraphObject>();
-		List<AbstractRelationship> rels       = node.getOutgoingRelationships(RelType.CONTAINS);
+		String resourceId               = (String) webSocketData.getNodeData().get("resourceId");
+		AbstractNode node               = getNode(webSocketData.getId());
+		List<AbstractRelationship> rels = node.getOutgoingRelationships(RelType.CONTAINS);
+		Map<Long, GraphObject> sortMap  = new TreeMap<Long, GraphObject>();
 
 		for (AbstractRelationship out : rels) {
 
@@ -70,11 +67,13 @@ public class ChildrenCommand extends AbstractCommand {
 
 				AbstractNode endNode = out.getEndNode();
 
-				result.add(endNode);
+				sortMap.put(pos, endNode);
 
 			}
 
 		}
+
+		List<GraphObject> result = new ArrayList<GraphObject>(sortMap.values());
 
 		webSocketData.setResult(result);
 
