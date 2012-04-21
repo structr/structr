@@ -642,7 +642,6 @@ var _Resources = {
                     
 		    el.on({
 			mouseover: function(e) {
-			    console.log('content mouseover');
 			    e.stopPropagation();
 			    var self = $(this);
 			    self.addClass('structr-editable-area');
@@ -653,7 +652,6 @@ var _Resources = {
 			    nodes.addClass('nodeHover');
 			},
 			mouseout: function(e) {
-			    console.log('content mouseout');
 			    e.stopPropagation();
 			    var self = $(this);
 			    //swapFgBg(self);
@@ -664,7 +662,6 @@ var _Resources = {
 			    nodes.removeClass('nodeHover');
 			},
 			click: function(e) {
-			    console.log('content mouseout');
 			    e.stopPropagation();
 			    var self = $(this);
 			    self.removeClass('structr-editable-area');
@@ -672,7 +669,7 @@ var _Resources = {
 
 			    // Store old text in global var
 			    textBeforeEditing = self.contents().first().text();
-			    console.log("textBeforeEditing", textBeforeEditing);
+			    if (debug) console.log("textBeforeEditing", textBeforeEditing);
 
 			    //swapFgBg(self);
 			    sel = iframeWindow.getSelection();
@@ -683,9 +680,9 @@ var _Resources = {
 				$('.link_icon').show();
 				//                                sourceId = structrId;
 				contentSourceId = self.attr('structr_content_id');
-				console.log('click contentSourceId: ' + contentSourceId);
+				if (debug) console.log('click contentSourceId: ' + contentSourceId);
 				var rootResourceElement = self.closest('html')[0];
-				console.log(rootResourceElement);
+				if (debug) console.log(rootResourceElement);
 				if (rootResourceElement) {
 				    rootId = $(rootResourceElement).attr('structr_content_id');
 				}
@@ -696,8 +693,8 @@ var _Resources = {
 			    e.stopPropagation();
 			    var self = $(this);
 			    contentSourceId = self.attr('structr_content_id');
-			    console.log(self.contents().first());
-			    console.log('blur contentSourceId: ' + contentSourceId);
+			    if (debug) console.log(self.contents().first());
+			    if (debug) console.log('blur contentSourceId: ' + contentSourceId);
 			    //_Resources.updateContent(contentSourceId, textBeforeEditing, self.contents().first().text());
 			    _Contents.patch(contentSourceId, textBeforeEditing, self.contents().first().text());
 			    contentSourceId = null;
