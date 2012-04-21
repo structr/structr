@@ -135,7 +135,16 @@ var Structr = {
     expand_icon: 'icon/tree_arrow_right.png',
     link_icon: 'icon/link.png',
     key_icon: 'icon/key.png',
-		
+
+    reconnect : function() {
+	
+	$.unblockUI({
+	    fadeOut: 25
+	});
+
+	connect();
+    },
+
     init : function() {
         
 	$.unblockUI({

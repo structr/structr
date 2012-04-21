@@ -147,6 +147,10 @@ img.disabled {
 /*    height: 1000px ! important;*/
 }
 
+#resources, #palette {
+    overflow: auto;
+}
+
 #images > div:first-child {
     margin-top: 0px ! important;
 }
