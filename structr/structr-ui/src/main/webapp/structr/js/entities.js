@@ -689,7 +689,7 @@ function plural(type) {
 
 function addExpandedNode(id, parentId, resourceId) {
 
-    var expandedIds = Structr.expanded[resourceId];
+    var expandedIds = getExpanded()[resourceId];
     if (!expandedIds) {
 	expandedIds = {};
 	Structr.expanded[resourceId] = expandedIds;
@@ -700,7 +700,7 @@ function addExpandedNode(id, parentId, resourceId) {
 }
 
 function removeExpandedNode(id, parentId, resourceId) {
-    var expandedIds = Structr.expanded[resourceId];
+    var expandedIds = getExpanded()[resourceId];
     if (!expandedIds) {
 	expandedIds = {};
 	Structr.expanded[resourceId] = expandedIds;
@@ -711,7 +711,8 @@ function removeExpandedNode(id, parentId, resourceId) {
 }
 
 function isExpanded(id, parentId, resourceId) {
-    var expandedIds = Structr.expanded[resourceId];
+
+    var expandedIds = getExpanded()[resourceId];
     if (!expandedIds) {
 	expandedIds = {};
 	Structr.expanded[resourceId] = expandedIds;
@@ -721,4 +722,13 @@ function isExpanded(id, parentId, resourceId) {
     if (debug) console.log('node ' + id + ' in resource ' + resourceId + ' expanded?', isExpanded);
 
     return isExpanded;
+}
+
+function getExpanded() {
+
+    if (!Structr.expanded) {
+	Structr.expanded = {};
+    }
+
+    return Structr.expanded;
 }
