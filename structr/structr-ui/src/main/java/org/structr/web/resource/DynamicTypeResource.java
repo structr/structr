@@ -48,10 +48,12 @@ import org.structr.web.entity.Content;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.*;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.Relationship;
 import org.structr.common.RelType;
 import org.structr.web.common.RelationshipHelper;
 
@@ -231,6 +233,7 @@ public class DynamicTypeResource extends TypeResource {
 					Component comp = (Component) createNodeCommand.execute(templateProperties);
 
 					RelationshipHelper.copyRelationships(securityContext, template, comp, RelType.CONTAINS, finalParentResourceId, finalParentComponentId, position);
+					RelationshipHelper.copyIncomingRelationships(securityContext, template, comp, RelType.DATA, null, null, 0);
 
 					Map<String, Object> contentTemplateProperties = new LinkedHashMap<String, Object>();
 
@@ -271,6 +274,59 @@ public class DynamicTypeResource extends TypeResource {
 				}
 
 			}
+			
+			
+			// ##################################################################################################################################################### TESTING
+			// test: forward POST to DATA-linked components
+
+			// make new component collect content properties right now
+			newComponent.onNodeInstantiation();
+			
+			// create linked component
+			for(AbstractRelationship rel : newComponent.getRelationships(RelType.DATA, Direction.INCOMING)) {
+				
+				logger.log(Level.INFO, "#### Processing DATA relationship {0}", rel.getStringProperty(AbstractRelationship.Key.uuid));
+				
+				AbstractNode dataNode = rel.getStartNode();
+				if(dataNode instanceof Component) {
+					
+					logger.log(Level.INFO, "###### Found Component instance");
+					
+					Component linkedComponent = (Component)dataNode;
+					
+					// prepare property set for linked POST
+					Map<String, Object> postPropertySet = new LinkedHashMap<String, Object>();
+					String rawNames = rel.getStringProperty("names");
+					String[] names = rawNames.split("[, ]+");
+					
+					// copy properties from new component according to property keys on relationship
+					for(String key : names) {
+						
+						logger.log(Level.INFO, "######## Copying key {0}", key);
+						
+						Object value = newComponent.getProperty(key);
+						
+						if(value != null) {
+							logger.log(Level.INFO, "######## Adding {0} = {1}", new Object[] { key, value } );
+							postPropertySet.put(key, value);
+						}
+					}
+	
+					// FIXME: this is not nice...
+					// create new DynamicTypeResource instance
+					DynamicTypeResource linkedDTR = new DynamicTypeResource();
+					String linkedName = linkedComponent.getStringProperty(Component.UiKey.structrclass).toLowerCase();
+					
+					logger.log(Level.INFO, "###### POSTing on linked DynamicTypeResource with rawType {0}", linkedName);
+					
+					linkedDTR.checkAndConfigure(linkedName, securityContext, request);
+					RestMethodResult result = linkedDTR.doPost(postPropertySet);
+					
+					logger.log(Level.INFO, "###### Result: {0}", result.getHeaders().toString());
+				}
+				
+			}
+			
 
 			RestMethodResult result = new RestMethodResult(201);
 
@@ -371,5 +427,10 @@ public class DynamicTypeResource extends TypeResource {
 		}
 
 		return true;
+	}
+	
+	// ----- private static methods -----
+	private static void createComponent() {
+		
 	}
 }
