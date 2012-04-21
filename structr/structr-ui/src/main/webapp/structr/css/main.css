@@ -144,7 +144,7 @@ img.disabled {
     width: 400px;
     padding: 6px 12px 0 12px;
 /*    overflow: auto ! important;*/
-    height: 1000px ! important;
+/*    height: 1000px ! important;*/
 }
 
 #images > div:first-child {

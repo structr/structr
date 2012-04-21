@@ -48,12 +48,12 @@ var _Resources = {
 	});
 
 	palette.css({
-	    width: Math.min(240, Math.max(420, windowWidth/4)) + 'px',
+	    width: Math.min(240, Math.max(360, windowWidth/4)) + 'px',
 	    height: windowHeight - (headerOffsetHeight+10) + 'px'
 	});
 
 	var rw = resources.width() + 12;
-	var pw = palette.width() + 48 ;
+	var pw = palette.width() + 60;
 
 	previews.css({
 	    width: windowWidth-rw-pw + 'px',
@@ -418,20 +418,20 @@ var _Resources = {
 
 	_Resources.resetTab(tab, entity.name);
 
-		$('#preview_' + entity.id).hover(function() {
-		    var self = $(this);
-		    var elementContainer = self.contents().find('.structr-element-container');
-		    //console.log(self, elementContainer);
-		    elementContainer.addClass('structr-element-container-active');
-		    elementContainer.removeClass('structr-element-container');
-		}, function() {
-		    var self = $(this);
-		    var elementContainer = self.contents().find('.structr-element-container-active');
-		    //console.log(elementContainer);
-		    elementContainer.addClass('structr-element-container');
-		    elementContainer.removeClass('structr-element-container-active');
-		//self.find('.structr-element-container-header').remove();
-		});
+	$('#preview_' + entity.id).hover(function() {
+	    var self = $(this);
+	    var elementContainer = self.contents().find('.structr-element-container');
+	    //console.log(self, elementContainer);
+	    elementContainer.addClass('structr-element-container-active');
+	    elementContainer.removeClass('structr-element-container');
+	}, function() {
+	    var self = $(this);
+	    var elementContainer = self.contents().find('.structr-element-container-active');
+	    //console.log(elementContainer);
+	    elementContainer.addClass('structr-element-container');
+	    elementContainer.removeClass('structr-element-container-active');
+	//self.find('.structr-element-container-header').remove();
+	});
 
 	$('#preview_' + entity.id).load(function() {
 
@@ -591,7 +591,7 @@ var _Resources = {
 			mouseover: function(e) {
 			    e.stopPropagation();
 			    var self = $(this);
-			    self.off('click');
+			    //self.off('click');
 
 			    self.addClass('structr-element-container-active');
 
@@ -642,6 +642,7 @@ var _Resources = {
                     
 		    el.on({
 			mouseover: function(e) {
+			    console.log('content mouseover');
 			    e.stopPropagation();
 			    var self = $(this);
 			    self.addClass('structr-editable-area');
@@ -652,6 +653,7 @@ var _Resources = {
 			    nodes.addClass('nodeHover');
 			},
 			mouseout: function(e) {
+			    console.log('content mouseout');
 			    e.stopPropagation();
 			    var self = $(this);
 			    //swapFgBg(self);
@@ -662,6 +664,7 @@ var _Resources = {
 			    nodes.removeClass('nodeHover');
 			},
 			click: function(e) {
+			    console.log('content mouseout');
 			    e.stopPropagation();
 			    var self = $(this);
 			    self.removeClass('structr-editable-area');
@@ -669,7 +672,7 @@ var _Resources = {
 
 			    // Store old text in global var
 			    textBeforeEditing = self.contents().first().text();
-			    if (debug) console.log("textBeforeEditing", textBeforeEditing);
+			    console.log("textBeforeEditing", textBeforeEditing);
 
 			    //swapFgBg(self);
 			    sel = iframeWindow.getSelection();
@@ -680,9 +683,9 @@ var _Resources = {
 				$('.link_icon').show();
 				//                                sourceId = structrId;
 				contentSourceId = self.attr('structr_content_id');
-				if (debug) console.log('click contentSourceId: ' + contentSourceId);
+				console.log('click contentSourceId: ' + contentSourceId);
 				var rootResourceElement = self.closest('html')[0];
-				if (debug) console.log(rootResourceElement);
+				console.log(rootResourceElement);
 				if (rootResourceElement) {
 				    rootId = $(rootResourceElement).attr('structr_content_id');
 				}
@@ -692,8 +695,9 @@ var _Resources = {
 			blur: function(e) {
 			    e.stopPropagation();
 			    var self = $(this);
-			    if (debug) console.log(self.contents().first());
-			    if (debug) console.log('blur contentSourceId: ' + contentSourceId);
+			    contentSourceId = self.attr('structr_content_id');
+			    console.log(self.contents().first());
+			    console.log('blur contentSourceId: ' + contentSourceId);
 			    //_Resources.updateContent(contentSourceId, textBeforeEditing, self.contents().first().text());
 			    _Contents.patch(contentSourceId, textBeforeEditing, self.contents().first().text());
 			    contentSourceId = null;
