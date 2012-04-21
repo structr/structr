@@ -96,4 +96,8 @@ public class RestMethodResult {
 			logger.log(Level.WARNING, "Unable to commit HttpServletResponse", t);
 		}
 	}
+	
+	public Map<String, String> getHeaders() {
+		return headers;
+	}
 }
