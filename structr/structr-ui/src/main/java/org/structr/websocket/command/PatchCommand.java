@@ -35,9 +35,6 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.websocket.StructrWebSocket;
-import org.structr.websocket.command.AbstractCommand;
-import org.structr.websocket.command.AbstractCommand;
 
 //~--- classes ----------------------------------------------------------------
 
