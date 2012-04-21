@@ -306,7 +306,7 @@ var _Entities = {
 	var data = {};
 	data[key] = value;
 	obj.data = data;
-	console.log(obj);
+	if (debug) console.log(obj);
 	return sendObj(obj);
     },
 
@@ -315,7 +315,7 @@ var _Entities = {
 	obj.command = 'UPDATE';
 	obj.id = id;
 	obj.data = data;
-	console.log(obj);
+	if (debug) console.log(obj);
 	return sendObj(obj);
     },
 
@@ -520,16 +520,16 @@ var _Entities = {
 	    _Entities.getProperty(entity.id, 'visibleToPublicUsers', '#dialogBox');
 	    _Entities.getProperty(entity.id, 'visibleToAuthenticatedUsers', '#dialogBox');
 
-	    console.log(publicSwitch);
-	    console.log(authSwitch);
+	    if (debug) console.log(publicSwitch);
+	    if (debug) console.log(authSwitch);
 
 	    publicSwitch.on('click', function() {
-		console.log('Toggle switch', publicSwitch.hasClass('disabled'))
+		if (debug) console.log('Toggle switch', publicSwitch.hasClass('disabled'))
 		_Entities.setProperty(entity.id, 'visibleToPublicUsers', publicSwitch.hasClass('disabled'));
 	    });
 
 	    authSwitch.on('click', function() {
-		console.log('Toggle switch', authSwitch.hasClass('disabled'))
+		if (debug) console.log('Toggle switch', authSwitch.hasClass('disabled'))
 		_Entities.setProperty(entity.id, 'visibleToAuthenticatedUsers', authSwitch.hasClass('disabled'));
 	    });
 

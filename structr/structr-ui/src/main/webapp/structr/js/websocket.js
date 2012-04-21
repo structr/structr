@@ -71,7 +71,7 @@ function connect() {
 	    var code = data.code;
 	    var callback = data.callback;
 
-	    if (debug) {
+	    if (true) {
 		console.log('command: ' + command);
 		console.log('type: ' + type);
 		console.log('code: ' + code);

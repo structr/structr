@@ -16,15 +16,15 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
-
 package org.structr.websocket;
 
 import com.google.gson.Gson;
 
 import org.eclipse.jetty.websocket.WebSocket.Connection;
 
+import org.neo4j.graphdb.RelationshipType;
+
+import org.structr.common.Permission;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -39,10 +39,8 @@ import org.structr.websocket.message.WebSocketMessage;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.graphdb.RelationshipType;
 
 //~--- classes ----------------------------------------------------------------
-
 /**
  *
  * @author Christian Morgner
@@ -50,24 +48,20 @@ import org.neo4j.graphdb.RelationshipType;
 public class SynchronizationController implements VetoableGraphObjectListener {
 
 	private static final Logger logger = Logger.getLogger(SynchronizationController.class.getName());
-
 	//~--- fields ---------------------------------------------------------
-
-	private Set<StructrWebSocket> clients                     = null;
-	private Gson gson                                         = null;
+	private Set<StructrWebSocket> clients = null;
+	private Gson gson = null;
 	private Map<Long, List<WebSocketMessage>> messageStackMap = new LinkedHashMap<Long, List<WebSocketMessage>>();
 	private List<WebSocketMessage> messageStack;
 
 	//~--- constructors ---------------------------------------------------
-
 	public SynchronizationController(Gson gson) {
 
 		this.clients = new LinkedHashSet<StructrWebSocket>();
-		this.gson    = gson;
+		this.gson = gson;
 	}
 
 	//~--- methods --------------------------------------------------------
-
 	public void registerClient(StructrWebSocket client) {
 		clients.add(client);
 	}
@@ -84,16 +78,33 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 		// session must be valid to be received by the client
 		webSocketData.setSessionValid(true);
 
+		String message;
+
 		// create message
-		String message = gson.toJson(webSocketData, WebSocketMessage.class);
-
-		logger.log(Level.FINE, "############################################################ SENDING \n{0}", message);
-
 		for (StructrWebSocket socket : clients) {
 
 			Connection socketConnection = socket.getConnection();
 
 			if ((socketConnection != null) && socket.isAuthenticated()) {
+
+				List<GraphObject> result = webSocketData.getResult();
+
+				if (result != null && result.size()> 0 && webSocketData.getCommand().equals("UPDATE") || webSocketData.getCommand().equals("ADD") || webSocketData.getCommand().equals("CREATE")) {
+
+					WebSocketMessage clientData = webSocketData.copy();
+					SecurityContext securityContext = socket.getSecurityContext();
+
+					clientData.setResult(filter(securityContext, result));
+
+					message = gson.toJson(clientData, WebSocketMessage.class);
+
+				} else {
+
+					message = gson.toJson(webSocketData, WebSocketMessage.class);
+
+				}
+
+				logger.log(Level.FINE, "############################################################ SENDING \n{0}", message);
 
 				try {
 					socketConnection.sendMessage(message);
@@ -106,6 +117,23 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 			}
 
 		}
+	}
+
+	private List<GraphObject> filter(final SecurityContext securityContext, final List<GraphObject> all) {
+
+		List<GraphObject> filteredResult = new LinkedList<GraphObject>();
+
+		for (GraphObject obj : all) {
+
+			if (securityContext.isVisible((AbstractNode) obj)) {
+
+				filteredResult.add(obj);
+
+			}
+
+		}
+
+		return filteredResult;
 	}
 
 	// ----- interface VetoableGraphObjectListener -----
@@ -184,8 +212,8 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 
 			if (relationship.getRelType().equals(RelType.CONTAINS) || relationship.getRelType().equals(RelType.HAS_CHILD)) {
 
-				AbstractNode startNode   = relationship.getStartNode();
-				AbstractNode endNode     = relationship.getEndNode();
+				AbstractNode startNode = relationship.getStartNode();
+				AbstractNode endNode = relationship.getEndNode();
 				WebSocketMessage message = new WebSocketMessage();
 
 				message.setCommand("ADD");
@@ -194,8 +222,8 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 				message.setNodeData("id", endNode.getStringProperty("uuid"));
 				message.setNodeData("tag", endNode.getStringProperty("tag"));
 				messageStack.add(message);
-				logger.log(Level.FINE, "Relationship created: {0}({1} -> {2}{3}", new Object[] { startNode.getId(), startNode.getStringProperty(AbstractNode.Key.uuid),
-					endNode.getStringProperty(AbstractNode.Key.uuid) });
+				logger.log(Level.FINE, "Relationship created: {0}({1} -> {2}{3}", new Object[]{startNode.getId(), startNode.getStringProperty(AbstractNode.Key.uuid),
+													       endNode.getStringProperty(AbstractNode.Key.uuid)});
 
 			}
 
@@ -251,8 +279,8 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 			// AbstractNode startNode   = relationship.getStartNode();
 			// AbstractNode endNode     = relationship.getEndNode();
 			WebSocketMessage message = new WebSocketMessage();
-			String startNodeId       = relationship.getCachedStartNodeId();
-			String endNodeId         = relationship.getCachedEndNodeId();
+			String startNodeId = relationship.getCachedStartNodeId();
+			String endNodeId = relationship.getCachedEndNodeId();
 
 			if ((startNodeId != null) && (endNodeId != null)) {
 
@@ -270,7 +298,7 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 		} else {
 
 			WebSocketMessage message = new WebSocketMessage();
-			String uuid              = properties.get("uuid").toString();
+			String uuid = properties.get("uuid").toString();
 
 			message.setId(uuid);
 			message.setCommand("DELETE");
