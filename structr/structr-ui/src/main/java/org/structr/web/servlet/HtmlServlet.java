@@ -74,6 +74,9 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.structr.core.GraphObject;
+import org.structr.web.entity.Condition;
+import org.structr.web.entity.View;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -256,10 +259,10 @@ public class HtmlServlet extends HttpServlet {
 
 			if ((resource != null) && securityContext.isVisible(resource)) {
 
-				String uuid                = resource.getStringProperty(Resource.Key.uuid);
+				String uuid                = resource.getStringProperty(AbstractNode.Key.uuid);
 				final StringBuilder buffer = new StringBuilder(10000);
 
-				getContent(uuid, null, buffer, resource, 0, false, searchFor, attrs);
+				getContent(request, uuid, null, buffer, resource, 0, false, searchFor, attrs, null, null);
 
 				String content = buffer.toString();
 				double end     = System.nanoTime();
@@ -483,8 +486,9 @@ public class HtmlServlet extends HttpServlet {
 		return new String[] { firstPart, secondPart };
 	}
 
-	private void getContent(final String resourceId, final String componentId, final StringBuilder buffer, final AbstractNode node, final int depth, boolean inBody, final String searchClass,
-				final List<NodeAttribute> attrs) {
+	private void getContent(HttpServletRequest request, final String resourceId, final String componentId, final StringBuilder buffer, final AbstractNode node,
+				final int depth, boolean inBody, final String searchClass, final List<NodeAttribute> attrs, final Component viewComponent,
+				final Condition condition) {
 
 		String localComponentId   = componentId;
 		String content            = null;
@@ -525,7 +529,7 @@ public class HtmlServlet extends HttpServlet {
 			// System.out.println("id: " + id + " [" + node.getStringProperty("type") + "] " + node.getStringProperty("name") + ", depth: " + depth + ", res: " + resourceId + ", comp: " + componentId);
 			if (node instanceof Content) {
 
-				content = (((Content)node).getPropertyWithVariableReplacement(resourceId, componentId, Content.UiKey.content.name()));
+				content = (((Content)node).getPropertyWithVariableReplacement(resourceId, componentId, viewComponent, Content.UiKey.content.name()));
 
 				List<AbstractRelationship> links = node.getOutgoingLinkRelationships();
 
@@ -601,7 +605,7 @@ public class HtmlServlet extends HttpServlet {
 
 						try {
 
-							String value = htmlElement.getPropertyWithVariableReplacement(resourceId, localComponentId, attribute);
+							String value = htmlElement.getPropertyWithVariableReplacement(resourceId, localComponentId, viewComponent, attribute);
 
 							if ((value != null) && StringUtils.isNotBlank(value)) {
 
@@ -630,15 +634,60 @@ public class HtmlServlet extends HttpServlet {
 			}
 		}
 
-		// recursively render children
-		List<AbstractRelationship> rels = Component.getChildRelationships(node, resourceId, localComponentId);
+		// ############################################################################################ BEGIN NEW VIEW TEST
+		// render 
+		
+		if(node instanceof View) {
 
-		for (AbstractRelationship rel : rels) {
+			// fetch list of components from this view and 
+			List<GraphObject> components = ((View)node).getComponents();
+			for(GraphObject component : components) {
+				
+				// recursively render children
+				List<AbstractRelationship> rels = Component.getChildRelationships(node, resourceId, localComponentId);
 
-			AbstractNode subNode = rel.getEndNode();
+				for (AbstractRelationship rel : rels) {
 
-			getContent(resourceId, localComponentId, buffer, subNode, depth + 1, inBody, searchClass, attrs);
+					if(condition == null || (condition != null && condition.isSatisfied(request, rel))) {
 
+						AbstractNode subNode = rel.getEndNode();
+
+						getContent(request, resourceId, localComponentId, buffer, subNode, depth + 1, inBody, searchClass, attrs, (Component)component, condition);
+					}
+
+				}
+			}
+			
+			
+		} else if(node instanceof Condition) {
+			 
+			// recursively render children
+			List<AbstractRelationship> rels = Component.getChildRelationships(node, resourceId, localComponentId);
+			Condition newCondition = (Condition)node;
+
+			for (AbstractRelationship rel : rels) {
+
+				AbstractNode subNode = rel.getEndNode();
+				getContent(request, resourceId, localComponentId, buffer, subNode, depth + 1, inBody, searchClass, attrs, viewComponent, newCondition);
+
+			}
+			
+			
+		} else {
+			
+			// recursively render children
+			List<AbstractRelationship> rels = Component.getChildRelationships(node, resourceId, localComponentId);
+
+			for (AbstractRelationship rel : rels) {
+
+				if(condition == null || (condition != null && condition.isSatisfied(request, rel))) {
+
+					AbstractNode subNode = rel.getEndNode();
+
+					getContent(request, resourceId, localComponentId, buffer, subNode, depth + 1, inBody, searchClass, attrs, viewComponent, condition);
+				}
+
+			}
 		}
 
 		// render end tag, if needed (= if not singleton tags)

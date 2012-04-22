@@ -38,7 +38,7 @@ public class ReferenceRelationship extends AbstractRelationship {
 	
 	static {
 		
-		EntityContext.registerNamedRelation("reference", ReferenceRelationship.class, Component.class, Component.class, RelType.DATA);
+		EntityContext.registerNamedRelation("data", ReferenceRelationship.class, Component.class, Component.class, RelType.DATA);
 	}
 	
 	@Override

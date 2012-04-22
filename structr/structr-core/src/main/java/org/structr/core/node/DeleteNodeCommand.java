@@ -195,6 +195,13 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 					}
 				}
 
+				// deletion callback, must not prevent node deletion!
+				try {
+					node.onNodeDeletion();
+				} catch (Throwable t) {
+					logger.log(Level.WARNING, "Exception while calling onDeletion callback: {0}", t);
+				}
+
 				// Delete any relationship
 				List<AbstractRelationship> rels = node.getRelationships();
 
@@ -202,13 +209,6 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 					r.getRelationship().delete();
 
-				}
-
-				// deletion callback, must not prevent node deletion!
-				try {
-					node.onNodeDeletion();
-				} catch (Throwable t) {
-					logger.log(Level.WARNING, "Exception while calling onDeletion callback: {0}", t);
 				}
 
 				// delete node in database

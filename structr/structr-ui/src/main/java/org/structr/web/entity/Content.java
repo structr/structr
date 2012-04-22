@@ -145,7 +145,7 @@ public class Content extends AbstractNode {
 		return getRelationships(RelType.CONTAINS, Direction.INCOMING).get(0);
 	}	
 	
-	public String getPropertyWithVariableReplacement(String resourceId, String componentId, String key) {
-		return HtmlElement.replaceVariables(securityContext, this, resourceId, componentId, super.getStringProperty(key));
+	public String getPropertyWithVariableReplacement(String resourceId, String componentId, Component viewComponent, String key) {
+		return HtmlElement.replaceVariables(securityContext, this, resourceId, componentId, viewComponent, super.getStringProperty(key));
 	}
 }

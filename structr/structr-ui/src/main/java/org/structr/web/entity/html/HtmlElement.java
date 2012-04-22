@@ -43,9 +43,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.RelType;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.web.common.Function;
+import org.structr.web.entity.Component;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -168,13 +168,13 @@ public abstract class HtmlElement extends Element {
 		return htmlAttributes;
 	}
 	
-	public String getPropertyWithVariableReplacement(String resourceId, String componentId, String key) {
+	public String getPropertyWithVariableReplacement(String resourceId, String componentId, Component viewComponent, String key) {
 
-		return replaceVariables(securityContext, this, resourceId, componentId, super.getStringProperty(key));
+		return replaceVariables(securityContext, this, resourceId, componentId, viewComponent, super.getStringProperty(key));
 	}
 
 	// ----- static methods -----
-	public static String replaceVariables(SecurityContext securityContext, AbstractNode node, String resourceId, String componentId, String rawValue) {
+	public static String replaceVariables(SecurityContext securityContext, AbstractNode node, String resourceId, String componentId, Component viewComponent, String rawValue) {
 
 		String value = null;
 		
@@ -190,7 +190,7 @@ public abstract class HtmlElement extends Element {
 				String source = group.substring(2, group.length() - 1);
 
 				// fetch referenced property
-				String partValue = extractFunctions(securityContext, node, resourceId, componentId, source);
+				String partValue = extractFunctions(securityContext, node, resourceId, componentId, viewComponent, source);
 				if (partValue != null) {
 
 					value = value.replace(group, partValue);
@@ -219,7 +219,7 @@ public abstract class HtmlElement extends Element {
 		return null;
 	}
 
-	public static String extractFunctions(SecurityContext securityContext, AbstractNode node, String resourceId, String componentId, String source) {
+	public static String extractFunctions(SecurityContext securityContext, AbstractNode node, String resourceId, String componentId, Component viewComponent, String source) {
 		
 		Matcher functionMatcher = functionPattern.matcher(source);
 		if(functionMatcher.matches()) {
@@ -240,14 +240,14 @@ public abstract class HtmlElement extends Element {
 					// collect results from comma-separated function parameter
 					for(int i=0; i<parameters.length; i++) {
 						
-						results[i] = extractFunctions(securityContext, node, resourceId, componentId, StringUtils.strip(parameters[i]));
+						results[i] = extractFunctions(securityContext, node, resourceId, componentId, viewComponent, StringUtils.strip(parameters[i]));
 					}
 
 					return function.apply(results);
 
 				} else {
 
-					String result = extractFunctions(securityContext, node, resourceId, componentId, StringUtils.strip(parameter));
+					String result = extractFunctions(securityContext, node, resourceId, componentId, viewComponent, StringUtils.strip(parameter));
 					return function.apply(result);
 				}
 			}
@@ -270,11 +270,11 @@ public abstract class HtmlElement extends Element {
 		} else {
 			
 			// return property key
-			return convertValueForHtml(getReferencedProperty(securityContext, node, resourceId, componentId, source));
+			return convertValueForHtml(getReferencedProperty(securityContext, node, resourceId, componentId, viewComponent, source));
 		}
 	}
 
-	public static java.lang.Object getReferencedProperty(SecurityContext securityContext, AbstractNode startNode, String resourceId, String componentId, String refKey) {
+	public static java.lang.Object getReferencedProperty(SecurityContext securityContext, AbstractNode startNode, String resourceId, String componentId, Component viewComponent, String refKey) {
 
 		AbstractNode node   = startNode;
 		String[] parts      = refKey.split("[\\.]+");
@@ -332,6 +332,14 @@ public abstract class HtmlElement extends Element {
 					node = rel.getStartNode();
 					break;
 				}
+
+				continue;
+			}
+
+			// special keyword "data"
+			if ("data".equals(part.toLowerCase())) {
+
+				node = viewComponent;
 
 				continue;
 			}

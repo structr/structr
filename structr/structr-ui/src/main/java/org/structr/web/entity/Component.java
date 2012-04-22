@@ -39,6 +39,9 @@ import org.structr.core.node.NodeService;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.Command;
+import org.structr.core.Services;
+import org.structr.core.node.DeleteNodeCommand;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -82,6 +85,28 @@ public class Component extends AbstractNode {
 	@Override
 	public void onNodeInstantiation() {
 		collectProperties(this, getStringProperty(AbstractNode.Key.uuid), 0, null);
+	}
+	
+	@Override
+	public void onNodeDeletion() {
+		
+		try {
+			Command deleteCommand = Services.command(securityContext, DeleteNodeCommand.class);
+			boolean cascade = true;
+
+			for (AbstractNode contentNode : contentNodes.values()) {
+				deleteCommand.execute(contentNode, cascade);
+			}
+
+			// delete linked components
+//			for(AbstractRelationship rel : getRelationships(RelType.DATA, Direction.INCOMING)) {
+//				deleteCommand.execute(rel.getStartNode());
+//			}			
+			
+		} catch(Throwable t) {
+			
+			logger.log(Level.SEVERE, "Exception while deleting nested Components: {0}", t.getMessage());
+		}
 	}
 
 	// ----- private methods ----
