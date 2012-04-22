@@ -39,6 +39,7 @@ import org.structr.core.node.NodeService;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.servlet.http.HttpServletRequest;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.node.DeleteNodeCommand;
@@ -78,7 +79,7 @@ public class Component extends AbstractNode {
 
 	public enum Key implements PropertyKey{ componentId, resourceId }
 
-	public enum UiKey implements PropertyKey{ type, name, structrclass }
+	public enum UiKey implements PropertyKey{ type, name, structrclass, displayMode }
 
 	//~--- methods --------------------------------------------------------
 
@@ -137,7 +138,7 @@ public class Component extends AbstractNode {
 		}
 
 		// collection of properties must not depend on resource
-		for (AbstractRelationship rel : getChildRelationships(startNode, null, componentId)) {
+		for (AbstractRelationship rel : getChildRelationships(null, startNode, null, componentId)) {
 
 			AbstractNode endNode = rel.getEndNode();
 
@@ -181,7 +182,7 @@ public class Component extends AbstractNode {
 		}
 
 		// collection of properties must not depend on resource
-		for (AbstractRelationship rel : getChildRelationships(startNode, null, componentId)) {
+		for (AbstractRelationship rel : getChildRelationships(null, startNode, null, componentId)) {
 
 			AbstractNode endNode = rel.getEndNode();
 
@@ -286,7 +287,39 @@ public class Component extends AbstractNode {
 	}
 
 	// ----- public static methods -----
-	public static List<AbstractRelationship> getChildRelationships(final AbstractNode node, final String resourceId, final String componentId) {
+	public static boolean isVisible(HttpServletRequest request, AbstractNode node, AbstractRelationship incomingRelationship) {
+
+		// check if component is in "list" mode
+		if(node instanceof Component) {
+
+			String structrClass = node.getStringProperty(Component.UiKey.structrclass);
+			String componentId  = node.getStringProperty(AbstractNode.Key.uuid);
+
+			if(structrClass != null) {
+
+				String singleClass = structrClass.toLowerCase();
+				String listClass   = singleClass.concat("s");
+
+				// check for "single" mode with uuid
+				if(request.getAttribute(singleClass) != null) {
+
+					if(request.getAttribute(componentId) != null) {
+
+						return true;
+					}
+
+				// check for "list" mode
+				} else if(request.getAttribute(listClass) != null) {
+
+					return true;
+				}
+			}
+		}
+		
+		return false;
+	}
+	
+	public static List<AbstractRelationship> getChildRelationships(final HttpServletRequest request, final AbstractNode node, final String resourceId, final String componentId) {
 
 		List<AbstractRelationship> rels = new LinkedList<AbstractRelationship>();
 
@@ -298,6 +331,10 @@ public class Component extends AbstractNode {
 
 				AbstractNode endNode = abstractRelationship.getEndNode();
 
+				if(endNode instanceof Component && !isVisible(request, endNode, abstractRelationship)) {
+					continue;
+				}
+				
 				if ((componentId != null) && ((endNode instanceof Content) || (endNode instanceof Component))) {
 
 					// only add relationship if (nested) componentId matches
@@ -306,6 +343,7 @@ public class Component extends AbstractNode {
 						rels.add(abstractRelationship);
 
 					}
+					
 				} else {
 
 					rels.add(abstractRelationship);
