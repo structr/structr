@@ -207,8 +207,9 @@ public class HtmlServlet extends HttpServlet {
 			searchFor = StringUtils.substringBefore(urlParts[1], "?");
 
 		}
-
-		String name                        = getName(getParts(path)[0]);
+		
+		String[] pathParts                 = getParts(path);
+		String name                        = pathParts[0];
 		List<NodeAttribute> attrs          = new LinkedList<NodeAttribute>();
 		Map<String, String[]> parameterMap = request.getParameterMap();
 
@@ -233,6 +234,23 @@ public class HtmlServlet extends HttpServlet {
 
 		}
 
+		// first part (before "//" is resource path (file etc),
+		// second part is nested component control
+		
+		// store remaining path parts in request
+		for(int i=1; i<pathParts.length; i++) {
+
+			String[] parts = pathParts[i].split("[/]+");
+			for(int j=0; j<parts.length; j++) {
+				
+				// FIXME: index (j) in setAttribute might be
+				//        wrong here if we have multiple //-separated
+				//        parts!
+				
+				request.setAttribute(parts[j], j);
+			}			
+		}
+		
 		try {
 
 			SecurityContext securityContext = SecurityContext.getInstance(this.getServletConfig(), request, response, AccessMode.Frontend);
@@ -256,7 +274,7 @@ public class HtmlServlet extends HttpServlet {
 				file = (org.structr.core.entity.File) node;
 
 			}
-
+			
 			if ((resource != null) && securityContext.isVisible(resource)) {
 
 				String uuid                = resource.getStringProperty(AbstractNode.Key.uuid);
@@ -468,22 +486,7 @@ public class HtmlServlet extends HttpServlet {
 
 		path = clean(path);
 
-		boolean hasSep    = StringUtils.contains(path, REST_PATH_SEP);
-		String firstPart,
-		       secondPart = "";
-
-		if (!hasSep) {
-
-			firstPart = path;
-
-		} else {
-
-			firstPart  = StringUtils.substringBefore(path, REST_PATH_SEP);
-			secondPart = StringUtils.substringAfter(path, REST_PATH_SEP);
-
-		}
-
-		return new String[] { firstPart, secondPart };
+		return path.split("[" + REST_PATH_SEP + "]+");
 	}
 
 	private void getContent(HttpServletRequest request, final String resourceId, final String componentId, final StringBuilder buffer, final AbstractNode node,
@@ -644,7 +647,7 @@ public class HtmlServlet extends HttpServlet {
 			for(GraphObject component : components) {
 				
 				// recursively render children
-				List<AbstractRelationship> rels = Component.getChildRelationships(node, resourceId, localComponentId);
+				List<AbstractRelationship> rels = Component.getChildRelationships(request, node, resourceId, localComponentId);
 
 				for (AbstractRelationship rel : rels) {
 
@@ -662,7 +665,7 @@ public class HtmlServlet extends HttpServlet {
 		} else if(node instanceof Condition) {
 			 
 			// recursively render children
-			List<AbstractRelationship> rels = Component.getChildRelationships(node, resourceId, localComponentId);
+			List<AbstractRelationship> rels = Component.getChildRelationships(request, node, resourceId, localComponentId);
 			Condition newCondition = (Condition)node;
 
 			for (AbstractRelationship rel : rels) {
@@ -676,7 +679,7 @@ public class HtmlServlet extends HttpServlet {
 		} else {
 			
 			// recursively render children
-			List<AbstractRelationship> rels = Component.getChildRelationships(node, resourceId, localComponentId);
+			List<AbstractRelationship> rels = Component.getChildRelationships(request, node, resourceId, localComponentId);
 
 			for (AbstractRelationship rel : rels) {
 
