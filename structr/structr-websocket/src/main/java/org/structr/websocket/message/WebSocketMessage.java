@@ -42,17 +42,18 @@ public class WebSocketMessage {
 
 	private String button                  = null;
 	private String callback                = null;
+	private int chunkSize                  = 512;
 	private int code                       = 0;
 	private String command                 = null;
-	private Map<String, Object> nodeData   = new LinkedHashMap<String, Object>();
-	private Map<String, Object> relData    = new LinkedHashMap<String, Object>();
 	private GraphObject graphObject        = null;
 	private String id                      = null;
 	private String message                 = null;
-	private Set<String> modifiedProperties = new LinkedHashSet<String>();
+	private Map<String, Object> nodeData   = new LinkedHashMap<String, Object>();
 	private int page                       = 0;
 	private int pageSize                   = 0;
 	private String parent                  = null;
+	private Map<String, Object> relData    = new LinkedHashMap<String, Object>();
+	private Set<String> modifiedProperties = new LinkedHashSet<String>();
 	private List<GraphObject> result       = null;
 	private TreeNode resultTree            = null;
 	private boolean sessionValid           = false;
@@ -60,7 +61,37 @@ public class WebSocketMessage {
 	private String sortOrder               = null;
 	private String token                   = null;
 	private String view                    = null;
-	private int chunkSize		       = 512;
+
+	//~--- methods --------------------------------------------------------
+
+	public WebSocketMessage copy() {
+
+		WebSocketMessage newCopy = new WebSocketMessage();
+
+		newCopy.button             = this.button;
+		newCopy.callback           = this.callback;
+		newCopy.code               = this.code;
+		newCopy.command            = this.command;
+		newCopy.nodeData           = this.nodeData;
+		newCopy.relData            = this.relData;
+		newCopy.graphObject        = this.graphObject;
+		newCopy.id                 = this.id;
+		newCopy.message            = this.message;
+		newCopy.modifiedProperties = this.modifiedProperties;
+		newCopy.page               = this.page;
+		newCopy.pageSize           = this.pageSize;
+		newCopy.parent             = this.parent;
+		newCopy.result             = this.result;
+		newCopy.resultTree         = this.resultTree;
+		newCopy.sessionValid       = this.sessionValid;
+		newCopy.sortKey            = this.sortKey;
+		newCopy.sortOrder          = this.sortOrder;
+		newCopy.token              = this.token;
+		newCopy.view               = this.view;
+		newCopy.chunkSize          = this.chunkSize;
+
+		return newCopy;
+	}
 
 	//~--- get methods ----------------------------------------------------
 
