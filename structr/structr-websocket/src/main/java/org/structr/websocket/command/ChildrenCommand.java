@@ -21,6 +21,9 @@
 
 package org.structr.websocket.command;
 
+import org.neo4j.graphdb.Direction;
+
+import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
@@ -66,7 +69,6 @@ public class ChildrenCommand extends AbstractCommand {
 			if (pos != null) {
 
 				AbstractNode endNode = out.getEndNode();
-
 				sortMap.put(pos, endNode);
 
 			}
@@ -75,6 +77,7 @@ public class ChildrenCommand extends AbstractCommand {
 
 		List<GraphObject> result = new ArrayList<GraphObject>(sortMap.values());
 
+		webSocketData.setView(PropertyView.Ui);
 		webSocketData.setResult(result);
 
 		// send only over local connection
@@ -87,4 +90,5 @@ public class ChildrenCommand extends AbstractCommand {
 	public String getCommand() {
 		return "CHILDREN";
 	}
+
 }

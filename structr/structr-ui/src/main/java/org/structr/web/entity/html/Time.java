@@ -30,6 +30,6 @@ public class Time extends HtmlElement {
 	static {
 		EntityContext.registerPropertySet(Time.class, PropertyView.All,		HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Time.class, PropertyView.Public,	HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Time.class, PropertyView.Html, true, htmlAttributes);
+		EntityContext.registerPropertySet(Time.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 	}
 }

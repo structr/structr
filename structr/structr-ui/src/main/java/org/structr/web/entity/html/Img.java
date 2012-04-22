@@ -35,7 +35,7 @@ public class Img extends HtmlElement {
 	static {
 		EntityContext.registerPropertySet(Img.class, PropertyView.All,		HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Img.class, PropertyView.Public,	HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Img.class, PropertyView.Html, true, htmlAttributes);
+		EntityContext.registerPropertySet(Img.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 
 		EntityContext.registerEntityRelation(Img.class, Div.class,	RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Img.class, P.class,	RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);

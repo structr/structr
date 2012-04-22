@@ -45,7 +45,7 @@ public class Style extends HtmlElement {
 
 		EntityContext.registerPropertySet(Style.class, PropertyView.All,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Style.class, PropertyView.Public,	HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Style.class, PropertyView.Html, true, htmlAttributes);
+		EntityContext.registerPropertySet(Style.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 
 		EntityContext.registerEntityRelation(Style.class, Content.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Style.class, Head.class,		RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);

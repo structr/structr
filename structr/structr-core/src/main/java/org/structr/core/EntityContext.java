@@ -248,22 +248,20 @@ public class EntityContext {
 
 	// ----- property set methods -----
 	public static void registerPropertySet(Class type, String propertyView, PropertyKey... propertySet) {
-		registerPropertySet(type, propertyView, false, propertySet);
+		registerPropertySet(type, propertyView, null, propertySet);
 	}
 
 	public static void registerPropertySet(Class type, String propertyView, String[] propertySet) {
-		registerPropertySet(type, propertyView, false, propertySet);
+		registerPropertySet(type, propertyView, null, propertySet);
 	}
 
-	public static void registerPropertySet(Class type, String propertyView, boolean useViewPrefix, PropertyKey... propertySet) {
+	public static void registerPropertySet(Class type, String propertyView, String viewPrefix, PropertyKey... propertySet) {
 
 		Set<String> properties = getPropertySet(type, propertyView);
 
 		for (PropertyKey property : propertySet) {
 
-			properties.add((useViewPrefix
-					? propertyView
-					: "").concat(property.name()));
+			properties.add((viewPrefix != null ? viewPrefix : "").concat(property.name()));
 
 		}
 
@@ -282,15 +280,13 @@ public class EntityContext {
 		}
 	}
 
-	public static void registerPropertySet(Class type, String propertyView, boolean useViewPrefix, String[] propertySet) {
+	public static void registerPropertySet(Class type, String propertyView, String viewPrefix, String[] propertySet) {
 
 		Set<String> properties = getPropertySet(type, propertyView);
 
 		for (String property : propertySet) {
 
-			properties.add((useViewPrefix
-					? propertyView
-					: "").concat(property));
+			properties.add((viewPrefix != null ? viewPrefix : "").concat(property));
 
 		}
 

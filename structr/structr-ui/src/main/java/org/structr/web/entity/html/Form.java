@@ -36,7 +36,7 @@ public class Form extends HtmlElement {
 	static {
 		EntityContext.registerPropertySet(Form.class, PropertyView.All,		HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Form.class, PropertyView.Public,	HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Form.class, PropertyView.Html, true,	htmlAttributes);
+		EntityContext.registerPropertySet(Form.class, PropertyView.Html, PropertyView.Html,	htmlAttributes);
 
 		EntityContext.registerEntityRelation(Form.class, Div.class,	RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(Form.class, P.class,	RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);

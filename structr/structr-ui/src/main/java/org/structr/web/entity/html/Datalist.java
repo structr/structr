@@ -30,6 +30,6 @@ public class Datalist extends HtmlElement {
 	static {
 		EntityContext.registerPropertySet(Datalist.class, PropertyView.All,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Datalist.class, PropertyView.Public,	HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Datalist.class, PropertyView.Html, true, htmlAttributes);
+		EntityContext.registerPropertySet(Datalist.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 	}
 }

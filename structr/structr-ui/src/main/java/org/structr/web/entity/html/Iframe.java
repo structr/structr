@@ -30,6 +30,6 @@ public class Iframe extends HtmlElement {
 	static {
 		EntityContext.registerPropertySet(Iframe.class, PropertyView.All,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Iframe.class, PropertyView.Public,	HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Iframe.class, PropertyView.Html, true, htmlAttributes);
+		EntityContext.registerPropertySet(Iframe.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 	}
 }

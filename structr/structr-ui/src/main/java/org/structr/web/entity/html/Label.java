@@ -30,6 +30,6 @@ public class Label extends HtmlElement {
 	static {
 		EntityContext.registerPropertySet(Label.class, PropertyView.All,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Label.class, PropertyView.Public,	HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Label.class, PropertyView.Html, true, htmlAttributes);
+		EntityContext.registerPropertySet(Label.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 	}
 }

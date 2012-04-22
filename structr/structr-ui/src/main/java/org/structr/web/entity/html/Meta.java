@@ -44,7 +44,7 @@ public class Meta extends HtmlElement {
 
 		EntityContext.registerPropertySet(Meta.class, PropertyView.All, HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Meta.class, PropertyView.Public, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Meta.class, PropertyView.Html, true, htmlAttributes);
+		EntityContext.registerPropertySet(Meta.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 
 		EntityContext.registerEntityRelation(Meta.class, Head.class,	RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
 

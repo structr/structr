@@ -45,7 +45,7 @@ public class Element extends AbstractNode {
 	private static final Logger logger = Logger.getLogger(Element.class.getName());
 
 	protected static final String[] uiAttributes = {
-		UiKey.name.name(), UiKey.tag.name(), UiKey.contents.name(), UiKey.elements.name(), UiKey.components.name(), UiKey.resource.name()
+		UiKey.name.name(), UiKey.tag.name()
 	};
 
 	static {

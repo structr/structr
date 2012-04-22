@@ -33,7 +33,7 @@ public class Tr extends HtmlElement {
 	static {
 		EntityContext.registerPropertySet(Tr.class, PropertyView.All,		HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Tr.class, PropertyView.Public,	HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Tr.class, PropertyView.Html, true, htmlAttributes);
+		EntityContext.registerPropertySet(Tr.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 		EntityContext.registerEntityRelation(Tr.class, Td.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
 	}
 }

@@ -48,7 +48,7 @@ public class Link extends HtmlElement {
 
 		EntityContext.registerPropertySet(Link.class, PropertyView.All, HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Link.class, PropertyView.Public, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Link.class, PropertyView.Html, true, htmlAttributes);
+		EntityContext.registerPropertySet(Link.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 
 		EntityContext.registerEntityRelation(Link.class, Head.class,		RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
 	}

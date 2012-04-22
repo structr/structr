@@ -490,6 +490,7 @@ function connect() {
 
     } catch (exception) {
 	log('Error in connect(): ' + exception);
+	Structr.init();
     }
 
 }

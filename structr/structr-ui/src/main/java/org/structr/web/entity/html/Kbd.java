@@ -30,6 +30,6 @@ public class Kbd extends HtmlElement {
 	static {
 		EntityContext.registerPropertySet(Kbd.class, PropertyView.All,		HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Kbd.class, PropertyView.Public,	HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Kbd.class, PropertyView.Html, true, htmlAttributes);
+		EntityContext.registerPropertySet(Kbd.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 	}
 }

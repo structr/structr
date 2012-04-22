@@ -35,7 +35,8 @@ public class Div extends HtmlElement {
 	static {
 		EntityContext.registerPropertySet(Div.class, PropertyView.All,		HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Div.class, PropertyView.Public,	HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Div.class, PropertyView.Html, true,	HtmlElement.htmlAttributes);
+		EntityContext.registerPropertySet(Div.class, PropertyView.Html, PropertyView.Html,	HtmlElement.htmlAttributes);
+		EntityContext.registerPropertySet(Div.class, PropertyView.Ui,	PropertyView.Html,	HtmlElement.htmlAttributes);
 
 		EntityContext.registerEntityRelation(Div.class, Content.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
 

@@ -30,6 +30,6 @@ public class Small extends HtmlElement {
 	static {
 		EntityContext.registerPropertySet(Small.class, PropertyView.All,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Small.class, PropertyView.Public,	HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Small.class, PropertyView.Html, true, htmlAttributes);
+		EntityContext.registerPropertySet(Small.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 	}
 }

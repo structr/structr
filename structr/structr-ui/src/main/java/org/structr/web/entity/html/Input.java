@@ -36,7 +36,7 @@ public class Input extends HtmlElement {
 	static {
 		EntityContext.registerPropertySet(Input.class, PropertyView.All,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Input.class, PropertyView.Public,	HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Input.class, PropertyView.Html, true, htmlAttributes);
+		EntityContext.registerPropertySet(Input.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 		
 		EntityContext.registerEntityRelation(Input.class, Form.class,	RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
 	}

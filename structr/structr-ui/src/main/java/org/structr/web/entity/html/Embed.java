@@ -30,6 +30,6 @@ public class Embed extends HtmlElement {
 	static {
 		EntityContext.registerPropertySet(Embed.class, PropertyView.All,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Embed.class, PropertyView.Public,	HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Embed.class, PropertyView.Html, true, htmlAttributes);
+		EntityContext.registerPropertySet(Embed.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 	}
 }

@@ -30,6 +30,6 @@ public class Col extends HtmlElement {
 	static {
 		EntityContext.registerPropertySet(Col.class, PropertyView.All,		HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Col.class, PropertyView.Public,	HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Col.class, PropertyView.Html, true, htmlAttributes);
+		EntityContext.registerPropertySet(Col.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 	}
 }

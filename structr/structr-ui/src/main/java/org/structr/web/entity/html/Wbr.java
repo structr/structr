@@ -30,6 +30,6 @@ public class Wbr extends HtmlElement {
 	static {
 		EntityContext.registerPropertySet(Wbr.class, PropertyView.All,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Wbr.class, PropertyView.Public,	HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Wbr.class, PropertyView.Html, true, htmlAttributes);
+		EntityContext.registerPropertySet(Wbr.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 	}
 }

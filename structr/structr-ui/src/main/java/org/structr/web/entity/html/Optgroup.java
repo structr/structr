@@ -30,6 +30,6 @@ public class Optgroup extends HtmlElement {
 	static {
 		EntityContext.registerPropertySet(Optgroup.class, PropertyView.All,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Optgroup.class, PropertyView.Public,	HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Optgroup.class, PropertyView.Html, true, htmlAttributes);
+		EntityContext.registerPropertySet(Optgroup.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 	}
 }

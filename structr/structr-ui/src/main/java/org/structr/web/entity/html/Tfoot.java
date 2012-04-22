@@ -30,6 +30,6 @@ public class Tfoot extends HtmlElement {
 	static {
 		EntityContext.registerPropertySet(Tfoot.class, PropertyView.All,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Tfoot.class, PropertyView.Public,	HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Tfoot.class, PropertyView.Html, true, htmlAttributes);
+		EntityContext.registerPropertySet(Tfoot.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 	}
 }

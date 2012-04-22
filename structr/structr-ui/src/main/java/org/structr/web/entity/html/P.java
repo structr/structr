@@ -34,7 +34,7 @@ public class P extends HtmlElement {
 	static {
 		EntityContext.registerPropertySet(P.class, PropertyView.All,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(P.class, PropertyView.Public,	HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(P.class, PropertyView.Html, true,	HtmlElement.htmlAttributes);
+		EntityContext.registerPropertySet(P.class, PropertyView.Html, PropertyView.Html,	HtmlElement.htmlAttributes);
 
 		EntityContext.registerEntityRelation(P.class, P.class,		RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(P.class, Content.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);

@@ -30,6 +30,6 @@ public class Var extends HtmlElement {
 	static {
 		EntityContext.registerPropertySet(Var.class, PropertyView.All,		HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Var.class, PropertyView.Public,	HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Var.class, PropertyView.Html, true, htmlAttributes);
+		EntityContext.registerPropertySet(Var.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 	}
 }

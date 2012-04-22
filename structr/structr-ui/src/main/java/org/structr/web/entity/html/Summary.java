@@ -30,6 +30,6 @@ public class Summary extends HtmlElement {
 	static {
 		EntityContext.registerPropertySet(Summary.class, PropertyView.All,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Summary.class, PropertyView.Public,	HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Summary.class, PropertyView.Html, true, htmlAttributes);
+		EntityContext.registerPropertySet(Summary.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 	}
 }

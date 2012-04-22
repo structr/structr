@@ -30,7 +30,7 @@ public class Address extends HtmlElement {
 	static {
 		EntityContext.registerPropertySet(Address.class, PropertyView.All,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Address.class, PropertyView.Public,	HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Address.class, PropertyView.Html, true, htmlAttributes);
+		EntityContext.registerPropertySet(Address.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 
 	}
 

@@ -41,7 +41,7 @@ public class Base extends HtmlElement {
 
 		EntityContext.registerPropertySet(Base.class, PropertyView.All, HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(Base.class, PropertyView.Public, HtmlElement.UiKey.values());
-		EntityContext.registerPropertySet(Base.class, PropertyView.Html, true, htmlAttributes);
+		EntityContext.registerPropertySet(Base.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 
 	}
 

@@ -137,7 +137,8 @@ public abstract class HtmlElement extends Element {
 		EntityContext.registerPropertySet(HtmlElement.class, PropertyView.All, UiKey.values());
 		EntityContext.registerPropertySet(HtmlElement.class, PropertyView.Public, UiKey.values());
 		EntityContext.registerPropertySet(HtmlElement.class, PropertyView.Ui, UiKey.values());
-		EntityContext.registerPropertySet(HtmlElement.class, PropertyView.Html, true, htmlAttributes);
+		EntityContext.registerPropertySet(HtmlElement.class, PropertyView.Ui, PropertyView.Html, htmlAttributes);
+		EntityContext.registerPropertySet(HtmlElement.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 		EntityContext.registerSearchablePropertySet(HtmlElement.class, NodeIndex.fulltext.name(), UiKey.values());
 		EntityContext.registerSearchablePropertySet(HtmlElement.class, NodeIndex.keyword.name(), UiKey.values());
 
@@ -146,7 +147,7 @@ public abstract class HtmlElement extends Element {
 	//~--- constant enums -------------------------------------------------
 
 	public enum UiKey implements PropertyKey {
-		name, tag, path, contents, elements, components, resource
+		name, tag, path
 	}
 
 	//~--- methods --------------------------------------------------------
