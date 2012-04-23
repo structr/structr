@@ -122,7 +122,7 @@ public class CloneResourceCommand extends AbstractCommand {
 											    true);
 								}
 
-								tagOutgoingRelsWithResourceId(newResource, newResource, originalResourceId, resourceId);
+								AddCommand.tagOutgoingRelsWithResourceId(newResource, newResource, originalResourceId, resourceId);
 							}
 
 						}
@@ -149,20 +149,6 @@ public class CloneResourceCommand extends AbstractCommand {
 
 			logger.log(Level.WARNING, "Node with uuid {0} not found.", webSocketData.getId());
 			getWebSocket().send(MessageBuilder.status().code(404).build(), true);
-
-		}
-	}
-
-	private void tagOutgoingRelsWithResourceId(final AbstractNode startNode, final AbstractNode node, final String originalResourceId, final String resourceId) throws FrameworkException {
-
-		for (AbstractRelationship rel : node.getRelationships(RelType.CONTAINS, Direction.OUTGOING)) {
-
-			Long position = rel.getLongProperty(originalResourceId);
-			if(position != null) {
-				rel.setProperty(resourceId, position);
-			}
-
-			tagOutgoingRelsWithResourceId(startNode, rel.getEndNode(), originalResourceId, resourceId);
 
 		}
 	}
