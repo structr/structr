@@ -195,8 +195,8 @@ var _Elements = {
 
 	div.append('<img class="typeIcon" src="'+ _Elements.icon + '">'
 	    + '<b class="tag_">' + entity.tag + '</b> <span class="id">' + entity.id + '</span>'
-	    + (entity._html_id ? 'id=' + entity._html_id : '')
-	    + (entity._html_class ? 'class=' + entity._html_class : '')
+	    + (entity._html_id ? '<span class="_html_id_">#' + entity._html_id + '</span>' : '')
+	    + (entity._html_class ? '<span class="_html_class_">.' + entity._html_class : '</span>')
 	    + '</div>');
 
 

@@ -72,11 +72,11 @@ function connect() {
 	    var callback = data.callback;
 
 	    if (true) {
-		console.log('command: ' + command);
-		console.log('type: ' + type);
-		console.log('code: ' + code);
-		console.log('callback: ' + callback);
-		console.log('sessionValid: ' + sessionValid);
+		if (debug) console.log('command: ' + command);
+		if (debug) console.log('type: ' + type);
+		if (debug) console.log('code: ' + code);
+		if (debug) console.log('callback: ' + callback);
+		if (debug) console.log('sessionValid: ' + sessionValid);
 	    }
 	    if (debug) console.log('result: ' + $.toJSON(result));
 

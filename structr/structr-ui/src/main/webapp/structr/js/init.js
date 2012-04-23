@@ -159,7 +159,7 @@ var Structr = {
 	//		UsersAndGroups.onload();
 
 	Structr.expanded = $.parseJSON($.cookie('structrTreeExpandedIds'));
-	console.log('init', Structr.expanded);
+	if (debug) console.log('init', Structr.expanded);
 
 	ws.onopen = function() {
 
@@ -182,6 +182,9 @@ var Structr = {
     },
 
     login : function(text) {
+
+	main.empty();
+	
 	$('#logout_').html('Login');
 	if (text) $('#errorText').html(text);
 	$.blockUI.defaults.overlayCSS.opacity = .6;

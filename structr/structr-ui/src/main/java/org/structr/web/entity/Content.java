@@ -47,7 +47,7 @@ public class Content extends AbstractNode {
 
 	private static final Logger logger = Logger.getLogger(Content.class.getName());
 
-	public enum UiKey implements PropertyKey{ name, tag, content, contentType, size }
+	public enum UiKey implements PropertyKey{ name, tag, content, contentType, size, type }
 	
 	protected static final String[] attributes = new String[] {
 		
@@ -56,6 +56,7 @@ public class Content extends AbstractNode {
 		UiKey.content.name(),
 		UiKey.contentType.name(),
 		UiKey.size.name(),
+		UiKey.type.name(),
 		
 		// support for microformats
 		"data-key"

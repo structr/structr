@@ -89,7 +89,7 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 
 				List<GraphObject> result = webSocketData.getResult();
 
-				if (result != null && result.size()> 0 && webSocketData.getCommand().equals("UPDATE") || webSocketData.getCommand().equals("ADD") || webSocketData.getCommand().equals("CREATE")) {
+				if (result != null && result.size()> 0 && (webSocketData.getCommand().equals("UPDATE") || webSocketData.getCommand().equals("ADD") || webSocketData.getCommand().equals("CREATE"))) {
 
 					WebSocketMessage clientData = webSocketData.copy();
 					SecurityContext securityContext = socket.getSecurityContext();

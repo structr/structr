@@ -544,9 +544,9 @@ var _Entities = {
 
     appendEditPropertiesIcon : function(el, entity) {
 
-	if (entity.type != 'Content') {
-	    el.append('<span class="_html_id_">#</span> <span class="_html_class_">.</span>');
-	}
+//	if (entity.type != 'Content') {
+//	    el.append('<span class="_html_id_">#</span> <span class="_html_class_">.</span>');
+//	}
 
 	//_Entities.getProperty(entity.id, '_html_id');
 //	_Entities.getProperty(entity.id, '_html_class');
@@ -583,7 +583,7 @@ var _Entities = {
 	    button.on('click', function() {
 		_Entities.toggleElement(this);
 	    });
-	    if (debug) console.log(isExpanded(entity.id, null, entity.resourceId), entity);
+	    if (debug) console.log('appendExpandIcon', isExpanded(entity.id, null, entity.resourceId), entity);
 	    if (isExpanded(entity.id, null, entity.resourceId)) {
 		if (debug) console.log('toggle', entity.id, entity.resourceId);
 		_Entities.toggleElement(button)
@@ -712,12 +712,14 @@ function removeExpandedNode(id, parentId, resourceId) {
 
 function isExpanded(id, parentId, resourceId) {
 
-    var expandedIds = getExpanded()[resourceId];
-    if (!expandedIds) {
-	expandedIds = {};
-	Structr.expanded[resourceId] = expandedIds;
+    if (debug) console.log('isExpanded (id, resourceId, expanded)', id, resourceId, getExpanded(resourceId));
+
+    var exp = getExpanded()[resourceId];
+    if (!exp) {
+	exp = {};
+	Structr.expanded[resourceId] = exp;
     }
-    var isExpanded = expandedIds[id] ? expandedIds[id] : false;
+    var isExpanded = exp[id] ? exp[id] : false;
 
     if (debug) console.log('node ' + id + ' in resource ' + resourceId + ' expanded?', isExpanded);
 
@@ -729,6 +731,8 @@ function getExpanded() {
     if (!Structr.expanded) {
 	Structr.expanded = {};
     }
+
+    if (debug) console.log('Structr.expanded', Structr.expanded);
 
     return Structr.expanded;
 }
