@@ -78,7 +78,7 @@ public abstract class HtmlElement extends Element {
 		functions.put("md5", new Function<String, String>() {
 
 			@Override public String apply(String... s) {
-				return s != null && s.length > 0 ? DigestUtils.md5Hex(s[0]) : null;
+				return s != null && s.length > 0 && s[0] != null ? DigestUtils.md5Hex(s[0]) : null;
 			}
 			
 		});
@@ -86,7 +86,7 @@ public abstract class HtmlElement extends Element {
 		functions.put("upper", new Function<String, String>() {
 
 			@Override public String apply(String... s) {
-				return s != null && s.length > 0 ? s[0].toUpperCase() : null;
+				return s != null && s.length > 0 && s[0] != null  ? s[0].toUpperCase() : null;
 			}
 			
 		});
@@ -94,7 +94,7 @@ public abstract class HtmlElement extends Element {
 		functions.put("lower", new Function<String, String>() {
 
 			@Override public String apply(String... s) {
-				return s != null && s.length > 0 ? s[0].toLowerCase() : null;
+				return s != null && s.length > 0 && s[0] != null  ? s[0].toLowerCase() : null;
 			}
 			
 		});
@@ -102,7 +102,7 @@ public abstract class HtmlElement extends Element {
 		functions.put("capitalize", new Function<String, String>() {
 
 			@Override public String apply(String... s) {
-				return s != null && s.length > 0 ? StringUtils.capitalize(s[0]) : null;
+				return s != null && s.length > 0 && s[0] != null  ? StringUtils.capitalize(s[0]) : null;
 			}
 			
 		});

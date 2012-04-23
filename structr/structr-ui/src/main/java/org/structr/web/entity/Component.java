@@ -24,6 +24,7 @@ package org.structr.web.entity;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Relationship;
 
+import org.structr.common.CaseHelper;
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
@@ -190,19 +191,6 @@ public class Component extends AbstractNode {
 			AbstractNode endNode = rel.getEndNode();
 
 			collectChildren(children, endNode, componentId, depth + 1, rel);
-
-		}
-	}
-
-	public static String plural(String type) {
-
-		if (type.substring(type.length() - 1, type.length()).equals("y")) {
-
-			return type.substring(0, type.length() - 1) + "ies";
-
-		} else {
-
-			return type.concat("s");
 
 		}
 	}
@@ -450,6 +438,12 @@ public class Component extends AbstractNode {
 	// ----- public static methods -----
 	public static boolean isVisible(HttpServletRequest request, AbstractNode node, AbstractRelationship incomingRelationship) {
 
+		if (request == null) {
+
+			return true;
+
+		}
+
 		// check if component is in "list" mode
 		if (node instanceof Component) {
 
@@ -458,8 +452,8 @@ public class Component extends AbstractNode {
 
 			if (structrClass != null) {
 
-				String singleClass = structrClass.toLowerCase();
-				String listClass   = plural(singleClass);
+				String singleClass = CaseHelper.toUnderscore(structrClass, false);
+				String listClass   = CaseHelper.toUnderscore(structrClass, true);
 
 				// check for "single" mode with uuid
 				if (request.getAttribute(singleClass) != null) {

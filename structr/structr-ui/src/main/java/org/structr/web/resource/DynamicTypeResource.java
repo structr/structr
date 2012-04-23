@@ -23,7 +23,9 @@ package org.structr.web.resource;
 
 import org.apache.commons.collections.ListUtils;
 
+import org.neo4j.graphdb.Direction;
 
+import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
@@ -42,20 +44,16 @@ import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.resource.Resource;
 import org.structr.rest.resource.TypeResource;
 import org.structr.rest.resource.UuidResource;
+import org.structr.web.common.RelationshipHelper;
 import org.structr.web.entity.Component;
 import org.structr.web.entity.Content;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.*;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
-import org.neo4j.graphdb.Direction;
-import org.structr.common.RelType;
-import org.structr.web.common.RelationshipHelper;
-import org.structr.web.entity.relation.ReferenceRelationship;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -107,10 +105,12 @@ public class DynamicTypeResource extends TypeResource {
 
 		// check for dynamic type, use super class otherwise
 		List<SearchAttribute> searchAttributes = getSearchAttributes(rawType);
+
 		hasSearchableAttributes(rawType, request, searchAttributes);
 
 		// do search
 		List<GraphObject> results = getComponents(securityContext, searchAttributes);
+
 		if (!results.isEmpty()) {
 
 			// intersect results with uuid result
@@ -133,7 +133,6 @@ public class DynamicTypeResource extends TypeResource {
 
 			return results;
 		}
-
 
 		parentResults = true;
 
@@ -160,20 +159,26 @@ public class DynamicTypeResource extends TypeResource {
 
 			// try to find ID if surrounding component
 			String surroundingComponentId = null;
-			
+
 			if ((wrappedResource != null) && (wrappedResource instanceof UuidResource)) {
+
 				surroundingComponentId = ((UuidResource) wrappedResource).getUuid();
+
 			} else if (!nestedResources.isEmpty()) {
 
 				DynamicTypeResource nested = nestedResources.get(nestedResources.size() - 1);
+
 				if (nested.uuidResource != null) {
+
 					surroundingComponentId = nested.uuidResource.getUuid();
+
 				}
+
 			}
 
-			Component newComponent = duplicateComponent(securityContext, propertySet, rawType, surroundingComponentId);
-
+			Component newComponent  = duplicateComponent(securityContext, propertySet, rawType, surroundingComponentId);
 			RestMethodResult result = new RestMethodResult(201);
+
 			if (newComponent != null) {
 
 				result.addHeader("Location", buildLocationHeader(newComponent));
@@ -181,7 +186,6 @@ public class DynamicTypeResource extends TypeResource {
 			}
 
 			return result;
-
 		} else {
 
 			return super.doPost(propertySet);
@@ -191,11 +195,13 @@ public class DynamicTypeResource extends TypeResource {
 
 	@Override
 	public RestMethodResult doPut(final Map<String, Object> propertySet) throws FrameworkException {
-		
-		if(uuidResource != null) {
+
+		if (uuidResource != null) {
+
 			return uuidResource.doPut(propertySet);
+
 		}
-		
+
 		throw new IllegalPathException();
 	}
 
@@ -225,71 +231,8 @@ public class DynamicTypeResource extends TypeResource {
 		return super.tryCombineWith(next);
 	}
 
-	// ----- private methods -----
-
-
-	//~--- get methods ----------------------------------------------------
-
-	@Override
-	public boolean isCollectionResource() {
-
-		if (uuidResource != null) {
-
-			return uuidResource.isCollectionResource();
-
-		}
-
-		return true;
-	}
-	
-	// ----- public static methods -----
-	public static List<SearchAttribute> getSearchAttributes(String rawType) {
-		
-		// check for dynamic type, use super class otherwise
-		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
-		if (rawType != null) {
-
-			searchAttributes.add(Search.andExactProperty(Component.UiKey.structrclass.name(), EntityContext.normalizeEntityName(rawType)));
-			searchAttributes.add(Search.andExactType(Component.class.getSimpleName()));
-		}
-		
-		return searchAttributes;
-		
-	}
-	
-	public static List<GraphObject> getComponents(final SecurityContext securityContext, List<SearchAttribute> searchAttributes) throws FrameworkException {
-		
-		// check for dynamic type, use super class otherwise
-		AbstractNode topNode                   = null;
-		boolean includeDeleted                 = false;
-		boolean publicOnly                     = false;
-
-		// do search
-		return (List<GraphObject>) Services.command(securityContext, SearchNodeCommand.class).execute(topNode, includeDeleted, publicOnly, searchAttributes);
-	}
-	
-	public static long getMaxPosition(final List<GraphObject> templates, final String resourceId) {
-
-		long pos = 0;
-
-		for (GraphObject template : templates) {
-			if (template instanceof Component) {
-				Component component = (Component) template;
-
-				List<AbstractRelationship> rels = component.getRelationships(RelType.CONTAINS, Direction.INCOMING);
-				for (AbstractRelationship rel : rels) {
-					pos = Math.max(pos, rel.getLongProperty(resourceId));
-
-				}
-				
-			}
-		}
-
-		return pos;
-
-	}
-	
-	public static Component duplicateComponent(final SecurityContext securityContext, final Map<String, Object> propertySet, final String rawType, final String surroundingComponentId) throws FrameworkException {
+	public static Component duplicateComponent(final SecurityContext securityContext, final Map<String, Object> propertySet, final String rawType, final String surroundingComponentId)
+		throws FrameworkException {
 
 		final List<GraphObject> templates            = getComponents(securityContext, getSearchAttributes(rawType));
 		final Command createNodeCommand              = Services.command(securityContext, CreateNodeCommand.class);
@@ -305,13 +248,14 @@ public class DynamicTypeResource extends TypeResource {
 		// use parentId from template
 		String parentComponentId = template.getComponentId();
 		String parentResourceId  = template.getResourceId();
+		final long position      = getMaxPosition(templates, parentResourceId) + 1;
 
-		final long position                           = getMaxPosition(templates, parentResourceId) + 1;
+		if (surroundingComponentId != null) {
 
-		if(parentComponentId == null && surroundingComponentId != null) {
 			parentComponentId = surroundingComponentId;
+
 		}
-		
+
 		final String finalParentComponentId = parentComponentId;
 		final String finalParentResourceId  = parentResourceId;
 		Component newComponent              = (Component) Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
@@ -365,47 +309,111 @@ public class DynamicTypeResource extends TypeResource {
 
 		/**
 		 * not used, was "link components with DATA relationships together"
-		
-		// make new component collect content properties right now
-		newComponent.onNodeInstantiation();
+		 *
+		 * // make new component collect content properties right now
+		 * newComponent.onNodeInstantiation();
+		 *
+		 * // create linked component
+		 * for(AbstractRelationship rel : template.getRelationships(RelType.DATA, Direction.INCOMING)) {
+		 *
+		 *       AbstractNode dataNode = rel.getStartNode();
+		 *       if(dataNode instanceof Component) {
+		 *
+		 *               Component linkedComponent = (Component)dataNode;
+		 *
+		 *               // prepare property set for linked POST
+		 *               Map<String, Object> postPropertySet = new LinkedHashMap<String, Object>();
+		 *               String rawNames = rel.getStringProperty("names");
+		 *               String[] names = rawNames.split("[, ]+");
+		 *
+		 *               // copy properties from new component according to property keys on relationship
+		 *               for(String key : names) {
+		 *
+		 *                       Object value = newComponent.getProperty(key);
+		 *                       if(value != null) {
+		 *                               postPropertySet.put(key, value);
+		 *                       }
+		 *               }
+		 *
+		 *               String linkedRawType = linkedComponent.getStringProperty(Component.UiKey.structrclass);
+		 *
+		 *               Component newLinkedComponent = duplicateComponent(securityContext, postPropertySet, linkedRawType, null);
+		 *
+		 *               // create new DATA relationship from linked component to new component
+		 *               Map<String, Object> newRelProperties = new LinkedHashMap<String, Object>();
+		 *               newRelProperties.put(ReferenceRelationship.Key.names.name(), rel.getProperty(ReferenceRelationship.Key.names));
+		 *
+		 *               Services.command(securityContext, CreateRelationshipCommand.class).execute(newLinkedComponent, newComponent, RelType.DATA, newRelProperties);
+		 *       }
+		 *
+		 * }
+		 */
+		return newComponent;
+	}
 
-		// create linked component
-		for(AbstractRelationship rel : template.getRelationships(RelType.DATA, Direction.INCOMING)) {
+	//~--- get methods ----------------------------------------------------
 
-			AbstractNode dataNode = rel.getStartNode();
-			if(dataNode instanceof Component) {
+	// ----- public static methods -----
+	public static List<SearchAttribute> getSearchAttributes(String rawType) {
 
-				Component linkedComponent = (Component)dataNode;
+		// check for dynamic type, use super class otherwise
+		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 
-				// prepare property set for linked POST
-				Map<String, Object> postPropertySet = new LinkedHashMap<String, Object>();
-				String rawNames = rel.getStringProperty("names");
-				String[] names = rawNames.split("[, ]+");
+		if (rawType != null) {
 
-				// copy properties from new component according to property keys on relationship
-				for(String key : names) {
+			searchAttributes.add(Search.andExactProperty(Component.UiKey.structrclass.name(), EntityContext.normalizeEntityName(rawType)));
+			searchAttributes.add(Search.andExactType(Component.class.getSimpleName()));
 
-					Object value = newComponent.getProperty(key);
-					if(value != null) {
-						postPropertySet.put(key, value);
-					}
+		}
+
+		return searchAttributes;
+	}
+
+	public static List<GraphObject> getComponents(final SecurityContext securityContext, List<SearchAttribute> searchAttributes) throws FrameworkException {
+
+		// check for dynamic type, use super class otherwise
+		AbstractNode topNode   = null;
+		boolean includeDeleted = false;
+		boolean publicOnly     = false;
+
+		// do search
+		return (List<GraphObject>) Services.command(securityContext, SearchNodeCommand.class).execute(topNode, includeDeleted, publicOnly, searchAttributes);
+	}
+
+	public static long getMaxPosition(final List<GraphObject> templates, final String resourceId) {
+
+		long pos = 0;
+
+		for (GraphObject template : templates) {
+
+			if (template instanceof Component) {
+
+				Component component             = (Component) template;
+				List<AbstractRelationship> rels = component.getRelationships(RelType.CONTAINS, Direction.INCOMING);
+
+				for (AbstractRelationship rel : rels) {
+
+					pos = Math.max(pos, rel.getLongProperty(resourceId));
+
 				}
 
-				String linkedRawType = linkedComponent.getStringProperty(Component.UiKey.structrclass);
-				
-				Component newLinkedComponent = duplicateComponent(securityContext, postPropertySet, linkedRawType, null);
-				
-				// create new DATA relationship from linked component to new component
-				Map<String, Object> newRelProperties = new LinkedHashMap<String, Object>();
-				newRelProperties.put(ReferenceRelationship.Key.names.name(), rel.getProperty(ReferenceRelationship.Key.names));
-				
-				Services.command(securityContext, CreateRelationshipCommand.class).execute(newLinkedComponent, newComponent, RelType.DATA, newRelProperties);
 			}
 
 		}
-		*/
 
-		
-		return newComponent;
+		return pos;
+	}
+
+	// ----- private methods -----
+	@Override
+	public boolean isCollectionResource() {
+
+		if (uuidResource != null) {
+
+			return uuidResource.isCollectionResource();
+
+		}
+
+		return true;
 	}
 }

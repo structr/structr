@@ -42,6 +42,7 @@ import org.structr.common.*;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
+import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
@@ -54,8 +55,10 @@ import org.structr.core.node.search.SearchNodeCommand;
 import org.structr.core.node.search.SearchOperator;
 import org.structr.web.auth.HttpAuthenticator;
 import org.structr.web.entity.Component;
+import org.structr.web.entity.Condition;
 import org.structr.web.entity.Content;
 import org.structr.web.entity.Resource;
+import org.structr.web.entity.View;
 import org.structr.web.entity.html.HtmlElement;
 
 import org.w3c.tidy.Tidy;
@@ -74,9 +77,6 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.structr.core.GraphObject;
-import org.structr.web.entity.Condition;
-import org.structr.web.entity.View;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -92,7 +92,6 @@ import org.structr.web.entity.View;
  */
 public class HtmlServlet extends HttpServlet {
 
-	private static final String REST_PATH_SEP = "//";
 	private static final Logger logger        = Logger.getLogger(HtmlServlet.class.getName());
 
 	//~--- fields ---------------------------------------------------------
@@ -172,34 +171,35 @@ public class HtmlServlet extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) {
 
 		Map<String, String[]> parameterMap = request.getParameterMap();
-		String path                        = clean(request.getPathInfo());
+		String path                        = PathHelper.clean(request.getPathInfo());
 
-		// String resourcePath                = getParts(path)[1];
-		postToRestUrl(request, getParts(path)[1], convert(parameterMap));
+		// Split by "//"
+		String[] parts      = PathHelper.getParts(path);
+		String resourcePath = parts[parts.length - 1];
+
+		postToRestUrl(request, resourcePath, convert(parameterMap));
 
 		String name = null;
 
 		try {
 
-			name = getParts(path)[0];
+			name = PathHelper.getParts(path)[0];
 
-			response.sendRedirect("/" + name);
-
-			// doGet(request, response);
+			response.sendRedirect("/" + name + "//" + resourcePath);
 
 		} catch (IOException ex) {
-			logger.log(Level.SEVERE, "Could not redirect to " + name, ex);
+			logger.log(Level.SEVERE, "Could not redirect to " + path, ex);
 		}
 	}
 
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) {
 
-		String path = clean(request.getPathInfo());
+		String path = PathHelper.clean(request.getPathInfo());
 
 		logger.log(Level.INFO, "Path info {0}", path);
 
-		String[] urlParts = getParts(path);
+		String[] urlParts = PathHelper.getParts(path);
 		String searchFor  = null;
 
 		if (urlParts.length > 1) {
@@ -207,9 +207,9 @@ public class HtmlServlet extends HttpServlet {
 			searchFor = StringUtils.substringBefore(urlParts[1], "?");
 
 		}
-		
-		String[] pathParts                 = getParts(path);
-		String name                        = getName(pathParts[0]);
+
+		String[] pathParts                 = PathHelper.getParts(path);
+		String name                        = PathHelper.getName(pathParts[0]);
 		List<NodeAttribute> attrs          = new LinkedList<NodeAttribute>();
 		Map<String, String[]> parameterMap = request.getParameterMap();
 
@@ -236,21 +236,21 @@ public class HtmlServlet extends HttpServlet {
 
 		// first part (before "//" is resource path (file etc),
 		// second part is nested component control
-		
 		// store remaining path parts in request
-		for(int i=1; i<pathParts.length; i++) {
+		for (int i = 1; i < pathParts.length; i++) {
 
 			String[] parts = pathParts[i].split("[/]+");
-			for(int j=0; j<parts.length; j++) {
-				
+
+			for (int j = 0; j < parts.length; j++) {
+
 				// FIXME: index (j) in setAttribute might be
-				//        wrong here if we have multiple //-separated
-				//        parts!
-				
+				// wrong here if we have multiple //-separated
+				// parts!
 				request.setAttribute(parts[j], j);
-			}			
+			}
+
 		}
-		
+
 		try {
 
 			SecurityContext securityContext = SecurityContext.getInstance(this.getServletConfig(), request, response, AccessMode.Frontend);
@@ -274,7 +274,7 @@ public class HtmlServlet extends HttpServlet {
 				file = (org.structr.core.entity.File) node;
 
 			}
-			
+
 			if ((resource != null) && securityContext.isVisible(resource)) {
 
 				String uuid                = resource.getStringProperty(AbstractNode.Key.uuid);
@@ -428,12 +428,6 @@ public class HtmlServlet extends HttpServlet {
 		return attrs;
 	}
 
-	private String clean(String path) {
-
-		// Remove leading and trailing /
-		return StringUtils.strip(path, "/");
-	}
-
 	private AbstractNode findEntryPoint(final String name) throws FrameworkException {
 
 		if (name.length() > 0) {
@@ -467,31 +461,9 @@ public class HtmlServlet extends HttpServlet {
 		return null;
 	}
 
-	//~--- get methods ----------------------------------------------------
 
-	private String getName(final String pathPart) {
-
-		if (pathPart.contains("/")) {
-
-			return StringUtils.substringAfterLast(pathPart, "/");
-
-		} else {
-
-			return pathPart;
-
-		}
-	}
-
-	private String[] getParts(String path) {
-
-		path = clean(path);
-
-		return path.split("[" + REST_PATH_SEP + "]+");
-	}
-
-	private void getContent(HttpServletRequest request, final String resourceId, final String componentId, final StringBuilder buffer, final AbstractNode node,
-				final int depth, boolean inBody, final String searchClass, final List<NodeAttribute> attrs, final Component viewComponent,
-				final Condition condition) {
+	private void getContent(HttpServletRequest request, final String resourceId, final String componentId, final StringBuilder buffer, final AbstractNode node, final int depth, boolean inBody,
+				final String searchClass, final List<NodeAttribute> attrs, final Component viewComponent, final Condition condition) {
 
 		String localComponentId   = componentId;
 		String content            = null;
@@ -532,7 +504,7 @@ public class HtmlServlet extends HttpServlet {
 			// System.out.println("id: " + id + " [" + node.getStringProperty("type") + "] " + node.getStringProperty("name") + ", depth: " + depth + ", res: " + resourceId + ", comp: " + componentId);
 			if (node instanceof Content) {
 
-				content = (((Content)node).getPropertyWithVariableReplacement(resourceId, componentId, viewComponent, Content.UiKey.content.name()));
+				content = (((Content) node).getPropertyWithVariableReplacement(resourceId, componentId, viewComponent, Content.UiKey.content.name()));
 
 				List<AbstractRelationship> links = node.getOutgoingLinkRelationships();
 
@@ -638,56 +610,55 @@ public class HtmlServlet extends HttpServlet {
 		}
 
 		// ############################################################################################ BEGIN NEW VIEW TEST
-		// render 
-		
-		if(node instanceof View) {
+		// render
+		if (node instanceof View) {
 
-			// fetch list of components from this view and 
-			List<GraphObject> components = ((View)node).getComponents();
-			for(GraphObject component : components) {
-				
+			// fetch list of components from this view and
+			List<GraphObject> components = ((View) node).getComponents();
+
+			for (GraphObject component : components) {
+
 				// recursively render children
 				List<AbstractRelationship> rels = Component.getChildRelationships(request, node, resourceId, localComponentId);
 
 				for (AbstractRelationship rel : rels) {
 
-					if(condition == null || (condition != null && condition.isSatisfied(request, rel))) {
+					if ((condition == null) || ((condition != null) && condition.isSatisfied(request, rel))) {
 
 						AbstractNode subNode = rel.getEndNode();
 
-						getContent(request, resourceId, localComponentId, buffer, subNode, depth + 1, inBody, searchClass, attrs, (Component)component, condition);
+						getContent(request, resourceId, localComponentId, buffer, subNode, depth + 1, inBody, searchClass, attrs, (Component) component, condition);
+
 					}
 
 				}
 			}
-			
-			
-		} else if(node instanceof Condition) {
-			 
+		} else if (node instanceof Condition) {
+
 			// recursively render children
 			List<AbstractRelationship> rels = Component.getChildRelationships(request, node, resourceId, localComponentId);
-			Condition newCondition = (Condition)node;
+			Condition newCondition          = (Condition) node;
 
 			for (AbstractRelationship rel : rels) {
 
 				AbstractNode subNode = rel.getEndNode();
+
 				getContent(request, resourceId, localComponentId, buffer, subNode, depth + 1, inBody, searchClass, attrs, viewComponent, newCondition);
 
 			}
-			
-			
 		} else {
-			
+
 			// recursively render children
 			List<AbstractRelationship> rels = Component.getChildRelationships(request, node, resourceId, localComponentId);
 
 			for (AbstractRelationship rel : rels) {
 
-				if(condition == null || (condition != null && condition.isSatisfied(request, rel))) {
+				if ((condition == null) || ((condition != null) && condition.isSatisfied(request, rel))) {
 
 					AbstractNode subNode = rel.getEndNode();
 
 					getContent(request, resourceId, localComponentId, buffer, subNode, depth + 1, inBody, searchClass, attrs, viewComponent, condition);
+
 				}
 
 			}
