@@ -746,7 +746,7 @@ var _Resources = {
 
 		div.sortable({
 			sortable: '.node',
-			containment: 'parent',
+			containment: '#resources',
 			start: function(event, ui) {
 				sorting = true;
 				var resourceId = getId(ui.item.closest('.resource')[0]);
@@ -779,7 +779,7 @@ var _Resources = {
 			hoverClass: 'nodeHover',
 			drop: function(event, ui) {
 				if (sorting) {
-					if (debug) console.log('sorting, no drop allowed');
+					console.log('sorting, no drop allowed');
 					return;
 				}
 				var self = $(this);
