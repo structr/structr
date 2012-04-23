@@ -209,7 +209,7 @@ public class HtmlServlet extends HttpServlet {
 		}
 		
 		String[] pathParts                 = getParts(path);
-		String name                        = pathParts[pathParts.length-1];
+		String name                        = getName(pathParts[0]);
 		List<NodeAttribute> attrs          = new LinkedList<NodeAttribute>();
 		Map<String, String[]> parameterMap = request.getParameterMap();
 

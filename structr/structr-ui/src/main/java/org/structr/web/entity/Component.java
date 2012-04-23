@@ -28,10 +28,13 @@ import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Command;
 import org.structr.core.EntityContext;
+import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.RelationClass.Cardinality;
+import org.structr.core.node.DeleteNodeCommand;
 import org.structr.core.node.NodeService;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -39,10 +42,8 @@ import org.structr.core.node.NodeService;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import javax.servlet.http.HttpServletRequest;
-import org.structr.core.Command;
-import org.structr.core.Services;
-import org.structr.core.node.DeleteNodeCommand;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -87,25 +88,27 @@ public class Component extends AbstractNode {
 	public void onNodeInstantiation() {
 		collectProperties(this, getStringProperty(AbstractNode.Key.uuid), 0, null);
 	}
-	
+
 	@Override
 	public void onNodeDeletion() {
-		
+
 		try {
+
 			Command deleteCommand = Services.command(securityContext, DeleteNodeCommand.class);
-			boolean cascade = true;
+			boolean cascade       = true;
 
 			for (AbstractNode contentNode : contentNodes.values()) {
+
 				deleteCommand.execute(contentNode, cascade);
+
 			}
 
 			// delete linked components
-//			for(AbstractRelationship rel : getRelationships(RelType.DATA, Direction.INCOMING)) {
-//				deleteCommand.execute(rel.getStartNode());
-//			}			
-			
-		} catch(Throwable t) {
-			
+//                      for(AbstractRelationship rel : getRelationships(RelType.DATA, Direction.INCOMING)) {
+//                              deleteCommand.execute(rel.getStartNode());
+//                      }
+
+		} catch (Throwable t) {
 			logger.log(Level.SEVERE, "Exception while deleting nested Components: {0}", t.getMessage());
 		}
 	}
@@ -187,6 +190,19 @@ public class Component extends AbstractNode {
 			AbstractNode endNode = rel.getEndNode();
 
 			collectChildren(children, endNode, componentId, depth + 1, rel);
+
+		}
+	}
+
+	public static String plural(String type) {
+
+		if (type.substring(type.length() - 1, type.length()).equals("y")) {
+
+			return type.substring(0, type.length() - 1) + "ies";
+
+		} else {
+
+			return type.concat("s");
 
 		}
 	}
@@ -286,39 +302,6 @@ public class Component extends AbstractNode {
 		return null;
 	}
 
-	// ----- public static methods -----
-	public static boolean isVisible(HttpServletRequest request, AbstractNode node, AbstractRelationship incomingRelationship) {
-
-		// check if component is in "list" mode
-		if(node instanceof Component) {
-
-			String structrClass = node.getStringProperty(Component.UiKey.structrclass);
-			String componentId  = node.getStringProperty(AbstractNode.Key.uuid);
-
-			if(structrClass != null) {
-
-				String singleClass = structrClass.toLowerCase();
-				String listClass   = singleClass.concat("s");
-
-				// check for "single" mode with uuid
-				if(request.getAttribute(singleClass) != null) {
-
-					if(request.getAttribute(componentId) != null) {
-
-						return true;
-					}
-
-				// check for "list" mode
-				} else if(request.getAttribute(listClass) != null) {
-
-					return true;
-				}
-			}
-		}
-		
-		return false;
-	}
-	
 	public static List<AbstractRelationship> getChildRelationships(final HttpServletRequest request, final AbstractNode node, final String resourceId, final String componentId) {
 
 		List<AbstractRelationship> rels = new LinkedList<AbstractRelationship>();
@@ -331,10 +314,12 @@ public class Component extends AbstractNode {
 
 				AbstractNode endNode = abstractRelationship.getEndNode();
 
-				if(endNode instanceof Component && !isVisible(request, endNode, abstractRelationship)) {
+				if ((endNode instanceof Component) &&!isVisible(request, endNode, abstractRelationship)) {
+
 					continue;
+
 				}
-				
+
 				if ((componentId != null) && ((endNode instanceof Content) || (endNode instanceof Component))) {
 
 					// only add relationship if (nested) componentId matches
@@ -343,7 +328,6 @@ public class Component extends AbstractNode {
 						rels.add(abstractRelationship);
 
 					}
-					
 				} else {
 
 					rels.add(abstractRelationship);
@@ -461,6 +445,44 @@ public class Component extends AbstractNode {
 		}
 
 		return position;
+	}
+
+	// ----- public static methods -----
+	public static boolean isVisible(HttpServletRequest request, AbstractNode node, AbstractRelationship incomingRelationship) {
+
+		// check if component is in "list" mode
+		if (node instanceof Component) {
+
+			String structrClass = node.getStringProperty(Component.UiKey.structrclass);
+			String componentId  = node.getStringProperty(AbstractNode.Key.uuid);
+
+			if (structrClass != null) {
+
+				String singleClass = structrClass.toLowerCase();
+				String listClass   = plural(singleClass);
+
+				// check for "single" mode with uuid
+				if (request.getAttribute(singleClass) != null) {
+
+					if (request.getAttribute(componentId) != null) {
+
+						return true;
+
+					}
+
+					// check for "list" mode
+
+				} else if (request.getAttribute(listClass) != null) {
+
+					return true;
+
+				}
+
+			}
+
+		}
+
+		return false;
 	}
 
 	//~--- set methods ----------------------------------------------------
