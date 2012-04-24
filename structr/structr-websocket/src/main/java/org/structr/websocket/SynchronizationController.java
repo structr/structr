@@ -16,6 +16,9 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+
+
 package org.structr.websocket;
 
 import com.google.gson.Gson;
@@ -41,6 +44,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 //~--- classes ----------------------------------------------------------------
+
 /**
  *
  * @author Christian Morgner
@@ -48,20 +52,24 @@ import java.util.logging.Logger;
 public class SynchronizationController implements VetoableGraphObjectListener {
 
 	private static final Logger logger = Logger.getLogger(SynchronizationController.class.getName());
+
 	//~--- fields ---------------------------------------------------------
-	private Set<StructrWebSocket> clients = null;
-	private Gson gson = null;
+
+	private Set<StructrWebSocket> clients                     = null;
+	private Gson gson                                         = null;
 	private Map<Long, List<WebSocketMessage>> messageStackMap = new LinkedHashMap<Long, List<WebSocketMessage>>();
 	private List<WebSocketMessage> messageStack;
 
 	//~--- constructors ---------------------------------------------------
+
 	public SynchronizationController(Gson gson) {
 
 		this.clients = new LinkedHashSet<StructrWebSocket>();
-		this.gson = gson;
+		this.gson    = gson;
 	}
 
 	//~--- methods --------------------------------------------------------
+
 	public void registerClient(StructrWebSocket client) {
 		clients.add(client);
 	}
@@ -89,9 +97,10 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 
 				List<GraphObject> result = webSocketData.getResult();
 
-				if (result != null && result.size()> 0 && (webSocketData.getCommand().equals("UPDATE") || webSocketData.getCommand().equals("ADD") || webSocketData.getCommand().equals("CREATE"))) {
+				if ((result != null) && (result.size() > 0)
+					&& (webSocketData.getCommand().equals("UPDATE") || webSocketData.getCommand().equals("ADD") || webSocketData.getCommand().equals("CREATE"))) {
 
-					WebSocketMessage clientData = webSocketData.copy();
+					WebSocketMessage clientData     = webSocketData.copy();
 					SecurityContext securityContext = socket.getSecurityContext();
 
 					clientData.setResult(filter(securityContext, result));
@@ -212,18 +221,17 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 
 			if (relationship.getRelType().equals(RelType.CONTAINS) || relationship.getRelType().equals(RelType.HAS_CHILD)) {
 
-				AbstractNode startNode = relationship.getStartNode();
-				AbstractNode endNode = relationship.getEndNode();
+				AbstractNode startNode   = relationship.getStartNode();
+				AbstractNode endNode     = relationship.getEndNode();
 				WebSocketMessage message = new WebSocketMessage();
 
 				message.setCommand("ADD");
 				message.setGraphObject(relationship);
 				message.setId(startNode.getStringProperty("uuid"));
-				message.setNodeData("id", endNode.getStringProperty("uuid"));
-				message.setNodeData("tag", endNode.getStringProperty("tag"));
+				message.setResult(Arrays.asList(new GraphObject[] { endNode }));
 				messageStack.add(message);
-				logger.log(Level.FINE, "Relationship created: {0}({1} -> {2}{3}", new Object[]{startNode.getId(), startNode.getStringProperty(AbstractNode.Key.uuid),
-													       endNode.getStringProperty(AbstractNode.Key.uuid)});
+				logger.log(Level.FINE, "Relationship created: {0}({1} -> {2}{3}", new Object[] { startNode.getId(), startNode.getStringProperty(AbstractNode.Key.uuid),
+					endNode.getStringProperty(AbstractNode.Key.uuid) });
 
 			}
 
@@ -279,8 +287,8 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 			// AbstractNode startNode   = relationship.getStartNode();
 			// AbstractNode endNode     = relationship.getEndNode();
 			WebSocketMessage message = new WebSocketMessage();
-			String startNodeId = relationship.getCachedStartNodeId();
-			String endNodeId = relationship.getCachedEndNodeId();
+			String startNodeId       = relationship.getCachedStartNodeId();
+			String endNodeId         = relationship.getCachedEndNodeId();
 
 			if ((startNodeId != null) && (endNodeId != null)) {
 
@@ -298,7 +306,7 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 		} else {
 
 			WebSocketMessage message = new WebSocketMessage();
-			String uuid = properties.get("uuid").toString();
+			String uuid              = properties.get("uuid").toString();
 
 			message.setId(uuid);
 			message.setCommand("DELETE");
