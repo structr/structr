@@ -70,6 +70,14 @@ public class CloneResourceCommand extends AbstractCommand {
 		// Node to wrap
 		String nodeId                  = webSocketData.getId();
 		final AbstractNode nodeToClone = getNode(nodeId);
+                final Map<String, Object> nodeData = webSocketData.getNodeData();
+                
+                final String newName;
+                if (nodeData.containsKey(AbstractNode.Key.name.name())) {
+                        newName = (String) nodeData.get(AbstractNode.Key.name.name());
+                } else {
+                        newName = "unknown";
+                }
 
 		if (nodeToClone != null) {
 
@@ -78,9 +86,10 @@ public class CloneResourceCommand extends AbstractCommand {
 				@Override
 				public Object execute() throws FrameworkException {
 
-					Resource newResource = (Resource) Services.command(securityContext,
-								       CreateNodeCommand.class).execute(new NodeAttribute(AbstractNode.Key.type.name(),
-									       Resource.class.getSimpleName()));
+					Resource newResource = (Resource) Services.command(securityContext, CreateNodeCommand.class).execute(
+                                                new NodeAttribute(AbstractNode.Key.type.name(), Resource.class.getSimpleName()),
+                                                new NodeAttribute(AbstractNode.Key.name.name(), newName)
+                                                );
 
 					if (newResource != null) {
 						
