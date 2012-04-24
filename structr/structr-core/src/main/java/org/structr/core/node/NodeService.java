@@ -23,6 +23,8 @@ package org.structr.core.node;
 
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.index.impl.lucene.LuceneIndexImplementation;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
@@ -42,7 +44,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.graphdb.Relationship;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -60,12 +61,12 @@ public class NodeService implements SingletonService {
 	private GraphDatabaseService graphDb            = null;
 	private Index<Node> keywordIndex                = null;
 	private NodeFactory nodeFactory                 = null;
+	private Index<Relationship> relFulltextIndex    = null;
+	private Index<Relationship> relKeywordIndex     = null;
+	private Index<Relationship> relUuidIndex        = null;
 	private RelationshipFactory relationshipFactory = null;
 	private Index<Node> userIndex                   = null;
 	private Index<Node> uuidIndex                   = null;
-	private Index<Relationship> relUuidIndex	= null;
-	private Index<Relationship> relFulltextIndex	= null;
-	private Index<Relationship> relKeywordIndex	= null;
 
 	/** Dependent services */
 	private Set<RunnableService> registeredServices = new HashSet<RunnableService>();
@@ -73,6 +74,7 @@ public class NodeService implements SingletonService {
 	//~--- constant enums -------------------------------------------------
 
 	public static enum NodeIndex { uuid, user, keyword, fulltext; }
+
 	public static enum RelationshipIndex { rel_uuid, rel_keyword, rel_fulltext; }
 
 	//~--- methods --------------------------------------------------------
@@ -110,13 +112,8 @@ public class NodeService implements SingletonService {
 
 			logger.log(Level.INFO, "Initializing database ({0}) ...", dbPath);
 
-			Map<String, String> configuration = null;
-
 			try {
-
-				configuration = EmbeddedGraphDatabase.loadConfigurations(dbPath + "/neo4j.conf");
-				graphDb       = new EmbeddedGraphDatabase(dbPath, configuration);
-
+				graphDb = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(dbPath).loadPropertiesFromFile(dbPath + "neo4j.conf").newGraphDatabase();
 			} catch (Throwable t) {
 
 				logger.log(Level.INFO, "Database config {0}/neo4j.conf not found", dbPath);

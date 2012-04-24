@@ -124,7 +124,7 @@ public class ReleaseWriteLock extends NodeServiceCommand {
 
 				if ((lockType == LockType.WRITE) && (graphDb instanceof AbstractGraphDatabase)) {
 
-					((AbstractGraphDatabase) graphDb).getConfig().getLockManager().releaseWriteLock(node, null);
+					((AbstractGraphDatabase) graphDb).getLockManager().releaseWriteLock(node, null);
 
 				}
 

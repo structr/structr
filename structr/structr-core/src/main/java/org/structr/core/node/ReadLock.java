@@ -125,7 +125,7 @@ public class ReadLock extends NodeServiceCommand {
 
 				if ((lockType == LockType.READ) && (graphDb instanceof AbstractGraphDatabase)) {
 
-					((AbstractGraphDatabase) node.getGraphDatabase()).getConfig().getLockManager().getReadLock(node);
+					((AbstractGraphDatabase) node.getGraphDatabase()).getLockManager().getReadLock(node);
 
 				}
 

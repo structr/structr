@@ -124,7 +124,7 @@ public class ReleaseReadLock extends NodeServiceCommand {
 
 				if ((lockType == LockType.READ) && (graphDb instanceof AbstractGraphDatabase)) {
 
-					((AbstractGraphDatabase) graphDb).getConfig().getLockManager().releaseReadLock(node, null);
+					((AbstractGraphDatabase) graphDb).getLockManager().releaseReadLock(node, null);
 
 				}
 
