@@ -47,7 +47,7 @@ public interface Service {
 	 *
 	 * @param context the context
 	 */
-	public void initialize(Map<String, Object> context);
+	public void initialize(Map<String, String> context);
 
 	/**
 	 * Called before the service is discarded. Note that this method will not be called

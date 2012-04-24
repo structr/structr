@@ -91,7 +91,7 @@ public class CloudService extends RunnableNodeService {
 	}
 
 	@Override
-	public void initialize(Map<String, Object> context) {
+	public void initialize(Map<String, String> context) {
 
 		tcpPort = Integer.parseInt(Services.getTcpPort());
 		udpPort = Integer.parseInt(Services.getUdpPort());

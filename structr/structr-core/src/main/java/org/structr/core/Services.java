@@ -74,7 +74,7 @@ public class Services {
 
 	// Network-related constants
 	public static final String SERVER_IP       = "server.ip";
-	public static final String SERVLET_CONTEXT = "servlet.context";
+	public static final String SERVLET_REAL_ROOT_PATH = "servlet.context";
 	public static final String SMTP_HOST       = "smtp.host";
 	public static final String SMTP_PORT       = "smtp.port";
 
@@ -86,7 +86,7 @@ public class Services {
 	public static final String TCP_PORT           = "tcp.port";
 	public static final String TMP_PATH           = "tmp.path";
 	public static final String UDP_PORT           = "udp.port";
-	private static Map<String, Object> context    = null;
+	private static Map<String, String> context    = null;
 	private static final Logger logger            = Logger.getLogger(Services.class.getName());
 
 //      private static final Map<Class, Class> serviceClassCache = new ConcurrentHashMap<Class, Class>(10, 0.9f, 8);
@@ -169,7 +169,7 @@ public class Services {
 		return (command);
 	}
 
-	public static void initialize(Map<String, Object> envContext) {
+	public static void initialize(Map<String, String> envContext) {
 
 		context = envContext;
 		initialize();
@@ -462,20 +462,19 @@ public class Services {
 		return services;
 	}
 
-	public static Map<String, Object> getContext() {
+	public static Map<String, String> getContext() {
 		return context;
 	}
 
-	public static String getConfigValue(Map<String, Object> context, String key, String defaultValue) {
+	public static String getConfigValue(Map<String, String> context, String key, String defaultValue) {
 
-		Object value = context.get(key);
-		String ret   = defaultValue;
+		String value = StringUtils.strip(context.get(key));
 
 		if (value != null) {
-			ret = value.toString();
+			return value;
 		}
 
-		return (ret);
+		return value;
 	}
 
 	public static String getPath(Path path) {
@@ -599,7 +598,7 @@ public class Services {
 	 *   return services;
 	 * }
 	 */
-	public static void setContext(final Map<String, Object> envContext) {
+	public static void setContext(final Map<String, String> envContext) {
 		context = envContext;
 	}
 

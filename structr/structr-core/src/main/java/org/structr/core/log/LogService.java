@@ -199,7 +199,7 @@ public class LogService extends RunnableNodeService {
 	}
 
 	@Override
-	public void initialize(Map<String, Object> context) {
+	public void initialize(Map<String, String> context) {
 
 		// try to parse polling interval, set to default otherwise
 		if (context.containsKey(Services.LOG_SERVICE_INTERVAL)) {

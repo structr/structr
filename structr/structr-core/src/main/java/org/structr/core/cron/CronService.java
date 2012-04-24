@@ -127,7 +127,7 @@ public class CronService extends Thread implements RunnableService {
 	}
 
 	@Override
-	public void initialize(Map<String, Object> context) {
+	public void initialize(Map<String, String> context) {
 
 		String taskList = Services.getConfigValue(context, TASKS, "");
 		String[] tasks = taskList.split("[ \\t]+");

@@ -102,7 +102,7 @@ public class NotificationService implements SingletonService {
 	}
 
 	@Override
-	public void initialize(Map<String, Object> context) {}
+	public void initialize(Map<String, String> context) {}
 
 	@Override
 	public void shutdown() {}

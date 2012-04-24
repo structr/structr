@@ -149,7 +149,7 @@ public class AgentService extends Thread implements RunnableService {
 	}
 
 	@Override
-	public void initialize(Map<String, Object> context) {}
+	public void initialize(Map<String, String> context) {}
 
 	@Override
 	public void shutdown() {}
