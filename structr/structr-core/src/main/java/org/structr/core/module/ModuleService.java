@@ -691,7 +691,7 @@ public class ModuleService implements SingletonService {
 	 */
 	private Module createModuleIndex(String moduleName) throws IOException {
 
-		String libPath = servletContextRealRootPath.concat("WEB-INF/lib");
+		String libPath = servletContextRealRootPath.concat("/WEB-INF/lib");
 
 		if (libPath == null) {
 
@@ -760,7 +760,7 @@ public class ModuleService implements SingletonService {
 		}
 
 		// add entries from WEB-INF/classes
-		File classesDir = new File(servletContextRealRootPath.concat("WEB-INF/classes"));
+		File classesDir = new File(servletContextRealRootPath.concat("/WEB-INF/classes"));
 
 		addClassesRecursively(classesDir, classes);
 
