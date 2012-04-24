@@ -181,7 +181,7 @@ var _Resources = {
                 var authVisible = $('#_authVisible:checked', dialog).val() == 'on';
 
                 if (debug) console.log('start');
-                return _Resources.importPage(this, address, name, timeout, publicVisible, authVisible);
+                return Server.importPage(address, name, timeout, publicVisible, authVisible);
             });
             
         });
@@ -190,57 +190,36 @@ var _Resources = {
         $('#add_resource', previewTabs).on('click', function() {
             var entity = {};
             entity.type = 'Resource';
-            _Entities.create(this, entity);
+            Server.create(entity);
         });
 
-    },
-	
-    importPage : function(button, address, name, timeout, publicVisible, authVisible) {
-        var obj = {};
-        var data = {};
-        obj.command = 'IMPORT';
-        data.address = address;
-        data.name = name;
-        data.timeout = timeout;
-        data.publicVisible = publicVisible;
-        data.authVisible = authVisible;
-        obj.data = data;
-        if (debug) console.log(obj);
-        return sendObj(obj);
     },
 
     refresh : function() {
         resources.empty();
-        if (_Entities.list('Resource')) {
-        //			resources.before('<button class="add_resource_icon button"><img title="Add Resource" alt="Add Resource" src="' + _Resources.add_icon + '"> Add Resource</button>');
-        //			$('.add_resource_icon', main).on('click', function() {
-        //				var entity = {};
-        //				entity.type = 'Resource';
-        //				_Entities.create(this, entity);
-        //			});
-        }
+        return Server.list('Resource');
     },
 
     refreshComponents : function() {
         components.empty();
-        if (_Entities.list('Component')) {
+        if (Server.list('Component')) {
             components.append('<button class="add_component_icon button"><img title="Add Component" alt="Add Component" src="' + _Components.add_icon + '"> Add Component</button>');
             $('.add_component_icon', main).on('click', function() {
                 var entity = {};
                 entity.type = 'Component';
-                _Entities.create(this, entity);
+                Server.create(entity);
             });
         }
     },
 
     refreshElements : function() {
         elements.empty();
-        if (_Entities.list('Element')) {
+        if (Server.list('Element')) {
             elements.append('<button class="add_element_icon button"><img title="Add Element" alt="Add Element" src="' + _Elements.add_icon + '"> Add Element</button>');
             $('.add_element_icon', main).on('click', function() {
                 var entity = {};
                 entity.type = 'Element';
-                _Entities.create(this, entity);
+                Server.create(entity);
             });
         }
     },
@@ -261,7 +240,7 @@ var _Resources = {
         deleteIcon.hide();
         deleteIcon.on('click', function(e) {
             e.stopPropagation();
-            _Resources.deleteResource(this, entity);
+            _Entities.deleteNode(this, entity);
         });
         deleteIcon.on('mouseover', function(e) {
             var self = $(this);
@@ -301,11 +280,6 @@ var _Resources = {
                 } else {
                     _Resources.activateTab(self);
                 }
-            //	    } else if (clicks == 2) {
-            //		self.off('click');
-            //		e.stopPropagation();
-            //		_Resources.resetTab(self);
-            //		window.open(viewRootUrl + name);
             }
         });
 
@@ -361,7 +335,7 @@ var _Resources = {
             //self.off('dblclick');
             var newName = self.val();
             //console.log('new name', $.trim(newName));
-            _Entities.setProperty(getId(element), "name", newName);
+            Server.setProperty(getId(element), "name", newName);
             _Resources.resetTab(element, newName);
         });
         element.off('click');
@@ -387,7 +361,7 @@ var _Resources = {
             var self = $(this);
             self.off('click');
             self.off('mouseover');
-            _Resources.deleteResource(this, entity);
+            _Entities.deleteNode(this, entity);
         });
 
         div.append('<img title="Link resource \'' + entity.name + '\' to current selection" alt="Link resource \'' + entity.name + '\' to current selection" class="link_icon button" src="' + Structr.link_icon + '">');
@@ -406,7 +380,7 @@ var _Resources = {
             var self = $(this);
             self.off('click');
             self.off('mouseover');
-            _Resources.cloneResource(this, entity.id);
+            Server.cloneResource(entity.id);
         });
 
         _Entities.appendEditPropertiesIcon(div, entity);
@@ -530,7 +504,7 @@ var _Resources = {
                         nodeData.tag = (tag != 'content' ? tag : '');
                         nodeData.id = contentId;
                         if (debug) console.log(relData);
-                        _Entities.createAndAdd(elementId, nodeData, relData);
+                        Server.createAndAdd(elementId, nodeData, relData);
                     }
                 });
 
@@ -582,8 +556,8 @@ var _Resources = {
                         if (debug) console.log('delete', entity);
                         var parentId = element.attr('structr_element_id');
 
-                        _Entities.removeSourceFromTarget(entity.id, parentId);
-                        deleteNode(this, entity);
+                        Server.removeSourceFromTarget(entity.id, parentId);
+                        _Entities.deleteNode(this, entity);
                     });
                     var offsetTop = -30;
                     var offsetLeft = 0;
@@ -724,7 +698,7 @@ var _Resources = {
                 var self = $(this);
                 self.off('click');
                 self.off('mouseover');
-                _Entities.removeSourceFromTarget(entity.id, parentId);
+                Server.removeSourceFromTarget(entity.id, parentId);
             });
         }
 
@@ -828,7 +802,7 @@ var _Resources = {
                 }
 
                 console.log('drop event in appendElementElement', elementId, nodeData, relData);
-                _Entities.createAndAdd(elementId, nodeData, relData);
+                Server.createAndAdd(elementId, nodeData, relData);
             }
         });
 
@@ -845,7 +819,7 @@ var _Resources = {
             $('.delete_icon', div).replaceWith('<img title="Remove component \'' + component.name + '\' from resource ' + parentId + '" '
                 + 'alt="Remove component ' + component.name + ' from ' + parentId + '" class="delete_icon button" src="' + _Components.delete_icon + '">');
             $('.delete_icon', div).on('click', function() {
-                _Entities.removeSourceFromTarget(component.id, parentId);
+                Server.removeSourceFromTarget(component.id, parentId);
             });
 
         }
@@ -933,7 +907,7 @@ var _Resources = {
                 }
 
                 console.log('Content or Element dropped on Component', getId(node), nodeData, relData);
-                _Entities.createAndAdd(getId(node), nodeData, relData);
+                Server.createAndAdd(getId(node), nodeData, relData);
             }
         });
 
@@ -953,7 +927,7 @@ var _Resources = {
                 var self = $(this);
                 self.off('click');
                 self.off('mouseover');
-                _Entities.removeSourceFromTarget(content.id, parentId)
+                Server.removeSourceFromTarget(content.id, parentId)
             });
         }
 
@@ -969,152 +943,19 @@ var _Resources = {
         return div;
     },
 
-    addComponentToResource : function(componentId, resourceId) {
-        if (debug) console.log('Resources.appendComponentToResource');
-
-        var resource = $('.' + resourceId + '_');
-        var component = $('.' + componentId + '_', components);
-
-        var existing = $('.' + componentId + '_', resource);
-
-        if (existing.length) return;
-
-        if (debug) console.log(resource, component);
-
-        var div = component.clone();
-        resource.append(div);
-
-        $('.delete_icon', div).replaceWith('<img title="Remove component ' + componentId + ' from resource ' + resourceId + '" '
-            + 'alt="Remove component ' + componentId + ' from resource ' + resourceId + '" class="delete_icon button" src="' + _Components.delete_icon + '">');
-        $('.delete_icon', div).on('click', function() {
-            _Resources.removeComponentFromResource(componentId, resourceId);
-        });
-        //element.draggable('destroy');
-
-        var numberOfComponents = $('.component', resource).size();
-        if (debug) console.log(numberOfComponents);
-        if (numberOfComponents > 0) {
-            disable($('.delete_icon', resource)[0]);
-        }
-
-    },
-
-    addElementToResource : function(elementId, parentId) {
-        if (debug) console.log('Resources.appendElementToResource');
-
-        var parent = $('.' + parentId + '_', resources);
-        var element = $('.' + elementId + '_', elements);
-
-        if (debug) console.log(parent, element);
-        
-        var div = element.clone();
-        parent.append(div);
-
-        $('.delete_icon', div).remove();
-
-        div.append('<img title="Remove element ' + elementId + ' from resource ' + parentId + '" '
-            + 'alt="Remove element ' + elementId + ' from resource ' + parentId + '" class="delete_icon button" src="' + _Elements.delete_icon + '">');
-        $('.delete_icon', div).on('click', function(e) {
-            e.stopPropagation();
-            var self = $(this);
-            self.off('click');
-            self.off('mouseover');
-            _Resources.removeElementFromResource(elementId, parentId);
-        });
-        //element.draggable('destroy');
-	
-        var sorting = false;
-        var obj = {};
-        obj.command = 'SORT';
-
-        div.sortable({
-            sortable: '.node',
-            containment: 'parent',
-            cursor: 'crosshair',
-            axis: 'x',
-            start: function(event, ui) {
-                sorting = true;
-                var resourceId = getId(ui.item.closest('.resource')[0]);
-                obj.id = resourceId;
-            },
-            update: function(event, ui) {
-                console.log('---------')
-                console.log(resourceId);
-                var data = {};
-                $(ui.item).parent().children('.node').each(function(i,v) {
-                    var self = $(this);
-                    console.log(getId(self), i);
-                    data[getId(self)] = i;
-                    obj.data = data;
-                });
-                sendObj(obj);
-                sorting = false;
-                _Resources.reloadPreviews();
-            },
-            stop: function(event, ui) {
-                sorting = false;
-            }
-        });
-
-
-        div.droppable({
-            accept: '.element, .content',
-            greedy: true,
-            hoverClass: 'nodeHover',
-            drop: function(event, ui) {
-
-                console.log('appendElementElement', $(this));
-                var self = $(this);
-                var resource = self.closest( '.resource')[0];
-                if (debug) console.log(resource);
-                var contentId = getId(ui.draggable);
-                var elementId = getId(self);
-
-                if (debug) console.log('Content Id: ' + contentId);
-                if (!contentId) {
-                    var tag = $(ui.draggable).text();
-                }
-
-                var pos = $('.content, .element', $(this)).length;
-                if (debug) console.log(pos);
-                var props;
-                if (resource) {
-                    var resourceId = getId(resource);
-                    props = '"resourceId" : "' + resourceId + '", "' + resourceId + '" : "' + pos + '"';
-                } else {
-                    props = '"*" : "' + pos + '"';
-                }
-
-                if (!contentId) {
-                    props += ', "name" : "New ' + tag + ' ' + Math.floor(Math.random() * (999999 - 1)) + '", "type" : "' + tag.capitalize() + '", "tag" : "' + tag + '"';
-                }
-
-                if (debug) console.log(props);
-                _Entities.createAndAdd(contentId, elementId, props);
-            }
-        });
-
-        var numberOfElements = $('.element', parent).size();
-        if (debug) console.log(numberOfElements);
-        if (numberOfElements > 0) {
-            disable($('.delete_icon', parent)[0]);
-        }
-
-    },
-
     removeComponentFromResource : function(componentId, resourceId) {
         if (debug) console.log('Resources.removeComponentFromResource');
 
         var resource = $('.' + resourceId + '_');
         var component = $('.' + componentId + '_', resource);
-        component.remove();
+        //component.remove();
 
         var numberOfComponents = $('.component', resource).size();
         if (debug) console.log(numberOfComponents);
         if (numberOfComponents == 0) {
             enable($('.delete_icon', resource)[0]);
         }
-        _Entities.removeSourceFromTarget(componentId, resourceId);
+        Server.removeSourceFromTarget(componentId, resourceId);
 
     },
 
@@ -1130,32 +971,32 @@ var _Resources = {
         if (numberOfElements == 0) {
             enable($('.delete_icon', resource)[0]);
         }
-        _Entities.removeSourceFromTarget(elementId, resourceId);
+        Server.removeSourceFromTarget(elementId, resourceId);
 
     },
-
-    addContentToElement : function(contentId, elementId) {
-        if (debug) console.log('Resources.addContentToElement');
-
-        var element = $('.' + elementId + '_');
-        var content = $('.' + contentId + '_').clone();
-
-        element.append(content);
-
-        $('.delete_icon', content).replaceWith('<img title="Remove content ' + contentId + ' from element ' + elementId + '" '
-            + 'alt="Remove content ' + contentId + ' from element ' + elementId + '" class="delete_icon button" src="' + _Contents.delete_icon + '">');
-        $('.delete_icon', content).on('click', function() {
-            _Resources.removeElementFromResource(contentId, elementId)
-        });
-        content.draggable('destroy');
-
-        var numberOfContents = $('.element', element).size();
-        if (debug) console.log(numberOfContents);
-        if (numberOfContents > 0) {
-            disable($('.delete_icon', element)[0]);
-        }
-
-    },
+    //
+    //    addContentToElement : function(contentId, elementId) {
+    //        if (debug) console.log('Resources.addContentToElement');
+    //
+    //        var element = $('.' + elementId + '_');
+    //        var content = $('.' + contentId + '_').clone();
+    //
+    //        //element.append(content);
+    //
+    //        $('.delete_icon', content).replaceWith('<img title="Remove content ' + contentId + ' from element ' + elementId + '" '
+    //            + 'alt="Remove content ' + contentId + ' from element ' + elementId + '" class="delete_icon button" src="' + _Contents.delete_icon + '">');
+    //        $('.delete_icon', content).on('click', function() {
+    //            Server.removeElementFromResource(contentId, elementId)
+    //        });
+    //        content.draggable('destroy');
+    //
+    //        var numberOfContents = $('.element', element).size();
+    //        if (debug) console.log(numberOfContents);
+    //        if (numberOfContents > 0) {
+    //            disable($('.delete_icon', element)[0]);
+    //        }
+    //
+    //    },
 
     removeContentFromElement : function(contentId, elementId) {
 
@@ -1168,40 +1009,28 @@ var _Resources = {
         if (numberOfContents == 0) {
             enable($('.delete_icon', element)[0]);
         }
-        _Entities.removeSourceFromTarget(contentId, elementId);
+        Server.removeSourceFromTarget(contentId, elementId);
 
     },
 
-    cloneResource : function(button, resourceId) {
-        var obj = {};
-        obj.command = 'CLONE';
-        obj.id = resourceId
-        return sendObj(obj);
-    },
-	
     addResource : function(button) {
         var entity = {};
         entity.type = 'Resource';
-        return _Entities.create(button, entity);
+        return Server.create(button, entity);
     },
 
     addComponent : function(button) {
         var entity = {};
         entity.type = 'Component';
-        return _Entities.create(button, entity);
+        return Server.create(button, entity);
     },
 
     addElement : function(button) {
         var entity = {};
         entity.type = 'Element';
-        return _Entities.create(button, entity);
+        return Server.create(button, entity);
     },
 	
-    deleteResource : function(button, resource) {
-        if (debug) console.log('delete resource ' + resource);
-        deleteNode(button, resource);
-    },
-
     showSubEntities : function(resourceId, entity) {
         var headers = {
             'X-StructrSessionToken' : token

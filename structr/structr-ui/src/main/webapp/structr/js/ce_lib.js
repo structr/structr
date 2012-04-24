@@ -76,21 +76,6 @@ function deleteAll(button, type, callback) {
     });
 }
 
-function deleteNode(button, entity) {
-    buttonClicked = button;
-    if (isDisabled(button)) return;
-    console.log('deleteNode');
-    var con = Structr.confirmation('Delete ' + entity.type.toLowerCase() + ' \'' + entity.name + '\' <span class="id">' + entity.id + '</span>?', function() {
-        //	var toSend = '{ "command" : "DELETE" , "id" : "' + entity.id + '", "data" : { "callback" : "' + callback + '" } }';
-        var toSend = '{ "command" : "DELETE" , "id" : "' + entity.id + '" }';
-        //console.log(toSend);
-        if (send(toSend)) {
-            disable(button);
-            $.unblockUI({ fadeOut: 25 });
-        }
-    });
-}
-
 function isDisabled(button) {
     return $(button).data('disabled');
 }

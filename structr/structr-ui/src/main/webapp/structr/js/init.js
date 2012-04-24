@@ -242,7 +242,7 @@ var Structr = {
 	    if (module) {
 		module.init();
 		module.onload();
-		module.resize();
+		if (module.resize) module.resize();
 	    }
 	}
     },
@@ -482,10 +482,9 @@ var Structr = {
 	    } else {
 		parent = $('div.' + parentId + '_');
 	    }
-	} else {
-	    parent = defaultElement;
 	}
-		
+
+        if (!parent) parent = defaultElement;
 	if (debug) console.log(parent);
 
 	return parent;

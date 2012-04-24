@@ -122,8 +122,8 @@ var _Elements = {
     onload : function() {
         if (debug) console.log('onload');
         elements = $('#elements', main);
-        _Elements.refresh();
-        _Elements.showPalette();
+//        _Elements.refresh();
+//        _Elements.showPalette();
     },
 
     showPalette : function() {
@@ -143,18 +143,12 @@ var _Elements = {
             });
 
         });
-
-    //        header.on('click', function() {
-    //            console.log('slide palette down');
-    //            palette.slideToggle('fast');
-    //        });
-
     },
     
     refresh : function() {
         elements.empty();
 
-        if (_Entities.list('Element')) {
+        if (Server.list('Element')) {
             elements.append('<button class="add_element_icon button"><img title="Add Element" alt="Add Element" src="' + _Elements.add_icon + '"> Add Element</button>');
 
             $('.add_element_icon', main).on('click', function() {
@@ -172,7 +166,7 @@ var _Elements = {
                         var entity = {};
                         entity.type = v.capitalize();
                         entity.tag = v;
-                        _Elements.create(button, entity);
+                        Server.create(entity);
                         list.remove();
                     });
                 });
@@ -260,7 +254,7 @@ var _Elements = {
 
     deleteElement : function(button, element) {
         if (debug) console.log('delete element ' + element);
-        deleteNode(button, element);
+        _Entities.deleteNode(button, element);
     }
 
 };

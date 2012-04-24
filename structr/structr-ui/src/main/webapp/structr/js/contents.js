@@ -51,7 +51,7 @@ var _Contents = {
             $('.add_content_icon', main).on('click', function() {
                 var entity = {};
                 entity.type = 'Content';
-                _Entities.create(this, entity);
+                Server.create(entity);
             });
         }
     },
@@ -68,7 +68,7 @@ var _Contents = {
             });
         }
 
-        return _Entities.list('Content');
+        return Server.list('Content');
     },
 
     appendContentElement : function(content, parentId, resourceId) {
@@ -78,16 +78,18 @@ var _Contents = {
 
         //	var abbrContent = (content.content ? content.content.substring(0,36) + '&hellip;': '&nbsp;');
 
+        var nameOrContent = content.content ? content.content : content.name;
+
         parent.append('<div class="node content ' + content.id + '_">'
             + '<img class="typeIcon" src="'+ _Contents.icon + '">'
-            + '<div class="content_">' + content.content + '</div> <span class="id">' + content.id + '</span>'
+            + '<div class="content_">' + nameOrContent + '</div> <span class="id">' + content.id + '</span>'
             //	    + '<b class="content_">' + content.content + '</b>'
             + '</div>');
         var div = $('.' + content.id + '_', parent);
 
         div.append('<img title="Delete content \'' + content.name + '\'" alt="Delete content \'' + content.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
         $('.delete_icon', div).on('click', function() {
-            _Contents.deleteContent(this, content);
+            _Entities.deleteNode(this, content);
         });
 
         div.append('<img title="Edit ' + content.name + ' [' + content.id + ']" alt="Edit ' + content.name + ' [' + content.id + ']" class="edit_icon button" src="icon/pencil.png">');
@@ -103,33 +105,6 @@ var _Contents = {
         _Entities.appendEditPropertiesIcon(div, content);
 
         return div;
-    },
-
-    deleteContent : function(button, content) {
-        if (debug) console.log('delete content ' + content);
-        deleteNode(button, content);
-    },
-	
-    patch : function(id, text1, text2) {
-        if (debug) console.log(text1, text2);
-
-        // Avoid null values
-        if (!text1) text1 = '';
-        if (!text2) text2 = '';
-
-        var p = dmp.patch_make(text1, text2);
-        var strp = dmp.patch_toText(p);
-        if (debug) console.log(strp, $.quoteString(strp));
-
-        var obj = {};
-        obj.command = 'PATCH';
-        obj.id = id;
-        var data = {};
-        data.patch = strp;
-        obj.data = data;
-
-        if (debug) console.log(obj);
-        return sendObj(obj);
     },
 
     editContent : function (button, entity, view, element) {
@@ -155,7 +130,7 @@ var _Contents = {
                 editorCursor = cm.getCursor();
                 if (debug) console.log(editorCursor);
 				
-                _Contents.patch(entity.id, text1, text2);
+                Server.patch(entity.id, text1, text2);
 				
             }
         });

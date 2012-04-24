@@ -131,22 +131,22 @@ var _Files = {
 		return false;
 	    });
 	}
-	_Entities.list('File');
+	Server.list('File');
     },
 	
     refreshImages : function() {
 	images.empty();
-	_Entities.list('Image');
+	Server.list('Image');
     },
 	
     refreshFolders : function() {
 	folders.empty();
-	if (_Entities.list('Folder')) {
+	if (Server.list('Folder')) {
 	    folders.append('<button class="add_folder_icon button"><img title="Add Folder" alt="Add Folder" src="' + _Files.add_folder_icon + '"> Add Folder</button>');
 	    $('.add_folder_icon', main).on('click', function() {
 		var entity = {};
 		entity.type = 'Folder';
-		_Entities.create(this, entity);
+		Server.create(entity);
 	    });
 	}
     },
@@ -264,14 +264,6 @@ var _Files = {
     },
 		
     appendFolderElement : function(folder, parentId) {
-	//        var parent;
-	//        if (debug) console.log(parentId);
-	//        if (parentId) {
-	//            parent = $('.' + parentId + '_');
-	//            if (debug) console.log(parent);
-	//        } else {
-	//            parent = folders;
-	//        }
 		
 	if (debug) console.log('Folder: ', folder);
 	var parent = Structr.findParent(parentId, null, folders);
@@ -281,14 +273,10 @@ var _Files = {
 	    + '<b class="name_">' + folder.name + '</b> <span class="id">' + folder.id + '</span>'
 	    + '</div>');
 	var div = $('.' + folder.id + '_', parent);
-	div.append('<img title="Delete content \'' + folder.name + '\'" alt="Delete content \'' + folder.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
+	div.append('<img title="Delete Content \'' + folder.name + '\'" alt="Delete Content \'' + folder.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
 	$('.delete_icon', div).on('click', function() {
 	    _Files.deleteFolder(this, folder);
 	});
-	//        div.append('<img class="add_icon button" title="Add Element" alt="Add Element" src="icon/add.png">');
-	//        $('.add_icon', div).on('click', function() {
-	//            Resources.addElement(this, resource);
-	//        });
 
 	div.droppable({
 	    accept: '.file, .image',
@@ -299,7 +287,7 @@ var _Files = {
 		var folderId = getId($(this));
 		var nodeData = {};
 		nodeData.id = fileId;
-		_Entities.createAndAdd(folderId, nodeData);
+		Server.createAndAdd(folderId, nodeData);
 	    }
 	});
 
@@ -310,49 +298,49 @@ var _Files = {
 	return div;
     },
 	
-    addFileToFolder : function(fileId, folderId) {
-
-	var folder = $('.' + folderId + '_');
-	var file = $('.' + fileId + '_');
-
-	folder.append(file);
-
-	$('.delete_icon', file).replaceWith('<img title="Remove file ' + fileId + ' from folder ' + folderId + '" '
-	    + 'alt="Remove file ' + fileId + ' from folder ' + folderId + '" class="delete_icon button" src="' + _Files.delete_file_icon + '">');
-	$('.delete_icon', file).on('click', function() {
-	    _Files.removeFileFromFolder(fileId, folderId)
-	});
-	file.draggable('destroy');
-
-	var numberOfFiles = $('.file', folder).size();
-	if (debug) console.log(numberOfFiles);
-	if (numberOfFiles > 0) {
-	    disable($('.delete_icon', folder)[0]);
-	}
-
-    },
-
-    addImageToFolder : function(imageId, folderId) {
-
-	var folder = $('.' + folderId + '_');
-	var image = $('.' + imageId + '_');
-
-	folder.append(image);
-
-	$('.delete_icon', image).replaceWith('<img title="Remove image ' + imageId + ' from folder ' + folderId + '" '
-	    + 'alt="Remove image ' + imageId + ' from folder ' + folderId + '" class="delete_icon button" src="' + _Files.delete_file_icon + '">');
-	$('.delete_icon', image).on('click', function() {
-	    _Files.removeImageFromFolder(imageId, folderId)
-	});
-	image.draggable('destroy');
-
-	var numberOfImages = $('.image', folder).size();
-	if (debug) console.log(numberOfImages);
-	if (numberOfImages > 0) {
-	    disable($('.delete_icon', folder)[0]);
-	}
-
-    },
+//    appendFileToFolder : function(fileId, folderId) {
+//
+//	var folder = $('.' + folderId + '_');
+//	var file = $('.' + fileId + '_');
+//
+//	folder.append(file);
+//
+//	$('.delete_icon', file).replaceWith('<img title="Remove file ' + fileId + ' from folder ' + folderId + '" '
+//	    + 'alt="Remove file ' + fileId + ' from folder ' + folderId + '" class="delete_icon button" src="' + _Files.delete_file_icon + '">');
+//	$('.delete_icon', file).on('click', function() {
+//	    _Files.removeFileFromFolder(fileId, folderId)
+//	});
+//	file.draggable('destroy');
+//
+//	var numberOfFiles = $('.file', folder).size();
+//	if (debug) console.log(numberOfFiles);
+//	if (numberOfFiles > 0) {
+//	    disable($('.delete_icon', folder)[0]);
+//	}
+//
+//    },
+//
+//    appendImageToFolder : function(imageId, folderId) {
+//
+//	var folder = $('.' + folderId + '_');
+//	var image = $('.' + imageId + '_');
+//
+//	folder.append(image);
+//
+//	$('.delete_icon', image).replaceWith('<img title="Remove image ' + imageId + ' from folder ' + folderId + '" '
+//	    + 'alt="Remove image ' + imageId + ' from folder ' + folderId + '" class="delete_icon button" src="' + _Files.delete_file_icon + '">');
+//	$('.delete_icon', image).on('click', function() {
+//	    _Files.removeImageFromFolder(imageId, folderId)
+//	});
+//	image.draggable('destroy');
+//
+//	var numberOfImages = $('.image', folder).size();
+//	if (debug) console.log(numberOfImages);
+//	if (numberOfImages > 0) {
+//	    disable($('.delete_icon', folder)[0]);
+//	}
+//
+//    },
 
     removeFileFromFolder : function(fileId, folderId) {
 
@@ -379,7 +367,7 @@ var _Files = {
 	}
 
 	if (debug) console.log('removeFileFromFolder: fileId=' + fileId + ', folderId=' + folderId);
-	_Entities.removeSourceFromTarget(fileId, folderId);
+	Server.removeSourceFromTarget(fileId, folderId);
     },
     
     removeImageFromFolder : function(imageId, folderId) {
@@ -407,28 +395,27 @@ var _Files = {
 	}
 
 	if (debug) console.log('removeImageFromFolder: imageId=' + imageId + ', folderId=' + folderId);
-	_Entities.removeSourceFromTarget(imageId, folderId);
+	Server.removeSourceFromTarget(imageId, folderId);
     },
     
     deleteFolder : function(button, folder) {
 	if (debug) console.log('delete folder ' + folder);
-	deleteNode(button, folder);
+	_Entities.deleteNode(button, folder);
     },
 
     deleteFile : function(button, file) {
 	if (debug) console.log('delete file ' + file);
-	deleteNode(button, file);
+	_Entities.deleteNode(button, file);
     },
 
     createFile : function(fileObj) {
 	var entity = {};
+	if (debug) console.log(fileObj);
 	entity.contentType = fileObj.type;
-	console.log(fileObj);
 	entity.name = fileObj.name;
 	entity.size = fileObj.size;
 	entity.type = isImage(entity.contentType) ? 'Image' : 'File';
-	_Entities.create(null, entity);
-
+	Server.create(entity);
     },
 
     uploadFile : function(file) {

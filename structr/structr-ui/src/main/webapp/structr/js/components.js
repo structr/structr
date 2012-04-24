@@ -50,24 +50,24 @@ var _Components = {
     
     refresh : function() {
 	components.empty();
-	if (_Entities.list('Component')) {
+	if (Server.list('Component')) {
 	    components.append('<button class="add_component_icon button"><img title="Add Component" alt="Add Component" src="' + _Components.add_icon + '"> Add Component</button>');
 	    $('.add_component_icon', main).on('click', function() {
 		var entity = {};
 		entity.type = 'Component';
-		_Entities.create(this, entity);
+		Server.create(entity);
 	    });
 	}
     },
 
     refreshElements : function() {
 	elements.empty();
-	if (_Entities.list('Element')) {
+	if (Server.list('Element')) {
 	    elements.append('<button class="add_element_icon button"><img title="Add Element" alt="Add Element" src="' + _Elements.add_icon + '"> Add Element</button>');
 	    $('.add_element_icon', main).on('click', function() {
 		var entity = {};
 		entity.type = 'Element';
-		_Entities.create(this, entity);
+		Server.create(entity);
 	    });
 	}
     },
@@ -112,7 +112,7 @@ var _Components = {
 		nodeData.id = elementId;
 		var relData = {};
 		relData[resourceId] = pos;
-		_Entities.createAndAdd(resourceId, nodeData, relData);
+		Server.createAndAdd(resourceId, nodeData, relData);
 	    }
 	});
 
@@ -129,7 +129,7 @@ var _Components = {
 	    div.append('<img title="Remove element \'' + element.name + '\' from resource ' + parentId + '" '
 		+ 'alt="Remove element ' + element.name + ' from ' + parentId + '" class="delete_icon button" src="icon/brick_delete.png">');
 	    $('.delete_icon', div).on('click', function() {
-		_Entities.removeSourceFromTarget(element.id, parentId);
+		Server.removeSourceFromTarget(element.id, parentId);
 	    });
 	}
 	//        var elements = element.children;
@@ -168,7 +168,7 @@ var _Components = {
 		relData[resourceId] = pos;
 		var nodeData = {};
 		nodeData.id = contentId;
-		_Entities.createAndAdd(elementId, nodeData, relData);
+		Server.createAndAdd(elementId, nodeData, relData);
 	    }
 	});
 
@@ -177,7 +177,7 @@ var _Components = {
 
     deleteComponent : function(button, component) {
 	if (debug) console.log('delete component', component);
-	deleteNode(button, component);
+	_Entities.deleteNode(button, component);
     },
 
     createForm : function(button, component) {
@@ -205,7 +205,7 @@ var _Components = {
 
 	var parentId = getId(parentElement);
 
-	_Entities.createAndAdd(parentId, form, rel);
+	Server.createAndAdd(parentId, form, rel);
 
     }
 
