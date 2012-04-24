@@ -45,12 +45,12 @@ public class ApplicationContextListener implements ServletContextListener, HttpS
     public void contextInitialized(ServletContextEvent sce) {
         logger.log(Level.INFO, "Servlet context created");
 
-        Map<String, Object> context = new ConcurrentHashMap<String, Object>(20, 0.9f, 8);
+        Map<String, String> context = new ConcurrentHashMap<String, String>(20, 0.9f, 8);
         ServletContext servletContext = sce.getServletContext();
 
         String configFilePath = servletContext.getInitParameter(Services.CONFIG_FILE_PATH);
         context.put(Services.CONFIG_FILE_PATH, configFilePath);
-        context.put(Services.SERVLET_CONTEXT, servletContext);
+        context.put(Services.SERVLET_REAL_ROOT_PATH, servletContext.getRealPath("/"));
 
         try {
             // load config file
