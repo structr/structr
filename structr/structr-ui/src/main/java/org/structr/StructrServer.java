@@ -3,6 +3,7 @@ package org.structr;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.RandomStringUtils;
 
 import org.eclipse.jetty.server.Connector;
 
@@ -39,7 +40,6 @@ import java.io.File;
 import java.util.*;
 
 import javax.servlet.DispatcherType;
-import org.apache.commons.lang.RandomStringUtils;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -208,7 +208,7 @@ public class StructrServer {
 			config.add("smtp.host = localhost");
 			config.add("smtp.port = 25");
 			config.add("superuser.username = superadmin");
-			config.add("superuser.password = " + RandomStringUtils.randomAlphanumeric(12)); // Intentionally, no default password here
+			config.add("superuser.password = " + RandomStringUtils.randomAlphanumeric(12));    // Intentionally, no default password here
 			config.add("configured.services = ModuleService NodeService AgentService");
 
 			// don't start cron service without config file

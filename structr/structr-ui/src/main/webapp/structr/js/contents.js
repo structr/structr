@@ -20,147 +20,147 @@
 var contents, editor;
 
 $(document).ready(function() {
-	Structr.registerModule('contents', _Contents);
-	Structr.classes.push('content');
+    Structr.registerModule('contents', _Contents);
+    Structr.classes.push('content');
 });
 
 var _Contents = {
 
-	icon : 'icon/page_white.png',
-	add_icon : 'icon/page_white_add.png',
-	delete_icon : 'icon/page_white_delete.png',
+    icon : 'icon/page_white.png',
+    add_icon : 'icon/page_white_add.png',
+    delete_icon : 'icon/page_white_delete.png',
 	
-	init : function() {
-	//Structr.classes.push('content');
-	},
+    init : function() {
+    //Structr.classes.push('content');
+    },
 
-	onload : function() {
-		if (debug) console.log('onload');
-		if (palette) palette.remove();
-		main.append('<div id="contents"></div>');
+    onload : function() {
+        if (debug) console.log('onload');
+        if (palette) palette.remove();
+        main.append('<div id="contents"></div>');
 
-		contents = $('#contents');
-		_Contents.refresh();
-		contents.show();
-	},
+        contents = $('#contents');
+        _Contents.refresh();
+        contents.show();
+    },
 
-	refresh : function() {
-		contents.empty();
-		if (_Contents.show()) {
-			contents.append('<button class="add_content_icon button"><img title="Add Content" alt="Add Content" src="' + _Contents.add_icon + '"> Add Content</button>');
-			$('.add_content_icon', main).on('click', function() {
-				var entity = {};
-				entity.type = 'Content';
-				_Entities.create(this, entity);
-			});
-		}
-	},
+    refresh : function() {
+        contents.empty();
+        if (_Contents.show()) {
+            contents.append('<button class="add_content_icon button"><img title="Add Content" alt="Add Content" src="' + _Contents.add_icon + '"> Add Content</button>');
+            $('.add_content_icon', main).on('click', function() {
+                var entity = {};
+                entity.type = 'Content';
+                _Entities.create(this, entity);
+            });
+        }
+    },
 
-	show : function() {
-		if (palette) {
-			palette.children().first().before('<div class="elementGroup"><h3>Content</h3><div class="draggable content" id="add_content">content</div></div>');
-			$('#add_content', palette).draggable({
-				iframeFix: true,
-				revert: 'invalid',
-				containment: 'body',
-				zIndex: 1,
-				helper: 'clone'
-			});
-		}
+    show : function() {
+        if (palette) {
+            palette.children().first().before('<div class="elementGroup"><h3>Content</h3><div class="draggable content" id="add_content">content</div></div>');
+            $('#add_content', palette).draggable({
+                iframeFix: true,
+                revert: 'invalid',
+                containment: 'body',
+                zIndex: 1,
+                helper: 'clone'
+            });
+        }
 
-		return _Entities.list('Content');
-	},
+        return _Entities.list('Content');
+    },
 
-	appendContentElement : function(content, parentId, resourceId) {
-		if (debug) console.log('Contents.appendContentElement: parentId: ' + parentId + ', resourceId: ' + resourceId);
+    appendContentElement : function(content, parentId, resourceId) {
+        if (debug) console.log('Contents.appendContentElement: parentId: ' + parentId + ', resourceId: ' + resourceId);
 
-		var parent = Structr.findParent(parentId, resourceId, contents);
+        var parent = Structr.findParent(parentId, resourceId, contents);
 
-		//	var abbrContent = (content.content ? content.content.substring(0,36) + '&hellip;': '&nbsp;');
+        //	var abbrContent = (content.content ? content.content.substring(0,36) + '&hellip;': '&nbsp;');
 
-		parent.append('<div class="node content ' + content.id + '_">'
-			+ '<img class="typeIcon" src="'+ _Contents.icon + '">'
-			+ '<div class="content_">' + content.content + '</div> <span class="id">' + content.id + '</span>'
-			//	    + '<b class="content_">' + content.content + '</b>'
-			+ '</div>');
-		var div = $('.' + content.id + '_', parent);
+        parent.append('<div class="node content ' + content.id + '_">'
+            + '<img class="typeIcon" src="'+ _Contents.icon + '">'
+            + '<div class="content_">' + content.content + '</div> <span class="id">' + content.id + '</span>'
+            //	    + '<b class="content_">' + content.content + '</b>'
+            + '</div>');
+        var div = $('.' + content.id + '_', parent);
 
-		div.append('<img title="Delete content \'' + content.name + '\'" alt="Delete content \'' + content.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
-		$('.delete_icon', div).on('click', function() {
-			_Contents.deleteContent(this, content);
-		});
+        div.append('<img title="Delete content \'' + content.name + '\'" alt="Delete content \'' + content.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
+        $('.delete_icon', div).on('click', function() {
+            _Contents.deleteContent(this, content);
+        });
 
-		div.append('<img title="Edit ' + content.name + ' [' + content.id + ']" alt="Edit ' + content.name + ' [' + content.id + ']" class="edit_icon button" src="icon/pencil.png">');
-		$('.edit_icon', div).on('click', function() {
-			Structr.dialog('Edit content of ' + content.id, function() {
-				console.log('content saved')
-			}, function() {
-				console.log('cancelled')
-			});
-			_Contents.editContent(this, content, 'all', $('#dialogBox .dialogText'));
-		});
+        div.append('<img title="Edit ' + content.name + ' [' + content.id + ']" alt="Edit ' + content.name + ' [' + content.id + ']" class="edit_icon button" src="icon/pencil.png">');
+        $('.edit_icon', div).on('click', function() {
+            Structr.dialog('Edit content of ' + content.id, function() {
+                console.log('content saved')
+            }, function() {
+                console.log('cancelled')
+            });
+            _Contents.editContent(this, content, 'all', $('#dialogBox .dialogText'));
+        });
 
-		_Entities.appendEditPropertiesIcon(div, content);
+        _Entities.appendEditPropertiesIcon(div, content);
 
-		return div;
-	},
+        return div;
+    },
 
-	deleteContent : function(button, content) {
-		if (debug) console.log('delete content ' + content);
-		deleteNode(button, content);
-	},
+    deleteContent : function(button, content) {
+        if (debug) console.log('delete content ' + content);
+        deleteNode(button, content);
+    },
 	
-	patch : function(id, text1, text2) {
-		if (debug) console.log(text1, text2);
+    patch : function(id, text1, text2) {
+        if (debug) console.log(text1, text2);
 
-		// Avoid null values
-		if (!text1) text1 = '';
-		if (!text2) text2 = '';
+        // Avoid null values
+        if (!text1) text1 = '';
+        if (!text2) text2 = '';
 
-		var p = dmp.patch_make(text1, text2);
-		var strp = dmp.patch_toText(p);
-		if (debug) console.log(strp, $.quoteString(strp));
+        var p = dmp.patch_make(text1, text2);
+        var strp = dmp.patch_toText(p);
+        if (debug) console.log(strp, $.quoteString(strp));
 
-		var obj = {};
-		obj.command = 'PATCH';
-		obj.id = id;
-		var data = {};
-		data.patch = strp;
-		obj.data = data;
+        var obj = {};
+        obj.command = 'PATCH';
+        obj.id = id;
+        var data = {};
+        data.patch = strp;
+        obj.data = data;
 
-		if (debug) console.log(obj);
-		return sendObj(obj);
-	},
+        if (debug) console.log(obj);
+        return sendObj(obj);
+    },
 
-	editContent : function (button, entity, view, element) {
-		if (isDisabled(button)) return;
-		var div = element.append('<div class="editor"></div>');
-		if (debug) console.log(div);
-		var contentBox = $('.editor', element);
-		editor = CodeMirror(contentBox.get(0), {
-			value: unescapeTags(entity.content),
-			mode:  "htmlmixed",
-			lineNumbers: true,
-			onChange: function(cm, changes) {
+    editContent : function (button, entity, view, element) {
+        if (isDisabled(button)) return;
+        var div = element.append('<div class="editor"></div>');
+        if (debug) console.log(div);
+        var contentBox = $('.editor', element);
+        editor = CodeMirror(contentBox.get(0), {
+            value: unescapeTags(entity.content),
+            mode:  "htmlmixed",
+            lineNumbers: true,
+            onChange: function(cm, changes) {
 				
-				var element = $( '.' + entity.id + '_')[0];
-				var text1 = $(element).children('.content_').text();
-				var text2 = editor.getValue();
+                var element = $( '.' + entity.id + '_')[0];
+                var text1 = $(element).children('.content_').text();
+                var text2 = editor.getValue();
 				
-				if (debug) console.log('Element', element);
-				if (debug) console.log('text1', text1);
-				if (debug) console.log('text2', text2);
+                if (debug) console.log('Element', element);
+                if (debug) console.log('text1', text1);
+                if (debug) console.log('text2', text2);
 
-				if (text1 == text2) return;
-				editorCursor = cm.getCursor();
-				if (debug) console.log(editorCursor);
+                if (text1 == text2) return;
+                editorCursor = cm.getCursor();
+                if (debug) console.log(editorCursor);
 				
-				_Contents.patch(entity.id, text1, text2);
+                _Contents.patch(entity.id, text1, text2);
 				
-			}
-		});
+            }
+        });
 
-		editor.id = entity.id;
+        editor.id = entity.id;
 
-	}
+    }
 };

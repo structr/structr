@@ -706,7 +706,7 @@ function removeExpandedNode(id, parentId, resourceId) {
 	Structr.expanded[resourceId] = expandedIds;
     }
 
-    expandedIds[id] = false;
+    delete expandedIds[id];
 
 }
 
