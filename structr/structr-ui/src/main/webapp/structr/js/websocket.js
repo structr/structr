@@ -135,7 +135,6 @@ function connect() {
 			$('#errorBox .errorMsg').html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
 		    }
 
-                    
 		}
 
 	    } else if (command == 'TREE') { /*********************** TREE ************************/
@@ -203,7 +202,7 @@ function connect() {
 		if (debug) console.log('CHILDREN:', parentId, resourceId);
 
 		$(result).each(function(i, child) {
-		    console.log('CHILDREN: ' + child.type);
+		    console.log('CHILDREN: ', child);
 		    _Entities.appendObj(child, data.id, resourceId);
 		});
 
@@ -282,140 +281,11 @@ function connect() {
 		var resourceId = data.data.resourceId;
 				
 		$(result).each(function(i, entity) {
-
 		    console.log('CREATE', entity);
-
                     _Entities.appendObj(entity, parentId, resourceId);
-
-//		    if (entity.type == 'User') {
-//
-//			groupId = entity.groupId;
-//			if (groupId) {
-//			    _UsersAndGroups.appendUserElement(entity, groupId);
-//			} else {
-//			    _UsersAndGroups.appendUserElement(entity);
-//			}
-//			disable($('.' + groupId + '_ .delete_icon')[0]);
-//			if (buttonClicked) enable(buttonClicked);
-//
-//		    } else if (entity.type == 'Group') {
-//
-//			_UsersAndGroups.appendGroupElement(entity);
-//			if (debug) console.log('Group element appended');
-//			if (buttonClicked) enable(buttonClicked);
-//
-//		    } else if (entity.type == 'Resource') {
-//
-//			_Resources.appendResourceElement(entity);
-//			var tab = $('#show_' + entity.id, previews);
-//			_Resources.activateTab(tab);
-//			//_Resources.reloadPreviews();
-//			if (debug) console.log('Resource element appended');
-//			if (buttonClicked) enable(buttonClicked);
-//
-//		    } else if (entity.type == 'Component') {
-//			if (resources) {
-//			    _Resources.appendComponentElement(entity);
-//			} else {
-//			    _Components.appendComponentElement(entity);
-//			}
-//			if (debug) console.log('Component element appended');
-//			if (buttonClicked) enable(buttonClicked);
-//
-//		    } else if (entity.type == 'Content') {
-//
-//			console.log("Content", resources);
-//
-//			if (resources) {
-//			    _Resources.appendContentElement(entity);
-//			} else {
-//			    _Contents.appendContentElement(entity);
-//			}
-//			if (debug) console.log('Content element appended');
-//			if (buttonClicked) enable(buttonClicked);
-//
-//		    } else if (entity.type == 'Folder') {
-//
-//			_Files.appendFolderElement(entity);
-//			if (debug) console.log('Folder element appended');
-//			if (buttonClicked) enable(buttonClicked);
-//
-//		    } else if (entity.type == 'File') {
-//
-//			_Files.uploadFile(entity);
-//			_Files.appendFileElement(entity);
-//			if (debug) console.log('File uploaded');
-//			if (buttonClicked) enable(buttonClicked);
-//						
-//		    } else if (entity.type == 'Image') {
-//
-//			_Files.uploadFile(entity);
-//			_Files.appendImageElement(entity);
-//			if (debug) console.log('Image uploaded');
-//			if (buttonClicked) enable(buttonClicked);
-//		    } else {
-//			if (resources) {
-//			    _Resources.appendElementElement(entity);
-//			} else {
-//			    _Elements.appendElementElement(entity);
-//			}
-//			if (debug) console.log('Element element appended');
-//			if (buttonClicked) enable(buttonClicked);
-//		    }
 		});
 
 		_Resources.reloadPreviews();
-
-//	    } else if (command == 'ADD') { /*********************** ADD ************************/
-//
-//		console.log('ADD', data);
-//
-//		if (debug) console.log('ADD tag', data.data.tag);
-//		parentId = data.id;
-//		entityId = data.data.id;
-//		var resourceId = data.data.resourceId;
-//
-//		parent = $('.' + parentId + '_');
-//		entity = $('.' + entityId + '_');
-//		//                entity = Structr.entity(entityId, parentId);
-//
-//		parent.id = parentId;
-//		entity.css('left', 0);
-//		entity.css('top', 0);
-//		entity.id = entityId;
-//
-//
-//		if (debug) console.log('entity, parent');
-//		if (debug) console.log(entity, parent);
-//
-//		//parent.append(entity);
-//                _Entities.appendObj(entity, parentId, resourceId);
-//                
-////		if (entity.hasClass('user')) {
-////		    _UsersAndGroups.appendUserToGroup(entityId, parentId);
-////
-////		} else if (entity.hasClass('component')) {
-////		    _Resources.appendComponentElement(entity, parentId, resourceId);
-////		    _Resources.reloadPreviews();
-////
-////		} else if (entity.hasClass('element')) {
-////		    //                    _Resources.addElementToResource(entityId, parentId);
-////		    entity.tag = data.data.tag;
-////		    _Resources.appendElementElement(entity, parentId, resourceId);
-////		    _Resources.reloadPreviews();
-////
-////		} else if (entity.hasClass('content')) {
-////		    //_Resources.addContentToElement(entityId, parentId);
-////		    _Resources.appendContentElement(entity, parentId, resourceId);
-////		    _Resources.reloadPreviews();
-////
-////		} else if (entity.hasClass('file')) {
-////		    _Files.appendFileElement(entity, parentId);
-////		    //_Files.appendFileToFolder(entityId, parentId);
-////
-////		} else if (entity.hasClass('image')) {
-////		    _Files.appendImageElement(entity, parentId);
-////		}
 
 	    } else if (command == 'UPDATE') { /*********************** UPDATE ************************/
 		var element = $( '.' + data.id + '_');

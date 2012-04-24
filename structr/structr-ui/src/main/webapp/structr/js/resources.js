@@ -256,7 +256,14 @@ var _Resources = {
     resetTab : function(element, name) {
 
         if (debug) console.log('resetTab', element);
-
+        
+//        var id = getId(element);
+//        activeTab = id;
+//
+//        var iframe = $('#preview_' + id);
+//        iframe.attr('src', viewRootUrl + name + '?edit');
+//        _Resources.reloadPreviews();
+        
         element.children('input').hide();
         element.children('.name_').show();
         
@@ -679,7 +686,7 @@ var _Resources = {
                             if (debug) console.log(self.contents().first());
                             if (debug) console.log('blur contentSourceId: ' + contentSourceId);
                             //_Resources.updateContent(contentSourceId, textBeforeEditing, self.contents().first().text());
-                            _Contents.patch(contentSourceId, textBeforeEditing, self.contents().first().text());
+                            Server.patch(contentSourceId, textBeforeEditing, self.contents().first().text());
                             contentSourceId = null;
                             self.attr('contenteditable', false);
                             self.removeClass('structr-editable-area-active');
@@ -767,7 +774,9 @@ var _Resources = {
                 }
                 var self = $(this);
                 var nodeData = {};
-
+                var resourceId;
+                var relData = {};
+				
                 var resource = self.closest('.resource')[0];
 
                 if (debug) console.log(resource);
@@ -783,13 +792,17 @@ var _Resources = {
                 console.log($(ui.draggable));
                 var pos = $('.node', self).length;
                 if (debug) console.log(pos);
-                var relData = {};
+
                 if (resource) {
-                    var resourceId = getId(resource);
+                    resourceId = getId(resource);
                     relData.resourceId = resourceId;
                     relData[resourceId] = pos;
                 } else {
                     relData['*'] = pos;
+                }
+				
+                if (!isExpanded(elementId, null, resourceId)) {
+                    _Entities.toggleElement(self.children('.expand_icon'));
                 }
 
                 var component = self.closest( '.component')[0];
