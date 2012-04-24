@@ -332,12 +332,21 @@ var _Resources = {
 
         input.on('blur', function() {
             var self = $(this);
-            //self.off('dblclick');
             var newName = self.val();
-            //console.log('new name', $.trim(newName));
             Server.setProperty(getId(element), "name", newName);
             _Resources.resetTab(element, newName);
         });
+        
+        input.keypress(function(e) {
+            if (e.keyCode == 13) {
+                var self = $(this);
+                var newName = self.val();
+                Server.setProperty(getId(element), "name", newName);
+                _Resources.resetTab(element, newName);
+            }
+        });
+         
+
         element.off('click');
 
     },
@@ -463,7 +472,8 @@ var _Resources = {
                         var resource = self.closest( '.resource')[0];
                         var resourceId;
                         var pos;
-
+                        var nodeData = {};
+    
                         if (resource) {
 
                             // we're in the main page
@@ -487,6 +497,7 @@ var _Resources = {
                             // create element on the fly
                             //var el = _Elements.addElement(null, 'element', null);
                             var tag = $(ui.draggable).text();
+                            nodeData.type = tag.capitalize();
                         }
 						
 
@@ -499,8 +510,6 @@ var _Resources = {
                             relData['*'] = pos;
                         }
 
-                        var nodeData = {};
-                        nodeData.type = tag.capitalize();
                         nodeData.tag = (tag != 'content' ? tag : '');
                         nodeData.id = contentId;
                         if (debug) console.log(relData);
@@ -708,7 +717,7 @@ var _Resources = {
         if (!resource && resources) {
             div.draggable({
                 revert: 'invalid',
-                containment: '#main',
+                containment: '#resources',
                 zIndex: 4,
                 helper: 'clone'
             });
@@ -757,6 +766,7 @@ var _Resources = {
                     return;
                 }
                 var self = $(this);
+                var nodeData = {};
 
                 var resource = self.closest('.resource')[0];
 
@@ -789,9 +799,8 @@ var _Resources = {
                     relData[componentId] = pos;
                 }
 
-                var nodeData = {};
-                nodeData.type = tag.capitalize();
                 nodeData.tag = (tag != 'content' ? tag : '');
+                nodeData.type = tag.capitalize();
                 nodeData.id = contentId;
                 nodeData.targetResourceId = resourceId;
 
