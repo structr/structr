@@ -743,12 +743,12 @@ var _Resources = {
                 obj.id = resourceId;
             },
             update: function(event, ui) {
-                console.log('---------')
-                console.log(resourceId);
+                if (debug) console.log('---------')
+                if (debug) console.log(resourceId);
                 var data = {};
                 $(ui.item).parent().children('.node').each(function(i,v) {
                     var self = $(this);
-                    console.log(getId(self), i);
+                    if (debug) console.log(getId(self), i);
                     data[getId(self)] = i;
                     obj.data = data;
                     _Entities.resetMouseOverState(v);
@@ -769,7 +769,7 @@ var _Resources = {
             hoverClass: 'nodeHover',
             drop: function(event, ui) {
                 if (sorting) {
-                    console.log('sorting, no drop allowed');
+                    if (debug) console.log('sorting, no drop allowed');
                     return;
                 }
                 var self = $(this);
@@ -783,13 +783,13 @@ var _Resources = {
                 var contentId = getId(ui.draggable);
                 var elementId = getId(self);
                 var tag;
-                console.log('contentId', contentId);
+                if (debug) console.log('contentId', contentId);
                 if (!contentId) {
                     tag = $(ui.draggable).text();
                 } else {
                     tag = Structr.getClass($(ui.draggable));
                 }
-                console.log($(ui.draggable));
+                if (debug) console.log($(ui.draggable));
                 var pos = $('.node', self).length;
                 if (debug) console.log(pos);
 
@@ -869,12 +869,12 @@ var _Resources = {
                 obj.id = resourceId;
             },
             update: function(event, ui) {
-                console.log('---------')
-                console.log(resourceId);
+                if (debug) console.log('---------')
+                if (debug) console.log(resourceId);
                 var data = {};
                 $(ui.item).parent().children('.node').each(function(i,v) {
                     var self = $(this);
-                    console.log(getId(self), i);
+                    if (debug) console.log(getId(self), i);
                     data[getId(self)] = i;
                     obj.data = data;
                 });
@@ -928,7 +928,7 @@ var _Resources = {
                     nodeData.tag = (tag != 'content' ? tag : '');
                 }
 
-                console.log('Content or Element dropped on Component', getId(node), nodeData, relData);
+                if (debug) console.log('Content or Element dropped on Component', getId(node), nodeData, relData);
                 Server.createAndAdd(getId(node), nodeData, relData);
             }
         });
@@ -1138,7 +1138,7 @@ var _Resources = {
             $('iframe', box).width(w);
             $('iframe', box).height(h);
 
-            console.log("box,w,h", box, w, h);
+            if (debug) console.log("box,w,h", box, w, h);
 
         });
 
@@ -1146,7 +1146,7 @@ var _Resources = {
 
 	
     linkSelectionToResource : function(rootResourceId, sourceId, linkedResourceId, startOffset, endOffset) {
-        console.log('linkResourcesToSelection(' + rootResourceId + ', ' + sourceId + ', ' + linkedResourceId + ', ' + startOffset + ', ' + endOffset + ')');
+        if (debug) console.log('linkResourcesToSelection(' + rootResourceId + ', ' + sourceId + ', ' + linkedResourceId + ', ' + startOffset + ', ' + endOffset + ')');
         var data = '{ "command" : "LINK" , "id" : "' + sourceId + '" , "data" : { "rootResourceId" : "' + rootResourceId + '", "resourceId" : "' + linkedResourceId + '", "startOffset" : ' + startOffset + ', "endOffset" : ' + endOffset + '} }';
         return send(data);
     }

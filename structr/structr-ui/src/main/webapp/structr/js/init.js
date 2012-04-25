@@ -164,8 +164,8 @@ var Structr = {
         //		UsersAndGroups.onload();
 
         Structr.expanded = $.parseJSON($.cookie('structrTreeExpandedIds'));
-        console.log('expanded ids', Structr.expanded);
-        console.log('expanded ids', $.cookie('structrTreeExpandedIds'));
+        if (debug) console.log('expanded ids', Structr.expanded);
+        if (debug) console.log('expanded ids', $.cookie('structrTreeExpandedIds'));
 
         ws.onopen = function() {
 

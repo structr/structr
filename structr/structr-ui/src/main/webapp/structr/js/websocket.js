@@ -32,9 +32,7 @@ function connect() {
     try {
 
 	var isEnc = (window.location.protocol == 'https:');
-
 	var host = document.location.host;
-        
 	var wsUrl = 'ws' + (isEnc ? 's' : '') + '://' + host + wsRoot;
 
 	if (debug) console.log(wsUrl);
@@ -52,7 +50,6 @@ function connect() {
 		
 	var parentId, entityId;
 	var parent, entity;
-		
 
 	ws.onmessage = function(message) {
 
@@ -161,9 +158,7 @@ function connect() {
 
 		var attrElement = $(parentElement.find('.' + key + '_')[0]);
 		if (debug) console.log('attrElement', attrElement);
-		
 		if (debug) console.log(key, value);
-		
 
 		if (attrElement && value) {
 
@@ -199,7 +194,7 @@ function connect() {
 		if (debug) console.log('CHILDREN:', parentId, resourceId);
 
 		$(result).each(function(i, child) {
-		    console.log('CHILDREN: ', child);
+		    if (debug) console.log('CHILDREN: ', child);
 		    _Entities.appendObj(child, data.id, resourceId);
 		});
 
@@ -210,7 +205,7 @@ function connect() {
                 				
 		$(result).each(function(i, entity) {
 
-		    console.log('LIST: ' + entity.type);
+		    if (debug) console.log('LIST: ' + entity.type);
 		    _Entities.appendObj(entity);
 			
 		});
@@ -272,13 +267,15 @@ function connect() {
 		_Resources.reloadPreviews();
 		if (debug) console.log('Removed ' + entityId + ' from ' + parentId);
 
-	    } else if (command == 'CREATE' || command == 'ADD' || command == 'IMPORT') { /*********************** CREATE, IMPORT ************************/
+	    } else if (command == 'CREATE' || command == 'ADD' || command == 'IMPORT') { /*********************** CREATE, ADD, IMPORT ************************/
                 
 		var parentId = data.id;
 		var resourceId = data.data.resourceId;
+                
+                console.log(result, data, data.data);
 				
 		$(result).each(function(i, entity) {
-		    console.log('CREATE', entity);
+		    console.log(command, entity, parentId, resourceId);
                     _Entities.appendObj(entity, parentId, resourceId);
 		});
 

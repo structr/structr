@@ -207,6 +207,9 @@ var Server = {
         if (!nodeData.name) {
             nodeData.name = 'New ' + nodeData.type + ' ' + Math.floor(Math.random() * (999999 - 1));
         }
+        if (nodeData.type == 'Content' && !nodeData.content) {
+            nodeData.content = '';
+        }
         obj.id = id;
         obj.data = nodeData;
         obj.relData = relData;
@@ -225,6 +228,9 @@ var Server = {
         obj.command = 'CREATE';
         if (!nodeData.name) {
             nodeData.name = 'New ' + nodeData.type + ' ' + Math.floor(Math.random() * (999999 - 1));
+        }
+        if (nodeData.type == 'Content' && !nodeData.content) {
+            nodeData.content = '';
         }
         obj.data = nodeData;
         if (debug) console.log('create()', obj);

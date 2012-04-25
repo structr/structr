@@ -21,11 +21,15 @@
 
 package org.structr.websocket.command;
 
+import org.neo4j.graphdb.Direction;
+
+import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.RelationClass;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.StructrTransaction;
@@ -38,9 +42,6 @@ import org.structr.websocket.message.WebSocketMessage;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.graphdb.Direction;
-import org.structr.common.RelType;
-import org.structr.core.entity.AbstractRelationship;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -68,7 +69,7 @@ public class AddCommand extends AbstractCommand {
 
 		if (containingNodeId != null) {
 
-			AbstractNode containedNode = null;
+			AbstractNode containedNode  = null;
 			AbstractNode containingNode = getNode(containingNodeId);
 
 			if (containedNodeId != null) {
@@ -98,28 +99,29 @@ public class AddCommand extends AbstractCommand {
 			}
 
 			if ((containedNode != null) && (containingNode != null)) {
-				
-				String originalResourceId = (String)nodeData.get("sourceResourceId");
-				String newResourceId      = (String)nodeData.get("targetResourceId");
-				
-				RelationClass rel = EntityContext.getRelationClass(containingNode.getClass(), containedNode.getClass());
+
+				String originalResourceId = (String) nodeData.get("sourceResourceId");
+				String newResourceId      = (String) nodeData.get("targetResourceId");
+				RelationClass rel         = EntityContext.getRelationClass(containingNode.getClass(), containedNode.getClass());
 
 				if (rel != null) {
 
 					try {
+
 						rel.createRelationship(securityContext, containingNode, containedNode, relData);
-						
+
 						// set resource ID on copied branch
-						if(originalResourceId != null && newResourceId != null && !originalResourceId.equals(newResourceId)) {
+						if ((originalResourceId != null) && (newResourceId != null) &&!originalResourceId.equals(newResourceId)) {
+
 							tagOutgoingRelsWithResourceId(containedNode, containedNode, originalResourceId, newResourceId);
+
 						}
-						
+
 					} catch (Throwable t) {
 						getWebSocket().send(MessageBuilder.status().code(400).message(t.getMessage()).build(), true);
 					}
 
 				}
-				
 
 			} else {
 
@@ -134,24 +136,29 @@ public class AddCommand extends AbstractCommand {
 		}
 	}
 
-	//~--- get methods ----------------------------------------------------
-
-	@Override
-	public String getCommand() {
-		return "ADD";
-	}
-
-	public static void tagOutgoingRelsWithResourceId(final AbstractNode startNode, final AbstractNode node, final String originalResourceId, final String resourceId) throws FrameworkException {
+	public static void tagOutgoingRelsWithResourceId(final AbstractNode startNode, final AbstractNode node, final String originalResourceId,
+		final String resourceId)
+		throws FrameworkException {
 
 		for (AbstractRelationship rel : node.getRelationships(RelType.CONTAINS, Direction.OUTGOING)) {
 
 			Long position = rel.getLongProperty(originalResourceId);
-			if(position != null) {
+
+			if (position != null) {
+
 				rel.setProperty(resourceId, position);
+
 			}
 
 			tagOutgoingRelsWithResourceId(startNode, rel.getEndNode(), originalResourceId, resourceId);
 
 		}
+	}
+
+	//~--- get methods ----------------------------------------------------
+
+	@Override
+	public String getCommand() {
+		return "ADD";
 	}
 }

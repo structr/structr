@@ -98,7 +98,8 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 				List<GraphObject> result = webSocketData.getResult();
 
 				if ((result != null) && (result.size() > 0)
-					&& (webSocketData.getCommand().equals("UPDATE") || webSocketData.getCommand().equals("ADD") || webSocketData.getCommand().equals("CREATE"))) {
+					&& (webSocketData.getCommand().equals("UPDATE") || webSocketData.getCommand().equals("ADD")
+					    || webSocketData.getCommand().equals("CREATE"))) {
 
 					WebSocketMessage clientData     = webSocketData.copy();
 					SecurityContext securityContext = socket.getSecurityContext();
@@ -190,7 +191,8 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 	}
 
 	@Override
-	public boolean propertyModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject, String key, Object oldValue, Object newValue) {
+	public boolean propertyModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject, String key,
+					Object oldValue, Object newValue) {
 
 		messageStack = messageStackMap.get(transactionKey);
 
@@ -229,9 +231,21 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 				message.setGraphObject(relationship);
 				message.setId(startNode.getStringProperty("uuid"));
 				message.setResult(Arrays.asList(new GraphObject[] { endNode }));
+
+				String resourceId = relationship.getStringProperty("resourceId");
+
+				if (resourceId != null) {
+
+					Map<String, Object> props = new LinkedHashMap<String, Object>();
+
+					props.put("resourceId", resourceId);
+					message.setNodeData(props);
+
+				}
+
 				messageStack.add(message);
-				logger.log(Level.FINE, "Relationship created: {0}({1} -> {2}{3}", new Object[] { startNode.getId(), startNode.getStringProperty(AbstractNode.Key.uuid),
-					endNode.getStringProperty(AbstractNode.Key.uuid) });
+				logger.log(Level.FINE, "Relationship created: {0}({1} -> {2}{3}", new Object[] { startNode.getId(),
+					startNode.getStringProperty(AbstractNode.Key.uuid), endNode.getStringProperty(AbstractNode.Key.uuid) });
 
 			}
 
@@ -273,7 +287,8 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 	}
 
 	@Override
-	public boolean graphObjectDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject obj, Map<String, Object> properties) {
+	public boolean graphObjectDeleted(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject obj,
+					  Map<String, Object> properties) {
 
 		messageStack = messageStackMap.get(transactionKey);
 

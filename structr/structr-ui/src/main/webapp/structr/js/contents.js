@@ -75,6 +75,8 @@ var _Contents = {
         if (debug) console.log('Contents.appendContentElement: parentId: ' + parentId + ', resourceId: ' + resourceId);
 
         var parent = Structr.findParent(parentId, resourceId, contents);
+        
+        console.log(parent);
 
         //	var abbrContent = (content.content ? content.content.substring(0,36) + '&hellip;': '&nbsp;');
 
@@ -99,7 +101,7 @@ var _Contents = {
             }, function() {
                 console.log('cancelled')
             });
-            _Contents.editContent(this, content, 'all', $('#dialogBox .dialogText'));
+            _Contents.editContent(this, content, $('#dialogBox .dialogText'));
         });
 
         _Entities.appendEditPropertiesIcon(div, content);
@@ -107,7 +109,7 @@ var _Contents = {
         return div;
     },
 
-    editContent : function (button, entity, view, element) {
+    editContent : function (button, entity, element) {
         if (isDisabled(button)) return;
         var div = element.append('<div class="editor"></div>');
         if (debug) console.log(div);
@@ -121,11 +123,14 @@ var _Contents = {
                 var element = $( '.' + entity.id + '_')[0];
                 var text1 = $(element).children('.content_').text();
                 var text2 = editor.getValue();
-				
+                
+                if (!text1) text1 = '';
+                if (!text2) text2 = '';
+		
                 if (debug) console.log('Element', element);
                 if (debug) console.log('text1', text1);
                 if (debug) console.log('text2', text2);
-
+                
                 if (text1 == text2) return;
                 editorCursor = cm.getCursor();
                 if (debug) console.log(editorCursor);

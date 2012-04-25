@@ -17,30 +17,13 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var buttonClicked, timer = [];
+var buttonClicked;
 
 var _Entities = {
-	
-    //    refreshEntities : function(type) {
-    //	if (debug) console.log('refreshEntities(' + type + ')');
-    //	var types = plural(type);
-    //	var parentElement = $('#' + types);
-    //	parentElement.empty();
-    //	Server.list(type);
-    //	parentElement.append('<div style="clear: both"></div>');
-    //	parentElement.append('<img title="Add ' + type + '" alt="Add ' + type + '" class="add_icon button" src="' + Structr.add_icon + '">');
-    //	$('.add_icon', main).on('click', function() {
-    //	    Server.addEntity(this, type);
-    //	});
-    //	parentElement.append('<img title="Delete all ' + types + '" alt="Delete all ' + types + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
-    //	$('.delete_icon', main).on('click', function() {
-    //	    deleteAll(this, type);
-    //	});
-    //    },
-
+    
     changeBooleanAttribute : function(attrElement, value) {
 
-        console.log('Change boolean attribute ', attrElement, ' to ', value);
+        if (debug) console.log('Change boolean attribute ', attrElement, ' to ', value);
 
         if (value == true) {
             attrElement.removeClass('disabled');
@@ -316,9 +299,9 @@ var _Entities = {
 
             var headers = {};
             headers['X-StructrSessionToken'] = token;
-            console.log('headers', headers);
-
+            if (debug) console.log('headers', headers);
             if (debug) console.log('showProperties URL: ' + rootUrl + entity.id + (view ? '/' + view : ''), headers);
+            
             $.ajax({
                 url: rootUrl + entity.id + (view ? '/' + view : '') + '?pageSize=10',
                 async: true,
@@ -361,17 +344,6 @@ var _Entities = {
 
                             input.on('focus', function() {
                                 input.addClass('active');
-                            //								input.parent().append('<img class="button icon cancel" src="icon/cross.png">');
-                            //								input.parent().append('<img class="button icon save" src="icon/tick.png">');
-
-                            //				$('.cancel', input.parent()).on('click', function() {
-                            //				    input.val(oldVal);
-                            //				    input.removeClass('active');
-                            //				});
-                            //
-                            //				$('.save', input.parent()).on('click', function() {
-                            //				    _Entities.setProperty(entity.id, input.attr('name'), input.val());
-                            //				});
                             });
 
                             input.on('change', function() {
