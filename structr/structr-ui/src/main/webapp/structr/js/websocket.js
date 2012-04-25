@@ -25,9 +25,6 @@ var user;
 
 function connect() {
 
-    token = $.cookie('structrSessionToken');
-    if (debug) console.log('token: ' + token);
-
     if (token) {
 	loggedIn = true;
     }
@@ -81,9 +78,9 @@ function connect() {
 	    if (debug) console.log('result: ' + $.toJSON(result));
 
 	    if (command == 'LOGIN') { /*********************** LOGIN ************************/
-		var token = data.token;
-		var user = data.data.username;
-		if (debug) console.log('token: ' + token);
+		token = data.token;
+		user = data.data.username;
+		if (debug) console.log('token', token);
 		
 		if (sessionValid) {
 		    $.cookie('structrSessionToken', token);

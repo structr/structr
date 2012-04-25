@@ -314,9 +314,10 @@ var _Entities = {
             if (view != 'all') tabView.hide();
 
 
-            var headers = {
-                'X-StructrSessionToken' : token
-            };
+            var headers = {};
+            headers['X-StructrSessionToken'] = token;
+            console.log('headers', headers);
+
             if (debug) console.log('showProperties URL: ' + rootUrl + entity.id + (view ? '/' + view : ''), headers);
             $.ajax({
                 url: rootUrl + entity.id + (view ? '/' + view : '') + '?pageSize=10',

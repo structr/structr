@@ -942,7 +942,7 @@ var _Resources = {
         var div = _Contents.appendContentElement(content, parentId, resourceId);
 
         if (parentId) {
-            $('.delete_icon', div).replaceWith('<img title="Remove element \'' + content.name + '\' from resource ' + parentId + '" '
+            $('.delete_icon', div).replaceWith('<img title="Remove content \'' + content.name + '\' from resource ' + parentId + '" '
                 + 'alt="Remove content ' + content.name + ' from element ' + parentId + '" class="delete_icon button" src="' + _Contents.delete_icon + '">');
             $('.delete_icon', div).on('click', function(e) {
                 e.stopPropagation();

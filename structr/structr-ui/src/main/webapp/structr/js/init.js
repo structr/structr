@@ -46,76 +46,76 @@ $(document).ready(function() {
 
     //main.height($(window.document).height() - $('#header').height() - 13);
     $('#import_json').on('click', function() {
-	var jsonArray = $.parseJSON($('#json_input').val());
-	$(jsonArray).each(function(i, json) {
-	    //console.log(json);
-	    createEntity(json);
-	});
+        var jsonArray = $.parseJSON($('#json_input').val());
+        $(jsonArray).each(function(i, json) {
+            //console.log(json);
+            createEntity(json);
+        });
     //var json = $.parseJSON('{ "test" : "abc" }');
 
     });
     $('#loginButton').on('click', function() {
-	var username = $('#usernameField').val();
-	var password = $('#passwordField').val();
-	Structr.doLogin(username, password);
+        var username = $('#usernameField').val();
+        var password = $('#passwordField').val();
+        Structr.doLogin(username, password);
     });
     $('#logout_').on('click', function() {
-	Structr.doLogout();
+        Structr.doLogout();
     });
 
 
     $('#dashboard_').on('click', function() {
-	main.empty();
-	Structr.activateMenuEntry('dashboard');
+        main.empty();
+        Structr.activateMenuEntry('dashboard');
     });
 
     $('#resources_').on('click', function() {
-	main.empty();
-	Structr.activateMenuEntry('resources');
-	Structr.modules['resources'].onload();
+        main.empty();
+        Structr.activateMenuEntry('resources');
+        Structr.modules['resources'].onload();
     });
 
     $('#components_').on('click', function() {
-	main.empty();
-	Structr.activateMenuEntry('components');
-	Structr.modules['components'].onload();
+        main.empty();
+        Structr.activateMenuEntry('components');
+        Structr.modules['components'].onload();
     });
 
     $('#elements_').on('click', function() {
-	main.empty();
-	Structr.activateMenuEntry('elements');
-	Structr.modules['elements'].onload();
+        main.empty();
+        Structr.activateMenuEntry('elements');
+        Structr.modules['elements'].onload();
     });
 
     $('#contents_').on('click', function() {
-	main.empty();
-	Structr.activateMenuEntry('contents');
-	Structr.modules['contents'].onload();
+        main.empty();
+        Structr.activateMenuEntry('contents');
+        Structr.modules['contents'].onload();
     });
 
     $('#files_').on('click', function() {
-	main.empty();
-	Structr.activateMenuEntry('files');
-	Structr.modules['files'].onload();
+        main.empty();
+        Structr.activateMenuEntry('files');
+        Structr.modules['files'].onload();
     });
 
     $('#usersAndGroups_').on('click', function() {
-	main.empty();
-	Structr.activateMenuEntry('usersAndGroups');
-	Structr.modules['usersAndGroups'].onload();
+        main.empty();
+        Structr.activateMenuEntry('usersAndGroups');
+        Structr.modules['usersAndGroups'].onload();
     });
 
     $('#usernameField').keypress(function(e) {
-	if (e.which == 13) {
-	    jQuery(this).blur();
-	    jQuery('#loginButton').focus().click();
-	}
+        if (e.which == 13) {
+            jQuery(this).blur();
+            jQuery('#loginButton').focus().click();
+        }
     });
     $('#passwordField').keypress(function(e) {
-	if (e.which == 13) {
-	    jQuery(this).blur();
-	    jQuery('#loginButton').focus().click();
-	}
+        if (e.which == 13) {
+            jQuery(this).blur();
+            jQuery('#loginButton').focus().click();
+        }
     });
 	
     Structr.init();
@@ -138,376 +138,381 @@ var Structr = {
 
     reconnect : function() {
 	
-	$.unblockUI({
-	    fadeOut: 25
-	});
+        $.unblockUI({
+            fadeOut: 25
+        });
 
-	connect();
+        connect();
     },
 
     init : function() {
+
+        token = $.cookie('structrSessionToken');
+        user = $.cookie('structrUser');
+        if (debug) console.log('token', token);
+        if (debug) console.log('user', user);
         
-	$.unblockUI({
-	    fadeOut: 25
-	});
+        $.unblockUI({
+            fadeOut: 25
+        });
 
-	connect();
+        connect();
 	
-	main.empty();
-	user = $.cookie('structrUser');
+        main.empty();
 
-	//		UsersAndGroups.onload();
 
-	Structr.expanded = $.parseJSON($.cookie('structrTreeExpandedIds'));
-	console.log('expanded ids', Structr.expanded);
+        //		UsersAndGroups.onload();
+
+        Structr.expanded = $.parseJSON($.cookie('structrTreeExpandedIds'));
+        console.log('expanded ids', Structr.expanded);
         console.log('expanded ids', $.cookie('structrTreeExpandedIds'));
 
-	ws.onopen = function() {
+        ws.onopen = function() {
 
-	    if (debug) console.log('logged in? ' + loggedIn);
-	    if (!loggedIn) {
-		if (debug) console.log('no');
-		$('#logout_').html('Login');
-		Structr.login();
-	    } else {
-		if (debug) console.log('Current user: ' + user);
-		//            $.cookie("structrUser", username);
-		$('#logout_').html(' Logout <span class="username">' + user + '</span>');
-		//				UsersAndGroups.onload();
+            if (debug) console.log('logged in? ' + loggedIn);
+            if (!loggedIn) {
+                if (debug) console.log('no');
+                $('#logout_').html('Login');
+                Structr.login();
+            } else {
+                if (debug) console.log('Current user: ' + user);
+                //            $.cookie("structrUser", username);
+                $('#logout_').html(' Logout <span class="username">' + user + '</span>');
+                //				UsersAndGroups.onload();
 				
-		Structr.loadInitialModule();
+                Structr.loadInitialModule();
 				
-	    }
-	}
+            }
+        }
 
     },
 
     login : function(text) {
 
-	main.empty();
+        main.empty();
 	
-	$('#logout_').html('Login');
-	if (text) $('#errorText').html(text);
-	$.blockUI.defaults.overlayCSS.opacity = .6;
-	$.blockUI.defaults.applyPlatformOpacityRules = false;
-	$.blockUI({
-	    fadeIn: 25,
-	    fadeOut: 25,
-	    message: $('#login'),
-	    forceInput: true,
-	    css: {
-		border: 'none',
-		backgroundColor: 'transparent'
-	    }
-	});
-	Structr.activateMenuEntry('logout');
+        $('#logout_').html('Login');
+        if (text) $('#errorText').html(text);
+        $.blockUI.defaults.overlayCSS.opacity = .6;
+        $.blockUI.defaults.applyPlatformOpacityRules = false;
+        $.blockUI({
+            fadeIn: 25,
+            fadeOut: 25,
+            message: $('#login'),
+            forceInput: true,
+            css: {
+                border: 'none',
+                backgroundColor: 'transparent'
+            }
+        });
+        Structr.activateMenuEntry('logout');
     },
 
     doLogin : function(username, password) {
-	if (debug) console.log('doLogin ' + username + ' with ' + password);
-	if (send('{ "command":"LOGIN", "data" : { "username" : "' + username + '", "password" : "' + password + '" } }')) {
-	    user = username;
-	    return true;
-	}
-	return false;
+        if (debug) console.log('doLogin ' + username + ' with ' + password);
+        if (send('{ "command":"LOGIN", "data" : { "username" : "' + username + '", "password" : "' + password + '" } }')) {
+            user = username;
+            return true;
+        }
+        return false;
     },
 
     doLogout : function(text) {
-	if (debug) console.log('doLogout ' + user);
-	Structr.saveSession();
-	$.cookie('structrSessionToken', '');
-	$.cookie('structrUser', '');
-	if (send('{ "command":"LOGOUT", "data" : { "username" : "' + user + '" } }')) {
-	    Structr.clearMain();
-	    Structr.login(text);
-	    //            var url = window.location.href;
-	    //            url = url.substring(0, url.lastIndexOf('#')+1);
-	    return true;
-	}
-	return false;
+        if (debug) console.log('doLogout ' + user);
+        Structr.saveSession();
+        $.cookie('structrSessionToken', '');
+        $.cookie('structrUser', '');
+        if (send('{ "command":"LOGOUT", "data" : { "username" : "' + user + '" } }')) {
+            Structr.clearMain();
+            Structr.login(text);
+            //            var url = window.location.href;
+            //            url = url.substring(0, url.lastIndexOf('#')+1);
+            return true;
+        }
+        return false;
     },
 
     loadInitialModule : function() {
-	var browserUrl = window.location.href;
-	var anchor = getAnchorFromUrl(browserUrl);
-	if (debug) console.log('anchor', anchor);
+        var browserUrl = window.location.href;
+        var anchor = getAnchorFromUrl(browserUrl);
+        if (debug) console.log('anchor', anchor);
 
-	lastMenuEntry = ((anchor && anchor != 'logout') ? anchor : $.cookie('structrLastMenuEntry'));
-	if (!lastMenuEntry) lastMenuEntry = 'dashboard';
-	{
-	    if (debug) console.log('Last menu entry found: ' + lastMenuEntry);
-	    Structr.activateMenuEntry(lastMenuEntry);
-	    if (debug) console.log(Structr.modules);
-	    var module = Structr.modules[lastMenuEntry];
-	    if (module) {
-		module.init();
-		module.onload();
-		if (module.resize) module.resize();
-	    }
-	}
+        lastMenuEntry = ((anchor && anchor != 'logout') ? anchor : $.cookie('structrLastMenuEntry'));
+        if (!lastMenuEntry) lastMenuEntry = 'dashboard';
+        {
+            if (debug) console.log('Last menu entry found: ' + lastMenuEntry);
+            Structr.activateMenuEntry(lastMenuEntry);
+            if (debug) console.log(Structr.modules);
+            var module = Structr.modules[lastMenuEntry];
+            if (module) {
+                module.init();
+                module.onload();
+                if (module.resize) module.resize();
+            }
+        }
     },
 
     saveSession : function() {
 
-	if (lastMenuEntry && lastMenuEntry != 'logout') {
+        if (lastMenuEntry && lastMenuEntry != 'logout') {
 
-	    $.cookie('structrLastMenuEntry', lastMenuEntry, {
-		expires: 7,
-		path: '/'
-	    });
+            $.cookie('structrLastMenuEntry', lastMenuEntry, {
+                expires: 7,
+                path: '/'
+            });
 
-	    if (debug) console.log('set cookie for active tab', activeTab);
-	    $.cookie('structrActiveTab', activeTab, {
-		expires: 7,
-		path: '/'
-	    });
+            if (debug) console.log('set cookie for active tab', activeTab);
+            $.cookie('structrActiveTab', activeTab, {
+                expires: 7,
+                path: '/'
+            });
 
-	    if (resources) $.cookie('structrResourcesVisible', resources.is(':visible'), {
-		expires: 7,
-		path: '/'
-	    });
+            if (resources) $.cookie('structrResourcesVisible', resources.is(':visible'), {
+                expires: 7,
+                path: '/'
+            });
 
-	    if (components) $.cookie('structrComponentsVisible', components.is(':visible'), {
-		expires: 7,
-		path: '/'
-	    });
+            if (components) $.cookie('structrComponentsVisible', components.is(':visible'), {
+                expires: 7,
+                path: '/'
+            });
 
-	    if (elements) $.cookie('structrElementsVisible', elements.is(':visible'), {
-		expires: 7,
-		path: '/'
-	    });
+            if (elements) $.cookie('structrElementsVisible', elements.is(':visible'), {
+                expires: 7,
+                path: '/'
+            });
 
-	    if (contents) $.cookie('structrContentsVisible', contents.is(':visible'), {
-		expires: 7,
-		path: '/'
-	    });
+            if (contents) $.cookie('structrContentsVisible', contents.is(':visible'), {
+                expires: 7,
+                path: '/'
+            });
 
-	    if (Structr.expanded) {
-		console.log('expanded', Structr.expanded);
-		$.cookie('structrTreeExpandedIds', $.toJSON(Structr.expanded), {
-		    expires: 7,
-		    path: '/'
-		});
-	    }
-	}
+            if (Structr.expanded) {
+                console.log('expanded', Structr.expanded);
+                $.cookie('structrTreeExpandedIds', $.toJSON(Structr.expanded), {
+                    expires: 7,
+                    path: '/'
+                });
+            }
+        }
     //console.log('cooke value now: ', $.cookie('structrActiveTab'));
     },
 
     clearMain : function() {
-	main.empty();
+        main.empty();
     },
 
     confirmation : function(text, callback) {
-	if (text) $('#confirmation .confirmationText').html(text);
-	if (callback) $('#confirmation .yesButton').on('click', function() {
-	    callback();
-	});
-	$('#confirmation .noButton').on('click', function() {
-	    $.unblockUI({
-		fadeOut: 25
-	    });
-	});
-	$.blockUI.defaults.overlayCSS.opacity = .6;
-	$.blockUI.defaults.applyPlatformOpacityRules = false;
-	$.blockUI({
-	    fadeIn: 25,
-	    fadeOut: 25,
-	    message: $('#confirmation'),
-	    css: {
-		border: 'none',
-		backgroundColor: 'transparent'
-	    }
-	});
+        if (text) $('#confirmation .confirmationText').html(text);
+        if (callback) $('#confirmation .yesButton').on('click', function() {
+            callback();
+        });
+        $('#confirmation .noButton').on('click', function() {
+            $.unblockUI({
+                fadeOut: 25
+            });
+        });
+        $.blockUI.defaults.overlayCSS.opacity = .6;
+        $.blockUI.defaults.applyPlatformOpacityRules = false;
+        $.blockUI({
+            fadeIn: 25,
+            fadeOut: 25,
+            message: $('#confirmation'),
+            css: {
+                border: 'none',
+                backgroundColor: 'transparent'
+            }
+        });
 	
     },
 
     info : function(text, callback) {
-	if (text) $('#infoText').html(text);
-	if (callback) $('#okButton').on('click', function() {
-	    callback();
-	});
-	$.blockUI.defaults.overlayCSS.opacity = .6;
-	$.blockUI.defaults.applyPlatformOpacityRules = false;
-	$.blockUI({
-	    fadeIn: 25,
-	    fadeOut: 25,
-	    message: $('#infoBox'),
-	    css: {
-		border: 'none',
-		backgroundColor: 'transparent'
-	    }
-	});
+        if (text) $('#infoText').html(text);
+        if (callback) $('#okButton').on('click', function() {
+            callback();
+        });
+        $.blockUI.defaults.overlayCSS.opacity = .6;
+        $.blockUI.defaults.applyPlatformOpacityRules = false;
+        $.blockUI({
+            fadeIn: 25,
+            fadeOut: 25,
+            message: $('#infoBox'),
+            css: {
+                border: 'none',
+                backgroundColor: 'transparent'
+            }
+        });
 
     },
 
     dialog : function(text, callbackOk, callbackCancel) {
 
-	$('#dialogBox .dialogMsg').empty();
+        $('#dialogBox .dialogMsg').empty();
 
-	if (text) $('#dialogBox .dialogTitle').html(text);
-	//        if (callbackOk) $('#dialogOkButton').on('click', function() {
-	//            callbackOk();
-	//			$('#dialogBox .dialogText').empty();
-	//			$.unblockUI({ fadeOut: 25 });
-	//        });
-	if (callbackCancel) $('#dialogBox .dialogCancelButton').on('click', function() {
-	    callbackCancel();
-	    $('#dialogBox .dialogText').empty();
-	    _Resources.reloadPreviews();
-	    $.unblockUI({
-		fadeOut: 25
-	    });
-	});
-	$.blockUI.defaults.overlayCSS.opacity = .6;
-	$.blockUI.defaults.applyPlatformOpacityRules = false;
-	$.blockUI({
-	    fadeIn: 25,
-	    fadeOut: 25,
-	    message: $('#dialogBox'),
-	    css: {
-		border: 'none',
-		backgroundColor: 'transparent'
-	    }
-	});
+        if (text) $('#dialogBox .dialogTitle').html(text);
+        //        if (callbackOk) $('#dialogOkButton').on('click', function() {
+        //            callbackOk();
+        //			$('#dialogBox .dialogText').empty();
+        //			$.unblockUI({ fadeOut: 25 });
+        //        });
+        if (callbackCancel) $('#dialogBox .dialogCancelButton').on('click', function() {
+            callbackCancel();
+            $('#dialogBox .dialogText').empty();
+            _Resources.reloadPreviews();
+            $.unblockUI({
+                fadeOut: 25
+            });
+        });
+        $.blockUI.defaults.overlayCSS.opacity = .6;
+        $.blockUI.defaults.applyPlatformOpacityRules = false;
+        $.blockUI({
+            fadeIn: 25,
+            fadeOut: 25,
+            message: $('#dialogBox'),
+            css: {
+                border: 'none',
+                backgroundColor: 'transparent'
+            }
+        });
     //        $('.blockUI.blockMsg').center();
 
     },
 
     error : function(text, callback) {
-	if (text) $('#errorBox .errorText').html('<img src="icon/error.png"> ' + text);
-	console.log(callback);
-	if (callback) $('#errorBox .okButton').on('click', function() {
-	    //callback();
-	    console.log(callback);
+        if (text) $('#errorBox .errorText').html('<img src="icon/error.png"> ' + text);
+        console.log(callback);
+        if (callback) $('#errorBox .okButton').on('click', function() {
+            //callback();
+            console.log(callback);
 			
-	    $.unblockUI({
-		fadeOut: 25
-	    });
-	});
-	$.blockUI.defaults.overlayCSS.opacity = .6;
-	$.blockUI.defaults.applyPlatformOpacityRules = false;
-	$.blockUI({
-	    message: $('#errorBox'),
-	    css: {
-		border: 'none',
-		backgroundColor: 'transparent'
-	    }
-	});
+            $.unblockUI({
+                fadeOut: 25
+            });
+        });
+        $.blockUI.defaults.overlayCSS.opacity = .6;
+        $.blockUI.defaults.applyPlatformOpacityRules = false;
+        $.blockUI({
+            message: $('#errorBox'),
+            css: {
+                border: 'none',
+                backgroundColor: 'transparent'
+            }
+        });
     },
 
     activateMenuEntry : function(name) {
-	lastMenuEntry = name;
-	$('.menu a').each(function(i,v) {
-	    $(this).removeClass('active').addClass('inactive');
-	});
-	var menuEntry = $('#' + name + '_');
-	menuEntry.addClass('active').removeClass('inactive');
-	$('#title').text('structr ' + menuEntry.text());
+        lastMenuEntry = name;
+        $('.menu a').each(function(i,v) {
+            $(this).removeClass('active').addClass('inactive');
+        });
+        var menuEntry = $('#' + name + '_');
+        menuEntry.addClass('active').removeClass('inactive');
+        $('#title').text('structr ' + menuEntry.text());
     },
 	
     registerModule : function(name, module) {
-	Structr.modules[name] = module;
-	if (debug) console.log('Module ' + name + ' registered');
+        Structr.modules[name] = module;
+        if (debug) console.log('Module ' + name + ' registered');
     },
 
     node : function(id, parentId, resourceId) {
-	var entityElement, parentElement, resourceElement;
-	if (debug) console.log(id, parentId, resourceId);
-	if (resourceId && parentId && (resourceId != parentId)) {
-	    resourceElement = $('.' + resourceId + '_');
-	    parentElement = $('.' + parentId + '_', resourceElement);
-	    entityElement = $('.' + id + '_', parentElement);
-	} else if (parentId) {
-	    parentElement = $('.' + parentId + '_');
-	    entityElement = $('.' + id + '_', parentElement);
-	} else {
-	    entityElement = $('.' + id + '_');
-	}
+        var entityElement, parentElement, resourceElement;
+        if (debug) console.log(id, parentId, resourceId);
+        if (resourceId && parentId && (resourceId != parentId)) {
+            resourceElement = $('.' + resourceId + '_');
+            parentElement = $('.' + parentId + '_', resourceElement);
+            entityElement = $('.' + id + '_', parentElement);
+        } else if (parentId) {
+            parentElement = $('.' + parentId + '_');
+            entityElement = $('.' + id + '_', parentElement);
+        } else {
+            entityElement = $('.' + id + '_');
+        }
 
-	return entityElement;
+        return entityElement;
     },
     
     entity : function(id, parentId) {
-	var entityElement = Structr.node(id, parentId);
+        var entityElement = Structr.node(id, parentId);
 
-	var entity = {};
+        var entity = {};
 		
-	entity.id = id;
-	entity.type = Structr.getClass(entityElement);
+        entity.id = id;
+        entity.type = Structr.getClass(entityElement);
 		
-	if (debug) console.log(entity.type);
-	entity.name = $('.name_', entityElement).text();
+        if (debug) console.log(entity.type);
+        entity.name = $('.name_', entityElement).text();
 
-	if (debug) console.log(entityElement);
+        if (debug) console.log(entityElement);
 	
-	return entity;
+        return entity;
     },
     
     getClass : function(el) {
-	var c;
-	console.log(Structr.classes);
-	$(Structr.classes).each(function(i, cls) {
-	    console.log('testing class', cls);
-	    if (el.hasClass(cls)) {
-		c = cls;
-		console.log('found class', cls);
-	    }
-	});
-	return c;
+        var c;
+        console.log(Structr.classes);
+        $(Structr.classes).each(function(i, cls) {
+            console.log('testing class', cls);
+            if (el.hasClass(cls)) {
+                c = cls;
+                console.log('found class', cls);
+            }
+        });
+        return c;
     },
 	
     entityFromElement : function(element) {
         
-	var entity = {};
-	entity.id = getId($(element));
+        var entity = {};
+        entity.id = getId($(element));
 
-	$(Structr.classes).each(function(i, cls) {
-	    if (element.hasClass(cls)) {
-		entity.type = cls;
-	    }
-	});
+        $(Structr.classes).each(function(i, cls) {
+            if (element.hasClass(cls)) {
+                entity.type = cls;
+            }
+        });
 
-	if (debug) console.log(entity.type);
-	entity.name = $('.name_', element).text();
+        if (debug) console.log(entity.type);
+        entity.name = $('.name_', element).text();
 
-	return entity;
+        return entity;
     },
 
     findParent : function(parentId, rootId, defaultElement) {
-	var parent;
-	if (parentId) {
-	    if (rootId && rootId != parentId) {
-		var rootElement = $('.' + rootId + '_');
-		parent = $('div.' + parentId + '_', rootElement);
-	    } else {
-		parent = $('div.' + parentId + '_');
-	    }
-	}
+        var parent;
+        if (parentId) {
+            if (rootId && rootId != parentId) {
+                var rootElement = $('.' + rootId + '_');
+                parent = $('div.' + parentId + '_', rootElement);
+            } else {
+                parent = $('div.' + parentId + '_');
+            }
+        }
 
         if (!parent) parent = defaultElement;
-	if (debug) console.log(parent);
+        if (debug) console.log(parent);
 
-	return parent;
+        return parent;
     }
 };
 
 
 if (typeof String.prototype.endsWith != 'function') {
     String.prototype.endsWith = function(pattern) {
-	var d = this.length - pattern.length;
-	return d >= 0 && this.lastIndexOf(pattern) === d;
+        var d = this.length - pattern.length;
+        return d >= 0 && this.lastIndexOf(pattern) === d;
     };
 }
 
 if (typeof String.prototype.startsWith != 'function') {
     String.prototype.startsWith = function (str){
-	return this.indexOf(str) == 0;
+        return this.indexOf(str) == 0;
     };
 }
 
 if (typeof String.prototype.capitalize != 'function') {
     String.prototype.capitalize = function() {
-	return this.charAt(0).toUpperCase() + this.slice(1);
+        return this.charAt(0).toUpperCase() + this.slice(1);
     };
 }
 
