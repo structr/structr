@@ -133,8 +133,8 @@ public class SearchNodeCommand extends NodeServiceCommand {
 	 * @param searchAttrs           List with search attributes
 	 * @return
 	 */
-	private List<AbstractNode> search(final SecurityContext securityContext, final AbstractNode topNode, final boolean includeDeleted, final boolean publicOnly,
-					  final List<SearchAttribute> searchAttrs)
+	private List<AbstractNode> search(final SecurityContext securityContext, final AbstractNode topNode, final boolean includeDeleted,
+					  final boolean publicOnly, final List<SearchAttribute> searchAttrs)
 		throws FrameworkException {
 
 		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
@@ -173,10 +173,12 @@ public class SearchNodeCommand extends NodeServiceCommand {
 							if (groupedAttr instanceof TextualSearchAttribute) {
 
 								textualAttributes.add((TextualSearchAttribute) groupedAttr);
-								subQuery.add(toQuery((TextualSearchAttribute) groupedAttr), translateToBooleanClauseOccur(groupedAttr.getSearchOperator()));
+								subQuery.add(toQuery((TextualSearchAttribute) groupedAttr),
+									     translateToBooleanClauseOccur(groupedAttr.getSearchOperator()));
 
-								subQueryString += toQueryString((TextualSearchAttribute) groupedAttr, StringUtils.isBlank(subQueryString));
-								allExactMatch  &= isExactMatch(((TextualSearchAttribute) groupedAttr).getValue());
+								subQueryString += toQueryString((TextualSearchAttribute) groupedAttr,
+												StringUtils.isBlank(subQueryString));
+								allExactMatch &= isExactMatch(((TextualSearchAttribute) groupedAttr).getValue());
 
 							}
 						}
@@ -260,7 +262,8 @@ public class SearchNodeCommand extends NodeServiceCommand {
 //                              hits.close();
 				long t2 = System.currentTimeMillis();
 
-				logger.log(Level.FINE, "Creating structr nodes took {0} ms, {1} nodes made.", new Object[] { t2 - t1, intermediateResult.size() });
+				logger.log(Level.FINE, "Creating structr nodes took {0} ms, {1} nodes made.", new Object[] { t2 - t1,
+					intermediateResult.size() });
 
 			}
 
@@ -435,18 +438,15 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 		// If value is not a single character and starts with operator (exact match, range query, or search operator word),
 		// don't expand
-		if ((stringValue.length() > 1) && (stringValue.startsWith("\"") && stringValue.endsWith("\"")) || (stringValue.startsWith("[") && stringValue.endsWith("]"))
-			|| stringValue.startsWith("NOT") || stringValue.startsWith("AND") || stringValue.startsWith("OR")) {
+		if ((stringValue.length() > 1) && (stringValue.startsWith("\"") && stringValue.endsWith("\""))
+			|| (stringValue.startsWith("[") && stringValue.endsWith("]")) || stringValue.startsWith("NOT") || stringValue.startsWith("AND")
+			|| stringValue.startsWith("OR")) {
 
 			return " " + escapedKey + ":" + stringValue + " ";
 
 		}
 
 		String result = "( ";
-
-		// Clean string
-		// stringValue = Search.clean(stringValue);
-		stringValue = Search.escapeForLucene(stringValue);
 
 		// Split string into words
 		String[] words = StringUtils.split(stringValue, " ");
@@ -455,6 +455,10 @@ public class SearchNodeCommand extends NodeServiceCommand {
 		int i = 1;
 
 		for (String word : words) {
+
+			// Clean string
+			// stringValue = Search.clean(stringValue);
+			word = Search.escapeForLucene(word);
 
 //                      // Treat ? special:
 			// There's a bug in Lucene < 4: https://issues.apache.org/jira/browse/LUCENE-588
@@ -473,7 +477,6 @@ public class SearchNodeCommand extends NodeServiceCommand {
 				: " ) ");
 
 //                      }
-
 			i++;
 		}
 

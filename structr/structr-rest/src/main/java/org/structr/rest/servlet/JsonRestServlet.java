@@ -184,8 +184,13 @@ public class JsonRestServlet extends HttpServlet {
 		this.propertySetAdapter = new PropertySetGSONAdapter(propertyFormat, propertyView, defaultIdProperty);
 
 		// create GSON serializer
-		this.gson = new GsonBuilder().setPrettyPrinting().serializeNulls().registerTypeHierarchyAdapter(FrameworkException.class,
-			new FrameworkExceptionGSONAdapter()).registerTypeAdapter(PropertySet.class, propertySetAdapter).registerTypeAdapter(Result.class, resultGsonAdapter).create();
+		this.gson = new GsonBuilder()
+                        .setPrettyPrinting()
+                        .serializeNulls()
+                        .registerTypeHierarchyAdapter(FrameworkException.class, new FrameworkExceptionGSONAdapter())
+                        .registerTypeAdapter(PropertySet.class, propertySetAdapter)
+                        .registerTypeAdapter(Result.class, resultGsonAdapter)
+                        .create();
 
 //		String requestLoggingParameter = this.getInitParameter(SERVLET_PARAMETER_REQUEST_LOGGING);
 //
