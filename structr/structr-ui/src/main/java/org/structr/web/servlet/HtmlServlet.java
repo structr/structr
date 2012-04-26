@@ -280,7 +280,7 @@ public class HtmlServlet extends HttpServlet {
 				String uuid                = resource.getStringProperty(AbstractNode.Key.uuid);
 				final StringBuilder buffer = new StringBuilder(10000);
 
-				getContent(request, uuid, null, buffer, resource, 0, false, searchFor, attrs, null, null);
+				getContent(request, uuid, null, buffer, resource, resource, 0, false, searchFor, attrs, null, null);
 
 				String content = buffer.toString();
 				double end     = System.nanoTime();
@@ -462,19 +462,19 @@ public class HtmlServlet extends HttpServlet {
 	}
 
 
-	private void getContent(HttpServletRequest request, final String resourceId, final String componentId, final StringBuilder buffer, final AbstractNode node, final int depth, boolean inBody,
-				final String searchClass, final List<NodeAttribute> attrs, final Component viewComponent, final Condition condition) {
+	private void getContent(HttpServletRequest request, final String resourceId, final String componentId, final StringBuilder buffer, final AbstractNode resource, final AbstractNode startNode,
+				final int depth, boolean inBody, final String searchClass, final List<NodeAttribute> attrs, final AbstractNode viewComponent, final Condition condition) {
 
 		String localComponentId   = componentId;
 		String content            = null;
 		String tag                = null;
 		AbstractRelationship link = null;
 
-		if (node != null) {
+		if (startNode != null) {
 
 			// If a search class is given, respect search attributes
 			// Filters work with AND
-			String structrClass = node.getStringProperty(Component.UiKey.structrclass);
+			String structrClass = startNode.getStringProperty(Component.UiKey.structrclass);
 
 			if ((structrClass != null) && structrClass.equals(EntityContext.normalizeEntityName(searchClass)) && (attrs != null)) {
 
@@ -483,7 +483,7 @@ public class HtmlServlet extends HttpServlet {
 					String key = attr.getKey();
 					Object val = attr.getValue();
 
-					if (!val.equals(node.getProperty(key))) {
+					if (!val.equals(startNode.getProperty(key))) {
 
 						return;
 
@@ -493,7 +493,7 @@ public class HtmlServlet extends HttpServlet {
 
 			}
 
-			String id = node.getStringProperty("uuid");
+			String id = startNode.getStringProperty("uuid");
 
 			for (int d = 0; d < depth; d++) {
 
@@ -502,11 +502,11 @@ public class HtmlServlet extends HttpServlet {
 			}
 
 			// System.out.println("id: " + id + " [" + node.getStringProperty("type") + "] " + node.getStringProperty("name") + ", depth: " + depth + ", res: " + resourceId + ", comp: " + componentId);
-			if (node instanceof Content) {
+			if (startNode instanceof Content) {
 
-				content = (((Content) node).getPropertyWithVariableReplacement(resourceId, componentId, viewComponent, Content.UiKey.content.name()));
+				content = (((Content) startNode).getPropertyWithVariableReplacement(resource, resourceId, componentId, viewComponent, Content.UiKey.content.name()));
 
-				List<AbstractRelationship> links = node.getOutgoingLinkRelationships();
+				List<AbstractRelationship> links = startNode.getOutgoingLinkRelationships();
 
 				if ((links != null) &&!links.isEmpty()) {
 
@@ -517,9 +517,9 @@ public class HtmlServlet extends HttpServlet {
 			}
 
 			// check for component
-			if (node instanceof Component) {
+			if (startNode instanceof Component) {
 
-				localComponentId = node.getStringProperty(AbstractNode.Key.uuid);
+				localComponentId = startNode.getStringProperty(AbstractNode.Key.uuid);
 
 			}
 
@@ -529,11 +529,11 @@ public class HtmlServlet extends HttpServlet {
 
 			}
 
-			tag = node.getStringProperty("tag");
+			tag = startNode.getStringProperty("tag");
 
 			// In edit mode, add an artificial 'div' tag around content nodes within body
 			// to make them editable
-			if (edit && inBody && (node instanceof Content)) {
+			if (edit && inBody && (startNode instanceof Content)) {
 
 				// tag = "div";
 				// Instead of adding a div tag, we mark the parent node with
@@ -562,25 +562,25 @@ public class HtmlServlet extends HttpServlet {
 
 					}
 
-					if (!(node instanceof Content)) {
+					if (!(startNode instanceof Content)) {
 
 						buffer.append(" structr_element_id=\"").append(id).append("\"");
-						buffer.append(" structr_type=\"").append(node.getType()).append("\"");
-						buffer.append(" structr_name=\"").append(node.getName()).append("\"");
+						buffer.append(" structr_type=\"").append(startNode.getType()).append("\"");
+						buffer.append(" structr_name=\"").append(startNode.getName()).append("\"");
 
 					}
 
 				}
 
-				if (node instanceof HtmlElement) {
+				if (startNode instanceof HtmlElement) {
 
-					HtmlElement htmlElement = (HtmlElement) node;
+					HtmlElement htmlElement = (HtmlElement) startNode;
 
-					for (String attribute : EntityContext.getPropertySet(node.getClass(), PropertyView.Html)) {
+					for (String attribute : EntityContext.getPropertySet(startNode.getClass(), PropertyView.Html)) {
 
 						try {
 
-							String value = htmlElement.getPropertyWithVariableReplacement(resourceId, localComponentId, viewComponent, attribute);
+							String value = htmlElement.getPropertyWithVariableReplacement(resource, resourceId, localComponentId, viewComponent, attribute);
 
 							if ((value != null) && StringUtils.isNotBlank(value)) {
 
@@ -611,15 +611,15 @@ public class HtmlServlet extends HttpServlet {
 
 		// ############################################################################################ BEGIN NEW VIEW TEST
 		// render
-		if (node instanceof View) {
+		if (startNode instanceof View) {
 
 			// fetch list of components from this view and
-			List<GraphObject> components = ((View) node).getComponents();
+			List<GraphObject> components = ((View) startNode).getComponents();
 
 			for (GraphObject component : components) {
 
 				// recursively render children
-				List<AbstractRelationship> rels = Component.getChildRelationships(request, node, resourceId, localComponentId);
+				List<AbstractRelationship> rels = Component.getChildRelationships(request, startNode, resourceId, localComponentId);
 
 				for (AbstractRelationship rel : rels) {
 
@@ -627,29 +627,29 @@ public class HtmlServlet extends HttpServlet {
 
 						AbstractNode subNode = rel.getEndNode();
 
-						getContent(request, resourceId, localComponentId, buffer, subNode, depth + 1, inBody, searchClass, attrs, (Component) component, condition);
+						getContent(request, resourceId, localComponentId, buffer, resource, subNode, depth + 1, inBody, searchClass, attrs, (AbstractNode)component, condition);
 
 					}
 
 				}
 			}
-		} else if (node instanceof Condition) {
+		} else if (startNode instanceof Condition) {
 
 			// recursively render children
-			List<AbstractRelationship> rels = Component.getChildRelationships(request, node, resourceId, localComponentId);
-			Condition newCondition          = (Condition) node;
+			List<AbstractRelationship> rels = Component.getChildRelationships(request, startNode, resourceId, localComponentId);
+			Condition newCondition          = (Condition) startNode;
 
 			for (AbstractRelationship rel : rels) {
 
 				AbstractNode subNode = rel.getEndNode();
 
-				getContent(request, resourceId, localComponentId, buffer, subNode, depth + 1, inBody, searchClass, attrs, viewComponent, newCondition);
+				getContent(request, resourceId, localComponentId, buffer, resource, subNode, depth + 1, inBody, searchClass, attrs, viewComponent, newCondition);
 
 			}
 		} else {
 
 			// recursively render children
-			List<AbstractRelationship> rels = Component.getChildRelationships(request, node, resourceId, localComponentId);
+			List<AbstractRelationship> rels = Component.getChildRelationships(request, startNode, resourceId, localComponentId);
 
 			for (AbstractRelationship rel : rels) {
 
@@ -657,7 +657,7 @@ public class HtmlServlet extends HttpServlet {
 
 					AbstractNode subNode = rel.getEndNode();
 
-					getContent(request, resourceId, localComponentId, buffer, subNode, depth + 1, inBody, searchClass, attrs, viewComponent, condition);
+					getContent(request, resourceId, localComponentId, buffer, resource, subNode, depth + 1, inBody, searchClass, attrs, viewComponent, condition);
 
 				}
 

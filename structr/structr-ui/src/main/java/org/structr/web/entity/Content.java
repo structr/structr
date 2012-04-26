@@ -21,13 +21,11 @@
 
 package org.structr.web.entity;
 
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
@@ -146,7 +144,7 @@ public class Content extends AbstractNode {
 		return getRelationships(RelType.CONTAINS, Direction.INCOMING).get(0);
 	}	
 	
-	public String getPropertyWithVariableReplacement(String resourceId, String componentId, Component viewComponent, String key) {
-		return HtmlElement.replaceVariables(securityContext, this, resourceId, componentId, viewComponent, super.getStringProperty(key));
+	public String getPropertyWithVariableReplacement(AbstractNode resource, String resourceId, String componentId, AbstractNode viewComponent, String key) {
+		return HtmlElement.replaceVariables(securityContext, resource, this, resourceId, componentId, viewComponent, super.getStringProperty(key));
 	}
 }

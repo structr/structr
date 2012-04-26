@@ -24,14 +24,13 @@ import org.neo4j.graphdb.Direction;
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
+import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.RelationClass;
+import org.structr.core.node.CypherQueryCommand;
 import org.structr.core.node.NodeService;
-import org.structr.core.node.search.SearchAttribute;
-import org.structr.web.resource.DynamicTypeResource;
 
 /**
  *
@@ -59,11 +58,13 @@ public class View extends AbstractNode {
 	public List<GraphObject> getComponents() {
 		
 		try {
-			List<SearchAttribute> searchAttributes = DynamicTypeResource.getSearchAttributes(getStringProperty("query"));
-			return DynamicTypeResource.getComponents(securityContext, searchAttributes);
+			
+			String query = getStringProperty("query");
+
+			return (List<GraphObject>)Services.command(securityContext, CypherQueryCommand.class).execute(query);
 			
 		} catch(Throwable t) {
-			
+			t.printStackTrace();
 		}
 		
 		return Collections.emptyList();
