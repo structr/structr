@@ -22,6 +22,6 @@ package org.structr.web.common;
  *
  * @author Christian Morgner
  */
-public interface Function<S, T> {
-	public T apply(S... sources);
+public abstract class Function<S, T> {
+	public abstract T apply(S[] sources);
 }

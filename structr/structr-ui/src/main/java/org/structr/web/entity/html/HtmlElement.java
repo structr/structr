@@ -21,7 +21,10 @@
 
 package org.structr.web.entity.html;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -69,7 +72,7 @@ public abstract class HtmlElement extends Element {
 	};
 	private static final Logger logger           = Logger.getLogger(HtmlElement.class.getName());
 	private static final Pattern templatePattern = Pattern.compile("\\$\\{[^}]*\\}");
-	private static final Pattern functionPattern = Pattern.compile("([a-zA-Z0-9]+)\\((.+)\\)");
+	private static final Pattern functionPattern = Pattern.compile("([a-zA-Z0-9_]+)\\((.+)\\)");
 
 	private static final java.util.Map<String, Function<String, String>> functions = new LinkedHashMap<String, Function<String, String>>();
 
@@ -77,7 +80,7 @@ public abstract class HtmlElement extends Element {
 		
 		functions.put("md5", new Function<String, String>() {
 
-			@Override public String apply(String... s) {
+			@Override public String apply(String[] s) {
 				return s != null && s.length > 0 && s[0] != null ? DigestUtils.md5Hex(s[0]) : null;
 			}
 			
@@ -85,7 +88,7 @@ public abstract class HtmlElement extends Element {
 		
 		functions.put("upper", new Function<String, String>() {
 
-			@Override public String apply(String... s) {
+			@Override public String apply(String[] s) {
 				return s != null && s.length > 0 && s[0] != null  ? s[0].toUpperCase() : null;
 			}
 			
@@ -93,7 +96,7 @@ public abstract class HtmlElement extends Element {
 		
 		functions.put("lower", new Function<String, String>() {
 
-			@Override public String apply(String... s) {
+			@Override public String apply(String[] s) {
 				return s != null && s.length > 0 && s[0] != null  ? s[0].toLowerCase() : null;
 			}
 			
@@ -101,15 +104,49 @@ public abstract class HtmlElement extends Element {
 		
 		functions.put("capitalize", new Function<String, String>() {
 
-			@Override public String apply(String... s) {
+			@Override public String apply(String[] s) {
 				return s != null && s.length > 0 && s[0] != null  ? StringUtils.capitalize(s[0]) : null;
+			}
+			
+		});
+		
+		functions.put("if", new Function<String, String>() {
+
+			@Override public String apply(String[] s) {
+				
+				if(s.length < 3) {
+					return "";
+				}
+				
+				if(s[0].equals("true")) {
+					return s[1];
+				} else {
+					return s[2];
+				}
+			}
+			
+		});
+		
+		functions.put("equal", new Function<String, String>() {
+
+			@Override public String apply(String[] s) {
+				
+				logger.log(Level.INFO, "Length: {0}", s.length );
+				
+				if(s.length < 2) {
+					return "true";
+				}
+				
+				logger.log(Level.INFO, "Comparing {0} to {1}", new java.lang.Object[] { s[0], s[1] } );
+				
+				return s[0].equals(s[1]) ? "true" : "false";
 			}
 			
 		});
 		
 		functions.put("add", new Function<String, String>() {
 
-			@Override public String apply(String... s) {
+			@Override public String apply(String[] s) {
 				
 				int result = 0;
 				
@@ -169,13 +206,13 @@ public abstract class HtmlElement extends Element {
 		return htmlAttributes;
 	}
 	
-	public String getPropertyWithVariableReplacement(String resourceId, String componentId, Component viewComponent, String key) {
+	public String getPropertyWithVariableReplacement(AbstractNode resource, String resourceId, String componentId, AbstractNode viewComponent, String key) {
 
-		return replaceVariables(securityContext, this, resourceId, componentId, viewComponent, super.getStringProperty(key));
+		return replaceVariables(securityContext, resource, this, resourceId, componentId, viewComponent, super.getStringProperty(key));
 	}
 
 	// ----- static methods -----
-	public static String replaceVariables(SecurityContext securityContext, AbstractNode node, String resourceId, String componentId, Component viewComponent, String rawValue) {
+	public static String replaceVariables(SecurityContext securityContext, AbstractNode resource, AbstractNode startNode, String resourceId, String componentId, AbstractNode viewComponent, String rawValue) {
 
 		String value = null;
 		
@@ -191,7 +228,7 @@ public abstract class HtmlElement extends Element {
 				String source = group.substring(2, group.length() - 1);
 
 				// fetch referenced property
-				String partValue = extractFunctions(securityContext, node, resourceId, componentId, viewComponent, source);
+				String partValue = extractFunctions(securityContext, resource, startNode, resourceId, componentId, viewComponent, source);
 				if (partValue != null) {
 
 					value = value.replace(group, partValue);
@@ -220,7 +257,7 @@ public abstract class HtmlElement extends Element {
 		return null;
 	}
 
-	public static String extractFunctions(SecurityContext securityContext, AbstractNode node, String resourceId, String componentId, Component viewComponent, String source) {
+	public static String extractFunctions(SecurityContext securityContext, AbstractNode resource, AbstractNode startNode, String resourceId, String componentId, AbstractNode viewComponent, String source) {
 		
 		Matcher functionMatcher = functionPattern.matcher(source);
 		if(functionMatcher.matches()) {
@@ -235,21 +272,21 @@ public abstract class HtmlElement extends Element {
 				
 				if(parameter.contains(",")) {
 
-					String[] parameters = parameter.split("[,]+");
+					String[] parameters = split(parameter);
 					String[] results    = new String[parameters.length];
 
 					// collect results from comma-separated function parameter
 					for(int i=0; i<parameters.length; i++) {
 						
-						results[i] = extractFunctions(securityContext, node, resourceId, componentId, viewComponent, StringUtils.strip(parameters[i]));
+						results[i] = extractFunctions(securityContext, resource, startNode, resourceId, componentId, viewComponent, StringUtils.strip(parameters[i]));
 					}
 
 					return function.apply(results);
 
 				} else {
 
-					String result = extractFunctions(securityContext, node, resourceId, componentId, viewComponent, StringUtils.strip(parameter));
-					return function.apply(result);
+					String result = extractFunctions(securityContext, resource, startNode, resourceId, componentId, viewComponent, StringUtils.strip(parameter));
+					return function.apply(new String[] { result });
 				}
 			}
 		}
@@ -271,11 +308,11 @@ public abstract class HtmlElement extends Element {
 		} else {
 			
 			// return property key
-			return convertValueForHtml(getReferencedProperty(securityContext, node, resourceId, componentId, viewComponent, source));
+			return convertValueForHtml(getReferencedProperty(securityContext, resource, startNode, resourceId, componentId, viewComponent, source));
 		}
 	}
 
-	public static java.lang.Object getReferencedProperty(SecurityContext securityContext, AbstractNode startNode, String resourceId, String componentId, Component viewComponent, String refKey) {
+	public static java.lang.Object getReferencedProperty(SecurityContext securityContext, AbstractNode resource, AbstractNode startNode, String resourceId, String componentId, AbstractNode viewComponent, String refKey) {
 
 		AbstractNode node   = startNode;
 		String[] parts      = refKey.split("[\\.]+");
@@ -299,6 +336,15 @@ public abstract class HtmlElement extends Element {
 			if ("resource".equals(part.toLowerCase())) {
 
 				node = getNodeById(securityContext, resourceId);
+
+				continue;
+
+			}
+
+			// special keyword "resource"
+			if ("page".equals(part.toLowerCase())) {
+
+				node = resource;
 
 				continue;
 
@@ -355,4 +401,113 @@ public abstract class HtmlElement extends Element {
 
 		return null;
 	}
+
+	public static String[] split(String source) {
+		
+		ArrayList<String> tokens = new ArrayList<String>(20);
+		boolean inDoubleQuotes = false;
+		boolean inSingleQuotes = false;
+		int len = source.length();
+		int level = 0;
+
+		StringBuilder currentToken = new StringBuilder(len);
+		for(int i=0; i<len; i++) {
+			
+			char c = source.charAt(i);
+			
+			// do not strip away separators in nested functions!
+			if(level != 0 || c != ',') {
+				currentToken.append(c);
+			}
+			
+			switch(c) {
+				case '(':
+					level++;
+					break;
+				case ')':
+					level--;
+					break;
+				case '"':
+					if(inDoubleQuotes) {
+						inDoubleQuotes = false;
+						level--;
+					} else {
+						inDoubleQuotes = true;
+						level++;
+					}
+					break;
+				case '\'':
+					if(inSingleQuotes) {
+						inSingleQuotes = false;
+						level--;
+					} else {
+						inSingleQuotes = true;
+						level++;
+					}
+					break;
+				case ',':
+					if(level == 0) {
+						tokens.add(currentToken.toString().trim());
+						currentToken.setLength(0);
+					}
+					break;
+			}
+		}
+		
+		if(currentToken.length() > 0) {
+			tokens.add(currentToken.toString().trim());
+		}
+		
+		
+		return tokens.toArray(new String[0]);
+	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
