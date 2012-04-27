@@ -48,7 +48,7 @@ function connect() {
 
 	log('State: ' + ws.readyState);
 		
-	var parentId, entityId;
+	var entityId;
 	var parent, entity;
 
 	ws.onmessage = function(message) {
@@ -59,6 +59,8 @@ function connect() {
 	    //var msg = $.parseJSON(message);
 	    var type = data.type;
 	    var command = data.command;
+            var parentId = data.id;
+            var resourceId = data.data.resourceId;
 	    var msg = data.message;
 	    var result = data.result;
 	    var sessionValid = data.sessionValid;
@@ -189,8 +191,7 @@ function connect() {
 
 	    } else if (command == 'CHILDREN') { /*********************** CHILDREN ************************/
 
-		var parentId = data.id;
-		var resourceId = data.data.resourceId;
+		
 		if (debug) console.log('CHILDREN:', parentId, resourceId);
 
 		$(result).each(function(i, child) {
@@ -204,10 +205,8 @@ function connect() {
 		if (debug) console.log('LIST:', result);
                 				
 		$(result).each(function(i, entity) {
-
 		    if (debug) console.log('LIST: ' + entity.type);
 		    _Entities.appendObj(entity);
-			
 		});
 
 	    } else if (command == 'DELETE') { /*********************** DELETE ************************/
@@ -269,14 +268,11 @@ function connect() {
 
 	    } else if (command == 'CREATE' || command == 'ADD' || command == 'IMPORT') { /*********************** CREATE, ADD, IMPORT ************************/
                 
-		var parentId = data.id;
-		var resourceId = data.data.resourceId;
-                
-                console.log(result, data, data.data);
+                if (debug) console.log(command, result, data, data.data);
 				
 		$(result).each(function(i, entity) {
-		    console.log(command, entity, parentId, resourceId);
-                    _Entities.appendObj(entity, parentId, resourceId);
+		    if (debug) console.log(command, entity, parentId, resourceId);
+                    _Entities.appendObj(entity, parentId, resourceId, command == 'ADD');
 		});
 
 		_Resources.reloadPreviews();

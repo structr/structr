@@ -73,6 +73,7 @@ $(document).ready(function() {
         main.empty();
         Structr.activateMenuEntry('resources');
         Structr.modules['resources'].onload();
+        _Resources.resize();
     });
 
     $('#components_').on('click', function() {
@@ -159,9 +160,6 @@ var Structr = {
         connect();
 	
         main.empty();
-
-
-        //		UsersAndGroups.onload();
 
         Structr.expanded = $.parseJSON($.cookie('structrTreeExpandedIds'));
         if (debug) console.log('expanded ids', Structr.expanded);

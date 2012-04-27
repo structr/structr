@@ -68,29 +68,6 @@ var _UsersAndGroups = {
         }
     },
 
-//    addUserToGroup : function(userId, groupId) {
-//
-//        var group = $('.' + groupId + '_');
-//        var user = $('.' + userId + '_');
-//
-//        group.append(user);
-//
-//        $('.delete_icon', user).replaceWith('<img title="Remove user ' + userId + ' from group ' + groupId + '" '
-//            + 'alt="Remove user ' + userId + ' from group ' + groupId + '" class="delete_icon button" src="icon/user_delete.png">');
-//        $('.delete_icon', user).on('click', function() {
-//            _UsersAndGroups.removeUserFromGroup(userId, groupId)
-//        //deleteUser(this, user);
-//        });
-//        user.draggable('destroy');
-//
-//        var numberOfUsers = $('.user', group).size();
-//        if (debug) console.log(numberOfUsers);
-//        if (numberOfUsers > 0) {
-//            disable($('.delete_icon', group)[0]);
-//        }
-//
-//    },
-
     removeUserFromGroup : function(userId, groupId) {
 
         var group = $('.' + groupId + '_');
@@ -154,27 +131,40 @@ var _UsersAndGroups = {
             }
         });
         
-	_Entities.appendAccessControlIcon(div, group);
-	_Entities.appendEditPropertiesIcon(div, group);
-	_Entities.setMouseOver(div);
+        _Entities.appendAccessControlIcon(div, group);
+        _Entities.appendEditPropertiesIcon(div, group);
+        _Entities.setMouseOver(div);
         
         return div;
     },
 
-    appendUserElement : function(user, groupId) {
+    appendUserElement : function(user, groupId, removeExisting) {
+        console.log('appendUserElement', user, groupId, removeExisting);
         var div;
+        var newDelIcon = '<img title="Remove user \'' + user.name + '\' from group ' + groupId + '" '
+                + 'alt="Remove user ' + user.name + ' from group ' + groupId + '" class="delete_icon button" src="icon/user_delete.png">'
+        var delIcon;
         if (groupId) {
             var parent = $('.' + groupId + '_');
-            parent.append('<div class="user ' + user.id + '_">'
-                + '<img class="typeIcon" src="icon/user.png">'
-                //				+ ' <b class="realName">' + user.realName + '</b> [<span class="id">' + user.id + '</span>]'
-                + ' <b class="name_">' + user.name + '</b> <span class="id">' + user.id + '</span>'
-                + '</div>');
-            div = $('.' + user.id + '_', parent)
-            div.append('<img title="Remove user \'' + user.name + '\' from group ' + groupId + '" '
-                + 'alt="Remove user ' + user.name + ' from group ' + groupId + '" class="delete_icon button" src="icon/user_delete.png">');
-            $('.delete_icon', div).on('click', function() {
-                _UsersAndGroups.removeUserFromGroup(user.id, groupId)
+            
+            div = $('.' + user.id + '_');
+            
+            if (removeExisting && div && div.length) {
+                parent.append(div.css({ top: 0, left: 0 }));
+                delIcon = $('.delete_icon', div);
+                delIcon.replaceWith(newDelIcon);
+            } else {
+                parent.append('<div class="user ' + user.id + '_">'
+                    + '<img class="typeIcon" src="icon/user.png">'
+                    //				+ ' <b class="realName">' + user.realName + '</b> [<span class="id">' + user.id + '</span>]'
+                    + ' <b class="name_">' + user.name + '</b> <span class="id">' + user.id + '</span>'
+                    + '</div>');
+                div = $('.' + user.id + '_', parent);
+                div.append(newDelIcon);
+            }
+            delIcon = $('.delete_icon', div);
+            delIcon.on('click', function() {
+                _UsersAndGroups.removeUserFromGroup(user.id, groupId);
             });
 
 
@@ -185,10 +175,19 @@ var _UsersAndGroups = {
                 + ' <b class="name_">' + user.name + '</b> <span class="id">' + user.id + '</span>'
                 + '</div>');
             div = $('.' + user.id + '_', users);
-            div.append('<img title="Delete user \'' + user.name + '\'" '
-                + 'alt="Delete user \'' + user.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
-            $('.delete_icon', div).on('click', function() {
-                _UsersAndGroups.deleteUser(this, user)
+            
+            newDelIcon = '<img title="Delete user \'' + user.name + '\'" '
+                + 'alt="Delete user \'' + user.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">';
+            delIcon = $('.delete_icon', div);
+            if (removeExisting && delIcon && delIcon.length) {
+                delIcon.replaceWith(newDelIcon);
+            } else {
+                div.append(newDelIcon);
+                delIcon = $('.delete_icon', div);
+            }            
+            
+            delIcon.on('click', function() {
+                _UsersAndGroups.deleteUser(this, user);
             });
 
 			

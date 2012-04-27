@@ -68,75 +68,65 @@ var _Entities = {
         }
     },
 
-    appendObj : function(entity, parentId, resourceId) {
+    appendObj : function(entity, parentId, resourceId, removeExisting) {
 
         // Check if object is not already contained
         var node = Structr.node(entity.id, parentId, resourceId);
         if (debug) console.log('appendObj', node);
         if (node && node.length > 0) return;
+        
+        // Check if parent node is expanded
+        if (parentId && (!isExpanded(parentId, null, resourceId))) return;
 
         if (entity.type == 'User') {
-            var groups = entity.groups;
-            if (!groups || groups.length == 0) {
-                _UsersAndGroups.appendUserElement(entity, parentId, resourceId);
-            }
 
+            _UsersAndGroups.appendUserElement(entity, parentId, removeExisting);
+            
         } else if (entity.type == 'Group') {
-            var groupElement = _UsersAndGroups.appendGroupElement(entity);
+            var groupElement = _UsersAndGroups.appendGroupElement(entity, removeExisting);
             var users = entity.users;
             if (users && users.length > 0) {
                 disable($('.delete_icon', groupElement)[0]);
                 $(users).each(function(i, user) {
-                    _UsersAndGroups.appendUserElement(user, entity.id);
+                    _UsersAndGroups.appendUserElement(user, entity.id, removeExisting);
                 });
             }
 
         } else if (entity.type == 'Resource') {
-
-            //_Entities.getTree(entity.id);
-
-            var resourceElement = _Resources.appendResourceElement(entity);
-        //			var elements = entity.elements;
-        //			if (elements && elements.length > 0) {
-        //			    disable($('.delete_icon', respourceElement)[0]);
-        //			    $(elements).each(function(i, element) {
-        //				if (element.type == 'Element') {
-        //				    _Resources.appendElementElement(element, entity.id);
-        //				}
-        //			    });
-        //			}
+            
+            _Resources.appendResourceElement(entity);
 
         } else if (entity.type == 'Component') {
 
-            var componentElement = _Resources.appendComponentElement(entity, parentId, resourceId);
+            var componentElement = _Resources.appendComponentElement(entity, parentId, resourceId, removeExisting);
             var elements = entity.elements;
             if (elements && elements.length > 0) {
                 disable($('.delete_icon', componentElement)[0]);
                 $(elements).each(function(i, element) {
                     if (element.type == 'Element') {
-                        _Resources.appendElementElement(element, entity.id);
+                        _Resources.appendElementElement(element, entity.id, removeExisting);
                     }
                 });
             }
 
         } else if (entity.type == 'Content') {
-            _Resources.appendContentElement(entity, parentId, resourceId);
+            _Resources.appendContentElement(entity, parentId, resourceId, removeExisting);
 
         } else if (entity.type == 'Folder') {
 
-            var folderElement = _Files.appendFolderElement(entity);
+            var folderElement = _Files.appendFolderElement(entity, removeExisting);
             var folders = entity.folders;
             if (folders && folders.length > 0) {
                 disable($('.delete_icon', folderElement)[0]);
                 $(folders).each(function(i, folder) {
-                    _Files.appendFolderElement(folder, entity.id);
+                    _Files.appendFolderElement(folder, entity.id, removeExisting);
                 });
             }
             var images = entity.images;
             if (images && images.length > 0) {
                 disable($('.delete_icon', folderElement)[0]);
                 $(images).each(function(i, image) {
-                    _Files.appendImageElement(image, entity.id);
+                    _Files.appendImageElement(image, entity.id, removeExisting);
                 });
             }
             var files = entity.files;
@@ -145,7 +135,7 @@ var _Entities = {
                 $(files).each(function(i, file) {
 
                     if (file.type == 'File') { // files comprise images
-                        _Files.appendFileElement(file, entity.id);
+                        _Files.appendFileElement(file, entity.id, removeExisting);
                     }
 
                 });
@@ -153,21 +143,15 @@ var _Entities = {
 
         } else if (entity.type == 'Image') {
             if (debug) console.log('Image:', entity);
-            var imageFolder = entity.folder;
-            if (!imageFolder || imageFolder.length == 0) {
-                _Files.appendImageElement(entity);
-            }
-
+            _Files.uploadFile(entity);
+            _Files.appendImageElement(entity, parentId, removeExisting);
         } else if (entity.type == 'File') {
             if (debug) console.log('File: ', entity);
-            var parentFolder = entity.folder;
-            if (!parentFolder || parentFolder.length == 0) {
-                _Files.appendFileElement(entity);
-            }
-
+            _Files.uploadFile(entity);
+            _Files.appendFileElement(entity, parentId, removeExisting);
         } else {
             if (debug) console.log('Entity: ', entity);
-            var elementElement = _Resources.appendElementElement(entity, parentId, resourceId);
+            var elementElement = _Resources.appendElementElement(entity, parentId, resourceId, removeExisting);
             var elem = entity.elements;
             if (elem && elem.length > 0) {
                 if (debug) console.log(elem);
@@ -184,7 +168,7 @@ var _Entities = {
 
     },
     
-    appendEntityElement : function(entity, parentElement) {
+    appendEntityElement : function(entity, parentElement, removeExisting) {
         if (debug) console.log(entity);
         var element;
         if (parentElement) {
@@ -373,48 +357,51 @@ var _Entities = {
 
     appendAccessControlIcon: function(parent, entity, hide) {
 
-        parent.append('<img title="Access Control and Visibility" alt="Access Control and Visibility" class="key_icon button" src="' + Structr.key_icon + '">');
-
         var keyIcon = $('.key_icon', parent);
-        if (hide) keyIcon.hide();
-        keyIcon.on('click', function(e) {
-            e.stopPropagation();
-            Structr.dialog('Access Control and Visibility', function() {}, function() {});
-            var dt = $('#dialogBox .dialogText');
+        var newKeyIcon = '<img title="Access Control and Visibility" alt="Access Control and Visibility" class="key_icon button" src="' + Structr.key_icon + '">';
+        if (!(keyIcon && keyIcon.length)) {
+            parent.append(newKeyIcon);
+            keyIcon = $('.key_icon', parent)
+            if (hide) keyIcon.hide();
+            keyIcon.on('click', function(e) {
+                e.stopPropagation();
+                Structr.dialog('Access Control and Visibility', function() {}, function() {});
+                var dt = $('#dialogBox .dialogText');
 
-            dt.append('<h3>Owner</h3><p class="nodeSelectBox" id="ownersBox"></p>');
-            Server.getProperty(entity.id, 'ownerId', '#ownersBox');
+                dt.append('<h3>Owner</h3><p class="nodeSelectBox" id="ownersBox"></p>');
+                Server.getProperty(entity.id, 'ownerId', '#ownersBox');
 
-            dt.append('<h3>Visibility</h3><div class="' + entity.id + '_"><button class="switch disabled visibleToPublicUsers_">Public (visible to anyone)</button><button class="switch disabled visibleToAuthenticatedUsers_">Authenticated Users</button></div>');
-            var publicSwitch = $('.visibleToPublicUsers_');
-            var authSwitch = $('.visibleToAuthenticatedUsers_');
+                dt.append('<h3>Visibility</h3><div class="' + entity.id + '_"><button class="switch disabled visibleToPublicUsers_">Public (visible to anyone)</button><button class="switch disabled visibleToAuthenticatedUsers_">Authenticated Users</button></div>');
+                var publicSwitch = $('.visibleToPublicUsers_');
+                var authSwitch = $('.visibleToAuthenticatedUsers_');
 
-            Server.getProperty(entity.id, 'visibleToPublicUsers', '#dialogBox');
-            Server.getProperty(entity.id, 'visibleToAuthenticatedUsers', '#dialogBox');
+                Server.getProperty(entity.id, 'visibleToPublicUsers', '#dialogBox');
+                Server.getProperty(entity.id, 'visibleToAuthenticatedUsers', '#dialogBox');
 
-            if (debug) console.log(publicSwitch);
-            if (debug) console.log(authSwitch);
+                if (debug) console.log(publicSwitch);
+                if (debug) console.log(authSwitch);
 
-            publicSwitch.on('click', function() {
-                if (debug) console.log('Toggle switch', publicSwitch.hasClass('disabled'))
-                Server.setProperty(entity.id, 'visibleToPublicUsers', publicSwitch.hasClass('disabled'));
+                publicSwitch.on('click', function() {
+                    if (debug) console.log('Toggle switch', publicSwitch.hasClass('disabled'))
+                    Server.setProperty(entity.id, 'visibleToPublicUsers', publicSwitch.hasClass('disabled'));
+                });
+
+                authSwitch.on('click', function() {
+                    if (debug) console.log('Toggle switch', authSwitch.hasClass('disabled'))
+                    Server.setProperty(entity.id, 'visibleToAuthenticatedUsers', authSwitch.hasClass('disabled'));
+                });
+
             });
-
-            authSwitch.on('click', function() {
-                if (debug) console.log('Toggle switch', authSwitch.hasClass('disabled'))
-                Server.setProperty(entity.id, 'visibleToAuthenticatedUsers', authSwitch.hasClass('disabled'));
-            });
-
-        });
         
-        keyIcon.on('mouseover', function(e) {
-            var self = $(this);
-            self.show();
+            keyIcon.on('mouseover', function(e) {
+                var self = $(this);
+                self.show();
 
-        });
+            });
+        }
     },
 
-    appendEditPropertiesIcon : function(el, entity) {
+    appendEditPropertiesIcon : function(parent, entity) {
 
         //	if (entity.type != 'Content') {
         //	    el.append('<span class="_html_id_">#</span> <span class="_html_class_">.</span>');
@@ -423,8 +410,13 @@ var _Entities = {
         //_Entities.getProperty(entity.id, '_html_id');
         //	_Entities.getProperty(entity.id, '_html_class');
 
-        el.append('<img title="Edit Properties" alt="Edit Properties" class="edit_props_icon button" src="' + '/structr/icon/application_view_detail.png' + '">');
-        $('.edit_props_icon', el).on('click', function(e) {
+        var editIcon = $('.edit_props_icon', parent);
+
+        if (!(editIcon && editIcon.length)) {
+            parent.append('<img title="Edit Properties" alt="Edit Properties" class="edit_props_icon button" src="' + '/structr/icon/application_view_detail.png' + '">');
+            editIcon = $('.edit_props_icon', parent)
+        }
+        editIcon.on('click', function(e) {
             e.stopPropagation();
             if (debug) console.log('showProperties', entity);
             _Entities.showProperties(this, entity, $('#dialogBox .dialogText'));

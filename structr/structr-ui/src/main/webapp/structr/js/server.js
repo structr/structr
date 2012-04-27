@@ -309,7 +309,32 @@ var Server = {
         var obj = {};
         obj.data = nodeData;
         obj.command = 'CLONE';
-        obj.id = id
+        obj.id = id;
+        if (debug) console.log('cloneResource()', obj);
+        return sendObj(obj);
+    },
+    
+    /**
+     * Send a CHUNK command to the server.
+     * 
+     * For each chunk, a chunk command is sent with the given chunk id, chunk
+     * size (in bytes), and the chunk content.
+     * 
+     * The server collects and concatenates all data chunks to the binary content
+     * of the file node with the given id.
+     * 
+     * The server gives no feedback to a CHUNK command.
+     */
+    chunk : function(id, chunkId, chunkSize, chunk) {
+        var obj = {};
+        obj.command = 'CHUNK';
+        obj.id = id;
+        var data = {};
+        data.chunkId = chunkId;
+        data.chunkSize = chunkSize;
+        data.chunk = chunk;
+        obj.data = data;
+        console.log('chunk()', obj);
         return sendObj(obj);
     }
 

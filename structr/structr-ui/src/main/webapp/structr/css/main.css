@@ -452,10 +452,7 @@ span.id {
     border: none;
     background: none;
     margin-right: 4px ! important;
-}
-
-.expand_icon {
-    cursor: pointer;
+    cursor: pointer ! important;
 }
 
 .edit_icon, .add_icon, .delete_icon, .close_icon, .key_icon, .edit_props_icon, .clone_icon, .view_icon, .link_icon, .add_form_icon {

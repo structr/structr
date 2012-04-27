@@ -352,7 +352,6 @@ var _Resources = {
                 _Resources.resetTab(element, newName);
             }
         });
-         
 
         element.off('click');
 
@@ -696,7 +695,7 @@ var _Resources = {
                 }
             });
 
-            _Resources.resize();
+            //_Resources.resize();
         });
 	
     },
