@@ -131,7 +131,6 @@ var _UsersAndGroups = {
             }
         });
         
-        _Entities.appendAccessControlIcon(div, group);
         _Entities.appendEditPropertiesIcon(div, group);
         _Entities.setMouseOver(div);
         

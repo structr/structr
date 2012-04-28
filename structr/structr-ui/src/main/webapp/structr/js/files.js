@@ -372,7 +372,7 @@ var _Files = {
                     
                     if (debug) console.log('File was read into memory.');
                     var binaryContent = f.target.result;
-                    console.log('uploadFile: binaryContent', binaryContent);
+                    if (debug) console.log('uploadFile: binaryContent', binaryContent);
 
                     for (var c=0; c<chunks; c++) {
                         
@@ -398,7 +398,7 @@ var _Files = {
                     }
 
                     var iconSrc = $('.' + file.id + '_').find('.typeIcon').attr('src');
-                    console.log('Icon src: ', iconSrc);
+                    if (debug) console.log('Icon src: ', iconSrc);
                     $('.' + file.id + '_').find('.typeIcon').attr('src', iconSrc + '?' + new Date().getTime());
 
                 }

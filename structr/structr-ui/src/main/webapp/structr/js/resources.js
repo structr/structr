@@ -132,10 +132,10 @@ var _Resources = {
         });
 
         _Resources.refresh();
-        _Resources.refreshComponents();
-        _Resources.refreshElements();
+        //_Resources.refreshComponents();
+        //_Resources.refreshElements();
         _Elements.showPalette();
-        _Contents.refresh();
+        //_Contents.refresh();
 
         previewTabs.append('<li id="import_page" class="button"><img class="add_button icon" src="icon/page_white_put.png"></li>');
         $('#import_page', previewTabs).on('click', function() {

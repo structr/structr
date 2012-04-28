@@ -76,7 +76,7 @@ var _Entities = {
         if (node && node.length > 0) return;
         
         // Check if parent node is expanded
-        if (parentId && (!isExpanded(parentId, null, resourceId))) return;
+        if (resourceId && parentId && (!isExpanded(parentId, null, resourceId))) return;
 
         if (entity.type == 'User') {
 

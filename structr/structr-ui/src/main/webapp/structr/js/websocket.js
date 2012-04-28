@@ -268,10 +268,9 @@ function connect() {
 
 	    } else if (command == 'CREATE' || command == 'ADD' || command == 'IMPORT') { /*********************** CREATE, ADD, IMPORT ************************/
                 
-                if (debug) console.log(command, result, data, data.data);
+                //console.log(command, result, data, data.data);
 				
 		$(result).each(function(i, entity) {
-		    if (debug) console.log(command, entity, parentId, resourceId);
                     _Entities.appendObj(entity, parentId, resourceId, command == 'ADD');
 		});
 
