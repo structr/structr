@@ -20,10 +20,10 @@
 /**
  * Use these commands to send command calls to the websocket server.
  * 
- * The websocket listener is contained in the websocket.js file.
+ * The websocket listener is in the websocket.js file.
  * 
  */
-var Server = {
+var Command = {
 
     /**
      * Send a single GET command to the server.
@@ -46,6 +46,9 @@ var Server = {
      * 
      * The server will return a result set containing all items of the given
      * type to the sending client (no broadcast).
+     * The server will return an array with all
+     * node ids which have child nodes in this resource.
+     * 
      * TODO: Add paging and sorting
      */
     list : function(type) {
@@ -64,6 +67,9 @@ var Server = {
      * The server will return a result set containing all children of the
      * node with the given id which are rendered within the resource with
      * the given resourceId to the sending client (no broadcast).
+     * 
+     * The server will return an array with all node ids which have child
+     * nodes in this resource.
      */
     children : function(id, resourceId) {
         var obj = {};

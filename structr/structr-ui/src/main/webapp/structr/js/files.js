@@ -42,17 +42,21 @@ var _Files = {
 
         var windowWidth = win.width();
         var windowHeight = win.height();
-        var headerOffsetHeight = 67;
+        var headerOffsetHeight = 82;
 
-        folders.css({
-            width: Math.max(180, Math.min(windowWidth/3, 360)) + 'px',
-            height: windowHeight - headerOffsetHeight + 'px'
-        });
+        if (folders) {
+            folders.css({
+                width: Math.max(180, Math.min(windowWidth/3, 360)) + 'px',
+                height: windowHeight - headerOffsetHeight + 'px'
+            });
+        }
 
-        files.css({
-            width: Math.max(180, Math.min(windowWidth/3, 360)) + 'px',
-            height: windowHeight - headerOffsetHeight + 'px'
-        });
+        if (files) {
+            files.css({
+                width: Math.max(180, Math.min(windowWidth/3, 360)) + 'px',
+                height: windowHeight - headerOffsetHeight + 'px'
+            });
+        }
 
     },
 
@@ -60,7 +64,7 @@ var _Files = {
         if (debug) console.log('onload');
         if (palette) palette.remove();
 
-        main.append('<table><tr><td id="folders"></td><td id="files"></td><td id="images"></td></tr></table>');
+        main.append('<table><tr><td id="files"></td><td id="folders"></td><td id="images"></td></tr></table>');
         folders = $('#folders');
         files = $('#files');
         images = $('#images');
@@ -77,9 +81,9 @@ var _Files = {
 		
         if (window.File && window.FileReader && window.FileList && window.Blob) {
 
-            files.append('<div id="filesDropArea">Drop files here</div>');
+            files.append('<h1>Drop files here</h1>');
             
-            drop = $('#filesDropArea');
+            drop = $('#files');
 
             drop.on('dragover', function(event) {
                 event.originalEvent.dataTransfer.dropEffect = 'copy';
@@ -131,29 +135,30 @@ var _Files = {
                 return false;
             });
         }
-        Server.list('File');
+        Command.list('File');
+        _Files.resize();
     },
 	
     refreshImages : function() {
         images.empty();
-        Server.list('Image');
+        Command.list('Image');
     },
 	
     refreshFolders : function() {
         folders.empty();
-        if (Server.list('Folder')) {
+        if (Command.list('Folder')) {
             folders.append('<button class="add_folder_icon button"><img title="Add Folder" alt="Add Folder" src="' + _Files.add_folder_icon + '"> Add Folder</button>');
             $('.add_folder_icon', main).on('click', function() {
                 var entity = {};
                 entity.type = 'Folder';
-                Server.create(entity);
+                Command.create(entity);
             });
         }
     },
 
-    appendFileElement : function(file, folderId, removeExisting, isImage) {
+    appendFileElement : function(file, folderId, removeExisting, hasChildren, isImage) {
 
-        console.log('Files.appendFileElement', file, folderId, removeExisting, isImage);
+        console.log('Files.appendFileElement', file, folderId, removeExisting, hasChildren, isImage);
 
         var parentElement, cls;
         if (isImage) {
@@ -182,7 +187,10 @@ var _Files = {
         var delIcon, newDelIcon;
         var div = $('.' + file.id + '_');
         if (removeExisting && div && div.length) {
-            parent.append(div.css({ top: 0, left: 0 }));
+            parent.append(div.css({
+                top: 0,
+                left: 0
+            }));
             console.log('appended', div, parent);
         } else {
         
@@ -196,7 +204,7 @@ var _Files = {
         $('.typeIcon', div).on('click', function() {
             window.open(viewRootUrl + file.name, 'Download ' + file.name);
         });
-	console.log(folderId, removeExisting);
+        console.log(folderId, removeExisting);
         
         delIcon = $('.delete_icon', div);
 
@@ -211,6 +219,7 @@ var _Files = {
             $('.delete_icon', div).on('click', function() {
                 _Files.removeFileFromFolder(file.id, folderId, isImage);
             });
+            disable($('.delete_icon', parent)[0]);
 			
         } else {
             newDelIcon = '<img title="Delete ' + file.name + ' \'' + file.name + '\'" alt="Delete ' + file.name + ' \'' + file.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">';
@@ -239,12 +248,12 @@ var _Files = {
         return div;
     },
 	
-    appendImageElement : function(file, folderId, removeExisting) {
+    appendImageElement : function(file, folderId, removeExisting, hasChildren) {
         console.log('appendImageElement', file, folderId, removeExisting);
-        return _Files.appendFileElement(file, folderId, removeExisting, true);
+        return _Files.appendFileElement(file, folderId, removeExisting, hasChildren, true);
     },
 		
-    appendFolderElement : function(folder, parentId, removeExisting) {
+    appendFolderElement : function(folder, parentId, removeExisting, hasChildren) {
 		
         if (debug) console.log('Folder: ', folder);
         var parent = Structr.findParent(parentId, null, folders);
@@ -268,7 +277,7 @@ var _Files = {
                 var folderId = getId($(this));
                 var nodeData = {};
                 nodeData.id = fileId;
-                Server.createAndAdd(folderId, nodeData);
+                Command.createAndAdd(folderId, nodeData);
             }
         });
 
@@ -313,7 +322,7 @@ var _Files = {
         }
 
         if (debug) console.log('removeFileFromFolder: fileId=' + fileId + ', folderId=' + folderId);
-        Server.removeSourceFromTarget(fileId, folderId);
+        Command.removeSourceFromTarget(fileId, folderId);
     },
     
     removeImageFromFolder : function(imageId, folderId) {
@@ -327,7 +336,7 @@ var _Files = {
         entity.name = fileObj.name;
         entity.size = fileObj.size;
         entity.type = isImage(entity.contentType) ? 'Image' : 'File';
-        Server.create(entity);
+        Command.create(entity);
     },
 
     uploadFile : function(file) {
@@ -382,18 +391,18 @@ var _Files = {
                         var chunk = utf8_to_b64(binaryContent.substring(start,end));
                         // TODO: check if we can send binary data directly
 
-                        Server.chunk(file.id, c, chunkSize, chunk);
+                        Command.chunk(file.id, c, chunkSize, chunk);
 
-//                        var obj = {};
-//                        obj.command = 'CHUNK';
-//                        obj.id = file.id;
-//                        var data = {};
-//                        data.chunkId = c;
-//                        data.chunkSize = chunkSize;
-//                        data.chunk = chunk;
-//                        obj.data = data;
-//                        //var data = '{ "command" : "CHUNK" , "id" : "' + file.id + '" , "data" : { "chunkId" : ' + c + ' , "chunkSize" : ' + chunkSize + ' , "chunk" : "' + chunk + '" } }';
-//                        sendObj(obj);
+                    //                        var obj = {};
+                    //                        obj.command = 'CHUNK';
+                    //                        obj.id = file.id;
+                    //                        var data = {};
+                    //                        data.chunkId = c;
+                    //                        data.chunkSize = chunkSize;
+                    //                        data.chunk = chunk;
+                    //                        obj.data = data;
+                    //                        //var data = '{ "command" : "CHUNK" , "id" : "' + file.id + '" , "data" : { "chunkId" : ' + c + ' , "chunkSize" : ' + chunkSize + ' , "chunk" : "' + chunk + '" } }';
+                    //                        sendObj(obj);
 
                     }
 
@@ -416,8 +425,7 @@ $(document).ready(function() {
     Structr.classes.push('folder');
     Structr.classes.push('image');
 
-//    win.resize(function() {
-//	_Files.resize();
-//    });
+    win.resize(function() {
+        _Files.resize();
+    });
 });
-    

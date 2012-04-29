@@ -68,65 +68,73 @@ var _Entities = {
         }
     },
 
-    appendObj : function(entity, parentId, resourceId, removeExisting) {
+    appendObj : function(entity, parentId, resourceId, removeExisting, hasChildren) {
 
         // Check if object is not already contained
         var node = Structr.node(entity.id, parentId, resourceId);
-        if (debug) console.log('appendObj', node);
-        if (node && node.length > 0) return;
+        if (node && node.length > 0) return false;
         
         // Check if parent node is expanded
-        if (resourceId && parentId && (!isExpanded(parentId, null, resourceId))) return;
+        //if (resourceId && parentId && (!isExpanded(parentId, null, resourceId))) return false;
 
         if (entity.type == 'User') {
 
-            _UsersAndGroups.appendUserElement(entity, parentId, removeExisting);
+            return _UsersAndGroups.appendUserElement(entity, parentId, removeExisting, hasChildren);
             
         } else if (entity.type == 'Group') {
-            var groupElement = _UsersAndGroups.appendGroupElement(entity, removeExisting);
+            var groupElement = _UsersAndGroups.appendGroupElement(entity, removeExisting, hasChildren);
             var users = entity.users;
             if (users && users.length > 0) {
                 disable($('.delete_icon', groupElement)[0]);
                 $(users).each(function(i, user) {
-                    _UsersAndGroups.appendUserElement(user, entity.id, removeExisting);
+                    return _UsersAndGroups.appendUserElement(user, entity.id, removeExisting, hasChildren);
                 });
             }
+            return false;
 
         } else if (entity.type == 'Resource') {
             
-            _Resources.appendResourceElement(entity);
+            return _Resources.appendResourceElement(entity, null, null, false, hasChildren);
+
+        } else if (entity.type == 'Element') {
+
+            return _Resources.appendElementElement(entity, null, null, false, hasChildren);
 
         } else if (entity.type == 'Component') {
 
-            var componentElement = _Resources.appendComponentElement(entity, parentId, resourceId, removeExisting);
-            var elements = entity.elements;
-            if (elements && elements.length > 0) {
-                disable($('.delete_icon', componentElement)[0]);
-                $(elements).each(function(i, element) {
-                    if (element.type == 'Element') {
-                        _Resources.appendElementElement(element, entity.id, removeExisting);
-                    }
-                });
-            }
+            return _Resources.appendComponentElement(entity, parentId, resourceId, removeExisting, hasChildren);
+            //            var componentElement = _Resources.appendComponentElement(entity, parentId, resourceId, removeExisting, hasChildren);
+            //            var elements = entity.elements;
+            //            if (elements && elements.length > 0) {
+            //                disable($('.delete_icon', componentElement)[0]);
+            //                $(elements).each(function(i, element) {
+            //                    if (element.type == 'Element') {
+            //                        return _Resources.appendElementElement(element, entity.id, removeExisting, hasChildren);
+            //                    }
+            //                });
+            //
+            //            }
+            return false;
 
         } else if (entity.type == 'Content') {
-            _Resources.appendContentElement(entity, parentId, resourceId, removeExisting);
+            return _Resources.appendContentElement(entity, parentId, resourceId, removeExisting, hasChildren);
 
         } else if (entity.type == 'Folder') {
 
-            var folderElement = _Files.appendFolderElement(entity, removeExisting);
+            var folderElement = _Files.appendFolderElement(entity, removeExisting, hasChildren);
+
             var folders = entity.folders;
             if (folders && folders.length > 0) {
                 disable($('.delete_icon', folderElement)[0]);
                 $(folders).each(function(i, folder) {
-                    _Files.appendFolderElement(folder, entity.id, removeExisting);
+                    _Files.appendFolderElement(folder, entity.id, removeExisting, hasChildren);
                 });
             }
             var images = entity.images;
             if (images && images.length > 0) {
                 disable($('.delete_icon', folderElement)[0]);
                 $(images).each(function(i, image) {
-                    _Files.appendImageElement(image, entity.id, removeExisting);
+                    _Files.appendImageElement(image, entity.id, removeExisting, hasChildren);
                 });
             }
             var files = entity.files;
@@ -135,7 +143,7 @@ var _Entities = {
                 $(files).each(function(i, file) {
 
                     if (file.type == 'File') { // files comprise images
-                        _Files.appendFileElement(file, entity.id, removeExisting);
+                        _Files.appendFileElement(file, entity.id, removeExisting, hasChildren);
                     }
 
                 });
@@ -144,58 +152,29 @@ var _Entities = {
         } else if (entity.type == 'Image') {
             if (debug) console.log('Image:', entity);
             _Files.uploadFile(entity);
-            _Files.appendImageElement(entity, parentId, removeExisting);
+            return _Files.appendImageElement(entity, parentId, removeExisting, hasChildren);
         } else if (entity.type == 'File') {
             if (debug) console.log('File: ', entity);
             _Files.uploadFile(entity);
-            _Files.appendFileElement(entity, parentId, removeExisting);
+            return _Files.appendFileElement(entity, parentId, removeExisting, hasChildren);
         } else {
             if (debug) console.log('Entity: ', entity);
-            var elementElement = _Resources.appendElementElement(entity, parentId, resourceId, removeExisting);
+            var elementElement = _Resources.appendElementElement(entity, parentId, resourceId, removeExisting, hasChildren);
             var elem = entity.elements;
             if (elem && elem.length > 0) {
                 if (debug) console.log(elem);
                 disable($('.delete_icon', elementElement)[0]);
                 $(elem).each(function(i, element) {
                     if (elem.type == 'Element') {
-                        _Resources.appendElementElement(element, entity.id);
+                        return _Resources.appendElementElement(element, entity.id, resourceId, removeExisting, hasChildren);
                     } else if (elem.type == 'Content') {
-                        _Resources.appendContentElement(element, entity.id);
+                        return _Resources.appendContentElement(element, entity.id, resourceId, removeExisting, hasChildren);
                     }
                 });
             }
+            return false;
         }
 
-    },
-    
-    appendEntityElement : function(entity, parentElement, removeExisting) {
-        if (debug) console.log(entity);
-        var element;
-        if (parentElement) {
-            element = parentElement;
-        } else {
-            element = elements;
-        //element = $('#' + plural(entity.type.toLowerCase()));
-        }
-
-        var type = entity.type ? entity.type : 'unknown';
-
-        //    console.log(element);
-        element.append('<div class="node ' + type.toLowerCase() + ' ' + entity.id + '_">'
-            + (entity.iconUrl ? '<img class="typeIcon" src="' + entity.iconUrl + '">' : '')
-            + '<b class="name_">' + entity.name + '</b> '
-            + '<span class="id">' + entity.id + '</span>'
-            + '</div>');
-        div = $('.' + entity.id + '_', element);
-        div.append('<img title="Delete ' + entity.name + ' [' + entity.id + ']" '
-            + 'alt="Delete ' + entity.type + '\'' + entity.name + '\' [' + entity.id + ']" class="delete_icon button" src="' + Structr.delete_icon + '">');
-        $('.delete_icon', div).on('click', function() {
-            Server.deleteNode(this, entity)
-        });
-        div.append('<img title="Edit ' + entity.name + ' [' + entity.id + ']" alt="Edit ' + entity.name + ' [' + entity.id + ']" class="edit_icon button" src="icon/pencil.png">');
-        $('.edit_icon', div).on('click', function() {
-            _Entities.showProperties(this, entity, $('.' + entity.id + '_', element));
-        });
     },
 
     deleteNode : function(button, entity) {
@@ -204,7 +183,7 @@ var _Entities = {
         console.log('deleteNode');
         Structr.confirmation('Delete ' + entity.type.toLowerCase() + ' \'' + entity.name + '\' <span class="id">' + entity.id + '</span>?',
             function() {
-                if (Server.deleteNode(entity.id)) {
+                if (Command.deleteNode(entity.id)) {
                     $.unblockUI({
                         fadeOut: 25
                     });
@@ -336,7 +315,7 @@ var _Entities = {
                             });
 
                             input.on('focusout', function() {
-                                Server.setProperty(entity.id, input.attr('name'), input.val());
+                                Command.setProperty(entity.id, input.attr('name'), input.val());
                                 input.removeClass('active');
                                 input.parent().children('.icon').each(function(i, img) {
                                     $(img).remove();
@@ -369,26 +348,26 @@ var _Entities = {
                 var dt = $('#dialogBox .dialogText');
 
                 dt.append('<h3>Owner</h3><p class="nodeSelectBox" id="ownersBox"></p>');
-                Server.getProperty(entity.id, 'ownerId', '#ownersBox');
+                Command.getProperty(entity.id, 'ownerId', '#ownersBox');
 
                 dt.append('<h3>Visibility</h3><div class="' + entity.id + '_"><button class="switch disabled visibleToPublicUsers_">Public (visible to anyone)</button><button class="switch disabled visibleToAuthenticatedUsers_">Authenticated Users</button></div>');
                 var publicSwitch = $('.visibleToPublicUsers_');
                 var authSwitch = $('.visibleToAuthenticatedUsers_');
 
-                Server.getProperty(entity.id, 'visibleToPublicUsers', '#dialogBox');
-                Server.getProperty(entity.id, 'visibleToAuthenticatedUsers', '#dialogBox');
+                Command.getProperty(entity.id, 'visibleToPublicUsers', '#dialogBox');
+                Command.getProperty(entity.id, 'visibleToAuthenticatedUsers', '#dialogBox');
 
                 if (debug) console.log(publicSwitch);
                 if (debug) console.log(authSwitch);
 
                 publicSwitch.on('click', function() {
                     if (debug) console.log('Toggle switch', publicSwitch.hasClass('disabled'))
-                    Server.setProperty(entity.id, 'visibleToPublicUsers', publicSwitch.hasClass('disabled'));
+                    Command.setProperty(entity.id, 'visibleToPublicUsers', publicSwitch.hasClass('disabled'));
                 });
 
                 authSwitch.on('click', function() {
                     if (debug) console.log('Toggle switch', authSwitch.hasClass('disabled'))
-                    Server.setProperty(entity.id, 'visibleToAuthenticatedUsers', authSwitch.hasClass('disabled'));
+                    Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', authSwitch.hasClass('disabled'));
                 });
 
             });
@@ -438,25 +417,50 @@ var _Entities = {
     //	    _Entities.children(id, resourceId);
     //	});
     //    },
-    appendExpandIcon : function(el, entity) {
-        el.append('<img title="Expand \'' + entity.name + '\'" alt="Expand \'' + entity.name + '\'" class="expand_icon" src="' + Structr.expand_icon + '">');
-        var button = $('.expand_icon', el).first();
+    appendExpandIcon : function(el, entity, hasChildren) {
 
-        if (button) {
+        if (hasChildren) {
 
-            button.on('click', function() {
-                _Entities.toggleElement(this);
-            });
-            if (debug) console.log('appendExpandIcon', isExpanded(entity.id, null, entity.resourceId), entity);
-            if (isExpanded(entity.id, null, entity.resourceId)) {
-                if (debug) console.log('toggle', entity.id, entity.resourceId);
-                _Entities.toggleElement(button)
+            el.append('<img title="Expand \'' + entity.name + '\'" alt="Expand \'' + entity.name + '\'" class="expand_icon" src="' + Structr.expand_icon + '">');
+            var button = $('.expand_icon', el).first();
+
+            if (button) {
+
+                button.on('click', function() {
+                    _Entities.toggleElement(this);
+                });
+
+                // Prevent expand icon from being draggable
+                button.on('mousedown', function(e) {
+                    e.stopPropagation();
+                });
+
+                if (debug) console.log('appendExpandIcon', isExpanded(entity.id, null, entity.resourceId), entity);
+                if (isExpanded(entity.id, null, entity.resourceId)) {
+                    if (debug) console.log('toggle', entity.id, entity.resourceId);
+                    _Entities.toggleElement(button)
+                }
             }
+
+        } else {
+            el.children('.typeIcon').css({
+                paddingRight: 11 + 'px'
+            });
         }
 
     },
 
     setMouseOver : function(el) {
+        if (!el || !el.children) return;
+
+        el.on('click', function(e) {
+            e.stopPropagation();
+        });
+
+        el.children('b.name_').on('click', function() {
+            _Entities.makeNameEditable(el);
+        });
+
         el.on({
             mouseover: function(e) {
                 e.stopPropagation();
@@ -523,6 +527,8 @@ var _Entities = {
         var b = $(button);
         var src = b.attr('src');
 
+        if (!src) return;
+
         var nodeElement = $(button).parent();
         var id = getId(nodeElement);
         var resId = getId(nodeElement.closest('.resource'));
@@ -533,70 +539,46 @@ var _Entities = {
 
             removeExpandedNode(id, null, resId);
         } else {
-            Server.children(id, resId);
+            Command.children(id, resId);
             b.attr('src', 'icon/tree_arrow_down.png');
 
             addExpandedNode(id, null, resId);
         }
 
-    //console.log(Structr.expanded[resId]);
+    },
+
+    makeNameEditable : function(element) {
+        //element.off('dblclick');
+        element.off('hover');
+        var oldName = $.trim(element.children('b.name_').text());
+        //console.log('oldName', oldName);
+        element.children('b').hide();
+        element.find('.button').hide();
+        element.append('<input type="text" size="' + (oldName.length+4) + '" class="newName_" value="' + oldName + '">');
+
+        var input = $('input', element);
+
+        input.focus().select();
+
+        input.on('blur', function() {
+            var self = $(this);
+            var newName = self.val();
+            Command.setProperty(getId(element), "name", newName);
+            _Resources.resetTab(element, newName);
+        });
+
+        input.keypress(function(e) {
+            if (e.keyCode == 13) {
+                var self = $(this);
+                var newName = self.val();
+                Command.setProperty(getId(element), "name", newName);
+                _Resources.resetTab(element, newName);
+            }
+        });
+
+        element.off('click');
+
     }
+
+
 };
-
-function plural(type) {
-    if (type.substring(type.length-1, type.length) == 'y') {
-        return type.substring(0, type.length-1) + 'ies';
-    } else {
-        return type + 's';
-    }
-}
-
-function addExpandedNode(id, parentId, resourceId) {
-
-    var expandedIds = getExpanded()[resourceId];
-    if (!expandedIds) {
-        expandedIds = {};
-        Structr.expanded[resourceId] = expandedIds;
-    }
-
-    expandedIds[id] = true;
-
-}
-
-function removeExpandedNode(id, parentId, resourceId) {
-    var expandedIds = getExpanded()[resourceId];
-    if (!expandedIds) {
-        expandedIds = {};
-        Structr.expanded[resourceId] = expandedIds;
-    }
-
-    delete expandedIds[id];
-
-}
-
-function isExpanded(id, parentId, resourceId) {
-
-    if (debug) console.log('isExpanded (id, resourceId, expanded)', id, resourceId, getExpanded(resourceId));
-
-    var exp = getExpanded()[resourceId];
-    if (!exp) {
-        exp = {};
-        Structr.expanded[resourceId] = exp;
-    }
-    var isExpanded = exp[id] ? exp[id] : false;
-
-    if (debug) console.log('node ' + id + ' in resource ' + resourceId + ' expanded?', isExpanded);
-
-    return isExpanded;
-}
-
-function getExpanded() {
-
-    if (!Structr.expanded) {
-        Structr.expanded = {};
-    }
-
-    if (debug) console.log('Structr.expanded', Structr.expanded);
-
-    return Structr.expanded;
-}

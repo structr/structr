@@ -26,335 +26,335 @@ var user;
 function connect() {
 
     if (token) {
-	loggedIn = true;
+        loggedIn = true;
     }
 
     try {
 
-	var isEnc = (window.location.protocol == 'https:');
-	var host = document.location.host;
-	var wsUrl = 'ws' + (isEnc ? 's' : '') + '://' + host + wsRoot;
+        var isEnc = (window.location.protocol == 'https:');
+        var host = document.location.host;
+        var wsUrl = 'ws' + (isEnc ? 's' : '') + '://' + host + wsRoot;
 
-	if (debug) console.log(wsUrl);
-	if ('WebSocket' in window) {
-	    ws = new WebSocket(wsUrl, 'structr');
-	}
-	else if ('MozWebSocket' in window) {
-	    ws = new MozWebSocket(wsUrl, 'structr');
-	} else {
-	    alert('Your browser doesn\'t support WebSocket.');
-	    return;
-	}
+        if (debug) console.log(wsUrl);
+        if ('WebSocket' in window) {
+            ws = new WebSocket(wsUrl, 'structr');
+        }
+        else if ('MozWebSocket' in window) {
+            ws = new MozWebSocket(wsUrl, 'structr');
+        } else {
+            alert('Your browser doesn\'t support WebSocket.');
+            return;
+        }
 
-	log('State: ' + ws.readyState);
+        log('State: ' + ws.readyState);
 		
-	var entityId;
-	var parent, entity;
+        var entityId;
+        var parent, entity;
 
-	ws.onmessage = function(message) {
+        ws.onmessage = function(message) {
 
-	    var data = $.parseJSON(message.data);
-	    if (debug) console.log(data);
+            var data = $.parseJSON(message.data);
+            if (debug) console.log(data);
 
-	    //var msg = $.parseJSON(message);
-	    var type = data.type;
-	    var command = data.command;
+            //var msg = $.parseJSON(message);
+            var type = data.type;
+            var command = data.command;
             var parentId = data.id;
             var resourceId = data.data.resourceId;
-	    var msg = data.message;
-	    var result = data.result;
-	    var sessionValid = data.sessionValid;
-	    var code = data.code;
-	    var callback = data.callback;
+            var msg = data.message;
+            var result = data.result;
+            var sessionValid = data.sessionValid;
+            var code = data.code;
+            var callback = data.callback;
 
-	    if (true) {
-		if (debug) console.log('command: ' + command);
-		if (debug) console.log('type: ' + type);
-		if (debug) console.log('code: ' + code);
-		if (debug) console.log('callback: ' + callback);
-		if (debug) console.log('sessionValid: ' + sessionValid);
-	    }
-	    if (debug) console.log('result: ' + $.toJSON(result));
+            if (true) {
+                if (debug) console.log('command: ' + command);
+                if (debug) console.log('type: ' + type);
+                if (debug) console.log('code: ' + code);
+                if (debug) console.log('callback: ' + callback);
+                if (debug) console.log('sessionValid: ' + sessionValid);
+            }
+            if (debug) console.log('result: ' + $.toJSON(result));
 
-	    if (command == 'LOGIN') { /*********************** LOGIN ************************/
-		token = data.token;
-		user = data.data.username;
-		if (debug) console.log('token', token);
+            if (command == 'LOGIN') { /*********************** LOGIN ************************/
+                token = data.token;
+                user = data.data.username;
+                if (debug) console.log('token', token);
 		
-		if (sessionValid) {
-		    $.cookie('structrSessionToken', token);
-		    $.cookie('structrUser', user);
-		    $.unblockUI({
-			fadeOut: 25
-		    });
-		    $('#logout_').html('Logout <span class="username">' + user + '</span>');
+                if (sessionValid) {
+                    $.cookie('structrSessionToken', token);
+                    $.cookie('structrUser', user);
+                    $.unblockUI({
+                        fadeOut: 25
+                    });
+                    $('#logout_').html('Logout <span class="username">' + user + '</span>');
 
-		    Structr.loadInitialModule();
+                    Structr.loadInitialModule();
 					
-		} else {
-		    $.cookie('structrSessionToken', '');
-		    $.cookie('structrUser', '');
-		    clearMain();
+                } else {
+                    $.cookie('structrSessionToken', '');
+                    $.cookie('structrUser', '');
+                    clearMain();
 
-		    Structr.login();
-		}
+                    Structr.login();
+                }
 
-	    } else if (command == 'LOGOUT') { /*********************** LOGOUT ************************/
+            } else if (command == 'LOGOUT') { /*********************** LOGOUT ************************/
 
-		$.cookie('structrSessionToken', '');
-		$.cookie('structrUser', '');
-		clearMain();
-		Structr.login();
+                $.cookie('structrSessionToken', '');
+                $.cookie('structrUser', '');
+                clearMain();
+                Structr.login();
 
-	    } else if (command == 'STATUS') { /*********************** STATUS ************************/
-		if (debug) console.log('Error code: ' + code);
+            } else if (command == 'STATUS') { /*********************** STATUS ************************/
+                if (debug) console.log('Error code: ' + code);
 				
-		if (code == 403) {
-		    Structr.login('Wrong username or password!');
-		} else if (code == 401) {
-		    Structr.login('Session invalid');
-		} else {
-		    var msgClass;
-		    var codeStr = code.toString();
-		    if (codeStr.startsWith('20')) {
-			msgClass = 'success';
-			$('#dialogBox .dialogMsg').html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
-		    } else if (codeStr.startsWith('30')) {
-			msgClass = 'info';
-			$('#dialogBox .dialogMsg').html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
-		    } else if (codeStr.startsWith('40')) {
-			msgClass = 'warning';
-			$('#dialogBox .dialogMsg').html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
-		    } else {
-			Structr.error("Error", true);
-			msgClass = 'error';
-			$('#errorBox .errorMsg').html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
-		    }
+                if (code == 403) {
+                    Structr.login('Wrong username or password!');
+                } else if (code == 401) {
+                    Structr.login('Session invalid');
+                } else {
+                    var msgClass;
+                    var codeStr = code.toString();
+                    if (codeStr.startsWith('20')) {
+                        msgClass = 'success';
+                        $('#dialogBox .dialogMsg').html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
+                    } else if (codeStr.startsWith('30')) {
+                        msgClass = 'info';
+                        $('#dialogBox .dialogMsg').html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
+                    } else if (codeStr.startsWith('40')) {
+                        msgClass = 'warning';
+                        $('#dialogBox .dialogMsg').html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
+                    } else {
+                        Structr.error("Error", true);
+                        msgClass = 'error';
+                        $('#errorBox .errorMsg').html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
+                    }
 
-		}
+                }
 
-	    } else if (command == 'TREE') { /*********************** TREE ************************/
+            } else if (command == 'TREE') { /*********************** TREE ************************/
 				
-		if (debug) console.log('Render Tree');
-		if (debug) console.log(data.root, data.id);
+                if (debug) console.log('Render Tree');
+                if (debug) console.log(data.root, data.id);
 				
-		_Entities.renderTree(data.root, data.id);
+                _Entities.renderTree(data.root, data.id);
 
-	    } else if (command == 'GET') { /*********************** GET ************************/
+            } else if (command == 'GET') { /*********************** GET ************************/
 
-		if (debug) console.log('GET:', data);
+                if (debug) console.log('GET:', data);
 
-		var d = data.data.displayElementId;
-		if (debug) console.log('displayElementId', d);
+                var d = data.data.displayElementId;
+                if (debug) console.log('displayElementId', d);
 
-		var parentElement;
-		if (d != null) {
-		    parentElement = $($(d)[0]);
-		} else {
-		    parentElement = $($('.' + data.id + '_')[0]);
-		}
+                var parentElement;
+                if (d != null) {
+                    parentElement = $($(d)[0]);
+                } else {
+                    parentElement = $($('.' + data.id + '_')[0]);
+                }
 
-		if (debug) console.log('parentElement', parentElement);
-		var key = data.data.key;
-		var value = data.data[key];
+                if (debug) console.log('parentElement', parentElement);
+                var key = data.data.key;
+                var value = data.data[key];
 
-		var attrElement = $(parentElement.find('.' + key + '_')[0]);
-		if (debug) console.log('attrElement', attrElement);
-		if (debug) console.log(key, value);
+                var attrElement = $(parentElement.find('.' + key + '_')[0]);
+                if (debug) console.log('attrElement', attrElement);
+                if (debug) console.log(key, value);
 
-		if (attrElement && value) {
+                if (attrElement && value) {
 
-		    if (typeof value == 'boolean') {
-			if (debug) console.log(attrElement, value);
-			_Entities.changeBooleanAttribute(attrElement, value);
+                    if (typeof value == 'boolean') {
+                        if (debug) console.log(attrElement, value);
+                        _Entities.changeBooleanAttribute(attrElement, value);
 
-		    } else if (key == 'ownerId') {
-			// append whole node
+                    } else if (key == 'ownerId') {
+                        // append whole node
 
-			var user = {};
-			user.id = value;
-			user.type = 'User';
-			user.name = 'testuser';
+                        var user = {};
+                        user.id = value;
+                        user.type = 'User';
+                        user.name = 'testuser';
 
-			parentElement.append('<div class="user ' + user.id + '_">'
-			    + '<img class="typeIcon" src="icon/user.png">'
-			    + ' <b class="name_">' + user.name + '</b> <span class="id">' + user.id + '</span>'
-			    + '</div>');
+                        parentElement.append('<div class="user ' + user.id + '_">'
+                            + '<img class="typeIcon" src="icon/user.png">'
+                            + ' <b class="name_">' + user.name + '</b> <span class="id">' + user.id + '</span>'
+                            + '</div>');
                         
-		    } else {
-			if (debug) console.log('appending ' + value + ' to attrElement', attrElement);
-			attrElement.append(value);
-			attrElement.val(value);
-			attrElement.show();
-		    }
-		}
+                    } else {
+                        if (debug) console.log('appending ' + value + ' to attrElement', attrElement);
+                        attrElement.append(value);
+                        attrElement.val(value);
+                        attrElement.show();
+                    }
+                }
 
-	    } else if (command == 'CHILDREN') { /*********************** CHILDREN ************************/
+            } else if (command == 'CHILDREN') { /*********************** CHILDREN ************************/
 
 		
-		if (debug) console.log('CHILDREN:', parentId, resourceId);
+                if (debug) console.log('CHILDREN:', parentId, resourceId);
+                 if (debug) console.log('Nodes with children', data.nodesWithChildren);
+                $(result).each(function(i, child) {
+                     if (debug) console.log('CHILDREN: ', child, isIn(child.id, data.nodesWithChildren));
+                    _Entities.appendObj(child, data.id, resourceId, false, isIn(child.id, data.nodesWithChildren));
+                });
 
-		$(result).each(function(i, child) {
-		    if (debug) console.log('CHILDREN: ', child);
-		    _Entities.appendObj(child, data.id, resourceId);
-		});
 
-
-	    } else if (command == 'LIST') { /*********************** LIST ************************/
+            } else if (command == 'LIST') { /*********************** LIST ************************/
 				
-		if (debug) console.log('LIST:', result);
-                				
-		$(result).each(function(i, entity) {
-		    if (debug) console.log('LIST: ' + entity.type);
-		    _Entities.appendObj(entity);
-		});
+                if (debug) console.log('LIST:', result);
+                 if (debug) console.log('Nodes with children', data.nodesWithChildren);
+                $(result).each(function(i, entity) {
+                    if (debug) console.log('LIST: ' + entity.type);
+                    _Entities.appendObj(entity, null, null, false, isIn(entity.id, data.nodesWithChildren));
+                });
 
-	    } else if (command == 'DELETE') { /*********************** DELETE ************************/
-		var elementSelector = '.' + data.id + '_';
-		if (debug) console.log($(elementSelector));
-		$(elementSelector).remove();
-		if (buttonClicked) enable(buttonClicked);
-		_Resources.reloadPreviews();
+            } else if (command == 'DELETE') { /*********************** DELETE ************************/
+                var elementSelector = '.' + data.id + '_';
+                if (debug) console.log($(elementSelector));
+                $(elementSelector).remove();
+                if (buttonClicked) enable(buttonClicked);
+                _Resources.reloadPreviews();
 
-	    } else if (command == 'REMOVE') { /*********************** REMOVE ************************/
+            } else if (command == 'REMOVE') { /*********************** REMOVE ************************/
 
-		if (debug) console.log(data);
+                if (debug) console.log(data);
 
-		parentId = data.id;
-		entityId = data.data.id;
+                parentId = data.id;
+                entityId = data.data.id;
 
-		parent = $('.' + parentId + '_');
-		entity = $('.' + entityId + '_', parent);
+                parent = $('.' + parentId + '_');
+                entity = $('.' + entityId + '_', parent);
 
-		if (debug) console.log(parent);
-		if (debug) console.log(entity);
+                if (debug) console.log(parent);
+                if (debug) console.log(entity);
 
-		//var id = getIdFromClassString(entity.attr('class'));
-		//entity.id = id;
-		if (entity.hasClass('user')) {
-		    if (debug) console.log('remove user from group');
-		    _UsersAndGroups.removeUserFromGroup(entityId, parentId);
+                //var id = getIdFromClassString(entity.attr('class'));
+                //entity.id = id;
+                if (entity.hasClass('user')) {
+                    if (debug) console.log('remove user from group');
+                    _UsersAndGroups.removeUserFromGroup(entityId, parentId);
 
-		} else if (entity.hasClass('component')) {
-		    if (debug) console.log('remove component from resource');
-		    _Resources.removeComponentFromResource(entityId, parentId);
-		    _Resources.reloadPreviews();
+                } else if (entity.hasClass('component')) {
+                    if (debug) console.log('remove component from resource');
+                    _Resources.removeComponentFromResource(entityId, parentId);
+                    _Resources.reloadPreviews();
 
-		} else if (entity.hasClass('element')) {
-		    if (debug) console.log('remove element from resource');
-		    _Resources.removeElementFromResource(entityId, parentId);
-		    _Resources.reloadPreviews();
+                } else if (entity.hasClass('element')) {
+                    if (debug) console.log('remove element from resource');
+                    _Resources.removeElementFromResource(entityId, parentId);
+                    _Resources.reloadPreviews();
 
-		} else if (entity.hasClass('content')) {
-		    if (debug) console.log('remove content from element');
-		    _Resources.removeContentFromElement(entityId, parentId);
-		    _Resources.reloadPreviews();
+                } else if (entity.hasClass('content')) {
+                    if (debug) console.log('remove content from element');
+                    _Resources.removeContentFromElement(entityId, parentId);
+                    _Resources.reloadPreviews();
 
-		} else if (entity.hasClass('file')) {
-		    if (debug) console.log('remove file from folder');
-		    _Files.removeFileFromFolder(entityId, parentId);
+                } else if (entity.hasClass('file')) {
+                    if (debug) console.log('remove file from folder');
+                    _Files.removeFileFromFolder(entityId, parentId);
 
-		} else if (entity.hasClass('image')) {
-		    if (debug) console.log('remove image from folder');
-		    _Files.removeImageFromFolder(entityId, parentId);
+                } else if (entity.hasClass('image')) {
+                    if (debug) console.log('remove image from folder');
+                    _Files.removeImageFromFolder(entityId, parentId);
 
-		} else {
-		//if (debug) console.log('remove element');
-		//entity.remove();
-		}
+                } else {
+                //if (debug) console.log('remove element');
+                //entity.remove();
+                }
 
-		_Resources.reloadPreviews();
-		if (debug) console.log('Removed ' + entityId + ' from ' + parentId);
+                _Resources.reloadPreviews();
+                if (debug) console.log('Removed ' + entityId + ' from ' + parentId);
 
-	    } else if (command == 'CREATE' || command == 'ADD' || command == 'IMPORT') { /*********************** CREATE, ADD, IMPORT ************************/
+            } else if (command == 'CREATE' || command == 'ADD' || command == 'IMPORT') { /*********************** CREATE, ADD, IMPORT ************************/
                 
                 //console.log(command, result, data, data.data);
 				
-		$(result).each(function(i, entity) {
+                $(result).each(function(i, entity) {
                     _Entities.appendObj(entity, parentId, resourceId, command == 'ADD');
-		});
+                });
 
-		_Resources.reloadPreviews();
+                _Resources.reloadPreviews();
 
-	    } else if (command == 'UPDATE') { /*********************** UPDATE ************************/
-		var element = $( '.' + data.id + '_');
-		var input = $('.props tr td.value input', element);
-		if (debug) console.log(element);
+            } else if (command == 'UPDATE') { /*********************** UPDATE ************************/
+                var element = $( '.' + data.id + '_');
+                var input = $('.props tr td.value input', element);
+                if (debug) console.log(element);
 
-		// remove save and cancel icons
-		input.parent().children('.icon').each(function(i, img) {
-		    $(img).remove();
-		});
+                // remove save and cancel icons
+                input.parent().children('.icon').each(function(i, img) {
+                    $(img).remove();
+                });
 
-		// make inactive
-		input.removeClass('active');
-		if (debug) console.log(element);
+                // make inactive
+                input.removeClass('active');
+                if (debug) console.log(element);
 
-		// update values with given key
-		for (key in data.data) {
-		    var attrElement = element.children('.' + key + '_');
-		    var inputElement = element.children('.props tr td.' + key + ' input');
-		    if (debug) console.log(attrElement, inputElement);
-		    var newValue = data.data[key];
+                // update values with given key
+                for (key in data.data) {
+                    var attrElement = element.children('.' + key + '_');
+                    var inputElement = element.children('.props tr td.' + key + ' input');
+                    if (debug) console.log(attrElement, inputElement);
+                    var newValue = data.data[key];
 
-		    if (debug) console.log(key, newValue, typeof newValue);
-		    if (typeof newValue  == 'boolean') {
+                    if (debug) console.log(key, newValue, typeof newValue);
+                    if (typeof newValue  == 'boolean') {
 
-			_Entities.changeBooleanAttribute(attrElement, newValue);
+                        _Entities.changeBooleanAttribute(attrElement, newValue);
                         
-		    } else {
+                    } else {
 
-			attrElement.animate({
-			    color: '#81ce25'
-			}, 100, function() {
-			    $(this).animate({
-				color: '#333333'
-			    }, 200);
-			});
+                        attrElement.animate({
+                            color: '#81ce25'
+                        }, 100, function() {
+                            $(this).animate({
+                                color: '#333333'
+                            }, 200);
+                        });
                     
-			attrElement.text(newValue);
-			inputElement.val(newValue);
+                        attrElement.text(newValue);
+                        inputElement.val(newValue);
 
-			// hook for CodeMirror edit areas
-			if (editor && editor.id == data.id && key == 'content') {
-			    if (debug) console.log(editor.id);
-			    editor.setValue(newValue);
-			    editor.setCursor(editorCursor);
-			}
-		    }
+                        // hook for CodeMirror edit areas
+                        if (editor && editor.id == data.id && key == 'content') {
+                            if (debug) console.log(editor.id);
+                            editor.setValue(newValue);
+                            editor.setCursor(editorCursor);
+                        }
+                    }
 
-		}
+                }
 
-		// refresh preview iframe
-		input.data('changed', false);
-	    //_Resources.reloadPreviews();
-	    } else if (command == 'WRAP') { /*********************** WRAP ************************/
+                // refresh preview iframe
+                input.data('changed', false);
+            //_Resources.reloadPreviews();
+            } else if (command == 'WRAP') { /*********************** WRAP ************************/
 
-		if (debug) console.log('WRAP');
+                if (debug) console.log('WRAP');
 
-	    } else {
-		if (debug) console.log('Received unknown command: ' + command);
+            } else {
+                if (debug) console.log('Received unknown command: ' + command);
 
-		if (sessionValid == false) {
-		    if (debug) console.log('invalid session');
-		    $.cookie('structrSessionToken', '');
-		    $.cookie('structrUser', '');
-		    clearMain();
+                if (sessionValid == false) {
+                    if (debug) console.log('invalid session');
+                    $.cookie('structrSessionToken', '');
+                    $.cookie('structrUser', '');
+                    clearMain();
 
-		    Structr.login();
-		}
-	    }
-	}
+                    Structr.login();
+                }
+            }
+        }
 
-	ws.onclose = function() {
-	    //Structr.confirmation('Connection lost or timed out.<br>Reconnect?', Structr.init);
-	    log('Connection was lost or timed out. Trying automatic reconnect');
-	    Structr.reconnect();
-	}
+        ws.onclose = function() {
+            //Structr.confirmation('Connection lost or timed out.<br>Reconnect?', Structr.init);
+            log('Connection was lost or timed out. Trying automatic reconnect');
+            Structr.reconnect();
+        }
 
     } catch (exception) {
-	log('Error in connect(): ' + exception);
-	Structr.init();
+        log('Error in connect(): ' + exception);
+        Structr.init();
     }
 
 }
@@ -362,22 +362,22 @@ function connect() {
 function sendObj(obj) {
 
     if (token) {
-	obj.token = token;
+        obj.token = token;
     }
 
     text = $.toJSON(obj);
 
     if (!text) {
-	log('No text to send!');
-	return false;
+        log('No text to send!');
+        return false;
     }
 
     try {
-	ws.send(text);
-	log('Sent: ' + text);
+        ws.send(text);
+        log('Sent: ' + text);
     } catch (exception) {
-	log('Error in send(): ' + exception);
-	return false;
+        log('Error in send(): ' + exception);
+        return false;
     }
     return true;
 }
@@ -399,10 +399,10 @@ function log(msg) {
 
 function getAnchorFromUrl(url) {
     if (url) {
-	var pos = url.lastIndexOf('#');
-	if (pos > 0) {
-	    return url.substring(pos+1, url.length);
-	}
+        var pos = url.lastIndexOf('#');
+        if (pos > 0) {
+            return url.substring(pos+1, url.length);
+        }
     }
     return null;
 }

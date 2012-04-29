@@ -61,6 +61,7 @@ public class WebSocketMessage {
 	private String sortOrder               = null;
 	private String token                   = null;
 	private String view                    = null;
+	private Set<String> nodesWithChildren  = null;
 
 	//~--- methods --------------------------------------------------------
 
@@ -89,6 +90,7 @@ public class WebSocketMessage {
 		newCopy.token              = this.token;
 		newCopy.view               = this.view;
 		newCopy.chunkSize          = this.chunkSize;
+		newCopy.nodesWithChildren  = this.nodesWithChildren;
 
 		return newCopy;
 	}
@@ -180,6 +182,10 @@ public class WebSocketMessage {
 
 	public boolean isSessionValid() {
 		return sessionValid;
+	}
+
+	public Set<String> getNodesWithChildren() {
+		return nodesWithChildren;
 	}
 
 	//~--- set methods ----------------------------------------------------
@@ -277,5 +283,9 @@ public class WebSocketMessage {
 	 */
 	public void setGraphObject(GraphObject graphObject) {
 		this.graphObject = graphObject;
+	}
+
+	public void setNodesWithChildren(final Set<String> nodesWithChildren) {
+		this.nodesWithChildren = nodesWithChildren;
 	}
 }

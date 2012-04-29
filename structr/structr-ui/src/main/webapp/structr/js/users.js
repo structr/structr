@@ -46,24 +46,24 @@ var _UsersAndGroups = {
     
     refreshGroups : function() {
         groups.empty();
-        if (Server.list('Group')) {
+        if (Command.list('Group')) {
             groups.append('<button class="add_group_icon button"><img title="Add Group" alt="Add Group" src="icon/group_add.png"> Add Group</button>');
             $('.add_group_icon', main).on('click', function() {
                 var entity = {};
                 entity.type = 'Group';
-                return Server.create(entity);
+                return Command.create(entity);
             });
         }
     },
 
     refreshUsers : function() {
         users.empty();
-        if (Server.list('User')) {
+        if (Command.list('User')) {
             users.append('<button class="add_user_icon button"><img title="Add User" alt="Add User" src="icon/user_add.png"> Add User</button>');
             $('.add_user_icon', main).on('click', function() {
                 var entity = {};
                 entity.type = 'User';
-                return Server.create(entity);
+                return Command.create(entity);
             });
         }
     },
@@ -92,7 +92,7 @@ var _UsersAndGroups = {
         }
 
         if (debug) console.log('removeUserFromGroup: userId=' + userId + ', groupId=' + groupId);
-        Server.removeSourceFromTarget(userId, groupId);
+        Command.removeSourceFromTarget(userId, groupId);
     },
 
     deleteUser : function(button, user) {
@@ -127,7 +127,7 @@ var _UsersAndGroups = {
                 var groupId = getId($(this));
                 var nodeData = {};
                 nodeData.id = userId;
-                Server.createAndAdd(groupId, nodeData);
+                Command.createAndAdd(groupId, nodeData);
             }
         });
         
@@ -152,6 +152,8 @@ var _UsersAndGroups = {
                 parent.append(div.css({ top: 0, left: 0 }));
                 delIcon = $('.delete_icon', div);
                 delIcon.replaceWith(newDelIcon);
+                disable($('.delete_icon', parent)[0]);
+
             } else {
                 parent.append('<div class="user ' + user.id + '_">'
                     + '<img class="typeIcon" src="icon/user.png">'

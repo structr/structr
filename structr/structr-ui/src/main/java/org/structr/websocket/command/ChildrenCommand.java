@@ -21,7 +21,6 @@
 
 package org.structr.websocket.command;
 
-import org.neo4j.graphdb.Direction;
 
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
@@ -33,6 +32,8 @@ import org.structr.websocket.message.WebSocketMessage;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.*;
+import org.structr.web.common.RelationshipHelper;
+import org.structr.websocket.command.AbstractCommand;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -51,24 +52,29 @@ public class ChildrenCommand extends AbstractCommand {
 		AbstractNode node               = getNode(webSocketData.getId());
 		List<AbstractRelationship> rels = node.getOutgoingRelationships(RelType.CONTAINS);
 		Map<Long, GraphObject> sortMap  = new TreeMap<Long, GraphObject>();
+		Set<String> nodesWithChildren = new HashSet<String>();
 
-		for (AbstractRelationship out : rels) {
+		for (AbstractRelationship rel : rels) {
 
 			Long pos = null;
 
-			if (out.getLongProperty(resourceId) != null) {
+			if (rel.getLongProperty(resourceId) != null) {
 
-				pos = out.getLongProperty(resourceId);
+				pos = rel.getLongProperty(resourceId);
 
 			} else {
 
 				// Try "*"
-				pos = out.getLongProperty("*");
+				pos = rel.getLongProperty("*");
 			}
 
 			if (pos != null) {
 
-				AbstractNode endNode = out.getEndNode();
+				AbstractNode endNode                 = rel.getEndNode();
+				List<AbstractRelationship> childRels = endNode.getOutgoingRelationships(RelType.CONTAINS);
+
+				nodesWithChildren.addAll(RelationshipHelper.getChildrenInResource(endNode, resourceId));
+
 				sortMap.put(pos, endNode);
 
 			}
@@ -79,6 +85,7 @@ public class ChildrenCommand extends AbstractCommand {
 
 		webSocketData.setView(PropertyView.Ui);
 		webSocketData.setResult(result);
+		webSocketData.setNodesWithChildren(nodesWithChildren);
 
 		// send only over local connection
 		getWebSocket().send(webSocketData, true);
@@ -90,5 +97,4 @@ public class ChildrenCommand extends AbstractCommand {
 	public String getCommand() {
 		return "CHILDREN";
 	}
-
 }

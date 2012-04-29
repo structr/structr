@@ -1507,6 +1507,10 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		return dbNode.getId();
 	}
 
+	public String getUuid() {
+		return getStringProperty(Key.uuid);
+	}
+
 	public Long getNodeId() {
 		return getId();
 	}

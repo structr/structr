@@ -25,6 +25,16 @@ var contentSourceId, elementSourceId, rootId;
 var textBeforeEditing;
 var win = $(window);
 
+$(document).ready(function() {
+    Structr.registerModule('resources', _Resources);
+    Structr.classes.push('resource');
+
+    win.resize(function() {
+        _Resources.resize();
+    });
+
+});
+
 var _Resources = {
 
     icon : 'icon/page.png',
@@ -39,37 +49,40 @@ var _Resources = {
 
         var windowWidth = win.width();
         var windowHeight = win.height();
-        var headerOffsetHeight = 67;
-        var previewOffset = 33;
+        var headerOffsetHeight = 76;
+        var previewOffset = 27;
 	
-        resources.css({
-            width: Math.max(180, Math.min(windowWidth/3, 360)) + 'px',
-            height: windowHeight - headerOffsetHeight + 'px'
-        });
+        if (resources && palette) {
+            
+            resources.css({
+                width: Math.max(180, Math.min(windowWidth/3, 360)) + 'px',
+                height: windowHeight - headerOffsetHeight + 'px'
+            });
 
-        palette.css({
+            var rw = resources.width() + 12;
+
+            palette.css({
             width: Math.min(240, Math.max(360, windowWidth/4)) + 'px',
             height: windowHeight - (headerOffsetHeight+10) + 'px'
-        });
+            });
 
-        var rw = resources.width() + 12;
-        var pw = palette.width() + 60;
+            var pw = palette.width() + 60;
 
-        previews.css({
-            width: windowWidth-rw-pw + 'px',
-            height: win.height() - headerOffsetHeight + 'px'
-        });
+            if (previews) previews.css({
+                width: windowWidth-rw-pw + 'px',
+                height: win.height() - headerOffsetHeight + 'px'
+            });
 
-        $('.previewBox', previews).css({
-            width: windowWidth-rw-pw-4 + 'px',
-            height: windowHeight - (headerOffsetHeight + previewOffset) + 'px'
-        });
+            $('.previewBox', previews).css({
+                width: windowWidth-rw-pw-4 + 'px',
+                height: windowHeight - (headerOffsetHeight + previewOffset) + 'px'
+            });
 
-        $('.previewBox', previews).find('iframe').css({
-            width: $('.previewBox', previews).width() + 'px',
-            height: windowHeight - (headerOffsetHeight + previewOffset) + 'px'
-        });
-
+            $('.previewBox', previews).find('iframe').css({
+                width: $('.previewBox', previews).width() + 'px',
+                height: windowHeight - (headerOffsetHeight + previewOffset) + 'px'
+            });
+        }
 
     },
 
@@ -79,12 +92,13 @@ var _Resources = {
 
         //Structr.activateMenuEntry('resources');
         if (debug) console.log('onload');
-        main.append('<div id="resources"></div><div id="previews"></div><div id="palette"></div><div id="components"></div><div id="elements"></div><div id="contents"></div>');
+        //main.append('<div id="resources"></div><div id="previews"></div><div id="palette"></div><div id="components"></div><div id="elements"></div><div id="contents"></div>');
+        main.append('<div id="resources"></div><div id="previews"></div><div id="palette"></div>');
 
         resources = $('#resources');
-        components = $('#components');
-        elements = $('#elements');
-        contents = $('#contents');
+        //components = $('#components');
+        //elements = $('#elements');
+        //contents = $('#contents');
         previews = $('#previews');
         palette = $('#palette');
         //main.before('<div id="hoverStatus">Hover status</div>');
@@ -100,36 +114,36 @@ var _Resources = {
         //	    $('#toggleResources').prop('checked', true);
         //	}
 		
-        $('#toggleResources').on('click', function() {
-            resources.toggle();
-        });
-
-        if ($.cookie('structrComponentsVisible') == 'false') {
-            components.hide();
-        } else {
-            $('#toggleComponents').prop('checked', true);
-        }
-        $('#toggleComponents').on('click', function() {
-            components.toggle();
-        });
-
-        if ($.cookie('structrElementsVisible') == 'false') {
-            elements.hide();
-        } else {
-            $('#toggleElements').prop('checked', true);
-        }
-        $('#toggleElements').on('click', function() {
-            elements.toggle();
-        });
-
-        if ($.cookie('structrContentsVisible') == 'false') {
-            contents.hide();
-        } else {
-            $('#toggleContents').prop('checked', true);
-        }
-        $('#toggleContents').on('click', function() {
-            contents.toggle();
-        });
+        //        $('#toggleResources').on('click', function() {
+        //            resources.toggle();
+        //        });
+        //
+        //        if ($.cookie('structrComponentsVisible') == 'false') {
+        //            components.hide();
+        //        } else {
+        //            $('#toggleComponents').prop('checked', true);
+        //        }
+        //        $('#toggleComponents').on('click', function() {
+        //            components.toggle();
+        //        });
+        //
+        //        if ($.cookie('structrElementsVisible') == 'false') {
+        //            elements.hide();
+        //        } else {
+        //            $('#toggleElements').prop('checked', true);
+        //        }
+        //        $('#toggleElements').on('click', function() {
+        //            elements.toggle();
+        //        });
+        //
+        //        if ($.cookie('structrContentsVisible') == 'false') {
+        //            contents.hide();
+        //        } else {
+        //            $('#toggleContents').prop('checked', true);
+        //        }
+        //        $('#toggleContents').on('click', function() {
+        //            contents.toggle();
+        //        });
 
         _Resources.refresh();
         //_Resources.refreshComponents();
@@ -181,7 +195,7 @@ var _Resources = {
                 var authVisible = $('#_authVisible:checked', dialog).val() == 'on';
 
                 if (debug) console.log('start');
-                return Server.importPage(address, name, timeout, publicVisible, authVisible);
+                return Command.importPage(address, name, timeout, publicVisible, authVisible);
             });
             
         });
@@ -190,36 +204,36 @@ var _Resources = {
         $('#add_resource', previewTabs).on('click', function() {
             var entity = {};
             entity.type = 'Resource';
-            Server.create(entity);
+            Command.create(entity);
         });
 
     },
 
     refresh : function() {
         resources.empty();
-        return Server.list('Resource');
+        return Command.list('Resource');
     },
 
     refreshComponents : function() {
         components.empty();
-        if (Server.list('Component')) {
+        if (Command.list('Component')) {
             components.append('<button class="add_component_icon button"><img title="Add Component" alt="Add Component" src="' + _Components.add_icon + '"> Add Component</button>');
             $('.add_component_icon', main).on('click', function() {
                 var entity = {};
                 entity.type = 'Component';
-                Server.create(entity);
+                Command.create(entity);
             });
         }
     },
 
     refreshElements : function() {
         elements.empty();
-        if (Server.list('Element')) {
+        if (Command.list('Element')) {
             elements.append('<button class="add_element_icon button"><img title="Add Element" alt="Add Element" src="' + _Elements.add_icon + '"> Add Element</button>');
             $('.add_element_icon', main).on('click', function() {
                 var entity = {};
                 entity.type = 'Element';
-                Server.create(entity);
+                Command.create(entity);
             });
         }
     },
@@ -232,9 +246,13 @@ var _Resources = {
 		
         tab.append('<img class="typeIcon" src="icon/page.png"> <b class="name_">' + entity.name + '</b>');
         tab.append('<img title="Delete resource \'' + entity.name + '\'" alt="Delete resource \'' + entity.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
-        tab.append('<a target="_blank" href="' + viewRootUrl + entity.name + '">'
-            + '<img class="view_icon button" title="View ' + entity.name + ' in new window" alt="View ' + entity.name + ' in new window" src="icon/eye.png">'
-            + '</a></li>');
+        tab.append('<img class="view_icon button" title="View ' + entity.name + ' in new window" alt="View ' + entity.name + ' in new window" src="icon/eye.png">');
+
+        $('.view_icon', tab).on('click', function() {
+            var self = $(this);
+            var name = $(self.parent().children('b.name_')[0]).text();
+            window.open(viewRootUrl + name);
+        });
 
         var deleteIcon = $('.delete_icon', tab);
         deleteIcon.hide();
@@ -256,13 +274,6 @@ var _Resources = {
     resetTab : function(element, name) {
 
         if (debug) console.log('resetTab', element);
-        
-//        var id = getId(element);
-//        activeTab = id;
-//
-//        var iframe = $('#preview_' + id);
-//        iframe.attr('src', viewRootUrl + name + '?edit');
-//        _Resources.reloadPreviews();
         
         element.children('input').hide();
         element.children('.name_').show();
@@ -340,7 +351,7 @@ var _Resources = {
         input.on('blur', function() {
             var self = $(this);
             var newName = self.val();
-            Server.setProperty(getId(element), "name", newName);
+            Command.setProperty(getId(element), "name", newName);
             _Resources.resetTab(element, newName);
         });
         
@@ -348,7 +359,7 @@ var _Resources = {
             if (e.keyCode == 13) {
                 var self = $(this);
                 var newName = self.val();
-                Server.setProperty(getId(element), "name", newName);
+                Command.setProperty(getId(element), "name", newName);
                 _Resources.resetTab(element, newName);
             }
         });
@@ -357,18 +368,19 @@ var _Resources = {
 
     },
 
-    appendResourceElement : function(entity, resourceId, rootId) {
+    appendResourceElement : function(entity, resourceId, rootId, removeExisting, hasChildren) {
+
+         if (debug) console.log('appendResourceElement', entity, resourceId, rootId, removeExisting, hasChildren);
 
         resources.append('<div class="node resource ' + entity.id + '_"></div>');
         var div = $('.' + entity.id + '_', resources);
 
         entity.resourceId = entity.id;
 
-        _Entities.appendExpandIcon(div, entity);
-        _Entities.setMouseOver(div);
-
         div.append('<img class="typeIcon" src="icon/page.png">'
             + '<b class="name_">' + entity.name + '</b> <span class="id">' + entity.id + '</span>');
+
+        _Entities.appendExpandIcon(div, entity, hasChildren);
 
         div.append('<img title="Delete resource \'' + entity.name + '\'" alt="Delete resource \'' + entity.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
         $('.delete_icon', div).on('click', function(e) {
@@ -395,10 +407,12 @@ var _Resources = {
             var self = $(this);
             self.off('click');
             self.off('mouseover');
-            Server.cloneResource(entity.id);
+            Command.cloneResource(entity.id);
         });
 
         _Entities.appendEditPropertiesIcon(div, entity);
+        _Entities.setMouseOver(div);
+
 
         var tab = _Resources.addTab(entity);
 
@@ -519,7 +533,7 @@ var _Resources = {
                         nodeData.tag = (tag != 'content' ? tag : '');
                         nodeData.id = contentId;
                         if (debug) console.log(relData);
-                        Server.createAndAdd(elementId, nodeData, relData);
+                        Command.createAndAdd(elementId, nodeData, relData);
                     }
                 });
 
@@ -571,7 +585,7 @@ var _Resources = {
                         if (debug) console.log('delete', entity);
                         var parentId = element.attr('structr_element_id');
 
-                        Server.removeSourceFromTarget(entity.id, parentId);
+                        Command.removeSourceFromTarget(entity.id, parentId);
                         _Entities.deleteNode(this, entity);
                     });
                     var offsetTop = -30;
@@ -685,7 +699,7 @@ var _Resources = {
                             if (debug) console.log(self.contents().first());
                             if (debug) console.log('blur contentSourceId: ' + contentSourceId);
                             //_Resources.updateContent(contentSourceId, textBeforeEditing, self.contents().first().text());
-                            Server.patch(contentSourceId, textBeforeEditing, self.contents().first().text());
+                            Command.patch(contentSourceId, textBeforeEditing, self.contents().first().text());
                             contentSourceId = null;
                             self.attr('contenteditable', false);
                             self.removeClass('structr-editable-area-active');
@@ -695,15 +709,16 @@ var _Resources = {
                 }
             });
 
-            //_Resources.resize();
         });
 	
     },
 
-    appendElementElement : function(entity, parentId, resourceId) {
-        if (debug) console.log('Resources.appendElementElement');
-        var div = _Elements.appendElementElement(entity, parentId, resourceId);
-        //console.log(div);
+    appendElementElement : function(entity, parentId, resourceId, removeExisting, hasChildren) {
+        if (debug) console.log('_Resources.appendElementElement', entity, parentId, resourceId, removeExisting, hasChildren);
+        var div = _Elements.appendElementElement(entity, parentId, resourceId, removeExisting, hasChildren);
+
+        if (!div) return false;
+
         if (parentId) {
 
             $('.delete_icon', div).replaceWith('<img title="Remove element \'' + entity.name + '\' from resource ' + parentId + '" '
@@ -713,7 +728,7 @@ var _Resources = {
                 var self = $(this);
                 self.off('click');
                 self.off('mouseover');
-                Server.removeSourceFromTarget(entity.id, parentId);
+                Command.removeSourceFromTarget(entity.id, parentId);
             });
         }
 
@@ -823,24 +838,25 @@ var _Resources = {
                 }
 
                 console.log('drop event in appendElementElement', elementId, nodeData, relData);
-                Server.createAndAdd(elementId, nodeData, relData);
+                Command.createAndAdd(elementId, nodeData, relData);
             }
         });
 
         return div;
     },
 
-    appendComponentElement : function(component, parentId, resourceId) {
+    appendComponentElement : function(component, parentId, resourceId, removeExisting, hasChildren) {
         if (debug) console.log('Resources.appendComponentElement');
-        var div = _Components.appendComponentElement(component, parentId, resourceId);
+        var div = _Components.appendComponentElement(component, parentId, resourceId, removeExisting, hasChildren);
         //console.log(div);
+        if (!div) return false;
 
         if (parentId) {
 
             $('.delete_icon', div).replaceWith('<img title="Remove component \'' + component.name + '\' from resource ' + parentId + '" '
                 + 'alt="Remove component ' + component.name + ' from ' + parentId + '" class="delete_icon button" src="' + _Components.delete_icon + '">');
             $('.delete_icon', div).on('click', function() {
-                Server.removeSourceFromTarget(component.id, parentId);
+                Command.removeSourceFromTarget(component.id, parentId);
             });
 
         }
@@ -928,7 +944,7 @@ var _Resources = {
                 }
 
                 if (debug) console.log('Content or Element dropped on Component', getId(node), nodeData, relData);
-                Server.createAndAdd(getId(node), nodeData, relData);
+                Command.createAndAdd(getId(node), nodeData, relData);
             }
         });
 
@@ -940,6 +956,8 @@ var _Resources = {
 		
         var div = _Contents.appendContentElement(content, parentId, resourceId);
 
+        if (!div) return false;
+
         if (parentId) {
             $('.delete_icon', div).replaceWith('<img title="Remove content \'' + content.name + '\' from resource ' + parentId + '" '
                 + 'alt="Remove content ' + content.name + ' from element ' + parentId + '" class="delete_icon button" src="' + _Contents.delete_icon + '">');
@@ -948,7 +966,7 @@ var _Resources = {
                 var self = $(this);
                 self.off('click');
                 self.off('mouseover');
-                Server.removeSourceFromTarget(content.id, parentId)
+                Command.removeSourceFromTarget(content.id, parentId)
             });
         }
 
@@ -976,7 +994,7 @@ var _Resources = {
         if (numberOfComponents == 0) {
             enable($('.delete_icon', resource)[0]);
         }
-        Server.removeSourceFromTarget(componentId, resourceId);
+        Command.removeSourceFromTarget(componentId, resourceId);
 
     },
 
@@ -992,33 +1010,10 @@ var _Resources = {
         if (numberOfElements == 0) {
             enable($('.delete_icon', resource)[0]);
         }
-        Server.removeSourceFromTarget(elementId, resourceId);
+        Command.removeSourceFromTarget(elementId, resourceId);
 
     },
-    //
-    //    addContentToElement : function(contentId, elementId) {
-    //        if (debug) console.log('Resources.addContentToElement');
-    //
-    //        var element = $('.' + elementId + '_');
-    //        var content = $('.' + contentId + '_').clone();
-    //
-    //        //element.append(content);
-    //
-    //        $('.delete_icon', content).replaceWith('<img title="Remove content ' + contentId + ' from element ' + elementId + '" '
-    //            + 'alt="Remove content ' + contentId + ' from element ' + elementId + '" class="delete_icon button" src="' + _Contents.delete_icon + '">');
-    //        $('.delete_icon', content).on('click', function() {
-    //            Server.removeElementFromResource(contentId, elementId)
-    //        });
-    //        content.draggable('destroy');
-    //
-    //        var numberOfContents = $('.element', element).size();
-    //        if (debug) console.log(numberOfContents);
-    //        if (numberOfContents > 0) {
-    //            disable($('.delete_icon', element)[0]);
-    //        }
-    //
-    //    },
-
+    
     removeContentFromElement : function(contentId, elementId) {
 
         var element = $('.' + elementId + '_');
@@ -1030,26 +1025,8 @@ var _Resources = {
         if (numberOfContents == 0) {
             enable($('.delete_icon', element)[0]);
         }
-        Server.removeSourceFromTarget(contentId, elementId);
+        Command.removeSourceFromTarget(contentId, elementId);
 
-    },
-
-    addResource : function(button) {
-        var entity = {};
-        entity.type = 'Resource';
-        return Server.create(button, entity);
-    },
-
-    addComponent : function(button) {
-        var entity = {};
-        entity.type = 'Component';
-        return Server.create(button, entity);
-    },
-
-    addElement : function(button) {
-        var entity = {};
-        entity.type = 'Element';
-        return Server.create(button, entity);
     },
 	
     showSubEntities : function(resourceId, entity) {
@@ -1114,8 +1091,14 @@ var _Resources = {
     },
 
     reloadPreviews : function() {
+
         $('iframe', $('#previews')).each(function() {
-            this.contentDocument.location.reload(true);
+            var self = $(this);
+            var resourceId = self.attr('id').substring('preview_'.length);
+            var name = $($('.' + resourceId + '_')[0]).children('b.name_').text();
+            var doc = this.contentDocument;
+            doc.location = name;
+            doc.location.reload(true);
         });
     },
     
@@ -1151,14 +1134,3 @@ var _Resources = {
     }
 
 };
-
-$(document).ready(function() {
-    Structr.registerModule('resources', _Resources);
-    Structr.classes.push('resource');
-
-    win.resize(function() {
-        _Resources.resize();
-    });
-    
-});
-

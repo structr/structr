@@ -50,33 +50,35 @@ var _Components = {
     
     refresh : function() {
 	components.empty();
-	if (Server.list('Component')) {
+	if (Command.list('Component')) {
 	    components.append('<button class="add_component_icon button"><img title="Add Component" alt="Add Component" src="' + _Components.add_icon + '"> Add Component</button>');
 	    $('.add_component_icon', main).on('click', function() {
 		var entity = {};
 		entity.type = 'Component';
-		Server.create(entity);
+		Command.create(entity);
 	    });
 	}
     },
 
     refreshElements : function() {
 	elements.empty();
-	if (Server.list('Element')) {
+	if (Command.list('Element')) {
 	    elements.append('<button class="add_element_icon button"><img title="Add Element" alt="Add Element" src="' + _Elements.add_icon + '"> Add Element</button>');
 	    $('.add_element_icon', main).on('click', function() {
 		var entity = {};
 		entity.type = 'Element';
-		Server.create(entity);
+		Command.create(entity);
 	    });
 	}
     },
     
-    appendComponentElement : function(component, parentId, resourceId) {
+    appendComponentElement : function(component, parentId, resourceId, removeExisting, hasChildren) {
 	if (debug) console.log('Components.appendComponentElement: parentId: ' + parentId + ', resourceId: ' + resourceId);
 
 	var parent = Structr.findParent(parentId, resourceId, components);
         
+        if (!parent) return false;
+
 	parent.append('<div class="node component ' + component.id + '_">'
 	    + '<img class="typeIcon" src="'+ _Components.icon + '">'
 	    + '<b class="name_">' + component.structrclass + '</b> <span class="id">' + component.id + '</span>'
@@ -93,8 +95,8 @@ var _Components = {
 	});
 
 	component.resourceId = resourceId;
-	_Entities.appendExpandIcon(div, component);
-
+        
+        _Entities.appendExpandIcon(div, entity, hasChildren);
 	_Entities.setMouseOver(div);
 	_Entities.appendEditPropertiesIcon(div, component);
 
@@ -112,7 +114,7 @@ var _Components = {
 		nodeData.id = elementId;
 		var relData = {};
 		relData[resourceId] = pos;
-		Server.createAndAdd(resourceId, nodeData, relData);
+		Command.createAndAdd(resourceId, nodeData, relData);
 	    }
 	});
 
@@ -129,7 +131,7 @@ var _Components = {
 	    div.append('<img title="Remove element \'' + element.name + '\' from resource ' + parentId + '" '
 		+ 'alt="Remove element ' + element.name + ' from ' + parentId + '" class="delete_icon button" src="icon/brick_delete.png">');
 	    $('.delete_icon', div).on('click', function() {
-		Server.removeSourceFromTarget(element.id, parentId);
+		Command.removeSourceFromTarget(element.id, parentId);
 	    });
 	}
 	//        var elements = element.children;
@@ -168,7 +170,7 @@ var _Components = {
 		relData[resourceId] = pos;
 		var nodeData = {};
 		nodeData.id = contentId;
-		Server.createAndAdd(elementId, nodeData, relData);
+		Command.createAndAdd(elementId, nodeData, relData);
 	    }
 	});
 
@@ -205,7 +207,7 @@ var _Components = {
 
 	var parentId = getId(parentElement);
 
-	Server.createAndAdd(parentId, form, rel);
+	Command.createAndAdd(parentId, form, rel);
 
     }
 

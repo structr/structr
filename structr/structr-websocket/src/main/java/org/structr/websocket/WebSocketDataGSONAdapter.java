@@ -34,6 +34,8 @@ import com.google.gson.JsonSerializer;
 import org.structr.common.PropertyView;
 import org.structr.common.TreeNode;
 import org.structr.core.GraphObject;
+import org.structr.core.GraphObjectGSONAdapter;
+import org.structr.core.PropertySet.PropertyFormat;
 import org.structr.core.Value;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.validator.GenericValue;
@@ -44,8 +46,7 @@ import org.structr.websocket.message.WebSocketMessage;
 import java.lang.reflect.Type;
 
 import java.util.Map.Entry;
-import org.structr.core.GraphObjectGSONAdapter;
-import org.structr.core.PropertySet.PropertyFormat;
+import java.util.Set;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -150,6 +151,21 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 		}
 
+		JsonArray nodesWithChildren = new JsonArray();
+		Set<String> nwc             = src.getNodesWithChildren();
+
+		if ((nwc != null) &&!src.getNodesWithChildren().isEmpty()) {
+
+			for (String nodeId : nwc) {
+
+				nodesWithChildren.add(new JsonPrimitive(nodeId));
+
+			}
+
+			root.add("nodesWithChildren", nodesWithChildren);
+
+		}
+
 		// serialize session valid flag (output only)
 		root.add("sessionValid", new JsonPrimitive(src.isSessionValid()));
 
@@ -244,7 +260,7 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 		// serialize result tree
 		if (src.getResultTree() != null) {
 
-			TreeNode node  = src.getResultTree();
+			TreeNode node = src.getResultTree();
 
 			root.add("root", buildTree(node, context));
 
@@ -257,14 +273,21 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 		AbstractNode data    = node.getData();
 		JsonObject jsonChild = new JsonObject();
-		if (data != null) jsonChild = graphObjectSerializer.serialize(data, GraphObject.class, context).getAsJsonObject();
+
+		if (data != null) {
+
+			jsonChild = graphObjectSerializer.serialize(data, GraphObject.class, context).getAsJsonObject();
+
+		}
 
 		JsonArray array = new JsonArray();
+
 		for (TreeNode childNode : node.getChildren()) {
-//			AbstractNode childData = childNode.getNodeData();
+
+//                      AbstractNode childData = childNode.getNodeData();
 			array.add(buildTree(childNode, context));
 		}
-		
+
 		jsonChild.add("children", array);
 
 		return jsonChild;
@@ -277,9 +300,9 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 		if (json instanceof JsonObject) {
 
-			JsonObject root = json.getAsJsonObject();
+			JsonObject root     = json.getAsJsonObject();
 			JsonObject nodeData = root.getAsJsonObject("data");
-			JsonObject relData = root.getAsJsonObject("relData");
+			JsonObject relData  = root.getAsJsonObject("relData");
 
 			if (root.has("command")) {
 
@@ -366,6 +389,7 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 				}
 
 			}
+
 		}
 
 		return webSocketData;

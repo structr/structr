@@ -35,7 +35,6 @@ import org.structr.websocket.command.AbstractCommand;
 import org.structr.websocket.command.CreateCommand;
 import org.structr.websocket.command.DeleteCommand;
 import org.structr.websocket.command.GetCommand;
-import org.structr.websocket.command.ListCommand;
 import org.structr.websocket.command.LoginCommand;
 import org.structr.websocket.command.LogoutCommand;
 import org.structr.websocket.command.UpdateCommand;
@@ -82,9 +81,6 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 		addCommand(LoginCommand.class);
 		addCommand(LogoutCommand.class);
 
-		// list objects
-		addCommand(ListCommand.class);
-		
 		// get (read) single object
 		addCommand(GetCommand.class);
 
@@ -97,9 +93,6 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 		// delete an object
 		addCommand(DeleteCommand.class);
 
-		// add an object to another (create relationship)
-		addCommand(AddCommand.class);
-		
 		// remove an object from another (remove relationship)
 		addCommand(RemoveCommand.class);
 
@@ -109,11 +102,6 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 		// render an object tree
 		addCommand(TreeCommand.class);
 
-		// create a link between objects
-		addCommand(LinkCommand.class);
-
-		// list children
-		addCommand(ChildrenCommand.class);
 	}
 
 	//~--- fields ---------------------------------------------------------

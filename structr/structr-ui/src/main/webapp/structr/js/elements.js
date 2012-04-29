@@ -71,7 +71,7 @@ var _Elements = {
     elementGroups : [
     {
         'name' : 'Root',
-        'elements' : ['html']
+        'elements' : ['html', 'content']
     },
     {
         'name' : 'Metadata',
@@ -148,7 +148,7 @@ var _Elements = {
     refresh : function() {
         elements.empty();
 
-        if (Server.list('Element')) {
+        if (Command.list('Element')) {
             elements.append('<button class="add_element_icon button"><img title="Add Element" alt="Add Element" src="' + _Elements.add_icon + '"> Add Element</button>');
 
             $('.add_element_icon', main).on('click', function() {
@@ -166,7 +166,7 @@ var _Elements = {
                         var entity = {};
                         entity.type = v.capitalize();
                         entity.tag = v;
-                        Server.create(entity);
+                        Command.create(entity);
                         list.remove();
                     });
                 });
@@ -175,17 +175,19 @@ var _Elements = {
         }
     },
 
-    appendElementElement : function(entity, parentId, resourceId) {
-        if (debug) console.log('Elements.appendElementElement: parentId: ' + parentId + ', resourceId: ' + resourceId);
+    appendElementElement : function(entity, parentId, resourceId, removeExisting, hasChildren) {
+        if (debug) console.log('_Elements.appendElementElement', entity, parentId, resourceId, removeExisting, hasChildren);
 
         var parent = Structr.findParent(parentId, resourceId, elements);
+
+        if (!parent) return false;
         
         parent.append('<div class="node element ' + entity.id + '_">');
 
         var div = $('.' + entity.id + '_', parent);
 
         entity.resourceId = resourceId;
-        _Entities.appendExpandIcon(div, entity);
+
 
         div.append('<img class="typeIcon" src="'+ _Elements.icon + '">'
             + '<b class="tag_">' + entity.tag + '</b> <span class="id">' + entity.id + '</span>'
@@ -193,6 +195,11 @@ var _Elements = {
             + (entity._html_class ? '<span class="_html_class_">.' + entity._html_class : '</span>')
             + '</div>');
 
+        _Entities.appendExpandIcon(div, entity, hasChildren);
+
+        $('.typeIcon', div).on('mousedown', function(e) {
+            e.stopPropagation();
+        });
 
         div.append('<img title="Delete ' + entity.tag + ' element ' + entity.id + '" alt="Delete ' + entity.tag + ' element ' + entity.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
         $('.delete_icon', div).on('click', function(e) {

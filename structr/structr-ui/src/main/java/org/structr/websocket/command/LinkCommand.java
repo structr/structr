@@ -45,6 +45,8 @@ import java.util.Map;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.RelationClass;
 import org.structr.core.entity.RelationClass.Cardinality;
+import org.structr.websocket.command.AbstractCommand;
+import org.structr.websocket.command.AbstractCommand;
 
 //~--- classes ----------------------------------------------------------------
 

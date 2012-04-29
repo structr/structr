@@ -51,7 +51,7 @@ var _Contents = {
             $('.add_content_icon', main).on('click', function() {
                 var entity = {};
                 entity.type = 'Content';
-                Server.create(entity);
+                Command.create(entity);
             });
         }
     },
@@ -68,15 +68,16 @@ var _Contents = {
             });
         }
 
-        return Server.list('Content');
+        return Command.list('Content');
     },
 
     appendContentElement : function(content, parentId, resourceId) {
         if (debug) console.log('Contents.appendContentElement: parentId: ' + parentId + ', resourceId: ' + resourceId);
 
         var parent = Structr.findParent(parentId, resourceId, contents);
+        if (!parent) return false;
         
-        console.log(parent);
+        if (debug) console.log(parent);
 
         //	var abbrContent = (content.content ? content.content.substring(0,36) + '&hellip;': '&nbsp;');
 
@@ -97,9 +98,9 @@ var _Contents = {
         div.append('<img title="Edit ' + content.name + ' [' + content.id + ']" alt="Edit ' + content.name + ' [' + content.id + ']" class="edit_icon button" src="icon/pencil.png">');
         $('.edit_icon', div).on('click', function() {
             Structr.dialog('Edit content of ' + content.id, function() {
-                console.log('content saved')
+                if (debug) console.log('content saved')
             }, function() {
-                console.log('cancelled')
+                if (debug) console.log('cancelled')
             });
             _Contents.editContent(this, content, $('#dialogBox .dialogText'));
         });
@@ -135,7 +136,7 @@ var _Contents = {
                 editorCursor = cm.getCursor();
                 if (debug) console.log(editorCursor);
 				
-                Server.patch(entity.id, text1, text2);
+                Command.patch(entity.id, text1, text2);
 				
             }
         });

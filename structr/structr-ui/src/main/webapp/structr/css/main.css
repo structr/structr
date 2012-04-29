@@ -126,6 +126,7 @@ img.disabled {
     -khtml-opacity: 0.4;
     -moz-opacity: 0.4;
     opacity: 0.4;
+    cursor: default ! important;
 }
 
 #resources,
@@ -142,7 +143,8 @@ img.disabled {
     float: left;
     border: none;
     width: 400px;
-    padding: 6px 12px 0 12px;
+    padding: 6px;
+    margin: 3px 3px 6px 9px;
 /*    overflow: auto ! important;*/
 /*    height: 1000px ! important;*/
 }
@@ -355,15 +357,14 @@ ul#previewTabs {
 .previewBox {
     float: left;
     background: #fff;
-    border-top: 1px solid #a5a5a5;
-    border-right: 1px solid #a5a5a5;
-    border-left: 1px solid #a5a5a5;
+    border: 1px solid #a5a5a5;
     padding: 0;
     margin: 0;
     overflow: hidden ! important;
     -moz-transform-origin: 0 0;
     -o-transform-origin: 0 0;
     -webkit-transform-origin: 0 0;
+    width: 1000px;
 }
 
 .previewBox iframe {
@@ -392,6 +393,18 @@ ul#previewTabs {
 }
 .node .id {
     /*    display: none;*/
+}
+
+.node .name_:hover {
+    cursor: text ! important;
+}
+
+.newName_ {
+    border: 1px solid #a5a5a5;
+    margin: -1px 0;
+    font-size: 0.95em;
+    font-weight: bold;
+    display: inline;
 }
 
 .content .id {
@@ -446,13 +459,24 @@ span.id {
 }
 
 .typeIcon, .expand_icon {
-    width: 16px;
-    height: 16px;
     float: left ! important;
     border: none;
     background: none;
     margin-right: 4px ! important;
     cursor: pointer ! important;
+}
+
+.typeIcon {
+    width: 16px;
+    height: 16px;
+    margin-top: 1px;
+}
+
+.expand_icon {
+    width: 8px;
+    height: 8px;
+    margin-top: 5px;
+    margin-right: 3px ! important;
 }
 
 .edit_icon, .add_icon, .delete_icon, .close_icon, .key_icon, .edit_props_icon, .clone_icon, .view_icon, .link_icon, .add_form_icon {
@@ -598,14 +622,28 @@ button img {
     border: 1px solid #666;
 }
 
-#filesDropArea {
+#files h1 {
+    visibility: hidden;
     color: #999;
     font-size: 16px;
     font-weight: bold;
+    margin: 9px 0;
+    padding: 0;
     height: 22px;
-    padding: 7px 12px 3px 12px;
+}
+
+#files:hover {
+    padding: 0px 8px 0px 6px ! important;
+    margin: 11px 0px 3px 8px ! important;
+/*    padding: 7px 12px 3px 12px! important;*/
     border-radius: 5px;
     border: 1px dashed #999;
+    background: #fff;
+}
+
+#files:hover h1 {
+    visibility: visible;
+    margin: 9px 0 0 0;
 }
 
 .ui-draggable {
