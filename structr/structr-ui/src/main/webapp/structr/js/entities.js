@@ -552,9 +552,8 @@ var _Entities = {
         element.off('hover');
         var oldName = $.trim(element.children('b.name_').text());
         //console.log('oldName', oldName);
-        element.children('b').hide();
+        element.children('b').replaceWith('<input type="text" size="' + (oldName.length+4) + '" class="newName_" value="' + oldName + '">');
         element.find('.button').hide();
-        element.append('<input type="text" size="' + (oldName.length+4) + '" class="newName_" value="' + oldName + '">');
 
         var input = $('input', element);
 
@@ -564,7 +563,11 @@ var _Entities = {
             var self = $(this);
             var newName = self.val();
             Command.setProperty(getId(element), "name", newName);
-            _Resources.resetTab(element, newName);
+            self.replaceWith('<b class="name_">' + newName + '</b>');
+            $('.name_', element).on('click', function() {
+                _Entities.makeNameEditable(element);
+            });
+        //_Resources.resetTab(element, newName);
         });
 
         input.keypress(function(e) {
@@ -572,7 +575,12 @@ var _Entities = {
                 var self = $(this);
                 var newName = self.val();
                 Command.setProperty(getId(element), "name", newName);
-                _Resources.resetTab(element, newName);
+                self.replaceWith('<b class="name_">' + newName + '</b>');
+                $('.name_', element).on('click', function() {
+                    _Entities.makeNameEditable(element);
+                });
+
+            //_Resources.resetTab(element, newName);
             }
         });
 
