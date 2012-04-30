@@ -62,8 +62,8 @@ var _Resources = {
             var rw = resources.width() + 12;
 
             palette.css({
-            width: Math.min(240, Math.max(360, windowWidth/4)) + 'px',
-            height: windowHeight - (headerOffsetHeight+10) + 'px'
+                width: Math.min(240, Math.max(360, windowWidth/4)) + 'px',
+                height: windowHeight - (headerOffsetHeight+10) + 'px'
             });
 
             var pw = palette.width() + 60;
@@ -370,7 +370,7 @@ var _Resources = {
 
     appendResourceElement : function(entity, resourceId, rootId, removeExisting, hasChildren) {
 
-         if (debug) console.log('appendResourceElement', entity, resourceId, rootId, removeExisting, hasChildren);
+        if (debug) console.log('appendResourceElement', entity, resourceId, rootId, removeExisting, hasChildren);
 
         resources.append('<div class="node resource ' + entity.id + '_"></div>');
         var div = $('.' + entity.id + '_', resources);
@@ -391,15 +391,15 @@ var _Resources = {
             _Entities.deleteNode(this, entity);
         });
 
-        div.append('<img title="Link resource \'' + entity.name + '\' to current selection" alt="Link resource \'' + entity.name + '\' to current selection" class="link_icon button" src="' + Structr.link_icon + '">');
-        $('.link_icon', div).on('click', function() {
-            //console.log(rootId, sourceId);
-            if (sourceId && selStart && selEnd) {
-                // function(resourceId, sourceId, linkedResourceId, startOffset, endOffset)
-                _Resources.linkSelectionToResource(rootId, sourceId, entity.id, selStart, selEnd);
-            //$('.link_icon').hide();
-            }
-        });
+//        div.append('<img title="Link resource \'' + entity.name + '\' to current selection" alt="Link resource \'' + entity.name + '\' to current selection" class="link_icon button" src="' + Structr.link_icon + '">');
+//        $('.link_icon', div).on('click', function() {
+//            //console.log(rootId, sourceId);
+//            if (sourceId && selStart && selEnd) {
+//                // function(resourceId, sourceId, linkedResourceId, startOffset, endOffset)
+//                _Resources.linkSelectionToResource(rootId, sourceId, entity.id, selStart, selEnd);
+//            //$('.link_icon').hide();
+//            }
+//        });
 
         div.append('<img title="Clone resource \'' + entity.name + '\'" alt="Clone resource \'' + entity.name + '\'" class="clone_icon button" src="' + _Resources.clone_icon + '">');
         $('.clone_icon', div).on('click', function(e) {
@@ -609,7 +609,7 @@ var _Resources = {
                                 + '</div>'
                                 );
 
-                            var nodes = $('.' + structrId + '_');
+                            var nodes = Structr.node(structrId);
                             nodes.parent().removeClass('nodeHover');
                             nodes.addClass('nodeHover');
 
@@ -629,7 +629,7 @@ var _Resources = {
                             self.removeClass('.structr-element-container');
                             var header = self.children('.structr-element-container-header');
                             header.remove();
-                            var nodes = $('.' + structrId + '_');
+                            var nodes = Structr.node(structrId);
                             nodes.removeClass('nodeHover');
                         }
                     });
@@ -650,7 +650,7 @@ var _Resources = {
                             self.addClass('structr-editable-area');
                             self.attr('contenteditable', true);
                             $('#hoverStatus').text('Editable content element: ' + self.attr('structr_content_id'));
-                            var nodes = $('.' + structrId + '_');
+                            var nodes = Structr.node(structrId);
                             nodes.parent().removeClass('nodeHover');
                             nodes.addClass('nodeHover');
                         },
@@ -661,7 +661,7 @@ var _Resources = {
                             self.removeClass('structr-editable-area');
                             //self.attr('contenteditable', false);
                             $('#hoverStatus').text('-- non-editable --');
-                            var nodes = $('.' + structrId + '_');
+                            var nodes = Structr.node(structrId);
                             nodes.removeClass('nodeHover');
                         },
                         click: function(e) {
@@ -740,7 +740,10 @@ var _Resources = {
                 revert: 'invalid',
                 containment: '#resources',
                 zIndex: 4,
-                helper: 'clone'
+                helper: 'clone',
+                start: function(event, ui) {
+                    $(this).draggable(disable);
+                }
             });
         }
 
@@ -781,6 +784,7 @@ var _Resources = {
             accept: '.element, .content, .component',
             greedy: true,
             hoverClass: 'nodeHover',
+            tolerance: 'pointer',
             drop: function(event, ui) {
                 if (sorting) {
                     if (debug) console.log('sorting, no drop allowed');
@@ -796,8 +800,18 @@ var _Resources = {
                 if (debug) console.log(resource);
                 var contentId = getId(ui.draggable);
                 var elementId = getId(self);
-                var tag;
+                
                 if (debug) console.log('contentId', contentId);
+                if (debug) console.log('elementId', elementId);
+
+                if (contentId == elementId) {
+                    console.log('drop on self not allowed');
+                    return;
+                }
+                
+                var tag;
+                
+                
                 if (!contentId) {
                     tag = $(ui.draggable).text();
                 } else {
@@ -906,6 +920,7 @@ var _Resources = {
             accept: '.element, .content',
             greedy: true,
             hoverClass: 'nodeHover',
+            tolerance: 'pointer',
             drop: function(event, ui) {
 
                 var self = $(this);
@@ -985,8 +1000,8 @@ var _Resources = {
     removeComponentFromResource : function(componentId, resourceId) {
         if (debug) console.log('Resources.removeComponentFromResource');
 
-        var resource = $('.' + resourceId + '_');
-        var component = $('.' + componentId + '_', resource);
+        var resource = Structr.node(resourceId);
+        //var component = Structr.node(componentId, resourceId);
         //component.remove();
 
         var numberOfComponents = $('.component', resource).size();
@@ -1001,8 +1016,8 @@ var _Resources = {
     removeElementFromResource : function(elementId, resourceId) {
         if (debug) console.log('Resources.removeElementFromResource');
 
-        var resource = $('.' + resourceId + '_');
-        var element = $('.' + elementId + '_', resource);
+        var resource = Structr.node(resourceId);
+        var element = Structr.node(elementId, resourceId);
         element.remove();
 
         var numberOfElements = $('.element', resource).size();
@@ -1016,9 +1031,9 @@ var _Resources = {
     
     removeContentFromElement : function(contentId, elementId) {
 
-        var element = $('.' + elementId + '_');
-        var content = $('.' + contentId + '_', element);
-        content.remove();
+        var element = Structr.node(elementId);
+        var contentEl = Structr.node(contentId, elementId);
+        contentEl.remove();
 
         var numberOfContents = $('.element', element).size();
         if (debug) console.log(numberOfContents);
@@ -1055,47 +1070,47 @@ var _Resources = {
         });
     },
 
-    addNode : function(button, type, entity, resourceId) {
-        if (isDisabled(button)) return;
-        disable(button);
-        var pos = $('.' + resourceId + '_ .' + entity.id + '_ > div.nested').length;
-        //    console.log('addNode(' + type + ', ' + entity.id + ', ' + entity.id + ', ' + pos + ')');
-        var url = rootUrl + type;
-        var headers = {
-            'X-StructrSessionToken' : token
-        };
-        var resp = $.ajax({
-            url: url,
-            //async: false,
-            type: 'POST',
-            dataType: 'json',
-            contentType: 'application/json; charset=utf-8',
-            headers: headers,
-            data: '{ "type" : "' + type + '", "name" : "' + type + '_' + Math.floor(Math.random() * (9999 - 1)) + '", "elements" : "' + entity.id + '" }',
-            success: function(data) {
-                var getUrl = resp.getResponseHeader('Location');
-                $.ajax({
-                    url: getUrl + '/all',
-                    success: function(data) {
-                        var node = data.result;
-                        if (entity) {
-                            _Resources.appendElement(node, entity, resourceId);
-                            _Resources.setPosition(resourceId, getUrl, pos);
-                        }
-                        //disable($('.' + groupId + '_ .delete_icon')[0]);
-                        enable(button);
-                    }
-                });
-            }
-        });
-    },
+//    addNode : function(button, type, entity, resourceId) {
+//        if (isDisabled(button)) return;
+//        disable(button);
+//        var pos = $('.' + resourceId + '_ .' + entity.id + '_ > div.nested').length;
+//        //    console.log('addNode(' + type + ', ' + entity.id + ', ' + entity.id + ', ' + pos + ')');
+//        var url = rootUrl + type;
+//        var headers = {
+//            'X-StructrSessionToken' : token
+//        };
+//        var resp = $.ajax({
+//            url: url,
+//            //async: false,
+//            type: 'POST',
+//            dataType: 'json',
+//            contentType: 'application/json; charset=utf-8',
+//            headers: headers,
+//            data: '{ "type" : "' + type + '", "name" : "' + type + '_' + Math.floor(Math.random() * (9999 - 1)) + '", "elements" : "' + entity.id + '" }',
+//            success: function(data) {
+//                var getUrl = resp.getResponseHeader('Location');
+//                $.ajax({
+//                    url: getUrl + '/all',
+//                    success: function(data) {
+//                        var node = data.result;
+//                        if (entity) {
+//                            _Resources.appendElement(node, entity, resourceId);
+//                            _Resources.setPosition(resourceId, getUrl, pos);
+//                        }
+//                        //disable($('.' + groupId + '_ .delete_icon')[0]);
+//                        enable(button);
+//                    }
+//                });
+//            }
+//        });
+//    },
 
     reloadPreviews : function() {
 
         $('iframe', $('#previews')).each(function() {
             var self = $(this);
             var resourceId = self.attr('id').substring('preview_'.length);
-            var name = $($('.' + resourceId + '_')[0]).children('b.name_').text();
+            var name = $(Structr.node(resourceId)[0]).children('b.name_').text();
             var doc = this.contentDocument;
             doc.location = name;
             doc.location.reload(true);
@@ -1124,13 +1139,13 @@ var _Resources = {
 
         });
 
-    },
+    }
 
 	
-    linkSelectionToResource : function(rootResourceId, sourceId, linkedResourceId, startOffset, endOffset) {
-        if (debug) console.log('linkResourcesToSelection(' + rootResourceId + ', ' + sourceId + ', ' + linkedResourceId + ', ' + startOffset + ', ' + endOffset + ')');
-        var data = '{ "command" : "LINK" , "id" : "' + sourceId + '" , "data" : { "rootResourceId" : "' + rootResourceId + '", "resourceId" : "' + linkedResourceId + '", "startOffset" : ' + startOffset + ', "endOffset" : ' + endOffset + '} }';
-        return send(data);
-    }
+//    linkSelectionToResource : function(rootResourceId, sourceId, linkedResourceId, startOffset, endOffset) {
+//        if (debug) console.log('linkResourcesToSelection(' + rootResourceId + ', ' + sourceId + ', ' + linkedResourceId + ', ' + startOffset + ', ' + endOffset + ')');
+//        var data = '{ "command" : "LINK" , "id" : "' + sourceId + '" , "data" : { "rootResourceId" : "' + rootResourceId + '", "resourceId" : "' + linkedResourceId + '", "startOffset" : ' + startOffset + ', "endOffset" : ' + endOffset + '} }';
+//        return send(data);
+//    }
 
 };

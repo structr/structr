@@ -18,7 +18,10 @@
  */
 package org.structr.web.entity.relation;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
 import org.structr.common.PropertyKey;
+import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractRelationship;
@@ -32,12 +35,13 @@ import org.structr.web.entity.html.A;
 public class LinkRelationship extends AbstractRelationship {
 
 	public enum Key implements PropertyKey {
-		sourceId, targetId
+		sourceId, targetId, type
 	}
 	
 	static {
 		
 		EntityContext.registerNamedRelation("hyperlink", LinkRelationship.class, A.class, Resource.class, RelType.LINK);
+		EntityContext.registerPropertySet(LinkRelationship.class, PropertyView.Ui, Key.values());
 	}
 	
 	@Override
@@ -49,4 +53,5 @@ public class LinkRelationship extends AbstractRelationship {
 	public PropertyKey getEndNodeIdKey() {
 		return Key.targetId;
 	}
+        
 }

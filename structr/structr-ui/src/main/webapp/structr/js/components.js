@@ -83,7 +83,7 @@ var _Components = {
 	    + '<img class="typeIcon" src="'+ _Components.icon + '">'
 	    + '<b class="name_">' + component.structrclass + '</b> <span class="id">' + component.id + '</span>'
 	    + '</div>');
-	var div = $('.' + component.id + '_', parent);
+	var div = Structr.node(component.id, parentId);
 	div.append('<img title="Delete component \'' + component.structrclass + '\' ' + component.id + '" alt="Delete component \'' + component.structrclass + '\' ' + component.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
 	$('.delete_icon', div).on('click', function() {
 	    _Components.deleteComponent(this, component);
@@ -104,6 +104,7 @@ var _Components = {
 	    accept: '.element',
 	    greedy: true,
 	    hoverClass: 'nodeHover',
+            tolerance: 'pointer',
 	    drop: function(event, ui) {
 		var self = $(this);
 		var elementId = getId(ui.draggable);
@@ -151,6 +152,7 @@ var _Components = {
 	    accept: '.element',
 	    greedy: true,
 	    hoverClass: 'nodeHover',
+            tolerance: 'pointer',
 	    drop: function(event, ui) {
 		var self = $(this);
 		var resource = self.closest( '.resource')[0];

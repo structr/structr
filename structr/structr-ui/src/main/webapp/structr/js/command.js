@@ -329,7 +329,7 @@ var Command = {
      * The server collects and concatenates all data chunks to the binary content
      * of the file node with the given id.
      * 
-     * The server gives no feedback to a CHUNK command.
+     * The server gives no feedback on a CHUNK command.
      */
     chunk : function(id, chunkId, chunkSize, chunk) {
         var obj = {};
@@ -342,6 +342,24 @@ var Command = {
         obj.data = data;
         if (debug) console.log('chunk()', obj);
         return sendObj(obj);
-    }
+    },
+    
+    /**
+     * Send a LINK command to the server.
+     * 
+     * The server will establish a relationship from the node with the given
+     * id to the resource with the given resource id.
+     * 
+     * The server gives no feedback on a LINK command.
+     */
+    link : function(id, resourceId) {
+        var obj = {};
+        obj.command = 'LINK';
+        obj.id = id;
+        var data = {};
+        data.resourceId = resourceId;
+        obj.data = data;
+        console.log('link()', obj);
+        return sendObj(obj);    }
 
 }

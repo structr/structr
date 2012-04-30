@@ -122,8 +122,8 @@ var _Elements = {
     onload : function() {
         if (debug) console.log('onload');
         elements = $('#elements', main);
-//        _Elements.refresh();
-//        _Elements.showPalette();
+    //        _Elements.refresh();
+    //        _Elements.showPalette();
     },
 
     showPalette : function() {
@@ -182,9 +182,10 @@ var _Elements = {
 
         if (!parent) return false;
         
-        parent.append('<div class="node element ' + entity.id + '_">');
+        parent.append('<div class="node element ' + entity.id + '_"></div>');
 
-        var div = $('.' + entity.id + '_', parent);
+        var pos = parent.children('.' + entity.id + '_').length-1;
+        var div = Structr.node(entity.id, parentId, resourceId, pos);
 
         entity.resourceId = resourceId;
 
@@ -207,6 +208,7 @@ var _Elements = {
             var self = $(this);
             _Elements.deleteElement(this, entity);
         });
+
 
         div.append('<img title="Wrap in Component" alt="Wrap in Component" class="add_icon button" src="' + _Components.add_icon + '">');
         $('.add_icon', div).on('click', function(e) {
@@ -251,6 +253,70 @@ var _Elements = {
 
         _Entities.setMouseOver(div);
         _Entities.appendEditPropertiesIcon(div, entity);
+        
+        if (entity.tag == 'a') {
+            div.append('<img title="Edit Link" alt="Edit Link" class="link_icon button" src="' + Structr.link_icon + '">');
+            $('.link_icon', div).on('click', function() {
+                var dialog = $('#dialogBox .dialogText');
+                var dialogMsg = $('#dialogMsg');
+			
+                dialog.empty();
+                dialogMsg.empty();
+                
+                dialog.append('<p>Click on a resource to establish a hyperlink between this element and the resource.</p>');
+                
+                var headers = {};
+                headers['X-StructrSessionToken'] = token;
+                
+                $.ajax({
+                    url: rootUrl + 'resources?pageSize=100',
+                    async: true,
+                    dataType: 'json',
+                    contentType: 'application/json; charset=utf-8',
+                    headers: headers,
+                    success: function(data) {
+                        console.log(data.result);
+                        $(data.result).each(function(i, res) {
+                            
+                            dialog.append('<div class="resource ' + res.id + '_"><img class="typeIcon" src="icon/page.png">'
+                                + '<b class="name_">' + res.name + '</b></div>');
+                            
+                            var div = $('.' + res.id + '_', dialog);
+                            
+                            div.on('click', function() {
+                                Command.link(entity.id, res.id); 
+                                $('#dialogBox .dialogText').empty();
+                                _Resources.reloadPreviews();
+                                $.unblockUI({
+                                    fadeOut: 25
+                                });                               
+                            })
+                            .css({
+                                cursor: 'pointer'
+                            })                            
+                            .hover(function() {
+                                $(this).addClass('nodeHover');
+                            }, function() {
+                                $(this).removeClass('nodeHover');
+                            });
+                            
+                            if (isIn(entity.id, res.linkingElements)) {
+                                div.addClass('nodeActive');
+                            }
+                            
+                        });
+
+                    }
+                });
+
+                Structr.dialog('Link to Resource', function() {
+                    return true;
+                }, function() {
+                    return true;
+                });
+                
+            });
+        }
 
         return div;
     },

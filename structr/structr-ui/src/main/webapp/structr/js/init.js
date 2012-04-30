@@ -413,9 +413,9 @@ var Structr = {
         if (debug) console.log('Module ' + name + ' registered');
     },
 
-    node : function(id, parentId, resourceId) {
+    node : function(id, parentId, resourceId, position) {
         var entityElement, parentElement, resourceElement;
-        if (debug) console.log(id, parentId, resourceId);
+        if (debug) console.log('Structr.node', id, parentId, resourceId, position);
         if (resourceId && parentId && (resourceId != parentId)) {
             resourceElement = $('.' + resourceId + '_');
             parentElement = $('.' + parentId + '_', resourceElement);
@@ -427,7 +427,11 @@ var Structr = {
             entityElement = $('.' + id + '_');
         }
 
-        return entityElement;
+        if (entityElement.length>1 && position) {
+            return $(entityElement[position]);
+        } else {
+            return entityElement;
+        }
     },
     
     entity : function(id, parentId) {

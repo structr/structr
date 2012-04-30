@@ -21,34 +21,35 @@
 
 package org.structr.web.entity.html;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Set;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 
+import org.neo4j.graphdb.Direction;
+
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
+import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.node.GetNodeByIdCommand;
 import org.structr.core.node.NodeService.NodeIndex;
+import org.structr.web.common.Function;
+import org.structr.web.entity.Component;
 import org.structr.web.entity.Element;
 
 //~--- JDK imports ------------------------------------------------------------
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.neo4j.graphdb.Direction;
-import org.structr.common.RelType;
-import org.structr.core.entity.AbstractRelationship;
-import org.structr.web.common.Function;
-import org.structr.web.entity.Component;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -70,104 +71,128 @@ public abstract class HtmlElement extends Element {
 		"onratechange", "onreadystatechange", "onreset", "onscroll", "onseeked", "onseeking", "onselect", "onshow", "onstalled", "onsubmit", "onsuspend", "ontimeupdate", "onvolumechange",
 		"onwaiting",
 	};
-	private static final Logger logger           = Logger.getLogger(HtmlElement.class.getName());
-	private static final Pattern templatePattern = Pattern.compile("\\$\\{[^}]*\\}");
-	private static final Pattern functionPattern = Pattern.compile("([a-zA-Z0-9_]+)\\((.+)\\)");
-
+	private static final Logger logger                                             = Logger.getLogger(HtmlElement.class.getName());
+	private static final Pattern templatePattern                                   = Pattern.compile("\\$\\{[^}]*\\}");
 	private static final java.util.Map<String, Function<String, String>> functions = new LinkedHashMap<String, Function<String, String>>();
+	private static final Pattern functionPattern                                   = Pattern.compile("([a-zA-Z0-9_]+)\\((.+)\\)");
+
+	//~--- static initializers --------------------------------------------
 
 	static {
-		
+
 		functions.put("md5", new Function<String, String>() {
 
-			@Override public String apply(String[] s) {
-				return s != null && s.length > 0 && s[0] != null ? DigestUtils.md5Hex(s[0]) : null;
+			@Override
+			public String apply(String[] s) {
+
+				return ((s != null) && (s.length > 0) && (s[0] != null))
+				       ? DigestUtils.md5Hex(s[0])
+				       : null;
 			}
-			
+
 		});
-		
 		functions.put("upper", new Function<String, String>() {
 
-			@Override public String apply(String[] s) {
-				return s != null && s.length > 0 && s[0] != null  ? s[0].toUpperCase() : null;
+			@Override
+			public String apply(String[] s) {
+
+				return ((s != null) && (s.length > 0) && (s[0] != null))
+				       ? s[0].toUpperCase()
+				       : null;
 			}
-			
+
 		});
-		
 		functions.put("lower", new Function<String, String>() {
 
-			@Override public String apply(String[] s) {
-				return s != null && s.length > 0 && s[0] != null  ? s[0].toLowerCase() : null;
+			@Override
+			public String apply(String[] s) {
+
+				return ((s != null) && (s.length > 0) && (s[0] != null))
+				       ? s[0].toLowerCase()
+				       : null;
 			}
-			
+
 		});
-		
 		functions.put("capitalize", new Function<String, String>() {
 
-			@Override public String apply(String[] s) {
-				return s != null && s.length > 0 && s[0] != null  ? StringUtils.capitalize(s[0]) : null;
+			@Override
+			public String apply(String[] s) {
+
+				return ((s != null) && (s.length > 0) && (s[0] != null))
+				       ? StringUtils.capitalize(s[0])
+				       : null;
 			}
-			
+
 		});
-		
 		functions.put("if", new Function<String, String>() {
 
-			@Override public String apply(String[] s) {
-				
-				if(s.length < 3) {
+			@Override
+			public String apply(String[] s) {
+
+				if (s.length < 3) {
+
 					return "";
+
 				}
-				
-				if(s[0].equals("true")) {
+
+				if (s[0].equals("true")) {
+
 					return s[1];
+
 				} else {
+
 					return s[2];
+
 				}
 			}
-			
+
 		});
-		
 		functions.put("equal", new Function<String, String>() {
 
-			@Override public String apply(String[] s) {
-				
-				logger.log(Level.INFO, "Length: {0}", s.length );
-				
-				if(s.length < 2) {
+			@Override
+			public String apply(String[] s) {
+
+				logger.log(Level.INFO, "Length: {0}", s.length);
+
+				if (s.length < 2) {
+
 					return "true";
+
 				}
-				
-				logger.log(Level.INFO, "Comparing {0} to {1}", new java.lang.Object[] { s[0], s[1] } );
-				
-				return s[0].equals(s[1]) ? "true" : "false";
+
+				logger.log(Level.INFO, "Comparing {0} to {1}", new java.lang.Object[] { s[0], s[1] });
+
+				return s[0].equals(s[1])
+				       ? "true"
+				       : "false";
 			}
-			
+
 		});
-		
 		functions.put("add", new Function<String, String>() {
 
-			@Override public String apply(String[] s) {
-				
+			@Override
+			public String apply(String[] s) {
+
 				int result = 0;
-				
-				if(s != null) {
-					
-					for(int i=0; i<s.length; i++) {
+
+				if (s != null) {
+
+					for (int i = 0; i < s.length; i++) {
 
 						try {
 							result += Integer.parseInt(s[i]);
-							
-						} catch(Throwable t) {}
+						} catch (Throwable t) {}
+
 					}
+
 				}
-				
+
 				return new Integer(result).toString();
 			}
-			
-		});
-	}
 
-	//~--- static initializers --------------------------------------------
+		});
+
+	}
 
 	static {
 
@@ -183,9 +208,7 @@ public abstract class HtmlElement extends Element {
 
 	//~--- constant enums -------------------------------------------------
 
-	public enum UiKey implements PropertyKey {
-		name, tag, path
-	}
+	public enum UiKey implements PropertyKey{ name, tag, path }
 
 	//~--- methods --------------------------------------------------------
 
@@ -200,22 +223,12 @@ public abstract class HtmlElement extends Element {
 		return null;
 	}
 
-	//~--- get methods ----------------------------------------------------
-
-	public String[] getHtmlAttributes() {
-		return htmlAttributes;
-	}
-	
-	public String getPropertyWithVariableReplacement(AbstractNode resource, String resourceId, String componentId, AbstractNode viewComponent, String key) {
-
-		return replaceVariables(securityContext, resource, this, resourceId, componentId, viewComponent, super.getStringProperty(key));
-	}
-
 	// ----- static methods -----
-	public static String replaceVariables(SecurityContext securityContext, AbstractNode resource, AbstractNode startNode, String resourceId, String componentId, AbstractNode viewComponent, String rawValue) {
+	public static String replaceVariables(SecurityContext securityContext, AbstractNode resource, AbstractNode startNode, String resourceId, String componentId, AbstractNode viewComponent,
+		String rawValue) {
 
 		String value = null;
-		
+
 		if ((rawValue != null) && (rawValue instanceof String)) {
 
 			value = (String) rawValue;
@@ -229,17 +242,179 @@ public abstract class HtmlElement extends Element {
 
 				// fetch referenced property
 				String partValue = extractFunctions(securityContext, resource, startNode, resourceId, componentId, viewComponent, source);
+
 				if (partValue != null) {
 
 					value = value.replace(group, partValue);
+
 				}
+
 			}
+
 		}
 
 		return value;
-
 	}
-	
+
+	public static String extractFunctions(SecurityContext securityContext, AbstractNode resource, AbstractNode startNode, String resourceId, String componentId, AbstractNode viewComponent,
+		String source) {
+
+		Matcher functionMatcher = functionPattern.matcher(source);
+
+		if (functionMatcher.matches()) {
+
+			String functionGroup              = functionMatcher.group(1);
+			String parameter                  = functionMatcher.group(2);
+			String functionName               = functionGroup.substring(0, functionGroup.length());
+			Function<String, String> function = functions.get(functionName);
+
+			if (function != null) {
+
+				if (parameter.contains(",")) {
+
+					String[] parameters = split(parameter);
+					String[] results    = new String[parameters.length];
+
+					// collect results from comma-separated function parameter
+					for (int i = 0; i < parameters.length; i++) {
+
+						results[i] = extractFunctions(securityContext, resource, startNode, resourceId, componentId, viewComponent, StringUtils.strip(parameters[i]));
+
+					}
+
+					return function.apply(results);
+
+				} else {
+
+					String result = extractFunctions(securityContext, resource, startNode, resourceId, componentId, viewComponent, StringUtils.strip(parameter));
+
+					return function.apply(new String[] { result });
+
+				}
+
+			}
+
+		}
+
+		// if any of the following conditions match, the literal source value is returned
+		if (StringUtils.isNotBlank(source) && StringUtils.isNumeric(source)) {
+
+			// return numeric value
+			return source;
+		} else if (source.startsWith("\"") && source.endsWith("\"")) {
+
+			return source.substring(1, source.length() - 1);
+
+		} else if (source.startsWith("'") && source.endsWith("'")) {
+
+			return source.substring(1, source.length() - 1);
+
+		} else {
+
+			// return property key
+			return convertValueForHtml(getReferencedProperty(securityContext, resource, startNode, resourceId, componentId, viewComponent, source));
+		}
+	}
+
+	public static String[] split(String source) {
+
+		ArrayList<String> tokens   = new ArrayList<String>(20);
+		boolean inDoubleQuotes     = false;
+		boolean inSingleQuotes     = false;
+		int len                    = source.length();
+		int level                  = 0;
+		StringBuilder currentToken = new StringBuilder(len);
+
+		for (int i = 0; i < len; i++) {
+
+			char c = source.charAt(i);
+
+			// do not strip away separators in nested functions!
+			if ((level != 0) || (c != ',')) {
+
+				currentToken.append(c);
+
+			}
+
+			switch (c) {
+
+				case '(' :
+					level++;
+
+					break;
+
+				case ')' :
+					level--;
+
+					break;
+
+				case '"' :
+					if (inDoubleQuotes) {
+
+						inDoubleQuotes = false;
+
+						level--;
+
+					} else {
+
+						inDoubleQuotes = true;
+
+						level++;
+
+					}
+
+					break;
+
+				case '\'' :
+					if (inSingleQuotes) {
+
+						inSingleQuotes = false;
+
+						level--;
+
+					} else {
+
+						inSingleQuotes = true;
+
+						level++;
+
+					}
+
+					break;
+
+				case ',' :
+					if (level == 0) {
+
+						tokens.add(currentToken.toString().trim());
+						currentToken.setLength(0);
+
+					}
+
+					break;
+
+			}
+
+		}
+
+		if (currentToken.length() > 0) {
+
+			tokens.add(currentToken.toString().trim());
+
+		}
+
+		return tokens.toArray(new String[0]);
+	}
+
+	//~--- get methods ----------------------------------------------------
+
+	public String[] getHtmlAttributes() {
+		return htmlAttributes;
+	}
+
+	public String getPropertyWithVariableReplacement(AbstractNode resource, String resourceId, String componentId, AbstractNode viewComponent, String key) {
+		return replaceVariables(securityContext, resource, this, resourceId, componentId, viewComponent, super.getStringProperty(key));
+	}
+
 	public static AbstractNode getNodeById(SecurityContext securityContext, String id) {
 
 		if (id == null) {
@@ -257,62 +432,8 @@ public abstract class HtmlElement extends Element {
 		return null;
 	}
 
-	public static String extractFunctions(SecurityContext securityContext, AbstractNode resource, AbstractNode startNode, String resourceId, String componentId, AbstractNode viewComponent, String source) {
-		
-		Matcher functionMatcher = functionPattern.matcher(source);
-		if(functionMatcher.matches()) {
-
-			String functionGroup = functionMatcher.group(1);
-			String parameter     = functionMatcher.group(2);
-			String functionName  = functionGroup.substring(0, functionGroup.length());
-			
-			
-			Function<String, String> function = functions.get(functionName);
-			if(function != null) {
-				
-				if(parameter.contains(",")) {
-
-					String[] parameters = split(parameter);
-					String[] results    = new String[parameters.length];
-
-					// collect results from comma-separated function parameter
-					for(int i=0; i<parameters.length; i++) {
-						
-						results[i] = extractFunctions(securityContext, resource, startNode, resourceId, componentId, viewComponent, StringUtils.strip(parameters[i]));
-					}
-
-					return function.apply(results);
-
-				} else {
-
-					String result = extractFunctions(securityContext, resource, startNode, resourceId, componentId, viewComponent, StringUtils.strip(parameter));
-					return function.apply(new String[] { result });
-				}
-			}
-		}
-
-		// if any of the following conditions match, the literal source value is returned
-		if(StringUtils.isNotBlank(source) && StringUtils.isNumeric(source)) {
-
-			// return numeric value
-			return source;
-			
-		} else if(source.startsWith("\"") && source.endsWith("\"")) {
-
-			return source.substring(1, source.length() - 1);
-			
-		} else if(source.startsWith("'") && source.endsWith("'")) {
-
-			return source.substring(1, source.length() - 1);
-			
-		} else {
-			
-			// return property key
-			return convertValueForHtml(getReferencedProperty(securityContext, resource, startNode, resourceId, componentId, viewComponent, source));
-		}
-	}
-
-	public static java.lang.Object getReferencedProperty(SecurityContext securityContext, AbstractNode resource, AbstractNode startNode, String resourceId, String componentId, AbstractNode viewComponent, String refKey) {
+	public static java.lang.Object getReferencedProperty(SecurityContext securityContext, AbstractNode resource, AbstractNode startNode, String resourceId, String componentId,
+		AbstractNode viewComponent, String refKey) {
 
 		AbstractNode node   = startNode;
 		String[] parts      = refKey.split("[\\.]+");
@@ -353,34 +474,50 @@ public abstract class HtmlElement extends Element {
 			// special keyword "link"
 			if ("link".equals(part.toLowerCase())) {
 
-				for(AbstractRelationship rel : node.getRelationships(RelType.LINK, Direction.OUTGOING)) {
+				for (AbstractRelationship rel : node.getRelationships(RelType.LINK, Direction.OUTGOING)) {
+
 					node = rel.getEndNode();
+
 					break;
+
 				}
 
 				continue;
+
 			}
 
 			// special keyword "parent"
 			if ("parent".equals(part.toLowerCase())) {
 
-				for(AbstractRelationship rel : node.getRelationships(RelType.CONTAINS, Direction.INCOMING)) {
-					node = rel.getStartNode();
-					break;
+				for (AbstractRelationship rel : node.getRelationships(RelType.CONTAINS, Direction.INCOMING)) {
+
+					if (rel.getProperty(resourceId) != null) {
+
+						node = rel.getStartNode();
+
+						break;
+
+					}
+
 				}
 
 				continue;
+
 			}
 
-			// special keyword "parent"
+			// special keyword "owner"
 			if ("owner".equals(part.toLowerCase())) {
 
-				for(AbstractRelationship rel : node.getRelationships(RelType.OWNS, Direction.INCOMING)) {
+				for (AbstractRelationship rel : node.getRelationships(RelType.OWNS, Direction.INCOMING)) {
+
 					node = rel.getStartNode();
+
 					break;
+
 				}
 
 				continue;
+
 			}
 
 			// special keyword "data"
@@ -389,6 +526,7 @@ public abstract class HtmlElement extends Element {
 				node = viewComponent;
 
 				continue;
+
 			}
 
 		}
@@ -401,113 +539,4 @@ public abstract class HtmlElement extends Element {
 
 		return null;
 	}
-
-	public static String[] split(String source) {
-		
-		ArrayList<String> tokens = new ArrayList<String>(20);
-		boolean inDoubleQuotes = false;
-		boolean inSingleQuotes = false;
-		int len = source.length();
-		int level = 0;
-
-		StringBuilder currentToken = new StringBuilder(len);
-		for(int i=0; i<len; i++) {
-			
-			char c = source.charAt(i);
-			
-			// do not strip away separators in nested functions!
-			if(level != 0 || c != ',') {
-				currentToken.append(c);
-			}
-			
-			switch(c) {
-				case '(':
-					level++;
-					break;
-				case ')':
-					level--;
-					break;
-				case '"':
-					if(inDoubleQuotes) {
-						inDoubleQuotes = false;
-						level--;
-					} else {
-						inDoubleQuotes = true;
-						level++;
-					}
-					break;
-				case '\'':
-					if(inSingleQuotes) {
-						inSingleQuotes = false;
-						level--;
-					} else {
-						inSingleQuotes = true;
-						level++;
-					}
-					break;
-				case ',':
-					if(level == 0) {
-						tokens.add(currentToken.toString().trim());
-						currentToken.setLength(0);
-					}
-					break;
-			}
-		}
-		
-		if(currentToken.length() > 0) {
-			tokens.add(currentToken.toString().trim());
-		}
-		
-		
-		return tokens.toArray(new String[0]);
-	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

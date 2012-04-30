@@ -185,7 +185,7 @@ var _Files = {
         
         var parent = Structr.findParent(folderId, null, parentElement);
         var delIcon, newDelIcon;
-        var div = $('.' + file.id + '_');
+        var div = Structr.node(file.id);
         if (removeExisting && div && div.length) {
             parent.append(div.css({
                 top: 0,
@@ -198,7 +198,7 @@ var _Files = {
                 + '<img class="typeIcon" src="'+ icon + '">'
                 + '<b class="name_">' + file.name + '</b> <span class="id">' + file.id + '</span>'
                 + '</div>');
-            div = $('.' + file.id + '_', parent);
+            div = Structr.node(file.id, folderId);
         }
 
         $('.typeIcon', div).on('click', function() {
@@ -262,7 +262,7 @@ var _Files = {
             + '<img class="typeIcon" src="'+ _Files.folder_icon + '">'
             + '<b class="name_">' + folder.name + '</b> <span class="id">' + folder.id + '</span>'
             + '</div>');
-        var div = $('.' + folder.id + '_', parent);
+        var div = Structr.node(folder.id, parentId);
         div.append('<img title="Delete Content \'' + folder.name + '\'" alt="Delete Content \'' + folder.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
         $('.delete_icon', div).on('click', function() {
             _Entities.deleteNode(this, folder);
@@ -272,6 +272,7 @@ var _Files = {
             accept: '.file, .image',
             greedy: true,
             hoverClass: 'nodeHover',
+            tolerance: 'pointer',
             drop: function(event, ui) {
                 var fileId = getId(ui.draggable);
                 var folderId = getId($(this));
@@ -299,8 +300,8 @@ var _Files = {
             cls = 'file';
         }
 
-        var folder = $('.' + folderId + '_');
-        var file = $('.' + fileId + '_', folder);
+        var folder = Structr.node(folderId);
+        var file = Structr.node(fileId, folderId);
         _Entities.resetMouseOverState(file);
         parentElement.append(file);
         $('.delete_icon', file).replaceWith('<img title="Delete ' + cls + ' ' + fileId + '" '
@@ -405,10 +406,10 @@ var _Files = {
                     //                        sendObj(obj);
 
                     }
-
-                    var iconSrc = $('.' + file.id + '_').find('.typeIcon').attr('src');
+                    var typeIcon = Structr.node(file.id).find('.typeIcon');
+                    var iconSrc = typeIcon.attr('src');
                     if (debug) console.log('Icon src: ', iconSrc);
-                    $('.' + file.id + '_').find('.typeIcon').attr('src', iconSrc + '?' + new Date().getTime());
+                    typeIcon.attr('src', iconSrc + '?' + new Date().getTime());
 
                 }
             }

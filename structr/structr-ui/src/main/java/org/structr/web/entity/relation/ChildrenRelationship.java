@@ -38,7 +38,7 @@ public class ChildrenRelationship extends AbstractRelationship {
 
 	static {
 			EntityContext.registerNamedRelation("children", ChildrenRelationship.class, HtmlElement.class, HtmlElement.class, RelType.CONTAINS);
-			EntityContext.registerPropertySet(ChildrenRelationship.class, PropertyView.All,           Key.values());
+			EntityContext.registerPropertySet(ChildrenRelationship.class, PropertyView.Ui,           Key.values());
 	}
 
 	@Override

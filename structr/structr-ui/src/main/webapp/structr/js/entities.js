@@ -71,8 +71,8 @@ var _Entities = {
     appendObj : function(entity, parentId, resourceId, removeExisting, hasChildren) {
 
         // Check if object is not already contained
-        var node = Structr.node(entity.id, parentId, resourceId);
-        if (node && node.length > 0) return false;
+        //var node = Structr.node(entity.id, parentId, resourceId);
+        //if (node && node.length > 0) return false;
         
         // Check if parent node is expanded
         //if (resourceId && parentId && (!isExpanded(parentId, null, resourceId))) return false;
@@ -567,7 +567,7 @@ var _Entities = {
             $('.name_', element).on('click', function() {
                 _Entities.makeNameEditable(element);
             });
-        //_Resources.resetTab(element, newName);
+            _Resources.reloadPreviews();
         });
 
         input.keypress(function(e) {
@@ -579,8 +579,7 @@ var _Entities = {
                 $('.name_', element).on('click', function() {
                     _Entities.makeNameEditable(element);
                 });
-
-            //_Resources.resetTab(element, newName);
+                _Resources.reloadPreviews();
             }
         });
 

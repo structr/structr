@@ -371,7 +371,8 @@ ul#previewTabs {
     -moz-transform-origin: 0 0;
     -o-transform-origin: 0 0;
     -webkit-transform-origin: 0 0;
-    width:      1000px;
+    width: 100%;
+    height: 100%;   
 }
 
 .previewBox iframe {
@@ -398,9 +399,6 @@ ul#previewTabs {
 .link_icon {
     display: none;
 }
-.node .id {
-    /*    display: none;*/
-}
 
 .node .name_:hover {
     cursor: text ! important;
@@ -414,11 +412,9 @@ ul#previewTabs {
     display: inline;
 }
 
-.content .id {
-    display: none;
-}
-
 .node .id,
+.group .id,
+.user    .id,
 .resource .id,
 .element .id,
 .component .id,
@@ -456,8 +452,8 @@ span.id {
     line-height: 1.7em;
     border-radius: 5px;
     border: 1px solid #a5a5a5;
-    padding: 3px 6px;
-    margin: 6px 0 4px 0;
+    padding: 2px 6px;
+    margin: 4px 0 4px 0;
     background-color: #eee;
     background: -webkit-gradient(linear, left bottom, left top, from(#ddd), to(#eee)) no-repeat;
     background: -moz-linear-gradient(90deg, #ddd, #eee) no-repeat;
@@ -502,7 +498,7 @@ img.button {
     cursor: pointer;
 }
 
-.nodeHover	 {
+.nodeHover, .nodeActive {
     color: #333 ! important;
     background-color: #81ce25 ! important;
     background: -webkit-gradient(linear, left bottom, left top, from(#73b821), to(#90e629)) no-repeat ! important;

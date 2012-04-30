@@ -223,10 +223,10 @@ function connect() {
                 parentId = data.id;
                 entityId = data.data.id;
 
-                parent = $('.' + parentId + '_');
-                entity = $('.' + entityId + '_', parent);
+                //parent = Structr.node(parentId);
+                entity = Structr.node(entityId, parentId);
 
-                if (debug) console.log(parent);
+                //if (debug) console.log(parent);
                 if (debug) console.log(entity);
 
                 //var id = getIdFromClassString(entity.attr('class'));

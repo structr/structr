@@ -23,12 +23,8 @@ import org.neo4j.graphdb.Direction;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.core.EntityContext;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.RelationClass;
 import org.structr.core.entity.RelationClass.Cardinality;
-import org.structr.core.notion.PropertyNotion;
 import org.structr.web.entity.Content;
-import org.structr.web.entity.Resource;
 
 /**
  * @author Axel Morgner
@@ -58,7 +54,8 @@ public class A extends HtmlElement {
 		EntityContext.registerEntityRelation(A.class, P.class,		RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
 		EntityContext.registerEntityRelation(A.class, Li.class,		RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
 
-		EntityContext.registerPropertyRelation(A.class, "_html_href", Resource.class, RelType.LINK, Direction.OUTGOING, Cardinality.ManyToOne, new PropertyNotion(AbstractNode.Key.name), RelationClass.DELETE_NONE);
+//		EntityContext.registerPropertyRelation(A.class, "_html_href", Resource.class, RelType.LINK, Direction.OUTGOING, Cardinality.ManyToOne, new PropertyNotion(AbstractNode.Key.name), RelationClass.DELETE_NONE);
+//                EntityContext.registerEntityRelation(A.class, Resource.class, RelType.LINK, Direction.OUTGOING, Cardinality.ManyToOne, new PropertyNotion(AbstractNode.Key.name), RelationClass.DELETE_NONE);
 
 	}
 

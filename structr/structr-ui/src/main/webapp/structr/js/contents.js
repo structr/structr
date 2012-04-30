@@ -88,7 +88,11 @@ var _Contents = {
             + '<div class="content_">' + nameOrContent + '</div> <span class="id">' + content.id + '</span>'
             //	    + '<b class="content_">' + content.content + '</b>'
             + '</div>');
-        var div = $('.' + content.id + '_', parent);
+        
+        var pos = parent.children('.' + content.id + '_').length-1;
+        //console.log('pos', content.id, pos);
+        
+        var div = Structr.node(content.id, parentId, resourceId, pos);
 
         div.append('<img title="Delete content \'' + content.name + '\'" alt="Delete content \'' + content.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
         $('.delete_icon', div).on('click', function() {

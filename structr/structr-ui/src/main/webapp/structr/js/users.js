@@ -70,8 +70,8 @@ var _UsersAndGroups = {
 
     removeUserFromGroup : function(userId, groupId) {
 
-        var group = $('.' + groupId + '_');
-        var user = $('.' + userId + '_', group);
+        var group = Structr.node(groupId);
+        var user = Structr.node(userId, groupId);
         users.append(user);//.animate();
         $('.delete_icon', user).replaceWith('<img title="Delete user ' + user.name + '" '
             + 'alt="Delete user ' + user.name + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
@@ -111,7 +111,7 @@ var _UsersAndGroups = {
             + '<img class="typeIcon" src="icon/group.png">'
             + '<b class="name_">' + group.name + '</b> <span class="id">' + group.id + '</span>'
             + '</div>');
-        var div = $('.' + group.id + '_', groups);
+        var div = Structr.node(group.id);
         div.append('<img title="Delete Group ' + group.id + '" alt="Delete Group ' + group.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
 
         $('.delete_icon', div).on('click', function() {
@@ -122,6 +122,7 @@ var _UsersAndGroups = {
             accept: '.user',
             greedy: true,
             hoverClass: 'nodeHover',
+            tolerance: 'pointer',
             drop: function(event, ui) {
                 var userId = getId(ui.draggable);
                 var groupId = getId($(this));
@@ -144,9 +145,9 @@ var _UsersAndGroups = {
                 + 'alt="Remove user ' + user.name + ' from group ' + groupId + '" class="delete_icon button" src="icon/user_delete.png">'
         var delIcon;
         if (groupId) {
-            var parent = $('.' + groupId + '_');
+            var parent = Structr.node(groupId);
             
-            div = $('.' + user.id + '_');
+            div = Structr.node(user.id);
             
             if (removeExisting && div && div.length) {
                 parent.append(div.css({ top: 0, left: 0 }));
@@ -160,7 +161,7 @@ var _UsersAndGroups = {
                     //				+ ' <b class="realName">' + user.realName + '</b> [<span class="id">' + user.id + '</span>]'
                     + ' <b class="name_">' + user.name + '</b> <span class="id">' + user.id + '</span>'
                     + '</div>');
-                div = $('.' + user.id + '_', parent);
+                div = Structr.node(user.id, groupId);
                 div.append(newDelIcon);
             }
             delIcon = $('.delete_icon', div);
