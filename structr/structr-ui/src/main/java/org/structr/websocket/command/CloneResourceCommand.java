@@ -88,7 +88,8 @@ public class CloneResourceCommand extends AbstractCommand {
 
 					Resource newResource = (Resource) Services.command(securityContext, CreateNodeCommand.class).execute(
                                                 new NodeAttribute(AbstractNode.Key.type.name(), Resource.class.getSimpleName()),
-                                                new NodeAttribute(AbstractNode.Key.name.name(), newName)
+                                                new NodeAttribute(AbstractNode.Key.name.name(), newName),
+                                                new NodeAttribute(AbstractNode.Key.visibleToAuthenticatedUsers.name(), true)
                                                 );
 
 					if (newResource != null) {
