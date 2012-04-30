@@ -23,8 +23,12 @@ import org.neo4j.graphdb.Direction;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.core.EntityContext;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.RelationClass;
+import org.structr.core.entity.RelationClass.Cardinality;
+import org.structr.core.notion.PropertyNotion;
 import org.structr.web.entity.Content;
+import org.structr.web.entity.Resource;
 
 /**
  * @author Axel Morgner
@@ -38,21 +42,23 @@ public class A extends HtmlElement {
 		EntityContext.registerPropertySet(A.class, PropertyView.Public,	HtmlElement.UiKey.values());
 		EntityContext.registerPropertySet(A.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 
-		EntityContext.registerEntityRelation(A.class, Content.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(A.class, Img.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(A.class, Div.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(A.class, Section.class,	RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(A.class, P.class,		RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(A.class, H1.class,		RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(A.class, H2.class,		RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(A.class, H3.class,		RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(A.class, H4.class,		RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(A.class, H5.class,		RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(A.class, H6.class,		RelType.CONTAINS, Direction.OUTGOING, RelationClass.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(A.class, Content.class,	RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(A.class, Img.class,	RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(A.class, Div.class,	RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(A.class, Section.class,	RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(A.class, P.class,		RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(A.class, H1.class,		RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(A.class, H2.class,		RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(A.class, H3.class,		RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(A.class, H4.class,		RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(A.class, H5.class,		RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(A.class, H6.class,		RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany);
 
-		EntityContext.registerEntityRelation(A.class, Div.class,	RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(A.class, P.class,		RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(A.class, Li.class,		RelType.CONTAINS, Direction.INCOMING, RelationClass.Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(A.class, Div.class,	RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(A.class, P.class,		RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(A.class, Li.class,		RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToMany);
+
+		EntityContext.registerPropertyRelation(A.class, "_html_href", Resource.class, RelType.LINK, Direction.OUTGOING, Cardinality.ManyToOne, new PropertyNotion(AbstractNode.Key.name), RelationClass.DELETE_NONE);
 
 	}
 
