@@ -468,7 +468,7 @@ public class HtmlServlet extends HttpServlet {
 		String localComponentId   = componentId;
 		String content            = null;
 		String tag                = null;
-		AbstractRelationship link = null;
+//		AbstractRelationship link = null;
 
 		if (startNode != null) {
 
@@ -506,13 +506,13 @@ public class HtmlServlet extends HttpServlet {
 
 				content = (((Content) startNode).getPropertyWithVariableReplacement(resource, resourceId, componentId, viewComponent, Content.UiKey.content.name()));
 
-				List<AbstractRelationship> links = startNode.getOutgoingLinkRelationships();
+//				List<AbstractRelationship> links = startNode.getOutgoingLinkRelationships();
 
-				if ((links != null) &&!links.isEmpty()) {
-
-					link = links.get(0);    // first link wins
-
-				}
+//				if ((links != null) &&!links.isEmpty()) {
+//
+//					link = links.get(0);    // first link wins
+//
+//				}
 
 			}
 
@@ -523,11 +523,11 @@ public class HtmlServlet extends HttpServlet {
 
 			}
 
-			if (link != null) {
-
-				buffer.append("<a href=\"").append(link.getEndNode().getName()).append("\">");
-
-			}
+//			if (link != null) {
+//
+//				buffer.append("<a href=\"").append(link.getEndNode().getName()).append("\">");
+//
+//			}
 
 			tag = startNode.getStringProperty("tag");
 
@@ -535,12 +535,12 @@ public class HtmlServlet extends HttpServlet {
 			// to make them editable
 			if (edit && inBody && (startNode instanceof Content)) {
 
-				// tag = "div";
+				tag = "span";
 				// Instead of adding a div tag, we mark the parent node with
 				// the structr_element_id of this Content node
 				// remove last character in buffer (should be '>')
-				buffer.delete(buffer.length() - 1, buffer.length());
-				buffer.append(" structr_content_id=\"").append(id).append("\">");
+				//buffer.delete(buffer.length() - 1, buffer.length());
+				//buffer.append(" structr_content_id=\"").append(id).append("\">");
 			}
 
 			if (StringUtils.isNotBlank(tag)) {
@@ -568,7 +568,9 @@ public class HtmlServlet extends HttpServlet {
 						buffer.append(" structr_type=\"").append(startNode.getType()).append("\"");
 						buffer.append(" structr_name=\"").append(startNode.getName()).append("\"");
 
-					}
+					} else {
+                                                buffer.append(" structr_content_id=\"").append(id).append("\"");
+                                        }
 
 				}
 
@@ -671,10 +673,10 @@ public class HtmlServlet extends HttpServlet {
 
 		}
 
-		if (link != null) {
-
-			buffer.append("</a>");
-
-		}
+//		if (link != null) {
+//
+//			buffer.append("</a>");
+//
+//		}
 	}
 }
