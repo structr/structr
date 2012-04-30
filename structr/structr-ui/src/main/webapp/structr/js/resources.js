@@ -385,9 +385,9 @@ var _Resources = {
         div.append('<img title="Delete resource \'' + entity.name + '\'" alt="Delete resource \'' + entity.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
         $('.delete_icon', div).on('click', function(e) {
             e.stopPropagation();
-            var self = $(this);
-            self.off('click');
-            self.off('mouseover');
+            //var self = $(this);
+            //self.off('click');
+            //self.off('mouseover');
             _Entities.deleteNode(this, entity);
         });
 
@@ -404,9 +404,9 @@ var _Resources = {
         div.append('<img title="Clone resource \'' + entity.name + '\'" alt="Clone resource \'' + entity.name + '\'" class="clone_icon button" src="' + _Resources.clone_icon + '">');
         $('.clone_icon', div).on('click', function(e) {
             e.stopPropagation();
-            var self = $(this);
-            self.off('click');
-            self.off('mouseover');
+            //var self = $(this);
+            //self.off('click');
+            //self.off('mouseover');
             Command.cloneResource(entity.id);
         });
 
@@ -675,22 +675,22 @@ var _Resources = {
                             if (debug) console.log("textBeforeEditing", textBeforeEditing);
 
                             //swapFgBg(self);
-                            sel = iframeWindow.getSelection();
-                            if (sel.rangeCount) {
-                                selStart = sel.getRangeAt(0).startOffset;
-                                selEnd = sel.getRangeAt(0).endOffset;
-                                if (debug) console.log(selStart, selEnd);
-                                $('.link_icon').show();
-                                //                                sourceId = structrId;
-                                contentSourceId = self.attr('structr_content_id');
-                                if (debug) console.log('click contentSourceId: ' + contentSourceId);
-                                var rootResourceElement = self.closest('html')[0];
-                                if (debug) console.log(rootResourceElement);
-                                if (rootResourceElement) {
-                                    rootId = $(rootResourceElement).attr('structr_content_id');
-                                }
-								
-                            }
+//                            sel = iframeWindow.getSelection();
+//                            if (sel.rangeCount) {
+//                                selStart = sel.getRangeAt(0).startOffset;
+//                                selEnd = sel.getRangeAt(0).endOffset;
+//                                if (debug) console.log(selStart, selEnd);
+//                                $('.link_icon').show();
+//                                //                                sourceId = structrId;
+//                                contentSourceId = self.attr('structr_content_id');
+//                                if (debug) console.log('click contentSourceId: ' + contentSourceId);
+//                                var rootResourceElement = self.closest('html')[0];
+//                                if (debug) console.log(rootResourceElement);
+//                                if (rootResourceElement) {
+//                                    rootId = $(rootResourceElement).attr('structr_content_id');
+//                                }
+//								
+//                            }
                         },
                         blur: function(e) {
                             e.stopPropagation();

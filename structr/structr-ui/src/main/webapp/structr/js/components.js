@@ -96,7 +96,7 @@ var _Components = {
 
 	component.resourceId = resourceId;
         
-        _Entities.appendExpandIcon(div, entity, hasChildren);
+        _Entities.appendExpandIcon(div, component, hasChildren);
 	_Entities.setMouseOver(div);
 	_Entities.appendEditPropertiesIcon(div, component);
 

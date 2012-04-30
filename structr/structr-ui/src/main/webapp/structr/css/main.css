@@ -649,7 +649,7 @@ button img {
     margin: 9px 0 0 0;
 }
 
-.ui-draggable {
+.ui-draggable, .ui-sortable {
     cursor: move;
     z-index: 4;
 }

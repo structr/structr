@@ -122,7 +122,7 @@ var _Elements = {
     onload : function() {
         if (debug) console.log('onload');
         elements = $('#elements', main);
-    //        _Elements.refresh();
+        _Elements.refresh();
     //        _Elements.showPalette();
     },
 

@@ -181,7 +181,7 @@ var _Entities = {
         buttonClicked = button;
         if (isDisabled(button)) return;
         console.log('deleteNode');
-        Structr.confirmation('Delete ' + entity.type.toLowerCase() + ' \'' + entity.name + '\' <span class="id">' + entity.id + '</span>?',
+        Structr.confirmation('<p>Delete ' + entity.type.toLowerCase() + ' \'' + entity.name + '\'?</p>',
             function() {
                 if (Command.deleteNode(entity.id)) {
                     $.unblockUI({
