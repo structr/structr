@@ -25,12 +25,12 @@ import org.neo4j.graphdb.Direction;
 
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.node.CreateNodeCommand;
-import org.structr.core.node.NodeAttribute;
+import org.structr.core.entity.RelationClass;
+import org.structr.core.entity.RelationClass.Cardinality;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 import org.structr.websocket.message.MessageBuilder;
@@ -38,15 +38,7 @@ import org.structr.websocket.message.WebSocketMessage;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.RelationClass;
-import org.structr.core.entity.RelationClass.Cardinality;
-import org.structr.websocket.command.AbstractCommand;
-import org.structr.websocket.command.AbstractCommand;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -60,152 +52,36 @@ public class LinkCommand extends AbstractCommand {
 	public void processMessage(WebSocketMessage webSocketData) {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
+		String sourceId                       = webSocketData.getId();
+		Map<String, Object> properties        = webSocketData.getNodeData();
+		String resourceId                     = (String) properties.get("resourceId");
+		final AbstractNode sourceNode         = getNode(sourceId);
+		final AbstractNode resourceNode       = getNode(resourceId);
 
-		// create static relationship
-		String sourceId                = webSocketData.getId();
-		Map<String, Object> properties = webSocketData.getNodeData();
-		String resourceId              = (String) properties.get("resourceId");
-//		String rootResourceId          = (String) properties.get("rootResourceId");
-//
-//		if (rootResourceId == null) {
-//
-//			rootResourceId = "*";
-//
-//		}
+		if ((sourceNode != null) && (resourceNode != null)) {
 
-		Integer startOffset = Integer.parseInt((String) properties.get("startOffset"));
-		Integer endOffset   = Integer.parseInt((String) properties.get("endOffset"));
+			try {
 
-		properties.remove("id");
+				Command transactionCommand     = Services.command(securityContext, TransactionCommand.class);
+				StructrTransaction transaction = new StructrTransaction() {
 
-		if ((sourceId != null) && (resourceId != null)) {
+					@Override
+					public Object execute() throws FrameworkException {
 
-			AbstractNode sourceNode   = getNode(sourceId);
-			AbstractNode resourceNode = getNode(resourceId);
-			AbstractNode firstNode;
-			AbstractNode secondNode;
-			AbstractNode thirdNode;
+						// Create a LINK relationship
+						RelationClass rel = new RelationClass(resourceNode.getClass(), RelType.LINK, Direction.OUTGOING, Cardinality.ManyToOne, null,
+									    RelationClass.DELETE_NONE);
 
-			if ((sourceNode != null) && (resourceNode != null)) {
+						rel.createRelationship(securityContext, sourceNode, resourceNode);
 
-				try {
-
-					Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
-
-					// As an element can be contained in multiple resources, we have
-					// to do the following for each incoming CONTAINS relationship
-					List<AbstractRelationship> relsIn = sourceNode.getIncomingRelationships();
-
-					for (AbstractRelationship relIn : relsIn) {
-
-						if (relIn.getType().equals(RelType.CONTAINS.name())) {
-
-							Map<String, Object> sourceRelationshipProperties = relIn.getProperties();
-
-							for (String resourceIdFromRel : sourceRelationshipProperties.keySet()) {
-
-								// Create first (leading) node
-								final List<NodeAttribute> attrsFirstNode = new LinkedList<NodeAttribute>();
-
-								attrsFirstNode.add(new NodeAttribute(AbstractNode.Key.type.name(), "Content"));
-								attrsFirstNode.add(new NodeAttribute(AbstractNode.Key.name.name(), "First Node"));
-
-								if (sourceNode.getType().equals("Content")) {
-
-									String content = sourceNode.getStringProperty("content");
-
-									attrsFirstNode.add(new NodeAttribute("content", content.substring(0, startOffset)));
-
-								}
-
-								StructrTransaction transaction = new StructrTransaction() {
-
-									@Override
-									public Object execute() throws FrameworkException {
-										return Services.command(securityContext, CreateNodeCommand.class).execute(attrsFirstNode);
-									}
-								};
-
-								firstNode = (AbstractNode) transactionCommand.execute(transaction);
-
-								// Create second (linked) node
-								final List<NodeAttribute> attrsSecondNode = new LinkedList<NodeAttribute>();
-
-								attrsSecondNode.add(new NodeAttribute(AbstractNode.Key.type.name(), "Content"));
-								attrsSecondNode.add(new NodeAttribute(AbstractNode.Key.name.name(), "Second (Link) Node"));
-
-								if (sourceNode.getType().equals("Content")) {
-
-									String content = sourceNode.getStringProperty("content");
-
-									attrsSecondNode.add(new NodeAttribute("content", content.substring(startOffset, endOffset)));
-
-								}
-
-								transaction = new StructrTransaction() {
-
-									@Override
-									public Object execute() throws FrameworkException {
-										return Services.command(securityContext, CreateNodeCommand.class).execute(attrsSecondNode);
-									}
-								};
-								secondNode = (AbstractNode) transactionCommand.execute(transaction);
-
-								// Create third (trailing) node
-								final List<NodeAttribute> attrsThirdNode = new LinkedList<NodeAttribute>();
-
-								attrsThirdNode.add(new NodeAttribute(AbstractNode.Key.type.name(), "Content"));
-								attrsThirdNode.add(new NodeAttribute(AbstractNode.Key.name.name(), "Third Node"));
-
-								if (sourceNode.getType().equals("Content")) {
-
-									String content = sourceNode.getStringProperty("content");
-
-									attrsThirdNode.add(new NodeAttribute("content", content.substring(endOffset, content.length())));
-
-								}
-
-								transaction = new StructrTransaction() {
-
-									@Override
-									public Object execute() throws FrameworkException {
-										return Services.command(securityContext, CreateNodeCommand.class).execute(attrsThirdNode);
-									}
-								};
-								thirdNode = (AbstractNode) transactionCommand.execute(transaction);
-
-								// Create a CONTAINS relationship
-								RelationClass rel                      = new RelationClass(null, RelType.CONTAINS, Direction.OUTGOING, Cardinality.ManyToMany, null, RelationClass.DELETE_NONE);
-								Map<String, Object> newRelationshipProperties = new HashMap<String, Object>();
-
-								newRelationshipProperties.put(resourceIdFromRel, 0);
-								rel.createRelationship(securityContext, sourceNode, firstNode, newRelationshipProperties);
-								newRelationshipProperties.put(resourceIdFromRel, 1);
-								rel.createRelationship(securityContext, sourceNode, secondNode, newRelationshipProperties);
-								newRelationshipProperties.put(resourceIdFromRel, 2);
-								rel.createRelationship(securityContext, sourceNode, thirdNode, newRelationshipProperties);
-
-								// Create a LINK relationship
-								rel = new RelationClass(resourceNode.getClass(), RelType.LINK, Direction.OUTGOING, Cardinality.ManyToMany, null, RelationClass.DELETE_NONE);
-
-								rel.createRelationship(securityContext, secondNode, resourceNode);
-							}
-
-						}
-
+						return null;
 					}
+				};
 
-					sourceNode.setType("Element");
-					sourceNode.removeProperty("content");
+				transactionCommand.execute(transaction);
 
-				} catch (Throwable t) {
-					getWebSocket().send(MessageBuilder.status().code(400).message(t.getMessage()).build(), true);
-				}
-
-			} else {
-
-				getWebSocket().send(MessageBuilder.status().code(404).build(), true);
-
+			} catch (Throwable t) {
+				getWebSocket().send(MessageBuilder.status().code(400).message(t.getMessage()).build(), true);
 			}
 
 		} else {
