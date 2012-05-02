@@ -51,7 +51,8 @@ import java.util.logging.Logger;
 //~--- classes ----------------------------------------------------------------
 
 /**
- * Websocket command to wrap an existing node in a (new) component node
+ * Websocket command to unwrap an existing component node
+ *
  * @author Axel Morgner
  */
 public class UnwrapCommand extends AbstractCommand {
@@ -65,7 +66,7 @@ public class UnwrapCommand extends AbstractCommand {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 
-		// Node to wrap
+		// Node to unwrap
 		String nodeId                      = webSocketData.getId();
 		final AbstractNode nodeToWrap      = getNode(nodeId);
 		final Map<String, Object> nodeData = webSocketData.getNodeData();
@@ -161,6 +162,6 @@ public class UnwrapCommand extends AbstractCommand {
 
 	@Override
 	public String getCommand() {
-		return "WRAP";
+		return "UNWRAP";
 	}
 }

@@ -72,10 +72,10 @@ var _Components = {
 	}
     },
     
-    appendComponentElement : function(component, parentId, resourceId, removeExisting, hasChildren) {
+    appendComponentElement : function(component, parentId, componentId, resourceId, removeExisting, hasChildren) {
 	if (debug) console.log('Components.appendComponentElement: parentId: ' + parentId + ', resourceId: ' + resourceId);
 
-	var parent = Structr.findParent(parentId, resourceId, components);
+	var parent = Structr.findParent(parentId, componentId, resourceId, components);
         
         if (!parent) return false;
 

@@ -216,7 +216,7 @@ public abstract class HtmlElement extends Element {
 
 		if (value != null) {
 
-			// TODO: to intelligent conversion here
+			// TODO: do more intelligent conversion here
 			return value.toString();
 		}
 

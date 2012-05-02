@@ -21,19 +21,18 @@
 
 package org.structr.websocket.command;
 
-
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.web.common.RelationshipHelper;
+import org.structr.web.entity.Content;
 import org.structr.websocket.message.WebSocketMessage;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.*;
-import org.structr.web.common.RelationshipHelper;
-import org.structr.websocket.command.AbstractCommand;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -49,10 +48,11 @@ public class ChildrenCommand extends AbstractCommand {
 	public void processMessage(WebSocketMessage webSocketData) {
 
 		String resourceId               = (String) webSocketData.getNodeData().get("resourceId");
+		String componentId              = (String) webSocketData.getNodeData().get("componentId");
 		AbstractNode node               = getNode(webSocketData.getId());
 		List<AbstractRelationship> rels = node.getOutgoingRelationships(RelType.CONTAINS);
 		Map<Long, GraphObject> sortMap  = new TreeMap<Long, GraphObject>();
-		Set<String> nodesWithChildren = new HashSet<String>();
+		Set<String> nodesWithChildren   = new HashSet<String>();
 
 		for (AbstractRelationship rel : rels) {
 
@@ -68,14 +68,18 @@ public class ChildrenCommand extends AbstractCommand {
 				pos = rel.getLongProperty("*");
 			}
 
+			String relCompId = rel.getStringProperty("componentId");
+
 			if (pos != null) {
 
-				AbstractNode endNode                 = rel.getEndNode();
-				List<AbstractRelationship> childRels = endNode.getOutgoingRelationships(RelType.CONTAINS);
+				AbstractNode endNode = rel.getEndNode();
 
-				nodesWithChildren.addAll(RelationshipHelper.getChildrenInResource(endNode, resourceId));
+				if (componentId == null || (!endNode.getType().equals(Content.class.getSimpleName()) || (relCompId != null && relCompId.equals(componentId)))) {
 
-				sortMap.put(pos, endNode);
+					nodesWithChildren.addAll(RelationshipHelper.getChildrenInResource(endNode, resourceId));
+					sortMap.put(pos, endNode);
+
+				}
 
 			}
 

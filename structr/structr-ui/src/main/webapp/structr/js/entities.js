@@ -68,18 +68,25 @@ var _Entities = {
         }
     },
 
-    appendObj : function(entity, parentId, resourceId, removeExisting, hasChildren) {
-
+    appendObj : function(entity, parentId, componentId, resourceId, removeExisting, hasChildren) {
+//        debug = true;
+        if (debug) console.log('_Entities.appendObj: ', entity, parentId, componentId, resourceId, removeExisting, hasChildren);
         // Check if object is not already contained
-        //var node = Structr.node(entity.id, parentId, resourceId);
+        //var node = Structr.node(entity.id, parentId, componentId, resourceId);
         //if (node && node.length > 0) return false;
         
         // Check if parent node is expanded
         //if (resourceId && parentId && (!isExpanded(parentId, null, resourceId))) return false;
 
+//        if (!isExpanded(parentId, null, resourceId)) {
+//            addExpandedNode(parentId, null, resourceId);
+//        }
+
+        var lastAppendedObj;
+
         if (entity.type == 'User') {
 
-            return _UsersAndGroups.appendUserElement(entity, parentId, removeExisting, hasChildren);
+            lastAppendedObj = _UsersAndGroups.appendUserElement(entity, parentId, removeExisting, hasChildren);
             
         } else if (entity.type == 'Group') {
             var groupElement = _UsersAndGroups.appendGroupElement(entity, removeExisting, hasChildren);
@@ -87,22 +94,21 @@ var _Entities = {
             if (users && users.length > 0) {
                 disable($('.delete_icon', groupElement)[0]);
                 $(users).each(function(i, user) {
-                    return _UsersAndGroups.appendUserElement(user, entity.id, removeExisting, hasChildren);
+                    _UsersAndGroups.appendUserElement(user, entity.id, removeExisting, hasChildren);
                 });
             }
-            return false;
 
         } else if (entity.type == 'Resource') {
             
-            return _Resources.appendResourceElement(entity, null, null, false, hasChildren);
+            lastAppendedObj = _Resources.appendResourceElement(entity, hasChildren);
 
-        } else if (entity.type == 'Element') {
-
-            return _Resources.appendElementElement(entity, null, null, false, hasChildren);
-
+//        } else if (entity.type == 'Element') {
+//            console.log('calling _Resources.appendElementElement', entity, parentId, componentId, resourceId, false, hasChildren);
+//            _Resources.appendElementElement(entity, parentId, componentId, resourceId, false, hasChildren);
+//
         } else if (entity.type == 'Component') {
 
-            return _Resources.appendComponentElement(entity, parentId, resourceId, removeExisting, hasChildren);
+            lastAppendedObj = _Resources.appendComponentElement(entity, parentId, componentId, resourceId, removeExisting, hasChildren);
             //            var componentElement = _Resources.appendComponentElement(entity, parentId, resourceId, removeExisting, hasChildren);
             //            var elements = entity.elements;
             //            if (elements && elements.length > 0) {
@@ -114,10 +120,11 @@ var _Entities = {
             //                });
             //
             //            }
-            return false;
 
         } else if (entity.type == 'Content') {
-            return _Resources.appendContentElement(entity, parentId, resourceId, removeExisting, hasChildren);
+
+            if (debug) console.log('appending content element', entity, parentId, componentId, resourceId, removeExisting, hasChildren);
+            lastAppendedObj = _Resources.appendContentElement(entity, parentId, componentId, resourceId, removeExisting, hasChildren);
 
         } else if (entity.type == 'Folder') {
 
@@ -149,38 +156,60 @@ var _Entities = {
                 });
             }
 
+            lastAppendedObj = folderElement;
+
         } else if (entity.type == 'Image') {
             if (debug) console.log('Image:', entity);
             _Files.uploadFile(entity);
-            return _Files.appendImageElement(entity, parentId, removeExisting, hasChildren);
+            lastAppendedObj = _Files.appendImageElement(entity, parentId, removeExisting, hasChildren);
         } else if (entity.type == 'File') {
             if (debug) console.log('File: ', entity);
             _Files.uploadFile(entity);
-            return _Files.appendFileElement(entity, parentId, removeExisting, hasChildren);
+            lastAppendedObj = _Files.appendFileElement(entity, parentId, removeExisting, hasChildren);
         } else {
+
             if (debug) console.log('Entity: ', entity);
-            var elementElement = _Resources.appendElementElement(entity, parentId, resourceId, removeExisting, hasChildren);
-            var elem = entity.elements;
-            if (elem && elem.length > 0) {
-                if (debug) console.log(elem);
-                disable($('.delete_icon', elementElement)[0]);
-                $(elem).each(function(i, element) {
-                    if (elem.type == 'Element') {
-                        return _Resources.appendElementElement(element, entity.id, resourceId, removeExisting, hasChildren);
-                    } else if (elem.type == 'Content') {
-                        return _Resources.appendContentElement(element, entity.id, resourceId, removeExisting, hasChildren);
-                    }
-                });
-            }
-            return false;
+            lastAppendedObj = _Resources.appendElementElement(entity, parentId, componentId, resourceId, false, hasChildren);
+
+//            var elementElement = _Resources.appendElementElement(entity, parentId, componentId, resourceId, removeExisting, hasChildren);
+//            var elem = entity.elements;
+//            if (elem && elem.length > 0) {
+//                if (debug) console.log(elem);
+//                disable($('.delete_icon', elementElement)[0]);
+//                $(elem).each(function(i, element) {
+//                    if (elem.type == 'Element') {
+//                        _Resources.appendElementElement(element, entity.id, componentId, resourceId, removeExisting, hasChildren);
+//                    } else if (elem.type == 'Content') {
+//                        _Resources.appendContentElement(element, entity.id, componentId, resourceId, removeExisting, hasChildren);
+//                    }
+//                });
+//            }
         }
+
+        console.log('lastAppendedObj', lastAppendedObj);
+
+        if (lastAppendedObj) {
+
+                var parent = lastAppendedObj.parent();
+                console.log('lastAppendedObj.parent()', parent);
+                if (parent.children('.node') && parent.children('.node').length==1) {
+
+                    addExpandedNode(getId(parent), null, resourceId);
+                    var ent = Structr.entityFromElement(parent);
+                    ent.resourceId = resourceId;
+                    _Entities.appendExpandIcon(parent, ent, true, true);
+
+                }
+        }
+        debug = false;
+
 
     },
 
     deleteNode : function(button, entity) {
         buttonClicked = button;
         if (isDisabled(button)) return;
-        console.log('deleteNode');
+        if (debug) console.log('deleteNode');
         Structr.confirmation('<p>Delete ' + entity.type.toLowerCase() + ' \'' + entity.name + '\'?</p>',
             function() {
                 if (Command.deleteNode(entity.id)) {
@@ -259,7 +288,6 @@ var _Entities = {
             var tabView = $('#tabView-' + view);
             if (view != 'all') tabView.hide();
 
-
             var headers = {};
             headers['X-StructrSessionToken'] = token;
             if (debug) console.log('headers', headers);
@@ -303,7 +331,6 @@ var _Entities = {
 
                         $('.props tr td.value input', dialog).each(function(i,v) {
                             var input = $(v);
-                            var oldVal = input.val();
 
                             input.on('focus', function() {
                                 input.addClass('active');
@@ -329,8 +356,6 @@ var _Entities = {
             });
             debug = false;
         });
-
-    //$( "#tabs" ).tabs();
 
     },
 
@@ -382,13 +407,6 @@ var _Entities = {
 
     appendEditPropertiesIcon : function(parent, entity) {
 
-        //	if (entity.type != 'Content') {
-        //	    el.append('<span class="_html_id_">#</span> <span class="_html_class_">.</span>');
-        //	}
-
-        //_Entities.getProperty(entity.id, '_html_id');
-        //	_Entities.getProperty(entity.id, '_html_class');
-
         var editIcon = $('.edit_props_icon', parent);
 
         if (!(editIcon && editIcon.length)) {
@@ -400,29 +418,23 @@ var _Entities = {
             if (debug) console.log('showProperties', entity);
             _Entities.showProperties(this, entity, $('#dialogBox .dialogText'));
         });
-
-    //	$('b', el).on('click', function(e) {
-    //	    e.stopPropagation();
-    //	    _Entities.showProperties(this, entity, $('#dialogBox .dialogText'));
-    //	});
-
     },
 
-    //    setClick : function(el) {
-    //	el.on('click', function(e) {
-    //	    e.stopPropagation();
-    //	    var resourceId = getId($(this).closest('.resource'));
-    //	    console.log('Clicked on element', el, resourceId);
-    //	    var id = getId(el);
-    //	    _Entities.children(id, resourceId);
-    //	});
-    //    },
-    appendExpandIcon : function(el, entity, hasChildren) {
+    appendExpandIcon : function(el, entity, hasChildren, expanded) {
+
+        var button = $('.expand_icon', el).first();
+        if (button && button.length) return; // Expand icon already existing
 
         if (hasChildren) {
 
-            el.append('<img title="Expand \'' + entity.name + '\'" alt="Expand \'' + entity.name + '\'" class="expand_icon" src="' + Structr.expand_icon + '">');
-            var button = $('.expand_icon', el).first();
+            var typeIcon = $(el.children('.typeIcon')[0]);
+
+            typeIcon.css({
+                paddingRight: 0 + 'px'
+            })
+            .after('<img title="Expand \'' + entity.name + '\'" alt="Expand \'' + entity.name + '\'" class="expand_icon" src="' + Structr.expand_icon + '">');
+
+            button = $('.expand_icon', el).first();
 
             if (button) {
 
@@ -434,11 +446,10 @@ var _Entities = {
                 button.on('mousedown', function(e) {
                     e.stopPropagation();
                 });
-
                 if (debug) console.log('appendExpandIcon', isExpanded(entity.id, null, entity.resourceId), entity);
                 if (isExpanded(entity.id, null, entity.resourceId)) {
                     if (debug) console.log('toggle', entity.id, entity.resourceId);
-                    _Entities.toggleElement(button)
+                    _Entities.toggleElement(button, expanded)
                 }
             }
 
@@ -522,7 +533,7 @@ var _Entities = {
         }
     },
 
-    toggleElement : function(button) {
+    toggleElement : function(button, expanded) {
 
         var b = $(button);
         var src = b.attr('src');
@@ -531,6 +542,7 @@ var _Entities = {
 
         var nodeElement = $(button).parent();
         var id = getId(nodeElement);
+        var compId = getId(nodeElement.closest('.component'));
         var resId = getId(nodeElement.closest('.resource'));
 
         if (src.endsWith('icon/tree_arrow_down.png')) {
@@ -539,7 +551,7 @@ var _Entities = {
 
             removeExpandedNode(id, null, resId);
         } else {
-            Command.children(id, resId);
+            if (!expanded) Command.children(id, compId, resId);
             b.attr('src', 'icon/tree_arrow_down.png');
 
             addExpandedNode(id, null, resId);

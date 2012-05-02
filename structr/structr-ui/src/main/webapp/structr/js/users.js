@@ -107,11 +107,12 @@ var _UsersAndGroups = {
 
     appendGroupElement : function(group) {
         
-        groups.append('<div class="group ' + group.id + '_">'
+        groups.append('<div class="node group ' + group.id + '_">'
             + '<img class="typeIcon" src="icon/group.png">'
             + '<b class="name_">' + group.name + '</b> <span class="id">' + group.id + '</span>'
             + '</div>');
         var div = Structr.node(group.id);
+
         div.append('<img title="Delete Group ' + group.id + '" alt="Delete Group ' + group.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
 
         $('.delete_icon', div).on('click', function() {
@@ -156,7 +157,7 @@ var _UsersAndGroups = {
                 disable($('.delete_icon', parent)[0]);
 
             } else {
-                parent.append('<div class="user ' + user.id + '_">'
+                parent.append('<div class="node user ' + user.id + '_">'
                     + '<img class="typeIcon" src="icon/user.png">'
                     //				+ ' <b class="realName">' + user.realName + '</b> [<span class="id">' + user.id + '</span>]'
                     + ' <b class="name_">' + user.name + '</b> <span class="id">' + user.id + '</span>'
@@ -171,7 +172,7 @@ var _UsersAndGroups = {
 
 
         } else {
-            users.append('<div class="user ' + user.id + '_">'
+            users.append('<div class="node user ' + user.id + '_">'
                 + '<img class="typeIcon" src="icon/user.png">'
                 //				+ ' <b class="realName">' + user.realName + '</b> [' + user.id + ']'
                 + ' <b class="name_">' + user.name + '</b> <span class="id">' + user.id + '</span>'

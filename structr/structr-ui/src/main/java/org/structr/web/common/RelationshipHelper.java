@@ -38,6 +38,7 @@ import org.structr.web.entity.Component;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.neo4j.graphdb.Direction;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -259,4 +260,43 @@ public class RelationshipHelper {
 
 		return false;
 	}
+
+	public static void tagOutgoingRelsWithResourceId(final AbstractNode startNode, final AbstractNode node, final String originalResourceId, final String resourceId) throws FrameworkException {
+
+		for (AbstractRelationship rel : node.getRelationships(RelType.CONTAINS, Direction.OUTGOING)) {
+
+			Long position = rel.getLongProperty(originalResourceId);
+
+			if (position != null) {
+
+				rel.setProperty(resourceId, position);
+
+			}
+
+			tagOutgoingRelsWithResourceId(startNode, rel.getEndNode(), originalResourceId, resourceId);
+
+		}
+	}
+
+	public static void tagOutgoingRelsWithComponentId(final AbstractNode startNode, final AbstractNode node, final String componentId) throws FrameworkException {
+
+		for (AbstractRelationship rel : node.getRelationships(RelType.CONTAINS, Direction.OUTGOING)) {
+
+			if (!(startNode.equals(node))) {
+
+				rel.setProperty("componentId", componentId);
+
+				if (node.getType().equals(Component.class.getSimpleName())) {
+
+					return;
+
+				}
+
+			}
+
+			tagOutgoingRelsWithComponentId(startNode, rel.getEndNode(), componentId);
+
+		}
+	}
+
 }

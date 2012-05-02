@@ -21,7 +21,6 @@
 
 package org.structr.websocket.command;
 
-import org.neo4j.graphdb.Direction;
 
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
@@ -35,7 +34,6 @@ import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.NodeAttribute;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
-import org.structr.web.entity.Component;
 import org.structr.web.entity.Resource;
 import org.structr.web.entity.html.Html;
 import org.structr.websocket.message.MessageBuilder;
@@ -48,6 +46,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.web.common.RelationshipHelper;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -132,7 +131,7 @@ public class CloneResourceCommand extends AbstractCommand {
 											    true);
 								}
 
-								AddCommand.tagOutgoingRelsWithResourceId(newResource, newResource, originalResourceId, resourceId);
+								RelationshipHelper.tagOutgoingRelsWithResourceId(newResource, newResource, originalResourceId, resourceId);
 							}
 
 						}

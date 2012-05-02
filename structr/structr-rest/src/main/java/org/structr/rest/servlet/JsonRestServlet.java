@@ -331,10 +331,10 @@ public class JsonRestServlet extends HttpServlet {
 				Writer writer = response.getWriter();
 
 				gson.toJson(result, writer);
+				response.setStatus(HttpServletResponse.SC_OK);
 				writer.append("\n");    // useful newline
 				writer.flush();
 				writer.close();
-				response.setStatus(HttpServletResponse.SC_OK);
 
 			} else {
 
@@ -343,9 +343,10 @@ public class JsonRestServlet extends HttpServlet {
 				int code = HttpServletResponse.SC_NO_CONTENT;
 
 				response.setStatus(code);
-				response.getWriter().append(jsonError(code, "Result was null!"));
-				response.getWriter().flush();
-				response.getWriter().close();
+				Writer writer = response.getWriter();
+				writer.append(jsonError(code, "Result was null!"));
+				writer.flush();
+				writer.close();
 
 			}
 

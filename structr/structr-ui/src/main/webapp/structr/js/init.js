@@ -30,13 +30,8 @@ var lastMenuEntry, activeTab;
 var dmp;
 var editorCursor;
 
-
-$(window).unload(function() {
-    Structr.saveSession();
-});
-	
-	
 $(document).ready(function() {
+
     dmp = new diff_match_patch()
     if (debug) console.log('Debug mode');
     header = $('#header');
@@ -134,6 +129,7 @@ var Structr = {
     delete_icon : 'icon/delete.png',
     edit_icon : 'icon/pencil.png',
     expand_icon: 'icon/tree_arrow_right.png',
+    expanded_icon: 'icon/tree_arrow_down.png',
     link_icon: 'icon/link.png',
     key_icon: 'icon/key.png',
 
@@ -143,7 +139,8 @@ var Structr = {
             fadeOut: 25
         });
 
-        connect();
+        Structr.init();
+    //connect();
     },
 
     init : function() {
@@ -162,7 +159,7 @@ var Structr = {
         main.empty();
 
         Structr.expanded = $.parseJSON($.cookie('structrTreeExpandedIds'));
-        if (debug) console.log('expanded ids', Structr.expanded);
+        if (debug) console.log('######## Expanded IDs after reload ##########', Structr.expanded);
         if (debug) console.log('expanded ids', $.cookie('structrTreeExpandedIds'));
 
         ws.onopen = function() {
@@ -217,7 +214,7 @@ var Structr = {
 
     doLogout : function(text) {
         if (debug) console.log('doLogout ' + user);
-        Structr.saveSession();
+        //Structr.saveSession();
         $.cookie('structrSessionToken', '');
         $.cookie('structrUser', '');
         if (send('{ "command":"LOGOUT", "data" : { "username" : "' + user + '" } }')) {
@@ -249,52 +246,53 @@ var Structr = {
             }
         }
     },
-
-    saveSession : function() {
-
-        if (lastMenuEntry && lastMenuEntry != 'logout') {
-
-            $.cookie('structrLastMenuEntry', lastMenuEntry, {
-                expires: 7,
-                path: '/'
-            });
-
-            if (debug) console.log('set cookie for active tab', activeTab);
-            $.cookie('structrActiveTab', activeTab, {
-                expires: 7,
-                path: '/'
-            });
-
-            if (resources) $.cookie('structrResourcesVisible', resources.is(':visible'), {
-                expires: 7,
-                path: '/'
-            });
-
-            if (components) $.cookie('structrComponentsVisible', components.is(':visible'), {
-                expires: 7,
-                path: '/'
-            });
-
-            if (elements) $.cookie('structrElementsVisible', elements.is(':visible'), {
-                expires: 7,
-                path: '/'
-            });
-
-            if (contents) $.cookie('structrContentsVisible', contents.is(':visible'), {
-                expires: 7,
-                path: '/'
-            });
-
-            if (Structr.expanded) {
-                console.log('expanded', Structr.expanded);
-                $.cookie('structrTreeExpandedIds', $.toJSON(Structr.expanded), {
-                    expires: 7,
-                    path: '/'
-                });
-            }
-        }
-    //console.log('cooke value now: ', $.cookie('structrActiveTab'));
-    },
+    //
+    //    saveSession : function() {
+    //        alert('saveSession');
+    //
+    //        if (lastMenuEntry && lastMenuEntry != 'logout') {
+    //
+    //            $.cookie('structrLastMenuEntry', lastMenuEntry, {
+    //                expires: 7,
+    //                path: '/'
+    //            });
+    //
+    //            if (debug) console.log('set cookie for active tab', activeTab);
+    //            $.cookie('structrActiveTab', activeTab, {
+    //                expires: 7,
+    //                path: '/'
+    //            });
+    //
+    //            if (resources) $.cookie('structrResourcesVisible', resources.is(':visible'), {
+    //                expires: 7,
+    //                path: '/'
+    //            });
+    //
+    //            if (components) $.cookie('structrComponentsVisible', components.is(':visible'), {
+    //                expires: 7,
+    //                path: '/'
+    //            });
+    //
+    //            if (elements) $.cookie('structrElementsVisible', elements.is(':visible'), {
+    //                expires: 7,
+    //                path: '/'
+    //            });
+    //
+    //            if (contents) $.cookie('structrContentsVisible', contents.is(':visible'), {
+    //                expires: 7,
+    //                path: '/'
+    //            });
+    //
+    //            if (getExpanded()) {
+    //                console.log('storing expanded ids', getExpanded());
+    //                $.cookie('structrTreeExpandedIds', $.toJSON(getExpanded()), {
+    //                    expires: 7,
+    //                    path: '/'
+    //                });
+    //            }
+    //        }
+    //    //console.log('cooke value now: ', $.cookie('structrActiveTab'));
+    //    },
 
     clearMain : function() {
         main.empty();
@@ -406,6 +404,17 @@ var Structr = {
         var menuEntry = $('#' + name + '_');
         menuEntry.addClass('active').removeClass('inactive');
         $('#title').text('structr ' + menuEntry.text());
+        
+        if (lastMenuEntry && lastMenuEntry != 'logout') {
+            $.cookie('structrActiveTab', activeTab, {
+                expires: 7,
+                path: '/'
+            });
+            $.cookie('structrLastMenuEntry', lastMenuEntry, {
+                expires: 7,
+                path: '/'
+            });
+        }
     },
 	
     registerModule : function(name, module) {
@@ -413,21 +422,41 @@ var Structr = {
         if (debug) console.log('Module ' + name + ' registered');
     },
 
-    node : function(id, parentId, resourceId, position) {
-        var entityElement, parentElement, resourceElement;
-        if (debug) console.log('Structr.node', id, parentId, resourceId, position);
-        if (resourceId && parentId && (resourceId != parentId)) {
-            resourceElement = $('.' + resourceId + '_');
-            parentElement = $('.' + parentId + '_', resourceElement);
-            entityElement = $('.' + id + '_', parentElement);
-        } else if (parentId) {
-            parentElement = $('.' + parentId + '_');
-            entityElement = $('.' + id + '_', parentElement);
-        } else {
-            entityElement = $('.' + id + '_');
+    node : function(id, parentId, componentId, resourceId, position) {
+        var entityElement, parentElement, componentElement, resourceElement;
+
+        if (debug) console.log('Structr.node', id, parentId, componentId, resourceId, position);
+
+        if (id && resourceId && componentId && parentId && (resourceId != parentId) && (resourceId != componentId)) {
+
+            resourceElement = $('.node.' + resourceId + '_');
+            componentElement = $('.node.' + componentId + '_', resourceElement);
+            parentElement = $('.node.' + parentId + '_', componentElement);
+            entityElement = $('.node.' + id + '_', parentElement);
+
+        } else if (id && resourceId && parentId && (resourceId != parentId)) {
+
+            resourceElement = $('.node.' + resourceId + '_');
+            parentElement = $('.node.' + parentId + '_', resourceElement);
+            entityElement = $('.node.' + id + '_', parentElement);
+
+        } else if (id && resourceId) {
+
+            resourceElement = $('.node.' + resourceId + '_');
+            entityElement = $('.node.' + id + '_', resourceElement);
+
+        } else if (id && parentId) {
+
+            parentElement = $('.node.' + parentId + '_');
+            entityElement = $('.node.' + id + '_', parentElement);
+
+        } else if (id) {
+
+            entityElement = $('.node.' + id + '_');
+
         }
 
-        if (entityElement.length>1 && position) {
+        if (entityElement && entityElement.length>1 && position) {
             return $(entityElement[position]);
         } else {
             return entityElement;
@@ -436,28 +465,18 @@ var Structr = {
     
     entity : function(id, parentId) {
         var entityElement = Structr.node(id, parentId);
-
-        var entity = {};
-		
-        entity.id = id;
-        entity.type = Structr.getClass(entityElement);
-		
-        if (debug) console.log(entity.type);
-        entity.name = $('.name_', entityElement).text();
-
-        if (debug) console.log(entityElement);
-	
+        var entity = Structr.entityFromElement(entityElement);
         return entity;
     },
     
     getClass : function(el) {
         var c;
-        console.log(Structr.classes);
+        if (debug) console.log(Structr.classes);
         $(Structr.classes).each(function(i, cls) {
-            console.log('testing class', cls);
+            if (debug) console.log('testing class', cls);
             if (el.hasClass(cls)) {
                 c = cls;
-                console.log('found class', cls);
+                if (debug) console.log('found class', cls);
             }
         });
         return c;
@@ -467,12 +486,7 @@ var Structr = {
         
         var entity = {};
         entity.id = getId($(element));
-
-        $(Structr.classes).each(function(i, cls) {
-            if (element.hasClass(cls)) {
-                entity.type = cls;
-            }
-        });
+        entity.type = Structr.getClass(element);
 
         if (debug) console.log(entity.type);
         entity.name = $('.name_', element).text();
@@ -480,42 +494,15 @@ var Structr = {
         return entity;
     },
 
-    findParent : function(parentId, rootId, defaultElement) {
-        var parent;
-        if (parentId) {
-            if (rootId && rootId != parentId) {
-                var rootElement = $('.' + rootId + '_');
-                parent = $('div.' + parentId + '_', rootElement);
-            } else {
-                parent = $('div.' + parentId + '_');
-            }
-        }
+    findParent : function(parentId, componentId, resourceId, defaultElement) {
+        var parent = Structr.node(parentId, null, null, resourceId);
+        if (debug) console.log('findParent', parentId, componentId, resourceId, defaultElement, parent);
+        if (debug) console.log('findParent: parent element from Structr.node: ', parent);
         if (!parent) parent = defaultElement;
-        if (debug) console.log(parent);
-
+        if (debug) console.log('findParent: final parent element: ', parent);
         return parent;
     }
 };
-
-
-if (typeof String.prototype.endsWith != 'function') {
-    String.prototype.endsWith = function(pattern) {
-        var d = this.length - pattern.length;
-        return d >= 0 && this.lastIndexOf(pattern) === d;
-    };
-}
-
-if (typeof String.prototype.startsWith != 'function') {
-    String.prototype.startsWith = function (str){
-        return this.indexOf(str) == 0;
-    };
-}
-
-if (typeof String.prototype.capitalize != 'function') {
-    String.prototype.capitalize = function() {
-        return this.charAt(0).toUpperCase() + this.slice(1);
-    };
-}
 
 function swapFgBg(el) {
     var fg = el.css('color');
@@ -538,52 +525,43 @@ function plural(type) {
 }
 
 function addExpandedNode(id, parentId, resourceId) {
-
-    var expandedIds = getExpanded()[resourceId];
-    if (!expandedIds) {
-        expandedIds = {};
-        Structr.expanded[resourceId] = expandedIds;
+    console.log('addExpandedNode', id, parentId, resourceId);
+    if (!getExpanded()[resourceId]) {
+        getExpanded()[resourceId] = {};
     }
-
-    expandedIds[id] = true;
+    getExpanded()[resourceId][id] = true;
+    $.cookie('structrTreeExpandedIds', $.toJSON(Structr.expanded), { expires: 7, path: '/' });
 
 }
 
 function removeExpandedNode(id, parentId, resourceId) {
-    var expandedIds = getExpanded()[resourceId];
-    if (!expandedIds) {
-        expandedIds = {};
-        Structr.expanded[resourceId] = expandedIds;
+    if (debug) console.log('removeExpandedNode', id, parentId, resourceId);
+    if (!getExpanded()[resourceId]) {
+        getExpanded()[resourceId] = {};
     }
-
-    delete expandedIds[id];
-
+    delete getExpanded()[resourceId][id];
+    $.cookie('structrTreeExpandedIds', $.toJSON(Structr.expanded), { expires: 7, path: '/' });
 }
 
 function isExpanded(id, parentId, resourceId) {
-
-    if (debug) console.log('isExpanded (id, resourceId, expanded)', id, resourceId, getExpanded(resourceId));
-
-    var exp = getExpanded()[resourceId];
-    if (!exp) {
-        exp = {};
-        Structr.expanded[resourceId] = exp;
+    if (debug) console.log('isExpanded', id, parentId, resourceId);
+    var expRes = getExpanded()[resourceId];
+    if (!expRes) {
+        expRes = {};
+        Structr.expanded[resourceId] = expRes;
     }
-    var isExpanded = exp[id] ? exp[id] : false;
-
-    if (debug) console.log('node ' + id + ' in resource ' + resourceId + ' expanded?', isExpanded);
-
+    var isExpanded = expRes[id] ? expRes[id] : false;
     return isExpanded;
 }
 
 function getExpanded() {
+    if (!Structr.expanded) {
+        Structr.expanded = $.parseJSON($.cookie('structrTreeExpandedIds'));
+    }
 
     if (!Structr.expanded) {
         Structr.expanded = {};
     }
-
-    if (debug) console.log('Structr.expanded', Structr.expanded);
-
     return Structr.expanded;
 }
 
@@ -632,7 +610,9 @@ function deleteAll(button, type, callback) {
     if (isDisabled(button)) return;
     var con = confirm('Delete all ' + types + '?');
     if (!con) return;
-    var headers = {'X-StructrSessionToken' : token };
+    var headers = {
+        'X-StructrSessionToken' : token
+    };
     $.ajax({
         url: rootUrl + type.toLowerCase(),
         type: "DELETE",
@@ -676,7 +656,9 @@ function enable(button, func) {
 function setPosition(parentId, nodeUrl, pos) {
     var toPut = '{ "' + parentId + '" : ' + pos + ' }';
     //console.log(toPut);
-    var headers = {'X-StructrSessionToken' : token };
+    var headers = {
+        'X-StructrSessionToken' : token
+    };
     $.ajax({
         url: nodeUrl + '/in',
         type: 'PUT',
@@ -741,7 +723,9 @@ function followIds(resourceId, entity) {
     var entityId = (entity ? entity.id : resourceId);
     var url = rootUrl + entityId + '/' + 'out';
     //console.log(url);
-    var headers = {'X-StructrSessionToken' : token };
+    var headers = {
+        'X-StructrSessionToken' : token
+    };
     var ids = [];
     $.ajax({
         url: url,
@@ -783,13 +767,32 @@ function isIn(id, ids) {
 }
 
 function escapeTags(str) {
-	if (!str) return str;
+    if (!str) return str;
     return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 function unescapeTags(str) {
-	if (!str) return str;
+    if (!str) return str;
     return str.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
 }
 
 $.fn.reverse = [].reverse;
+
+if (typeof String.prototype.endsWith != 'function') {
+    String.prototype.endsWith = function(pattern) {
+        var d = this.length - pattern.length;
+        return d >= 0 && this.lastIndexOf(pattern) === d;
+    };
+}
+
+if (typeof String.prototype.startsWith != 'function') {
+    String.prototype.startsWith = function (str){
+        return this.indexOf(str) == 0;
+    };
+}
+
+if (typeof String.prototype.capitalize != 'function') {
+    String.prototype.capitalize = function() {
+        return this.charAt(0).toUpperCase() + this.slice(1);
+    };
+}

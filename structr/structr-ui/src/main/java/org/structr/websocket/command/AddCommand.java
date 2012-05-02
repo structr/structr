@@ -21,15 +21,11 @@
 
 package org.structr.websocket.command;
 
-import org.neo4j.graphdb.Direction;
-
-import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.RelationClass;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.StructrTransaction;
@@ -42,7 +38,7 @@ import org.structr.websocket.message.WebSocketMessage;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.websocket.command.AbstractCommand;
+import org.structr.web.common.RelationshipHelper;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -114,7 +110,7 @@ public class AddCommand extends AbstractCommand {
 						// set resource ID on copied branch
 						if ((originalResourceId != null) && (newResourceId != null) &&!originalResourceId.equals(newResourceId)) {
 
-							tagOutgoingRelsWithResourceId(containedNode, containedNode, originalResourceId, newResourceId);
+							RelationshipHelper.tagOutgoingRelsWithResourceId(containedNode, containedNode, originalResourceId, newResourceId);
 
 						}
 
@@ -137,24 +133,6 @@ public class AddCommand extends AbstractCommand {
 		}
 	}
 
-	public static void tagOutgoingRelsWithResourceId(final AbstractNode startNode, final AbstractNode node, final String originalResourceId,
-		final String resourceId)
-		throws FrameworkException {
-
-		for (AbstractRelationship rel : node.getRelationships(RelType.CONTAINS, Direction.OUTGOING)) {
-
-			Long position = rel.getLongProperty(originalResourceId);
-
-			if (position != null) {
-
-				rel.setProperty(resourceId, position);
-
-			}
-
-			tagOutgoingRelsWithResourceId(startNode, rel.getEndNode(), originalResourceId, resourceId);
-
-		}
-	}
 
 	//~--- get methods ----------------------------------------------------
 

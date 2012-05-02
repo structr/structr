@@ -183,7 +183,7 @@ var _Files = {
             icon = viewRootUrl + file.name;
         }
         
-        var parent = Structr.findParent(folderId, null, parentElement);
+        var parent = Structr.findParent(folderId, null, null, parentElement);
         var delIcon, newDelIcon;
         var div = Structr.node(file.id);
         if (removeExisting && div && div.length) {
@@ -256,7 +256,7 @@ var _Files = {
     appendFolderElement : function(folder, parentId, removeExisting, hasChildren) {
 		
         if (debug) console.log('Folder: ', folder);
-        var parent = Structr.findParent(parentId, null, folders);
+        var parent = Structr.findParent(parentId, null, null, folders);
 		
         parent.append('<div structr_type="folder" class="node folder ' + folder.id + '_">'
             + '<img class="typeIcon" src="'+ _Files.folder_icon + '">'
