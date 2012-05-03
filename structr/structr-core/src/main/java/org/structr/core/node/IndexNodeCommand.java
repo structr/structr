@@ -185,30 +185,15 @@ public class IndexNodeCommand extends NodeServiceCommand {
 
 		}
 
-		try {
+                Node dbNode = node.getNode();
+                
+		if ((dbNode.hasProperty(Location.Key.latitude.name())) && (dbNode.hasProperty(Location.Key.longitude.name()))) {
 
-			Double lat = node.getDoubleProperty(Location.Key.latitude);
-			Double lon = node.getDoubleProperty(Location.Key.longitude);
+			LayerNodeIndex layerIndex = (LayerNodeIndex) indices.get(NodeIndex.layer.name());
 
-			if ((lat != null) && (lon != null)) {
+			layerIndex.add(node.getNode(), "", "");
 
-				Node dbNode = node.getNode();
-
-				if (!(dbNode.hasProperty(Location.Key.latitude.name())) && (dbNode.hasProperty(Location.Key.longitude.name()))) {
-
-					dbNode.setProperty(Location.Key.latitude.name(), lat);
-					dbNode.setProperty(Location.Key.longitude.name(), lon);
-
-				}
-
-				LayerNodeIndex layerIndex = (LayerNodeIndex) indices.get(NodeIndex.layer.name());
-
-				layerIndex.add(node.getNode(), "", "");
-
-			}
-
-		} catch (Exception ignore) {}
-		;
+		}
 	}
 
 	private void indexProperty(final AbstractNode node, final String key) {
