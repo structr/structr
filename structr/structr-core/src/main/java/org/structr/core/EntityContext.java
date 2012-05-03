@@ -1065,11 +1065,21 @@ public class EntityContext {
 		// ----- interface TransactionEventHandler -----
 		@Override
 		public Long beforeCommit(TransactionData data) throws Exception {
+                        
+                        Thread t = Thread.currentThread();
+                        if (!transactionKeyMap.containsKey(t)) return -1L;
+                        
+			long transactionKey              = transactionKeyMap.get(Thread.currentThread());
+
+			// check if node service is ready
+			if (!Services.isReady(NodeService.class)) {
+				logger.log(Level.WARNING, "Node service is not ready yet.");
+                                return transactionKey;
+			}
 
 			SecurityContext securityContext  = securityContextMap.get(Thread.currentThread());
 			Command indexNodeCommand         = Services.command(securityContext, IndexNodeCommand.class);
 			Command indexRelationshipCommand = Services.command(securityContext, IndexRelationshipCommand.class);
-			long transactionKey              = transactionKeyMap.get(Thread.currentThread());
 
 			try {
 

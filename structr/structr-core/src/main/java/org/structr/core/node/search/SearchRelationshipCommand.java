@@ -109,7 +109,7 @@ public class SearchRelationshipCommand extends NodeServiceCommand {
 
 			// At this point, all search attributes are ready
 			BooleanQuery query                             = new BooleanQuery();
-			List<BooleanSearchAttribute> booleanAttributes = new LinkedList<BooleanSearchAttribute>();
+			List<FilterSearchAttribute> booleanAttributes = new LinkedList<FilterSearchAttribute>();
 			List<TextualSearchAttribute> textualAttributes = new LinkedList<TextualSearchAttribute>();
 			String textualQueryString                      = "";
 
@@ -165,9 +165,9 @@ public class SearchRelationshipCommand extends NodeServiceCommand {
 					textualQueryString += toQueryString((TextualSearchAttribute) attr, StringUtils.isBlank(textualQueryString));
 					allExactMatch      &= isExactMatch(((TextualSearchAttribute) attr).getValue());
 
-				} else if (attr instanceof BooleanSearchAttribute) {
+				} else if (attr instanceof FilterSearchAttribute) {
 
-					booleanAttributes.add((BooleanSearchAttribute) attr);
+					booleanAttributes.add((FilterSearchAttribute) attr);
 
 				}
 
@@ -227,10 +227,10 @@ public class SearchRelationshipCommand extends NodeServiceCommand {
 				// Filter intermediate result
 				for (AbstractRelationship rel : intermediateResult) {
 
-					for (BooleanSearchAttribute attr : booleanAttributes) {
+					for (FilterSearchAttribute attr : booleanAttributes) {
 
 						String key          = attr.getKey();
-						Boolean searchValue = attr.getValue();
+						Object searchValue  = attr.getValue();
 						SearchOperator op   = attr.getSearchOperator();
 						Object nodeValue    = rel.getProperty(key);
 
@@ -263,7 +263,7 @@ public class SearchRelationshipCommand extends NodeServiceCommand {
 				}
 
 				// now sum, intersect or substract all partly results
-				for (BooleanSearchAttribute attr : booleanAttributes) {
+				for (FilterSearchAttribute attr : booleanAttributes) {
 
 					SearchOperator op         = attr.getSearchOperator();
 					List<GraphObject> result = attr.getResult();

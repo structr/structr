@@ -64,13 +64,15 @@ public abstract class Search {
 	};
 	private static Character[] specialCharsExact = new Character[] { '\"', '\\' };
 
+	public static final String DISTANCE_SEARCH_KEYWORD = "distance";
+
 	//~--- methods --------------------------------------------------------
 
 	public static List<SearchAttribute> andExactTypeAndSubtypes(final String searchString) {
 
 		List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
 
-		attrs.add(Search.orExactType(searchString));
+		//attrs.add(Search.orExactType(searchString));
 
 		try {
 
@@ -289,7 +291,7 @@ public abstract class Search {
 
 	public static SearchAttribute andNotHidden() {
 
-		SearchAttribute attr = new BooleanSearchAttribute(AbstractNode.Key.hidden.name(), true, SearchOperator.NOT);
+		SearchAttribute attr = new FilterSearchAttribute(AbstractNode.Key.hidden.name(), true, SearchOperator.NOT);
 
 		return attr;
 	}

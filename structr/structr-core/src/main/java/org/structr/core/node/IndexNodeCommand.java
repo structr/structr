@@ -23,6 +23,7 @@ package org.structr.core.node;
 
 import org.apache.commons.lang.StringUtils;
 
+import org.neo4j.gis.spatial.indexprovider.LayerNodeIndex;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.index.Index;
 
@@ -31,6 +32,7 @@ import org.structr.core.Command;
 import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Location;
 import org.structr.core.entity.Person;
 import org.structr.core.entity.User;
 import org.structr.core.node.NodeService.NodeIndex;
@@ -180,6 +182,16 @@ public class IndexNodeCommand extends NodeServiceCommand {
 				indexProperty(node, key, index.name());
 
 			}
+
+		}
+
+                Node dbNode = node.getNode();
+                
+		if ((dbNode.hasProperty(Location.Key.latitude.name())) && (dbNode.hasProperty(Location.Key.longitude.name()))) {
+
+			LayerNodeIndex layerIndex = (LayerNodeIndex) indices.get(NodeIndex.layer.name());
+
+			layerIndex.add(node.getNode(), "", "");
 
 		}
 	}

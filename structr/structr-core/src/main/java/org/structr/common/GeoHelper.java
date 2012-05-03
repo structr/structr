@@ -46,9 +46,17 @@ import java.net.URL;
 import java.net.URLEncoder;
 
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.neo4j.gis.spatial.SimplePointLayer;
+import org.neo4j.gis.spatial.SpatialDatabaseService;
+import org.neo4j.gis.spatial.pipes.GeoPipeline;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.structr.core.Command;
+import org.structr.core.node.GraphDatabaseCommand;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -167,6 +175,29 @@ public class GeoHelper {
 		}
 	}
 
+//	public static List<AbstractNode> filterByDistance(final List<AbstractNode> nodes, final Coordinates coords, final Double distance) throws FrameworkException {
+//
+//		List<AbstractNode> filteredList = new LinkedList<AbstractNode>();
+//
+//		Command graphDbCommand = Services.command(SecurityContext.getSuperUserInstance(), GraphDatabaseCommand.class);
+//		GraphDatabaseService graphDb = (GraphDatabaseService) graphDbCommand.execute();
+//
+//		SpatialDatabaseService db = new SpatialDatabaseService(graphDb);
+//		SimplePointLayer layer = (SimplePointLayer) db.createSimplePointLayer("temporaryLayer", "Longitude", "Latitude");
+//
+//		for (AbstractNode node : nodes) {
+//			Double lat = node.getDoubleProperty(Location.Key.latitude);
+//			Double lon = node.getDoubleProperty(Location.Key.longitude);
+//
+//			layer.add(lat, lon);
+//		}
+//
+//		// TODO: finish implementation here??
+//
+//		return filteredList;
+//
+//	}
+
 	//~--- inner classes --------------------------------------------------
 
 	public static class Coordinates {
@@ -212,6 +243,10 @@ public class GeoHelper {
 		 */
 		public void setLongitude(double longitude) {
 			this.longitude = longitude;
+		}
+
+		public Double[] toArray() {
+			return new Double[]{ latitude, longitude };
 		}
 	}
 }
