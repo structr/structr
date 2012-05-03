@@ -191,7 +191,7 @@ public class IndexNodeCommand extends NodeServiceCommand {
 
 			LayerNodeIndex layerIndex = (LayerNodeIndex) indices.get(NodeIndex.layer.name());
 
-			layerIndex.add(node.getNode(), "", "");
+			layerIndex.add(dbNode, "", "");
 
 		}
 	}
