@@ -30,13 +30,19 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
 
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.index.lucene.QueryContext;
 
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.node.NodeService.RelationshipIndex;
 import org.structr.core.node.NodeServiceCommand;
+import org.structr.core.node.RelationshipFactory;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -45,12 +51,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.graphdb.Relationship;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
-import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.node.NodeService.RelationshipIndex;
-import org.structr.core.node.RelationshipFactory;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -69,7 +69,7 @@ public class SearchRelationshipCommand extends NodeServiceCommand {
 	@Override
 	public Object execute(Object... parameters) throws FrameworkException {
 
-		if (parameters == null || parameters.length < 1 || parameters.length > 1) {
+		if ((parameters == null) || (parameters.length < 1) || (parameters.length > 1)) {
 
 			logger.log(Level.WARNING, "Exactly one parameter of type 'List<SearchAttribute>' is required for relationship search.");
 
@@ -100,16 +100,15 @@ public class SearchRelationshipCommand extends NodeServiceCommand {
 		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
 		Index<Relationship> index;
 		RelationshipFactory relationshipFactory = (RelationshipFactory) arguments.get("relationshipFactory");
-		List<AbstractRelationship> finalResult = new LinkedList<AbstractRelationship>();
-		boolean allExactMatch          = true;
+		List<AbstractRelationship> finalResult  = new LinkedList<AbstractRelationship>();
+		boolean allExactMatch                   = true;
 
 		// boolean allFulltext = false;
-
 		if (graphDb != null) {
 
 			// At this point, all search attributes are ready
 			BooleanQuery query                             = new BooleanQuery();
-			List<FilterSearchAttribute> booleanAttributes = new LinkedList<FilterSearchAttribute>();
+			List<FilterSearchAttribute> filters            = new LinkedList<FilterSearchAttribute>();
 			List<TextualSearchAttribute> textualAttributes = new LinkedList<TextualSearchAttribute>();
 			String textualQueryString                      = "";
 
@@ -134,12 +133,10 @@ public class SearchRelationshipCommand extends NodeServiceCommand {
 							if (groupedAttr instanceof TextualSearchAttribute) {
 
 								textualAttributes.add((TextualSearchAttribute) groupedAttr);
-								subQuery.add(toQuery((TextualSearchAttribute) groupedAttr),
-									     translateToBooleanClauseOccur(groupedAttr.getSearchOperator()));
+								subQuery.add(toQuery((TextualSearchAttribute) groupedAttr), translateToBooleanClauseOccur(groupedAttr.getSearchOperator()));
 
-								subQueryString += toQueryString((TextualSearchAttribute) groupedAttr,
-												StringUtils.isBlank(subQueryString));
-								allExactMatch &= isExactMatch(((TextualSearchAttribute) groupedAttr).getValue());
+								subQueryString += toQueryString((TextualSearchAttribute) groupedAttr, StringUtils.isBlank(subQueryString));
+								allExactMatch  &= isExactMatch(((TextualSearchAttribute) groupedAttr).getValue());
 
 							}
 						}
@@ -167,7 +164,7 @@ public class SearchRelationshipCommand extends NodeServiceCommand {
 
 				} else if (attr instanceof FilterSearchAttribute) {
 
-					booleanAttributes.add((FilterSearchAttribute) attr);
+					filters.add((FilterSearchAttribute) attr);
 
 				}
 
@@ -215,24 +212,23 @@ public class SearchRelationshipCommand extends NodeServiceCommand {
 //                              hits.close();
 				long t2 = System.currentTimeMillis();
 
-				logger.log(Level.FINE, "Creating structr relationships took {0} ms, {1} relationships made.", new Object[] { t2 - t1,
-					intermediateResult.size() });
+				logger.log(Level.FINE, "Creating structr relationships took {0} ms, {1} relationships made.", new Object[] { t2 - t1, intermediateResult.size() });
 
 			}
 
 			long t2 = System.currentTimeMillis();
 
-			if (!booleanAttributes.isEmpty()) {
+			if (!filters.isEmpty()) {
 
 				// Filter intermediate result
 				for (AbstractRelationship rel : intermediateResult) {
 
-					for (FilterSearchAttribute attr : booleanAttributes) {
+					for (FilterSearchAttribute attr : filters) {
 
-						String key          = attr.getKey();
-						Object searchValue  = attr.getValue();
-						SearchOperator op   = attr.getSearchOperator();
-						Object nodeValue    = rel.getProperty(key);
+						String key         = attr.getKey();
+						Object searchValue = attr.getValue();
+						SearchOperator op  = attr.getSearchOperator();
+						Object nodeValue   = rel.getProperty(key);
 
 						if (op.equals(SearchOperator.NOT)) {
 
@@ -263,16 +259,16 @@ public class SearchRelationshipCommand extends NodeServiceCommand {
 				}
 
 				// now sum, intersect or substract all partly results
-				for (FilterSearchAttribute attr : booleanAttributes) {
+				for (FilterSearchAttribute attr : filters) {
 
-					SearchOperator op         = attr.getSearchOperator();
+					SearchOperator op        = attr.getSearchOperator();
 					List<GraphObject> result = attr.getResult();
 
 					if (op.equals(SearchOperator.AND)) {
 
 						intermediateResult = ListUtils.intersection(intermediateResult, result);
 
-					} else if (op.equals(SearchOperator.AND)) {
+					} else if (op.equals(SearchOperator.OR)) {
 
 						intermediateResult = ListUtils.sum(intermediateResult, result);
 
@@ -390,8 +386,8 @@ public class SearchRelationshipCommand extends NodeServiceCommand {
 
 		// If value is not a string or starts with operator (exact match, range query, or search operator word),
 		// don't expand
-		if ((stringValue == null) || stringValue.startsWith("\"") || stringValue.startsWith("[") || stringValue.startsWith("NOT")
-			|| stringValue.startsWith("AND") || stringValue.startsWith("OR")) {
+		if ((stringValue == null) || stringValue.startsWith("\"") || stringValue.startsWith("[") || stringValue.startsWith("NOT") || stringValue.startsWith("AND")
+			|| stringValue.startsWith("OR")) {
 
 			return " " + key + ":" + value + " ";
 
@@ -422,34 +418,35 @@ public class SearchRelationshipCommand extends NodeServiceCommand {
 
 		return result;
 	}
+
 //
-//	private List<AbstractNode> filterNotExactMatches(final List<AbstractNode> result, TextualSearchAttribute attr) {
+//      private List<AbstractNode> filterNotExactMatches(final List<AbstractNode> result, TextualSearchAttribute attr) {
 //
-//		List<AbstractNode> notMatchingNodes = new LinkedList<AbstractNode>();
+//              List<AbstractNode> notMatchingNodes = new LinkedList<AbstractNode>();
 //
-//		// Filter not exact matches
-//		for (AbstractNode node : result) {
+//              // Filter not exact matches
+//              for (AbstractNode node : result) {
 //
-//			String value = attr.getValue();
+//                      String value = attr.getValue();
 //
-//			if ((value != null) && isExactMatch(value)) {
+//                      if ((value != null) && isExactMatch(value)) {
 //
-//				String key          = attr.getKey();
-//				String nodeValue    = node.getStringProperty(key);
-//				String decodedValue = decodeExactMatch(value);
+//                              String key          = attr.getKey();
+//                              String nodeValue    = node.getStringProperty(key);
+//                              String decodedValue = decodeExactMatch(value);
 //
-//				if (!nodeValue.equals(decodedValue)) {
+//                              if (!nodeValue.equals(decodedValue)) {
 //
-//					notMatchingNodes.add(node);
+//                                      notMatchingNodes.add(node);
 //
-//				}
+//                              }
 //
-//			}
+//                      }
 //
-//		}
+//              }
 //
-//		return ListUtils.subtract(result, notMatchingNodes);
-//	}
+//              return ListUtils.subtract(result, notMatchingNodes);
+//      }
 
 	private String decodeExactMatch(final String value) {
 		return StringUtils.strip(value, "\"");

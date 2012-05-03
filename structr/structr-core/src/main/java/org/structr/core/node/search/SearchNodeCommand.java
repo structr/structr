@@ -153,7 +153,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 			// At this point, all search attributes are ready
 			BooleanQuery query                             = new BooleanQuery();
-			List<FilterSearchAttribute> booleanAttributes = new LinkedList<FilterSearchAttribute>();
+			List<FilterSearchAttribute> filters            = new LinkedList<FilterSearchAttribute>();
 			List<TextualSearchAttribute> textualAttributes = new LinkedList<TextualSearchAttribute>();
 			String textualQueryString                      = "";
 			DistanceSearchAttribute distanceSearch         = null;
@@ -218,7 +218,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 				} else if (attr instanceof FilterSearchAttribute) {
 
-					booleanAttributes.add((FilterSearchAttribute) attr);
+					filters.add((FilterSearchAttribute) attr);
 
 				}
 
@@ -245,7 +245,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 				logger.log(Level.FINE, "Textual Query String: {0}", textualQueryString);
 
 				QueryContext queryContext = new QueryContext(textualQueryString);
-				IndexHits hits;
+				IndexHits hits = null;
 
 				if ((textualAttributes.size() == 1) && textualAttributes.get(0).getKey().equals(AbstractNode.Key.uuid.name())) {
 
@@ -259,13 +259,17 @@ public class SearchNodeCommand extends NodeServiceCommand {
 					hits  = index.query(queryContext);
 				} else if (distanceSearch != null) {
 
-					Map<String, Object> params = new HashMap<String, Object>();
+					if (coords != null) {
 
-					params.put(LayerNodeIndex.POINT_PARAMETER, coords.toArray());
-					params.put(LayerNodeIndex.DISTANCE_IN_KM_PARAMETER, dist);
+						Map<String, Object> params = new HashMap<String, Object>();
 
-					index = (LayerNodeIndex) arguments.get(NodeIndex.layer.name());
-					hits  = index.query(LayerNodeIndex.WITHIN_DISTANCE_QUERY, params);
+						params.put(LayerNodeIndex.POINT_PARAMETER, coords.toArray());
+						params.put(LayerNodeIndex.DISTANCE_IN_KM_PARAMETER, dist);
+
+						index = (LayerNodeIndex) arguments.get(NodeIndex.layer.name());
+						hits  = index.query(LayerNodeIndex.WITHIN_DISTANCE_QUERY, params);
+
+					}
 
 				} else {
 
@@ -276,7 +280,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 				long t1 = System.currentTimeMillis();
 
-				logger.log(Level.FINE, "Querying index took {0} ms, {1} results retrieved.", new Object[] { t1 - t0, hits.size() });
+				logger.log(Level.FINE, "Querying index took {0} ms, {1} results retrieved.", new Object[] { t1 - t0, hits != null ? hits.size() : 0 });
 
 //                              IndexHits hits = index.query(new QueryContext(query.toString()));//.sort("name"));
 				intermediateResult = nodeFactory.createNodes(securityContext, hits, includeDeleted, publicOnly);
@@ -290,17 +294,17 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 			long t2 = System.currentTimeMillis();
 
-			if (!booleanAttributes.isEmpty()) {
+			if (!filters.isEmpty()) {
 
 				// Filter intermediate result
 				for (AbstractNode node : intermediateResult) {
 
-					for (FilterSearchAttribute attr : booleanAttributes) {
+					for (FilterSearchAttribute attr : filters) {
 
-						String key          = attr.getKey();
-						Object searchValue  = attr.getValue();
-						SearchOperator op   = attr.getSearchOperator();
-						Object nodeValue    = node.getProperty(key);
+						String key         = attr.getKey();
+						Object searchValue = attr.getValue();
+						SearchOperator op  = attr.getSearchOperator();
+						Object nodeValue   = node.getProperty(key);
 
 						if (op.equals(SearchOperator.NOT)) {
 
@@ -331,7 +335,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 				}
 
 				// now sum, intersect or substract all partly results
-				for (FilterSearchAttribute attr : booleanAttributes) {
+				for (FilterSearchAttribute attr : filters) {
 
 					SearchOperator op        = attr.getSearchOperator();
 					List<GraphObject> result = attr.getResult();
@@ -340,7 +344,7 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 						intermediateResult = ListUtils.intersection(intermediateResult, result);
 
-					} else if (op.equals(SearchOperator.AND)) {
+					} else if (op.equals(SearchOperator.OR)) {
 
 						intermediateResult = ListUtils.sum(intermediateResult, result);
 

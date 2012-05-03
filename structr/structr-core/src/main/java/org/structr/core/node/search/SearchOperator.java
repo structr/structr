@@ -25,5 +25,10 @@ package org.structr.core.node.search;
 public enum SearchOperator {
     AND,
     OR,
-    NOT;
+    NOT,
+    GREATER,
+    LESS,
+    GREATER_OR_EQUAL,
+    LESS_OR_EQUAL,
+    EQUAL;
 }

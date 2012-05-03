@@ -22,11 +22,13 @@
 package org.structr.core.node;
 
 import org.neo4j.gis.spatial.indexprovider.SpatialRecordHits;
+import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.index.IndexHits;
 
 import org.structr.common.Permission;
+import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Adapter;
@@ -34,6 +36,7 @@ import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.cloud.FileNodeDataContainer;
 import org.structr.core.cloud.NodeDataContainer;
+import org.structr.core.entity.*;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.File;
 import org.structr.core.entity.GenericNode;
@@ -130,18 +133,24 @@ public class NodeFactory<T extends AbstractNode> implements Adapter<Node, T> {
 
 		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
 
-		if (input instanceof SpatialRecordHits) {
+		if (input != null && input instanceof SpatialRecordHits) {
 
 			Command graphDbCommand       = Services.command(securityContext, GraphDatabaseCommand.class);
 			GraphDatabaseService graphDb = (GraphDatabaseService) graphDbCommand.execute();
 
-			if ((input != null) && input.iterator().hasNext()) {
+			if (input.iterator().hasNext()) {
 
 				for (Node node : input) {
 
 					AbstractNode n = createNode(securityContext, graphDb.getNodeById((Long) node.getProperty("id")));
 
 					addIfReadable(securityContext, n, nodes, includeDeleted, publicOnly);
+
+					for (AbstractNode nodeAt : getNodesAt(n)) {
+
+						addIfReadable(securityContext, nodeAt, nodes, includeDeleted, publicOnly);
+
+					}
 
 				}
 
@@ -339,5 +348,20 @@ public class NodeFactory<T extends AbstractNode> implements Adapter<Node, T> {
 		}
 
 		return newNode;
+	}
+
+	//~--- get methods ----------------------------------------------------
+
+	private List<AbstractNode> getNodesAt(final AbstractNode locationNode) {
+
+		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
+
+		for (AbstractRelationship rel : locationNode.getRelationships(RelType.IS_AT, Direction.INCOMING)) {
+
+			nodes.add(rel.getStartNode());
+
+		}
+
+		return nodes;
 	}
 }
