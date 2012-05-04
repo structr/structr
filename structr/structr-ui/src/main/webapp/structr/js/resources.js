@@ -368,9 +368,9 @@ var _Resources = {
 
     },
 
-    appendResourceElement : function(entity, resourceId, rootId, removeExisting, hasChildren) {
+    appendResourceElement : function(entity, hasChildren) {
 
-        if (debug) console.log('appendResourceElement', entity, resourceId, rootId, removeExisting, hasChildren);
+        if (debug) console.log('appendResourceElement', entity, hasChildren);
 
         resources.append('<div class="node resource ' + entity.id + '_"></div>');
         var div = $('.' + entity.id + '_', resources);
@@ -391,16 +391,6 @@ var _Resources = {
             _Entities.deleteNode(this, entity);
         });
 
-//        div.append('<img title="Link resource \'' + entity.name + '\' to current selection" alt="Link resource \'' + entity.name + '\' to current selection" class="link_icon button" src="' + Structr.link_icon + '">');
-//        $('.link_icon', div).on('click', function() {
-//            //console.log(rootId, sourceId);
-//            if (sourceId && selStart && selEnd) {
-//                // function(resourceId, sourceId, linkedResourceId, startOffset, endOffset)
-//                _Resources.linkSelectionToResource(rootId, sourceId, entity.id, selStart, selEnd);
-//            //$('.link_icon').hide();
-//            }
-//        });
-
         div.append('<img title="Clone resource \'' + entity.name + '\'" alt="Clone resource \'' + entity.name + '\'" class="clone_icon button" src="' + _Resources.clone_icon + '">');
         $('.clone_icon', div).on('click', function(e) {
             e.stopPropagation();
@@ -412,7 +402,6 @@ var _Resources = {
 
         _Entities.appendEditPropertiesIcon(div, entity);
         _Entities.setMouseOver(div);
-
 
         var tab = _Resources.addTab(entity);
 
@@ -710,12 +699,14 @@ var _Resources = {
             });
 
         });
+
+        return div;
 	
     },
 
-    appendElementElement : function(entity, parentId, resourceId, removeExisting, hasChildren) {
-        if (debug) console.log('_Resources.appendElementElement', entity, parentId, resourceId, removeExisting, hasChildren);
-        var div = _Elements.appendElementElement(entity, parentId, resourceId, removeExisting, hasChildren);
+    appendElementElement : function(entity, parentId, componentId, resourceId, removeExisting, hasChildren) {
+        if (debug) console.log('_Resources.appendElementElement', entity, parentId, componentId, resourceId, removeExisting, hasChildren);
+        var div = _Elements.appendElementElement(entity, parentId, componentId, resourceId, removeExisting, hasChildren);
 
         if (!div) return false;
 
@@ -859,9 +850,9 @@ var _Resources = {
         return div;
     },
 
-    appendComponentElement : function(component, parentId, resourceId, removeExisting, hasChildren) {
+    appendComponentElement : function(component, parentId, componentId, resourceId, removeExisting, hasChildren) {
         if (debug) console.log('Resources.appendComponentElement');
-        var div = _Components.appendComponentElement(component, parentId, resourceId, removeExisting, hasChildren);
+        var div = _Components.appendComponentElement(component, parentId, componentId, resourceId, removeExisting, hasChildren);
         //console.log(div);
         if (!div) return false;
 
@@ -966,10 +957,10 @@ var _Resources = {
         return div;
     },
 
-    appendContentElement : function(content, parentId, resourceId) {
+    appendContentElement : function(content, parentId, componentId, resourceId) {
         if (debug) console.log('Resources.appendContentElement');
 		
-        var div = _Contents.appendContentElement(content, parentId, resourceId);
+        var div = _Contents.appendContentElement(content, parentId, componentId, resourceId);
 
         if (!div) return false;
 

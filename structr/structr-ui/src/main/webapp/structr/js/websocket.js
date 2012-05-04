@@ -60,6 +60,7 @@ function connect() {
             var type = data.type;
             var command = data.command;
             var parentId = data.id;
+            var componentId = data.data.componentId;
             var resourceId = data.data.resourceId;
             var msg = data.message;
             var result = data.result;
@@ -191,14 +192,16 @@ function connect() {
 
             } else if (command == 'CHILDREN') { /*********************** CHILDREN ************************/
 
-		
-                if (debug) console.log('CHILDREN:', parentId, resourceId);
-                 if (debug) console.log('Nodes with children', data.nodesWithChildren);
+                if (debug) console.log('CHILDREN:', parentId, componentId, resourceId);
+                if (debug) console.log('CHILDREN');
+                if (debug) console.log('parentId', parentId);
+                if (debug) console.log('componentId', componentId);
+                if (debug) console.log('resourceId', resourceId);
+                if (debug) console.log('Nodes with children', data.nodesWithChildren);
                 $(result).each(function(i, child) {
-                     if (debug) console.log('CHILDREN: ', child, isIn(child.id, data.nodesWithChildren));
-                    _Entities.appendObj(child, data.id, resourceId, false, isIn(child.id, data.nodesWithChildren));
+                     if (debug) console.log('CHILDREN: ', child, parentId, componentId, resourceId, false, isIn(child.id, data.nodesWithChildren));
+                    _Entities.appendObj(child, parentId, componentId, resourceId, false, isIn(child.id, data.nodesWithChildren));
                 });
-
 
             } else if (command == 'LIST') { /*********************** LIST ************************/
 				
@@ -206,7 +209,7 @@ function connect() {
                  if (debug) console.log('Nodes with children', data.nodesWithChildren);
                 $(result).each(function(i, entity) {
                     if (debug) console.log('LIST: ' + entity.type);
-                    _Entities.appendObj(entity, null, null, false, isIn(entity.id, data.nodesWithChildren));
+                    _Entities.appendObj(entity, null, null, null, false, isIn(entity.id, data.nodesWithChildren));
                 });
 
             } else if (command == 'DELETE') { /*********************** DELETE ************************/
@@ -224,7 +227,7 @@ function connect() {
                 entityId = data.data.id;
 
                 //parent = Structr.node(parentId);
-                entity = Structr.node(entityId, parentId);
+                entity = Structr.node(entityId, parentId, componentId, resourceId);
 
                 //if (debug) console.log(parent);
                 if (debug) console.log(entity);
@@ -268,10 +271,10 @@ function connect() {
 
             } else if (command == 'CREATE' || command == 'ADD' || command == 'IMPORT') { /*********************** CREATE, ADD, IMPORT ************************/
                 
-                //console.log(command, result, data, data.data);
+                if (debug) console.log(command, result, data, data.data);
 				
                 $(result).each(function(i, entity) {
-                    _Entities.appendObj(entity, parentId, resourceId, command == 'ADD');
+                    _Entities.appendObj(entity, parentId, componentId, resourceId, command == 'ADD');
                 });
 
                 _Resources.reloadPreviews();

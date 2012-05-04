@@ -267,6 +267,8 @@ public class DynamicTypeResource extends TypeResource {
 
 				RelationshipHelper.copyRelationships(securityContext, template, comp, RelType.CONTAINS, finalParentResourceId, finalParentComponentId, position);
 
+				//RelationshipHelper.tagOutgoingRelsWithComponentId(comp, comp, comp.getUuid());
+
 				Map<String, Object> contentTemplateProperties = new LinkedHashMap<String, Object>();
 
 				for (AbstractNode node : template.getContentNodes().values()) {

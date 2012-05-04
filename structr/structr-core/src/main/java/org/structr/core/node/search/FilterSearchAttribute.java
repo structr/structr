@@ -27,11 +27,11 @@ import org.structr.core.node.NodeAttribute;
  *
  * @author amorgner
  */
-public class BooleanSearchAttribute extends SearchAttribute {
+public class FilterSearchAttribute extends SearchAttribute {
 
     private NodeAttribute nodeAttribute;
 
-    public BooleanSearchAttribute(final String key, final Boolean value, final SearchOperator searchOp) {
+    public FilterSearchAttribute(final String key, final Object value, final SearchOperator searchOp) {
         nodeAttribute = new NodeAttribute(key, value);
         setSearchOperator(searchOp);
     }
@@ -50,8 +50,8 @@ public class BooleanSearchAttribute extends SearchAttribute {
         return nodeAttribute.getKey();
     }
 
-    public Boolean getValue() {
-        return (Boolean) nodeAttribute.getValue();
+    public Object getValue() {
+        return nodeAttribute.getValue();
     }
 
 }

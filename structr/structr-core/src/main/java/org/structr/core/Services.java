@@ -615,6 +615,19 @@ public class Services {
 	public static boolean isAvailable(final Class serviceClass) {
 		return configuredServiceClasses.contains(serviceClass);
 	}
+        
+	/**
+	 * Return true if the given service is ready to be used,
+         * means initialized and running.
+	 * 
+	 * @param serviceClass
+	 * @return 
+	 */
+	public static boolean isReady(final Class serviceClass) {
+                Service service = serviceCache.get(serviceClass);
+                return (service != null && service.isRunning());
+                
+	}
 
 	//~--- set methods ----------------------------------------------------
 

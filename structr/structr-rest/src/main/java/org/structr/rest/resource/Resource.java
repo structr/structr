@@ -5,6 +5,8 @@
  */
 package org.structr.rest.resource;
 
+import org.apache.commons.lang.StringUtils;
+
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.PropertyKey;
 import org.structr.common.SecurityContext;
@@ -24,8 +26,10 @@ import org.structr.core.node.*;
 import org.structr.core.node.RemoveNodeFromIndex;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
+import org.structr.core.node.search.DistanceSearchAttribute;
 import org.structr.core.node.search.Search;
 import org.structr.core.node.search.SearchAttribute;
+import org.structr.core.node.search.SearchOperator;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NoResultsException;
@@ -324,6 +328,35 @@ public abstract class Resource {
 	//~--- get methods ----------------------------------------------------
 
 	public abstract String getUriPart();
+
+	protected DistanceSearchAttribute getDistanceSearch(final HttpServletRequest request) throws FrameworkException {
+
+		String distance = request.getParameter(Search.DISTANCE_SEARCH_KEYWORD);
+
+		if ((request != null) &&!request.getParameterMap().isEmpty() && StringUtils.isNotBlank(distance)) {
+
+			Double dist             = Double.parseDouble(distance);
+			StringBuilder searchKey = new StringBuilder();
+			Enumeration names       = request.getParameterNames();
+
+			while (names.hasMoreElements()) {
+
+				String name = (String) names.nextElement();
+
+				if (!name.equals(Search.DISTANCE_SEARCH_KEYWORD)) {
+
+					searchKey.append(request.getParameter(name)).append(" ");
+
+				}
+
+			}
+
+			return new DistanceSearchAttribute(searchKey.toString(), dist, SearchOperator.AND);
+
+		}
+
+		return null;
+	}
 
 	protected boolean hasSearchableAttributes(final String rawType, final HttpServletRequest request, final List<SearchAttribute> searchAttributes) throws FrameworkException {
 

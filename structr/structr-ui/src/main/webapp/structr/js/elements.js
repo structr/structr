@@ -170,25 +170,27 @@ var _Elements = {
                         list.remove();
                     });
                 });
-                _Elements.addElement(this);
+                _Entities.addElement(this);
             });
         }
     },
 
-    appendElementElement : function(entity, parentId, resourceId, removeExisting, hasChildren) {
-        if (debug) console.log('_Elements.appendElementElement', entity, parentId, resourceId, removeExisting, hasChildren);
+    appendElementElement : function(entity, parentId, componentId, resourceId, removeExisting, hasChildren) {
+        if (debug) console.log('_Elements.appendElementElement', entity, parentId, componentId, resourceId, removeExisting, hasChildren);
 
-        var parent = Structr.findParent(parentId, resourceId, elements);
-
+        var parent = Structr.findParent(parentId, componentId, componentId, resourceId, elements);
+        if (debug) console.log('appendElementElement parent', parent);
         if (!parent) return false;
         
         parent.append('<div class="node element ' + entity.id + '_"></div>');
 
-        var pos = parent.children('.' + entity.id + '_').length-1;
-        var div = Structr.node(entity.id, parentId, resourceId, pos);
+        var pos;
+        if (parent.children('.' + entity.id + '_')) {
+            pos = parent.children('.' + entity.id + '_').length-1;
+        }
+        var div = Structr.node(entity.id, parentId, componentId, resourceId, pos);
 
         entity.resourceId = resourceId;
-
 
         div.append('<img class="typeIcon" src="'+ _Elements.icon + '">'
             + '<b class="tag_">' + entity.tag + '</b> <span class="id">' + entity.id + '</span>'
@@ -205,8 +207,7 @@ var _Elements = {
         div.append('<img title="Delete ' + entity.tag + ' element ' + entity.id + '" alt="Delete ' + entity.tag + ' element ' + entity.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
         $('.delete_icon', div).on('click', function(e) {
             e.stopPropagation();
-            var self = $(this);
-            _Elements.deleteElement(this, entity);
+            _Entities.deleteElement(this, entity);
         });
 
 
@@ -241,6 +242,7 @@ var _Elements = {
             console.log('Wrap element in component', getId(node), nodeData, relData);
             //_Entities.createAndAdd(getId(node), nodeData, relData);
 
+            // TODO: Move to commands.js
             var obj = {};
             obj.command = 'WRAP';
             obj.id = getId(node);
@@ -267,6 +269,9 @@ var _Elements = {
                 
                 var headers = {};
                 headers['X-StructrSessionToken'] = token;
+                console.log('headers', headers);
+                var url = rootUrl + 'resources?pageSize=100';
+                console.log('resources URL: ' + url, headers);
                 
                 $.ajax({
                     url: rootUrl + 'resources?pageSize=100',
@@ -319,15 +324,15 @@ var _Elements = {
         }
 
         return div;
-    },
-
-    addElement : function(button, type, props) {
-        return _Entities.add(button, type, props);
-    },
-
-    deleteElement : function(button, element) {
-        if (debug) console.log('delete element ' + element);
-        _Entities.deleteNode(button, element);
     }
+
+//    addElement : function(button, type, props) {
+//        return _Entities.add(button, type, props);
+//    },
+
+//    deleteElement : function(button, element) {
+//        if (debug) console.log('delete element ' + element);
+//        _Entities.deleteNode(button, element);
+//    }
 
 };

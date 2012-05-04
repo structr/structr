@@ -21,6 +21,8 @@
 
 package org.structr.core.node;
 
+import org.neo4j.gis.spatial.indexprovider.LayerNodeIndex;
+import org.neo4j.gis.spatial.indexprovider.SpatialIndexProvider;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
@@ -29,16 +31,21 @@ import org.neo4j.graphdb.index.Index;
 import org.neo4j.index.impl.lucene.LuceneIndexImplementation;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
 
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.EntityContext;
 import org.structr.core.RunnableService;
 import org.structr.core.Services;
 import org.structr.core.SingletonService;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Location;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.io.File;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -60,6 +67,7 @@ public class NodeService implements SingletonService {
 	private Index<Node> fulltextIndex               = null;
 	private GraphDatabaseService graphDb            = null;
 	private Index<Node> keywordIndex                = null;
+	private Index<Node> layerIndex                  = null;
 	private NodeFactory nodeFactory                 = null;
 	private Index<Relationship> relFulltextIndex    = null;
 	private Index<Relationship> relKeywordIndex     = null;
@@ -70,10 +78,13 @@ public class NodeService implements SingletonService {
 
 	/** Dependent services */
 	private Set<RunnableService> registeredServices = new HashSet<RunnableService>();
+        
+        private boolean isInitialized = false;
+                
 
 	//~--- constant enums -------------------------------------------------
 
-	public static enum NodeIndex { uuid, user, keyword, fulltext; }
+	public static enum NodeIndex { uuid, user, keyword, fulltext, layer; }
 
 	public static enum RelationshipIndex { rel_uuid, rel_keyword, rel_fulltext; }
 
@@ -90,6 +101,7 @@ public class NodeService implements SingletonService {
 			command.setArgument(NodeIndex.fulltext.name(), fulltextIndex);
 			command.setArgument(NodeIndex.user.name(), userIndex);
 			command.setArgument(NodeIndex.keyword.name(), keywordIndex);
+			command.setArgument(NodeIndex.layer.name(), layerIndex);
 			command.setArgument(RelationshipIndex.rel_uuid.name(), relUuidIndex);
 			command.setArgument(RelationshipIndex.rel_fulltext.name(), relFulltextIndex);
 			command.setArgument(RelationshipIndex.rel_keyword.name(), relKeywordIndex);
@@ -112,8 +124,13 @@ public class NodeService implements SingletonService {
 
 			logger.log(Level.INFO, "Initializing database ({0}) ...", dbPath);
 
+			if (graphDb != null) {
+				logger.log(Level.INFO, "Database already running ({0}) ...", dbPath);
+				return;
+			}
+
 			try {
-				graphDb = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(dbPath).loadPropertiesFromFile(dbPath + "neo4j.conf").newGraphDatabase();
+				graphDb = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(dbPath).loadPropertiesFromFile(dbPath + "/neo4j.conf").newGraphDatabase();
 			} catch (Throwable t) {
 
 				logger.log(Level.INFO, "Database config {0}/neo4j.conf not found", dbPath);
@@ -159,6 +176,17 @@ public class NodeService implements SingletonService {
 			keywordIndex = graphDb.index().forNodes("keywordAllNodes", LuceneIndexImplementation.EXACT_CONFIG);
 
 			logger.log(Level.FINE, "Keyword index ready.");
+			logger.log(Level.FINE, "Initializing layer index...");
+
+			final Map<String, String> config = new HashMap<String, String>();
+
+			config.put(LayerNodeIndex.LAT_PROPERTY_KEY, Location.Key.latitude.name());
+			config.put(LayerNodeIndex.LON_PROPERTY_KEY, Location.Key.longitude.name());
+			config.put(SpatialIndexProvider.GEOMETRY_TYPE, LayerNodeIndex.POINT_PARAMETER);
+
+			layerIndex = new LayerNodeIndex("layerIndex", graphDb, config);
+
+			logger.log(Level.FINE, "Layer index ready.");
 			logger.log(Level.FINE, "Initializing node factory...");
 
 			nodeFactory = new NodeFactory();
@@ -190,6 +218,8 @@ public class NodeService implements SingletonService {
 			logger.log(Level.SEVERE, "Database could not be initialized. {0}", e.getMessage());
 			e.printStackTrace(System.out);
 		}
+                
+                isInitialized = true;
 	}
 
 	@Override
@@ -208,6 +238,8 @@ public class NodeService implements SingletonService {
 			graphDb.shutdown();
 
 			graphDb = null;
+                        
+                        isInitialized = false;
 
 		}
 	}
@@ -241,6 +273,6 @@ public class NodeService implements SingletonService {
 	// </editor-fold>
 	@Override
 	public boolean isRunning() {
-		return (graphDb != null);
+		return (graphDb != null && isInitialized);
 	}
 }

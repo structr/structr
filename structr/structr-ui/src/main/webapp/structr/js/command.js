@@ -66,16 +66,18 @@ var Command = {
      * 
      * The server will return a result set containing all children of the
      * node with the given id which are rendered within the resource with
-     * the given resourceId to the sending client (no broadcast).
+     * the given resourceId and within the component with the given
+     * componentId to the sending client (no broadcast).
      * 
      * The server will return an array with all node ids which have child
      * nodes in this resource.
      */
-    children : function(id, resourceId) {
+    children : function(id, componentId, resourceId) {
         var obj = {};
         obj.command = 'CHILDREN';
         obj.id = id;
         var data = {};
+        if (componentId) data.componentId = componentId;
         data.resourceId = resourceId;
         obj.data = data;
         if (debug) console.log('children()', obj);
@@ -359,7 +361,7 @@ var Command = {
         var data = {};
         data.resourceId = resourceId;
         obj.data = data;
-        console.log('link()', obj);
+        if (debug) console.log('link()', obj);
         return sendObj(obj);    }
 
 }

@@ -107,7 +107,7 @@ public class WrapInComponentCommand extends AbstractCommand {
 								getWebSocket().send(MessageBuilder.status().code(400).message(t.getMessage()).build(), true);
 							}
 
-							tagOutgoingRelsWithComponentId(newComponent, newComponent, componentId);
+							RelationshipHelper.tagOutgoingRelsWithComponentId(newComponent, newComponent, componentId);
 						}
 
 					} else {
@@ -132,27 +132,6 @@ public class WrapInComponentCommand extends AbstractCommand {
 
 			logger.log(Level.WARNING, "Node with uuid {0} not found.", webSocketData.getId());
 			getWebSocket().send(MessageBuilder.status().code(404).build(), true);
-
-		}
-	}
-
-	private void tagOutgoingRelsWithComponentId(final AbstractNode startNode, final AbstractNode node, final String componentId) throws FrameworkException {
-
-		for (AbstractRelationship rel : node.getRelationships(RelType.CONTAINS, Direction.OUTGOING)) {
-
-			if (!(startNode.equals(node))) {
-
-				rel.setProperty("componentId", componentId);
-
-				if (node.getType().equals(Component.class.getSimpleName())) {
-
-					return;
-
-				}
-
-			}
-
-			tagOutgoingRelsWithComponentId(startNode, rel.getEndNode(), componentId);
 
 		}
 	}
