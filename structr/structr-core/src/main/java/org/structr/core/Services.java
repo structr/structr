@@ -77,6 +77,8 @@ public class Services {
 	public static final String SERVLET_REAL_ROOT_PATH = "servlet.context";
 	public static final String SMTP_HOST       = "smtp.host";
 	public static final String SMTP_PORT       = "smtp.port";
+	public static final String SMTP_USER       = "smtp.user";
+	public static final String SMTP_PASSWORD   = "smtp.password";
 
 //      public static final String ENTITY_PACKAGES = "entity.packages";
 	public static final String SUPERUSER_PASSWORD     = "superuser.password";
@@ -93,6 +95,7 @@ public class Services {
 	private static final Map<Class, Service> serviceCache    = new ConcurrentHashMap<Class, Service>(10, 0.9f, 8);
 	private static final Set<Class> registeredServiceClasses = new LinkedHashSet<Class>();
 	private static final Set<Class> configuredServiceClasses = new LinkedHashSet<Class>();
+	private static boolean initializationDone = false;
 	private static String appTitle;
 	private static String basePath;
 	private static String configFilePath;
@@ -103,6 +106,8 @@ public class Services {
 	private static String serverIp;
 	private static String smtpHost;
 	private static String smtpPort;
+	private static String smtpUser;
+	private static String smtpPassword;
 	private static String superuserPassword;
 	private static String superuserUsername;
 	private static String tcpPort;
@@ -200,6 +205,8 @@ public class Services {
 		udpPort           = getConfigValue(context, Services.UDP_PORT, "57555");
 		smtpHost          = getConfigValue(context, Services.SMTP_HOST, "localhost");
 		smtpPort          = getConfigValue(context, Services.SMTP_PORT, "25");
+		smtpUser          = getConfigValue(context, Services.SMTP_USER, "");
+		smtpPassword      = getConfigValue(context, Services.SMTP_PASSWORD, "");
 		superuserUsername = getConfigValue(context, Services.SUPERUSER_USERNAME, "superadmin");
 		superuserPassword = getConfigValue(context, Services.SUPERUSER_PASSWORD, "");    // intentionally no default password!
 		logger.log(Level.INFO, "Starting services");
@@ -236,6 +243,12 @@ public class Services {
 		EntityContext.init();
 
 		logger.log(Level.INFO, "Initialization complete");
+		
+		initializationDone = true;
+	}
+	
+	public static boolean isInitialized() {
+		return initializationDone;
 	}
 
 	public static void shutdown() {
@@ -293,6 +306,16 @@ public class Services {
 			return context.get(key);
 		}
 		return null;
+	}
+	
+	public static String getConfigurationValue(String key, String defaultValue) {
+		
+		Object value = getConfigurationValue(key);
+		if(value == null) {
+			return defaultValue;
+		}
+
+		return value.toString();
 	}
 	
 	// <editor-fold defaultstate="collapsed" desc="private methods">
@@ -427,6 +450,20 @@ public class Services {
 	 */
 	public static String getSmtpPort() {
 		return smtpPort;
+	}
+
+	/**
+	 * Return the SMTP user for sending out e-mails
+	 */
+	public static String getSmtpUser() {
+		return smtpUser;
+	}
+
+	/**
+	 * Return the SMTP user for sending out e-mails
+	 */
+	public static String getSmtpPassword() {
+		return smtpPassword;
 	}
 
 	/**

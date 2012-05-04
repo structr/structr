@@ -362,7 +362,11 @@ public class CronEntry implements Delayed {
 	// ----- interface Delayed -----
 	@Override
 	public long getDelay(TimeUnit unit) {
-		return unit.convert(getDelayToNextExecutionInMillis(), TimeUnit.MILLISECONDS);
+
+		long next = TimeUnit.MILLISECONDS.convert(getDelayToNextExecutionInMillis(), unit);
+		logger.log(Level.INFO, "{0} ms until start of task {1}", new Object[] { next, name } );
+		
+		return next;
 	}
 
 	@Override
