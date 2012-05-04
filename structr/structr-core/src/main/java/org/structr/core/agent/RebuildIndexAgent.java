@@ -83,10 +83,16 @@ public class RebuildIndexAgent extends Agent {
                 long nodes = 0;
 
                 Command indexer = Services.command(securityContext, IndexNodeCommand.class);
+		logger.log(Level.INFO, "Get all nodes ...");
                 List<AbstractNode> allNodes = (List<AbstractNode>) Services.command(securityContext, GetAllNodes.class).execute();
+		logger.log(Level.INFO, "... done. Got {0} nodes.", allNodes.size());
                 for (AbstractNode s : allNodes) {
                     indexer.execute(s);
                     nodes++;
+
+		    if (nodes % 100 == 0) {
+			    logger.log(Level.INFO, "Indexed {0} nodes", nodes);
+		    }
 
                 }
                 return nodes;
@@ -109,10 +115,16 @@ public class RebuildIndexAgent extends Agent {
                 long rels = 0;
 
                 Command indexer = Services.command(securityContext, IndexRelationshipCommand.class);
+		logger.log(Level.INFO, "Get all relationships ...");
                 List<AbstractRelationship> allRelationships = (List<AbstractRelationship>) Services.command(securityContext, GetAllRelationships.class).execute();
+		logger.log(Level.INFO, "... done. Got {0} relationships.", allRelationships.size());
                 for (AbstractRelationship s : allRelationships) {
                     indexer.execute(s);
                     rels++;
+
+		    if (rels % 100 == 0) {
+			    logger.log(Level.INFO, "Indexed {0} relationships", rels);
+		    }
 
                 }
                 return rels;
