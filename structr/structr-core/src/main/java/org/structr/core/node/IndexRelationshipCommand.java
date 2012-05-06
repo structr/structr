@@ -23,7 +23,6 @@ package org.structr.core.node;
 
 import org.apache.commons.lang.StringUtils;
 
-import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.index.Index;
 
@@ -31,7 +30,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.EntityContext;
 import org.structr.core.Services;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.node.NodeService.RelationshipIndex;
 import org.structr.core.node.search.Search;
@@ -160,6 +158,12 @@ public class IndexRelationshipCommand extends NodeServiceCommand {
 	}
 
 	private void indexRelationship(final AbstractRelationship rel) throws FrameworkException {
+
+		String uuid = rel.getStringProperty(AbstractRelationship.Key.uuid);
+
+		// Don't index non-structr relationship
+		if (uuid == null) return;
+
 
 		String combinedKey = rel.getStringProperty(AbstractRelationship.HiddenKey.type.name());
 

@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.neo4j.gis.spatial.indexprovider.LayerNodeIndex;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -100,7 +101,7 @@ public class RemoveNodeFromIndex extends NodeServiceCommand {
 
 				} else if (parameters[0] instanceof List) {
 
-					removeNodesFromIndex((List<AbstractNode>) parameters[0]);
+					removeNodesFromAllIndices((List<AbstractNode>) parameters[0]);
 
 				}
 
@@ -116,7 +117,7 @@ public class RemoveNodeFromIndex extends NodeServiceCommand {
 		return null;
 	}
 
-	private void removeNodesFromIndex(final List<AbstractNode> nodes) {
+	private void removeNodesFromAllIndices(final List<AbstractNode> nodes) {
 
 		for (AbstractNode node : nodes) {
 
@@ -129,7 +130,13 @@ public class RemoveNodeFromIndex extends NodeServiceCommand {
 
 		for (Enum indexName : (NodeIndex[]) arguments.get("indices")) {
 
-			indices.get(indexName).remove(node.getNode());
+			Index<Node> index = indices.get(indexName);
+			if (indexName.equals(NodeIndex.layer)) {
+
+				index.remove(node.getNode());
+			} else {
+				index.remove(node.getNode());
+			}
 
 		}
 	}

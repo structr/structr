@@ -56,7 +56,7 @@ public class ClearDatabase extends NodeServiceCommand {
 			final List<AbstractNode> allNodes = (List<AbstractNode>) nodeFactory.createNodes(securityContext,
 								    GlobalGraphOperations.at(graphDb).getAllNodes());
 			final Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
-			final Command delRel             = Services.command(securityContext, DeleteRelationshipCommand.class);
+			//final Command delRel             = Services.command(securityContext, DeleteRelationshipCommand.class);
 			final Command delNode            = Services.command(securityContext, DeleteNodeCommand.class);
 
 			transactionCommand.execute(new StructrTransaction() {

@@ -550,11 +550,23 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 		}
 
-		return (dbNode.hasProperty(Key.name.name())
-			? dbNode.getProperty(Key.name.name())
-			: "<AbstractNode>") + " [" + (dbNode.hasProperty(Key.type.name())
-			? dbNode.getProperty(Key.type.name())
-			: "Unknown") + ", " + (dbNode.hasProperty(Key.type.name()) ? dbNode.getProperty(Key.uuid.name()) : dbNode.getId()) + "]";
+		try {
+
+			String name = dbNode.hasProperty(Key.name.name())
+				      ? (String) dbNode.getProperty(Key.name.name())
+				      : "<null name>";
+			String type = dbNode.hasProperty(Key.type.name())
+				      ? (String) dbNode.getProperty(Key.type.name())
+				      : "<AbstractNode>";
+			String id   = dbNode.hasProperty(Key.uuid.name())
+				      ? (String) dbNode.getProperty(Key.uuid.name())
+				      : Long.toString(dbNode.getId());
+
+			return type + " (" + type + "," + id + ")";
+
+		} catch (Throwable ignore) {}
+
+		return "<AbstractNode>";
 	}
 
 	/**

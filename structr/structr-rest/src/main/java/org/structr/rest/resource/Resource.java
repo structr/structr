@@ -23,7 +23,6 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.RelationClass;
 import org.structr.core.node.*;
-import org.structr.core.node.RemoveNodeFromIndex;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
 import org.structr.core.node.search.DistanceSearchAttribute;
@@ -118,13 +117,9 @@ public abstract class Resource {
 
 						if (obj instanceof AbstractRelationship) {
 
-							// remove object from index
-							Services.command(securityContext, RemoveRelationshipFromIndex.class).execute(obj);
 							deleteRel.execute(obj);
-						} else if (obj instanceof AbstractNode) {
 
-							// remove object from index
-							Services.command(securityContext, RemoveNodeFromIndex.class).execute(obj);
+						} else if (obj instanceof AbstractNode) {
 
 //                                                      // 2: delete relationships
 //                                                      if (obj instanceof AbstractNode) {

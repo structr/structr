@@ -173,6 +173,15 @@ public class IndexNodeCommand extends NodeServiceCommand {
 
 	private void indexNode(final AbstractNode node) {
 
+		String uuid = node.getStringProperty(AbstractNode.Key.uuid);
+
+		// Don't index non-structr relationship
+		if (uuid == null) {
+
+			return;
+
+		}
+
 		for (Enum index : (NodeIndex[]) arguments.get("indices")) {
 
 			Set<String> properties = EntityContext.getSearchableProperties(node.getClass(), index.name());
@@ -185,8 +194,8 @@ public class IndexNodeCommand extends NodeServiceCommand {
 
 		}
 
-                Node dbNode = node.getNode();
-                
+		Node dbNode = node.getNode();
+
 		if ((dbNode.hasProperty(Location.Key.latitude.name())) && (dbNode.hasProperty(Location.Key.longitude.name()))) {
 
 			LayerNodeIndex layerIndex = (LayerNodeIndex) indices.get(NodeIndex.layer.name());

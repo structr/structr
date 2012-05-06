@@ -261,7 +261,9 @@ public class EntityContext {
 
 		for (PropertyKey property : propertySet) {
 
-			properties.add((viewPrefix != null ? viewPrefix : "").concat(property.name()));
+			properties.add(((viewPrefix != null)
+					? viewPrefix
+					: "").concat(property.name()));
 
 		}
 
@@ -286,7 +288,9 @@ public class EntityContext {
 
 		for (String property : propertySet) {
 
-			properties.add((viewPrefix != null ? viewPrefix : "").concat(property));
+			properties.add(((viewPrefix != null)
+					? viewPrefix
+					: "").concat(property));
 
 		}
 
@@ -572,19 +576,22 @@ public class EntityContext {
 		Class sourceSuperClass   = sourceType;
 		Class destSuperClass     = destType;
 
-		while ((namedRelationClass == null) && !sourceSuperClass.equals(Object.class) && !destSuperClass.equals(Object.class)) {
+		while ((namedRelationClass == null) &&!sourceSuperClass.equals(Object.class) &&!destSuperClass.equals(Object.class)) {
 
 			namedRelationClass = globalRelationshipClassMap.get(createCombinedRelationshipType(sourceSuperClass, relType, destSuperClass));
 
 			// one level up :)
 			sourceSuperClass = sourceSuperClass.getSuperclass();
-			
+
 			// do not check superclass for dest type
-//			destSuperClass   = destSuperClass.getSuperclass();
+//                      destSuperClass   = destSuperClass.getSuperclass();
+
 		}
-		
-		if(namedRelationClass != null) {
+
+		if (namedRelationClass != null) {
+
 			return namedRelationClass;
+
 		}
 
 		return globalRelationshipClassMap.get(createCombinedRelationshipType(sourceType, relType, destType));
@@ -641,7 +648,7 @@ public class EntityContext {
 		if (relation == null) {
 
 			// Check dest type superclasses
-			localType        = destType;
+			localType = destType;
 
 			while ((relation == null) &&!localType.equals(Object.class)) {
 
@@ -649,11 +656,8 @@ public class EntityContext {
 				localType = localType.getSuperclass();
 
 			}
-
-
-
 		}
-		
+
 		return relation;
 	}
 
@@ -1065,16 +1069,24 @@ public class EntityContext {
 		// ----- interface TransactionEventHandler -----
 		@Override
 		public Long beforeCommit(TransactionData data) throws Exception {
-                        
-                        Thread t = Thread.currentThread();
-                        if (!transactionKeyMap.containsKey(t)) return -1L;
-                        
-			long transactionKey              = transactionKeyMap.get(Thread.currentThread());
+
+			Thread t = Thread.currentThread();
+
+			if (!transactionKeyMap.containsKey(t)) {
+
+				return -1L;
+
+			}
+
+			long transactionKey = transactionKeyMap.get(Thread.currentThread());
 
 			// check if node service is ready
 			if (!Services.isReady(NodeService.class)) {
+
 				logger.log(Level.WARNING, "Node service is not ready yet.");
-                                return transactionKey;
+
+				return transactionKey;
+
 			}
 
 			SecurityContext securityContext  = securityContextMap.get(Thread.currentThread());
@@ -1093,7 +1105,7 @@ public class EntityContext {
 				Set<AbstractNode> createdNodes                              = new LinkedHashSet<AbstractNode>();
 				Set<AbstractRelationship> modifiedRels                      = new LinkedHashSet<AbstractRelationship>();
 				Set<AbstractRelationship> createdRels                       = new LinkedHashSet<AbstractRelationship>();
-				Set<AbstractRelationship> deletedRels                       = new LinkedHashSet<AbstractRelationship>();
+				//Set<AbstractRelationship> deletedRels                       = new LinkedHashSet<AbstractRelationship>();
 
 				// 0: notify listeners of beginning commit
 				begin(securityContext, transactionKey, errorBuffer);
@@ -1163,8 +1175,9 @@ public class EntityContext {
 
 //                                      AbstractRelationship relationship = relFactory.createRelationship(securityContext, removedRelProperties.get(rel));
 					hasError |= graphObjectDeleted(securityContext, transactionKey, errorBuffer, relationship, removedRelProperties.get(rel));
+					//hasError |= graphObjectDeleted(securityContext, transactionKey, errorBuffer, null, removedRelProperties.get(rel));
 
-					deletedRels.add(relationship);
+					//deletedRels.add(relationship);
 
 				}
 
@@ -1349,13 +1362,13 @@ public class EntityContext {
 		}
 
 		@Override
-		public boolean propertyModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject entity, String key, Object oldValue, Object newValue) {
+		public boolean propertyModified(SecurityContext securityContext, long transactionKey, ErrorBuffer errorBuffer, GraphObject graphObject, String key, Object oldValue, Object newValue) {
 
 			boolean hasError = false;
 
 			for (VetoableGraphObjectListener listener : modificationListeners) {
 
-				hasError |= listener.propertyModified(securityContext, transactionKey, errorBuffer, entity, key, oldValue, newValue);
+				hasError |= listener.propertyModified(securityContext, transactionKey, errorBuffer, graphObject, key, oldValue, newValue);
 
 			}
 

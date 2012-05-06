@@ -96,7 +96,7 @@ public class RemoveRelationshipFromIndex extends NodeServiceCommand {
 
 				} else if (parameters[0] instanceof List) {
 
-					removeNodesFromIndex((List<AbstractRelationship>) parameters[0]);
+					removeNodesFromAllIndices((List<AbstractRelationship>) parameters[0]);
 
 				}
 
@@ -112,7 +112,7 @@ public class RemoveRelationshipFromIndex extends NodeServiceCommand {
 		return null;
 	}
 
-	private void removeNodesFromIndex(final List<AbstractRelationship> rels) {
+	private void removeNodesFromAllIndices(final List<AbstractRelationship> rels) {
 
 		for (AbstractRelationship rel : rels) {
 

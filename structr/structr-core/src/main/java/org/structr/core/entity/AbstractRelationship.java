@@ -836,7 +836,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 		boolean error = false;
 
-		error |= ValidationHelper.checkStringNotBlank(this, AbstractNode.Key.uuid, errorBuffer);
+		//error |= ValidationHelper.checkStringNotBlank(this, AbstractNode.Key.uuid, errorBuffer);
 
 //              error |= (this.getStartNode() != null);
 //              error |= (this.getEndNode() != null);

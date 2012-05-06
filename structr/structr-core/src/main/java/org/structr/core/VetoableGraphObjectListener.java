@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Map;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.SecurityContext;
-import org.structr.core.entity.AbstractRelationship;
 
 /**
  * An interface that allows you to be notified when a
