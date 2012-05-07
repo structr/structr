@@ -186,12 +186,12 @@ var _Entities = {
 //            }
         }
 
-        console.log('lastAppendedObj', lastAppendedObj);
+        //console.log('lastAppendedObj', lastAppendedObj);
 
         if (lastAppendedObj) {
 
                 var parent = lastAppendedObj.parent();
-                console.log('lastAppendedObj.parent()', parent);
+                //console.log('lastAppendedObj.parent()', parent);
                 if (parent.children('.node') && parent.children('.node').length==1) {
 
                     addExpandedNode(getId(parent), null, resourceId);

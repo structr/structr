@@ -422,10 +422,19 @@ var Structr = {
         if (debug) console.log('Module ' + name + ' registered');
     },
 
+    findParent : function(parentId, componentId, resourceId, defaultElement) {
+        var parent = Structr.node(parentId, null, componentId, resourceId);
+        if (debug) console.log('findParent', parentId, componentId, resourceId, defaultElement, parent);
+        if (debug) console.log('findParent: parent element from Structr.node: ', parent);
+        if (!parent) parent = defaultElement;
+        if (debug) console.log('findParent: final parent element: ', parent);
+        return parent;
+    },
+    
     node : function(id, parentId, componentId, resourceId, position) {
         var entityElement, parentElement, componentElement, resourceElement;
 
-        if (debug) console.log('Structr.node', id, parentId, componentId, resourceId, position);
+        console.log('Structr.node', id, parentId, componentId, resourceId, position);
 
         if (id && resourceId && componentId && parentId && (resourceId != parentId) && (resourceId != componentId)) {
 
@@ -440,10 +449,20 @@ var Structr = {
             parentElement = $('.node.' + parentId + '_', resourceElement);
             entityElement = $('.node.' + id + '_', parentElement);
 
-        } else if (id && resourceId) {
+        } else if (id && resourceId && componentId && (resourceId != componentId)) {
 
             resourceElement = $('.node.' + resourceId + '_');
-            entityElement = $('.node.' + id + '_', resourceElement);
+            componentElement = $('.node.' + componentId + '_', resourceElement);
+            entityElement = $('.node.' + id + '_', componentElement);
+
+        } else if (id && resourceId) {
+            
+            if (id == resourceId) {
+                entityElement = $('.node.' + resourceId + '_');
+            } else {
+                resourceElement = $('.node.' + resourceId + '_');
+                entityElement = $('.node.' + id + '_', resourceElement);
+            }
 
         } else if (id && parentId) {
 
@@ -492,15 +511,6 @@ var Structr = {
         entity.name = $('.name_', element).text();
 
         return entity;
-    },
-
-    findParent : function(parentId, componentId, resourceId, defaultElement) {
-        var parent = Structr.node(parentId, null, null, resourceId);
-        if (debug) console.log('findParent', parentId, componentId, resourceId, defaultElement, parent);
-        if (debug) console.log('findParent: parent element from Structr.node: ', parent);
-        if (!parent) parent = defaultElement;
-        if (debug) console.log('findParent: final parent element: ', parent);
-        return parent;
     }
 };
 
@@ -525,12 +535,15 @@ function plural(type) {
 }
 
 function addExpandedNode(id, parentId, resourceId) {
-    console.log('addExpandedNode', id, parentId, resourceId);
+    if (debug) console.log('addExpandedNode', id, parentId, resourceId);
     if (!getExpanded()[resourceId]) {
         getExpanded()[resourceId] = {};
     }
     getExpanded()[resourceId][id] = true;
-    $.cookie('structrTreeExpandedIds', $.toJSON(Structr.expanded), { expires: 7, path: '/' });
+    $.cookie('structrTreeExpandedIds', $.toJSON(Structr.expanded), {
+        expires: 7, 
+        path: '/'
+    });
 
 }
 
@@ -540,7 +553,10 @@ function removeExpandedNode(id, parentId, resourceId) {
         getExpanded()[resourceId] = {};
     }
     delete getExpanded()[resourceId][id];
-    $.cookie('structrTreeExpandedIds', $.toJSON(Structr.expanded), { expires: 7, path: '/' });
+    $.cookie('structrTreeExpandedIds', $.toJSON(Structr.expanded), {
+        expires: 7, 
+        path: '/'
+    });
 }
 
 function isExpanded(id, parentId, resourceId) {
