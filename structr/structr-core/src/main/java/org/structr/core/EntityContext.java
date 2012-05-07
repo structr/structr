@@ -580,11 +580,11 @@ public class EntityContext {
 
 			namedRelationClass = globalRelationshipClassMap.get(createCombinedRelationshipType(sourceSuperClass, relType, destSuperClass));
 
-			// one level up :)
-			sourceSuperClass = sourceSuperClass.getSuperclass();
+			// do not check superclass for source type
+			//sourceSuperClass = sourceSuperClass.getSuperclass();
 
-			// do not check superclass for dest type
-//                      destSuperClass   = destSuperClass.getSuperclass();
+			// one level up
+                        destSuperClass   = destSuperClass.getSuperclass();
 
 		}
 
