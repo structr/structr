@@ -30,10 +30,12 @@ import com.google.gson.JsonPrimitive;
 public class UniqueToken extends SemanticErrorToken {
 
 	private Object value = null;
+        private String uuid = null;
 
-	public UniqueToken(String propertyKey, Object value) {
+	public UniqueToken(String uuid, String propertyKey, Object value) {
 		
 		super(propertyKey);
+                this.uuid = uuid;
 		this.value = value;
 	}
 
@@ -42,7 +44,8 @@ public class UniqueToken extends SemanticErrorToken {
 
 		JsonObject obj = new JsonObject();
 
-		obj.add(getErrorToken(), new JsonPrimitive(value.toString()));
+                obj.add(getErrorToken(), new JsonPrimitive(value.toString()));
+		obj.add("id", new JsonPrimitive(uuid.toString()));
 
 		return obj;
 	}
