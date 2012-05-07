@@ -128,15 +128,20 @@ public class RemoveNodeFromIndex extends NodeServiceCommand {
 
 	private void removeNodeFromAllIndices(final AbstractNode node) {
 
+		if (node.getStringProperty(AbstractNode.Key.uuid) == null) {
+
+			setExitCode(Command.exitCode.FAILURE);
+			setErrorMessage("Will not remove node from indices which has no UUID");
+			logger.log(Level.WARNING, getErrorMessage());
+
+			return;
+
+		}                
+                
 		for (Enum indexName : (NodeIndex[]) arguments.get("indices")) {
 
 			Index<Node> index = indices.get(indexName);
-			if (indexName.equals(NodeIndex.layer)) {
-
-				index.remove(node.getNode());
-			} else {
-				index.remove(node.getNode());
-			}
+			index.remove(node.getNode());
 
 		}
 	}

@@ -21,18 +21,22 @@
 
 package org.structr.core.node;
 
+import org.neo4j.gis.spatial.indexprovider.LayerNodeIndex;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.tooling.GlobalGraphOperations;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.entity.GenericNode;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -45,29 +49,53 @@ import java.util.List;
  */
 public class ClearDatabase extends NodeServiceCommand {
 
+	private static final Logger logger = Logger.getLogger(ClearDatabase.class.getName());
+
+	//~--- methods --------------------------------------------------------
+
 	@Override
 	public Object execute(Object... parameters) throws FrameworkException {
 
-		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
-		NodeFactory nodeFactory      = (NodeFactory) arguments.get("nodeFactory");
+		final GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
+		final NodeFactory nodeFactory      = (NodeFactory) arguments.get("nodeFactory");
 
 		if (graphDb != null) {
 
-			final List<AbstractNode> allNodes = (List<AbstractNode>) nodeFactory.createNodes(securityContext,
-								    GlobalGraphOperations.at(graphDb).getAllNodes());
 			final Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
-			//final Command delRel             = Services.command(securityContext, DeleteRelationshipCommand.class);
-			final Command delNode            = Services.command(securityContext, DeleteNodeCommand.class);
 
-			transactionCommand.execute(new StructrTransaction() {
+			// final Command delRel             = Services.command(securityContext, DeleteRelationshipCommand.class);
+			final Command delNode = Services.command(securityContext, DeleteNodeCommand.class);
+
+			transactionCommand.execute(new BatchTransaction() {
 
 				@Override
-				public Object execute() throws FrameworkException {
+				public Object execute(Transaction tx) throws FrameworkException {
+
+					long nodes                  = 0L;
+					List<AbstractNode> allNodes = (List<AbstractNode>) nodeFactory.createNodes(securityContext, GlobalGraphOperations.at(graphDb).getAllNodes());
 
 					for (AbstractNode node : allNodes) {
 
-						delNode.execute(node);
+						// Delete only "our" nodes
+						if (node.getStringProperty(AbstractNode.Key.uuid) != null) {
 
+							delNode.execute(node);
+
+							if (nodes % 100 == 0) {
+
+								logger.log(Level.INFO, "Deleted {0} nodes, committing results to database.", nodes);
+								tx.success();
+								tx.finish();
+
+								tx = graphDb.beginTx();
+
+								logger.log(Level.FINE, "######## committed ########", nodes);
+
+							}
+
+							nodes++;
+
+						}
 					}
 
 					return null;

@@ -45,11 +45,14 @@ import java.util.logging.Logger;
 public class DeleteRelationshipCommand extends NodeServiceCommand {
 
 	private static final Logger logger = Logger.getLogger(DeleteRelationshipCommand.class.getName());
+	private static RelationshipFactory relationshipFactory;
 
 	//~--- methods --------------------------------------------------------
 
 	@Override
 	public Object execute(Object... parameters) throws FrameworkException {
+
+		relationshipFactory = (RelationshipFactory) arguments.get("relationshipFactory");
 
 		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
 		Object ret                   = null;
@@ -85,7 +88,7 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
 
 		setExitCode(exitCode.FAILURE);
 
-		Relationship rel = null;
+		AbstractRelationship rel = null;
 
 		if (argument instanceof Long) {
 
@@ -93,25 +96,33 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
 			long id = ((Long) argument).longValue();
 
 			try {
-				rel = graphDb.getRelationshipById(id);
+				rel = relationshipFactory.createRelationship(securityContext, (Relationship) graphDb.getRelationshipById(id));
 			} catch (NotFoundException nfe) {
 				logger.log(Level.SEVERE, "Relationship {0} not found, cannot delete.", id);
 			}
 		} else if (argument instanceof AbstractRelationship) {
 
-			AbstractRelationship r = (AbstractRelationship) argument;
-
-			rel = r.getRelationship();
+			rel = (AbstractRelationship) argument;
 
 		} else if (argument instanceof Relationship) {
 
-			rel = (Relationship) argument;
+			rel = relationshipFactory.createRelationship(securityContext, (Relationship) argument);
 
 		}
 
 		if (rel != null) {
 
-			final Relationship relToDelete   = rel;
+			if (rel.getStringProperty(AbstractRelationship.Key.uuid) == null) {
+
+				setExitCode(Command.exitCode.FAILURE);
+				setErrorMessage("Will not delete relationship which has no UUID");
+				logger.log(Level.WARNING, getErrorMessage());
+
+				return null;
+
+			}
+
+			final Relationship relToDelete   = rel.getRelationship();
 			final Command transactionCommand = Services.command(securityContext, TransactionCommand.class);
 
 			transactionCommand.execute(new StructrTransaction() {
@@ -119,9 +130,16 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
 				@Override
 				public Object execute() throws FrameworkException {
 
-					// remove object from index
-					Services.command(securityContext, RemoveRelationshipFromIndex.class).execute(relToDelete);
-					relToDelete.delete();
+					try {
+
+						// remove object from index
+						Services.command(securityContext, RemoveRelationshipFromIndex.class).execute(relToDelete);
+
+						// delete node in database
+						relToDelete.delete();
+					} catch (IllegalStateException ise) {
+						logger.log(Level.WARNING, ise.getMessage());
+					}
 
 					return null;
 				}

@@ -1,229 +1,206 @@
 /*
  *  Copyright (C) 2011 Axel Morgner, structr <structr@structr.org>
- * 
+ *
  *  This file is part of structr <http://structr.org>.
- * 
+ *
  *  structr is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
- * 
+ *
  *  structr is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- * 
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+
+
 package org.structr.core.agent;
+
+import org.structr.core.node.NodeFactory;
+
+//~--- JDK imports ------------------------------------------------------------
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+//~--- classes ----------------------------------------------------------------
 
 /**
- * An experimental interface description for a structr agent.
- * To be discussed..
+ * An Agent runs tasks
  *
  * @author cmorgner
  */
 public abstract class Agent extends Thread implements StatusInfo {
 
-    public static final String MAX_QUEUE_SIZE = "max_queue_size";
-    public static final String AVERAGE_EXECUTION_TIME = "average_execution_time";
-    public static final String EXECUTION_STATUS = "execution_status";
-    private final AtomicBoolean acceptingTasks = new AtomicBoolean(true);
-    private final AtomicBoolean suspended = new AtomicBoolean(false);
-    private final Queue<Task> taskQueue = new ConcurrentLinkedQueue<Task>();
-    private AgentService agentService = null;
-    private Task currentTask = null;
-    private long averageExecutionTime = 0;
-    private long lastStartTime = 0;
-    private int maxQueueSize = 10;
-    private int maxAgents = 4;
+	public static final String AVERAGE_EXECUTION_TIME = "average_execution_time";
+	public static final String EXECUTION_STATUS       = "execution_status";
+	public static final String MAX_QUEUE_SIZE         = "max_queue_size";
+	private static final Logger logger                = Logger.getLogger(Agent.class.getName());
 
-    // <editor-fold defaultstate="expanded" desc="public methods">
-    public final void setAgentService(AgentService service) {
-        // NOTE: this is important! We do not want running tasks to die when the
-        // server is going down!
-        this.setDaemon(false);
+	//~--- fields ---------------------------------------------------------
 
-        this.agentService = service;
+	private final AtomicBoolean acceptingTasks = new AtomicBoolean(true);
+	private AgentService agentService          = null;
+	private long averageExecutionTime          = 0;
+	private Task currentTask                   = null;
+	private long lastStartTime                 = 0;
+	private int maxAgents                      = 4;
+	private int maxQueueSize                   = 10;
+	private final AtomicBoolean suspended      = new AtomicBoolean(false);
+	private final Queue<Task> taskQueue        = new ConcurrentLinkedQueue<Task>();
 
-        // initialize lastStartTime
-        lastStartTime = System.nanoTime();
-    }
+	//~--- methods --------------------------------------------------------
 
-    @Override
-    public final void run() {
-        agentService.notifyAgentStart(this);
+	@Override
+	public final void run() {
 
-        do {
-            while (suspended.get()) {
-                Thread.yield();
-            }
+		agentService.notifyAgentStart(this);
 
-            synchronized (taskQueue) {
-                currentTask = taskQueue.poll();
-            }
+		do {
 
-            if (currentTask != null) {
-                lastStartTime = System.nanoTime();
-                ReturnValue ret = null;
+			while (suspended.get()) {
 
-                try {
-                    ret = processTask(currentTask);
+				Thread.yield();
 
-                } catch (Throwable t) {
-                    // someone killed us or the task processing failed..
-                }
+			}
 
-                if (ret != null) {
-                    // handle return value
-                    switch (ret) {
-                        case Success:
-                        case Abort:
-                            // task finished, nothing to do in these cases
-                            break;
+			synchronized (taskQueue) {
 
-                        case Retry:
-                            // TODO: schedule task for re-execution
-                            break;
-                    }
-                }
+				currentTask = taskQueue.poll();
 
-                long endTime = System.nanoTime();
+			}
 
-                // calc. average execution time
-                averageExecutionTime += endTime;
-                averageExecutionTime /= 2;
+			if (currentTask != null) {
 
-            } else {
-                // queue is empty, quit.
-                acceptingTasks.set(false);
-            }
+				lastStartTime = System.nanoTime();
 
-        } while (acceptingTasks.get());
+				ReturnValue ret = null;
 
-	// call beforeShutdown to allow agents to clean up
-	beforeShutdown();
-	
-        agentService.notifyAgentStop(this);
-    }
+				try {
+					ret = processTask(currentTask);
+				} catch (Throwable t) {
 
-    public final boolean assignTask(Task task) {
-        // TODO: do type check here
+					// someone killed us or the task processing failed..
+					// Log this!!
+					logger.log(Level.SEVERE, "Processing task {0} failed. Maybe someone killed us?", currentTask.getType());
+				}
 
-        if (canHandleMore() && acceptingTasks.get()) {
-            synchronized (taskQueue) {
-                taskQueue.add(task);
-            }
+				if (ret != null) {
 
-            return (true);
-        }
+					// handle return value
+					switch (ret) {
 
-        return (false);
-    }
+						case Success :
+						case Abort :
 
-    public final Task getCurrentTask() {
-        return (currentTask);
-    }
+							// task finished, nothing to do in these cases
+							break;
 
-    public final List<Task> getTaskQueue() {
-        List<Task> ret = new LinkedList<Task>();
-        ret.addAll(taskQueue);
+						case Retry :
 
-        return (ret);
-    }
+							// TODO: schedule task for re-execution
+							break;
 
-    public final void killAgent() {
-        // stop accepting tasks
-        acceptingTasks.set(false);
+					}
+				}
 
-        // clear queue
-        taskQueue.clear();
+				long endTime = System.nanoTime();
 
-        // interrupt running process..
-        // not sure if this works... see Thread.interrupt()'s description!
-        // may not work if the processTask method itself catches the interrupt..
-        this.interrupt();
-    }
+				// calc. average execution time
+				averageExecutionTime += endTime;
+				averageExecutionTime /= 2;
 
-    public final void suspendAgent() {
-        acceptingTasks.set(false);
-        suspended.set(true);
+			} else {
 
-    }
+				// queue is empty, quit.
+				acceptingTasks.set(false);
+			}
 
-    public final void resumeAgent() {
-        acceptingTasks.set(true);
-        suspended.set(false);
-    }
+		} while (acceptingTasks.get());
 
-    public final boolean isSuspended() {
-        return (suspended.get());
-    }
+		// call beforeShutdown to allow agents to clean up
+		beforeShutdown();
+		agentService.notifyAgentStop(this);
+	}
 
-    public final boolean isAcceptingTasks() {
-        return (acceptingTasks.get());
-    }
+	public final boolean assignTask(Task task) {
 
-    public final int getMaxQueueSize() {
-        return (maxQueueSize);
-    }
+		// TODO: do type check here
+		if (canHandleMore() && acceptingTasks.get()) {
 
-    public final long getAverageExecutionTime() {
-        return (averageExecutionTime);
-    }
+			synchronized (taskQueue) {
 
-    public int getMaxAgents() {
-        return (maxAgents);
-    }
+				taskQueue.add(task);
 
-    // ----- interface StatusInfo -----
-    @Override
-    public Object getStatusProperty(String key) {
-        if (key.equals(AVERAGE_EXECUTION_TIME)) {
-            return (getAverageExecutionTime());
+			}
 
-        } else if (key.equals(MAX_QUEUE_SIZE)) {
-            return (getMaxQueueSize());
+			return (true);
 
-        } else if (key.equals(EXECUTION_STATUS)) {
-            // TODO.
-        }
+		}
 
-        return (null);
-    }
-    // </editor-fold>
+		return (false);
+	}
 
-    // <editor-fold defaultstate="collapsed" desc="protected methods">
-    protected AgentService getBlackboardService() {
-        return (agentService);
-    }
-    protected void beforeShutdown() {
-	    // override me
-    }
-    // </editor-fold>
+	public final void killAgent() {
 
-    // <editor-fold defaultstate="collapsed" desc="private methods">
-    private boolean canHandleMore() {
-//        return (taskQueue.isEmpty());
+		// stop accepting tasks
+		acceptingTasks.set(false);
+
+		// clear queue
+		taskQueue.clear();
+
+		// interrupt running process..
+		// not sure if this works... see Thread.interrupt()'s description!
+		// may not work if the processTask method itself catches the interrupt..
+		this.interrupt();
+	}
+
+	public final void suspendAgent() {
+
+		acceptingTasks.set(false);
+		suspended.set(true);
+	}
+
+	public final void resumeAgent() {
+
+		acceptingTasks.set(true);
+		suspended.set(false);
+	}
+
+	protected void beforeShutdown() {
+
+		// override me
+	}
+
+	// </editor-fold>
+
+	// <editor-fold defaultstate="collapsed" desc="private methods">
+	private boolean canHandleMore() {
+
+//              return (taskQueue.isEmpty());
 		int size = 0;
 
-		synchronized(taskQueue)
-		{
+		synchronized (taskQueue) {
+
 			// FIXME: size may not be a constant time operation! slow?
 			size = taskQueue.size();
 		}
 
 		// queue is empty, assume new agent
-		if(size == 0)
-		{
-			return(true);
+		if (size == 0) {
+
+			return (true);
+
 		}
 
 		long actualExecutionTime = System.nanoTime() - lastStartTime;
@@ -232,38 +209,112 @@ public abstract class Agent extends Thread implements StatusInfo {
 		long upperThreshold = averageExecutionTime + (averageExecutionTime / 2);
 		long lowerThreshold = averageExecutionTime - (averageExecutionTime / 2);
 
-		if(actualExecutionTime > upperThreshold && maxQueueSize > 2)
-		{
-			// FIXME
+		if ((actualExecutionTime > upperThreshold) && (maxQueueSize > 2)) {
 
+			// FIXME
 			maxQueueSize -= 2;
 
 			// do not take the next task
-			return(false);
+			return (false);
+		} else if ((actualExecutionTime < lowerThreshold) && (maxQueueSize < 200)) {
 
-		} else
-		if(actualExecutionTime < lowerThreshold && maxQueueSize < 200)
-		{
 			// FIXME
-
 			maxQueueSize += 2;
 
 			// can take the next task
-			return(true);
+			return (true);
 		}
 
+		return (size < maxQueueSize);
+	}
 
-		return(size < maxQueueSize);
-    }
-    // </editor-fold>
+	// </editor-fold>
 
-    // <editor-fold defaultstate="collapsed" desc="abstract methods">
-    public abstract Class getSupportedTaskType();
+	/**
+	 * This method will be called by the AgentService
+	 * @param task
+	 */
+	public abstract ReturnValue processTask(Task task) throws Throwable;
 
-    /**
-     * This method will be called by the AgentService
-     * @param task
-     */
-    public abstract ReturnValue processTask(Task task) throws Throwable;
-    // </editor-fold>
+	//~--- get methods ----------------------------------------------------
+
+	public final Task getCurrentTask() {
+		return (currentTask);
+	}
+
+	public final List<Task> getTaskQueue() {
+
+		List<Task> ret = new LinkedList<Task>();
+
+		ret.addAll(taskQueue);
+
+		return (ret);
+	}
+
+	public final int getMaxQueueSize() {
+		return (maxQueueSize);
+	}
+
+	public final long getAverageExecutionTime() {
+		return (averageExecutionTime);
+	}
+
+	public int getMaxAgents() {
+		return (maxAgents);
+	}
+
+	// ----- interface StatusInfo -----
+	@Override
+	public Object getStatusProperty(String key) {
+
+		if (key.equals(AVERAGE_EXECUTION_TIME)) {
+
+			return (getAverageExecutionTime());
+
+		} else if (key.equals(MAX_QUEUE_SIZE)) {
+
+			return (getMaxQueueSize());
+
+		} else if (key.equals(EXECUTION_STATUS)) {
+
+			// TODO.
+		}
+
+		return (null);
+	}
+
+	// </editor-fold>
+
+	// <editor-fold defaultstate="collapsed" desc="protected methods">
+	protected AgentService getBlackboardService() {
+		return (agentService);
+	}
+
+	// <editor-fold defaultstate="collapsed" desc="abstract methods">
+	public abstract Class getSupportedTaskType();
+
+	public final boolean isSuspended() {
+		return (suspended.get());
+	}
+
+	public final boolean isAcceptingTasks() {
+		return (acceptingTasks.get());
+	}
+
+	//~--- set methods ----------------------------------------------------
+
+	// <editor-fold defaultstate="expanded" desc="public methods">
+	public final void setAgentService(AgentService service) {
+
+		// NOTE: this is important! We do not want running tasks to die when the
+		// server is going down!
+		this.setDaemon(false);
+
+		this.agentService = service;
+
+		// initialize lastStartTime
+		lastStartTime = System.nanoTime();
+	}
+
+	// </editor-fold>
 }

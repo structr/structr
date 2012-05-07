@@ -24,6 +24,8 @@ package org.structr.core.node;
 import org.apache.commons.lang.StringUtils;
 
 import org.neo4j.gis.spatial.indexprovider.LayerNodeIndex;
+import org.neo4j.gis.spatial.indexprovider.SpatialIndexProvider;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.index.Index;
 
@@ -60,11 +62,14 @@ public class IndexNodeCommand extends NodeServiceCommand {
 	//~--- fields ---------------------------------------------------------
 
 	private Map<String, Index> indices = new HashMap<String, Index>();
+	GraphDatabaseService graphDb;
 
 	//~--- methods --------------------------------------------------------
 
 	@Override
 	public Object execute(Object... parameters) throws FrameworkException {
+
+		graphDb = (GraphDatabaseService) arguments.get("graphDb");
 
 		for (Enum indexName : (NodeIndex[]) arguments.get("indices")) {
 
@@ -200,7 +205,28 @@ public class IndexNodeCommand extends NodeServiceCommand {
 
 			LayerNodeIndex layerIndex = (LayerNodeIndex) indices.get(NodeIndex.layer.name());
 
-			layerIndex.add(dbNode, "", "");
+			try {
+
+				layerIndex.add(dbNode, "", "");
+
+				// If an exception is thrown here, the index was deleted
+				// and has to be recreated.
+
+			} catch (Exception e) {
+
+				final Map<String, String> config = new HashMap<String, String>();
+
+				config.put(LayerNodeIndex.LAT_PROPERTY_KEY, Location.Key.latitude.name());
+				config.put(LayerNodeIndex.LON_PROPERTY_KEY, Location.Key.longitude.name());
+				config.put(SpatialIndexProvider.GEOMETRY_TYPE, LayerNodeIndex.POINT_PARAMETER);
+
+				layerIndex = new LayerNodeIndex("layerIndex", graphDb, config);
+
+				indices.put(NodeIndex.layer.name(), layerIndex);
+
+				// try again
+				layerIndex.add(dbNode, "", "");
+			}
 
 		}
 	}

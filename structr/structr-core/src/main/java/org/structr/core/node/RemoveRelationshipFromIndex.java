@@ -123,6 +123,16 @@ public class RemoveRelationshipFromIndex extends NodeServiceCommand {
 
 	private void removeRelationshipFromAllIndices(final AbstractRelationship rel) {
 
+		if (rel.getStringProperty(AbstractRelationship.Key.uuid) == null) {
+
+			setExitCode(Command.exitCode.FAILURE);
+			setErrorMessage("Will not remove relationship from indices which has no UUID");
+			logger.log(Level.WARNING, getErrorMessage());
+
+			return;
+
+		}
+
 		for (Enum indexName : indices.keySet()) {
 
 			indices.get(indexName).remove(rel.getRelationship());

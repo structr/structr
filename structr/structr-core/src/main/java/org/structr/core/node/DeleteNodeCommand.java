@@ -144,6 +144,16 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 	private AbstractNode doDeleteNode(final AbstractNode node, final Boolean cascade) throws FrameworkException {
 
+		if (node.getStringProperty(AbstractNode.Key.uuid) == null) {
+
+			setExitCode(Command.exitCode.FAILURE);
+			setErrorMessage("Will not delete node which has no UUID");
+			logger.log(Level.WARNING, getErrorMessage());
+
+			return null;
+
+		}
+
 		// final Node node                  = graphDb.getNodeById(structrNode.getId());
 		final Command transactionCommand  = Services.command(securityContext, TransactionCommand.class);
 		final Command removeNodeFromIndex = Services.command(securityContext, RemoveNodeFromIndex.class);
@@ -154,19 +164,19 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 			@Override
 			public Object execute() throws FrameworkException {
 
-				if (cascade) {
+				try {
 
-					// Delete all end nodes of outgoing relationships which are connected
-					// by relationships which have a cascadeDelete value of DELETE_OUTGOING or DELETE_INCOMING
-					List<AbstractRelationship> outgoingRels = node.getOutgoingRelationships();
+					if (cascade) {
 
-					for (AbstractRelationship rel : outgoingRels) {
+						// Delete all end nodes of outgoing relationships which are connected
+						// by relationships which have a cascadeDelete value of DELETE_OUTGOING or DELETE_INCOMING
+						List<AbstractRelationship> outgoingRels = node.getOutgoingRelationships();
 
-						int cascadeDelete = rel.cascadeDelete();
+						for (AbstractRelationship rel : outgoingRels) {
 
-						if ((cascadeDelete == RelationClass.DELETE_OUTGOING) || (cascadeDelete == RelationClass.DELETE_BOTH)) {
+							int cascadeDelete = rel.cascadeDelete();
 
-							try {
+							if ((cascadeDelete == RelationClass.DELETE_OUTGOING) || (cascadeDelete == RelationClass.DELETE_BOTH)) {
 
 								AbstractNode endNode = rel.getEndNode();
 
@@ -174,25 +184,19 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 								removeNodeFromIndex.execute(endNode);
 								doDeleteNode(endNode, cascade);
 
-							} catch (Throwable t) {
-								logger.log(Level.WARNING, "Exception while deleting connected node: {0}", t);
 							}
 
 						}
 
-					}
+						// Delete all start nodes of incoming relationships which are connected
+						// by relationships which have a cascadeDelete value of DELETE_INCOMING or DELETE_INCOMING
+						List<AbstractRelationship> incomingRels = node.getIncomingRelationships();
 
-					// Delete all start nodes of incoming relationships which are connected
-					// by relationships which have a cascadeDelete value of DELETE_INCOMING or DELETE_INCOMING
-					List<AbstractRelationship> incomingRels = node.getIncomingRelationships();
+						for (AbstractRelationship rel : incomingRels) {
 
-					for (AbstractRelationship rel : incomingRels) {
+							int cascadeDelete = rel.cascadeDelete();
 
-						int cascadeDelete = rel.cascadeDelete();
-
-						if ((cascadeDelete == RelationClass.DELETE_INCOMING) || (cascadeDelete == RelationClass.DELETE_INCOMING)) {
-
-							try {
+							if ((cascadeDelete == RelationClass.DELETE_INCOMING) || (cascadeDelete == RelationClass.DELETE_INCOMING)) {
 
 								AbstractNode startNode = rel.getStartNode();
 
@@ -201,37 +205,33 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 								doDeleteNode(startNode, cascade);
 								doDeleteNode(rel.getStartNode(), cascade);
 
-							} catch (Throwable t) {
-								logger.log(Level.WARNING, "Exception while deleting connected node: {0}", t);
 							}
 
 						}
+					}
+
+					// deletion callback, must not prevent node deletion!
+					node.onNodeDeletion();
+
+					// Delete any relationship
+					List<AbstractRelationship> rels = node.getRelationships();
+
+					for (AbstractRelationship r : rels) {
+
+						deleteRel.execute(r);
 
 					}
-				}
 
-				// deletion callback, must not prevent node deletion!
-				try {
-					node.onNodeDeletion();
+					// remove node from index
+					removeNodeFromIndex.execute(node);
+
+					// delete node in database
+					node.getNode().delete();
+					setExitCode(Command.exitCode.SUCCESS);
+
 				} catch (Throwable t) {
-					logger.log(Level.WARNING, "Exception while calling onDeletion callback: {0}", t);
+					logger.log(Level.WARNING, "Exception while deleting node: {0}", t);
 				}
-
-				// Delete any relationship
-				List<AbstractRelationship> rels = node.getRelationships();
-
-				for (AbstractRelationship r : rels) {
-
-					deleteRel.execute(r);
-
-				}
-
-				// remove node from index
-				removeNodeFromIndex.execute(node);
-
-				// delete node in database
-				node.getNode().delete();
-				setExitCode(Command.exitCode.SUCCESS);
 
 				return null;
 			}
