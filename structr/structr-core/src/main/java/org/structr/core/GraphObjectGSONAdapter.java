@@ -51,7 +51,7 @@ public class GraphObjectGSONAdapter implements JsonSerializer<GraphObject>, Json
 
 	private static final Logger logger    = Logger.getLogger(GraphObjectGSONAdapter.class.getName());
 	private String idProperty             = null;
-	private int outputNestingDepth        = 1;
+	private int outputNestingDepth        = 3;
 	private PropertyFormat propertyFormat = null;
 	private Value<String> propertyView    = null;
 
