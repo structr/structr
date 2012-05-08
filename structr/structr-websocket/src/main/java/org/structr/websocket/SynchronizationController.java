@@ -221,7 +221,7 @@ public class SynchronizationController implements VetoableGraphObjectListener {
 
 			relationship = (AbstractRelationship) graphObject;
 
-			if (relationship.getRelType().equals(RelType.CONTAINS) || relationship.getRelType().equals(RelType.HAS_CHILD)) {
+			if (relationship.getRelType().equals(RelType.CONTAINS) || relationship.getRelType().equals(RelType.MEMBER_OF)) {
 
 				AbstractNode startNode   = relationship.getStartNode();
 				AbstractNode endNode     = relationship.getEndNode();

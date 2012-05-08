@@ -21,6 +21,7 @@
 
 package org.structr.core.entity;
 
+import java.awt.image.renderable.RenderContext;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
@@ -29,9 +30,7 @@ import org.apache.commons.lang.time.DateUtils;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.RelationshipType;
-import org.neo4j.graphdb.traversal.Evaluation;
 import org.neo4j.graphdb.traversal.Evaluator;
 import org.neo4j.kernel.Traversal;
 
@@ -39,7 +38,6 @@ import org.structr.common.*;
 import org.structr.common.AbstractComponent;
 import org.structr.common.AccessControllable;
 import org.structr.common.GraphObjectComparator;
-import org.structr.common.PathHelper;
 import org.structr.common.Permission;
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
@@ -52,15 +50,11 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.NullArgumentToken;
 import org.structr.common.error.ReadOnlyPropertyToken;
-import org.structr.common.renderer.DefaultEditRenderer;
-import org.structr.common.renderer.RenderContext;
-import org.structr.common.renderer.RenderController;
 import org.structr.core.Command;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.IterableAdapter;
 import org.structr.core.NodeRenderer;
-import org.structr.core.NodeSource;
 import org.structr.core.PropertyConverter;
 import org.structr.core.PropertyGroup;
 import org.structr.core.Services;
@@ -69,23 +63,18 @@ import org.structr.core.cloud.NodeDataContainer;
 import org.structr.core.converter.BooleanConverter;
 import org.structr.core.converter.LongDateConverter;
 import org.structr.core.node.CreateNodeCommand;
-import org.structr.core.node.CreateRelationshipCommand;
-import org.structr.core.node.DeleteRelationshipCommand;
 import org.structr.core.node.FindNodeCommand;
-import org.structr.core.node.NodeFactoryCommand;
 import org.structr.core.node.NodeRelationshipStatisticsCommand;
 import org.structr.core.node.NodeRelationshipsCommand;
 import org.structr.core.node.NodeService.NodeIndex;
 import org.structr.core.node.SetOwnerCommand;
 import org.structr.core.node.StructrTransaction;
 import org.structr.core.node.TransactionCommand;
-import org.structr.core.node.XPath;
 import org.structr.core.notion.Notion;
 import org.structr.core.validator.SimpleRegexValidator;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.lang.reflect.Method;
 
 import java.text.ParseException;
 
@@ -93,7 +82,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -116,7 +104,7 @@ import javax.servlet.http.HttpServletRequest;
  * @author amorgner
  *
  */
-public abstract class AbstractNode implements GraphObject, Comparable<AbstractNode>, RenderController, AccessControllable {
+public abstract class AbstractNode implements GraphObject, Comparable<AbstractNode>, AccessControllable {
 
 	private final static String NODE_KEY_PREFIX               = "%{";
 	private final static String NODE_KEY_SUFFIX               = "}";
@@ -179,7 +167,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	protected Map<String, Object> properties;
 
 	// public final static String TEMPLATES_KEY = "templates";
-	protected Template template;
+//	protected Template template;
 	protected User user;
 
 	//~--- constant enums -------------------------------------------------
@@ -257,10 +245,10 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		// override me
 	}
 
-	@Override
-	public boolean renderingAllowed(final RenderContext context) {
-		return true;
-	}
+//	@Override
+//	public boolean renderingAllowed(final RenderContext context) {
+//		return true;
+//	}
 
 	public void init(final SecurityContext securityContext, final Node dbNode) {
 
@@ -332,97 +320,97 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		return (this.getName().compareTo(node.getName()));
 	}
 
-	public final void renderNode(final StructrOutputStream out, final AbstractNode startNode, final String editUrl, final Long editNodeId) {
+//	public final void renderNode(final StructrOutputStream out, final AbstractNode startNode, final String editUrl, final Long editNodeId) {
+//
+//		if (this.equals(startNode) &&!(this.renderingAllowed(RenderContext.AsTopNode))) {
+//
+//			return;
+//
+//		}
+//
+//		if (!(this.equals(startNode)) &&!(this.renderingAllowed(RenderContext.AsSubnode))) {
+//
+//			return;
+//
+//		}
+//
+//		// initialize renderers
+//		if (!renderersInitialized) {
+//
+//			initializeRenderers(rendererMap);
+//
+//			renderersInitialized = true;
+//
+//		}
+//
+//		// determine RenderMode
+//		RenderMode renderMode = RenderMode.Default;
+//
+//		if (this.equals(startNode) && rendererMap.containsKey(RenderMode.Direct)) {
+//
+//			renderMode = RenderMode.Direct;
+//
+//		}
+//
+//		if ((editNodeId != null) && (getId() == editNodeId.longValue())) {
+//
+//			renderMode = RenderMode.Edit;
+//
+//		}
+//
+//		// fetch Renderer
+//		NodeRenderer nodeRenderer = rendererMap.get(renderMode);
+//
+//		if (nodeRenderer == null) {
+//
+//			logger.log(Level.FINE, "No renderer found for mode {0}, using default renderers", renderMode);
+//
+//			switch (renderMode) {
+//
+//				case Default :
+//					nodeRenderer = new DefaultRenderer();
+//
+//					break;
+//
+//				case Direct :
+//
+//					// no default renderer for Direct
+//					break;
+//
+//				case Edit :
+//					nodeRenderer = new DefaultEditRenderer();
+//
+//					break;
+//
+//			}
+//
+//		}
+//
+//		logger.log(Level.FINE, "Got renderer {0} for mode {1}, node type {2} ({3})", new Object[] { (nodeRenderer != null)
+//			? nodeRenderer.getClass().getName()
+//			: "Unknown", renderMode, this.getType(), this.getId() });
+//
+//		if (nodeRenderer != null) {
+//
+//			// set content type
+//			out.setContentType(nodeRenderer.getContentType(this));
+//
+//			// render node
+//			nodeRenderer.renderNode(out, this, startNode, editUrl, editNodeId, renderMode);
+//		} else {
+//
+//			logger.log(Level.WARNING, "No renderer for mode {0}, node {1}", new Object[] { renderMode, this.getId() });
+//
+//		}
+//	}
 
-		if (this.equals(startNode) &&!(this.renderingAllowed(RenderContext.AsTopNode))) {
-
-			return;
-
-		}
-
-		if (!(this.equals(startNode)) &&!(this.renderingAllowed(RenderContext.AsSubnode))) {
-
-			return;
-
-		}
-
-		// initialize renderers
-		if (!renderersInitialized) {
-
-			initializeRenderers(rendererMap);
-
-			renderersInitialized = true;
-
-		}
-
-		// determine RenderMode
-		RenderMode renderMode = RenderMode.Default;
-
-		if (this.equals(startNode) && rendererMap.containsKey(RenderMode.Direct)) {
-
-			renderMode = RenderMode.Direct;
-
-		}
-
-		if ((editNodeId != null) && (getId() == editNodeId.longValue())) {
-
-			renderMode = RenderMode.Edit;
-
-		}
-
-		// fetch Renderer
-		NodeRenderer nodeRenderer = rendererMap.get(renderMode);
-
-		if (nodeRenderer == null) {
-
-			logger.log(Level.FINE, "No renderer found for mode {0}, using default renderers", renderMode);
-
-			switch (renderMode) {
-
-				case Default :
-					nodeRenderer = new DefaultRenderer();
-
-					break;
-
-				case Direct :
-
-					// no default renderer for Direct
-					break;
-
-				case Edit :
-					nodeRenderer = new DefaultEditRenderer();
-
-					break;
-
-			}
-
-		}
-
-		logger.log(Level.FINE, "Got renderer {0} for mode {1}, node type {2} ({3})", new Object[] { (nodeRenderer != null)
-			? nodeRenderer.getClass().getName()
-			: "Unknown", renderMode, this.getType(), this.getId() });
-
-		if (nodeRenderer != null) {
-
-			// set content type
-			out.setContentType(nodeRenderer.getContentType(this));
-
-			// render node
-			nodeRenderer.renderNode(out, this, startNode, editUrl, editNodeId, renderMode);
-		} else {
-
-			logger.log(Level.WARNING, "No renderer for mode {0}, node {1}", new Object[] { renderMode, this.getId() });
-
-		}
-	}
-
-	public void createTemplateRelationship(final Template template) throws FrameworkException {
-
-		// create a relationship to the given template node
-		Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
-
-		createRel.execute(this, template, RelType.USE_TEMPLATE);
-	}
+//	public void createTemplateRelationship(final Template template) throws FrameworkException {
+//
+//		// create a relationship to the given template node
+//		Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
+//
+//		createRel.execute(this, template, RelType.USE_TEMPLATE);
+//	}
 
 	/**
 	 * Render a node-specific inline edit view as html
@@ -871,189 +859,189 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * @param editUrl
 	 * @param editNodeId
 	 */
-	public void replaceBySubnodes(HttpServletRequest request, StringBuilder content, final AbstractNode startNode, final String editUrl, final Long editNodeId) throws FrameworkException {
-
-		List<AbstractNode> subnodes               = null;
-		List<AbstractNode> subnodesAndLinkedNodes = null;
-
-		template = startNode.getTemplate();
-
-		AbstractNode callingNode = null;
-
-		if ((template != null) && (this instanceof Template)) {
-
-			callingNode = template.getCallingNode();
-
-			if (callingNode != null) {
-
-				subnodesAndLinkedNodes = callingNode.getSortedDirectChildAndLinkNodes();
-				subnodes               = callingNode.getSortedDirectChildNodes();
-
-			}
-
-		} else {
-
-			subnodesAndLinkedNodes = getSortedDirectChildAndLinkNodes();
-			subnodes               = getSortedDirectChildNodes();
-
-		}
-
-		Command findNode = Services.command(securityContext, FindNodeCommand.class);
-		int start        = content.indexOf(NODE_KEY_PREFIX);
-
-		while (start > -1) {
-
-			int end = content.indexOf(NODE_KEY_SUFFIX, start + NODE_KEY_PREFIX.length());
-
-			if (end < 0) {
-
-				logger.log(Level.WARNING, "Node key suffix {0} not found in template {1}", new Object[] { NODE_KEY_SUFFIX, template.getName() });
-
-				break;
-
-			}
-
-			String key              = content.substring(start + NODE_KEY_PREFIX.length(), end);
-			int indexOfComma        = key.indexOf(",");
-			int indexOfDot          = key.indexOf(".");
-			String templateKey      = null;
-			String methodKey        = null;
-			Template customTemplate = null;
-
-			if (indexOfComma > 0) {
-
-				String[] splitted = StringUtils.split(key, ",");
-
-				key         = splitted[0];
-				templateKey = splitted[1];
-
-				if (StringUtils.isNotEmpty(templateKey)) {
-
-					customTemplate = (Template) findNode.execute(this, new XPath(templateKey));
-
-				}
-
-			} else if (indexOfDot > 0) {
-
-				String[] splitted = StringUtils.split(key, ".");
-
-				key       = splitted[0];
-				methodKey = splitted[1];
-
-			}
-
-			// StringBuilder replacement = new StringBuilder();
-			StructrOutputStream replacement = new StructrOutputStream(request, securityContext);
-
-			if ((callingNode != null) && key.equals(SUBNODES_KEY)) {
-
-				// render subnodes in correct order
-				for (AbstractNode s : subnodes) {
-
-					// propagate request and template
-					// s.setRequest(request);
-					s.renderNode(replacement, startNode, editUrl, editNodeId);
-				}
-			} else if ((callingNode != null) && key.equals(SUBNODES_AND_LINKED_NODES_KEY)) {
-
-				// render subnodes in correct order
-				for (AbstractNode s : subnodesAndLinkedNodes) {
-
-					// propagate request and template
-					// s.setRequest(request);
-					s.renderNode(replacement, startNode, editUrl, editNodeId);
-				}
-			} else {
-
-				// if (key.startsWith("/") || key.startsWith("count(")) {
-				// use XPath notation
-				// search relative to calling node
-				// List<AbstractNode> nodes = (List<AbstractNode>) findNode.execute(callingNode, new XPath(key));
-				// Object result = findNode.execute(this, new XPath(key));
-				Object result = findNode.execute(this, key);
-
-				if (result instanceof List) {
-
-					// get referenced nodes relative to the template
-					List<AbstractNode> nodes = (List<AbstractNode>) result;
-
-					if (nodes != null) {
-
-						for (AbstractNode s : nodes) {
-
-							if (customTemplate != null) {
-
-								s.setTemplate(customTemplate);
-
-							}
-
-							// propagate request
-							// s.setRequest(getRequest());
-							s.renderNode(replacement, startNode, editUrl, editNodeId);
-
-						}
-
-					}
-				} else if (result instanceof AbstractNode) {
-
-					AbstractNode s = (AbstractNode) result;
-
-					if (customTemplate != null) {
-
-						s.setTemplate(customTemplate);
-
-					}
-
-					// propagate request
-					// s.setRequest(getRequest());
-					if (StringUtils.isNotEmpty(methodKey)) {
-
-						methodKey = toGetter(methodKey);
-
-						Method getter = null;
-
-						try {
-
-							getter = s.getClass().getMethod(methodKey);
-
-							Object value = null;
-
-							try {
-
-								value = getter.invoke(s);
-
-								replacement.append(value);
-
-							} catch (Exception ex) {
-								logger.log(Level.FINE, "Cannot invoke method {0} on {1}", new Object[] { getter, s });
-							}
-
-						} catch (Exception ex) {
-							logger.log(Level.FINE, "Cannot invoke method {0}", methodKey);
-						}
-
-					} else {
-
-						s.renderNode(replacement, startNode, editUrl, editNodeId);
-
-					}
-
-				} else {
-
-					replacement.append(result);
-
-				}
-			}
-
-			String replaceBy = replacement.toString();
-
-			content.replace(start, end + NODE_KEY_SUFFIX.length(), replaceBy);
-
-			// avoid replacing in the replacement again
-			start = content.indexOf(NODE_KEY_PREFIX, start + replaceBy.length() + 1);
-
-		}
-	}
+//	public void replaceBySubnodes(HttpServletRequest request, StringBuilder content, final AbstractNode startNode, final String editUrl, final Long editNodeId) throws FrameworkException {
+//
+//		List<AbstractNode> subnodes               = null;
+//		List<AbstractNode> subnodesAndLinkedNodes = null;
+//
+//		template = startNode.getTemplate();
+//
+//		AbstractNode callingNode = null;
+//
+//		if ((template != null) && (this instanceof Template)) {
+//
+//			callingNode = template.getCallingNode();
+//
+//			if (callingNode != null) {
+//
+//				subnodesAndLinkedNodes = callingNode.getSortedDirectChildAndLinkNodes();
+//				subnodes               = callingNode.getSortedDirectChildNodes();
+//
+//			}
+//
+//		} else {
+//
+//			subnodesAndLinkedNodes = getSortedDirectChildAndLinkNodes();
+//			subnodes               = getSortedDirectChildNodes();
+//
+//		}
+//
+//		Command findNode = Services.command(securityContext, FindNodeCommand.class);
+//		int start        = content.indexOf(NODE_KEY_PREFIX);
+//
+//		while (start > -1) {
+//
+//			int end = content.indexOf(NODE_KEY_SUFFIX, start + NODE_KEY_PREFIX.length());
+//
+//			if (end < 0) {
+//
+//				logger.log(Level.WARNING, "Node key suffix {0} not found in template {1}", new Object[] { NODE_KEY_SUFFIX, template.getName() });
+//
+//				break;
+//
+//			}
+//
+//			String key              = content.substring(start + NODE_KEY_PREFIX.length(), end);
+//			int indexOfComma        = key.indexOf(",");
+//			int indexOfDot          = key.indexOf(".");
+//			String templateKey      = null;
+//			String methodKey        = null;
+//			Template customTemplate = null;
+//
+//			if (indexOfComma > 0) {
+//
+//				String[] splitted = StringUtils.split(key, ",");
+//
+//				key         = splitted[0];
+//				templateKey = splitted[1];
+//
+//				if (StringUtils.isNotEmpty(templateKey)) {
+//
+//					customTemplate = (Template) findNode.execute(this, new XPath(templateKey));
+//
+//				}
+//
+//			} else if (indexOfDot > 0) {
+//
+//				String[] splitted = StringUtils.split(key, ".");
+//
+//				key       = splitted[0];
+//				methodKey = splitted[1];
+//
+//			}
+//
+//			// StringBuilder replacement = new StringBuilder();
+//			StructrOutputStream replacement = new StructrOutputStream(request, securityContext);
+//
+//			if ((callingNode != null) && key.equals(SUBNODES_KEY)) {
+//
+//				// render subnodes in correct order
+//				for (AbstractNode s : subnodes) {
+//
+//					// propagate request and template
+//					// s.setRequest(request);
+//					s.renderNode(replacement, startNode, editUrl, editNodeId);
+//				}
+//			} else if ((callingNode != null) && key.equals(SUBNODES_AND_LINKED_NODES_KEY)) {
+//
+//				// render subnodes in correct order
+//				for (AbstractNode s : subnodesAndLinkedNodes) {
+//
+//					// propagate request and template
+//					// s.setRequest(request);
+//					s.renderNode(replacement, startNode, editUrl, editNodeId);
+//				}
+//			} else {
+//
+//				// if (key.startsWith("/") || key.startsWith("count(")) {
+//				// use XPath notation
+//				// search relative to calling node
+//				// List<AbstractNode> nodes = (List<AbstractNode>) findNode.execute(callingNode, new XPath(key));
+//				// Object result = findNode.execute(this, new XPath(key));
+//				Object result = findNode.execute(this, key);
+//
+//				if (result instanceof List) {
+//
+//					// get referenced nodes relative to the template
+//					List<AbstractNode> nodes = (List<AbstractNode>) result;
+//
+//					if (nodes != null) {
+//
+//						for (AbstractNode s : nodes) {
+//
+//							if (customTemplate != null) {
+//
+//								s.setTemplate(customTemplate);
+//
+//							}
+//
+//							// propagate request
+//							// s.setRequest(getRequest());
+//							s.renderNode(replacement, startNode, editUrl, editNodeId);
+//
+//						}
+//
+//					}
+//				} else if (result instanceof AbstractNode) {
+//
+//					AbstractNode s = (AbstractNode) result;
+//
+//					if (customTemplate != null) {
+//
+//						s.setTemplate(customTemplate);
+//
+//					}
+//
+//					// propagate request
+//					// s.setRequest(getRequest());
+//					if (StringUtils.isNotEmpty(methodKey)) {
+//
+//						methodKey = toGetter(methodKey);
+//
+//						Method getter = null;
+//
+//						try {
+//
+//							getter = s.getClass().getMethod(methodKey);
+//
+//							Object value = null;
+//
+//							try {
+//
+//								value = getter.invoke(s);
+//
+//								replacement.append(value);
+//
+//							} catch (Exception ex) {
+//								logger.log(Level.FINE, "Cannot invoke method {0} on {1}", new Object[] { getter, s });
+//							}
+//
+//						} catch (Exception ex) {
+//							logger.log(Level.FINE, "Cannot invoke method {0}", methodKey);
+//						}
+//
+//					} else {
+//
+//						s.renderNode(replacement, startNode, editUrl, editNodeId);
+//
+//					}
+//
+//				} else {
+//
+//					replacement.append(result);
+//
+//				}
+//			}
+//
+//			String replaceBy = replacement.toString();
+//
+//			content.replace(start, end + NODE_KEY_SUFFIX.length(), replaceBy);
+//
+//			// avoid replacing in the replacement again
+//			start = content.indexOf(NODE_KEY_PREFIX, start + replaceBy.length() + 1);
+//
+//		}
+//	}
 
 	private RelationshipType[] splitRelationshipTypes(String relTypes) {
 
@@ -1082,85 +1070,85 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * @param depth
 	 * @param maxDepth
 	 */
-	private void collectRelatedNodes(Set<AbstractNode> nodes, Set<AbstractRelationship> rels, Set<AbstractNode> visitedNodes, AbstractNode currentNode, int depth, int maxDepth, int maxNum,
-					 RelationshipType... relTypes) {
-
-		if (depth >= maxDepth) {
-
-			return;
-
-		}
-
-		if (nodes.size() < maxNum) {
-
-			nodes.add(currentNode);
-
-			// collect incoming relationships
-			List<AbstractRelationship> inRels = new LinkedList<AbstractRelationship>();
-
-			if ((relTypes != null) && (relTypes.length > 0)) {
-
-				for (RelationshipType type : relTypes) {
-
-					inRels.addAll(currentNode.getRelationships(type, Direction.INCOMING));
-
-				}
-
-			} else {
-
-				inRels = currentNode.getIncomingRelationships();
-
-			}
-
-			for (AbstractRelationship rel : inRels) {
-
-				AbstractNode startNode = rel.getStartNode();
-
-				if ((startNode != null) && (nodes.size() < maxNum)) {
-
-					nodes.add(startNode);
-					rels.add(rel);
-					collectRelatedNodes(nodes, rels, visitedNodes, startNode, depth + 1, maxDepth, maxNum, relTypes);
-
-				}
-
-			}
-
-			// collect outgoing relationships
-			List<AbstractRelationship> outRels = new LinkedList<AbstractRelationship>();
-
-			if ((relTypes != null) && (relTypes.length > 0)) {
-
-				for (RelationshipType type : relTypes) {
-
-					outRels.addAll(currentNode.getRelationships(type, Direction.OUTGOING));
-
-				}
-
-			} else {
-
-				outRels = currentNode.getOutgoingRelationships();
-
-			}
-
-			for (AbstractRelationship rel : outRels) {
-
-				AbstractNode endNode = rel.getEndNode();
-
-				if ((endNode != null) && (nodes.size() < maxNum)) {
-
-					nodes.add(endNode);
-					rels.add(rel);
-					collectRelatedNodes(nodes, rels, visitedNodes, endNode, depth + 1, maxDepth, maxNum, relTypes);
-
-				}
-
-			}
-
-			// visitedNodes.add(currentNode);
-
-		}
-	}
+//	private void collectRelatedNodes(Set<AbstractNode> nodes, Set<AbstractRelationship> rels, Set<AbstractNode> visitedNodes, AbstractNode currentNode, int depth, int maxDepth, int maxNum,
+//					 RelationshipType... relTypes) {
+//
+//		if (depth >= maxDepth) {
+//
+//			return;
+//
+//		}
+//
+//		if (nodes.size() < maxNum) {
+//
+//			nodes.add(currentNode);
+//
+//			// collect incoming relationships
+//			List<AbstractRelationship> inRels = new LinkedList<AbstractRelationship>();
+//
+//			if ((relTypes != null) && (relTypes.length > 0)) {
+//
+//				for (RelationshipType type : relTypes) {
+//
+//					inRels.addAll(currentNode.getRelationships(type, Direction.INCOMING));
+//
+//				}
+//
+//			} else {
+//
+//				inRels = currentNode.getIncomingRelationships();
+//
+//			}
+//
+//			for (AbstractRelationship rel : inRels) {
+//
+//				AbstractNode startNode = rel.getStartNode();
+//
+//				if ((startNode != null) && (nodes.size() < maxNum)) {
+//
+//					nodes.add(startNode);
+//					rels.add(rel);
+//					collectRelatedNodes(nodes, rels, visitedNodes, startNode, depth + 1, maxDepth, maxNum, relTypes);
+//
+//				}
+//
+//			}
+//
+//			// collect outgoing relationships
+//			List<AbstractRelationship> outRels = new LinkedList<AbstractRelationship>();
+//
+//			if ((relTypes != null) && (relTypes.length > 0)) {
+//
+//				for (RelationshipType type : relTypes) {
+//
+//					outRels.addAll(currentNode.getRelationships(type, Direction.OUTGOING));
+//
+//				}
+//
+//			} else {
+//
+//				outRels = currentNode.getOutgoingRelationships();
+//
+//			}
+//
+//			for (AbstractRelationship rel : outRels) {
+//
+//				AbstractNode endNode = rel.getEndNode();
+//
+//				if ((endNode != null) && (nodes.size() < maxNum)) {
+//
+//					nodes.add(endNode);
+//					rels.add(rel);
+//					collectRelatedNodes(nodes, rels, visitedNodes, endNode, depth + 1, maxDepth, maxNum, relTypes);
+//
+//				}
+//
+//			}
+//
+//			// visitedNodes.add(currentNode);
+//
+//		}
+//	}
 
 	// ----- protected methods -----
 	public static String toGetter(String name) {
@@ -1340,14 +1328,14 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	public abstract String getIconSrc();
 
-	public Long getTemplateId() {
-
-		Template n = getTemplate();
-
-		return ((n != null)
-			? n.getId()
-			: null);
-	}
+//	public Long getTemplateId() {
+//
+//		Template n = getTemplate();
+//
+//		return ((n != null)
+//			? n.getId()
+//			: null);
+//	}
 
 	/**
 	 * Wrapper for toString method
@@ -1379,58 +1367,58 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 *
 	 * @return
 	 */
-	public Template getTemplate() {
-
-		long t0 = System.currentTimeMillis();
-
-		if (this instanceof Template) {
-
-			template = (Template) this;
-
-			return template;
-
-		}
-
-		if (template != null) {
-
-//                      long t1 = System.currentTimeMillis();
-			logger.log(Level.FINE, "Cached template found");
-
-			return template;
-		}
-
-		// TODO: move to command and avoid to use the graph db interface directly
-//              Iterable<Node> nodes = Traversal.description().relationships(RelType.HAS_CHILD, Direction.INCOMING).traverse(dbNode).nodes();
-		AbstractNode startNode = this;
-
-		while ((startNode != null) &&!(startNode.isRootNode())) {
-
-			List<AbstractRelationship> templateRelationships = startNode.getRelationships(RelType.USE_TEMPLATE, Direction.OUTGOING);
-
-			if ((templateRelationships != null) &&!(templateRelationships.isEmpty())) {
-
-				template = (Template) templateRelationships.get(0).getEndNode();
-
-				return template;
-
-			}
-
-			if (template == null) {
-
-				startNode = startNode.getParentNode();
-
-				continue;
-
-			}
-
-		}
-
-		long t1 = System.currentTimeMillis();
-
-		logger.log(Level.FINE, "No template found in {0} ms", (t1 - t0));
-
-		return null;
-	}
+//	public Template getTemplate() {
+//
+//		long t0 = System.currentTimeMillis();
+//
+//		if (this instanceof Template) {
+//
+//			template = (Template) this;
+//
+//			return template;
+//
+//		}
+//
+//		if (template != null) {
+//
+////                      long t1 = System.currentTimeMillis();
+//			logger.log(Level.FINE, "Cached template found");
+//
+//			return template;
+//		}
+//
+//		// TODO: move to command and avoid to use the graph db interface directly
+////              Iterable<Node> nodes = Traversal.description().relationships(RelType.HAS_CHILD, Direction.INCOMING).traverse(dbNode).nodes();
+//		AbstractNode startNode = this;
+//
+//		while ((startNode != null) &&!(startNode.isRootNode())) {
+//
+//			List<AbstractRelationship> templateRelationships = startNode.getRelationships(RelType.USE_TEMPLATE, Direction.OUTGOING);
+//
+//			if ((templateRelationships != null) &&!(templateRelationships.isEmpty())) {
+//
+//				template = (Template) templateRelationships.get(0).getEndNode();
+//
+//				return template;
+//
+//			}
+//
+//			if (template == null) {
+//
+//				startNode = startNode.getParentNode();
+//
+//				continue;
+//
+//			}
+//
+//		}
+//
+//		long t1 = System.currentTimeMillis();
+//
+//		logger.log(Level.FINE, "No template found in {0} ms", (t1 - t0));
+//
+//		return null;
+//	}
 
 	/**
 	 * Get type from underlying db node If no type property was found, return
@@ -2192,24 +2180,24 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * @param node
 	 * @return
 	 */
-	public String getNodeURL(final AbstractNode node) {
-
-		String nodePath = getNodePath(node);
-
-		if (nodePath.equals(".")) {
-
-			return "";
-
-		}
-
-		if (nodePath.startsWith("../")) {
-
-			return nodePath.substring(3);
-
-		}
-
-		return nodePath;
-	}
+//	public String getNodeURL(final AbstractNode node) {
+//
+//		String nodePath = getNodePath(node);
+//
+//		if (nodePath.equals(".")) {
+//
+//			return "";
+//
+//		}
+//
+//		if (nodePath.startsWith("../")) {
+//
+//			return nodePath.substring(3);
+//
+//		}
+//
+//		return nodePath;
+//	}
 
 	/*
 	 * @Override
@@ -2224,50 +2212,50 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * @param node
 	 * @return
 	 */
-	public String getNodePath(final AbstractNode node) {
-
-		// clicked node as reference
-		String refPath = node.getNodePath();
-
-		// currently rendered node, the link target
-		String thisPath = this.getNodePath();
-
-		// Both not working :-(
-		// String combinedPath = FilenameUtils.concat(thisPath, refPath);
-		// String combinedPath = new java.io.File(refPath).toURI().relativize(new java.io.File(thisPath).toURI()).getPath();
-		String combinedPath = PathHelper.getRelativeNodePath(refPath, thisPath);
-
-		logger.log(Level.FINE, "{0} + {1} = {2}", new Object[] { thisPath, refPath, combinedPath });
-
-		return combinedPath;
-
-//              String[] refParts  = refPath.split("/");
-//              String[] thisParts = thisPath.split("/");
-//              int level          = refParts.length - thisParts.length;
+//	public String getNodePath(final AbstractNode node) {
 //
-//              if (level == 0) {
+//		// clicked node as reference
+//		String refPath = node.getNodePath();
 //
-//                      // paths are identical, return last part
-//                      return thisParts[thisParts.length - 1];
-//              } else if (level < 0) {
+//		// currently rendered node, the link target
+//		String thisPath = this.getNodePath();
 //
-//                      // link down
-////                      return thisPath.substring(refPath.length());
-//                      // Bug fix: Don't include the leading "/", this is a relative path!
-//                      return thisPath.substring(refPath.length() + 1);
-//              } else {
+//		// Both not working :-(
+//		// String combinedPath = FilenameUtils.concat(thisPath, refPath);
+//		// String combinedPath = new java.io.File(refPath).toURI().relativize(new java.io.File(thisPath).toURI()).getPath();
+//		String combinedPath = PathHelper.getRelativeNodePath(refPath, thisPath);
 //
-//                      // link up
-//                      int i      = 0;
-//                      String ret = "";
+//		logger.log(Level.FINE, "{0} + {1} = {2}", new Object[] { thisPath, refPath, combinedPath });
 //
-//                      do {
-//                              ret = ret.concat("../");
-//                      } while (++i < level);
+//		return combinedPath;
 //
-//                      return ret.concat(thisParts[thisParts.length - 1]);
-//              }
-	}
+////              String[] refParts  = refPath.split("/");
+////              String[] thisParts = thisPath.split("/");
+////              int level          = refParts.length - thisParts.length;
+////
+////              if (level == 0) {
+////
+////                      // paths are identical, return last part
+////                      return thisParts[thisParts.length - 1];
+////              } else if (level < 0) {
+////
+////                      // link down
+//////                      return thisPath.substring(refPath.length());
+////                      // Bug fix: Don't include the leading "/", this is a relative path!
+////                      return thisPath.substring(refPath.length() + 1);
+////              } else {
+////
+////                      // link up
+////                      int i      = 0;
+////                      String ret = "";
+////
+////                      do {
+////                              ret = ret.concat("../");
+////                      } while (++i < level);
+////
+////                      return ret.concat(thisParts[thisParts.length - 1]);
+////              }
+//	}
 
 	/**
 	 * Get path relative to this node
@@ -2275,9 +2263,9 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * @param node
 	 * @return
 	 */
-	public String getRelativeNodePath() {
-		return getNodePath(this);
-	}
+//	public String getRelativeNodePath() {
+//		return getNodePath(this);
+//	}
 
 	/**
 	 * Assemble path for given node.
@@ -2303,65 +2291,65 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 *
 	 * @return
 	 */
-	public String getNodePath() {
-
-		String path = "";
-
-		// get actual database node
-		AbstractNode node = this;
-
-		// create bean node
-//              Command nodeFactory = Services.command(securityContext, NodeFactoryCommand.class);
-//              AbstractNode n = (AbstractNode) nodeFactory.execute(node);
-		// stop at root node
-		while ((node != null) && (node.getId() > 0)) {
-
-			path = node.getName() + (!("".equals(path))
-						 ? "/" + path
-						 : "");
-			node = node.getParentNode();
-
-			// check parent nodes
-//                      Relationship r = node.getSingleRelationship(RelType.HAS_CHILD, Direction.INCOMING);
-//                      if (r != null) {
-//                          node = r.getStartNode();
-//                          n = (AbstractNode) nodeFactory.execute(node);
-//                      }
-
-		}
-
-		return "/".concat(path);    // add leading slash, because we always include the root node
-	}
+//	public String getNodePath() {
+//
+//		String path = "";
+//
+//		// get actual database node
+//		AbstractNode node = this;
+//
+//		// create bean node
+////              Command nodeFactory = Services.command(securityContext, NodeFactoryCommand.class);
+////              AbstractNode n = (AbstractNode) nodeFactory.execute(node);
+//		// stop at root node
+//		while ((node != null) && (node.getId() > 0)) {
+//
+//			path = node.getName() + (!("".equals(path))
+//						 ? "/" + path
+//						 : "");
+//			node = node.getParentNode();
+//
+//			// check parent nodes
+////                      Relationship r = node.getSingleRelationship(RelType.HAS_CHILD, Direction.INCOMING);
+////                      if (r != null) {
+////                          node = r.getStartNode();
+////                          n = (AbstractNode) nodeFactory.execute(node);
+////                      }
+//
+//		}
+//
+//		return "/".concat(path);    // add leading slash, because we always include the root node
+//	}
 
 	/**
 	 * Assemble absolute path for given node.
 	 *
 	 * @return
 	 */
-	public String getNodeXPath() {
-
-		String xpath = "";
-
-		// get actual database node
-		AbstractNode node = this;
-
-		// create bean node
-//              Command nodeFactory = Services.command(securityContext, NodeFactoryCommand.class);
-//              AbstractNode n = (AbstractNode) nodeFactory.execute(node);
-		// stop at root node
-		while ((node != null) && (node.getId() > 0)) {
-
-			xpath = node.getType() + "[@name='" + node.getName() + "']" + (!("".equals(xpath))
-				? "/" + xpath
-				: "");
-
-			// check parent nodes
-			node = node.getParentNode();
-
-		}
-
-		return "/".concat(xpath);    // add leading slash, because we always include the root node
-	}
+//	public String getNodeXPath() {
+//
+//		String xpath = "";
+//
+//		// get actual database node
+//		AbstractNode node = this;
+//
+//		// create bean node
+////              Command nodeFactory = Services.command(securityContext, NodeFactoryCommand.class);
+////              AbstractNode n = (AbstractNode) nodeFactory.execute(node);
+//		// stop at root node
+//		while ((node != null) && (node.getId() > 0)) {
+//
+//			xpath = node.getType() + "[@name='" + node.getName() + "']" + (!("".equals(xpath))
+//				? "/" + xpath
+//				: "");
+//
+//			// check parent nodes
+//			node = node.getParentNode();
+//
+//		}
+//
+//		return "/".concat(xpath);    // add leading slash, because we always include the root node
+//	}
 
 //
 //      /**
@@ -2461,9 +2449,9 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 *
 	 * @return list with structr nodes
 	 */
-	public List<AbstractNode> getDirectChildNodes() {
-		return getDirectChildren(RelType.HAS_CHILD);
-	}
+//	public List<AbstractNode> getDirectChildNodes() {
+//		return getDirectChildren(RelType.HAS_CHILD);
+//	}
 
 	/**
 	 * Return unordered list of all direct child nodes (no recursion)
@@ -2471,29 +2459,29 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 *
 	 * @return list with structr nodes
 	 */
-	public List<AbstractNode> getDirectChildNodesIgnorePermissions() {
-		return getDirectChildrenIgnorePermissions(RelType.HAS_CHILD);
-	}
+//	public List<AbstractNode> getDirectChildNodesIgnorePermissions() {
+//		return getDirectChildrenIgnorePermissions(RelType.HAS_CHILD);
+//	}
 
 	/**
 	 * Return the first parent node found.
 	 *
 	 * @return
 	 */
-	public AbstractNode getParentNode() {
-
-		List<AbstractNode> parentNodes = getParentNodes();
-
-		if ((parentNodes != null) &&!(parentNodes.isEmpty())) {
-
-			return parentNodes.get(0);
-
-		} else {
-
-			return null;
-
-		}
-	}
+//	public AbstractNode getParentNode() {
+//
+//		List<AbstractNode> parentNodes = getParentNodes();
+//
+//		if ((parentNodes != null) &&!(parentNodes.isEmpty())) {
+//
+//			return parentNodes.get(0);
+//
+//		} else {
+//
+//			return null;
+//
+//		}
+//	}
 
 	/**
 	 * Return the first parent node found.
@@ -2502,40 +2490,40 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 *
 	 * @return
 	 */
-	public AbstractNode getParentNodeIgnorePermissions() {
-
-		List<AbstractNode> parentNodes = getParentNodesIgnorePermissions();
-
-		if ((parentNodes != null) &&!(parentNodes.isEmpty())) {
-
-			return parentNodes.get(0);
-
-		} else {
-
-			return null;
-
-		}
-	}
+//	public AbstractNode getParentNodeIgnorePermissions() {
+//
+//		List<AbstractNode> parentNodes = getParentNodesIgnorePermissions();
+//
+//		if ((parentNodes != null) &&!(parentNodes.isEmpty())) {
+//
+//			return parentNodes.get(0);
+//
+//		} else {
+//
+//			return null;
+//
+//		}
+//	}
 
 	/**
 	 * Return next ancestor which defines a local context for this node.
 	 *
 	 * @return
 	 */
-	public AbstractNode getContextNode() {
-
-		List<AbstractNode> ancestors = getAncestorNodes();
-
-		// If node has no ancestors, itself is its context node
-		if (ancestors.isEmpty()) {
-
-			return this;
-
-		}
-
-		// Return root node
-		return ancestors.get(0);
-	}
+//	public AbstractNode getContextNode() {
+//
+//		List<AbstractNode> ancestors = getAncestorNodes();
+//
+//		// If node has no ancestors, itself is its context node
+//		if (ancestors.isEmpty()) {
+//
+//			return this;
+//
+//		}
+//
+//		// Return root node
+//		return ancestors.get(0);
+//	}
 
 	/**
 	 * Return a path of this node relative to the next ancestor
@@ -2543,50 +2531,50 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 *
 	 * @return
 	 */
-	public String getContextPath() {
-
-		// This is the default
-		return getNodePath();
-	}
-
-	/**
-	 * Return sibling nodes. Follows the HAS_CHILD relationship
-	 *
-	 * @return
-	 */
-	public List<AbstractNode> getSiblingNodes() {
-
-		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
-		AbstractNode parentNode  = getParentNode();
-
-		if (parentNode != null) {
-
-			try {
-
-				Command nodeFactory             = Services.command(securityContext, NodeFactoryCommand.class);
-				Command relsCommand             = Services.command(securityContext, NodeRelationshipsCommand.class);
-				List<AbstractRelationship> rels = (List<AbstractRelationship>) relsCommand.execute(parentNode, RelType.HAS_CHILD, Direction.OUTGOING);
-
-				for (AbstractRelationship r : rels) {
-
-					AbstractNode s = (AbstractNode) nodeFactory.execute(r.getEndNode());
-
-					if (securityContext.isAllowed(s, Permission.Read)) {
-
-						nodes.add(s);
-
-					}
-
-				}
-
-			} catch (FrameworkException fex) {
-				logger.log(Level.WARNING, "Unable to get sibling nodes", fex);
-			}
-
-		}
-
-		return nodes;
-	}
+//	public String getContextPath() {
+//
+//		// This is the default
+//		return getNodePath();
+//	}
+//
+//	/**
+//	 * Return sibling nodes. Follows the HAS_CHILD relationship
+//	 *
+//	 * @return
+//	 */
+//	public List<AbstractNode> getSiblingNodes() {
+//
+//		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
+//		AbstractNode parentNode  = getParentNode();
+//
+//		if (parentNode != null) {
+//
+//			try {
+//
+//				Command nodeFactory             = Services.command(securityContext, NodeFactoryCommand.class);
+//				Command relsCommand             = Services.command(securityContext, NodeRelationshipsCommand.class);
+//				List<AbstractRelationship> rels = (List<AbstractRelationship>) relsCommand.execute(parentNode, RelType.HAS_CHILD, Direction.OUTGOING);
+//
+//				for (AbstractRelationship r : rels) {
+//
+//					AbstractNode s = (AbstractNode) nodeFactory.execute(r.getEndNode());
+//
+//					if (securityContext.isAllowed(s, Permission.Read)) {
+//
+//						nodes.add(s);
+//
+//					}
+//
+//				}
+//
+//			} catch (FrameworkException fex) {
+//				logger.log(Level.WARNING, "Unable to get sibling nodes", fex);
+//			}
+//
+//		}
+//
+//		return nodes;
+//	}
 
 	/**
 	 * Return all ancestor nodes. Follows the INCOMING HAS_CHILD relationship
@@ -2596,27 +2584,27 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 *
 	 * @return
 	 */
-	public List<AbstractNode> getAncestorNodes() {
-
-		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
-		AbstractNode node        = getParentNodeIgnorePermissions();
-
-		do {
-
-			nodes.add(node);
-
-			node = node.getParentNodeIgnorePermissions();
-
-		} while ((node != null) &&!node.isRootNode());
-
-		if (node != null) {
-
-			// Finally add root node
-			nodes.add(node);
-		}
-
-		return nodes;
-	}
+//	public List<AbstractNode> getAncestorNodes() {
+//
+//		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
+//		AbstractNode node        = getParentNodeIgnorePermissions();
+//
+//		do {
+//
+//			nodes.add(node);
+//
+//			node = node.getParentNodeIgnorePermissions();
+//
+//		} while ((node != null) &&!node.isRootNode());
+//
+//		if (node != null) {
+//
+//			// Finally add root node
+//			nodes.add(node);
+//		}
+//
+//		return nodes;
+//	}
 
 	/**
 	 * Return parent nodes. Follows the INCOMING HAS_CHILD relationship and
@@ -2624,32 +2612,32 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 *
 	 * @return
 	 */
-	public List<AbstractNode> getParentNodes() {
-
-		List<AbstractNode> nodes        = new LinkedList<AbstractNode>();
-		Command nodeFactory             = Services.command(securityContext, NodeFactoryCommand.class);
-		List<AbstractRelationship> rels = getIncomingChildRelationships();
-
-		for (AbstractRelationship r : rels) {
-
-			try {
-
-				AbstractNode s = (AbstractNode) nodeFactory.execute(r.getStartNode());
-
-				if (securityContext.isAllowed(s, Permission.Read)) {
-
-					nodes.add(s);
-
-				}
-
-			} catch (FrameworkException fex) {
-				logger.log(Level.WARNING, "Unable to instantiate node", fex);
-			}
-
-		}
-
-		return nodes;
-	}
+//	public List<AbstractNode> getParentNodes() {
+//
+//		List<AbstractNode> nodes        = new LinkedList<AbstractNode>();
+//		Command nodeFactory             = Services.command(securityContext, NodeFactoryCommand.class);
+//		List<AbstractRelationship> rels = getIncomingChildRelationships();
+//
+//		for (AbstractRelationship r : rels) {
+//
+//			try {
+//
+//				AbstractNode s = (AbstractNode) nodeFactory.execute(r.getStartNode());
+//
+//				if (securityContext.isAllowed(s, Permission.Read)) {
+//
+//					nodes.add(s);
+//
+//				}
+//
+//			} catch (FrameworkException fex) {
+//				logger.log(Level.WARNING, "Unable to instantiate node", fex);
+//			}
+//
+//		}
+//
+//		return nodes;
+//	}
 
 	/**
 	 * Return parent nodes. Follows the INCOMING HAS_CHILD relationship.
@@ -2658,28 +2646,28 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 *
 	 * @return
 	 */
-	public List<AbstractNode> getParentNodesIgnorePermissions() {
-
-		List<AbstractNode> nodes        = new LinkedList<AbstractNode>();
-		Command nodeFactory             = Services.command(securityContext, NodeFactoryCommand.class);
-		List<AbstractRelationship> rels = getIncomingChildRelationships();
-
-		for (AbstractRelationship r : rels) {
-
-			try {
-
-				AbstractNode s = (AbstractNode) nodeFactory.execute(r.getStartNode());
-
-				nodes.add(s);
-
-			} catch (FrameworkException fex) {
-				logger.log(Level.WARNING, "Unable to instantiate node", fex);
-			}
-
-		}
-
-		return nodes;
-	}
+//	public List<AbstractNode> getParentNodesIgnorePermissions() {
+//
+//		List<AbstractNode> nodes        = new LinkedList<AbstractNode>();
+//		Command nodeFactory             = Services.command(securityContext, NodeFactoryCommand.class);
+//		List<AbstractRelationship> rels = getIncomingChildRelationships();
+//
+//		for (AbstractRelationship r : rels) {
+//
+//			try {
+//
+//				AbstractNode s = (AbstractNode) nodeFactory.execute(r.getStartNode());
+//
+//				nodes.add(s);
+//
+//			} catch (FrameworkException fex) {
+//				logger.log(Level.WARNING, "Unable to instantiate node", fex);
+//			}
+//
+//		}
+//
+//		return nodes;
+//	}
 
 	/**
 	 * Cached list of all relationships
@@ -2738,11 +2726,11 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		return outgoingRelationships;
 	}
 
-	public Iterable<AbstractNode> getDataNodes(HttpServletRequest request) {
-
-		// this is the default implementation
-		return getDirectChildNodes();
-	}
+//	public Iterable<AbstractNode> getDataNodes(HttpServletRequest request) {
+//
+//		// this is the default implementation
+//		return getDirectChildNodes();
+//	}
 
 	/**
 	 * Non-cached list of outgoing relationships
@@ -2758,123 +2746,123 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 *
 	 * @return
 	 */
-	public List<AbstractRelationship> getIncomingLinkRelationships() {
-
-		if (incomingLinkRelationships == null) {
-
-			incomingLinkRelationships = getRelationships(RelType.LINK, Direction.INCOMING);
-
-		}
-
-		return incomingLinkRelationships;
-	}
+//	public List<AbstractRelationship> getIncomingLinkRelationships() {
+//
+//		if (incomingLinkRelationships == null) {
+//
+//			incomingLinkRelationships = getRelationships(RelType.LINK, Direction.INCOMING);
+//
+//		}
+//
+//		return incomingLinkRelationships;
+//	}
 
 	/**
 	 * Cached list of outgoing data relationships
 	 *
 	 * @return
 	 */
-	public List<AbstractRelationship> getOutgoingDataRelationships() {
-
-		if (outgoingDataRelationships == null) {
-
-			outgoingDataRelationships = getRelationships(RelType.DATA, Direction.OUTGOING);
-
-		}
-
-		return outgoingDataRelationships;
-	}
+//	public List<AbstractRelationship> getOutgoingDataRelationships() {
+//
+//		if (outgoingDataRelationships == null) {
+//
+//			outgoingDataRelationships = getRelationships(RelType.DATA, Direction.OUTGOING);
+//
+//		}
+//
+//		return outgoingDataRelationships;
+//	}
 
 	/**
 	 * Cached list of incoming data relationships
 	 *
 	 * @return
 	 */
-	public List<AbstractRelationship> getIncomingDataRelationships() {
-
-		if (incomingDataRelationships == null) {
-
-			incomingDataRelationships = getRelationships(RelType.DATA, Direction.INCOMING);
-
-		}
-
-		return incomingDataRelationships;
-	}
+//	public List<AbstractRelationship> getIncomingDataRelationships() {
+//
+//		if (incomingDataRelationships == null) {
+//
+//			incomingDataRelationships = getRelationships(RelType.DATA, Direction.INCOMING);
+//
+//		}
+//
+//		return incomingDataRelationships;
+//	}
 
 	/**
 	 * Cached list of outgoing link relationships
 	 *
 	 * @return
 	 */
-	public List<AbstractRelationship> getOutgoingLinkRelationships() {
-
-		if (outgoingLinkRelationships == null) {
-
-			outgoingLinkRelationships = getRelationships(RelType.LINK, Direction.OUTGOING);
-
-		}
-
-		return outgoingLinkRelationships;
-	}
+//	public List<AbstractRelationship> getOutgoingLinkRelationships() {
+//
+//		if (outgoingLinkRelationships == null) {
+//
+//			outgoingLinkRelationships = getRelationships(RelType.LINK, Direction.OUTGOING);
+//
+//		}
+//
+//		return outgoingLinkRelationships;
+//	}
 
 	/**
 	 * Cached list of incoming child relationships
 	 *
 	 * @return
 	 */
-	public List<AbstractRelationship> getIncomingChildRelationships() {
-
-		if (incomingChildRelationships == null) {
-
-			incomingChildRelationships = getRelationships(RelType.HAS_CHILD, Direction.INCOMING);
-
-		}
-
-		return incomingChildRelationships;
-	}
+//	public List<AbstractRelationship> getIncomingChildRelationships() {
+//
+//		if (incomingChildRelationships == null) {
+//
+//			incomingChildRelationships = getRelationships(RelType.HAS_CHILD, Direction.INCOMING);
+//
+//		}
+//
+//		return incomingChildRelationships;
+//	}
 
 	/**
 	 * Cached list of outgoing child relationships
 	 *
 	 * @return
 	 */
-	public List<AbstractRelationship> getOutgoingChildRelationships() {
-
-		if (outgoingChildRelationships == null) {
-
-			outgoingChildRelationships = getRelationships(RelType.HAS_CHILD, Direction.OUTGOING);
-
-		}
-
-		return outgoingChildRelationships;
-	}
+//	public List<AbstractRelationship> getOutgoingChildRelationships() {
+//
+//		if (outgoingChildRelationships == null) {
+//
+//			outgoingChildRelationships = getRelationships(RelType.HAS_CHILD, Direction.OUTGOING);
+//
+//		}
+//
+//		return outgoingChildRelationships;
+//	}
 
 	/**
 	 * Return unordered list of all directly linked nodes (no recursion)
 	 *
 	 * @return list with structr nodes
 	 */
-	public List<AbstractNode> getLinkedNodes() {
-		return getDirectChildren(RelType.LINK);
-	}
+//	public List<AbstractNode> getLinkedNodes() {
+//		return getDirectChildren(RelType.LINK);
+//	}
 
 	/**
 	 * Return ordered list of all directly linked nodes (no recursion)
 	 *
 	 * @return list with structr nodes
 	 */
-	public List<AbstractNode> getSortedLinkedNodes() {
-		return getSortedDirectChildren(RelType.LINK);
-	}
+//	public List<AbstractNode> getSortedLinkedNodes() {
+//		return getSortedDirectChildren(RelType.LINK);
+//	}
 
 	/**
 	 * Return unordered list of all child nodes (recursively)
 	 *
 	 * @return list with structr nodes
 	 */
-	public List<AbstractNode> getAllChildren() {
-		return getAllChildren(null);
-	}
+//	public List<AbstractNode> getAllChildren() {
+//		return getAllChildren(null);
+//	}
 
 	public List<AbstractNode> getAllChildrenForRemotePush() {
 
@@ -3036,24 +3024,24 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 *
 	 * @return
 	 */
-	public List<AbstractNode> getSortedDirectChildNodes() {
-
-		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
-
-		nodes.addAll(getDirectChildNodes());
-
-		// sort by position
-		Collections.sort(nodes, new Comparator<AbstractNode>() {
-
-			@Override
-			public int compare(AbstractNode nodeOne, AbstractNode nodeTwo) {
-				return nodeOne.getPosition().compareTo(nodeTwo.getPosition());
-			}
-
-		});
-
-		return nodes;
-	}
+//	public List<AbstractNode> getSortedDirectChildNodes() {
+//
+//		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
+//
+//		nodes.addAll(getDirectChildNodes());
+//
+//		// sort by position
+//		Collections.sort(nodes, new Comparator<AbstractNode>() {
+//
+//			@Override
+//			public int compare(AbstractNode nodeOne, AbstractNode nodeTwo) {
+//				return nodeOne.getPosition().compareTo(nodeTwo.getPosition());
+//			}
+//
+//		});
+//
+//		return nodes;
+//	}
 
 	/**
 	 * Get child nodes and sort them before returning
@@ -3061,108 +3049,108 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 *
 	 * @return
 	 */
-	public List<AbstractNode> getSortedDirectChildNodesIgnorePermissions() {
-
-		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
-
-		nodes.addAll(getDirectChildNodesIgnorePermissions());
-
-		// sort by position
-		Collections.sort(nodes, new Comparator<AbstractNode>() {
-
-			@Override
-			public int compare(AbstractNode nodeOne, AbstractNode nodeTwo) {
-				return nodeOne.getPosition().compareTo(nodeTwo.getPosition());
-			}
-
-		});
-
-		return nodes;
-	}
+//	public List<AbstractNode> getSortedDirectChildNodesIgnorePermissions() {
+//
+//		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
+//
+//		nodes.addAll(getDirectChildNodesIgnorePermissions());
+//
+//		// sort by position
+//		Collections.sort(nodes, new Comparator<AbstractNode>() {
+//
+//			@Override
+//			public int compare(AbstractNode nodeOne, AbstractNode nodeTwo) {
+//				return nodeOne.getPosition().compareTo(nodeTwo.getPosition());
+//			}
+//
+//		});
+//
+//		return nodes;
+//	}
 
 	/**
 	 * Get child nodes and sort them before returning
 	 *
 	 * @return
 	 */
-	public List<AbstractNode> getSortedDirectChildNodes(final String sortKey, final String sortOrder) {
-
-		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
-
-		nodes.addAll(getDirectChildNodes());
-
-		// sort by key, order by order {@see GraphObjectComparator.ASCENDING} or {@see GraphObjectComparator.DESCENDING}
-		Collections.sort(nodes, new GraphObjectComparator(sortKey, sortOrder));
-
-		return nodes;
-	}
-
-	/**
-	 * Get direct child nodes, link nodes, and sort them before returning
-	 *
-	 * @return
-	 */
-	public List<AbstractNode> getDirectChildAndLinkNodes() {
-
-		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
-
-		nodes.addAll(getDirectChildNodes());
-
-		// get linked child nodes
-		nodes.addAll(getLinkedNodes());
-
-		return nodes;
-	}
+//	public List<AbstractNode> getSortedDirectChildNodes(final String sortKey, final String sortOrder) {
+//
+//		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
+//
+//		nodes.addAll(getDirectChildNodes());
+//
+//		// sort by key, order by order {@see GraphObjectComparator.ASCENDING} or {@see GraphObjectComparator.DESCENDING}
+//		Collections.sort(nodes, new GraphObjectComparator(sortKey, sortOrder));
+//
+//		return nodes;
+//	}
 
 	/**
 	 * Get direct child nodes, link nodes, and sort them before returning
 	 *
 	 * @return
 	 */
-	public List<AbstractNode> getSortedDirectChildAndLinkNodes() {
+//	public List<AbstractNode> getDirectChildAndLinkNodes() {
+//
+//		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
+//
+//		nodes.addAll(getDirectChildNodes());
+//
+//		// get linked child nodes
+//		nodes.addAll(getLinkedNodes());
+//
+//		return nodes;
+//	}
 
-		List<AbstractNode> nodes = getDirectChildAndLinkNodes();
-
-		// sort by position
-		Collections.sort(nodes, new Comparator<AbstractNode>() {
-
-			@Override
-			public int compare(AbstractNode nodeOne, AbstractNode nodeTwo) {
-				return nodeOne.getPosition().compareTo(nodeTwo.getPosition());
-			}
-
-		});
-
-		return nodes;
-	}
+	/**
+	 * Get direct child nodes, link nodes, and sort them before returning
+	 *
+	 * @return
+	 */
+//	public List<AbstractNode> getSortedDirectChildAndLinkNodes() {
+//
+//		List<AbstractNode> nodes = getDirectChildAndLinkNodes();
+//
+//		// sort by position
+//		Collections.sort(nodes, new Comparator<AbstractNode>() {
+//
+//			@Override
+//			public int compare(AbstractNode nodeOne, AbstractNode nodeTwo) {
+//				return nodeOne.getPosition().compareTo(nodeTwo.getPosition());
+//			}
+//
+//		});
+//
+//		return nodes;
+//	}
 
 	/**
 	 * Get menu items and sort them before returning.
 	 *
 	 * @return
 	 */
-	public List<AbstractNode> getSortedMenuItems() {
-
-		List<AbstractNode> menuItems = new LinkedList<AbstractNode>();
-
-		// add direct children of type MenuItem
-		menuItems.addAll(getDirectChildren(RelType.HAS_CHILD, "MenuItem"));
-
-		// add linked children, f.e. direct links to pages
-		menuItems.addAll(getDirectChildren(RelType.LINK));
-
-		// sort by position
-		Collections.sort(menuItems, new Comparator<AbstractNode>() {
-
-			@Override
-			public int compare(AbstractNode nodeOne, AbstractNode nodeTwo) {
-				return nodeOne.getPosition().compareTo(nodeTwo.getPosition());
-			}
-
-		});
-
-		return menuItems;
-	}
+//	public List<AbstractNode> getSortedMenuItems() {
+//
+//		List<AbstractNode> menuItems = new LinkedList<AbstractNode>();
+//
+//		// add direct children of type MenuItem
+//		menuItems.addAll(getDirectChildren(RelType.HAS_CHILD, "MenuItem"));
+//
+//		// add linked children, f.e. direct links to pages
+//		menuItems.addAll(getDirectChildren(RelType.LINK));
+//
+//		// sort by position
+//		Collections.sort(menuItems, new Comparator<AbstractNode>() {
+//
+//			@Override
+//			public int compare(AbstractNode nodeOne, AbstractNode nodeTwo) {
+//				return nodeOne.getPosition().compareTo(nodeTwo.getPosition());
+//			}
+//
+//		});
+//
+//		return menuItems;
+//	}
 
 	/**
 	 * Return unordered list of all child nodes (recursively)
@@ -3270,107 +3258,107 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * @param key
 	 * @return
 	 */
-	public Object get(final String key) {
+//	public Object get(final String key) {
+//
+//		if (key == null) {
+//
+//			return null;
+//
+//		}
+//
+//		Object propertyValue = this.getProperty(key);
+//
+//		if (propertyValue != null) {
+//
+//			return propertyValue;
+//
+//		}
+//
+//		List<AbstractNode> subnodes = this.getDirectChildAndLinkNodes();
+//
+//		for (AbstractNode node : subnodes) {
+//
+//			if (key.equals(node.getName())) {
+//
+//				return node;
+//
+//			}
+//
+//		}
+//
+//		// nothing found
+//		return null;
+//	}
 
-		if (key == null) {
+//	public Set<AbstractNode> getRelatedNodes(int maxDepth) {
+//		return (getRelatedNodes(maxDepth, 20 /* Integer.MAX_VALUE */, null));
+//	}
+//
+//	public Set<AbstractNode> getRelatedNodes(int maxDepth, String relTypes) {
+//		return (getRelatedNodes(maxDepth, 20 /* Integer.MAX_VALUE */, relTypes));
+//	}
+//
+//	public Set<AbstractNode> getRelatedNodes(int maxDepth, int maxNum) {
+//		return (getRelatedNodes(maxDepth, maxNum, null));
+//	}
+//
+//	public Set<AbstractNode> getRelatedNodes(int maxDepth, int maxNum, String relTypes) {
+//
+//		Set<AbstractNode> visitedNodes = new LinkedHashSet<AbstractNode>();
+//		Set<AbstractNode> nodes        = new LinkedHashSet<AbstractNode>();
+//		Set<AbstractRelationship> rels = new LinkedHashSet<AbstractRelationship>();
+//
+//		collectRelatedNodes(nodes, rels, visitedNodes, this, 0, maxDepth, maxNum, splitRelationshipTypes(relTypes));
+//
+//		return (nodes);
+//	}
+//
+//	public Set<AbstractRelationship> getRelatedRels(int maxDepth) {
+//		return (getRelatedRels(maxDepth, 20 /* Integer.MAX_VALUE */, null));
+//	}
+//
+//	public Set<AbstractRelationship> getRelatedRels(int maxDepth, String relTypes) {
+//		return (getRelatedRels(maxDepth, 20 /* Integer.MAX_VALUE */, relTypes));
+//	}
+//
+//	public Set<AbstractRelationship> getRelatedRels(int maxDepth, int maxNum) {
+//		return (getRelatedRels(maxDepth, maxNum, null));
+//	}
+//
+//	public Set<AbstractRelationship> getRelatedRels(int maxDepth, int maxNum, String relTypes) {
+//
+//		Set<AbstractNode> visitedNodes = new LinkedHashSet<AbstractNode>();
+//		Set<AbstractNode> nodes        = new LinkedHashSet<AbstractNode>();
+//		Set<AbstractRelationship> rels = new LinkedHashSet<AbstractRelationship>();
+//
+//		collectRelatedNodes(nodes, rels, visitedNodes, this, 0, maxDepth, maxNum, splitRelationshipTypes(relTypes));
+//
+//		return (rels);
+//	}
 
-			return null;
-
-		}
-
-		Object propertyValue = this.getProperty(key);
-
-		if (propertyValue != null) {
-
-			return propertyValue;
-
-		}
-
-		List<AbstractNode> subnodes = this.getDirectChildAndLinkNodes();
-
-		for (AbstractNode node : subnodes) {
-
-			if (key.equals(node.getName())) {
-
-				return node;
-
-			}
-
-		}
-
-		// nothing found
-		return null;
-	}
-
-	public Set<AbstractNode> getRelatedNodes(int maxDepth) {
-		return (getRelatedNodes(maxDepth, 20 /* Integer.MAX_VALUE */, null));
-	}
-
-	public Set<AbstractNode> getRelatedNodes(int maxDepth, String relTypes) {
-		return (getRelatedNodes(maxDepth, 20 /* Integer.MAX_VALUE */, relTypes));
-	}
-
-	public Set<AbstractNode> getRelatedNodes(int maxDepth, int maxNum) {
-		return (getRelatedNodes(maxDepth, maxNum, null));
-	}
-
-	public Set<AbstractNode> getRelatedNodes(int maxDepth, int maxNum, String relTypes) {
-
-		Set<AbstractNode> visitedNodes = new LinkedHashSet<AbstractNode>();
-		Set<AbstractNode> nodes        = new LinkedHashSet<AbstractNode>();
-		Set<AbstractRelationship> rels = new LinkedHashSet<AbstractRelationship>();
-
-		collectRelatedNodes(nodes, rels, visitedNodes, this, 0, maxDepth, maxNum, splitRelationshipTypes(relTypes));
-
-		return (nodes);
-	}
-
-	public Set<AbstractRelationship> getRelatedRels(int maxDepth) {
-		return (getRelatedRels(maxDepth, 20 /* Integer.MAX_VALUE */, null));
-	}
-
-	public Set<AbstractRelationship> getRelatedRels(int maxDepth, String relTypes) {
-		return (getRelatedRels(maxDepth, 20 /* Integer.MAX_VALUE */, relTypes));
-	}
-
-	public Set<AbstractRelationship> getRelatedRels(int maxDepth, int maxNum) {
-		return (getRelatedRels(maxDepth, maxNum, null));
-	}
-
-	public Set<AbstractRelationship> getRelatedRels(int maxDepth, int maxNum, String relTypes) {
-
-		Set<AbstractNode> visitedNodes = new LinkedHashSet<AbstractNode>();
-		Set<AbstractNode> nodes        = new LinkedHashSet<AbstractNode>();
-		Set<AbstractRelationship> rels = new LinkedHashSet<AbstractRelationship>();
-
-		collectRelatedNodes(nodes, rels, visitedNodes, this, 0, maxDepth, maxNum, splitRelationshipTypes(relTypes));
-
-		return (rels);
-	}
-
-	protected AbstractNode getNodeFromLoader(HttpServletRequest request) {
-
-		List<AbstractRelationship> rels = getIncomingDataRelationships();
-		AbstractNode node               = null;
-
-		for (AbstractRelationship rel : rels) {
-
-			// first one wins
-			AbstractNode startNode = rel.getStartNode();
-
-			if (startNode instanceof NodeSource) {
-
-				NodeSource source = (NodeSource) startNode;
-
-				node = source.loadNode(request);
-
-				break;
-
-			}
-		}
-
-		return node;
-	}
+//	protected AbstractNode getNodeFromLoader(HttpServletRequest request) {
+//
+//		List<AbstractRelationship> rels = getIncomingDataRelationships();
+//		AbstractNode node               = null;
+//
+//		for (AbstractRelationship rel : rels) {
+//
+//			// first one wins
+//			AbstractNode startNode = rel.getStartNode();
+//
+//			if (startNode instanceof NodeSource) {
+//
+//				NodeSource source = (NodeSource) startNode;
+//
+//				node = source.loadNode(request);
+//
+//				break;
+//
+//			}
+//		}
+//
+//		return node;
+//	}
 
 	@Override
 	public Date getVisibilityStartDate() {
@@ -3405,9 +3393,9 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 			   : key));
 	}
 
-	public boolean hasTemplate() {
-		return (getTemplate() != null);
-	}
+//	public boolean hasTemplate() {
+//		return (getTemplate() != null);
+//	}
 
 	/**
 	 * Return true if this node has a relationship of given type and direction.
@@ -3428,9 +3416,9 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 *
 	 * @return
 	 */
-	public boolean hasChildren() {
-		return (hasRelationship(RelType.HAS_CHILD, Direction.OUTGOING) || hasRelationship(RelType.LINK, Direction.OUTGOING));
-	}
+//	public boolean hasChildren() {
+//		return (hasRelationship(RelType.HAS_CHILD, Direction.OUTGOING) || hasRelationship(RelType.LINK, Direction.OUTGOING));
+//	}
 
 	// ----- interface AccessControllable -----
 	@Override
@@ -3470,33 +3458,33 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 			return true;
 
 		}
-
-		// Check group
-		// We cannot use getParent() here because it uses hasPermission itself,
-		// that would lead to an infinite loop
-		List<AbstractRelationship> rels = principal.getIncomingChildRelationships();
-
-		for (AbstractRelationship sr : rels) {
-
-			AbstractNode node = sr.getStartNode();
-
-			if (!(node instanceof Group)) {
-
-				continue;
-
-			}
-
-			Group group = (Group) node;
-
-			r = getSecurityRelationship(group);
-
-			if ((r != null) && r.isAllowed(permission)) {
-
-				return true;
-
-			}
-
-		}
+//
+//		// Check group
+//		// We cannot use getParent() here because it uses hasPermission itself,
+//		// that would lead to an infinite loop
+//		List<AbstractRelationship> rels = principal.getIncomingChildRelationships();
+//
+//		for (AbstractRelationship sr : rels) {
+//
+//			AbstractNode node = sr.getStartNode();
+//
+//			if (!(node instanceof Group)) {
+//
+//				continue;
+//
+//			}
+//
+//			Group group = (Group) node;
+//
+//			r = getSecurityRelationship(group);
+//
+//			if ((r != null) && r.isAllowed(permission)) {
+//
+//				return true;
+//
+//			}
+//
+//		}
 
 		return false;
 	}
@@ -3538,11 +3526,11 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	}
 
 	public boolean isDeleted() {
-
-		boolean hasDeletedFlag = getDeleted();
-		boolean isInTrash      = isInTrash();
-
-		return hasDeletedFlag || isInTrash;
+		return getDeleted();
+//		boolean hasDeletedFlag = getDeleted();
+//		boolean isInTrash      = isInTrash();
+//
+//		return hasDeletedFlag || isInTrash;
 	}
 
 	/**
@@ -3558,29 +3546,29 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 *
 	 * Returns true if an ancestor node is a Trash node
 	 */
-	public boolean isInTrash() {
-
-		return (countIterableElements(traverseDepthFirst(RelType.HAS_CHILD, Direction.INCOMING, new Evaluator() {
-
-			@Override
-			public Evaluation evaluate(Path path) {
-
-				Node node = path.endNode();
-
-				// check for type property with value "Trash"
-				if (node.hasProperty(Key.type.name()) && node.getProperty(Key.type.name()).equals("Trash")) {
-
-					// only include Trash nodes in result set
-					return (Evaluation.INCLUDE_AND_PRUNE);
-				} else {
-
-					// else just continue
-					return (Evaluation.EXCLUDE_AND_CONTINUE);
-				}
-			}
-
-		})) > 0);
-	}
+//	public boolean isInTrash() {
+//
+//		return (countIterableElements(traverseDepthFirst(RelType.HAS_CHILD, Direction.INCOMING, new Evaluator() {
+//
+//			@Override
+//			public Evaluation evaluate(Path path) {
+//
+//				Node node = path.endNode();
+//
+//				// check for type property with value "Trash"
+//				if (node.hasProperty(Key.type.name()) && node.getProperty(Key.type.name()).equals("Trash")) {
+//
+//					// only include Trash nodes in result set
+//					return (Evaluation.INCLUDE_AND_PRUNE);
+//				} else {
+//
+//					// else just continue
+//					return (Evaluation.EXCLUDE_AND_CONTINUE);
+//				}
+//			}
+//
+//		})) > 0);
+//	}
 
 	public boolean isVisible() {
 		return securityContext.isVisible(this);
@@ -3653,40 +3641,40 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 *       }
 	 * }
 	 */
-	public void setTemplate(final Template template) {
-		this.template = template;
-	}
+//	public void setTemplate(final Template template) {
+//		this.template = template;
+//	}
 
-	public void setTemplateId(final Long value) {
-
-		try {
-
-			// find template node
-			Command findNode      = Services.command(securityContext, FindNodeCommand.class);
-			Template templateNode = (Template) findNode.execute(value);
-
-			// delete existing template relationships
-			List<AbstractRelationship> templateRels = this.getOutgoingRelationships(RelType.USE_TEMPLATE);
-			Command delRel                          = Services.command(securityContext, DeleteRelationshipCommand.class);
-
-			if (templateRels != null) {
-
-				for (AbstractRelationship r : templateRels) {
-
-					delRel.execute(r);
-
-				}
-
-			}
-
-			// create new link target relationship
-			Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
-
-			createRel.execute(this, templateNode, RelType.USE_TEMPLATE);
-		} catch (FrameworkException fex) {
-			logger.log(Level.WARNING, "Unable to set template id", fex);
-		}
-	}
+//	public void setTemplateId(final Long value) {
+//
+//		try {
+//
+//			// find template node
+//			Command findNode      = Services.command(securityContext, FindNodeCommand.class);
+//			Template templateNode = (Template) findNode.execute(value);
+//
+//			// delete existing template relationships
+//			List<AbstractRelationship> templateRels = this.getOutgoingRelationships(RelType.USE_TEMPLATE);
+//			Command delRel                          = Services.command(securityContext, DeleteRelationshipCommand.class);
+//
+//			if (templateRels != null) {
+//
+//				for (AbstractRelationship r : templateRels) {
+//
+//					delRel.execute(r);
+//
+//				}
+//
+//			}
+//
+//			// create new link target relationship
+//			Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
+//
+//			createRel.execute(this, templateNode, RelType.USE_TEMPLATE);
+//		} catch (FrameworkException fex) {
+//			logger.log(Level.WARNING, "Unable to set template id", fex);
+//		}
+//	}
 
 	public void setCreatedBy(final String createdBy) throws FrameworkException {
 		setProperty(Key.createdBy.name(), createdBy);

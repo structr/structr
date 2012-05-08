@@ -200,7 +200,7 @@ public class ExtractFileCommand extends NodeServiceCommand {
 											}
 
 											// link file node to parent node
-											createRel.execute(parentNode, childNode, RelType.HAS_CHILD);
+											createRel.execute(parentNode, childNode, RelType.CONTAINS);
 
 
 											parentNode = childNode;
@@ -227,7 +227,7 @@ public class ExtractFileCommand extends NodeServiceCommand {
 									NodeAttribute nameAttr = new NodeAttribute(AbstractNode.Key.name.name(), name);
 
 									AbstractNode fileNode = (AbstractNode)createNode.execute(nameAttr, typeAttr, sizeAttr, user);
-									createRel.execute(targetNode, fileNode, RelType.HAS_CHILD);
+									createRel.execute(targetNode, fileNode, RelType.CONTAINS);
 
 									writeFile(fileNode, input);
 

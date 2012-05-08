@@ -21,24 +21,15 @@
 
 package org.structr.core.node.search;
 
-import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.index.Index;
-import org.neo4j.kernel.Traversal;
-
-import org.structr.common.RelType;
 import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.node.FindNodeCommand;
 import org.structr.core.node.NodeService.NodeIndex;
 import org.structr.core.node.NodeServiceCommand;
-import org.structr.core.node.XPath;
-
-//~--- JDK imports ------------------------------------------------------------
-
-import java.util.List;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.User;
 
@@ -85,51 +76,51 @@ public class SearchUserCommand extends NodeServiceCommand {
 
 					break;
 
-				case 2 :
-
-					// we have user name and domain
-					if ((parameters[0] instanceof String) && (parameters[1] instanceof String)) {
-
-						String userName          = (String) parameters[0];
-						String rootNodePath      = (String) parameters[1];
-						List<AbstractNode> nodes = (List<AbstractNode>) findNode.execute(new XPath(rootNodePath));
-
-						// we take the first one
-						if ((nodes != null) && (nodes.size() > 0)) {
-
-							AbstractNode r = nodes.get(0);
-							Node startNode = null;
-
-							if (r != null) {
-
-								startNode = r.getNode();
-
-								if (startNode != null) {
-
-									startNode = graphDb.getReferenceNode();
-
-								}
-
-								for (Node n : getSubnodes(startNode)) {
-
-									AbstractNode s = (AbstractNode) findNode.execute(n);
-
-									// TODO: implement better algorithm for user retrieval
-									if (s.getType().equals(User.class.getSimpleName()) && userName.equals(s.getName())) {
-
-										return s;
-
-									}
-
-								}
-
-							}
-
-						}
-
-					}
-
-					break;
+//				case 2 :
+//
+//					// we have user name and domain
+//					if ((parameters[0] instanceof String) && (parameters[1] instanceof String)) {
+//
+//						String userName          = (String) parameters[0];
+//						String rootNodePath      = (String) parameters[1];
+//						List<AbstractNode> nodes = (List<AbstractNode>) findNode.execute(new XPath(rootNodePath));
+//
+//						// we take the first one
+//						if ((nodes != null) && (nodes.size() > 0)) {
+//
+//							AbstractNode r = nodes.get(0);
+//							Node startNode = null;
+//
+//							if (r != null) {
+//
+//								startNode = r.getNode();
+//
+//								if (startNode != null) {
+//
+//									startNode = graphDb.getReferenceNode();
+//
+//								}
+//
+//								for (Node n : getSubnodes(startNode)) {
+//
+//									AbstractNode s = (AbstractNode) findNode.execute(n);
+//
+//									// TODO: implement better algorithm for user retrieval
+//									if (s.getType().equals(User.class.getSimpleName()) && userName.equals(s.getName())) {
+//
+//										return s;
+//
+//									}
+//
+//								}
+//
+//							}
+//
+//						}
+//
+//					}
+//
+//					break;
 
 				default :
 					break;
@@ -143,9 +134,9 @@ public class SearchUserCommand extends NodeServiceCommand {
 
 	//~--- get methods ----------------------------------------------------
 
-	private Iterable<Node> getSubnodes(Node rootNode) {
-
-		return Traversal.description().breadthFirst().relationships(RelType.HAS_CHILD,
-			Direction.OUTGOING).prune(Traversal.pruneAfterDepth(999)).traverse(rootNode).nodes();
-	}
+//	private Iterable<Node> getSubnodes(Node rootNode) {
+//
+//		return Traversal.description().breadthFirst().relationships(RelType.HAS_CHILD,
+//			Direction.OUTGOING).prune(Traversal.pruneAfterDepth(999)).traverse(rootNode).nodes();
+//	}
 }

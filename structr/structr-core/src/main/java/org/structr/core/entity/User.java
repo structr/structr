@@ -26,30 +26,14 @@ import org.neo4j.graphdb.Direction;
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
-import org.structr.core.Command;
 import org.structr.core.EntityContext;
-import org.structr.core.Services;
 import org.structr.core.converter.PasswordConverter;
 import org.structr.core.entity.RelationClass.Cardinality;
-import org.structr.core.node.CreateNodeCommand;
-import org.structr.core.node.CreateRelationshipCommand;
-import org.structr.core.node.DeleteRelationshipCommand;
-import org.structr.core.node.FindNodeCommand;
-import org.structr.core.node.NodeAttribute;
 import org.structr.core.node.NodeService.NodeIndex;
-import org.structr.core.node.StructrTransaction;
-import org.structr.core.node.TransactionCommand;
-
-//~--- JDK imports ------------------------------------------------------------
-
-import java.lang.reflect.Method;
-
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.log.LogNodeList;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -70,7 +54,8 @@ public class User extends Person {
 		EntityContext.registerPropertySet(User.class, PropertyView.All, Key.values());
 		EntityContext.registerPropertySet(User.class, PropertyView.Public, Key.realName);
 		//EntityContext.registerPropertyRelation(User.class, Key.groups, Group.class, RelType.HAS_CHILD, Direction.INCOMING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(User.class, Group.class, RelType.HAS_CHILD, Direction.INCOMING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(User.class, Group.class, RelType.MEMBER_OF, Direction.OUTGOING, Cardinality.ManyToMany);
+		//EntityContext.registerEntityRelation(User.class, LogNodeList.class, RelType.OWNS, Direction.OUTGOING, Cardinality.OneToOne);
 		EntityContext.registerSearchablePropertySet(User.class, NodeIndex.user.name(), UserIndexKey.values());
 		EntityContext.registerSearchablePropertySet(User.class, NodeIndex.fulltext.name(), Key.values());
 		EntityContext.registerSearchablePropertySet(User.class, NodeIndex.keyword.name(), Key.values());
@@ -97,88 +82,88 @@ public class User extends Person {
 	 * @param categoryName
 	 * @param objectId
 	 */
-	public void removeFromCategory(final String categoryName, final String objectId) {
-
-		final User user = this;
-
-		if (categoryName == null) {
-
-			logger.log(Level.SEVERE, "Empty category name!");
-
-			return;
-
-		}
-
-		try {
-			final AbstractNode object = (AbstractNode) Services.command(securityContext, FindNodeCommand.class).execute(objectId);
-			if (object == null) {
-
-				logger.log(Level.SEVERE, "Object not found!");
-
-				return;
-
-			}
-
-			Category cat                = null;
-			List<AbstractNode> children = this.getDirectChildNodes();
-
-			for (AbstractNode child : children) {
-
-				if ((child instanceof Category) && categoryName.equals(child.getName())) {
-
-					cat = (Category) child;
-
-				}
-
-			}
-
-			if (cat == null) {
-
-				logger.log(Level.SEVERE, "Category not found!");
-
-				return;
-
-			}
-
-			AbstractRelationship relationshipToRemove        = null;
-			List<AbstractRelationship> outgoingRelationships = cat.getOutgoingLinkRelationships();
-
-			for (AbstractRelationship rel : outgoingRelationships) {
-
-				AbstractNode endNode = rel.getEndNode();
-
-				if (endNode.equals(object)) {
-
-					relationshipToRemove = rel;
-
-				}
-
-			}
-
-			if (relationshipToRemove != null) {
-
-				final AbstractRelationship relToDel = relationshipToRemove;
-
-				Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-					@Override
-					public Object execute() throws FrameworkException {
-
-						// Delete relationship
-						Services.command(securityContext, DeleteRelationshipCommand.class).execute(relToDel);
-
-						return null;
-					}
-
-				});
-
-			}
-
-		} catch(FrameworkException fex) {
-			logger.log(Level.WARNING, "Unable to remove node from category", fex);
-			return;
-		}
-	}
+//	public void removeFromCategory(final String categoryName, final String objectId) {
+//
+//		final User user = this;
+//
+//		if (categoryName == null) {
+//
+//			logger.log(Level.SEVERE, "Empty category name!");
+//
+//			return;
+//
+//		}
+//
+//		try {
+//			final AbstractNode object = (AbstractNode) Services.command(securityContext, FindNodeCommand.class).execute(objectId);
+//			if (object == null) {
+//
+//				logger.log(Level.SEVERE, "Object not found!");
+//
+//				return;
+//
+//			}
+//
+//			Category cat                = null;
+//			List<AbstractNode> children = this.getDirectChildNodes();
+//
+//			for (AbstractNode child : children) {
+//
+//				if ((child instanceof Category) && categoryName.equals(child.getName())) {
+//
+//					cat = (Category) child;
+//
+//				}
+//
+//			}
+//
+//			if (cat == null) {
+//
+//				logger.log(Level.SEVERE, "Category not found!");
+//
+//				return;
+//
+//			}
+//
+//			AbstractRelationship relationshipToRemove        = null;
+//			List<AbstractRelationship> outgoingRelationships = cat.getOutgoingLinkRelationships();
+//
+//			for (AbstractRelationship rel : outgoingRelationships) {
+//
+//				AbstractNode endNode = rel.getEndNode();
+//
+//				if (endNode.equals(object)) {
+//
+//					relationshipToRemove = rel;
+//
+//				}
+//
+//			}
+//
+//			if (relationshipToRemove != null) {
+//
+//				final AbstractRelationship relToDel = relationshipToRemove;
+//
+//				Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+//
+//					@Override
+//					public Object execute() throws FrameworkException {
+//
+//						// Delete relationship
+//						Services.command(securityContext, DeleteRelationshipCommand.class).execute(relToDel);
+//
+//						return null;
+//					}
+//
+//				});
+//
+//			}
+//
+//		} catch(FrameworkException fex) {
+//			logger.log(Level.WARNING, "Unable to remove node from category", fex);
+//			return;
+//		}
+//	}
 
 	/**
 	 * Add object with given id to a category with given name.
@@ -188,83 +173,83 @@ public class User extends Person {
 	 * @param categoryName
 	 * @param objectId
 	 */
-	public AbstractNode addToCategory(final String categoryName, final String objectId) {
-
-		final User user = this;
-
-		if (categoryName == null) {
-
-			logger.log(Level.SEVERE, "Empty category name!");
-
-			return null;
-
-		}
-
-		try {
-			final AbstractNode object = (AbstractNode) Services.command(securityContext, FindNodeCommand.class).execute(objectId);
-
-			if (object == null) {
-
-				logger.log(Level.SEVERE, "Object not found!");
-
-				return null;
-
-			}
-
-			Category cat                = null;
-			List<AbstractNode> children = this.getDirectChildNodes();
-
-			for (AbstractNode child : children) {
-
-				if ((child instanceof Category) && categoryName.equals(child.getName())) {
-
-					cat = (Category) child;
-
-				}
-
-			}
-
-			final Category category = cat;
-			final Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
-
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-				Category cat = null;
-				@Override
-				public Object execute() throws FrameworkException {
-
-					if (category == null) {
-
-						// Category with given name not found, create one!
-						cat = (Category) Services.command(securityContext, CreateNodeCommand.class).execute(user,
-										  new NodeAttribute(AbstractNode.Key.name.name(), categoryName),
-										  new NodeAttribute(AbstractNode.Key.type.name(), Category.class.getSimpleName()),
-										  true);
-
-						// NodeLink category to user
-						createRel.execute(user, cat, RelType.HAS_CHILD, true);
-					} else {
-
-						cat = category;
-
-					}
-
-					// Create link between category and object
-					createRel.execute(cat, object, RelType.LINK, true);
-
-					return null;
-				}
-
-			});
-
-			return object;
-
-		} catch(FrameworkException fex) {
-			logger.log(Level.WARNING, "Unable to add node to category", fex);
-		}
-
-		return null;
-	}
+//	public AbstractNode addToCategory(final String categoryName, final String objectId) {
+//
+//		final User user = this;
+//
+//		if (categoryName == null) {
+//
+//			logger.log(Level.SEVERE, "Empty category name!");
+//
+//			return null;
+//
+//		}
+//
+//		try {
+//			final AbstractNode object = (AbstractNode) Services.command(securityContext, FindNodeCommand.class).execute(objectId);
+//
+//			if (object == null) {
+//
+//				logger.log(Level.SEVERE, "Object not found!");
+//
+//				return null;
+//
+//			}
+//
+//			Category cat                = null;
+//			List<AbstractNode> children = this.getDirectChildNodes();
+//
+//			for (AbstractNode child : children) {
+//
+//				if ((child instanceof Category) && categoryName.equals(child.getName())) {
+//
+//					cat = (Category) child;
+//
+//				}
+//
+//			}
+//
+//			final Category category = cat;
+//			final Command createRel = Services.command(securityContext, CreateRelationshipCommand.class);
+//
+//			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+//
+//				Category cat = null;
+//				@Override
+//				public Object execute() throws FrameworkException {
+//
+//					if (category == null) {
+//
+//						// Category with given name not found, create one!
+//						cat = (Category) Services.command(securityContext, CreateNodeCommand.class).execute(user,
+//										  new NodeAttribute(AbstractNode.Key.name.name(), categoryName),
+//										  new NodeAttribute(AbstractNode.Key.type.name(), Category.class.getSimpleName()),
+//										  true);
+//
+//						// NodeLink category to user
+//						createRel.execute(user, cat, RelType.HAS_CHILD, true);
+//					} else {
+//
+//						cat = category;
+//
+//					}
+//
+//					// Create link between category and object
+//					createRel.execute(cat, object, RelType.LINK, true);
+//
+//					return null;
+//				}
+//
+//			});
+//
+//			return object;
+//
+//		} catch(FrameworkException fex) {
+//			logger.log(Level.WARNING, "Unable to add node to category", fex);
+//		}
+//
+//		return null;
+//	}
 
 	//~--- get methods ----------------------------------------------------
 
@@ -298,18 +283,18 @@ public class User extends Person {
 	/**
 	 * Return group node this user is in (if any)
 	 */
-	public Group getGroupNode() {
-
-		AbstractNode parentNode = getParentNode();
-
-		if ((parentNode != null) && (parentNode instanceof Group)) {
-
-			return (Group) parentNode;
-
-		}
-
-		return null;
-	}
+//	public Group getGroupNode() {
+//
+//		AbstractNode parentNode = getParentNode();
+//
+//		if ((parentNode != null) && (parentNode instanceof Group)) {
+//
+//			return (Group) parentNode;
+//
+//		}
+//
+//		return null;
+//	}
 
 	public String getEncryptedPassword() {
 
@@ -375,106 +360,106 @@ public class User extends Person {
 	 * @param categoryName
 	 * @return
 	 */
-	public List<AbstractNode> getSortedObjectsOfCategory(final String categoryName, final String sortBy, final String sortDirection) {
-
-		List<AbstractNode> objects = getObjectsOfCategory(categoryName);
-
-		if (sortBy != null) {
-
-			Collections.sort(objects, new Comparator<AbstractNode>() {
-
-				@Override
-				public int compare(AbstractNode nodeOne, AbstractNode nodeTwo) {
-
-					if (nodeOne instanceof NodeLink) {
-
-						nodeOne = ((NodeLink) nodeOne).getStructrNode();
-
-					}
-
-					if (nodeTwo instanceof NodeLink) {
-
-						nodeTwo = ((NodeLink) nodeTwo).getStructrNode();
-
-					}
-
-					Method getterOne = null;
-
-					try {
-						getterOne = nodeOne.getClass().getMethod(sortBy);
-					} catch (Exception ex) {
-						logger.log(Level.FINE, "Cannot invoke method {0}", sortBy);
-					}
-
-					Method getterTwo = null;
-
-					try {
-						getterTwo = nodeOne.getClass().getMethod(sortBy);
-					} catch (Exception ex) {
-						logger.log(Level.FINE, "Cannot invoke method {0}", sortBy);
-					}
-
-					int result = 0;
-
-					if ((getterOne != null) && (getterTwo != null)) {
-
-						Object valueOne = null;
-
-						try {
-							valueOne = getterOne.invoke(nodeOne);
-						} catch (Exception ex) {
-							logger.log(Level.FINE, "Cannot invoke method {0} on {1}", new Object[] { getterOne, nodeOne });
-						}
-
-						Object valueTwo = null;
-
-						try {
-							valueTwo = getterTwo.invoke(nodeTwo);
-						} catch (Exception ex) {
-							logger.log(Level.FINE, "Cannot invoke method {0} on {1}", new Object[] { getterTwo, nodeTwo });
-						}
-
-						if ((valueOne != null) && (valueTwo != null)) {
-
-							if ((valueOne instanceof Comparable) && (valueTwo instanceof Comparable)) {
-
-								if ((sortDirection != null) && sortDirection.equals("asc")) {
-
-									result = ((Comparable) valueOne).compareTo((Comparable) valueTwo);
-
-								} else {
-
-									result = ((Comparable) valueTwo).compareTo((Comparable) valueOne);
-
-								}
-
-							} else {
-
-								if ((sortDirection != null) && sortDirection.equals("asc")) {
-
-									result = valueOne.toString().compareTo(valueTwo.toString());
-
-								} else {
-
-									result = valueTwo.toString().compareTo(valueOne.toString());
-
-								}
-
-							}
-
-						}
-
-					}
-
-					return result;
-				}
-
-			});
-
-		}
-
-		return objects;
-	}
+//	public List<AbstractNode> getSortedObjectsOfCategory(final String categoryName, final String sortBy, final String sortDirection) {
+//
+//		List<AbstractNode> objects = getObjectsOfCategory(categoryName);
+//
+//		if (sortBy != null) {
+//
+//			Collections.sort(objects, new Comparator<AbstractNode>() {
+//
+//				@Override
+//				public int compare(AbstractNode nodeOne, AbstractNode nodeTwo) {
+//
+//					if (nodeOne instanceof NodeLink) {
+//
+//						nodeOne = ((NodeLink) nodeOne).getStructrNode();
+//
+//					}
+//
+//					if (nodeTwo instanceof NodeLink) {
+//
+//						nodeTwo = ((NodeLink) nodeTwo).getStructrNode();
+//
+//					}
+//
+//					Method getterOne = null;
+//
+//					try {
+//						getterOne = nodeOne.getClass().getMethod(sortBy);
+//					} catch (Exception ex) {
+//						logger.log(Level.FINE, "Cannot invoke method {0}", sortBy);
+//					}
+//
+//					Method getterTwo = null;
+//
+//					try {
+//						getterTwo = nodeOne.getClass().getMethod(sortBy);
+//					} catch (Exception ex) {
+//						logger.log(Level.FINE, "Cannot invoke method {0}", sortBy);
+//					}
+//
+//					int result = 0;
+//
+//					if ((getterOne != null) && (getterTwo != null)) {
+//
+//						Object valueOne = null;
+//
+//						try {
+//							valueOne = getterOne.invoke(nodeOne);
+//						} catch (Exception ex) {
+//							logger.log(Level.FINE, "Cannot invoke method {0} on {1}", new Object[] { getterOne, nodeOne });
+//						}
+//
+//						Object valueTwo = null;
+//
+//						try {
+//							valueTwo = getterTwo.invoke(nodeTwo);
+//						} catch (Exception ex) {
+//							logger.log(Level.FINE, "Cannot invoke method {0} on {1}", new Object[] { getterTwo, nodeTwo });
+//						}
+//
+//						if ((valueOne != null) && (valueTwo != null)) {
+//
+//							if ((valueOne instanceof Comparable) && (valueTwo instanceof Comparable)) {
+//
+//								if ((sortDirection != null) && sortDirection.equals("asc")) {
+//
+//									result = ((Comparable) valueOne).compareTo((Comparable) valueTwo);
+//
+//								} else {
+//
+//									result = ((Comparable) valueTwo).compareTo((Comparable) valueOne);
+//
+//								}
+//
+//							} else {
+//
+//								if ((sortDirection != null) && sortDirection.equals("asc")) {
+//
+//									result = valueOne.toString().compareTo(valueTwo.toString());
+//
+//								} else {
+//
+//									result = valueTwo.toString().compareTo(valueOne.toString());
+//
+//								}
+//
+//							}
+//
+//						}
+//
+//					}
+//
+//					return result;
+//				}
+//
+//			});
+//
+//		}
+//
+//		return objects;
+//	}
 
 	/**
 	 * Return all objects linked to the given category
@@ -482,39 +467,39 @@ public class User extends Person {
 	 * @param categoryName
 	 * @return
 	 */
-	public List<AbstractNode> getObjectsOfCategory(final String categoryName) {
-
-		if (categoryName == null) {
-
-			logger.log(Level.SEVERE, "Empty category name!");
-
-			return null;
-
-		}
-
-		List<AbstractNode> result   = Collections.emptyList();
-		final User user             = this;
-		Category cat                = null;
-		List<AbstractNode> children = this.getDirectChildNodes();
-
-		for (AbstractNode child : children) {
-
-			if ((child instanceof Category) && categoryName.equals(child.getName())) {
-
-				cat = (Category) child;
-
-			}
-
-		}
-
-		if (cat != null) {
-
-			result = cat.getSortedLinkedNodes();
-
-		}
-
-		return result;
-	}
+//	public List<AbstractNode> getObjectsOfCategory(final String categoryName) {
+//
+//		if (categoryName == null) {
+//
+//			logger.log(Level.SEVERE, "Empty category name!");
+//
+//			return null;
+//
+//		}
+//
+//		List<AbstractNode> result   = Collections.emptyList();
+//		final User user             = this;
+//		Category cat                = null;
+//		List<AbstractNode> children = this.getDirectChildNodes();
+//
+//		for (AbstractNode child : children) {
+//
+//			if ((child instanceof Category) && categoryName.equals(child.getName())) {
+//
+//				cat = (Category) child;
+//
+//			}
+//
+//		}
+//
+//		if (cat != null) {
+//
+//			result = cat.getSortedLinkedNodes();
+//
+//		}
+//
+//		return result;
+//	}
 
 	public Boolean isBlocked() {
 		return Boolean.TRUE.equals(getBlocked());

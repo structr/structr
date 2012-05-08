@@ -842,7 +842,7 @@ var _Resources = {
                     nodeData.sourceResourceId = sourceResourceId;
                 }
 
-                console.log('drop event in appendElementElement', elementId, nodeData, relData);
+                if (debug) console.log('drop event in appendElementElement', elementId, nodeData, relData);
                 Command.createAndAdd(elementId, nodeData, relData);
             }
         });

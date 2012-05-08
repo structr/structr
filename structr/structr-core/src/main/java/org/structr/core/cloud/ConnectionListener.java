@@ -290,7 +290,7 @@ public class ConnectionListener extends Listener implements CloudTransmission {
 
 		// Connect first node with root node
 		if(linkToRootNode) {
-			createRel.execute(rootNode, newNode, RelType.HAS_CHILD);
+			createRel.execute(rootNode, newNode, RelType.CONTAINS);
 
 			// Reset link node flag, has to be explictly set to true!
 			linkNode = false;

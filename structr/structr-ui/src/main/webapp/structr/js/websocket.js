@@ -68,13 +68,15 @@ function connect() {
             var code = data.code;
             var callback = data.callback;
 
-            if (true) {
+            debug = true
+            {
                 if (debug) console.log('command: ' + command);
                 if (debug) console.log('type: ' + type);
                 if (debug) console.log('code: ' + code);
                 if (debug) console.log('callback: ' + callback);
                 if (debug) console.log('sessionValid: ' + sessionValid);
             }
+            debug = false;
             if (debug) console.log('result: ' + $.toJSON(result));
 
             if (command == 'LOGIN') { /*********************** LOGIN ************************/

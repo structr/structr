@@ -150,7 +150,7 @@ public class ConvertCsvToNodeListCommand extends NodeServiceCommand {
                             new NodeAttribute(AbstractNode.Key.type.name(), NodeList.class.getSimpleName()),
                             new NodeAttribute(AbstractNode.Key.name.name(), sourceNodeCopy.getName() + " List"));
 
-                    createRel.execute(sourceNodeCopy, result, RelType.HAS_CHILD);
+                    createRel.execute(sourceNodeCopy, result, RelType.CONTAINS);
                     return result;
                 }
             });

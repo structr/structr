@@ -23,7 +23,7 @@ import java.util.Comparator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.NodeLink;
+//import org.structr.core.entity.NodeLink;
 
 /**
  *
@@ -53,13 +53,13 @@ public class AbstractNodeComparator implements Comparator {
     
     private int compare(AbstractNode nodeOne, AbstractNode nodeTwo) {
 
-        if (nodeOne instanceof NodeLink) {
-            nodeOne = ((NodeLink) nodeOne).getStructrNode();
-        }
-
-        if (nodeTwo instanceof NodeLink) {
-            nodeTwo = ((NodeLink) nodeTwo).getStructrNode();
-        }
+//        if (nodeOne instanceof NodeLink) {
+//            nodeOne = ((NodeLink) nodeOne).getStructrNode();
+//        }
+//
+//        if (nodeTwo instanceof NodeLink) {
+//            nodeTwo = ((NodeLink) nodeTwo).getStructrNode();
+//        }
 
         Method getterOne = null;
         try {

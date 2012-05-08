@@ -234,7 +234,7 @@ public class SaveImagesFromFlashUrl extends NodeServiceCommand {
                                     true);  // Update index
 
                             // Establish HAS_CHILD relationship from parent node
-                            Services.command(securityContext, CreateRelationshipCommand.class).execute(parentNode, newImageNode, RelType.HAS_CHILD);
+                            Services.command(securityContext, CreateRelationshipCommand.class).execute(parentNode, newImageNode, RelType.CONTAINS);
 
                             String relativeFilePath = newImageNode.getId() + "_" + System.currentTimeMillis();
 

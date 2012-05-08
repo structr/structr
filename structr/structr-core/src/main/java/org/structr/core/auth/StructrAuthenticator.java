@@ -21,18 +21,12 @@
 
 package org.structr.core.auth;
 
-import org.apache.commons.codec.digest.DigestUtils;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.context.SessionMonitor;
-import org.structr.core.Command;
-import org.structr.core.Services;
+//import org.structr.context.SessionMonitor;
 import org.structr.core.auth.exception.AuthenticationException;
-import org.structr.core.auth.exception.UnauthorizedException;
-import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.User;
-import org.structr.core.node.FindUserCommand;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -80,12 +74,12 @@ public class StructrAuthenticator implements Authenticator {
 			session.setAttribute(USER_NODE_KEY, user);
 			session.setAttribute(USERNAME_KEY, userName);
 
-			long sessionId = SessionMonitor.registerUserSession(securityContext, session);
-
-			SessionMonitor.logActivity(securityContext, sessionId, "Login");
-
-			// Mark this session with the internal session id
-			session.setAttribute(SessionMonitor.SESSION_ID, sessionId);
+//			long sessionId = SessionMonitor.registerUserSession(securityContext, session);
+//
+//			SessionMonitor.logActivity(securityContext, sessionId, "Login");
+//
+//			// Mark this session with the internal session id
+//			session.setAttribute(SessionMonitor.SESSION_ID, sessionId);
 
 		} catch (Exception e) {
 			logger.log(Level.INFO, "Could not register session");
@@ -98,15 +92,15 @@ public class StructrAuthenticator implements Authenticator {
 	public void doLogout(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) {
 
 		HttpSession session = request.getSession();
-		Long sessionIdValue = (Long) session.getAttribute(SessionMonitor.SESSION_ID);
-
-		if (sessionIdValue != null) {
-
-			long sessionId = sessionIdValue.longValue();
-
-			SessionMonitor.logActivity(securityContext, sessionId, "Logout");
-
-		}
+//		Long sessionIdValue = (Long) session.getAttribute(SessionMonitor.SESSION_ID);
+//
+//		if (sessionIdValue != null) {
+//
+//			long sessionId = sessionIdValue.longValue();
+//
+//			SessionMonitor.logActivity(securityContext, sessionId, "Logout");
+//
+//		}
 
 		session.removeAttribute(USER_NODE_KEY);
 		session.removeAttribute(USERNAME_KEY);

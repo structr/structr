@@ -130,31 +130,31 @@ var _Entities = {
 
             var folderElement = _Files.appendFolderElement(entity, removeExisting, hasChildren);
 
-            var folders = entity.folders;
-            if (folders && folders.length > 0) {
-                disable($('.delete_icon', folderElement)[0]);
-                $(folders).each(function(i, folder) {
-                    _Files.appendFolderElement(folder, entity.id, removeExisting, hasChildren);
-                });
-            }
-            var images = entity.images;
-            if (images && images.length > 0) {
-                disable($('.delete_icon', folderElement)[0]);
-                $(images).each(function(i, image) {
-                    _Files.appendImageElement(image, entity.id, removeExisting, hasChildren);
-                });
-            }
-            var files = entity.files;
-            if (files && files.length > 0) {
-                disable($('.delete_icon', folderElement)[0]);
-                $(files).each(function(i, file) {
-
-                    if (file.type == 'File') { // files comprise images
-                        _Files.appendFileElement(file, entity.id, removeExisting, hasChildren);
-                    }
-
-                });
-            }
+//            var folders = entity.folders;
+//            if (folders && folders.length > 0) {
+//                disable($('.delete_icon', folderElement)[0]);
+//                $(folders).each(function(i, folder) {
+//                    _Files.appendFolderElement(folder, entity.id, removeExisting, hasChildren);
+//                });
+//            }
+//            var images = entity.images;
+//            if (images && images.length > 0) {
+//                disable($('.delete_icon', folderElement)[0]);
+//                $(images).each(function(i, image) {
+//                    _Files.appendImageElement(image, entity.id, removeExisting, hasChildren);
+//                });
+//            }
+//            var files = entity.files;
+//            if (files && files.length > 0) {
+//                disable($('.delete_icon', folderElement)[0]);
+//                $(files).each(function(i, file) {
+//
+//                    if (file.type == 'File') { // files comprise images
+//                        _Files.appendFileElement(file, entity.id, removeExisting, hasChildren);
+//                    }
+//
+//                });
+//            }
 
             lastAppendedObj = folderElement;
 

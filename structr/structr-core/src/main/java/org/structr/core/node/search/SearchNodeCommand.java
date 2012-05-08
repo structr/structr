@@ -228,15 +228,15 @@ public class SearchNodeCommand extends NodeServiceCommand {
 
 			if (searchAttrs.isEmpty() && StringUtils.isBlank(textualQueryString)) {
 
-				if (topNode != null) {
-
-					intermediateResult = topNode.getAllChildren();
-
-				} else {
+//				if (topNode != null) {
+//
+//					intermediateResult = topNode.getAllChildren();
+//
+//				} else {
 
 					intermediateResult = new LinkedList<AbstractNode>();
 
-				}
+//				}
 
 			} else {
 

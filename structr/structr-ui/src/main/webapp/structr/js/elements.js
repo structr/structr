@@ -179,7 +179,7 @@ var _Elements = {
         if (debug) console.log('_Elements.appendElementElement', entity, parentId, componentId, resourceId, removeExisting, hasChildren);
 
         var parent = Structr.findParent(parentId, componentId, resourceId, elements);
-        console.log('appendElementElement parent', parent);
+        if (debug) console.log('appendElementElement parent', parent);
         if (!parent) return false;
         
         parent.append('<div class="node element ' + entity.id + '_"></div>');

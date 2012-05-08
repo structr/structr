@@ -257,12 +257,16 @@ var _Files = {
 		
         if (debug) console.log('Folder: ', folder);
         var parent = Structr.findParent(parentId, null, null, folders);
+
 		
         parent.append('<div structr_type="folder" class="node folder ' + folder.id + '_">'
             + '<img class="typeIcon" src="'+ _Files.folder_icon + '">'
             + '<b class="name_">' + folder.name + '</b> <span class="id">' + folder.id + '</span>'
             + '</div>');
         var div = Structr.node(folder.id, parentId);
+
+        _Entities.appendExpandIcon(div, folder, hasChildren);
+        
         div.append('<img title="Delete Content \'' + folder.name + '\'" alt="Delete Content \'' + folder.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
         $('.delete_icon', div).on('click', function() {
             _Entities.deleteNode(this, folder);

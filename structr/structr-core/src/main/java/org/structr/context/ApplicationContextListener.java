@@ -189,16 +189,16 @@ public class ApplicationContextListener implements ServletContextListener, HttpS
 
             logger.log(Level.FINE, "HTTP session destroyed, cleaning ", servletSessionId);
 
-            Long sessionId = (Long) session.getAttribute(SessionMonitor.SESSION_ID);
-
-            if (sessionId != null) {
-
-		// no security context present
-                SessionMonitor.logActivity(null, sessionId, "Logout");
-
-                // Remove session from internal session management
-                SessionMonitor.unregisterUserSession(sessionId, session.getServletContext());
-            }
+//            Long sessionId = (Long) session.getAttribute(SessionMonitor.SESSION_ID);
+//
+//            if (sessionId != null) {
+//
+//		// no security context present
+//                SessionMonitor.logActivity(null, sessionId, "Logout");
+//
+//                // Remove session from internal session management
+//                SessionMonitor.unregisterUserSession(sessionId, session.getServletContext());
+//            }
 
         }
 

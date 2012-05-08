@@ -571,7 +571,7 @@ public class Importer {
 
 					if (parent != null) {
 
-						createRel.execute(parent, fileNode, RelType.HAS_CHILD);
+						createRel.execute(parent, fileNode, RelType.CONTAINS);
 
 					}
 
@@ -623,7 +623,7 @@ public class Importer {
 
 			if (parent != null) {
 
-				createRel.execute(parent, folder, RelType.HAS_CHILD);
+				createRel.execute(parent, folder, RelType.CONTAINS);
 
 			}
 

@@ -434,7 +434,7 @@ var Structr = {
     node : function(id, parentId, componentId, resourceId, position) {
         var entityElement, parentElement, componentElement, resourceElement;
 
-        console.log('Structr.node', id, parentId, componentId, resourceId, position);
+        if (debug) console.log('Structr.node', id, parentId, componentId, resourceId, position);
 
         if (id && resourceId && componentId && parentId && (resourceId != parentId) && (resourceId != componentId)) {
 

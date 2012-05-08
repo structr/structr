@@ -42,7 +42,7 @@ public class Group extends Principal {
 
 		EntityContext.registerPropertySet(Group.class, PropertyView.All, Key.values());
 		//EntityContext.registerPropertyRelation(Group.class, Key.users,	User.class, RelType.HAS_CHILD, Direction.OUTGOING, Cardinality.ManyToMany);
-		EntityContext.registerEntityRelation(Group.class, User.class, RelType.HAS_CHILD, Direction.OUTGOING, Cardinality.ManyToMany);
+		EntityContext.registerEntityRelation(Group.class, User.class, RelType.MEMBER_OF, Direction.INCOMING, Cardinality.ManyToMany);
 	}
 
 	//~--- constant enums -------------------------------------------------

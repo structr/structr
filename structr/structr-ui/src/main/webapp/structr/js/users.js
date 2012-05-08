@@ -140,7 +140,7 @@ var _UsersAndGroups = {
     },
 
     appendUserElement : function(user, groupId, removeExisting) {
-        console.log('appendUserElement', user, groupId, removeExisting);
+        if (debug) console.log('appendUserElement', user, groupId, removeExisting);
         var div;
         var newDelIcon = '<img title="Remove user \'' + user.name + '\' from group ' + groupId + '" '
                 + 'alt="Remove user ' + user.name + ' from group ' + groupId + '" class="delete_icon button" src="icon/user_delete.png">'

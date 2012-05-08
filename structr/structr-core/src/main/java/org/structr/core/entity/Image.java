@@ -30,12 +30,8 @@ import org.structr.common.ImageHelper.Thumbnail;
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
-import org.structr.common.RenderMode;
-import org.structr.common.renderer.FileStreamRenderer;
-import org.structr.common.renderer.ImageSourceRenderer;
 import org.structr.core.Command;
 import org.structr.core.EntityContext;
-import org.structr.core.NodeRenderer;
 import org.structr.core.Services;
 import org.structr.core.node.CreateNodeCommand;
 import org.structr.core.node.CreateRelationshipCommand;
@@ -52,7 +48,6 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.error.FrameworkException;
@@ -73,7 +68,7 @@ public class Image extends File {
 
 	static {
 
-		EntityContext.registerEntityRelation(Image.class, Folder.class, RelType.HAS_CHILD, Direction.INCOMING, Cardinality.ManyToOne);
+		EntityContext.registerEntityRelation(Image.class, Folder.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToOne);
 
 		EntityContext.registerPropertySet(Image.class,
 						  PropertyView.All,
@@ -91,14 +86,14 @@ public class Image extends File {
 
 	//~--- methods --------------------------------------------------------
 
-	@Override
-	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers) {
-
-		renderers.put(RenderMode.Default,
-			      new ImageSourceRenderer());
-		renderers.put(RenderMode.Direct,
-			      new FileStreamRenderer());
-	}
+//	@Override
+//	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers) {
+//
+//		renderers.put(RenderMode.Default,
+//			      new ImageSourceRenderer());
+//		renderers.put(RenderMode.Direct,
+//			      new FileStreamRenderer());
+//	}
 
 	synchronized public void removeThumbnails() {
 

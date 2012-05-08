@@ -29,11 +29,8 @@ import org.structr.common.Path;
 import org.structr.common.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.RelType;
-import org.structr.common.RenderMode;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.renderer.FileStreamRenderer;
 import org.structr.core.EntityContext;
-import org.structr.core.NodeRenderer;
 import org.structr.core.Services;
 import org.structr.core.entity.RelationClass.Cardinality;
 
@@ -45,7 +42,6 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.node.NodeService.NodeIndex;
@@ -65,7 +61,7 @@ public class File extends AbstractNode {
 
 	static {
 
-		EntityContext.registerEntityRelation(File.class, Folder.class, RelType.HAS_CHILD, Direction.INCOMING, Cardinality.ManyToOne);
+		EntityContext.registerEntityRelation(File.class, Folder.class, RelType.CONTAINS, Direction.INCOMING, Cardinality.ManyToOne);
 		EntityContext.registerPropertySet(File.class, PropertyView.All, Key.values());
 
 //              EntityContext.registerPropertyRelation(File.class, Key.parentFolder, Folder.class, RelType.HAS_CHILD, Direction.INCOMING, Cardinality.ManyToOne);
@@ -83,10 +79,10 @@ public class File extends AbstractNode {
 
 	//~--- methods --------------------------------------------------------
 
-	@Override
-	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers) {
-		renderers.put(RenderMode.Direct, new FileStreamRenderer());
-	}
+//	@Override
+//	public void initializeRenderers(Map<RenderMode, NodeRenderer> renderers) {
+//		renderers.put(RenderMode.Direct, new FileStreamRenderer());
+//	}
 
 	@Override
 	public void onNodeDeletion() {
